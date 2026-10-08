@@ -1948,11 +1948,7 @@
     const checks = SC.checks();
     const mine = checks.filter((check) => FG.hasRef(check, "audience", "#lens-" + route.lens));
     const others = checks.filter((check) => !mine.includes(check));
-    const steps = [
-      ["check", "selfcheck.steps.choose"],
-      ["answer", "selfcheck.steps.answer"],
-      ["where", "selfcheck.steps.result"],
-    ];
+    const steps = ["selfcheck.steps.choose", "selfcheck.steps.answer", "selfcheck.steps.result"];
     return h(
       "div",
       { class: "layout wrap selfcheck-overview" },
@@ -1964,7 +1960,7 @@
         h(
           "ol",
           { class: "how-steps" },
-          steps.map(([icon, key], index) => h("li", null, h("span", { class: "how-step-number" }, String(index + 1)), FG.icon(icon), h("span", null, FG.t(key))))
+          steps.map((key, index) => h("li", null, h("span", { class: "how-step-number" }, String(index + 1)), h("span", null, FG.t(key))))
         ),
         h("h2", null, FG.t("selfcheck.forLens")),
         h("ul", { class: "check-cards" }, mine.map(checkCard)),

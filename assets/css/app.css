@@ -975,8 +975,11 @@ details > .content {
   accent-color: var(--tint-teal);
 }
 
-.check-card-action {
-  margin-top: auto;
+.check-card .check-card-action {
+  display: flex;
+  justify-content: flex-end;
+  margin: auto 0 0;
+  padding-top: var(--space-2);
 }
 
 .saved-results {

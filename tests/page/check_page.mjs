@@ -458,6 +458,8 @@ async function axe(page, label) {
   }
   await go("#/cs/V/selfcheck");
   if (!(await page.locator(".lens-band").count())) fail("lens band: missing on the self-check overview");
+  const cornerOffsets = await page.locator(".check-card").evaluateAll((cards) => cards.map((card) => { const box = card.getBoundingClientRect(); const button = card.querySelector(".check-card-action a").getBoundingClientRect(); return Math.round(box.bottom - button.bottom) + "/" + Math.round(box.right - button.right); }));
+  if (new Set(cornerOffsets).size !== 1) fail("overview: the check cards' buttons are not in the same corner: " + cornerOffsets.join(" "));
   await go("#/cs/V/resources");
   if (await page.locator('.filters select[name="lens"]').count()) fail("finder: a second lens filter is shown beside the band");
   const researcherCount = await page.locator(".cards").first().locator("> li").count();
