@@ -1,0 +1,18 @@
+# Text files are stored and checked out with LF line endings on every platform.
+* text=auto eol=lf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary
+
+# Generated output: review the sources, not the diff.
+ro-crate-metadata.json linguist-generated=true
+assets/diagrams/*.svg linguist-generated=true

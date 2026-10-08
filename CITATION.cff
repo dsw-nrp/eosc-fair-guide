@@ -1,0 +1,57 @@
+cff-version: 1.2.0
+message: "If you use this guide, please cite it as below."
+type: software
+title: "Průvodce FAIR daty / FAIR data guide (EOSC CZ)"
+abstract: >-
+  An interactive Czech and English guide that leads researchers, data stewards, repository administrators
+  and research communities along the path to FAIR data. It builds on the FAIR analysis for the National
+  Repository Platform and the National Data Infrastructure (NRP/NDI, version 1.2) and reflects the current
+  state of national services. Its content is published as an RO-Crate knowledge base with paradata.
+authors:
+  - family-names: "Novák"
+    given-names: "David"
+    orcid: "https://orcid.org/0000-0001-6592-6291"
+version: "0.1.0-dev"
+license:
+  - MIT
+  - CC-BY-4.0
+repository-code: "https://github.com/motyc/eosc-cz-fair-docs-testing"
+keywords:
+  - FAIR
+  - research data
+  - research data management
+  - EOSC CZ
+  - National Repository Platform
+  - RO-Crate
+  - data stewardship
+references:
+  - type: report
+    title: "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI"
+    version: "1.2"
+    doi: "10.71495/5dv6-v116"
+    date-released: "2026-02-15"
+    license: CC-BY-4.0
+    institution:
+      name: "CESNET, zájmové sdružení právnických osob"
+    authors:
+      - family-names: "Trtíková"
+        given-names: "Ilona"
+        orcid: "https://orcid.org/0000-0001-6491-2947"
+      - family-names: "Bártková"
+        given-names: "Petra"
+        orcid: "https://orcid.org/0000-0001-6484-4710"
+      - family-names: "Biedermannová"
+        given-names: "Lada"
+        orcid: "https://orcid.org/0000-0001-6504-6403"
+      - family-names: "Fejfar"
+        given-names: "Jindřich"
+        orcid: "https://orcid.org/0000-0002-2048-3682"
+      - family-names: "Pergl"
+        given-names: "Robert"
+        orcid: "https://orcid.org/0000-0003-2980-4400"
+      - family-names: "Novák"
+        given-names: "David"
+        orcid: "https://orcid.org/0000-0001-6592-6291"
+      - family-names: "Čížek"
+        given-names: "Tomáš"
+        orcid: "https://orcid.org/0000-0001-7734-2947"

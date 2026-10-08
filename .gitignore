@@ -1,0 +1,21 @@
+# Local environments
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+
+# Local caches and check output
+.cache/
+previews/
+test-results/
+playwright-report/
+*.log
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Machine-local assistant settings
+.claude/settings.local.json

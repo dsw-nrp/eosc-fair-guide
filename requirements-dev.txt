@@ -1,0 +1,3 @@
+# Tools for repository checks. The generator and content checks need only the Python standard library.
+reuse[charset-normalizer]==6.2.0
+cffconvert==2.0.0

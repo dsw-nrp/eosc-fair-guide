@@ -1,0 +1,35 @@
+version = 1
+SPDX-PackageName = "eosc-cz-fair-guide"
+SPDX-PackageSupplier = "David Novák <https://orcid.org/0000-0001-6592-6291>"
+SPDX-PackageDownloadLocation = "https://github.com/motyc/eosc-cz-fair-docs-testing"
+
+# When several annotations match a path, the last one wins.
+
+# Default: code and configuration are MIT.
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
+SPDX-License-Identifier = "MIT"
+
+# Content: texts, data, documentation and diagrams are CC BY 4.0.
+[[annotations]]
+path = [
+  "content/**",
+  "docs/**",
+  "diagrams/**",
+  "assets/diagrams/**",
+  "ro-crate-metadata.json",
+  "**/*.md",
+  "CITATION.cff",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# The page carries code and the inlined content.
+[[annotations]]
+path = "index.html"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
+SPDX-License-Identifier = "MIT AND CC-BY-4.0"
