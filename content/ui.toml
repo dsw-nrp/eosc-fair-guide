@@ -178,6 +178,9 @@ grouping = { cs = "Seskupit", en = "Group" }
 tierCount = { cs = "{tier} ({n} otázka):|{tier} ({n} otázky):|{tier} ({n} otázek):", en = "{tier} ({n} question):|{tier} ({n} questions):" }
 reset = { cs = "Smazat odpovědi této kontroly", en = "Clear the answers of this check" }
 target = { cs = "Kontrolujete: {target}", en = "You are checking: {target}" }
+targetLabel = { cs = "Kontrolujete", en = "You are checking" }
+found = { cs = "Nalezeno", en = "Found" }
+etAl = { cs = "{name} a kol.", en = "{name} et al." }
 gapsHere = { cs = "Ze sebehodnocení tu zbývá vyřešit: {n}", en = "Left to resolve here from the self-check: {n}" }
 gapsLegend = { cs = "co zbývá vyřešit podle sebehodnocení", en = "what is left to resolve from the self-check" }
 

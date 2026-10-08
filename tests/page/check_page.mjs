@@ -330,6 +330,7 @@ async function axe(page, label) {
     const st = FG.state.answers.dataset;
     st.pid = "10.5281/zenodo.1";
     st.target = "https://doi.org/10.5281/zenodo.1";
+    st.targetInfo = { name: "Sample dataset", creators: "Novak, D. a kol.", publisher: "Zenodo", year: "2026", kind: "Dataset" };
     st.items.D02 = {
       value: "yes",
       origin: "prefill",
@@ -338,6 +339,10 @@ async function axe(page, label) {
     FG.saveState();
     FG.rerender();
   });
+  // A resolved identifier says what it is, under the field and in the result.
+  const card = await page.locator(".target-card").textContent();
+  if (!card.includes("Sample dataset") || !card.includes("Zenodo") || !card.includes("2026")) fail("dataset check: the resolved identifier does not say what it is: " + card);
+  if (!(await page.locator(".result-headline").textContent()).includes("Kontrolujete: Sample dataset")) fail("dataset check: the result does not name what is checked");
   const evidence = await page.locator("#origin-D02").textContent();
   if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside D02 is incomplete: " + evidence);
   if ((await page.locator("#origin-D02 a").getAttribute("href")) !== "https://repo.example/record/1") fail("dataset check: the evidence does not link to its record");
@@ -356,6 +361,7 @@ async function axe(page, label) {
   if (await page.locator('input[name="answer-D02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
   if (!(await checked("answer-D01-yes")) || !(await checked("answer-D04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
   if (await page.locator("#prefill-pid").inputValue()) fail("dataset check: clearing did not empty the identifier field");
+  if (await page.locator(".target-card").count()) fail("dataset check: clearing the identifier kept its description");
 
   // The path marks the stations with open items.
   await go("#/cs/V/path/licence");

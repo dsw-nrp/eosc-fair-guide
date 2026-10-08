@@ -292,9 +292,55 @@
     return { value, notes, list };
   }
 
+  /** What an identifier turned out to be, kept with the check so the page and the exports can say it. */
+  function describeTarget(check, info) {
+    const st = stateOf(check);
+    const merged = Object.assign({}, st.targetInfo || {});
+    for (const [key, value] of Object.entries(info || {})) if (value) merged[key] = String(value).slice(0, 300);
+    if (merged.name || merged.publisher) st.targetInfo = merged;
+    save();
+  }
+
+  /** Title, first author, publisher, year and type from a DataCite record. */
+  function dataciteInfo(attributes) {
+    const titles = FG.list(attributes.titles).map((entry) => entry && entry.title).filter(Boolean);
+    const creators = FG.list(attributes.creators).map((entry) => entry && entry.name).filter(Boolean);
+    const publisher = attributes.publisher && typeof attributes.publisher === "object" ? attributes.publisher.name : attributes.publisher;
+    const types = attributes.types || {};
+    return {
+      name: titles[0],
+      creators: creators.length > 1 ? FG.t("selfcheck.etAl", { name: creators[0] }) : creators[0],
+      publisher,
+      year: attributes.publicationYear,
+      kind: types.resourceType || types.resourceTypeGeneral,
+      url: attributes.url,
+    };
+  }
+
+  /** The assessed identifier described in one line: what it is and a link to it. */
+  function targetCard(st) {
+    const info = st.targetInfo;
+    if (!info || !(info.name || info.publisher)) return null;
+    const details = [info.creators, info.publisher, info.year, info.kind].filter(Boolean);
+    return h(
+      "p",
+      { class: "target-card" },
+      FG.icon("identifier"),
+      h(
+        "span",
+        null,
+        h("span", { class: "muted" }, FG.t("selfcheck.found") + ": "),
+        h("strong", null, info.name || info.publisher),
+        details.length ? h("span", { class: "muted" }, " · " + details.join(" · ")) : null,
+        st.target ? [" · ", FG.external(st.target, FG.t("selfcheck.evidence.record"))] : null
+      )
+    );
+  }
+
   /** Evidence describes one dataset, repository or profile; choosing another discards what the previous one gave. */
   function retarget(check, target) {
     const st = stateOf(check);
+    if (st.target !== target) delete st.targetInfo;
     if (st.target && st.target !== target) {
       for (const [id, entry] of Object.entries(st.items)) {
         if (!entry || typeof entry !== "object") continue;
@@ -316,6 +362,7 @@
       else delete entry.prefill;
     }
     delete st.target;
+    delete st.targetInfo;
     save();
     status.check = check.identifier;
     status.text = FG.t("selfcheck.prefill.cleared");
@@ -366,6 +413,7 @@
       let count = 0;
       try {
         const resolved = await FG.live.resolvePid(pid);
+        if (resolved.found) describeTarget(check, { name: resolved.title, url: resolved.url });
         count += applyEvidence(
           check,
           "resolver",
@@ -383,6 +431,7 @@
       try {
         const attributes = await FG.live.datacite(pid.value);
         const recordUrl = FG.config.links.dataciteRecord ? FG.config.links.dataciteRecord + pid.value : null;
+        if (attributes) describeTarget(check, dataciteInfo(attributes));
         if (attributes)
           count += applyEvidence(
             check,
@@ -403,6 +452,7 @@
     const st = stateOf(check);
     st.nkr = nkrRecord.id;
     retarget(check, nkrRecord.id ? FG.config.links.nkr + "objects/" + nkrRecord.id : nkrRecord.url || null);
+    describeTarget(check, { name: nkrRecord.name, kind: "NKR" });
     return runPrefill(check, "nkr", "prefill-nkr-run", async () =>
       applyEvidence(
         check,
@@ -434,6 +484,7 @@
     const st = stateOf(check);
     st.fip = fip.identifier;
     retarget(check, FG.id(fip.sameAs) || fip.url || null);
+    describeTarget(check, { name: [fip.alternateName, FG.text(fip.name)].filter(Boolean).join(": "), kind: "FIP" });
     const source = FG.live.available("fip-dashboard") ? "fip-dashboard" : "fip-dashboard-snapshot";
     return runPrefill(check, source, "prefill-fip-run", async (messages) => {
       let declarations = snapshotDeclarations(fip);
@@ -729,6 +780,7 @@
       h("h2", { id: "prefill-title" }, FG.t("selfcheck.prefill.title")),
       h("p", { class: "small" }, FG.t("selfcheck.prefill.privacy")),
       controls,
+      targetCard(st),
       h("p", { id: "prefill-status", role: "status", class: "small" }, status.check === check.identifier ? status.text : "")
     );
   }
@@ -1062,7 +1114,14 @@
             .filter((state) => counts[state])
             .map((state) => h("li", { "data-state": state }, h("span", { "aria-hidden": "true" }, STATE_ICON[state] + " "), FG.t("selfcheck.count." + state, { n: counts[state] })))
         ),
-        st.target ? h("p", { class: "small" }, FG.t("selfcheck.target", { target: st.target })) : null,
+        st.target
+          ? h(
+              "p",
+              { class: "small" },
+              FG.t("selfcheck.targetLabel") + ": ",
+              FG.external(st.target, (st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher)) || st.target)
+            )
+          : null,
         h("p", { class: "small muted" }, FG.t("selfcheck.result.advisory"))
       ),
       h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.result.gaps")),
@@ -1123,7 +1182,10 @@
     const items = resultItems(check, st);
     const { gaps, tasks } = outcomes(check, st);
     const lines = ["# " + escapeMarkdown(FG.text(check.name)) + " (" + FG.formatDate(today()) + ")", ""];
-    if (st.target) lines.push(escapeMarkdown(FG.t("selfcheck.target", { target: st.target })), "");
+    if (st.target) {
+      const named = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);
+      lines.push(escapeMarkdown(FG.t("selfcheck.targetLabel") + ": " + (named ? named + " (" + st.target + ")" : st.target)), "");
+    }
     lines.push(escapeMarkdown(FG.t("selfcheck.result.advisory")), "");
     const row = (cells) => "| " + cells.map((cell) => escapeMarkdown(cell).replace(/\n/g, " ")).join(" | ") + " |";
     if (profilesOf(check).length) {
@@ -1299,6 +1361,7 @@
       mode: st.mode || null,
       profile: st.profile || null,
       target: st.target || null,
+      targetInfo: st.targetInfo || null,
       pid: st.pid || null,
       items,
     };
@@ -1369,6 +1432,12 @@
     }
     const state = { mode: data.mode, profile: data.profile, extended: true, target: webUrl(data.target), items };
     if (isText(data.pid, 300)) state.pid = data.pid;
+    if (data.targetInfo && typeof data.targetInfo === "object") {
+      const info = {};
+      for (const key of ["name", "creators", "publisher", "year", "kind", "url"]) if (isText(String(data.targetInfo[key] || ""), 300) && data.targetInfo[key]) info[key] = String(data.targetInfo[key]);
+      if (info.url && !webUrl(info.url)) delete info.url;
+      if (info.name || info.publisher) state.targetInfo = info;
+    }
     return { check, state, notices: loadNotices(skipped, isText(data.guideVersion, 40) ? data.guideVersion : null) };
   };
 
@@ -1444,19 +1513,28 @@
     return h(
       "div",
       { class: "local-data no-print" },
-      h("p", { class: "local-data-line" }, FG.icon("info"), h("span", null, FG.t("localData.statement"))),
+      FG.icon("info", { class: "local-data-icon" }),
       h(
-        "details",
-        { class: "local-data-how" },
-        h("summary", null, FG.t("localData.how")),
+        "div",
+        { class: "local-data-main" },
+        h("p", { class: "local-data-line" }, FG.t("localData.statement")),
         h(
           "div",
-          { class: "content" },
-          h("ul", null, ["stored", "where", "sent", "move", "delete"].map((key) => h("li", null, h("strong", null, FG.t("localData." + key + "Title") + ": "), FG.t("localData." + key))))
-        )
-      ),
-      h("button", { type: "button", id: "local-data-delete", class: "button-link local-data-delete", onclick: remove }, FG.icon("trash"), " ", FG.t("localData.deleteAll")),
-      h("p", { id: "local-data-status", class: "small", role: "status" })
+          { class: "local-data-actions" },
+          h(
+            "details",
+            { class: "local-data-how" },
+            h("summary", null, FG.t("localData.how")),
+            h(
+              "div",
+              { class: "content" },
+              h("ul", null, ["stored", "where", "sent", "move", "delete"].map((key) => h("li", null, h("strong", null, FG.t("localData." + key + "Title") + ": "), FG.t("localData." + key))))
+            )
+          ),
+          h("button", { type: "button", id: "local-data-delete", class: "local-data-delete", onclick: remove }, FG.icon("trash"), h("span", null, FG.t("localData.deleteAll")))
+        ),
+        h("p", { id: "local-data-status", class: "small", role: "status" })
+      )
     );
   }
 

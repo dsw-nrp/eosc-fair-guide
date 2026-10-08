@@ -64,6 +64,7 @@ console.log("DOI:", status);
 if ((await answer("D01")) !== "yes") fail("DOI: D01 is not pre-filled yes");
 if ((await answer("D02")) !== "yes") fail("DOI: D02 is not pre-filled yes");
 if (!(await page.locator("#origin-D02").textContent()).includes("zenodo.org")) fail("DOI: D02 does not show where the DOI leads");
+if (!(await page.locator(".target-card").textContent()).includes("FAIR assessment")) fail("DOI: the resolved DOI does not show its title");
 if ((await answer("D04")) !== "yes") fail("DOI: D04 (licence URI) is not pre-filled yes");
 if (!(await page.locator("#origin-D04").textContent()).includes("DataCite")) fail("DOI: D04 does not name DataCite");
 if ((await answer("D11")) === "yes") fail("DOI: D11 exceeds its pre-fill level");

@@ -1583,53 +1583,74 @@ main p > button {
   color: var(--text);
 }
 
-/* Local data: one quiet line with a small "how it works" toggle. */
+/* Local data: a small framed note. The sentence on where answers are kept, then the "how it works" toggle on the
+   left and the delete control on the right; the explanation opens below the toggle. */
 .local-data {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--space-3);
-  margin: var(--space-2) 0 var(--space-4);
-  color: var(--text-muted);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--space-2);
+  align-items: start;
+  margin: var(--space-3) 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
   font-size: var(--size-small);
 }
 
+.local-data-icon {
+  margin-top: 0.2em;
+  color: var(--tint-teal);
+}
+
 .local-data-line {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
   margin: 0;
 }
 
+.local-data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-1);
+}
+
 .local-data .local-data-how {
+  flex: 1 1 14rem;
   margin: 0;
   border: 0;
   background: none;
 }
 
 .local-data-how > summary {
+  display: inline-flex;
+  align-items: center;
+  list-style: none;
+  min-height: 1.9rem;
   padding: 0;
   color: var(--tint-teal);
   font-weight: 400;
+  text-decoration: none;
+}
+
+.local-data-how > summary:hover {
   text-decoration: underline;
 }
 
-.local-data .local-data-how {
-  order: 1;
+.local-data-how > summary::-webkit-details-marker {
+  display: none;
 }
 
-.local-data-delete {
-  order: 2;
+.local-data-how > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  text-decoration: none;
 }
 
-/* Open, the explanation takes its own row below, and the delete control stays on the first line. */
-.local-data .local-data-how[open] {
-  flex-basis: 100%;
-  order: 3;
-}
-
-.local-data [role="status"] {
-  order: 4;
+.local-data-how[open] > summary::before {
+  content: "▾";
 }
 
 .local-data-how[open] > summary {
@@ -1637,24 +1658,43 @@ main p > button {
 }
 
 .local-data-how > .content {
-  margin-top: var(--space-2);
-  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
   border-left: 3px solid var(--border);
-  background: var(--surface);
+  background: var(--background);
   color: var(--text);
+}
+
+.local-data-how > .content ul {
+  margin: 0;
+  padding-left: var(--space-4);
 }
 
 .local-data-delete {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  min-height: 1.9rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--tint-pink);
+  border-radius: var(--radius);
+  background: var(--background);
   color: var(--tint-pink);
   font-size: inherit;
+  font-weight: 600;
 }
 
 .local-data-delete:hover {
-  background: none;
+  background: #fdf0f3;
   color: var(--tint-pink);
+}
+
+.local-data-delete .icon {
+  margin: 0;
+}
+
+.local-data #local-data-status {
+  margin: var(--space-1) 0 0;
 }
 
 .local-data #local-data-status:empty {
@@ -2101,6 +2141,23 @@ main p > button {
 .item-basis > .content {
   margin: var(--space-2) 0 0;
   font-size: var(--size-small);
+}
+
+/* What a resolved identifier is, in one line. */
+.target-card {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--tint-teal);
+  background: var(--background);
+  font-size: var(--size-small);
+}
+
+.target-card .icon {
+  flex: none;
+  color: var(--tint-teal);
 }
 
 .fix-at {
