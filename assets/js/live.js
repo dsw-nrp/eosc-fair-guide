@@ -110,6 +110,7 @@
     });
     const value = (binding) => (binding && binding.value != null ? String(binding.value) : "");
     return FG.list(data && data.results && data.results.bindings).map((row) => ({
+      fip: value(row.fip),
       question: value(row.q).split("FIP-Question-").pop(),
       relation: value(row.rel).split("/").pop(),
       fer: value(row.fer),

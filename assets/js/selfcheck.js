@@ -363,6 +363,8 @@
         messages.push(FG.t("selfcheck.prefill.nanopubEmpty"));
         return 0;
       }
+      /* The FIP is published under one of several IRI forms; the result names the one that matched. */
+      if (rows[0].fip) stateOf(check).target = rows[0].fip;
       const declarations = rows.map((row) => ({
         question: row.question,
         status: NANOPUB_STATUS[row.relation],

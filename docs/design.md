@@ -465,8 +465,12 @@ declaration nanopublication, and from each declaration to the FIP question it an
 The service sends `Access-Control-Allow-Origin: *`, so the page can call it directly; for a published FIP (the
 ADVANCE project's profile) it returned 27 declarations in about half a second. Findings that shaped the adapter:
 
-- a FIP is published under two IRI forms, `https://w3id.org/np/<code>#fip` and `http://purl.org/np/<code>#fip`,
-  so the query lists both; the page accepts the trusty URI code on its own or inside either address;
+- a FIP is published under three IRI forms, `https://w3id.org/np/<code>#fip`, `https://w3id.org/np/<code>/fip`
+  and `http://purl.org/np/<code>#fip` (165, 31 and 39 of the 235 FIPs the service listed), so the query lists all
+  three and the export names the one that matched; the page accepts the trusty URI code on its own or inside an
+  address;
+- 232 of those 235 FIPs have a declaration index; the query found declarations for every FIP in a sample of eight
+  once it listed all three forms;
 - questions are IRIs of the form `https://w3id.org/fair/fip/terms/FIP-Question-<question>`, where the question is
   the code that `prefill.fip` uses (`F1-D`, `A1.1-MD`, …);
 - the relation carries the status: `declares-current-use-of` is "in use", `declares-planned-use-of` is "planned"
