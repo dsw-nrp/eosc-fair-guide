@@ -68,6 +68,7 @@ orcid = "https://orcid.org/0000-0001-7734-2947"
 
 [[organization]]
 id = "knav"
+fipDashboard = "knav"
 name = "Knihovna AV ČR, v. v. i."
 url = "https://www.lib.cas.cz/"
 ror = "https://ror.org/028sgmw18"
@@ -80,6 +81,7 @@ ror = "https://ror.org/0287jta43"
 
 [[organization]]
 id = "cesnet"
+fipDashboard = "cesnet"
 name = "CESNET, zájmové sdružení právnických osob"
 url = "https://www.cesnet.cz/"
 ror = "https://ror.org/050dkka69"

@@ -1030,6 +1030,13 @@
     }
   };
 
+  /** A repository's subjects in the reader's language, or as the record gives them when it has none in it. */
+  function subjectsOf(repository) {
+    const words = FG.list(repository.keywords);
+    const mine = words.filter((word) => typeof word === "string" || !word["@language"] || word["@language"] === FG.state.lang);
+    return (mine.length ? mine : words).map((word) => (typeof word === "string" ? word : word["@value"])).filter((value, index, all) => all.indexOf(value) === index);
+  }
+
   function repositoryList(repositories, sourceName) {
     return h(
       "div",
@@ -1043,7 +1050,7 @@
             "li",
             { class: "card" },
             h("h3", null, FG.external(repository.url, FG.text(repository.name))),
-            repository.keywords ? h("p", { class: "small" }, FG.list(repository.keywords).map((keyword) => (typeof keyword === "string" ? keyword : keyword["@value"])).filter((value, index, all) => all.indexOf(value) === index).join(", ")) : null,
+            repository.keywords ? h("p", { class: "small" }, subjectsOf(repository).join(", ")) : null,
             h(
               "div",
               { class: "badges" },

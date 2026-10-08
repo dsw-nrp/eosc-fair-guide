@@ -611,6 +611,11 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   source with kind, audience, principles, status and where they are used, and every check question under "Otázky
   kontrol" with the requirements it rests on. A link to one entry clears the filters, brings the entry to the middle
   of the view and marks it briefly. Search results for requirements lead there as well.
+- One curated entry per real-world thing (task 8.27): a resource the guide also cites carries its citation, the
+  catch-all repository is its resource with repository facts, curated organisations link the FIP Dashboard records
+  they match, and the content checks enforce one ID per entity, no shared address or DOI, links to matching snapshot
+  records and a warning for unused entries. Names the guide uses for publishers only as plain text are not yet
+  matched against snapshot organisations.
 
 ### Answers that stay in the browser, and can travel
 

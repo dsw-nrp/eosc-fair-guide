@@ -15,6 +15,13 @@ lenses = ["V", "DS"]
 stations = ["plan", "licence"]
 languages = ["cs", "en"]
 
+[resource.citation]
+type = "webpage"
+title = "DMP.eosc.cz"
+inLanguage = "en"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "dmp-status"
 name = { cs = "Stav služby DMP.eosc.cz", en = "DMP.eosc.cz service status" }
@@ -39,6 +46,13 @@ lenses = ["DS"]
 stations = ["plan"]
 languages = ["en"]
 
+[resource.citation]
+type = "software"
+title = "dsw-nrp: Data Stewardship Wizard for NRP (templates, knowledge model, plugins)"
+inLanguage = "en"
+publisher = "cesnet"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "policy-manual"
 name = { cs = "Manuál k přípravě institucionální datové politiky", en = "Manual for preparing an institutional data policy" }
@@ -51,6 +65,14 @@ asOf = 2026-10-08
 lenses = ["DS"]
 stations = ["plan"]
 languages = ["cs"]
+
+[resource.citation]
+type = "document"
+title = "Manuál k přípravě institucionální datové politiky"
+inLanguage = "cs"
+doi = "10.71495/scvx-yn57"
+publisher = "EOSC CZ"
+datePublished = 2026-09-08
 
 [[resource]]
 id = "ds-handbook"
@@ -65,6 +87,14 @@ lenses = ["DS"]
 stations = ["plan"]
 languages = ["cs"]
 
+[resource.citation]
+type = "document"
+title = "FAIR příručka pro data steward komunitu v ČR"
+inLanguage = "cs"
+doi = "10.71495/hxfc-6f57"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "ds-personas"
 name = { cs = "Persony a use casy data stewardů v ČR", en = "Personas and use cases of data stewards in Czechia" }
@@ -77,6 +107,13 @@ lenses = ["DS"]
 stations = ["plan"]
 languages = ["cs"]
 
+[resource.citation]
+type = "document"
+title = "Persony a use casy data stewardů v České republice"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+datePublished = 2026-06-18
+
 [[resource]]
 id = "eosc-data-stewards"
 name = { cs = "Komunita data stewardů EOSC CZ", en = "EOSC CZ data steward community" }
@@ -88,6 +125,13 @@ asOf = 2026-10-08
 lenses = ["V", "DS"]
 stations = ["plan", "prace"]
 languages = ["cs"]
+
+[resource.citation]
+type = "webpage"
+title = "Data stewardi (EOSC CZ)"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "datasteward-cz"
@@ -113,6 +157,13 @@ asOf = 2026-10-08
 lenses = ["V", "DS"]
 stations = ["prace"]
 languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "CESSDA Data Management Expert Guide"
+inLanguage = "en"
+publisher = "CESSDA ERIC"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "cesnet-storage"
@@ -162,6 +213,13 @@ lenses = ["V", "SR"]
 stations = ["prace"]
 languages = ["cs", "en"]
 
+[resource.citation]
+type = "software"
+title = "DDRapp"
+inLanguage = "cs"
+publisher = "cesnet"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "nrp-compute"
 name = { cs = "Výpočty s daty z NRP", en = "Computing with data from NRP" }
@@ -173,6 +231,13 @@ asOf = 2026-10-08
 lenses = ["DS"]
 stations = ["prace"]
 languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "Support for computing with NRP data (NRP documentation)"
+inLanguage = "en"
+publisher = "nrp"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "eosc-training"
@@ -187,6 +252,13 @@ lenses = ["DS"]
 stations = ["prace"]
 languages = ["cs"]
 
+[resource.citation]
+type = "webpage"
+title = "Školení EOSC CZ"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "cerit-aiaas"
 name = { cs = "AI jako služba (CERIT)", en = "AI as a Service (CERIT)" }
@@ -198,6 +270,13 @@ asOf = 2026-10-08
 lenses = "*"
 stations = ["plan", "prace", "popis", "kontrola"]
 languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "AI as a Service (CERIT-SC documentation)"
+inLanguage = "en"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "nkr"
@@ -224,6 +303,13 @@ asOf = 2026-10-08
 lenses = ["DS", "SR", "K"]
 stations = ["plan", "popis", "licence", "publikace", "dohledatelnost"]
 languages = ["cs", "en"]
+
+[resource.citation]
+type = "software"
+title = "FIP Dashboard: FAIR Enabling Resources and FAIR Implementation Profiles (NRP)"
+inLanguage = "en"
+publisher = "nrp"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "re3data"
@@ -254,6 +340,13 @@ stations = ["repozitar", "popis"]
 languages = ["en"]
 sameAs = ["https://w3id.org/np/RAVCg1Kvj3fePeJfmO1hLQ6HavxTL_9audWkERmodE2no#FAIRsharing"]
 
+[resource.citation]
+type = "webpage"
+title = "FAIRsharing: a curated, informative and educational resource on data and metadata standards, databases and policies"
+inLanguage = "en"
+publisher = "FAIRsharing"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "datarepo"
 name = { cs = "Datový catch-all repozitář NRP", en = "NRP Data Catch-all Repository" }
@@ -265,6 +358,18 @@ asOf = 2026-10-08
 lenses = ["V", "DS"]
 stations = ["repozitar"]
 languages = ["cs", "en"]
+
+[resource.citation]
+type = "webpage"
+title = "Data Catch-all Repository (NRP)"
+inLanguage = "en"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[resource.repository]
+kind = "general"
+subjects = { cs = "všechny obory", en = "all fields" }
+pidTypes = ["DOI"]
 
 [[resource]]
 id = "coretrustseal"
@@ -279,6 +384,13 @@ lenses = ["DS", "SR"]
 stations = ["repozitar", "kontrola"]
 languages = ["en"]
 
+[resource.citation]
+type = "standard"
+title = "CoreTrustSeal Requirements 2023–2025"
+inLanguage = "en"
+publisher = "CoreTrustSeal"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "nrp-conditions"
 name = { cs = "Podmínky NRP pro zakládání repozitářů", en = "NRP conditions for creating repositories" }
@@ -292,6 +404,13 @@ lenses = ["SR"]
 stations = ["repozitar"]
 languages = ["en"]
 
+[resource.citation]
+type = "webpage"
+title = "Conditions for creating repositories (NRP documentation), version 3.4"
+inLanguage = "en"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "repo-recommendations"
 name = { cs = "Doporučení pro zakládání repozitářů v prostředí NRP", en = "Recommendations for establishing repositories in NRP" }
@@ -303,6 +422,13 @@ asOf = 2026-10-08
 lenses = ["SR", "K"]
 stations = ["repozitar"]
 languages = ["cs"]
+
+[resource.citation]
+type = "document"
+title = "Doporučení pro zakládání repozitářů v prostředí NRP"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "repo-user-needs"
@@ -316,6 +442,14 @@ lenses = ["SR", "K"]
 stations = ["repozitar"]
 languages = ["cs"]
 
+[resource.citation]
+type = "document"
+title = "Zjišťování uživatelských potřeb pro repozitáře: praktický průvodce"
+inLanguage = "cs"
+doi = "10.71495/x3e9-mf73"
+publisher = "EOSC CZ"
+datePublished = 2026-03-13
+
 [[resource]]
 id = "repo-integration"
 name = { cs = "Integrace existujícího repozitáře do NRP", en = "Integrating an existing repository into NRP" }
@@ -327,6 +461,13 @@ asOf = 2026-10-08
 lenses = ["SR"]
 stations = ["repozitar"]
 languages = ["cs"]
+
+[resource.citation]
+type = "webpage"
+title = "Integrace existujícího repozitáře do NRP"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "os2"
@@ -340,6 +481,13 @@ lenses = ["K"]
 stations = ["repozitar", "popis"]
 languages = ["cs"]
 
+[resource.citation]
+type = "webpage"
+title = "Open Science II"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "eosc-working-groups"
 name = { cs = "Pracovní skupiny EOSC CZ", en = "EOSC CZ working groups" }
@@ -351,6 +499,13 @@ asOf = 2026-10-08
 lenses = ["SR", "K"]
 stations = ["plan", "repozitar"]
 languages = ["cs"]
+
+[resource.citation]
+type = "webpage"
+title = "Pracovní skupiny EOSC CZ"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "ccmm"
@@ -377,6 +532,13 @@ lenses = "*"
 stations = ["popis"]
 languages = ["cs", "en"]
 
+[resource.citation]
+type = "webpage"
+title = "Heslář Open Science"
+inLanguage = "cs"
+publisher = "Národní technická knihovna"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "pid-centre"
 name = { cs = "Centrum PID (identifikatory.cz)", en = "PID Centre (identifikatory.cz)" }
@@ -389,6 +551,13 @@ asOf = 2026-10-08
 lenses = ["V", "DS", "SR"]
 stations = ["popis", "publikace", "citace"]
 languages = ["cs", "en"]
+
+[resource.citation]
+type = "webpage"
+title = "Centrum PID (identifikatory.cz)"
+inLanguage = "cs"
+publisher = "Národní technická knihovna"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "orcid"
@@ -433,6 +602,13 @@ lenses = ["SR", "K"]
 stations = ["popis"]
 languages = ["en"]
 
+[resource.citation]
+type = "software"
+title = "Dataspecer"
+inLanguage = "en"
+publisher = "Dataspecer"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "cdif"
 name = "CDIF 1.1"
@@ -446,6 +622,13 @@ lenses = ["K"]
 stations = ["popis"]
 languages = ["en"]
 
+[resource.citation]
+type = "standard"
+title = "Cross-Domain Interoperability Framework (CDIF), version 1.1"
+inLanguage = "en"
+publisher = "CODATA"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "tf-semantic"
 name = { cs = "Doporučení EOSC pro sémantickou interoperabilitu", en = "EOSC recommendations on semantic interoperability" }
@@ -457,6 +640,15 @@ asOf = 2026-10-08
 lenses = ["K"]
 stations = ["popis"]
 languages = ["en"]
+
+[resource.citation]
+type = "report"
+title = "Practical Semantic Interoperability recommendations for the EOSC Federation"
+inLanguage = "en"
+doi = "10.5281/zenodo.22831063"
+publisher = "EOSC Association"
+authors = ["Kurt Baumann", "et al."]
+datePublished = 2026-09-18
 
 [[resource]]
 id = "datacite-schema"
@@ -473,6 +665,13 @@ stations = ["popis", "citace"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RABtwdGxVZoYNbhMoN-xeEmB5ctXCsgSCOc8G-5QQR7fA#datacite_metadata_scheme"]
 
+[resource.citation]
+type = "standard"
+title = "DataCite Metadata Schema"
+inLanguage = "en"
+publisher = "DataCite"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "copyright-licences"
 name = { cs = "Autorská práva a licence", en = "Copyright and licences" }
@@ -485,6 +684,13 @@ lenses = ["V", "DS"]
 stations = ["licence"]
 languages = ["cs", "en"]
 
+[resource.citation]
+type = "document"
+title = "Autorská práva a licence"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "deposit-licence"
 name = { cs = "Vzor depoziční licence", en = "Deposit licence template" }
@@ -496,6 +702,13 @@ asOf = 2026-10-08
 lenses = ["DS", "SR"]
 stations = ["licence", "repozitar"]
 languages = ["cs", "en"]
+
+[resource.citation]
+type = "document"
+title = "Vzor depoziční licence"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "creative-commons"
@@ -524,6 +737,13 @@ lenses = ["DS"]
 stations = ["licence"]
 languages = ["cs", "en"]
 
+[resource.citation]
+type = "document"
+title = "Etické sedmero pro práci s výzkumnými daty"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "einfra-aai"
 name = { cs = "Účet a AAI e-INFRA CZ", en = "e-INFRA CZ account and AAI" }
@@ -549,6 +769,13 @@ asOf = 2026-10-08
 lenses = ["SR"]
 stations = ["licence"]
 languages = ["en"]
+
+[resource.citation]
+type = "document"
+title = "Initial AAI architecture for sensitive data in NRP"
+inLanguage = "en"
+publisher = "EOSC CZ"
+datePublished = 2026-03-31
 
 [[resource]]
 id = "datacite"
@@ -595,6 +822,13 @@ stations = ["publikace"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RA6roi86ztkS2GF7WbbFpLvhmJCCEA7AByx6M9fJfZVZs#fsp"]
 
+[resource.citation]
+type = "standard"
+title = "FAIR Signposting Profile"
+inLanguage = "en"
+publisher = "Signposting"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "schema-dataset"
 name = "Schema.org Dataset"
@@ -608,6 +842,13 @@ lenses = ["SR"]
 stations = ["publikace", "dohledatelnost"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RALwYq_U0Sk5nogz0XMvH9wFPe37fid3gVXxloIakNJX8#schema.org-dataset"]
+
+[resource.citation]
+type = "standard"
+title = "Schema.org: Dataset"
+inLanguage = "en"
+publisher = "Schema.org"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "oai-pmh"
@@ -639,6 +880,13 @@ stations = ["dohledatelnost", "citace"]
 languages = ["cs", "en"]
 sameAs = ["https://doi.org/10.25504/FAIRsharing.dbab97"]
 
+[resource.citation]
+type = "webpage"
+title = "Národní metadatový adresář (NMA)"
+inLanguage = "cs"
+publisher = "cesnet"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "nma-riv-docs"
 name = { cs = "NMA: ověření datových sad pro RIV", en = "NMA: verifying datasets for RIV" }
@@ -651,6 +899,13 @@ lenses = ["V", "DS"]
 stations = ["dohledatelnost", "citace"]
 languages = ["en"]
 
+[resource.citation]
+type = "webpage"
+title = "National Metadata Directory: verifying datasets for RIV (NRP documentation)"
+inLanguage = "en"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "nma-export-docs"
 name = { cs = "NMA: export z repozitáře", en = "NMA: exports from repositories" }
@@ -662,6 +917,13 @@ asOf = 2026-10-08
 lenses = ["SR"]
 stations = ["dohledatelnost"]
 languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "Exports to the National Metadata Directory (NRP documentation)"
+inLanguage = "en"
+publisher = "nrp"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "datacite-commons"
@@ -711,6 +973,13 @@ lenses = ["DS", "K"]
 stations = ["citace"]
 languages = ["en"]
 
+[resource.citation]
+type = "standard"
+title = "Joint Declaration of Data Citation Principles"
+inLanguage = "en"
+publisher = "FORCE11"
+datePublished = "2014"
+
 [[resource]]
 id = "knav-type-t"
 name = { cs = "Výsledek typu T a NMA", en = "Type T results and NMA" }
@@ -722,6 +991,13 @@ asOf = 2026-10-08
 lenses = ["V", "DS"]
 stations = ["citace"]
 languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "New type “T” research output and the National Metadata Directory"
+inLanguage = "en"
+publisher = "Knihovna AV ČR"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "os3"
@@ -735,6 +1011,13 @@ lenses = ["DS"]
 stations = ["citace"]
 languages = ["cs"]
 
+[resource.citation]
+type = "webpage"
+title = "Open Science III"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "eosc-acknowledgement"
 name = { cs = "Poděkování a citace EOSC CZ", en = "EOSC CZ acknowledgement and citation" }
@@ -746,6 +1029,13 @@ asOf = 2026-10-08
 lenses = ["V"]
 stations = ["citace"]
 languages = ["cs"]
+
+[resource.citation]
+type = "webpage"
+title = "Poděkování a citace (EOSC CZ)"
+inLanguage = "cs"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "fair-champion"
@@ -759,6 +1049,13 @@ asOf = 2026-10-08
 lenses = "*"
 stations = ["kontrola"]
 languages = ["en"]
+
+[resource.citation]
+type = "software"
+title = "FAIR Champion (OSTrails)"
+inLanguage = "en"
+publisher = "OSTrails"
+dateAccessed = 2026-10-08
 
 [[resource]]
 id = "f-uji"
@@ -833,6 +1130,14 @@ lenses = ["SR"]
 stations = ["kontrola"]
 languages = ["en"]
 
+[resource.citation]
+type = "software"
+title = "ostrails-ctu-dspace-fair (OSTrails CLI)"
+inLanguage = "en"
+publisher = "GitHub"
+authors = ["Marek Suchánek"]
+dateAccessed = 2026-10-08
+
 [[resource]]
 id = "ostrails-cz-pilot"
 name = { cs = "Pilot OSTrails CZ: hodnocení vzorku DSpace ČVUT", en = "OSTrails CZ pilot: assessment of a CTU DSpace sample" }
@@ -845,6 +1150,15 @@ lenses = ["DS", "SR"]
 stations = ["kontrola"]
 languages = ["en"]
 
+[resource.citation]
+type = "dataset"
+title = "FAIR assessment of a sample of the CTU DSpace repository (OSTrails CZ Pilot, FAIR Champion, July 2026)"
+inLanguage = "en"
+doi = "10.5281/zenodo.21726258"
+publisher = "Zenodo"
+authors = ["M. Suchánek", "J. Martínková", "E. Hnátková", "R. Pergl"]
+datePublished = "2026-07"
+
 [[resource]]
 id = "fair-impact"
 name = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }
@@ -856,3 +1170,10 @@ asOf = 2026-10-08
 lenses = ["DS", "K"]
 stations = ["kontrola"]
 languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "FAIR-IMPACT catalogue of resources"
+inLanguage = "en"
+publisher = "FAIR-IMPACT"
+dateAccessed = 2026-10-08

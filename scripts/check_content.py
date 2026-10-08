@@ -25,7 +25,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from build_crate import ROOT, ContentError, load_content  # noqa: E402
+from build_crate import ROOT, SOURCE_TYPES, ContentError, Graph, build_crate, load_content  # noqa: E402
 
 LANGS = ("cs", "en")
 LEVELS = ("L0", "L1", "L2")
@@ -226,7 +226,7 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
     clauses = content["ledger"]
     ids = [clause.get("id", "") for clause in clauses]
     unique(report, "ledger", ids, "clause")
-    source_ids = {source["id"] for source in content["sources"]}
+    source_ids = cited_ids(content)
     clause_ids = set(ids)
     for clause in clauses:
         where = f"ledger:{clause.get('id')}"
@@ -271,16 +271,29 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
     return clause_ids
 
 
+def cited_ids(content: dict[str, Any]) -> set[str]:
+    """What a clause can cite: a source, or a resource that carries its citation."""
+    return {source["id"] for source in content["sources"]} | {
+        resource["id"] for resource in content["resources"] if resource.get("citation")
+    }
+
+
+def check_citation(report: Report, where: str, citation: dict[str, Any], own_url: bool) -> None:
+    """How a cited work is cited: a title, a known type, an address or DOI, and a date."""
+    if not citation.get("title"):
+        report.error(where, "missing title")
+    if citation.get("type") not in SOURCE_TYPES:
+        report.error(where, f"type must be one of {', '.join(SOURCE_TYPES)}")
+    if not (own_url or citation.get("url") or citation.get("doi")):
+        report.error(where, "a source needs a URL or a DOI")
+    if not (citation.get("datePublished") or citation.get("dateAccessed")):
+        report.error(where, "a source needs datePublished or dateAccessed")
+
+
 def check_sources(report: Report, content: dict[str, Any]) -> None:
     unique(report, "sources", [source.get("id", "") for source in content["sources"]], "source")
     for source in content["sources"]:
-        where = f"sources:{source.get('id')}"
-        if not source.get("title"):
-            report.error(where, "missing title")
-        if not (source.get("url") or source.get("doi")):
-            report.error(where, "a source needs a URL or a DOI")
-        if not (source.get("datePublished") or source.get("dateAccessed")):
-            report.error(where, "a source needs datePublished or dateAccessed")
+        check_citation(report, f"sources:{source.get('id')}", source, own_url=False)
 
 
 def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], clause_ids: set[str]) -> None:
@@ -446,6 +459,15 @@ def check_resources(report: Report, content: dict[str, Any], vocab: dict[str, se
         dashboard_id = resource.get("fipDashboard")
         if dashboard_id is not None and not re.match(r"^[a-z0-9][a-z0-9-]*$", str(dashboard_id)):
             report.error(where, f"fipDashboard must be a FIP Dashboard resource ID: {dashboard_id}")
+        if resource.get("citation") is not None:
+            if "id" in resource["citation"] or "url" in resource["citation"]:
+                report.error(f"{where}:citation", "a citation takes its ID and address from the resource")
+            check_citation(report, f"{where}:citation", resource["citation"], own_url=True)
+        if resource.get("repository") is not None:
+            if resource.get("type") != "repository":
+                report.error(f"{where}:repository", "only a resource of type 'repository' carries repository facts")
+            if resource["repository"].get("kind") not in vocab["repository_kinds"]:
+                report.error(f"{where}:repository", f"unknown kind '{resource['repository'].get('kind')}'")
 
 
 def check_status(report: Report, where: str, entry: dict[str, Any], vocab: dict[str, set[str]], today: date) -> None:
@@ -610,6 +632,7 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
     actions = content["provenance"]
     unique(report, "provenance", [action.get("id", "") for action in actions], "action")
     index = content_index(content)
+    cited = cited_ids(content)
     for action in actions:
         where = f"action:{action.get('id')}"
         if action.get("type") not in ACTION_TYPES:
@@ -622,7 +645,7 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             if instrument not in vocab["instruments"]:
                 report.error(where, f"unknown instrument '{instrument}'")
         for obj in action.get("objects", []):
-            if index.get(obj) not in ("clause", "source"):
+            if index.get(obj) != "clause" and obj not in cited:
                 report.error(where, f"object '{obj}' is not a clause or source")
         for pattern in action.get("results", []):
             if not any(covered(pattern, item_id) for item_id in index):
@@ -634,6 +657,102 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
     for item_id, kind in index.items():
         if kind in ("advice", "item", "resource", "clause") and not any(covered(p, item_id) for p in patterns):
             report.error(f"{kind}:{item_id}", "no provenance action covers this item")
+
+
+def bare_url(url: Any) -> str:
+    """An address without its scheme, "www." and trailing slashes, for telling whether two entries name one thing."""
+    return re.sub(r"^https?://(www\.)?", "", str(url or "").strip().lower()).rstrip("/")
+
+
+def check_coherence(report: Report, content: dict[str, Any]) -> None:
+    """One curated entry per real-world thing: one content ID names one entity (R1), no two curated entries share an
+    address or DOI (R2), a curated entry that matches a snapshot record links it (R3), references to snapshot records
+    resolve (R4), and entries nothing uses are reported (R5)."""
+    # R1, read from the generator's own index of what each content ID names
+    graph = Graph()
+    try:
+        build_crate(content, graph)
+    except (ContentError, KeyError, TypeError, ValueError) as error:
+        report.error("coherence", f"the crate could not be built to check identifiers: {error}")
+        return
+    for content_id, entity_ids in sorted(graph.index.items()):
+        if len(set(entity_ids)) > 1:
+            report.error(f"id:{content_id}", "names several entities: " + ", ".join(sorted(set(entity_ids))))
+
+    # R2, curated entries keyed by address and DOI
+    entries: list[tuple[str, str, str]] = []
+    for resource in content["resources"]:
+        entries.append((f"resource:{resource['id']}", "url", bare_url(resource.get("url"))))
+        if resource.get("citation", {}).get("doi"):
+            entries.append((f"resource:{resource['id']}", "doi", resource["citation"]["doi"].lower()))
+    for source in content["sources"]:
+        entries.append((f"sources:{source['id']}", "url", bare_url(source.get("url"))))
+        if source.get("doi"):
+            entries.append((f"sources:{source['id']}", "doi", source["doi"].lower()))
+            entries.append((f"sources:{source['id']}", "url", bare_url("https://doi.org/" + source["doi"])))
+    for repository in content["repositories"]:
+        entries.append((f"repository:{repository['id']}", "url", bare_url(repository.get("url"))))
+    for organization in content["guide"].get("organization", []):
+        entries.append((f"organization:{organization['id']}", "url", bare_url(organization.get("url"))))
+    seen: dict[tuple[str, str], str] = {}
+    for where, key, value in entries:
+        if not value:
+            continue
+        other = seen.setdefault((key, value), where)
+        if other != where:
+            what = "address" if key == "url" else "DOI"
+            report.error(where, f"describes the same thing as {other} (same {what}); merge them into one entry")
+
+    # R3 and R4, curated entries against the snapshot records they match
+    dashboard = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), {})
+    fers = {bare_url(fer.get("url")): fer["id"] for fer in dashboard.get("resource", []) if fer.get("url")}
+    for resource in content["resources"]:
+        match = fers.get(bare_url(resource.get("url")))
+        if match and resource.get("fipDashboard") != match:
+            report.error(
+                f"resource:{resource['id']}", f"matches FIP Dashboard resource '{match}'; link it with fipDashboard"
+            )
+    organizations = dashboard.get("organization", [])
+    org_by_url = {bare_url(org.get("url")): org["id"] for org in organizations if org.get("url")}
+    org_by_ror = {org["ror"]: org["id"] for org in organizations if org.get("ror")}
+    org_ids = {org["id"] for org in organizations}
+    for organization in content["guide"].get("organization", []):
+        where = f"organization:{organization['id']}"
+        match = org_by_url.get(bare_url(organization.get("url"))) or org_by_ror.get(organization.get("ror"))
+        if match and organization.get("fipDashboard") != match:
+            report.error(where, f"matches FIP Dashboard organisation '{match}'; link it with fipDashboard")
+        if organization.get("fipDashboard") and organization["fipDashboard"] not in org_ids:
+            report.error(where, f"FIP Dashboard has no organisation '{organization['fipDashboard']}'")
+    snapshot_repositories = [
+        repository for snapshot in content["snapshots"] for repository in snapshot.get("repository", [])
+    ]
+    by_address = {
+        bare_url(repository.get("url")): repository for repository in snapshot_repositories if repository.get("url")
+    }
+    curated = [(f"repository:{r['id']}", r) for r in content["repositories"]] + [
+        (f"resource:{r['id']}", {"url": r.get("url"), **r["repository"]})
+        for r in content["resources"]
+        if r.get("repository")
+    ]
+    for where, repository in curated:
+        match = by_address.get(bare_url(repository.get("url")))
+        if match and match.get("re3data") and repository.get("re3data") != match["re3data"]:
+            report.error(where, f"matches the re3data record {match['re3data']}; state it as re3data")
+
+    # R5, entries nothing uses
+    cited = {clause.get("source") for clause in content["ledger"]} | set(content["guide"]["guide"].get("isBasedOn", []))
+    cited |= {obj for action in content["provenance"] for obj in action.get("objects", [])}
+    for resource in content["resources"]:
+        if not resource.get("stations") and resource["id"] not in cited and not resource.get("repository"):
+            report.warn(
+                f"resource:{resource['id']}",
+                "nothing uses this resource: no station recommends it and nothing cites it",
+            )
+        if resource.get("citation") and resource["id"] not in cited:
+            report.warn(f"resource:{resource['id']}", "carries a citation, but nothing cites it")
+    for source in content["sources"]:
+        if source["id"] not in cited:
+            report.warn(f"sources:{source['id']}", "nothing cites this source")
 
 
 PAGE_MENUS = ("catalogue", "tools", "about")
@@ -784,6 +903,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_self_check_inputs(report, content)
     check_icons_and_tasks(report, content, root, vocab)
     check_provenance(report, content, vocab)
+    check_coherence(report, content)
     check_pages_and_ui(report, content)
     check_guide(report, content, vocab, root)
     return report

@@ -1369,7 +1369,7 @@ text = { cs = "Doporučení: oborové profily a FIP.", en = "Recommended: domain
 
 [[clause]]
 id = "C.M1"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 1"
 principles = ["F1"]
 actor = "repository"
@@ -1378,7 +1378,7 @@ text = { cs = "Záznamy jsou citovatelné, mají PID a repozitář popisuje zár
 
 [[clause]]
 id = "C.M2"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 2"
 principles = ["A1"]
 actor = "repository"
@@ -1387,7 +1387,7 @@ text = { cs = "Repozitář má webové rozhraní i API.", en = "The repository h
 
 [[clause]]
 id = "C.M3"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 3"
 principles = ["R1"]
 actor = "repository"
@@ -1396,7 +1396,7 @@ text = { cs = "Repozitář má politiku změn; preferuje verzování nebo „pat
 
 [[clause]]
 id = "C.M4"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 4"
 principles = ["R1.1", "F4"]
 actor = "repository"
@@ -1405,7 +1405,7 @@ text = { cs = "Metadata mají permisivní licenci (odpovídající CC0), aby je 
 
 [[clause]]
 id = "C.M5"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 5"
 principles = ["F4"]
 actor = "repository"
@@ -1414,7 +1414,7 @@ text = { cs = "Repozitář je registrován v Národním katalogu repozitářů (
 
 [[clause]]
 id = "C.M6"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 6"
 principles = ["A1.2"]
 actor = "repository"
@@ -1423,7 +1423,7 @@ text = { cs = "Repozitář je integrován s AAI e-INFRA CZ / EOSC CZ.", en = "Th
 
 [[clause]]
 id = "C.M7"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 7"
 principles = ["F1"]
 actor = "repository"
@@ -1432,7 +1432,7 @@ text = { cs = "Repozitář přiděluje trvalé identifikátory a využívá meto
 
 [[clause]]
 id = "C.M8"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 8"
 principles = ["F4"]
 actor = "repository"
@@ -1441,7 +1441,7 @@ text = { cs = "Metadata se sklízejí do NMA podle CCMM.", en = "Metadata are ha
 
 [[clause]]
 id = "C.M9"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 9"
 principles = []
 actor = "repository"
@@ -1450,7 +1450,7 @@ text = { cs = "Repozitář je zapojen do monitoringu kybernetické bezpečnosti 
 
 [[clause]]
 id = "C.M10"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 10"
 principles = []
 actor = "repository"
@@ -1459,7 +1459,7 @@ text = { cs = "Systém loguje do centrálního logování.", en = "The system lo
 
 [[clause]]
 id = "C.M11"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 11"
 principles = ["A1.2"]
 actor = "repository"
@@ -1468,7 +1468,7 @@ text = { cs = "Repozitář má depoziční a přístupový workflow, od otevřen
 
 [[clause]]
 id = "C.M12"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Mandatory conditions, 12"
 principles = ["R1.3", "F2"]
 actor = "repository"
@@ -1477,7 +1477,7 @@ text = { cs = "Repozitář nasazuje metadatové profily a harmonizuje metadata p
 
 [[clause]]
 id = "C.R1"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Recommended conditions, 1"
 principles = []
 actor = "repository"
@@ -1486,7 +1486,7 @@ text = { cs = "Klíčové role obsazuje více osob.", en = "Key roles are covere
 
 [[clause]]
 id = "C.R2"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Recommended conditions, 2"
 principles = []
 actor = "repository"
@@ -1495,7 +1495,7 @@ text = { cs = "Repozitář konzultuje oborovou pracovní skupinu EOSC CZ.", en =
 
 [[clause]]
 id = "C.R3"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Recommended conditions, 3"
 principles = []
 actor = "repository"
@@ -1504,7 +1504,7 @@ text = { cs = "Repozitáře nemají být příliš úzce specializované.", en =
 
 [[clause]]
 id = "C.R4"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Recommended conditions, 4"
 principles = []
 actor = "repository"
@@ -1513,7 +1513,7 @@ text = { cs = "Přednost mají instance základních systémů NRP (InvenioRDM/O
 
 [[clause]]
 id = "C.ROLE.admin"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Roles: repository administrator"
 principles = []
 actor = "repository"
@@ -1522,7 +1522,7 @@ text = { cs = "Správce repozitáře je partnerem pro infrastrukturu, odpovídá
 
 [[clause]]
 id = "C.ROLE.curator"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Roles: data curator"
 principles = ["R1.3"]
 actor = "repository"
@@ -1531,7 +1531,7 @@ text = { cs = "Datový kurátor stanovuje pravidla ukládání, rozhoduje o date
 
 [[clause]]
 id = "C.CS"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Community obligations for core systems"
 principles = []
 actor = "repository"
@@ -1540,7 +1540,7 @@ text = { cs = "U základních systémů NRP komunita zajišťuje metadatový pro
 
 [[clause]]
 id = "C.EXT"
-source = "nrp-conditions-3.4"
+source = "nrp-conditions"
 locator = "Independently operated repositories"
 principles = ["F1", "F4", "A1", "A1.2"]
 actor = "repository"
@@ -1567,7 +1567,7 @@ text = { cs = "Účet v NMA může získat kdokoli; přihlášení přes českou
 
 [[clause]]
 id = "DOC.NMA.RIV"
-source = "nrp-docs-nma-riv"
+source = "nma-riv-docs"
 locator = "Verifying datasets for RIV"
 principles = ["F4", "F1"]
 actor = "other"
@@ -1576,7 +1576,7 @@ text = { cs = "Záznam v NMA je podmínkou pro výsledky typu T. „Získat odka
 
 [[clause]]
 id = "DOC.NMA.EXPORT"
-source = "nrp-docs-nma-export"
+source = "nma-export-docs"
 locator = "Exports to NMA"
 principles = ["F4", "A1"]
 actor = "other"
@@ -1610,7 +1610,7 @@ text = { cs = "Knihovna AV ČR vysvětluje nový druh výsledku „T“ (výzkum
 
 [[clause]]
 id = "E.OS3"
-source = "os3-call"
+source = "os3"
 principles = []
 actor = "other"
 kind = "statement"
@@ -1762,7 +1762,7 @@ text = { cs = "CERIT-SC provozuje AI jako službu v infrastruktuře e-INFRA CZ (
 
 [[clause]]
 id = "E.NRP-COMPUTE"
-source = "nrp-docs-compute"
+source = "nrp-compute"
 principles = []
 actor = "other"
 kind = "statement"
@@ -1802,7 +1802,7 @@ text = { cs = "EOSC CZ sdružuje komunitu data stewardů a nabízí jí podporu.
 
 [[clause]]
 id = "E.OS2"
-source = "os2-project"
+source = "os2"
 principles = ["R1.3"]
 actor = "other"
 kind = "statement"
@@ -1834,7 +1834,7 @@ text = { cs = "Národní metadatový adresář umožňuje vyhledávat metadata v
 
 [[clause]]
 id = "E.TF-SEMANTIC"
-source = "tf-semantic-interop"
+source = "tf-semantic"
 principles = ["I1", "I2", "I3"]
 actor = "other"
 kind = "statement"
@@ -1842,7 +1842,7 @@ text = { cs = "Doporučení EOSC Task Force pro praktickou sémantickou interope
 
 [[clause]]
 id = "E.CDIF"
-source = "cdif-1.1"
+source = "cdif"
 principles = ["I1", "I2", "I3", "F2"]
 actor = "other"
 kind = "statement"
@@ -1858,7 +1858,7 @@ text = { cs = "FAIR Signposting zpřístupňuje vazby mezi PID, metadaty a soubo
 
 [[clause]]
 id = "E.SCHEMA-DATASET"
-source = "schema-org-dataset"
+source = "schema-dataset"
 principles = ["F4", "I1"]
 actor = "other"
 kind = "statement"
@@ -1898,7 +1898,7 @@ text = { cs = "Nástroj OSTrails CLI spouští testy FAIR Champion dávkově nad
 
 [[clause]]
 id = "E.FAIR-IMPACT"
-source = "fair-impact-catalogue"
+source = "fair-impact"
 principles = []
 actor = "other"
 kind = "statement"

@@ -252,6 +252,78 @@ class ContentCheckTests(FixtureCase):
         )
         self.assertEqual(credits[0]["people"], [{"name": "Test Person", "url": None}, {"name": "Other Author"}])
 
+    CITATION = '\n[resource.citation]\ntype = "webpage"\ntitle = "Test service page"\ndateAccessed = 2026-01-01\n'
+
+    def test_cited_resource_is_one_entity(self) -> None:
+        self.append("resources.toml", self.CITATION)
+        self.edit("ledger.toml", 'source = "report"', 'source = "service"')
+        self.assertEqual(self.errors(), [])
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        self.assertIn({"@id": "#resource-service"}, build_crate.as_list(graph["#sources"]["hasPart"]))
+        self.assertEqual(graph["#clause-A.F1.R1"]["isPartOf"], {"@id": "#resource-service"})
+        self.assertEqual(graph["#resource-service"]["alternateName"], "Test service page")
+        self.assertNotIn("#source-service", graph)
+
+    def test_resource_cited_without_its_citation(self) -> None:
+        self.edit("ledger.toml", 'source = "report"', 'source = "service"')
+        self.assertError("unknown source 'service'")
+
+    def test_same_address_in_two_entries(self) -> None:
+        self.append(
+            "sources.toml",
+            '\n[[source]]\nid = "copy"\ntype = "webpage"\ntitle = "Copy"\n'
+            'url = "http://www.example.org/service/"\ndateAccessed = 2026-01-01\n',
+        )
+        self.assertError("describes the same thing as resource:service (same address)")
+
+    def test_one_identifier_names_one_entity(self) -> None:
+        self.append(
+            "sources.toml",
+            '\n[[source]]\nid = "service"\ntype = "webpage"\ntitle = "Other"\n'
+            'url = "https://example.org/other"\ndateAccessed = 2026-01-01\n',
+        )
+        self.assertError("id:service: names several entities")
+
+    def test_snapshot_match_needs_a_link(self) -> None:
+        snapshots = self.root / "content" / "snapshots"
+        snapshots.mkdir(exist_ok=True)
+        dashboard = DASHBOARD_SNAPSHOT.replace(
+            'name = "Resource one"', 'name = "Resource one"\nurl = "https://example.org/service"'
+        )
+        (snapshots / "fip-dashboard.toml").write_text(dashboard, encoding="utf-8")
+        self.assertError("matches FIP Dashboard resource 'r1'; link it with fipDashboard")
+        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
+        self.assertFalse(any("matches FIP Dashboard" in error for error in self.errors()))
+
+    def test_unused_resource_is_reported(self) -> None:
+        self.edit("resources.toml", 'stations = ["one"]', "")
+        content = build_crate.load_content(self.root / "content")
+        warnings = check_content.check(content, self.root, today=TODAY).warnings
+        self.assertIn(
+            "resource:service: nothing uses this resource: no station recommends it and nothing cites it", warnings
+        )
+
+    def test_repository_resource_is_one_entity(self) -> None:
+        self.append(
+            "guide.toml",
+            '\n[[repositoryKind]]\nid = "general"\nname = { cs = "obecný", en = "general" }\n'
+            '\n[[resourceType]]\nid = "repository"\nname = { cs = "repozitář", en = "repository" }\n',
+        )
+        self.append(
+            "resources.toml",
+            '\n[[resource]]\nid = "repo"\nname = "Test repository"\nurl = "https://example.org/repo"\n'
+            'type = "repository"\nstatus = "pilot"\nasOf = 2026-01-01\nstations = ["one"]\n'
+            '\n[resource.repository]\nkind = "general"\n',
+        )
+        self.edit("provenance.toml", '"service", "A.*"', '"service", "repo", "A.*"')
+        self.assertEqual(self.errors(), [])
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        self.assertIn({"@id": "#resource-repo"}, build_crate.as_list(graph["#repositories"]["hasPart"]))
+        self.assertEqual(graph["#resource-repo"]["repositoryKind"], {"@id": "#rkind-general"})
+        self.assertNotIn("#repository-repo", graph)
+
     def test_every_page_sits_under_a_menu_item(self) -> None:
         pages = self.root / "content" / "pages.toml"
         title = 'title = { cs = "Stránka", en = "Page" }\n'

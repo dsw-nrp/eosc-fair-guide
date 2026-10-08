@@ -8,7 +8,7 @@ name = "Content model sample"
 description = "First content entries written to test the content model and the generator: guide metadata, principles, live services, sample clauses, part of the repository station, two gate items and two resources."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nkr-schema"]
+objects = ["analyza-fair-1.2", "nrp-conditions", "nkr-schema"]
 results = ["repozitar.*", "G05", "G07", "nkr", "re3data"]
 endTime = 2026-10-08T03:11:16+02:00
 
@@ -19,7 +19,7 @@ name = "Clause ledger and sources"
 description = "Clause ledger converted from the planning ledger, with Czech and English text, refresh notes and their supporting sources, and the published sources the clauses come from."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nrp-docs-nma-introduction", "nrp-docs-nma-access", "nrp-docs-nma-riv", "nrp-docs-nma-export", "nkr-schema", "ccmm-releases", "ostrails-cz-pilot", "survey-2025", "ncdoi-2023", "os3-call", "knav-type-t", "tf-semantic-interop", "cdif-1.1", "dsw-nrp"]
+objects = ["analyza-fair-1.2", "nrp-conditions", "nrp-docs-nma-introduction", "nrp-docs-nma-access", "nma-riv-docs", "nma-export-docs", "nkr-schema", "ccmm-releases", "ostrails-cz-pilot", "survey-2025", "ncdoi-2023", "os3", "knav-type-t", "tf-semantic", "cdif", "dsw-nrp"]
 results = ["A.*", "K2.*", "K4.*", "K5.*", "K6", "P1", "G", "S.*", "C.*", "DOC.*", "E.*"]
 endTime = 2026-10-08T03:20:40+02:00
 
@@ -30,7 +30,7 @@ name = "Stations, self-checks, resources, callouts and pages"
 description = "Nine stations with advice for four lenses in Czech and English, the dataset, gate, maturity, FIP and institution checks, the resource catalogue with FIP Dashboard links, the shared callouts and the pages, drafted from the planning inventory and traced to ledger clauses; three clauses added for the FIP Dashboard, the CESSDA guide and the NRP catch-all repository."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nrp-docs-nma-riv", "nrp-docs-nma-export", "nkr-schema", "fip-dashboard", "cessda-dmeg", "datarepo", "ostrails-cz-pilot", "dsw-nrp", "pid-centre", "einfra-docs"]
+objects = ["analyza-fair-1.2", "nrp-conditions", "nma-riv-docs", "nma-export-docs", "nkr-schema", "fip-dashboard", "cessda-dmeg", "datarepo", "ostrails-cz-pilot", "dsw-nrp", "pid-centre", "einfra-docs"]
 results = ["plan.*", "prace.*", "repozitar.*", "popis.*", "licence.*", "publikace.*", "dohledatelnost.*", "citace.*", "kontrola.*", "P0*", "D0*", "D1*", "G0*", "G1*", "S0*", "S1*", "S2*", "K0*", "K1*", "I0*", "dmp-eosc", "dmp-status", "dsw-nrp", "policy-manual", "ds-handbook", "ds-personas", "eosc-data-stewards", "datasteward-cz", "cessda-dmeg", "cesnet-storage", "onedata", "sensitive-cloud", "ddrapp", "nrp-compute", "eosc-training", "cerit-aiaas", "nkr", "fip-dashboard", "re3data", "fairsharing", "datarepo", "coretrustseal", "nrp-conditions", "repo-recommendations", "repo-user-needs", "repo-integration", "os2", "eosc-working-groups", "ccmm", "heslar", "pid-centre", "orcid", "ror", "dataspecer", "cdif", "tf-semantic", "datacite-schema", "copyright-licences", "deposit-licence", "creative-commons", "ethical-seven", "einfra-aai", "aai-sensitive", "datacite", "handle", "fair-signposting", "schema-dataset", "oai-pmh", "nma", "nma-riv-docs", "nma-export-docs", "datacite-commons", "openaire-explore", "google-dataset-search", "force11-citation", "knav-type-t", "os3", "eosc-acknowledgement", "fair-champion", "f-uji", "fair-checker", "fair-aware", "openaire-validator", "fdmm", "ostrails-cli", "ostrails-cz-pilot", "fair-impact", "E.FIP-DASHBOARD", "E.CESSDA-DMEG", "E.DATAREPO"]
 endTime = 2026-10-08T10:15:00+02:00
 
@@ -41,7 +41,7 @@ name = "Self-check pre-fill and follow-up"
 description = "Check items prepared for the self-check: items whose evidence proves them only in part are capped at partly, two gate items take their NKR evidence from the PID type and versioning fields alone, and the NMA item links the NMA search for a don't-know task."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["nkr-schema", "nrp-docs-nma-riv", "C.M3", "C.M7", "C.M8"]
+objects = ["nkr-schema", "nma-riv-docs", "C.M3", "C.M7", "C.M8"]
 results = ["D05", "D11", "G03", "G07", "G08", "G12", "G19", "S08"]
 endTime = 2026-10-08T11:09:20+02:00
 
@@ -63,7 +63,7 @@ name = "NRP conditions check renamed"
 description = "The check of the NRP conditions for repositories is called \"Podmínky NRP\" (NRP conditions) instead of \"Brána NRP\" (NRP gate), including the actions that lead to it from the stations."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["nrp-conditions-3.4"]
+objects = ["nrp-conditions"]
 results = ["prace.SR.L0", "repozitar.SR.L0", "licence.SR.L0", "publikace.SR.L0"]
 endTime = 2026-10-08T21:20:00+02:00
 
@@ -74,6 +74,90 @@ name = "Repository registration checked in FAIRsharing"
 description = "The question whether a repository is registered in re3data and FAIRsharing is answered from the re3data snapshot together with a FAIRsharing record found through its DataCite DOI, which lists the repository's re3data record."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["fairsharing-registry"]
+objects = ["fairsharing"]
 results = ["S18"]
 endTime = 2026-10-08T23:10:00+02:00
+
+[[action]]
+id = "2026-10-08-one-entry-per-thing"
+type = "update"
+name = "One entry per cited resource"
+description = "Resources that the guide also cites carry their citation in their own entry instead of a second, source entry; clauses that cited such a source under another ID now cite the resource."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+results = [
+  "C.CS",
+  "C.EXT",
+  "C.M1",
+  "C.M10",
+  "C.M11",
+  "C.M12",
+  "C.M2",
+  "C.M3",
+  "C.M4",
+  "C.M5",
+  "C.M6",
+  "C.M7",
+  "C.M8",
+  "C.M9",
+  "C.R1",
+  "C.R2",
+  "C.R3",
+  "C.R4",
+  "C.ROLE.admin",
+  "C.ROLE.curator",
+  "DOC.NMA.EXPORT",
+  "DOC.NMA.RIV",
+  "E.CDIF",
+  "E.FAIR-IMPACT",
+  "E.NRP-COMPUTE",
+  "E.OS2",
+  "E.OS3",
+  "E.SCHEMA-DATASET",
+  "E.TF-SEMANTIC",
+  "aai-sensitive",
+  "cdif",
+  "cerit-aiaas",
+  "cessda-dmeg",
+  "copyright-licences",
+  "coretrustseal",
+  "datacite-schema",
+  "datarepo",
+  "dataspecer",
+  "ddrapp",
+  "deposit-licence",
+  "dmp-eosc",
+  "ds-handbook",
+  "ds-personas",
+  "dsw-nrp",
+  "eosc-acknowledgement",
+  "eosc-data-stewards",
+  "eosc-training",
+  "eosc-working-groups",
+  "ethical-seven",
+  "fair-champion",
+  "fair-impact",
+  "fair-signposting",
+  "fairsharing",
+  "fip-dashboard",
+  "force11-citation",
+  "heslar",
+  "knav-type-t",
+  "nma",
+  "nma-export-docs",
+  "nma-riv-docs",
+  "nrp-compute",
+  "nrp-conditions",
+  "os2",
+  "os3",
+  "ostrails-cli",
+  "ostrails-cz-pilot",
+  "pid-centre",
+  "policy-manual",
+  "repo-integration",
+  "repo-recommendations",
+  "repo-user-needs",
+  "schema-dataset",
+  "tf-semantic",
+]
+endTime = 2026-10-08T23:48:07+02:00

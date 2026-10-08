@@ -323,6 +323,7 @@ def build_organizations(graph: Graph, guide: dict[str, Any]) -> dict[str, str]:
                 "name": text(organization["name"]),
                 "url": organization.get("url"),
                 "identifier": organization.get("identifier"),
+                "sameAs": ref(f"#fd-org-{organization['fipDashboard']}") if organization.get("fipDashboard") else None,
                 "funder": refs([organizations[funder] for funder in as_list(organization.get("funder"))]),
             },
             organization["id"],
@@ -468,13 +469,11 @@ def build_sources(
     people: dict[str, str],
     names: dict[str, str],
 ) -> None:
-    """Sources, collected in #sources; an author given as a person ID becomes a Person entity, any other author stays
-    a name."""
+    """Sources the guide cites but does not recommend as resources; returns their entity IDs."""
     source_ids = []
     for source in sources:
         entity_id = f"https://doi.org/{source['doi']}" if source.get("doi") else f"#source-{source['id']}"
         source_ids.append(entity_id)
-        authors = source.get("authors", [])
         graph.add(
             {
                 "@id": entity_id,
@@ -482,19 +481,30 @@ def build_sources(
                 "additionalType": SOURCE_ADDITIONAL_TYPES.get(source["type"]),
                 "identifier": source["id"],
                 "name": source["title"],
-                "inLanguage": source.get("inLanguage"),
                 "url": source.get("url"),
-                "publisher": organization_ref(graph, organizations, source.get("publisher")),
-                "version": source.get("version"),
-                "author": refs([people[author] for author in authors if author in people]),
-                "creditText": "; ".join(names.get(author, author) for author in authors) or None,
-                "datePublished": iso(source["datePublished"]) if source.get("datePublished") else None,
-                "sdDatePublished": iso(source["dateAccessed"]) if source.get("dateAccessed") else None,
-                "license": source.get("license"),
-            },
+            }
+            | citation_properties(graph, source, organizations, people, names),
             source["id"],
         )
-    graph.add({"@id": "#sources", "@type": "CreativeWork", "name": "Cited sources", "hasPart": refs(source_ids)})
+    return source_ids
+
+
+def citation_properties(
+    graph: Graph, citation: dict[str, Any], organizations: dict[str, str], people: dict[str, str], names: dict[str, str]
+) -> dict[str, Any]:
+    """How a cited work is cited: publisher, authors, version, dates and licence. An author given as a person ID
+    becomes a Person entity, any other author stays a name."""
+    authors = citation.get("authors", [])
+    return {
+        "inLanguage": citation.get("inLanguage"),
+        "publisher": organization_ref(graph, organizations, citation.get("publisher")),
+        "version": citation.get("version"),
+        "author": refs([people[author] for author in authors if author in people]),
+        "creditText": "; ".join(names.get(author, author) for author in authors) or None,
+        "datePublished": iso(citation["datePublished"]) if citation.get("datePublished") else None,
+        "sdDatePublished": iso(citation["dateAccessed"]) if citation.get("dateAccessed") else None,
+        "license": citation.get("license"),
+    }
 
 
 def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
@@ -671,38 +681,63 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
     return check_ids
 
 
-def build_resources(graph: Graph, resources: list[dict[str, Any]], all_lenses: list[str]) -> list[str]:
-    resource_ids: list[str] = []
+def build_resources(
+    graph: Graph,
+    resources: list[dict[str, Any]],
+    all_lenses: list[str],
+    *,
+    organizations: dict[str, str],
+    people: dict[str, str],
+    names: dict[str, str],
+) -> list[str]:
+    """One entity per resource; a resource the guide also cites carries its citation. Returns the cited ones."""
+    cited: list[str] = []
     for resource in resources:
         resource_id = f"#resource-{resource['id']}"
-        resource_ids.append(resource_id)
-        graph.add(
-            {
-                "@id": resource_id,
-                "@type": RESOURCE_TYPES[resource["type"]],
-                "identifier": resource["id"],
-                "name": text(resource["name"]),
-                "description": text(resource.get("description")),
-                "url": resource.get("url"),
-                "audience": lens_refs(resource.get("lenses", "*"), all_lenses),
-                "additionalType": (["http://schema.org/SoftwareApplication"] if resource["type"] == "tool" else [])
-                + [FIP_TERMS + fip_class for fip_class in resource.get("fipClass", [])],
-                "resourceType": ref(f"#rtype-{resource['type']}"),
-                "serviceStatus": ref(f"#status-{resource['status']}") if resource.get("status") else None,
-                "statusAsOf": iso(resource["asOf"]) if resource.get("asOf") else None,
-                "inLanguage": resource.get("languages"),
-                "sameAs": refs(
-                    resource.get("sameAs", [])
-                    + ([FIP_DASHBOARD + resource["fipDashboard"]] if resource.get("fipDashboard") else [])
-                ),
-            },
-            resource["id"],
-        )
+        citation = resource.get("citation")
+        entity = {
+            "@id": resource_id,
+            "@type": RESOURCE_TYPES[resource["type"]],
+            "identifier": resource["id"],
+            "name": text(resource["name"]),
+            "description": text(resource.get("description")),
+            "url": resource.get("url"),
+            "audience": lens_refs(resource.get("lenses", "*"), all_lenses),
+            "additionalType": (["http://schema.org/SoftwareApplication"] if resource["type"] == "tool" else [])
+            + [FIP_TERMS + fip_class for fip_class in resource.get("fipClass", [])]
+            + (
+                [SOURCE_ADDITIONAL_TYPES[citation["type"]]]
+                if citation and citation.get("type") in SOURCE_ADDITIONAL_TYPES
+                else []
+            ),
+            "resourceType": ref(f"#rtype-{resource['type']}"),
+            "serviceStatus": ref(f"#status-{resource['status']}") if resource.get("status") else None,
+            "statusAsOf": iso(resource["asOf"]) if resource.get("asOf") else None,
+            "sameAs": refs(
+                resource.get("sameAs", [])
+                + ([FIP_DASHBOARD + resource["fipDashboard"]] if resource.get("fipDashboard") else [])
+                + ([f"https://doi.org/{citation['doi']}"] if citation and citation.get("doi") else [])
+            ),
+        }
+        if citation:
+            cited.append(resource_id)
+            entity |= citation_properties(graph, citation, organizations, people, names)
+            known = {item["@value"] if isinstance(item, dict) else item for item in as_list(entity["name"])}
+            if citation.get("title") and citation["title"] not in known:
+                entity["alternateName"] = citation["title"]
+        # The guide's own list of a resource's languages wins over the cited work's language.
+        entity["inLanguage"] = resource.get("languages") or entity.get("inLanguage")
+        graph.add(entity, resource["id"])
+    return cited
+
+
+def link_resources(graph: Graph, resources: list[dict[str, Any]]) -> None:
+    """Each station mentions the resources recommended at it."""
+    for resource in resources:
         for station in resource.get("stations", []):
             station_entity = graph.entities.get(f"#station-{station}")
             if station_entity is not None:
-                append_ref(station_entity, "mentions", resource_id)
-    return resource_ids
+                append_ref(station_entity, "mentions", f"#resource-{resource['id']}")
 
 
 def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, Any]:
@@ -762,12 +797,22 @@ def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
     return ids
 
 
-def build_repositories(graph: Graph, curated: list[dict[str, Any]], snapshots: list[dict[str, Any]]) -> list[str]:
-    """Merge the curated list and the snapshots: one entity per repository, crediting every source."""
+def build_repositories(
+    graph: Graph, curated: list[dict[str, Any]], snapshots: list[dict[str, Any]], resources: list[dict[str, Any]]
+) -> list[str]:
+    """Merge the curated list, the repository-type resources and the snapshots: one entity per repository, crediting
+    every source. A repository the guide recommends as a resource is that resource's entity."""
     merged: dict[str, dict[str, Any]] = {}
     order: list[str] = []
     graph.add({"@id": "#repositories-curated", "@type": "CreativeWork", "name": "Curated repository list"})
-    sources = [("#repositories-curated", curated)]
+    from_resources = [
+        {key: resource[key] for key in ("id", "name", "url", "status", "asOf") if key in resource}
+        | resource["repository"]
+        | {"resource": f"#resource-{resource['id']}"}
+        for resource in resources
+        if resource.get("repository")
+    ]
+    sources = [("#repositories-curated", curated + from_resources)]
     for snapshot in snapshots:
         sources.append((snapshot_id(snapshot), snapshot.get("repository", [])))
     for based_on, repositories in sources:
@@ -782,14 +827,28 @@ def build_repositories(graph: Graph, curated: list[dict[str, Any]], snapshots: l
                     elif prop not in existing or existing[prop] in (None, [], ""):
                         existing[prop] = value
             else:
-                entity["@id"] = f"#repository-{repository['id']}"
+                entity["@id"] = repository.get("resource") or f"#repository-{repository['id']}"
                 entity["_content_id"] = repository["id"]
+                entity["_resource"] = bool(repository.get("resource"))
                 merged[key] = entity
                 order.append(key)
     repository_ids = []
     for key in order:
         entity = merged[key]
         content_id = entity.pop("_content_id")
+        if entity.pop("_resource"):
+            # The resource's entity takes the repository facts it does not state itself.
+            resource = graph.entities[entity["@id"]]
+            for prop in ("repositoryKind", "keywords", "isBasedOn"):
+                if entity.get(prop) and not resource.get(prop):
+                    resource[prop] = entity[prop]
+            resource["sameAs"] = as_list(resource.get("sameAs")) + [
+                item for item in as_list(entity.get("sameAs")) if item not in as_list(resource.get("sameAs"))
+            ]
+            if not resource["sameAs"]:
+                del resource["sameAs"]
+            repository_ids.append(entity["@id"])
+            continue
         repository_ids.append(graph.add({"@id": entity.pop("@id"), **entity}, content_id))
     graph.add(
         {"@id": "#repositories", "@type": "CreativeWork", "name": "Repositories", "hasPart": refs(repository_ids)}
@@ -1106,12 +1165,14 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
     return action_ids
 
 
-def build_crate(content: dict[str, Any]) -> dict[str, Any]:
+def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str, Any]:
+    """The crate for the content; a caller that passes a graph can inspect it afterwards (the content checks read
+    which entities each content ID names)."""
     guide_file = content["guide"]
     guide = guide_file["guide"]
     vocabulary_base = guide["vocabularyBase"]
     all_lenses = [lens["id"] for lens in guide_file.get("lens", [])]
-    graph = Graph()
+    graph = graph if graph is not None else Graph()
 
     graph.add(
         {
@@ -1141,15 +1202,28 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
     build_terms(graph, vocabulary_base)
     build_principles(graph, content["principles"])
     names = {person["id"]: person["name"] for person in guide_file.get("person", [])}
-    build_sources(graph, content["sources"], organizations, people, names)
+    source_ids = build_sources(graph, content["sources"], organizations, people, names)
     build_vocabularies(graph, guide_file)
     build_glossary(graph, content["glossary"])
+    # Resources exist before the ledger, because a clause may cite a resource; the stations they are recommended at
+    # are linked once the stations exist.
+    cited_resource_ids = build_resources(
+        graph, content["resources"], all_lenses, organizations=organizations, people=people, names=names
+    )
+    graph.add(
+        {
+            "@id": "#sources",
+            "@type": "CreativeWork",
+            "name": "Cited sources",
+            "hasPart": refs(source_ids + cited_resource_ids),
+        }
+    )
     build_ledger(graph, content["ledger"])
     build_stations(graph, content["stations"], all_lenses)
+    link_resources(graph, content["resources"])
     check_ids = build_checks(graph, content["checks"], content["live"].get("links", {}))
-    build_resources(graph, content["resources"], all_lenses)
     snapshot_ids = build_snapshots(graph, content["snapshots"])
-    build_repositories(graph, content["repositories"], content["snapshots"])
+    build_repositories(graph, content["repositories"], content["snapshots"], content["resources"])
     catalogue_ids = build_fip_dashboard(graph, content["snapshots"])
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])

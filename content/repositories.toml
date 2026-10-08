@@ -2,16 +2,6 @@
 # several sources appears once, crediting each. Field reference: docs/content-model.md.
 
 [[repository]]
-id = "datarepo"
-name = { cs = "Datový catch-all repozitář NRP", en = "NRP Data Catch-all Repository" }
-url = "https://datarepo.eosc.cz/"
-kind = "general"
-subjects = { cs = "všechny obory", en = "all fields" }
-pidTypes = ["DOI"]
-status = "operational"
-asOf = 2026-10-08
-
-[[repository]]
 id = "zenodo"
 name = "Zenodo"
 url = "https://zenodo.org/"

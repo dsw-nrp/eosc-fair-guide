@@ -22,6 +22,10 @@
   /** The address of a catalogue tab, or of one item in it. */
   FG.catalogueHref = (tab, item) => FG.href("catalogue", tab) + (item ? "/" + encodeURIComponent(item) : "");
 
+  /** The language of an entity's plain-text name, for its lang attribute: a name with Czech and English values
+      sets its own, and a list of languages names none. */
+  FG.nameLang = (entity) => (typeof entity.name === "string" && typeof entity.inLanguage === "string" ? entity.inLanguage : null);
+
   /** An identifier as a small chip that leads to its entry in the catalogue. */
   FG.idChip = function (tab, id) {
     return h("a", { class: "id-chip", href: FG.catalogueHref(tab, id), title: FG.t("catalogue.openEntry", { id }) }, id);
@@ -41,7 +45,7 @@
         "p",
         { class: "clause-meta small" },
         isClause ? FG.idChip("clauses", clause.identifier) : null,
-        source ? [isClause ? " · " : null, h("span", { lang: source.inLanguage || null }, source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name))] : null
+        source ? [isClause ? " · " : null, h("span", { lang: FG.nameLang(source) }, source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name))] : null
       ),
       status && status !== "current" && clause.note
         ? h("p", { class: "small clause-note" }, h("strong", null, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh") + ": "), FG.span(clause.note))
@@ -127,7 +131,9 @@
   function sourceCard(source, cited) {
     const publisher = FG.get(source.publisher);
     const url = source.url || (String(source["@id"]).startsWith("https://") ? source["@id"] : null);
-    const name = h("span", { lang: source.inLanguage || null }, FG.text(source.name));
+    /* A resource the guide also cites is labelled by its resource type, a cited document by its form. */
+    const kind = source.resourceType ? FG.termName(FG.id(source.resourceType)) : FG.t("catalogue.sourceType." + sourceKind(source));
+    const name = typeof source.name === "string" ? h("span", { lang: FG.nameLang(source) }, source.name) : FG.span(source.name);
     const date = source.datePublished
       ? FG.t("catalogue.published", { date: String(source.datePublished).length === 10 ? FG.formatDate(source.datePublished) : String(source.datePublished) })
       : source.sdDatePublished
@@ -141,7 +147,7 @@
       h(
         "div",
         { class: "badges" },
-        h("span", { class: "badge" }, FG.t("catalogue.sourceType." + sourceKind(source))),
+        h("span", { class: "badge" }, kind),
         publisher ? h("span", { class: "badge" }, FG.text(publisher.alternateName || publisher.name)) : null,
         source.version ? h("span", { class: "badge" }, FG.t("catalogue.version", { version: source.version })) : null,
         date ? h("span", { class: "badge" }, date) : null,
@@ -215,7 +221,7 @@
           return h(
             "section",
             { class: "catalogue-group" },
-            h("h3", null, source.identifier ? h("a", { href: FG.catalogueHref("sources", source.identifier), lang: source.inLanguage || null }, FG.text(source.name)) : FG.text(source.name), h("span", { class: "muted" }, " · " + FG.t("catalogue.entries", { n: list.length }))),
+            h("h3", null, source.identifier ? h("a", { href: FG.catalogueHref("sources", source.identifier), lang: FG.nameLang(source) }, FG.text(source.name)) : FG.text(source.name), h("span", { class: "muted" }, " · " + FG.t("catalogue.entries", { n: list.length }))),
             cards(list.map((clause) => clauseCard(clause, used.get(clause["@id"]) || [])))
           );
         })
@@ -353,7 +359,7 @@
         "p",
         { class: "small muted" },
         FG.t("catalogue.changedItems", { n: results }),
-        sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", { lang: source.inLanguage || null }, FG.text(source.name))))] : null,
+        sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", { lang: FG.nameLang(source) }, FG.text(source.name))))] : null,
         " ",
         FG.apiLink("actions", String(action["@id"]).replace(/^#action-/, ""))
       )
