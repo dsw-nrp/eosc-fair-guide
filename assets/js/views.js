@@ -88,6 +88,11 @@
 
   /* ---------------------------------------------------------------- shell */
 
+  /** Whether a path route shows the landing (the path's start) rather than a station. */
+  FG.landingShown = function (route) {
+    return route.view === "path" && (route.arg === "start" || (!route.arg && !FG.state.started));
+  };
+
   FG.views.header = function (route) {
     const otherLang = route.lang === "cs" ? "en" : "cs";
     return h(
@@ -123,7 +128,7 @@
   FG.views.lensBand = function (route) {
     if (!LENS_VIEWS.has(route.view)) return null;
     const icons = (FG.config.icons && FG.config.icons.lens) || {};
-    const arg = route.view === "path" && !route.arg && !FG.state.started ? "start" : route.arg;
+    const arg = FG.landingShown(route) ? "start" : route.arg;
     const option = (lens) => {
       const href = FG.href(route.view, arg, { lens: lens.audienceType });
       const switchInPlace = (event) => {
@@ -165,23 +170,25 @@
   };
 
   FG.views.nav = function (route) {
+    const first = FG.stations()[0];
+    const station = FG.state.lastStation || FG.state.entryStation || (first && first.identifier);
+    const landing = FG.landingShown(route);
     const items = [
-      ["path", "start", "nav.path"],
-      ["selfcheck", null, "nav.selfcheck"],
-      ["explorer", null, "nav.explorer"],
-      ["resources", null, "nav.resources"],
-      ["repositories", null, "nav.repositories"],
-      ["page", "about", "nav.about"],
+      ["path", "start", "nav.home", landing],
+      ["path", station, "nav.path", route.view === "path" && !landing],
+      ["selfcheck", null, "nav.selfcheck", route.view === "selfcheck" || route.view === "check"],
+      ["explorer", null, "nav.explorer", route.view === "explorer"],
+      ["resources", null, "nav.resources", route.view === "resources"],
+      ["repositories", null, "nav.repositories", route.view === "repositories"],
+      ["page", "about", "nav.about", route.view === "page" && route.arg === "about"],
     ];
-    const current = (view, arg) =>
-      (view === route.view && (!arg || arg === route.arg || view === "path")) || (view === "selfcheck" && route.view === "check");
     return h(
       "nav",
       { class: "main-nav wrap", "aria-label": FG.t("nav.label") },
       h(
         "ul",
         null,
-        items.map(([view, arg, key]) => h("li", null, h("a", { href: FG.href(view, arg), "aria-current": current(view, arg) ? "page" : null }, FG.t(key))))
+        items.map(([view, arg, key, current]) => h("li", null, h("a", { href: FG.href(view, arg), "aria-current": current ? "page" : null }, FG.t(key))))
       )
     );
   };
@@ -292,8 +299,8 @@
     );
   }
 
-  /** The stage question as a journey: four cards in path order, each naming the steps it covers, with the
-      visitor's current stage marked. */
+  /** The stage question as a journey: four cards in path order, each naming the steps it covers; the card holding
+      the visitor's last station says at which step they were. */
   function stageCards() {
     const stations = FG.stations();
     const stages = FG.ofType("DefinedTerm")
@@ -316,7 +323,6 @@
             {
               type: "button",
               class: "stage-card" + (current ? " stage-current" : ""),
-              "aria-current": current ? "step" : null,
               onclick: () => {
                 const station = FG.get(stage.startsAt).identifier;
                 FG.state.started = true;
@@ -330,7 +336,7 @@
               { class: "stage-steps" },
               FG.icon(icons[stage.termCode], { class: "icon-large" }),
               from === to ? FG.t("stage.step", { n: from }) : FG.t("stage.steps", { from, to }),
-              current ? h("span", { class: "badge" }, FG.t("stage.current")) : null
+              current ? h("span", { class: "badge" }, FG.t("stage.current", { n: here.position })) : null
             ),
             h("strong", null, FG.span(stage.name)),
             stage.description ? h("span", { class: "small muted" }, FG.span(stage.description)) : null
@@ -588,7 +594,7 @@
   }
 
   FG.views.path = function (route) {
-    const showEntry = route.arg === "start" || (!route.arg && !FG.state.started);
+    const showEntry = FG.landingShown(route);
     const currentId = showEntry ? null : route.arg || FG.state.lastStation || FG.state.entryStation || FG.stations()[0].identifier;
     if (currentId && currentId !== FG.state.lastStation && FG.stations().some((station) => station.identifier === currentId)) {
       FG.state.lastStation = currentId;

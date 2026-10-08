@@ -509,7 +509,10 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   the identifier is typed. Nothing is sent while typing.
 - The stage is chosen from four cards with a short description each (planning, working with data, publishing,
   published), not from a strip of stations. Each card names the steps it covers, and the card holding the
-  visitor's current station says "You are here", so the cards also show the whole journey.
+  visitor's last station says at which step they were ("Last at step 5"), so the cards also show the whole journey.
+- The main menu calls the path "Path to FAIR" ("Cesta k FAIR"); "Path" alone did not say where it leads. The
+  landing is its own first menu item ("Úvod" / "Home"), and "Path to FAIR" opens the station the visitor was last
+  at.
 - The line on what the content is based on, the privacy promise and the date moves to the bottom of the landing,
   and names the FAIR analysis as a link.
 - Task shortcuts follow the order of the path, then institution-level and community tasks:
@@ -643,3 +646,5 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-75 | 2026-10-08 | Answers stay in the browser, **said plainly and deletable**, and **portable**: the JSON-LD and Markdown exports can be loaded back, opening as a preview like a shared link. | U |
 | D-76 | 2026-10-08 | **Search results while typing**: the guide's own content is searched as the user types (from the second character); the routes for an identifier appear on Enter, with a hint while it is typed. Reverses "results after confirming the search" in D-74, because waiting for Enter was hard to predict. | U |
 | D-77 | 2026-10-08 | **Legible, linked logos**: a larger header logo; the funding logolink shown through two windows onto the published image, the EU and ministry pair kept whole and the EOSC CZ logo beside it or, on a phone, below it; each logo links to its owner (OP JAK, MŠMT, EOSC CZ). The stage cards name the steps they cover and mark the visitor's current stage, serving as the journey graphic. | U+S |
+| D-78 | 2026-10-08 | The main menu item reads **"Cesta k FAIR" / "Path to FAIR"**; the stage card mark says **where the visitor was last** ("Naposledy u kroku 5") instead of "You are here", which read as marking the page shown. | U |
+| D-79 | 2026-10-08 | The **landing is its own first menu item** ("Úvod" / "Home"); the path item opens the station the visitor was last at (the first station on a first visit). | U |

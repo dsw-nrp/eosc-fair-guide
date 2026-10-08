@@ -245,16 +245,20 @@ async function axe(page, label) {
   const legend = page.locator(".rail-desktop .rail-legend a");
   if (!(await legend.count()) || (await legend.getAttribute("href")) !== "#/cs/V/selfcheck") fail("path: the self-check marks have no visible legend linking to the self-check");
 
-  // Returning visitors reach the path's start from the menu, with a line to resume where they were.
-  await page.locator(".main-nav a", { hasText: "Cesta" }).click();
+  // The menu's path item opens the station the visitor was last at; the home item opens the path's start, with a
+  // line to resume where they were.
+  if ((await page.locator(".main-nav a", { hasText: "Cesta k FAIR" }).getAttribute("href")) !== "#/cs/V/path/licence") fail("menu: the path item does not open the last station");
+  if ((await page.locator('.main-nav a[aria-current="page"]').textContent()) !== "Cesta k FAIR") fail("menu: the path item is not marked on a station");
+  await page.locator(".main-nav a", { hasText: "Úvod" }).click();
   try {
     await page.waitForFunction(() => window.location.hash === "#/cs/V/path/start" && document.querySelector("#stage-question") && document.querySelector("#stage-question").textContent.includes("Kde se právě nacházíte"), null, { timeout: 5000 });
   } catch (error) {
-    fail("path: the menu does not open the stage question");
+    fail("menu: the home item does not open the stage question");
   }
+  if ((await page.locator('.main-nav a[aria-current="page"]').textContent()) !== "Úvod") fail("menu: the home item is not marked on the landing");
   if (!(await page.locator(".resume a").textContent()).includes("Licence")) fail("path: no resume line for the last station");
-  const current = await page.locator('.stage-card[aria-current="step"]').allTextContents();
-  if (current.length !== 1 || !current[0].includes("Kroky 3–6") || !current[0].includes("Tady jste")) fail("path: the stage of the last station is not marked: " + current.join(" | "));
+  const current = await page.locator(".stage-current").allTextContents();
+  if (current.length !== 1 || !current[0].includes("Kroky 3–6") || !current[0].includes("Naposledy u kroku 5")) fail("path: the stage of the last station is not marked: " + current.join(" | "));
 
   // Switching the lens keeps open levels and the scroll position.
   await go("#/cs/V/path/licence");

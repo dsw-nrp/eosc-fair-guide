@@ -12,7 +12,8 @@ home = { cs = "EOSC CZ, domovská stránka", en = "EOSC CZ home page" }
 
 [nav]
 label = { cs = "Hlavní navigace", en = "Main navigation" }
-path = { cs = "Cesta", en = "Path" }
+home = { cs = "Úvod", en = "Home" }
+path = { cs = "Cesta k FAIR", en = "Path to FAIR" }
 selfcheck = { cs = "Sebehodnocení", en = "Self-check" }
 explorer = { cs = "Principy", en = "Principles" }
 resources = { cs = "Zdroje", en = "Resources" }
@@ -30,7 +31,7 @@ change = { cs = "Začít jinde", en = "Start somewhere else" }
 resume = { cs = "Pokračovat: krok {n} · {station}", en = "Continue: step {n} · {station}" }
 step = { cs = "Krok {n}", en = "Step {n}" }
 steps = { cs = "Kroky {from}–{to}", en = "Steps {from}–{to}" }
-current = { cs = "Tady jste", en = "You are here" }
+current = { cs = "Naposledy u kroku {n}", en = "Last at step {n}" }
 
 [landing]
 tasks = { cs = "Co potřebujete udělat?", en = "What do you need to do?" }
