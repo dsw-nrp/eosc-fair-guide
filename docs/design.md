@@ -578,6 +578,10 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   doi.org), an r3d identifier or the record's address. re3data does not admit browser requests, so the facts come
   from the reviewed re3data snapshot; a repository outside it is named and linked, not guessed.
 - The check of the NRP conditions is called "Podmínky NRP" (NRP conditions); its identifiers stay `gate`.
+- A check starts from public records or from a saved result: both are offered at the top under "Předvyplnit
+  odpovědi" (pre-fill the answers). Before the mode or profile is chosen, and for a check without public records,
+  the saved result alone is offered, as on the self-check overview; loading is not repeated among the saving
+  controls.
 
 ### Answers that stay in the browser, and can travel
 
@@ -591,9 +595,10 @@ a glance, and made useful:
   sent (nothing, except an identifier to the named service when the user starts a lookup), how to move it, and how
   to delete it.
 - **Deletable:** one control removes everything the guide stores in the browser, after a confirmation.
-- **Portable:** the JSON-LD export carries the native answers, the check, the mode or profile, the assessed target
-  and the evidence, so a file can be loaded back; the Markdown summary ends with the same compact payload that a
-  shared link carries, in a comment a reader does not see. A file loaded into the guide opens as a preview, exactly
+- **Portable:** the JSON-LD export carries the native answers, the check, the mode or profile, the assessed target,
+  every identifier entered with what it turned out to be, and the evidence, so a file can be loaded back; the
+  Markdown summary ends with the same state, encoded in a comment a reader does not see, after the compact payload a
+  shared link carries (which alone is enough for summaries from an earlier version). A file loaded into the guide opens as a preview, exactly
   like a shared link, and replaces the user's answers for that check only on request. Files the guide did not
   produce are refused with a message.
 - **Readable by services:** the JSON-LD remains an FTR test result set in an RO-Crate, so other services can read
@@ -691,3 +696,5 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-84 | 2026-10-08 | **A resolved identifier says what it is**: title, first author, publisher, year and type for a DOI, the landing page's title for a Handle, the record's name for NKR, re3data or a FIP profile; under the field, in the result and in the exports. A rule for every identifier helper. | U |
 | D-85 | 2026-10-08 | The **repository maturity check fills in from re3data** (DOI, r3d identifier or record address); re3data admits no browser requests, so the facts come from the reviewed snapshot, extended for the purpose, and a repository outside it is named and linked. Exports declare their **format and the guide's version**, and broken, newer or foreign files get their own messages. | U+S |
 | D-86 | 2026-10-08 | "Brána NRP" becomes **"Podmínky NRP"** (NRP conditions) in the interface; identifiers stay `gate`. | U |
+| D-87 | 2026-10-08 | **Both exports load back completely**: the state names every identifier entered (DOI or Handle, NKR, re3data, FIP profile) with what it is, and the Markdown summary carries the same state as the JSON-LD, base64-encoded in a hidden comment, instead of only the shared link's answers. A summary from an earlier version still loads its answers. | U |
+| D-88 | 2026-10-08 | **Loading a saved result is a way to start a check**: offered at the top under "Předvyplnit odpovědi" beside the public records, and on its own before the mode or profile is chosen; it leaves the saving controls. | U |

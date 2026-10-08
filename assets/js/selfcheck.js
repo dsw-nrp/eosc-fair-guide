@@ -342,17 +342,22 @@
     );
   }
 
+  /** Discard what an identifier gave: answers it pre-filled, including those taken unchanged from a loaded result,
+      go; answers someone gave or changed stay, without the evidence. */
+  function dropEvidence(st) {
+    for (const [id, entry] of Object.entries(st.items)) {
+      if (!entry || typeof entry !== "object") continue;
+      const unchanged = entry.origin === "shared" && entry.prefill && (entry.value || null) === (entry.prefill.value || null);
+      if (entry.origin === "prefill" || unchanged) delete st.items[id];
+      else delete entry.prefill;
+    }
+  }
+
   /** Evidence describes one dataset, repository or profile; choosing another discards what the previous one gave. */
   function retarget(check, target) {
     const st = stateOf(check);
     if (st.target !== target) delete st.targetInfo;
-    if (st.target && st.target !== target) {
-      for (const [id, entry] of Object.entries(st.items)) {
-        if (!entry || typeof entry !== "object") continue;
-        if (entry.origin === "prefill") delete st.items[id];
-        else delete entry.prefill;
-      }
-    }
+    if (st.target && st.target !== target) dropEvidence(st);
     st.target = target;
     save();
   }
@@ -361,11 +366,7 @@
   function clearTarget(check, key, focusId) {
     const st = stateOf(check);
     delete st[key];
-    for (const [id, entry] of Object.entries(st.items)) {
-      if (!entry || typeof entry !== "object") continue;
-      if (entry.origin === "prefill") delete st.items[id];
-      else delete entry.prefill;
-    }
+    dropEvidence(st);
     delete st.target;
     delete st.targetInfo;
     save();
@@ -823,22 +824,35 @@
     ];
   }
 
-  function prefillPanel(check, st) {
-    const sources = sourcesOf(check, st);
+  /** The ways to start a check without answering everything by hand: public records that the check's questions
+      can be filled in from, and a result saved earlier. Before the mode or profile is chosen, only the saved result,
+      which brings its own. */
+  function startPanel(check, st, ready) {
+    const sources = ready ? sourcesOf(check, st) : new Set();
     const controls = [];
     if (sources.has("datacite") || sources.has("resolver")) controls.push(pidControl(check, st));
     if (sources.has("nkr")) controls.push(nkrControl(check, st));
     if (sources.has("re3data")) controls.push(re3dataControl(check, st));
     if (sources.has("fip")) controls.push(fipControl(check, st));
-    if (!controls.length) return null;
+    if (!controls.length) {
+      return h(
+        "section",
+        { class: "prefill no-print", "aria-labelledby": "prefill-title" },
+        h("h2", { id: "prefill-title" }, FG.t("selfcheck.savedTitle")),
+        h("p", { class: "small" }, FG.t("selfcheck.savedText")),
+        loadControl("load-file")
+      );
+    }
     return h(
       "section",
       { class: "prefill no-print", "aria-labelledby": "prefill-title" },
       h("h2", { id: "prefill-title" }, FG.t("selfcheck.prefill.title")),
+      h("h3", null, FG.t("selfcheck.prefill.fromRecords")),
       h("p", { class: "small" }, FG.t("selfcheck.prefill.privacy")),
       controls,
       targetCard(st),
-      h("p", { id: "prefill-status", role: "status", class: "small" }, status.check === check.identifier ? status.text : "")
+      h("p", { id: "prefill-status", role: "status", class: "small" }, status.check === check.identifier ? status.text : ""),
+      h("div", { class: "prefill-file" }, h("h3", null, FG.t("selfcheck.prefill.fromFile")), h("p", { class: "small" }, FG.t("selfcheck.prefill.fromFileText")), loadControl("load-file"))
     );
   }
 
@@ -1274,9 +1288,10 @@
       lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}: **${escapeMarkdown(answerText(st, item))}**${details ? " (" + escapeMarkdown(details) + ")" : ""}`);
     }
     lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${pageBase()}`, "");
-    /* The same compact payload as a shared link, with the format and guide versions, hidden from readers, so the
-       summary can be loaded back. */
-    lines.push(`<!-- fair-guide-result v${FORMAT_VERSION} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`, "");
+    /* Hidden from readers: the answers as in a shared link, with the format and guide versions, and the whole state
+       the JSON-LD carries (identifiers, what they are, evidence), so the summary loads back completely. */
+    lines.push(`<!-- fair-guide-result v${FORMAT_VERSION} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`);
+    lines.push("<!-- fair-guide-state", toBase64(JSON.stringify(SC.portableState(check, st))).match(/.{1,76}/g).join("\n"), "-->", "");
     return lines.join("\n");
   }
 
@@ -1420,6 +1435,9 @@
       target: st.target || null,
       targetInfo: st.targetInfo || null,
       pid: st.pid || null,
+      nkr: st.nkr || null,
+      re3data: st.re3data || null,
+      fip: st.fip || null,
       items,
     };
   };
@@ -1489,6 +1507,9 @@
     }
     const state = { mode: data.mode, profile: data.profile, extended: true, target: webUrl(data.target), items };
     if (isText(data.pid, 300)) state.pid = data.pid;
+    if (isText(data.nkr, 100) && /^[\w.:-]+$/.test(data.nkr)) state.nkr = data.nkr;
+    if (isText(data.re3data, 20) && /^r3d\d{9}$/.test(data.re3data)) state.re3data = data.re3data;
+    if (isText(data.fip, 100) && /^[\w.-]+$/.test(data.fip)) state.fip = data.fip;
     if (data.targetInfo && typeof data.targetInfo === "object") {
       const info = {};
       for (const key of ["name", "creators", "publisher", "year", "kind", "url"]) if (isText(String(data.targetInfo[key] || ""), 300) && data.targetInfo[key]) info[key] = String(data.targetInfo[key]);
@@ -1497,6 +1518,18 @@
     }
     return { check, state, notices: loadNotices(skipped, isText(data.guideVersion, 40) ? data.guideVersion : null) };
   };
+
+  /** Text as base64 of its UTF-8 bytes and back, for the state the Markdown summary carries in a comment. */
+  function toBase64(text) {
+    let binary = "";
+    for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
+    return btoa(binary);
+  }
+
+  function fromBase64(text) {
+    const binary = atob(text.replace(/\s+/g, ""));
+    return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
+  }
 
   /** Read a file the guide exported, the JSON-LD result set or the Markdown summary, or say why it cannot be read. */
   function readResultFile(text) {
@@ -1520,6 +1553,18 @@
     if (Number(match[1] || FORMAT_VERSION) > FORMAT_VERSION) return { error: "newer", params: { version: match[2] || "?" } };
     const check = FG.get("#check-" + match[3]);
     if (!check) return { error: "unknownCheck" };
+    const carried = String(text).match(/<!--\s*fair-guide-state\b([\s\S]*?)-->/);
+    if (carried) {
+      let data = null;
+      try {
+        data = JSON.parse(fromBase64(carried[1]));
+      } catch (error) {
+        return { error: "damaged" };
+      }
+      if (!data || data.check !== check.identifier) return { error: "damaged" };
+      return SC.readPortable(data);
+    }
+    /* A summary without the state (an older guide) gives the answers only. */
     const state = SC.parseShare(check, match[4]);
     if (!state) return { error: "damaged" };
     return { check, state, notices: loadNotices(state.skipped, match[2] || null) };
@@ -1760,7 +1805,6 @@
         h("button", { type: "button", class: "button-small", onclick: () => window.print() }, FG.icon("print"), FG.t("selfcheck.export.print"))
       ),
       h("div", { id: "share-output", class: "share-output" }),
-      loadControl("load-file"),
       h("p", null, h("button", { type: "button", class: "button-link", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset")))
     );
   }
@@ -1920,7 +1964,11 @@
     if (route.extra) return h("div", { class: "layout wrap selfcheck" }, h("article", null, head, sharedView(check, route.extra)));
     const st = stateOf(check);
     if (!ready(check, st)) {
-      return h("div", { class: "layout wrap selfcheck" }, h("article", null, head, h("div", { class: "no-print" }, settings(check, st)), h("p", { class: "notice" }, FG.t("selfcheck.chooseFirst"))));
+      return h(
+        "div",
+        { class: "layout wrap selfcheck" },
+        h("article", null, head, h("div", { class: "no-print" }, settings(check, st)), h("p", { class: "notice" }, FG.t("selfcheck.chooseFirst")), startPanel(check, st, false))
+      );
     }
     return h(
       "div",
@@ -1933,7 +1981,7 @@
           "article",
           { class: "check-main" },
           h("div", { class: "no-print" }, settings(check, st)),
-          prefillPanel(check, st),
+          startPanel(check, st, true),
           itemsSection(check, st),
           h(
             "section",

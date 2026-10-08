@@ -2120,28 +2120,24 @@ main p > button {
 }
 
 /* Inside a check: a compact mode question, a calmer pre-fill heading and light item details. */
-.check-view .choice {
+.selfcheck .choice {
   padding: var(--space-3) var(--space-4);
 }
 
 /* The question sits inside its box, so the box's top edge lines up with the summary beside it. */
-.check-view .choice > legend {
+.selfcheck .choice > legend {
   float: left;
   width: 100%;
   margin: 0 0 var(--space-1);
   padding: 0;
 }
 
-.check-view .choice > legend + * {
+.selfcheck .choice > legend + * {
   clear: both;
 }
 
-.check-view .choice .options {
+.selfcheck .choice .options {
   margin: var(--space-2) 0 0;
-}
-
-.check-view .prefill h2 {
-  font-size: var(--size-h3);
 }
 
 .item .item-basis {
@@ -2578,10 +2574,27 @@ main p > button {
 
 .prefill h2 {
   margin-top: 0;
+  font-size: var(--size-h3);
 }
 
 .prefill-row {
   margin: var(--space-4) 0;
+}
+
+.prefill h3 {
+  margin: var(--space-3) 0 var(--space-1);
+  font-size: var(--size-base);
+}
+
+.prefill-file {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.prefill-file .load-file,
+.prefill > .load-file {
+  margin-bottom: 0;
 }
 
 .prefill-row label {

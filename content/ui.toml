@@ -204,7 +204,10 @@ unknown = { cs = "Nevím", en = "Don't know" }
 na = { cs = "Netýká se", en = "Not applicable" }
 
 [selfcheck.prefill]
-title = { cs = "Vyplnit podle veřejných záznamů", en = "Fill in from public records" }
+title = { cs = "Předvyplnit odpovědi", en = "Pre-fill the answers" }
+fromRecords = { cs = "Z veřejných záznamů", en = "From public records" }
+fromFile = { cs = "Z uloženého výsledku", en = "From a saved result" }
+fromFileText = { cs = "Výsledek uložený z průvodce se otevře jako náhled; vaše odpovědi se změní, jen když o to požádáte.", en = "A result saved from the guide opens as a preview; your answers change only if you ask." }
 privacy = { cs = "Průvodce pošle službě jen identifikátor, který zadáte. Vaše odpovědi zůstávají v prohlížeči. Vyplněné odpovědi zkontrolujte; můžete je změnit.", en = "The guide sends the service only the identifier you enter. Your answers stay in your browser. Check the answers it fills in; you can change them." }
 pid = { cs = "DOI nebo Handle datové sady", en = "DOI or Handle of the dataset" }
 pidButton = { cs = "Načíst záznam a vyplnit", en = "Look up and fill in" }

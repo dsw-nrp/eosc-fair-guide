@@ -349,7 +349,8 @@ async function axe(page, label) {
   await page.locator("#export-format-md").check();
   await page.locator(".export-preview summary").click();
   await page.waitForFunction(() => document.getElementById("export-preview-text").value.length > 0);
-  if (!(await page.locator("#export-preview-text").inputValue()).includes("url = https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
+  const doiSummary = await page.locator("#export-preview-text").inputValue();
+  if (!doiSummary.includes("url = https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
   await page.locator("#export-format-jsonld").check();
   if (!(await page.locator("#export-preview-text").inputValue()).includes('"guideState"')) fail("dataset check: the preview does not follow the chosen format");
   await page.locator(".export-preview summary").click();
@@ -357,6 +358,24 @@ async function axe(page, label) {
   // Your answers read as a list: the answer beside each question, and the evidence under it.
   const answerRow = await page.locator(".answers-list .answer-row").filter({ hasText: "D02" }).textContent();
   if (!answerRow.includes("Ano") || !answerRow.includes("url = https://repo.example/record/1") || !answerRow.includes("záznam")) fail("dataset check: the answers list lacks the answer or its evidence: " + answerRow);
+  // The summary loads back with the DOI in its field, what it is, and the evidence.
+  {
+    const saved = resolve(root, ".cache", "doi-summary.md");
+    writeFileSync(saved, doiSummary);
+    await page.evaluate(() => {
+      window.FairGuide.state.answers.dataset = { mode: "before", items: {} };
+      window.FairGuide.saveState();
+      window.FairGuide.rerender();
+    });
+    await page.locator("#load-file").setInputFiles(saved);
+    await page.waitForSelector(".notice.shared");
+    await page.getByRole("button", { name: "Použít odpovědi ze souboru" }).click();
+    await page.waitForSelector("#prefill-pid");
+    if ((await page.locator("#prefill-pid").inputValue()) !== "10.5281/zenodo.1") fail("load: the DOI is not back in its field after loading the summary");
+    const restoredCard = page.locator(".target-card");
+    if (!(await restoredCard.count()) || !(await restoredCard.textContent()).includes("Sample dataset")) fail("load: what the DOI is does not show after loading the summary");
+    if (!(await page.locator("#origin-D02").textContent()).includes("https://repo.example/record/1")) fail("load: the evidence behind D02 is lost after loading the summary");
+  }
   await page.locator("#prefill-pid-clear").click();
   if (await page.locator('input[name="answer-D02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
   if (!(await checked("answer-D01-yes")) || !(await checked("answer-D04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
@@ -554,6 +573,17 @@ async function axe(page, label) {
   if ((await page.locator("#origin-K01 .source-chip").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
   await axe(page, "FIP check pre-filled");
 
+  // Loading a saved result is a way to start: offered at the top of every check, also before the mode is chosen,
+  // and not repeated among the saving controls.
+  for (const [hash, label] of [["#/cs/V/check/dataset", "before the mode"], ["#/cs/SR/check/maturity", "with public records"], ["#/cs/DS/check/institution", "without public records"]]) {
+    const view = await browser.newPage();
+    await view.goto(pageUrl + hash);
+    await view.waitForSelector("#main h1");
+    if (!(await view.locator(".prefill #load-file").count())) fail(`start (${label}): loading a saved result is not offered at the top of the check`);
+    if (await view.locator(".export #load-file, .export .load-file").count()) fail(`start (${label}): loading is repeated among the saving controls`);
+    await view.close();
+  }
+
   // Exports: Markdown and an FTR result set in an RO-Crate, naming the published page and the assessed profile.
   await page.locator("#export-format-md").check();
   const [mdDownload] = await Promise.all([page.waitForEvent("download"), page.locator("#export-download").click()]);
@@ -578,8 +608,10 @@ async function axe(page, label) {
   const note = await page.locator(".local-data").textContent();
   if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
   if (!/<!-- fair-guide-result v1 guide=\S+: fip a1\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
+  if (!/<!-- fair-guide-state\n[A-Za-z0-9+/=\n]+\n-->/.test(md)) fail("export: the Markdown summary does not carry the state for loading back");
   const state = JSON.parse(exportedGraph.find((entity) => entity.guideState).guideState);
   if (state.format !== "eosc-fair-guide-result" || state.v !== 1 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
+  if (state.fip !== "ndi-baseline" || !state.targetInfo) fail("export: the JSON-LD does not carry the chosen profile and what it is");
 
   // A saved result loads in another browser as a preview, keeps its evidence, and is adopted only on request; a
   // file the guide did not make is refused.
@@ -627,11 +659,33 @@ async function axe(page, label) {
     if (!(await view.locator("#answer-K01-partly").isChecked())) fail("load: the adopted answers are not the file's answers");
     const loaded = await view.locator("#origin-K01").textContent();
     if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("liší se od návrhu")) fail("load: the adopted K01 lost its evidence or is mislabelled: " + loaded);
+    const restored = async (format) => {
+      if ((await view.locator("#prefill-fip").inputValue()) !== "ndi-baseline") fail(`load (${format}): the profile chosen for pre-fill is not restored`);
+      if (!(await view.locator(".target-card").count())) fail(`load (${format}): what the identifier is does not show after loading`);
+    };
+    await restored("JSON-LD");
     await view.goto(pageUrl + "#/cs/K/selfcheck");
     await view.waitForSelector("#load-file-overview");
     await view.locator("#load-file-overview").setInputFiles(await mdDownload.path());
     await view.waitForSelector(".notice.shared");
     if (!(await view.locator(".notice.shared").textContent()).includes("ze souboru")) fail("load: a Markdown summary does not open as a preview");
+    await view.getByRole("button", { name: "Použít odpovědi ze souboru" }).click();
+    await view.waitForSelector("#answer-K01-partly");
+    const fromMarkdown = await view.locator("#origin-K01").textContent();
+    if (!fromMarkdown.includes("liší se od návrhu")) fail("load (Markdown): the adopted K01 lost its evidence: " + fromMarkdown);
+    await restored("Markdown");
+    // A summary from before the state was carried still loads its answers.
+    const older = resolve(root, ".cache", "older-summary.md");
+    writeFileSync(older, md.replace(/<!-- fair-guide-state[\s\S]*?-->\n?/, ""));
+    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await view.waitForSelector("#load-file-overview");
+    await view.locator("#load-file-overview").setInputFiles(older);
+    await view.waitForSelector(".notice.shared");
+    const broken = resolve(root, ".cache", "broken-state.md");
+    writeFileSync(broken, md.replace(/(<!-- fair-guide-state\n)[A-Za-z0-9]{8}/, "$1@@@@@@@@"));
+    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await view.waitForSelector("#load-file-overview");
+    await tryLoad(broken, "poškozený", "load: a summary with a damaged state is not reported as damaged");
     await other.close();
   }
 
