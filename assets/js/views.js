@@ -177,10 +177,26 @@
         ),
         h("p", null, FG.span(root.usageInfo)),
         h("p", null, FG.span(root.creditText)),
-        h("img", { class: "logolink", src: `assets/img/logolink-${FG.state.lang}.svg`, alt: FG.t("footer.logos"), width: "512", height: "78" })
+        logolink()
       )
     );
   };
+
+  /** The published logolink in two windows onto the same image: the EU and MŠMT pair, kept whole, and the EOSC CZ
+      logo, which moves below the pair on a narrow screen so both stay legible. Each logo links to its owner through
+      a link laid over its part of the image. */
+  function logolink() {
+    const project = FG.refs(FG.root, "funder")[0];
+    const ministry = project && FG.refs(project, "funder")[0];
+    const image = () => h("img", { src: `assets/img/logolink-${FG.state.lang}.svg`, alt: "" });
+    const part = (url, name, which) => (url ? FG.external(url, h("span", { class: "visually-hidden" }, name), { class: "logolink-part logolink-" + which }) : null);
+    return h(
+      "div",
+      { class: "logolink logolink-" + FG.state.lang },
+      h("div", { class: "logolink-crop logolink-funding" }, image(), part(FG.config.links.opJak, FG.t("footer.logoEu"), "eu"), part(ministry && ministry.url, FG.text(ministry && ministry.name), "ministry")),
+      h("div", { class: "logolink-crop logolink-initiative" }, image(), part(FG.config.links.eoscHome, FG.t("footer.logoEosc"), "eosc"))
+    );
+  }
 
   /* ---------------------------------------------------------------- path */
 
@@ -243,21 +259,31 @@
     );
   }
 
+  /** The stage question as a journey: four cards in path order, each naming the steps it covers, with the
+      visitor's current stage marked. */
   function stageCards() {
-    const stages = FG.ofType("DefinedTerm").filter((term) => FG.id(term.inDefinedTermSet) === "#stages");
+    const stations = FG.stations();
+    const stages = FG.ofType("DefinedTerm")
+      .filter((term) => FG.id(term.inDefinedTermSet) === "#stages")
+      .map((stage) => ({ stage, from: FG.get(stage.startsAt).position }))
+      .sort((a, b) => a.from - b.from);
+    stages.forEach((entry, index) => (entry.to = index + 1 < stages.length ? stages[index + 1].from - 1 : stations.length));
+    const here = stations.find((station) => station.identifier === (FG.state.lastStation || FG.state.entryStation));
     const icons = (FG.config.icons && FG.config.icons.stage) || {};
     return h(
-      "ul",
+      "ol",
       { class: "stage-options" },
-      stages.map((stage) =>
-        h(
+      stages.map(({ stage, from, to }) => {
+        const current = here && here.position >= from && here.position <= to;
+        return h(
           "li",
           null,
           h(
             "button",
             {
               type: "button",
-              class: "stage-card",
+              class: "stage-card" + (current ? " stage-current" : ""),
+              "aria-current": current ? "step" : null,
               onclick: () => {
                 const station = FG.get(stage.startsAt).identifier;
                 FG.state.started = true;
@@ -266,12 +292,18 @@
                 FG.navigate(FG.href("path", station));
               },
             },
-            FG.icon(icons[stage.termCode], { class: "icon-large" }),
+            h(
+              "span",
+              { class: "stage-steps" },
+              FG.icon(icons[stage.termCode], { class: "icon-large" }),
+              from === to ? FG.t("stage.step", { n: from }) : FG.t("stage.steps", { from, to }),
+              current ? h("span", { class: "badge" }, FG.t("stage.current")) : null
+            ),
             h("strong", null, FG.span(stage.name)),
             stage.description ? h("span", { class: "small muted" }, FG.span(stage.description)) : null
           )
-        )
-      )
+        );
+      })
     );
   }
 

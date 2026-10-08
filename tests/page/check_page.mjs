@@ -71,6 +71,8 @@ async function axe(page, label) {
   if (!(await page.locator("#search-input").count())) fail("landing: no search box");
   if (!(await page.locator("#stage-question").textContent()).includes("Kde se právě nacházíte")) fail("landing: no stage question");
   if ((await page.locator(".stage-card").count()) !== 4) fail("landing: the four stage cards are missing");
+  if (!(await page.locator(".stage-card").first().textContent()).includes("Krok 1")) fail("landing: the stage cards do not name the steps they cover");
+  if (await page.locator(".stage-current").count()) fail("landing: a first visit marks a current stage");
   if (!(await page.locator(".tasks .task").count())) fail("landing: no task shortcuts");
   await axe(page, "landing");
 
@@ -80,7 +82,7 @@ async function axe(page, label) {
     await page.keyboard.press("Tab");
     reached.add(await page.evaluate(() => {
       const el = document.activeElement;
-      return el ? (el.id || el.className || el.tagName) + ":" + (el.textContent || "").trim().slice(0, 20) : "";
+      return el ? (el.id || el.className || el.tagName) + ":" + (el.textContent || "").trim().slice(0, 40) : "";
     }));
   }
   const joined = [...reached].join(" | ");
@@ -88,25 +90,33 @@ async function axe(page, label) {
     if (!joined.includes(expected)) fail("keyboard does not reach: " + expected);
   }
 
-  // Universal search: terms are found locally in both languages and without diacritics; identifiers are routed
-  // to their tool, and nothing is sent while searching.
+  // Universal search: terms are found locally while typing, in both languages and without diacritics; identifiers
+  // are routed to their tool once the search is confirmed, and nothing is sent while searching.
+  const typeQuery = async (text) => {
+    await page.fill("#search-input", "");
+    await page.locator("#search-input").pressSequentially(text);
+    await page.waitForFunction((query) => document.querySelector("#search-results").dataset.query === query, text);
+    return page.locator("#search-results").textContent();
+  };
   const search = async (text) => {
     await page.fill("#search-input", text);
     await page.locator("#search-input").press("Enter");
-    await page.waitForSelector("#search-results > *");
+    await page.waitForFunction((query) => document.querySelector("#search-results").dataset.confirmed === "true" && document.querySelector("#search-results").dataset.query === query, text);
     return page.locator("#search-results").textContent();
   };
-  let found = await search("licence");
+  let found = await typeQuery("licence");
   if (!found.includes("Licence a přístup") || !found.includes("R1.1")) fail("search: 'licence' does not find the licence step and R1.1: " + found.slice(0, 200));
   const firstGroup = page.locator("#search-results .results-list").first();
   if ((await firstGroup.locator("li").count()) !== 3) fail("search: a long result group is not shortened to three");
   await page.locator("#search-results .button-link").first().click();
   if ((await firstGroup.locator("li").count()) <= 3) fail("search: 'show all' does not reveal the rest of the group");
   if (!(await page.evaluate(() => document.activeElement.closest(".results-list li:nth-child(4)")))) fail("search: focus does not move to the first revealed result");
-  found = await search("pristup");
+  found = await typeQuery("pristup");
   if (!found.includes("Licence a přístup")) fail("search: matching does not ignore diacritics");
-  found = await search("persistent identifier");
+  found = await typeQuery("persistent identifier");
   if (found.includes("Nic nenalezeno")) fail("search: English words are not searched");
+  found = await typeQuery("https://doi.org/10.5281/zenodo.21726258");
+  if (!found.includes("Stiskněte Enter") || (await page.locator("#search-results .result").count())) fail("search: a typed DOI does not wait for Enter: " + found.slice(0, 200));
   found = await search("https://doi.org/10.5281/zenodo.21726258");
   if (!(await page.locator("#search-results .result-primary").textContent()).includes("Zkontrolovat datovou sadu")) fail("search: a DOI is not routed to the dataset check");
   found = await search("0000-0001-6592-6291");
@@ -236,6 +246,8 @@ async function axe(page, label) {
     fail("path: the menu does not open the stage question");
   }
   if (!(await page.locator(".resume a").textContent()).includes("Licence")) fail("path: no resume line for the last station");
+  const current = await page.locator('.stage-card[aria-current="step"]').allTextContents();
+  if (current.length !== 1 || !current[0].includes("Kroky 3–6") || !current[0].includes("Tady jste")) fail("path: the stage of the last station is not marked: " + current.join(" | "));
 
   // Switching the lens keeps open levels and the scroll position.
   await go("#/cs/V/path/licence");
@@ -251,6 +263,17 @@ async function axe(page, label) {
   // The header logo leads to the EOSC CZ home page; the title opens the path's start.
   if ((await page.locator(".brand a").first().getAttribute("href")) !== "https://www.eosc.cz/") fail("header: the EOSC CZ logo does not link to its home page");
   if ((await page.locator(".brand-title").getAttribute("href")) !== "#/cs/SR/path/start") fail("header: the title does not open the path's start");
+  if ((await page.locator(".brand img").boundingBox()).height < 40) fail("header: the EOSC CZ logo is too small to read");
+
+  // Each logo of the funding logolink links to its owner, over the part of the image it covers.
+  const logoLinks = await page.locator(".logolink .logolink-part").evaluateAll((links) => links.map((link) => [link.getAttribute("href"), link.textContent.trim()]));
+  const logoHosts = logoLinks.map(([href]) => new URL(href).host).join(" ");
+  if (logoHosts !== "opjak.cz msmt.gov.cz www.eosc.cz" || logoLinks.some(([, name]) => !name)) fail("footer: the logolink parts do not link to their owners: " + JSON.stringify(logoLinks));
+  const logoArea = await page.locator(".logolink").boundingBox();
+  if ((await page.locator(".logolink-funding").boundingBox()).height < 90) fail("footer: the logolink is too small to read");
+  for (const box of await page.locator(".logolink .logolink-part").evaluateAll((links) => links.map((link) => link.getBoundingClientRect().toJSON()))) {
+    if (box.width < 40 || box.left < logoArea.x - 1 || box.right > logoArea.x + logoArea.width + 1) fail("footer: a logolink part lies outside the image");
+  }
 
   // A shared link opens as a preview in a browser without the answers, and can be adopted.
   await go("#/cs/V/check/dataset");

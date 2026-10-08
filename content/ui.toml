@@ -28,6 +28,9 @@ question = { cs = "Kde se právě nacházíte?", en = "Where are you now?" }
 intro = { cs = "Průvodce vás provede od plánu projektu ke zveřejněným, dohledatelným a citovatelným datům. Začněte tam, kde jste.", en = "The guide takes you from the project plan to published, findable and citable data. Start where you are." }
 change = { cs = "Začít jinde", en = "Start somewhere else" }
 resume = { cs = "Pokračovat: krok {n} · {station}", en = "Continue: step {n} · {station}" }
+step = { cs = "Krok {n}", en = "Step {n}" }
+steps = { cs = "Kroky {from}–{to}", en = "Steps {from}–{to}" }
+current = { cs = "Tady jste", en = "You are here" }
 
 [landing]
 tasks = { cs = "Co potřebujete udělat?", en = "What do you need to do?" }
@@ -41,9 +44,11 @@ trustUpdated = { cs = "aktualizováno {date}", en = "updated {date}" }
 
 [search]
 label = { cs = "Co hledáte?", en = "What are you looking for?" }
-placeholder = { cs = "DOI, Handle, ORCID, název repozitáře nebo pojem", en = "DOI, Handle, ORCID, repository name or term" }
+placeholder = { cs = "Pojem, repozitář, DOI, Handle nebo ORCID", en = "A term, repository, DOI, Handle or ORCID" }
 button = { cs = "Hledat", en = "Search" }
 done = { cs = "Výsledky hledání jsou pod polem.", en = "The search results are below the field." }
+found = { cs = "Nalezeno výsledků: {n}", en = "Results found: {n}" }
+identifierHint = { cs = "Rozpoznán identifikátor {type}. Stiskněte Enter a vyberte, co s ním udělat.", en = "This looks like a {type}. Press Enter to choose what to do with it." }
 none = { cs = "Nic nenalezeno. Zkuste jiné slovo, nebo projděte cestu níže.", en = "Nothing found. Try another word, or follow the path below." }
 localOnly = { cs = "Hledáno jen v obsahu průvodce; nic neodešlo.", en = "Searched in the guide's own content only; nothing was sent." }
 notSent = { cs = "Zatím jsme nic neodeslali. Služby se zeptáme, až akci vyberete.", en = "Nothing has been sent yet. A service is asked only when you choose an action." }
@@ -281,7 +286,8 @@ accessibility = { cs = "Prohlášení o přístupnosti", en = "Accessibility sta
 ai = { cs = "Využití AI", en = "Use of AI" }
 repository = { cs = "Zdrojový kód a data", en = "Source code and data" }
 crate = { cs = "Znalostní báze (RO-Crate)", en = "Knowledge base (RO-Crate)" }
-logos = { cs = "Evropská unie, Ministerstvo školství, mládeže a tělovýchovy, EOSC CZ", en = "European Union, Ministry of Education, Youth and Sports, EOSC CZ" }
+logoEu = { cs = "Spolufinancováno Evropskou unií, Operační program Jan Amos Komenský", en = "Co-funded by the European Union, Programme Johannes Amos Comenius" }
+logoEosc = { cs = "EOSC CZ", en = "EOSC CZ" }
 
 [common]
 newWindow = { cs = "otevře se v nové kartě", en = "opens in a new tab" }

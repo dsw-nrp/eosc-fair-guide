@@ -505,10 +505,12 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 
 ### Landing
 
-- One search box leads. Results appear after the search is confirmed, not while typing; typing searches only the
-  guide's own content in any case, and sends nothing.
+- One search box leads. Results from the guide's own content appear while typing; the routes for an identifier
+  (DOI, Handle, ORCID, ROR, URL) appear on Enter, because they lead to outside services, and a hint says so while
+  the identifier is typed. Nothing is sent while typing.
 - The stage is chosen from four cards with a short description each (planning, working with data, publishing,
-  published), not from a strip of stations.
+  published), not from a strip of stations. Each card names the steps it covers, and the card holding the
+  visitor's current station says "You are here", so the cards also show the whole journey.
 - The line on what the content is based on, the privacy promise and the date moves to the bottom of the landing,
   and names the FAIR analysis as a link.
 - Task shortcuts follow the order of the path, then institution-level and community tasks:
@@ -640,3 +642,5 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-73 | 2026-10-08 | The **landing leads with a universal search box** (identifiers to the dataset check or identifier helper, other text to a local bilingual search), followed by the stage choice, task shortcuts per lens and a resume line; the landing is the path's start. | U |
 | D-74 | 2026-10-08 | **Prototype decisions** (see *Review round 1*): results after confirming the search; stage cards; shortcuts in path order; the trust line at the bottom with the analysis linked; a lighter "what to do now" callout; dotted links in text; no AI phrase in the station line; the guide's full citation in the footer; ruled rail with a set-apart legend; a collapsible result panel. | U |
 | D-75 | 2026-10-08 | Answers stay in the browser, **said plainly and deletable**, and **portable**: the JSON-LD and Markdown exports can be loaded back, opening as a preview like a shared link. | U |
+| D-76 | 2026-10-08 | **Search results while typing**: the guide's own content is searched as the user types (from the second character); the routes for an identifier appear on Enter, with a hint while it is typed. Reverses "results after confirming the search" in D-74, because waiting for Enter was hard to predict. | U |
+| D-77 | 2026-10-08 | **Legible, linked logos**: a larger header logo; the funding logolink shown through two windows onto the published image, the EU and ministry pair kept whole and the EOSC CZ logo beside it or, on a phone, below it; each logo links to its owner (OP JAK, MŠMT, EOSC CZ). The stage cards name the steps they cover and mark the visitor's current stage, serving as the journey graphic. | U+S |

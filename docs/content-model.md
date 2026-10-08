@@ -263,7 +263,8 @@ with `source`, `url` and `retrieved` (and `license` where the source states one)
 `[[connector]]`: `id`, `name`, `origin` (scheme and host), `purpose`, and `browserAccess = false` for a service
 whose API does not admit the guide's origin yet (the page then uses its snapshot). The page calls no other host, and
 the Content Security Policy is generated from this list. `[links]`: base URLs the page builds links to (the FIP
-Dashboard, the NMA search, NKR); the page scripts contain no URLs of their own. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
+Dashboard, the NMA search, NKR, and the EOSC CZ and OP JAK sites the header and footer logos link to; the
+ministry's logo links to the funder's organisation `url`); the page scripts contain no URLs of their own. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
 `[[champion.test]]`: `id`, `principle`, `label`, `health` (`available`, `degraded`, `unavailable`), `asOf`.
 `[dmpStatus]`: `path` of the DMP.eosc.cz status summary on the status connector. `[nanopub]`: `path` of the SPARQL endpoint, `fipIri` (the IRI forms of a FIP, with `{code}` for the
 nanopublication's trusty URI code) and `query` (with `{fips}` where the page puts those IRIs).

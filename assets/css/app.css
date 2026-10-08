@@ -120,8 +120,14 @@ ol {
 }
 
 .brand img {
-  width: 9rem;
+  width: 12rem;
   flex: none;
+}
+
+@media (min-width: 40rem) {
+  .brand img {
+    width: 17rem;
+  }
 }
 
 .brand-title {
@@ -666,10 +672,114 @@ main p > button {
   gap: var(--space-2) var(--space-4);
 }
 
-.site-footer .logolink {
-  width: 100%;
-  max-width: min(32rem, 100%);
-  margin: var(--space-4) 0;
+/* The logolink is one published image, shown through two windows: the EU and MŠMT pair (left of the split) and the
+   EOSC CZ logo (right of it). Side by side they reproduce the image exactly; on a narrow screen the EOSC CZ logo
+   moves below at the same scale. Measures are in the image's own units (Czech 2034.16 wide with the split at 1061,
+   English 2094.02 with the split at 1125, both 310.52 high). */
+.logolink {
+  display: flex;
+  max-width: 60rem;
+  margin: var(--space-5) 0 var(--space-4);
+}
+
+.logolink-crop {
+  position: relative;
+  overflow: hidden;
+}
+
+.logolink-crop img {
+  position: absolute;
+  top: 0;
+  max-width: none;
+  height: auto;
+}
+
+.logolink-cs .logolink-funding {
+  flex: 0 0 52.16%;
+  aspect-ratio: 1061 / 310.52;
+}
+
+.logolink-cs .logolink-funding img {
+  left: 0;
+  width: 191.72%;
+}
+
+.logolink-cs .logolink-initiative {
+  flex: 0 0 47.84%;
+  aspect-ratio: 973.16 / 310.52;
+}
+
+.logolink-cs .logolink-initiative img {
+  left: -109.03%;
+  width: 209.02%;
+}
+
+.logolink-en .logolink-funding {
+  flex: 0 0 53.72%;
+  aspect-ratio: 1125 / 310.52;
+}
+
+.logolink-en .logolink-funding img {
+  left: 0;
+  width: 186.14%;
+}
+
+.logolink-en .logolink-initiative {
+  flex: 0 0 46.28%;
+  aspect-ratio: 969.02 / 310.52;
+}
+
+.logolink-en .logolink-initiative img {
+  left: -116.1%;
+  width: 216.1%;
+}
+
+@media (max-width: 39.99rem) {
+  .logolink {
+    flex-direction: column;
+  }
+
+  .logolink .logolink-crop {
+    flex: none;
+  }
+
+  .logolink-funding {
+    width: 100%;
+  }
+
+  .logolink-cs .logolink-initiative {
+    width: 91.72%;
+  }
+
+  .logolink-en .logolink-initiative {
+    width: 86.14%;
+  }
+}
+
+.logolink-part {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--radius);
+}
+
+.logolink-part:hover {
+  box-shadow: inset 0 0 0 2px var(--tint-teal);
+}
+
+.logolink-eu {
+  left: 0;
+  width: 65.5%;
+}
+
+.logolink-ministry {
+  left: 65.5%;
+  right: 0;
+}
+
+.logolink-eosc {
+  left: 0;
+  right: 0;
 }
 
 /* Icons */
@@ -784,6 +894,7 @@ main p > button {
 
 .stage-options .stage-card {
   display: grid;
+  align-content: start;
   gap: var(--space-1);
   justify-items: start;
   width: 100%;
@@ -794,6 +905,21 @@ main p > button {
   background: var(--background);
   color: var(--text);
   text-align: left;
+}
+
+.stage-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--tint-teal);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.stage-options .stage-current {
+  border-color: var(--tint-teal);
+  box-shadow: inset 0 0 0 1px var(--tint-teal);
 }
 
 .stage-options .stage-card:hover {
@@ -836,6 +962,13 @@ main p > button {
   gap: var(--space-2) var(--space-5);
   margin-top: var(--space-5);
   font-size: var(--size-small);
+}
+
+.search-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
 }
 
 .search-results .button-link {

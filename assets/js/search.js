@@ -1,6 +1,7 @@
-/* Universal search of the FAIR data guide. An identifier is routed to the tool that handles it; any other text is
-   searched in the guide's own knowledge base, ignoring diacritics and covering both languages. Searching sends
-   nothing anywhere: a service is called only when the user picks an identifier result. */
+/* Universal search of the FAIR data guide. Text is searched in the guide's own knowledge base as it is typed,
+   ignoring diacritics and covering both languages. An identifier is routed to the tool that handles it once the
+   search is confirmed. Searching sends nothing anywhere: a service is called only when the user picks an
+   identifier result. */
 (function () {
   "use strict";
 
@@ -8,6 +9,10 @@
   const h = (...args) => FG.h(...args);
   const S = (FG.search = FG.search || {});
   const SHOWN = 3;
+  const MIN_TYPED = 2;
+  const TYPING_DELAY = 200;
+  const STATUS_DELAY = 800;
+  const ID_NAMES = { doi: "DOI", handle: "Handle", orcid: "ORCID iD", ror: "ROR ID", url: "URL" };
   const KINDS = ["station", "check", "principle", "resource", "repository", "term", "page", "clause"];
   const ORCID = /^(?:https?:\/\/orcid\.org\/)?(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i;
   const ROR = /^(?:https?:\/\/ror\.org\/)?(0[a-hj-km-np-tv-z0-9]{6}\d{2})$/i;
@@ -135,23 +140,49 @@
     ];
   }
 
-  /** The search form with its results; results appear when the search is confirmed. */
+  /** A recognised identifier while it is being typed: its routes lead to outside services, so they wait for Enter. */
+  function identifierHint(found) {
+    return [h("p", { class: "search-hint" }, FG.icon ? FG.icon("identifier") : null, h("span", null, FG.t("search.identifierHint", { type: ID_NAMES[found.type] })))];
+  }
+
+  /** The search form with its results: the guide's own content is searched while typing; the routes for an
+      identifier appear when the search is confirmed with Enter or the button. */
   S.form = function () {
     const input = h("input", { id: "search-input", type: "search", autocomplete: "off", spellcheck: "false", placeholder: FG.t("search.placeholder") });
     const results = h("div", { id: "search-results", class: "search-results" });
     const status = h("p", { class: "visually-hidden", role: "status" });
+    let typingTimer = null;
+    let statusTimer = null;
+    const show = (confirmed) => {
+      const value = input.value;
+      const found = S.classify(value);
+      let content = [];
+      let message = "";
+      if (found.type === "text" && (confirmed || found.value.length >= MIN_TYPED)) {
+        content = textResults(found.value);
+        const count = S.find(found.value).reduce((sum, group) => sum + group.items.length, 0);
+        message = count ? FG.t("search.found", { n: count }) : FG.t("search.none");
+      } else if (found.type !== "text" && found.type !== "empty") {
+        content = confirmed ? identifierResults(found) : identifierHint(found);
+        message = confirmed ? FG.t("search.done") : FG.t("search.identifierHint", { type: ID_NAMES[found.type] });
+      }
+      results.replaceChildren(...content.flat(Infinity).filter(Boolean));
+      results.dataset.query = value;
+      results.dataset.confirmed = String(confirmed);
+      clearTimeout(statusTimer);
+      if (confirmed) status.textContent = message;
+      else statusTimer = setTimeout(() => (status.textContent = message), STATUS_DELAY);
+    };
+    const typed = () => {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => show(false), TYPING_DELAY);
+    };
     const run = (event) => {
       event.preventDefault();
-      const found = S.classify(input.value);
-      if (found.type === "empty") {
-        results.replaceChildren();
-        status.textContent = "";
-        return;
-      }
-      const content = found.type === "text" ? textResults(found.value) : identifierResults(found);
-      results.replaceChildren(...content.flat(Infinity).filter(Boolean));
-      status.textContent = FG.t("search.done");
+      clearTimeout(typingTimer);
+      show(true);
     };
+    input.addEventListener("input", typed);
     return h(
       "form",
       { class: "search", role: "search", onsubmit: run },
