@@ -265,6 +265,24 @@
 
   FG.lenses = () => FG.ofType("Audience").filter((entity) => entity["@id"].startsWith("#lens-"));
   FG.stations = () => FG.refs(FG.get("#path"), "step").sort(FG.byPosition);
-  FG.principles = () => FG.refs(FG.root, "about");
+  /** FAIR principles in a fixed order: F, A, I, R, then by number (A1 before A1.1 before A2). */
+  FG.principleOrder = function (a, b) {
+    const key = (principle) => {
+      const code = String(principle.termCode || "");
+      return ["FAIR".indexOf(code.charAt(0))].concat(code.slice(1).split(".").map(Number));
+    };
+    const left = key(a);
+    const right = key(b);
+    for (let index = 0; index < Math.max(left.length, right.length); index += 1) {
+      const x = index < left.length ? left[index] : -1;
+      const y = index < right.length ? right[index] : -1;
+      if (x !== y) return x - y;
+    }
+    return 0;
+  };
+
+  /** The principles an entity is about, in the fixed order. */
+  FG.principlesOf = (entity) => FG.refs(entity, "about").filter((ref) => ref.termCode).sort(FG.principleOrder);
+  FG.principles = () => FG.principlesOf(FG.root);
   FG.termName = (id) => FG.text(FG.get(id) && FG.get(id).name);
 })();

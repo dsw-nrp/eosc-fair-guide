@@ -281,6 +281,7 @@ steps = { cs = "podle kroků cesty", en = "by path step" }
 changed = { cs = "změněno vámi", en = "changed by you" }
 differs = { cs = "liší se od návrhu", en = "differs from the suggestion" }
 none = { cs = "bez dokladu", en = "no evidence" }
+notStated = { cs = "záznam to neuvádí", en = "the record does not state it" }
 record = { cs = "záznam", en = "record" }
 
 [selfcheck.state]
@@ -294,19 +295,28 @@ provided = { cs = "zajišťuje NRP", en = "provided by NRP" }
 [selfcheck.load]
 label = { cs = "Načíst výsledek ze souboru", en = "Load a result from a file" }
 hint = { cs = "JSON-LD nebo Markdown uložený z průvodce", en = "JSON-LD or Markdown saved from the guide" }
-refused = { cs = "Tento soubor průvodce nevytvořil nebo ho nelze přečíst.", en = "The guide did not make this file, or it cannot be read." }
+skipped = { cs = "Otázky, které tato verze průvodce nezná, jsme vynechali: {n}.", en = "Questions this version of the guide does not know were left out: {n}." }
+otherVersion = { cs = "Soubor vytvořila verze průvodce {version}, tato stránka je ve verzi {current}. Odpovědi před převzetím zkontrolujte.", en = "The file was made by guide version {version}; this page is version {current}. Check the answers before you use them." }
 banner = { cs = "Otevřeli jste výsledek ze souboru. Vaše vlastní odpovědi zatím zůstávají beze změny.", en = "You opened a result from a file. Your own answers stay unchanged for now." }
 use = { cs = "Použít odpovědi ze souboru", en = "Use the answers from the file" }
 gone = { cs = "Náhled souboru už není k dispozici; načtěte soubor znovu.", en = "The file preview is no longer available; load the file again." }
 
+[selfcheck.load.error]
+notGuide = { cs = "Tento soubor průvodce nevytvořil. Načíst lze výsledek uložený z průvodce: JSON-LD nebo shrnutí v Markdownu.", en = "The guide did not make this file. You can load a result saved from the guide: JSON-LD or the Markdown summary." }
+damaged = { cs = "Soubor je poškozený nebo byl upravený, a proto ho průvodce nenačte.", en = "The file is damaged or was edited, so the guide will not load it." }
+newer = { cs = "Soubor vytvořila novější verze průvodce ({version}), kterou tato stránka ještě nezná.", en = "The file was made by a newer version of the guide ({version}) that this page does not know yet." }
+unknownCheck = { cs = "Soubor patří ke kontrole, kterou tato verze průvodce nezná.", en = "The file belongs to a check this version of the guide does not know." }
+tooLarge = { cs = "Soubor je na výsledek z průvodce příliš velký.", en = "The file is too large to be a result from the guide." }
+
 [selfcheck.export]
 title = { cs = "Uložit a sdílet", en = "Save and share" }
-markdown = { cs = "Shrnutí v Markdownu", en = "Markdown summary" }
-showMarkdown = { cs = "Zobrazit shrnutí", en = "Show the summary" }
-downloadMd = { cs = "Stáhnout shrnutí (Markdown)", en = "Download the summary (Markdown)" }
-formats = { cs = "JSON-LD je výsledek jako RO-Crate (FTR), který přečtou i jiné služby; shrnutí v Markdownu je pro čtení. Oba soubory lze do průvodce znovu načíst.", en = "JSON-LD is the result as an RO-Crate (FTR) that other services can read; the Markdown summary is for reading. Both files can be loaded back into the guide." }
+format = { cs = "Formát", en = "Format" }
+formatMd = { cs = "Shrnutí ke čtení (Markdown)", en = "Summary to read (Markdown)" }
+formatJsonld = { cs = "Výsledek pro další služby (JSON-LD)", en = "Result for other services (JSON-LD)" }
+download = { cs = "Stáhnout soubor", en = "Download the file" }
+preview = { cs = "Náhled souboru", en = "Preview the file" }
+formats = { cs = "Shrnutí se dobře čte a posílá dál. JSON-LD je výsledek jako RO-Crate (FTR), který přečtou i jiné služby, včetně podkladů k odpovědím. Oba soubory nesou verzi průvodce a lze je do průvodce znovu načíst.", en = "The summary is easy to read and pass on. JSON-LD is the result as an RO-Crate (FTR) that other services can read, with the evidence behind the answers. Both files carry the guide's version and can be loaded back into the guide." }
 print = { cs = "Vytisknout", en = "Print" }
-jsonld = { cs = "Stáhnout výsledek (JSON-LD)", en = "Download the result (JSON-LD)" }
 share = { cs = "Vytvořit odkaz", en = "Create a link" }
 shareLabel = { cs = "Odkaz s odpověďmi", en = "Link with your answers" }
 shareNote = { cs = "Odkaz obsahuje vaše odpovědi; kdo ho dostane, uvidí je. Nic jiného z prohlížeče neodchází.", en = "The link contains your answers; anyone who gets it can see them. Nothing else leaves your browser." }
@@ -367,12 +377,14 @@ sent = { cs = "nic. Jen když spustíte vyhledání, pošle průvodce zadaný id
 moveTitle = { cs = "Jak je přenést", en = "How to move them" }
 move = { cs = "stáhněte výsledek jako JSON-LD nebo Markdown a načtěte ho v jiném prohlížeči, nebo vytvořte odkaz s odpověďmi. Načtený výsledek se otevře jako náhled a vaše odpovědi nahradí, jen když o to požádáte.", en = "download the result as JSON-LD or Markdown and load it in another browser, or create a link with your answers. A loaded result opens as a preview and replaces your answers only when you ask." }
 deleteTitle = { cs = "Jak je smazat", en = "How to delete them" }
-delete = { cs = "tlačítkem níže smažete vše, co průvodce v tomto prohlížeči uložil.", en = "the button below deletes everything the guide stored in this browser." }
+delete = { cs = "tlačítkem „Smazat vše, co průvodce uložil“ vedle tohoto odkazu; smaže vše, co průvodce v tomto prohlížeči uložil.", en = "with the “Delete everything the guide stored” button next to this link; it deletes everything the guide stored in this browser." }
 deleteAll = { cs = "Smazat vše, co průvodce uložil", en = "Delete everything the guide stored" }
 confirm = { cs = "Smazat všechny odpovědi a nastavení, které průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the guide stored in this browser? This cannot be undone." }
 deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the guide stored in this browser is deleted." }
 
 [common]
+on = { cs = "zapnuto", en = "on" }
+off = { cs = "vypnuto", en = "off" }
 newWindow = { cs = "otevře se v nové kartě", en = "opens in a new tab" }
 back = { cs = "Zpět na cestu", en = "Back to the path" }
 copy = { cs = "Kopírovat", en = "Copy" }

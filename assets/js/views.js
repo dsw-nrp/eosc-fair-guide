@@ -527,7 +527,7 @@
 
   function whyContent(station, items) {
     const notes = items.filter((item) => FG.id(item.disclosureLevel) === "#level-L2" && item.adviceKind !== "ai").sort(FG.byPosition);
-    const principles = FG.refs(station, "about");
+    const principles = FG.principlesOf(station);
     const clauses = [];
     for (const item of items) {
       for (const clause of FG.refs(item, "citation")) if (!clauses.includes(clause)) clauses.push(clause);
@@ -690,7 +690,7 @@
           null,
           h("p", { class: "muted" }, stepLine),
           heading(1, null, FG.span(entity.name), " · ", FG.span(entity.headline)),
-          principleTiles(FG.refs(entity, "about"), FG.t("station.principles"))
+          principleTiles(FG.principlesOf(entity), FG.t("station.principles"))
         )
       ),
       now

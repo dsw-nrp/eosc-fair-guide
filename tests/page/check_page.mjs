@@ -263,9 +263,25 @@ async function axe(page, label) {
   if (!(await page.locator("#results p").first().textContent()).endsWith("z " + minimumCount)) fail("dataset check: the result counts items the first view does not show");
   if (!(await page.locator(".item-group h2").first().textContent()).includes("Dohledatelnost")) fail("dataset check: items are not grouped by FAIR principle by default");
   if (!(await page.locator("#item-D04 .fix-at").textContent()).includes("Licence")) fail("dataset check: an item does not name the step where it is addressed");
+  // The summary mirrors the questions: one chip per question in view, in the list's groups.
+  const listed = await page.locator(".items fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-", "")));
+  const chips = await page.locator(".summary-chip").evaluateAll((buttons) => buttons.map((button) => button.textContent.match(/[A-Z]\d{2}/)[0]));
+  if (listed.join(" ") !== chips.join(" ")) fail(`dataset check: the summary does not mirror the questions (${chips.join(" ")} vs ${listed.join(" ")})`);
   await page.locator("#grouping-steps").check();
   if (!(await page.locator(".item-group h2").first().textContent()).includes("Řeší se v kroku")) fail("dataset check: grouping by path step does not work");
+  if ((await page.locator(".summary-group").count()) !== (await page.locator(".item-group").count())) fail("dataset check: the summary does not follow the grouping by path step");
+  if ((await page.locator(".result-group").count()) !== (await page.locator(".item-group").count())) fail("dataset check: the full result does not follow the grouping by path step");
+  if ((await page.locator(".summary-group-label .group-icon").count()) !== (await page.locator(".summary-group").count())) fail("dataset check: path steps in the summary lack their icons");
   await page.locator("#grouping-principles").check();
+
+  // At the top of the page the summary's box starts level with the first box of the questions.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const firstBox = await page.locator(".check-main .choice").first().boundingBox();
+  const summaryBox = await page.locator(".check-summary").boundingBox();
+  if (Math.abs(firstBox.y - summaryBox.y) > 2) fail(`dataset check: the summary starts ${Math.round(summaryBox.y - firstBox.y)}px off the first box`);
+  /* A legend drawn on the border would put the visible top line below the box's top edge. */
+  const legendInside = await page.locator(".check-main .choice").first().evaluate((box) => box.querySelector("legend").getBoundingClientRect().top > box.getBoundingClientRect().top + 1);
+  if (!legendInside) fail("dataset check: the first box's visible top line is not level with the summary");
 
   // The result stands beside the questions and shows the licence gap at once; it can be collapsed, and the choice
   // survives a reload.
@@ -273,7 +289,7 @@ async function axe(page, label) {
   const resultBox = await page.locator(".check-summary").boundingBox();
   if (!(resultBox.x > mainBox.x + mainBox.width / 2)) fail("dataset check: the result is not beside the questions");
   await page.locator("#item-D04").scrollIntoViewIfNeeded();
-  const gapCell = page.locator('.summary-chip[data-state="gap"]', { hasText: "R1.1" });
+  const gapCell = page.locator('.summary-chip[data-state="gap"]', { hasText: "D04" });
   const gapBox = await gapCell.boundingBox();
   if (!gapBox || gapBox.y < 0 || gapBox.y + gapBox.height > (await page.evaluate(() => window.innerHeight))) fail("dataset check: the R1.1 gap is not in view beside the item");
   // The chips and counts of the result so far lead to the items and to the full result.
@@ -281,8 +297,20 @@ async function axe(page, label) {
   if (!(await page.evaluate(() => document.activeElement.closest("#item-D04")))) fail("dataset check: a principle chip does not lead to its item");
   await page.locator('.summary-count[data-kind="gaps"]').click();
   if (!(await page.evaluate(() => document.activeElement.id === "results-gaps"))) fail("dataset check: the gap count does not lead to the gaps in the full result");
+  // A chip whose item the short view hides opens the extended view and lands on the item.
+  await page.locator('label[for="extended-toggle"]').click();
+  await page.locator("#answer-D08-no").check();
+  await page.locator('label[for="extended-toggle"]').click();
+  await page.locator(".summary-chip", { hasText: "D08" }).click();
+  if (!(await page.locator("#extended-toggle").isChecked()) || !(await page.evaluate(() => document.activeElement.closest("#item-D08")))) fail("dataset check: a chip for a hidden item does not open the extended view at the item");
+  await page.locator('label[for="extended-toggle"]').click();
+  // The collapse control stays exactly where it was.
+  await page.locator("#item-D04").scrollIntoViewIfNeeded();
+  const toggleBefore = await page.locator("#result-toggle").boundingBox();
   await page.locator("#result-toggle").click();
   if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the result panel does not collapse");
+  const toggleAfter = await page.locator("#result-toggle").boundingBox();
+  if (Math.abs(toggleBefore.x - toggleAfter.x) > 1 || Math.abs(toggleBefore.y - toggleAfter.y) > 1) fail("dataset check: the collapse control moves when the panel collapses");
   if ((await page.locator("#result-toggle").boundingBox()).width > 48) fail("dataset check: the collapse control is not a small icon");
   await page.reload();
   await page.waitForSelector("#result-toggle");
@@ -309,8 +337,17 @@ async function axe(page, label) {
   const evidence = await page.locator("#origin-D02").textContent();
   if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside D02 is incomplete: " + evidence);
   if ((await page.locator("#origin-D02 a").getAttribute("href")) !== "https://repo.example/record/1") fail("dataset check: the evidence does not link to its record");
-  await page.getByRole("button", { name: "Zobrazit shrnutí" }).click();
-  if (!(await page.locator("#markdown-text").inputValue()).includes("url = https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
+  await page.locator("#export-format-md").check();
+  await page.locator(".export-preview summary").click();
+  await page.waitForFunction(() => document.getElementById("export-preview-text").value.length > 0);
+  if (!(await page.locator("#export-preview-text").inputValue()).includes("url = https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
+  await page.locator("#export-format-jsonld").check();
+  if (!(await page.locator("#export-preview-text").inputValue()).includes('"guideState"')) fail("dataset check: the preview does not follow the chosen format");
+  await page.locator(".export-preview summary").click();
+  await page.locator("#export-format-md").check();
+  // Your answers read as a list: the answer beside each question, and the evidence under it.
+  const answerRow = await page.locator(".answers-list .answer-row").filter({ hasText: "D02" }).textContent();
+  if (!answerRow.includes("Ano") || !answerRow.includes("url = https://repo.example/record/1") || !answerRow.includes("záznam")) fail("dataset check: the answers list lacks the answer or its evidence: " + answerRow);
   await page.locator("#prefill-pid-clear").click();
   if (await page.locator('input[name="answer-D02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
   if (!(await checked("answer-D01-yes")) || !(await checked("answer-D04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
@@ -319,6 +356,8 @@ async function axe(page, label) {
   // The path marks the stations with open items.
   await go("#/cs/V/path/licence");
   if (!(await page.locator('.rail-desktop a[href="#/cs/V/path/licence"] .gap-mark').count())) fail("path: the licence station has no gap mark");
+  const tileOrder = await page.locator(".station-header .principle-tile").evaluateAll((tiles) => tiles.map((tile) => tile.textContent.trim().split(" ")[0]));
+  if (tileOrder.join(" ") !== "A1.2 R1.1") fail("path: the station's principles are not in F, A, I, R order: " + tileOrder.join(" "));
   const legend = page.locator(".rail-desktop .rail-legend a");
   if (!(await legend.count()) || (await legend.getAttribute("href")) !== "#/cs/V/selfcheck") fail("path: the self-check marks have no visible legend linking to the self-check");
 
@@ -489,10 +528,12 @@ async function axe(page, label) {
   await axe(page, "FIP check pre-filled");
 
   // Exports: Markdown and an FTR result set in an RO-Crate, naming the published page and the assessed profile.
-  const [mdDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Stáhnout shrnutí (Markdown)" }).click()]);
+  await page.locator("#export-format-md").check();
+  const [mdDownload] = await Promise.all([page.waitForEvent("download"), page.locator("#export-download").click()]);
   const md = readFileSync(await mdDownload.path(), "utf8");
   if (!md.startsWith("# Úplnost FIP") || md.includes("file:")) fail("export: unexpected Markdown summary");
-  const [ldDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Stáhnout výsledek (JSON-LD)" }).click()]);
+  await page.locator("#export-format-jsonld").check();
+  const [ldDownload] = await Promise.all([page.waitForEvent("download"), page.locator("#export-download").click()]);
   const exported = JSON.parse(readFileSync(await ldDownload.path(), "utf8"));
   const exportedGraph = exported["@graph"];
   const typed = (type) => (entity) => [].concat(entity["@type"]).includes(type);
@@ -503,13 +544,15 @@ async function axe(page, label) {
   if (results.some((result) => !["pass", "fail", "indeterminate"].includes(result["prov:value"]))) fail("export: a result has an unexpected value");
   const k01 = results.find((result) => result["@id"] === "#result-K01") || {};
   if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the K01 result does not record its evidence: " + JSON.stringify(k01));
-  if (!md.includes("Doklad")) fail("export: the Markdown summary has no evidence column");
+  if (!md.includes("Deklarované")) fail("export: the Markdown summary does not carry the evidence behind the answers");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
 
   // Local data: each check says where the answers are kept, and how it works.
   const note = await page.locator(".local-data").textContent();
   if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
-  if (!md.includes("<!-- fair-guide-result: fip a1.")) fail("export: the Markdown summary does not carry the answers");
+  if (!/<!-- fair-guide-result v1 guide=\S+: fip a1\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
+  const state = JSON.parse(exportedGraph.find((entity) => entity.guideState).guideState);
+  if (state.format !== "eosc-fair-guide-result" || state.v !== 1 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
 
   // A saved result loads in another browser as a preview, keeps its evidence, and is adopted only on request; a
   // file the guide did not make is refused.
@@ -522,6 +565,32 @@ async function axe(page, label) {
     writeFileSync(foreign, "# Notes\n\nNothing from the guide.\n");
     await view.locator("#load-file-overview").setInputFiles(foreign);
     await view.waitForFunction(() => document.getElementById("load-file-overview-status").textContent.includes("nevytvořil"));
+    // A damaged file, a file from a newer format and a file with a question this version does not know.
+    const variant = (name, change) => {
+      const copy = JSON.parse(JSON.stringify(exported));
+      const holder = copy["@graph"].find((entity) => entity.guideState);
+      const data = JSON.parse(holder.guideState);
+      change(data);
+      holder.guideState = JSON.stringify(data);
+      const path = resolve(root, ".cache", name);
+      writeFileSync(path, JSON.stringify(copy));
+      return path;
+    };
+    const tryLoad = async (path, expected, message) => {
+      await view.locator("#load-file-overview").setInputFiles(path);
+      try {
+        await view.waitForFunction((text) => document.getElementById("load-file-overview-status").textContent.includes(text), expected, { timeout: 3000 });
+      } catch (error) {
+        fail(message + ": " + (await view.locator("#load-file-overview-status").textContent()));
+      }
+    };
+    await tryLoad(variant("damaged.jsonld", (data) => { data.items.K01.value = "maybe"; }), "poškozený", "load: a damaged file is not reported as damaged");
+    await tryLoad(variant("newer.jsonld", (data) => { data.v = 2; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
+    await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items.K99 = { value: "yes", origin: "user", prefill: null }; }));
+    await view.waitForSelector(".notice.shared");
+    if (!(await view.locator(".notice.shared").textContent()).includes("vynechali: 1")) fail("load: a question this version does not know is not skipped with a note");
+    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await view.waitForSelector("#load-file-overview");
     await view.locator("#load-file-overview").setInputFiles(await ldDownload.path());
     await view.waitForSelector(".notice.shared");
     if (!(await view.locator(".notice.shared").textContent()).includes("ze souboru")) fail("load: a JSON-LD file does not open as a preview");
@@ -546,7 +615,7 @@ async function axe(page, label) {
 
   // Deleting everything leaves nothing the guide stored, and the checks start empty.
   await go("#/cs/K/selfcheck");
-  await page.locator(".local-data summary").click();
+  if (!(await page.locator("#local-data-delete").isVisible())) fail("local data: the delete control is not visible without opening anything");
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#local-data-delete").click();
   await page.waitForFunction(() => document.getElementById("local-data-status").textContent.includes("smazané"));

@@ -47,7 +47,7 @@
       else if (id.startsWith("#term-") && entity.name && entity.url) add("term", entity.name, "", { url: entity.url });
       else if (id.startsWith("#page-") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
       else if (id.startsWith("#clause-") && entity.text) {
-        const principle = FG.refs(entity, "about")[0];
+        const principle = FG.principlesOf(entity)[0];
         add("clause", entity.identifier + " " + FG.text(entity.text).slice(0, 90), bothLanguages(entity.text), {
           href: principle ? FG.href("explorer", principle.termCode) : FG.href("explorer"),
         });

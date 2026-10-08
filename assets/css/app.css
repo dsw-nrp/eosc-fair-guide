@@ -1492,8 +1492,22 @@ main p > button {
   text-decoration: underline;
 }
 
-.local-data-how[open] {
+.local-data .local-data-how {
+  order: 1;
+}
+
+.local-data-delete {
+  order: 2;
+}
+
+/* Open, the explanation takes its own row below, and the delete control stays on the first line. */
+.local-data .local-data-how[open] {
   flex-basis: 100%;
+  order: 3;
+}
+
+.local-data [role="status"] {
+  order: 4;
 }
 
 .local-data-how[open] > summary {
@@ -1506,6 +1520,19 @@ main p > button {
   border-left: 3px solid var(--border);
   background: var(--surface);
   color: var(--text);
+}
+
+.local-data-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--tint-pink);
+  font-size: inherit;
+}
+
+.local-data-delete:hover {
+  background: none;
+  color: var(--tint-pink);
 }
 
 .local-data #local-data-status:empty {
@@ -1538,10 +1565,116 @@ main p > button {
   margin: 0;
 }
 
-.export-actions {
+.export-actions,
+.export-more {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+.export-more {
+  margin-top: var(--space-4);
+}
+
+.export-format {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-4);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  border: 0;
+}
+
+.export-format legend {
+  float: left;
+  margin-right: var(--space-2);
+  padding: 0;
+  font-weight: 600;
+}
+
+.export .export-preview {
+  margin: var(--space-3) 0;
+}
+
+.export-preview textarea {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius) var(--radius);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: var(--size-small);
+}
+
+/* The result's overview in the list's groups. */
+.result-group h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.result-group h3 .principle-letter,
+.item-group h2 .group-icon,
+.result-group h3 .group-icon {
+  flex: none;
+}
+
+.group-icon {
+  width: 1.4em;
+  height: 1.4em;
+  color: var(--tint-teal);
+}
+
+.summary-group-label .group-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.principle-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  font-size: var(--size-small);
+}
+
+.principle-states a {
+  color: var(--text);
+}
+
+/* Your answers: each question with its answer, then where the answer came from and what supports it. */
+.answers-list {
+  margin: 0;
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6);
+}
+
+.answer-row {
+  margin: 0 0 var(--space-3);
+}
+
+.answer-line {
+  margin: 0;
+}
+
+.answer-value {
+  white-space: nowrap;
+}
+
+.answer-value[data-answer="none"] {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.answer-meta {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  overflow-wrap: anywhere;
 }
 
 .export-actions .icon {
@@ -1581,34 +1714,54 @@ main p > button {
   opacity: 0;
 }
 
+/* Off: a light track with the knob on the left; on: a teal track with the knob on the right; the state is also
+   written next to the label. */
 .switch-track {
   position: relative;
   flex: none;
-  width: 2.6rem;
+  width: 2.75rem;
   height: 1.5rem;
+  border: 2px solid var(--text-muted);
   border-radius: 999px;
-  background: var(--text-muted);
-  transition: background 0.15s;
+  background: var(--surface-strong);
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .switch-track::after {
   content: "";
   position: absolute;
-  top: 0.2rem;
-  left: 0.2rem;
-  width: 1.1rem;
-  height: 1.1rem;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1rem;
+  height: 1rem;
   border-radius: 50%;
-  background: #fff;
-  transition: transform 0.15s;
+  background: var(--text-muted);
+  transition: transform 0.15s, background 0.15s;
 }
 
 .switch input:checked + .switch-track {
+  border-color: var(--tint-teal);
   background: var(--tint-teal);
 }
 
 .switch input:checked + .switch-track::after {
-  transform: translateX(1.1rem);
+  background: #fff;
+  transform: translateX(1.25rem);
+}
+
+.switch-state {
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
+.switch input:checked ~ .switch-state {
+  border-color: var(--tint-teal);
+  color: var(--tint-teal);
+  font-weight: 600;
 }
 
 .switch input:focus-visible + .switch-track {
@@ -1618,7 +1771,19 @@ main p > button {
 
 /* Inside a check: a compact mode question, a calmer pre-fill heading and light item details. */
 .check-view .choice {
-  padding: var(--space-2) var(--space-4) var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* The question sits inside its box, so the box's top edge lines up with the summary beside it. */
+.check-view .choice > legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 var(--space-1);
+  padding: 0;
+}
+
+.check-view .choice > legend + * {
+  clear: both;
 }
 
 .check-view .choice .options {
@@ -1697,8 +1862,8 @@ main p > button {
     font-size: var(--size-small);
   }
 
+  /* Collapsed, only the control remains, in exactly the place it had. */
   .result-collapsed .check-summary {
-    padding: var(--space-1);
     border-color: transparent;
     background: none;
   }
@@ -1740,12 +1905,35 @@ main p > button {
   margin: var(--space-2) 0;
 }
 
+.summary-group {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.summary-group-label {
+  min-height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.summary-group-label .principle-letter {
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  border-radius: var(--radius);
+}
+
 .summary-chips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
   list-style: none;
-  margin: 0 0 var(--space-2);
+  margin: 0;
   padding: 0;
 }
 
@@ -1806,6 +1994,20 @@ main p > button {
 
 .summary-full {
   margin: 0;
+}
+
+.summary-count-none {
+  display: inline-flex;
+  align-items: center;
+  border-style: dashed;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.jumped {
+  outline: 3px solid var(--tint-teal);
+  outline-offset: 4px;
+  transition: outline-color 1.5s ease-in;
 }
 
 .results {

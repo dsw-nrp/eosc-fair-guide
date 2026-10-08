@@ -21,7 +21,10 @@
     "declares-planned-use-of": "planned",
     "declares-planned-replacement-of": "to-be-replaced",
   };
-  const STATE_VERSION = 1;
+  /* The result format: its name and version are written into every JSON-LD and Markdown export, with the guide's
+     version, so a file can be read by the version that understands it. */
+  const FORMAT = "eosc-fair-guide-result";
+  const FORMAT_VERSION = 1;
   const MAX_FILE = 2 * 1024 * 1024;
   const SOURCES = ["datacite", "resolver", "nkr", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared"];
   const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved"];
@@ -162,6 +165,7 @@
     FG.renderList("origin-" + item.identifier, () => fragment(origin(st, item)));
     FG.renderList("results", () => fragment(results(check, st)));
     FG.renderList("summary-body", () => fragment(summary(check, st)));
+    refreshPreview(check, st);
     FG.renderList("share-output", () => fragment());
   }
 
@@ -226,7 +230,9 @@
   /** A found value in a few words: the meaningful field of an object, or the text itself. */
   function summarise(value) {
     if (value && typeof value === "object") {
-      const key = ["rightsUri", "rights", "relatedIdentifier", "name", "title", "description", "subject", "identifier", "url", "value"].find((name) => filled(value[name]));
+      const key = ["rightsUri", "rights", "relatedIdentifier", "nameIdentifier", "affiliationIdentifier", "name", "title", "description", "subject", "identifier", "url", "value"].find((name) =>
+        filled(value[name])
+      );
       return key ? summarise(value[key]) : JSON.stringify(value).slice(0, 80);
     }
     const text = String(value).replace(/\s+/g, " ").trim();
@@ -240,7 +246,10 @@
     const [, field, key, wanted, sub] = match;
     let value = record[field];
     if (key) value = FG.list(value).filter((entry) => entry && String(entry[key]) === wanted);
-    const values = (sub ? FG.list(value).map((entry) => entry && entry[sub]) : FG.list(value)).filter(filled).map(summarise);
+    const values = (sub ? FG.list(value).map((entry) => entry && entry[sub]) : FG.list(value))
+      .flatMap((entry) => (Array.isArray(entry) ? entry : [entry]))
+      .filter(filled)
+      .map(summarise);
     return [...new Set(values)];
   }
 
@@ -730,7 +739,7 @@
       "div",
       { class: "badges" },
       isFirstTier(item) ? null : h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
-      FG.refs(item, "about").map((principle) => FG.principleTile(principle))
+      FG.principlesOf(item).map((principle) => FG.principleTile(principle))
     );
     const statement = [h("span", { class: "item-id" }, id), " ", FG.span(item.text)];
     const clauses = FG.refs(item, "citation");
@@ -785,7 +794,7 @@
     return station ? h("p", { class: "fix-at small muted" }, FG.t("selfcheck.fixAt", { station: FG.text(station.name) })) : null;
   }
 
-  const letterOf = (item) => String((FG.refs(item, "about")[0] || {}).termCode || "").charAt(0);
+  const letterOf = (item) => String((FG.principlesOf(item)[0] || {}).termCode || "").charAt(0);
 
   /** How items are grouped: by FAIR principle by default, or by the path step that addresses them. */
   function groupingControl() {
@@ -816,23 +825,35 @@
     );
   }
 
-  function itemGroups(shown) {
+  /** The groups shared by the list, the summary and the result: by FAIR principle (F, A, I, R) by default, or by
+      the path step that addresses each question. Questions outside every group come last, ungrouped. */
+  function groupsOf(items) {
+    let groups;
+    let loose;
     if (FG.state.checkGrouping === "steps") {
-      const groups = FG.stations()
-        .map((station) => ({ title: FG.t("selfcheck.fixAt", { station: FG.text(station.name) }), items: shown.filter((item) => FG.id(item.fixAt) === station["@id"]) }))
-        .filter((group) => group.items.length);
-      const loose = shown.filter((item) => !FG.get(item.fixAt));
-      return loose.length ? groups.concat({ title: null, items: loose }) : groups;
+      groups = FG.stations().map((station) => ({ station, items: items.filter((item) => FG.id(item.fixAt) === station["@id"]) }));
+      loose = items.filter((item) => !FG.get(item.fixAt));
+    } else {
+      groups = ["F", "A", "I", "R"].map((letter) => ({ letter, items: items.filter((item) => letterOf(item) === letter) }));
+      loose = items.filter((item) => !["F", "A", "I", "R"].includes(letterOf(item)));
     }
-    const groups = ["F", "A", "I", "R"]
-      .map((letter) => ({
-        title: [h("span", { class: "principle-letter", "data-letter": letter }, letter), " ", FG.t("explorer.group." + letter)],
-        items: shown.filter((item) => letterOf(item) === letter),
-      }))
-      .filter((group) => group.items.length);
-    const loose = shown.filter((item) => !["F", "A", "I", "R"].includes(letterOf(item)));
-    return loose.length ? groups.concat({ title: null, items: loose }) : groups;
+    groups = groups.filter((group) => group.items.length);
+    return loose.length ? groups.concat({ items: loose }) : groups;
   }
+
+  /** A group's mark: the principle letter in its colour, or the path step's icon as on the path. */
+  function groupMark(group) {
+    if (group.letter) return h("span", { class: "principle-letter", "data-letter": group.letter }, group.letter);
+    if (group.station) {
+      const icon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[group.station.identifier];
+      return FG.icon(icon, { class: "group-icon" }) || h("span", null, String(group.station.position));
+    }
+    return null;
+  }
+
+  const groupName = (group) => (group.letter ? FG.t("explorer.group." + group.letter) : group.station ? FG.text(group.station.name) : "");
+  const groupTitle = (group) =>
+    group.letter || group.station ? [groupMark(group), " ", group.station ? FG.t("selfcheck.fixAt", { station: groupName(group) }) : groupName(group)] : null;
 
   /** One sentence on what the first view's tier means and how many further items exist, with the control to add them. */
   function tierInfo(check, st, first, more) {
@@ -864,7 +885,8 @@
         },
       }),
       h("span", { class: "switch-track", "aria-hidden": "true" }),
-      h("span", null, FG.t("selfcheck.extendedSwitch", { n: more }))
+      h("span", null, FG.t("selfcheck.extendedSwitch", { n: more })),
+      h("span", { class: "switch-state", "aria-hidden": "true" }, FG.t(st.extended ? "common.on" : "common.off"))
     );
   }
 
@@ -879,8 +901,8 @@
       { class: "items no-print" },
       tierInfo(check, st, first, more),
       h("div", { class: "check-toolbar no-print" }, more ? extendedSwitch(st, more) : null, groupingControl()),
-      itemGroups(shown).map((group) =>
-        h("section", { class: "item-group" }, group.title ? h("h2", null, group.title) : null, group.items.map((item) => itemField(check, st, item)))
+      groupsOf(shown).map((group) =>
+        h("section", { class: "item-group" }, groupTitle(group) ? h("h2", null, groupTitle(group)) : null, group.items.map((item) => itemField(check, st, item)))
       )
     );
   }
@@ -934,20 +956,6 @@
     );
   }
 
-  function table(caption, headers, rows) {
-    return h(
-      "div",
-      { class: "table-wrap" },
-      h(
-        "table",
-        { class: "result-table" },
-        h("caption", null, caption),
-        h("thead", null, h("tr", null, headers.map((header) => h("th", { scope: "col" }, header)))),
-        h("tbody", null, rows.map((cells) => h("tr", null, cells.map((cell, index) => (index === 0 ? h("th", { scope: "row" }, cell) : h("td", null, cell))))))
-      )
-    );
-  }
-
   function answerText(st, item) {
     const value = answerOf(st, item);
     return value ? FG.t("selfcheck.answer." + value) : FG.t("selfcheck.result.unanswered");
@@ -974,30 +982,36 @@
       .join("; ");
   }
 
-  function stateTable(check, st) {
-    if (profilesOf(check).length) {
-      return table(
-        FG.t("selfcheck.result.gate"),
-        [FG.t("selfcheck.result.condition"), FG.t("selfcheck.result.state")],
-        applicable(check, st).map((item) => [[item.identifier, " ", FG.span(item.text), " ", h("span", { class: "badge" }, FG.termName(FG.id(item.tier)))], stateLabel(itemState(st, item))])
-      );
+  /** One answer: the question and the answer on one line, then where it came from and what supports it. */
+  function answerRow(st, item) {
+    const entry = record(st, item);
+    const pre = entry && entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
+    const value = answerOf(st, item);
+    const meta = [];
+    if (entry && entry.origin === "shared") meta.push(FG.t("selfcheck.origin.shared"));
+    if (pre) {
+      meta.push(label(pre.source) + ", " + FG.formatDate(pre.date));
+      const fields = foundFields(pre);
+      for (const field of fields) meta.push(h("span", { class: "evidence-field" }, h("code", null, field.path), " = ", h("code", null, field.values.join(", ")), field.more ? " (+" + field.more + ")" : ""));
+      if (!fields.length && !pre.value) meta.push(FG.t("selfcheck.evidence.notStated"));
+      if (pre.record) meta.push(FG.external(pre.record, FG.t("selfcheck.evidence.record")));
     }
-    return [
-      h("h3", null, FG.t("selfcheck.result.principles")),
+    return h(
+      "li",
+      { class: "answer-row" },
       h(
-        "ul",
-        { class: "principle-grid" },
-        principleRows(check, st).map((row) =>
-          h(
-            "li",
-            { class: "principle-cell", "data-state": row.state },
-            h("a", { href: FG.href("explorer", row.principle.termCode) }, h("strong", null, row.principle.termCode), " ", FG.span(row.principle.name)),
-            stateLabel(row.state),
-            h("span", { class: "small muted" }, FG.t("selfcheck.result.ofTotal", { n: row.answered, total: row.total }))
-          )
-        )
+        "p",
+        { class: "answer-line" },
+        h("span", { class: "item-id" }, item.identifier),
+        " ",
+        FG.span(item.text),
+        " ",
+        providedByNrp(item, st)
+          ? stateLabel("provided")
+          : h("strong", { class: "answer-value", "data-answer": value || "none" }, value ? FG.t("selfcheck.answer." + value) : FG.t("selfcheck.result.unanswered"))
       ),
-    ];
+      meta.length ? h("p", { class: "answer-meta" }, meta.map((part, index) => [index ? " · " : "", part])) : null
+    );
   }
 
   function results(check, st) {
@@ -1008,25 +1022,46 @@
       h("p", null, FG.t("selfcheck.progress", { n: answered, total: items.length })),
       st.target ? h("p", { class: "small" }, FG.t("selfcheck.target", { target: st.target })) : null,
       h("p", { class: "small" }, FG.t("selfcheck.result.advisory")),
-      stateTable(check, st),
+      resultGroups(check, st, items),
       h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.result.gaps")),
       gaps.length ? h("ul", { class: "gaps" }, gaps.map((item) => gapItem(st, item))) : h("p", null, FG.t("selfcheck.result.noGaps")),
       tasks.length ? [h("h3", { id: "results-tasks", tabindex: "-1" }, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map(taskItem))] : null,
-      h(
-        "details",
-        { class: "answers" },
-        h("summary", null, FG.t("selfcheck.result.answers")),
-        h(
-          "div",
-          { class: "content" },
-          table(
-            FG.t("selfcheck.result.answers"),
-            [FG.t("selfcheck.result.item"), FG.t("selfcheck.result.answer"), FG.t("selfcheck.result.source"), FG.t("selfcheck.result.evidence")],
-            items.map((item) => [[item.identifier, " ", FG.span(item.text)], answerText(st, item), sourceText(st, item), evidenceText(st, item)])
-          )
-        )
-      ),
     ];
+  }
+
+  /** The overview of the result in the list's groups: for a principle group the state of each principle it covers,
+      then every question with its answer and the evidence behind it. */
+  function resultGroups(check, st, items) {
+    const shown = applicable(check, st).filter((item) => providedByNrp(item, st) || items.includes(item));
+    const rows = principleRows(check, st);
+    return h(
+      "div",
+      { class: "result-groups" },
+      groupsOf(shown).map((group) => {
+        const principles = group.letter ? rows.filter((row) => String(row.principle.termCode).charAt(0) === group.letter) : [];
+        return h(
+          "section",
+          { class: "result-group" },
+          groupTitle(group) ? h("h3", null, groupTitle(group)) : null,
+          principles.length
+            ? h(
+                "ul",
+                { class: "principle-states", "aria-label": FG.t("selfcheck.result.principles") },
+                principles.map((row) =>
+                  h(
+                    "li",
+                    { "data-state": row.state },
+                    h("a", { href: FG.href("explorer", row.principle.termCode) }, h("strong", null, row.principle.termCode), " ", FG.span(row.principle.name)),
+                    " ",
+                    stateLabel(row.state)
+                  )
+                )
+              )
+            : null,
+          h("ol", { class: "answers-list" }, group.items.map((item) => answerRow(st, item)))
+        );
+      })
+    );
   }
 
   /* ---------------------------------------------------------------- exports */
@@ -1064,17 +1099,15 @@
         lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}${ask.names.length ? ". " + FG.t("selfcheck.result.ask", { whom: ask.names.join(", ") }) : ""}${lookup ? ` ([${FG.t("selfcheck.result.lookup")}](${lookup}))` : ""}`);
       }
     }
-    lines.push(
-      "",
-      "## " + FG.t("selfcheck.result.answers"),
-      "",
-      row([FG.t("selfcheck.result.item"), FG.t("selfcheck.result.answer"), FG.t("selfcheck.result.source"), FG.t("selfcheck.result.evidence")]),
-      "| --- | --- | --- | --- |"
-    );
-    for (const item of items) lines.push(row([item.identifier + " " + FG.text(item.text), answerText(st, item), sourceText(st, item), evidenceText(st, item)]));
+    lines.push("", "## " + FG.t("selfcheck.result.answers"), "");
+    for (const item of items) {
+      const details = [sourceText(st, item), evidenceText(st, item)].filter(Boolean).join("; ");
+      lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}: **${escapeMarkdown(answerText(st, item))}**${details ? " (" + escapeMarkdown(details) + ")" : ""}`);
+    }
     lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${pageBase()}`, "");
-    /* The same compact payload as a shared link, hidden from readers, so the summary can be loaded back. */
-    lines.push(`<!-- fair-guide-result: ${check.identifier} ${SC.sharePayload(check, st)} -->`, "");
+    /* The same compact payload as a shared link, with the format and guide versions, hidden from readers, so the
+       summary can be loaded back. */
+    lines.push(`<!-- fair-guide-result v${FORMAT_VERSION} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`, "");
     return lines.join("\n");
   }
 
@@ -1208,8 +1241,26 @@
       if (!entry || (!answerOf(st, item) && !entry.prefill)) continue;
       items[item.identifier] = { value: answerOf(st, item), origin: entry.origin || null, prefill: entry.prefill || null };
     }
-    return { v: STATE_VERSION, check: check.identifier, mode: st.mode || null, profile: st.profile || null, target: st.target || null, pid: st.pid || null, items };
+    return {
+      format: FORMAT,
+      v: FORMAT_VERSION,
+      guideVersion: FG.config.version,
+      check: check.identifier,
+      mode: st.mode || null,
+      profile: st.profile || null,
+      target: st.target || null,
+      pid: st.pid || null,
+      items,
+    };
   };
+
+  /** Notes for a loaded result: questions this version does not know, and a file from another guide version. */
+  function loadNotices(skipped, version) {
+    const notices = [];
+    if (skipped) notices.push(FG.t("selfcheck.load.skipped", { n: skipped }));
+    if (version && version !== FG.config.version) notices.push(FG.t("selfcheck.load.otherVersion", { version, current: FG.config.version }));
+    return notices;
+  }
 
   const isText = (value, max) => typeof value === "string" && value.length <= max;
   const webUrl = (value) => (isText(value, 2000) && /^https?:\/\/[^\s]+$/.test(value) ? value : null);
@@ -1240,58 +1291,81 @@
     return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record) };
   }
 
-  /** A check state from a file the guide wrote; anything unexpected refuses the whole file. */
+  /** A check state from a file the guide wrote, or the reason it cannot be read: not a guide file, a newer format,
+      a check this version does not know, or a damaged file. Questions this version does not know are skipped. */
   SC.readPortable = function (data) {
-    if (!data || typeof data !== "object" || data.v !== STATE_VERSION || !isText(data.check, 50)) return null;
+    if (!data || typeof data !== "object" || Array.isArray(data)) return { error: "damaged" };
+    if (data.format !== undefined && data.format !== FORMAT) return { error: "notGuide" };
+    if (Number.isInteger(data.v) && data.v > FORMAT_VERSION) return { error: "newer", params: { version: isText(data.guideVersion, 40) ? data.guideVersion : "?" } };
+    if (data.v !== FORMAT_VERSION || !isText(data.check, 50)) return { error: "damaged" };
     const check = FG.get("#check-" + data.check);
-    if (!check || !data.items || typeof data.items !== "object" || Array.isArray(data.items)) return null;
-    if (data.mode !== null && !modesOf(check).some((term) => term.termCode === data.mode)) return null;
-    if (data.profile !== null && !profilesOf(check).some((term) => term.termCode === data.profile)) return null;
+    if (!check) return { error: "unknownCheck" };
+    if (!data.items || typeof data.items !== "object" || Array.isArray(data.items)) return { error: "damaged" };
+    if (data.mode !== null && !modesOf(check).some((term) => term.termCode === data.mode)) return { error: "damaged" };
+    if (data.profile !== null && !profilesOf(check).some((term) => term.termCode === data.profile)) return { error: "damaged" };
     const ids = new Set(itemsOf(check).map((item) => item.identifier));
     const items = {};
+    let skipped = 0;
     for (const [id, entry] of Object.entries(data.items)) {
-      if (!ids.has(id) || !entry || typeof entry !== "object") return null;
-      if (entry.value !== null && !ANSWERS.includes(entry.value)) return null;
+      if (!ids.has(id)) {
+        skipped += 1;
+        continue;
+      }
+      if (!entry || typeof entry !== "object") return { error: "damaged" };
+      if (entry.value !== null && !ANSWERS.includes(entry.value)) return { error: "damaged" };
       const prefill = entry.prefill ? readPrefill(entry.prefill) : null;
-      if (entry.prefill && !prefill) return null;
+      if (entry.prefill && !prefill) return { error: "damaged" };
       items[id] = Object.assign({ origin: "shared" }, entry.value ? { value: entry.value } : {}, prefill ? { prefill } : {});
     }
     const state = { mode: data.mode, profile: data.profile, extended: true, target: webUrl(data.target), items };
     if (isText(data.pid, 300)) state.pid = data.pid;
-    return { check, state };
+    return { check, state, notices: loadNotices(skipped, isText(data.guideVersion, 40) ? data.guideVersion : null) };
   };
 
-  /** Read a file the guide exported: the JSON-LD result set or the Markdown summary. */
+  /** Read a file the guide exported, the JSON-LD result set or the Markdown summary, or say why it cannot be read. */
   function readResultFile(text) {
+    let crate = null;
     try {
-      const crate = JSON.parse(text);
-      const holder = FG.list(crate && crate["@graph"]).find((entity) => entity && typeof entity.guideState === "string");
-      return holder ? SC.readPortable(JSON.parse(holder.guideState)) : null;
+      crate = JSON.parse(text);
     } catch (error) {
-      const match = String(text).match(/<!--\s*fair-guide-result:\s*([a-z-]+)\s+(a1\.[A-Za-z0-9._]+)\s*-->/);
-      const check = match ? FG.get("#check-" + match[1]) : null;
-      const state = check ? SC.parseShare(check, match[2]) : null;
-      return state ? { check, state } : null;
+      crate = null;
     }
+    if (crate && typeof crate === "object") {
+      const holder = FG.list(crate["@graph"]).find((entity) => entity && typeof entity.guideState === "string");
+      if (!holder) return { error: "notGuide" };
+      try {
+        return SC.readPortable(JSON.parse(holder.guideState));
+      } catch (error) {
+        return { error: "damaged" };
+      }
+    }
+    const match = String(text).match(/<!--\s*fair-guide-result(?:\s+v(\d+))?(?:\s+guide=(\S+?))?:\s*([a-z-]+)\s+(a\d+\.[A-Za-z0-9._]+)\s*-->/);
+    if (!match) return { error: "notGuide" };
+    if (Number(match[1] || FORMAT_VERSION) > FORMAT_VERSION) return { error: "newer", params: { version: match[2] || "?" } };
+    const check = FG.get("#check-" + match[3]);
+    if (!check) return { error: "unknownCheck" };
+    const state = SC.parseShare(check, match[4]);
+    if (!state) return { error: "damaged" };
+    return { check, state, notices: loadNotices(state.skipped, match[2] || null) };
   }
 
   /** A file the user loads opens as a preview of its check, like a shared link. */
   async function loadFile(file, statusId) {
-    const show = (key) => {
+    const show = (key, params) => {
       const element = document.getElementById(statusId);
-      if (element) element.textContent = FG.t(key);
+      if (element) element.textContent = FG.t(key, params || {});
     };
     if (!file) return;
     if (file.size > MAX_FILE) {
-      show("selfcheck.load.refused");
+      show("selfcheck.load.error.tooLarge");
       return;
     }
     const found = readResultFile(await file.text());
-    if (!found) {
-      show("selfcheck.load.refused");
+    if (found.error) {
+      show("selfcheck.load.error." + found.error, found.params);
       return;
     }
-    SC.pendingFile = { check: found.check.identifier, state: found.state };
+    SC.pendingFile = { check: found.check.identifier, state: found.state, notices: found.notices || [] };
     FG.navigate(FG.href("check", found.check.identifier) + "/file");
   }
 
@@ -1328,10 +1402,10 @@
         h(
           "div",
           { class: "content" },
-          h("ul", null, ["stored", "where", "sent", "move", "delete"].map((key) => h("li", null, h("strong", null, FG.t("localData." + key + "Title") + ": "), FG.t("localData." + key)))),
-          h("p", null, h("button", { type: "button", id: "local-data-delete", class: "button-link", onclick: remove }, FG.icon("trash"), " ", FG.t("localData.deleteAll")))
+          h("ul", null, ["stored", "where", "sent", "move", "delete"].map((key) => h("li", null, h("strong", null, FG.t("localData." + key + "Title") + ": "), FG.t("localData." + key))))
         )
       ),
+      h("button", { type: "button", id: "local-data-delete", class: "button-link local-data-delete", onclick: remove }, FG.icon("trash"), " ", FG.t("localData.deleteAll")),
       h("p", { id: "local-data-status", class: "small", role: "status" })
     );
   }
@@ -1359,13 +1433,14 @@
     return parts.join(".");
   };
 
-  /** Read the answers in a shared link; anything unexpected makes the whole link invalid. */
+  /** Read the answers in a shared link; questions this version does not know are skipped and counted, anything
+      else unexpected makes the whole link invalid. */
   SC.parseShare = function (check, payload) {
     const parts = String(payload || "").split(".");
     if (parts[0] !== "a1" || parts.length < 3) return null;
     const codes = Object.fromEntries(Object.entries(SHARE_CODE).map(([value, letter]) => [letter, value]));
     const ids = new Set(itemsOf(check).map((item) => item.identifier));
-    const shared = { mode: null, profile: null, extended: true, items: {} };
+    const shared = { mode: null, profile: null, extended: true, items: {}, skipped: 0 };
     if (parts[1] !== "_") {
       if (!modesOf(check).some((term) => term.termCode === parts[1])) return null;
       shared.mode = parts[1];
@@ -1376,7 +1451,11 @@
     }
     for (const part of parts.slice(3)) {
       const match = part.match(/^([A-Z]\d{2})([a-z])$/);
-      if (!match || !ids.has(match[1]) || !codes[match[2]]) return null;
+      if (!match || !codes[match[2]]) return null;
+      if (!ids.has(match[1])) {
+        shared.skipped += 1;
+        continue;
+      }
       shared.items[match[1]] = { value: codes[match[2]], origin: "shared" };
     }
     return shared;
@@ -1419,17 +1498,13 @@
     if (await copy(text, fallbackId)) button.textContent = FG.t("common.copied");
   }
 
-  function showMarkdown(check, st) {
-    const text = markdown(check, st);
-    FG.renderList("share-output", () =>
-      fragment(
-        h("label", { for: "markdown-text" }, FG.t("selfcheck.export.markdown")),
-        h("textarea", { id: "markdown-text", readonly: true, rows: "12" }, text),
-        h("div", { class: "buttons" }, h("button", { type: "button", onclick: (event) => copyWithFeedback(event, text, "markdown-text") }, FG.t("common.copy")))
-      )
-    );
-    const field = document.getElementById("markdown-text");
-    if (field) field.focus();
+  /* The format chosen for saving, kept while the page is open. */
+  let exportFormat = "md";
+  const exportText = (check, st) => (exportFormat === "jsonld" ? JSON.stringify(SC.ftrCrate(check, st), null, 2) + "\n" : markdown(check, st));
+
+  function refreshPreview(check, st) {
+    const area = document.getElementById("export-preview-text");
+    if (area && area.closest("details").open) area.value = exportText(check, st);
   }
 
   function clearAnswers(check) {
@@ -1445,15 +1520,60 @@
       { class: "export no-print", "aria-labelledby": "export-title" },
       h("h2", { id: "export-title", tabindex: "-1" }, FG.t("selfcheck.export.title")),
       h(
+        "fieldset",
+        { class: "export-format" },
+        h("legend", null, FG.t("selfcheck.export.format")),
+        [
+          ["md", "selfcheck.export.formatMd"],
+          ["jsonld", "selfcheck.export.formatJsonld"],
+        ].map(([value, key]) =>
+          h(
+            "label",
+            { class: "option", for: "export-format-" + value },
+            h("input", {
+              type: "radio",
+              name: "export-format",
+              id: "export-format-" + value,
+              value,
+              checked: exportFormat === value,
+              onchange: () => {
+                exportFormat = value;
+                refreshPreview(check, st);
+              },
+            }),
+            FG.t(key)
+          )
+        )
+      ),
+      h(
         "div",
         { class: "export-actions" },
-        h("button", { type: "button", class: "button-small button-primary", onclick: () => download(fileName(check, "jsonld"), JSON.stringify(SC.ftrCrate(check, st), null, 2) + "\n", "application/ld+json") }, FG.icon("download"), FG.t("selfcheck.export.jsonld")),
-        h("button", { type: "button", class: "button-small", onclick: () => download(fileName(check, "md"), markdown(check, st), "text/markdown") }, FG.icon("download"), FG.t("selfcheck.export.downloadMd")),
-        h("button", { type: "button", class: "button-small", onclick: () => showMarkdown(check, st) }, FG.icon("code"), FG.t("selfcheck.export.showMarkdown")),
+        h(
+          "button",
+          {
+            type: "button",
+            class: "button-small button-primary",
+            id: "export-download",
+            onclick: () => download(fileName(check, exportFormat === "jsonld" ? "jsonld" : "md"), exportText(check, st), exportFormat === "jsonld" ? "application/ld+json" : "text/markdown"),
+          },
+          FG.icon("download"),
+          FG.t("selfcheck.export.download")
+        ),
+        h("button", { type: "button", class: "button-small", id: "export-copy", onclick: (event) => copyWithFeedback(event, exportText(check, st), "export-preview-text") }, FG.icon("copy"), FG.t("common.copy"))
+      ),
+      h(
+        "details",
+        { class: "export-preview", ontoggle: (event) => event.target.open && refreshPreview(check, st) },
+        h("summary", null, FG.t("selfcheck.export.preview")),
+        h("textarea", { id: "export-preview-text", readonly: true, rows: "14", "aria-label": FG.t("selfcheck.export.preview") })
+      ),
+      h("p", { class: "small muted" }, FG.t("selfcheck.export.formats")),
+      h(
+        "div",
+        { class: "export-more" },
         h("button", { type: "button", class: "button-small", id: "share-create", onclick: () => showShare(check, st) }, FG.icon("link"), FG.t("selfcheck.export.share")),
         h("button", { type: "button", class: "button-small", onclick: () => window.print() }, FG.icon("print"), FG.t("selfcheck.export.print"))
       ),
-      h("p", { class: "small muted" }, FG.t("selfcheck.export.formats")),
       h("div", { id: "share-output", class: "share-output" }),
       loadControl("load-file"),
       h("p", null, h("button", { type: "button", class: "button-link", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset")))
@@ -1466,6 +1586,7 @@
     const fromFile = payload === "file";
     const pending = SC.pendingFile && SC.pendingFile.check === check.identifier ? SC.pendingFile.state : null;
     const shared = fromFile ? pending : SC.parseShare(check, payload);
+    const notices = fromFile ? (SC.pendingFile && SC.pendingFile.notices) || [] : shared ? loadNotices(shared.skipped, null) : [];
     if (!shared) {
       return [
         h("p", { class: "notice", role: "status" }, FG.t(fromFile ? "selfcheck.load.gone" : "selfcheck.export.sharedInvalid")),
@@ -1483,6 +1604,7 @@
         "div",
         { class: "notice shared" },
         h("p", null, FG.t(fromFile ? "selfcheck.load.banner" : "selfcheck.export.sharedBanner")),
+        notices.map((notice) => h("p", { class: "small" }, notice)),
         h(
           "div",
           { class: "buttons" },
@@ -1494,49 +1616,73 @@
     ];
   }
 
-  /** The result beside the questions; it can be collapsed, and the choice is remembered in the browser. */
   /** Move to a place in the check and give it focus without a second scroll. */
+  /** Move to a place in the check, give it focus and mark it briefly, so the jump is visible even when the place
+      was already in view. */
   function jumpTo(element) {
     if (!element) return;
     element.scrollIntoView({ block: "start" });
     const target = element.matches("input, button, h2, h3") ? element : element.querySelector("input, h2, h3") || element;
     target.focus({ preventScroll: true });
+    element.classList.add("jumped");
+    setTimeout(() => element.classList.remove("jumped"), 1600);
   }
 
-  /** The result so far in a few lines: progress, one chip per principle (or gate condition) that jumps to its
-      items, and the counts of gaps and things to find out that jump to the full result below the questions. */
+  /** Jump to an item; an item the short view hides opens the extended view first. */
+  function jumpToItem(check, item) {
+    const st = stateOf(check);
+    if (!document.getElementById("item-" + item.identifier) && !st.extended) {
+      st.extended = true;
+      save();
+      FG.rerender();
+    }
+    jumpTo(document.getElementById("item-" + item.identifier));
+  }
+
+  /** The questions in the same groups as the list, with a short label for each group. */
+  function summaryGroups(items) {
+    return groupsOf(items).map((group) => ({ label: groupMark(group), name: groupName(group), items: group.items }));
+  }
+
+  /** The result so far in a few lines: progress, one chip per question in the list's groups that jumps to it,
+      and the counts of gaps and things to find out that jump to the full result below the questions. */
   function summary(check, st) {
     const items = resultItems(check, st);
     const answered = items.filter((item) => answerOf(st, item)).length;
     const { gaps, tasks } = outcomes(check, st);
-    const rows = profilesOf(check).length
-      ? applicable(check, st)
-          .filter((item) => providedByNrp(item, st) || items.includes(item))
-          .map((item) => ({ code: item.identifier, name: FG.text(item.text), state: itemState(st, item), item }))
-      : principleRows(check, st).map((row) => ({
-          code: row.principle.termCode,
-          name: FG.text(row.principle.name),
-          state: row.state,
-          item: items.find((item) => FG.hasRef(item, "about", row.principle["@id"])),
-        }));
+    /* The summary mirrors the questions: the same groups as the list (by principle or by path step), one chip per
+       question with its answer state. */
+    const shown = applicable(check, st).filter((item) => providedByNrp(item, st) || items.includes(item));
+    const groups = summaryGroups(shown);
     const count = (key, n, anchor) =>
-      h("button", { type: "button", class: "summary-count", "data-kind": key, disabled: !n, onclick: () => jumpTo(document.getElementById(anchor)) }, FG.t("selfcheck.summary." + key, { n }));
+      n
+        ? h("button", { type: "button", class: "summary-count", "data-kind": key, onclick: () => jumpTo(document.getElementById(anchor)) }, FG.t("selfcheck.summary." + key, { n }))
+        : h("span", { class: "summary-count summary-count-none", "data-kind": key }, FG.t("selfcheck.summary." + key, { n }));
     return [
       h("p", { class: "summary-progress" }, FG.t("selfcheck.progress", { n: answered, total: items.length })),
-      h(
-        "ul",
-        { class: "summary-chips" },
-        rows.map((row) =>
+      groups.map((group) =>
+        h(
+          "div",
+          { class: "summary-group" },
+          h("span", { class: "summary-group-label" }, group.label),
           h(
-            "li",
-            null,
-            h(
-              "button",
-              { type: "button", class: "summary-chip", "data-state": row.state, title: row.name + ": " + FG.t("selfcheck.state." + row.state), onclick: () => row.item && jumpTo(document.getElementById("item-" + row.item.identifier)) },
-              row.state === "open" ? null : h("span", { "aria-hidden": "true" }, STATE_ICON[row.state] + " "),
-              row.code,
-              h("span", { class: "visually-hidden" }, " " + row.name + ": " + FG.t("selfcheck.state." + row.state))
-            )
+            "ul",
+            { class: "summary-chips", "aria-label": group.name },
+            group.items.map((item) => {
+              const state = itemState(st, item);
+              const name = FG.text(item.text);
+              return h(
+                "li",
+                null,
+                h(
+                  "button",
+                  { type: "button", class: "summary-chip", "data-state": state, title: name + " (" + FG.t("selfcheck.state." + state) + ")", onclick: () => jumpToItem(check, item) },
+                  state === "open" ? null : h("span", { "aria-hidden": "true" }, STATE_ICON[state] + " "),
+                  item.identifier,
+                  h("span", { class: "visually-hidden" }, " " + name + ": " + FG.t("selfcheck.state." + state))
+                )
+              );
+            })
           )
         )
       ),
