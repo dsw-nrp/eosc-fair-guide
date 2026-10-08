@@ -164,9 +164,8 @@ profileQuestion = { cs = "Který profil repozitáře platí?", en = "Which repos
 chooseFirst = { cs = "Nejdřív odpovězte na otázku výše; seznam položek se podle ní upraví.", en = "Answer the question above first; the list of items adapts to it." }
 providedByNrp = { cs = "Zajišťuje NRP", en = "Provided by NRP" }
 providedByNrpText = { cs = "U instancí základních systémů NRP tuto podmínku zajišťuje samo NRP.", en = "For instances of core NRP systems, NRP itself provides this." }
-extendedShow = { cs = "Rozšířená kontrola: zobrazit další položky ({n})", en = "Extended check: show more items ({n})" }
-extendedHide = { cs = "Zobrazit jen základní položky", en = "Show the basic items only" }
-extendedNote = { cs = "Odpovědi, které jste už dali, zůstávají.", en = "Answers you have already given are kept." }
+extendedSwitch = { cs = "Rozšířená kontrola: doporučené a pokročilé položky ({n})", en = "Extended check: recommended and advanced items ({n})" }
+extendedExplain = { cs = "Rozšířená kontrola přidá doporučené a pokročilé položky; odpovědi, které jste už dali, zůstanou.", en = "The extended check adds the recommended and advanced items; answers you have already given stay." }
 basedOn = { cs = "Na čem položka stojí", en = "What this item is based on" }
 fixAt = { cs = "Řeší se v kroku: {station}", en = "Addressed at the step: {station}" }
 grouping = { cs = "Seskupit", en = "Group" }
@@ -265,8 +264,14 @@ item = { cs = "Položka", en = "Item" }
 answer = { cs = "Odpověď", en = "Answer" }
 source = { cs = "Zdroj", en = "Source" }
 evidence = { cs = "Doklad", en = "Evidence" }
-show = { cs = "Zobrazit výsledek", en = "Show the result" }
-hide = { cs = "Skrýt výsledek", en = "Hide the result" }
+show = { cs = "Zobrazit průběžný výsledek", en = "Show the result so far" }
+hide = { cs = "Skrýt průběžný výsledek", en = "Hide the result so far" }
+
+[selfcheck.summary]
+title = { cs = "Průběžný výsledek", en = "Result so far" }
+gaps = { cs = "Mezery: {n}", en = "Gaps: {n}" }
+tasks = { cs = "Zjistit: {n}", en = "To find out: {n}" }
+full = { cs = "Celý výsledek a uložení", en = "Full result and saving" }
 
 [selfcheck.groupBy]
 principles = { cs = "podle FAIR principů", en = "by FAIR principle" }
@@ -287,7 +292,8 @@ open = { cs = "neposouzeno", en = "not assessed" }
 provided = { cs = "zajišťuje NRP", en = "provided by NRP" }
 
 [selfcheck.load]
-label = { cs = "Načíst uložený výsledek (JSON-LD nebo Markdown z průvodce)", en = "Load a saved result (JSON-LD or Markdown from the guide)" }
+label = { cs = "Načíst výsledek ze souboru", en = "Load a result from a file" }
+hint = { cs = "JSON-LD nebo Markdown uložený z průvodce", en = "JSON-LD or Markdown saved from the guide" }
 refused = { cs = "Tento soubor průvodce nevytvořil nebo ho nelze přečíst.", en = "The guide did not make this file, or it cannot be read." }
 banner = { cs = "Otevřeli jste výsledek ze souboru. Vaše vlastní odpovědi zatím zůstávají beze změny.", en = "You opened a result from a file. Your own answers stay unchanged for now." }
 use = { cs = "Použít odpovědi ze souboru", en = "Use the answers from the file" }
@@ -296,10 +302,12 @@ gone = { cs = "Náhled souboru už není k dispozici; načtěte soubor znovu.", 
 [selfcheck.export]
 title = { cs = "Uložit a sdílet", en = "Save and share" }
 markdown = { cs = "Shrnutí v Markdownu", en = "Markdown summary" }
-downloadMd = { cs = "Stáhnout shrnutí (.md)", en = "Download the summary (.md)" }
+showMarkdown = { cs = "Zobrazit shrnutí", en = "Show the summary" }
+downloadMd = { cs = "Stáhnout shrnutí (Markdown)", en = "Download the summary (Markdown)" }
+formats = { cs = "JSON-LD je výsledek jako RO-Crate (FTR), který přečtou i jiné služby; shrnutí v Markdownu je pro čtení. Oba soubory lze do průvodce znovu načíst.", en = "JSON-LD is the result as an RO-Crate (FTR) that other services can read; the Markdown summary is for reading. Both files can be loaded back into the guide." }
 print = { cs = "Vytisknout", en = "Print" }
-jsonld = { cs = "Stáhnout výsledek jako JSON-LD (FTR v RO-Crate)", en = "Download the result as JSON-LD (FTR in an RO-Crate)" }
-share = { cs = "Vytvořit odkaz s odpověďmi", en = "Create a link with your answers" }
+jsonld = { cs = "Stáhnout výsledek (JSON-LD)", en = "Download the result (JSON-LD)" }
+share = { cs = "Vytvořit odkaz", en = "Create a link" }
 shareLabel = { cs = "Odkaz s odpověďmi", en = "Link with your answers" }
 shareNote = { cs = "Odkaz obsahuje vaše odpovědi; kdo ho dostane, uvidí je. Nic jiného z prohlížeče neodchází.", en = "The link contains your answers; anyone who gets it can see them. Nothing else leaves your browser." }
 sharedBanner = { cs = "Otevřeli jste odpovědi ze sdíleného odkazu. Vaše vlastní odpovědi zatím zůstávají beze změny.", en = "You opened answers from a shared link. Your own answers are unchanged so far." }

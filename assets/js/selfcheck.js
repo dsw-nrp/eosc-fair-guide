@@ -161,6 +161,7 @@
     save();
     FG.renderList("origin-" + item.identifier, () => fragment(origin(st, item)));
     FG.renderList("results", () => fragment(results(check, st)));
+    FG.renderList("summary-body", () => fragment(summary(check, st)));
     FG.renderList("share-output", () => fragment());
   }
 
@@ -728,7 +729,7 @@
     const meta = h(
       "div",
       { class: "badges" },
-      h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
+      isFirstTier(item) ? null : h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
       FG.refs(item, "about").map((principle) => FG.principleTile(principle))
     );
     const statement = [h("span", { class: "item-id" }, id), " ", FG.span(item.text)];
@@ -736,7 +737,7 @@
     const basedOn = clauses.length
       ? h(
           "details",
-          { class: "small" },
+          { class: "item-basis" },
           h("summary", null, FG.t("selfcheck.basedOn")),
           h("ul", { class: "content" }, clauses.map((clause) => h("li", null, h("span", { class: "code" }, clause.identifier || ""), " ", FG.span(clause.text || clause.name))))
         )
@@ -842,24 +843,28 @@
       { class: "tier-info" },
       h("strong", null, FG.t("selfcheck.tierCount", { tier: FG.text(tier.name), n: first.length }) + " "),
       tier.description ? FG.span(tier.description) : null,
-      " ",
-      h(
-        "button",
-        {
-          type: "button",
-          class: "button-link",
-          id: "extended-toggle",
-          "aria-expanded": st.extended ? "true" : "false",
-          onclick: () => {
-            st.extended = !st.extended;
-            save();
-            FG.rerender("extended-toggle");
-          },
+      " " + FG.t("selfcheck.extendedExplain")
+    );
+  }
+
+  /** The extended check as an on/off switch: it adds the recommended and advanced items and keeps the answers. */
+  function extendedSwitch(st, more) {
+    return h(
+      "label",
+      { class: "switch", for: "extended-toggle" },
+      h("input", {
+        type: "checkbox",
+        role: "switch",
+        id: "extended-toggle",
+        checked: Boolean(st.extended),
+        onchange: () => {
+          st.extended = !st.extended;
+          save();
+          FG.rerender("extended-toggle");
         },
-        st.extended ? FG.t("selfcheck.extendedHide") : FG.t("selfcheck.extendedShow", { n: more })
-      ),
-      " ",
-      h("span", { class: "muted" }, FG.t("selfcheck.extendedNote"))
+      }),
+      h("span", { class: "switch-track", "aria-hidden": "true" }),
+      h("span", null, FG.t("selfcheck.extendedSwitch", { n: more }))
     );
   }
 
@@ -873,7 +878,7 @@
       "div",
       { class: "items no-print" },
       tierInfo(check, st, first, more),
-      groupingControl(),
+      h("div", { class: "check-toolbar no-print" }, more ? extendedSwitch(st, more) : null, groupingControl()),
       itemGroups(shown).map((group) =>
         h("section", { class: "item-group" }, group.title ? h("h2", null, group.title) : null, group.items.map((item) => itemField(check, st, item)))
       )
@@ -1004,9 +1009,9 @@
       st.target ? h("p", { class: "small" }, FG.t("selfcheck.target", { target: st.target })) : null,
       h("p", { class: "small" }, FG.t("selfcheck.result.advisory")),
       stateTable(check, st),
-      h("h3", null, FG.t("selfcheck.result.gaps")),
+      h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.result.gaps")),
       gaps.length ? h("ul", { class: "gaps" }, gaps.map((item) => gapItem(st, item))) : h("p", null, FG.t("selfcheck.result.noGaps")),
-      tasks.length ? [h("h3", null, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map(taskItem))] : null,
+      tasks.length ? [h("h3", { id: "results-tasks", tabindex: "-1" }, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map(taskItem))] : null,
       h(
         "details",
         { class: "answers" },
@@ -1295,8 +1300,9 @@
     return h(
       "div",
       { class: "load-file no-print" },
-      h("label", { for: id }, FG.t("selfcheck.load.label")),
-      h("input", { type: "file", id, accept: ".jsonld,.json,.md,application/ld+json,application/json,text/markdown", onchange: (event) => loadFile(event.target.files[0], statusId) }),
+      h("input", { type: "file", id, class: "file-input", accept: ".jsonld,.json,.md,application/ld+json,application/json,text/markdown", onchange: (event) => loadFile(event.target.files[0], statusId) }),
+      h("label", { for: id, class: "button button-small" }, FG.icon("upload"), FG.t("selfcheck.load.label")),
+      h("span", { class: "small muted" }, FG.t("selfcheck.load.hint")),
       h("p", { id: statusId, class: "small", role: "status" })
     );
   }
@@ -1314,10 +1320,10 @@
     return h(
       "div",
       { class: "local-data no-print" },
-      h("p", null, FG.icon("info"), " ", FG.t("localData.statement")),
+      h("p", { class: "local-data-line" }, FG.icon("info"), h("span", null, FG.t("localData.statement"))),
       h(
         "details",
-        null,
+        { class: "local-data-how" },
         h("summary", null, FG.t("localData.how")),
         h(
           "div",
@@ -1440,13 +1446,14 @@
       h("h2", { id: "export-title", tabindex: "-1" }, FG.t("selfcheck.export.title")),
       h(
         "div",
-        { class: "buttons" },
-        h("button", { type: "button", onclick: () => showMarkdown(check, st) }, FG.t("selfcheck.export.markdown")),
-        h("button", { type: "button", onclick: () => download(fileName(check, "md"), markdown(check, st), "text/markdown") }, FG.t("selfcheck.export.downloadMd")),
-        h("button", { type: "button", onclick: () => download(fileName(check, "jsonld"), JSON.stringify(SC.ftrCrate(check, st), null, 2) + "\n", "application/ld+json") }, FG.t("selfcheck.export.jsonld")),
-        h("button", { type: "button", onclick: () => window.print() }, FG.t("selfcheck.export.print")),
-        h("button", { type: "button", id: "share-create", onclick: () => showShare(check, st) }, FG.t("selfcheck.export.share"))
+        { class: "export-actions" },
+        h("button", { type: "button", class: "button-small button-primary", onclick: () => download(fileName(check, "jsonld"), JSON.stringify(SC.ftrCrate(check, st), null, 2) + "\n", "application/ld+json") }, FG.icon("download"), FG.t("selfcheck.export.jsonld")),
+        h("button", { type: "button", class: "button-small", onclick: () => download(fileName(check, "md"), markdown(check, st), "text/markdown") }, FG.icon("download"), FG.t("selfcheck.export.downloadMd")),
+        h("button", { type: "button", class: "button-small", onclick: () => showMarkdown(check, st) }, FG.icon("code"), FG.t("selfcheck.export.showMarkdown")),
+        h("button", { type: "button", class: "button-small", id: "share-create", onclick: () => showShare(check, st) }, FG.icon("link"), FG.t("selfcheck.export.share")),
+        h("button", { type: "button", class: "button-small", onclick: () => window.print() }, FG.icon("print"), FG.t("selfcheck.export.print"))
       ),
+      h("p", { class: "small muted" }, FG.t("selfcheck.export.formats")),
       h("div", { id: "share-output", class: "share-output" }),
       loadControl("load-file"),
       h("p", null, h("button", { type: "button", class: "button-link", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset")))
@@ -1488,27 +1495,79 @@
   }
 
   /** The result beside the questions; it can be collapsed, and the choice is remembered in the browser. */
-  function resultPanel(check, st) {
+  /** Move to a place in the check and give it focus without a second scroll. */
+  function jumpTo(element) {
+    if (!element) return;
+    element.scrollIntoView({ block: "start" });
+    const target = element.matches("input, button, h2, h3") ? element : element.querySelector("input, h2, h3") || element;
+    target.focus({ preventScroll: true });
+  }
+
+  /** The result so far in a few lines: progress, one chip per principle (or gate condition) that jumps to its
+      items, and the counts of gaps and things to find out that jump to the full result below the questions. */
+  function summary(check, st) {
+    const items = resultItems(check, st);
+    const answered = items.filter((item) => answerOf(st, item)).length;
+    const { gaps, tasks } = outcomes(check, st);
+    const rows = profilesOf(check).length
+      ? applicable(check, st)
+          .filter((item) => providedByNrp(item, st) || items.includes(item))
+          .map((item) => ({ code: item.identifier, name: FG.text(item.text), state: itemState(st, item), item }))
+      : principleRows(check, st).map((row) => ({
+          code: row.principle.termCode,
+          name: FG.text(row.principle.name),
+          state: row.state,
+          item: items.find((item) => FG.hasRef(item, "about", row.principle["@id"])),
+        }));
+    const count = (key, n, anchor) =>
+      h("button", { type: "button", class: "summary-count", "data-kind": key, disabled: !n, onclick: () => jumpTo(document.getElementById(anchor)) }, FG.t("selfcheck.summary." + key, { n }));
+    return [
+      h("p", { class: "summary-progress" }, FG.t("selfcheck.progress", { n: answered, total: items.length })),
+      h(
+        "ul",
+        { class: "summary-chips" },
+        rows.map((row) =>
+          h(
+            "li",
+            null,
+            h(
+              "button",
+              { type: "button", class: "summary-chip", "data-state": row.state, title: row.name + ": " + FG.t("selfcheck.state." + row.state), onclick: () => row.item && jumpTo(document.getElementById("item-" + row.item.identifier)) },
+              row.state === "open" ? null : h("span", { "aria-hidden": "true" }, STATE_ICON[row.state] + " "),
+              row.code,
+              h("span", { class: "visually-hidden" }, " " + row.name + ": " + FG.t("selfcheck.state." + row.state))
+            )
+          )
+        )
+      ),
+      h("p", { class: "summary-counts" }, count("gaps", gaps.length, "results-gaps"), count("tasks", tasks.length, "results-tasks")),
+      h("p", { class: "summary-full" }, h("button", { type: "button", class: "button-link", onclick: () => jumpTo(document.getElementById("results-title")) }, FG.t("selfcheck.summary.full"))),
+    ];
+  }
+
+  /** The result so far beside the questions; a small icon collapses it, and the choice is remembered. */
+  function summaryPanel(check, st) {
     const collapsed = Boolean(FG.state.resultCollapsed);
     const toggle = () => {
       FG.state.resultCollapsed = !collapsed;
       FG.saveState();
       FG.rerender("result-toggle");
     };
+    const label = FG.t(collapsed ? "selfcheck.result.show" : "selfcheck.result.hide");
     return h(
       "aside",
-      { class: "check-result", "aria-labelledby": "results-title" },
+      { class: "check-summary no-print", "aria-labelledby": "summary-title" },
       h(
         "div",
-        { class: "result-head" },
-        h("h2", { id: "results-title" }, FG.t("selfcheck.result.title")),
+        { class: "summary-head" },
+        h("h2", { id: "summary-title", class: collapsed ? "visually-hidden" : null }, FG.t("selfcheck.summary.title")),
         h(
           "button",
-          { type: "button", class: "button-link no-print", id: "result-toggle", "aria-expanded": String(!collapsed), "aria-controls": "result-body", onclick: toggle },
-          FG.t(collapsed ? "selfcheck.result.show" : "selfcheck.result.hide")
+          { type: "button", class: "icon-button", id: "result-toggle", "aria-expanded": String(!collapsed), "aria-controls": "result-body", "aria-label": label, title: label, onclick: toggle },
+          FG.icon(collapsed ? "expand" : "collapse")
         )
       ),
-      h("div", { id: "result-body", hidden: collapsed }, h("section", { id: "results", class: "results" }, results(check, st)), exportSection(check, st))
+      h("div", { id: "result-body", hidden: collapsed }, h("div", { id: "summary-body" }, summary(check, st)))
     );
   }
 
@@ -1534,8 +1593,21 @@
       h(
         "div",
         { class: "check-split" + (FG.state.resultCollapsed ? " result-collapsed" : "") },
-        h("article", { class: "check-main" }, h("div", { class: "no-print" }, settings(check, st)), prefillPanel(check, st), itemsSection(check, st)),
-        resultPanel(check, st)
+        h(
+          "article",
+          { class: "check-main" },
+          h("div", { class: "no-print" }, settings(check, st)),
+          prefillPanel(check, st),
+          itemsSection(check, st),
+          h(
+            "section",
+            { class: "results", "aria-labelledby": "results-title" },
+            h("h2", { id: "results-title", tabindex: "-1" }, FG.t("selfcheck.result.title")),
+            h("div", { id: "results" }, results(check, st))
+          ),
+          exportSection(check, st)
+        ),
+        summaryPanel(check, st)
       )
     );
   }

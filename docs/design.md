@@ -550,8 +550,13 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 
 - The split view, the evidence line beside each criterion, the grid of principles in the result and the
   explanation of the basic tier stay as prototyped.
-- The result panel can be collapsed; the choice is remembered in the browser, as is the grouping (by FAIR
-  principle by default, or by path step). Every item names the step where it is addressed.
+- Beside the questions on wide screens sits a short, sticky "result so far": progress, one chip per principle (or
+  gate condition) that leads to its items, and the counts of gaps and things to find out that lead to the full
+  result. It never scrolls on its own; a small icon collapses it, and the choice is remembered in the browser. The
+  full result and the saving and loading actions follow the questions, so on narrow screens they simply come next.
+- The extended check is an on/off switch in a control row with the grouping (by FAIR principle by default, or by
+  path step, also remembered). Every item names the step where it is addressed; the tier badge shows only on items
+  outside the first view's tier.
 - The result covers the items the view shows, every item once the check is extended, and any item answered, so an
   answer to an extended item still counts after returning to the basic items.
 - A pre-fill records the fields it read with the values found (at most three per field) and a link to the record:
@@ -668,3 +673,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-80 | 2026-10-08 | The stage mark appears **only after a stage is chosen** and reads "Vybráno" with the date of the last visit; the stage can be **changed on the path** in a "Vaše fáze" switch above the stations, replacing the "Začít jinde" link, because the choice decides where the path menu item leads. | U |
 | D-81 | 2026-10-08 | **Every external link opens in a new tab** (the header logo included, which previously replaced the embedding page); a page check enforces it on every view. | U |
 | D-82 | 2026-10-08 | **Credit model implemented:** analysis authors as people with ORCID iDs on the analysis, the guide's editors and reviewers in its metadata, the crate's root naming editors and no author, a roles table on the about page and a sources line per station. `CITATION.cff` keeps the maintainer as the software's author, since the format has no top-level editor role, and its message points to the guide's citation. | U+S |
+| D-83 | 2026-10-08 | **The result beside a check is a short summary**, not the whole result: a sticky panel with progress, principle chips and gap counts that never scrolls on its own and collapses to a small icon; the full result and saving follow the questions. The extended check is a **switch**, and the check page is calmer overall. | U |

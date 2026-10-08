@@ -57,7 +57,7 @@ const answer = (id) => page.evaluate((item) => {
 await open("#/cs/V/check/dataset");
 await page.locator("#mode-after").check();
 if (requests.length) fail("requests before any lookup: " + requests.join(", "));
-await page.locator("#extended-toggle").click();
+await page.locator('label[for="extended-toggle"]').click();
 await page.locator("#prefill-pid").fill("https://doi.org/" + SAMPLE.doi);
 let status = await prefill("#prefill-pid-run");
 console.log("DOI:", status);
@@ -88,7 +88,7 @@ if (!status.includes("nezná")) fail("missing identifier: DataCite not reported 
 
 // FIP check from a published nanopublication.
 await open("#/cs/K/check/fip");
-await page.locator("#extended-toggle").click();
+await page.locator('label[for="extended-toggle"]').click();
 await page.locator("#prefill-nanopub").fill("https://w3id.org/np/" + SAMPLE.fip);
 status = await prefill("#prefill-nanopub-run");
 console.log("Nanopublication:", status);

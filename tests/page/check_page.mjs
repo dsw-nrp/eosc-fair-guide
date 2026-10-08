@@ -19,6 +19,12 @@ const crate = JSON.parse(readFileSync(resolve(root, "ro-crate-metadata.json"), "
 const graph = crate["@graph"];
 const stations = graph.filter((e) => e["@type"] === "HowToSection").map((e) => e.identifier);
 const lenses = graph.filter((e) => e["@type"] === "Audience" && e["@id"].startsWith("#lens-")).map((e) => e.audienceType);
+/** The result so far must stay short and never scroll on its own. */
+const panelFits = (page) =>
+  page.evaluate(() => {
+    const panel = document.querySelector(".check-summary");
+    return panel && panel.scrollHeight <= panel.clientHeight + 1 && panel.getBoundingClientRect().height <= window.innerHeight * 0.6;
+  });
 const lensShown = (page, lens) => page.waitForFunction((expected) => {
   const current = document.querySelector('.lens-option[aria-current="true"]');
   return current && current.dataset.lens === expected;
@@ -242,10 +248,12 @@ async function axe(page, label) {
   const resultText = await page.locator("#results").textContent();
   if (/%|skóre|score/i.test(resultText)) fail("dataset check: the result shows a score or percentage");
   await axe(page, "dataset check answered");
-  await page.locator("#extended-toggle").click();
+  await page.locator('label[for="extended-toggle"]').click();
   if (!(await page.locator("#item-D06").count())) fail("dataset check: the extended check does not show Recommended items");
+  if (!(await page.locator("#extended-toggle").isChecked()) || (await page.locator("#extended-toggle").getAttribute("role")) !== "switch") fail("dataset check: the extended check is not an on/off switch that shows its state");
+  if (!(await panelFits(page))) fail("dataset check: the result so far scrolls or is too tall in the extended check");
   if (!(await checked("answer-D04-no"))) fail("dataset check: opening the extended check lost an answer");
-  await page.locator("#extended-toggle").click();
+  await page.locator('label[for="extended-toggle"]').click();
 
   // The first view says what its tier means; items are grouped by FAIR principle, can be grouped by path step, and
   // each names the step where it is addressed.
@@ -262,14 +270,20 @@ async function axe(page, label) {
   // The result stands beside the questions and shows the licence gap at once; it can be collapsed, and the choice
   // survives a reload.
   const mainBox = await page.locator(".check-main").boundingBox();
-  const resultBox = await page.locator(".check-result").boundingBox();
+  const resultBox = await page.locator(".check-summary").boundingBox();
   if (!(resultBox.x > mainBox.x + mainBox.width / 2)) fail("dataset check: the result is not beside the questions");
   await page.locator("#item-D04").scrollIntoViewIfNeeded();
-  const gapCell = page.locator('.principle-cell[data-state="gap"]', { hasText: "R1.1" });
+  const gapCell = page.locator('.summary-chip[data-state="gap"]', { hasText: "R1.1" });
   const gapBox = await gapCell.boundingBox();
   if (!gapBox || gapBox.y < 0 || gapBox.y + gapBox.height > (await page.evaluate(() => window.innerHeight))) fail("dataset check: the R1.1 gap is not in view beside the item");
+  // The chips and counts of the result so far lead to the items and to the full result.
+  await gapCell.click();
+  if (!(await page.evaluate(() => document.activeElement.closest("#item-D04")))) fail("dataset check: a principle chip does not lead to its item");
+  await page.locator('.summary-count[data-kind="gaps"]').click();
+  if (!(await page.evaluate(() => document.activeElement.id === "results-gaps"))) fail("dataset check: the gap count does not lead to the gaps in the full result");
   await page.locator("#result-toggle").click();
   if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the result panel does not collapse");
+  if ((await page.locator("#result-toggle").boundingBox()).width > 48) fail("dataset check: the collapse control is not a small icon");
   await page.reload();
   await page.waitForSelector("#result-toggle");
   if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the collapsed result panel is not remembered");
@@ -295,7 +309,7 @@ async function axe(page, label) {
   const evidence = await page.locator("#origin-D02").textContent();
   if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside D02 is incomplete: " + evidence);
   if ((await page.locator("#origin-D02 a").getAttribute("href")) !== "https://repo.example/record/1") fail("dataset check: the evidence does not link to its record");
-  await page.getByRole("button", { name: "Shrnutí v Markdownu" }).click();
+  await page.getByRole("button", { name: "Zobrazit shrnutí" }).click();
   if (!(await page.locator("#markdown-text").inputValue()).includes("url = https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
   await page.locator("#prefill-pid-clear").click();
   if (await page.locator('input[name="answer-D02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
@@ -458,7 +472,7 @@ async function axe(page, label) {
   // FIP check: the dashboard snapshot pre-fills answers with their source; a principle without a declaration stays
   // open with a note; a change by the user stays marked.
   await go("#/cs/K/check/fip");
-  await page.locator("#extended-toggle").click();
+  await page.locator('label[for="extended-toggle"]').click();
   await page.locator("#prefill-fip").selectOption("nusl-grey");
   await page.locator("#prefill-fip-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Předvyplněno"));
@@ -468,16 +482,17 @@ async function axe(page, label) {
   await page.locator("#prefill-fip-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Předvyplněno"));
   if (!(await checked("answer-K01-yes"))) fail("FIP check: K01 is not pre-filled from the snapshot");
+  if (!(await panelFits(page))) fail("FIP check: the result so far scrolls or is too tall after pre-fill");
   if (!(await page.locator("#origin-K01").textContent()).includes("FIP Dashboard (snímek)")) fail("FIP check: K01 does not name its source");
   await page.locator("#answer-K01-partly").check();
   if ((await page.locator("#origin-K01 .source-chip").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
   await axe(page, "FIP check pre-filled");
 
   // Exports: Markdown and an FTR result set in an RO-Crate, naming the published page and the assessed profile.
-  const [mdDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Stáhnout shrnutí (.md)" }).click()]);
+  const [mdDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Stáhnout shrnutí (Markdown)" }).click()]);
   const md = readFileSync(await mdDownload.path(), "utf8");
   if (!md.startsWith("# Úplnost FIP") || md.includes("file:")) fail("export: unexpected Markdown summary");
-  const [ldDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Stáhnout výsledek jako JSON-LD/ }).click()]);
+  const [ldDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Stáhnout výsledek (JSON-LD)" }).click()]);
   const exported = JSON.parse(readFileSync(await ldDownload.path(), "utf8"));
   const exportedGraph = exported["@graph"];
   const typed = (type) => (entity) => [].concat(entity["@type"]).includes(type);
