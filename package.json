@@ -7,11 +7,13 @@
   "scripts": {
     "browsers": "playwright install chromium",
     "check:page": "node tests/page/check_page.mjs",
-    "check:live": "node tests/page/check_live.mjs"
+    "check:live": "node tests/page/check_live.mjs",
+    "check:diagrams": "node tests/page/check_diagrams.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
     "@fortawesome/fontawesome-free": "7.3.1",
+    "mermaid": "11.16.1",
     "playwright": "1.63.0"
   }
 }

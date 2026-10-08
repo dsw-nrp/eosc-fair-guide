@@ -92,6 +92,7 @@ npm ci
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run browsers
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:live   # real lookups (DataCite, resolvers, nanopublication); needs network
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:diagrams   # every Mermaid diagram renders and has accTitle and accDescr
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .cache/screenshots
 ```
 

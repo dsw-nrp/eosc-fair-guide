@@ -169,6 +169,8 @@ an item, with which tool and from which sources.
 
 ```mermaid
 erDiagram
+  accTitle: Content model
+  accDescr: Stations contain advice items seen through lenses; advice cites clauses, which serve FAIR principles. Checks test a principle, derive from clauses and are fixed at a station. Resources are offered at stations for lenses, glossary terms explain advice, and provenance actions record who produced advice and verified resources.
   STATION ||--o{ ADVICE : contains
   LENS ||--o{ ADVICE : "seen through"
   ADVICE }o--o{ CLAUSE : cites
