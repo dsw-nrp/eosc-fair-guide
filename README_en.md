@@ -20,7 +20,7 @@ human-facing overview.
 - **Detail on demand:** one sentence and one concrete action first; steps, reasons and sources on request
   (levels L0–L3).
 - **Principle explorer:** every requirement of the analysis under its FAIR principle.
-- **Self-check:** the NRP onboarding gate and FAIR maturity kept apart, with no overall score.
+- **Self-check:** the NRP conditions and FAIR maturity kept apart, with no overall score.
 - **Live identifier check:** a quick check, and an opt-in deep check with FAIR Champion.
 - **Resource and repository finder** with service status and an as-of date.
 

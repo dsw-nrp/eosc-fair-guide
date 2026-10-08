@@ -108,7 +108,7 @@ id = "prace.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Pokud repozitář přijímá data z přístrojů nebo z výpočetních prostředí, nabídněte zdokumentované API. Webové rozhraní i API vyžadují podmínky NRP.", en = "If the repository receives data from instruments or computing environments, offer a documented API. The NRP conditions require both a web interface and an API." }
-action = { label = { cs = "Brána NRP pro repozitáře", en = "NRP gate for repositories" }, href = "#check-gate" }
+action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
 sources = ["C.M2"]
 
 [[advice]]

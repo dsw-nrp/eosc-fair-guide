@@ -422,7 +422,7 @@ icon = "box-archive"
 
 [[task]]
 lens = "SR"
-label = { cs = "Brána NRP", en = "NRP gate" }
+label = { cs = "Podmínky NRP", en = "NRP conditions" }
 href = "#check-gate"
 icon = "door-open"
 

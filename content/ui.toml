@@ -207,7 +207,12 @@ pid = { cs = "DOI nebo Handle datové sady", en = "DOI or Handle of the dataset"
 pidButton = { cs = "Načíst záznam a vyplnit", en = "Look up and fill in" }
 pidInvalid = { cs = "Zadejte DOI (například 10.5281/zenodo.21726258) nebo Handle (například 11234/1-5787).", en = "Enter a DOI (for example 10.5281/zenodo.21726258) or a Handle (for example 11234/1-5787)." }
 nkrChoose = { cs = "Repozitář v NKR", en = "Repository in NKR" }
-nkrButton = { cs = "Předvyplnit z NKR", en = "Pre-fill from NKR" }
+nkrButton = { cs = "Vyplnit podle NKR", en = "Fill in from NKR" }
+re3data = { cs = "Záznam v re3data: DOI, identifikátor r3d nebo adresa záznamu", en = "Record in re3data: DOI, r3d identifier or the record's address" }
+re3dataButton = { cs = "Vyplnit podle re3data", en = "Fill in from re3data" }
+re3dataHint = { cs = "Údaje bere průvodce ze snímku re3data, který s ním přichází; re3data nelze číst přímo z prohlížeče.", en = "The guide takes the facts from the re3data snapshot it carries; re3data cannot be read directly from a browser." }
+re3dataInvalid = { cs = "Zadejte DOI záznamu v re3data (10.17616/…), identifikátor r3d (například r3d100010386) nebo adresu záznamu.", en = "Enter the DOI of a re3data record (10.17616/…), an r3d identifier (for example r3d100010386) or the record's address." }
+re3dataMissing = { cs = "Repozitář {id} není ve snímku re3data, který průvodce nese (jsou v něm repozitáře z Česka). Odpovězte ručně, nebo otevřete jeho záznam v re3data.", en = "Repository {id} is not in the re3data snapshot the guide carries (it holds repositories from Czechia). Answer by hand, or open its record in re3data." }
 fipChoose = { cs = "Profil komunity ve FIP Dashboardu", en = "Community profile in the FIP Dashboard" }
 fipButton = { cs = "Předvyplnit z FIP Dashboardu", en = "Pre-fill from the FIP Dashboard" }
 nanopub = { cs = "Nebo identifikátor publikované nanopublikace FIP (kód začínající RA nebo celá adresa)", en = "Or the identifier of a published FIP nanopublication (the code starting with RA, or the full address)" }
@@ -226,6 +231,7 @@ cleared = { cs = "Identifikátor a jím předvyplněné odpovědi jsou smazané;
 datacite = { cs = "DataCite", en = "DataCite" }
 resolver = { cs = "resolver identifikátorů", en = "the identifier resolver" }
 nkr = { cs = "NKR", en = "NKR" }
+re3data = { cs = "re3data (snímek)", en = "re3data (snapshot)" }
 fip-dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
 fip-dashboard-snapshot = { cs = "FIP Dashboard (snímek)", en = "FIP Dashboard (snapshot)" }
 nanopub = { cs = "nanopublikace FIP", en = "the FIP nanopublication" }
@@ -263,7 +269,7 @@ principle = { cs = "Princip", en = "Principle" }
 state = { cs = "Stav", en = "State" }
 answered = { cs = "Zodpovězeno", en = "Answered" }
 ofTotal = { cs = "{n} z {total}", en = "{n} of {total}" }
-gate = { cs = "Podmínky brány NRP", en = "NRP gate conditions" }
+gate = { cs = "Podmínky NRP", en = "NRP conditions" }
 condition = { cs = "Podmínka", en = "Condition" }
 gaps = { cs = "Co chybí", en = "What is missing" }
 noGaps = { cs = "Podle dosavadních odpovědí nic nechybí.", en = "Nothing is missing, based on the answers so far." }

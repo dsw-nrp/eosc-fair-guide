@@ -26,7 +26,8 @@
   const FORMAT = "eosc-fair-guide-result";
   const FORMAT_VERSION = 1;
   const MAX_FILE = 2 * 1024 * 1024;
-  const SOURCES = ["datacite", "resolver", "nkr", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared"];
+  const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared"];
+  const R3D = /r3d\d{9}/i;
   const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved"];
   const LENS_ACTOR = { V: "#actor-user", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
   const status = { check: null, text: "", busy: false };
@@ -215,6 +216,8 @@
 
   /** Whether a record field is present: `field`, `list[].field`, `list[key=value]` and `list[key=value].field`. */
   function pathState(record, path) {
+    const contains = String(path).match(/^(\w+)=(.+)$/);
+    if (contains) return FG.list(record[contains[1]]).some((value) => String(value).toLowerCase() === contains[2].toLowerCase()) ? "present" : "absent";
     const match = String(path).match(/^@?(\w+)(?:\[(?:(\w+)=(\w+))?\])?(?:\.(\w+))?$/);
     if (!match) return "absent";
     const [, field, key, wanted, sub] = match;
@@ -241,6 +244,8 @@
 
   /** The values a record holds at a path, for the evidence shown beside an item. */
   function pathValues(record, path) {
+    const contains = String(path).match(/^(\w+)=(.+)$/);
+    if (contains) return pathState(record, path) === "present" ? [contains[2]] : [];
     const match = String(path).match(/^@?(\w+)(?:\[(?:(\w+)=(\w+))?\])?(?:\.(\w+))?$/);
     if (!match || path === "@record") return [];
     const [, field, key, wanted, sub] = match;
@@ -539,6 +544,24 @@
     });
   }
 
+  /** Pre-fill from the re3data snapshot the guide carries; re3data itself cannot be read from a browser. */
+  function prefillFromRe3data(check, id) {
+    const st = stateOf(check);
+    st.re3data = id;
+    retarget(check, FG.config.links.re3dataRecord + id);
+    const facts = (FG.config.re3data || {})[id];
+    if (!facts) {
+      describeTarget(check, { name: id, kind: "re3data" });
+      setStatus(check, FG.t("selfcheck.prefill.re3dataMissing", { id }));
+      FG.rerender("prefill-re3data-run");
+      return Promise.resolve();
+    }
+    describeTarget(check, { name: facts.name, kind: "re3data" });
+    return runPrefill(check, "re3data", "prefill-re3data-run", async () =>
+      applyEvidence(check, "re3data", (item, fields) => Object.assign(fieldEvidence(fields.map((field) => pathState(facts, field))), { fields: fieldsOf(facts, fields) }), facts.date, st.target)
+    );
+  }
+
   /** Open the dataset check for an identifier from the landing's search and run the lookup the user chose. */
   SC.startWithPid = function (input) {
     const pid = FG.live.parsePid(input);
@@ -695,6 +718,39 @@
     );
   }
 
+  /** The re3data field: a re3data DOI (resolved through doi.org), an r3d identifier or the record's address. */
+  function re3dataControl(check, st) {
+    const input = h("input", { id: "prefill-re3data", type: "text", autocomplete: "off", spellcheck: "false", value: st.re3data || "" });
+    const run = async () => {
+      const value = input.value.trim();
+      let id = (value.match(R3D) || [])[0];
+      const pid = id ? null : FG.live.parsePid(value);
+      if (!id && pid && pid.type === "doi") {
+        try {
+          const resolved = await FG.live.resolvePid(pid);
+          id = ((resolved.url || "").match(R3D) || [])[0];
+        } catch (error) {
+          id = null;
+        }
+      }
+      if (!id) {
+        setStatus(check, FG.t("selfcheck.prefill.re3dataInvalid"));
+        return;
+      }
+      prefillFromRe3data(check, id.toLowerCase());
+    };
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") run();
+    });
+    return h(
+      "div",
+      { class: "prefill-row" },
+      h("label", { for: "prefill-re3data" }, FG.t("selfcheck.prefill.re3data")),
+      h("div", { class: "inline" }, clearableField(check, input, "re3data", "prefill-re3data"), h("button", { type: "button", id: "prefill-re3data-run", onclick: run }, FG.t("selfcheck.prefill.re3dataButton"))),
+      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.re3dataHint"))
+    );
+  }
+
   function nkrControl(check, st) {
     const nkr = FG.live.nkr;
     const records = nkr.state === "done" ? nkr.records : [];
@@ -772,6 +828,7 @@
     const controls = [];
     if (sources.has("datacite") || sources.has("resolver")) controls.push(pidControl(check, st));
     if (sources.has("nkr")) controls.push(nkrControl(check, st));
+    if (sources.has("re3data")) controls.push(re3dataControl(check, st));
     if (sources.has("fip")) controls.push(fipControl(check, st));
     if (!controls.length) return null;
     return h(

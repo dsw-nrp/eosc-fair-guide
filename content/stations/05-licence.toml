@@ -94,7 +94,7 @@ id = "licence.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Nabídněte výběr z doporučených licencí, zajistěte u každé datové sady licenci uvedenou jako URI a nastavte pravidla přístupu.", en = "Offer a choice of recommended licences, make sure every dataset has a licence given as a URI, and set the access rules." }
-action = { label = { cs = "Brána NRP: přístup a AAI", en = "NRP gate: access and AAI" }, href = "#check-gate" }
+action = { label = { cs = "Podmínky NRP: přístup a AAI", en = "NRP conditions: access and AAI" }, href = "#check-gate" }
 sources = ["A.R1.1.R1", "S.MIN3", "C.M11"]
 
 [[advice]]

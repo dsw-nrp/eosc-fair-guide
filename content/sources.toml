@@ -359,6 +359,18 @@ authors = ["Kurt Baumann", "et al."]
 datePublished = 2026-09-18
 
 [[source]]
+id = "re3data-schema-3.1"
+type = "standard"
+title = "Metadata Schema for the Description of Research Data Repositories, version 3.1"
+version = "3.1"
+inLanguage = "en"
+doi = "10.48440/re3.010"
+url = "https://doi.org/10.48440/re3.010"
+publisher = "re3data"
+datePublished = 2021-08-09
+license = "https://creativecommons.org/publicdomain/zero/1.0/"
+
+[[source]]
 id = "cdif-1.1"
 type = "standard"
 title = "Cross-Domain Interoperability Framework (CDIF), version 1.1"

@@ -347,7 +347,11 @@ class SnapshotTests(FixtureCase):
         (inputs / "re3data-r3d1.xml").write_text(
             '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
             "<r3d:repositoryName>Old</r3d:repositoryName><r3d:repositoryURL>http://old.example.org/</r3d:repositoryURL>"
-            "<r3d:type>disciplinary</r3d:type></r3d:repository></r3d:re3data>"
+            "<r3d:type>disciplinary</r3d:type><r3d:pidSystem>DOI</r3d:pidSystem>"
+            '<r3d:api apiType="OAI-PMH">https://old.example.org/oai</r3d:api><r3d:api apiType="other">x</r3d:api>'
+            "<r3d:dataLicense><r3d:dataLicenseName>CC</r3d:dataLicenseName></r3d:dataLicense>"
+            "<r3d:certificate>CoreTrustSeal</r3d:certificate><r3d:certificate>other</r3d:certificate>"
+            "<r3d:versioning>yes</r3d:versioning></r3d:repository></r3d:re3data>"
         )
         original = refresh_snapshots.ROOT
         refresh_snapshots.ROOT = self.root
@@ -359,7 +363,14 @@ class SnapshotTests(FixtureCase):
         snapshot = (self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8")
         self.assertIn('url = "https://www.re3data.org/repository/r3d1"', snapshot)
         self.assertIn('kind = "domain"', snapshot)
+        self.assertIn('apis = ["OAI-PMH"]', snapshot)
+        self.assertIn('certificates = ["CoreTrustSeal"]', snapshot)
+        self.assertIn("versioning = true", snapshot)
         self.assertEqual(self.errors(), [])
+        facts = build_crate.page_config(build_crate.load_content(self.root / "content"))["config"]["re3data"]["r3d1"]
+        self.assertEqual(facts["name"], "Old")
+        self.assertEqual(facts["dataLicenses"], ["CC"])
+        self.assertEqual(facts["date"], "2026-01-01")
 
 
 class FreshnessTests(FixtureCase):

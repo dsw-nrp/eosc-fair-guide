@@ -44,3 +44,25 @@ instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["nkr-schema", "nrp-docs-nma-riv", "C.M3", "C.M7", "C.M8"]
 results = ["D05", "D11", "G03", "G07", "G08", "G12", "G19", "S08"]
 endTime = 2026-10-08T11:09:20+02:00
+
+[[action]]
+id = "2026-10-08-re3data-prefill"
+type = "update"
+name = "Maturity check pre-fill from re3data"
+description = "Repository maturity items that a re3data record can answer name the record's facts: persistent identifier systems, metadata standards, an OAI-PMH interface, data licences, versioning, certificates and policies, as defined by the re3data metadata schema."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["re3data-schema-3.1"]
+results = ["S01", "S04", "S05", "S06", "S08", "S16", "S19", "S21"]
+endTime = 2026-10-08T21:06:32+02:00
+
+[[action]]
+id = "2026-10-08-nrp-conditions-name"
+type = "update"
+name = "NRP conditions check renamed"
+description = "The check of the NRP conditions for repositories is called \"Podmínky NRP\" (NRP conditions) instead of \"Brána NRP\" (NRP gate), including the actions that lead to it from the stations."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["nrp-conditions-3.4"]
+results = ["prace.SR.L0", "repozitar.SR.L0", "licence.SR.L0", "publikace.SR.L0"]
+endTime = 2026-10-08T21:20:00+02:00

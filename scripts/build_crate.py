@@ -1266,6 +1266,34 @@ def build_credits(content: dict[str, Any]) -> list[dict[str, Any]]:
     return [credit for credit in credits if credit["people"]]
 
 
+RE3DATA_FACTS = (
+    "pidTypes",
+    "apis",
+    "dataLicenses",
+    "certificates",
+    "metadataStandards",
+    "policies",
+    "versioning",
+    "qualityManagement",
+)
+
+
+def re3data_facts(content: dict[str, Any]) -> dict[str, Any]:
+    """The re3data facts the self-check can pre-fill from, per r3d identifier, with the snapshot's date."""
+    snapshot = next(
+        (item for item in content["snapshots"] if item.get("snapshot", {}).get("source") == "re3data"), None
+    )
+    if not snapshot:
+        return {}
+    date = iso(snapshot["snapshot"]["retrieved"])
+    return {
+        str(repository["re3data"]).lower(): {"name": repository["name"], "date": date}
+        | {key: repository[key] for key in RE3DATA_FACTS if key in repository}
+        for repository in snapshot.get("repository", [])
+        if repository.get("re3data")
+    }
+
+
 def page_config(content: dict[str, Any]) -> dict[str, Any]:
     guide = content["guide"]["guide"]
     live = content["live"]
@@ -1305,9 +1333,14 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
                     for data in content["stations"]
                     if data["station"].get("icon")
                 },
-                "check": {data["check"]["id"]: data["check"]["icon"] for data in content["checks"] if data["check"].get("icon")},
+                "check": {
+                    data["check"]["id"]: data["check"]["icon"]
+                    for data in content["checks"]
+                    if data["check"].get("icon")
+                },
             },
             "credits": build_credits(content),
+            "re3data": re3data_facts(content),
             "tasks": [
                 {key: task[key] for key in ("lens", "label", "href", "icon") if key in task}
                 for task in content["guide"].get("task", [])

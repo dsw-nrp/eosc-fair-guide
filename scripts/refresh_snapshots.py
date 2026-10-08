@@ -140,6 +140,15 @@ def r3d(element: ET.Element, tag: str) -> list[str]:
     return [(child.text or "").strip() for child in element.iter() if child.tag.endswith("}" + tag) and child.text]
 
 
+def r3d_named(record: ET.Element, tag: str) -> list[str]:
+    """The distinct named values of a re3data field, leaving out none, other and unknown."""
+    return sorted({value for value in r3d(record, tag) if value.lower() not in ("none", "other", "unknown")})
+
+
+def r3d_flag(record: ET.Element, tag: str) -> bool:
+    return any(value.lower() == "yes" for value in r3d(record, tag))
+
+
 def re3data(fetch: Fetcher, today: str) -> None:
     listing = parse_xml(fetch.get(RE3DATA_LIST, "re3data-list.xml"))
     ids = sorted(repository.findtext("id") for repository in listing.iter("repository"))
@@ -161,6 +170,9 @@ def re3data(fetch: Fetcher, today: str) -> None:
         )
         pid_types = sorted({value for value in r3d(record, "pidSystem") if value.lower() not in ("none", "other")})
         languages = sorted(set(r3d(record, "repositoryLanguage")))
+        apis = sorted(
+            {child.get("apiType", "") for child in record.iter() if child.tag.endswith("}api")} - {"", "other"}
+        )
         lines = ["[[repository]]", f"id = {q(repository_id.lower())}", f"name = {q(name)}", f"url = {q(url)}"]
         if kinds:
             lines.append(f"kind = {q(kinds[0])}")
@@ -169,6 +181,13 @@ def re3data(fetch: Fetcher, today: str) -> None:
             f"subjectsEn = {q(subjects)}",
             f"pidTypes = {q(pid_types)}",
             f"languages = {q(languages)}",
+            f"apis = {q(apis)}",
+            f"dataLicenses = {q(r3d_named(record, 'dataLicenseName'))}",
+            f"certificates = {q(r3d_named(record, 'certificate'))}",
+            f"metadataStandards = {q(r3d_named(record, 'metadataStandardName'))}",
+            f"policies = {q(r3d_named(record, 'policyName'))}",
+            f"versioning = {'true' if r3d_flag(record, 'versioning') else 'false'}",
+            f"qualityManagement = {'true' if r3d_flag(record, 'qualityManagement') else 'false'}",
         ]
         blocks.append("\n".join(lines))
     header = (

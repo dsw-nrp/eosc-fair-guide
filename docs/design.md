@@ -359,7 +359,7 @@ flowchart LR
 7. **Paradata through Process Run Crate actions.** Who produced or verified content, with which tool
    (including AI), and from which sources is recorded per content batch and shown at level L3.
    *Alternatives:* git history only (not visible to readers and not linked to sources); a changelog (too coarse).
-8. **The self-check keeps two axes (NRP gate, FAIR maturity) and shows no overall score.** The analysis warns
+8. **The self-check keeps two axes (NRP conditions, FAIR maturity) and shows no overall score.** The analysis warns
    that automated scores mainly reflect repository configuration and move a lot with small changes.
    *Alternatives:* one FAIR score or percentage (misleading); a maturity scale only (hides the binary NRP conditions).
 9. **Live checks are two-stage, with FAIR Champion opt-in and governed by reliability rules.** The OSTrails CZ
@@ -524,7 +524,7 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   | --- | --- |
   | Researcher | Prepare a data management plan · Choose a repository · Choose a licence · Cite data · Check a dataset · Output for Open Science III or a minizáměr |
   | Data steward | DMP templates and the planning tool · Check a dataset with a researcher · Output for Open Science III or a minizáměr · Institution check (strategy, action plan, policy) · Training for the team · Data steward community and map |
-  | Repository administrator | Found a repository in NRP · NRP gate · Connect to NMA and register in NKR · Repository FAIR maturity · Deep check of sample records |
+  | Repository administrator | Found a repository in NRP · NRP conditions · Connect to NMA and register in NKR · Repository FAIR maturity · Deep check of sample records |
   | Community / FIP | Find the community's profile in the FIP Dashboard · FIP completeness · Create or update a FIP in FIP Wizard · Domain standards and vocabularies · EOSC CZ working groups |
 
 ### Station
@@ -564,6 +564,20 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   the Markdown summary and in each exported test result (its log and `prov:used`).
 - Each identifier field has a clear control that removes the identifier with the answers it pre-filled and keeps
   the answers the user gave.
+- The summary beside the questions mirrors the list: one chip per question in the list's groups (by principle, or
+  by path step with the path's icons); the full result uses the same groups, opening with a headline of counts per
+  state and cards for what is missing and what to find out; the check's controls sit in the summary on wide
+  screens.
+- Every identifier that resolves says what it is: for a DOI its title, first author, publisher, year and type; for
+  a Handle the landing page's title; for an NKR, re3data or FIP record its name. The line appears under the field,
+  the result names what is checked, and the exports carry it. This applies to every identifier helper.
+- Exports carry their format (`eosc-fair-guide-result`, version 1) and the guide's version. Loading tells apart a
+  file the guide did not make, a damaged file, a newer format and an unknown check; questions the current version
+  does not know are skipped with a note, in files and shared links alike.
+- The repository maturity check can be filled in from re3data: the field takes a re3data DOI (resolved through
+  doi.org), an r3d identifier or the record's address. re3data does not admit browser requests, so the facts come
+  from the reviewed re3data snapshot; a repository outside it is named and linked, not guessed.
+- The check of the NRP conditions is called "Podmínky NRP" (NRP conditions); its identifiers stay `gate`.
 
 ### Answers that stay in the browser, and can travel
 
@@ -674,3 +688,6 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-81 | 2026-10-08 | **Every external link opens in a new tab** (the header logo included, which previously replaced the embedding page); a page check enforces it on every view. | U |
 | D-82 | 2026-10-08 | **Credit model implemented:** analysis authors as people with ORCID iDs on the analysis, the guide's editors and reviewers in its metadata, the crate's root naming editors and no author, a roles table on the about page and a sources line per station. `CITATION.cff` keeps the maintainer as the software's author, since the format has no top-level editor role, and its message points to the guide's citation. | U+S |
 | D-83 | 2026-10-08 | **The result beside a check is a short summary**, not the whole result: a sticky panel with progress, principle chips and gap counts that never scrolls on its own and collapses to a small icon; the full result and saving follow the questions. The extended check is a **switch**, and the check page is calmer overall. | U |
+| D-84 | 2026-10-08 | **A resolved identifier says what it is**: title, first author, publisher, year and type for a DOI, the landing page's title for a Handle, the record's name for NKR, re3data or a FIP profile; under the field, in the result and in the exports. A rule for every identifier helper. | U |
+| D-85 | 2026-10-08 | The **repository maturity check fills in from re3data** (DOI, r3d identifier or record address); re3data admits no browser requests, so the facts come from the reviewed snapshot, extended for the purpose, and a repository outside it is named and linked. Exports declare their **format and the guide's version**, and broken, newer or foreign files get their own messages. | U+S |
+| D-86 | 2026-10-08 | "Brána NRP" becomes **"Podmínky NRP"** (NRP conditions) in the interface; identifiers stay `gate`. | U |

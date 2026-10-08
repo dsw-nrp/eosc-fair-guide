@@ -16,6 +16,13 @@ re3data = "r3d100010386"
 subjectsEn = ["Engineering Sciences", "Humanities and Social Sciences"]
 pidTypes = ["hdl"]
 languages = ["eng"]
+apis = ["OAI-PMH"]
+dataLicenses = ["Apache License 2.0", "BSD", "CC", "CC0", "ODC"]
+certificates = ["CLARIN certificate B"]
+metadataStandards = []
+policies = ["LINDAT/CLARIN repository About and Policies"]
+versioning = true
+qualityManagement = true
 
 [[repository]]
 id = "r3d100010484"
@@ -26,6 +33,13 @@ re3data = "r3d100010484"
 subjectsEn = ["Humanities and Social Sciences"]
 pidTypes = ["DOI"]
 languages = ["ces", "eng"]
+apis = ["OAI-PMH"]
+dataLicenses = []
+certificates = []
+metadataStandards = ["DDI - Data Documentation Initiative", "DataCite Metadata Schema", "Dublin Core", "OAI-ORE - Open Archives Initiative Object Reuse and Exchange"]
+policies = ["CESSDA Data Access Policy", "Data access"]
+versioning = true
+qualityManagement = true
 
 [[repository]]
 id = "r3d100010629"
@@ -36,6 +50,13 @@ re3data = "r3d100010629"
 subjectsEn = ["Natural Sciences"]
 pidTypes = []
 languages = ["ces", "dan", "deu", "ell", "eng", "fra", "hun", "ita", "lit", "pol", "slk"]
+apis = []
+dataLicenses = ["Copyrights"]
+certificates = []
+metadataStandards = ["ISO 19115"]
+policies = ["GeoMind portal user guide"]
+versioning = true
+qualityManagement = true
 
 [[repository]]
 id = "r3d100011166"
@@ -46,6 +67,13 @@ re3data = "r3d100011166"
 subjectsEn = ["Life Sciences", "Natural Sciences"]
 pidTypes = []
 languages = ["eng"]
+apis = []
+dataLicenses = ["Copyrights"]
+certificates = []
+metadataStandards = []
+policies = ["Terms and conditions"]
+versioning = false
+qualityManagement = true
 
 [[repository]]
 id = "r3d100011452"
@@ -56,6 +84,13 @@ re3data = "r3d100011452"
 subjectsEn = ["Engineering Sciences", "Natural Sciences"]
 pidTypes = []
 languages = ["eng"]
+apis = []
+dataLicenses = ["Copyrights", "Public Domain"]
+certificates = []
+metadataStandards = []
+policies = []
+versioning = false
+qualityManagement = false
 
 [[repository]]
 id = "r3d100011460"
@@ -66,6 +101,13 @@ re3data = "r3d100011460"
 subjectsEn = ["Natural Sciences"]
 pidTypes = []
 languages = ["eng"]
+apis = []
+dataLicenses = ["CC", "Copyrights"]
+certificates = []
+metadataStandards = []
+policies = ["VADMCStandards"]
+versioning = false
+qualityManagement = false
 
 [[repository]]
 id = "r3d100012313"
@@ -76,6 +118,13 @@ re3data = "r3d100012313"
 subjectsEn = ["Natural Sciences"]
 pidTypes = []
 languages = ["eng"]
+apis = []
+dataLicenses = ["Copyrights"]
+certificates = []
+metadataStandards = []
+policies = ["Terms and Conditions"]
+versioning = false
+qualityManagement = true
 
 [[repository]]
 id = "r3d100012473"
@@ -86,6 +135,13 @@ re3data = "r3d100012473"
 subjectsEn = ["Humanities and Social Sciences", "Natural Sciences"]
 pidTypes = []
 languages = ["ces", "eng"]
+apis = []
+dataLicenses = ["Copyrights", "Public Domain"]
+certificates = []
+metadataStandards = ["Dublin Core", "ISO 19115"]
+policies = ["Organizational Rules of the Map Collection", "Research Rules of the Map Collection"]
+versioning = false
+qualityManagement = false
 
 [[repository]]
 id = "r3d100012910"
@@ -96,6 +152,13 @@ re3data = "r3d100012910"
 subjectsEn = ["Life Sciences", "Natural Sciences"]
 pidTypes = ["DOI", "PURL"]
 languages = ["eng"]
+apis = ["OAI-PMH", "REST"]
+dataLicenses = ["CC"]
+certificates = []
+metadataStandards = ["EML - Ecological Metadata Language", "ISO 19115"]
+policies = ["DEIMS Terms of use"]
+versioning = true
+qualityManagement = true
 
 [[repository]]
 id = "r3d100013045"
@@ -106,6 +169,13 @@ re3data = "r3d100013045"
 subjectsEn = ["Humanities and Social Sciences"]
 pidTypes = []
 languages = ["ces", "eng"]
+apis = []
+dataLicenses = ["CC"]
+certificates = []
+metadataStandards = ["Repository-Developed Metadata Schemas"]
+policies = ["KonText interface manual"]
+versioning = true
+qualityManagement = false
 
 [[repository]]
 id = "r3d100013576"
@@ -116,6 +186,13 @@ re3data = "r3d100013576"
 subjectsEn = ["Humanities and Social Sciences"]
 pidTypes = ["DOI", "IGSN"]
 languages = ["ces", "eng"]
+apis = ["OAI-PMH"]
+dataLicenses = ["CC", "Copyrights"]
+certificates = []
+metadataStandards = ["Dublin Core", "Repository-Developed Metadata Schemas"]
+policies = ["License and data re-use"]
+versioning = true
+qualityManagement = true
 
 [[repository]]
 id = "r3d100013698"
@@ -125,6 +202,13 @@ re3data = "r3d100013698"
 subjectsEn = ["Humanities and Social Sciences"]
 pidTypes = ["DOI"]
 languages = ["eng"]
+apis = []
+dataLicenses = ["CC", "ODC"]
+certificates = []
+metadataStandards = ["DataCite Metadata Schema"]
+policies = ["Terms of Service of the Max Planck Digital Library"]
+versioning = true
+qualityManagement = false
 
 [[repository]]
 id = "r3d100014032"
@@ -135,6 +219,13 @@ re3data = "r3d100014032"
 subjectsEn = ["Engineering Sciences", "Humanities and Social Sciences", "Life Sciences", "Natural Sciences"]
 pidTypes = ["DOI", "hdl"]
 languages = ["ces", "eng"]
+apis = ["REST"]
+dataLicenses = ["CC", "Copyrights"]
+certificates = []
+metadataStandards = []
+policies = ["Agreement and licensing", "Open Science Principles of the Czech Academy of Sciences"]
+versioning = true
+qualityManagement = false
 
 [[repository]]
 id = "r3d100014899"
@@ -145,3 +236,10 @@ re3data = "r3d100014899"
 subjectsEn = []
 pidTypes = ["DOI"]
 languages = ["ces", "eng"]
+apis = ["OAI-PMH"]
+dataLicenses = ["CC"]
+certificates = []
+metadataStandards = []
+policies = ["Terms of service"]
+versioning = true
+qualityManagement = false

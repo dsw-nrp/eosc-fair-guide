@@ -140,7 +140,7 @@ async function axe(page, label) {
   if ((await page.locator('.lens-option[data-lens="SR"]').getAttribute("href")) !== "#/cs/SR/path/start") fail("lens band: an option is not a shareable link");
   await page.locator('.lens-option[data-lens="SR"]').click();
   await lensShown(page, "SR");
-  if (!(await page.locator(".tasks").textContent()).includes("Brána NRP")) fail("landing: the repository administrator's tasks are missing");
+  if (!(await page.locator(".tasks").textContent()).includes("Podmínky NRP")) fail("landing: the repository administrator's tasks are missing");
   await context.close();
 }
 
@@ -513,6 +513,19 @@ async function axe(page, label) {
 
   // Maturity and institution checks run end to end; the institution check has no Minimum items and shows them all.
   await go("#/cs/SR/check/maturity");
+  // The maturity check fills in from the re3data snapshot and says which repository it is; a repository outside
+  // the snapshot is explained rather than guessed.
+  await page.locator('label[for="extended-toggle"]').click();
+  await page.fill("#prefill-re3data", "https://www.re3data.org/repository/r3d100010386");
+  await page.locator("#prefill-re3data-run").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if (!(await checked("answer-S01-yes")) || !(await checked("answer-S19-yes"))) fail("maturity check: re3data facts do not fill in S01 and S19");
+  if (!(await page.locator(".target-card").textContent()).includes("LINDAT")) fail("maturity check: the re3data record does not say which repository it is");
+  if (!(await page.locator("#origin-S05").textContent()).includes("OAI-PMH")) fail("maturity check: S05 does not show the OAI-PMH evidence from re3data");
+  await page.fill("#prefill-re3data", "r3d999999999");
+  await page.locator("#prefill-re3data-run").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("není ve snímku"));
+  await page.locator("#prefill-re3data-clear").click();
   await page.locator("#answer-S02-no").check();
   if (!(await page.locator(".gaps").first().textContent()).includes("S02")) fail("maturity check: the S02 gap is missing");
   await go("#/cs/DS/check/institution");

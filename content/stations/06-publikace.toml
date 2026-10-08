@@ -87,7 +87,7 @@ id = "publikace.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Zajistěte přidělování PID při publikaci a landing page se strojově čitelnými metadaty a odkazy na distribuce. Přidělování PID vyžadují podmínky NRP.", en = "Make sure PIDs are assigned at publication and that landing pages carry machine-readable metadata and links to distributions. The NRP conditions require PID assignment." }
-action = { label = { cs = "Brána NRP pro repozitáře", en = "NRP gate for repositories" }, href = "#check-gate" }
+action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
 sources = ["C.M7", "C.M1", "A.F3.N1"]
 
 [[advice]]

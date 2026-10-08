@@ -16,7 +16,7 @@ statement = { cs = "Každá zveřejněná datová sada dostane PID; převzaté z
 sources = ["S.MIN1", "A.F1.R1", "A.F1.N1"]
 fixAt = "publikace"
 owner = ["repository-admin"]
-prefill = { nkr = ["pidType"] }
+prefill = { nkr = ["pidType"], re3data = ["pidTypes"] }
 
 [[item]]
 id = "S02"
@@ -46,7 +46,7 @@ statement = { cs = "Každá datová sada má minimální záznam podle CCMM.", e
 sources = ["S.MIN2", "A.F2.R1", "A.R1.R1"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
-prefill = { nkr = ["metadataSchema"] }
+prefill = { nkr = ["metadataSchema"], re3data = ["metadataStandards"] }
 
 [[item]]
 id = "S05"
@@ -56,7 +56,7 @@ statement = { cs = "Metadata jsou dostupná přes OAI-PMH (CCMM-XML, Dublin Core
 sources = ["A.F4.R1", "A.A1.N2", "A.A1.R1", "A.A1.1.R1"]
 fixAt = "dohledatelnost"
 owner = ["repository-admin"]
-prefill = { nkr = ["oaipmhEndpoint"] }
+prefill = { nkr = ["oaipmhEndpoint"], re3data = ["apis=OAI-PMH"] }
 
 [[item]]
 id = "S06"
@@ -66,7 +66,7 @@ statement = { cs = "Licence je u každé datové sady povinná, vybírá se z do
 sources = ["S.MIN3", "A.R1.1.R1"]
 fixAt = "licence"
 owner = ["repository-admin"]
-prefill = { nkr = ["license"], champion = ["fc_metadata_includes_license"] }
+prefill = { nkr = ["license"], champion = ["fc_metadata_includes_license"], re3data = ["dataLicenses"] }
 
 [[item]]
 id = "S07"
@@ -85,7 +85,7 @@ statement = { cs = "Vedle CCMM je k dispozici oborový metadatový profil (podle
 sources = ["S.REC3", "A.F2.R2"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
-prefill = { nkr = ["metadataSchema"] }
+prefill = { nkr = ["metadataSchema"], re3data = ["metadataStandards"] }
 prefillLevel = "partly"
 
 [[item]]
@@ -165,7 +165,7 @@ statement = { cs = "Data i metadata se verzují; nová verze má nový PID propo
 sources = ["A.R1.R3", "A.R1.2.R2", "A.I3.R5"]
 fixAt = "publikace"
 owner = ["repository-admin"]
-prefill = { nkr = ["versioning"] }
+prefill = { nkr = ["versioning"], re3data = ["versioning"] }
 
 [[item]]
 id = "S17"
@@ -194,7 +194,7 @@ statement = { cs = "Repozitář má certifikaci CoreTrustSeal nebo se na ni při
 sources = ["E.CTS", "A.F1.X2"]
 fixAt = "repozitar"
 owner = ["repository-admin"]
-prefill = { nkr = ["certificate"] }
+prefill = { nkr = ["certificate"], re3data = ["certificates"] }
 
 [[item]]
 id = "S20"
@@ -213,7 +213,7 @@ statement = { cs = "Politika uchování je zveřejněna a odkazována z metadat,
 sources = ["A.A2.R1", "E.OSTRAILS-CZ"]
 fixAt = "dohledatelnost"
 owner = ["repository-admin"]
-prefill = { nkr = ["policy"] }
+prefill = { nkr = ["policy"], re3data = ["policies"] }
 
 [[item]]
 id = "S22"

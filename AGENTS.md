@@ -31,7 +31,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
    AI model when one was used), sources consulted, items produced, end time.
 7. **Advisory tone.** "Must" appears only where an NRP condition requires something, naming the condition. DOI
    is recommended; other persistent, resolvable, managed identifiers are acceptable.
-8. **Honest self-check and live checks.** No overall score. The NRP gate and FAIR maturity stay separate. A
+8. **Honest self-check and live checks.** No overall score. The NRP conditions and FAIR maturity stay separate. A
    service failure is "no result", never a failed requirement, and coverage is always shown.
 9. **Accessibility.** WCAG 2.2 AA. Text contrast at least 4.5:1: brand teal `#008691` and pink `#EB5D81` only
    for accents and large text, text tints `#00737D` and `#C2264F`. Nothing conveyed by colour alone. Native

@@ -17,7 +17,7 @@ English version: [README_en.md](README_en.md).
 - **Podrobnosti na vyžádání:** nejdřív jedna věta a jeden konkrétní krok, postup, zdůvodnění a zdroje až
   po rozbalení.
 - **Průzkumník principů:** každý požadavek analýzy pod svým FAIR principem.
-- **Sebehodnocení:** brána NRP a zralost FAIR zvlášť, bez celkového skóre.
+- **Sebehodnocení:** podmínky NRP a zralost FAIR zvlášť, bez celkového skóre.
 - **Živá kontrola identifikátoru:** rychlá kontrola a na vyžádání hloubková kontrola nástrojem FAIR Champion.
 - **Katalog zdrojů a repozitářů** se stavem služby a datem ověření.
 

@@ -231,6 +231,12 @@
           "@id": "#action-2026-10-08-self-check"
         },
         {
+          "@id": "#action-2026-10-08-re3data-prefill"
+        },
+        {
+          "@id": "#action-2026-10-08-nrp-conditions-name"
+        },
+        {
           "@id": "#ledger"
         },
         {
@@ -1714,6 +1720,25 @@
       },
       "creditText": "Kurt Baumann; et al.",
       "datePublished": "2026-09-18"
+    },
+    {
+      "@id": "#org-re3data",
+      "@type": "Organization",
+      "name": "re3data"
+    },
+    {
+      "@id": "https://doi.org/10.48440/re3.010",
+      "@type": "CreativeWork",
+      "identifier": "re3data-schema-3.1",
+      "name": "Metadata Schema for the Description of Research Data Repositories, version 3.1",
+      "inLanguage": "en",
+      "url": "https://doi.org/10.48440/re3.010",
+      "publisher": {
+        "@id": "#org-re3data"
+      },
+      "version": "3.1",
+      "datePublished": "2021-08-09",
+      "license": "https://creativecommons.org/publicdomain/zero/1.0/"
     },
     {
       "@id": "#org-codata",
@@ -16092,11 +16117,11 @@
       "@type": "Action",
       "name": [
         {
-          "@value": "Brána NRP pro repozitáře",
+          "@value": "Podmínky NRP pro repozitáře",
           "@language": "cs"
         },
         {
-          "@value": "NRP gate for repositories",
+          "@value": "NRP conditions for repositories",
           "@language": "en"
         }
       ],
@@ -17040,11 +17065,11 @@
       "@type": "Action",
       "name": [
         {
-          "@value": "Brána NRP pro repozitáře",
+          "@value": "Podmínky NRP pro repozitáře",
           "@language": "cs"
         },
         {
-          "@value": "NRP gate for repositories",
+          "@value": "NRP conditions for repositories",
           "@language": "en"
         }
       ],
@@ -19769,11 +19794,11 @@
       "@type": "Action",
       "name": [
         {
-          "@value": "Brána NRP: přístup a AAI",
+          "@value": "Podmínky NRP: přístup a AAI",
           "@language": "cs"
         },
         {
-          "@value": "NRP gate: access and AAI",
+          "@value": "NRP conditions: access and AAI",
           "@language": "en"
         }
       ],
@@ -20760,11 +20785,11 @@
       "@type": "Action",
       "name": [
         {
-          "@value": "Brána NRP pro repozitáře",
+          "@value": "Podmínky NRP pro repozitáře",
           "@language": "cs"
         },
         {
-          "@value": "NRP gate for repositories",
+          "@value": "NRP conditions for repositories",
           "@language": "en"
         }
       ],
@@ -27803,11 +27828,11 @@
       "identifier": "gate",
       "name": [
         {
-          "@value": "Brána NRP",
+          "@value": "Podmínky NRP",
           "@language": "cs"
         },
         {
-          "@value": "NRP gate",
+          "@value": "NRP conditions",
           "@language": "en"
         }
       ],
@@ -28087,6 +28112,13 @@
       "name": "prefill:nkr"
     },
     {
+      "@id": "#item-S01-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "pidTypes",
+      "name": "prefill:re3data"
+    },
+    {
       "@id": "#item-S01",
       "@type": "Question",
       "identifier": "S01",
@@ -28125,9 +28157,14 @@
         "@id": "#actor-repository-admin"
       },
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S01-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S01-prefill-nkr"
+        },
+        {
+          "@id": "#item-S01-prefill-re3data"
+        }
+      ],
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -28271,6 +28308,13 @@
       "name": "prefill:nkr"
     },
     {
+      "@id": "#item-S04-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "metadataStandards",
+      "name": "prefill:re3data"
+    },
+    {
       "@id": "#item-S04",
       "@type": "Question",
       "identifier": "S04",
@@ -28319,9 +28363,14 @@
         }
       ],
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S04-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S04-prefill-nkr"
+        },
+        {
+          "@id": "#item-S04-prefill-re3data"
+        }
+      ],
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -28333,6 +28382,13 @@
       "propertyID": "prefill:nkr",
       "value": "oaipmhEndpoint",
       "name": "prefill:nkr"
+    },
+    {
+      "@id": "#item-S05-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "apis=OAI-PMH",
+      "name": "prefill:re3data"
     },
     {
       "@id": "#item-S05",
@@ -28381,9 +28437,14 @@
         "@id": "#actor-repository-admin"
       },
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S05-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S05-prefill-nkr"
+        },
+        {
+          "@id": "#item-S05-prefill-re3data"
+        }
+      ],
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -28402,6 +28463,13 @@
       "propertyID": "prefill:champion",
       "value": "fc_metadata_includes_license",
       "name": "prefill:champion"
+    },
+    {
+      "@id": "#item-S06-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "dataLicenses",
+      "name": "prefill:re3data"
     },
     {
       "@id": "#item-S06",
@@ -28445,6 +28513,9 @@
         },
         {
           "@id": "#item-S06-prefill-champion"
+        },
+        {
+          "@id": "#item-S06-prefill-re3data"
         }
       ],
       "isPartOf": {
@@ -28504,6 +28575,13 @@
       "name": "prefill:nkr"
     },
     {
+      "@id": "#item-S08-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "metadataStandards",
+      "name": "prefill:re3data"
+    },
+    {
       "@id": "#item-S08",
       "@type": "Question",
       "identifier": "S08",
@@ -28549,9 +28627,14 @@
         }
       ],
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S08-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S08-prefill-nkr"
+        },
+        {
+          "@id": "#item-S08-prefill-re3data"
+        }
+      ],
       "prefillLevel": "partly",
       "isPartOf": {
         "@id": "#check-maturity"
@@ -28963,6 +29046,13 @@
       "name": "prefill:nkr"
     },
     {
+      "@id": "#item-S16-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "versioning",
+      "name": "prefill:re3data"
+    },
+    {
       "@id": "#item-S16",
       "@type": "Question",
       "identifier": "S16",
@@ -29006,9 +29096,14 @@
         "@id": "#actor-repository-admin"
       },
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S16-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S16-prefill-nkr"
+        },
+        {
+          "@id": "#item-S16-prefill-re3data"
+        }
+      ],
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -29112,6 +29207,13 @@
       "name": "prefill:nkr"
     },
     {
+      "@id": "#item-S19-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "certificates",
+      "name": "prefill:re3data"
+    },
+    {
       "@id": "#item-S19",
       "@type": "Question",
       "identifier": "S19",
@@ -29144,9 +29246,14 @@
         "@id": "#actor-repository-admin"
       },
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S19-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S19-prefill-nkr"
+        },
+        {
+          "@id": "#item-S19-prefill-re3data"
+        }
+      ],
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -29204,6 +29311,13 @@
       "name": "prefill:nkr"
     },
     {
+      "@id": "#item-S21-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": "policies",
+      "name": "prefill:re3data"
+    },
+    {
       "@id": "#item-S21",
       "@type": "Question",
       "identifier": "S21",
@@ -29239,9 +29353,14 @@
         "@id": "#actor-repository-admin"
       },
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S21-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S21-prefill-nkr"
+        },
+        {
+          "@id": "#item-S21-prefill-re3data"
+        }
+      ],
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -42318,6 +42437,94 @@
         }
       ],
       "endTime": "2026-10-08T11:09:20+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-08-re3data-prefill",
+      "@type": "UpdateAction",
+      "name": "Maturity check pre-fill from re3data",
+      "description": "Repository maturity items that a re3data record can answer name the record's facts: persistent identifier systems, metadata standards, an OAI-PMH interface, data licences, versioning, certificates and policies, as defined by the re3data metadata schema.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "object": {
+        "@id": "https://doi.org/10.48440/re3.010"
+      },
+      "result": [
+        {
+          "@id": "#item-S01"
+        },
+        {
+          "@id": "#item-S04"
+        },
+        {
+          "@id": "#item-S05"
+        },
+        {
+          "@id": "#item-S06"
+        },
+        {
+          "@id": "#item-S08"
+        },
+        {
+          "@id": "#item-S16"
+        },
+        {
+          "@id": "#item-S19"
+        },
+        {
+          "@id": "#item-S21"
+        }
+      ],
+      "endTime": "2026-10-08T21:06:32+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-08-nrp-conditions-name",
+      "@type": "UpdateAction",
+      "name": "NRP conditions check renamed",
+      "description": "The check of the NRP conditions for repositories is called \"Podmínky NRP\" (NRP conditions) instead of \"Brána NRP\" (NRP gate), including the actions that lead to it from the stations.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "object": {
+        "@id": "#source-nrp-conditions-3.4"
+      },
+      "result": [
+        {
+          "@id": "#advice-prace.SR.L0"
+        },
+        {
+          "@id": "#advice-repozitar.SR.L0"
+        },
+        {
+          "@id": "#advice-licence.SR.L0"
+        },
+        {
+          "@id": "#advice-publikace.SR.L0"
+        }
+      ],
+      "endTime": "2026-10-08T21:20:00+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }
