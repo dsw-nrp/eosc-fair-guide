@@ -104,6 +104,22 @@
     return element;
   };
 
+  /** An icon from the inlined sprite: an interface key from content/icons.toml or a Font Awesome name. Icons are
+      decorative; the text next to them carries the meaning. */
+  FG.icon = function (name, attrs) {
+    const sprite = document.querySelector("svg.sprite");
+    const id = (FG.config && FG.config.icons && FG.config.icons.ui && FG.config.icons.ui[name]) || name;
+    if (!sprite || !id || !sprite.querySelector("#i-" + id)) return null;
+    const svg = document.createElementNS(sprite.namespaceURI, "svg");
+    svg.setAttribute("class", "icon" + (attrs && attrs.class ? " " + attrs.class : ""));
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const use = document.createElementNS(sprite.namespaceURI, "use");
+    use.setAttribute("href", "#i-" + id);
+    svg.append(use);
+    return svg;
+  };
+
   /** An external link that opens in a new tab and says so to screen readers. */
   FG.external = function (href, label, attrs) {
     return FG.h(

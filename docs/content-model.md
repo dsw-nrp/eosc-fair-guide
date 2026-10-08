@@ -106,7 +106,7 @@ A service or resource status uses the five-level vocabulary and always carries a
 
 | File | Holds |
 | --- | --- |
-| `content/guide.toml` | Guide metadata, people, organisations, instruments, lenses, levels, stages, vocabularies, help routes |
+| `content/guide.toml` | Guide metadata, people, organisations, instruments, lenses, levels, stages, vocabularies, help routes, landing tasks |
 | `content/principles.toml` | The fifteen FAIR principles with their CoreTrustSeal and CDIF links |
 | `content/sources.toml` | Published sources |
 | `content/ledger.toml` | Clauses |
@@ -121,6 +121,7 @@ A service or resource status uses the five-level vocabulary and always carries a
 | `content/provenance.toml` | Provenance actions |
 | `content/pages.toml` | About page, accessibility statement and the AI overview |
 | `content/ui.toml` | Interface strings |
+| `content/icons.toml` | Interface icons |
 
 A bilingual text is written as an inline table: `text = { cs = "…", en = "…" }`. Paragraphs inside one text
 are separated by a blank line (`\n\n`). Names and titles of external works are proper names: they are given
@@ -148,15 +149,16 @@ once, in their original language, with `inLanguage`.
 | `[[person]]` | `id`, `name`, `orcid`, `affiliation` | | A person; `orcid` is the full ORCID URL, `affiliation` a list of organisation IDs |
 | `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder` | | An organisation or project; all but `id` and `name` are optional |
 | `[[instrument]]` | `id`, `name`, `version`, `url`, `kind` | | A tool used in provenance actions; `kind` is `ai-model`, `software` or `service` |
-| `[[lens]]` | `id`, `name`, `description` | | `V`, `DS`, `SR`, `K` |
+| `[[lens]]` | `id`, `name`, `description`, `icon` | | `V`, `DS`, `SR`, `K` |
 | `[[level]]` | `id`, `name`, `description` | | `L0`–`L3` |
-| `[[stage]]` | `id`, `label`, `station` | | An answer of the entry question and the station it opens |
+| `[[stage]]` | `id`, `label`, `station`, `description`, `icon` | | An answer of the entry question, shown as a card, and the station it opens |
 | `[[actor]]` | `id`, `name`, `role` | | Who a clause addresses (`role = "clause"`) or who fixes a gap (`role = "owner"`) |
 | `[[status]]` | `id`, `name` | | The five-level status vocabulary |
 | `[[tier]]` | `id`, `name` | | Self-check tiers |
 | `[[resourceType]]` | `id`, `name` | | Resource types used by the finder |
 | `[[repositoryKind]]` | `id`, `name` | | Repository kinds: domain, institutional, general-purpose |
 | `[[help]]` | `id`, `name`, `url`, `lenses` | | Routes to human help shown on every station; `url` may be `mailto:` |
+| `[[task]]` | `lens`, `label`, `href`, `icon` | | A shortcut on the landing view for one lens; `href` is an in-page target (`#station-<id>`, `#check-<id>`, `#page-<id>`, `#repositories`, `#resources`) or an HTTPS link. Tasks are listed in path order |
 
 ### `principles.toml`
 
@@ -271,6 +273,14 @@ nanopublication's trusty URI code) and `query` (with `{fips}` where the page put
 `[[action]]`: `id`, `type` (`create`, `update`), `name`, `description`, `agent` (person ID), `instruments`
 (instrument IDs), `objects` (clause and source IDs consulted), `results` (item IDs; a trailing `*` matches every
 ID with that prefix), `endTime` (date-time with offset).
+
+### `icons.toml`
+
+Icons are [Font Awesome Free](https://fontawesome.com/) solid icons (CC BY 4.0), named by their Font Awesome
+name. `[ui]` maps an interface role (`search`, `external`, `download`, `met`, `gap` and so on) to an icon; content
+files name their own icons in `icon` fields. `scripts/vendor_icons.py` copies exactly the named icons from the
+pinned npm package into `assets/icons/`, and the generator inlines them as one hidden SVG sprite. The content
+check reports an icon that is named but not vendored.
 
 ### `pages.toml` and `ui.toml`
 

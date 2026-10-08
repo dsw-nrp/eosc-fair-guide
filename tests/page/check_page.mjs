@@ -67,12 +67,16 @@ async function axe(page, label) {
   if (external.length) fail("requests on load: " + external.join(", "));
   for (const problem of problems) fail("load: " + problem);
   const heading = await page.textContent("#main h1");
-  if (!heading.includes("Kde se právě nacházíte")) fail("first visit does not show the stage question: " + heading);
-  await axe(page, "stage entry");
+  if (!heading.includes("Průvodce FAIR daty")) fail("first visit does not open the landing: " + heading);
+  if (!(await page.locator("#search-input").count())) fail("landing: no search box");
+  if (!(await page.locator("#stage-question").textContent()).includes("Kde se právě nacházíte")) fail("landing: no stage question");
+  if ((await page.locator(".stage-card").count()) !== 4) fail("landing: the four stage cards are missing");
+  if (!(await page.locator(".tasks .task").count())) fail("landing: no task shortcuts");
+  await axe(page, "landing");
 
-  // Keyboard: the skip link, lens picker, language switch and stage buttons are reachable with Tab.
+  // Keyboard: the skip link, lens picker, language switch, search and stage cards are reachable with Tab.
   const reached = new Set();
-  for (let i = 0; i < 25; i += 1) {
+  for (let i = 0; i < 30; i += 1) {
     await page.keyboard.press("Tab");
     reached.add(await page.evaluate(() => {
       const el = document.activeElement;
@@ -80,9 +84,40 @@ async function axe(page, label) {
     }));
   }
   const joined = [...reached].join(" | ");
-  for (const expected of ["skip-link", "lens-select", "English", "Připravuji projekt"]) {
+  for (const expected of ["skip-link", "lens-select", "English", "search-input", "Připravuji projekt"]) {
     if (!joined.includes(expected)) fail("keyboard does not reach: " + expected);
   }
+
+  // Universal search: terms are found locally in both languages and without diacritics; identifiers are routed
+  // to their tool, and nothing is sent while searching.
+  const search = async (text) => {
+    await page.fill("#search-input", text);
+    await page.locator("#search-input").press("Enter");
+    await page.waitForSelector("#search-results > *");
+    return page.locator("#search-results").textContent();
+  };
+  let found = await search("licence");
+  if (!found.includes("Licence a přístup") || !found.includes("R1.1")) fail("search: 'licence' does not find the licence step and R1.1: " + found.slice(0, 200));
+  const firstGroup = page.locator("#search-results .results-list").first();
+  if ((await firstGroup.locator("li").count()) !== 3) fail("search: a long result group is not shortened to three");
+  await page.locator("#search-results .button-link").first().click();
+  if ((await firstGroup.locator("li").count()) <= 3) fail("search: 'show all' does not reveal the rest of the group");
+  if (!(await page.evaluate(() => document.activeElement.closest(".results-list li:nth-child(4)")))) fail("search: focus does not move to the first revealed result");
+  found = await search("pristup");
+  if (!found.includes("Licence a přístup")) fail("search: matching does not ignore diacritics");
+  found = await search("persistent identifier");
+  if (found.includes("Nic nenalezeno")) fail("search: English words are not searched");
+  found = await search("https://doi.org/10.5281/zenodo.21726258");
+  if (!(await page.locator("#search-results .result-primary").textContent()).includes("Zkontrolovat datovou sadu")) fail("search: a DOI is not routed to the dataset check");
+  found = await search("0000-0001-6592-6291");
+  if (!found.includes("Ověřit identifikátor")) fail("search: an ORCID iD is not routed to the identifier helper");
+  await axe(page, "landing with search results");
+  if (external.length) fail("search: requests while searching: " + external.join(", "));
+
+  // Task shortcuts change with the lens.
+  await page.selectOption("#lens-select", "SR");
+  await page.waitForFunction(() => window.location.hash.startsWith("#/cs/SR/"));
+  if (!(await page.locator(".tasks").textContent()).includes("Brána NRP")) fail("landing: the repository administrator's tasks are missing");
   await context.close();
 }
 
@@ -196,7 +231,7 @@ async function axe(page, label) {
   // Returning visitors reach the path's start from the menu, with a line to resume where they were.
   await page.locator(".main-nav a", { hasText: "Cesta" }).click();
   try {
-    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/start" && document.querySelector("#main h1").textContent.includes("Kde se právě nacházíte"), null, { timeout: 5000 });
+    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/start" && document.querySelector("#stage-question") && document.querySelector("#stage-question").textContent.includes("Kde se právě nacházíte"), null, { timeout: 5000 });
   } catch (error) {
     fail("path: the menu does not open the stage question");
   }

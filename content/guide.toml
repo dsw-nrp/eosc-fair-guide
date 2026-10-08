@@ -82,21 +82,25 @@ kind = "software"
 id = "V"
 name = { cs = "Výzkumník", en = "Researcher" }
 description = { cs = "Plánuje, sbírá, popisuje a zveřejňuje svá data.", en = "Plans, collects, describes and publishes their data." }
+icon = "microscope"
 
 [[lens]]
 id = "DS"
 name = { cs = "Data steward", en = "Data steward" }
 description = { cs = "Radí výzkumníkům a instituci se správou dat.", en = "Advises researchers and the institution on data management." }
+icon = "compass"
 
 [[lens]]
 id = "SR"
 name = { cs = "Správce repozitáře / kurátor", en = "Repository administrator / curator" }
 description = { cs = "Provozuje repozitář, nastavuje jeho pravidla a kurátoruje záznamy.", en = "Runs a repository, sets its rules and curates its records." }
+icon = "server"
 
 [[lens]]
 id = "K"
 name = { cs = "Komunita / FIP", en = "Community / FIP" }
 description = { cs = "Domlouvá oborové standardy a popisuje je v profilu FIP.", en = "Agrees domain standards and describes them in a FAIR Implementation Profile." }
+icon = "people-group"
 
 [[level]]
 id = "L0"
@@ -122,21 +126,29 @@ description = { cs = "Citované zdroje a paradata.", en = "Cited sources and par
 id = "plan"
 label = { cs = "Připravuji projekt nebo žádost", en = "I am preparing a project or a proposal" }
 station = "plan"
+description = { cs = "Plán správy dat, rozpočet a volba repozitáře", en = "Data management plan, budget and choice of repository" }
+icon = "clipboard-list"
 
 [[stage]]
 id = "work"
 label = { cs = "Sbírám a zpracovávám data", en = "I am collecting and processing data" }
 station = "prace"
+description = { cs = "Ukládání, dokumentace a formáty během výzkumu", en = "Storage, documentation and formats during research" }
+icon = "flask"
 
 [[stage]]
 id = "publish"
 label = { cs = "Chci data zveřejnit", en = "I want to publish my data" }
 station = "repozitar"
+description = { cs = "Repozitář, popis, licence a zveřejnění", en = "Repository, description, licence and publication" }
+icon = "box-archive"
 
 [[stage]]
 id = "published"
 label = { cs = "Data už jsou zveřejněná", en = "My data are already published" }
 station = "dohledatelnost"
+description = { cs = "Dohledatelnost, citace a kontrola", en = "Findability, citation and checking" }
+icon = "magnifying-glass"
 
 [[actor]]
 id = "nrp"
@@ -278,7 +290,7 @@ name = { cs = "obecný", en = "general-purpose" }
 [[help]]
 id = "data-steward"
 name = { cs = "Data steward vaší instituce", en = "Your institution's data steward" }
-url = "https://www.eosc.cz/komunity/data-stewardi"
+url = "https://www.eosc.cz/komunity/data-stewardi/data-stewardi-v-cr"
 lenses = ["V", "DS", "SR", "K"]
 
 [[help]]
@@ -286,3 +298,137 @@ id = "nrp-support"
 name = { cs = "Podpora EOSC CZ", en = "EOSC CZ support" }
 url = "mailto:info@eosc.cz"
 lenses = ["V", "DS", "SR", "K"]
+
+# Task shortcuts on the landing, per lens, in this order: along the path first, then institution and community tasks.
+
+[[task]]
+lens = "V"
+label = { cs = "Připravit plán správy dat", en = "Prepare a data management plan" }
+href = "#station-plan"
+icon = "clipboard-list"
+
+[[task]]
+lens = "V"
+label = { cs = "Vybrat repozitář", en = "Choose a repository" }
+href = "#repositories"
+icon = "box-archive"
+
+[[task]]
+lens = "V"
+label = { cs = "Zvolit licenci", en = "Choose a licence" }
+href = "#station-licence"
+icon = "scale-balanced"
+
+[[task]]
+lens = "V"
+label = { cs = "Citovat data", en = "Cite data" }
+href = "#page-citation"
+icon = "quote-right"
+
+[[task]]
+lens = "V"
+label = { cs = "Zkontrolovat datovou sadu", en = "Check a dataset" }
+href = "#check-dataset"
+icon = "list-check"
+
+[[task]]
+lens = "V"
+label = { cs = "Výstup pro Open Science III nebo minizáměr", en = "Output for Open Science III or a minizáměr" }
+href = "#check-dataset"
+icon = "route"
+
+[[task]]
+lens = "DS"
+label = { cs = "Šablony plánu správy dat a nástroj pro plánování", en = "DMP templates and the planning tool" }
+href = "#station-plan"
+icon = "clipboard-list"
+
+[[task]]
+lens = "DS"
+label = { cs = "Zkontrolovat datovou sadu s výzkumníkem", en = "Check a dataset with a researcher" }
+href = "#check-dataset"
+icon = "list-check"
+
+[[task]]
+lens = "DS"
+label = { cs = "Výstup pro Open Science III nebo minizáměr", en = "Output for Open Science III or a minizáměr" }
+href = "#check-dataset"
+icon = "route"
+
+[[task]]
+lens = "DS"
+label = { cs = "Kontrola instituce: strategie, plán, politika", en = "Institution check: strategy, plan, policy" }
+href = "#check-institution"
+icon = "building-columns"
+
+[[task]]
+lens = "DS"
+label = { cs = "Školení pro tým", en = "Training for the team" }
+href = "#resource-eosc-training"
+icon = "graduation-cap"
+
+[[task]]
+lens = "DS"
+label = { cs = "Komunita a mapa data stewardů", en = "Data steward community and map" }
+href = "https://www.eosc.cz/komunity/data-stewardi/data-stewardi-v-cr"
+icon = "map-location-dot"
+
+[[task]]
+lens = "SR"
+label = { cs = "Založit repozitář v NRP", en = "Found a repository in NRP" }
+href = "#resource-repo-recommendations"
+icon = "box-archive"
+
+[[task]]
+lens = "SR"
+label = { cs = "Brána NRP", en = "NRP gate" }
+href = "#check-gate"
+icon = "door-open"
+
+[[task]]
+lens = "SR"
+label = { cs = "Napojení na NMA a zápis do NKR", en = "Connect to NMA and register in NKR" }
+href = "#station-dohledatelnost"
+icon = "plug"
+
+[[task]]
+lens = "SR"
+label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }
+href = "#check-maturity"
+icon = "stairs"
+
+[[task]]
+lens = "SR"
+label = { cs = "Hloubková kontrola vzorku záznamů", en = "Deep check of sample records" }
+href = "#page-live-check"
+icon = "magnifying-glass-chart"
+
+[[task]]
+lens = "K"
+label = { cs = "Profil komunity ve FIP Dashboardu", en = "Your community's profile in the FIP Dashboard" }
+href = "https://fip-dashboard.dmp.eosc.cz/"
+icon = "table-cells"
+
+[[task]]
+lens = "K"
+label = { cs = "Úplnost FIP", en = "FIP completeness" }
+href = "#check-fip"
+icon = "list-check"
+
+[[task]]
+lens = "K"
+label = { cs = "Vytvořit nebo aktualizovat FIP ve FIP Wizardu", en = "Create or update a FIP in FIP Wizard" }
+href = "https://fip.fair-wizard.com/"
+icon = "pen-to-square"
+
+[[task]]
+lens = "K"
+label = { cs = "Oborové standardy a slovníky", en = "Domain standards and vocabularies" }
+href = "#resources"
+icon = "tags"
+
+[[task]]
+lens = "K"
+label = { cs = "Pracovní skupiny EOSC CZ", en = "EOSC CZ working groups" }
+href = "#resource-eosc-working-groups"
+icon = "people-group"

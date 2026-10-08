@@ -51,14 +51,15 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | Path | Content |
 | --- | --- |
 | `content/` | TOML sources |
-| `scripts/` | `build_crate.py` (generator), `check_content.py` (content contract) |
+| `scripts/` | `build_crate.py` (generator), `check_content.py` (content contract), `vendor_icons.py` (copies the named icons), `refresh_snapshots.py` (scheduled snapshots) |
 | `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | SHACL profile for the crate |
 | `index.html` | The page and the crate's HTML preview, with the crate inlined |
 | `ro-crate-metadata.json` | Generated RO-Crate 1.2 |
 | `assets/css/` | `tokens.css` (palette, type, spacing) and `app.css` (layout, components) |
-| `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing), `views.js`, `live.js` (connectors), `selfcheck.js` (checks, pre-fill, results, exports), `app.js` (start-up) |
+| `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing), `views.js`, `live.js` (connectors), `selfcheck.js` (checks, pre-fill, results, exports), `search.js` (universal search), `app.js` (start-up) |
 | `assets/img/` | Official EOSC CZ logos (own licence in `LICENSES/LicenseRef-EOSC-CZ-Logo.txt`) |
+| `assets/icons/` | Vendored Font Awesome Free icons (CC BY 4.0); written by `scripts/vendor_icons.py`, never by hand |
 | `assets/diagrams/` | Rendered SVG diagrams |
 | `diagrams/` | Mermaid sources |
 | `docs/` | `design.md`, `content-model.md` |
@@ -72,6 +73,7 @@ python scripts/build_crate.py --check   # fail if committed output differs from 
 python scripts/check_content.py         # content contract (--base <ref> also checks paradata freshness)
 python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script
 python scripts/refresh_snapshots.py     # refresh the re3data, Heslář and FIP Dashboard snapshots (scheduled job)
+python scripts/vendor_icons.py          # copy the icons the content names from node_modules (after npm ci); --check fails on drift
 ```
 
 Structure checks use `requirements-dev.txt`:

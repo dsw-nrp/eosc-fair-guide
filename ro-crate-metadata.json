@@ -2939,6 +2939,16 @@
           "@language": "en"
         }
       ],
+      "description": [
+        {
+          "@value": "Plán správy dat, rozpočet a volba repozitáře",
+          "@language": "cs"
+        },
+        {
+          "@value": "Data management plan, budget and choice of repository",
+          "@language": "en"
+        }
+      ],
       "inDefinedTermSet": {
         "@id": "#stages"
       },
@@ -2957,6 +2967,16 @@
         },
         {
           "@value": "I am collecting and processing data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Ukládání, dokumentace a formáty během výzkumu",
+          "@language": "cs"
+        },
+        {
+          "@value": "Storage, documentation and formats during research",
           "@language": "en"
         }
       ],
@@ -2981,6 +3001,16 @@
           "@language": "en"
         }
       ],
+      "description": [
+        {
+          "@value": "Repozitář, popis, licence a zveřejnění",
+          "@language": "cs"
+        },
+        {
+          "@value": "Repository, description, licence and publication",
+          "@language": "en"
+        }
+      ],
       "inDefinedTermSet": {
         "@id": "#stages"
       },
@@ -2999,6 +3029,16 @@
         },
         {
           "@value": "My data are already published",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Dohledatelnost, citace a kontrola",
+          "@language": "cs"
+        },
+        {
+          "@value": "Findability, citation and checking",
           "@language": "en"
         }
       ],
@@ -3022,7 +3062,7 @@
           "@language": "en"
         }
       ],
-      "url": "https://www.eosc.cz/komunity/data-stewardi",
+      "url": "https://www.eosc.cz/komunity/data-stewardi/data-stewardi-v-cr",
       "audience": [
         {
           "@id": "#lens-V"

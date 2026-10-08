@@ -1,0 +1,29 @@
+# Interface icons, named after Font Awesome Free (solid) icons. Content files name their own icons in `icon`
+# fields (stages, lenses, tasks, stations). scripts/vendor_icons.py copies exactly the named icons into
+# assets/icons/, and the generator inlines them as a sprite. Field reference: docs/content-model.md.
+
+[ui]
+search = "magnifying-glass"
+external = "arrow-up-right-from-square"
+resume = "rotate-right"
+help = "life-ring"
+dashboard = "table-cells"
+download = "download"
+upload = "upload"
+print = "print"
+code = "code"
+link = "link"
+info = "circle-info"
+clear = "xmark"
+trash = "trash-can"
+met = "circle-check"
+gap = "circle-xmark"
+partly = "circle-half-stroke"
+unknown = "circle-question"
+now = "hand-point-right"
+steps = "list-ol"
+why = "circle-question"
+sources = "book"
+check = "list-check"
+cite = "quote-right"
+identifier = "fingerprint"

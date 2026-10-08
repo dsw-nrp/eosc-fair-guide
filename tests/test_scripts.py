@@ -203,6 +203,22 @@ class ContentCheckTests(FixtureCase):
         self.append("live.toml", nanopub)
         self.assertEqual(self.errors(), [])
 
+    def test_named_icon_must_be_vendored(self) -> None:
+        self.append(
+            "guide.toml",
+            '\n[[task]]\nlens = "V"\nlabel = { cs = "Úkol", en = "Task" }\nhref = "#station-one"\nicon = "star"\n',
+        )
+        self.assertError("icon 'star' is not vendored")
+        (self.root / "assets" / "icons").mkdir(parents=True)
+        (self.root / "assets" / "icons" / "star.svg").write_text("<svg/>", encoding="utf-8")
+        self.assertEqual(self.errors(), [])
+
+    def test_task_needs_a_known_lens(self) -> None:
+        self.append(
+            "guide.toml", '\n[[task]]\nlens = "X"\nlabel = { cs = "Úkol", en = "Task" }\nhref = "#station-one"\n'
+        )
+        self.assertError("unknown lens 'X'")
+
     def test_page_url_must_use_https(self) -> None:
         self.edit("guide.toml", 'pageUrl = "https://example.org/guide/"', 'pageUrl = "http://example.org/guide/"')
         self.assertError("the page URL must use HTTPS")

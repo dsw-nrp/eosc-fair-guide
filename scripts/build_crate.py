@@ -154,6 +154,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "provenance": optional("provenance.toml").get("action", []),
         "pages": optional("pages.toml").get("page", []),
         "ui": optional("ui.toml"),
+        "icons": optional("icons.toml"),
     }
 
 
@@ -1232,6 +1233,22 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
             "nanopub": live.get("nanopub"),
             "dmpStatus": live.get("dmpStatus"),
             "vocab": {"roCrate": RO_CRATE, "ftr": FTR, "prov": PROV, "fipTerms": FIP_TERMS},
+            "icons": {
+                "ui": content.get("icons", {}).get("ui", {}),
+                "stage": {
+                    stage["id"]: stage["icon"] for stage in content["guide"].get("stage", []) if stage.get("icon")
+                },
+                "lens": {lens["id"]: lens["icon"] for lens in content["guide"].get("lens", []) if lens.get("icon")},
+                "station": {
+                    data["station"]["id"]: data["station"]["icon"]
+                    for data in content["stations"]
+                    if data["station"].get("icon")
+                },
+            },
+            "tasks": [
+                {key: task[key] for key in ("lens", "label", "href", "icon") if key in task}
+                for task in content["guide"].get("task", [])
+            ],
         },
     }
 
@@ -1256,14 +1273,34 @@ def content_security_policy(content: dict[str, Any]) -> str:
 BLOCK = re.compile(r"(<!-- generated:(?P<name>[a-z]+) -->)(?P<body>.*?)(<!-- /generated:(?P=name) -->)", re.S)
 
 
-def render_page(page: str, content: dict[str, Any], crate: dict[str, Any]) -> str:
+def icon_sprite(icons_dir: Path) -> str:
+    """Inline SVG sprite of the vendored icons, keeping the icons' licence notice once."""
+    files = sorted(icons_dir.glob("*.svg")) if icons_dir.is_dir() else []
+    if not files:
+        return ""
+    symbols = []
+    notice = ""
+    for path in files:
+        svg = path.read_text(encoding="utf-8")
+        notice = notice or (re.search(r"<!--!?(.*?)-->", svg, re.S) or [None, ""])[1].strip()
+        view_box = re.search(r'viewBox="([^"]+)"', svg)
+        paths = "".join(re.findall(r"<path[^>]*/>", svg))
+        if view_box and paths:
+            symbols.append(f'<symbol id="i-{path.stem}" viewBox="{view_box.group(1)}">{paths}</symbol>')
+    comment = f"<!-- {notice} -->" if notice else ""
+    return f'\n    {comment}<svg class="sprite" aria-hidden="true" focusable="false">{"".join(symbols)}</svg>\n    '
+
+
+def render_page(page: str, content: dict[str, Any], crate: dict[str, Any], sprite: str = "") -> str:
     blocks = {
         "csp": f'\n    <meta http-equiv="Content-Security-Policy" content="{content_security_policy(content)}">\n    ',
         "kb": f'\n    <script type="application/ld+json" id="kb">{script_json(crate)}</script>\n    ',
         "ui": f'\n    <script type="application/json" id="ui">{script_json(page_config(content))}</script>\n    ',
+        "icons": sprite,
     }
+    required = {"csp", "kb", "ui"}
     found = {match.group("name") for match in BLOCK.finditer(page)}
-    missing = sorted(set(blocks) - found)
+    missing = sorted(required - found)
     if missing:
         raise ContentError(f"{PAGE_FILE}: missing generated block markers: {', '.join(missing)}")
     return BLOCK.sub(lambda match: match.group(1) + blocks[match.group("name")] + match.group(4), page)
@@ -1276,7 +1313,9 @@ def render_page(page: str, content: dict[str, Any], crate: dict[str, Any]) -> st
 def outputs(root: Path = ROOT) -> dict[str, str]:
     content = load_content(root / "content")
     crate = build_crate(content)
-    page = render_page((root / PAGE_FILE).read_text(encoding="utf-8"), content, crate)
+    page = render_page(
+        (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
+    )
     return {
         CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
         PAGE_FILE: page,

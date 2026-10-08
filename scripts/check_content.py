@@ -668,6 +668,25 @@ def check_self_check_inputs(report: Report, content: dict[str, Any]) -> None:
         report.error("guide.pageUrl", "the page URL must use HTTPS")
 
 
+def check_icons_and_tasks(report: Report, content: dict[str, Any], root: Path, vocab: dict[str, set[str]]) -> None:
+    """Every named icon is vendored, and every landing task belongs to a known lens."""
+    icons_dir = root / "assets" / "icons"
+    named: list[tuple[str, str]] = [
+        (f"icons.ui.{key}", name) for key, name in content.get("icons", {}).get("ui", {}).items()
+    ]
+    for path, key, value in walk(content, ""):
+        if key == "icon" and isinstance(value, str):
+            named.append((path or "content", value))
+    for where, name in named:
+        if not (icons_dir / f"{name}.svg").is_file():
+            report.error(where, f"icon '{name}' is not vendored; run scripts/vendor_icons.py")
+    for task in content["guide"].get("task", []):
+        if task.get("lens") not in vocab["lenses"]:
+            report.error("guide.task", f"unknown lens '{task.get('lens')}'")
+        if not task.get("href"):
+            report.error("guide.task", "a task needs a link (href)")
+
+
 def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], root: Path) -> None:
     guide_file = content["guide"]
     guide = guide_file["guide"]
@@ -747,6 +766,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_callouts(report, content, vocab)
     check_live(report, content, vocab, root)
     check_self_check_inputs(report, content)
+    check_icons_and_tasks(report, content, root, vocab)
     check_provenance(report, content, vocab)
     check_pages_and_ui(report, content)
     check_guide(report, content, vocab, root)

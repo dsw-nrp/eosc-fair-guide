@@ -29,6 +29,41 @@ intro = { cs = "Průvodce vás provede od plánu projektu ke zveřejněným, doh
 change = { cs = "Začít jinde", en = "Start somewhere else" }
 resume = { cs = "Pokračovat: krok {n} · {station}", en = "Continue: step {n} · {station}" }
 
+[landing]
+tasks = { cs = "Co potřebujete udělat?", en = "What do you need to do?" }
+helpRoute = { cs = "Nevíte si rady?", en = "Not sure what to do?" }
+dashboardRoute = { cs = "Hledáte konkrétní standard nebo službu?", en = "Looking for a specific standard or service?" }
+trustBasis = { cs = "Obsah vychází z", en = "The content builds on" }
+trustLink = { cs = "Analýzy FAIR pro NRP/NDI v1.2", en = "the FAIR analysis for NRP/NDI, version 1.2" }
+trustAuthors = { cs = "{author} a kol.", en = "{author} et al." }
+trustPrivacy = { cs = "nic, co zadáte, neodchází z prohlížeče bez vašeho kliknutí", en = "nothing you enter leaves your browser unless you click" }
+trustUpdated = { cs = "aktualizováno {date}", en = "updated {date}" }
+
+[search]
+label = { cs = "Co hledáte?", en = "What are you looking for?" }
+placeholder = { cs = "DOI, Handle, ORCID, název repozitáře nebo pojem", en = "DOI, Handle, ORCID, repository name or term" }
+button = { cs = "Hledat", en = "Search" }
+done = { cs = "Výsledky hledání jsou pod polem.", en = "The search results are below the field." }
+none = { cs = "Nic nenalezeno. Zkuste jiné slovo, nebo projděte cestu níže.", en = "Nothing found. Try another word, or follow the path below." }
+localOnly = { cs = "Hledáno jen v obsahu průvodce; nic neodešlo.", en = "Searched in the guide's own content only; nothing was sent." }
+notSent = { cs = "Zatím jsme nic neodeslali. Služby se zeptáme, až akci vyberete.", en = "Nothing has been sent yet. A service is asked only when you choose an action." }
+checkDataset = { cs = "Zkontrolovat datovou sadu {pid}", en = "Check the dataset {pid}" }
+cite = { cs = "Vytvořit citaci", en = "Create a citation" }
+nma = { cs = "Vyhledat v Národním metadatovém adresáři", en = "Search the National Metadata Directory" }
+verify = { cs = "Ověřit identifikátor {id}", en = "Verify the identifier {id}" }
+checkUrl = { cs = "Zkontrolovat stránku datové sady", en = "Check the dataset page" }
+more = { cs = "Zobrazit vše ({n})", en = "Show all ({n})" }
+
+[search.kind]
+station = { cs = "Kroky cesty", en = "Steps of the path" }
+check = { cs = "Sebehodnocení", en = "Self-checks" }
+principle = { cs = "Principy", en = "Principles" }
+resource = { cs = "Zdroje", en = "Resources" }
+repository = { cs = "Repozitáře", en = "Repositories" }
+term = { cs = "Pojmy z Hesláře", en = "Glossary terms" }
+page = { cs = "Stránky", en = "Pages" }
+clause = { cs = "Požadavky analýzy", en = "Requirements of the analysis" }
+
 [station]
 step = { cs = "Krok {n} z {total}", en = "Step {n} of {total}" }
 minutes = { cs = "asi {n} min", en = "about {n} min" }

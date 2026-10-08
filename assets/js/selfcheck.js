@@ -374,6 +374,25 @@
     });
   }
 
+  /** Open the dataset check for an identifier from the landing's search and run the lookup the user chose. */
+  SC.startWithPid = function (input) {
+    const pid = FG.live.parsePid(input);
+    const check = FG.get("#check-dataset");
+    if (!pid || !check) return;
+    const st = stateOf(check);
+    st.mode = "after";
+    st.pid = pid.value;
+    retarget(check, FG.live.pidUrl(pid));
+    const hash = FG.href("check", "dataset");
+    if (window.location.hash === hash) {
+      FG.render();
+      prefillFromPid(check, pid);
+    } else {
+      window.addEventListener("hashchange", () => prefillFromPid(check, pid), { once: true });
+      FG.navigate(hash);
+    }
+  };
+
   /* ---------------------------------------------------------------- pieces */
 
   function stateLabel(state) {

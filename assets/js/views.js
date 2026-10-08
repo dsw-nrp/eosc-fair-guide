@@ -243,38 +243,90 @@
     );
   }
 
-  function stageEntry() {
+  function stageCards() {
     const stages = FG.ofType("DefinedTerm").filter((term) => FG.id(term.inDefinedTermSet) === "#stages");
+    const icons = (FG.config.icons && FG.config.icons.stage) || {};
     return h(
-      "section",
-      { class: "stage-entry", "aria-labelledby": "stage-question" },
-      heading(1, { id: "stage-question" }, FG.t("stage.question")),
-      h("p", null, FG.t("stage.intro")),
-      resumeLine(),
-      h(
-        "ul",
-        { class: "stage-options" },
-        stages.map((stage) =>
+      "ul",
+      { class: "stage-options" },
+      stages.map((stage) =>
+        h(
+          "li",
+          null,
           h(
-            "li",
-            null,
-            h(
-              "button",
-              {
-                type: "button",
-                onclick: () => {
-                  const station = FG.get(stage.startsAt).identifier;
-                  FG.state.started = true;
-                  FG.state.entryStation = station;
-                  FG.saveState();
-                  FG.navigate(FG.href("path", station));
-                },
+            "button",
+            {
+              type: "button",
+              class: "stage-card",
+              onclick: () => {
+                const station = FG.get(stage.startsAt).identifier;
+                FG.state.started = true;
+                FG.state.entryStation = station;
+                FG.saveState();
+                FG.navigate(FG.href("path", station));
               },
-              FG.span(stage.name)
-            )
+            },
+            FG.icon(icons[stage.termCode], { class: "icon-large" }),
+            h("strong", null, FG.span(stage.name)),
+            stage.description ? h("span", { class: "small muted" }, FG.span(stage.description)) : null
           )
         )
       )
+    );
+  }
+
+  function taskTile(task) {
+    const label = task.label[FG.state.lang] || task.label.cs;
+    const children = [FG.icon(task.icon, { class: "icon-large" }), h("span", null, label)];
+    return h(
+      "li",
+      null,
+      task.href.startsWith("#") ? h("a", { class: "task", href: FG.actionHref(task.href) }, children) : FG.external(task.href, children, { class: "task" })
+    );
+  }
+
+  function trustLine() {
+    const analysis = FG.refs(FG.root, "isBasedOn")[0];
+    const firstAuthor = analysis && String(analysis.creditText || "").split(";")[0].trim().split(" ").pop();
+    return h(
+      "p",
+      { class: "trust" },
+      FG.t("landing.trustBasis") + " ",
+      analysis ? FG.external(analysis.url, FG.t("landing.trustLink")) : FG.t("landing.trustLink"),
+      firstAuthor ? " (" + FG.t("landing.trustAuthors", { author: firstAuthor }) + ")" : "",
+      " · " + FG.t("landing.trustPrivacy"),
+      " · " + FG.t("landing.trustUpdated", { date: FG.formatDate(FG.config.datePublished) })
+    );
+  }
+
+  /** The landing view, which is the path's start: search, stage, tasks, resume line, routes to help. */
+  function landing(route) {
+    const tasks = FG.list(FG.config.tasks).filter((task) => task.lens === route.lens);
+    const steward = FG.get("#help-data-steward");
+    return h(
+      "div",
+      { class: "landing wrap" },
+      heading(1, null, FG.t("app.title")),
+      h("p", { class: "lead" }, FG.t("app.tagline")),
+      FG.search ? FG.search.form() : null,
+      h(
+        "section",
+        { class: "stage-entry", "aria-labelledby": "stage-question" },
+        h("h2", { id: "stage-question" }, FG.t("stage.question")),
+        h("p", { class: "muted" }, FG.t("stage.intro")),
+        stageCards()
+      ),
+      tasks.length
+        ? h("section", { "aria-labelledby": "tasks-title" }, h("h2", { id: "tasks-title" }, FG.t("landing.tasks")), h("ul", { class: "tasks" }, tasks.map(taskTile)))
+        : null,
+      resumeLine(),
+      h(
+        "p",
+        { class: "routes" },
+        steward ? h("span", null, FG.icon("help"), " " + FG.t("landing.helpRoute") + " ", FG.external(steward.url, FG.text(steward.name))) : null,
+        h("span", null, FG.icon("dashboard"), " " + FG.t("landing.dashboardRoute") + " ", FG.external(FG.config.links.fipDashboard, "FIP Dashboard"))
+      ),
+      trustLine()
     );
   }
 
@@ -477,12 +529,8 @@
       FG.state.lastStation = currentId;
       FG.saveState();
     }
-    return h(
-      "div",
-      { class: "layout layout-path wrap" },
-      rail(route, currentId),
-      h("div", null, showEntry ? stageEntry() : station(Object.assign({}, route, { arg: currentId })))
-    );
+    if (showEntry) return landing(route);
+    return h("div", { class: "layout layout-path wrap" }, rail(route, currentId), h("div", null, station(Object.assign({}, route, { arg: currentId }))));
   };
 
   /* ---------------------------------------------------------------- principle explorer */
