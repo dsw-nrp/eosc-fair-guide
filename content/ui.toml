@@ -8,6 +8,7 @@ loading = { cs = "Průvodce se načítá.", en = "The guide is loading." }
 skip = { cs = "Přeskočit na obsah", en = "Skip to content" }
 testing = { cs = "Testovací verze", en = "Testing version" }
 error = { cs = "Průvodce se nepodařilo načíst. Zkuste stránku obnovit.", en = "The guide could not be loaded. Try reloading the page." }
+home = { cs = "EOSC CZ, domovská stránka", en = "EOSC CZ home page" }
 
 [nav]
 label = { cs = "Hlavní navigace", en = "Main navigation" }
@@ -26,6 +27,7 @@ switchTo = { cs = "English", en = "Česky" }
 question = { cs = "Kde se právě nacházíte?", en = "Where are you now?" }
 intro = { cs = "Průvodce vás provede od plánu projektu ke zveřejněným, dohledatelným a citovatelným datům. Začněte tam, kde jste.", en = "The guide takes you from the project plan to published, findable and citable data. Start where you are." }
 change = { cs = "Začít jinde", en = "Start somewhere else" }
+resume = { cs = "Pokračovat: krok {n} · {station}", en = "Continue: step {n} · {station}" }
 
 [station]
 step = { cs = "Krok {n} z {total}", en = "Step {n} of {total}" }
@@ -121,6 +123,7 @@ fixAt = { cs = "Řeší se v kroku: {station}", en = "Addressed at the step: {st
 reset = { cs = "Smazat odpovědi této kontroly", en = "Clear the answers of this check" }
 target = { cs = "Posuzováno: {target}", en = "Assessed: {target}" }
 gapsHere = { cs = "Otevřené položky ze sebehodnocení: {n}", en = "Open self-check items: {n}" }
+gapsLegend = { cs = "otevřené body ze sebehodnocení", en = "open self-check items" }
 
 [selfcheck.mode]
 before = { cs = "Ještě ne, zveřejnění připravuji", en = "Not yet, I am preparing publication" }

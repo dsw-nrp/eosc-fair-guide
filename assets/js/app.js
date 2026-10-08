@@ -9,6 +9,13 @@
     else window.location.hash = hash;
   };
 
+  /** Navigate without moving focus or scrolling, as when switching the lens to compare roles on the same view. */
+  FG.navigateInPlace = function (hash) {
+    FG.keepScroll = window.scrollY;
+    FG.focusAfterRender = false;
+    FG.navigate(hash);
+  };
+
   FG.render = function () {
     const route = FG.parseHash(window.location.hash);
     FG.state.lang = route.lang;
@@ -28,7 +35,10 @@
       main,
       FG.views.footer()
     );
-    if (FG.focusAfterRender) {
+    if (typeof FG.keepScroll === "number") {
+      window.scrollTo(0, FG.keepScroll);
+      FG.keepScroll = null;
+    } else if (FG.focusAfterRender) {
       const target = main.querySelector("h1") || main;
       target.focus({ preventScroll: false });
     }
@@ -74,7 +84,12 @@
       lens: typeof saved.lens === "string" ? saved.lens : "V",
       answers: saved.answers && typeof saved.answers === "object" ? saved.answers : {},
       started: Boolean(saved.started),
+      entryStation: typeof saved.entryStation === "string" ? saved.entryStation : null,
+      lastStation: typeof saved.lastStation === "string" ? saved.lastStation : null,
     });
+    const known = (id) => FG.stations().some((station) => station.identifier === id);
+    if (!known(FG.state.entryStation)) FG.state.entryStation = null;
+    if (!known(FG.state.lastStation)) FG.state.lastStation = null;
     FG.focusAfterRender = false;
     window.addEventListener("hashchange", FG.render);
     FG.render();

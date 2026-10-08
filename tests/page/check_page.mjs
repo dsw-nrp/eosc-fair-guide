@@ -167,6 +167,7 @@ async function axe(page, label) {
   if (!(await page.locator(".notice", { hasText: "Nejdřív odpovězte" }).count())) fail("dataset check: no prompt to choose the mode first");
   await page.locator("#mode-after").check();
   if (await page.locator("#item-D06").count()) fail("dataset check: a Recommended item shows in the first view");
+  if (/Krok \d/.test(await page.locator(".item-group h2").first().textContent())) fail("dataset check: group headings imitate the path's step numbering");
   if (!(await page.locator("#item-D04").count())) fail("dataset check: Minimum item D04 is missing after publication");
   if (await page.locator("#item-P01").count()) fail("dataset check: a before-publication item shows after publication");
   await page.locator("#answer-D04-no").check();
@@ -189,6 +190,32 @@ async function axe(page, label) {
   // The path marks the stations with open items.
   await go("#/cs/V/path/licence");
   if (!(await page.locator('.rail-desktop a[href="#/cs/V/path/licence"] .gap-mark').count())) fail("path: the licence station has no gap mark");
+  const legend = page.locator(".rail-desktop .rail-legend a");
+  if (!(await legend.count()) || (await legend.getAttribute("href")) !== "#/cs/V/selfcheck") fail("path: the self-check marks have no visible legend linking to the self-check");
+
+  // Returning visitors reach the path's start from the menu, with a line to resume where they were.
+  await page.locator(".main-nav a", { hasText: "Cesta" }).click();
+  try {
+    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/start" && document.querySelector("#main h1").textContent.includes("Kde se právě nacházíte"), null, { timeout: 5000 });
+  } catch (error) {
+    fail("path: the menu does not open the stage question");
+  }
+  if (!(await page.locator(".resume a").textContent()).includes("Licence")) fail("path: no resume line for the last station");
+
+  // Switching the lens keeps open levels and the scroll position.
+  await go("#/cs/V/path/licence");
+  await page.locator("details:not(.rail) summary").first().click();
+  await page.evaluate(() => window.scrollTo(0, 400));
+  const before = await page.evaluate(() => window.scrollY);
+  await page.selectOption("#lens-select", "SR");
+  await page.waitForFunction(() => window.location.hash === "#/cs/SR/path/licence");
+  if (!(await page.locator("details:not(.rail)[open]").count())) fail("lens switch: the open level closed");
+  const after = await page.evaluate(() => window.scrollY);
+  if (Math.abs(after - before) > 40) fail(`lens switch: the page scrolled from ${before} to ${after}`);
+
+  // The header logo leads to the EOSC CZ home page; the title opens the path's start.
+  if ((await page.locator(".brand a").first().getAttribute("href")) !== "https://www.eosc.cz/") fail("header: the EOSC CZ logo does not link to its home page");
+  if ((await page.locator(".brand-title").getAttribute("href")) !== "#/cs/SR/path/start") fail("header: the title does not open the path's start");
 
   // A shared link opens as a preview in a browser without the answers, and can be adopted.
   await go("#/cs/V/check/dataset");

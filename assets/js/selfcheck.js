@@ -645,7 +645,7 @@
       "div",
       { class: "items no-print" },
       groups.map((group) =>
-        h("section", { class: "item-group" }, h("h2", null, FG.t("station.step", { n: group.station.position, total: FG.stations().length }), " · ", FG.span(group.station.name)), group.items.map((item) => itemField(check, st, item)))
+        h("section", { class: "item-group" }, h("h2", null, FG.t("selfcheck.fixAt", { station: FG.text(group.station.name) })), group.items.map((item) => itemField(check, st, item)))
       ),
       loose.map((item) => itemField(check, st, item)),
       more

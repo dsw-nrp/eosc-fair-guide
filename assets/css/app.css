@@ -128,6 +128,13 @@ ol {
   font-size: var(--size-lead);
   font-weight: 700;
   line-height: 1.2;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand-title:hover {
+  color: var(--tint-teal);
+  text-decoration: underline;
 }
 
 .controls {
@@ -326,8 +333,44 @@ button:hover,
 
 .rail .gap-mark {
   margin-left: auto;
-  color: var(--tint-pink);
+  min-width: 1.5rem;
+  padding: 0 var(--space-2);
+  border-radius: 1rem;
+  background: var(--tint-pink);
+  color: #ffffff;
+  font-size: var(--size-small);
   font-weight: 700;
+  text-align: center;
+}
+
+.rail-legend {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px dashed var(--border);
+  font-size: var(--size-small);
+}
+
+.rail-legend .gap-mark {
+  margin-left: 0;
+}
+
+.rail-legend a {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tint-teal);
+  text-decoration: underline;
+}
+
+.resume {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--brand-pink);
+  background: var(--surface);
 }
 
 /* Stage entry */
@@ -509,6 +552,15 @@ details > .content {
   flex-wrap: wrap;
   gap: var(--space-2);
   font-size: var(--size-small);
+}
+
+.card .badges {
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+main p > .button,
+main p > button {
+  margin-block: var(--space-1);
 }
 
 .badge {

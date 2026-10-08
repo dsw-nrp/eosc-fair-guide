@@ -133,10 +133,20 @@
     },
   };
 
-  FG.state = { lang: "cs", lens: "V", answers: {}, started: false };
+  FG.state = { lang: "cs", lens: "V", answers: {}, started: false, entryStation: null, lastStation: null };
+
+  /** Disclosure levels the user opened (L1, L2, L3, ai); kept while the page is open, so switching lens keeps them. */
+  FG.openLevels = new Set();
 
   FG.saveState = function () {
-    FG.storage.write({ lang: FG.state.lang, lens: FG.state.lens, answers: FG.state.answers, started: FG.state.started });
+    FG.storage.write({
+      lang: FG.state.lang,
+      lens: FG.state.lens,
+      answers: FG.state.answers,
+      started: FG.state.started,
+      entryStation: FG.state.entryStation,
+      lastStation: FG.state.lastStation,
+    });
   };
 
   /* ---------------------------------------------------------------- routing */

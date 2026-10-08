@@ -91,7 +91,7 @@
   FG.views.header = function (route) {
     const lensSelect = h(
       "select",
-      { id: "lens-select", onchange: (event) => FG.navigate(FG.href(route.view, route.arg, { lens: event.target.value })) },
+      { id: "lens-select", onchange: (event) => FG.navigateInPlace(FG.href(route.view, route.arg, { lens: event.target.value })) },
       FG.lenses().map((lens) => h("option", { value: lens.audienceType, selected: lens.audienceType === route.lens }, FG.text(lens.name)))
     );
     const otherLang = route.lang === "cs" ? "en" : "cs";
@@ -102,10 +102,14 @@
         "div",
         { class: "wrap" },
         h(
-          "a",
-          { class: "brand", href: FG.href("path") },
-          h("img", { src: "assets/img/eosc-cz-logo.svg", alt: "EOSC CZ", width: "144", height: "30" }),
-          h("span", { class: "brand-title" }, FG.t("app.title"))
+          "div",
+          { class: "brand" },
+          h(
+            "a",
+            { href: FG.config.links.eoscHome, target: "_top" },
+            h("img", { src: "assets/img/eosc-cz-logo.svg", alt: FG.t("app.home"), width: "144", height: "30" })
+          ),
+          h("a", { class: "brand-title", href: FG.href("path", "start") }, FG.t("app.title"))
         ),
         h(
           "div",
@@ -129,14 +133,15 @@
 
   FG.views.nav = function (route) {
     const items = [
-      ["path", null, "nav.path"],
+      ["path", "start", "nav.path"],
       ["selfcheck", null, "nav.selfcheck"],
       ["explorer", null, "nav.explorer"],
       ["resources", null, "nav.resources"],
       ["repositories", null, "nav.repositories"],
       ["page", "about", "nav.about"],
     ];
-    const current = (view, arg) => view === route.view && (!arg || arg === route.arg) || (view === "selfcheck" && route.view === "check");
+    const current = (view, arg) =>
+      (view === route.view && (!arg || arg === route.arg || view === "path")) || (view === "selfcheck" && route.view === "check");
     return h(
       "nav",
       { class: "main-nav wrap", "aria-label": FG.t("nav.label") },
@@ -182,12 +187,12 @@
   function rail(route, currentId) {
     const current = FG.stations().find((station) => station.identifier === currentId);
     return [
-      h("nav", { class: "rail rail-desktop", "aria-label": FG.t("nav.stations") }, railList(currentId)),
+      h("nav", { class: "rail rail-desktop", "aria-label": FG.t("nav.stations") }, railList(currentId), railLegend()),
       h(
         "details",
         { class: "rail rail-mobile" },
         h("summary", null, FG.t("nav.stations"), current ? ": " + current.position + " · " + FG.text(current.name) : ""),
-        h("nav", { "aria-label": FG.t("nav.stations") }, railList(currentId))
+        h("nav", { "aria-label": FG.t("nav.stations") }, railList(currentId), railLegend())
       ),
     ];
   }
@@ -209,10 +214,32 @@
               { href: FG.href("path", station.identifier), "aria-current": station.identifier === currentId ? "step" : null },
               h("span", { class: "number" }, String(station.position)),
               FG.span(station.name),
-              gaps ? h("span", { class: "gap-mark", title: String(gaps) }, "!", h("span", { class: "visually-hidden" }, " " + FG.t("selfcheck.gapsHere", { n: gaps }))) : null
+              gaps ? h("span", { class: "gap-mark" }, h("span", { "aria-hidden": "true" }, String(gaps)), h("span", { class: "visually-hidden" }, " " + FG.t("selfcheck.gapsHere", { n: gaps }))) : null
             )
           );
         })
+    );
+  }
+
+  /** The legend for the self-check marks on the rail, shown only when there is a mark to explain. */
+  function railLegend() {
+    const total = FG.gapsAt ? FG.stations().reduce((sum, station) => sum + FG.gapsAt(station.identifier), 0) : 0;
+    if (!total) return null;
+    return h(
+      "p",
+      { class: "rail-legend" },
+      h("span", { class: "gap-mark", "aria-hidden": "true" }, String(total)),
+      h("a", { href: FG.href("selfcheck") }, FG.t("selfcheck.gapsLegend"))
+    );
+  }
+
+  function resumeLine() {
+    const station = FG.stations().find((item) => item.identifier === FG.state.lastStation);
+    if (!station) return null;
+    return h(
+      "p",
+      { class: "resume" },
+      h("a", { href: FG.href("path", station.identifier) }, FG.t("stage.resume", { n: station.position, station: FG.text(station.name) }))
     );
   }
 
@@ -223,6 +250,7 @@
       { class: "stage-entry", "aria-labelledby": "stage-question" },
       heading(1, { id: "stage-question" }, FG.t("stage.question")),
       h("p", null, FG.t("stage.intro")),
+      resumeLine(),
       h(
         "ul",
         { class: "stage-options" },
@@ -255,8 +283,17 @@
     return h("li", null, FG.span(item.text), steps.length ? h("ul", null, steps.map((step) => h("li", null, FG.span(step.text)))) : null);
   }
 
-  function details(summary, ...content) {
-    return h("details", null, h("summary", null, summary), h("div", { class: "content" }, ...content));
+  /** A disclosure level whose open state survives a lens switch while the page stays open. */
+  function details(summary, key, ...content) {
+    return h(
+      "details",
+      {
+        open: FG.openLevels.has(key),
+        ontoggle: (event) => (event.target.open ? FG.openLevels.add(key) : FG.openLevels.delete(key)),
+      },
+      h("summary", null, summary),
+      h("div", { class: "content" }, ...content)
+    );
   }
 
   function whyContent(station, items) {
@@ -409,10 +446,10 @@
               : null
           )
         : h("p", null, FG.t("station.empty")),
-      steps.length ? details(levelName("L1"), h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
-      ai.length ? details(FG.t("station.ai"), ai.map((item) => h("p", { class: "tip" }, FG.span(item.text))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline)))) : null,
-      details(levelName("L2"), whyContent(entity, items)),
-      details(levelName("L3"), madeContent(items)),
+      steps.length ? details(levelName("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
+      ai.length ? details(FG.t("station.ai"), "ai", ai.map((item) => h("p", { class: "tip" }, FG.span(item.text))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline)))) : null,
+      details(levelName("L2"), "L2", whyContent(entity, items)),
+      details(levelName("L3"), "L3", madeContent(items)),
       callouts(entity, route.lens),
       resources.length ? h("section", null, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards" }, resources.map(resourceCard))) : null,
       terms.length
@@ -435,7 +472,11 @@
 
   FG.views.path = function (route) {
     const showEntry = route.arg === "start" || (!route.arg && !FG.state.started);
-    const currentId = showEntry ? null : route.arg || FG.state.entryStation || FG.stations()[0].identifier;
+    const currentId = showEntry ? null : route.arg || FG.state.lastStation || FG.state.entryStation || FG.stations()[0].identifier;
+    if (currentId && currentId !== FG.state.lastStation && FG.stations().some((station) => station.identifier === currentId)) {
+      FG.state.lastStation = currentId;
+      FG.saveState();
+    }
     return h(
       "div",
       { class: "layout layout-path wrap" },
