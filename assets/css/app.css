@@ -1431,8 +1431,17 @@ main p > button {
   line-height: 1.6;
 }
 
-.evidence-head code {
-  font-size: 0.95em;
+/* In evidence the field name is a small technical label; the value found reads as text. */
+.evidence-field code:first-child {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.evidence-field code + code,
+.evidence-field code:last-child:not(:first-child) {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text);
   overflow-wrap: anywhere;
 }
 
@@ -1608,6 +1617,170 @@ main p > button {
   font-size: var(--size-small);
 }
 
+/* The result: a headline with counts per state, cards for what is missing and what to find out, then all answers
+   with the answer first as a coloured mark. */
+.result-headline {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.result-headline p {
+  margin: var(--space-1) 0;
+}
+
+.result-progress {
+  font-size: var(--size-lead);
+  font-weight: 600;
+}
+
+.result-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-2) 0;
+  padding: 0;
+}
+
+.result-counts li,
+.answer-pill,
+.principle-state a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  font-size: var(--size-small);
+  white-space: nowrap;
+}
+
+.result-counts li {
+  min-height: 1.9rem;
+  font-weight: 600;
+}
+
+[data-state="met"].answer-pill,
+.result-counts [data-state="met"],
+.principle-state[data-state="met"] a {
+  border-color: var(--tint-teal);
+  color: var(--tint-teal);
+}
+
+[data-state="gap"].answer-pill,
+.result-counts [data-state="gap"],
+.principle-state[data-state="gap"] a {
+  border: 2px solid var(--tint-pink);
+  color: var(--tint-pink);
+}
+
+[data-state="partly"].answer-pill,
+[data-state="unknown"].answer-pill,
+.result-counts [data-state="partly"],
+.result-counts [data-state="unknown"],
+.principle-state[data-state="partly"] a,
+.principle-state[data-state="unknown"] a {
+  border-style: dashed;
+  border-color: var(--text-muted);
+}
+
+[data-state="open"].answer-pill,
+.result-counts [data-state="open"],
+.principle-state[data-state="open"] a {
+  color: var(--text-muted);
+}
+
+.gaps {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.action-card {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--tint-pink);
+  border-radius: var(--radius);
+}
+
+.action-card[data-state="unknown"],
+.action-card[data-state="partly"] {
+  border-left-color: var(--text-muted);
+  border-left-style: dashed;
+}
+
+.action-title {
+  margin: 0;
+}
+
+.action-title .badge {
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+.action-meta {
+  margin: var(--space-1) 0 0;
+  font-size: var(--size-small);
+}
+
+.action-label {
+  color: var(--text-muted);
+}
+
+.step-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.step-link .icon {
+  color: var(--tint-teal);
+}
+
+.result-all {
+  margin-top: var(--space-6);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.principle-state a {
+  min-height: 1.75rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.answer-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+/* On a phone the evidence starts under the mark rather than beside it. */
+@media (max-width: 39.99rem) {
+  .answer-line {
+    flex-wrap: wrap;
+  }
+
+  .answer-row .answer-meta {
+    margin-left: 0;
+  }
+
+  .answer-row .answer-pill {
+    min-width: 0;
+  }
+}
+
+.answer-pill {
+  flex: none;
+  min-width: 8.25rem;
+  min-height: 1.75rem;
+  font-weight: 600;
+}
+
 /* The result's overview in the list's groups. */
 .result-group h3 {
   display: flex;
@@ -1650,7 +1823,8 @@ main p > button {
 /* Your answers: each question with its answer, then where the answer came from and what supports it. */
 .answers-list {
   margin: 0;
-  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6);
+  padding: var(--space-2) 0;
+  list-style: none;
 }
 
 .answer-row {
@@ -1671,7 +1845,7 @@ main p > button {
 }
 
 .answer-meta {
-  margin: var(--space-1) 0 0;
+  margin: var(--space-1) 0 0 calc(8.25rem + var(--space-2));
   color: var(--text-muted);
   font-size: var(--size-small);
   overflow-wrap: anywhere;

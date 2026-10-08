@@ -259,7 +259,7 @@ async function axe(page, label) {
   // each names the step where it is addressed.
   const tierInfo = await page.locator(".tier-info").textContent();
   if (!tierInfo.includes("Minimum (") || !tierInfo.includes("Národní datové infrastruktury")) fail("dataset check: the first view does not explain its tier: " + tierInfo);
-  const minimumCount = (tierInfo.match(/Minimum \((\d+)\)/) || [])[1];
+  const minimumCount = (tierInfo.match(/Minimum \((\d+) /) || [])[1];
   if (!(await page.locator("#results p").first().textContent()).endsWith("z " + minimumCount)) fail("dataset check: the result counts items the first view does not show");
   if (!(await page.locator(".item-group h2").first().textContent()).includes("Dohledatelnost")) fail("dataset check: items are not grouped by FAIR principle by default");
   if (!(await page.locator("#item-D04 .fix-at").textContent()).includes("Licence")) fail("dataset check: an item does not name the step where it is addressed");
@@ -268,7 +268,8 @@ async function axe(page, label) {
   const chips = await page.locator(".summary-chip").evaluateAll((buttons) => buttons.map((button) => button.textContent.match(/[A-Z]\d{2}/)[0]));
   if (listed.join(" ") !== chips.join(" ")) fail(`dataset check: the summary does not mirror the questions (${chips.join(" ")} vs ${listed.join(" ")})`);
   await page.locator("#grouping-steps").check();
-  if (!(await page.locator(".item-group h2").first().textContent()).includes("Řeší se v kroku")) fail("dataset check: grouping by path step does not work");
+  const stepHeading = page.locator(".item-group h2").first();
+  if ((await stepHeading.locator("svg").count()) !== 1 || /Krok \d/.test(await stepHeading.textContent())) fail("dataset check: grouping by path step does not show the step's icon and name");
   if ((await page.locator(".summary-group").count()) !== (await page.locator(".item-group").count())) fail("dataset check: the summary does not follow the grouping by path step");
   if ((await page.locator(".result-group").count()) !== (await page.locator(".item-group").count())) fail("dataset check: the full result does not follow the grouping by path step");
   if ((await page.locator(".summary-group-label .group-icon").count()) !== (await page.locator(".summary-group").count())) fail("dataset check: path steps in the summary lack their icons");
@@ -493,7 +494,7 @@ async function axe(page, label) {
     window.FairGuide.rerender();
   });
   await page.locator("#prefill-nkr-run").click();
-  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Předvyplněno"));
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   for (const id of ["G01", "G07"]) {
     if (!(await checked(`answer-${id}-yes`))) fail(`gate check: ${id} is not pre-filled yes from an NKR record listing DOI`);
     if (!(await page.locator(`#origin-${id}`).textContent()).includes("NKR")) fail(`gate check: ${id} does not name NKR as its source`);
@@ -517,12 +518,12 @@ async function axe(page, label) {
   await page.locator('label[for="extended-toggle"]').click();
   await page.locator("#prefill-fip").selectOption("nusl-grey");
   await page.locator("#prefill-fip-run").click();
-  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Předvyplněno"));
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   const open = await page.evaluate(() => [...document.querySelectorAll("fieldset.item")].filter((item) => !item.querySelector("input:checked") && item.textContent.includes("nic nedeklaruje")).map((item) => item.id));
   if (!open.length) fail("FIP check: no item stays open with a note for a principle without a declaration");
   await page.locator("#prefill-fip").selectOption("ndi-baseline");
   await page.locator("#prefill-fip-run").click();
-  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Předvyplněno"));
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   if (!(await checked("answer-K01-yes"))) fail("FIP check: K01 is not pre-filled from the snapshot");
   if (!(await panelFits(page))) fail("FIP check: the result so far scrolls or is too tall after pre-fill");
   if (!(await page.locator("#origin-K01").textContent()).includes("FIP Dashboard (snímek)")) fail("FIP check: K01 does not name its source");

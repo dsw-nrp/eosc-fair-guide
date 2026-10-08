@@ -62,6 +62,13 @@
   FG.t = function (key, params) {
     const entry = key.split(".").reduce((node, part) => (node ? node[part] : undefined), FG.ui);
     let value = entry && (entry[FG.state.lang] || entry.cs) ? entry[FG.state.lang] || entry.cs : key;
+    /* Plural forms are separated by "|": Czech one|few|many (1, 2 to 4, other), English one|other, chosen by n. */
+    if (value.includes("|") && params && typeof params.n === "number") {
+      const forms = value.split("|");
+      const n = Math.abs(params.n);
+      const index = FG.state.lang === "cs" ? (n === 1 ? 0 : n >= 2 && n <= 4 ? 1 : 2) : n === 1 ? 0 : 1;
+      value = forms[Math.min(index, forms.length - 1)];
+    }
     for (const [name, replacement] of Object.entries(params || {})) {
       value = value.split("{" + name + "}").join(String(replacement));
     }

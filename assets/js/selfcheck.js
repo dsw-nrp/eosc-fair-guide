@@ -852,8 +852,7 @@
   }
 
   const groupName = (group) => (group.letter ? FG.t("explorer.group." + group.letter) : group.station ? FG.text(group.station.name) : "");
-  const groupTitle = (group) =>
-    group.letter || group.station ? [groupMark(group), " ", group.station ? FG.t("selfcheck.fixAt", { station: groupName(group) }) : groupName(group)] : null;
+  const groupTitle = (group) => (group.letter || group.station ? [groupMark(group), " ", groupName(group)] : null);
 
   /* On a wide screen with the summary open, the check's controls sit in the summary, at hand while scrolling; on a
      narrow screen or with the summary collapsed they sit above the questions. Crossing the width re-renders. */
@@ -937,18 +936,35 @@
     return help.url.startsWith("mailto:") ? h("a", { href: help.url }, FG.text(help.name)) : FG.external(help.url, FG.text(help.name));
   }
 
+  /** The path step where something is fixed, as a link with the step's icon. */
+  function stepLink(station) {
+    const icon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[station.identifier];
+    return h("a", { class: "step-link", href: FG.href("path", station.identifier) }, FG.icon(icon), FG.span(station.name));
+  }
+
+  /** Something missing, as a card: the question, then where to fix it and who does it. */
   function gapItem(st, item) {
     const station = FG.get(item.fixAt);
     const who = FG.refs(item, "fixedBy").map((actor) => FG.text(actor.name));
+    const state = itemState(st, item);
     return h(
       "li",
-      null,
-      h("p", null, h("strong", null, item.identifier), " ", FG.span(item.text), " ", h("span", { class: "badge" }, FG.termName(FG.id(item.tier))), " ", stateLabel(itemState(st, item))),
+      { class: "action-card", "data-state": state },
       h(
         "p",
-        { class: "small" },
-        station ? [h("strong", null, FG.t("selfcheck.result.whereFix") + ": "), h("a", { href: FG.href("path", station.identifier) }, FG.span(station.name))] : null,
-        who.length ? [station ? " · " : null, h("strong", null, FG.t("selfcheck.result.whoFix") + ": "), who.join(", ")] : null
+        { class: "action-title" },
+        stateLabel(state),
+        " ",
+        h("span", { class: "item-id" }, item.identifier),
+        " ",
+        FG.span(item.text),
+        isFirstTier(item) ? null : [" ", h("span", { class: "badge" }, FG.termName(FG.id(item.tier)))]
+      ),
+      h(
+        "p",
+        { class: "action-meta" },
+        station ? [h("span", { class: "action-label" }, FG.t("selfcheck.result.whereFix") + ": "), stepLink(station)] : null,
+        who.length ? [station ? h("span", { class: "action-sep" }, " · ") : null, h("span", { class: "action-label" }, FG.t("selfcheck.result.whoFix") + ": "), who.join(", ")] : null
       )
     );
   }
@@ -958,15 +974,15 @@
     const lookup = FG.id(item.lookup);
     return h(
       "li",
-      null,
-      h("p", null, h("strong", null, item.identifier), " ", FG.span(item.text)),
+      { class: "action-card", "data-state": "unknown" },
+      h("p", { class: "action-title" }, stateLabel("unknown"), " ", h("span", { class: "item-id" }, item.identifier), " ", FG.span(item.text)),
       h(
         "p",
-        { class: "small" },
-        ask.names.length ? FG.t("selfcheck.result.ask", { whom: ask.names.join(", ") }) : null,
-        lookup ? [ask.names.length ? " · " : null, FG.external(lookup, FG.t("selfcheck.result.lookup"))] : null
-      ),
-      ask.helps.length ? h("ul", { class: "small" }, ask.helps.map((help) => h("li", null, helpLink(help)))) : null
+        { class: "action-meta" },
+        ask.names.length ? [h("span", { class: "action-label" }, FG.t("selfcheck.result.askLabel") + ": "), ask.names.join(", ")] : null,
+        lookup ? [ask.names.length ? h("span", { class: "action-sep" }, " · ") : null, FG.external(lookup, FG.t("selfcheck.result.lookup"))] : null,
+        ask.helps.map((help) => [h("span", { class: "action-sep" }, " · "), helpLink(help)])
+      )
     );
   }
 
@@ -1016,13 +1032,13 @@
       h(
         "p",
         { class: "answer-line" },
-        h("span", { class: "item-id" }, item.identifier),
-        " ",
-        FG.span(item.text),
-        " ",
-        providedByNrp(item, st)
-          ? stateLabel("provided")
-          : h("strong", { class: "answer-value", "data-answer": value || "none" }, value ? FG.t("selfcheck.answer." + value) : FG.t("selfcheck.result.unanswered"))
+        h(
+          "span",
+          { class: "answer-pill", "data-state": itemState(st, item) },
+          h("span", { "aria-hidden": "true" }, STATE_ICON[itemState(st, item)] + " "),
+          providedByNrp(item, st) ? FG.t("selfcheck.state.provided") : value ? FG.t("selfcheck.answer." + value) : FG.t("selfcheck.result.unanswered")
+        ),
+        h("span", { class: "answer-question" }, h("span", { class: "item-id" }, item.identifier), " ", FG.span(item.text))
       ),
       meta.length ? h("p", { class: "answer-meta" }, meta.map((part, index) => [index ? " · " : "", part])) : null
     );
@@ -1032,14 +1048,28 @@
     const items = resultItems(check, st);
     const answered = items.filter((item) => answerOf(st, item)).length;
     const { gaps, tasks } = outcomes(check, st);
+    const counts = {};
+    for (const item of items) counts[itemState(st, item)] = (counts[itemState(st, item)] || 0) + 1;
     return [
-      h("p", null, FG.t("selfcheck.progress", { n: answered, total: items.length })),
-      st.target ? h("p", { class: "small" }, FG.t("selfcheck.target", { target: st.target })) : null,
-      h("p", { class: "small" }, FG.t("selfcheck.result.advisory")),
-      resultGroups(check, st, items),
+      h(
+        "div",
+        { class: "result-headline" },
+        h("p", { class: "result-progress" }, FG.t("selfcheck.progress", { n: answered, total: items.length })),
+        h(
+          "ul",
+          { class: "result-counts" },
+          ["met", "partly", "gap", "unknown", "open"]
+            .filter((state) => counts[state])
+            .map((state) => h("li", { "data-state": state }, h("span", { "aria-hidden": "true" }, STATE_ICON[state] + " "), FG.t("selfcheck.count." + state, { n: counts[state] })))
+        ),
+        st.target ? h("p", { class: "small" }, FG.t("selfcheck.target", { target: st.target })) : null,
+        h("p", { class: "small muted" }, FG.t("selfcheck.result.advisory"))
+      ),
       h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.result.gaps")),
-      gaps.length ? h("ul", { class: "gaps" }, gaps.map((item) => gapItem(st, item))) : h("p", null, FG.t("selfcheck.result.noGaps")),
+      gaps.length ? h("ul", { class: "gaps" }, gaps.map((item) => gapItem(st, item))) : h("p", { class: "muted" }, FG.t("selfcheck.result.noGaps")),
       tasks.length ? [h("h3", { id: "results-tasks", tabindex: "-1" }, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map(taskItem))] : null,
+      h("h3", { class: "result-all" }, FG.t("selfcheck.result.answers")),
+      resultGroups(check, st, items),
     ];
   }
 
@@ -1064,15 +1094,21 @@
                 principles.map((row) =>
                   h(
                     "li",
-                    { "data-state": row.state },
-                    h("a", { href: FG.href("explorer", row.principle.termCode) }, h("strong", null, row.principle.termCode), " ", FG.span(row.principle.name)),
-                    " ",
-                    stateLabel(row.state)
+                    { class: "principle-state", "data-state": row.state },
+                    h(
+                      "a",
+                      { href: FG.href("explorer", row.principle.termCode), title: FG.t("selfcheck.state." + row.state) },
+                      row.state === "open" ? null : h("span", { "aria-hidden": "true" }, STATE_ICON[row.state] + " "),
+                      h("strong", null, row.principle.termCode),
+                      " ",
+                      FG.span(row.principle.name),
+                      h("span", { class: "visually-hidden" }, ": " + FG.t("selfcheck.state." + row.state))
+                    )
                   )
                 )
               )
             : null,
-          h("ol", { class: "answers-list" }, group.items.map((item) => answerRow(st, item)))
+          h("ul", { class: "answers-list" }, group.items.map((item) => answerRow(st, item)))
         );
       })
     );

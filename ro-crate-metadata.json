@@ -2288,11 +2288,11 @@
       ],
       "description": [
         {
-          "@value": "minimum pro zapojení do Národní datové infrastruktury podle Analýzy FAIR.",
+          "@value": "co Analýza FAIR požaduje jako minimum pro zapojení do Národní datové infrastruktury.",
           "@language": "cs"
         },
         {
-          "@value": "the minimum for joining the National Data Infrastructure under the FAIR analysis.",
+          "@value": "what the FAIR analysis requires as the minimum for joining the National Data Infrastructure.",
           "@language": "en"
         }
       ],
@@ -2372,11 +2372,11 @@
       ],
       "description": [
         {
-          "@value": "podmínky NRP, které repozitář musí splnit, aby se mohl zapojit.",
+          "@value": "podmínky, které NRP vyžaduje pro zapojení repozitáře.",
           "@language": "cs"
         },
         {
-          "@value": "the NRP conditions a repository must meet to join.",
+          "@value": "the conditions NRP requires for a repository to join.",
           "@language": "en"
         }
       ],
