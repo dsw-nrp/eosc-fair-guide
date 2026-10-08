@@ -70,6 +70,7 @@ nmaSearch = "https://nma.eosc.cz/datasets/"
 nkr = "https://repo.cz/"
 eoscHome = "https://www.eosc.cz/"
 opJak = "https://opjak.cz/"
+dataciteRecord = "https://commons.datacite.org/doi.org/"
 
 # Declarations of a published FIP nanopublication (spike in docs/design.md, "Spikes and findings"). The page puts
 # the FIP's IRIs, in every published form, in place of {fips}; {code} is the nanopublication's trusty URI code.

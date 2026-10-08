@@ -89,6 +89,14 @@
   const isFirstTier = (item) => FIRST_TIERS.includes(FG.id(item.tier));
   const applicable = (check, st) => (ready(check, st) ? itemsOf(check).filter((item) => applies(item, st)) : []);
   const answerable = (check, st) => applicable(check, st).filter((item) => !providedByNrp(item, st));
+  /** The items a result covers: those the first view shows, every item once the check is extended, and any item
+      the user has answered, so an answer to an extended item counts after the view returns to the basic items. */
+  function resultItems(check, st) {
+    const items = answerable(check, st);
+    if (st.extended || !items.some(isFirstTier)) return items;
+    return items.filter((item) => isFirstTier(item) || answerOf(st, item));
+  }
+
   const byTier = (a, b) => TIER_ORDER.indexOf(FG.id(a.tier)) - TIER_ORDER.indexOf(FG.id(b.tier)) || FG.byPosition(a, b);
 
   /** Gaps (no, partly) and tasks (don't know), ordered by tier. */
@@ -121,7 +129,7 @@
 
   /** The state of each principle the check covers: a gap wins, then partly, then unknown; met needs every item. */
   function principleRows(check, st) {
-    const items = answerable(check, st).filter((item) => answerOf(st, item) !== "na");
+    const items = resultItems(check, st).filter((item) => answerOf(st, item) !== "na");
     return FG.principles()
       .map((principle) => {
         const mine = items.filter((item) => FG.hasRef(item, "about", principle["@id"]));
@@ -161,7 +169,7 @@
 
   /** Record the evidence of one source for every item it can answer. A pre-filled value never replaces an answer
       the user gave, and evidence without a value never hides an earlier source's suggestion. */
-  function applyEvidence(check, source, evidence, date) {
+  function applyEvidence(check, source, evidence, date, recordUrl) {
     const st = stateOf(check);
     let filled = 0;
     for (const item of answerable(check, st)) {
@@ -177,7 +185,8 @@
       }
       const current = record(st, item) || {};
       if (!value && current.prefill && current.prefill.value) continue;
-      const next = Object.assign({}, current, { prefill: { source: result.source || source, date, value, notes, list: result.list || [] } });
+      const prefill = { source: result.source || source, date, value, notes, list: result.list || [], fields: result.fields || [], record: result.record || recordUrl || null };
+      const next = Object.assign({}, current, { prefill });
       if (current.origin !== "user" && value) Object.assign(next, { value, origin: "prefill" });
       else if (!current.origin) next.origin = "prefill";
       st.items[item.identifier] = next;
@@ -207,6 +216,39 @@
     const withSub = list.filter((entry) => entry && filled(entry[sub]));
     if (!list.length || !withSub.length) return "absent";
     return withSub.length === list.length ? "present" : "partial";
+  }
+
+  /** A found value in a few words: the meaningful field of an object, or the text itself. */
+  function summarise(value) {
+    if (value && typeof value === "object") {
+      const key = ["rightsUri", "rights", "relatedIdentifier", "name", "title", "description", "subject", "identifier", "url", "value"].find((name) => filled(value[name]));
+      return key ? summarise(value[key]) : JSON.stringify(value).slice(0, 80);
+    }
+    const text = String(value).replace(/\s+/g, " ").trim();
+    return text.length > 120 ? text.slice(0, 117) + "…" : text;
+  }
+
+  /** The values a record holds at a path, for the evidence shown beside an item. */
+  function pathValues(record, path) {
+    const match = String(path).match(/^@?(\w+)(?:\[(?:(\w+)=(\w+))?\])?(?:\.(\w+))?$/);
+    if (!match || path === "@record") return [];
+    const [, field, key, wanted, sub] = match;
+    let value = record[field];
+    if (key) value = FG.list(value).filter((entry) => entry && String(entry[key]) === wanted);
+    const values = (sub ? FG.list(value).map((entry) => entry && entry[sub]) : FG.list(value)).filter(filled).map(summarise);
+    return [...new Set(values)];
+  }
+
+  const SHOWN_VALUES = 3;
+
+  /** The fields an item was answered from, each with the values found there. */
+  function fieldsOf(record, paths) {
+    return paths
+      .map((path) => {
+        const values = pathValues(record, path);
+        return values.length ? { path, values: values.slice(0, SHOWN_VALUES), more: Math.max(0, values.length - SHOWN_VALUES) } : null;
+      })
+      .filter(Boolean);
   }
 
   function fieldEvidence(states) {
@@ -250,6 +292,43 @@
     save();
   }
 
+  /** Clear an identifier together with the answers it pre-filled; answers the user gave stay. */
+  function clearTarget(check, key, focusId) {
+    const st = stateOf(check);
+    delete st[key];
+    for (const [id, entry] of Object.entries(st.items)) {
+      if (!entry || typeof entry !== "object") continue;
+      if (entry.origin === "prefill") delete st.items[id];
+      else delete entry.prefill;
+    }
+    delete st.target;
+    save();
+    status.check = check.identifier;
+    status.text = FG.t("selfcheck.prefill.cleared");
+    FG.rerender(focusId);
+  }
+
+  /** An identifier field with a visible control that clears it with the answers it pre-filled. */
+  function clearableField(check, input, key, focusId) {
+    return h(
+      "span",
+      { class: "field-clearable" },
+      input,
+      h(
+        "button",
+        {
+          type: "button",
+          class: "field-clear",
+          id: input.id + "-clear",
+          "aria-label": FG.t("selfcheck.prefill.clearLabel"),
+          title: FG.t("selfcheck.prefill.clearLabel"),
+          onclick: () => clearTarget(check, key, focusId),
+        },
+        FG.icon("clear") || "×"
+      )
+    );
+  }
+
   async function runPrefill(check, source, focusId, work) {
     if (status.busy) return;
     status.busy = true;
@@ -273,11 +352,15 @@
       let count = 0;
       try {
         const resolved = await FG.live.resolvePid(pid);
-        count += applyEvidence(check, "resolver", () =>
-          resolved.found
-            ? { value: "yes", notes: resolved.url ? [{ key: "selfcheck.note.resolves", params: { url: resolved.url } }] : [] }
-            : { value: null, notes: [{ key: "selfcheck.note.notResolved" }] },
-          date
+        count += applyEvidence(
+          check,
+          "resolver",
+          () =>
+            resolved.found
+              ? { value: "yes", notes: resolved.url ? [{ key: "selfcheck.note.resolves", params: { url: resolved.url } }] : [] }
+              : { value: null, notes: [{ key: "selfcheck.note.notResolved" }] },
+          date,
+          resolved.url || null
         );
       } catch (error) {
         messages.push(FG.t("selfcheck.prefill.failed", { source: label("resolver") }));
@@ -285,7 +368,15 @@
       if (pid.type !== "doi") return count;
       try {
         const attributes = await FG.live.datacite(pid.value);
-        if (attributes) count += applyEvidence(check, "datacite", (item, fields) => fieldEvidence(fields.map((field) => pathState(attributes, field))), date);
+        const recordUrl = FG.config.links.dataciteRecord ? FG.config.links.dataciteRecord + pid.value : null;
+        if (attributes)
+          count += applyEvidence(
+            check,
+            "datacite",
+            (item, fields) => Object.assign(fieldEvidence(fields.map((field) => pathState(attributes, field))), { fields: fieldsOf(attributes, fields) }),
+            date,
+            recordUrl
+          );
         else messages.push(FG.t("selfcheck.prefill.notFound", { source: label("datacite") }));
       } catch (error) {
         messages.push(FG.t("selfcheck.prefill.failed", { source: label("datacite") }));
@@ -299,7 +390,16 @@
     st.nkr = nkrRecord.id;
     retarget(check, nkrRecord.id ? FG.config.links.nkr + "objects/" + nkrRecord.id : nkrRecord.url || null);
     return runPrefill(check, "nkr", "prefill-nkr-run", async () =>
-      applyEvidence(check, "nkr", (item, fields) => fieldEvidence(fields.map((field) => (field === "@record" ? "present" : pathState(nkrRecord.content, field)))), today())
+      applyEvidence(
+        check,
+        "nkr",
+        (item, fields) =>
+          Object.assign(fieldEvidence(fields.map((field) => (field === "@record" ? "present" : pathState(nkrRecord.content, field)))), {
+            fields: fieldsOf(nkrRecord.content || {}, fields),
+          }),
+        today(),
+        st.target
+      )
     );
   }
 
@@ -345,7 +445,7 @@
           messages.push(FG.t("selfcheck.prefill.failed", { source: label("fip-dashboard") }));
         }
       }
-      return applyEvidence(check, "fip", (item, questions) => Object.assign(fipEvidence(questions, declarations, "principle"), { source }), date);
+      return applyEvidence(check, "fip", (item, questions) => Object.assign(fipEvidence(questions, declarations, "principle"), { source }), date, st.target);
     });
   }
 
@@ -370,7 +470,7 @@
         status: NANOPUB_STATUS[row.relation],
         fer: { name: row.label || row.fer, url: FG.live.httpsIri(row.fer) },
       }));
-      return applyEvidence(check, "fip", (item, questions) => Object.assign(fipEvidence(questions, declarations, "question"), { source: "nanopub" }), today());
+      return applyEvidence(check, "fip", (item, questions) => Object.assign(fipEvidence(questions, declarations, "question"), { source: "nanopub" }), today(), stateOf(check).target);
     });
   }
 
@@ -404,7 +504,12 @@
     return FG.t(note.key, note.params || {});
   }
 
-  /** Where an answer came from: a pre-fill with its source and date, a change by the user, or a shared link. */
+  /** The fields and values an answer was taken from, as "field = value" pairs. */
+  const foundFields = (pre) => FG.list(pre.fields).filter((field) => field && FG.list(field.values).length);
+  const fieldText = (field) => field.path + " = " + field.values.join(", ") + (field.more ? " (+" + field.more + ")" : "");
+
+  /** The evidence beside an item: the verdict of a pre-fill with the values it found, its source, date and record,
+      a change by the user, or a shared link. */
   function origin(st, item) {
     const entry = record(st, item);
     if (!entry) return null;
@@ -417,11 +522,25 @@
       let kind = entry.origin === "prefill" ? "prefilled" : "confirmed";
       if (!pre.value) kind = "suggestion";
       else if (entry.origin === "user" && value !== pre.value) kind = "changed";
+      const verdict =
+        kind === "changed"
+          ? h("span", { class: "verdict", "data-kind": "changed" }, FG.t("selfcheck.evidence.changed"))
+          : pre.value
+            ? stateLabel(ANSWER_STATE[pre.value])
+            : h("span", { class: "verdict", "data-kind": "none" }, FG.t("selfcheck.evidence.none"));
+      const fields = foundFields(pre);
       parts.push(
         h(
           "p",
+          { class: "evidence-head" },
+          verdict,
+          fields.map((field) => [" · ", h("span", { class: "evidence-field" }, h("code", null, field.path), " = ", h("code", null, field.values.join(", ")), field.more ? " (+" + field.more + ")" : "")])
+        ),
+        h(
+          "p",
           { class: "source-chip", "data-origin": kind },
-          FG.t("selfcheck.origin." + kind, Object.assign(params, { value: pre.value ? FG.t("selfcheck.answer." + pre.value) : "" }))
+          FG.t("selfcheck.origin." + kind, Object.assign(params, { value: pre.value ? FG.t("selfcheck.answer." + pre.value) : "" })),
+          pre.record ? [" · ", FG.external(pre.record, FG.t("selfcheck.evidence.record"))] : null
         )
       );
       for (const note of FG.list(pre.notes)) if (note && typeof note === "object") parts.push(h("p", { class: "small" }, noteText(note)));
@@ -504,7 +623,8 @@
       "div",
       { class: "prefill-row" },
       h("label", { for: "prefill-pid" }, FG.t("selfcheck.prefill.pid")),
-      h("div", { class: "inline" }, input, h("button", { type: "button", id: "prefill-pid-run", onclick: run }, FG.t("selfcheck.prefill.pidButton")))
+      h("div", { class: "inline" }, clearableField(check, input, "pid", "prefill-pid"), h("button", { type: "button", id: "prefill-pid-run", onclick: run }, FG.t("selfcheck.prefill.pidButton"))),
+      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.clearHint"))
     );
   }
 
@@ -574,7 +694,8 @@
         "div",
         { class: "prefill-row" },
         h("label", { for: "prefill-nanopub" }, FG.t("selfcheck.prefill.nanopub")),
-        h("div", { class: "inline" }, nanopub, h("button", { type: "button", id: "prefill-nanopub-run", onclick: runNanopub }, FG.t("selfcheck.prefill.nanopubButton")))
+        h("div", { class: "inline" }, clearableField(check, nanopub, "nanopub", "prefill-nanopub"), h("button", { type: "button", id: "prefill-nanopub-run", onclick: runNanopub }, FG.t("selfcheck.prefill.nanopubButton"))),
+        h("p", { class: "small muted" }, FG.t("selfcheck.prefill.clearHint"))
       ),
     ];
   }
@@ -646,7 +767,93 @@
         })
       ),
       h("div", { id: "origin-" + id, class: "origin" }, origin(st, item)),
+      fixAtLine(item),
       basedOn
+    );
+  }
+
+  /** The path step where an item is addressed, named on every item. */
+  function fixAtLine(item) {
+    const station = FG.get(item.fixAt);
+    return station ? h("p", { class: "fix-at small muted" }, FG.t("selfcheck.fixAt", { station: FG.text(station.name) })) : null;
+  }
+
+  const letterOf = (item) => String((FG.refs(item, "about")[0] || {}).termCode || "").charAt(0);
+
+  /** How items are grouped: by FAIR principle by default, or by the path step that addresses them. */
+  function groupingControl() {
+    const current = FG.state.checkGrouping === "steps" ? "steps" : "principles";
+    return h(
+      "fieldset",
+      { class: "grouping no-print" },
+      h("legend", null, FG.t("selfcheck.grouping")),
+      ["principles", "steps"].map((value) =>
+        h(
+          "label",
+          { class: "option", for: "grouping-" + value },
+          h("input", {
+            type: "radio",
+            id: "grouping-" + value,
+            name: "grouping",
+            value,
+            checked: current === value,
+            onchange: () => {
+              FG.state.checkGrouping = value;
+              FG.saveState();
+              FG.rerender("grouping-" + value);
+            },
+          }),
+          FG.t("selfcheck.groupBy." + value)
+        )
+      )
+    );
+  }
+
+  function itemGroups(shown) {
+    if (FG.state.checkGrouping === "steps") {
+      const groups = FG.stations()
+        .map((station) => ({ title: FG.t("selfcheck.fixAt", { station: FG.text(station.name) }), items: shown.filter((item) => FG.id(item.fixAt) === station["@id"]) }))
+        .filter((group) => group.items.length);
+      const loose = shown.filter((item) => !FG.get(item.fixAt));
+      return loose.length ? groups.concat({ title: null, items: loose }) : groups;
+    }
+    const groups = ["F", "A", "I", "R"]
+      .map((letter) => ({
+        title: [h("span", { class: "principle-letter", "data-letter": letter }, letter), " ", FG.t("explorer.group." + letter)],
+        items: shown.filter((item) => letterOf(item) === letter),
+      }))
+      .filter((group) => group.items.length);
+    const loose = shown.filter((item) => !["F", "A", "I", "R"].includes(letterOf(item)));
+    return loose.length ? groups.concat({ title: null, items: loose }) : groups;
+  }
+
+  /** One sentence on what the first view's tier means and how many further items exist, with the control to add them. */
+  function tierInfo(check, st, first, more) {
+    if (!first.length || !more) return null;
+    const tier = FG.get(first[0].tier) || {};
+    return h(
+      "p",
+      { class: "tier-info" },
+      h("strong", null, FG.t("selfcheck.tierCount", { tier: FG.text(tier.name), n: first.length }) + " "),
+      tier.description ? FG.span(tier.description) : null,
+      " ",
+      h(
+        "button",
+        {
+          type: "button",
+          class: "button-link",
+          id: "extended-toggle",
+          "aria-expanded": st.extended ? "true" : "false",
+          onclick: () => {
+            st.extended = !st.extended;
+            save();
+            FG.rerender("extended-toggle");
+          },
+        },
+        st.extended ? FG.t("selfcheck.extendedHide") : FG.t("selfcheck.extendedShow", { n: more })
+      ),
+      " ",
+      h("span", { class: "muted" }, FG.t("selfcheck.extendedNote"))
     );
   }
 
@@ -656,39 +863,14 @@
     /* A check without Minimum or Required items has no short first view and shows every item. */
     const shown = st.extended || !first.length ? all : first;
     const more = first.length ? all.length - first.length : 0;
-    const groups = FG.stations()
-      .map((station) => ({ station, items: shown.filter((item) => FG.id(item.fixAt) === station["@id"]) }))
-      .filter((group) => group.items.length);
-    const loose = shown.filter((item) => !FG.get(item.fixAt));
     return h(
       "div",
       { class: "items no-print" },
-      groups.map((group) =>
-        h("section", { class: "item-group" }, h("h2", null, FG.t("selfcheck.fixAt", { station: FG.text(group.station.name) })), group.items.map((item) => itemField(check, st, item)))
-      ),
-      loose.map((item) => itemField(check, st, item)),
-      more
-        ? h(
-            "p",
-            { class: "extended" },
-            h(
-              "button",
-              {
-                type: "button",
-                id: "extended-toggle",
-                "aria-expanded": st.extended ? "true" : "false",
-                onclick: () => {
-                  st.extended = !st.extended;
-                  save();
-                  FG.rerender("extended-toggle");
-                },
-              },
-              st.extended ? FG.t("selfcheck.extendedHide") : FG.t("selfcheck.extendedShow", { n: more })
-            ),
-            " ",
-            h("span", { class: "small muted" }, FG.t("selfcheck.extendedNote"))
-          )
-        : null
+      tierInfo(check, st, first, more),
+      groupingControl(),
+      itemGroups(shown).map((group) =>
+        h("section", { class: "item-group" }, group.title ? h("h2", null, group.title) : null, group.items.map((item) => itemField(check, st, item)))
+      )
     );
   }
 
@@ -768,6 +950,19 @@
     return "";
   }
 
+  /** The evidence of an answer in one line, for the summary and the exported result set. */
+  function evidenceText(st, item) {
+    const entry = record(st, item);
+    const pre = entry && entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
+    if (!pre) return "";
+    const fers = FG.list(pre.list).filter((fer) => fer && fer.name).map((fer) => String(fer.name));
+    return foundFields(pre)
+      .map(fieldText)
+      .concat(fers.length ? [FG.t("selfcheck.note.declared") + ": " + fers.join(", ")] : [])
+      .concat(pre.record ? [pre.record] : [])
+      .join("; ");
+  }
+
   function stateTable(check, st) {
     if (profilesOf(check).length) {
       return table(
@@ -776,23 +971,29 @@
         applicable(check, st).map((item) => [[item.identifier, " ", FG.span(item.text), " ", h("span", { class: "badge" }, FG.termName(FG.id(item.tier)))], stateLabel(itemState(st, item))])
       );
     }
-    return table(
-      FG.t("selfcheck.result.principles"),
-      [FG.t("selfcheck.result.principle"), FG.t("selfcheck.result.state"), FG.t("selfcheck.result.answered")],
-      principleRows(check, st).map((row) => [
-        h("a", { href: FG.href("explorer", row.principle.termCode) }, row.principle.termCode + " ", FG.span(row.principle.name)),
-        stateLabel(row.state),
-        FG.t("selfcheck.result.ofTotal", { n: row.answered, total: row.total }),
-      ])
-    );
+    return [
+      h("h3", null, FG.t("selfcheck.result.principles")),
+      h(
+        "ul",
+        { class: "principle-grid" },
+        principleRows(check, st).map((row) =>
+          h(
+            "li",
+            { class: "principle-cell", "data-state": row.state },
+            h("a", { href: FG.href("explorer", row.principle.termCode) }, h("strong", null, row.principle.termCode), " ", FG.span(row.principle.name)),
+            stateLabel(row.state),
+            h("span", { class: "small muted" }, FG.t("selfcheck.result.ofTotal", { n: row.answered, total: row.total }))
+          )
+        )
+      ),
+    ];
   }
 
   function results(check, st) {
-    const items = answerable(check, st);
+    const items = resultItems(check, st);
     const answered = items.filter((item) => answerOf(st, item)).length;
     const { gaps, tasks } = outcomes(check, st);
     return [
-      h("h2", { id: "results-title" }, FG.t("selfcheck.result.title")),
       h("p", null, FG.t("selfcheck.progress", { n: answered, total: items.length })),
       st.target ? h("p", { class: "small" }, FG.t("selfcheck.target", { target: st.target })) : null,
       h("p", { class: "small" }, FG.t("selfcheck.result.advisory")),
@@ -809,8 +1010,8 @@
           { class: "content" },
           table(
             FG.t("selfcheck.result.answers"),
-            [FG.t("selfcheck.result.item"), FG.t("selfcheck.result.answer"), FG.t("selfcheck.result.source")],
-            items.map((item) => [[item.identifier, " ", FG.span(item.text)], answerText(st, item), sourceText(st, item)])
+            [FG.t("selfcheck.result.item"), FG.t("selfcheck.result.answer"), FG.t("selfcheck.result.source"), FG.t("selfcheck.result.evidence")],
+            items.map((item) => [[item.identifier, " ", FG.span(item.text)], answerText(st, item), sourceText(st, item), evidenceText(st, item)])
           )
         )
       ),
@@ -823,7 +1024,7 @@
   const escapeMarkdown = (value) => String(value).replace(/([\\|[\]<>*_`#])/g, "\\$1");
 
   function markdown(check, st) {
-    const items = answerable(check, st);
+    const items = resultItems(check, st);
     const { gaps, tasks } = outcomes(check, st);
     const lines = ["# " + escapeMarkdown(FG.text(check.name)) + " (" + FG.formatDate(today()) + ")", ""];
     if (st.target) lines.push(escapeMarkdown(FG.t("selfcheck.target", { target: st.target })), "");
@@ -852,8 +1053,14 @@
         lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}${ask.names.length ? ". " + FG.t("selfcheck.result.ask", { whom: ask.names.join(", ") }) : ""}${lookup ? ` ([${FG.t("selfcheck.result.lookup")}](${lookup}))` : ""}`);
       }
     }
-    lines.push("", "## " + FG.t("selfcheck.result.answers"), "", row([FG.t("selfcheck.result.item"), FG.t("selfcheck.result.answer"), FG.t("selfcheck.result.source")]), "| --- | --- | --- |");
-    for (const item of items) lines.push(row([item.identifier + " " + FG.text(item.text), answerText(st, item), sourceText(st, item)]));
+    lines.push(
+      "",
+      "## " + FG.t("selfcheck.result.answers"),
+      "",
+      row([FG.t("selfcheck.result.item"), FG.t("selfcheck.result.answer"), FG.t("selfcheck.result.source"), FG.t("selfcheck.result.evidence")]),
+      "| --- | --- | --- | --- |"
+    );
+    for (const item of items) lines.push(row([item.identifier + " " + FG.text(item.text), answerText(st, item), sourceText(st, item), evidenceText(st, item)]));
     lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${pageBase()}`, "");
     return lines.join("\n");
   }
@@ -862,8 +1069,15 @@
     const parts = [FG.t("selfcheck.result.answer") + ": " + answerText(st, item)];
     const source = sourceText(st, item);
     if (source) parts.push(source);
+    const found = evidenceText(st, item);
+    if (found) parts.push(FG.t("selfcheck.result.evidence") + ": " + found);
     return parts.join("; ");
   }
+
+  const recordOf = (st, item) => {
+    const entry = record(st, item);
+    return entry && entry.prefill && typeof entry.prefill === "object" && entry.prefill.record ? entry.prefill.record : null;
+  };
 
   /** The result as an FTR test result set in a small RO-Crate. Self-check answers and live test verdicts share it. */
   SC.ftrCrate = function (check, st) {
@@ -886,6 +1100,7 @@
         "ftr:outputFromTest": { "@id": testId },
         "ftr:assessmentTarget": target,
         "ftr:log": logLine(st, item),
+        "prov:used": recordOf(st, item) ? { "@id": recordOf(st, item) } : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
       });
       tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: item.identifier + ": " + FG.text(item.text) });
@@ -948,7 +1163,9 @@
       ...members,
       ...tests,
     ];
-    if (target) graph.push({ "@id": st.target, "@type": "CreativeWork", name: st.target });
+    const records = new Set(members.map((member) => member["prov:used"] && member["prov:used"]["@id"]).filter(Boolean));
+    if (target) records.add(st.target);
+    for (const id of records) graph.push({ "@id": id, "@type": "CreativeWork", name: id });
     return {
       "@context": [
         vocab.roCrate + "/context",
@@ -1108,8 +1325,33 @@
           h("a", { class: "button", href: FG.href("check", check.identifier) }, FG.t("selfcheck.export.keepOwn"))
         )
       ),
-      h("section", { class: "results", "aria-labelledby": "results-title" }, results(check, shared)),
+      h("section", { class: "results", "aria-labelledby": "results-title" }, h("h2", { id: "results-title" }, FG.t("selfcheck.result.title")), results(check, shared)),
     ];
+  }
+
+  /** The result beside the questions; it can be collapsed, and the choice is remembered in the browser. */
+  function resultPanel(check, st) {
+    const collapsed = Boolean(FG.state.resultCollapsed);
+    const toggle = () => {
+      FG.state.resultCollapsed = !collapsed;
+      FG.saveState();
+      FG.rerender("result-toggle");
+    };
+    return h(
+      "aside",
+      { class: "check-result", "aria-labelledby": "results-title" },
+      h(
+        "div",
+        { class: "result-head" },
+        h("h2", { id: "results-title" }, FG.t("selfcheck.result.title")),
+        h(
+          "button",
+          { type: "button", class: "button-link no-print", id: "result-toggle", "aria-expanded": String(!collapsed), "aria-controls": "result-body", onclick: toggle },
+          FG.t(collapsed ? "selfcheck.result.show" : "selfcheck.result.hide")
+        )
+      ),
+      h("div", { id: "result-body", hidden: collapsed }, h("section", { id: "results", class: "results" }, results(check, st)), exportSection(check, st))
+    );
   }
 
   function checkView(route) {
@@ -1123,19 +1365,18 @@
     ];
     if (route.extra) return h("div", { class: "layout wrap selfcheck" }, h("article", null, head, sharedView(check, route.extra)));
     const st = stateOf(check);
-    const isReady = ready(check, st);
+    if (!ready(check, st)) {
+      return h("div", { class: "layout wrap selfcheck" }, h("article", null, head, h("div", { class: "no-print" }, settings(check, st)), h("p", { class: "notice" }, FG.t("selfcheck.chooseFirst"))));
+    }
     return h(
       "div",
-      { class: "layout wrap selfcheck" },
+      { class: "wrap selfcheck check-view" },
+      h("header", { class: "check-head" }, head),
       h(
-        "article",
-        null,
-        head,
-        h("div", { class: "no-print" }, settings(check, st)),
-        isReady ? prefillPanel(check, st) : h("p", { class: "notice" }, FG.t("selfcheck.chooseFirst")),
-        isReady ? itemsSection(check, st) : null,
-        isReady ? h("section", { id: "results", class: "results", "aria-labelledby": "results-title" }, results(check, st)) : null,
-        isReady ? exportSection(check, st) : null
+        "div",
+        { class: "check-split" + (FG.state.resultCollapsed ? " result-collapsed" : "") },
+        h("article", { class: "check-main" }, h("div", { class: "no-print" }, settings(check, st)), prefillPanel(check, st), itemsSection(check, st)),
+        resultPanel(check, st)
       )
     );
   }

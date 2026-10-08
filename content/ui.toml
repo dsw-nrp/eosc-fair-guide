@@ -169,6 +169,8 @@ extendedHide = { cs = "Zobrazit jen základní položky", en = "Show the basic i
 extendedNote = { cs = "Odpovědi, které jste už dali, zůstávají.", en = "Answers you have already given are kept." }
 basedOn = { cs = "Na čem položka stojí", en = "What this item is based on" }
 fixAt = { cs = "Řeší se v kroku: {station}", en = "Addressed at the step: {station}" }
+grouping = { cs = "Seskupit", en = "Group" }
+tierCount = { cs = "{tier} ({n}):", en = "{tier} ({n}):" }
 reset = { cs = "Smazat odpovědi této kontroly", en = "Clear the answers of this check" }
 target = { cs = "Posuzováno: {target}", en = "Assessed: {target}" }
 gapsHere = { cs = "Otevřené položky ze sebehodnocení: {n}", en = "Open self-check items: {n}" }
@@ -203,6 +205,9 @@ working = { cs = "Načítám údaje, zdroj: {source}…", en = "Loading data fro
 done = { cs = "Předvyplněno, zdroj: {source}. Předvyplněných položek: {n}. Zkontrolujte odpovědi; můžete je změnit.", en = "Pre-filled from {source}. Items pre-filled: {n}. Check the answers; you can change them." }
 failed = { cs = "Zdroj {source} se nepodařilo použít. Odpovězte ručně, nebo to zkuste později.", en = "{source} could not be used. Answer by hand or try again later." }
 notFound = { cs = "Zdroj {source} tento identifikátor nezná.", en = "{source} does not know this identifier." }
+clearLabel = { cs = "Smazat identifikátor a jím předvyplněné odpovědi", en = "Clear the identifier and the answers it pre-filled" }
+clearHint = { cs = "Křížkem smažete identifikátor i odpovědi, které předvyplnil; vaše vlastní odpovědi zůstanou.", en = "The cross clears the identifier and the answers it pre-filled; your own answers stay." }
+cleared = { cs = "Identifikátor a jím předvyplněné odpovědi jsou smazané; vaše vlastní odpovědi zůstaly.", en = "The identifier and the answers it pre-filled are cleared; your own answers stay." }
 
 [selfcheck.source]
 datacite = { cs = "DataCite", en = "DataCite" }
@@ -258,6 +263,18 @@ unanswered = { cs = "bez odpovědi", en = "not answered" }
 item = { cs = "Položka", en = "Item" }
 answer = { cs = "Odpověď", en = "Answer" }
 source = { cs = "Zdroj", en = "Source" }
+evidence = { cs = "Doklad", en = "Evidence" }
+show = { cs = "Zobrazit výsledek", en = "Show the result" }
+hide = { cs = "Skrýt výsledek", en = "Hide the result" }
+
+[selfcheck.groupBy]
+principles = { cs = "podle FAIR principů", en = "by FAIR principle" }
+steps = { cs = "podle kroků cesty", en = "by path step" }
+
+[selfcheck.evidence]
+changed = { cs = "změněno vámi", en = "changed by you" }
+none = { cs = "bez dokladu", en = "no evidence" }
+record = { cs = "záznam", en = "record" }
 
 [selfcheck.state]
 met = { cs = "splněno", en = "met" }

@@ -155,7 +155,7 @@
     },
   };
 
-  FG.state = { lang: "cs", lens: "V", answers: {}, started: false, entryStation: null, lastStation: null, lastVisit: null };
+  FG.state = { lang: "cs", lens: "V", answers: {}, started: false, entryStation: null, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false };
 
   /** Disclosure levels the user opened (L1, L2, L3, ai); kept while the page is open, so switching lens keeps them. */
   FG.openLevels = new Set();
@@ -169,6 +169,8 @@
       entryStation: FG.state.entryStation,
       lastStation: FG.state.lastStation,
       lastVisit: FG.state.lastVisit,
+      checkGrouping: FG.state.checkGrouping,
+      resultCollapsed: FG.state.resultCollapsed,
     });
   };
 

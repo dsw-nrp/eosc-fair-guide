@@ -255,18 +255,22 @@ name = { cs = "výhledové", en = "prospective" }
 [[tier]]
 id = "minimum"
 name = { cs = "Minimum", en = "Minimum" }
+description = { cs = "minimum pro zapojení do Národní datové infrastruktury podle Analýzy FAIR.", en = "the minimum for joining the National Data Infrastructure under the FAIR analysis." }
 
 [[tier]]
 id = "recommended"
 name = { cs = "Doporučeno", en = "Recommended" }
+description = { cs = "co analýza doporučuje nad rámec minima.", en = "what the analysis recommends beyond the minimum." }
 
 [[tier]]
 id = "advanced"
 name = { cs = "Pokročilé", en = "Advanced" }
+description = { cs = "pokročilá praxe pro vysokou zralost FAIR.", en = "advanced practice for high FAIR maturity." }
 
 [[tier]]
 id = "required"
 name = { cs = "Povinné", en = "Required" }
+description = { cs = "podmínky NRP, které repozitář musí splnit, aby se mohl zapojit.", en = "the NRP conditions a repository must meet to join." }
 
 [[resourceType]]
 id = "service"

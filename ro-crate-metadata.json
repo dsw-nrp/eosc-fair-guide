@@ -2286,6 +2286,16 @@
           "@language": "en"
         }
       ],
+      "description": [
+        {
+          "@value": "minimum pro zapojení do Národní datové infrastruktury podle Analýzy FAIR.",
+          "@language": "cs"
+        },
+        {
+          "@value": "the minimum for joining the National Data Infrastructure under the FAIR analysis.",
+          "@language": "en"
+        }
+      ],
       "inDefinedTermSet": {
         "@id": "#tiers"
       }
@@ -2301,6 +2311,16 @@
         },
         {
           "@value": "Recommended",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "co analýza doporučuje nad rámec minima.",
+          "@language": "cs"
+        },
+        {
+          "@value": "what the analysis recommends beyond the minimum.",
           "@language": "en"
         }
       ],
@@ -2322,6 +2342,16 @@
           "@language": "en"
         }
       ],
+      "description": [
+        {
+          "@value": "pokročilá praxe pro vysokou zralost FAIR.",
+          "@language": "cs"
+        },
+        {
+          "@value": "advanced practice for high FAIR maturity.",
+          "@language": "en"
+        }
+      ],
       "inDefinedTermSet": {
         "@id": "#tiers"
       }
@@ -2337,6 +2367,16 @@
         },
         {
           "@value": "Required",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "podmínky NRP, které repozitář musí splnit, aby se mohl zapojit.",
+          "@language": "cs"
+        },
+        {
+          "@value": "the NRP conditions a repository must meet to join.",
           "@language": "en"
         }
       ],

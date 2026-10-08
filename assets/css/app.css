@@ -1409,8 +1409,21 @@ main p > button {
   overflow-wrap: anywhere;
 }
 
+/* The evidence beside an item: the verdict with the values found, then the source, date and record. */
+.origin {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border);
+  background: var(--surface);
+  font-size: var(--size-small);
+}
+
 .origin:empty {
   display: none;
+}
+
+.origin p {
+  margin: var(--space-1) 0;
 }
 
 .origin li {
@@ -1418,23 +1431,198 @@ main p > button {
   line-height: 1.6;
 }
 
+.evidence-head code {
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+
+.verdict[data-kind="changed"] {
+  color: var(--tint-pink);
+  font-weight: 700;
+}
+
+.verdict[data-kind="changed"]::before {
+  content: "✎ ";
+}
+
+.verdict[data-kind="none"] {
+  font-weight: 700;
+}
+
+.verdict[data-kind="none"]::before {
+  content: "? ";
+}
+
 .source-chip {
-  display: inline-block;
-  margin: var(--space-1) 0;
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  background: var(--surface);
-  font-size: var(--size-small);
+  color: var(--text-muted);
 }
 
 .source-chip[data-origin="changed"] {
+  color: var(--text);
+}
+
+.fix-at {
+  margin: var(--space-2) 0 0;
+}
+
+/* The check: questions beside a result that updates as the user answers; the result follows on narrow screens. */
+.check-view {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-7);
+}
+
+.check-split {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 60rem) {
+  .check-split {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .check-split.result-collapsed {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .check-result {
+    position: sticky;
+    top: var(--space-4);
+    max-height: calc(100vh - 2 * var(--space-4));
+    overflow-y: auto;
+  }
+}
+
+.check-main {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.check-result {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  overflow-wrap: anywhere;
+}
+
+.result-collapsed .check-result {
+  padding: var(--space-2) var(--space-3);
+}
+
+.result-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+}
+
+.result-head h2 {
+  margin: 0;
+  font-size: var(--size-h3);
+}
+
+.tier-info {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.grouping {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-4);
+  border: 0;
+  margin: var(--space-3) 0;
+  padding: 0;
+  font-size: var(--size-small);
+}
+
+.grouping legend {
+  float: left;
+  margin-right: var(--space-3);
+  padding: 0;
+}
+
+.item-group h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--size-h3);
+}
+
+.item-group h2 .principle-letter {
+  border-radius: var(--radius);
+  min-height: 1.6em;
+}
+
+/* The state per principle as a grid of cells. */
+.principle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+}
+
+.principle-cell {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: var(--size-small);
+}
+
+.principle-cell[data-state="met"] {
+  border-color: var(--tint-teal);
+}
+
+.principle-cell[data-state="gap"] {
   border-color: var(--tint-pink);
   border-width: 2px;
 }
 
-.source-chip[data-origin="changed"]::before {
-  content: "✎ ";
+.principle-cell a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* An identifier field with its clear control inside. */
+.field-clearable {
+  position: relative;
+  display: inline-flex;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.field-clearable input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-right: 2.75rem;
+}
+
+.field-clear {
+  position: absolute;
+  top: 50%;
+  right: var(--space-1);
+  transform: translateY(-50%);
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+}
+
+.field-clear:hover {
+  color: var(--tint-pink);
+  background: none;
 }
 
 .prefill {

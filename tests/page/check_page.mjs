@@ -245,6 +245,62 @@ async function axe(page, label) {
   await page.locator("#extended-toggle").click();
   if (!(await page.locator("#item-D06").count())) fail("dataset check: the extended check does not show Recommended items");
   if (!(await checked("answer-D04-no"))) fail("dataset check: opening the extended check lost an answer");
+  await page.locator("#extended-toggle").click();
+
+  // The first view says what its tier means; items are grouped by FAIR principle, can be grouped by path step, and
+  // each names the step where it is addressed.
+  const tierInfo = await page.locator(".tier-info").textContent();
+  if (!tierInfo.includes("Minimum (") || !tierInfo.includes("Národní datové infrastruktury")) fail("dataset check: the first view does not explain its tier: " + tierInfo);
+  const minimumCount = (tierInfo.match(/Minimum \((\d+)\)/) || [])[1];
+  if (!(await page.locator("#results p").first().textContent()).endsWith("z " + minimumCount)) fail("dataset check: the result counts items the first view does not show");
+  if (!(await page.locator(".item-group h2").first().textContent()).includes("Dohledatelnost")) fail("dataset check: items are not grouped by FAIR principle by default");
+  if (!(await page.locator("#item-D04 .fix-at").textContent()).includes("Licence")) fail("dataset check: an item does not name the step where it is addressed");
+  await page.locator("#grouping-steps").check();
+  if (!(await page.locator(".item-group h2").first().textContent()).includes("Řeší se v kroku")) fail("dataset check: grouping by path step does not work");
+  await page.locator("#grouping-principles").check();
+
+  // The result stands beside the questions and shows the licence gap at once; it can be collapsed, and the choice
+  // survives a reload.
+  const mainBox = await page.locator(".check-main").boundingBox();
+  const resultBox = await page.locator(".check-result").boundingBox();
+  if (!(resultBox.x > mainBox.x + mainBox.width / 2)) fail("dataset check: the result is not beside the questions");
+  await page.locator("#item-D04").scrollIntoViewIfNeeded();
+  const gapCell = page.locator('.principle-cell[data-state="gap"]', { hasText: "R1.1" });
+  const gapBox = await gapCell.boundingBox();
+  if (!gapBox || gapBox.y < 0 || gapBox.y + gapBox.height > (await page.evaluate(() => window.innerHeight))) fail("dataset check: the R1.1 gap is not in view beside the item");
+  await page.locator("#result-toggle").click();
+  if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the result panel does not collapse");
+  await page.reload();
+  await page.waitForSelector("#result-toggle");
+  if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the collapsed result panel is not remembered");
+  else await page.locator("#result-toggle").click();
+  if (!(await page.locator("#result-body").isVisible())) fail("dataset check: the result panel does not open again");
+
+  // Evidence beside the criterion: the field and value found, the source, the date and a link to the record; the
+  // same evidence is in the Markdown summary. Clearing the identifier removes what it pre-filled and keeps the
+  // user's own answers.
+  await page.evaluate(() => {
+    const FG = window.FairGuide;
+    const st = FG.state.answers.dataset;
+    st.pid = "10.5281/zenodo.1";
+    st.target = "https://doi.org/10.5281/zenodo.1";
+    st.items.D02 = {
+      value: "yes",
+      origin: "prefill",
+      prefill: { source: "resolver", date: "2026-10-08", value: "yes", notes: [], list: [], fields: [{ path: "url", values: ["https://repo.example/record/1"], more: 0 }], record: "https://repo.example/record/1" },
+    };
+    FG.saveState();
+    FG.rerender();
+  });
+  const evidence = await page.locator("#origin-D02").textContent();
+  if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside D02 is incomplete: " + evidence);
+  if ((await page.locator("#origin-D02 a").getAttribute("href")) !== "https://repo.example/record/1") fail("dataset check: the evidence does not link to its record");
+  await page.getByRole("button", { name: "Shrnutí v Markdownu" }).click();
+  if (!(await page.locator("#markdown-text").inputValue()).includes("url = https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
+  await page.locator("#prefill-pid-clear").click();
+  if (await page.locator('input[name="answer-D02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
+  if (!(await checked("answer-D01-yes")) || !(await checked("answer-D04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
+  if (await page.locator("#prefill-pid").inputValue()) fail("dataset check: clearing did not empty the identifier field");
 
   // The path marks the stations with open items.
   await go("#/cs/V/path/licence");
@@ -430,6 +486,9 @@ async function axe(page, label) {
   if (!set || set["prov:hadMember"].length !== results.length || !results.length) fail("export: the result set does not hold the results");
   if (!set || !String((set["ftr:assessmentTarget"] || {})["@id"]).includes("/profiles/ndi-baseline")) fail("export: the assessment target is not the chosen profile");
   if (results.some((result) => !["pass", "fail", "indeterminate"].includes(result["prov:value"]))) fail("export: a result has an unexpected value");
+  const k01 = results.find((result) => result["@id"] === "#result-K01") || {};
+  if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the K01 result does not record its evidence: " + JSON.stringify(k01));
+  if (!md.includes("Doklad")) fail("export: the Markdown summary has no evidence column");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
 
   // Reflow of a check at 320 CSS pixels.

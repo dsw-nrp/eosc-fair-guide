@@ -550,7 +550,15 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 
 - The split view, the evidence line beside each criterion, the grid of principles in the result and the
   explanation of the basic tier stay as prototyped.
-- The result panel can be collapsed; the choice is remembered in the browser.
+- The result panel can be collapsed; the choice is remembered in the browser, as is the grouping (by FAIR
+  principle by default, or by path step). Every item names the step where it is addressed.
+- The result covers the items the view shows, every item once the check is extended, and any item answered, so an
+  answer to an extended item still counts after returning to the basic items.
+- A pre-fill records the fields it read with the values found (at most three per field) and a link to the record:
+  the DataCite Commons page, the resolved landing page, the NKR record or the FIP profile. The same evidence is in
+  the Markdown summary and in each exported test result (its log and `prov:used`).
+- Each identifier field has a clear control that removes the identifier with the answers it pre-filled and keeps
+  the answers the user gave.
 
 ### Answers that stay in the browser, and can travel
 
