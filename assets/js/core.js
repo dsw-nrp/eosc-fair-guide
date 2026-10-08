@@ -153,6 +153,13 @@
         /* Storage can be unavailable (private windows, blocked site data); the guide works without it. */
       }
     },
+    remove() {
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch (error) {
+        /* Nothing to remove when storage is unavailable. */
+      }
+    },
   };
 
   FG.state = { lang: "cs", lens: "V", answers: {}, started: false, entryStation: null, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false };
@@ -160,7 +167,28 @@
   /** Disclosure levels the user opened (L1, L2, L3, ai); kept while the page is open, so switching lens keeps them. */
   FG.openLevels = new Set();
 
+  /** Whether the state holds nothing worth keeping: language and lens come from the address anyway. */
+  const isEmptyState = (state) =>
+    !Object.keys(state.answers || {}).length &&
+    !state.started &&
+    !state.entryStation &&
+    !state.lastStation &&
+    !state.lastVisit &&
+    state.checkGrouping !== "steps" &&
+    !state.resultCollapsed;
+
+  /** Remove everything the guide stores in this browser and start from an empty state. */
+  FG.clearStoredData = function () {
+    Object.assign(FG.state, { answers: {}, started: false, entryStation: null, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false });
+    FG.openLevels.clear();
+    FG.storage.remove();
+  };
+
   FG.saveState = function () {
+    if (isEmptyState(FG.state)) {
+      FG.storage.remove();
+      return;
+    }
     FG.storage.write({
       lang: FG.state.lang,
       lens: FG.state.lens,

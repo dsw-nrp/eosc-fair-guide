@@ -223,8 +223,9 @@ shared = { cs = "sdílený odkaz", en = "a shared link" }
 prefilled = { cs = "Předvyplněno, zdroj: {source}, {date}", en = "Pre-filled from {source}, {date}" }
 confirmed = { cs = "Potvrzeno vámi, zdroj: {source}, {date}", en = "Confirmed by you, from {source}, {date}" }
 changed = { cs = "Změněno vámi; zdroj {source} navrhoval: {value} ({date})", en = "Changed by you; {source} suggested: {value} ({date})" }
+differs = { cs = "Odpověď se liší od návrhu; zdroj {source} navrhoval: {value} ({date})", en = "The answer differs from the suggestion; {source} suggested: {value} ({date})" }
 suggestion = { cs = "Zdroj {source} ({date}) odpověď nenavrhl.", en = "{source} ({date}) suggested no answer." }
-shared = { cs = "Ze sdíleného odkazu", en = "From a shared link" }
+shared = { cs = "Převzato ze sdíleného výsledku", en = "Taken from a shared result" }
 
 [selfcheck.note]
 notInSource = { cs = "Záznam tuto informaci neuvádí; odpovězte podle toho, co víte.", en = "The record does not state this; answer from what you know." }
@@ -273,6 +274,7 @@ steps = { cs = "podle kroků cesty", en = "by path step" }
 
 [selfcheck.evidence]
 changed = { cs = "změněno vámi", en = "changed by you" }
+differs = { cs = "liší se od návrhu", en = "differs from the suggestion" }
 none = { cs = "bez dokladu", en = "no evidence" }
 record = { cs = "záznam", en = "record" }
 
@@ -283,6 +285,13 @@ gap = { cs = "mezera", en = "gap" }
 unknown = { cs = "zjistit", en = "to find out" }
 open = { cs = "neposouzeno", en = "not assessed" }
 provided = { cs = "zajišťuje NRP", en = "provided by NRP" }
+
+[selfcheck.load]
+label = { cs = "Načíst uložený výsledek (JSON-LD nebo Markdown z průvodce)", en = "Load a saved result (JSON-LD or Markdown from the guide)" }
+refused = { cs = "Tento soubor průvodce nevytvořil nebo ho nelze přečíst.", en = "The guide did not make this file, or it cannot be read." }
+banner = { cs = "Otevřeli jste výsledek ze souboru. Vaše vlastní odpovědi zatím zůstávají beze změny.", en = "You opened a result from a file. Your own answers stay unchanged for now." }
+use = { cs = "Použít odpovědi ze souboru", en = "Use the answers from the file" }
+gone = { cs = "Náhled souboru už není k dispozici; načtěte soubor znovu.", en = "The file preview is no longer available; load the file again." }
 
 [selfcheck.export]
 title = { cs = "Uložit a sdílet", en = "Save and share" }
@@ -337,6 +346,23 @@ editor = { cs = "Sestavení a vývoj průvodce (editor)", en = "Compilation and 
 review = { cs = "Redakční kontrola", en = "Editorial review" }
 tools = { cs = "Nástroje použité při přípravě, včetně AI", en = "Tools used in preparation, AI included" }
 funding = { cs = "Financování", en = "Funding" }
+
+[localData]
+statement = { cs = "Vaše odpovědi zůstávají jen v tomto prohlížeči. Přenést je můžete jako soubor nebo odkaz.", en = "Your answers stay in this browser only. You can move them as a file or a link." }
+how = { cs = "Jak to funguje", en = "How it works" }
+storedTitle = { cs = "Co se ukládá", en = "What is stored" }
+stored = { cs = "odpovědi v kontrolách, zvolený režim nebo profil, zadané identifikátory a nalezené doklady, a také zvolená fáze a nastavení zobrazení.", en = "the answers in the checks, the chosen mode or profile, the identifiers entered and the evidence found, and the chosen stage and display settings." }
+whereTitle = { cs = "Kde", en = "Where" }
+where = { cs = "v úložišti tohoto prohlížeče, jen pro tuto stránku. Jiné prohlížeče a zařízení je nevidí a anonymní okno je po zavření zapomene.", en = "in this browser's storage, for this site only. Other browsers and devices do not see it, and a private window forgets it when closed." }
+sentTitle = { cs = "Co odchází", en = "What is sent" }
+sent = { cs = "nic. Jen když spustíte vyhledání, pošle průvodce zadaný identifikátor jmenované službě, například DataCite.", en = "nothing. Only when you start a lookup does the guide send the identifier you entered to the service named, such as DataCite." }
+moveTitle = { cs = "Jak je přenést", en = "How to move them" }
+move = { cs = "stáhněte výsledek jako JSON-LD nebo Markdown a načtěte ho v jiném prohlížeči, nebo vytvořte odkaz s odpověďmi. Načtený výsledek se otevře jako náhled a vaše odpovědi nahradí, jen když o to požádáte.", en = "download the result as JSON-LD or Markdown and load it in another browser, or create a link with your answers. A loaded result opens as a preview and replaces your answers only when you ask." }
+deleteTitle = { cs = "Jak je smazat", en = "How to delete them" }
+delete = { cs = "tlačítkem níže smažete vše, co průvodce v tomto prohlížeči uložil.", en = "the button below deletes everything the guide stored in this browser." }
+deleteAll = { cs = "Smazat vše, co průvodce uložil", en = "Delete everything the guide stored" }
+confirm = { cs = "Smazat všechny odpovědi a nastavení, které průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the guide stored in this browser? This cannot be undone." }
+deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the guide stored in this browser is deleted." }
 
 [common]
 newWindow = { cs = "otevře se v nové kartě", en = "opens in a new tab" }

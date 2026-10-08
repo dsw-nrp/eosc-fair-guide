@@ -21,6 +21,10 @@
     "declares-planned-use-of": "planned",
     "declares-planned-replacement-of": "to-be-replaced",
   };
+  const STATE_VERSION = 1;
+  const MAX_FILE = 2 * 1024 * 1024;
+  const SOURCES = ["datacite", "resolver", "nkr", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared"];
+  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved"];
   const LENS_ACTOR = { V: "#actor-user", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
   const status = { check: null, text: "", busy: false };
 
@@ -522,9 +526,11 @@
       let kind = entry.origin === "prefill" ? "prefilled" : "confirmed";
       if (!pre.value) kind = "suggestion";
       else if (entry.origin === "user" && value !== pre.value) kind = "changed";
+      /* An answer taken from someone else's result was not confirmed or changed by this user. */
+      else if (entry.origin === "shared") kind = value !== pre.value ? "differs" : "prefilled";
       const verdict =
-        kind === "changed"
-          ? h("span", { class: "verdict", "data-kind": "changed" }, FG.t("selfcheck.evidence.changed"))
+        kind === "changed" || kind === "differs"
+          ? h("span", { class: "verdict", "data-kind": "changed" }, FG.t("selfcheck.evidence." + kind))
           : pre.value
             ? stateLabel(ANSWER_STATE[pre.value])
             : h("span", { class: "verdict", "data-kind": "none" }, FG.t("selfcheck.evidence.none"));
@@ -1062,6 +1068,8 @@
     );
     for (const item of items) lines.push(row([item.identifier + " " + FG.text(item.text), answerText(st, item), sourceText(st, item), evidenceText(st, item)]));
     lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${pageBase()}`, "");
+    /* The same compact payload as a shared link, hidden from readers, so the summary can be loaded back. */
+    lines.push(`<!-- fair-guide-result: ${check.identifier} ${SC.sharePayload(check, st)} -->`, "");
     return lines.join("\n");
   }
 
@@ -1133,8 +1141,11 @@
         datePublished: now.slice(0, 10),
         license: { "@id": "#license" },
         isBasedOn: { "@id": guideCrate },
+        about: { "@id": guideCrate + "#check-" + check.identifier },
         mentions: { "@id": "#result-set" },
+        guideState: JSON.stringify(SC.portableState(check, st)),
       },
+      { "@id": guideCrate + "#check-" + check.identifier, "@type": "CreativeWork", name: FG.text(check.name) },
       { "@id": "#license", "@type": "CreativeWork", name: FG.t("selfcheck.export.licenseName"), description: FG.t("selfcheck.export.licenseText") },
       {
         "@id": guideCrate,
@@ -1175,11 +1186,149 @@
           TestResultSet: vocab.ftr + "TestResultSet",
           TestResult: vocab.ftr + "TestResult",
           TestExecutionActivity: vocab.ftr + "TestExecutionActivity",
+          guideState: vocab.guide + "guideState",
         },
       ],
       "@graph": graph,
     };
   };
+
+  /* ---------------------------------------------------------------- portable results */
+
+  /** A check's answers, mode or profile, target and evidence, as carried by the JSON-LD export. */
+  SC.portableState = function (check, st) {
+    const items = {};
+    for (const item of itemsOf(check)) {
+      const entry = record(st, item);
+      if (!entry || (!answerOf(st, item) && !entry.prefill)) continue;
+      items[item.identifier] = { value: answerOf(st, item), origin: entry.origin || null, prefill: entry.prefill || null };
+    }
+    return { v: STATE_VERSION, check: check.identifier, mode: st.mode || null, profile: st.profile || null, target: st.target || null, pid: st.pid || null, items };
+  };
+
+  const isText = (value, max) => typeof value === "string" && value.length <= max;
+  const webUrl = (value) => (isText(value, 2000) && /^https?:\/\/[^\s]+$/.test(value) ? value : null);
+  const textValue = (value) =>
+    isText(value, 2000) ? value : value && typeof value === "object" && (isText(value.cs, 2000) || isText(value.en, 2000)) ? { cs: String(value.cs || ""), en: String(value.en || "") } : null;
+
+  /** Evidence from a file, keeping only the shapes the guide itself writes. */
+  function readPrefill(pre) {
+    if (!pre || typeof pre !== "object" || !SOURCES.includes(pre.source) || !/^\d{4}-\d{2}-\d{2}$/.test(String(pre.date))) return null;
+    const notes = (Array.isArray(pre.notes) ? pre.notes.slice(0, 10) : [])
+      .map((note) => {
+        if (!note || typeof note !== "object") return null;
+        if (typeof note.key === "string" && NOTE_KEYS.includes(note.key.replace("selfcheck.note.", ""))) {
+          const params = {};
+          for (const [key, value] of Object.entries(note.params || {})) if (isText(value, 2000)) params[key] = value;
+          return { key: "selfcheck.note." + note.key.replace("selfcheck.note.", ""), params };
+        }
+        const text = textValue(note.text);
+        return text ? { text } : null;
+      })
+      .filter(Boolean);
+    const list = (Array.isArray(pre.list) ? pre.list.slice(0, 50) : [])
+      .filter((fer) => fer && isText(fer.name, 300))
+      .map((fer) => ({ name: fer.name, url: webUrl(fer.url), status: FIP_RANK.includes(fer.status) ? fer.status : undefined }));
+    const fields = (Array.isArray(pre.fields) ? pre.fields.slice(0, 20) : [])
+      .filter((field) => field && isText(field.path, 100) && Array.isArray(field.values))
+      .map((field) => ({ path: field.path, values: field.values.filter((value) => isText(value, 300)).slice(0, SHOWN_VALUES), more: Number.isInteger(field.more) && field.more > 0 ? field.more : 0 }));
+    return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record) };
+  }
+
+  /** A check state from a file the guide wrote; anything unexpected refuses the whole file. */
+  SC.readPortable = function (data) {
+    if (!data || typeof data !== "object" || data.v !== STATE_VERSION || !isText(data.check, 50)) return null;
+    const check = FG.get("#check-" + data.check);
+    if (!check || !data.items || typeof data.items !== "object" || Array.isArray(data.items)) return null;
+    if (data.mode !== null && !modesOf(check).some((term) => term.termCode === data.mode)) return null;
+    if (data.profile !== null && !profilesOf(check).some((term) => term.termCode === data.profile)) return null;
+    const ids = new Set(itemsOf(check).map((item) => item.identifier));
+    const items = {};
+    for (const [id, entry] of Object.entries(data.items)) {
+      if (!ids.has(id) || !entry || typeof entry !== "object") return null;
+      if (entry.value !== null && !ANSWERS.includes(entry.value)) return null;
+      const prefill = entry.prefill ? readPrefill(entry.prefill) : null;
+      if (entry.prefill && !prefill) return null;
+      items[id] = Object.assign({ origin: "shared" }, entry.value ? { value: entry.value } : {}, prefill ? { prefill } : {});
+    }
+    const state = { mode: data.mode, profile: data.profile, extended: true, target: webUrl(data.target), items };
+    if (isText(data.pid, 300)) state.pid = data.pid;
+    return { check, state };
+  };
+
+  /** Read a file the guide exported: the JSON-LD result set or the Markdown summary. */
+  function readResultFile(text) {
+    try {
+      const crate = JSON.parse(text);
+      const holder = FG.list(crate && crate["@graph"]).find((entity) => entity && typeof entity.guideState === "string");
+      return holder ? SC.readPortable(JSON.parse(holder.guideState)) : null;
+    } catch (error) {
+      const match = String(text).match(/<!--\s*fair-guide-result:\s*([a-z-]+)\s+(a1\.[A-Za-z0-9._]+)\s*-->/);
+      const check = match ? FG.get("#check-" + match[1]) : null;
+      const state = check ? SC.parseShare(check, match[2]) : null;
+      return state ? { check, state } : null;
+    }
+  }
+
+  /** A file the user loads opens as a preview of its check, like a shared link. */
+  async function loadFile(file, statusId) {
+    const show = (key) => {
+      const element = document.getElementById(statusId);
+      if (element) element.textContent = FG.t(key);
+    };
+    if (!file) return;
+    if (file.size > MAX_FILE) {
+      show("selfcheck.load.refused");
+      return;
+    }
+    const found = readResultFile(await file.text());
+    if (!found) {
+      show("selfcheck.load.refused");
+      return;
+    }
+    SC.pendingFile = { check: found.check.identifier, state: found.state };
+    FG.navigate(FG.href("check", found.check.identifier) + "/file");
+  }
+
+  function loadControl(id) {
+    const statusId = id + "-status";
+    return h(
+      "div",
+      { class: "load-file no-print" },
+      h("label", { for: id }, FG.t("selfcheck.load.label")),
+      h("input", { type: "file", id, accept: ".jsonld,.json,.md,application/ld+json,application/json,text/markdown", onchange: (event) => loadFile(event.target.files[0], statusId) }),
+      h("p", { id: statusId, class: "small", role: "status" })
+    );
+  }
+
+  /** What the guide keeps in the browser, said in one sentence, with how it works and a control to delete it all. */
+  function localDataNote() {
+    const remove = () => {
+      if (!window.confirm(FG.t("localData.confirm"))) return;
+      FG.clearStoredData();
+      SC.pendingFile = null;
+      FG.rerender("local-data-delete");
+      const element = document.getElementById("local-data-status");
+      if (element) element.textContent = FG.t("localData.deleted");
+    };
+    return h(
+      "div",
+      { class: "local-data no-print" },
+      h("p", null, FG.icon("info"), " ", FG.t("localData.statement")),
+      h(
+        "details",
+        null,
+        h("summary", null, FG.t("localData.how")),
+        h(
+          "div",
+          { class: "content" },
+          h("ul", null, ["stored", "where", "sent", "move", "delete"].map((key) => h("li", null, h("strong", null, FG.t("localData." + key + "Title") + ": "), FG.t("localData." + key)))),
+          h("p", null, h("button", { type: "button", id: "local-data-delete", class: "button-link", onclick: remove }, FG.icon("trash"), " ", FG.t("localData.deleteAll")))
+        )
+      ),
+      h("p", { id: "local-data-status", class: "small", role: "status" })
+    );
+  }
 
   function download(name, text, type) {
     const blob = new Blob([text], { type: type + ";charset=utf-8" });
@@ -1299,6 +1448,7 @@
         h("button", { type: "button", id: "share-create", onclick: () => showShare(check, st) }, FG.t("selfcheck.export.share"))
       ),
       h("div", { id: "share-output", class: "share-output" }),
+      loadControl("load-file"),
       h("p", null, h("button", { type: "button", class: "button-link", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset")))
     );
   }
@@ -1306,10 +1456,18 @@
   /* ---------------------------------------------------------------- views */
 
   function sharedView(check, payload) {
-    const shared = SC.parseShare(check, payload);
-    if (!shared) return [h("p", { class: "notice", role: "status" }, FG.t("selfcheck.export.sharedInvalid")), h("p", null, h("a", { class: "button", href: FG.href("check", check.identifier) }, FG.t("selfcheck.export.keepOwn")))];
+    const fromFile = payload === "file";
+    const pending = SC.pendingFile && SC.pendingFile.check === check.identifier ? SC.pendingFile.state : null;
+    const shared = fromFile ? pending : SC.parseShare(check, payload);
+    if (!shared) {
+      return [
+        h("p", { class: "notice", role: "status" }, FG.t(fromFile ? "selfcheck.load.gone" : "selfcheck.export.sharedInvalid")),
+        h("p", null, h("a", { class: "button", href: FG.href("check", check.identifier) }, FG.t("selfcheck.export.keepOwn"))),
+      ];
+    }
     const use = () => {
       FG.state.answers[check.identifier] = shared;
+      SC.pendingFile = null;
       save();
       FG.navigate(FG.href("check", check.identifier));
     };
@@ -1317,11 +1475,11 @@
       h(
         "div",
         { class: "notice shared" },
-        h("p", null, FG.t("selfcheck.export.sharedBanner")),
+        h("p", null, FG.t(fromFile ? "selfcheck.load.banner" : "selfcheck.export.sharedBanner")),
         h(
           "div",
           { class: "buttons" },
-          h("button", { type: "button", class: "button-primary", onclick: use }, FG.t("selfcheck.export.useShared")),
+          h("button", { type: "button", class: "button-primary", onclick: use }, FG.t(fromFile ? "selfcheck.load.use" : "selfcheck.export.useShared")),
           h("a", { class: "button", href: FG.href("check", check.identifier) }, FG.t("selfcheck.export.keepOwn"))
         )
       ),
@@ -1362,6 +1520,7 @@
       FG.heading(1, null, FG.span(check.name)),
       FG.paragraphs(check.description),
       minutes ? h("p", { class: "muted" }, FG.t("station.minutes", { n: minutes })) : null,
+      route.extra ? null : localDataNote(),
     ];
     if (route.extra) return h("div", { class: "layout wrap selfcheck" }, h("article", null, head, sharedView(check, route.extra)));
     const st = stateOf(check);
@@ -1415,6 +1574,8 @@
         null,
         FG.heading(1, null, FG.t("selfcheck.title")),
         h("p", null, FG.t("selfcheck.intro")),
+        localDataNote(),
+        loadControl("load-file-overview"),
         h("h2", null, FG.t("selfcheck.forLens")),
         h("ul", { class: "cards" }, mine.map(checkCard)),
         others.length ? [h("h2", null, FG.t("selfcheck.others")), h("ul", { class: "cards" }, others.map(checkCard))] : null

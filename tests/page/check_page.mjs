@@ -477,7 +477,7 @@ async function axe(page, label) {
   const [mdDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Stáhnout shrnutí (.md)" }).click()]);
   const md = readFileSync(await mdDownload.path(), "utf8");
   if (!md.startsWith("# Úplnost FIP") || md.includes("file:")) fail("export: unexpected Markdown summary");
-  const [ldDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /JSON-LD/ }).click()]);
+  const [ldDownload] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: /Stáhnout výsledek jako JSON-LD/ }).click()]);
   const exported = JSON.parse(readFileSync(await ldDownload.path(), "utf8"));
   const exportedGraph = exported["@graph"];
   const typed = (type) => (entity) => [].concat(entity["@type"]).includes(type);
@@ -491,10 +491,54 @@ async function axe(page, label) {
   if (!md.includes("Doklad")) fail("export: the Markdown summary has no evidence column");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
 
+  // Local data: each check says where the answers are kept, and how it works.
+  const note = await page.locator(".local-data").textContent();
+  if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
+  if (!md.includes("<!-- fair-guide-result: fip a1.")) fail("export: the Markdown summary does not carry the answers");
+
+  // A saved result loads in another browser as a preview, keeps its evidence, and is adopted only on request; a
+  // file the guide did not make is refused.
+  {
+    const other = await browser.newContext();
+    const view = await other.newPage();
+    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await view.waitForSelector("#load-file-overview");
+    const foreign = resolve(root, ".cache", "not-a-result.md");
+    writeFileSync(foreign, "# Notes\n\nNothing from the guide.\n");
+    await view.locator("#load-file-overview").setInputFiles(foreign);
+    await view.waitForFunction(() => document.getElementById("load-file-overview-status").textContent.includes("nevytvořil"));
+    await view.locator("#load-file-overview").setInputFiles(await ldDownload.path());
+    await view.waitForSelector(".notice.shared");
+    if (!(await view.locator(".notice.shared").textContent()).includes("ze souboru")) fail("load: a JSON-LD file does not open as a preview");
+    if (await view.evaluate(() => Object.keys(window.FairGuide.state.answers).length)) fail("load: the preview changed the stored answers");
+    await view.getByRole("button", { name: "Použít odpovědi ze souboru" }).click();
+    await view.waitForSelector("#answer-K01-partly");
+    if (!(await view.locator("#answer-K01-partly").isChecked())) fail("load: the adopted answers are not the file's answers");
+    const loaded = await view.locator("#origin-K01").textContent();
+    if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("liší se od návrhu")) fail("load: the adopted K01 lost its evidence or is mislabelled: " + loaded);
+    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await view.waitForSelector("#load-file-overview");
+    await view.locator("#load-file-overview").setInputFiles(await mdDownload.path());
+    await view.waitForSelector(".notice.shared");
+    if (!(await view.locator(".notice.shared").textContent()).includes("ze souboru")) fail("load: a Markdown summary does not open as a preview");
+    await other.close();
+  }
+
   // Reflow of a check at 320 CSS pixels.
   await page.setViewportSize({ width: 320, height: 800 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   if (overflow > 1) fail(`FIP check: horizontal scroll of ${overflow}px at 320 px`);
+
+  // Deleting everything leaves nothing the guide stored, and the checks start empty.
+  await go("#/cs/K/selfcheck");
+  await page.locator(".local-data summary").click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator("#local-data-delete").click();
+  await page.waitForFunction(() => document.getElementById("local-data-status").textContent.includes("smazané"));
+  if (await page.evaluate(() => window.localStorage.getItem("eosc-fair-guide"))) fail("local data: something remains in the browser after deleting everything");
+  await go("#/cs/V/check/dataset");
+  if (!(await page.locator(".notice", { hasText: "Nejdřív odpovězte" }).count())) fail("local data: the dataset check kept its answers after deleting everything");
+  if (await page.evaluate(() => window.localStorage.getItem("eosc-fair-guide"))) fail("local data: browsing after deletion stored something without a user action");
 
   if (external.length) fail("self-check: requests without a lookup: " + external.join(", "));
   for (const problem of problems) fail("self-check: " + problem);
