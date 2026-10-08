@@ -1232,7 +1232,8 @@
     },
     {
       "@id": "https://doi.org/10.5281/zenodo.21726258",
-      "@type": "Dataset",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/Dataset",
       "identifier": "ostrails-cz-pilot",
       "name": "FAIR assessment of a sample of the CTU DSpace repository (OSTrails CZ Pilot, FAIR Champion, July 2026)",
       "inLanguage": "en",
@@ -1258,7 +1259,8 @@
     },
     {
       "@id": "#source-ccmm-releases",
-      "@type": "SoftwareApplication",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/SoftwareSourceCode",
       "identifier": "ccmm-releases",
       "name": "Czech Core Metadata Model (CCMM): releases",
       "inLanguage": "en",
@@ -1270,7 +1272,8 @@
     },
     {
       "@id": "#source-dsw-nrp",
-      "@type": "SoftwareApplication",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/SoftwareSourceCode",
       "identifier": "dsw-nrp",
       "name": "dsw-nrp: Data Stewardship Wizard for NRP (templates, knowledge model, plugins)",
       "inLanguage": "en",
@@ -1640,7 +1643,8 @@
     },
     {
       "@id": "#source-fair-champion",
-      "@type": "SoftwareApplication",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/SoftwareSourceCode",
       "identifier": "fair-champion",
       "name": "FAIR Champion (OSTrails)",
       "inLanguage": "en",
@@ -1657,7 +1661,8 @@
     },
     {
       "@id": "#source-ostrails-cli",
-      "@type": "SoftwareApplication",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/SoftwareSourceCode",
       "identifier": "ostrails-cli",
       "name": "ostrails-ctu-dspace-fair (OSTrails CLI)",
       "inLanguage": "en",
@@ -1687,7 +1692,8 @@
     },
     {
       "@id": "#source-fip-wizard-templates",
-      "@type": "SoftwareApplication",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/SoftwareSourceCode",
       "identifier": "fip-wizard-templates",
       "name": "FIP Wizard: nanopublication templates",
       "inLanguage": "en",
@@ -1745,7 +1751,8 @@
     },
     {
       "@id": "#source-ddrapp",
-      "@type": "SoftwareApplication",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/SoftwareSourceCode",
       "identifier": "ddrapp",
       "name": "DDRapp",
       "inLanguage": "cs",
@@ -1762,7 +1769,8 @@
     },
     {
       "@id": "#source-dataspecer",
-      "@type": "SoftwareApplication",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/SoftwareSourceCode",
       "identifier": "dataspecer",
       "name": "Dataspecer",
       "inLanguage": "en",
@@ -1797,7 +1805,8 @@
     },
     {
       "@id": "https://doi.org/10.14473/CSDA/OJTMJF",
-      "@type": "Dataset",
+      "@type": "CreativeWork",
+      "additionalType": "http://schema.org/Dataset",
       "identifier": "survey-2025-data",
       "name": "Stav správy výzkumných dat v ČR 2025 (data)",
       "inLanguage": "cs",

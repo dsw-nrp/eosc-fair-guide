@@ -71,15 +71,22 @@ TERMS = {
     "note": "Additional remark shown with a clause or a self-check item.",
 }
 
+# Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
+# SoftwareSourceCode entities, RO-Crate would treat them as data entities or scripts that belong inside the crate.
 SOURCE_TYPES = {
     "report": "Report",
     "article": "ScholarlyArticle",
-    "dataset": "Dataset",
+    "dataset": "CreativeWork",
     "webpage": "WebPage",
     "document": "DigitalDocument",
     "standard": "CreativeWork",
-    "software": "SoftwareApplication",
+    "software": "CreativeWork",
     "presentation": "PresentationDigitalDocument",
+}
+
+SOURCE_ADDITIONAL_TYPES = {
+    "dataset": "http://schema.org/Dataset",
+    "software": "http://schema.org/SoftwareSourceCode",
 }
 
 RESOURCE_TYPES = {
@@ -443,6 +450,7 @@ def build_sources(graph: Graph, sources: list[dict[str, Any]], organizations: di
             {
                 "@id": entity_id,
                 "@type": SOURCE_TYPES[source["type"]],
+                "additionalType": SOURCE_ADDITIONAL_TYPES.get(source["type"]),
                 "identifier": source["id"],
                 "name": source["title"],
                 "inLanguage": source.get("inLanguage"),

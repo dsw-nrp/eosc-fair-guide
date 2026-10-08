@@ -256,7 +256,9 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                 if clause.get("actor") != actor or clause.get("kind") != kind:
                     report.error(where, f"'{letter}' clauses are {kind}s addressed to '{actor}'")
             elif clause.get("kind") not in ("fulfilment", "statement"):
-                report.error(where, "'X' clauses state fulfilment in NRP or a CoreTrustSeal/CDIF link, not a requirement")
+                report.error(
+                    where, "'X' clauses state fulfilment in NRP or a CoreTrustSeal/CDIF link, not a requirement"
+                )
     return clause_ids
 
 

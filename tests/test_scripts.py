@@ -75,6 +75,22 @@ class GeneratorTests(FixtureCase):
         resource = graph["#resource-service"]
         self.assertEqual(resource["additionalType"], "https://w3id.org/fair/fip/terms/Registry")
 
+    def test_cited_datasets_and_software_stay_contextual(self) -> None:
+        self.append(
+            "sources.toml",
+            '\n[[source]]\nid = "data"\ntype = "dataset"\ntitle = "Data"\ndoi = "10.1234/x"\n'
+            "datePublished = 2026-01-01\n"
+            '\n[[source]]\nid = "code"\ntype = "software"\ntitle = "Code"\nurl = "https://example.org/code"\n'
+            "dateAccessed = 2026-01-01\n",
+        )
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        dataset = graph["https://doi.org/10.1234/x"]
+        self.assertEqual(dataset["@type"], "CreativeWork")
+        self.assertEqual(dataset["additionalType"], "http://schema.org/Dataset")
+        self.assertEqual(graph["#source-code"]["@type"], "CreativeWork")
+        self.assertEqual(graph["#source-code"]["additionalType"], "http://schema.org/SoftwareSourceCode")
+
     def test_station_links_accumulate(self) -> None:
         (self.root / "content" / "glossary.toml").write_text(
             '[glossary]\nsource = "Test glossary"\nretrieved = 2026-01-01\n\n'
