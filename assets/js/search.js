@@ -154,13 +154,13 @@
       case "handle":
         return [basis("form", { type: idName(found.type) }), list([findOut, datasetCheck(found.value, false), nma(found.value)])];
       case "re3data":
-        return [basis("form", { type: idName(found.type) }), list([maturity(found.value, true), /^r3d/.test(found.value) ? resultLink({ url: FG.config.links.re3dataRecord + found.value }, FG.t("search.openRecord"), "external") : null])];
+        return [basis("form", { type: idName(found.type) }), list([maturity(found.value, true), /^r3d/.test(found.value) ? resultLink({ url: FG.config.links.re3dataRecord + found.value }, FG.t("search.open.re3data"), "external") : null])];
       case "nanopub":
         return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.selfcheck.startWithNanopub(found.value) }, FG.t("search.fipNanopub"), "check", true)])];
       case "fipProfile":
-        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.selfcheck.startWithFip(found.value) || FG.navigate(FG.href("check", "fip")) }, FG.t("search.fipProfile"), "check", true), resultLink({ url: found.url }, FG.t("search.openRecord"), "external")])];
+        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.selfcheck.startWithFip(found.value) || FG.navigate(FG.href("check", "fip")) }, FG.t("search.fipProfile"), "check", true), resultLink({ url: found.url }, FG.t("search.open.fipProfile"), "external")])];
       case "nkr":
-        return [basis("form", { type: idName(found.type) }), list([resultLink({ href: FG.href("check", "maturity") }, FG.t("search.maturity"), "check", true), resultLink({ url: found.value }, FG.t("search.openRecord"), "external")])];
+        return [basis("form", { type: idName(found.type) }), list([resultLink({ href: FG.href("check", "maturity") }, FG.t("search.maturity"), "check", true), resultLink({ url: found.value }, FG.t("search.open.nkr"), "external")])];
       case "orcid":
         return [basis("form", { type: idName(found.type) }), list([verify(found.value, true)])];
       case "ror":
@@ -175,15 +175,18 @@
   }
 
   /** One explicit lookup that says what a DOI or Handle is: its registration agency and, for DataCite, its type. */
-  async function whatIs(found) {
+  async function whatIs(found, asked) {
     try {
       if (found.type === "handle") {
+        asked.push("Handle.net");
         const resolved = await FG.live.resolvePid({ type: "handle", value: found.value });
-        return resolved.found ? { kind: "handle", title: resolved.title, by: "Handle" } : { kind: "unknown" };
+        return resolved.found ? { kind: "handle", title: resolved.title, by: "Handle.net" } : { kind: "unknown" };
       }
+      asked.push("doi.org");
       const agency = await FG.live.doiAgency(found.value);
       if (!agency) return { kind: "unknown" };
       if (agency !== "DataCite") return { kind: "publication", by: agency };
+      asked.push("DataCite");
       const attributes = await FG.live.datacite(found.value);
       if (!attributes) return { kind: "unknown", by: agency };
       const general = String((attributes.types || {}).resourceTypeGeneral || "");
@@ -203,7 +206,10 @@
 
   async function lookUp(found, box) {
     box.replaceChildren(h("p", { class: "small", role: "status" }, FG.t("search.findingOut")));
-    const result = await whatIs(found);
+    const asked = [];
+    const result = await whatIs(found, asked);
+    const sent = box.nextElementSibling;
+    if (sent && asked.length) sent.textContent = FG.t("search.asked", { sources: asked.join(", ") });
     const what = [result.title, result.publisher, result.year].filter(Boolean).join(" · ");
     const said = ["unknown", "failed"].includes(result.kind)
       ? h("p", { class: "search-basis", role: "status" }, FG.t("search.lookup." + result.kind))
@@ -214,7 +220,7 @@
       software: [note("software"), list([datasetCheck(found.value, true), cite(false)])],
       publication: [note("publication"), list([cite(true), datasetCheck(found.value, false)])],
       repository: [list([maturity(result.r3d, true)])],
-      fairsharing: [list([resultLink({ url: FG.live.pidUrl({ type: "doi", value: found.value }) }, FG.t("search.openRecord"), "external", true), resultLink({ href: FG.href("check", "maturity") }, FG.t("search.maturity"), "check")])],
+      fairsharing: [list([resultLink({ url: FG.live.pidUrl({ type: "doi", value: found.value }) }, FG.t("search.open.fairsharing"), "external", true), resultLink({ href: FG.href("check", "maturity") }, FG.t("search.maturity"), "check")])],
       handle: [list([datasetCheck(found.value, true), nma(found.value)])],
       other: [list([datasetCheck(found.value, true), cite(false), verify(found.value, false)])],
       unknown: [list([verify(found.value, true)])],

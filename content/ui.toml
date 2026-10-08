@@ -69,13 +69,19 @@ is = { cs = "Jde o {kind}.", en = "This is {kind}." }
 by = { cs = "zdroj: {source}", en = "source: {source}" }
 maturity = { cs = "Zkontrolovat zralost repozitáře", en = "Check the repository's maturity" }
 maturityRe3data = { cs = "Zkontrolovat zralost repozitáře podle záznamu re3data", en = "Check the repository's maturity from its re3data record" }
-openRecord = { cs = "Otevřít záznam", en = "Open the record" }
 fipNanopub = { cs = "Zkontrolovat úplnost FIP z nanopublikace", en = "Check the FIP's completeness from the nanopublication" }
 fipProfile = { cs = "Zkontrolovat úplnost tohoto profilu FIP", en = "Check the completeness of this FIP profile" }
 institution = { cs = "Otevřít sebehodnocení Instituce a správa dat", en = "Open the self-check Institution and data management" }
 openEntry = { cs = "Otevřít {id} v katalogu", en = "Open {id} in the catalogue" }
 inCatalogue = { cs = "{name} v katalogu", en = "{name} in the catalogue" }
 inCatalogueAll = { cs = "Hledat „{q}“ v celém katalogu", en = "Search the whole catalogue for “{q}”" }
+asked = { cs = "Dotázali jsme se: {sources}. Další službu oslovíme, až vyberete akci.", en = "We asked: {sources}. Another service is asked only when you choose an action." }
+
+[search.open]
+re3data = { cs = "Otevřít záznam v re3data", en = "Open the record in re3data" }
+nkr = { cs = "Otevřít záznam v NKR", en = "Open the record in NKR" }
+fipProfile = { cs = "Otevřít profil ve FIP Dashboardu", en = "Open the profile in the FIP Dashboard" }
+fairsharing = { cs = "Otevřít záznam ve FAIRsharing", en = "Open the record in FAIRsharing" }
 
 [search.basis]
 form = { cs = "Rozpoznáno podle zápisu: {type}.", en = "Recognised by its form: {type}." }

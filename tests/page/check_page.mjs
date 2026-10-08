@@ -358,6 +358,7 @@ async function axe(page, label) {
   let said = await findOut("10.5281/zenodo.21726258");
   if (!said.includes("Jde o datovou sadu") || !said.includes("DataCite") || !(await primary()).includes("Zkontrolovat datovou sadu")) fail("search: a DataCite dataset does not lead to the dataset check: " + said);
   if (!(await page.evaluate(() => document.activeElement && document.activeElement.classList.contains("result-primary")))) fail("search: focus does not move to the route found");
+  if (!(await page.locator("#search-results").textContent()).includes("Dotázali jsme se: doi.org, DataCite")) fail("search: after a lookup the note does not say which services were asked");
   said = await findOut("10.1038/sdata.2016.18");
   if (!said.includes("Jde o publikaci") || !(await primary()).includes("Vytvořit citaci")) fail("search: a Crossref DOI does not lead to the citation: " + said);
 
