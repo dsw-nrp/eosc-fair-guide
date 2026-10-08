@@ -107,28 +107,13 @@ underReview = { cs = "V posuzování", en = "Under review" }
 languages = { cs = "Jazyk: {languages}", en = "Language: {languages}" }
 
 [finder]
-title = { cs = "Zdroje", en = "Resources" }
-intro = { cs = "Služby, nástroje, standardy a příručky, které průvodce doporučuje. Filtrujte podle zastávky, pohledu, typu, stavu nebo jazyka.", en = "Services, tools, standards and guides the guide recommends. Filter by station, view, type, status or language." }
-station = { cs = "Zastávka", en = "Station" }
-type = { cs = "Typ", en = "Type" }
-status = { cs = "Stav", en = "Status" }
-language = { cs = "Jazyk", en = "Language" }
-all = { cs = "vše", en = "all" }
 count = { cs = "Nalezeno: {n}", en = "Found: {n}" }
-fers = { cs = "Zdroje umožňující FAIR ve FIP Dashboardu", en = "FAIR-enabling resources in the FIP Dashboard" }
-fersIntro = { cs = "Katalog FER národní datové infrastruktury: které zdroje komunity používají a které ověřily NRP a EOSC CZ. Průvodce zobrazuje snímek; aktuální stav je ve FIP Dashboardu.", en = "The FER catalogue of the national data infrastructure: which resources communities use and which NRP and EOSC CZ have verified. The guide shows a snapshot; the current state is in the FIP Dashboard." }
 snapshot = { cs = "Snímek ze dne {date}", en = "Snapshot of {date}" }
 disclaimer = { cs = "Upozornění FIP Dashboardu", en = "FIP Dashboard notice" }
-openDashboard = { cs = "Otevřít FIP Dashboard", en = "Open the FIP Dashboard" }
-matrix = { cs = "Matice konvergence profilů FIP", en = "FIP convergence matrix" }
 
 [repositories]
-title = { cs = "Repozitáře", en = "Repositories" }
 intro = { cs = "Přednostně ukládejte do oborového repozitáře, jinak do institucionálního; obecné repozitáře jsou poslední možností. Seznam spojuje výběr průvodce, snímek registru re3data a na vyžádání záznamy z Národního katalogu repozitářů (NKR) a z FAIRsharing.", en = "Deposit preferably in a domain repository, otherwise in an institutional one; general-purpose repositories are the last option. The list combines the guide's selection, a snapshot of the re3data registry and, on request, records from the National Repository Catalogue (NKR) and from FAIRsharing." }
-search = { cs = "Hledat podle názvu nebo oboru", en = "Search by name or field" }
-kind = { cs = "Druh", en = "Kind" }
 sources = { cs = "Zdroj údajů: {sources}", en = "Data from: {sources}" }
-pids = { cs = "Identifikátory: {pids}", en = "Identifiers: {pids}" }
 curated = { cs = "výběr průvodce", en = "the guide's selection" }
 nkrLoad = { cs = "Načíst záznamy z NKR", en = "Load records from NKR" }
 nkrLoading = { cs = "Načítám záznamy z NKR…", en = "Loading records from NKR…" }
@@ -433,15 +418,12 @@ deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.
 
 [catalogue]
 title = { cs = "Katalog", en = "Catalogue" }
-tabs = { cs = "Části katalogu", en = "Catalogue sections" }
 search = { cs = "Hledat", en = "Search" }
 machinesLink = { cs = "Data pro stroje", en = "Data for machines" }
 citedBy = { cs = "Cituje", en = "Cited by" }
 published = { cs = "vydáno {date}", en = "published {date}" }
 accessed = { cs = "navštíveno {date}", en = "accessed {date}" }
 version = { cs = "verze {version}", en = "version {version}" }
-term = { cs = "Pojem", en = "Term (Czech)" }
-termEn = { cs = "Anglicky", en = "English" }
 onPath = { cs = "Na cestě", en = "On the path" }
 declarations = { cs = "{n} deklarace|{n} deklarace|{n} deklarací", en = "{n} declaration|{n} declarations" }
 created = { cs = "obsah vytvořen", en = "content created" }
@@ -451,9 +433,23 @@ drewOn = { cs = "Podklady", en = "Drew on" }
 openEntry = { cs = "{id} v katalogu", en = "{id} in the catalogue" }
 usedIn = { cs = "Používá se", en = "Used in" }
 basedOn = { cs = "Vychází z", en = "Based on" }
-kind = { cs = "Druh", en = "Kind" }
 entries = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} entry|{n} entries" }
-clausesTitle = { cs = "Požadavky a zjištění", en = "Requirements and findings" }
+filters = { cs = "Filtry", en = "Filters" }
+active = { cs = "Zvolené filtry", en = "Chosen filters" }
+clear = { cs = "Zrušit filtry", en = "Clear filters" }
+remove = { cs = "Odebrat filtr {label}", en = "Remove the filter {label}" }
+order = { cs = "Řadit", en = "Order" }
+more = { cs = "Zobrazit dalších {n}", en = "Show {n} more" }
+moreValues = { cs = "Další hodnoty ({n})", en = "More values ({n})" }
+fewerValues = { cs = "Méně hodnot", en = "Fewer values" }
+lastKind = { cs = "aspoň jeden druh zůstává vybraný", en = "at least one kind stays selected" }
+noStation = { cs = "nemají zastávku", en = "have no station" }
+noPrinciple = { cs = "nemají princip", en = "have no principle" }
+withoutStation = { cs = "Bez zastávky", en = "Without a station" }
+withoutPrinciple = { cs = "Bez principu", en = "Without a principle" }
+recommendedAt = { cs = "Doporučuje", en = "Recommended at" }
+source = { cs = "Podklad", en = "Source" }
+inCheck = { cs = "Kontrola", en = "Check" }
 
 [catalogue.clauseKind]
 requirement = { cs = "požadavek", en = "requirement" }
@@ -464,7 +460,6 @@ statement = { cs = "zjištění", en = "finding" }
 [catalogue.tab]
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře", en = "Repositories" }
-sources = { cs = "Podklady", en = "Cited sources" }
 clauses = { cs = "Požadavky", en = "Requirements" }
 terms = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
@@ -474,13 +469,13 @@ actions = { cs = "Změny obsahu", en = "Content changes" }
 
 [catalogue.intro]
 all = { cs = "Vše, z čeho průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the guide builds on and recommends, in one catalogue." }
-sources = { cs = "Publikované dokumenty, stránky a data, ze kterých obsah průvodce vychází, a kde je průvodce cituje.", en = "The published documents, pages and data the guide's content builds on, and where the guide cites them." }
 terms = { cs = "Pojmy otevřené vědy, na které průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the guide links to, taken from Heslář." }
 fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
 tests = { cs = "Automatické testy FAIR Champion, které průvodce používá; každý ověřuje jeden princip.", en = "The FAIR Champion automated tests the guide uses; each checks one principle." }
 clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
 questions = { cs = "Otázky všech kontrol sebehodnocení, s principy, které ověřují, a požadavky, ze kterých vycházejí.", en = "The questions of every self-check, with the principles they test and the requirements they rest on." }
 actions = { cs = "Kdy a jak se obsah průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
+resources = { cs = "Služby, nástroje, standardy, příručky i publikace: co průvodce doporučuje, z čeho vychází a co eviduje FIP Dashboard. Značky říkají, jak je průvodce používá.", en = "Services, tools, standards, guides and publications: what the guide recommends, what it builds on and what the FIP Dashboard lists. The marks say how the guide uses each." }
 
 [catalogue.sourceType]
 Report = { cs = "zpráva", en = "report" }
@@ -521,3 +516,48 @@ back = { cs = "Zpět na cestu", en = "Back to the path" }
 copy = { cs = "Kopírovat", en = "Copy" }
 copied = { cs = "Zkopírováno", en = "Copied" }
 link = { cs = "Odkaz na tento pohled", en = "Link to this view" }
+
+[catalogue.use]
+recommended = { cs = "doporučuje průvodce", en = "recommended by the guide" }
+cited = { cs = "podklad obsahu", en = "basis of the content" }
+dashboard = { cs = "ve FIP Dashboardu", en = "in the FIP Dashboard" }
+
+[catalogue.facet]
+kind = { cs = "Druh", en = "Kind" }
+station = { cs = "Zastávka", en = "Station" }
+principle = { cs = "Princip", en = "Principle" }
+use = { cs = "Použití", en = "Use" }
+type = { cs = "Typ", en = "Type" }
+status = { cs = "Stav", en = "Status" }
+language = { cs = "Jazyk", en = "Language" }
+lens = { cs = "Pohled", en = "View as" }
+rkind = { cs = "Druh repozitáře", en = "Repository kind" }
+rsource = { cs = "Zdroj údajů", en = "Data from" }
+ckind = { cs = "Druh požadavku", en = "Kind of requirement" }
+csource = { cs = "Podklad", en = "Source" }
+actor = { cs = "Komu je určen", en = "Addressed to" }
+cstatus = { cs = "Platnost", en = "Validity" }
+check = { cs = "Kontrola", en = "Check" }
+tier = { cs = "Úroveň", en = "Tier" }
+change = { cs = "Druh změny", en = "Kind of change" }
+
+[catalogue.clauseStatus]
+current = { cs = "platné", en = "current" }
+refresh = { cs = "k aktualizaci", en = "to be updated" }
+superseded = { cs = "nahrazené", en = "superseded" }
+
+[catalogue.language]
+cs = { cs = "čeština", en = "Czech" }
+en = { cs = "angličtina", en = "English" }
+
+[catalogue.orderBy]
+kind = { cs = "podle druhu", en = "by kind" }
+name = { cs = "podle názvu", en = "by name" }
+station = { cs = "podle zastávky", en = "by station" }
+principle = { cs = "podle principu", en = "by principle" }
+guided = { cs = "doporučené pořadí", en = "recommended order" }
+source = { cs = "podle podkladu", en = "by source" }
+check = { cs = "podle kontroly", en = "by check" }
+newest = { cs = "od nejnovějších", en = "newest first" }
+oldest = { cs = "od nejstarších", en = "oldest first" }
+nameEn = { cs = "podle anglického názvu", en = "by English name" }

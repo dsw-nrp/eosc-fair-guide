@@ -1,16 +1,22 @@
-/* Catalogue of the FAIR Data Guide: one view with a tab for each kind of entity in the knowledge base. The resource
-   and repository finders are two of its tabs (views.js); the others list cited sources, glossary terms, FIP
-   profiles, FAIR tests and content changes. Each item links to its record in the guide's API once it is published. */
+/* Catalogue of the FAIR Data Guide: one list of everything in the knowledge base, narrowed by facets with counts.
+   Kind is a facet in which at least one value stays selected; search, station and principle apply across kinds; a
+   facet that belongs to one kind is labelled with it. The reader chooses the ordering, groups follow it, and the
+   whole state is part of the address, so a filtered list is a link. */
 (function () {
   "use strict";
 
   const FG = window.FairGuide;
   const h = (...args) => FG.h(...args);
-  const TABS = ["resources", "repositories", "sources", "clauses", "terms", "fips", "tests", "questions", "actions"];
-  const CLAUSE_KINDS = ["requirement", "recommendation", "fulfilment", "statement"];
-  const queries = {};
-  const kinds = { clauses: "" };
-  FG.tabs = FG.tabs || {};
+  const KINDS = ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"];
+  /* Older addresses named the kinds as tabs; cited sources are now part of the resources. */
+  const ALIASES = { sources: "resources" };
+  const PAGE = 50;
+  /* Values shown before "more"; kinds and the nine stations always show in full. */
+  const SHOWN_VALUES = 9;
+  const expanded = new Set();
+  const openFacets = new Set();
+
+  /* ---------------------------------------------------------------- shared helpers */
 
   /** The link to an entity's JSON record in the guide's API; nothing until the API is published. */
   FG.apiLink = function (collection, id) {
@@ -19,16 +25,16 @@
     return h("a", { class: "json-link", href: api.base + collection + "/" + encodeURIComponent(id) + ".json", type: "application/json" }, "JSON");
   };
 
-  /** The address of a catalogue tab, or of one item in it. */
-  FG.catalogueHref = (tab, item) => FG.href("catalogue", tab) + (item ? "/" + encodeURIComponent(item) : "");
+  /** The address of the catalogue showing one kind, or one entry of it. */
+  FG.catalogueHref = (kind, item) => FG.href("catalogue", kind) + (item ? "/" + encodeURIComponent(item) : "");
 
   /** The language of an entity's plain-text name, for its lang attribute: a name with Czech and English values
       sets its own, and a list of languages names none. */
   FG.nameLang = (entity) => (typeof entity.name === "string" && typeof entity.inLanguage === "string" ? entity.inLanguage : null);
 
   /** An identifier as a small chip that leads to its entry in the catalogue. */
-  FG.idChip = function (tab, id) {
-    return h("a", { class: "id-chip", href: FG.catalogueHref(tab, id), title: FG.t("catalogue.openEntry", { id }) }, id);
+  FG.idChip = function (kind, id) {
+    return h("a", { class: "id-chip", href: FG.catalogueHref(kind, id), title: FG.t("catalogue.openEntry", { id }) }, id);
   };
 
   /** A requirement or finding as the guide shows it wherever it cites one: the text first, then its identifier,
@@ -53,37 +59,9 @@
     );
   };
 
-  const matches = (tab, ...texts) => !queries[tab] || FG.fold(texts.join(" ")).includes(FG.fold(queries[tab]));
-
-  /** A search field that narrows the tab's list as it is typed, with any other filters of the tab. */
-  function searchBox(tab, build, ...others) {
-    return h(
-      "div",
-      { class: "filters" },
-      ...others,
-      h(
-        "label",
-        null,
-        FG.t("catalogue.search"),
-        h("input", {
-          type: "search",
-          id: "catalogue-search",
-          value: queries[tab] || "",
-          oninput: (event) => {
-            queries[tab] = event.target.value;
-            FG.renderList("catalogue-list", build);
-          },
-        })
-      )
-    );
-  }
-
-  /** A list with its count, rebuilt in place by the search field. */
-  function listed(items, render, wrapper) {
-    return h("div", null, h("p", { role: "status" }, FG.t("finder.count", { n: items.length })), wrapper(items.map(render)));
-  }
-
-  const cards = (children) => h("ul", { class: "cards" }, children);
+  const joined = (links) => links.flatMap((link, index) => (index ? [", ", link] : [link]));
+  const code = (iri) => String(FG.id(iri) || iri || "").split("/").pop();
+  const slug = (value) => FG.fold(value).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
   /** A station or a check, as a short link. */
   function holderLink(holder) {
@@ -91,10 +69,6 @@
       ? h("a", { href: FG.href("path", holder.identifier) }, holder.position + " · ", FG.span(holder.name))
       : h("a", { href: FG.href("check", holder.identifier) }, FG.span(holder.name));
   }
-
-  const joined = (links) => links.flatMap((link, index) => (index ? [", ", link] : [link]));
-
-  /* ---------------------------------------------------------------- cited sources */
 
   /** Where each clause and each source is cited: the stations and checks whose items cite the clause. */
   function citations() {
@@ -119,306 +93,765 @@
     return { bySource, byClause };
   }
 
-  const citedBy = () => citations().bySource;
+  const stationsOf = (holders) => holders.filter((holder) => holder.position).map((station) => station.identifier);
 
-  function sourceKind(source) {
+  /* ---------------------------------------------------------------- entries of each kind */
+
+  function sourceForm(source) {
     const extra = FG.list(source.additionalType).map(String);
     if (extra.some((type) => /Dataset$/.test(type))) return "Dataset";
     if (extra.some((type) => /SoftwareSourceCode$/.test(type))) return "SoftwareSourceCode";
     return String(FG.list(source["@type"])[0]);
   }
 
-  function sourceCard(source, cited) {
-    const publisher = FG.get(source.publisher);
-    const url = source.url || (String(source["@id"]).startsWith("https://") ? source["@id"] : null);
-    /* A resource the guide also cites is labelled by its resource type, a cited document by its form. */
-    const kind = source.resourceType ? FG.termName(FG.id(source.resourceType)) : FG.t("catalogue.sourceType." + sourceKind(source));
-    const name = typeof source.name === "string" ? h("span", { lang: FG.nameLang(source) }, source.name) : FG.span(source.name);
-    const date = source.datePublished
-      ? FG.t("catalogue.published", { date: String(source.datePublished).length === 10 ? FG.formatDate(source.datePublished) : String(source.datePublished) })
-      : source.sdDatePublished
-        ? FG.t("catalogue.accessed", { date: FG.formatDate(source.sdDatePublished) })
+  /** How a cited work is cited: publisher, version and date, as badges. */
+  function citationBadges(entity) {
+    const publisher = FG.get(entity.publisher);
+    const date = entity.datePublished
+      ? FG.t("catalogue.published", { date: String(entity.datePublished).length === 10 ? FG.formatDate(entity.datePublished) : String(entity.datePublished) })
+      : entity.sdDatePublished
+        ? FG.t("catalogue.accessed", { date: FG.formatDate(entity.sdDatePublished) })
         : null;
-    return h(
-      "li",
-      { class: "card", id: "item-" + source.identifier },
-      h("h3", null, url ? FG.external(url, name) : name),
-      source.creditText ? h("p", { class: "small" }, source.creditText) : null,
-      h(
-        "div",
-        { class: "badges" },
-        h("span", { class: "badge" }, kind),
-        publisher ? h("span", { class: "badge" }, FG.text(publisher.alternateName || publisher.name)) : null,
-        source.version ? h("span", { class: "badge" }, FG.t("catalogue.version", { version: source.version })) : null,
-        date ? h("span", { class: "badge" }, date) : null,
-        FG.apiLink("sources", source.identifier)
-      ),
-      cited.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(cited.map(holderLink))) : null
-    );
+    return [
+      publisher ? h("span", { class: "badge" }, FG.text(publisher.alternateName || publisher.name)) : null,
+      entity.version ? h("span", { class: "badge" }, FG.t("catalogue.version", { version: entity.version })) : null,
+      date ? h("span", { class: "badge" }, date) : null,
+    ];
   }
 
-  FG.tabs.sources = function () {
-    const sources = FG.refs(FG.get("#sources"), "hasPart").sort((a, b) => FG.text(a.name).localeCompare(FG.text(b.name)));
-    const cited = citedBy();
-    const build = () =>
-      listed(
-        sources.filter((source) => matches("sources", FG.text(source.name), source.creditText, FG.text((FG.get(source.publisher) || {}).name))),
-        (source) => sourceCard(source, cited.get(source["@id"]) || []),
-        cards
-      );
-    return [h("h2", null, FG.t("catalogue.tab.sources")), h("p", null, FG.t("catalogue.intro.sources")), searchBox("sources", build), h("div", { id: "catalogue-list" }, build())];
-  };
+  const useMark = (use) => h("span", { class: "badge use-mark", "data-use": use }, FG.t("catalogue.use." + use));
 
-  /* ---------------------------------------------------------------- requirements and findings */
-
-  function clauseCard(clause, holders) {
-    const status = clause.creativeWorkStatus || "current";
-    const audience = FG.id(clause.audience);
-    return h(
-      "li",
-      { class: "card clause-card", id: "item-" + clause.identifier, tabindex: "-1" },
-      h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, clause.identifier), clause.clauseKind ? h("span", { class: "badge" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null),
-      h("p", null, FG.span(clause.text)),
-      h(
-        "div",
-        { class: "badges" },
-        FG.principlesOf(clause).map((principle) => FG.principleTile(principle)),
-        audience ? h("span", { class: "badge" }, FG.termName(audience)) : null,
-        status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null,
-        FG.apiLink("clauses", clause.identifier)
-      ),
-      status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
-      holders.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.usedIn") + ": ", joined(holders.map(holderLink))) : null
-    );
-  }
-
-  FG.tabs.clauses = function () {
-    const clauses = FG.refs(FG.get("#ledger"), "hasPart");
-    const analysis = FG.id(FG.refs(FG.root, "isBasedOn")[0]);
-    const used = citations().byClause;
-    const kindSelect = h(
-      "label",
-      null,
-      FG.t("catalogue.kind"),
-      h(
-        "select",
-        { name: "clause-kind", onchange: (event) => { kinds.clauses = event.target.value; FG.renderList("catalogue-list", build); } },
-        h("option", { value: "" }, FG.t("finder.all")),
-        CLAUSE_KINDS.map((kind) => h("option", { value: kind, selected: kinds.clauses === kind }, FG.t("catalogue.clauseKind." + kind)))
-      )
-    );
-    function build() {
-      const shown = clauses.filter((clause) => (!kinds.clauses || clause.clauseKind === kinds.clauses) && matches("clauses", clause.identifier, FG.bothLanguages(clause.text)));
-      const groups = new Map();
-      for (const clause of shown) groups.set(FG.id(clause.isPartOf), (groups.get(FG.id(clause.isPartOf)) || []).concat(clause));
-      const ordered = [...groups.entries()].sort(([a], [b]) => (a === analysis ? -1 : b === analysis ? 1 : FG.text((FG.get(a) || {}).name).localeCompare(FG.text((FG.get(b) || {}).name))));
-      return h(
-        "div",
-        null,
-        h("p", { role: "status" }, FG.t("finder.count", { n: shown.length })),
-        ordered.map(([sourceId, list]) => {
-          const source = FG.get(sourceId) || {};
-          return h(
-            "section",
-            { class: "catalogue-group" },
-            h("h3", null, source.identifier ? h("a", { href: FG.catalogueHref("sources", source.identifier), lang: FG.nameLang(source) }, FG.text(source.name)) : FG.text(source.name), h("span", { class: "muted" }, " · " + FG.t("catalogue.entries", { n: list.length }))),
-            cards(list.map((clause) => clauseCard(clause, used.get(clause["@id"]) || [])))
-          );
-        })
-      );
+  /** Resources and cited sources as one kind, each marked by how the guide uses it, with the FIP Dashboard's
+      resources folded in. */
+  function resourceEntries(cited) {
+    const entries = [];
+    const recommendedAt = new Map();
+    for (const station of FG.stations()) for (const id of FG.refIds(station, "mentions")) recommendedAt.set(id, (recommendedAt.get(id) || []).concat(station));
+    const citedSet = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
+    const linkedFers = new Set();
+    const resources = FG.graph.filter((entity) => entity.resourceType && String(entity["@id"]).startsWith("#resource-"));
+    for (const resource of resources) {
+      const record = FG.dashboardRecord(resource);
+      if (record && record.fer) linkedFers.add(record.fer["@id"]);
+      const recommended = recommendedAt.get(resource["@id"]) || [];
+      const citedBy = cited.get(resource["@id"]) || [];
+      const uses = [recommended.length ? "recommended" : null, citedSet.has(resource["@id"]) ? "cited" : null, record ? "dashboard" : null].filter(Boolean);
+      entries.push({
+        kind: "resources",
+        anchor: resource.identifier,
+        name: FG.text(resource.name),
+        text: [FG.bothLanguages(resource.name), FG.bothLanguages(resource.description), resource.alternateName].join(" "),
+        stations: [...new Set(stationsOf(recommended).concat(stationsOf(citedBy)))],
+        principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
+        facets: {
+          use: uses,
+          type: [FG.id(resource.resourceType)],
+          status: FG.id(resource.serviceStatus) ? [FG.id(resource.serviceStatus)] : [],
+          language: FG.list(resource.inLanguage).map(String),
+          lens: FG.refIds(resource, "audience").map((id) => id.replace("#lens-", "")),
+        },
+        render: () =>
+          FG.resourceCard(resource, {
+            badges: [uses.map(useMark), citationBadges(resource), FG.apiLink("resources", resource.identifier)],
+            after: [
+              recommended.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.recommendedAt") + ": ", joined(recommended.map(holderLink))) : null,
+              citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null,
+            ],
+          }),
+      });
     }
-    return [h("h2", null, FG.t("catalogue.clausesTitle")), h("p", null, FG.t("catalogue.intro.clauses")), searchBox("clauses", build, kindSelect), h("div", { id: "catalogue-list" }, build())];
-  };
+    for (const source of FG.refs(FG.get("#sources"), "hasPart").filter((entity) => !entity.resourceType)) {
+      const citedBy = cited.get(source["@id"]) || [];
+      const url = source.url || (String(source["@id"]).startsWith("https://") ? source["@id"] : null);
+      const name = typeof source.name === "string" ? h("span", { lang: FG.nameLang(source) }, source.name) : FG.span(source.name);
+      entries.push({
+        kind: "resources",
+        anchor: source.identifier,
+        name: FG.text(source.name),
+        text: [FG.text(source.name), source.creditText, FG.text((FG.get(source.publisher) || {}).name)].join(" "),
+        stations: stationsOf(citedBy),
+        principles: [],
+        facets: { use: ["cited"], type: ["form:" + sourceForm(source)], status: [], language: FG.list(source.inLanguage).map(String), lens: [] },
+        render: () =>
+          h(
+            "li",
+            { class: "card", id: "item-" + source.identifier, tabindex: "-1" },
+            h("h3", null, url ? FG.external(url, name) : name),
+            source.creditText ? h("p", { class: "small" }, source.creditText) : null,
+            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.sourceType." + sourceForm(source))), useMark("cited"), citationBadges(source), FG.apiLink("resources", source.identifier)),
+            citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null
+          ),
+      });
+    }
+    for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((entity) => !linkedFers.has(entity["@id"]))) {
+      entries.push({
+        kind: "resources",
+        anchor: "fer-" + fer.identifier,
+        name: FG.text(fer.name),
+        text: [FG.text(fer.name), FG.bothLanguages(fer.description)].join(" "),
+        stations: [],
+        principles: FG.refs(fer, "about").map(code),
+        facets: { use: ["dashboard"], type: ["fer:" + FG.id(fer.catalogueType)], status: [], language: [], lens: [] },
+        render: () => FG.ferCard(fer, { badges: [useMark("dashboard"), FG.apiLink("fers", fer.identifier)] }),
+      });
+    }
+    return entries;
+  }
 
-  /* ---------------------------------------------------------------- check questions */
+  function repositoryEntries() {
+    return FG.repositoryEntries().map((repository) => {
+      const anchor = repository["@id"] ? String(repository["@id"]).replace(/^#(repository|resource)-/, "") : "nkr-" + slug(FG.text(repository.name));
+      const kindIndex = FG.repositoryKindOrder.indexOf(FG.id(repository.repositoryKind));
+      return {
+        kind: "repositories",
+        anchor,
+        name: FG.text(repository.name),
+        text: [FG.text(repository.name), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
+        stations: ["repozitar"],
+        principles: [],
+        order: (kindIndex < 0 ? FG.repositoryKindOrder.length : kindIndex) + ":" + FG.fold(FG.text(repository.name)),
+        facets: {
+          rkind: FG.id(repository.repositoryKind) ? [FG.id(repository.repositoryKind)] : [],
+          rsource: FG.refIds(repository, "isBasedOn").concat(repository.nkr ? ["nkr"] : [], repository.fairsharing ? ["fairsharing"] : []),
+        },
+        render: () => FG.repositoryCard(repository, "item-" + anchor),
+      };
+    });
+  }
 
-  function questionCard(item) {
-    const clauses = FG.refs(item, "citation").filter((clause) => String(clause["@id"]).startsWith("#clause-"));
-    return h(
-      "li",
-      { class: "card", id: "item-" + item.identifier, tabindex: "-1" },
-      h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, item.identifier), item.tier ? h("span", { class: "badge" }, FG.termName(FG.id(item.tier))) : null),
-      h("p", null, FG.span(item.text)),
-      h("div", { class: "badges" }, FG.principlesOf(item).map((principle) => FG.principleTile(principle)), FG.apiLink("questions", item.identifier)),
-      clauses.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.basedOn") + ": ", joined(clauses.map((clause) => FG.idChip("clauses", clause.identifier)))) : null
+  function sourceLine(clause) {
+    const source = FG.get(clause.isPartOf);
+    if (!source) return null;
+    return h("p", { class: "small cited-by" }, FG.t("catalogue.source") + ": ", h("a", { href: FG.catalogueHref("resources", source.identifier), lang: FG.nameLang(source) }, FG.text(source.name)));
+  }
+
+  function clauseEntries(used) {
+    return FG.refs(FG.get("#ledger"), "hasPart").map((clause, index) => {
+      const holders = used.get(clause["@id"]) || [];
+      const status = clause.creativeWorkStatus || "current";
+      const audience = FG.id(clause.audience);
+      return {
+        kind: "clauses",
+        anchor: clause.identifier,
+        name: clause.identifier,
+        text: [clause.identifier, FG.bothLanguages(clause.text)].join(" "),
+        stations: stationsOf(holders),
+        principles: FG.principlesOf(clause).map((principle) => principle.termCode),
+        order: String(index).padStart(4, "0"),
+        group: { source: FG.id(clause.isPartOf) },
+        facets: { ckind: clause.clauseKind ? [clause.clauseKind] : [], csource: [FG.id(clause.isPartOf)], actor: audience ? [audience] : [], cstatus: [status] },
+        render: () =>
+          h(
+            "li",
+            { class: "card clause-card", id: "item-" + clause.identifier, tabindex: "-1" },
+            h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, clause.identifier), clause.clauseKind ? h("span", { class: "badge" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null),
+            h("p", null, FG.span(clause.text)),
+            h(
+              "div",
+              { class: "badges" },
+              FG.principlesOf(clause).map((principle) => FG.principleTile(principle)),
+              audience ? h("span", { class: "badge" }, FG.termName(audience)) : null,
+              status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null,
+              FG.apiLink("clauses", clause.identifier)
+            ),
+            status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
+            sourceLine(clause),
+            holders.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.usedIn") + ": ", joined(holders.map(holderLink))) : null
+          ),
+      };
+    });
+  }
+
+  function questionEntries() {
+    return FG.ofType("Quiz").flatMap((check, checkIndex) =>
+      FG.refs(check, "hasPart")
+        .sort(FG.byPosition)
+        .map((item) => {
+          const clauses = FG.refs(item, "citation").filter((clause) => String(clause["@id"]).startsWith("#clause-"));
+          const station = String(FG.id(item.fixAt) || "").replace("#station-", "");
+          return {
+            kind: "questions",
+            anchor: item.identifier,
+            name: item.identifier,
+            text: [item.identifier, FG.bothLanguages(item.text)].join(" "),
+            stations: station ? [station] : [],
+            principles: FG.principlesOf(item).map((principle) => principle.termCode),
+            order: String(checkIndex).padStart(2, "0") + ":" + String(item.position || 0).padStart(4, "0"),
+            group: { check: check.identifier },
+            facets: { check: [check.identifier], tier: FG.id(item.tier) ? [FG.id(item.tier)] : [] },
+            render: () =>
+              h(
+                "li",
+                { class: "card", id: "item-" + item.identifier, tabindex: "-1" },
+                h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, item.identifier), item.tier ? h("span", { class: "badge" }, FG.termName(FG.id(item.tier))) : null),
+                h("p", null, FG.span(item.text)),
+                h("div", { class: "badges" }, FG.principlesOf(item).map((principle) => FG.principleTile(principle)), FG.apiLink("questions", item.identifier)),
+                h("p", { class: "small cited-by" }, FG.t("catalogue.inCheck") + ": ", h("a", { href: FG.href("check", check.identifier) }, FG.span(check.name))),
+                clauses.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.basedOn") + ": ", joined(clauses.map((clause) => FG.idChip("clauses", clause.identifier)))) : null
+              ),
+          };
+        })
     );
   }
 
-  FG.tabs.questions = function () {
-    const checks = FG.ofType("Quiz");
-    const build = () => {
-      const groups = checks.map((check) => [check, FG.refs(check, "hasPart").sort(FG.byPosition).filter((item) => matches("questions", item.identifier, FG.bothLanguages(item.text)))]).filter(([, items]) => items.length);
-      const total = groups.reduce((sum, [, items]) => sum + items.length, 0);
-      return h(
-        "div",
-        null,
-        h("p", { role: "status" }, FG.t("finder.count", { n: total })),
-        groups.map(([check, items]) =>
-          h("section", { class: "catalogue-group" }, h("h3", null, h("a", { href: FG.href("check", check.identifier) }, FG.span(check.name)), h("span", { class: "muted" }, " · " + FG.t("catalogue.entries", { n: items.length }))), cards(items.map(questionCard)))
-        )
-      );
-    };
-    return [h("h2", null, FG.t("catalogue.tab.questions")), h("p", null, FG.t("catalogue.intro.questions")), searchBox("questions", build), h("div", { id: "catalogue-list" }, build())];
-  };
-
-  /* ---------------------------------------------------------------- glossary terms */
-
-  FG.tabs.terms = function () {
-    const glossary = FG.get("#glossary");
-    /* Alphabetical in Czech, ignoring a leading bracket such as "[čistě] Open Access časopis". */
-    const sortKey = (term) => FG.textOf(term.name, "cs").text.replace(/^[[(]+/, "");
-    const terms = FG.refs(glossary, "hasDefinedTerm").sort((a, b) => sortKey(a).localeCompare(sortKey(b), "cs"));
+  function termEntries() {
     const stations = new Map();
     for (const station of FG.stations()) for (const id of FG.refIds(station, "mentions")) stations.set(id, (stations.get(id) || []).concat(station));
-    const row = (term) =>
-      h(
-        "tr",
-        { id: "item-" + term.termCode },
-        h("th", { scope: "row", lang: "cs" }, FG.external(term.url, FG.textOf(term.name, "cs").text)),
-        h("td", { lang: "en" }, FG.textOf(term.name, "en").text),
-        h("td", null, joined((stations.get(term["@id"]) || []).map(holderLink)))
-      );
-    const table = (rows) =>
-      h(
-        "table",
-        { class: "catalogue-table" },
-        h("thead", null, h("tr", null, h("th", { scope: "col" }, FG.t("catalogue.term")), h("th", { scope: "col" }, FG.t("catalogue.termEn")), h("th", { scope: "col" }, FG.t("catalogue.onPath")))),
-        h("tbody", null, rows)
-      );
-    const build = () => listed(terms.filter((term) => matches("terms", FG.bothLanguages(term.name))), row, table);
-    return [
-      h("h2", null, FG.t("catalogue.tab.terms")),
-      h("p", null, FG.t("catalogue.intro.terms"), " ", glossary ? FG.external(glossary.url, FG.text(glossary.name)) : null, glossary && glossary.dateCreated ? " · " + FG.t("finder.snapshot", { date: FG.formatDate(glossary.dateCreated) }) : null),
-      searchBox("terms", build),
-      h("div", { id: "catalogue-list" }, build()),
-    ];
-  };
-
-  /* ---------------------------------------------------------------- FIP profiles */
-
-  function fipCard(fip) {
-    const url = FG.refIds(fip, "sameAs")[0] || fip.url;
-    const details = [fip.alternateName, fip.version ? FG.t("catalogue.version", { version: fip.version }) : null, fip.dateModified ? FG.formatDate(String(fip.dateModified).slice(0, 10)) : null].filter(Boolean);
-    return h(
-      "li",
-      { class: "card", id: "item-" + fip.identifier },
-      h("h3", null, url ? FG.external(url, FG.text(fip.name)) : FG.span(fip.name)),
-      details.length ? h("p", { class: "small muted" }, details.join(" · ")) : null,
-      fip.abstract ? h("p", null, FG.span(fip.abstract)) : null,
-      h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length })), FG.verificationBadges(fip), FG.apiLink("fips", fip.identifier))
-    );
+    return FG.refs(FG.get("#glossary"), "hasDefinedTerm").map((term) => {
+      const at = stations.get(term["@id"]) || [];
+      const cs = FG.textOf(term.name, "cs").text;
+      const en = FG.textOf(term.name, "en").text;
+      return {
+        kind: "terms",
+        anchor: String(term.termCode),
+        name: cs.replace(/^[[(]+/, ""),
+        nameEn: en.replace(/^[[(]+/, ""),
+        text: cs + " " + en,
+        stations: stationsOf(at),
+        principles: [],
+        facets: {},
+        render: () =>
+          h(
+            "li",
+            { class: "card term-card", id: "item-" + term.termCode, tabindex: "-1" },
+            h("h3", { lang: "cs" }, FG.external(term.url, cs)),
+            h("p", { class: "small", lang: "en" }, en),
+            at.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.onPath") + ": ", joined(at.map(holderLink))) : null
+          ),
+      };
+    });
   }
 
-  FG.tabs.fips = function () {
-    const fips = FG.refs(FG.get("#fips"), "hasPart");
-    const build = () => listed(fips.filter((fip) => matches("fips", FG.bothLanguages(fip.name), fip.alternateName, FG.bothLanguages(fip.abstract))), fipCard, cards);
-    return [h("h2", null, FG.t("catalogue.tab.fips")), h("p", null, FG.t("catalogue.intro.fips")), FG.dashboardNotice(), searchBox("fips", build), h("div", { id: "catalogue-list" }, build())];
-  };
-
-  /* ---------------------------------------------------------------- FAIR tests */
-
-  function testCard(test) {
-    const code = String(FG.id(test.about) || "").split("/").pop();
-    const principle = FG.principles().find((entry) => entry.termCode === code);
-    const health = FG.id(test.healthStatus) || test.healthStatus;
-    return h(
-      "li",
-      { class: "card", id: "item-" + test.identifier },
-      h("h3", null, FG.external(test.url, FG.text(test.name))),
-      h(
-        "div",
-        { class: "badges" },
-        principle ? FG.principleTile(principle) : null,
-        health ? h("span", { class: "badge", "data-health": String(health) }, FG.t("catalogue.health." + health), test.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(test.statusAsOf) })) : null) : null,
-        h("span", { class: "badge code" }, test.identifier),
-        FG.apiLink("tests", test.identifier)
-      )
-    );
+  function fipEntries() {
+    return FG.refs(FG.get("#fips"), "hasPart").map((fip) => {
+      const url = FG.refIds(fip, "sameAs")[0] || fip.url;
+      const details = [fip.alternateName, fip.version ? FG.t("catalogue.version", { version: fip.version }) : null, fip.dateModified ? FG.formatDate(String(fip.dateModified).slice(0, 10)) : null].filter(Boolean);
+      return {
+        kind: "fips",
+        anchor: fip.identifier,
+        name: FG.text(fip.name),
+        text: [FG.bothLanguages(fip.name), fip.alternateName, FG.bothLanguages(fip.abstract)].join(" "),
+        stations: [],
+        principles: [],
+        facets: {},
+        render: () =>
+          h(
+            "li",
+            { class: "card", id: "item-" + fip.identifier, tabindex: "-1" },
+            h("h3", null, url ? FG.external(url, FG.text(fip.name)) : FG.span(fip.name)),
+            details.length ? h("p", { class: "small muted" }, details.join(" · ")) : null,
+            fip.abstract ? h("p", null, FG.span(fip.abstract)) : null,
+            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length })), FG.verificationBadges(fip), FG.apiLink("fips", fip.identifier))
+          ),
+      };
+    });
   }
 
-  FG.tabs.tests = function () {
-    const tests = FG.graph.filter((entity) => String(entity["@id"]).startsWith("#test-"));
-    const build = () => listed(tests.filter((test) => matches("tests", FG.bothLanguages(test.name), test.identifier)), testCard, cards);
-    return [h("h2", null, FG.t("catalogue.tab.tests")), h("p", null, FG.t("catalogue.intro.tests")), searchBox("tests", build), h("div", { id: "catalogue-list" }, build())];
-  };
-
-  /* ---------------------------------------------------------------- content changes */
+  function testEntries() {
+    return FG.graph
+      .filter((entity) => String(entity["@id"]).startsWith("#test-"))
+      .map((test) => {
+        const principle = FG.principles().find((entry) => entry.termCode === code(test.about));
+        const health = FG.id(test.healthStatus) || test.healthStatus;
+        return {
+          kind: "tests",
+          anchor: test.identifier,
+          name: FG.text(test.name),
+          text: [FG.bothLanguages(test.name), test.identifier].join(" "),
+          stations: [],
+          principles: principle ? [principle.termCode] : [],
+          facets: {},
+          render: () =>
+            h(
+              "li",
+              { class: "card", id: "item-" + test.identifier, tabindex: "-1" },
+              h("h3", null, FG.external(test.url, FG.text(test.name))),
+              h(
+                "div",
+                { class: "badges" },
+                principle ? FG.principleTile(principle) : null,
+                health ? h("span", { class: "badge", "data-health": String(health) }, FG.t("catalogue.health." + health), test.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(test.statusAsOf) })) : null) : null,
+                h("span", { class: "badge code" }, test.identifier),
+                FG.apiLink("tests", test.identifier)
+              )
+            ),
+        };
+      });
+  }
 
   /** A content change: when, what kind, what was done and on what it drew; who and with which tool stays in the
       paradata, so the catalogue repeats no names. */
-  function actionItem(action, cited) {
-    const created = /^Create/.test(String(FG.list(action["@type"])[0]));
-    const sources = FG.refs(action, "object").filter((entity) => cited.has(entity["@id"]));
-    const results = FG.refIds(action, "result").length;
-    return h(
-      "li",
-      { class: "change", id: "item-" + String(action["@id"]).replace(/^#action-/, "") },
-      h("p", { class: "change-head" }, h("time", { datetime: String(action.endTime || "") }, FG.formatDate(String(action.endTime || "").slice(0, 10))), " · ", FG.t(created ? "catalogue.created" : "catalogue.updated"), " · ", h("strong", { lang: "en" }, FG.text(action.name))),
-      action.description ? h("p", { class: "small", lang: "en" }, FG.text(action.description)) : null,
-      h(
-        "p",
-        { class: "small muted" },
-        FG.t("catalogue.changedItems", { n: results }),
-        sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", { lang: FG.nameLang(source) }, FG.text(source.name))))] : null,
-        " ",
-        FG.apiLink("actions", String(action["@id"]).replace(/^#action-/, ""))
-      )
-    );
+  function actionEntries() {
+    const cited = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
+    return FG.graph
+      .filter((entity) => String(entity["@id"]).startsWith("#action-"))
+      .map((action) => {
+        const created = /^Create/.test(String(FG.list(action["@type"])[0]));
+        const sources = FG.refs(action, "object").filter((entity) => cited.has(entity["@id"]));
+        const id = String(action["@id"]).replace(/^#action-/, "");
+        return {
+          kind: "actions",
+          anchor: id,
+          name: FG.text(action.name),
+          date: String(action.endTime || ""),
+          text: [FG.text(action.name), FG.text(action.description)].join(" "),
+          stations: [],
+          principles: [],
+          facets: { change: [created ? "created" : "updated"] },
+          render: () =>
+            h(
+              "li",
+              { class: "card change", id: "item-" + id, tabindex: "-1" },
+              h("p", { class: "change-head small" }, h("time", { datetime: String(action.endTime || "") }, FG.formatDate(String(action.endTime || "").slice(0, 10))), " · ", FG.t(created ? "catalogue.created" : "catalogue.updated")),
+              h("h3", { lang: "en" }, FG.text(action.name)),
+              action.description ? h("p", { class: "small", lang: "en" }, FG.text(action.description)) : null,
+              h(
+                "p",
+                { class: "small muted" },
+                FG.t("catalogue.changedItems", { n: FG.refIds(action, "result").length }),
+                sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", { lang: FG.nameLang(source) }, FG.text(source.name))))] : null,
+                " ",
+                FG.apiLink("actions", id)
+              )
+            ),
+        };
+      });
   }
 
-  FG.tabs.actions = function () {
-    const actions = FG.graph.filter((entity) => String(entity["@id"]).startsWith("#action-")).sort((a, b) => String(b.endTime || "").localeCompare(String(a.endTime || "")));
-    const cited = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
-    const build = () =>
-      listed(
-        actions.filter((action) => matches("actions", FG.text(action.name), FG.text(action.description))),
-        (action) => actionItem(action, cited),
-        (items) => h("ol", { class: "changes" }, items)
-      );
-    return [
-      h("h2", null, FG.t("catalogue.tab.actions")),
-      h("p", null, FG.t("catalogue.intro.actions"), " ", h("a", { href: FG.href("page", "machines") }, FG.t("catalogue.machinesLink"))),
-      searchBox("actions", build),
-      h("div", { id: "catalogue-list" }, build()),
-    ];
+  function allEntries() {
+    const { bySource, byClause } = citations();
+    return {
+      resources: resourceEntries(bySource),
+      repositories: repositoryEntries(),
+      clauses: clauseEntries(byClause),
+      questions: questionEntries(),
+      terms: termEntries(),
+      fips: fipEntries(),
+      tests: testEntries(),
+      actions: actionEntries(),
+    };
+  }
+
+  /* ---------------------------------------------------------------- facets of one kind */
+
+  const termLabel = (id) => FG.termName(id) || id;
+  const KIND_FACETS = {
+    resources: [
+      { key: "use", values: () => ["recommended", "cited", "dashboard"], label: (value) => FG.t("catalogue.use." + value) },
+      { key: "type", label: (value) => (value.startsWith("form:") ? FG.t("catalogue.sourceType." + value.slice(5)) : value.startsWith("fer:") ? termLabel(value.slice(4)) : termLabel(value)) },
+      { key: "status", label: termLabel },
+      { key: "language", values: () => ["cs", "en"], label: (value) => FG.t("catalogue.language." + value) },
+      /* The lens narrows what the guide recommends; a cited work or a dashboard record has no audience and stays. */
+      { key: "lens", values: () => FG.lenses().map((lens) => lens.audienceType), label: (value) => FG.text((FG.lenses().find((lens) => lens.audienceType === value) || {}).name), passThrough: true },
+    ],
+    repositories: [
+      { key: "rkind", values: () => FG.repositoryKindOrder, label: termLabel },
+      { key: "rsource", label: (value) => (value === "nkr" ? "NKR" : value === "fairsharing" ? "FAIRsharing" : FG.repositorySource(value)) },
+    ],
+    clauses: [
+      { key: "ckind", values: () => ["requirement", "recommendation", "fulfilment", "statement"], label: (value) => FG.t("catalogue.clauseKind." + value) },
+      { key: "csource", label: (value) => FG.text((FG.get(value) || {}).name) || value },
+      { key: "actor", label: termLabel },
+      { key: "cstatus", values: () => ["current", "refresh", "superseded"], label: (value) => FG.t("catalogue.clauseStatus." + value) },
+    ],
+    questions: [
+      { key: "check", values: () => FG.ofType("Quiz").map((check) => check.identifier), label: (value) => FG.text((FG.get("#check-" + value) || {}).name) },
+      { key: "tier", label: termLabel },
+    ],
+    actions: [{ key: "change", values: () => ["created", "updated"], label: (value) => FG.t("catalogue." + value) }],
   };
+
+  /* ---------------------------------------------------------------- the state in the address */
+
+  /** `k!resources_clauses~s!licence~p!R1.1~q!licence~o!name~f.use!cited`; a bare kind (an older tab address) selects
+      that kind alone. */
+  function readState(route) {
+    const state = { kinds: [], stations: [], principles: [], q: "", order: "", f: {} };
+    const arg = String(route.arg || "");
+    if (KINDS.includes(arg) || ALIASES[arg]) {
+      state.kinds = [ALIASES[arg] || arg];
+      return state;
+    }
+    for (const field of arg.split("~")) {
+      const [key, value = ""] = field.split("!");
+      const list = value ? value.split("_").map(decodeURIComponent) : [];
+      if (key === "k") state.kinds = list.filter((kind) => KINDS.includes(kind));
+      else if (key === "s") state.stations = list;
+      else if (key === "p") state.principles = list;
+      else if (key === "q") state.q = decodeURIComponent(value);
+      else if (key === "o") state.order = value;
+      else if (key.startsWith("f.")) state.f[key.slice(2)] = list;
+    }
+    if (!state.kinds.length) state.kinds = ["resources"];
+    return state;
+  }
+
+  const encodePart = (value) => encodeURIComponent(value).replace(/[~!_]/g, (char) => "%" + char.charCodeAt(0).toString(16).toUpperCase());
+
+  function writeState(state) {
+    const fields = ["k!" + state.kinds.map(encodePart).join("_")];
+    if (state.stations.length) fields.push("s!" + state.stations.map(encodePart).join("_"));
+    if (state.principles.length) fields.push("p!" + state.principles.map(encodePart).join("_"));
+    if (state.q) fields.push("q!" + encodePart(state.q));
+    if (state.order) fields.push("o!" + state.order);
+    for (const [key, list] of Object.entries(state.f)) fields.push("f." + key + "!" + list.map(encodePart).join("_"));
+    return FG.href("catalogue", fields.join("~"));
+  }
+
+  /** The lens filter starts from the reader's lens until they choose otherwise. */
+  const chosenValues = (state, route, key) => (key === "lens" && state.f.lens === undefined ? [route.lens] : state.f[key] || []);
+
+  function passesShared(entry, state, skip) {
+    if (state.q && !FG.fold(entry.text).includes(FG.fold(state.q))) return false;
+    if (skip !== "station" && state.stations.length && !entry.stations.some((station) => state.stations.includes(station))) return false;
+    if (skip !== "principle" && state.principles.length && !entry.principles.some((principle) => state.principles.includes(principle))) return false;
+    return true;
+  }
+
+  function passesKind(entry, state, route, skip) {
+    for (const facet of KIND_FACETS[entry.kind] || []) {
+      if (facet.key === skip) continue;
+      const chosen = chosenValues(state, route, facet.key);
+      if (!chosen.length) continue;
+      const values = entry.facets[facet.key] || [];
+      if (facet.passThrough && !values.length) continue;
+      if (!values.some((value) => chosen.includes(value))) return false;
+    }
+    return true;
+  }
+
+  /* ---------------------------------------------------------------- ordering and groups */
+
+  const ORDERS_FOR = {
+    resources: ["name"],
+    repositories: ["guided", "name"],
+    clauses: ["source", "principle", "station"],
+    questions: ["check", "principle", "station"],
+    terms: ["name", "nameEn"],
+    fips: ["name"],
+    tests: ["principle", "name"],
+    actions: ["newest", "oldest"],
+  };
+
+  function ordersFor(kinds) {
+    const own = kinds.length === 1 ? ORDERS_FOR[kinds[0]] : ["kind"];
+    return [...new Set(own.concat(["name", "station", "principle"]))];
+  }
+
+  const rankedPrinciples = () => FG.principles().slice().sort(FG.principleOrder).map((principle) => principle.termCode);
+  const byName = (a, b) => FG.fold(a.name).localeCompare(FG.fold(b.name), "cs");
+  const withinKind = (a, b) => (a.order !== undefined && b.order !== undefined ? String(a.order).localeCompare(String(b.order)) : 0) || byName(a, b);
+
+  /** Groups for an ordering: a key, a heading and the entries, in the order of the groups. */
+  function groupsFor(order, entries, kinds) {
+    const stations = FG.stations().map((station) => station.identifier);
+    const principles = rankedPrinciples();
+    const grouped = (keyOf, labelOf, rankOf) => {
+      const groups = new Map();
+      for (const entry of entries) {
+        const key = keyOf(entry);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(entry);
+      }
+      return [...groups.entries()].sort(([a], [b]) => rankOf(a) - rankOf(b)).map(([key, list]) => ({ key, label: labelOf(key), entries: list.sort(withinKind) }));
+    };
+    const rankIn = (list) => (key) => (key && list.includes(key) ? list.indexOf(key) : list.length);
+    if (order === "kind") return grouped((entry) => entry.kind, (kind) => FG.t("catalogue.tab." + kind), rankIn(KINDS)).filter((group) => kinds.includes(group.key));
+    if (order === "station") {
+      return grouped(
+        (entry) => entry.stations.slice().sort((a, b) => stations.indexOf(a) - stations.indexOf(b))[0] || "",
+        (key) => {
+          const station = FG.get("#station-" + key);
+          return station ? station.position + " · " + FG.text(station.name) : FG.t("catalogue.withoutStation");
+        },
+        rankIn(stations)
+      );
+    }
+    if (order === "principle") {
+      return grouped(
+        (entry) => entry.principles.slice().sort((a, b) => principles.indexOf(a) - principles.indexOf(b))[0] || "",
+        (key) => {
+          const principle = FG.principles().find((entry) => entry.termCode === key);
+          return principle ? key + " " + FG.text(principle.name) : FG.t("catalogue.withoutPrinciple");
+        },
+        rankIn(principles)
+      );
+    }
+    if (order === "source") {
+      const analysis = FG.id(FG.refs(FG.root, "isBasedOn")[0]);
+      const names = new Map(entries.map((entry) => [entry.group.source, FG.text((FG.get(entry.group.source) || {}).name)]));
+      const ranked = [...names.keys()].sort((a, b) => (a === analysis ? -1 : b === analysis ? 1 : FG.fold(names.get(a)).localeCompare(FG.fold(names.get(b)), "cs")));
+      return grouped((entry) => entry.group.source, (key) => names.get(key) || key, rankIn(ranked));
+    }
+    if (order === "check") {
+      const checks = FG.ofType("Quiz").map((check) => check.identifier);
+      return grouped((entry) => entry.group.check, (key) => FG.text((FG.get("#check-" + key) || {}).name), rankIn(checks));
+    }
+    const sorted = entries.slice();
+    if (order === "guided") sorted.sort(withinKind);
+    else if (order === "newest") sorted.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    else if (order === "oldest") sorted.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    else if (order === "nameEn") sorted.sort((a, b) => FG.fold(a.nameEn || a.name).localeCompare(FG.fold(b.nameEn || b.name), "en"));
+    else sorted.sort(byName);
+    return [{ key: "all", label: null, entries: sorted }];
+  }
 
   /* ---------------------------------------------------------------- the view */
 
-  function tabBar(current) {
+  /** A facet as a group of checkboxes with counts; values past the first few open on request. */
+  function facetGroup(name, legend, values, chosen, counts, labelOf, onToggle, noteOf) {
+    const open = openFacets.has(name);
+    const limit = name === "kind" ? values.length : SHOWN_VALUES;
+    const shown = open ? values : values.filter((value, index) => index < limit || chosen.includes(value));
     return h(
-      "nav",
-      { class: "catalogue-tabs", "aria-label": FG.t("catalogue.tabs") },
+      "fieldset",
+      { class: "facet", "data-facet": name },
+      h("legend", null, legend),
       h(
         "ul",
         null,
-        TABS.map((tab) => {
-          const href = FG.catalogueHref(tab);
-          const open = (event) => {
-            if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-            event.preventDefault();
-            FG.navigateInPlace(href, `.catalogue-tabs a[data-tab="${tab}"]`);
-          };
-          return h("li", null, h("a", { href, "data-tab": tab, "aria-current": tab === current ? "page" : null, onclick: open }, FG.t("catalogue.tab." + tab)));
+        shown.map((value) => {
+          const id = "facet-" + name + "-" + slug(value);
+          const count = counts.get(value) || 0;
+          const checked = chosen.includes(value);
+          const note = noteOf ? noteOf(value, count, checked) : null;
+          return h(
+            "li",
+            { class: count || checked ? null : "facet-empty" },
+            h("input", { type: "checkbox", id, checked, disabled: note && note.disabled ? true : null, onchange: () => onToggle(value, "#" + CSS.escape(id)) }),
+            h("label", { for: id }, h("span", { class: "facet-label" }, labelOf(value)), h("span", { class: "facet-count" }, String(count))),
+            note && note.text ? h("span", { class: "facet-note small muted" }, note.text) : null
+          );
         })
-      )
+      ),
+      values.length > shown.length || open
+        ? h(
+            "button",
+            {
+              type: "button",
+              class: "button-link small",
+              onclick: () => {
+                if (open) openFacets.delete(name);
+                else openFacets.add(name);
+                FG.rerender();
+              },
+            },
+            open ? FG.t("catalogue.fewerValues") : FG.t("catalogue.moreValues", { n: values.length - shown.length })
+          )
+        : null
+    );
+  }
+
+  /** What a kind is, and for repositories the live sources, shown where its entries start. */
+  function kindIntro(kind) {
+    const intro = kind === "repositories" ? FG.t("repositories.intro") : FG.t("catalogue.intro." + kind);
+    if (kind === "repositories") {
+      const lookup = FG.repositoryEntries().map((repository) => ({ identifiers: repository.identifier, url: repository.url }));
+      const nkr = FG.live.nkrControls();
+      const fairsharing = FG.live.fairsharingControls(lookup);
+      return h(
+        "div",
+        { class: "kind-intro" },
+        h("p", { class: "small" }, intro),
+        h("div", { class: "filter-actions" }, nkr.button, fairsharing.button),
+        nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null
+      );
+    }
+    return h(
+      "div",
+      { class: "kind-intro" },
+      h("p", { class: "small" }, intro, kind === "actions" ? [" ", h("a", { href: FG.href("page", "machines") }, FG.t("catalogue.machinesLink"))] : null),
+      kind === "fips" || kind === "resources" ? FG.dashboardNotice() : null
     );
   }
 
   FG.views.catalogue = function (route) {
-    const tab = TABS.includes(route.arg) ? route.arg : "resources";
-    /* A link to one entry shows the whole list, so no filter hides the entry. */
-    if (route.extra) {
-      queries[tab] = "";
-      if (tab in kinds) kinds[tab] = "";
+    const state = readState(route);
+    const entries = allEntries();
+    const go = (next, focus) => FG.replaceInPlace(writeState(next), focus);
+    const toggle = (list, value) => (list.includes(value) ? list.filter((item) => item !== value) : list.concat(value));
+
+    /* A link to one entry shows its kind unfiltered, so the entry is there. */
+    if (route.extra) Object.assign(state, { stations: [], principles: [], q: "", f: { lens: [] } });
+
+    const selected = state.kinds;
+    const inKinds = selected.flatMap((kind) => entries[kind]);
+    const visible = inKinds.filter((entry) => passesShared(entry, state) && passesKind(entry, state, route));
+    const orders = ordersFor(selected);
+    const order = orders.includes(state.order) ? state.order : orders[0];
+
+    /* Counts: kinds under every filter; a shared facet under every other filter; a kind's facet within that kind. */
+    const kindCounts = new Map(KINDS.map((kind) => [kind, entries[kind].filter((entry) => passesShared(entry, state) && passesKind(entry, state, route)).length]));
+    const lacks = (kind, dimension) => !entries[kind].some((entry) => entry[dimension].length);
+    const sharedCounts = (dimension, skip) => {
+      const counts = new Map();
+      for (const entry of inKinds.filter((item) => passesShared(item, state, skip) && passesKind(item, state, route))) {
+        for (const value of new Set(entry[dimension])) counts.set(value, (counts.get(value) || 0) + 1);
+      }
+      return counts;
+    };
+    const kindFacetCounts = (kind, key) => {
+      const counts = new Map();
+      for (const entry of entries[kind].filter((item) => passesShared(item, state) && passesKind(item, state, route, key))) {
+        for (const value of new Set(entry.facets[key] || [])) counts.set(value, (counts.get(value) || 0) + 1);
+      }
+      return counts;
+    };
+    const kindNote = (kind, count, checked) => {
+      if (checked && selected.length === 1) return { disabled: true, text: FG.t("catalogue.lastKind") };
+      if (!count && state.stations.length && lacks(kind, "stations")) return { text: FG.t("catalogue.noStation") };
+      if (!count && state.principles.length && lacks(kind, "principles")) return { text: FG.t("catalogue.noPrinciple") };
+      return null;
+    };
+
+    const search = h(
+      "div",
+      { class: "facet-search" },
+      h("label", { for: "catalogue-search" }, FG.t("catalogue.search")),
+      h("input", {
+        type: "search",
+        id: "catalogue-search",
+        value: state.q,
+        oninput: (event) => {
+          clearTimeout(FG.catalogueTyping);
+          const value = event.target.value;
+          FG.catalogueTyping = setTimeout(() => go(Object.assign({}, state, { q: value.trim() }), "#catalogue-search"), 300);
+        },
+      })
+    );
+    const stationLabel = (id) => {
+      const station = FG.get("#station-" + id);
+      return station ? station.position + " · " + FG.text(station.name) : id;
+    };
+    const principleLabel = (value) => value + " " + FG.text((FG.principles().find((entry) => entry.termCode === value) || {}).name);
+    const facets = [
+      search,
+      facetGroup("kind", FG.t("catalogue.facet.kind"), KINDS, selected, kindCounts, (kind) => FG.t("catalogue.tab." + kind), (kind, focus) => {
+        const next = toggle(selected, kind);
+        if (next.length) go(Object.assign({}, state, { kinds: next, order: "" }), focus);
+      }, kindNote),
+      facetGroup("station", FG.t("catalogue.facet.station"), FG.stations().map((station) => station.identifier), state.stations, sharedCounts("stations", "station"), stationLabel, (id, focus) =>
+        go(Object.assign({}, state, { stations: toggle(state.stations, id) }), focus)
+      ),
+      facetGroup("principle", FG.t("catalogue.facet.principle"), rankedPrinciples(), state.principles, sharedCounts("principles", "principle"), principleLabel, (value, focus) =>
+        go(Object.assign({}, state, { principles: toggle(state.principles, value) }), focus)
+      ),
+      selected.map((kind) => {
+        const own = KIND_FACETS[kind] || [];
+        if (!own.length) return null;
+        return h(
+          "div",
+          { class: "facet-kind" },
+          h("p", { class: "facet-kind-name" }, FG.t("catalogue.tab." + kind)),
+          own.map((facet) => {
+            const counts = kindFacetCounts(kind, facet.key);
+            const values = facet.values ? facet.values() : [...counts.keys()].sort((a, b) => FG.fold(facet.label(a)).localeCompare(FG.fold(facet.label(b)), "cs"));
+            const chosen = chosenValues(state, route, facet.key);
+            return facetGroup(kind + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
+              go(Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: toggle(chosen, value) }) }), focus)
+            );
+          })
+        );
+      }),
+    ];
+
+    /* Active filters as chips that remove themselves. */
+    const chips = [];
+    const chip = (label, next) =>
+      chips.push(
+        h("li", null, h("button", { type: "button", class: "filter-chip", "aria-label": FG.t("catalogue.remove", { label }), onclick: () => go(next, "#catalogue-search") }, label, h("span", { "aria-hidden": "true" }, " ×")))
+      );
+    if (state.q) chip("„" + state.q + "“", Object.assign({}, state, { q: "" }));
+    for (const id of state.stations) chip(stationLabel(id), Object.assign({}, state, { stations: state.stations.filter((item) => item !== id) }));
+    for (const value of state.principles) chip(principleLabel(value), Object.assign({}, state, { principles: state.principles.filter((item) => item !== value) }));
+    for (const kind of selected) {
+      for (const facet of KIND_FACETS[kind] || []) {
+        const chosen = chosenValues(state, route, facet.key);
+        for (const value of chosen) chip(FG.t("catalogue.facet." + facet.key) + ": " + facet.label(value), Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: chosen.filter((item) => item !== value) }) }));
+      }
     }
+
+    const groups = groupsFor(order, visible, selected);
+    const used = new Set();
+    const mixed = selected.length > 1 && order !== "kind";
+    const results = groups.map((group) => {
+      /* A link to one entry shows the whole group it is in, so the entry is there to land on. */
+      const all = expanded.has(group.key) || group.entries.length <= PAGE || (route.extra && group.entries.some((entry) => entry.anchor === route.extra));
+      const cards = (all ? group.entries : group.entries.slice(0, PAGE)).map((entry) => {
+        const node = entry.render();
+        if (node.id && used.has(node.id)) node.removeAttribute("id");
+        else used.add(node.id);
+        if (mixed) node.prepend(h("p", { class: "card-kind small muted" }, FG.t("catalogue.tab." + entry.kind)));
+        return node;
+      });
+      return h(
+        "section",
+        { class: "catalogue-group" },
+        group.label ? h("h2", null, group.label, h("span", { class: "muted group-count" }, " · " + FG.t("catalogue.entries", { n: group.entries.length }))) : null,
+        order === "kind" ? kindIntro(group.key) : null,
+        h("ul", { class: "cards" }, cards),
+        all
+          ? null
+          : h(
+              "button",
+              {
+                type: "button",
+                class: "button-small catalogue-more",
+                onclick: () => {
+                  expanded.add(group.key);
+                  FG.rerender();
+                },
+              },
+              FG.t("catalogue.more", { n: group.entries.length - PAGE })
+            )
+      );
+    });
+    if (order !== "kind" && selected.length === 1) results.unshift(kindIntro(selected[0]));
+
     return h(
       "div",
       { class: "wrap catalogue" },
       FG.heading(1, null, FG.t("catalogue.title")),
       h("p", { class: "lead" }, FG.t("catalogue.intro.all"), " ", h("a", { href: FG.href("page", "machines") }, FG.t("catalogue.machinesLink"))),
-      tabBar(tab),
-      h("section", { class: "catalogue-tab", "aria-label": FG.t("catalogue.tab." + tab) }, FG.tabs[tab](route))
+      h(
+        "div",
+        { class: "catalogue-layout" },
+        h(
+          "details",
+          /* Open beside the results on wide screens; on a phone closed until opened, so the results come first. */
+          { class: "catalogue-facets", open: (FG.catalogueFacetsOpen ?? window.matchMedia("(min-width: 60rem)").matches) ? true : null, ontoggle: (event) => (FG.catalogueFacetsOpen = event.target.open) },
+          h("summary", null, FG.t("catalogue.filters"), chips.length ? h("span", { class: "facet-count" }, String(chips.length)) : null),
+          h("div", { class: "facet-panel" }, facets)
+        ),
+        h(
+          "div",
+          { class: "catalogue-results" },
+          h(
+            "div",
+            { class: "catalogue-toolbar" },
+            h("p", { role: "status", class: "catalogue-count" }, FG.t("finder.count", { n: visible.length })),
+            h(
+              "label",
+              { class: "catalogue-order" },
+              FG.t("catalogue.order"),
+              h(
+                "select",
+                { id: "catalogue-order", onchange: (event) => go(Object.assign({}, state, { order: event.target.value }), "#catalogue-order") },
+                orders.map((value) => h("option", { value, selected: value === order }, FG.t("catalogue.orderBy." + value)))
+              )
+            )
+          ),
+          chips.length
+            ? h(
+                "div",
+                { class: "active-filters" },
+                h("ul", { "aria-label": FG.t("catalogue.active") }, chips),
+                h("button", { type: "button", class: "button-link small", onclick: () => go({ kinds: selected, stations: [], principles: [], q: "", order: state.order, f: { lens: [] } }, "#catalogue-search") }, FG.t("catalogue.clear"))
+              )
+            : null,
+          results
+        )
+      )
     );
   };
 })();

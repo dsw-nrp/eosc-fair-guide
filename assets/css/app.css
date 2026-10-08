@@ -2350,78 +2350,203 @@ a.id-chip:focus-visible {
   font-size: var(--size-small);
 }
 
-/* The catalogue: tabs as a row of links under the title, the current one underlined like the main menu. */
-.catalogue-tabs ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-2);
-  list-style: none;
-  margin: var(--space-4) 0 var(--space-5);
-  padding: 0 0 var(--space-2);
-  border-bottom: 1px solid var(--border);
+/* The catalogue: the facets beside the results on wide screens, a disclosure above them on phones. */
+.catalogue,
+.explorer {
+  padding-bottom: var(--space-7);
 }
 
-.catalogue-tabs a {
-  display: inline-block;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius);
-  font-weight: 600;
-  text-decoration: none;
+.catalogue-layout {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
 }
 
-.catalogue-tabs a:hover {
+@media (min-width: 60rem) {
+  .catalogue-layout {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.catalogue-facets {
+  margin: 0;
   background: var(--surface);
+  border: 0;
 }
 
-.catalogue-tabs a[aria-current="page"] {
-  background: var(--tint-teal);
-  color: var(--background);
+.catalogue-facets > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-.catalogue-tab > h2 {
-  margin-top: 0;
+.facet-panel {
+  padding: 0 var(--space-4) var(--space-4);
 }
 
-.catalogue-table {
+.facet-search label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.facet-search input {
   width: 100%;
-  border-collapse: collapse;
+}
+
+.facet {
+  border: 0;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+}
+
+.facet legend {
+  padding: 0;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.facet ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.facet li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--space-2);
+  padding: 2px 0;
+}
+
+.facet li label {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
   font-size: var(--size-small);
 }
 
-.catalogue-table th,
-.catalogue-table td {
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  vertical-align: top;
+.facet li input {
+  margin-top: 0.2em;
 }
 
-.catalogue-table thead th {
-  white-space: nowrap;
+.facet-note {
+  grid-column: 2;
 }
 
-.catalogue-table tbody th {
+.facet-empty label {
+  color: var(--text-muted);
+}
+
+.facet-count {
+  flex: none;
+  min-width: 1.6em;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  text-align: center;
+}
+
+.facet-kind {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.facet-kind-name {
+  margin: 0;
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+.catalogue-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.catalogue-count {
+  margin: 0;
+  font-weight: 700;
+}
+
+.catalogue-order {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.active-filters ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.filter-chip {
+  min-height: 2rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--tint-teal);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--tint-teal);
+  font-size: var(--size-small);
   font-weight: 600;
 }
 
-.cited-by,
-.changes .change p {
+.catalogue-group > h2 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: var(--size-h3);
+}
+
+.group-count {
+  font-weight: 400;
+}
+
+.kind-intro p {
+  margin: 0 0 var(--space-3);
+}
+
+.kind-intro .filter-actions {
+  margin-bottom: var(--space-3);
+}
+
+.card-kind {
+  margin: 0 0 var(--space-1);
+  text-transform: lowercase;
+}
+
+.catalogue-more {
+  margin-top: var(--space-3);
+}
+
+.cited-by {
   margin: var(--space-2) 0 0;
 }
 
-.changes {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.change-head {
+  margin: 0 0 var(--space-1);
+  color: var(--text-muted);
 }
 
-.changes .change {
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.changes .change-head {
-  margin: 0;
+.use-mark {
+  border-color: var(--tint-teal);
 }
 
 .json-link {

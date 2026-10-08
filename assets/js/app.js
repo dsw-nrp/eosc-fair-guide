@@ -18,6 +18,16 @@
     FG.navigate(hash);
   };
 
+  /** Like navigateInPlace, but replace the current history entry, as when refining a filtered list: the address
+      follows every change, and Back leaves the list instead of undoing one filter at a time. */
+  FG.replaceInPlace = function (hash, focus) {
+    FG.keepScroll = window.scrollY;
+    FG.focusSelector = focus || null;
+    FG.focusAfterRender = false;
+    window.history.replaceState(null, "", hash);
+    FG.render();
+  };
+
   FG.render = function () {
     const route = FG.parseHash(window.location.hash);
     FG.state.lang = route.lang;

@@ -598,11 +598,16 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 - Every page sits under a main-menu item, declared in its content (`menu`): "Nástroje" (tools) lists the helpers and
   the AI advice as cards and stays current on each of them; "O průvodci" covers the about page and the accessibility
   statement. The content checks refuse a page without a menu item.
-- The catalogue ("Katalog") replaces the separate resource and repository menu items: a row of tabs for resources,
-  repositories, cited sources, glossary terms, FIP profiles, FAIR tests and content changes, each with a search
-  field; the finders' old addresses open their tabs. Cited sources show the stations and checks that cite them;
-  content changes show date, kind and description and leave who and with which tool to the paradata. The lens is a
-  select box among the resource filters, not the band. The page for machines ("Data pro stroje") sits under the
+- The catalogue ("Katalog") replaces the separate resource and repository menu items with one list narrowed by
+  facets with counts. Kind (resources, repositories, requirements, check questions, glossary terms, FIP profiles,
+  FAIR tests, content changes) is a facet in which one value stays selected; search, station and principle apply
+  across kinds, and a kind without that dimension shows none and says why; facets of one kind are grouped under it.
+  Resources and cited sources are one kind marked by usage (recommended by the guide, basis of the content, in the
+  FIP Dashboard), with the dashboard's own resources folded in. The reader chooses the ordering and groups follow
+  it; the whole state is part of the address, so a filtered list is a link, and older addresses select their kind.
+  Content changes show date, kind and description and leave who and with which tool to the paradata. The lens is a
+  facet of the resources that starts from the reader's lens and leaves works without an audience in. On phones the
+  facets sit in a closed "Filtry" disclosure above the results. The page for machines ("Data pro stroje") sits under the
   catalogue, explains the knowledge base, its profiles and licence, and lists links read from the crate's root; the
   head carries the typed `describedby` link. Each item gets its JSON link once the API is published (task 8.16).
 - Identifiers resolve to the catalogue. Wherever the guide cites a requirement or finding (the stations' "Proč", the

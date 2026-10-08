@@ -74,7 +74,8 @@
     return badges;
   }
 
-  function resourceCard(resource) {
+  /** A resource as a card; the catalogue adds its usage marks and where the guide uses it. */
+  function resourceCard(resource, extras) {
     const record = dashboardRecord(resource);
     const name = FG.text(resource.name);
     const languages = FG.list(resource.inLanguage);
@@ -90,10 +91,16 @@
         statusBadge(resource),
         languages.length ? h("span", { class: "badge" }, FG.t("resource.languages", { languages: languages.join(", ") })) : null,
         record ? verificationBadges(record.fer) : null,
+        extras ? extras.badges : null,
         record ? FG.external(record.url, FG.t("resource.dashboard"), { class: "small" }) : null
-      )
+      ),
+      extras ? extras.after : null
     );
   }
+
+  FG.resourceCard = resourceCard;
+  FG.statusBadge = statusBadge;
+  FG.dashboardRecord = dashboardRecord;
 
   function lensOf(entity, lens) {
     return FG.hasRef(entity, "audience", "#lens-" + lens);
@@ -867,98 +874,18 @@
     );
   }
 
-  /* ---------------------------------------------------------------- resource finder */
+  /* ---------------------------------------------------------------- the finders' building blocks */
 
-  /* The lens filter starts from the reader's lens (null) until they choose another, or all ("") . */
-  const filters = { lens: null, station: "", type: "", status: "", language: "" };
-
-  function select(name, label, options, current) {
+  /** A FAIR-enabling resource of the FIP Dashboard snapshot as a card; the catalogue adds its marks. */
+  FG.ferCard = function (fer, extras) {
     return h(
-      "label",
-      null,
-      label,
-      h(
-        "select",
-        {
-          name,
-          onchange: (event) => {
-            filters[name] = event.target.value;
-            FG.render();
-          },
-        },
-        h("option", { value: "" }, FG.t("finder.all")),
-        options.map(([value, text]) => h("option", { value, selected: (current === undefined ? filters[name] : current) === value }, text))
-      )
+      "li",
+      { class: "card", id: "item-fer-" + fer.identifier, tabindex: "-1" },
+      h("h3", null, FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name)),
+      fer.description ? h("p", null, FG.span(fer.description)) : null,
+      h("div", { class: "badges" }, h("span", { class: "badge" }, FG.termName(FG.id(fer.catalogueType))), verificationBadges(fer), extras ? extras.badges : null)
     );
-  }
-
-  FG.tabs = FG.tabs || {};
-
-  FG.tabs.resources = function (route) {
-    /* A link to one resource shows them all, so no filter hides it. */
-    if (route.extra && FG.get("#resource-" + route.extra)) Object.assign(filters, { lens: "", station: "", type: "", status: "", language: "" });
-    const resources = FG.graph.filter((entity) => entity.resourceType && entity["@id"].startsWith("#resource-"));
-    const lens = filters.lens === null ? route.lens : filters.lens;
-    const stationOf = new Map();
-    for (const station of FG.stations()) for (const id of FG.refIds(station, "mentions")) stationOf.set(id, (stationOf.get(id) || []).concat(station.identifier));
-    const shown = resources.filter(
-      (resource) =>
-        (!filters.station || (stationOf.get(resource["@id"]) || []).includes(filters.station)) &&
-        (!lens || lensOf(resource, lens)) &&
-        (!filters.type || FG.id(resource.resourceType) === filters.type) &&
-        (!filters.status || FG.id(resource.serviceStatus) === filters.status) &&
-        (!filters.language || FG.list(resource.inLanguage).includes(filters.language))
-    );
-    const termsOf = (set) => FG.ofType("DefinedTerm").filter((term) => FG.id(term.inDefinedTermSet) === set);
-    return [
-      h("h2", null, FG.t("finder.title")),
-      h("p", null, FG.t("finder.intro")),
-      h(
-        "div",
-        { class: "filters" },
-        select("lens", FG.t("nav.lens"), FG.lenses().map((entry) => [entry.audienceType, FG.text(entry.name)]), lens),
-        select("station", FG.t("finder.station"), FG.stations().map((station) => [station.identifier, station.position + " · " + FG.text(station.name)])),
-        select("type", FG.t("finder.type"), termsOf("#resource-types").map((term) => [term["@id"], FG.text(term.name)])),
-        select("status", FG.t("finder.status"), termsOf("#statuses").map((term) => [term["@id"], FG.text(term.name)])),
-        select("language", FG.t("finder.language"), [["cs", "čeština / Czech"], ["en", "angličtina / English"]])
-      ),
-      h("p", { role: "status" }, FG.t("finder.count", { n: shown.length })),
-      h("ul", { class: "cards" }, shown.map(resourceCard)),
-      ferSection(),
-    ];
   };
-
-  /** The FAIR-enabling resources in the FIP Dashboard snapshot, below the guide's own resources. */
-  function ferSection() {
-    const snapshot = FG.get("#snapshot-fip-dashboard");
-    const fers = FG.refs(FG.get("#fers"), "hasPart");
-    if (!snapshot || !fers.length) return null;
-    return h(
-      "section",
-      { "aria-labelledby": "fers-heading" },
-      h("h3", { id: "fers-heading" }, FG.t("finder.fers")),
-      h("p", null, FG.t("finder.fersIntro"), " ", FG.external(FG.DASHBOARD, FG.t("finder.openDashboard")), " · ", FG.external(FG.DASHBOARD + "matrix", FG.t("finder.matrix"))),
-      FG.dashboardNotice(),
-      h(
-        "ul",
-        { class: "cards" },
-        fers.map((fer) =>
-          h(
-            "li",
-            { class: "card" },
-            h("h3", null, FG.external(FG.refIds(fer, "sameAs")[0], fer.name)),
-            fer.description ? h("p", null, FG.span(fer.description)) : null,
-            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.termName(FG.id(fer.catalogueType))), verificationBadges(fer))
-          )
-        )
-      )
-    );
-  }
-
-  /* ---------------------------------------------------------------- repositories */
-
-  let repositoryQuery = "";
-  let repositoryKind = "";
 
   /** Add live NKR records: a repository already listed gains NKR as a source; a new one is appended. */
   function withNkr(repositories) {
@@ -982,53 +909,12 @@
     return repositories.map((repository) => Object.assign(repository, { fairsharing: FG.live.fairsharingOf({ identifiers: repository.identifier, url: repository.url }) }));
   }
 
-  FG.tabs.repositories = function () {
-    const repositories = withFairsharing(withNkr(FG.refs(FG.get("#repositories"), "hasPart")));
-    const lookup = repositories.map((repository) => ({ identifiers: repository.identifier, url: repository.url }));
-    const nkr = FG.live.nkrControls();
-    const fairsharing = FG.live.fairsharingControls(lookup);
-    const sourceName = (id) => (id === "#repositories-curated" ? FG.t("repositories.curated") : FG.text((FG.get(id) || {}).name).replace(/^Snapshot of /, ""));
-    const matches = (repository) => {
-      const haystack = FG.fold([FG.text(repository.name), ...FG.list(repository.keywords).map((keyword) => (typeof keyword === "string" ? keyword : keyword["@value"]))].join(" "));
-      return (!repositoryQuery || haystack.includes(FG.fold(repositoryQuery))) && (!repositoryKind || FG.id(repository.repositoryKind) === repositoryKind);
-    };
-    const shown = repositories
-      .filter(matches)
-      .sort((a, b) => {
-        const order = (repository) => {
-          const index = KIND_ORDER.indexOf(FG.id(repository.repositoryKind));
-          return index < 0 ? KIND_ORDER.length : index;
-        };
-        return order(a) - order(b) || FG.text(a.name).localeCompare(FG.text(b.name));
-      });
-    return [
-      h("h2", null, FG.t("repositories.title")),
-      h("p", null, FG.t("repositories.intro")),
-      h(
-        "div",
-        { class: "filters" },
-        h("label", null, FG.t("repositories.search"), h("input", { type: "search", value: repositoryQuery, oninput: (event) => { repositoryQuery = event.target.value; FG.renderList("repository-list", shownRepositories); } })),
-        h(
-          "label",
-          null,
-          FG.t("repositories.kind"),
-          h(
-            "select",
-            { onchange: (event) => { repositoryKind = event.target.value; FG.renderList("repository-list", shownRepositories); } },
-            h("option", { value: "" }, FG.t("finder.all")),
-            KIND_ORDER.map((kind) => h("option", { value: kind, selected: repositoryKind === kind }, FG.termName(kind)))
-          )
-        ),
-        h("div", { class: "filter-actions" }, nkr.button, fairsharing.button)
-      ),
-      nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null,
-      h("div", { id: "repository-list" }, repositoryList(shown, sourceName)),
-    ];
+  /** Every repository: the curated list, the snapshots and, once loaded, NKR records and FAIRsharing links. */
+  FG.repositoryEntries = () => withFairsharing(withNkr(FG.refs(FG.get("#repositories"), "hasPart")));
+  FG.repositoryKindOrder = KIND_ORDER;
 
-    function shownRepositories() {
-      return repositoryList(repositories.filter(matches), sourceName);
-    }
-  };
+  /** The name of a source a repository record comes from. */
+  FG.repositorySource = (id) => (id === "#repositories-curated" ? FG.t("repositories.curated") : FG.text((FG.get(id) || {}).name).replace(/^Snapshot of /, ""));
 
   /** A repository's subjects in the reader's language, or as the record gives them when it has none in it. */
   function subjectsOf(repository) {
@@ -1037,37 +923,24 @@
     return (mine.length ? mine : words).map((word) => (typeof word === "string" ? word : word["@value"])).filter((value, index, all) => all.indexOf(value) === index);
   }
 
-  function repositoryList(repositories, sourceName) {
+  /** A repository as a card, with its kind, status, the sources of its facts and its FAIRsharing record. */
+  FG.repositoryCard = function (repository, id) {
+    const sources = FG.refIds(repository, "isBasedOn").map(FG.repositorySource).concat(repository.nkr ? ["NKR"] : [], repository.fairsharing ? ["FAIRsharing"] : []);
     return h(
-      "div",
-      null,
-      h("p", { role: "status" }, FG.t("finder.count", { n: repositories.length })),
+      "li",
+      { class: "card", id: id || null, tabindex: id ? "-1" : null },
+      h("h3", null, FG.external(repository.url, FG.text(repository.name))),
+      repository.keywords ? h("p", { class: "small" }, subjectsOf(repository).join(", ")) : null,
       h(
-        "ul",
-        { class: "cards" },
-        repositories.map((repository) =>
-          h(
-            "li",
-            { class: "card" },
-            h("h3", null, FG.external(repository.url, FG.text(repository.name))),
-            repository.keywords ? h("p", { class: "small" }, subjectsOf(repository).join(", ")) : null,
-            h(
-              "div",
-              { class: "badges" },
-              repository.repositoryKind ? h("span", { class: "badge" }, FG.termName(FG.id(repository.repositoryKind))) : null,
-              statusBadge(repository),
-              h(
-                "span",
-                { class: "badge" },
-                FG.t("repositories.sources", { sources: FG.refIds(repository, "isBasedOn").map(sourceName).concat(repository.nkr ? ["NKR"] : [], repository.fairsharing ? ["FAIRsharing"] : []).join(", ") })
-              ),
-              repository.fairsharing ? FG.external(FG.live.pidUrl({ type: "doi", value: repository.fairsharing.doi }), FG.t("repositories.fairsharingRecord"), { class: "fairsharing-record" }) : null
-            )
-          )
-        )
+        "div",
+        { class: "badges" },
+        repository.repositoryKind ? h("span", { class: "badge" }, FG.termName(FG.id(repository.repositoryKind))) : null,
+        statusBadge(repository),
+        h("span", { class: "badge" }, FG.t("repositories.sources", { sources: sources.join(", ") })),
+        repository.fairsharing ? FG.external(FG.live.pidUrl({ type: "doi", value: repository.fairsharing.doi }), FG.t("repositories.fairsharingRecord"), { class: "fairsharing-record" }) : null
       )
     );
-  }
+  };
 
   FG.renderList = function (id, build) {
     const container = document.getElementById(id);

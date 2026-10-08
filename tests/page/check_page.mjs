@@ -88,45 +88,72 @@ async function axe(page, label) {
   if (Number(stageWeights[1]) >= Number(stageWeights[0]) || Number(stageWeights[1]) > 400) fail("landing: a stage card's description is as bold as its title: " + stageWeights.join("/"));
   await axe(page, "landing");
 
-  // The catalogue: one menu item with a tab per kind of entity; the finders' old addresses open their tabs; each tab
-  // lists its entries; switching tabs keeps focus on the tab; changes name no people; the page for machines links the
-  // knowledge base, and the head carries the typed link to it.
+  // The catalogue: one menu item over one list narrowed by facets with counts. Kind is a facet in which one value
+  // stays selected, and older addresses select their kind; every kind lists its entries; resources and cited sources
+  // are one kind marked by usage; a facet keeps focus and puts the state in the address, which opens the same list;
+  // station and principle apply across kinds and say when a kind lacks them; the reader orders the list and groups
+  // follow; changes name no people; the page for machines links the knowledge base.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const menu = async () => view.locator(".main-nav a").evaluateAll((links) => links.map((link) => link.textContent.trim()));
     const current = async () => (await view.locator('.main-nav [aria-current="page"]').textContent()).trim();
-    await view.goto(pageUrl + "#/cs/V/resources");
-    await view.waitForSelector(".catalogue-tabs");
+    const kinds = async () => view.locator('[data-facet="kind"] input:checked').evaluateAll((boxes) => boxes.map((box) => box.id.replace("facet-kind-", "")).join(","));
+    const found = async () => Number(((await view.locator(".catalogue-count").textContent()).match(/\d+/) || [0])[0]);
+    const open = async (hash) => {
+      await view.goto(pageUrl + hash);
+      await view.waitForSelector(".catalogue-layout");
+    };
+    await open("#/cs/V/resources");
     const items = await menu();
     if (!items.includes("Katalog") || items.includes("Zdroje") || items.includes("Repozitáře")) fail("catalogue: the menu does not hold one catalogue item in place of the finders: " + items.join(", "));
-    if ((await current()) !== "Katalog" || (await view.locator('.catalogue-tabs [aria-current="page"]').textContent()) !== "Zdroje") fail("catalogue: the resources address does not open the resources tab");
-    await view.goto(pageUrl + "#repositories");
-    await view.waitForSelector(".catalogue-tabs");
-    if ((await view.locator('.catalogue-tabs [aria-current="page"]').textContent()) !== "Repozitáře") fail("catalogue: an in-page link to the repositories does not open their tab");
-    for (const [tab, selector] of [["sources", ".cards .card"], ["terms", ".catalogue-table tbody tr"], ["fips", ".cards .card"], ["tests", ".cards .card"], ["actions", ".changes .change"]]) {
-      await view.goto(pageUrl + "#/cs/V/catalogue/" + tab);
-      await view.waitForSelector(".catalogue-tabs");
-      if (!(await view.locator(selector).count())) fail(`catalogue: the ${tab} tab lists nothing`);
-      if ((await view.locator('.catalogue-tabs [aria-current="page"]').getAttribute("data-tab")) !== tab) fail(`catalogue: the ${tab} tab is not marked current`);
+    if ((await current()) !== "Katalog" || (await kinds()) !== "resources") fail("catalogue: the resources address does not select the resources: " + (await kinds()));
+    await open("#repositories");
+    if ((await kinds()) !== "repositories") fail("catalogue: an in-page link to the repositories does not select them");
+    for (const [old, kind] of [["sources", "resources"], ["clauses", "clauses"], ["questions", "questions"], ["terms", "terms"], ["fips", "fips"], ["tests", "tests"], ["actions", "actions"]]) {
+      await open("#/cs/V/catalogue/" + old);
+      if ((await kinds()) !== kind) fail(`catalogue: the address for ${old} does not select ${kind}`);
+      if (!(await view.locator(".catalogue-results .card").count())) fail(`catalogue: ${kind} list nothing`);
     }
-    await view.goto(pageUrl + "#/cs/V/catalogue/sources");
-    await view.waitForSelector(".catalogue-tabs");
-    const analysis = await view.locator(".card", { hasText: "Analýza a návrh postupů" }).textContent();
-    if (!analysis.includes("1 · Plán") || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis does not list the stations and checks that cite it");
-    await view.locator('.catalogue-tabs a[data-tab="terms"]').click();
-    await view.waitForSelector(".catalogue-table");
-    if ((await view.evaluate(() => document.activeElement && document.activeElement.dataset.tab)) !== "terms") fail("catalogue: switching tabs does not keep focus on the tab");
-    const allTerms = await view.locator(".catalogue-table tbody tr").count();
-    await view.locator("#catalogue-search").fill("licence");
-    const someTerms = await view.locator(".catalogue-table tbody tr").count();
-    if (!(someTerms > 0 && someTerms < allTerms) || !(await view.locator(".catalogue-table").textContent()).includes("otevřená licence")) fail("catalogue: searching the glossary does not narrow it");
-    if (!(await view.locator(".catalogue-table tbody tr th").first().textContent()).match(/^[^[(]/)) fail("catalogue: the glossary does not sort past leading brackets");
-    await view.goto(pageUrl + "#/cs/V/catalogue/actions");
-    await view.waitForSelector(".changes");
-    const changes = await view.locator(".changes").textContent();
+    if (!(await view.locator("#facet-kind-actions").isDisabled())) fail("catalogue: the last selected kind can be cleared");
+    const changes = await view.locator(".catalogue-results").textContent();
     if (/Novák|Claude/.test(changes)) fail("catalogue: the content changes name people or tools");
     const drewOn = await view.locator(".change", { hasText: "FAIRsharing" }).first().textContent();
     if ((drewOn.match(/FAIRsharing/g) || []).length > 4) fail("catalogue: a change lists one source more than once: " + drewOn);
+    await open("#/cs/V/catalogue/terms");
+    if (!(await view.locator(".term-card h3").first().textContent()).match(/^[^[(]/)) fail("catalogue: the glossary does not sort past leading brackets");
+
+    // Resources and cited sources as one kind, marked by how the guide uses them.
+    await open("#/cs/V/catalogue/resources");
+    const analysis = await view.locator(".card", { hasText: "Analýza a návrh postupů" }).first().textContent();
+    if (!analysis.includes("podklad obsahu") || !analysis.includes("1 · Plán") || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis is not marked as a basis with the stations and checks that cite it");
+    const both = await view.locator(".card", { hasText: "AI jako služba (CERIT)" }).first().textContent();
+    if (!both.includes("doporučuje průvodce") || !both.includes("podklad obsahu")) fail("catalogue: a resource that is also cited is not marked with both uses");
+
+    // Facets: a click keeps focus, the state goes into the address, kinds are headed groups, counts follow.
+    await view.locator("#facet-kind-clauses").check();
+    await view.waitForFunction(() => location.hash.includes("k!resources_clauses"));
+    if ((await view.evaluate(() => document.activeElement && document.activeElement.id)) !== "facet-kind-clauses") fail("catalogue: a facet does not keep focus");
+    const groups = await view.locator(".catalogue-group > h2").allTextContents();
+    if (!groups.some((group) => group.startsWith("Zdroje")) || !groups.some((group) => group.startsWith("Požadavky"))) fail("catalogue: two kinds are not shown under their headings: " + groups.join(" | "));
+    const before = await found();
+    await view.locator("#facet-station-licence").check();
+    await view.waitForFunction(() => location.hash.includes("s!licence"));
+    if (!((await found()) > 0 && (await found()) < before)) fail("catalogue: the station facet does not narrow the list");
+    if (!(await view.locator('[data-facet="kind"] li', { hasText: "Profily FIP" }).textContent()).includes("nemají zastávku")) fail("catalogue: a kind without stations does not say why it shows none");
+    await view.locator("#catalogue-order").selectOption("name");
+    await view.waitForFunction(() => location.hash.includes("o!name"));
+    if (!(await view.locator(".card-kind").count())) fail("catalogue: entries of several kinds in one order do not say their kind");
+    const address = await view.evaluate(() => location.hash);
+    const count = await found();
+    await view.goto("about:blank");
+    await open(address);
+    if ((await found()) !== count || (await kinds()) !== "resources,clauses") fail("catalogue: the address does not reopen the same list");
+    await view.locator("#catalogue-search").fill("licence");
+    await view.waitForFunction(() => location.hash.includes("q!licence"));
+    if (!((await found()) > 0 && (await found()) < count)) fail("catalogue: the search does not narrow the list");
+    await view.locator(".active-filters .button-link").click();
+    await view.waitForFunction(() => !location.hash.includes("s!licence") && !location.hash.includes("q!"));
+
     await view.goto(pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
     if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");
@@ -150,17 +177,18 @@ async function axe(page, label) {
     const chip = view.locator('details[data-key="L2"] ul.clauses a.id-chip').first();
     const id = (await chip.textContent()).trim();
     await chip.click();
-    await view.waitForSelector(".catalogue-tabs");
+    await view.waitForSelector(".catalogue-layout");
     await view.waitForFunction((expected) => document.activeElement && document.activeElement.id === "item-" + expected, id);
     if (!(await view.evaluate(() => document.activeElement.classList.contains("jumped")))) fail("ids: the catalogue entry is not marked when the identifier is followed");
-    if (!(await view.locator('.catalogue-tabs [aria-current="page"]').getAttribute("data-tab")).includes("clauses")) fail("ids: the identifier does not open the requirements tab");
+    if (!(await view.locator("#facet-kind-clauses").isChecked())) fail("ids: the identifier does not select the requirements");
     await view.goto("about:blank");
     await view.goto(pageUrl + "#/cs/V/catalogue/clauses/A.F1.N1");
     await view.waitForSelector('[id="item-A.F1.N1"]');
     const box = await view.locator('[id="item-A.F1.N1"]').boundingBox();
     if (!box || box.y < 0 || box.y > 900) fail("ids: a directly opened link to a requirement does not bring it into view");
     const all = await view.locator(".clause-card").count();
-    await view.locator('select[name="clause-kind"]').selectOption("recommendation");
+    await view.locator("#facet-clauses-ckind-recommendation").check();
+    await view.waitForFunction(() => location.hash.includes("f.ckind!recommendation"));
     const recommendations = await view.locator(".clause-card").count();
     if (!(recommendations > 0 && recommendations < all)) fail("ids: the kind filter does not narrow the requirements");
     await view.goto(pageUrl + "#/cs/V/catalogue/questions/S18");
@@ -663,16 +691,20 @@ async function axe(page, label) {
   if (!(await page.locator(".lens-band").count())) fail("lens band: missing on the self-check overview");
   const cornerOffsets = await page.locator(".check-card").evaluateAll((cards) => cards.map((card) => { const box = card.getBoundingClientRect(); const button = card.querySelector(".check-card-action a").getBoundingClientRect(); return Math.round(box.bottom - button.bottom) + "/" + Math.round(box.right - button.right); }));
   if (new Set(cornerOffsets).size !== 1) fail("overview: the check cards' buttons are not in the same corner: " + cornerOffsets.join(" "));
-  // In the catalogue the lens is a filter of the resources, starting from the reader's lens.
+  // In the catalogue the lens is a facet of the resources, starting from the reader's lens; it narrows what the
+  // guide recommends and leaves cited works in.
   await go("#/cs/V/resources");
-  const lensFilter = page.locator('.filters select[name="lens"]');
-  if ((await lensFilter.count()) !== 1 || (await lensFilter.inputValue()) !== "V") fail("finder: the lens filter is missing or does not start from the reader's lens");
-  const researcherCount = await page.locator(".cards").first().locator("> li").count();
-  await lensFilter.selectOption("DS");
-  if ((await page.locator(".cards").first().locator("> li").count()) === researcherCount) fail("finder: the lens filter does not filter the resources");
-  await page.locator('.filters select[name="lens"]').selectOption("");
-  if ((await page.locator(".cards").first().locator("> li").count()) < researcherCount) fail("finder: all lenses do not show at least the researcher's resources");
-  await page.locator('.filters select[name="lens"]').selectOption("V");
+  const shownNow = async () => Number(((await page.locator(".catalogue-count").textContent()).match(/\d+/) || [0])[0]);
+  if (!(await page.locator("#facet-resources-lens-v").isChecked())) fail("finder: the lens facet does not start from the reader's lens");
+  const researcherCount = await shownNow();
+  await page.locator("#facet-resources-lens-v").uncheck();
+  await page.waitForFunction(() => location.hash.includes("f.lens!"));
+  const allLenses = await shownNow();
+  if (allLenses < researcherCount) fail("finder: all lenses do not show at least the researcher's resources");
+  await page.locator("#facet-resources-lens-ds").check();
+  await page.waitForFunction(() => location.hash.includes("f.lens!DS"));
+  if ((await shownNow()) === researcherCount && researcherCount === allLenses) fail("finder: the lens facet does not filter the resources");
+  if (!(await page.locator(".card", { hasText: "Analýza a návrh postupů" }).count())) fail("finder: the lens hides a cited work, which has no audience");
 
   // A shared link opens as a preview in a browser without the answers, and can be adopted.
   await go("#/cs/V/check/dataset");
