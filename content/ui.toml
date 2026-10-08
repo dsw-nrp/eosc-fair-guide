@@ -103,7 +103,6 @@ languages = { cs = "Jazyk: {languages}", en = "Language: {languages}" }
 title = { cs = "Zdroje", en = "Resources" }
 intro = { cs = "Služby, nástroje, standardy a příručky, které průvodce doporučuje. Filtrujte podle zastávky, pohledu, typu, stavu nebo jazyka.", en = "Services, tools, standards and guides the guide recommends. Filter by station, view, type, status or language." }
 station = { cs = "Zastávka", en = "Station" }
-lens = { cs = "Pohled", en = "View" }
 type = { cs = "Typ", en = "Type" }
 status = { cs = "Stav", en = "Status" }
 language = { cs = "Jazyk", en = "Language" }

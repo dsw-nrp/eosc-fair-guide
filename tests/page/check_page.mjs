@@ -19,6 +19,10 @@ const crate = JSON.parse(readFileSync(resolve(root, "ro-crate-metadata.json"), "
 const graph = crate["@graph"];
 const stations = graph.filter((e) => e["@type"] === "HowToSection").map((e) => e.identifier);
 const lenses = graph.filter((e) => e["@type"] === "Audience" && e["@id"].startsWith("#lens-")).map((e) => e.audienceType);
+const lensShown = (page, lens) => page.waitForFunction((expected) => {
+  const current = document.querySelector('.lens-option[aria-current="true"]');
+  return current && current.dataset.lens === expected;
+}, lens);
 const pages = graph.filter((e) => String(e["@id"]).startsWith("#page-") && e.identifier).map((e) => e.identifier);
 const principles = graph.filter((e) => String(e["@id"]).startsWith("https://w3id.org/fair/principles/terms/") && e.termCode).map((e) => e.termCode);
 const checks = graph.filter((e) => e["@type"] === "Quiz").map((e) => ({ id: e.identifier, lens: [].concat(e.audience)[0]["@id"].replace("#lens-", "") }));
@@ -86,7 +90,7 @@ async function axe(page, label) {
     }));
   }
   const joined = [...reached].join(" | ");
-  for (const expected of ["skip-link", "lens-select", "English", "search-input", "Připravuji projekt"]) {
+  for (const expected of ["skip-link", "lens-option", "English", "search-input", "Připravuji projekt"]) {
     if (!joined.includes(expected)) fail("keyboard does not reach: " + expected);
   }
 
@@ -124,9 +128,12 @@ async function axe(page, label) {
   await axe(page, "landing with search results");
   if (external.length) fail("search: requests while searching: " + external.join(", "));
 
-  // Task shortcuts change with the lens.
-  await page.selectOption("#lens-select", "SR");
-  await page.waitForFunction(() => window.location.hash.startsWith("#/cs/SR/"));
+  // Task shortcuts change with the lens, chosen in the band under the main menu.
+  if ((await page.locator(".lens-band .lens-option").count()) !== 4) fail("lens band: four options are not shown on the landing");
+  if ((await page.locator('.lens-option[aria-current="true"]').getAttribute("data-lens")) !== "V") fail("lens band: the current lens is not marked");
+  if ((await page.locator('.lens-option[data-lens="SR"]').getAttribute("href")) !== "#/cs/SR/path/start") fail("lens band: an option is not a shareable link");
+  await page.locator('.lens-option[data-lens="SR"]').click();
+  await lensShown(page, "SR");
   if (!(await page.locator(".tasks").textContent()).includes("Brána NRP")) fail("landing: the repository administrator's tasks are missing");
   await context.close();
 }
@@ -254,11 +261,17 @@ async function axe(page, label) {
   await page.locator("details:not(.rail) summary").first().click();
   await page.evaluate(() => window.scrollTo(0, 400));
   const before = await page.evaluate(() => window.scrollY);
-  await page.selectOption("#lens-select", "SR");
-  await page.waitForFunction(() => window.location.hash === "#/cs/SR/path/licence");
+  // Click where the option is, as a user does: Playwright's locator click scrolls a sticky element to its place in
+  // the flow first, which a real click does not.
+  const option = await page.locator('.lens-option[data-lens="SR"]').boundingBox();
+  await page.mouse.click(option.x + option.width / 2, option.y + option.height / 2);
+  await lensShown(page, "SR");
+  if ((await page.evaluate(() => window.location.hash)) !== "#/cs/SR/path/licence") fail("lens switch: the station changed");
+  if ((await page.evaluate(() => document.activeElement.dataset.lens)) !== "SR") fail("lens switch: focus does not stay on the chosen lens");
   if (!(await page.locator("details:not(.rail)[open]").count())) fail("lens switch: the open level closed");
   const after = await page.evaluate(() => window.scrollY);
   if (Math.abs(after - before) > 40) fail(`lens switch: the page scrolled from ${before} to ${after}`);
+
 
   // The header logo leads to the EOSC CZ home page; the title opens the path's start.
   if ((await page.locator(".brand a").first().getAttribute("href")) !== "https://www.eosc.cz/") fail("header: the EOSC CZ logo does not link to its home page");
@@ -274,6 +287,20 @@ async function axe(page, label) {
   for (const box of await page.locator(".logolink .logolink-part").evaluateAll((links) => links.map((link) => link.getBoundingClientRect().toJSON()))) {
     if (box.width < 40 || box.left < logoArea.x - 1 || box.right > logoArea.x + logoArea.width + 1) fail("footer: a logolink part lies outside the image");
   }
+
+  // The lens band appears only where the lens changes what is shown; in the resource finder it is the lens filter.
+  for (const hash of ["#/cs/V/explorer", "#/cs/V/repositories", "#/cs/V/page/about", "#/cs/V/check/dataset"]) {
+    await go(hash);
+    if (await page.locator(".lens-band").count()) fail("lens band: shown where the lens changes nothing: " + hash);
+  }
+  await go("#/cs/V/selfcheck");
+  if (!(await page.locator(".lens-band").count())) fail("lens band: missing on the self-check overview");
+  await go("#/cs/V/resources");
+  if (await page.locator('.filters select[name="lens"]').count()) fail("finder: a second lens filter is shown beside the band");
+  const researcherCount = await page.locator(".cards").first().locator("> li").count();
+  await page.locator('.lens-option[data-lens="DS"]').click();
+  await lensShown(page, "DS");
+  if ((await page.locator(".cards").first().locator("> li").count()) === researcherCount) fail("finder: the lens band does not filter the resources");
 
   // A shared link opens as a preview in a browser without the answers, and can be adopted.
   await go("#/cs/V/check/dataset");

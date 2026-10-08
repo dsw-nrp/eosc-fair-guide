@@ -150,12 +150,6 @@ ol {
   gap: var(--space-3);
 }
 
-.controls label {
-  font-size: var(--size-small);
-  color: var(--text-muted);
-  margin-right: var(--space-1);
-}
-
 select,
 input[type="text"],
 input[type="search"],
@@ -250,6 +244,99 @@ button:hover,
 .main-nav a[aria-current="page"] {
   color: var(--text);
   border-bottom-color: var(--brand-pink);
+}
+
+/* Lens band: under the main menu on the views the lens changes; it stays in view on wider screens so roles can be
+   compared at the same position. */
+
+.lens-band {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.lens-band .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.lens-band-label {
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.lens-band ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lens-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--text);
+  font-size: var(--size-small);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lens-option:hover {
+  border-color: var(--tint-teal);
+  color: var(--text);
+}
+
+.lens-option[aria-current="true"] {
+  border-color: var(--tint-teal);
+  background: var(--tint-teal);
+  color: #fff;
+}
+
+.lens-option .icon-large {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.lens-option[aria-current="true"] .icon-large {
+  color: inherit;
+}
+
+@media (min-width: 40rem) {
+  .lens-band {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  html {
+    scroll-padding-top: 4.5rem;
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .lens-band ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .lens-option {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+  }
 }
 
 /* Layout */
@@ -1183,6 +1270,7 @@ main p > button {
   .no-print,
   .site-header .controls,
   .main-nav,
+  .lens-band,
   .rail,
   .skip-link,
   .pager,

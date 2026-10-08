@@ -89,11 +89,6 @@
   /* ---------------------------------------------------------------- shell */
 
   FG.views.header = function (route) {
-    const lensSelect = h(
-      "select",
-      { id: "lens-select", onchange: (event) => FG.navigateInPlace(FG.href(route.view, route.arg, { lens: event.target.value })) },
-      FG.lenses().map((lens) => h("option", { value: lens.audienceType, selected: lens.audienceType === route.lens }, FG.text(lens.name)))
-    );
     const otherLang = route.lang === "cs" ? "en" : "cs";
     return h(
       "header",
@@ -114,11 +109,49 @@
         h(
           "div",
           { class: "controls" },
-          h("label", { for: "lens-select" }, FG.t("nav.lens")),
-          lensSelect,
           h("a", { class: "button", href: FG.href(route.view, route.arg, { lang: otherLang }), lang: otherLang, hreflang: otherLang }, FG.t("nav.switchTo"))
         )
       )
+    );
+  };
+
+  /* Views whose content the lens changes; the lens band is shown only there. */
+  const LENS_VIEWS = new Set(["path", "selfcheck", "resources"]);
+
+  /** The lens switch: four links under the main menu, each shareable, switching in place so roles can be compared
+      at the same position; focus stays on the chosen lens. */
+  FG.views.lensBand = function (route) {
+    if (!LENS_VIEWS.has(route.view)) return null;
+    const icons = (FG.config.icons && FG.config.icons.lens) || {};
+    const arg = route.view === "path" && !route.arg && !FG.state.started ? "start" : route.arg;
+    const option = (lens) => {
+      const href = FG.href(route.view, arg, { lens: lens.audienceType });
+      const switchInPlace = (event) => {
+        if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        FG.navigateInPlace(href, `.lens-option[data-lens="${lens.audienceType}"]`);
+      };
+      return h(
+        "li",
+        null,
+        h(
+          "a",
+          {
+            class: "lens-option",
+            href,
+            "data-lens": lens.audienceType,
+            "aria-current": lens.audienceType === route.lens ? "true" : null,
+            onclick: switchInPlace,
+          },
+          FG.icon(icons[lens.audienceType], { class: "icon-large" }),
+          h("span", null, FG.text(lens.name))
+        )
+      );
+    };
+    return h(
+      "nav",
+      { class: "lens-band", "aria-label": FG.t("nav.lens") },
+      h("div", { class: "wrap" }, h("span", { class: "lens-band-label", "aria-hidden": "true" }, FG.t("nav.lens")), h("ul", null, FG.lenses().map(option)))
     );
   };
 
@@ -639,7 +672,7 @@
 
   /* ---------------------------------------------------------------- resource finder */
 
-  const filters = { station: "", lens: "", type: "", status: "", language: "" };
+  const filters = { station: "", type: "", status: "", language: "" };
 
   function select(name, label, options) {
     return h(
@@ -669,7 +702,7 @@
     const shown = resources.filter(
       (resource) =>
         (!filters.station || (stationOf.get(resource["@id"]) || []).includes(filters.station)) &&
-        (!filters.lens || lensOf(resource, filters.lens)) &&
+        lensOf(resource, route.lens) &&
         (!filters.type || FG.id(resource.resourceType) === filters.type) &&
         (!filters.status || FG.id(resource.serviceStatus) === filters.status) &&
         (!filters.language || FG.list(resource.inLanguage).includes(filters.language))
@@ -687,7 +720,6 @@
           "div",
           { class: "filters" },
           select("station", FG.t("finder.station"), FG.stations().map((station) => [station.identifier, station.position + " · " + FG.text(station.name)])),
-          select("lens", FG.t("finder.lens"), FG.lenses().map((lens) => [lens.audienceType, FG.text(lens.name)])),
           select("type", FG.t("finder.type"), termsOf("#resource-types").map((term) => [term["@id"], FG.text(term.name)])),
           select("status", FG.t("finder.status"), termsOf("#statuses").map((term) => [term["@id"], FG.text(term.name)])),
           select("language", FG.t("finder.language"), [["cs", "čeština / Czech"], ["en", "angličtina / English"]])

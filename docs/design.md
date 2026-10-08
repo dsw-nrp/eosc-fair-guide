@@ -206,12 +206,11 @@ erDiagram
 
 ### Runtime structure
 
-The shell provides routing by language, lens and station, the language switch, the lens picker, the
-disclosure levels and the theme. Six features sit inside it: the path, the principle explorer, the
-self-check, the resource finder, the live check and the freshness badges. They share four services: an
-index over the crate, connectors limited to an allowlist of hosts, a state store (local storage plus a
-shareable link) and export. Self-check gaps link back into the path, and the live check pre-fills
-self-check answers.
+The shell provides routing by language, lens and station, the language switch, the lens band (shown on the views
+the lens changes), the disclosure levels and the theme. Six features sit inside it: the path, the principle
+explorer, the self-check, the resource finder, the live check and the freshness badges. They share four services:
+an index over the crate, connectors limited to an allowlist of hosts, a state store (local storage plus a shareable
+link) and export. Self-check gaps link back into the path, and the live check pre-fills self-check answers.
 
 ```mermaid
 flowchart TB
@@ -221,7 +220,7 @@ flowchart TB
     direction LR
     ROUTER["router<br/>language, lens, station"]
     I18N["CZ and EN"]
-    LENSSEL["lens picker"]
+    LENSSEL["lens band"]
     DISC["L0 to L3 disclosure"]
   end
   subgraph FEAT[Features]

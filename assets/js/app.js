@@ -9,9 +9,11 @@
     else window.location.hash = hash;
   };
 
-  /** Navigate without moving focus or scrolling, as when switching the lens to compare roles on the same view. */
-  FG.navigateInPlace = function (hash) {
+  /** Navigate without moving focus or scrolling, as when switching the lens to compare roles on the same view.
+      `focus` is a selector for the control that takes focus in the new view, such as the chosen lens. */
+  FG.navigateInPlace = function (hash, focus) {
     FG.keepScroll = window.scrollY;
+    FG.focusSelector = focus || null;
     FG.focusAfterRender = false;
     FG.navigate(hash);
   };
@@ -32,12 +34,16 @@
       FG.views.header(route),
       FG.views.notice(),
       FG.views.nav(route),
+      FG.views.lensBand(route),
       main,
       FG.views.footer()
     );
     if (typeof FG.keepScroll === "number") {
       window.scrollTo(0, FG.keepScroll);
       FG.keepScroll = null;
+      const control = FG.focusSelector ? document.querySelector(FG.focusSelector) : null;
+      if (control) control.focus({ preventScroll: true });
+      FG.focusSelector = null;
     } else if (FG.focusAfterRender) {
       const target = main.querySelector("h1") || main;
       target.focus({ preventScroll: false });
