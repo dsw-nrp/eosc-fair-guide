@@ -611,22 +611,25 @@
       h("h3", null, FG.t("station.sources")),
       h("ul", null, sources.map((source) => h("li", null, source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name)))),
       h("h3", null, FG.t("station.madeBy")),
-      h(
-        "ul",
-        null,
-        actions.map((action) => {
-          const agent = FG.get(action.agent);
-          const tools = FG.refs(action, "instrument").map((tool) => tool.name).join(", ");
-          return h(
-            "li",
-            null,
-            FG.t("station.madeByText", { agent: agent ? agent.name : "", tools, date: FG.formatDate(action.endTime) }),
-            " ",
-            h("span", { class: "muted small" }, action.name)
-          );
-        })
-      ),
+      h("ul", { class: "change-history" }, changeHistory(actions).map((entry) => h("li", null, FG.t(entry.created ? "station.changeCreate" : "station.changeUpdate", { date: FG.formatDate(entry.date) })))),
+      h("p", { class: "small muted" }, FG.t("station.paradata") + " ", h("a", { href: "ro-crate-metadata.json" }, FG.t("footer.crate"))),
     ];
+  }
+
+  /** A simple change history: one line per day and kind of change, newest first; who and with which tools stays in
+      the paradata of the knowledge base. */
+  function changeHistory(actions) {
+    const seen = new Set();
+    return actions
+      .map((action) => ({ date: String(action.endTime || "").slice(0, 10), created: FG.list(action["@type"]).includes("CreateAction") }))
+      .filter((entry) => entry.date)
+      .sort((a, b) => b.date.localeCompare(a.date) || Number(a.created) - Number(b.created))
+      .filter((entry) => {
+        const key = entry.date + entry.created;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
   }
 
   function orderedCalloutItems(callout, lens) {

@@ -957,11 +957,11 @@
       const icon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[group.station.identifier];
       return FG.icon(icon, { class: "group-icon" }) || h("span", null, String(group.station.position));
     }
-    return null;
+    return h("span", { class: "group-other", "aria-hidden": "true" }, "…");
   }
 
-  const groupName = (group) => (group.letter ? FG.t("explorer.group." + group.letter) : group.station ? FG.text(group.station.name) : "");
-  const groupTitle = (group) => (group.letter || group.station ? [groupMark(group), " ", groupName(group)] : null);
+  const groupName = (group) => (group.letter ? FG.t("explorer.group." + group.letter) : group.station ? FG.text(group.station.name) : FG.t("selfcheck.groupOther"));
+  const groupTitle = (group) => [groupMark(group), " ", groupName(group)];
 
   /* On a wide screen with the summary open, the check's controls sit in the summary, at hand while scrolling; on a
      narrow screen or with the summary collapsed they sit above the questions. Crossing the width re-renders. */
@@ -974,7 +974,7 @@
     const all = applicable(check, st);
     const first = all.filter(isFirstTier);
     const more = first.length ? all.length - first.length : 0;
-    return [more ? extendedSwitch(st, more, compact) : null, groupingControl(compact)];
+    return [more ? extendedSwitch(st, more, compact) : null, groupingControl(true)];
   }
 
   /** One sentence on what the first view's tier means and how many further items exist, with the control to add them. */

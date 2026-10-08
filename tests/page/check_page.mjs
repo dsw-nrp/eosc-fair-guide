@@ -425,6 +425,8 @@ async function axe(page, label) {
   if (!provenance.includes("Analýzy FAIR") || /Novák|Trtíková/.test(provenance)) fail("station: the provenance line is not a sources-only line: " + provenance);
   await page.locator(".provenance-line button").click();
   if (!(await page.locator('details[data-key="L3"][open]').count())) fail("station: the provenance line does not open the sources and paradata");
+  const history = await page.locator('details[data-key="L3"]').textContent();
+  if (/Novák|Claude/.test(history) || !/obsah (vytvořen|upraven)/.test(history)) fail("station: the change history names people or tools, or lists no dated change");
   const basis = await page.locator(".site-footer p", { hasText: "Obsah vychází z" }).textContent();
   if (!basis.includes("Trtíková, I.") || !basis.includes("Čížek, T.") || !basis.includes("verze 1.2") || !basis.includes("doi.org/10.71495/5dv6-v116")) fail("footer: the analysis is not cited with its authors: " + basis);
   const guideCitation = await page.locator(".site-footer p", { hasText: "Jak citovat průvodce" }).textContent();

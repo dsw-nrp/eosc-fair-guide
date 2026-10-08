@@ -94,6 +94,14 @@ PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:live   # real lookup
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .cache/screenshots
 ```
 
+## Visual pass
+
+Passing checks do not make a page finished. Before a page or view is reported done, drive it through its states
+(empty, partly and fully answered, pre-filled, extended or collapsed, long and short content, Czech and English)
+at desktop and phone widths, take viewport screenshots, and review them for misalignment, crowding, wrapping,
+inconsistent spacing and unclear wording. Fix what you find, add a page check for any rule a fix establishes, and
+repeat the pass on pages already closed when shared components change.
+
 ## Git
 
 - Work on a branch named `agents/<agent>/<topic>` and open a pull request into `main`. Do not push to `main`.

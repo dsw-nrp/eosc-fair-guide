@@ -85,8 +85,10 @@ help = { cs = "Potřebujete poradit?", en = "Need advice?" }
 whyPrinciples = { cs = "Principy, kterých se zastávka týká", en = "Principles this station covers" }
 whyClauses = { cs = "Na čem rady stojí", en = "What the advice is based on" }
 sources = { cs = "Citované zdroje", en = "Cited sources" }
-madeBy = { cs = "Jak tento obsah vznikl", en = "How this content was made" }
-madeByText = { cs = "Připravil {agent} s nástroji {tools}; dokončeno {date}.", en = "Prepared by {agent} with {tools}; completed {date}." }
+madeBy = { cs = "Historie změn", en = "Change history" }
+changeCreate = { cs = "{date} · obsah vytvořen", en = "{date} · content created" }
+changeUpdate = { cs = "{date} · obsah upraven", en = "{date} · content updated" }
+paradata = { cs = "Kdo obsah připravil, jakými nástroji a z jakých zdrojů, zaznamenávají paradata:", en = "Who prepared the content, with which tools and from which sources is recorded in the paradata:" }
 empty = { cs = "Pro tento pohled zde nic dalšího není.", en = "Nothing more here for this view." }
 current = { cs = "aktuální krok", en = "current step" }
 
@@ -174,7 +176,8 @@ extendedShort = { cs = "Rozšířená (+{n})", en = "Extended (+{n})" }
 extendedExplain = { cs = "Rozšířená kontrola přidá doporučené a pokročilé otázky; vaše odpovědi zůstanou.", en = "The extended check adds the recommended and advanced questions; your answers stay." }
 basedOn = { cs = "Z čeho otázka vychází", en = "What this question is based on" }
 fixAt = { cs = "Kde to vyřešit: krok {station}", en = "Where to fix it: the step {station}" }
-grouping = { cs = "Seskupit", en = "Group" }
+grouping = { cs = "Seskupit podle", en = "Group by" }
+groupOther = { cs = "Ostatní", en = "Other" }
 tierCount = { cs = "{tier} ({n} otázka):|{tier} ({n} otázky):|{tier} ({n} otázek):", en = "{tier} ({n} question):|{tier} ({n} questions):" }
 reset = { cs = "Smazat odpovědi této kontroly", en = "Clear the answers of this check" }
 target = { cs = "Kontrolujete: {target}", en = "You are checking: {target}" }
@@ -302,8 +305,8 @@ tasks = { cs = "Zjistit: {n}", en = "To find out: {n}" }
 full = { cs = "Celý výsledek a uložení", en = "Full result and saving" }
 
 [selfcheck.groupByShort]
-principles = { cs = "principy", en = "principles" }
-steps = { cs = "kroky", en = "steps" }
+principles = { cs = "principů", en = "principle" }
+steps = { cs = "kroků cesty", en = "path step" }
 
 [selfcheck.groupBy]
 principles = { cs = "podle FAIR principů", en = "by FAIR principle" }

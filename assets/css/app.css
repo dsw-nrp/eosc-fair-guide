@@ -1964,6 +1964,18 @@ main p > button {
   color: var(--tint-teal);
 }
 
+.group-other {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  border: 1px dashed var(--text-muted);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
 .summary-group-label .group-icon {
   width: 1.2rem;
   height: 1.2rem;
@@ -2087,6 +2099,7 @@ main p > button {
 }
 
 .switch-state {
+  white-space: nowrap;
   padding: 0 var(--space-2);
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -2273,6 +2286,14 @@ main p > button {
   white-space: nowrap;
 }
 
+/* In the narrow summary the label takes its own line, so the two segments stay together. */
+.summary-controls .grouping.segmented legend {
+  float: none;
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--space-1);
+}
+
 /* The grouping as a one-row segmented control. */
 .grouping.segmented {
   display: flex;
@@ -2344,7 +2365,7 @@ main p > button {
 }
 
 .summary-group-label {
-  min-height: 1.75rem;
+  min-height: 1.6rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2369,7 +2390,7 @@ main p > button {
 
 .summary-chip,
 .summary-count {
-  min-height: 1.75rem;
+  min-height: 1.6rem;
   padding: 0 var(--space-2);
   border: 1px solid var(--border);
   border-radius: 999px;
