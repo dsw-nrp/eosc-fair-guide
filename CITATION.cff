@@ -15,7 +15,7 @@ version: "0.1.0-dev"
 license:
   - MIT
   - CC-BY-4.0
-repository-code: "https://github.com/motyc/eosc-cz-fair-docs-testing"
+repository-code: "https://github.com/motyc/eosc-fair-guide"
 keywords:
   - FAIR
   - research data

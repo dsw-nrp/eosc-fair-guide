@@ -1,7 +1,7 @@
 version = 1
 SPDX-PackageName = "eosc-cz-fair-guide"
 SPDX-PackageSupplier = "David Novák <https://orcid.org/0000-0001-6592-6291>"
-SPDX-PackageDownloadLocation = "https://github.com/motyc/eosc-cz-fair-docs-testing"
+SPDX-PackageDownloadLocation = "https://github.com/motyc/eosc-fair-guide"
 
 # When several annotations match a path, the last one wins.
 

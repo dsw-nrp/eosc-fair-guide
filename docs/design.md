@@ -104,7 +104,7 @@ flowchart LR
     NOTES["working notes<br/>decisions, ledger, stations, F3, sources"]
     CH --- NOTES
   end
-  subgraph TOOL["eosc-cz-fair-docs-testing (tool)"]
+  subgraph TOOL["eosc-fair-guide (tool)"]
     direction TB
     SRC[content sources]
     PAGE[page and crate]
@@ -468,7 +468,7 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-22 | 2026-10-07 | Visual identity: brand teal #008691 and pink #EB5D81 only for accents and large text; text tints #00737D and #C2264F (both ≥ 5.6:1 on white). Muni font only inside eosc.cz pages; Arial/Helvetica fallback. | S |
 | D-23 | 2026-10-07 | Diagrams in **Mermaid**, and they must look good. Adopt the hub visual conventions: approved families only, every diagram paired with prose (doubles as the text alternative). | U |
 | D-24 | 2026-10-07 | Paradata agents: David Novák (ORCID 0000-0001-6592-6291) as implementing author, others as contributors; reviewed later. Text polishing goes to the team. | U |
-| D-25 | 2026-10-07 | Repo `github.com/motyc/eosc-cz-fair-docs-testing`: private now, public later. Admin waiver granted. Best-practice contents (README, licences, CITATION.cff, CONTRIBUTING, CHANGELOG…). Minimal hub-style AI tooling plus **one dedicated editing skill**; keep it light. | U |
+| D-25 | 2026-10-07 | Repo `github.com/motyc/eosc-fair-guide`: private now, public later. Admin waiver granted. Best-practice contents (README, licences, CITATION.cff, CONTRIBUTING, CHANGELOG…). Minimal hub-style AI tooling plus **one dedicated editing skill**; keep it light. | U |
 | D-26 | 2026-10-07 | Not hosted on third-party AI artifact hosting (EOSC CZ branding). Preview locally until the repository is public, then use GitHub Pages or the target page. | S |
 | D-27 | 2026-10-07 | Glossary source: **heslar.openscience.cz** (NTK), snapshotted at authoring time and linked back (licence to check). PID hub: **identifikatory.cz**. | U+S |
 | D-28 | 2026-10-07 | Draft checklists and handbooks for repository administrators are supportive input only, not decisions. JSON-LD (schema.org) landing pages are desirable. | U |
@@ -493,3 +493,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-47 | 2026-10-08 | Gate profile (a), core NRP systems: G09 (security monitoring) and G10 (central logging) show as **„zajišťuje NRP“**. Confirmed by the user; the NRP repositories page states that NRP provides storage, repository software and the operating environment. | U |
 | D-48 | 2026-10-08 | An optional **institution check** (data policy, DMP support, storage, OS III strategy) is included if it fits the scope; it is lower priority than the four lens checks. | U |
 | D-49 | 2026-10-08 | **FIP pre-fill is in the first release:** the FIP completeness check (K) reads the community's published FIP nanopublication through the nanopub query service. Declared FERs pre-fill "ano"; questions with no declaration stay open with a note. | U |
+| D-50 | 2026-10-08 | The repository is renamed to `motyc/eosc-fair-guide` so its name suits reuse; the vocabulary and profile IRIs follow the new name. | U |

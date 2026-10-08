@@ -904,7 +904,7 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
             "@type": ["CreativeWork", "Profile"],
             "name": "EOSC CZ FAIR guide profile",
             "version": guide["profile"].rstrip("/").rsplit("/", 1)[-1],
-            "url": "https://github.com/motyc/eosc-cz-fair-docs-testing/tree/main/profile/fair-guide",
+            "url": guide["url"].rstrip("/") + "/tree/main/profile/fair-guide",
         }
     )
 

@@ -1,5 +1,5 @@
-@prefix fg: <https://motyc.github.io/eosc-cz-fair-docs-testing/terms#> .
-@prefix fair-guide: <https://motyc.github.io/eosc-cz-fair-docs-testing/profile/fair-guide/> .
+@prefix fg: <https://motyc.github.io/eosc-fair-guide/terms#> .
+@prefix fair-guide: <https://motyc.github.io/eosc-fair-guide/profile/fair-guide/> .
 @prefix schema: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
