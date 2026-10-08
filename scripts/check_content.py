@@ -641,6 +641,8 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
     for page in content["pages"]:
         where = f"page:{page.get('id')}"
         require_text(report, where, page.get("title"), "title")
+        if not isinstance(page.get("helper", False), bool):
+            report.error(where, "helper must be true or false")
         for number, section in enumerate(page.get("section", []), start=1):
             require_text(report, f"{where}[{number}]", section.get("body"), "body")
 

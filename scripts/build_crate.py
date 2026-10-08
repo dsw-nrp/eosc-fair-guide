@@ -1041,6 +1041,9 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
     return test_ids
 
 
+WEB_APPLICATION = "https://schema.org/WebApplication"
+
+
 def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
     page_ids = []
     for page in pages:
@@ -1066,6 +1069,7 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
                 "@id": page_id,
                 "@type": "CreativeWork",
                 "identifier": page["id"],
+                "additionalType": WEB_APPLICATION if page.get("helper") else None,
                 "headline": text(page["title"]),
                 "hasPart": refs(section_ids),
             },
@@ -1318,6 +1322,7 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
                 "prov": PROV,
                 "fipTerms": FIP_TERMS,
                 "guide": guide["vocabularyBase"],
+                "webApplication": WEB_APPLICATION,
             },
             "icons": {
                 "ui": content.get("icons", {}).get("ui", {}),

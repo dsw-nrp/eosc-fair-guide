@@ -812,10 +812,44 @@
                 return h("section", null, h("h3", null, FG.termName(actor)), h("ul", { class: "clauses" }, group.map(clauseItem)));
               })
             )
-          : h("p", { class: "muted" }, FG.t("explorer.pick"))
+          : explorerOverview(principles, actors)
       )
     );
   };
+
+  /** Before a principle is chosen: how many requirements each FAIR group holds, by whom they address. */
+  function explorerOverview(principles, actors) {
+    const clauses = FG.graph.filter((entity) => entity.clauseKind);
+    const ofGroup = (letter) => {
+      const ids = new Set(principles.filter((principle) => String(principle.termCode).charAt(0) === letter).map((principle) => principle["@id"]));
+      return clauses.filter((clause) => FG.refs(clause, "about").some((term) => ids.has(term["@id"])));
+    };
+    const counted = new Set();
+    const rows = ["F", "A", "I", "R"].map((letter) => {
+      const group = ofGroup(letter);
+      group.forEach((clause) => counted.add(clause));
+      return h(
+        "tr",
+        null,
+        h("th", { scope: "row" }, h("span", { class: "principle-letter", "data-letter": letter }, letter), h("span", { class: "group-name" }, FG.t("explorer.group." + letter))),
+        actors.map((actor) => h("td", null, String(group.filter((clause) => FG.hasRef(clause, "audience", actor)).length))),
+        h("td", null, String(group.length))
+      );
+    });
+    return h(
+      "section",
+      null,
+      h("p", { class: "muted" }, FG.t("explorer.pick")),
+      h(
+        "table",
+        { class: "explorer-overview" },
+        h("caption", null, FG.t("explorer.overview", { n: counted.size })),
+        h("thead", null, h("tr", null, h("th", { scope: "col" }, FG.t("explorer.principle")), actors.map((actor) => h("th", { scope: "col" }, FG.termName(actor))), h("th", { scope: "col" }, FG.t("explorer.all")))),
+        h("tbody", null, rows)
+      ),
+      h("p", { class: "small muted" }, FG.t("explorer.overviewNote"))
+    );
+  }
 
   function relatedTerms(principle) {
     const related = FG.refs(principle, "relatedTo");
@@ -1086,7 +1120,11 @@
             section.identifier === "credits" ? creditsTable() : null
           )
         ),
-        FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier]() : null
+        FG.helpers && FG.helpers[page.identifier]
+          ? FG.helpers[page.identifier]()
+          : FG.list(page.additionalType).includes(FG.config.vocab.webApplication)
+            ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing"))
+            : null
       )
     );
   };

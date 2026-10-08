@@ -130,6 +130,34 @@ ol {
   }
 }
 
+/* On phones the logo and the language switch share the first row, and the title takes the second. */
+@media (max-width: 39.99rem) {
+  .site-header .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .brand {
+    display: contents;
+  }
+
+  .brand > a:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .site-header .controls {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .brand-title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
 .brand-title {
   font-size: var(--size-lead);
   font-weight: 700;
@@ -1038,6 +1066,10 @@ details > .content {
   margin: var(--space-2) 0 var(--space-3);
 }
 
+.card > :last-child {
+  margin-bottom: 0;
+}
+
 main p > .button,
 main p > button {
   margin-block: var(--space-1);
@@ -1413,6 +1445,10 @@ main p > button {
   color: var(--tint-teal);
   font-size: var(--size-small);
   font-weight: 600;
+}
+
+.stage-options .stage-card .small {
+  font-weight: 400;
 }
 
 .stage-options .stage-current {
@@ -2184,6 +2220,71 @@ main p > button {
 .target-card .icon {
   flex: none;
   color: var(--tint-teal);
+}
+
+/* The explorer before a principle is chosen: requirements by FAIR group and by whom they address. */
+.explorer-overview {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-3) 0;
+  font-size: var(--size-small);
+}
+
+.explorer-overview caption {
+  text-align: left;
+  font-weight: 700;
+  font-size: var(--size-base);
+  margin-bottom: var(--space-2);
+}
+
+.explorer-overview th,
+.explorer-overview td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.explorer-overview td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.explorer-overview thead th:not(:first-child) {
+  text-align: right;
+}
+
+.explorer-overview tbody th {
+  font-weight: 600;
+}
+
+.explorer-overview .principle-letter {
+  margin-right: var(--space-2);
+}
+
+.explorer-overview thead th {
+  white-space: nowrap;
+}
+
+/* On phones the rows show the principle's letter; the group's name stays for screen readers. */
+@media (max-width: 39.99rem) {
+  .explorer-overview th,
+  .explorer-overview td {
+    padding: var(--space-2) var(--space-1);
+  }
+
+  .explorer-overview .group-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.helper-coming {
+  margin-top: var(--space-4);
 }
 
 .fix-at {

@@ -84,7 +84,41 @@ async function axe(page, label) {
   if (!(await page.locator(".stage-card").first().textContent()).includes("Krok 1")) fail("landing: the stage cards do not name the steps they cover");
   if (await page.locator(".stage-current").count()) fail("landing: a first visit marks a current stage");
   if (!(await page.locator(".tasks .task").count())) fail("landing: no task shortcuts");
+  const stageWeights = await page.locator(".stage-card").first().evaluate((card) => [getComputedStyle(card.querySelector("strong")).fontWeight, getComputedStyle(card.querySelector(".small")).fontWeight]);
+  if (Number(stageWeights[1]) >= Number(stageWeights[0]) || Number(stageWeights[1]) > 400) fail("landing: a stage card's description is as bold as its title: " + stageWeights.join("/"));
   await axe(page, "landing");
+
+  // Visual rules from the visual pass: cards keep even padding; the explorer shows an overview before a principle is
+  // chosen; a helper page says when its helper is not there yet; on a phone the language switch shares the logo's row.
+  {
+    const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await view.goto(pageUrl + "#/cs/V/resources");
+    await view.waitForSelector(".cards .card");
+    const gap = await view.locator(".cards .card").first().evaluate((card) => {
+      const last = card.lastElementChild.getBoundingClientRect();
+      const box = card.getBoundingClientRect();
+      return { bottom: Math.round(box.bottom - last.bottom), top: Math.round(card.firstElementChild.getBoundingClientRect().top - box.top) };
+    });
+    if (Math.abs(gap.bottom - gap.top) > 4) fail("cards: the space below the content differs from the space above it: " + JSON.stringify(gap));
+    await view.goto(pageUrl + "#/cs/V/explorer");
+    await view.waitForSelector("#main h1");
+    const rows = await view.locator(".explorer-overview tbody tr").count();
+    const caption = await view.locator(".explorer-overview caption").textContent().catch(() => "");
+    if (rows !== 4 || !/^\d+ požadav/.test(caption)) fail("explorer: no overview of the requirements before a principle is chosen: " + caption);
+    for (const [id, expected] of [["identifiers", true], ["citation", true], ["live-check", true], ["about", false]]) {
+      await view.goto(pageUrl + "#/cs/V/page/" + id);
+      await view.waitForSelector("#main h1");
+      const coming = await view.locator(".helper-coming").count();
+      if (Boolean(coming) !== expected) fail(`page ${id}: the note that the helper is coming is ${coming ? "shown" : "missing"}`);
+    }
+    await view.setViewportSize({ width: 390, height: 800 });
+    await view.goto(pageUrl + "#/cs/V/page/about");
+    await view.waitForSelector("#main h1");
+    const logo = await view.locator(".brand > a").first().boundingBox();
+    const language = await view.locator(".site-header .controls .button").boundingBox();
+    if (language.y > logo.y + logo.height) fail("header: on a phone the language switch takes a row of its own");
+    await view.close();
+  }
 
   // Keyboard: the skip link, lens picker, language switch, search and stage cards are reachable with Tab.
   const reached = new Set();

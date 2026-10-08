@@ -585,6 +585,11 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 - A station reads "Jak na to", "Proč", "AI ve FAIRifikaci", then "Zdroje a vznik obsahu"; the glossary terms follow
   the provenance line, above the callouts and the resources. Callouts keep their frame but stay closed until the
   reader opens them: their question says whether they apply.
+- Findings of the visual pass over the other pages: before a principle is chosen, the explorer shows how many
+  requirements each FAIR group holds by whom they address (on phones by the principle's letter); a page that holds
+  a helper (`helper = true`) says the helper is still being built until the page script provides it; on phones the
+  language switch shares the logo's row; cards keep even padding; stage-card descriptions are set in regular weight;
+  the about page describes the station history as it is (sources and dates, with people and tools in the paradata).
 
 ### Answers that stay in the browser, and can travel
 

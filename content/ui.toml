@@ -145,6 +145,10 @@ superseded = { cs = "Nahrazeno", en = "Superseded" }
 source = { cs = "Zdroj", en = "Source" }
 count = { cs = "Požadavků: {n}", en = "Requirements: {n}" }
 pick = { cs = "Vyberte princip v nabídce; ukážeme všechny požadavky analýzy, které se ho týkají.", en = "Choose a principle from the menu to see every requirement of the analysis that concerns it." }
+overview = { cs = "{n} požadavek podle principů a toho, komu je určen|{n} požadavky podle principů a toho, komu jsou určeny|{n} požadavků podle principů a toho, komu jsou určeny", en = "{n} requirement by principle and by whom it addresses|{n} requirements by principle and by whom they address" }
+principle = { cs = "Princip", en = "Principle" }
+all = { cs = "Celkem", en = "Total" }
+overviewNote = { cs = "Požadavek, který se týká více principů, se počítá u každého z nich.", en = "A requirement that concerns several principles is counted under each of them." }
 
 [explorer.group]
 F = { cs = "Dohledatelnost (Findable)", en = "Findable" }
@@ -419,6 +423,9 @@ delete = { cs = "tlačítkem „Smazat vše, co průvodce uložil“ vedle tohot
 deleteAll = { cs = "Smazat vše, co průvodce uložil", en = "Delete everything the guide stored" }
 confirm = { cs = "Smazat všechny odpovědi a nastavení, které průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the guide stored in this browser? This cannot be undone." }
 deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the guide stored in this browser is deleted." }
+
+[page]
+helperComing = { cs = "Pomocník se teprve připravuje a v této testovací verzi ještě není; zatím postupujte podle popisu výše.", en = "The helper is still being built and is not in this test version yet; for now, follow the description above." }
 
 [common]
 on = { cs = "zapnuto", en = "on" }

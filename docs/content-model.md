@@ -292,7 +292,8 @@ check reports an icon that is named but not vendored.
 
 ### `pages.toml` and `ui.toml`
 
-`[[page]]`: `id`, `title`, `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section
+`[[page]]`: `id`, `title`, `helper` (true for a page that holds an interactive helper; until the page script
+provides it, the page says it is still being built), `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section
 `credits` on the about page carries the roles table, generated from the guide's metadata. `ui.toml` holds interface strings
 as nested tables of texts, for example `[nav] stations = { cs = "Zastávky", en = "Stations" }`. A text with a
 count gives its plural forms separated by `|`: Czech one, few (2 to 4) and many, English one and other, for

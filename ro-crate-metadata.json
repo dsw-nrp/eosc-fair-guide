@@ -39762,11 +39762,11 @@
       ],
       "text": [
         {
-          "@value": "Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). U každé položky průvodce ukazuje, kdo ji připravil, s jakým nástrojem a z jakých zdrojů (úroveň „Zdroje a vznik obsahu“). Texty kontrolují lidé.",
+          "@value": "Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). U každé zastávky průvodce ukazuje, z jakých zdrojů vychází a kdy se obsah měnil (úroveň „Zdroje a vznik obsahu“); kdo a s jakým nástrojem obsah připravil, zaznamenávají paradata ve znalostní bázi. Texty kontrolují lidé.",
           "@language": "cs"
         },
         {
-          "@value": "An AI assistant (Claude, Anthropic) contributed to the content and code. For every item, the guide shows who prepared it, with which tool and from which sources (the “Sources and how this was made” level). People review the texts.",
+          "@value": "An AI assistant (Claude, Anthropic) contributed to the content and code. For each station, the guide shows which sources it draws on and when the content changed (the “Sources and how this was made” level); who prepared the content and with which tool is recorded in the paradata of the knowledge base. People review the texts.",
           "@language": "en"
         }
       ],
@@ -40139,6 +40139,7 @@
       "@id": "#page-citation",
       "@type": "CreativeWork",
       "identifier": "citation",
+      "additionalType": "https://schema.org/WebApplication",
       "headline": [
         {
           "@value": "Citace z DOI",
@@ -40196,6 +40197,7 @@
       "@id": "#page-identifiers",
       "@type": "CreativeWork",
       "identifier": "identifiers",
+      "additionalType": "https://schema.org/WebApplication",
       "headline": [
         {
           "@value": "Ověřit identifikátory",
@@ -40253,6 +40255,7 @@
       "@id": "#page-live-check",
       "@type": "CreativeWork",
       "identifier": "live-check",
+      "additionalType": "https://schema.org/WebApplication",
       "headline": [
         {
           "@value": "Kontrola datové sady",

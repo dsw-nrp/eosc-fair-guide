@@ -20,7 +20,7 @@ body = { cs = "Průvodce je výstupem klíčové aktivity 5.1 projektu Národní
 
 [[page.section]]
 heading = { cs = "Využití umělé inteligence", en = "Use of artificial intelligence" }
-body = { cs = "Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). U každé položky průvodce ukazuje, kdo ji připravil, s jakým nástrojem a z jakých zdrojů (úroveň „Zdroje a vznik obsahu“). Texty kontrolují lidé.", en = "An AI assistant (Claude, Anthropic) contributed to the content and code. For every item, the guide shows who prepared it, with which tool and from which sources (the “Sources and how this was made” level). People review the texts." }
+body = { cs = "Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). U každé zastávky průvodce ukazuje, z jakých zdrojů vychází a kdy se obsah měnil (úroveň „Zdroje a vznik obsahu“); kdo a s jakým nástrojem obsah připravil, zaznamenávají paradata ve znalostní bázi. Texty kontrolují lidé.", en = "An AI assistant (Claude, Anthropic) contributed to the content and code. For each station, the guide shows which sources it draws on and when the content changed (the “Sources and how this was made” level); who prepared the content and with which tool is recorded in the paradata of the knowledge base. People review the texts." }
 
 [[page.section]]
 heading = { cs = "Ochrana soukromí", en = "Privacy" }
@@ -56,6 +56,7 @@ body = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které 
 
 [[page]]
 id = "citation"
+helper = true
 title = { cs = "Citace z DOI", en = "Citation from a DOI" }
 
 [[page.section]]
@@ -64,6 +65,7 @@ body = { cs = "Vložte DOI datové sady registrované u DataCite. Průvodce nač
 
 [[page]]
 id = "identifiers"
+helper = true
 title = { cs = "Ověřit identifikátory", en = "Verify identifiers" }
 
 [[page.section]]
@@ -72,6 +74,7 @@ body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pom
 
 [[page]]
 id = "live-check"
+helper = true
 title = { cs = "Kontrola datové sady", en = "Dataset check" }
 
 [[page.section]]
