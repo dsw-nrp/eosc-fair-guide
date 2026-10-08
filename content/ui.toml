@@ -165,6 +165,7 @@ chooseFirst = { cs = "Nejdřív odpovězte na otázku výše; seznam položek se
 providedByNrp = { cs = "Zajišťuje NRP", en = "Provided by NRP" }
 providedByNrpText = { cs = "U instancí základních systémů NRP tuto podmínku zajišťuje samo NRP.", en = "For instances of core NRP systems, NRP itself provides this." }
 extendedSwitch = { cs = "Rozšířená kontrola: doporučené a pokročilé položky ({n})", en = "Extended check: recommended and advanced items ({n})" }
+extendedShort = { cs = "Rozšířená (+{n})", en = "Extended (+{n})" }
 extendedExplain = { cs = "Rozšířená kontrola přidá doporučené a pokročilé položky; odpovědi, které jste už dali, zůstanou.", en = "The extended check adds the recommended and advanced items; answers you have already given stay." }
 basedOn = { cs = "Na čem položka stojí", en = "What this item is based on" }
 fixAt = { cs = "Řeší se v kroku: {station}", en = "Addressed at the step: {station}" }
@@ -272,6 +273,10 @@ title = { cs = "Průběžný výsledek", en = "Result so far" }
 gaps = { cs = "Mezery: {n}", en = "Gaps: {n}" }
 tasks = { cs = "Zjistit: {n}", en = "To find out: {n}" }
 full = { cs = "Celý výsledek a uložení", en = "Full result and saving" }
+
+[selfcheck.groupByShort]
+principles = { cs = "principy", en = "principles" }
+steps = { cs = "kroky", en = "steps" }
 
 [selfcheck.groupBy]
 principles = { cs = "podle FAIR principů", en = "by FAIR principle" }

@@ -292,6 +292,8 @@ async function axe(page, label) {
   const gapCell = page.locator('.summary-chip[data-state="gap"]', { hasText: "D04" });
   const gapBox = await gapCell.boundingBox();
   if (!gapBox || gapBox.y < 0 || gapBox.y + gapBox.height > (await page.evaluate(() => window.innerHeight))) fail("dataset check: the R1.1 gap is not in view beside the item");
+  // On a wide screen the check's controls sit in the summary, at hand while scrolling.
+  if (!(await page.locator(".check-summary #extended-toggle").count()) || !(await page.locator(".check-summary #grouping-steps").count())) fail("dataset check: the extended switch and the grouping are not in the summary on a wide screen");
   // The chips and counts of the result so far lead to the items and to the full result.
   await gapCell.click();
   if (!(await page.evaluate(() => document.activeElement.closest("#item-D04")))) fail("dataset check: a principle chip does not lead to its item");
@@ -310,6 +312,7 @@ async function axe(page, label) {
   await page.locator("#result-toggle").click();
   if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the result panel does not collapse");
   const toggleAfter = await page.locator("#result-toggle").boundingBox();
+  if (!(await page.locator(".check-main #extended-toggle").count())) fail("dataset check: with the summary collapsed, the controls are not above the questions");
   if (Math.abs(toggleBefore.x - toggleAfter.x) > 1 || Math.abs(toggleBefore.y - toggleAfter.y) > 1) fail("dataset check: the collapse control moves when the panel collapses");
   if ((await page.locator("#result-toggle").boundingBox()).width > 48) fail("dataset check: the collapse control is not a small icon");
   await page.reload();

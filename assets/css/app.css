@@ -1843,7 +1843,7 @@ main p > button {
 
 @media (min-width: 60rem) {
   .check-split {
-    grid-template-columns: minmax(0, 1fr) 15rem;
+    grid-template-columns: minmax(0, 1fr) 16.5rem;
     align-items: start;
   }
 
@@ -1903,6 +1903,82 @@ main p > button {
 
 .summary-progress {
   margin: var(--space-2) 0;
+}
+
+/* The check's controls in the summary: the extended switch and the grouping, compact. */
+.summary-controls {
+  margin: var(--space-2) 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.summary-controls .switch {
+  min-height: 2rem;
+  gap: var(--space-2);
+  font-size: var(--size-small);
+  white-space: nowrap;
+}
+
+/* The grouping as a one-row segmented control. */
+.grouping.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: var(--space-2) 0 0;
+}
+
+.grouping.segmented legend {
+  float: left;
+  margin: 0 var(--space-2) 0 0;
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.segmented .option {
+  min-height: 0;
+  gap: 0;
+}
+
+.segmented .option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.segmented .option span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.9rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--text-muted);
+  background: var(--background);
+  font-size: var(--size-small);
+}
+
+.segmented .option + .option span {
+  border-left: 0;
+}
+
+.segmented .option:first-of-type span {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.segmented .option:last-of-type span {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.segmented .option input:checked + span {
+  background: var(--tint-teal);
+  border-color: var(--tint-teal);
+  color: #fff;
+  font-weight: 600;
+}
+
+.segmented .option input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 
 .summary-group {

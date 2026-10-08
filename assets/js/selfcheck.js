@@ -797,11 +797,11 @@
   const letterOf = (item) => String((FG.principlesOf(item)[0] || {}).termCode || "").charAt(0);
 
   /** How items are grouped: by FAIR principle by default, or by the path step that addresses them. */
-  function groupingControl() {
+  function groupingControl(compact) {
     const current = FG.state.checkGrouping === "steps" ? "steps" : "principles";
     return h(
       "fieldset",
-      { class: "grouping no-print" },
+      { class: "grouping no-print" + (compact ? " segmented" : "") },
       h("legend", null, FG.t("selfcheck.grouping")),
       ["principles", "steps"].map((value) =>
         h(
@@ -819,7 +819,7 @@
               FG.rerender("grouping-" + value);
             },
           }),
-          FG.t("selfcheck.groupBy." + value)
+          h("span", null, FG.t((compact ? "selfcheck.groupByShort." : "selfcheck.groupBy.") + value))
         )
       )
     );
@@ -855,6 +855,20 @@
   const groupTitle = (group) =>
     group.letter || group.station ? [groupMark(group), " ", group.station ? FG.t("selfcheck.fixAt", { station: groupName(group) }) : groupName(group)] : null;
 
+  /* On a wide screen with the summary open, the check's controls sit in the summary, at hand while scrolling; on a
+     narrow screen or with the summary collapsed they sit above the questions. Crossing the width re-renders. */
+  const WIDE = window.matchMedia ? window.matchMedia("(min-width: 60rem)") : null;
+  const controlsInSummary = () => Boolean(WIDE && WIDE.matches) && !FG.state.resultCollapsed;
+  if (WIDE && WIDE.addEventListener) WIDE.addEventListener("change", () => document.querySelector(".check-view") && FG.rerender());
+
+  /** The extended switch (when the check has further items) and the grouping. */
+  function checkControls(check, st, compact) {
+    const all = applicable(check, st);
+    const first = all.filter(isFirstTier);
+    const more = first.length ? all.length - first.length : 0;
+    return [more ? extendedSwitch(st, more, compact) : null, groupingControl(compact)];
+  }
+
   /** One sentence on what the first view's tier means and how many further items exist, with the control to add them. */
   function tierInfo(check, st, first, more) {
     if (!first.length || !more) return null;
@@ -869,7 +883,7 @@
   }
 
   /** The extended check as an on/off switch: it adds the recommended and advanced items and keeps the answers. */
-  function extendedSwitch(st, more) {
+  function extendedSwitch(st, more, compact) {
     return h(
       "label",
       { class: "switch", for: "extended-toggle" },
@@ -885,7 +899,7 @@
         },
       }),
       h("span", { class: "switch-track", "aria-hidden": "true" }),
-      h("span", null, FG.t("selfcheck.extendedSwitch", { n: more })),
+      h("span", { title: compact ? FG.t("selfcheck.extendedSwitch", { n: more }) : null }, FG.t(compact ? "selfcheck.extendedShort" : "selfcheck.extendedSwitch", { n: more })),
       h("span", { class: "switch-state", "aria-hidden": "true" }, FG.t(st.extended ? "common.on" : "common.off"))
     );
   }
@@ -900,7 +914,7 @@
       "div",
       { class: "items no-print" },
       tierInfo(check, st, first, more),
-      h("div", { class: "check-toolbar no-print" }, more ? extendedSwitch(st, more) : null, groupingControl()),
+      controlsInSummary() ? null : h("div", { class: "check-toolbar no-print" }, checkControls(check, st)),
       groupsOf(shown).map((group) =>
         h("section", { class: "item-group" }, groupTitle(group) ? h("h2", null, groupTitle(group)) : null, group.items.map((item) => itemField(check, st, item)))
       )
@@ -1713,7 +1727,12 @@
           FG.icon(collapsed ? "expand" : "collapse")
         )
       ),
-      h("div", { id: "result-body", hidden: collapsed }, h("div", { id: "summary-body" }, summary(check, st)))
+      h(
+        "div",
+        { id: "result-body", hidden: collapsed },
+        controlsInSummary() ? h("div", { class: "summary-controls" }, checkControls(check, st, true)) : null,
+        h("div", { id: "summary-body" }, summary(check, st))
+      )
     );
   }
 
