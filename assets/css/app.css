@@ -2469,6 +2469,7 @@ a.id-chip:focus-visible {
   justify-content: space-between;
   align-items: center;
   gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .catalogue-count {
@@ -2525,11 +2526,6 @@ a.id-chip:focus-visible {
 
 .kind-intro .filter-actions {
   margin-bottom: var(--space-3);
-}
-
-.card-kind {
-  margin: 0 0 var(--space-1);
-  text-transform: lowercase;
 }
 
 .catalogue-more {

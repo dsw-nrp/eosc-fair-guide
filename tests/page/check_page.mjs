@@ -88,8 +88,8 @@ async function axe(page, label) {
   if (Number(stageWeights[1]) >= Number(stageWeights[0]) || Number(stageWeights[1]) > 400) fail("landing: a stage card's description is as bold as its title: " + stageWeights.join("/"));
   await axe(page, "landing");
 
-  // The catalogue: one menu item over one list narrowed by facets with counts. Kind is a facet in which one value
-  // stays selected, and older addresses select their kind; every kind lists its entries; resources and cited sources
+  // The catalogue: one menu item over one list narrowed by facets with counts. Kind is a single choice, and older
+  // addresses select their kind; every kind lists its entries; resources and cited sources
   // are one kind marked by usage; a facet keeps focus and puts the state in the address, which opens the same list;
   // station and principle apply across kinds and say when a kind lacks them; the reader orders the list and groups
   // follow; changes name no people; the page for machines links the knowledge base.
@@ -114,7 +114,12 @@ async function axe(page, label) {
       if ((await kinds()) !== kind) fail(`catalogue: the address for ${old} does not select ${kind}`);
       if (!(await view.locator(".catalogue-results .card").count())) fail(`catalogue: ${kind} list nothing`);
     }
-    if (!(await view.locator("#facet-kind-actions").isDisabled())) fail("catalogue: the last selected kind can be cleared");
+    if ((await view.locator('[data-facet="kind"] input[type="radio"]').count()) !== 8) fail("catalogue: the kind is not a single choice among eight");
+    const toolbarGap = await view.evaluate(() => {
+      const bar = document.querySelector(".catalogue-toolbar");
+      return bar.nextElementSibling.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
+    });
+    if (toolbarGap < 8) fail(`catalogue: the ordering control touches the content below it (${toolbarGap}px)`);
     const changes = await view.locator(".catalogue-results").textContent();
     if (/Novák|Claude/.test(changes)) fail("catalogue: the content changes name people or tools");
     const drewOn = await view.locator(".change", { hasText: "FAIRsharing" }).first().textContent();
@@ -129,25 +134,29 @@ async function axe(page, label) {
     const both = await view.locator(".card", { hasText: "AI jako služba (CERIT)" }).first().textContent();
     if (!both.includes("doporučuje průvodce") || !both.includes("podklad obsahu")) fail("catalogue: a resource that is also cited is not marked with both uses");
 
-    // Facets: a click keeps focus, the state goes into the address, kinds are headed groups, counts follow.
+    // Facets: a choice keeps focus and goes into the address; the kind replaces the previous one; counts follow.
     await view.locator("#facet-kind-clauses").check();
-    await view.waitForFunction(() => location.hash.includes("k!resources_clauses"));
-    if ((await view.evaluate(() => document.activeElement && document.activeElement.id)) !== "facet-kind-clauses") fail("catalogue: a facet does not keep focus");
-    const groups = await view.locator(".catalogue-group > h2").allTextContents();
-    if (!groups.some((group) => group.startsWith("Zdroje")) || !groups.some((group) => group.startsWith("Požadavky"))) fail("catalogue: two kinds are not shown under their headings: " + groups.join(" | "));
+    await view.waitForFunction(() => location.hash.includes("k!clauses"));
+    if ((await view.evaluate(() => document.activeElement && document.activeElement.id)) !== "facet-kind-clauses") fail("catalogue: the kind picker does not keep focus");
+    if ((await kinds()) !== "clauses" || (await view.locator(".clause-card").count()) !== (await view.locator(".catalogue-results .card").count())) fail("catalogue: choosing a kind does not replace the previous one");
     const before = await found();
     await view.locator("#facet-station-licence").check();
     await view.waitForFunction(() => location.hash.includes("s!licence"));
     if (!((await found()) > 0 && (await found()) < before)) fail("catalogue: the station facet does not narrow the list");
     if (!(await view.locator('[data-facet="kind"] li', { hasText: "Profily FIP" }).textContent()).includes("nemají zastávku")) fail("catalogue: a kind without stations does not say why it shows none");
-    await view.locator("#catalogue-order").selectOption("name");
-    await view.waitForFunction(() => location.hash.includes("o!name"));
-    if (!(await view.locator(".card-kind").count())) fail("catalogue: entries of several kinds in one order do not say their kind");
+    await view.locator("#catalogue-order").selectOption("principle");
+    await view.waitForFunction(() => location.hash.includes("o!principle"));
+    if (!(await view.locator(".catalogue-group > h2").count())) fail("catalogue: ordering by principle does not group the list");
     const address = await view.evaluate(() => location.hash);
     const count = await found();
     await view.goto("about:blank");
     await open(address);
-    if ((await found()) !== count || (await kinds()) !== "resources,clauses") fail("catalogue: the address does not reopen the same list");
+    if ((await found()) !== count || (await kinds()) !== "clauses") fail("catalogue: the address does not reopen the same list");
+    await view.locator("#facet-kind-resources").check();
+    await view.waitForFunction(() => location.hash.includes("k!resources"));
+    if (!(await view.evaluate(() => location.hash.includes("s!licence")))) fail("catalogue: changing the kind drops the station");
+    await view.locator("#facet-kind-clauses").check();
+    await view.waitForFunction(() => location.hash.includes("k!clauses"));
     await view.locator("#catalogue-search").fill("licence");
     await view.waitForFunction(() => location.hash.includes("q!licence"));
     if (!((await found()) > 0 && (await found()) < count)) fail("catalogue: the search does not narrow the list");

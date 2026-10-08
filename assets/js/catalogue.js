@@ -1,6 +1,6 @@
 /* Catalogue of the FAIR Data Guide: one list of everything in the knowledge base, narrowed by facets with counts.
-   Kind is a facet in which at least one value stays selected; search, station and principle apply across kinds; a
-   facet that belongs to one kind is labelled with it. The reader chooses the ordering, groups follow it, and the
+   Kind is a single choice that shows every kind with its count; search, station and principle apply across kinds
+   and stay when the kind changes; a facet that belongs to one kind is labelled with it. The reader chooses the ordering, groups follow it, and the
    whole state is part of the address, so a filtered list is a link. */
 (function () {
   "use strict";
@@ -11,7 +11,7 @@
   /* Older addresses named the kinds as tabs; cited sources are now part of the resources. */
   const ALIASES = { sources: "resources" };
   const PAGE = 50;
-  /* Values shown before "more"; kinds and the nine stations always show in full. */
+  /* Values shown before "more"; the nine stations always show in full. */
   const SHOWN_VALUES = 9;
   const expanded = new Set();
   const openFacets = new Set();
@@ -482,7 +482,7 @@
       else if (key === "o") state.order = value;
       else if (key.startsWith("f.")) state.f[key.slice(2)] = list;
     }
-    if (!state.kinds.length) state.kinds = ["resources"];
+    state.kinds = state.kinds.length ? state.kinds.slice(0, 1) : ["resources"];
     return state;
   }
 
@@ -533,17 +533,14 @@
     actions: ["newest", "oldest"],
   };
 
-  function ordersFor(kinds) {
-    const own = kinds.length === 1 ? ORDERS_FOR[kinds[0]] : ["kind"];
-    return [...new Set(own.concat(["name", "station", "principle"]))];
-  }
+  const ordersFor = (kind) => [...new Set(ORDERS_FOR[kind].concat(["name", "station", "principle"]))];
 
   const rankedPrinciples = () => FG.principles().slice().sort(FG.principleOrder).map((principle) => principle.termCode);
   const byName = (a, b) => FG.fold(a.name).localeCompare(FG.fold(b.name), "cs");
   const withinKind = (a, b) => (a.order !== undefined && b.order !== undefined ? String(a.order).localeCompare(String(b.order)) : 0) || byName(a, b);
 
   /** Groups for an ordering: a key, a heading and the entries, in the order of the groups. */
-  function groupsFor(order, entries, kinds) {
+  function groupsFor(order, entries) {
     const stations = FG.stations().map((station) => station.identifier);
     const principles = rankedPrinciples();
     const grouped = (keyOf, labelOf, rankOf) => {
@@ -556,7 +553,6 @@
       return [...groups.entries()].sort(([a], [b]) => rankOf(a) - rankOf(b)).map(([key, list]) => ({ key, label: labelOf(key), entries: list.sort(withinKind) }));
     };
     const rankIn = (list) => (key) => (key && list.includes(key) ? list.indexOf(key) : list.length);
-    if (order === "kind") return grouped((entry) => entry.kind, (kind) => FG.t("catalogue.tab." + kind), rankIn(KINDS)).filter((group) => kinds.includes(group.key));
     if (order === "station") {
       return grouped(
         (entry) => entry.stations.slice().sort((a, b) => stations.indexOf(a) - stations.indexOf(b))[0] || "",
@@ -599,10 +595,9 @@
   /* ---------------------------------------------------------------- the view */
 
   /** A facet as a group of checkboxes with counts; values past the first few open on request. */
-  function facetGroup(name, legend, values, chosen, counts, labelOf, onToggle, noteOf) {
+  function facetGroup(name, legend, values, chosen, counts, labelOf, onToggle) {
     const open = openFacets.has(name);
-    const limit = name === "kind" ? values.length : SHOWN_VALUES;
-    const shown = open ? values : values.filter((value, index) => index < limit || chosen.includes(value));
+    const shown = open ? values : values.filter((value, index) => index < SHOWN_VALUES || chosen.includes(value));
     return h(
       "fieldset",
       { class: "facet", "data-facet": name },
@@ -614,13 +609,11 @@
           const id = "facet-" + name + "-" + slug(value);
           const count = counts.get(value) || 0;
           const checked = chosen.includes(value);
-          const note = noteOf ? noteOf(value, count, checked) : null;
           return h(
             "li",
             { class: count || checked ? null : "facet-empty" },
-            h("input", { type: "checkbox", id, checked, disabled: note && note.disabled ? true : null, onchange: () => onToggle(value, "#" + CSS.escape(id)) }),
-            h("label", { for: id }, h("span", { class: "facet-label" }, labelOf(value)), h("span", { class: "facet-count" }, String(count))),
-            note && note.text ? h("span", { class: "facet-note small muted" }, note.text) : null
+            h("input", { type: "checkbox", id, checked, onchange: () => onToggle(value, "#" + CSS.escape(id)) }),
+            h("label", { for: id }, h("span", { class: "facet-label" }, labelOf(value)), h("span", { class: "facet-count" }, String(count)))
           );
         })
       ),
@@ -639,6 +632,32 @@
             open ? FG.t("catalogue.fewerValues") : FG.t("catalogue.moreValues", { n: values.length - shown.length })
           )
         : null
+    );
+  }
+
+  /** The kind as a single choice, each with its count under the other filters and, where it shows none because it
+      lacks a chosen dimension, the reason. */
+  function kindPicker(selected, counts, noteOf, onPick) {
+    return h(
+      "fieldset",
+      { class: "facet facet-kinds", "data-facet": "kind" },
+      h("legend", null, FG.t("catalogue.facet.kind")),
+      h(
+        "ul",
+        null,
+        KINDS.map((kind) => {
+          const id = "facet-kind-" + kind;
+          const count = counts.get(kind) || 0;
+          const note = noteOf(kind, count);
+          return h(
+            "li",
+            { class: count || kind === selected ? null : "facet-empty" },
+            h("input", { type: "radio", name: "catalogue-kind", id, checked: kind === selected, onchange: () => onPick(kind, "#" + id) }),
+            h("label", { for: id }, h("span", { class: "facet-label" }, FG.t("catalogue.tab." + kind)), h("span", { class: "facet-count" }, String(count))),
+            note ? h("span", { class: "facet-note small muted" }, note) : null
+          );
+        })
+      )
     );
   }
 
@@ -674,10 +693,11 @@
     /* A link to one entry shows its kind unfiltered, so the entry is there. */
     if (route.extra) Object.assign(state, { stations: [], principles: [], q: "", f: { lens: [] } });
 
-    const selected = state.kinds;
-    const inKinds = selected.flatMap((kind) => entries[kind]);
+    const kind = state.kinds[0];
+    const selected = [kind];
+    const inKinds = entries[kind];
     const visible = inKinds.filter((entry) => passesShared(entry, state) && passesKind(entry, state, route));
-    const orders = ordersFor(selected);
+    const orders = ordersFor(kind);
     const order = orders.includes(state.order) ? state.order : orders[0];
 
     /* Counts: kinds under every filter; a shared facet under every other filter; a kind's facet within that kind. */
@@ -697,10 +717,9 @@
       }
       return counts;
     };
-    const kindNote = (kind, count, checked) => {
-      if (checked && selected.length === 1) return { disabled: true, text: FG.t("catalogue.lastKind") };
-      if (!count && state.stations.length && lacks(kind, "stations")) return { text: FG.t("catalogue.noStation") };
-      if (!count && state.principles.length && lacks(kind, "principles")) return { text: FG.t("catalogue.noPrinciple") };
+    const kindNote = (other, count) => {
+      if (!count && state.stations.length && lacks(other, "stations")) return FG.t("catalogue.noStation");
+      if (!count && state.principles.length && lacks(other, "principles")) return FG.t("catalogue.noPrinciple");
       return null;
     };
 
@@ -726,28 +745,26 @@
     const principleLabel = (value) => value + " " + FG.text((FG.principles().find((entry) => entry.termCode === value) || {}).name);
     const facets = [
       search,
-      facetGroup("kind", FG.t("catalogue.facet.kind"), KINDS, selected, kindCounts, (kind) => FG.t("catalogue.tab." + kind), (kind, focus) => {
-        const next = toggle(selected, kind);
-        if (next.length) go(Object.assign({}, state, { kinds: next, order: "" }), focus);
-      }, kindNote),
+      /* Changing the kind keeps search, station, principle and lens, and drops the previous kind's own facets. */
+      kindPicker(kind, kindCounts, kindNote, (other, focus) => go(Object.assign({}, state, { kinds: [other], order: "", f: state.f.lens === undefined ? {} : { lens: state.f.lens } }), focus)),
       facetGroup("station", FG.t("catalogue.facet.station"), FG.stations().map((station) => station.identifier), state.stations, sharedCounts("stations", "station"), stationLabel, (id, focus) =>
         go(Object.assign({}, state, { stations: toggle(state.stations, id) }), focus)
       ),
       facetGroup("principle", FG.t("catalogue.facet.principle"), rankedPrinciples(), state.principles, sharedCounts("principles", "principle"), principleLabel, (value, focus) =>
         go(Object.assign({}, state, { principles: toggle(state.principles, value) }), focus)
       ),
-      selected.map((kind) => {
-        const own = KIND_FACETS[kind] || [];
-        if (!own.length) return null;
+      selected.map((own) => {
+        const ownFacets = KIND_FACETS[own] || [];
+        if (!ownFacets.length) return null;
         return h(
           "div",
           { class: "facet-kind" },
-          h("p", { class: "facet-kind-name" }, FG.t("catalogue.tab." + kind)),
-          own.map((facet) => {
-            const counts = kindFacetCounts(kind, facet.key);
+          h("p", { class: "facet-kind-name" }, FG.t("catalogue.tab." + own)),
+          ownFacets.map((facet) => {
+            const counts = kindFacetCounts(own, facet.key);
             const values = facet.values ? facet.values() : [...counts.keys()].sort((a, b) => FG.fold(facet.label(a)).localeCompare(FG.fold(facet.label(b)), "cs"));
             const chosen = chosenValues(state, route, facet.key);
-            return facetGroup(kind + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
+            return facetGroup(own + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
               go(Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: toggle(chosen, value) }) }), focus)
             );
           })
@@ -764,16 +781,13 @@
     if (state.q) chip("„" + state.q + "“", Object.assign({}, state, { q: "" }));
     for (const id of state.stations) chip(stationLabel(id), Object.assign({}, state, { stations: state.stations.filter((item) => item !== id) }));
     for (const value of state.principles) chip(principleLabel(value), Object.assign({}, state, { principles: state.principles.filter((item) => item !== value) }));
-    for (const kind of selected) {
-      for (const facet of KIND_FACETS[kind] || []) {
-        const chosen = chosenValues(state, route, facet.key);
-        for (const value of chosen) chip(FG.t("catalogue.facet." + facet.key) + ": " + facet.label(value), Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: chosen.filter((item) => item !== value) }) }));
-      }
+    for (const facet of KIND_FACETS[kind] || []) {
+      const chosen = chosenValues(state, route, facet.key);
+      for (const value of chosen) chip(FG.t("catalogue.facet." + facet.key) + ": " + facet.label(value), Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: chosen.filter((item) => item !== value) }) }));
     }
 
-    const groups = groupsFor(order, visible, selected);
+    const groups = groupsFor(order, visible);
     const used = new Set();
-    const mixed = selected.length > 1 && order !== "kind";
     const results = groups.map((group) => {
       /* A link to one entry shows the whole group it is in, so the entry is there to land on. */
       const all = expanded.has(group.key) || group.entries.length <= PAGE || (route.extra && group.entries.some((entry) => entry.anchor === route.extra));
@@ -781,14 +795,12 @@
         const node = entry.render();
         if (node.id && used.has(node.id)) node.removeAttribute("id");
         else used.add(node.id);
-        if (mixed) node.prepend(h("p", { class: "card-kind small muted" }, FG.t("catalogue.tab." + entry.kind)));
         return node;
       });
       return h(
         "section",
         { class: "catalogue-group" },
         group.label ? h("h2", null, group.label, h("span", { class: "muted group-count" }, " · " + FG.t("catalogue.entries", { n: group.entries.length }))) : null,
-        order === "kind" ? kindIntro(group.key) : null,
         h("ul", { class: "cards" }, cards),
         all
           ? null
@@ -806,7 +818,7 @@
             )
       );
     });
-    if (order !== "kind" && selected.length === 1) results.unshift(kindIntro(selected[0]));
+    results.unshift(kindIntro(kind));
 
     return h(
       "div",

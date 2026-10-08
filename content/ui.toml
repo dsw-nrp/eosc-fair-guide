@@ -442,7 +442,6 @@ order = { cs = "Řadit", en = "Order" }
 more = { cs = "Zobrazit dalších {n}", en = "Show {n} more" }
 moreValues = { cs = "Další hodnoty ({n})", en = "More values ({n})" }
 fewerValues = { cs = "Méně hodnot", en = "Fewer values" }
-lastKind = { cs = "aspoň jeden druh zůstává vybraný", en = "at least one kind stays selected" }
 noStation = { cs = "nemají zastávku", en = "have no station" }
 noPrinciple = { cs = "nemají princip", en = "have no principle" }
 withoutStation = { cs = "Bez zastávky", en = "Without a station" }
@@ -551,7 +550,6 @@ cs = { cs = "čeština", en = "Czech" }
 en = { cs = "angličtina", en = "English" }
 
 [catalogue.orderBy]
-kind = { cs = "podle druhu", en = "by kind" }
 name = { cs = "podle názvu", en = "by name" }
 station = { cs = "podle zastávky", en = "by station" }
 principle = { cs = "podle principu", en = "by principle" }

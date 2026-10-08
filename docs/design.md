@@ -600,8 +600,9 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   statement. The content checks refuse a page without a menu item.
 - The catalogue ("Katalog") replaces the separate resource and repository menu items with one list narrowed by
   facets with counts. Kind (resources, repositories, requirements, check questions, glossary terms, FIP profiles,
-  FAIR tests, content changes) is a facet in which one value stays selected; search, station and principle apply
-  across kinds, and a kind without that dimension shows none and says why; facets of one kind are grouped under it.
+  FAIR tests, content changes) is a single choice that shows every kind with its count; search, station and
+  principle apply across kinds and stay when the kind changes, and a kind without that dimension shows none and says
+  why; the facets of the chosen kind are grouped under it and reset when the kind changes.
   Resources and cited sources are one kind marked by usage (recommended by the guide, basis of the content, in the
   FIP Dashboard), with the dashboard's own resources folded in. The reader chooses the ordering and groups follow
   it; the whole state is part of the address, so a filtered list is a link, and older addresses select their kind.
