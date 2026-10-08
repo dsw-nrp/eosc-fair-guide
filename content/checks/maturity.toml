@@ -85,6 +85,7 @@ sources = ["S.REC3", "A.F2.R2"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
 prefill = { nkr = ["metadataSchema"] }
+prefillLevel = "partly"
 
 [[item]]
 id = "S09"

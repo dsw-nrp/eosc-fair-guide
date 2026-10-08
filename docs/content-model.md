@@ -137,6 +137,7 @@ once, in their original language, with `inLanguage`.
 | | `name`, `description` | text | Name and description of the guide |
 | | `keywords` | list of text | Keywords |
 | | `url` | URL | Home of the guide |
+| | `pageUrl` | URL | Published address of the page; exports and shared links name it instead of a local file path |
 | | `vocabularyBase` | URL | Namespace of the guide's own terms (see *Crate mapping*) |
 | | `profile` | URL | IRI of the guide's RO-Crate profile in `profile/fair-guide/`; its version ends the IRI |
 | | `freshnessDays` | integer | Age after which a status is reported as stale |
@@ -217,6 +218,8 @@ published), `noteSources` (clause or source IDs that support the note), `superse
 | `allowNotApplicable` | boolean | Whether "not applicable" is an allowed answer |
 | `note` | text | An extra remark shown with the item |
 | `prefill` | table | Live sources that can answer the item: `datacite`, `nkr`, `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean) |
+| `prefillLevel` | string | `partly` when the evidence can only partly prove the statement; a pre-filled answer then never exceeds "partly" |
+| `lookup` | string | Key of a link in `[links]` of `live.toml` where the user can find out the answer; shown with a "don't know" task |
 
 ### `resources.toml`
 
@@ -255,10 +258,13 @@ with `source`, `url` and `retrieved` (and `license` where the source states one)
 
 ### `live.toml`
 
-`[[connector]]`: `id`, `name`, `origin` (scheme and host), `purpose`. The page calls no other host, and the
-Content Security Policy is generated from this list. `[links]`: base URLs the page builds links to (the FIP
+`[[connector]]`: `id`, `name`, `origin` (scheme and host), `purpose`, and `browserAccess = false` for a service
+whose API does not admit the guide's origin yet (the page then uses its snapshot). The page calls no other host, and
+the Content Security Policy is generated from this list. `[links]`: base URLs the page builds links to (the FIP
 Dashboard, the NMA search, NKR); the page scripts contain no URLs of their own. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
 `[[champion.test]]`: `id`, `principle`, `label`, `health` (`available`, `degraded`, `unavailable`), `asOf`.
+`[nanopub]`: `path` of the SPARQL endpoint, `fipIri` (the IRI forms of a FIP, with `{code}` for the
+nanopublication's trusty URI code) and `query` (with `{fips}` where the page puts those IRIs).
 
 ### `provenance.toml`
 

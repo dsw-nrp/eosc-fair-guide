@@ -22,7 +22,9 @@
       "lensOrder": "https://motyc.github.io/eosc-fair-guide/terms#lensOrder",
       "relatedTo": "https://motyc.github.io/eosc-fair-guide/terms#relatedTo",
       "note": "https://motyc.github.io/eosc-fair-guide/terms#note",
-      "disclaimer": "https://motyc.github.io/eosc-fair-guide/terms#disclaimer"
+      "disclaimer": "https://motyc.github.io/eosc-fair-guide/terms#disclaimer",
+      "prefillLevel": "https://motyc.github.io/eosc-fair-guide/terms#prefillLevel",
+      "lookup": "https://motyc.github.io/eosc-fair-guide/terms#lookup"
     }
   ],
   "@graph": [
@@ -224,6 +226,9 @@
         },
         {
           "@id": "#action-2026-10-08-content-migration"
+        },
+        {
+          "@id": "#action-2026-10-08-self-check"
         },
         {
           "@id": "#ledger"
@@ -530,6 +535,18 @@
       "@type": "rdf:Property",
       "rdfs:label": "disclaimer",
       "rdfs:comment": "Disclaimer that a snapshot's source publishes about its data, shown while it is present."
+    },
+    {
+      "@id": "https://motyc.github.io/eosc-fair-guide/terms#prefillLevel",
+      "@type": "rdf:Property",
+      "rdfs:label": "prefillLevel",
+      "rdfs:comment": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves."
+    },
+    {
+      "@id": "https://motyc.github.io/eosc-fair-guide/terms#lookup",
+      "@type": "rdf:Property",
+      "rdfs:label": "lookup",
+      "rdfs:comment": "Service where a user can find out the answer to a self-check item."
     },
     {
       "@id": "https://w3id.org/fair/principles/terms/",
@@ -25166,6 +25183,9 @@
           "@language": "en"
         }
       ],
+      "lookup": {
+        "@id": "https://nma.eosc.cz/"
+      },
       "isPartOf": {
         "@id": "#check-dataset"
       },
@@ -25530,6 +25550,7 @@
       "additionalProperty": {
         "@id": "#item-D11-prefill-datacite"
       },
+      "prefillLevel": "partly",
       "isPartOf": {
         "@id": "#check-dataset"
       },
@@ -26680,10 +26701,7 @@
       "@id": "#item-G03-prefill-nkr",
       "@type": "PropertyValue",
       "propertyID": "prefill:nkr",
-      "value": [
-        "versioning",
-        "policy"
-      ],
+      "value": "versioning",
       "name": "prefill:nkr"
     },
     {
@@ -26921,11 +26939,7 @@
       "@id": "#item-G07-prefill-nkr",
       "@type": "PropertyValue",
       "propertyID": "prefill:nkr",
-      "value": [
-        "pidType",
-        "doiPrefix",
-        "handlePrefix"
-      ],
+      "value": "pidType",
       "name": "prefill:nkr"
     },
     {
@@ -27053,6 +27067,7 @@
       "additionalProperty": {
         "@id": "#item-G08-prefill-nkr"
       },
+      "prefillLevel": "partly",
       "isPartOf": {
         "@id": "#check-gate"
       },
@@ -27266,6 +27281,7 @@
       "additionalProperty": {
         "@id": "#item-G12-prefill-nkr"
       },
+      "prefillLevel": "partly",
       "isPartOf": {
         "@id": "#check-gate"
       },
@@ -27641,6 +27657,7 @@
       "additionalProperty": {
         "@id": "#item-G19-prefill-nkr"
       },
+      "prefillLevel": "partly",
       "isPartOf": {
         "@id": "#check-gate"
       },
@@ -28401,6 +28418,7 @@
       "additionalProperty": {
         "@id": "#item-S08-prefill-nkr"
       },
+      "prefillLevel": "partly",
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -42090,6 +42108,70 @@
         }
       ],
       "endTime": "2026-10-08T10:15:00+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-08-self-check",
+      "@type": "UpdateAction",
+      "name": "Self-check pre-fill and follow-up",
+      "description": "Check items prepared for the self-check: items whose evidence proves them only in part are capped at partly, two gate items take their NKR evidence from the PID type and versioning fields alone, and the NMA item links the NMA search for a don't-know task.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "object": [
+        {
+          "@id": "#source-nkr-schema"
+        },
+        {
+          "@id": "#source-nrp-docs-nma-riv"
+        },
+        {
+          "@id": "#clause-C.M3"
+        },
+        {
+          "@id": "#clause-C.M7"
+        },
+        {
+          "@id": "#clause-C.M8"
+        }
+      ],
+      "result": [
+        {
+          "@id": "#item-D05"
+        },
+        {
+          "@id": "#item-D11"
+        },
+        {
+          "@id": "#item-G03"
+        },
+        {
+          "@id": "#item-G07"
+        },
+        {
+          "@id": "#item-G08"
+        },
+        {
+          "@id": "#item-G12"
+        },
+        {
+          "@id": "#item-G19"
+        },
+        {
+          "@id": "#item-S08"
+        }
+      ],
+      "endTime": "2026-10-08T11:09:20+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }

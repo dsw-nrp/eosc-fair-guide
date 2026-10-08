@@ -15,6 +15,8 @@
     return h("h" + level, Object.assign({ tabindex: "-1" }, attrs || {}), ...children);
   }
 
+  FG.heading = heading;
+
   function isStale(asOf) {
     if (!asOf) return false;
     const days = (Date.now() - new Date(asOf + "T00:00:00Z").getTime()) / 86400000;

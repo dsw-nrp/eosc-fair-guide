@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "browsers": "playwright install chromium",
-    "check:page": "node tests/page/check_page.mjs"
+    "check:page": "node tests/page/check_page.mjs",
+    "check:live": "node tests/page/check_live.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

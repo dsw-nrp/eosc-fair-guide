@@ -35,6 +35,25 @@
     FG.focusAfterRender = true;
   };
 
+  /** Render again without moving focus to the heading, then return focus to the control that caused it. */
+  FG.rerender = function (focusId) {
+    FG.focusAfterRender = false;
+    FG.render();
+    const target = focusId ? document.getElementById(focusId) : null;
+    if (target) target.focus({ preventScroll: true });
+  };
+
+  /* Closed disclosures do not print, so every one opens for printing and closes again afterwards. */
+  let closedForPrint = [];
+  window.addEventListener("beforeprint", () => {
+    closedForPrint = [...document.querySelectorAll("details:not([open])")];
+    for (const element of closedForPrint) element.open = true;
+  });
+  window.addEventListener("afterprint", () => {
+    for (const element of closedForPrint) element.open = false;
+    closedForPrint = [];
+  });
+
   function skipToMain(event) {
     event.preventDefault();
     const main = document.getElementById("main");

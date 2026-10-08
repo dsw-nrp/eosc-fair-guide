@@ -457,6 +457,27 @@ the assistant runtime are named as instruments; the generator is not, because it
 authoring it. With `--base <ref>`, `check_content.py` requires an action newer than that revision for every item
 whose source changed.
 
+### FIP declarations from a nanopublication (2026-10-08)
+
+The fallback source for the FIP pre-fill is the nanopublication query service. A SPARQL query over
+`https://query.knowledgepixels.com/repo/full` follows a FIP to its declaration index, from the index to each
+declaration nanopublication, and from each declaration to the FIP question it answers and the resource it declares.
+The service sends `Access-Control-Allow-Origin: *`, so the page can call it directly; for a published FIP (the
+ADVANCE project's profile) it returned 27 declarations in about half a second. Findings that shaped the adapter:
+
+- a FIP is published under two IRI forms, `https://w3id.org/np/<code>#fip` and `http://purl.org/np/<code>#fip`,
+  so the query lists both; the page accepts the trusty URI code on its own or inside either address;
+- questions are IRIs of the form `https://w3id.org/fair/fip/terms/FIP-Question-<question>`, where the question is
+  the code that `prefill.fip` uses (`F1-D`, `A1.1-MD`, …);
+- the relation carries the status: `declares-current-use-of` is "in use", `declares-planned-use-of` is "planned"
+  and `declares-planned-replacement-of` is "to be replaced";
+- declared resources use `http://purl.org/np/…` IRIs, which purl.org also serves over HTTPS, and a resource can
+  carry several labels, so the page links the HTTPS form and lists each resource once.
+
+The query lives in `content/live.toml`, not in the scripts, so it can change with the service without a code
+change. The FIP Dashboard API, the primary source, answered only its own development origin in a cross-origin
+check on the same day, so the page uses the dashboard snapshot until `browserAccess` is switched on.
+
 ## Decision log
 
 Source: **U** = decision of the maintainer, **S** = proposal from analysis, agreed by the maintainer.
@@ -518,3 +539,5 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-53 | 2026-10-08 | The guide and the dashboard are **two facets of one service**; the dashboard owns FER facts and the guide links to its records with their qualification. Dashboard data (sample, v0.1.0) enter as a reviewed snapshot with the dashboard's own disclaimer shown while present; the API is used live once it admits the guide's origin. FIP pre-fill: dashboard profile first, published **nanopublication as the fallback** in the pilot and in production. | U+S |
 | D-54 | 2026-10-08 | A visible **testing-phase notice** stays on every view until the guide is finished and agreed by EOSC CZ; it is driven by the release status in the content. | U |
 | D-55 | 2026-10-08 | At the first release the OpenSpec change **moves into this repository** (specs to `openspec/specs/`, change to the archive); OpenSpec is a pinned development dependency, so later development is OpenSpec-driven. Nothing in this repository exposes local machine details or the planning environment's internals. | U |
+| D-56 | 2026-10-08 | Self-check pre-fill uses **positive evidence only**: a field, declaration or resolution that is present answers yes (or partly when it proves the item only in part, `prefillLevel`); absence leaves the item open with a note, because a record that omits something does not prove it is missing. A pre-filled value never replaces an answer the user gave, each pre-fill shows its source and date, a changed answer stays marked, and choosing another dataset, repository or profile discards the previous one's evidence. The FIP nanopublication query is recorded in *Spikes and findings*. | S |
+| D-57 | 2026-10-08 | Results export as Markdown, print and an FTR `TestResultSet` in a small RO-Crate (yes is `pass`, no is `fail`, partly and don't know are `indeterminate`; not applicable and items NRP provides are left out). The export is a valid RO-Crate 1.2; its licence is declared as not specified, because the person who saves the result decides on reuse. Exports and shared links name the published page (`pageUrl`), never a local file. A shared link carries only the mode, the profile and the answers, opens as a preview, and replaces the user's own answers only on request. "Don't know" names whom to ask and, where an item has one, a lookup link. | S |

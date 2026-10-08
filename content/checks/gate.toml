@@ -51,7 +51,7 @@ sources = ["C.M3"]
 fixAt = "publikace"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
-prefill = { nkr = ["versioning", "policy"] }
+prefill = { nkr = ["versioning"] }
 
 [[item]]
 id = "G04"
@@ -96,7 +96,7 @@ sources = ["C.M7", "C.EXT", "A.F1.N2"]
 fixAt = "publikace"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
-prefill = { nkr = ["pidType", "doiPrefix", "handlePrefix"] }
+prefill = { nkr = ["pidType"] }
 
 [[item]]
 id = "G08"
@@ -108,6 +108,7 @@ fixAt = "dohledatelnost"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["oaipmhEndpoint"] }
+prefillLevel = "partly"
 
 [[item]]
 id = "G09"
@@ -151,6 +152,7 @@ fixAt = "popis"
 owner = ["repository-admin", "curator"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["metadataSchema"] }
+prefillLevel = "partly"
 
 [[item]]
 id = "G13"
@@ -226,3 +228,4 @@ fixAt = "repozitar"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["workingGroup"] }
+prefillLevel = "partly"

@@ -159,17 +159,27 @@
   };
 
   FG.parseHash = function (hash) {
-    const route = { lang: FG.state.lang, lens: FG.state.lens, view: "path", arg: null };
+    const route = { lang: FG.state.lang, lens: FG.state.lens, view: "path", arg: null, extra: null };
     if (!hash || hash === "#") return route;
     if (!hash.startsWith("#/")) {
       const target = FG.entityRoute(hash);
       return target ? Object.assign(route, target) : route;
     }
-    const parts = hash.slice(2).split("/").map(decodeURIComponent);
+    const parts = hash
+      .slice(2)
+      .split("/")
+      .map((part) => {
+        try {
+          return decodeURIComponent(part);
+        } catch (error) {
+          return "";
+        }
+      });
     if (LANGS.includes(parts[0])) route.lang = parts[0];
     if (FG.lenses().some((lens) => lens.audienceType === parts[1])) route.lens = parts[1];
     if (VIEWS.includes(parts[2])) route.view = parts[2];
     route.arg = parts[3] || null;
+    route.extra = parts[4] || null;
     return route;
   };
 

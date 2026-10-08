@@ -33,3 +33,14 @@ instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nrp-docs-nma-riv", "nrp-docs-nma-export", "nkr-schema", "fip-dashboard", "cessda-dmeg", "datarepo", "ostrails-cz-pilot", "dsw-nrp", "pid-centre", "einfra-docs"]
 results = ["plan.*", "prace.*", "repozitar.*", "popis.*", "licence.*", "publikace.*", "dohledatelnost.*", "citace.*", "kontrola.*", "P0*", "D0*", "D1*", "G0*", "G1*", "S0*", "S1*", "S2*", "K0*", "K1*", "I0*", "dmp-eosc", "dmp-status", "dsw-nrp", "policy-manual", "ds-handbook", "ds-personas", "eosc-data-stewards", "datasteward-cz", "cessda-dmeg", "cesnet-storage", "onedata", "sensitive-cloud", "ddrapp", "nrp-compute", "eosc-training", "cerit-aiaas", "nkr", "fip-dashboard", "re3data", "fairsharing", "datarepo", "coretrustseal", "nrp-conditions", "repo-recommendations", "repo-user-needs", "repo-integration", "os2", "eosc-working-groups", "ccmm", "heslar", "pid-centre", "orcid", "ror", "dataspecer", "cdif", "tf-semantic", "datacite-schema", "copyright-licences", "deposit-licence", "creative-commons", "ethical-seven", "einfra-aai", "aai-sensitive", "datacite", "handle", "fair-signposting", "schema-dataset", "oai-pmh", "nma", "nma-riv-docs", "nma-export-docs", "datacite-commons", "openaire-explore", "google-dataset-search", "force11-citation", "knav-type-t", "os3", "eosc-acknowledgement", "fair-champion", "f-uji", "fair-checker", "fair-aware", "openaire-validator", "fdmm", "ostrails-cli", "ostrails-cz-pilot", "fair-impact", "E.FIP-DASHBOARD", "E.CESSDA-DMEG", "E.DATAREPO"]
 endTime = 2026-10-08T10:15:00+02:00
+
+[[action]]
+id = "2026-10-08-self-check"
+type = "update"
+name = "Self-check pre-fill and follow-up"
+description = "Check items prepared for the self-check: items whose evidence proves them only in part are capped at partly, two gate items take their NKR evidence from the PID type and versioning fields alone, and the NMA item links the NMA search for a don't-know task."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["nkr-schema", "nrp-docs-nma-riv", "C.M3", "C.M7", "C.M8"]
+results = ["D05", "D11", "G03", "G07", "G08", "G12", "G19", "S08"]
+endTime = 2026-10-08T11:09:20+02:00

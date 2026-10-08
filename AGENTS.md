@@ -57,7 +57,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | `index.html` | The page and the crate's HTML preview, with the crate inlined |
 | `ro-crate-metadata.json` | Generated RO-Crate 1.2 |
 | `assets/css/` | `tokens.css` (palette, type, spacing) and `app.css` (layout, components) |
-| `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing), `views.js`, `live.js` (connectors), `app.js` (start-up) |
+| `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing), `views.js`, `live.js` (connectors), `selfcheck.js` (checks, pre-fill, results, exports), `app.js` (start-up) |
 | `assets/img/` | Official EOSC CZ logos (own licence in `LICENSES/LicenseRef-EOSC-CZ-Logo.txt`) |
 | `assets/diagrams/` | Rendered SVG diagrams |
 | `diagrams/` | Mermaid sources |
@@ -87,7 +87,8 @@ Page checks need Node.js and Chromium (installed into the gitignored `.cache/`):
 ```bash
 npm ci
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run browsers
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:live   # real lookups (DataCite, resolvers, nanopublication); needs network
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .cache/screenshots
 ```
 

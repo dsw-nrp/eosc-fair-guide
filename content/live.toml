@@ -44,6 +44,14 @@ origin = "https://query.knowledgepixels.com"
 purpose = "Declarations of a published FAIR Implementation Profile"
 
 [[connector]]
+id = "fip-dashboard"
+name = "FIP Dashboard API"
+origin = "https://fip-dashboard.dmp.eosc.cz"
+purpose = "Current FIP profiles, used once the API admits the guide's origin; the snapshot serves otherwise"
+# The API does not admit the guide's origin yet (CORS), so the page uses the snapshot. Set to true once it does.
+browserAccess = false
+
+[[connector]]
 id = "champion"
 name = "FAIR Champion (OSTrails)"
 origin = "https://tests.ostrails.eu"
@@ -60,6 +68,29 @@ purpose = "Availability of DMP.eosc.cz"
 fipDashboard = "https://fip-dashboard.dmp.eosc.cz/"
 nmaSearch = "https://nma.eosc.cz/"
 nkr = "https://repo.cz/"
+
+# Declarations of a published FIP nanopublication (spike in docs/design.md, "Spikes and findings"). The page puts
+# the FIP's IRIs, in both published forms, in place of {fips}; {code} is the nanopublication's trusty URI code.
+[nanopub]
+path = "repo/full"
+fipIri = ["https://w3id.org/np/{code}#fip", "http://purl.org/np/{code}#fip"]
+query = """
+PREFIX fip: <https://w3id.org/fair/fip/terms/>
+PREFIX npx: <http://purl.org/nanopub/x/>
+PREFIX np: <http://www.nanopub.org/nschema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT DISTINCT ?q ?rel ?fer ?ferLabel WHERE {
+  VALUES ?fip { {fips} }
+  GRAPH ?g1 { ?fip fip:has-declaration-index ?index . }
+  GRAPH ?g2 { ?index npx:includesElement ?declNp . }
+  GRAPH ?h { ?declNp np:hasAssertion ?a . }
+  GRAPH ?a {
+    ?d a fip:FIP-Declaration ; fip:refers-to-question ?q ; ?rel ?fer .
+    FILTER(?rel IN (fip:declares-current-use-of, fip:declares-planned-use-of, fip:declares-planned-replacement-of))
+  }
+  OPTIONAL { GRAPH ?g3 { ?fer rdfs:label ?ferLabel . } }
+} LIMIT 500
+"""
 
 [champion]
 endpoint = "https://tests.ostrails.eu/tests/assess/test"

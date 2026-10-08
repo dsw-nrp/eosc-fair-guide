@@ -15,6 +15,7 @@ keywords = [
   { cs = "EOSC CZ", en = "EOSC CZ" },
 ]
 url = "https://github.com/motyc/eosc-fair-guide"
+pageUrl = "https://motyc.github.io/eosc-fair-guide/"
 vocabularyBase = "https://motyc.github.io/eosc-fair-guide/terms#"
 profile = "https://motyc.github.io/eosc-fair-guide/profile/0.1"
 freshnessDays = 180

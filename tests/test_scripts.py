@@ -180,6 +180,33 @@ class ContentCheckTests(FixtureCase):
         self.edit("checks/gate.toml", 'champion = ["test_one"]', 'champion = ["test_two"]')
         self.assertError("outside the curated set")
 
+    def test_lookup_must_name_a_link(self) -> None:
+        self.edit("checks/gate.toml", 'champion = ["test_one"] }', 'champion = ["test_one"] }\nlookup = "nowhere"')
+        self.assertError("lookup names unknown link 'nowhere'")
+
+    def test_lookup_enters_the_crate(self) -> None:
+        self.edit("checks/gate.toml", 'champion = ["test_one"] }', 'champion = ["test_one"] }\nlookup = "search"')
+        self.assertEqual(self.errors(), [])
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-G01")
+        self.assertEqual(item["lookup"], {"@id": "https://example.org/search"})
+
+    def test_nanopub_query_needs_the_fip_placeholder(self) -> None:
+        nanopub = '\n[nanopub]\npath = "sparql"\nfipIri = ["https://example.org/np/{code}"]\n'
+        nanopub += 'query = "SELECT * WHERE { ?s ?p ?o }"\n'
+        self.append("live.toml", nanopub)
+        self.assertError("the query must contain {fips}")
+
+    def test_sparql_iris_are_not_raw_html(self) -> None:
+        query = "PREFIX ex: <https://example.org/> SELECT * WHERE { VALUES ?fip { {fips} } ?fip ex:p ?o }"
+        nanopub = f'\n[nanopub]\npath = "sparql"\nfipIri = ["https://example.org/np/{{code}}"]\nquery = "{query}"\n'
+        self.append("live.toml", nanopub)
+        self.assertEqual(self.errors(), [])
+
+    def test_page_url_must_use_https(self) -> None:
+        self.edit("guide.toml", 'pageUrl = "https://example.org/guide/"', 'pageUrl = "http://example.org/guide/"')
+        self.assertError("the page URL must use HTTPS")
+
     def test_stale_status_is_a_warning(self) -> None:
         content = build_crate.load_content(self.root / "content")
         report = check_content.check(content, self.root, today=date(2027, 1, 1))

@@ -99,6 +99,139 @@ superseded = { cs = "Nahrazeno", en = "Superseded" }
 source = { cs = "Zdroj", en = "Source" }
 count = { cs = "Požadavků: {n}", en = "Requirements: {n}" }
 
+[selfcheck]
+title = { cs = "Sebehodnocení", en = "Self-check" }
+intro = { cs = "Zjistěte, kde máte mezery ve FAIR. Průvodce nepočítá žádné skóre: ukáže stav po principech a seznam mezer s odkazem, kde je řešit a kdo je opraví. Odpovědi zůstávají ve vašem prohlížeči.", en = "Find out where your FAIR gaps are. The guide computes no score: it shows the state per principle and a list of gaps, with where to address each and who can fix it. Your answers stay in your browser." }
+forLens = { cs = "Kontroly pro váš pohled", en = "Checks for your view" }
+others = { cs = "Další kontroly", en = "Other checks" }
+start = { cs = "Začít: {name}", en = "Start: {name}" }
+continue = { cs = "Pokračovat: {name}", en = "Continue: {name}" }
+progress = { cs = "Zodpovězeno {n} z {total}", en = "Answered {n} of {total}" }
+items = { cs = "Položek: {n}", en = "Items: {n}" }
+modeQuestion = { cs = "Je datová sada už zveřejněná?", en = "Has the dataset been published?" }
+profileQuestion = { cs = "Který profil repozitáře platí?", en = "Which repository profile applies?" }
+chooseFirst = { cs = "Nejdřív odpovězte na otázku výše; seznam položek se podle ní upraví.", en = "Answer the question above first; the list of items adapts to it." }
+providedByNrp = { cs = "Zajišťuje NRP", en = "Provided by NRP" }
+providedByNrpText = { cs = "U instancí základních systémů NRP tuto podmínku zajišťuje samo NRP.", en = "For instances of core NRP systems, NRP itself provides this." }
+extendedShow = { cs = "Rozšířená kontrola: zobrazit další položky ({n})", en = "Extended check: show more items ({n})" }
+extendedHide = { cs = "Zobrazit jen základní položky", en = "Show the basic items only" }
+extendedNote = { cs = "Odpovědi, které jste už dali, zůstávají.", en = "Answers you have already given are kept." }
+basedOn = { cs = "Na čem položka stojí", en = "What this item is based on" }
+fixAt = { cs = "Řeší se v kroku: {station}", en = "Addressed at the step: {station}" }
+reset = { cs = "Smazat odpovědi této kontroly", en = "Clear the answers of this check" }
+target = { cs = "Posuzováno: {target}", en = "Assessed: {target}" }
+gapsHere = { cs = "Otevřené položky ze sebehodnocení: {n}", en = "Open self-check items: {n}" }
+
+[selfcheck.mode]
+before = { cs = "Ještě ne, zveřejnění připravuji", en = "Not yet, I am preparing publication" }
+after = { cs = "Ano, má trvalý identifikátor", en = "Yes, it has a persistent identifier" }
+
+[selfcheck.answer]
+yes = { cs = "Ano", en = "Yes" }
+partly = { cs = "Částečně", en = "Partly" }
+no = { cs = "Ne", en = "No" }
+unknown = { cs = "Nevím", en = "Don't know" }
+na = { cs = "Netýká se", en = "Not applicable" }
+
+[selfcheck.prefill]
+title = { cs = "Předvyplnit z otevřených zdrojů", en = "Pre-fill from open sources" }
+privacy = { cs = "Vyhledání pošle dané službě jen identifikátor, který zadáte nebo vyberete. Vaše odpovědi zůstávají v prohlížeči. Předvyplněné odpovědi zkontrolujte; můžete je změnit.", en = "A lookup sends only the identifier you enter or choose to the named service. Your answers stay in your browser. Check the pre-filled answers; you can change them." }
+pid = { cs = "Trvalý identifikátor datové sady (DOI nebo Handle)", en = "Persistent identifier of the dataset (DOI or Handle)" }
+pidButton = { cs = "Předvyplnit z DataCite a resolveru", en = "Pre-fill from DataCite and the resolver" }
+pidInvalid = { cs = "Zadejte DOI (například 10.5281/zenodo.21726258) nebo Handle (například 11234/1-5787).", en = "Enter a DOI (for example 10.5281/zenodo.21726258) or a Handle (for example 11234/1-5787)." }
+nkrChoose = { cs = "Repozitář v NKR", en = "Repository in NKR" }
+nkrButton = { cs = "Předvyplnit z NKR", en = "Pre-fill from NKR" }
+fipChoose = { cs = "Profil komunity ve FIP Dashboardu", en = "Community profile in the FIP Dashboard" }
+fipButton = { cs = "Předvyplnit z FIP Dashboardu", en = "Pre-fill from the FIP Dashboard" }
+nanopub = { cs = "Nebo identifikátor publikované nanopublikace FIP (kód začínající RA nebo celá adresa)", en = "Or the identifier of a published FIP nanopublication (the code starting with RA, or the full address)" }
+nanopubButton = { cs = "Předvyplnit z nanopublikace", en = "Pre-fill from the nanopublication" }
+nanopubInvalid = { cs = "Zadejte kód nanopublikace (RA a 43 dalších znaků) nebo adresu, která ho obsahuje.", en = "Enter the nanopublication code (RA followed by 43 characters) or an address that contains it." }
+nanopubEmpty = { cs = "Pro tuto nanopublikaci se nenašly žádné deklarace FIP.", en = "No FIP declarations were found for this nanopublication." }
+working = { cs = "Načítám údaje, zdroj: {source}…", en = "Loading data from {source}…" }
+done = { cs = "Předvyplněno, zdroj: {source}. Předvyplněných položek: {n}. Zkontrolujte odpovědi; můžete je změnit.", en = "Pre-filled from {source}. Items pre-filled: {n}. Check the answers; you can change them." }
+failed = { cs = "Zdroj {source} se nepodařilo použít. Odpovězte ručně, nebo to zkuste později.", en = "{source} could not be used. Answer by hand or try again later." }
+notFound = { cs = "Zdroj {source} tento identifikátor nezná.", en = "{source} does not know this identifier." }
+
+[selfcheck.source]
+datacite = { cs = "DataCite", en = "DataCite" }
+resolver = { cs = "resolver identifikátorů", en = "the identifier resolver" }
+nkr = { cs = "NKR", en = "NKR" }
+fip-dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
+fip-dashboard-snapshot = { cs = "FIP Dashboard (snímek)", en = "FIP Dashboard (snapshot)" }
+nanopub = { cs = "nanopublikace FIP", en = "the FIP nanopublication" }
+champion = { cs = "FAIR Champion", en = "FAIR Champion" }
+shared = { cs = "sdílený odkaz", en = "a shared link" }
+
+[selfcheck.origin]
+prefilled = { cs = "Předvyplněno, zdroj: {source}, {date}", en = "Pre-filled from {source}, {date}" }
+confirmed = { cs = "Potvrzeno vámi, zdroj: {source}, {date}", en = "Confirmed by you, from {source}, {date}" }
+changed = { cs = "Změněno vámi; zdroj {source} navrhoval: {value} ({date})", en = "Changed by you; {source} suggested: {value} ({date})" }
+suggestion = { cs = "Zdroj {source} ({date}) odpověď nenavrhl.", en = "{source} ({date}) suggested no answer." }
+shared = { cs = "Ze sdíleného odkazu", en = "From a shared link" }
+
+[selfcheck.note]
+notInSource = { cs = "Záznam tuto informaci neuvádí; odpovězte podle toho, co víte.", en = "The record does not state this; answer from what you know." }
+partlyOnly = { cs = "Záznam to dokládá jen zčásti, proto nejvýš „částečně“.", en = "The record shows this only in part, so the answer is at most “partly”." }
+resolves = { cs = "Identifikátor vede na {url}", en = "The identifier leads to {url}" }
+notResolved = { cs = "Identifikátor se nepodařilo přeložit na adresu.", en = "The identifier did not resolve to an address." }
+noDeclaration = { cs = "FIP k tomu nic nedeklaruje; doplňte to v profilu, nebo odpovězte ručně.", en = "The FIP declares nothing for this; add it to the profile or answer by hand." }
+declared = { cs = "Deklarované zdroje", en = "Declared resources" }
+noVerdict = { cs = "Testy nedaly výsledek; odpovězte ručně.", en = "The tests gave no verdict; answer by hand." }
+
+[selfcheck.fipStatus]
+in-use = { cs = "používá se", en = "in use" }
+planned = { cs = "plánováno", en = "planned" }
+under-consideration = { cs = "zvažuje se", en = "under consideration" }
+to-be-replaced = { cs = "bude nahrazeno", en = "to be replaced" }
+
+[selfcheck.result]
+title = { cs = "Výsledek", en = "Result" }
+advisory = { cs = "Podle vašich odpovědí. Průvodce radí; nic neověřuje ani necertifikuje a o zapojení do NRP rozhoduje NRP.", en = "Based on your answers. The guide advises; it does not verify or certify anything, and NRP decides on joining." }
+principles = { cs = "Stav po principech", en = "State per principle" }
+principle = { cs = "Princip", en = "Principle" }
+state = { cs = "Stav", en = "State" }
+answered = { cs = "Zodpovězeno", en = "Answered" }
+ofTotal = { cs = "{n} z {total}", en = "{n} of {total}" }
+gate = { cs = "Podmínky brány NRP", en = "NRP gate conditions" }
+condition = { cs = "Podmínka", en = "Condition" }
+gaps = { cs = "Mezery", en = "Gaps" }
+noGaps = { cs = "Podle dosavadních odpovědí žádné mezery.", en = "No gaps, based on the answers so far." }
+tasks = { cs = "Zjistěte", en = "To find out" }
+whereFix = { cs = "Kde to řešit", en = "Where to address it" }
+whoFix = { cs = "Kdo to opraví", en = "Who can fix it" }
+ask = { cs = "Zeptejte se: {whom}", en = "Ask: {whom}" }
+lookup = { cs = "Vyhledat", en = "Look it up" }
+answers = { cs = "Vaše odpovědi", en = "Your answers" }
+unanswered = { cs = "bez odpovědi", en = "not answered" }
+item = { cs = "Položka", en = "Item" }
+answer = { cs = "Odpověď", en = "Answer" }
+source = { cs = "Zdroj", en = "Source" }
+
+[selfcheck.state]
+met = { cs = "splněno", en = "met" }
+partly = { cs = "částečně", en = "partly" }
+gap = { cs = "mezera", en = "gap" }
+unknown = { cs = "zjistit", en = "to find out" }
+open = { cs = "neposouzeno", en = "not assessed" }
+provided = { cs = "zajišťuje NRP", en = "provided by NRP" }
+
+[selfcheck.export]
+title = { cs = "Uložit a sdílet", en = "Save and share" }
+markdown = { cs = "Shrnutí v Markdownu", en = "Markdown summary" }
+downloadMd = { cs = "Stáhnout shrnutí (.md)", en = "Download the summary (.md)" }
+print = { cs = "Vytisknout", en = "Print" }
+jsonld = { cs = "Stáhnout výsledek jako JSON-LD (FTR v RO-Crate)", en = "Download the result as JSON-LD (FTR in an RO-Crate)" }
+share = { cs = "Vytvořit odkaz s odpověďmi", en = "Create a link with your answers" }
+shareLabel = { cs = "Odkaz s odpověďmi", en = "Link with your answers" }
+shareNote = { cs = "Odkaz obsahuje vaše odpovědi; kdo ho dostane, uvidí je. Nic jiného z prohlížeče neodchází.", en = "The link contains your answers; anyone who gets it can see them. Nothing else leaves your browser." }
+sharedBanner = { cs = "Otevřeli jste odpovědi ze sdíleného odkazu. Vaše vlastní odpovědi zatím zůstávají beze změny.", en = "You opened answers from a shared link. Your own answers are unchanged so far." }
+useShared = { cs = "Použít odpovědi z odkazu", en = "Use the answers from the link" }
+keepOwn = { cs = "Ponechat své odpovědi", en = "Keep my own answers" }
+sharedInvalid = { cs = "Odkaz s odpověďmi se nepodařilo přečíst.", en = "The link with answers could not be read." }
+generatedBy = { cs = "Vytvořeno v Průvodci FAIR daty", en = "Made with the FAIR data guide" }
+licenseName = { cs = "Licence neurčena", en = "Licence not specified" }
+licenseText = { cs = "Výsledek vytvořil ten, kdo ho z průvodce uložil; o podmínkách dalšího užití rozhoduje on.", en = "The result was made by the person who saved it from the guide; that person decides on the terms of reuse." }
+
 [help]
 title = { cs = "Kdo vám poradí", en = "Who can help" }
 

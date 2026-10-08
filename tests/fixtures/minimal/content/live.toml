@@ -13,3 +13,6 @@ timeoutSeconds = 60
 id = "test_one"
 principle = "F1"
 label = { cs = "Test", en = "Test" }
+
+[links]
+search = "https://example.org/search"

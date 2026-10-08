@@ -39,6 +39,7 @@ CHECK_PREFIXES = {"dataset": ("D", "P"), "gate": ("G",), "maturity": ("S",), "fi
 GATE_TIERS = ("required", "recommended")
 MATURITY_TIERS = ("minimum", "recommended", "advanced")
 FORBIDDEN_KEYS = ("score", "percentage", "points")
+NOT_RENDERED = ("live.nanopub.query",)
 
 # FAIR-enabling resource classes of the FIP ontology (https://w3id.org/fair/fip/terms/), as published.
 FIP_CLASSES = (
@@ -189,7 +190,8 @@ def check_texts(report: Report, content: dict[str, Any]) -> None:
                     if not str(value.get(lang, "")).strip():
                         report.error(where, f"missing {'Czech' if lang == 'cs' else 'English'} text")
             if isinstance(value, str):
-                if RAW_HTML.search(value):
+                # The nanopublication query is sent to the query service and never shown; SPARQL writes IRIs in <>.
+                if RAW_HTML.search(value) and where not in NOT_RENDERED:
                     report.error(where, "contains raw HTML; use plain text")
                 if "javascript:" in value.lower():
                     report.error(where, "contains a javascript: URL")
@@ -368,6 +370,8 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                 report.error(
                     here, f"items of the {check['id']} check start with {' or '.join(CHECK_PREFIXES[check['id']])}"
                 )
+            if item.get("prefillLevel") not in (None, "partly"):
+                report.error(here, "prefillLevel can only be 'partly'")
             if item.get("tier") not in tiers:
                 report.error(here, f"tier must be one of {', '.join(tiers)}")
             require_text(report, here, item.get("statement"), "statement")
@@ -394,18 +398,27 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
             for mode in item.get("modes", []):
                 if mode not in modes:
                     report.error(here, f"unknown mode '{mode}'")
-            for source, value in item.get("prefill", {}).items():
-                if source not in PREFILL_SOURCES:
-                    report.error(here, f"unknown pre-fill source '{source}'")
-                if source == "champion":
-                    for test in as_list(value):
-                        if test not in vocab["tests"]:
-                            report.error(here, f"pre-fill names a test outside the curated set: '{test}'")
-                if source == "fip":
-                    for question in as_list(value):
-                        if question not in FIP_QUESTIONS:
-                            report.error(here, f"unknown FIP question '{question}'")
+            check_item_answers(report, here, item, content["live"].get("links", {}), vocab)
     unique(report, "checks", item_ids, "check item")
+
+
+def check_item_answers(
+    report: Report, here: str, item: dict[str, Any], links: dict[str, str], vocab: dict[str, set[str]]
+) -> None:
+    """Where an item's answer can come from: the pre-fill sources and the lookup link for a "don't know" task."""
+    if item.get("lookup") is not None and item["lookup"] not in links:
+        report.error(here, f"lookup names unknown link '{item['lookup']}'; add it to [links] in live.toml")
+    for source, value in item.get("prefill", {}).items():
+        if source not in PREFILL_SOURCES:
+            report.error(here, f"unknown pre-fill source '{source}'")
+        if source == "champion":
+            for test in as_list(value):
+                if test not in vocab["tests"]:
+                    report.error(here, f"pre-fill names a test outside the curated set: '{test}'")
+        if source == "fip":
+            for question in as_list(value):
+                if question not in FIP_QUESTIONS:
+                    report.error(here, f"unknown FIP question '{question}'")
 
 
 def check_resources(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], today: date) -> None:
@@ -643,6 +656,18 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
     ui_strings(content["ui"], "ui")
 
 
+def check_self_check_inputs(report: Report, content: dict[str, Any]) -> None:
+    """Settings the self-check relies on: the nanopublication query, and the page URL that exports and links name."""
+    nanopub = content["live"].get("nanopub")
+    if nanopub:
+        if "{fips}" not in nanopub.get("query", ""):
+            report.error("nanopub", "the query must contain {fips}")
+        if not nanopub.get("fipIri") or any("{code}" not in iri for iri in nanopub["fipIri"]):
+            report.error("nanopub", "fipIri must list IRI forms that contain {code}")
+    if not str(content["guide"]["guide"].get("pageUrl", "")).startswith("https://"):
+        report.error("guide.pageUrl", "the page URL must use HTTPS")
+
+
 def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], root: Path) -> None:
     guide_file = content["guide"]
     guide = guide_file["guide"]
@@ -721,6 +746,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_fip_dashboard(report, content, vocab)
     check_callouts(report, content, vocab)
     check_live(report, content, vocab, root)
+    check_self_check_inputs(report, content)
     check_provenance(report, content, vocab)
     check_pages_and_ui(report, content)
     check_guide(report, content, vocab, root)

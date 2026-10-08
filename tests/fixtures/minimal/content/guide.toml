@@ -8,6 +8,7 @@ datePublished = 2026-01-01
 name = { cs = "Test", en = "Test" }
 description = { cs = "Testovací obsah.", en = "Test content." }
 url = "https://example.org/guide"
+pageUrl = "https://example.org/guide/"
 vocabularyBase = "https://example.org/terms#"
 profile = "https://example.org/profile/0.1"
 freshnessDays = 180

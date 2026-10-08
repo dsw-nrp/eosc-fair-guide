@@ -38,6 +38,8 @@ FAIR_PRINCIPLES = "https://w3id.org/fair/principles/terms/"
 FTR_TEST = "https://w3id.org/ftr#Test"
 FIP_TERMS = "https://w3id.org/fair/fip/terms/"
 FIP_DASHBOARD = "https://fip-dashboard.dmp.eosc.cz/resources/"
+FTR = "https://w3id.org/ftr#"
+PROV = "http://www.w3.org/ns/prov#"
 LANGS = ("cs", "en")
 
 LICENSES = {
@@ -72,6 +74,8 @@ TERMS = {
     "relatedTo": "CoreTrustSeal requirement or CDIF profile related to a FAIR principle.",
     "note": "Additional remark shown with a clause or a self-check item.",
     "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
+    "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
+    "lookup": "Service where a user can find out the answer to a self-check item.",
 }
 
 # Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
@@ -577,7 +581,17 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
     return station_ids
 
 
-def build_checks(graph: Graph, checks: list[dict[str, Any]]) -> list[str]:
+def build_prefill(graph: Graph, item_id: str, prefill: dict[str, Any]) -> list[str]:
+    """One property value per live source that can pre-fill an item, naming the fields, tests or FIP questions."""
+    prefill_ids = []
+    for source, value in prefill.items():
+        prefill_id = f"{item_id}-prefill-{source}"
+        prefill_ids.append(prefill_id)
+        graph.add({"@id": prefill_id, "@type": "PropertyValue", "propertyID": f"prefill:{source}", "value": value})
+    return prefill_ids
+
+
+def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, str]) -> list[str]:
     check_ids: list[str] = []
     for data in checks:
         check = data["check"]
@@ -599,13 +613,7 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]]) -> list[str]:
         for order, item in enumerate(data.get("item", []), start=1):
             item_id = f"#item-{item['id']}"
             item_ids.append(item_id)
-            prefill_ids: list[str] = []
-            for source, value in item.get("prefill", {}).items():
-                prefill_id = f"{item_id}-prefill-{source}"
-                prefill_ids.append(prefill_id)
-                graph.add(
-                    {"@id": prefill_id, "@type": "PropertyValue", "propertyID": f"prefill:{source}", "value": value}
-                )
+            prefill_ids = build_prefill(graph, item_id, item.get("prefill", {}))
             applies = [f"#profile-{profile}" for profile in item.get("profiles", [])]
             applies += [f"#mode-{mode}" for mode in item.get("modes", [])]
             graph.add(
@@ -626,6 +634,8 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]]) -> list[str]:
                     "allowsNotApplicable": item.get("allowNotApplicable", False),
                     "note": text(item.get("note")),
                     "additionalProperty": refs(prefill_ids),
+                    "prefillLevel": item.get("prefillLevel"),
+                    "lookup": ref(links[item["lookup"]]) if item.get("lookup") else None,
                     "isPartOf": ref(check_id),
                 },
                 item["id"],
@@ -1114,7 +1124,7 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
     build_glossary(graph, content["glossary"])
     build_ledger(graph, content["ledger"])
     build_stations(graph, content["stations"], all_lenses)
-    check_ids = build_checks(graph, content["checks"])
+    check_ids = build_checks(graph, content["checks"], content["live"].get("links", {}))
     build_resources(graph, content["resources"], all_lenses)
     snapshot_ids = build_snapshots(graph, content["snapshots"])
     build_repositories(graph, content["repositories"], content["snapshots"])
@@ -1215,9 +1225,12 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
             "testingNotice": guide.get("testingNotice") if guide.get("releaseStatus") == "testing" else None,
             "datePublished": iso(guide["datePublished"]),
             "freshnessDays": guide.get("freshnessDays", 180),
+            "pageUrl": guide.get("pageUrl"),
             "connectors": live.get("connector", []),
             "links": live.get("links", {}),
             "champion": champion,
+            "nanopub": live.get("nanopub"),
+            "vocab": {"roCrate": RO_CRATE, "ftr": FTR, "prov": PROV, "fipTerms": FIP_TERMS},
         },
     }
 
