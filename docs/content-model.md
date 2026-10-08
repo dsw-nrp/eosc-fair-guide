@@ -132,8 +132,13 @@ A service or resource status uses the five-level vocabulary and always carries a
 | `content/icons.toml` | Interface icons |
 
 A bilingual text is written as an inline table: `text = { cs = "…", en = "…" }`. Paragraphs inside one text
-are separated by a blank line (`\n\n`). Names and titles of external works are proper names: they are given
-once, in their original language, with `inLanguage`.
+are separated by a blank line (`\n\n`). Names and titles of external works are proper names, given in their
+original language with `inLanguage`. Every name readers see has an English form: a name that is not
+language-neutral (an organisation's Czech name, the title of a Czech work) is a table with both languages, in
+which the work's own language holds its original title and the other a translation. In the other language the page
+shows a work the guide only cites as its original title followed by the translation in brackets. A publisher that
+is a curated organisation is cited by its ID. The content checks refuse a plain name with Czech letters and a
+publisher named like a curated organisation.
 
 ### `guide.toml`
 
@@ -156,7 +161,7 @@ once, in their original language, with `inLanguage`.
 | | `isBasedOn` | list of IDs | Sources the guide refreshes (the FAIR analysis) |
 | | `acknowledgement`, `aiStatement` | text | Mandatory NRP acknowledgement; statement on AI use |
 | `[[person]]` | `id`, `name`, `orcid`, `affiliation` | | A person; `orcid` is the full ORCID URL, `affiliation` a list of organisation IDs |
-| `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder`, `fipDashboard` | | An organisation or project; all but `id` and `name` are optional; `fipDashboard` links the matching organisation of the FIP Dashboard snapshot |
+| `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder`, `fipDashboard` | | An organisation or project; all but `id` and `name` are optional; a Czech `name` is a table with its English name (from ROR where it has one); `fipDashboard` links the matching organisation of the FIP Dashboard snapshot |
 | `[[instrument]]` | `id`, `name`, `version`, `url`, `kind` | | A tool used in provenance actions; `kind` is `ai-model`, `software` or `service` |
 | `[[lens]]` | `id`, `name`, `description`, `icon` | | `V`, `DS`, `SR`, `K` |
 | `[[level]]` | `id`, `name`, `description`, `icon` | | `L0`–`L3`; the icon leads the level's heading on a station |
@@ -179,7 +184,8 @@ once, in their original language, with `inLanguage`.
 
 Published works the guide cites but does not recommend as a resource (a cited resource carries its citation in
 `resources.toml`). `[[source]]`: `id`, `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
-`presentation`), `title`, `version`, `inLanguage`, `url`, `doi` (without the resolver), `publisher` (name),
+`presentation`), `title` (a string, or a table whose `inLanguage` value is the original title), `version`,
+`inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),
 `authors`, `datePublished` or `dateAccessed`, `license` (URL). An author is a person ID from `guide.toml`, which
 puts the person (with their ORCID iD) into the crate, or a plain name.
 

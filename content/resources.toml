@@ -536,7 +536,7 @@ languages = ["cs", "en"]
 type = "webpage"
 title = "Heslář Open Science"
 inLanguage = "cs"
-publisher = "Národní technická knihovna"
+publisher = "ntk"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -556,7 +556,7 @@ languages = ["cs", "en"]
 type = "webpage"
 title = "Centrum PID (identifikatory.cz)"
 inLanguage = "cs"
-publisher = "Národní technická knihovna"
+publisher = "ntk"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -996,7 +996,7 @@ languages = ["en"]
 type = "webpage"
 title = "New type “T” research output and the National Metadata Directory"
 inLanguage = "en"
-publisher = "Knihovna AV ČR"
+publisher = "knav"
 dateAccessed = 2026-10-08
 
 [[resource]]

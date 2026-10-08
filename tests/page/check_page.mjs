@@ -163,6 +163,30 @@ async function axe(page, label) {
     await view.locator(".active-filters .button-link").click();
     await view.waitForFunction(() => !location.hash.includes("s!licence") && !location.hash.includes("q!"));
 
+    // In English, titles and badges carry no Czech outside an original title marked as Czech, and a work the guide
+    // only cites shows its original title with the translation in brackets; in Czech the original stands alone.
+    const openAll = async (hash) => {
+      await open(hash);
+      while (await view.locator(".catalogue-more").count()) await view.locator(".catalogue-more").first().click();
+    };
+    await openAll("#/en/V/catalogue/resources");
+    const czechOutside = await view.evaluate(() => {
+      const czech = /[ěščřžůťďňáéíóúý]/i;
+      const found = [];
+      for (const holder of document.querySelectorAll(".catalogue-results .card h3, .catalogue-results .card .badge")) {
+        const walker = document.createTreeWalker(holder, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (czech.test(node.textContent) && node.parentElement.closest("[lang]").getAttribute("lang") !== "cs") found.push(node.textContent.trim());
+        }
+      }
+      return found;
+    });
+    if (czechOutside.length) fail("catalogue: Czech names in English titles or badges: " + czechOutside.slice(0, 5).join(" | "));
+    const surveyTitle = async () => (await view.locator(".card h3", { hasText: "Stav správy výzkumných dat" }).first().textContent()).trim();
+    if (!(await surveyTitle()).includes("[State of research data management in the Czech Republic 2025]")) fail("catalogue: a cited Czech work does not show its translated title in English: " + (await surveyTitle()));
+    await openAll("#/cs/V/catalogue/resources");
+    if ((await surveyTitle()).includes("[")) fail("catalogue: in Czech a Czech work shows a translation: " + (await surveyTitle()));
+
     await view.goto(pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
     if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");

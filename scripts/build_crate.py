@@ -484,7 +484,7 @@ def build_sources(
                 "@type": SOURCE_TYPES[source["type"]],
                 "additionalType": SOURCE_ADDITIONAL_TYPES.get(source["type"]),
                 "identifier": source["id"],
-                "name": source["title"],
+                "name": text(source["title"]),
                 "url": source.get("url"),
             }
             | citation_properties(graph, source, organizations, people, names),
@@ -1331,7 +1331,7 @@ def build_credits(content: dict[str, Any]) -> list[dict[str, Any]]:
     credits: list[dict[str, Any]] = [
         {
             "role": "analysis",
-            "work": sources[source]["title"],
+            "work": text(sources[source]["title"]),
             "people": [person(a) for a in sources[source].get("authors", [])],
         }
         for source in guide.get("isBasedOn", [])

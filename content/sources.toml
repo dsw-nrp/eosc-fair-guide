@@ -5,7 +5,7 @@
 [[source]]
 id = "analyza-fair-1.2"
 type = "report"
-title = "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI"
+title = { cs = "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI", en = "Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI" }
 inLanguage = "cs"
 doi = "10.71495/5dv6-v116"
 url = "https://doi.org/10.71495/5dv6-v116"
@@ -36,7 +36,7 @@ dateAccessed = 2026-10-08
 [[source]]
 id = "nkr-schema"
 type = "webpage"
-title = "Národní katalog repozitářů (NKR): schéma záznamu Repository"
+title = { cs = "Národní katalog repozitářů (NKR): schéma záznamu Repository", en = "National Repository Catalogue (NKR): the Repository record schema" }
 inLanguage = "cs"
 url = "https://repo.cz/schemas/Repository"
 publisher = "cesnet"
@@ -45,7 +45,7 @@ dateAccessed = 2026-10-08
 [[source]]
 id = "survey-2025"
 type = "presentation"
-title = "Stav správy výzkumných dat v České republice 2025"
+title = { cs = "Stav správy výzkumných dat v České republice 2025", en = "State of research data management in the Czech Republic 2025" }
 inLanguage = "cs"
 url = "https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf"
 publisher = "EOSC CZ"
@@ -69,13 +69,13 @@ type = "webpage"
 title = "NTK establishes two new national centres that can help Czech scientists with bureaucracy"
 inLanguage = "en"
 url = "https://identifikatory.cz/en/ntk-establishes-two-new-national-centres-that-can-help-czech-scientists-with-bureaucracy/"
-publisher = "Národní technická knihovna"
+publisher = "ntk"
 datePublished = 2023-06-02
 
 [[source]]
 id = "os-linkages-1.1"
 type = "document"
-title = "Výstupy a provazby projektů Open Science, verze 1.1"
+title = { cs = "Výstupy a provazby projektů Open Science, verze 1.1", en = "Outputs and linkages of Open Science projects, version 1.1" }
 inLanguage = "cs"
 url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz"
 publisher = "EOSC CZ"
@@ -88,7 +88,7 @@ type = "software"
 title = "Czech Core Metadata Model (CCMM): releases"
 inLanguage = "en"
 url = "https://github.com/techlib/CCMM/releases"
-publisher = "Národní technická knihovna"
+publisher = "ntk"
 dateAccessed = 2026-10-08
 
 [[source]]
@@ -144,9 +144,9 @@ datePublished = 2016-03-15
 [[source]]
 id = "survey-2025-data"
 type = "dataset"
-title = "Stav správy výzkumných dat v ČR 2025 (data)"
+title = { cs = "Průzkum správy výzkumných dat v České republice 2025", en = "Survey of research data management in the Czech Republic 2025" }
 inLanguage = "cs"
 doi = "10.14473/CSDA/OJTMJF"
 url = "https://doi.org/10.14473/CSDA/OJTMJF"
-publisher = "Český sociálněvědní datový archiv"
+publisher = "csda"
 dateAccessed = 2026-10-08

@@ -77,12 +77,11 @@
   /** A resource as a card; the catalogue adds its usage marks and where the guide uses it. */
   function resourceCard(resource, extras) {
     const record = dashboardRecord(resource);
-    const name = FG.text(resource.name);
     const languages = FG.list(resource.inLanguage);
     return h(
       "li",
       { class: "card", id: "item-" + resource.identifier, tabindex: "-1" },
-      h("h3", null, FG.external(resource.url, name)),
+      h("h3", null, FG.external(resource.url, FG.nameNodes(resource))),
       resource.description ? h("p", null, FG.span(resource.description)) : null,
       h(
         "div",
@@ -248,7 +247,7 @@
     return [
       names.map(citedName).join(", "),
       " (" + yearOf(work.datePublished) + "). ",
-      h("em", null, FG.text(work.name)),
+      h("em", null, FG.nameNodes(work)),
       work.version ? ", " + FG.t("cite.version", { v: work.version }) : "",
       ". ",
       work.url ? FG.external(work.url, work.url) : null,
@@ -624,7 +623,7 @@
     const actions = actionsOf(items);
     return [
       h("h3", null, FG.t("station.sources")),
-      h("ul", null, sources.map((source) => h("li", null, source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name)))),
+      h("ul", null, sources.map((source) => h("li", null, source.url ? FG.external(source.url, FG.nameNodes(source)) : FG.nameNodes(source)))),
       h("h3", null, FG.t("station.madeBy")),
       h("ul", { class: "change-history" }, changeHistory(actions).map((entry) => h("li", null, FG.t(entry.created ? "station.changeCreate" : "station.changeUpdate", { date: FG.formatDate(entry.date) })))),
       h("p", { class: "small muted" }, FG.t("station.paradata") + " ", h("a", { href: "ro-crate-metadata.json" }, FG.t("footer.crate"))),
@@ -966,7 +965,7 @@
           h(
             "tr",
             null,
-            h("th", { scope: "row" }, FG.t("credits." + credit.role, { work: credit.work || "" })),
+            h("th", { scope: "row" }, FG.t("credits." + credit.role, { work: FG.text(credit.work) })),
             h(
               "td",
               null,

@@ -50,6 +50,20 @@
     return FG.h("span", Object.assign({ lang: lang || null }, attrs || {}), text);
   };
 
+  /** An entity's name as nodes in the reader's language, marked with its language. A resource shows the guide's
+      name for it; a work the guide only cites, written in another language and carrying a translated title, shows
+      its original title followed by the translation in brackets, as a citation would. */
+  FG.nameNodes = function (entity) {
+    const values = FG.list(entity && entity.name);
+    const own = typeof entity.inLanguage === "string" ? entity.inLanguage : null;
+    const tagged = (lang) => values.find((value) => value && value["@language"] === lang);
+    const original = own && own !== FG.state.lang && !entity.resourceType ? tagged(own) : null;
+    const translated = tagged(FG.state.lang);
+    if (original && translated) return [FG.h("span", { lang: own }, original["@value"]), " [" + translated["@value"] + "]"];
+    if (typeof entity.name === "string") return [FG.h("span", { lang: own }, entity.name)];
+    return [FG.span(entity.name)];
+  };
+
   /** Paragraphs of a text whose paragraphs are separated by a blank line. */
   FG.paragraphs = function (value) {
     const { text, lang } = FG.textOf(value, FG.state.lang);

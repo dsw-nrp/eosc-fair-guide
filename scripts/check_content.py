@@ -97,6 +97,8 @@ ANALYSIS_CLAUSE = re.compile(rf"^A\.(?P<principle>{PRINCIPLE})\.(?P<kind>[NRFX])
 CLAUSE_ID = re.compile(r"^(A\.[A-Z0-9.]+|K\d[\w.]*|P\d+|S\.(?:MIN|REC)\d+|C\.[A-Z][\w.]*|DOC\.[\w.-]+|E\.[\w.-]+|G)$")
 ADVICE_ID = re.compile(r"^(?P<station>[a-z0-9-]+)\.(?P<lens>[A-Z]+|all)\.(?P<level>L[0-2])(?:\.\d+)?$")
 RAW_HTML = re.compile(r"<\s*[a-zA-Z/!]")
+# Letters that mark a name as Czech; a plain name with one of them has no English form.
+CZECH_LETTERS = re.compile(r"[ěščřžůťďňáéíóúý]", re.IGNORECASE)
 URL_LITERAL = re.compile(r"https?://[^\s\"'`)<>\]]+")
 LETTER_KIND = {"N": ("nrp", "requirement"), "R": ("repository", "requirement"), "F": ("fip", "requirement")}
 
@@ -755,6 +757,50 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
             report.warn(f"sources:{source['id']}", "nothing cites this source")
 
 
+def check_names(report: Report, content: dict[str, Any]) -> None:
+    """Names readers see have an English form: a Czech name is a table with 'cs' and 'en', and a plain name is
+    language-neutral (R6). A publisher that is a curated organisation is cited by the organisation's ID, which carries
+    both names (R7)."""
+    organizations = content["guide"].get("organization", [])
+    ids = {organization["id"] for organization in organizations}
+    named: list[tuple[str, Any]] = [(f"organization:{item['id']}", item.get("name")) for item in organizations]
+    publishers: list[tuple[str, Any]] = []
+    for source in content["sources"]:
+        named.append((f"sources:{source['id']}", source.get("title")))
+        publishers.append((f"sources:{source['id']}", source.get("publisher")))
+    for resource in content["resources"]:
+        named.append((f"resource:{resource['id']}", resource.get("name")))
+        publishers.append((f"resource:{resource['id']}", (resource.get("citation") or {}).get("publisher")))
+    for repository in content["repositories"]:
+        named.append((f"repository:{repository['id']}", repository.get("name")))
+
+    # R6, Czech names have an English form
+    for where, name in named:
+        if isinstance(name, str) and CZECH_LETTERS.search(name):
+            report.error(where, f"'{name}' is a Czech name with no English form; give it as a table with 'cs' and 'en'")
+    for where, name in publishers:
+        if isinstance(name, str) and name not in ids and CZECH_LETTERS.search(name):
+            report.error(
+                where,
+                f"publisher '{name}' is a Czech name with no English form; add the organisation with its Czech and "
+                "English names and cite it by ID",
+            )
+
+    # R7, publishers that are curated organisations
+    fold = lambda value: " ".join(str(value).casefold().split())  # noqa: E731 - a one-line normaliser
+    known: dict[str, str] = {}
+    for organization in organizations:
+        name = organization.get("name")
+        for value in name.values() if isinstance(name, dict) else [name]:
+            if value:
+                known[fold(value)] = known[fold(str(value).split(",", maxsplit=1)[0])] = organization["id"]
+    for where, publisher in publishers:
+        if isinstance(publisher, str) and publisher not in ids:
+            match = known.get(fold(publisher)) or known.get(fold(publisher.split(",", maxsplit=1)[0]))
+            if match:
+                report.error(where, f"publisher '{publisher}' is the organisation '{match}'; cite it by that ID")
+
+
 PAGE_MENUS = ("catalogue", "tools", "about")
 
 
@@ -904,6 +950,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_icons_and_tasks(report, content, root, vocab)
     check_provenance(report, content, vocab)
     check_coherence(report, content)
+    check_names(report, content)
     check_pages_and_ui(report, content)
     check_guide(report, content, vocab, root)
     return report

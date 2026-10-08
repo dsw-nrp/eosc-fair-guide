@@ -243,6 +243,9 @@
           "@id": "#action-2026-10-08-one-entry-per-thing"
         },
         {
+          "@id": "#action-2026-10-09-english-names"
+        },
+        {
           "@id": "#ledger"
         },
         {
@@ -359,7 +362,16 @@
     {
       "@id": "https://ror.org/028sgmw18",
       "@type": "Organization",
-      "name": "Knihovna AV ČR, v. v. i.",
+      "name": [
+        {
+          "@value": "Knihovna AV ČR, v. v. i.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Library of the Czech Academy of Sciences",
+          "@language": "en"
+        }
+      ],
       "url": "https://www.lib.cas.cz/",
       "sameAs": {
         "@id": "#fd-org-knav"
@@ -368,13 +380,31 @@
     {
       "@id": "https://ror.org/0287jta43",
       "@type": "Organization",
-      "name": "Archeologický ústav AV ČR, Praha, v. v. i.",
+      "name": [
+        {
+          "@value": "Archeologický ústav AV ČR, Praha, v. v. i.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Institute of Archaeology of the Czech Academy of Sciences, Prague",
+          "@language": "en"
+        }
+      ],
       "url": "https://www.arup.cas.cz/"
     },
     {
       "@id": "https://ror.org/050dkka69",
       "@type": "Organization",
-      "name": "CESNET, zájmové sdružení právnických osob",
+      "name": [
+        {
+          "@value": "CESNET, zájmové sdružení právnických osob",
+          "@language": "cs"
+        },
+        {
+          "@value": "CESNET",
+          "@language": "en"
+        }
+      ],
       "url": "https://www.cesnet.cz/",
       "sameAs": {
         "@id": "#fd-org-cesnet"
@@ -383,8 +413,53 @@
     {
       "@id": "https://ror.org/037n8p820",
       "@type": "Organization",
-      "name": "Ministerstvo školství, mládeže a tělovýchovy České republiky",
+      "name": [
+        {
+          "@value": "Ministerstvo školství, mládeže a tělovýchovy České republiky",
+          "@language": "cs"
+        },
+        {
+          "@value": "Ministry of Education, Youth and Sports of the Czech Republic",
+          "@language": "en"
+        }
+      ],
       "url": "https://msmt.gov.cz/"
+    },
+    {
+      "@id": "https://ror.org/028txef36",
+      "@type": "Organization",
+      "name": [
+        {
+          "@value": "Národní technická knihovna",
+          "@language": "cs"
+        },
+        {
+          "@value": "National Library of Technology",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.techlib.cz/",
+      "sameAs": {
+        "@id": "#fd-org-ntk"
+      }
+    },
+    {
+      "@id": "https://ror.org/01snj4592",
+      "@type": "Organization",
+      "name": [
+        {
+          "@value": "Český sociálněvědní datový archiv",
+          "@language": "cs"
+        },
+        {
+          "@value": "Czech Social Science Data Archive",
+          "@language": "en"
+        }
+      ],
+      "url": "https://archiv.soc.cas.cz/",
+      "sameAs": {
+        "@id": "#fd-org-csda"
+      }
     },
     {
       "@id": "#org-nrp",
@@ -1213,7 +1288,16 @@
       "@id": "https://doi.org/10.71495/5dv6-v116",
       "@type": "Report",
       "identifier": "analyza-fair-1.2",
-      "name": "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI",
+      "name": [
+        {
+          "@value": "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI",
+          "@language": "cs"
+        },
+        {
+          "@value": "Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI",
+          "@language": "en"
+        }
+      ],
       "url": "https://doi.org/10.71495/5dv6-v116",
       "inLanguage": "cs",
       "publisher": {
@@ -1275,7 +1359,16 @@
       "@id": "#source-nkr-schema",
       "@type": "WebPage",
       "identifier": "nkr-schema",
-      "name": "Národní katalog repozitářů (NKR): schéma záznamu Repository",
+      "name": [
+        {
+          "@value": "Národní katalog repozitářů (NKR): schéma záznamu Repository",
+          "@language": "cs"
+        },
+        {
+          "@value": "National Repository Catalogue (NKR): the Repository record schema",
+          "@language": "en"
+        }
+      ],
       "url": "https://repo.cz/schemas/Repository",
       "inLanguage": "cs",
       "publisher": {
@@ -1292,7 +1385,16 @@
       "@id": "#source-survey-2025",
       "@type": "PresentationDigitalDocument",
       "identifier": "survey-2025",
-      "name": "Stav správy výzkumných dat v České republice 2025",
+      "name": [
+        {
+          "@value": "Stav správy výzkumných dat v České republice 2025",
+          "@language": "cs"
+        },
+        {
+          "@value": "State of research data management in the Czech Republic 2025",
+          "@language": "en"
+        }
+      ],
       "url": "https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf",
       "inLanguage": "cs",
       "publisher": {
@@ -1320,11 +1422,6 @@
       "datePublished": "2026"
     },
     {
-      "@id": "#org-narodni-technicka-knihovna",
-      "@type": "Organization",
-      "name": "Národní technická knihovna"
-    },
-    {
       "@id": "#source-ncdoi-2023",
       "@type": "WebPage",
       "identifier": "ncdoi-2023",
@@ -1332,7 +1429,7 @@
       "url": "https://identifikatory.cz/en/ntk-establishes-two-new-national-centres-that-can-help-czech-scientists-with-bureaucracy/",
       "inLanguage": "en",
       "publisher": {
-        "@id": "#org-narodni-technicka-knihovna"
+        "@id": "https://ror.org/028txef36"
       },
       "datePublished": "2023-06-02"
     },
@@ -1340,7 +1437,16 @@
       "@id": "#source-os-linkages-1.1",
       "@type": "DigitalDocument",
       "identifier": "os-linkages-1.1",
-      "name": "Výstupy a provazby projektů Open Science, verze 1.1",
+      "name": [
+        {
+          "@value": "Výstupy a provazby projektů Open Science, verze 1.1",
+          "@language": "cs"
+        },
+        {
+          "@value": "Outputs and linkages of Open Science projects, version 1.1",
+          "@language": "en"
+        }
+      ],
       "url": "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz",
       "inLanguage": "cs",
       "publisher": {
@@ -1358,7 +1464,7 @@
       "url": "https://github.com/techlib/CCMM/releases",
       "inLanguage": "en",
       "publisher": {
-        "@id": "#org-narodni-technicka-knihovna"
+        "@id": "https://ror.org/028txef36"
       },
       "sdDatePublished": "2026-10-08"
     },
@@ -1452,20 +1558,24 @@
       "datePublished": "2016-03-15"
     },
     {
-      "@id": "#org-cesky-socialnevedni-datovy-archiv",
-      "@type": "Organization",
-      "name": "Český sociálněvědní datový archiv"
-    },
-    {
       "@id": "https://doi.org/10.14473/CSDA/OJTMJF",
       "@type": "CreativeWork",
       "additionalType": "http://schema.org/Dataset",
       "identifier": "survey-2025-data",
-      "name": "Stav správy výzkumných dat v ČR 2025 (data)",
+      "name": [
+        {
+          "@value": "Průzkum správy výzkumných dat v České republice 2025",
+          "@language": "cs"
+        },
+        {
+          "@value": "Survey of research data management in the Czech Republic 2025",
+          "@language": "en"
+        }
+      ],
       "url": "https://doi.org/10.14473/CSDA/OJTMJF",
       "inLanguage": "cs",
       "publisher": {
-        "@id": "#org-cesky-socialnevedni-datovy-archiv"
+        "@id": "https://ror.org/01snj4592"
       },
       "sdDatePublished": "2026-10-08"
     },
@@ -8370,7 +8480,7 @@
         "en"
       ],
       "publisher": {
-        "@id": "#org-narodni-technicka-knihovna"
+        "@id": "https://ror.org/028txef36"
       },
       "sdDatePublished": "2026-10-08"
     },
@@ -8426,7 +8536,7 @@
         "en"
       ],
       "publisher": {
-        "@id": "#org-narodni-technicka-knihovna"
+        "@id": "https://ror.org/028txef36"
       },
       "sdDatePublished": "2026-10-08"
     },
@@ -9488,11 +9598,6 @@
       "alternateName": "Joint Declaration of Data Citation Principles"
     },
     {
-      "@id": "#org-knihovna-av-cr",
-      "@type": "Organization",
-      "name": "Knihovna AV ČR"
-    },
-    {
       "@id": "#resource-knav-type-t",
       "@type": "DigitalDocument",
       "identifier": "knav-type-t",
@@ -9534,7 +9639,7 @@
       "statusAsOf": "2026-10-08",
       "inLanguage": "en",
       "publisher": {
-        "@id": "#org-knihovna-av-cr"
+        "@id": "https://ror.org/028sgmw18"
       },
       "sdDatePublished": "2026-10-08",
       "alternateName": "New type “T” research output and the National Metadata Directory"
@@ -42758,6 +42863,38 @@
         }
       ],
       "endTime": "2026-10-08T23:48:07+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-09-english-names",
+      "@type": "UpdateAction",
+      "name": "Publishers cited as organisations",
+      "description": "Resources published by the Library of the Czech Academy of Sciences or the National Library of Technology cite the curated organisation, which carries its Czech and English names, instead of a Czech name alone.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "result": [
+        {
+          "@id": "#resource-heslar"
+        },
+        {
+          "@id": "#resource-knav-type-t"
+        },
+        {
+          "@id": "#resource-pid-centre"
+        }
+      ],
+      "endTime": "2026-10-09T01:25:21+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }

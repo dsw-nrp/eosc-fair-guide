@@ -161,3 +161,17 @@ results = [
   "tf-semantic",
 ]
 endTime = 2026-10-08T23:48:07+02:00
+
+[[action]]
+id = "2026-10-09-english-names"
+type = "update"
+name = "Publishers cited as organisations"
+description = "Resources published by the Library of the Czech Academy of Sciences or the National Library of Technology cite the curated organisation, which carries its Czech and English names, instead of a Czech name alone."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+results = [
+  "heslar",
+  "knav-type-t",
+  "pid-centre",
+]
+endTime = 2026-10-09T01:25:21+02:00

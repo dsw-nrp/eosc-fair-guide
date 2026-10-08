@@ -311,6 +311,22 @@ class ContentCheckTests(FixtureCase):
         self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
         self.assertFalse(any("matches FIP Dashboard" in error for error in self.errors()))
 
+    def test_czech_name_needs_an_english_form(self) -> None:
+        self.edit("guide.toml", 'name = "Test Organisation"', 'name = "Testovací organizace"')
+        self.assertError("organization:org: 'Testovací organizace' is a Czech name with no English form")
+        self.edit(
+            "guide.toml", 'name = "Testovací organizace"', 'name = { cs = "Testovací organizace", en = "Test Org" }'
+        )
+        self.assertFalse(any("Czech name" in error for error in self.errors()))
+
+    def test_publisher_that_is_an_organisation_is_cited_by_id(self) -> None:
+        self.edit("sources.toml", 'title = "Test report"', 'title = "Test report"\npublisher = "Test Organisation"')
+        self.assertError("sources:report: publisher 'Test Organisation' is the organisation 'org'; cite it by that ID")
+        self.edit("sources.toml", 'publisher = "Test Organisation"', 'publisher = "org"')
+        self.assertFalse(any("cite it by that ID" in error for error in self.errors()))
+        self.edit("sources.toml", 'publisher = "org"', 'publisher = "Testovací vydavatel"')
+        self.assertError("sources:report: publisher 'Testovací vydavatel' is a Czech name with no English form")
+
     def test_unused_resource_is_reported(self) -> None:
         self.edit("resources.toml", 'stations = ["one"]', "")
         content = build_crate.load_content(self.root / "content")

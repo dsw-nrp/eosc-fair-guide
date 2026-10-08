@@ -69,28 +69,42 @@ orcid = "https://orcid.org/0000-0001-7734-2947"
 [[organization]]
 id = "knav"
 fipDashboard = "knav"
-name = "Knihovna AV ČR, v. v. i."
+name = { cs = "Knihovna AV ČR, v. v. i.", en = "Library of the Czech Academy of Sciences" }
 url = "https://www.lib.cas.cz/"
 ror = "https://ror.org/028sgmw18"
 
 [[organization]]
 id = "aru-praha"
-name = "Archeologický ústav AV ČR, Praha, v. v. i."
+name = { cs = "Archeologický ústav AV ČR, Praha, v. v. i.", en = "Institute of Archaeology of the Czech Academy of Sciences, Prague" }
 url = "https://www.arup.cas.cz/"
 ror = "https://ror.org/0287jta43"
 
 [[organization]]
 id = "cesnet"
 fipDashboard = "cesnet"
-name = "CESNET, zájmové sdružení právnických osob"
+name = { cs = "CESNET, zájmové sdružení právnických osob", en = "CESNET" }
 url = "https://www.cesnet.cz/"
 ror = "https://ror.org/050dkka69"
 
 [[organization]]
 id = "msmt"
-name = "Ministerstvo školství, mládeže a tělovýchovy České republiky"
+name = { cs = "Ministerstvo školství, mládeže a tělovýchovy České republiky", en = "Ministry of Education, Youth and Sports of the Czech Republic" }
 url = "https://msmt.gov.cz/"
 ror = "https://ror.org/037n8p820"
+
+[[organization]]
+id = "ntk"
+fipDashboard = "ntk"
+name = { cs = "Národní technická knihovna", en = "National Library of Technology" }
+url = "https://www.techlib.cz/"
+ror = "https://ror.org/028txef36"
+
+[[organization]]
+id = "csda"
+fipDashboard = "csda"
+name = { cs = "Český sociálněvědní datový archiv", en = "Czech Social Science Data Archive" }
+url = "https://archiv.soc.cas.cz/"
+ror = "https://ror.org/01snj4592"
 
 [[organization]]
 id = "nrp"

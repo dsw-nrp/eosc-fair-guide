@@ -31,9 +31,6 @@
   /** The catalogue searched for a query within one kind, as the landing's search links to it. */
   FG.catalogueSearchHref = (query, kind) => writeState({ kinds: [kind || "resources"], stations: [], principles: [], q: query, order: "", f: {} });
 
-  /** The language of an entity's plain-text name, for its lang attribute: a name with Czech and English values
-      sets its own, and a list of languages names none. */
-  FG.nameLang = (entity) => (typeof entity.name === "string" && typeof entity.inLanguage === "string" ? entity.inLanguage : null);
 
   /** An identifier as a small chip that leads to its entry in the catalogue. */
   FG.idChip = function (kind, id) {
@@ -54,7 +51,7 @@
         "p",
         { class: "clause-meta small" },
         isClause ? FG.idChip("clauses", clause.identifier) : null,
-        source ? [isClause ? " · " : null, h("span", { lang: FG.nameLang(source) }, source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name))] : null
+        source ? [isClause ? " · " : null, source.url ? FG.external(source.url, FG.nameNodes(source)) : FG.nameNodes(source)] : null
       ),
       status && status !== "current" && clause.note
         ? h("p", { class: "small clause-note" }, h("strong", null, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh") + ": "), FG.span(clause.note))
@@ -166,7 +163,7 @@
     for (const source of FG.refs(FG.get("#sources"), "hasPart").filter((entity) => !entity.resourceType)) {
       const citedBy = cited.get(source["@id"]) || [];
       const url = source.url || (String(source["@id"]).startsWith("https://") ? source["@id"] : null);
-      const name = typeof source.name === "string" ? h("span", { lang: FG.nameLang(source) }, source.name) : FG.span(source.name);
+      const name = FG.nameNodes(source);
       entries.push({
         kind: "resources",
         anchor: source.identifier,
@@ -225,7 +222,7 @@
   function sourceLine(clause) {
     const source = FG.get(clause.isPartOf);
     if (!source) return null;
-    return h("p", { class: "small cited-by" }, FG.t("catalogue.source") + ": ", h("a", { href: FG.catalogueHref("resources", source.identifier), lang: FG.nameLang(source) }, FG.text(source.name)));
+    return h("p", { class: "small cited-by" }, FG.t("catalogue.source") + ": ", h("a", { href: FG.catalogueHref("resources", source.identifier) }, FG.nameNodes(source)));
   }
 
   function clauseEntries(used) {
@@ -412,7 +409,7 @@
                 "p",
                 { class: "small muted" },
                 FG.t("catalogue.changedItems", { n: FG.refIds(action, "result").length }),
-                sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", { lang: FG.nameLang(source) }, FG.text(source.name))))] : null,
+                sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", null, FG.nameNodes(source))))] : null,
                 " ",
                 FG.apiLink("actions", id)
               )
