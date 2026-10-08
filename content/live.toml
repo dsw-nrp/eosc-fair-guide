@@ -1,0 +1,114 @@
+# Live services. The page calls no host outside this list; the Content Security Policy is generated from it.
+# Every call starts from a user action. Field reference: docs/content-model.md.
+
+[[connector]]
+id = "datacite"
+name = "DataCite REST API"
+origin = "https://api.datacite.org"
+purpose = "DOI metadata and formatted citations"
+
+[[connector]]
+id = "doi"
+name = "DOI resolver (doi.org)"
+origin = "https://doi.org"
+purpose = "Resolve a DOI to its landing page"
+
+[[connector]]
+id = "handle"
+name = "Handle resolver (hdl.handle.net)"
+origin = "https://hdl.handle.net"
+purpose = "Resolve a Handle to its landing page"
+
+[[connector]]
+id = "orcid"
+name = "ORCID public API"
+origin = "https://pub.orcid.org"
+purpose = "Show the name behind an ORCID iD"
+
+[[connector]]
+id = "ror"
+name = "ROR API"
+origin = "https://api.ror.org"
+purpose = "Show the organisation behind a ROR ID"
+
+[[connector]]
+id = "nkr"
+name = "National Repository Catalogue (NKR) API"
+origin = "https://repo.cz"
+purpose = "Repository records for the finder and the repository self-check"
+
+[[connector]]
+id = "nanopub"
+name = "Nanopublication query service"
+origin = "https://query.knowledgepixels.com"
+purpose = "Declarations of a published FAIR Implementation Profile"
+
+[[connector]]
+id = "champion"
+name = "FAIR Champion (OSTrails)"
+origin = "https://tests.ostrails.eu"
+purpose = "Opt-in automated FAIR tests"
+
+[[connector]]
+id = "dmp-status"
+name = "DMP.eosc.cz status (Upptime)"
+origin = "https://raw.githubusercontent.com"
+purpose = "Availability of DMP.eosc.cz"
+
+[champion]
+endpoint = "https://tests.ostrails.eu/tests/assess/test"
+maxParallel = 4
+timeoutSeconds = 60
+
+# Curated core set (FAIR analysis K5.2.1; OSTrails CZ pilot, E.OSTRAILS-CZ). Health is added by the scheduled
+# health job once it has observed the tests.
+
+[[champion.test]]
+id = "fc_metadata_identifier_persistence"
+principle = "F1"
+label = { cs = "Identifikátor metadat je trvalý", en = "Metadata identifier is persistent" }
+
+[[champion.test]]
+id = "fc_data_identifier_in_metadata"
+principle = "F3"
+label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
+
+[[champion.test]]
+id = "fc_searchable"
+principle = "F4"
+label = { cs = "Záznam je dohledatelný vyhledávači", en = "Record is findable by search engines" }
+
+[[champion.test]]
+id = "fc_metadata_protocol"
+principle = "A1.1"
+label = { cs = "Metadata jsou dostupná otevřeným protokolem", en = "Metadata are retrievable by an open protocol" }
+
+[[champion.test]]
+id = "fc_metadata_persistence"
+principle = "A2"
+label = { cs = "Repozitář deklaruje trvalost metadat", en = "Repository declares metadata persistence" }
+
+[[champion.test]]
+id = "fc_structured_metadata"
+principle = "I1"
+label = { cs = "Metadata jsou strukturovaná", en = "Metadata are structured" }
+
+[[champion.test]]
+id = "fc_metadata_uses_fair_vocabularies"
+principle = "I2"
+label = { cs = "Metadata používají FAIR slovníky", en = "Metadata use FAIR vocabularies" }
+
+[[champion.test]]
+id = "fc_metadata_outward_links"
+principle = "I3"
+label = { cs = "Metadata odkazují na jiné zdroje", en = "Metadata link to other resources" }
+
+[[champion.test]]
+id = "fc_metadata_includes_license"
+principle = "R1.1"
+label = { cs = "Metadata uvádějí licenci", en = "Metadata include a licence" }
+
+[[champion.test]]
+id = "community_metadata_includes_author_affiliation"
+principle = "R1.2"
+label = { cs = "Metadata uvádějí afiliaci autorů", en = "Metadata include author affiliation" }

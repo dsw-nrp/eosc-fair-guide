@@ -1,0 +1,15 @@
+[[clause]]
+id = "A.F1.R1"
+source = "report"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář přiděluje PID.", en = "The repository assigns PIDs." }
+
+[[clause]]
+id = "A.F1.X1"
+source = "report"
+principles = ["F1"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "NRP zajišťuje DOI.", en = "NRP provides DOIs." }

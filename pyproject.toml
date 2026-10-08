@@ -1,0 +1,17 @@
+[project]
+name = "eosc-cz-fair-guide"
+version = "0.1.0.dev0"
+description = "Scripts for the EOSC CZ FAIR data guide: crate generator and content checks."
+requires-python = ">=3.11"
+license = "MIT"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.pylint.format]
+max-line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "PL"]
+ignore = ["PLR0912", "PLR0913", "PLR0915", "PLR2004", "PLW0603"]

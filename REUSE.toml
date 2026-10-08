@@ -27,9 +27,9 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"
 
-# The page carries code and the inlined content.
+# The page and its preview copy carry code and the inlined content.
 [[annotations]]
-path = "index.html"
+path = ["index.html", "ro-crate-preview.html"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "MIT AND CC-BY-4.0"

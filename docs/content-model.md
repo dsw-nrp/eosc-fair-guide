@@ -101,3 +101,191 @@ A service or resource status uses the five-level vocabulary and always carries a
 - Links use HTTPS, and prefer DOIs and other persistent identifiers.
 - Text is plain text; raw HTML is not allowed.
 - Live services are called only through the connectors, and only for hosts on the allowlist.
+
+## Files
+
+| File | Holds |
+| --- | --- |
+| `content/guide.toml` | Guide metadata, people, organisations, instruments, lenses, levels, stages, vocabularies, help routes |
+| `content/principles.toml` | The fifteen FAIR principles with their CoreTrustSeal and CDIF links |
+| `content/sources.toml` | Published sources |
+| `content/ledger.toml` | Clauses |
+| `content/stations/NN-<id>.toml` | One station and its advice items |
+| `content/checks/<id>.toml` | One self-check and its items |
+| `content/resources.toml` | Resources |
+| `content/repositories.toml` | The curated repository list |
+| `content/snapshots/*.toml` | Dated snapshots of sources a browser cannot query (re3data, Heslář) |
+| `content/glossary.toml` | Glossary terms |
+| `content/callouts.toml` | Shared callouts |
+| `content/live.toml` | Connectors, the FAIR Champion test set and its health |
+| `content/provenance.toml` | Provenance actions |
+| `content/pages.toml` | About page, accessibility statement and the AI overview |
+| `content/ui.toml` | Interface strings |
+
+A bilingual text is written as an inline table: `text = { cs = "…", en = "…" }`. Paragraphs inside one text
+are separated by a blank line (`\n\n`). Names and titles of external works are proper names: they are given
+once, in their original language, with `inLanguage`.
+
+### `guide.toml`
+
+| Table | Field | Type | Meaning |
+| --- | --- | --- | --- |
+| `[guide]` | `version` | string | Semantic version, the same as in `CHANGELOG.md` and `CITATION.cff` |
+| | `datePublished` | date | Date of the version |
+| | `name`, `description` | text | Name and description of the guide |
+| | `keywords` | list of text | Keywords |
+| | `url` | URL | Home of the guide |
+| | `vocabularyBase` | URL | Namespace of the guide's own terms (see *Crate mapping*) |
+| | `profile` | URL | IRI of the guide's RO-Crate profile in `profile/fair-guide/`; its version ends the IRI |
+| | `freshnessDays` | integer | Age after which a status is reported as stale |
+| | `authors`, `contributors` | list of IDs | People from `[[person]]` |
+| | `publisher`, `funder` | ID | Organisations from `[[organization]]` |
+| | `isBasedOn` | list of IDs | Sources the guide refreshes (the FAIR analysis) |
+| | `acknowledgement`, `aiStatement` | text | Mandatory NRP acknowledgement; statement on AI use |
+| `[[person]]` | `id`, `name`, `orcid` | | A person; `orcid` is the full ORCID URL |
+| `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder` | | An organisation or project; all but `id` and `name` are optional |
+| `[[instrument]]` | `id`, `name`, `version`, `url`, `kind` | | A tool used in provenance actions; `kind` is `ai-model`, `software` or `service` |
+| `[[lens]]` | `id`, `name`, `description` | | `V`, `DS`, `SR`, `K` |
+| `[[level]]` | `id`, `name`, `description` | | `L0`–`L3` |
+| `[[stage]]` | `id`, `label`, `station` | | An answer of the entry question and the station it opens |
+| `[[actor]]` | `id`, `name`, `role` | | Who a clause addresses (`role = "clause"`) or who fixes a gap (`role = "owner"`) |
+| `[[status]]` | `id`, `name` | | The five-level status vocabulary |
+| `[[tier]]` | `id`, `name` | | Self-check tiers |
+| `[[resourceType]]` | `id`, `name` | | Resource types used by the finder |
+| `[[repositoryKind]]` | `id`, `name` | | Repository kinds: domain, institutional, general-purpose |
+| `[[help]]` | `id`, `name`, `url`, `lenses` | | Routes to human help shown on every station; `url` may be `mailto:` |
+
+### `principles.toml`
+
+`[[principle]]`: `id` (`F1` … `R1.3`), `statement` (text: the principle), `label` (text: a short label),
+`cts` (list of CoreTrustSeal requirement IDs such as `R12`), `cdif` (list of CDIF profile names). The IRI is
+`https://w3id.org/fair/principles/terms/<id>`.
+
+### `sources.toml`
+
+`[[source]]`: `id`, `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
+`presentation`), `title`, `inLanguage`, `url`, `doi` (without the resolver), `publisher` (name), `authors`
+(list of names), `datePublished` or `dateAccessed`, `license` (URL).
+
+### `ledger.toml`
+
+`[[clause]]`: `id`, `source` (source ID), `locator` (chapter, table row or section), `principles` (list),
+`actor` (actor ID with `role = "clause"`), `kind` (`requirement`, `fulfilment`, `statement`), `text`, `status`
+(`current`, `refresh`, `superseded`), `note` (text, why it needs a refresh), `supersededBy` (clause ID).
+
+### `stations/NN-<id>.toml`
+
+`[station]`: `id`, `position`, `name` (short label), `title`, `principles`, `minutes`, `glossary` (term IDs).
+
+`[[advice]]`:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `id` | string | `<station>.<lens>.<level>[.<n>]`; `<lens>` is `all` for items shared by every lens |
+| `lens` | string or list | One lens, a list of lenses, or `"*"` for all |
+| `level` | string | `L0`, `L1` or `L2`; L3 is generated |
+| `position` | integer | Order within the station, lens and level |
+| `text` | text | The advice |
+| `steps` | list of text | Sub-steps shown as a list under the item |
+| `action` | table | L0 only: `label` (text) and `href`: an HTTPS URL, or an in-page target naming a crate entity (`#repositories`, `#ledger`, `#resources`, `#check-<id>`, `#station-<id>`, `#page-<id>`, `#resource-<id>`) |
+| `kind` | string | `ai` for the AI-in-FAIRification overlay; omitted otherwise |
+| `sources` | list | Clause IDs; at least one |
+
+### `checks/<id>.toml`
+
+`[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`), `name`, `description`, `lenses`,
+`minutes`, `modes` (dataset check: `before`, `after`), `[[check.profile]]` (gate check: `id`, `label`).
+
+`[[item]]`:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `id` | string | `D01`, `P01`, `G01`, `S01`, `K01`, `I01`, … |
+| `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended` |
+| `principles` | list | Principle IDs; empty only for gate items |
+| `statement` | text | The statement the user answers |
+| `help` | text | A short explanation |
+| `sources` | list | Clause IDs; at least one |
+| `fixAt` | string | Station ID where a gap is addressed |
+| `owner` | list | Actor IDs (`role = "owner"`) who can fix a gap |
+| `modes` | list | Dataset check: modes the item appears in |
+| `profiles` | list | Gate check: profiles the item applies to |
+| `providedByNrp` | list | Gate check: profiles for which NRP provides the item |
+| `allowNotApplicable` | boolean | Whether "not applicable" is an allowed answer |
+| `note` | text | An extra remark shown with the item |
+| `prefill` | table | Live sources that can answer the item: `datacite`, `nkr`, `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean) |
+
+### `resources.toml`
+
+`[[resource]]`: `id`, `name` (text, or a string for a proper name), `description`, `url`, `type` (`service`,
+`tool`, `registry`, `repository`, `guide`, `document`, `standard`, `vocabulary`, `community`, `project`,
+`course`), `fipClass` (FAIR-enabling resource classes of the FIP ontology, such as `Identifier-service` or
+`Metadata-schema`), `status`, `asOf`, `lenses`, `stations`, `languages`, `sameAs` (FER nanopublication IRIs,
+FAIRsharing DOIs).
+
+### `repositories.toml` and `snapshots/`
+
+`[[repository]]`: `id`, `name`, `url`, `kind` (`domain`, `institutional`, `general`), `subjects` (text),
+`re3data` (re3data ID), `nkr` (NKR handle), `fairsharing` (DOI), `pidTypes`, `status`, `asOf`. A snapshot file
+adds `[snapshot]` with `source`, `url`, `retrieved` and `license`, and lists the same `[[repository]]` fields
+taken from the source.
+
+### `glossary.toml`
+
+`[glossary]`: `source`, `url`, `retrieved`, `license`. `[[term]]`: `id`, `label` (text), `url`, `heslarId`, and
+`definition` (text) only where the source's licence permits copying.
+
+### `callouts.toml`
+
+`[[callout]]`: `id`, `title`, `intro`, `stations`, `order` (table: lens → list of item IDs). `[[callout.item]]`:
+`id`, `text`, `url`, `lenses`.
+
+### `live.toml`
+
+`[[connector]]`: `id`, `name`, `origin` (scheme and host), `purpose`. The page calls no other host, and the
+Content Security Policy is generated from this list. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
+`[[champion.test]]`: `id`, `principle`, `label`, `health` (`available`, `degraded`, `unavailable`), `asOf`.
+
+### `provenance.toml`
+
+`[[action]]`: `id`, `type` (`create`, `update`), `name`, `description`, `agent` (person ID), `instruments`
+(instrument IDs), `objects` (clause and source IDs consulted), `results` (item IDs; a trailing `*` matches every
+ID with that prefix), `endTime` (date-time with offset).
+
+### `pages.toml` and `ui.toml`
+
+`[[page]]`: `id`, `title`, `[[page.section]]` with `heading` and `body` (text). `ui.toml` holds interface strings
+as nested tables of texts, for example `[nav] stations = { cs = "Zastávky", en = "Stations" }`.
+
+## Crate mapping
+
+The generator writes a flattened JSON-LD graph that conforms to RO-Crate 1.2 and to the Process Run Crate
+profile 0.5. Schema.org types and properties are used wherever they fit; the guide's own terms live under
+`vocabularyBase` and are defined in the graph as `rdf:Property` entities with a label and a comment.
+
+| Content | `@type` | `@id` | Main properties |
+| --- | --- | --- | --- |
+| Guide | `Dataset` (root) | `./` | `name`, `description`, `version`, `datePublished`, `license`, `author`, `contributor`, `publisher`, `funder`, `isBasedOn`, `mainEntity`, `about`, `mentions`, `conformsTo` |
+| Path | `HowTo` | `#path` | `step` |
+| Station | `HowToSection` | `#station-<id>` | `name`, `headline`, `position`, `about`, `timeRequired`, `itemListElement`, `hasPart` (callouts), `mentions` (resources, terms) |
+| Advice item | `HowToDirection` (L0, L1), `HowToTip` (L2, AI overlay) | `#advice-<id>` | `text`, `position`, `audience`, `disclosureLevel`, `citation`, `isPartOf`, `potentialAction`, `adviceKind` |
+| Lens | `Audience` | `#lens-<id>` | `name`, `audienceType` |
+| Level, tier, status, actor, profile, mode | `DefinedTerm` | `#<set>-<id>` | `name`, `termCode`, `inDefinedTermSet` |
+| Principle | `DefinedTerm` | w3id IRI | `termCode`, `name`, `description` |
+| Source | `ScholarlyArticle`, `Report`, `WebPage`, `Dataset`, `CreativeWork` | DOI URL, or `#source-<id>` | `name`, `url`, `publisher`, `datePublished`, `license` |
+| Clause | `CreativeWork` | `#clause-<id>` | `identifier`, `text`, `about`, `audience`, `isPartOf`, `clauseKind`, `creativeWorkStatus`, `supersededBy` |
+| Check | `Quiz` | `#check-<id>` | `name`, `description`, `audience`, `hasPart` |
+| Check item | `Question` | `#item-<id>` | `text`, `description`, `about`, `citation`, `tier`, `fixAt`, `fixedBy`, `appliesTo`, `providedByNrpFor`, `allowsNotApplicable`, `additionalProperty` (pre-fill) |
+| Resource | by `type` | `#resource-<id>` | `name`, `description`, `url`, `audience`, `additionalType` (FIP class IRIs), `resourceType`, `serviceStatus`, `statusAsOf`, `inLanguage`, `sameAs` |
+| Repository | `DataCatalog` | `#repository-<id>` | `name`, `url`, `repositoryKind`, `identifier`, `sameAs`, `isBasedOn` (snapshot) |
+| Glossary term | `DefinedTerm` | `#term-<id>` | `name`, `url`, `termCode`, `inDefinedTermSet` |
+| Callout | `CreativeWork` | `#callout-<id>` | `headline`, `text`, `hasPart`, `lensOrder` |
+| FAIR Champion test | `CreativeWork` with `additionalType` `ftr:Test` | `#test-<id>` | `identifier`, `url`, `about`, `healthStatus`, `statusAsOf` |
+| Provenance action | `CreateAction`, `UpdateAction` | `#action-<id>` | `name`, `description`, `agent`, `instrument`, `object`, `result`, `endTime`, `actionStatus` |
+| Instrument | `SoftwareApplication` | `#instrument-<id>` | `name`, `version`, `url`, `applicationCategory` |
+
+Language-dependent values are JSON-LD value objects with `@language`. A property with one value holds it
+directly; with several, a list. The page reads the graph directly; it does not need a JSON-LD processor.
+
+The root declares conformance to Process Run Crate 0.5 and to the guide's own profile. `ro-crate-preview.html` is a
+generated copy of `index.html`, so the page is the crate's HTML preview.

@@ -402,6 +402,42 @@ flowchart LR
     *Alternatives:* manual answers only (ignores published work); a snapshot of all FIPs through scheduled CI
     (stale, and FIPs are few and changing).
 
+## Spikes and findings
+
+### RO-Crate validation (2026-10-08)
+
+rocrate-validator 0.12.2 supports RO-Crate 1.2, Process Run Crate 0.5 and user profiles loaded with
+`--extra-profiles-path`. It builds a profile's identifier from `prof:hasToken` and the version that ends the
+profile IRI, so the guide's profile in `profile/fair-guide/` is `fair-guide-0.1`. The checks run as three
+passes:
+
+- RO-Crate 1.2, with every requirement level;
+- Process Run Crate 0.5 with profile inheritance disabled (`-nh`), because the validator declares that profile on
+  top of RO-Crate 1.1 and would otherwise require a 1.1 metadata descriptor;
+- the guide's profile, also with `-nh`.
+
+Required checks must pass. Recommended findings that remain are accepted:
+
+- the validator does no subclass inference, so it reports `HowToDirection`, `Question` and `DataCatalog` results
+  of provenance actions as not being `CreativeWork`, although schema.org defines them as subclasses;
+- it expects `actionStatus` as a string, while Process Run Crate examples use the IRI
+  `http://schema.org/CompletedActionStatus`, which the crate keeps;
+- the guide's own `rdf:Property` terms have no schema.org type.
+
+Two validator findings changed the model: every `SoftwareApplication` needs a `version`, so FAIR Champion tests
+are `CreativeWork` entities typed `ftr:Test` through `additionalType`; and in-page action targets are references to
+crate entities (`#repositories`, `#check-gate`) rather than plain strings.
+
+### Paradata granularity (2026-10-08)
+
+Process Run Crate 0.5 admits `CreateAction`, `ActivateAction` and `UpdateAction`; an action needs an
+`instrument` that is a `SoftwareApplication`, `SoftwareSourceCode` or workflow, and should name an agent, a
+result and an end time. The guide records one action per content batch: `create` for new items and `update` for
+changed ones. A result pattern with a trailing `*` covers a whole station or ledger section. The AI model and
+the assistant runtime are named as instruments; the generator is not, because it transforms content rather than
+authoring it. With `--base <ref>`, `check_content.py` requires an action newer than that revision for every item
+whose source changed.
+
 ## Decision log
 
 Source: **U** = decision of the maintainer, **S** = proposal from analysis, agreed by the maintainer.

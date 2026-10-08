@@ -1,0 +1,6 @@
+[[source]]
+id = "report"
+type = "report"
+title = "Test report"
+url = "https://example.org/report"
+datePublished = 2026-01-01

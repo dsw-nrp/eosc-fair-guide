@@ -1,0 +1,28 @@
+# Resources recommended by the guide. Field reference: docs/content-model.md.
+
+[[resource]]
+id = "nkr"
+name = { cs = "Národní katalog repozitářů (NKR)", en = "National Repository Catalogue (NKR)" }
+description = { cs = "Katalog repozitářů zapojených do národní datové infrastruktury, s otevřeným API.", en = "Catalogue of repositories in the national data infrastructure, with an open API." }
+url = "https://repo.cz"
+type = "registry"
+fipClass = ["Registry"]
+status = "pilot"
+asOf = 2026-10-08
+lenses = "*"
+stations = ["repozitar"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "re3data"
+name = "re3data.org"
+description = { cs = "Mezinárodní registr výzkumných repozitářů.", en = "International registry of research data repositories." }
+url = "https://www.re3data.org/"
+type = "registry"
+fipClass = ["Generalist-Registry"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS", "SR"]
+stations = ["repozitar"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RAGv90JSxsBhhVhdJq_6CtOrHCLBbAuMLdkhES3dkog8o#r3data"]

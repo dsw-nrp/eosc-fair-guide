@@ -1,0 +1,13 @@
+# Provenance actions (Process Run Crate). Every change to an advice item, check or resource is covered by an
+# action. Field reference: docs/content-model.md.
+
+[[action]]
+id = "2026-10-08-content-model-sample"
+type = "create"
+name = "Content model sample"
+description = "First content entries written to test the content model and the generator: guide metadata, principles, live services, sample clauses, part of the repository station, two gate items and two resources."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nkr-schema"]
+results = ["repozitar.*", "G05", "G07", "nkr", "re3data", "A.*", "C.*", "K2.*", "K5.*", "E.*"]
+endTime = 2026-10-08T22:00:00+02:00

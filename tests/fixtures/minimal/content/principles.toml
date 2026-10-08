@@ -1,0 +1,5 @@
+[[principle]]
+id = "F1"
+label = { cs = "Identifikátor", en = "Identifier" }
+statement = { cs = "Trvalý identifikátor.", en = "Persistent identifier." }
+cts = ["R12"]

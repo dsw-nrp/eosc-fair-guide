@@ -1,0 +1,10 @@
+# Interface strings. Field reference: docs/content-model.md.
+
+[app]
+title = { cs = "Průvodce FAIR daty", en = "FAIR data guide" }
+loading = { cs = "Průvodce se načítá.", en = "The guide is loading." }
+
+[nav]
+stations = { cs = "Zastávky", en = "Stations" }
+language = { cs = "Jazyk", en = "Language" }
+lens = { cs = "Pohled", en = "View as" }

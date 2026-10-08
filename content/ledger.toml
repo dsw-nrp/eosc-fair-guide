@@ -1,0 +1,76 @@
+# Clause ledger: every statement the guide relies on, with a stable ID and its published source.
+# Field reference and ID prefixes: docs/content-model.md.
+
+[[clause]]
+id = "A.F1.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na NRP"
+principles = ["F1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "NRP garantuje DOI (NC DOI / DataCite); jiné PID (Handle, ARK) lze evidovat v NMA, pokud je přiděluje repozitář.", en = "NRP guarantees DOIs (NC DOI / DataCite); other PIDs (Handle, ARK) can be recorded in NMA if the repository assigns them." }
+
+[[clause]]
+id = "A.R1.3.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Naplnění v NRP"
+principles = ["R1.3"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "NRP podporuje ukládání dat přednostně ve vhodném oborovém repozitáři.", en = "NRP supports depositing data preferably in a suitable domain repository." }
+
+[[clause]]
+id = "K2.1"
+source = "analyza-fair-1.2"
+locator = "kap. 2.1"
+principles = []
+actor = "nrp"
+kind = "statement"
+text = { cs = "Architektura NDI: Národní metadatový adresář (NMA), Národní katalog repozitářů (NKR) a Centrum PID.", en = "NDI architecture: the National Metadata Directory (NMA), the National Repository Catalogue (NKR) and the PID Centre." }
+status = "refresh"
+note = { cs = "NMA je v provozu, NKR v pilotním provozu s otevřeným API; Centrum PID působí jako identifikatory.cz.", en = "NMA is in operation, NKR in pilot operation with an open API; the PID Centre operates as identifikatory.cz." }
+
+[[clause]]
+id = "K5.2.1"
+source = "analyza-fair-1.2"
+locator = "kap. 5.2.1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Výsledky automatických testů FAIR odrážejí hlavně nastavení repozitáře, ne práci autora.", en = "Results of automated FAIR tests mainly reflect the repository's setup, not the author's work." }
+
+[[clause]]
+id = "C.M5"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 5"
+principles = ["F4"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář je registrován v Národním katalogu repozitářů (NKR) a svůj záznam udržuje aktuální.", en = "The repository is registered in the National Repository Catalogue (NKR) and keeps its record up to date." }
+
+[[clause]]
+id = "C.M7"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 7"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář přiděluje trvalé identifikátory a využívá metodickou podporu Centra PID (identifikatory.cz).", en = "The repository assigns persistent identifiers and uses the methodological support of the PID Centre (identifikatory.cz)." }
+
+[[clause]]
+id = "C.EXT"
+source = "nrp-conditions-3.4"
+locator = "Independently operated repositories"
+principles = ["F1", "F4", "A1", "A1.2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Minimum pro samostatně provozované repozitáře: metadata do NMA, registrace v NKR, AAI, API, PID (ne nutně DOI), bezpečnost, monitoring, statistiky a logování.", en = "Minimum for independently operated repositories: metadata to NMA, registration in NKR, AAI, an API, PIDs (not necessarily DOI), security, monitoring, statistics and logging." }
+
+[[clause]]
+id = "E.NKR-SCHEMA"
+source = "nkr-schema"
+locator = "Repository schema"
+principles = ["F1", "F4", "A1", "R1.1"]
+actor = "repository"
+kind = "statement"
+text = { cs = "Záznam repozitáře v NKR popisuje mimo jiné typy PID, licence, režimy přístupu, podporu citlivých dat, rozhraní API a OAI-PMH a napojení na registry.", en = "An NKR repository record describes, among other things, PID types, licences, access modes, sensitive-data support, API and OAI-PMH interfaces and links to registries." }

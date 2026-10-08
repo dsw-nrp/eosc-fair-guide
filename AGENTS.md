@@ -51,6 +51,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | --- | --- |
 | `content/` | TOML sources |
 | `scripts/` | `build_crate.py` (generator), `check_content.py` (content contract) |
+| `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | SHACL profile for the crate |
 | `index.html` | The page and the crate's HTML preview, with the crate inlined |
 | `ro-crate-metadata.json` | Generated RO-Crate 1.2 |
@@ -63,9 +64,18 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 ## Commands
 
 ```bash
-python scripts/build_crate.py           # regenerate the crate and the inlined block
+python scripts/build_crate.py           # regenerate the crate, the page blocks and the preview copy
 python scripts/build_crate.py --check   # fail if committed output differs from regenerated output
-python scripts/check_content.py         # content contract
+python scripts/check_content.py         # content contract (--base <ref> also checks paradata freshness)
+python -m unittest discover -s tests    # tests of the generator and the checks
+```
+
+Structure checks use `requirements-dev.txt`:
+
+```bash
+rocrate-validator validate -p ro-crate-1.2 --skip-availability-check .
+rocrate-validator validate -p process-run-crate-0.5 -nh --skip-availability-check .
+rocrate-validator validate --extra-profiles-path profile -p fair-guide-0.1 -nh --skip-availability-check .
 ```
 
 Page, accessibility, link and diagram checks run in CI; their local commands are in `package.json`.

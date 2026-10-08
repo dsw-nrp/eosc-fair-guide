@@ -41,8 +41,10 @@ python -m http.server 8000
 | --- | --- |
 | `content/` | Content sources in TOML: stations, advice, checks, resources, ledger, glossary, callouts, provenance |
 | `scripts/` | Crate generator and content checks (Python standard library only) |
-| `profile/` | SHACL profile for the crate's structure |
-| `index.html` | The guide page; also the crate's HTML preview, with the crate inlined |
+| `tests/` | Tests of the scripts, with a minimal content fixture |
+| `profile/` | The guide's RO-Crate profile (SHACL) for the crate's structure |
+| `index.html` | The guide page, with the crate inlined |
+| `ro-crate-preview.html` | Generated copy of the page: the crate's HTML preview |
 | `ro-crate-metadata.json` | The knowledge base as an RO-Crate 1.2 (generated) |
 | `assets/` | Styles, scripts, images and rendered diagrams |
 | `diagrams/` | Mermaid diagram sources |

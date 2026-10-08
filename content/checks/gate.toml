@@ -1,0 +1,44 @@
+# NRP onboarding gate for repository administrators. Field reference: docs/content-model.md.
+
+[check]
+id = "gate"
+name = { cs = "Brána NRP", en = "NRP gate" }
+description = { cs = "Splňuje repozitář podmínky pro zapojení do NRP? Seznam se řídí profilem repozitáře. O zapojení rozhoduje NRP; průvodce jen radí.", en = "Does the repository meet the conditions for joining NRP? The list depends on the repository profile. NRP decides on joining; the guide only advises." }
+lenses = ["SR"]
+minutes = 10
+
+[[check.profile]]
+id = "a"
+label = { cs = "Instance základního systému NRP (InvenioRDM/OARepo, CLARIN-DSpace, ASEP/ARL)", en = "Instance of a core NRP system (InvenioRDM/OARepo, CLARIN-DSpace, ASEP/ARL)" }
+
+[[check.profile]]
+id = "b"
+label = { cs = "Alternativní systém na infrastruktuře NRP", en = "Alternative system on NRP infrastructure" }
+
+[[check.profile]]
+id = "c"
+label = { cs = "Samostatně provozovaný existující repozitář", en = "Independently operated existing repository" }
+
+[[item]]
+id = "G05"
+tier = "required"
+principles = ["F4"]
+statement = { cs = "Repozitář je registrován v NKR a záznam je aktuální.", en = "The repository is registered in NKR and its record is up to date." }
+help = { cs = "NKR je národní katalog repozitářů; záznam v něm hledají výzkumníci i NRP.", en = "NKR is the national repository catalogue; researchers and NRP look for repositories there." }
+sources = ["C.M5", "C.EXT"]
+fixAt = "repozitar"
+owner = ["repository-admin"]
+profiles = ["a", "b", "c"]
+prefill = { nkr = ["@record"] }
+
+[[item]]
+id = "G07"
+tier = "required"
+principles = ["F1"]
+statement = { cs = "Repozitář přiděluje trvalé identifikátory (DOI nebo jiné) a ví, kde hledat metodickou podporu.", en = "The repository assigns persistent identifiers (DOI or others) and knows where to find methodological support." }
+help = { cs = "DOI je doporučený identifikátor; přijatelné jsou i jiné trvalé, resolvovatelné a spravované identifikátory.", en = "DOI is the recommended identifier; other persistent, resolvable and managed identifiers are acceptable." }
+sources = ["C.M7", "C.EXT", "A.F1.N2"]
+fixAt = "repozitar"
+owner = ["repository-admin"]
+profiles = ["a", "b", "c"]
+prefill = { nkr = ["pidType", "doiPrefix", "handlePrefix"] }

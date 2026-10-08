@@ -1,0 +1,32 @@
+# Shared callouts: defined once, shown on several stations, item order adapted to the lens.
+# Field reference: docs/content-model.md.
+
+[[callout]]
+id = "sensitive-data"
+title = { cs = "Pracujete s osobními nebo jinak citlivými daty?", en = "Working with personal or otherwise sensitive data?" }
+intro = { cs = "FAIR neznamená otevřená. Popis dat může být veřejný, i když data samotná zpřístupníte jen oprávněným lidem.", en = "FAIR does not mean open. The description of the data can be public even when the data themselves are available only to authorised people." }
+stations = ["repozitar"]
+order = { SR = ["aai", "cloud", "steward", "principles", "community"], K = ["community", "steward", "principles", "cloud", "aai"] }
+
+[[callout.item]]
+id = "steward"
+text = { cs = "Poraďte se včas s data stewardem vaší instituce, u osobních údajů také s pověřencem pro ochranu osobních údajů.", en = "Talk early to your institution's data steward and, for personal data, to the data protection officer." }
+url = "https://www.eosc.cz/komunity/data-stewardi"
+
+[[callout.item]]
+id = "principles"
+text = { cs = "Zásady: Etické sedmero pro práci s výzkumnými daty.", en = "Principles: the Ethical Seven for working with research data." }
+
+[[callout.item]]
+id = "cloud"
+text = { cs = "Bezpečné zpracování: Sensitive Cloud v e-INFRA CZ.", en = "Secure processing: Sensitive Cloud in e-INFRA CZ." }
+url = "https://docs.e-infra.cz/"
+
+[[callout.item]]
+id = "community"
+text = { cs = "Komunita: pracovní skupina EOSC CZ pro citlivá data.", en = "Community: the EOSC CZ working group on sensitive data." }
+
+[[callout.item]]
+id = "aai"
+text = { cs = "Pro správce repozitářů: Iniciální architektura AAI pro citlivá data v NRP.", en = "For repository administrators: the initial AAI architecture for sensitive data in NRP." }
+lenses = ["SR", "DS"]

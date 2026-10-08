@@ -1,0 +1,63 @@
+# Station 3: choosing a repository. Field reference: docs/content-model.md.
+
+[station]
+id = "repozitar"
+position = 3
+name = { cs = "Repozitář", en = "Repository" }
+title = { cs = "Výběr repozitáře", en = "Choosing a repository" }
+principles = ["F4", "A1", "A1.1", "A2", "R1.3"]
+minutes = 10
+
+[[advice]]
+id = "repozitar.V.L0"
+lens = "V"
+level = "L0"
+text = { cs = "Uložte data tam, kde je najde váš obor: přednostně do oborového repozitáře, jinak do institucionálního. Když se nic nehodí, nabízí NRP datový catch-all repozitář.", en = "Deposit your data where your field will find them: preferably in a domain repository, otherwise in an institutional one. If nothing fits, NRP offers a catch-all data repository." }
+action = { label = { cs = "Najít repozitář", en = "Find a repository" }, href = "#repositories" }
+sources = ["A.R1.3.X1"]
+
+[[advice]]
+id = "repozitar.V.L1.1"
+lens = "V"
+level = "L1"
+position = 1
+text = { cs = "Zeptejte se v oboru nebo data stewarda, kam se data běžně ukládají.", en = "Ask colleagues in your field or your data steward where data are usually deposited." }
+sources = ["A.R1.3.X1"]
+
+[[advice]]
+id = "repozitar.V.L1.2"
+lens = "V"
+level = "L1"
+position = 2
+text = { cs = "Ověřte hlavní vlastnosti repozitáře:", en = "Check the repository's main features:" }
+steps = [
+  { cs = "přiděluje trvalý identifikátor (DOI, Handle nebo jiný)?", en = "does it assign a persistent identifier (DOI, Handle or another)?" },
+  { cs = "jaké licence a režimy přístupu podporuje?", en = "which licences and access modes does it support?" },
+  { cs = "jaký má limit velikosti a podporuje citlivá data?", en = "what is its size limit, and does it support sensitive data?" },
+  { cs = "je napojen na Národní metadatový adresář (NMA)? To je důležité pro vykázání dat v RIV.", en = "is it connected to the National Metadata Directory (NMA)? This matters for reporting the data in RIV." },
+]
+sources = ["E.NKR-SCHEMA", "A.F1.N2"]
+
+[[advice]]
+id = "repozitar.SR.L0"
+lens = "SR"
+level = "L0"
+text = { cs = "Aby vás výzkumníci našli, zaregistrujte repozitář v Národním katalogu repozitářů (NKR) a záznam udržujte aktuální. Podmínky NRP to vyžadují.", en = "So that researchers can find you, register the repository in the National Repository Catalogue (NKR) and keep the record up to date. The NRP conditions require this." }
+action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
+sources = ["C.M5"]
+
+[[advice]]
+id = "repozitar.SR.L1.1"
+lens = "SR"
+level = "L1"
+position = 1
+text = { cs = "Zaregistrujte repozitář v NKR a záznam aktualizujte. NKR je vedle NMA a Centra PID jednou ze sdílených služeb národní datové infrastruktury.", en = "Register the repository in NKR and keep the record updated. Alongside NMA and the PID Centre, NKR is one of the shared services of the national data infrastructure." }
+sources = ["C.M5", "K2.1"]
+
+[[advice]]
+id = "repozitar.all.L2.1"
+lens = "*"
+level = "L2"
+position = 1
+text = { cs = "Většinu vlastností, které hodnotí automatické testy FAIR, určuje nastavení repozitáře. Výběr repozitáře je proto jedno z nejdůležitějších rozhodnutí.", en = "Most properties that automated FAIR tests assess are set by the repository. Choosing the repository is therefore one of the most important decisions." }
+sources = ["K5.2.1"]

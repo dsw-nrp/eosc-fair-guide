@@ -1,0 +1,23 @@
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix prof: <http://www.w3.org/ns/dx/prof/> .
+@prefix role: <http://www.w3.org/ns/dx/prof/role/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# The EOSC CZ FAIR guide's RO-Crate profile: the structural content contract of its knowledge base.
+# Rules that SHACL cannot express (unknown ledger IDs, lossless coverage, link safety, paradata freshness)
+# are checked by scripts/check_content.py.
+
+<https://motyc.github.io/eosc-cz-fair-docs-testing/profile/0.1>
+    a prof:Profile ;
+    rdfs:label "EOSC CZ FAIR guide profile 0.1" ;
+    rdfs:comment "Content contract of the EOSC CZ FAIR guide knowledge base: bilingual texts, cited ledger clauses, dated statuses and complete provenance actions."@en ;
+    dct:publisher <https://github.com/motyc/eosc-cz-fair-docs-testing> ;
+    prof:isProfileOf <https://w3id.org/ro/crate/1.2> ;
+    prof:isTransitiveProfileOf <https://w3id.org/ro/crate/1.2> ;
+    prof:hasResource [
+        a prof:ResourceDescriptor ;
+        dct:format <https://w3id.org/mediatype/text/markdown> ;
+        prof:hasRole role:Specification ;
+        prof:hasArtifact <https://github.com/motyc/eosc-cz-fair-docs-testing/blob/main/docs/content-model.md> ;
+    ] ;
+    prof:hasToken "fair-guide" .

@@ -1,0 +1,224 @@
+@prefix fg: <https://motyc.github.io/eosc-cz-fair-docs-testing/terms#> .
+@prefix fair-guide: <https://motyc.github.io/eosc-cz-fair-docs-testing/profile/fair-guide/> .
+@prefix schema: <http://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# Bilingual text: one Czech and one English value.
+
+fair-guide:Station a sh:NodeShape ;
+    sh:name "Station" ;
+    sh:description "A station has a Czech and an English name, a position on the path and advice items" ;
+    sh:targetClass schema:HowToSection ;
+    sh:property [
+        sh:name "Station name in Czech" ;
+        sh:path schema:name ;
+        sh:qualifiedValueShape [ sh:languageIn ( "cs" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A station MUST have a Czech name" ;
+    ] ;
+    sh:property [
+        sh:name "Station name in English" ;
+        sh:path schema:name ;
+        sh:qualifiedValueShape [ sh:languageIn ( "en" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A station MUST have an English name" ;
+    ] ;
+    sh:property [
+        sh:name "Station position" ;
+        sh:path schema:position ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A station MUST have exactly one position on the path" ;
+    ] ;
+    sh:property [
+        sh:name "Station advice" ;
+        sh:path schema:itemListElement ;
+        sh:minCount 1 ;
+        sh:message "A station MUST contain at least one advice item" ;
+    ] .
+
+fair-guide:AdviceItem a sh:NodeShape ;
+    sh:name "Advice item" ;
+    sh:description "An advice item has Czech and English text, a lens, a disclosure level and at least one cited clause" ;
+    sh:targetSubjectsOf fg:disclosureLevel ;
+    sh:property [
+        sh:name "Advice text in Czech" ;
+        sh:path schema:text ;
+        sh:qualifiedValueShape [ sh:languageIn ( "cs" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "An advice item MUST have Czech text" ;
+    ] ;
+    sh:property [
+        sh:name "Advice text in English" ;
+        sh:path schema:text ;
+        sh:qualifiedValueShape [ sh:languageIn ( "en" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "An advice item MUST have English text" ;
+    ] ;
+    sh:property [
+        sh:name "Advice lens" ;
+        sh:path schema:audience ;
+        sh:class schema:Audience ;
+        sh:minCount 1 ;
+        sh:message "An advice item MUST be addressed to at least one lens" ;
+    ] ;
+    sh:property [
+        sh:name "Advice sources" ;
+        sh:path schema:citation ;
+        sh:minCount 1 ;
+        sh:message "An advice item MUST cite at least one clause of the ledger" ;
+    ] ;
+    sh:property [
+        sh:name "Advice station" ;
+        sh:path schema:isPartOf ;
+        sh:class schema:HowToSection ;
+        sh:minCount 1 ;
+        sh:message "An advice item MUST belong to a station" ;
+    ] .
+
+fair-guide:Clause a sh:NodeShape ;
+    sh:name "Ledger clause" ;
+    sh:description "A clause has an identifier, Czech and English text and a published source" ;
+    sh:targetSubjectsOf fg:clauseKind ;
+    sh:property [
+        sh:name "Clause identifier" ;
+        sh:path schema:identifier ;
+        sh:minCount 1 ;
+        sh:message "A clause MUST have an identifier" ;
+    ] ;
+    sh:property [
+        sh:name "Clause text in Czech" ;
+        sh:path schema:text ;
+        sh:qualifiedValueShape [ sh:languageIn ( "cs" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A clause MUST have Czech text" ;
+    ] ;
+    sh:property [
+        sh:name "Clause text in English" ;
+        sh:path schema:text ;
+        sh:qualifiedValueShape [ sh:languageIn ( "en" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A clause MUST have English text" ;
+    ] ;
+    sh:property [
+        sh:name "Clause source" ;
+        sh:path schema:isPartOf ;
+        sh:minCount 1 ;
+        sh:message "A clause MUST name the published source it comes from" ;
+    ] .
+
+fair-guide:CheckItem a sh:NodeShape ;
+    sh:name "Self-check item" ;
+    sh:description "A self-check item has Czech and English statements, a tier, at least one cited clause and a check" ;
+    sh:targetClass schema:Question ;
+    sh:property [
+        sh:name "Statement in Czech" ;
+        sh:path schema:text ;
+        sh:qualifiedValueShape [ sh:languageIn ( "cs" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A self-check item MUST have a Czech statement" ;
+    ] ;
+    sh:property [
+        sh:name "Statement in English" ;
+        sh:path schema:text ;
+        sh:qualifiedValueShape [ sh:languageIn ( "en" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A self-check item MUST have an English statement" ;
+    ] ;
+    sh:property [
+        sh:name "Item tier" ;
+        sh:path fg:tier ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A self-check item MUST have exactly one tier" ;
+    ] ;
+    sh:property [
+        sh:name "Item sources" ;
+        sh:path schema:citation ;
+        sh:minCount 1 ;
+        sh:message "A self-check item MUST cite at least one clause of the ledger" ;
+    ] ;
+    sh:property [
+        sh:name "Item check" ;
+        sh:path schema:isPartOf ;
+        sh:class schema:Quiz ;
+        sh:minCount 1 ;
+        sh:message "A self-check item MUST belong to a check" ;
+    ] .
+
+fair-guide:Resource a sh:NodeShape ;
+    sh:name "Resource" ;
+    sh:description "A resource has a name, an HTTPS link and a dated status" ;
+    sh:targetSubjectsOf fg:resourceType ;
+    sh:property [
+        sh:name "Resource name" ;
+        sh:path schema:name ;
+        sh:minCount 1 ;
+        sh:message "A resource MUST have a name" ;
+    ] ;
+    sh:property [
+        sh:name "Resource link" ;
+        sh:path schema:url ;
+        sh:minCount 1 ;
+        sh:pattern "^https://" ;
+        sh:message "A resource MUST have an HTTPS link" ;
+    ] ;
+    sh:property [
+        sh:name "Resource status" ;
+        sh:path fg:serviceStatus ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A resource MUST have exactly one status" ;
+    ] ;
+    sh:property [
+        sh:name "Resource status date" ;
+        sh:path fg:statusAsOf ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" ;
+        sh:message "A resource status MUST carry an as-of date (YYYY-MM-DD)" ;
+    ] .
+
+fair-guide:Repository a sh:NodeShape ;
+    sh:name "Repository" ;
+    sh:description "A repository in the finder has a name, an HTTPS link and credits its source" ;
+    sh:targetSubjectsOf fg:repositoryKind ;
+    sh:property [
+        sh:name "Repository link" ;
+        sh:path schema:url ;
+        sh:minCount 1 ;
+        sh:pattern "^https?://" ;
+        sh:message "A repository MUST have a link" ;
+    ] ;
+    sh:property [
+        sh:name "Repository source" ;
+        sh:path schema:isBasedOn ;
+        sh:minCount 1 ;
+        sh:message "A repository MUST credit the list or snapshot it comes from" ;
+    ] .
+
+fair-guide:ProvenanceAction a sh:NodeShape ;
+    sh:name "Provenance action" ;
+    sh:description "A provenance action names a person, the instruments, the produced items and an end time" ;
+    sh:targetClass schema:CreateAction , schema:UpdateAction ;
+    sh:property [
+        sh:name "Action agent" ;
+        sh:path schema:agent ;
+        sh:class schema:Person ;
+        sh:minCount 1 ;
+        sh:message "A provenance action MUST name the person responsible" ;
+    ] ;
+    sh:property [
+        sh:name "Action result" ;
+        sh:path schema:result ;
+        sh:minCount 1 ;
+        sh:message "A provenance action MUST name the items it produced or changed" ;
+    ] ;
+    sh:property [
+        sh:name "Action end time" ;
+        sh:path schema:endTime ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]{8}(Z|[+-][0-9]{2}:[0-9]{2})$" ;
+        sh:message "A provenance action MUST have an end time with a time zone" ;
+    ] .

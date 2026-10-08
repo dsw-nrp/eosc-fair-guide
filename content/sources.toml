@@ -1,0 +1,32 @@
+# Published sources. Every ledger clause names one of these. Unpublished working material is never listed.
+# Field reference: docs/content-model.md.
+
+[[source]]
+id = "analyza-fair-1.2"
+type = "report"
+title = "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI"
+inLanguage = "cs"
+doi = "10.71495/5dv6-v116"
+url = "https://doi.org/10.71495/5dv6-v116"
+publisher = "cesnet"
+authors = ["Ilona Trtíková", "Petra Bártková", "Lada Biedermannová", "Jindřich Fejfar", "Robert Pergl", "David Novák", "Tomáš Čížek"]
+datePublished = 2026-02-15
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "nrp-conditions-3.4"
+type = "webpage"
+title = "Conditions for creating repositories (NRP documentation), version 3.4"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/operating-repositories-in-the-nrp/conditions-for-creating-repositories"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "nkr-schema"
+type = "webpage"
+title = "Národní katalog repozitářů (NKR): schéma záznamu Repository"
+inLanguage = "cs"
+url = "https://repo.cz/schemas/Repository"
+publisher = "cesnet"
+dateAccessed = 2026-10-08

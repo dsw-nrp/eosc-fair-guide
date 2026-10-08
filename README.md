@@ -32,8 +32,10 @@ kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) neb
 | --- | --- |
 | `content/` | Zdrojové texty a data průvodce v souborech TOML |
 | `scripts/` | Generátor znalostní báze a kontroly obsahu (Python, jen standardní knihovna) |
-| `profile/` | Profil SHACL pro kontrolu struktury znalostní báze |
-| `index.html` | Stránka průvodce, zároveň náhled RO-Crate |
+| `tests/` | Testy skriptů s minimální ukázkou obsahu |
+| `profile/` | Profil RO-Crate (SHACL) pro kontrolu struktury znalostní báze |
+| `index.html` | Stránka průvodce s vloženou znalostní bází |
+| `ro-crate-preview.html` | Generovaná kopie stránky: náhled RO-Crate |
 | `ro-crate-metadata.json` | Znalostní báze jako RO-Crate 1.2 (generovaná) |
 | `assets/` | Styly, skripty, obrázky a vykreslené diagramy |
 | `diagrams/` | Zdroje diagramů v Mermaid |
