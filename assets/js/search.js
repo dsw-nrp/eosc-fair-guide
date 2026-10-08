@@ -26,7 +26,10 @@
   const DATA = ["Dataset", "Collection", "Image", "Audiovisual", "Sound", "Model", "PhysicalObject", "InteractiveResource"];
   const SOFTWARE = ["Software", "ComputationalNotebook", "Workflow"];
   const TEXT = ["Text", "JournalArticle", "Book", "BookChapter", "ConferencePaper", "ConferenceProceeding", "Preprint", "Report", "Dissertation", "Journal", "PeerReview", "Standard"];
+  /* The index holds titles in the reader's language and links into the current lens, so it is rebuilt when either
+     changes; the language and lens change in place, without reloading the page. */
   let index = null;
+  let indexFor = "";
 
   const fold = FG.fold;
   const bothLanguages = FG.bothLanguages;
@@ -111,7 +114,11 @@
 
   /** Matches in the knowledge base, grouped by kind; every word of the query must occur. */
   S.find = function (query) {
-    index = index || buildIndex();
+    const current = FG.state.lang + "/" + FG.state.lens;
+    if (!index || indexFor !== current) {
+      index = buildIndex();
+      indexFor = current;
+    }
     const words = fold(query).split(/\s+/).filter(Boolean);
     if (!words.length) return [];
     const phrase = words.join(" ");

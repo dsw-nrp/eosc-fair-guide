@@ -363,6 +363,14 @@ async function axe(page, label) {
   if (!(await page.locator("#search-results .result-primary").getAttribute("href")).endsWith("/catalogue/clauses/A.F1.N1")) fail("search: a requirement identifier does not lead to its catalogue entry while typing");
   found = await typeQuery("licence");
   if (!(await page.locator(".catalogue-handoff a").getAttribute("href")).includes("q!licence")) fail("search: text results do not hand over to the catalogue");
+  // The language changes in place; the search then shows titles in English and links into the English guide.
+  await page.evaluate(() => { location.hash = "#/en/V/path/start"; });
+  await page.waitForFunction(() => document.documentElement.lang === "en" && document.querySelector("#search-input"));
+  found = await typeQuery("autho");
+  if (!found.includes("Authentication and authorisation") || /Ověřování|umožní/.test(found)) fail("search: after switching to English the results keep Czech titles: " + found.slice(0, 200));
+  if (!(await page.locator("#search-results a.result").first().getAttribute("href")).startsWith("#/en/")) fail("search: after switching to English the results link into the Czech guide");
+  await page.evaluate(() => { location.hash = "#/cs/V/path/start"; });
+  await page.waitForFunction(() => document.documentElement.lang === "cs" && document.querySelector("#search-input"));
   await axe(page, "landing with search results");
   if (external.length) fail("search: requests while searching: " + external.join(", "));
 
