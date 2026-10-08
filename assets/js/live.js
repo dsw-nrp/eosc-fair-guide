@@ -79,6 +79,13 @@
     return { found, url: valueOf("URL") || null, title: valueOf("TITLE") || null };
   };
 
+  /** The registration agency of a DOI (DataCite, Crossref, ...), or null when doi.org does not know the DOI. */
+  live.doiAgency = async function (doi) {
+    const data = await live.fetchJson("doi", "ra/" + String(doi).split("/").map(encodeURIComponent).join("/"));
+    const agency = FG.list(data)[0] || {};
+    return agency.RA && !/does not exist|invalid/i.test(String(agency.status || "")) ? String(agency.RA) : null;
+  };
+
   /** The public name behind an ORCID iD, or null when ORCID does not know it. */
   live.orcidName = async function (orcid) {
     const data = await live.fetchJson("orcid", "v3.0/" + encodeURIComponent(orcid) + "/person", { allowNotFound: true });

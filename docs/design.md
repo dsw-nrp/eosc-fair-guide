@@ -504,9 +504,18 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 
 ### Landing
 
-- One search box leads. Results from the guide's own content appear while typing; the routes for an identifier
-  (DOI, Handle, ORCID, ROR, URL) appear on Enter, because they lead to outside services, and a hint says so while
-  the identifier is typed. Nothing is sent while typing.
+- One search box leads. Results from the guide's own content appear while typing and end with a link to the same
+  search in the catalogue, which is the full results page. An identifier is routed by what it denotes: a re3data
+  record (r3d identifier, record address or re3data DOI) and an NKR record lead to the maturity check, a FIP
+  nanopublication or FIP Dashboard profile to the FIP check, a ROR ID to the institution check and an ORCID iD to the
+  identifier helper. The guide's own identifiers (requirements, check questions) and addresses the catalogue lists
+  lead to their catalogue entry and answer while typing, because nothing is sent. A generic DOI or Handle first
+  offers "Zjistit, co to je": one lookup of the registration agency at doi.org and, for DataCite, the resource type,
+  which says what the identifier denotes and where the answer came from, then leads to the dataset check (data, and
+  software with a note), the citation (publications) or, for a FAIRsharing record naming a re3data record, the
+  maturity check. The tools that suit any identifier (dataset check, citation, NMA search, identifier helper) stay
+  beside it. Routes to outside services appear on Enter, with a hint while the identifier is typed; nothing is sent
+  while typing.
 - The stage is chosen from four cards with a short description each (planning, working with data, publishing,
   published), not from a strip of stations. Each card names the steps it covers, so the cards also show the whole
   journey. Once the visitor has chosen a stage, its card says "Selected" with the date of their last visit; before
@@ -745,3 +754,7 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-93 | 2026-10-08 | In the catalogue the **lens is a select box** among the resource filters (starting from the reader's lens), not the lens band, which stays on the path and the self-check overview. | U |
 | D-94 | 2026-10-08 | **Requirement identifiers resolve to the catalogue**: text first, then the identifier as a linked chip and the source, wherever a requirement is cited; the catalogue gains the requirements and findings and the check questions, and a link to one entry lands on it. | U |
 | D-95 | 2026-10-08 | **No credentialed FAIRsharing access**: FAIRsharing's facts sit behind a login and are CC BY-SA, and re3data already answers the same questions; the guide keeps the DataCite route (records and the registration question) and drops the snapshot task. | U |
+| D-96 | 2026-10-08 | **One curated entry per real-world thing**, enforced by the content checks: resource and source descriptions of one thing merge; curated entries link snapshot records; one identifier per entity, no shared address or DOI, unused entries reported. A general rule for all content. | U+S |
+| D-97 | 2026-10-08 | **The catalogue is one faceted list**: search, station and principle are shared facets; checkbox facets with counts; reader-chosen ordering, groups follow it; the state in the address; resources and cited sources together, marked by usage. | U+S |
+| D-98 | 2026-10-08 | **One linked search; identifiers routed by what they denote**: the catalogue is the landing search's results page; a re3data record leads to the maturity check, a nanopublication to the FIP check, a ROR ID to the institution check; a generic DOI or Handle offers an explicit "find out what it is" lookup first. | U+S |
+| D-99 | 2026-10-09 | In the catalogue the **kind is a single choice** (a picker with every kind's count), not checkboxes; shared facets stay when the kind changes, the previous kind's own facets reset. | U |

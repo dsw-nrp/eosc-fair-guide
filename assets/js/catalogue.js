@@ -28,6 +28,9 @@
   /** The address of the catalogue showing one kind, or one entry of it. */
   FG.catalogueHref = (kind, item) => FG.href("catalogue", kind) + (item ? "/" + encodeURIComponent(item) : "");
 
+  /** The catalogue searched for a query within one kind, as the landing's search links to it. */
+  FG.catalogueSearchHref = (query, kind) => writeState({ kinds: [kind || "resources"], stations: [], principles: [], q: query, order: "", f: {} });
+
   /** The language of an entity's plain-text name, for its lang attribute: a name with Czech and English values
       sets its own, and a list of languages names none. */
   FG.nameLang = (entity) => (typeof entity.name === "string" && typeof entity.inLanguage === "string" ? entity.inLanguage : null);

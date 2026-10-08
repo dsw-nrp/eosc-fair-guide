@@ -298,8 +298,9 @@ async function axe(page, label) {
     if (!joined.includes(expected)) fail("keyboard does not reach: " + expected);
   }
 
-  // Universal search: terms are found locally while typing, in both languages and without diacritics; identifiers
-  // are routed to their tool once the search is confirmed, and nothing is sent while searching.
+  // Universal search: terms are found locally while typing, in both languages and without diacritics, and hand
+  // over to the catalogue; identifiers are routed by what they denote once the search is confirmed, the guide's own
+  // identifiers while typing; nothing is sent while searching.
   const typeQuery = async (text) => {
     await page.fill("#search-input", "");
     await page.locator("#search-input").pressSequentially(text);
@@ -326,11 +327,48 @@ async function axe(page, label) {
   found = await typeQuery("https://doi.org/10.5281/zenodo.21726258");
   if (!found.includes("Stiskněte Enter") || (await page.locator("#search-results .result").count())) fail("search: a typed DOI does not wait for Enter: " + found.slice(0, 200));
   found = await search("https://doi.org/10.5281/zenodo.21726258");
-  if (!(await page.locator("#search-results .result-primary").textContent()).includes("Zkontrolovat datovou sadu")) fail("search: a DOI is not routed to the dataset check");
+  const primary = async () => (await page.locator("#search-results .result-primary").textContent()).trim();
+  if (!(await primary()).includes("Zjistit, co to je") || !found.includes("Zkontrolovat datovou sadu")) fail("search: a DOI does not offer to find out what it is, with the dataset check beside it");
   found = await search("0000-0001-6592-6291");
   if (!found.includes("Ověřit identifikátor")) fail("search: an ORCID iD is not routed to the identifier helper");
+  found = await search("r3d100010386");
+  if (!(await primary()).includes("Zkontrolovat zralost repozitáře")) fail("search: a re3data identifier is not routed to the maturity check: " + found.slice(0, 200));
+  found = await search("https://ror.org/04wxdxa47");
+  if (!(await primary()).includes("Instituce a správa dat") || !found.includes("Ověřit identifikátor")) fail("search: a ROR ID is not routed to the institution check, with verification beside it");
+  found = await typeQuery("A.F1.N1");
+  if (!(await page.locator("#search-results .result-primary").getAttribute("href")).endsWith("/catalogue/clauses/A.F1.N1")) fail("search: a requirement identifier does not lead to its catalogue entry while typing");
+  found = await typeQuery("licence");
+  if (!(await page.locator(".catalogue-handoff a").getAttribute("href")).includes("q!licence")) fail("search: text results do not hand over to the catalogue");
   await axe(page, "landing with search results");
   if (external.length) fail("search: requests while searching: " + external.join(", "));
+
+  // Finding out what a DOI is: the registration agency and, for DataCite, the type (both replaced here) lead to
+  // the dataset check or to the citation, and say where the answer came from.
+  await page.evaluate(() => {
+    const live = window.FairGuide.live;
+    live.doiAgency = async (doi) => (doi.startsWith("10.1038/") ? "Crossref" : "DataCite");
+    live.datacite = async () => ({ types: { resourceTypeGeneral: "Dataset" }, titles: [{ title: "Test data" }], publisher: { name: "Zenodo" }, publicationYear: 2026 });
+  });
+  const findOut = async (pid) => {
+    await search(pid);
+    await page.locator("#search-results .result-primary").click();
+    await page.waitForFunction(() => document.querySelector("#search-results .search-basis strong"));
+    return page.locator("#search-results .search-basis").textContent();
+  };
+  let said = await findOut("10.5281/zenodo.21726258");
+  if (!said.includes("Jde o datovou sadu") || !said.includes("DataCite") || !(await primary()).includes("Zkontrolovat datovou sadu")) fail("search: a DataCite dataset does not lead to the dataset check: " + said);
+  if (!(await page.evaluate(() => document.activeElement && document.activeElement.classList.contains("result-primary")))) fail("search: focus does not move to the route found");
+  said = await findOut("10.1038/sdata.2016.18");
+  if (!said.includes("Jde o publikaci") || !(await primary()).includes("Vytvořit citaci")) fail("search: a Crossref DOI does not lead to the citation: " + said);
+
+  // A re3data identifier opens the maturity check filled in from the snapshot.
+  await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => []; });
+  await search("r3d100010386");
+  await page.locator("#search-results .result-primary").click();
+  await page.waitForFunction(() => location.hash.endsWith("/check/maturity") && document.getElementById("prefill-status") && document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if (!(await page.locator(".target-card").textContent()).includes("LINDAT")) fail("search: the maturity check from a re3data identifier does not say which repository it is");
+  await page.goto(pageUrl);
+  await rendered(page);
 
   // Task shortcuts change with the lens, chosen in the band under the main menu.
   if ((await page.locator(".lens-band .lens-option").count()) !== 4) fail("lens band: four options are not shown on the landing");

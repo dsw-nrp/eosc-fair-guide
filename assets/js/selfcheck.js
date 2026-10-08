@@ -585,23 +585,87 @@
     });
   }
 
-  /** Open the dataset check for an identifier from the landing's search and run the lookup the user chose. */
-  SC.startWithPid = function (input) {
-    const pid = FG.live.parsePid(input);
-    const check = FG.get("#check-dataset");
-    if (!pid || !check) return;
-    const st = stateOf(check);
-    st.mode = "after";
-    st.pid = pid.value;
-    retarget(check, FG.live.pidUrl(pid));
-    const hash = FG.href("check", "dataset");
+  /** Open a check from the landing's search, prepare its state, and run the lookup the user chose once the check is
+      shown. */
+  function startAt(checkId, prepare, run) {
+    const check = FG.get("#check-" + checkId);
+    if (!check) return;
+    prepare(stateOf(check), check);
+    const hash = FG.href("check", checkId);
     if (window.location.hash === hash) {
       FG.render();
-      prefillFromPid(check, pid);
+      run(check);
     } else {
-      window.addEventListener("hashchange", () => prefillFromPid(check, pid), { once: true });
+      window.addEventListener("hashchange", () => run(check), { once: true });
       FG.navigate(hash);
     }
+  }
+
+  /** The dataset check for a DOI or Handle. */
+  SC.startWithPid = function (input) {
+    const pid = FG.live.parsePid(input);
+    if (!pid) return;
+    startAt(
+      "dataset",
+      (st, check) => {
+        st.mode = "after";
+        st.pid = pid.value;
+        retarget(check, FG.live.pidUrl(pid));
+      },
+      (check) => prefillFromPid(check, pid)
+    );
+  };
+
+  /** The repository maturity check for a re3data record: an r3d identifier or address directly, a re3data DOI
+      through doi.org. Resolves to whether the record was placed. */
+  SC.startWithRe3data = async function (input) {
+    let id = (String(input).match(R3D) || [])[0];
+    if (!id) {
+      const pid = FG.live.parsePid(input);
+      try {
+        const resolved = pid ? await FG.live.resolvePid(pid) : null;
+        id = (String((resolved && resolved.url) || "").match(R3D) || [])[0];
+      } catch (error) {
+        id = null;
+      }
+    }
+    if (!id) return false;
+    const r3d = id.toLowerCase();
+    startAt(
+      "maturity",
+      (st) => {
+        st.re3data = r3d;
+        st.extended = true;
+      },
+      (check) => prefillFromRe3data(check, r3d)
+    );
+    return true;
+  };
+
+  /** The FIP completeness check for a published FIP nanopublication. */
+  SC.startWithNanopub = function (code) {
+    startAt(
+      "fip",
+      (st) => {
+        st.extended = true;
+      },
+      (check) => prefillFromNanopub(check, code)
+    );
+  };
+
+  /** The FIP completeness check for a profile of the FIP Dashboard snapshot; false when the snapshot has no such
+      profile. */
+  SC.startWithFip = function (id) {
+    const fip = FG.refs(FG.get("#fips"), "hasPart").find((entry) => entry.identifier === id);
+    if (!fip) return false;
+    startAt(
+      "fip",
+      (st) => {
+        st.extended = true;
+      },
+      (check) => prefillFromDashboard(check, fip)
+    );
+    return true;
   };
 
   /* ---------------------------------------------------------------- pieces */

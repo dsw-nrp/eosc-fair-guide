@@ -4,6 +4,7 @@
 // - an identifier that does not exist leaves the items open with a note;
 // - a published FIP nanopublication pre-fills the FIP check;
 // - FAIRsharing records are found through DataCite for the repositories page and the maturity check;
+// - the landing's search finds out what a DOI is from its registration agency and DataCite;
 // - every request goes to an allowlisted connector, and only after a click.
 // These checks need the network and depend on outside services, so they are not part of the pull-request gate.
 // Usage: npm run check:live   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
@@ -117,6 +118,25 @@ await page.locator("#prefill-re3data").fill("r3d100010484");
 status = await prefill("#prefill-re3data-run");
 console.log("re3data and FAIRsharing:", status);
 if ((await answer("S18")) !== "yes") fail("FAIRsharing: S18 is not answered yes for ČSDA");
+
+// What a DOI is: a Zenodo DOI is a DataCite output, a journal article's DOI a Crossref publication.
+async function findOut(pid) {
+  await open("#/cs/V/path/start");
+  await page.fill("#search-input", pid);
+  await page.locator("#search-input").press("Enter");
+  await page.locator("#search-results .result-primary").click();
+  await page.waitForFunction(() => {
+    const said = document.querySelector("#search-results .search-basis");
+    return said && !said.closest(".identifier-results").textContent.includes("Zjišťujeme");
+  }, null, { timeout: 60000 });
+  return page.locator("#search-results .search-basis").textContent();
+}
+let said = await findOut(SAMPLE.doi);
+console.log("What is the Zenodo DOI:", said);
+if (!said.includes("Jde o") || !said.includes("DataCite")) fail("lookup: the Zenodo DOI is not placed through DataCite: " + said);
+said = await findOut("10.1038/sdata.2016.18");
+console.log("What is the article DOI:", said);
+if (!said.includes("Jde o publikaci") || !said.includes("Crossref")) fail("lookup: the article DOI is not placed as a Crossref publication: " + said);
 
 for (const url of requests) {
   if (!origins.some((allowed) => url.startsWith(allowed + "/"))) fail("request outside the connector allowlist: " + url);

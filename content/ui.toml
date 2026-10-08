@@ -49,11 +49,11 @@ trustUpdated = { cs = "aktualizováno {date}", en = "updated {date}" }
 
 [search]
 label = { cs = "Co hledáte?", en = "What are you looking for?" }
-placeholder = { cs = "Pojem, repozitář, DOI, Handle nebo ORCID", en = "A term, repository, DOI, Handle or ORCID" }
+placeholder = { cs = "Pojem, repozitář, DOI, ORCID nebo re3data", en = "A term, repository, DOI, ORCID or re3data" }
 button = { cs = "Hledat", en = "Search" }
 done = { cs = "Výsledky hledání jsou pod polem.", en = "The search results are below the field." }
 found = { cs = "Nalezeno výsledků: {n}", en = "Results found: {n}" }
-identifierHint = { cs = "Rozpoznán identifikátor {type}. Stiskněte Enter a vyberte, co s ním udělat.", en = "This looks like a {type}. Press Enter to choose what to do with it." }
+identifierHint = { cs = "Rozpoznáno: {type}. Stiskněte Enter a vyberte, co dál.", en = "Recognised: {type}. Press Enter to choose what to do with it." }
 none = { cs = "Nic nenalezeno. Zkuste jiné slovo, nebo projděte cestu níže.", en = "Nothing found. Try another word, or follow the path below." }
 localOnly = { cs = "Hledáno jen v obsahu průvodce; nic neodešlo.", en = "Searched in the guide's own content only; nothing was sent." }
 notSent = { cs = "Zatím jsme nic neodeslali. Služby se zeptáme, až akci vyberete.", en = "Nothing has been sent yet. A service is asked only when you choose an action." }
@@ -63,6 +63,49 @@ nma = { cs = "Vyhledat v Národním metadatovém adresáři", en = "Search the N
 verify = { cs = "Ověřit identifikátor {id}", en = "Verify the identifier {id}" }
 checkUrl = { cs = "Zkontrolovat stránku datové sady", en = "Check the dataset page" }
 more = { cs = "Zobrazit vše ({n})", en = "Show all ({n})" }
+findOut = { cs = "Zjistit, co to je", en = "Find out what it is" }
+findingOut = { cs = "Zjišťujeme, co identifikátor označuje…", en = "Finding out what the identifier denotes…" }
+is = { cs = "Jde o {kind}.", en = "This is {kind}." }
+by = { cs = "zdroj: {source}", en = "source: {source}" }
+maturity = { cs = "Zkontrolovat zralost repozitáře", en = "Check the repository's maturity" }
+maturityRe3data = { cs = "Zkontrolovat zralost repozitáře podle záznamu re3data", en = "Check the repository's maturity from its re3data record" }
+openRecord = { cs = "Otevřít záznam", en = "Open the record" }
+fipNanopub = { cs = "Zkontrolovat úplnost FIP z nanopublikace", en = "Check the FIP's completeness from the nanopublication" }
+fipProfile = { cs = "Zkontrolovat úplnost tohoto profilu FIP", en = "Check the completeness of this FIP profile" }
+institution = { cs = "Otevřít sebehodnocení Instituce a správa dat", en = "Open the self-check Institution and data management" }
+openEntry = { cs = "Otevřít {id} v katalogu", en = "Open {id} in the catalogue" }
+inCatalogue = { cs = "{name} v katalogu", en = "{name} in the catalogue" }
+inCatalogueAll = { cs = "Hledat „{q}“ v celém katalogu", en = "Search the whole catalogue for “{q}”" }
+
+[search.basis]
+form = { cs = "Rozpoznáno podle zápisu: {type}.", en = "Recognised by its form: {type}." }
+guide = { cs = "Identifikátor z obsahu průvodce.", en = "An identifier from the guide's own content." }
+catalogue = { cs = "Tuto adresu uvádí katalog průvodce.", en = "The guide's catalogue lists this address." }
+
+[search.idName]
+re3data = { cs = "záznam re3data", en = "re3data record" }
+nanopub = { cs = "nanopublikace FIP", en = "FIP nanopublication" }
+fipProfile = { cs = "profil FIP ve FIP Dashboardu", en = "FIP profile in the FIP Dashboard" }
+nkr = { cs = "záznam Národního katalogu repozitářů", en = "record in the National Repository Catalogue" }
+guide = { cs = "identifikátor průvodce", en = "guide identifier" }
+known = { cs = "adresa z katalogu", en = "address in the catalogue" }
+
+[search.what]
+dataset = { cs = "datovou sadu", en = "a dataset" }
+software = { cs = "software", en = "software" }
+publication = { cs = "publikaci", en = "a publication" }
+repository = { cs = "záznam repozitáře ve FAIRsharing", en = "a repository record in FAIRsharing" }
+fairsharing = { cs = "záznam FAIRsharing", en = "a FAIRsharing record" }
+handle = { cs = "objekt s identifikátorem Handle", en = "an object with a Handle" }
+other = { cs = "jiný druh výstupu", en = "another kind of output" }
+
+[search.lookup]
+unknown = { cs = "Služba, která identifikátor spravuje, ho nezná. Zkontrolujte, zda je zapsaný správně.", en = "The service that manages the identifier does not know it. Check that it is written correctly." }
+failed = { cs = "Nepodařilo se zjistit, co identifikátor označuje. Zkuste to znovu, nebo pokračujte kontrolou datové sady.", en = "We could not find out what the identifier denotes. Try again, or continue with the dataset check." }
+
+[search.note]
+software = { cs = "Software zkontrolujeme jako datovou sadu; některé otázky se na kód hodí jen zčásti.", en = "Software is checked as a dataset; some questions fit code only in part." }
+publication = { cs = "U publikací průvodce nabízí hlavně citaci. Kontrolu datové sady použijte, pokud DOI označuje data.", en = "For publications the guide mainly offers a citation. Use the dataset check if the DOI denotes data." }
 
 [search.kind]
 station = { cs = "Kroky cesty", en = "Steps of the path" }
