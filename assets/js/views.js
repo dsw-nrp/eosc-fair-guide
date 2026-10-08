@@ -599,8 +599,12 @@
       "p",
       { class: "provenance-line" },
       FG.icon("sources"),
-      h("span", null, basis + (latest ? " · " + FG.t("landing.trustUpdated", { date: FG.formatDate(latest) }) : "") + " · "),
-      h("button", { type: "button", class: "button-link", onclick: openDetails }, FG.t("basis.details"))
+      h(
+        "span",
+        null,
+        basis + (latest ? " · " + FG.t("landing.trustUpdated", { date: FG.formatDate(latest) }) : "") + " · ",
+        h("button", { type: "button", class: "button-link", onclick: openDetails }, FG.t("basis.details"))
+      )
     );
   }
 
@@ -642,6 +646,8 @@
     return items.slice().sort((a, b) => sequence.indexOf(a.identifier) - sequence.indexOf(b.identifier));
   }
 
+  /** A station's callouts, framed so they stand out, and closed until the reader opens them: they matter only to
+      some readers, and their question says whether it is theirs. */
   function callouts(station, lens) {
     return FG.refs(station, "hasPart")
       .filter((part) => part["@id"].startsWith("#callout-"))
@@ -649,16 +655,19 @@
         h(
           "aside",
           { class: "callout callout-" + callout.identifier, "aria-label": FG.text(callout.headline) },
-          h("h3", null, FG.span(callout.headline)),
-          callout.text ? h("p", null, FG.span(callout.text)) : null,
-          h(
-            "ol",
-            null,
-            orderedCalloutItems(callout, lens).map((item) =>
-              h("li", null, item.url ? FG.external(item.url, FG.text(item.text)) : FG.span(item.text))
-            )
-          ),
-          FG.helpers && FG.helpers.callout ? FG.helpers.callout(callout) : null
+          details(
+            h("span", null, FG.span(callout.headline)),
+            "callout-" + callout.identifier,
+            callout.text ? h("p", null, FG.span(callout.text)) : null,
+            h(
+              "ol",
+              null,
+              orderedCalloutItems(callout, lens).map((item) =>
+                h("li", null, item.url ? FG.external(item.url, FG.text(item.text)) : FG.span(item.text))
+              )
+            ),
+            FG.helpers && FG.helpers.callout ? FG.helpers.callout(callout) : null
+          )
         )
       );
   }
@@ -709,17 +718,22 @@
           )
         : h("p", null, FG.t("station.empty")),
       steps.length ? details(levelTitle("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
+      details(levelTitle("L2"), "L2", whyContent(entity, items)),
       ai.length
         ? details([FG.icon("ai"), h("span", null, FG.t("station.ai"))], "ai", ai.map((item) => h("p", { class: "tip" }, FG.span(item.text))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline))))
         : null,
-      details(levelTitle("L2"), "L2", whyContent(entity, items)),
       details(levelTitle("L3"), "L3", madeContent(items)),
       provenanceLine(items),
+      terms.length
+        ? h(
+            "section",
+            { class: "station-terms" },
+            h("h2", null, FG.t("station.glossary")),
+            h("ul", { class: "chips" }, terms.map((term) => h("li", null, FG.external(term.url, FG.text(term.name), { class: "chip" }))))
+          )
+        : null,
       callouts(entity, route.lens),
       resources.length ? h("section", null, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards" }, resources.map(resourceCard))) : null,
-      terms.length
-        ? h("section", null, h("h2", null, FG.t("station.glossary")), h("ul", { class: "chips" }, terms.map((term) => h("li", null, FG.external(term.url, FG.text(term.name), { class: "chip" })))))
-        : null,
       h(
         "section",
         null,

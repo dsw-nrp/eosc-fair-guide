@@ -438,6 +438,26 @@ async function axe(page, label) {
   const after = await page.evaluate(() => window.scrollY);
   if (Math.abs(after - before) > 40) fail(`lens switch: the page scrolled from ${before} to ${after}`);
 
+  // A station reads how, why, AI, then sources; its glossary terms come before the callouts and the resources; a
+  // callout stays closed until the reader opens it.
+  {
+    const view = await browser.newPage();
+    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await view.waitForSelector(".station");
+    const keys = await view.locator(".station > details").evaluateAll((all) => all.map((part) => part.dataset.key));
+    if (keys.join(",") !== "L1,L2,ai,L3") fail("station: the parts are not in the order how, why, AI, sources: " + keys.join(","));
+    const at = await view.evaluate(() => {
+      const parts = [...document.querySelector(".station").children];
+      const index = (selector) => parts.findIndex((part) => part.matches(selector));
+      return { terms: index(".station-terms"), callout: index(".callout"), resources: index("section:has(.cards)") };
+    });
+    if (!(at.terms >= 0 && at.terms < at.callout && at.callout < at.resources)) fail("station: the glossary terms are not above the callouts and resources: " + JSON.stringify(at));
+    if (await view.locator(".callout details[open]").count()) fail("station: a callout is open before the reader opens it");
+    await view.locator(".callout summary").first().click();
+    if (!(await view.locator(".callout details[open] ol li").count())) fail("station: an opened callout shows no advice");
+    await view.close();
+  }
+
   // Credit: the station line names sources, not people, and opens the full detail; the footer credits the analysis
   // authors and cites the guide with its compiler as editor; the roles are listed on the about page.
   const provenance = await page.locator(".provenance-line").textContent();

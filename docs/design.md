@@ -582,6 +582,9 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   odpovědi" (pre-fill the answers). Before the mode or profile is chosen, and for a check without public records,
   the saved result alone is offered, as on the self-check overview; loading is not repeated among the saving
   controls.
+- A station reads "Jak na to", "Proč", "AI ve FAIRifikaci", then "Zdroje a vznik obsahu"; the glossary terms follow
+  the provenance line, above the callouts and the resources. Callouts keep their frame but stay closed until the
+  reader opens them: their question says whether they apply.
 
 ### Answers that stay in the browser, and can travel
 
@@ -698,3 +701,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-86 | 2026-10-08 | "Brána NRP" becomes **"Podmínky NRP"** (NRP conditions) in the interface; identifiers stay `gate`. | U |
 | D-87 | 2026-10-08 | **Both exports load back completely**: the state names every identifier entered (DOI or Handle, NKR, re3data, FIP profile) with what it is, and the Markdown summary carries the same state as the JSON-LD, base64-encoded in a hidden comment, instead of only the shared link's answers. A summary from an earlier version still loads its answers. | U |
 | D-88 | 2026-10-08 | **Loading a saved result is a way to start a check**: offered at the top under "Předvyplnit odpovědi" beside the public records, and on its own before the mode or profile is chosen; it leaves the saving controls. | U |
+| D-89 | 2026-10-08 | Station order **how, why, AI, sources**; **glossary terms above** the callouts and resources; **callouts closed** until opened, keeping their frame. The AI part is to be developed with tool links, hints and prompt samples (task 8.21). | U |
