@@ -1,4 +1,4 @@
-// Screenshots of the FAIR data guide at desktop and mobile width, for pull-request previews.
+// Screenshots of the FAIR Data Guide at desktop and mobile width, for pull-request previews.
 // Usage: node tests/page/screenshots.mjs <output-directory> [hash ...]
 
 import { chromium } from "playwright";

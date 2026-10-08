@@ -1,4 +1,4 @@
-/* Core of the FAIR data guide: the knowledge-base index, interface strings, safe DOM building, browser storage and
+/* Core of the FAIR Data Guide: the knowledge-base index, interface strings, safe DOM building, browser storage and
    routing. Every value from the crate or from a live service reaches the page as text; nothing is parsed as HTML. */
 (function () {
   "use strict";

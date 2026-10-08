@@ -1,6 +1,6 @@
 # Design
 
-This document holds the design of the FAIR data guide: its goals, architecture, the decisions behind it with
+This document holds the design of the FAIR Data Guide: its goals, architecture, the decisions behind it with
 the alternatives considered, and the dated decision log. The behaviour is specified in the OpenSpec change
 `eosc-fair-guide`, which moves into this repository's `openspec/` tree at the first release; this document is the
 guide's own, maintained account of the design. Content rules are in [content-model.md](content-model.md).

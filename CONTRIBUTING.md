@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping improve the FAIR data guide. This file describes how changes reach the guide. Content
+Thank you for helping improve the FAIR Data Guide. This file describes how changes reach the guide. Content
 rules are in [docs/content-model.md](docs/content-model.md); design decisions are in
 [docs/design.md](docs/design.md).
 

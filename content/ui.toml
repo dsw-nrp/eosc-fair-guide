@@ -2,7 +2,7 @@
 # docs/content-model.md.
 
 [app]
-title = { cs = "Průvodce FAIR daty", en = "FAIR data guide" }
+title = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }
 tagline = { cs = "Krok za krokem k dohledatelným, přístupným, interoperabilním a opakovaně použitelným datům", en = "Step by step to findable, accessible, interoperable and reusable data" }
 loading = { cs = "Průvodce se načítá.", en = "The guide is loading." }
 skip = { cs = "Přeskočit na obsah", en = "Skip to content" }
@@ -274,7 +274,7 @@ sharedBanner = { cs = "Otevřeli jste odpovědi ze sdíleného odkazu. Vaše vla
 useShared = { cs = "Použít odpovědi z odkazu", en = "Use the answers from the link" }
 keepOwn = { cs = "Ponechat své odpovědi", en = "Keep my own answers" }
 sharedInvalid = { cs = "Odkaz s odpověďmi se nepodařilo přečíst.", en = "The link with answers could not be read." }
-generatedBy = { cs = "Vytvořeno v Průvodci FAIR daty", en = "Made with the FAIR data guide" }
+generatedBy = { cs = "Vytvořeno v Průvodci FAIR daty", en = "Made with the FAIR Data Guide" }
 licenseName = { cs = "Licence neurčena", en = "Licence not specified" }
 licenseText = { cs = "Výsledek vytvořil ten, kdo ho z průvodce uložil; o podmínkách dalšího užití rozhoduje on.", en = "The result was made by the person who saved it from the guide; that person decides on the terms of reuse." }
 

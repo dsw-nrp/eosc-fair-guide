@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this guide, please cite it as below."
 type: software
-title: "Průvodce FAIR daty / FAIR data guide (EOSC CZ)"
+title: "Průvodce FAIR daty / FAIR Data Guide (EOSC CZ)"
 abstract: >-
   An interactive Czech and English guide that leads researchers, data stewards, repository administrators
   and research communities along the path to FAIR data. It builds on the FAIR analysis for the National

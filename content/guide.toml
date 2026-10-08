@@ -5,7 +5,7 @@ version = "0.1.0-dev"
 releaseStatus = "testing"
 testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This guide is in testing. Its content may change, and the EOSC CZ initiative has not agreed it yet." }
 datePublished = 2026-10-08
-name = { cs = "Průvodce FAIR daty", en = "FAIR data guide" }
+name = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }
 description = { cs = "Interaktivní průvodce, který vede výzkumníky, datové stewardy, správce repozitářů a oborové komunity od plánu projektu k FAIR datům. Vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2) a odráží současný stav národních služeb.", en = "An interactive guide that leads researchers, data stewards, repository administrators and research communities from the project plan to FAIR data. It builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2) and reflects the current state of national services." }
 keywords = [
   { cs = "FAIR principy", en = "FAIR principles" },

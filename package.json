@@ -2,7 +2,7 @@
   "name": "eosc-fair-guide",
   "version": "0.1.0-dev",
   "private": true,
-  "description": "Page checks for the EOSC CZ FAIR data guide: rendering, accessibility, links and diagrams.",
+  "description": "Page checks for the EOSC CZ FAIR Data Guide: rendering, accessibility, links and diagrams.",
   "license": "MIT",
   "scripts": {
     "browsers": "playwright install chromium",

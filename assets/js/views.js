@@ -1,4 +1,4 @@
-/* Views of the FAIR data guide: shell, path, principle explorer, resource and repository finders, pages. */
+/* Views of the FAIR Data Guide: shell, path, principle explorer, resource and repository finders, pages. */
 (function () {
   "use strict";
 

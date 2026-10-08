@@ -1,4 +1,4 @@
-// Page checks for the FAIR data guide, run in Chromium with Playwright:
+// Page checks for the FAIR Data Guide, run in Chromium with Playwright:
 // - the page renders from a local file without any external request on load, console error or CSP violation;
 // - every station renders in every lens and language, and so do the other views;
 // - axe finds no WCAG 2.2 A or AA violation in any of those views;

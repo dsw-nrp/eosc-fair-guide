@@ -1,4 +1,4 @@
-// Live checks for the FAIR data guide's self-check, run in Chromium with Playwright against the real services:
+// Live checks for the FAIR Data Guide's self-check, run in Chromium with Playwright against the real services:
 // - a real DOI pre-fills the dataset check from DataCite and the DOI resolver;
 // - a real Handle pre-fills from the Handle resolver;
 // - an identifier that does not exist leaves the items open with a note;

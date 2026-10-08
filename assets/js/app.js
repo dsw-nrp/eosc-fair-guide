@@ -1,4 +1,4 @@
-/* Start-up and rendering of the FAIR data guide. The page makes no request to an external service on load. */
+/* Start-up and rendering of the FAIR Data Guide. The page makes no request to an external service on load. */
 (function () {
   "use strict";
 

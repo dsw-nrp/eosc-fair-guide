@@ -1,4 +1,4 @@
-/* Live connectors of the FAIR data guide. Every call starts from a user action, goes only to a host on the
+/* Live connectors of the FAIR Data Guide. Every call starts from a user action, goes only to a host on the
    allowlist in the page configuration (content/live.toml), times out, and treats the response as data. */
 (function () {
   "use strict";

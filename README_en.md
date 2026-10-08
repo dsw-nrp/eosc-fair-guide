@@ -1,4 +1,4 @@
-# FAIR data guide (EOSC CZ)
+# FAIR Data Guide (EOSC CZ)
 
 An interactive guide that takes researchers, data stewards, repository administrators and research
 communities along the path to FAIR data: from the project plan through choosing a repository, describing and

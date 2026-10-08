@@ -1,4 +1,4 @@
-/* Self-check of the FAIR data guide: a check per lens, answers that admit uncertainty, pre-fill from open sources
+/* Self-check of the FAIR Data Guide: a check per lens, answers that admit uncertainty, pre-fill from open sources
    with its source and date, results that lead back to the path, and exports. No score is computed anywhere.
    Answers stay in the browser: a lookup sends only the identifier the user enters or chooses, and a link with
    answers exists only when the user creates one. */

@@ -1,4 +1,4 @@
-/* Universal search of the FAIR data guide. Text is searched in the guide's own knowledge base as it is typed,
+/* Universal search of the FAIR Data Guide. Text is searched in the guide's own knowledge base as it is typed,
    ignoring diacritics and covering both languages. An identifier is routed to the tool that handles it once the
    search is confirmed. Searching sends nothing anywhere: a service is called only when the user picks an
    identifier result. */
