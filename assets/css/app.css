@@ -2300,6 +2300,89 @@ main p > button {
   font-size: var(--size-small);
 }
 
+/* The catalogue: tabs as a row of links under the title, the current one underlined like the main menu. */
+.catalogue-tabs ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  list-style: none;
+  margin: var(--space-4) 0 var(--space-5);
+  padding: 0 0 var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.catalogue-tabs a {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.catalogue-tabs a:hover {
+  background: var(--surface);
+}
+
+.catalogue-tabs a[aria-current="page"] {
+  background: var(--tint-teal);
+  color: var(--background);
+}
+
+.catalogue-tab > h2 {
+  margin-top: 0;
+}
+
+.catalogue-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--size-small);
+}
+
+.catalogue-table th,
+.catalogue-table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.catalogue-table thead th {
+  white-space: nowrap;
+}
+
+.catalogue-table tbody th {
+  font-weight: 600;
+}
+
+.cited-by,
+.changes .change p {
+  margin: var(--space-2) 0 0;
+}
+
+.changes {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.changes .change {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.changes .change-head {
+  margin: 0;
+}
+
+.json-link {
+  align-self: center;
+  font-size: var(--size-small);
+}
+
+.machine-links li {
+  margin-bottom: var(--space-2);
+}
+
 /* The tools view: one card per tool, its icon beside the name and what it does. */
 .tool-cards {
   list-style: none;

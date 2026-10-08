@@ -256,7 +256,7 @@ class ContentCheckTests(FixtureCase):
         pages = self.root / "content" / "pages.toml"
         title = 'title = { cs = "Stránka", en = "Page" }\n'
         pages.write_text('[[page]]\nid = "lost"\n' + title, encoding="utf-8")
-        self.assertError("menu must be one of tools, about")
+        self.assertError("menu must be one of catalogue, tools, about")
         pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + title, encoding="utf-8")
         self.assertError("missing description")
         described = 'description = { cs = "Co dělá.", en = "What it does." }\n'

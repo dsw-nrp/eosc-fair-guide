@@ -359,7 +359,7 @@ authors = ["Kurt Baumann", "et al."]
 datePublished = 2026-09-18
 
 [[source]]
-id = "fairsharing"
+id = "fairsharing-registry"
 type = "webpage"
 title = "FAIRsharing: a curated, informative and educational resource on data and metadata standards, databases and policies"
 inLanguage = "en"

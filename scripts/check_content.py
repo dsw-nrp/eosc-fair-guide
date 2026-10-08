@@ -636,7 +636,7 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             report.error(f"{kind}:{item_id}", "no provenance action covers this item")
 
 
-PAGE_MENUS = ("tools", "about")
+PAGE_MENUS = ("catalogue", "tools", "about")
 
 
 def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:

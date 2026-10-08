@@ -206,8 +206,8 @@ erDiagram
 
 ### Runtime structure
 
-The shell provides routing by language, lens and station, the language switch, the lens band (shown on the views
-the lens changes), the disclosure levels and the theme. Six features sit inside it: the path, the principle
+The shell provides routing by language, lens and station, the language switch, the lens band (shown on the path
+and the self-check overview; in the catalogue the lens is a resource filter), the disclosure levels and the theme. Six features sit inside it: the path, the principle
 explorer, the self-check, the resource finder, the live check and the freshness badges. They share four services:
 an index over the crate, connectors limited to an allowlist of hosts, a state store (local storage plus a shareable
 link) and export. Self-check gaps link back into the path, and the live check pre-fills self-check answers.
@@ -598,6 +598,13 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 - Every page sits under a main-menu item, declared in its content (`menu`): "Nástroje" (tools) lists the helpers and
   the AI advice as cards and stays current on each of them; "O průvodci" covers the about page and the accessibility
   statement. The content checks refuse a page without a menu item.
+- The catalogue ("Katalog") replaces the separate resource and repository menu items: a row of tabs for resources,
+  repositories, cited sources, glossary terms, FIP profiles, FAIR tests and content changes, each with a search
+  field; the finders' old addresses open their tabs. Cited sources show the stations and checks that cite them;
+  content changes show date, kind and description and leave who and with which tool to the paradata. The lens is a
+  select box among the resource filters, not the band. The page for machines ("Data pro stroje") sits under the
+  catalogue, explains the knowledge base, its profiles and licence, and lists links read from the crate's root; the
+  head carries the typed `describedby` link. Each item gets its JSON link once the API is published (task 8.16).
 
 ### Answers that stay in the browser, and can travel
 
@@ -717,3 +724,5 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-89 | 2026-10-08 | Station order **how, why, AI, sources**; **glossary terms above** the callouts and resources; **callouts closed** until opened, keeping their frame. The AI part is to be developed with tool links, hints and prompt samples (task 8.21). | U |
 | D-90 | 2026-10-08 | **FAIRsharing as a repository source**, found live through DataCite (FAIRsharing's API needs a login): records loaded on request on the repositories page, and the maturity check's registration question answered from re3data and FAIRsharing together. | U |
 | D-91 | 2026-10-08 | **Every page is reachable from the main menu**: a "Nástroje" item with the helpers and the AI advice; "O průvodci" for the about page and the accessibility statement; enforced by the content checks. | U |
+| D-92 | 2026-10-08 | **The catalogue** replaces the resource and repository menu items with tabs for resources, repositories, cited sources, glossary terms, FIP profiles, FAIR tests and content changes; the page for machines sits under it. Content changes name no people; the paradata keep them. | U+S |
+| D-93 | 2026-10-08 | In the catalogue the **lens is a select box** among the resource filters (starting from the reader's lens), not the lens band, which stays on the path and the self-check overview. | U |

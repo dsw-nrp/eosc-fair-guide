@@ -211,7 +211,9 @@
 
   /* ---------------------------------------------------------------- routing */
 
-  const VIEWS = ["path", "check", "explorer", "resources", "repositories", "tools", "page", "selfcheck"];
+  const VIEWS = ["path", "check", "explorer", "catalogue", "resources", "repositories", "tools", "page", "selfcheck"];
+  /* The resource and repository finders are tabs of the catalogue; their own addresses still lead there. */
+  const CATALOGUE_TABS = ["resources", "repositories"];
 
   /** In-page targets that name crate entities, as used by advice actions. */
   FG.entityRoute = function (hash) {
@@ -220,9 +222,9 @@
     if ((match = id.match(/^station-(.+)$/))) return { view: "path", arg: match[1] };
     if ((match = id.match(/^check-(.+)$/))) return { view: "check", arg: match[1] };
     if ((match = id.match(/^page-(.+)$/))) return { view: "page", arg: match[1] };
-    if ((match = id.match(/^resource-(.+)$/))) return { view: "resources", arg: match[1] };
-    if (id === "repositories") return { view: "repositories" };
-    if (id === "resources") return { view: "resources" };
+    if ((match = id.match(/^resource-(.+)$/))) return { view: "catalogue", arg: "resources", extra: match[1] };
+    if (id === "repositories") return { view: "catalogue", arg: "repositories" };
+    if (id === "resources") return { view: "catalogue", arg: "resources" };
     if (id === "ledger") return { view: "explorer" };
     if (id === "path") return { view: "path" };
     return null;
@@ -250,8 +252,19 @@
     if (VIEWS.includes(parts[2])) route.view = parts[2];
     route.arg = parts[3] || null;
     route.extra = parts[4] || null;
+    if (CATALOGUE_TABS.includes(route.view)) Object.assign(route, { view: "catalogue", arg: route.view, extra: route.arg });
     return route;
   };
+
+  /** Text for matching: without diacritics and in lower case. */
+  FG.fold = (value) =>
+    String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
+  /** A language map's Czech and English text together, for matching in either language. */
+  FG.bothLanguages = (value) => FG.textOf(value, "cs").text + " " + FG.textOf(value, "en").text;
 
   FG.href = function (view, arg, overrides) {
     const lang = (overrides && overrides.lang) || FG.state.lang;

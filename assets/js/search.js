@@ -19,12 +19,8 @@
   const URL = /^https:\/\/\S+$/i;
   let index = null;
 
-  const fold = (value) =>
-    String(value || "")
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .toLowerCase();
-  const bothLanguages = (value) => FG.textOf(value, "cs").text + " " + FG.textOf(value, "en").text;
+  const fold = FG.fold;
+  const bothLanguages = FG.bothLanguages;
 
   /** Every searchable entity with its title, the text it is found by, and where it leads. */
   function buildIndex() {
@@ -42,9 +38,9 @@
     }
     for (const entity of FG.graph) {
       const id = String(entity["@id"]);
-      if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description), { href: FG.href("resources", entity.identifier) });
-      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.list(entity.keywords).map((word) => bothLanguages(word)).join(" "), { href: FG.href("repositories") });
-      else if (id.startsWith("#term-") && entity.name && entity.url) add("term", entity.name, "", { url: entity.url });
+      if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description), { href: FG.catalogueHref("resources", entity.identifier) });
+      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.list(entity.keywords).map((word) => bothLanguages(word)).join(" "), { href: FG.catalogueHref("repositories") });
+      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, "", { href: FG.catalogueHref("terms", entity.termCode) });
       else if (id.startsWith("#page-") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
       else if (id.startsWith("#clause-") && entity.text) {
         const principle = FG.principlesOf(entity)[0];

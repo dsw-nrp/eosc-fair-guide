@@ -468,9 +468,12 @@ def build_sources(
     people: dict[str, str],
     names: dict[str, str],
 ) -> None:
-    """Sources; an author given as a person ID becomes a Person entity, any other author stays a name."""
+    """Sources, collected in #sources; an author given as a person ID becomes a Person entity, any other author stays
+    a name."""
+    source_ids = []
     for source in sources:
         entity_id = f"https://doi.org/{source['doi']}" if source.get("doi") else f"#source-{source['id']}"
+        source_ids.append(entity_id)
         authors = source.get("authors", [])
         graph.add(
             {
@@ -491,6 +494,7 @@ def build_sources(
             },
             source["id"],
         )
+    graph.add({"@id": "#sources", "@type": "CreativeWork", "name": "Cited sources", "hasPart": refs(source_ids)})
 
 
 def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
@@ -1204,7 +1208,7 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
         "hasPart": refs([PAGE_FILE]),
         "mentions": refs(
             action_ids
-            + ["#ledger", "#repositories"]
+            + ["#ledger", "#sources", "#repositories"]
             + catalogue_ids
             + snapshot_ids
             + check_ids

@@ -19,6 +19,7 @@ explorer = { cs = "Principy", en = "Principles" }
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře", en = "Repositories" }
 tools = { cs = "Nástroje", en = "Tools" }
+catalogue = { cs = "Katalog", en = "Catalogue" }
 about = { cs = "O průvodci", en = "About" }
 stations = { cs = "Zastávky na cestě", en = "Stations on the path" }
 language = { cs = "Jazyk", en = "Language" }
@@ -389,7 +390,7 @@ licence = { cs = "Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.", en =
 accessibility = { cs = "Prohlášení o přístupnosti", en = "Accessibility statement" }
 ai = { cs = "Využití AI", en = "Use of AI" }
 repository = { cs = "Zdrojový kód a data", en = "Source code and data" }
-crate = { cs = "Znalostní báze (RO-Crate)", en = "Knowledge base (RO-Crate)" }
+crate = { cs = "Data pro stroje", en = "Data for machines" }
 logoEu = { cs = "Spolufinancováno Evropskou unií, Operační program Jan Amos Komenský", en = "Co-funded by the European Union, Programme Johannes Amos Comenius" }
 logoEosc = { cs = "EOSC CZ", en = "EOSC CZ" }
 
@@ -430,6 +431,64 @@ delete = { cs = "tlačítkem „Smazat vše, co průvodce uložil“ vedle tohot
 deleteAll = { cs = "Smazat vše, co průvodce uložil", en = "Delete everything the guide stored" }
 confirm = { cs = "Smazat všechny odpovědi a nastavení, které průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the guide stored in this browser? This cannot be undone." }
 deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the guide stored in this browser is deleted." }
+
+[catalogue]
+title = { cs = "Katalog", en = "Catalogue" }
+tabs = { cs = "Části katalogu", en = "Catalogue sections" }
+search = { cs = "Hledat", en = "Search" }
+machinesLink = { cs = "Data pro stroje", en = "Data for machines" }
+citedBy = { cs = "Cituje", en = "Cited by" }
+published = { cs = "vydáno {date}", en = "published {date}" }
+accessed = { cs = "navštíveno {date}", en = "accessed {date}" }
+version = { cs = "verze {version}", en = "version {version}" }
+term = { cs = "Pojem", en = "Term (Czech)" }
+termEn = { cs = "Anglicky", en = "English" }
+onPath = { cs = "Na cestě", en = "On the path" }
+declarations = { cs = "{n} deklarace|{n} deklarace|{n} deklarací", en = "{n} declaration|{n} declarations" }
+created = { cs = "obsah vytvořen", en = "content created" }
+updated = { cs = "obsah upraven", en = "content updated" }
+changedItems = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{n} items" }
+drewOn = { cs = "Podklady", en = "Drew on" }
+
+[catalogue.tab]
+resources = { cs = "Zdroje", en = "Resources" }
+repositories = { cs = "Repozitáře", en = "Repositories" }
+sources = { cs = "Podklady", en = "Cited sources" }
+terms = { cs = "Pojmy", en = "Glossary" }
+fips = { cs = "Profily FIP", en = "FIP profiles" }
+tests = { cs = "Testy FAIR", en = "FAIR tests" }
+actions = { cs = "Změny obsahu", en = "Content changes" }
+
+[catalogue.intro]
+all = { cs = "Vše, z čeho průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the guide builds on and recommends, in one catalogue." }
+sources = { cs = "Publikované dokumenty, stránky a data, ze kterých obsah průvodce vychází, a kde je průvodce cituje.", en = "The published documents, pages and data the guide's content builds on, and where the guide cites them." }
+terms = { cs = "Pojmy otevřené vědy, na které průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the guide links to, taken from Heslář." }
+fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
+tests = { cs = "Automatické testy FAIR Champion, které průvodce používá; každý ověřuje jeden princip.", en = "The FAIR Champion automated tests the guide uses; each checks one principle." }
+actions = { cs = "Kdy a jak se obsah průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
+
+[catalogue.sourceType]
+Report = { cs = "zpráva", en = "report" }
+ScholarlyArticle = { cs = "článek", en = "article" }
+Dataset = { cs = "data", en = "dataset" }
+WebPage = { cs = "webová stránka", en = "web page" }
+DigitalDocument = { cs = "dokument", en = "document" }
+CreativeWork = { cs = "standard", en = "standard" }
+SoftwareSourceCode = { cs = "software", en = "software" }
+PresentationDigitalDocument = { cs = "prezentace", en = "presentation" }
+
+[catalogue.health]
+available = { cs = "funguje", en = "available" }
+degraded = { cs = "funguje omezeně", en = "degraded" }
+unavailable = { cs = "nefunguje", en = "unavailable" }
+
+[machines]
+links = { cs = "Odkazy pro stroje", en = "Links for machines" }
+crate = { cs = "Znalostní báze", en = "Knowledge base" }
+profile = { cs = "Profil", en = "Profile" }
+licence = { cs = "Licence obsahu", en = "Content licence" }
+source = { cs = "Zdrojový kód a data", en = "Source code and data" }
+api = { cs = "Popis API", en = "API description" }
 
 [tools]
 title = { cs = "Nástroje", en = "Tools" }

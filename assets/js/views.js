@@ -1,4 +1,5 @@
-/* Views of the FAIR Data Guide: shell, path, principle explorer, resource and repository finders, pages. */
+/* Views of the FAIR Data Guide: shell, path, principle explorer, the resource and repository finders (tabs of the
+   catalogue, catalogue.js), tools and pages. */
 (function () {
   "use strict";
 
@@ -45,6 +46,18 @@
     const fer = FG.get("#fer-" + url.split("/").pop());
     return { url, fer };
   }
+
+  /** The FIP Dashboard snapshot's date and, while it carries one, its disclaimer. */
+  FG.dashboardNotice = function () {
+    const snapshot = FG.get("#snapshot-fip-dashboard");
+    if (!snapshot) return null;
+    return [
+      h("p", { class: "muted" }, FG.t("finder.snapshot", { date: FG.formatDate(snapshot.dateCreated) })),
+      snapshot.disclaimer ? h("p", { class: "notice" }, h("strong", null, FG.t("finder.disclaimer") + ": "), FG.span(snapshot.disclaimer)) : null,
+    ];
+  };
+
+  FG.verificationBadges = verificationBadges;
 
   function verificationBadges(fer) {
     if (!fer) return [];
@@ -134,13 +147,15 @@
     );
   };
 
-  /* Views whose content the lens changes; the lens band is shown only there. */
-  const LENS_VIEWS = new Set(["path", "selfcheck", "resources"]);
+  /* Views whose content the lens changes; the lens band is shown only there. In the catalogue the lens is one of the
+     resource filters. */
+  const LENS_VIEWS = new Set(["path", "selfcheck"]);
+  const lensChanges = (route) => LENS_VIEWS.has(route.view);
 
   /** The lens switch: four links under the main menu, each shareable, switching in place so roles can be compared
       at the same position; focus stays on the chosen lens. */
   FG.views.lensBand = function (route) {
-    if (!LENS_VIEWS.has(route.view)) return null;
+    if (!lensChanges(route)) return null;
     const icons = (FG.config.icons && FG.config.icons.lens) || {};
     const arg = FG.landingShown(route) ? "start" : route.arg;
     const option = (lens) => {
@@ -183,7 +198,7 @@
     );
   };
 
-  /** The menu item a page sits under: tools or about. */
+  /** The menu item a page sits under: the catalogue, tools or about. */
   const pageMenu = (route) => (route.view === "page" ? (FG.config.pageMenu || {})[route.arg] || "about" : null);
 
   FG.views.nav = function (route) {
@@ -195,8 +210,7 @@
       ["path", station, "nav.path", route.view === "path" && !landing],
       ["selfcheck", null, "nav.selfcheck", route.view === "selfcheck" || route.view === "check"],
       ["explorer", null, "nav.explorer", route.view === "explorer"],
-      ["resources", null, "nav.resources", route.view === "resources"],
-      ["repositories", null, "nav.repositories", route.view === "repositories"],
+      ["catalogue", null, "nav.catalogue", route.view === "catalogue" || pageMenu(route) === "catalogue"],
       ["tools", null, "nav.tools", route.view === "tools" || pageMenu(route) === "tools"],
       ["page", "about", "nav.about", pageMenu(route) === "about"],
     ];
@@ -267,7 +281,7 @@
           h("li", null, h("a", { href: FG.href("page", "accessibility") }, FG.t("footer.accessibility"))),
           h("li", null, h("a", { href: FG.href("page", "about") }, FG.t("footer.ai"))),
           h("li", null, FG.external(root.url, FG.t("footer.repository"))),
-          h("li", null, h("a", { href: "ro-crate-metadata.json" }, FG.t("footer.crate")))
+          h("li", null, h("a", { href: FG.href("page", "machines") }, FG.t("footer.crate")))
         ),
         h("p", null, FG.span(root.usageInfo)),
         h("p", null, FG.span(root.creditText)),
@@ -885,9 +899,10 @@
 
   /* ---------------------------------------------------------------- resource finder */
 
-  const filters = { station: "", type: "", status: "", language: "" };
+  /* The lens filter starts from the reader's lens (null) until they choose another, or all ("") . */
+  const filters = { lens: null, station: "", type: "", status: "", language: "" };
 
-  function select(name, label, options) {
+  function select(name, label, options, current) {
     return h(
       "label",
       null,
@@ -902,59 +917,57 @@
           },
         },
         h("option", { value: "" }, FG.t("finder.all")),
-        options.map(([value, text]) => h("option", { value, selected: filters[name] === value }, text))
+        options.map(([value, text]) => h("option", { value, selected: (current === undefined ? filters[name] : current) === value }, text))
       )
     );
   }
 
-  FG.views.resources = function (route) {
-    if (route.arg && FG.get("#resource-" + route.arg)) filters.station = "";
+  FG.tabs = FG.tabs || {};
+
+  FG.tabs.resources = function (route) {
+    if (route.extra && FG.get("#resource-" + route.extra)) filters.station = "";
     const resources = FG.graph.filter((entity) => entity.resourceType && entity["@id"].startsWith("#resource-"));
+    const lens = filters.lens === null ? route.lens : filters.lens;
     const stationOf = new Map();
     for (const station of FG.stations()) for (const id of FG.refIds(station, "mentions")) stationOf.set(id, (stationOf.get(id) || []).concat(station.identifier));
     const shown = resources.filter(
       (resource) =>
         (!filters.station || (stationOf.get(resource["@id"]) || []).includes(filters.station)) &&
-        lensOf(resource, route.lens) &&
+        (!lens || lensOf(resource, lens)) &&
         (!filters.type || FG.id(resource.resourceType) === filters.type) &&
         (!filters.status || FG.id(resource.serviceStatus) === filters.status) &&
         (!filters.language || FG.list(resource.inLanguage).includes(filters.language))
     );
     const termsOf = (set) => FG.ofType("DefinedTerm").filter((term) => FG.id(term.inDefinedTermSet) === set);
-    return h(
-      "div",
-      { class: "layout wrap" },
+    return [
+      h("h2", null, FG.t("finder.title")),
+      h("p", null, FG.t("finder.intro")),
       h(
-        "section",
-        null,
-        heading(1, null, FG.t("finder.title")),
-        h("p", null, FG.t("finder.intro")),
-        h(
-          "div",
-          { class: "filters" },
-          select("station", FG.t("finder.station"), FG.stations().map((station) => [station.identifier, station.position + " · " + FG.text(station.name)])),
-          select("type", FG.t("finder.type"), termsOf("#resource-types").map((term) => [term["@id"], FG.text(term.name)])),
-          select("status", FG.t("finder.status"), termsOf("#statuses").map((term) => [term["@id"], FG.text(term.name)])),
-          select("language", FG.t("finder.language"), [["cs", "čeština / Czech"], ["en", "angličtina / English"]])
-        ),
-        h("p", { role: "status" }, FG.t("finder.count", { n: shown.length })),
-        h("ul", { class: "cards" }, shown.map(resourceCard)),
-        catalogue()
-      )
-    );
+        "div",
+        { class: "filters" },
+        select("lens", FG.t("nav.lens"), FG.lenses().map((entry) => [entry.audienceType, FG.text(entry.name)]), lens),
+        select("station", FG.t("finder.station"), FG.stations().map((station) => [station.identifier, station.position + " · " + FG.text(station.name)])),
+        select("type", FG.t("finder.type"), termsOf("#resource-types").map((term) => [term["@id"], FG.text(term.name)])),
+        select("status", FG.t("finder.status"), termsOf("#statuses").map((term) => [term["@id"], FG.text(term.name)])),
+        select("language", FG.t("finder.language"), [["cs", "čeština / Czech"], ["en", "angličtina / English"]])
+      ),
+      h("p", { role: "status" }, FG.t("finder.count", { n: shown.length })),
+      h("ul", { class: "cards" }, shown.map(resourceCard)),
+      ferSection(),
+    ];
   };
 
-  function catalogue() {
+  /** The FAIR-enabling resources in the FIP Dashboard snapshot, below the guide's own resources. */
+  function ferSection() {
     const snapshot = FG.get("#snapshot-fip-dashboard");
     const fers = FG.refs(FG.get("#fers"), "hasPart");
     if (!snapshot || !fers.length) return null;
     return h(
       "section",
       { "aria-labelledby": "fers-heading" },
-      h("h2", { id: "fers-heading" }, FG.t("finder.fers")),
+      h("h3", { id: "fers-heading" }, FG.t("finder.fers")),
       h("p", null, FG.t("finder.fersIntro"), " ", FG.external(FG.DASHBOARD, FG.t("finder.openDashboard")), " · ", FG.external(FG.DASHBOARD + "matrix", FG.t("finder.matrix"))),
-      h("p", { class: "muted" }, FG.t("finder.snapshot", { date: FG.formatDate(snapshot.dateCreated) })),
-      snapshot.disclaimer ? h("p", { class: "notice" }, h("strong", null, FG.t("finder.disclaimer") + ": "), FG.span(snapshot.disclaimer)) : null,
+      FG.dashboardNotice(),
       h(
         "ul",
         { class: "cards" },
@@ -998,15 +1011,15 @@
     return repositories.map((repository) => Object.assign(repository, { fairsharing: FG.live.fairsharingOf({ identifiers: repository.identifier, url: repository.url }) }));
   }
 
-  FG.views.repositories = function () {
+  FG.tabs.repositories = function () {
     const repositories = withFairsharing(withNkr(FG.refs(FG.get("#repositories"), "hasPart")));
     const lookup = repositories.map((repository) => ({ identifiers: repository.identifier, url: repository.url }));
     const nkr = FG.live.nkrControls();
     const fairsharing = FG.live.fairsharingControls(lookup);
     const sourceName = (id) => (id === "#repositories-curated" ? FG.t("repositories.curated") : FG.text((FG.get(id) || {}).name).replace(/^Snapshot of /, ""));
     const matches = (repository) => {
-      const haystack = [FG.text(repository.name), ...FG.list(repository.keywords).map((keyword) => (typeof keyword === "string" ? keyword : keyword["@value"]))].join(" ").toLowerCase();
-      return (!repositoryQuery || haystack.includes(repositoryQuery.toLowerCase())) && (!repositoryKind || FG.id(repository.repositoryKind) === repositoryKind);
+      const haystack = FG.fold([FG.text(repository.name), ...FG.list(repository.keywords).map((keyword) => (typeof keyword === "string" ? keyword : keyword["@value"]))].join(" "));
+      return (!repositoryQuery || haystack.includes(FG.fold(repositoryQuery))) && (!repositoryKind || FG.id(repository.repositoryKind) === repositoryKind);
     };
     const shown = repositories
       .filter(matches)
@@ -1017,35 +1030,29 @@
         };
         return order(a) - order(b) || FG.text(a.name).localeCompare(FG.text(b.name));
       });
-    return h(
-      "div",
-      { class: "layout wrap" },
+    return [
+      h("h2", null, FG.t("repositories.title")),
+      h("p", null, FG.t("repositories.intro")),
       h(
-        "section",
-        null,
-        heading(1, null, FG.t("repositories.title")),
-        h("p", null, FG.t("repositories.intro")),
+        "div",
+        { class: "filters" },
+        h("label", null, FG.t("repositories.search"), h("input", { type: "search", value: repositoryQuery, oninput: (event) => { repositoryQuery = event.target.value; FG.renderList("repository-list", shownRepositories); } })),
         h(
-          "div",
-          { class: "filters" },
-          h("label", null, FG.t("repositories.search"), h("input", { type: "search", value: repositoryQuery, oninput: (event) => { repositoryQuery = event.target.value; FG.renderList("repository-list", shownRepositories); } })),
+          "label",
+          null,
+          FG.t("repositories.kind"),
           h(
-            "label",
-            null,
-            FG.t("repositories.kind"),
-            h(
-              "select",
-              { onchange: (event) => { repositoryKind = event.target.value; FG.renderList("repository-list", shownRepositories); } },
-              h("option", { value: "" }, FG.t("finder.all")),
-              KIND_ORDER.map((kind) => h("option", { value: kind, selected: repositoryKind === kind }, FG.termName(kind)))
-            )
-          ),
-          h("div", { class: "filter-actions" }, nkr.button, fairsharing.button)
+            "select",
+            { onchange: (event) => { repositoryKind = event.target.value; FG.renderList("repository-list", shownRepositories); } },
+            h("option", { value: "" }, FG.t("finder.all")),
+            KIND_ORDER.map((kind) => h("option", { value: kind, selected: repositoryKind === kind }, FG.termName(kind)))
+          )
         ),
-        nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null,
-        h("div", { id: "repository-list" }, repositoryList(shown, sourceName))
-      )
-    );
+        h("div", { class: "filter-actions" }, nkr.button, fairsharing.button)
+      ),
+      nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null,
+      h("div", { id: "repository-list" }, repositoryList(shown, sourceName)),
+    ];
 
     function shownRepositories() {
       return repositoryList(repositories.filter(matches), sourceName);
@@ -1139,10 +1146,33 @@
             section.identifier === "credits" ? creditsTable() : null
           )
         ),
+        page.identifier === "machines" ? machineLinks() : null,
         FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier]() : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
       )
     );
   };
+
+  /** What the knowledge base offers machines, read from the crate's own root: the crate, its profiles, the licence and
+      the source; the API joins them once it is published. */
+  function machineLinks() {
+    const root = FG.root;
+    const row = (label, link, note) => h("li", null, h("strong", null, label + ": "), link, note ? h("span", { class: "muted" }, " · " + note) : null);
+    const crateFile = "ro-crate-metadata.json";
+    return h(
+      "section",
+      { "aria-labelledby": "machine-links" },
+      h("h2", { id: "machine-links" }, FG.t("machines.links")),
+      h(
+        "ul",
+        { class: "machine-links" },
+        row(FG.t("machines.crate"), h("a", { href: crateFile, type: "application/ld+json" }, crateFile), "RO-Crate 1.2, JSON-LD"),
+        FG.refs(root, "conformsTo").map((profile) => row(FG.t("machines.profile"), FG.external(FG.id(profile), FG.text(profile.name) || FG.id(profile)))),
+        root.license ? row(FG.t("machines.licence"), FG.external(FG.id(root.license), FG.id(root.license).split("/").pop())) : null,
+        row(FG.t("machines.source"), FG.external(root.url, root.url)),
+        FG.config.api ? row(FG.t("machines.api"), h("a", { href: FG.config.api.description }, FG.config.api.description)) : null
+      )
+    );
+  }
 
   /** Whether a page holds a helper that the page script does not provide yet. */
   function helperComing(page) {

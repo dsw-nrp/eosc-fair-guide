@@ -88,6 +88,53 @@ async function axe(page, label) {
   if (Number(stageWeights[1]) >= Number(stageWeights[0]) || Number(stageWeights[1]) > 400) fail("landing: a stage card's description is as bold as its title: " + stageWeights.join("/"));
   await axe(page, "landing");
 
+  // The catalogue: one menu item with a tab per kind of entity; the finders' old addresses open their tabs; each tab
+  // lists its entries; switching tabs keeps focus on the tab; changes name no people; the page for machines links the
+  // knowledge base, and the head carries the typed link to it.
+  {
+    const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const menu = async () => view.locator(".main-nav a").evaluateAll((links) => links.map((link) => link.textContent.trim()));
+    const current = async () => (await view.locator('.main-nav [aria-current="page"]').textContent()).trim();
+    await view.goto(pageUrl + "#/cs/V/resources");
+    await view.waitForSelector(".catalogue-tabs");
+    const items = await menu();
+    if (!items.includes("Katalog") || items.includes("Zdroje") || items.includes("Repozitáře")) fail("catalogue: the menu does not hold one catalogue item in place of the finders: " + items.join(", "));
+    if ((await current()) !== "Katalog" || (await view.locator('.catalogue-tabs [aria-current="page"]').textContent()) !== "Zdroje") fail("catalogue: the resources address does not open the resources tab");
+    await view.goto(pageUrl + "#repositories");
+    await view.waitForSelector(".catalogue-tabs");
+    if ((await view.locator('.catalogue-tabs [aria-current="page"]').textContent()) !== "Repozitáře") fail("catalogue: an in-page link to the repositories does not open their tab");
+    for (const [tab, selector] of [["sources", ".cards .card"], ["terms", ".catalogue-table tbody tr"], ["fips", ".cards .card"], ["tests", ".cards .card"], ["actions", ".changes .change"]]) {
+      await view.goto(pageUrl + "#/cs/V/catalogue/" + tab);
+      await view.waitForSelector(".catalogue-tabs");
+      if (!(await view.locator(selector).count())) fail(`catalogue: the ${tab} tab lists nothing`);
+      if ((await view.locator('.catalogue-tabs [aria-current="page"]').getAttribute("data-tab")) !== tab) fail(`catalogue: the ${tab} tab is not marked current`);
+    }
+    await view.goto(pageUrl + "#/cs/V/catalogue/sources");
+    await view.waitForSelector(".catalogue-tabs");
+    const analysis = await view.locator(".card", { hasText: "Analýza a návrh postupů" }).textContent();
+    if (!analysis.includes("1 · Plán") || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis does not list the stations and checks that cite it");
+    await view.locator('.catalogue-tabs a[data-tab="terms"]').click();
+    await view.waitForSelector(".catalogue-table");
+    if ((await view.evaluate(() => document.activeElement && document.activeElement.dataset.tab)) !== "terms") fail("catalogue: switching tabs does not keep focus on the tab");
+    const allTerms = await view.locator(".catalogue-table tbody tr").count();
+    await view.locator("#catalogue-search").fill("licence");
+    const someTerms = await view.locator(".catalogue-table tbody tr").count();
+    if (!(someTerms > 0 && someTerms < allTerms) || !(await view.locator(".catalogue-table").textContent()).includes("otevřená licence")) fail("catalogue: searching the glossary does not narrow it");
+    if (!(await view.locator(".catalogue-table tbody tr th").first().textContent()).match(/^[^[(]/)) fail("catalogue: the glossary does not sort past leading brackets");
+    await view.goto(pageUrl + "#/cs/V/catalogue/actions");
+    await view.waitForSelector(".changes");
+    const changes = await view.locator(".changes").textContent();
+    if (/Novák|Claude/.test(changes)) fail("catalogue: the content changes name people or tools");
+    const drewOn = await view.locator(".change", { hasText: "FAIRsharing" }).first().textContent();
+    if ((drewOn.match(/FAIRsharing/g) || []).length > 4) fail("catalogue: a change lists one source more than once: " + drewOn);
+    await view.goto(pageUrl + "#/cs/V/page/machines");
+    await view.waitForSelector("#main h1");
+    if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");
+    if (!(await view.locator('.machine-links a[href="ro-crate-metadata.json"]').count())) fail("machines: the page does not link the knowledge base");
+    if (!(await view.locator('head link[rel="describedby"][href="ro-crate-metadata.json"]').count())) fail("machines: the head does not carry the describedby link");
+    await view.close();
+  }
+
   // Every page sits under a menu item: the tools view lists the helpers and the AI page, and its item stays current
   // on each of them; the about item covers the about page and the accessibility statement.
   {
@@ -233,6 +280,7 @@ async function axe(page, label) {
   for (const lang of ["cs", "en"]) {
     for (const lens of lenses) for (const station of stations) views.push(`#/${lang}/${lens}/path/${station}`);
     for (const view of ["explorer", "resources", "repositories", "tools", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
+    for (const tab of ["sources", "terms", "fips", "tests", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
     for (const check of checks) views.push(`#/${lang}/${check.lens}/check/${check.id}`);
     for (const principle of principles.slice(0, 3)) views.push(`#/${lang}/K/explorer/${principle}`);
     for (const id of pages) views.push(`#/${lang}/V/page/${id}`);
@@ -573,7 +621,7 @@ async function axe(page, label) {
   }
 
   // The lens band appears only where the lens changes what is shown; in the resource finder it is the lens filter.
-  for (const hash of ["#/cs/V/explorer", "#/cs/V/repositories", "#/cs/V/page/about", "#/cs/V/check/dataset"]) {
+  for (const hash of ["#/cs/V/explorer", "#/cs/V/repositories", "#/cs/V/resources", "#/cs/V/page/about", "#/cs/V/check/dataset"]) {
     await go(hash);
     if (await page.locator(".lens-band").count()) fail("lens band: shown where the lens changes nothing: " + hash);
   }
@@ -581,12 +629,16 @@ async function axe(page, label) {
   if (!(await page.locator(".lens-band").count())) fail("lens band: missing on the self-check overview");
   const cornerOffsets = await page.locator(".check-card").evaluateAll((cards) => cards.map((card) => { const box = card.getBoundingClientRect(); const button = card.querySelector(".check-card-action a").getBoundingClientRect(); return Math.round(box.bottom - button.bottom) + "/" + Math.round(box.right - button.right); }));
   if (new Set(cornerOffsets).size !== 1) fail("overview: the check cards' buttons are not in the same corner: " + cornerOffsets.join(" "));
+  // In the catalogue the lens is a filter of the resources, starting from the reader's lens.
   await go("#/cs/V/resources");
-  if (await page.locator('.filters select[name="lens"]').count()) fail("finder: a second lens filter is shown beside the band");
+  const lensFilter = page.locator('.filters select[name="lens"]');
+  if ((await lensFilter.count()) !== 1 || (await lensFilter.inputValue()) !== "V") fail("finder: the lens filter is missing or does not start from the reader's lens");
   const researcherCount = await page.locator(".cards").first().locator("> li").count();
-  await page.locator('.lens-option[data-lens="DS"]').click();
-  await lensShown(page, "DS");
-  if ((await page.locator(".cards").first().locator("> li").count()) === researcherCount) fail("finder: the lens band does not filter the resources");
+  await lensFilter.selectOption("DS");
+  if ((await page.locator(".cards").first().locator("> li").count()) === researcherCount) fail("finder: the lens filter does not filter the resources");
+  await page.locator('.filters select[name="lens"]').selectOption("");
+  if ((await page.locator(".cards").first().locator("> li").count()) < researcherCount) fail("finder: all lenses do not show at least the researcher's resources");
+  await page.locator('.filters select[name="lens"]').selectOption("V");
 
   // A shared link opens as a preview in a browser without the answers, and can be adopted.
   await go("#/cs/V/check/dataset");

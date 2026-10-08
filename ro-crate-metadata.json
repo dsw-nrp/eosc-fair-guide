@@ -243,6 +243,9 @@
           "@id": "#ledger"
         },
         {
+          "@id": "#sources"
+        },
+        {
           "@id": "#repositories"
         },
         {
@@ -325,6 +328,9 @@
         },
         {
           "@id": "#page-ai"
+        },
+        {
+          "@id": "#page-machines"
         }
       ]
     },
@@ -1730,9 +1736,9 @@
       "name": "FAIRsharing"
     },
     {
-      "@id": "#source-fairsharing",
+      "@id": "#source-fairsharing-registry",
       "@type": "WebPage",
-      "identifier": "fairsharing",
+      "identifier": "fairsharing-registry",
       "name": "FAIRsharing: a curated, informative and educational resource on data and metadata standards, databases and policies",
       "inLanguage": "en",
       "url": "https://fairsharing.org/",
@@ -2066,6 +2072,190 @@
         "@id": "#org-nrp"
       },
       "sdDatePublished": "2026-10-08"
+    },
+    {
+      "@id": "#sources",
+      "@type": "CreativeWork",
+      "name": "Cited sources",
+      "hasPart": [
+        {
+          "@id": "https://doi.org/10.71495/5dv6-v116"
+        },
+        {
+          "@id": "#source-nrp-conditions-3.4"
+        },
+        {
+          "@id": "#source-nrp-docs-nma-introduction"
+        },
+        {
+          "@id": "#source-nrp-docs-nma-access"
+        },
+        {
+          "@id": "#source-nrp-docs-nma-riv"
+        },
+        {
+          "@id": "#source-nrp-docs-nma-export"
+        },
+        {
+          "@id": "#source-nrp-docs-compute"
+        },
+        {
+          "@id": "#source-nkr-schema"
+        },
+        {
+          "@id": "#source-survey-2025"
+        },
+        {
+          "@id": "https://doi.org/10.1007/s00249-025-01789-1"
+        },
+        {
+          "@id": "#source-knav-type-t"
+        },
+        {
+          "@id": "#source-os3-call"
+        },
+        {
+          "@id": "#source-ncdoi-2023"
+        },
+        {
+          "@id": "https://doi.org/10.5281/zenodo.21726258"
+        },
+        {
+          "@id": "#source-os-linkages-1.1"
+        },
+        {
+          "@id": "#source-ccmm-releases"
+        },
+        {
+          "@id": "#source-dsw-nrp"
+        },
+        {
+          "@id": "#source-dmp-eosc"
+        },
+        {
+          "@id": "https://doi.org/10.71495/scvx-yn57"
+        },
+        {
+          "@id": "https://doi.org/10.71495/hxfc-6f57"
+        },
+        {
+          "@id": "#source-ds-personas"
+        },
+        {
+          "@id": "https://doi.org/10.71495/x3e9-mf73"
+        },
+        {
+          "@id": "#source-repo-recommendations"
+        },
+        {
+          "@id": "#source-repo-integration"
+        },
+        {
+          "@id": "#source-copyright-licences"
+        },
+        {
+          "@id": "#source-deposit-licence"
+        },
+        {
+          "@id": "#source-ethical-seven"
+        },
+        {
+          "@id": "#source-aai-sensitive"
+        },
+        {
+          "@id": "#source-einfra-docs"
+        },
+        {
+          "@id": "#source-cerit-aiaas"
+        },
+        {
+          "@id": "#source-eosc-training"
+        },
+        {
+          "@id": "#source-eosc-working-groups"
+        },
+        {
+          "@id": "#source-eosc-data-stewards"
+        },
+        {
+          "@id": "#source-os2-project"
+        },
+        {
+          "@id": "#source-eosc-acknowledgement"
+        },
+        {
+          "@id": "#source-pid-centre"
+        },
+        {
+          "@id": "#source-nma"
+        },
+        {
+          "@id": "https://doi.org/10.5281/zenodo.22831063"
+        },
+        {
+          "@id": "#source-fairsharing-registry"
+        },
+        {
+          "@id": "https://doi.org/10.48440/re3.010"
+        },
+        {
+          "@id": "#source-cdif-1.1"
+        },
+        {
+          "@id": "#source-fair-signposting"
+        },
+        {
+          "@id": "#source-schema-org-dataset"
+        },
+        {
+          "@id": "#source-datacite-schema"
+        },
+        {
+          "@id": "#source-force11-citation"
+        },
+        {
+          "@id": "#source-fair-champion"
+        },
+        {
+          "@id": "#source-ostrails-cli"
+        },
+        {
+          "@id": "#source-fair-impact-catalogue"
+        },
+        {
+          "@id": "#source-fip-wizard-templates"
+        },
+        {
+          "@id": "#source-fip-ontology"
+        },
+        {
+          "@id": "#source-coretrustseal"
+        },
+        {
+          "@id": "#source-heslar"
+        },
+        {
+          "@id": "#source-ddrapp"
+        },
+        {
+          "@id": "#source-dataspecer"
+        },
+        {
+          "@id": "https://doi.org/10.1038/sdata.2016.18"
+        },
+        {
+          "@id": "https://doi.org/10.14473/CSDA/OJTMJF"
+        },
+        {
+          "@id": "#source-fip-dashboard"
+        },
+        {
+          "@id": "#source-cessda-dmeg"
+        },
+        {
+          "@id": "#source-datarepo"
+        }
+      ]
     },
     {
       "@id": "#lens-V",
@@ -40347,6 +40537,147 @@
       "name": "ai"
     },
     {
+      "@id": "#page-machines-1",
+      "@type": "CreativeWork",
+      "headline": [
+        {
+          "@value": "Znalostní báze",
+          "@language": "cs"
+        },
+        {
+          "@value": "Knowledge base",
+          "@language": "en"
+        }
+      ],
+      "text": [
+        {
+          "@value": "Celý obsah průvodce je jedna znalostní báze ve formátu RO-Crate 1.2: principy a požadavky Analýzy FAIR, zastávky a rady, kontroly, zdroje, repozitáře, citované podklady, pojmy a paradata o tom, jak obsah vznikal. Stránka průvodce je zároveň jejím náhledem pro lidi.",
+          "@language": "cs"
+        },
+        {
+          "@value": "All of the guide's content is one knowledge base in RO-Crate 1.2: the principles and requirements of the FAIR analysis, the stations and their advice, the checks, resources, repositories, cited sources, glossary terms and the paradata on how the content came about. The guide's page is also its preview for people.",
+          "@language": "en"
+        }
+      ],
+      "position": 1,
+      "isPartOf": {
+        "@id": "#page-machines"
+      },
+      "name": [
+        {
+          "@value": "Znalostní báze",
+          "@language": "cs"
+        },
+        {
+          "@value": "Knowledge base",
+          "@language": "en"
+        }
+      ]
+    },
+    {
+      "@id": "#page-machines-2",
+      "@type": "CreativeWork",
+      "headline": [
+        {
+          "@value": "Profil a ověření",
+          "@language": "cs"
+        },
+        {
+          "@value": "Profile and validation",
+          "@language": "en"
+        }
+      ],
+      "text": [
+        {
+          "@value": "Báze odpovídá profilu průvodce, který popisuje typy záznamů a jejich vlastnosti, a profilu Process Run Crate pro paradata. Validátor RO-Crate ji proti nim ověřuje při každé změně.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The knowledge base conforms to the guide's profile, which describes the record types and their properties, and to the Process Run Crate profile for the paradata. The RO-Crate validator checks it against them on every change.",
+          "@language": "en"
+        }
+      ],
+      "position": 2,
+      "isPartOf": {
+        "@id": "#page-machines"
+      },
+      "name": [
+        {
+          "@value": "Profil a ověření",
+          "@language": "cs"
+        },
+        {
+          "@value": "Profile and validation",
+          "@language": "en"
+        }
+      ]
+    },
+    {
+      "@id": "#page-machines-3",
+      "@type": "CreativeWork",
+      "headline": [
+        {
+          "@value": "Jak ji stroje najdou",
+          "@language": "cs"
+        },
+        {
+          "@value": "How machines find it",
+          "@language": "en"
+        }
+      ],
+      "text": [
+        {
+          "@value": "Hlavička každé stránky průvodce nese typovaný odkaz describedby na znalostní bázi, takže ji harvestery a validátory najdou bez znalosti adresy. Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The head of every page of the guide carries a typed describedby link to the knowledge base, so harvesters and validators find it without knowing its address. The content is licensed under CC BY 4.0, the code under MIT.",
+          "@language": "en"
+        }
+      ],
+      "position": 3,
+      "isPartOf": {
+        "@id": "#page-machines"
+      },
+      "name": [
+        {
+          "@value": "Jak ji stroje najdou",
+          "@language": "cs"
+        },
+        {
+          "@value": "How machines find it",
+          "@language": "en"
+        }
+      ]
+    },
+    {
+      "@id": "#page-machines",
+      "@type": "CreativeWork",
+      "identifier": "machines",
+      "headline": [
+        {
+          "@value": "Data pro stroje",
+          "@language": "cs"
+        },
+        {
+          "@value": "Data for machines",
+          "@language": "en"
+        }
+      ],
+      "hasPart": [
+        {
+          "@id": "#page-machines-1"
+        },
+        {
+          "@id": "#page-machines-2"
+        },
+        {
+          "@id": "#page-machines-3"
+        }
+      ],
+      "name": "machines"
+    },
+    {
       "@id": "#action-2026-10-08-content-model-sample",
       "@type": "CreateAction",
       "name": "Content model sample",
@@ -42228,9 +42559,6 @@
           "@id": "#resource-re3data"
         },
         {
-          "@id": "#source-fairsharing"
-        },
-        {
           "@id": "#resource-fairsharing"
         },
         {
@@ -42626,14 +42954,9 @@
           "@id": "#instrument-claude-code"
         }
       ],
-      "object": [
-        {
-          "@id": "#source-fairsharing"
-        },
-        {
-          "@id": "#resource-fairsharing"
-        }
-      ],
+      "object": {
+        "@id": "#source-fairsharing-registry"
+      },
       "result": {
         "@id": "#item-S18"
       },

@@ -94,3 +94,20 @@ body = { cs = "AI pomůže s návrhem textů plánu správy dat, se skripty pro 
 [[page.section]]
 heading = { cs = "Tři pravidla", en = "Three rules" }
 body = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které je neposílají mimo infrastrukturu, například AI v e-INFRA CZ (CERIT).\n\nIdentifikátory (ORCID, DOI, ROR) a hesla si vždy ověřte; AI je umí vymyslet.\n\nUveďte, kde a jak jste AI použili.", en = "Put unpublished and sensitive data only into services that keep them within the infrastructure, such as AI in e-INFRA CZ (CERIT).\n\nAlways verify identifiers (ORCID, DOI, ROR) and subject terms; AI can make them up.\n\nState where and how you used AI." }
+
+[[page]]
+id = "machines"
+menu = "catalogue"
+title = { cs = "Data pro stroje", en = "Data for machines" }
+
+[[page.section]]
+heading = { cs = "Znalostní báze", en = "Knowledge base" }
+body = { cs = "Celý obsah průvodce je jedna znalostní báze ve formátu RO-Crate 1.2: principy a požadavky Analýzy FAIR, zastávky a rady, kontroly, zdroje, repozitáře, citované podklady, pojmy a paradata o tom, jak obsah vznikal. Stránka průvodce je zároveň jejím náhledem pro lidi.", en = "All of the guide's content is one knowledge base in RO-Crate 1.2: the principles and requirements of the FAIR analysis, the stations and their advice, the checks, resources, repositories, cited sources, glossary terms and the paradata on how the content came about. The guide's page is also its preview for people." }
+
+[[page.section]]
+heading = { cs = "Profil a ověření", en = "Profile and validation" }
+body = { cs = "Báze odpovídá profilu průvodce, který popisuje typy záznamů a jejich vlastnosti, a profilu Process Run Crate pro paradata. Validátor RO-Crate ji proti nim ověřuje při každé změně.", en = "The knowledge base conforms to the guide's profile, which describes the record types and their properties, and to the Process Run Crate profile for the paradata. The RO-Crate validator checks it against them on every change." }
+
+[[page.section]]
+heading = { cs = "Jak ji stroje najdou", en = "How machines find it" }
+body = { cs = "Hlavička každé stránky průvodce nese typovaný odkaz describedby na znalostní bázi, takže ji harvestery a validátory najdou bez znalosti adresy. Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.", en = "The head of every page of the guide carries a typed describedby link to the knowledge base, so harvesters and validators find it without knowing its address. The content is licensed under CC BY 4.0, the code under MIT." }

@@ -74,6 +74,6 @@ name = "Repository registration checked in FAIRsharing"
 description = "The question whether a repository is registered in re3data and FAIRsharing is answered from the re3data snapshot together with a FAIRsharing record found through its DataCite DOI, which lists the repository's re3data record."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["fairsharing"]
+objects = ["fairsharing-registry"]
 results = ["S18"]
 endTime = 2026-10-08T23:10:00+02:00
