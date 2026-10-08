@@ -19,7 +19,10 @@ pageUrl = "https://motyc.github.io/eosc-fair-guide/"
 vocabularyBase = "https://motyc.github.io/eosc-fair-guide/terms#"
 profile = "https://motyc.github.io/eosc-fair-guide/profile/0.1"
 freshnessDays = 180
-authors = ["david-novak"]
+# The guide is compiled and developed by its editors; the authors of its content basis are credited on the
+# sources it is based on (isBasedOn).
+editors = ["david-novak"]
+reviewers = ["david-novak"]
 contributors = []
 publisher = "cesnet"
 funder = "nrp"
@@ -32,6 +35,36 @@ id = "david-novak"
 name = "David Novák"
 orcid = "https://orcid.org/0000-0001-6592-6291"
 affiliation = ["knav", "aru-praha"]
+
+[[person]]
+id = "ilona-trtikova"
+name = "Ilona Trtíková"
+orcid = "https://orcid.org/0000-0001-6491-2947"
+
+[[person]]
+id = "petra-bartkova"
+name = "Petra Bártková"
+orcid = "https://orcid.org/0000-0001-6484-4710"
+
+[[person]]
+id = "lada-biedermannova"
+name = "Lada Biedermannová"
+orcid = "https://orcid.org/0000-0001-6504-6403"
+
+[[person]]
+id = "jindrich-fejfar"
+name = "Jindřich Fejfar"
+orcid = "https://orcid.org/0000-0002-2048-3682"
+
+[[person]]
+id = "robert-pergl"
+name = "Robert Pergl"
+orcid = "https://orcid.org/0000-0003-2980-4400"
+
+[[person]]
+id = "tomas-cizek"
+name = "Tomáš Čížek"
+orcid = "https://orcid.org/0000-0001-7734-2947"
 
 [[organization]]
 id = "knav"

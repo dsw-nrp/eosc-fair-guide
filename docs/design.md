@@ -538,7 +538,11 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 - The provenance line on a station says only what the content is based on, its date and a link to the details;
   the statement on AI use and human review lives in the details and on the about page.
 - The footer gives the full citation of the guide as software (editor, title, version, year, publisher,
-  repository) next to the credit for the analysis, instead of a bare "compiled by".
+  repository) next to the credit for the analysis, instead of a bare "compiled by". The about page lists the roles
+  (authors of the analysis, compilation and development, editorial review, tools, funding) in a table generated
+  from the guide's metadata, and each station ends its levels with one sources line that opens the full detail.
+- `CITATION.cff` credits the guide's software, with its author, because the format has no top-level editor role;
+  its message points to the guide's citation with the editor role, and the analysis is listed under `references`.
 - The station rail gets simple top and bottom rules so it does not float; the legend for the self-check marks is
   set apart and aligned with the icon column.
 
@@ -655,3 +659,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-79 | 2026-10-08 | The **landing is its own first menu item** ("Úvod" / "Home"); the path item opens the station the visitor was last at (the first station on a first visit). | U |
 | D-80 | 2026-10-08 | The stage mark appears **only after a stage is chosen** and reads "Vybráno" with the date of the last visit; the stage can be **changed on the path** in a "Vaše fáze" switch above the stations, replacing the "Začít jinde" link, because the choice decides where the path menu item leads. | U |
 | D-81 | 2026-10-08 | **Every external link opens in a new tab** (the header logo included, which previously replaced the embedding page); a page check enforces it on every view. | U |
+| D-82 | 2026-10-08 | **Credit model implemented:** analysis authors as people with ORCID iDs on the analysis, the guide's editors and reviewers in its metadata, the crate's root naming editors and no author, a roles table on the about page and a sources line per station. `CITATION.cff` keeps the maintainer as the software's author, since the format has no top-level editor role, and its message points to the guide's citation. | U+S |

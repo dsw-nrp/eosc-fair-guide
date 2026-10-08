@@ -754,6 +754,43 @@ details > summary .icon {
   color: var(--tint-teal);
 }
 
+/* The quiet line under a station's levels on what its content is based on. */
+.provenance-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: var(--space-4) 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--size-small);
+}
+
+.provenance-line .button-link {
+  font-size: inherit;
+}
+
+.credits {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-3) 0;
+  font-size: var(--size-small);
+}
+
+.credits th,
+.credits td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.credits tbody th {
+  font-weight: 600;
+  width: 40%;
+}
+
 /* Links in running text: dotted underline, solid on hover. */
 main :is(p, li, td) > a:not([class]) {
   text-decoration-style: dotted;

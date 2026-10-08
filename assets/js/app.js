@@ -46,7 +46,8 @@
       if (control) control.focus({ preventScroll: true });
       FG.focusSelector = null;
     } else if (FG.focusAfterRender) {
-      const target = main.querySelector("h1") || main;
+      const anchor = route.extra ? main.querySelector("#" + CSS.escape(route.extra)) : null;
+      const target = anchor || main.querySelector("h1") || main;
       target.focus({ preventScroll: false });
     }
     FG.focusAfterRender = true;

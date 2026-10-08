@@ -703,9 +703,15 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
         for lens in help_route.get("lenses", []):
             if lens not in vocab["lenses"]:
                 report.error(f"help:{help_route.get('id')}", f"unknown lens '{lens}'")
-    for person in guide.get("authors", []) + guide.get("contributors", []):
+    for person in guide.get("editors", []) + guide.get("reviewers", []) + guide.get("contributors", []):
         if person not in vocab["people"]:
             report.error("guide", f"unknown person '{person}'")
+    if not guide.get("editors"):
+        report.error("guide", "the guide needs at least one editor")
+    for source in content["sources"]:
+        for author in source.get("authors", []):
+            if " " not in author and author not in vocab["people"]:
+                report.error(f"source:{source.get('id')}", f"unknown person '{author}'")
     organization_ids = {organization["id"] for organization in guide_file.get("organization", [])}
     for person in guide_file.get("person", []):
         for organization in person.get("affiliation", []):

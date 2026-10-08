@@ -41,7 +41,6 @@ tasks = { cs = "Co potřebujete udělat?", en = "What do you need to do?" }
 helpRoute = { cs = "Nevíte si rady?", en = "Not sure what to do?" }
 dashboardRoute = { cs = "Hledáte konkrétní standard nebo službu?", en = "Looking for a specific standard or service?" }
 trustBasis = { cs = "Obsah vychází z", en = "The content builds on" }
-trustLink = { cs = "Analýzy FAIR pro NRP/NDI v1.2", en = "the FAIR analysis for NRP/NDI, version 1.2" }
 trustAuthors = { cs = "{author} a kol.", en = "{author} et al." }
 trustPrivacy = { cs = "nic, co zadáte, neodchází z prohlížeče bez vašeho kliknutí", en = "nothing you enter leaves your browser unless you click" }
 trustUpdated = { cs = "aktualizováno {date}", en = "updated {date}" }
@@ -290,7 +289,9 @@ title = { cs = "Kdo vám poradí", en = "Who can help" }
 
 [footer]
 version = { cs = "Verze {version} ze dne {date}", en = "Version {version} of {date}" }
-cite = { cs = "Jak citovat", en = "How to cite" }
+cite = { cs = "Jak citovat průvodce", en = "How to cite the guide" }
+basis = { cs = "Obsah vychází z", en = "The content builds on" }
+credits = { cs = "Kdo se podílel", en = "Who contributed" }
 licence = { cs = "Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.", en = "Content is licensed under CC BY 4.0, code under MIT." }
 accessibility = { cs = "Prohlášení o přístupnosti", en = "Accessibility statement" }
 ai = { cs = "Využití AI", en = "Use of AI" }
@@ -298,6 +299,27 @@ repository = { cs = "Zdrojový kód a data", en = "Source code and data" }
 crate = { cs = "Znalostní báze (RO-Crate)", en = "Knowledge base (RO-Crate)" }
 logoEu = { cs = "Spolufinancováno Evropskou unií, Operační program Jan Amos Komenský", en = "Co-funded by the European Union, Programme Johannes Amos Comenius" }
 logoEosc = { cs = "EOSC CZ", en = "EOSC CZ" }
+
+[basis]
+analysis = { cs = "Analýzy FAIR pro NRP/NDI v1.2", en = "the FAIR analysis for NRP/NDI, version 1.2" }
+onlyAnalysis = { cs = "Vychází z {analysis}", en = "Based on {analysis}" }
+withOthers = { cs = "Vychází z {analysis} a dalších zdrojů ({n})", en = "Based on {analysis} and other sources ({n})" }
+sources = { cs = "Vychází ze zdrojů ({n})", en = "Based on sources ({n})" }
+details = { cs = "Podrobnosti", en = "Details" }
+
+[cite]
+editor = { cs = "ed.", en = "ed." }
+version = { cs = "verze {v}", en = "version {v}" }
+software = { cs = "software", en = "software" }
+
+[credits]
+role = { cs = "Role", en = "Role" }
+who = { cs = "Kdo", en = "Who" }
+analysis = { cs = "Autoři obsahového základu: {work}", en = "Authors of the content basis: {work}" }
+editor = { cs = "Sestavení a vývoj průvodce (editor)", en = "Compilation and development of the guide (editor)" }
+review = { cs = "Redakční kontrola", en = "Editorial review" }
+tools = { cs = "Nástroje použité při přípravě, včetně AI", en = "Tools used in preparation, AI included" }
+funding = { cs = "Financování", en = "Funding" }
 
 [common]
 newWindow = { cs = "otevře se v nové kartě", en = "opens in a new tab" }

@@ -207,11 +207,46 @@
     );
   };
 
+  /** "Ilona Trtíková" as "Trtíková, I." */
+  function citedName(name) {
+    const parts = String(name).trim().split(/\s+/);
+    const family = parts.pop();
+    return parts.length ? family + ", " + parts.map((part) => part.charAt(0) + ".").join(" ") : family;
+  }
+
+  const yearOf = (date) => String(date || "").slice(0, 4);
+
+  /** A published work cited with its authors, year, title, version and link. */
+  function citeWork(work) {
+    const people = FG.refs(work, "author");
+    const names = people.length ? people.map((person) => person.name) : String(work.creditText || "").split(";").filter(Boolean);
+    return [
+      names.map(citedName).join(", "),
+      " (" + yearOf(work.datePublished) + "). ",
+      h("em", null, FG.text(work.name)),
+      work.version ? ", " + FG.t("cite.version", { v: work.version }) : "",
+      ". ",
+      work.url ? FG.external(work.url, work.url) : null,
+    ];
+  }
+
+  /** The guide cited as software, with its compiler as editor. */
+  function citeGuide(root) {
+    const editors = FG.refs(root, "editor").map((person) => citedName(person.name));
+    const publisher = FG.get(root.publisher);
+    return [
+      editors.join(", ") + (editors.length ? " (" + FG.t("cite.editor") + ")" : ""),
+      " (" + yearOf(root.datePublished) + "). ",
+      h("em", null, FG.text(root.name)),
+      ", " + FG.t("cite.version", { v: root.version }) + " [" + FG.t("cite.software") + "]. ",
+      publisher ? FG.text(publisher.name) + ". " : "",
+      FG.external(root.url, root.url),
+    ];
+  }
+
   FG.views.footer = function () {
     const root = FG.root;
-    const authors = FG.refs(root, "author").map((person) => person.name).join(", ");
-    const year = String(root.datePublished || "").slice(0, 4);
-    const citation = `${authors} (${year}). ${FG.text(root.name)}, ${FG.state.lang === "cs" ? "verze" : "version"} ${root.version}. ${root.url}`;
+    const analysis = FG.refs(root, "isBasedOn")[0];
     return h(
       "footer",
       { class: "site-footer" },
@@ -219,7 +254,8 @@
         "div",
         { class: "wrap" },
         h("p", null, FG.t("footer.version", { version: FG.config.version, date: FG.formatDate(FG.config.datePublished) })),
-        h("p", null, h("strong", null, FG.t("footer.cite") + ": "), citation),
+        analysis ? h("p", null, h("strong", null, FG.t("footer.basis") + ": "), citeWork(analysis)) : null,
+        h("p", null, h("strong", null, FG.t("footer.cite") + ": "), citeGuide(root), " · ", h("a", { href: FG.href("page", "about") + "/credits" }, FG.t("footer.credits"))),
         h("p", null, FG.t("footer.licence")),
         h(
           "ul",
@@ -432,7 +468,7 @@
       "p",
       { class: "trust" },
       FG.t("landing.trustBasis") + " ",
-      analysis ? FG.external(analysis.url, FG.t("landing.trustLink")) : FG.t("landing.trustLink"),
+      analysis ? FG.external(analysis.url, FG.t("basis.analysis")) : FG.t("basis.analysis"),
       firstAuthor ? " (" + FG.t("landing.trustAuthors", { author: firstAuthor }) + ")" : "",
       " · " + FG.t("landing.trustPrivacy"),
       " · " + FG.t("landing.trustUpdated", { date: FG.formatDate(FG.config.datePublished) })
@@ -480,6 +516,7 @@
     return h(
       "details",
       {
+        "data-key": key,
         open: FG.openLevels.has(key),
         ontoggle: (event) => (event.target.open ? FG.openLevels.add(key) : FG.openLevels.delete(key)),
       },
@@ -518,8 +555,8 @@
     ];
   }
 
-  function madeContent(items) {
-    const ids = new Set(items.map((item) => item["@id"]));
+  /** The published sources the given items cite, through their clauses. */
+  function sourcesOf(items) {
     const sources = [];
     for (const item of items) {
       for (const clause of FG.refs(item, "citation")) {
@@ -527,9 +564,49 @@
         if (source && !sources.includes(source)) sources.push(source);
       }
     }
-    const actions = FG.graph.filter(
-      (entity) => /Action$/.test(FG.list(entity["@type"])[0]) && FG.refIds(entity, "result").some((id) => ids.has(id))
+    return sources;
+  }
+
+  /** The provenance actions that produced or changed the given items. */
+  function actionsOf(items) {
+    const ids = new Set(items.map((item) => item["@id"]));
+    return FG.graph.filter((entity) => /Action$/.test(FG.list(entity["@type"])[0]) && FG.refIds(entity, "result").some((id) => ids.has(id)));
+  }
+
+  /** One quiet line on what a station's content is based on and when it last changed, without person names. */
+  function provenanceLine(items) {
+    const sources = sourcesOf(items);
+    const analysis = FG.refs(FG.root, "isBasedOn")[0];
+    const others = sources.filter((source) => source !== analysis).length;
+    const basis = sources.includes(analysis)
+      ? others
+        ? FG.t("basis.withOthers", { analysis: FG.t("basis.analysis"), n: others })
+        : FG.t("basis.onlyAnalysis", { analysis: FG.t("basis.analysis") })
+      : FG.t("basis.sources", { n: sources.length });
+    const latest = actionsOf(items)
+      .map((action) => String(action.endTime || ""))
+      .sort()
+      .pop();
+    const openDetails = () => {
+      const level = document.querySelector('details[data-key="L3"]');
+      if (!level) return;
+      level.open = true;
+      FG.openLevels.add("L3");
+      level.scrollIntoView({ block: "start" });
+      level.querySelector("summary").focus({ preventScroll: true });
+    };
+    return h(
+      "p",
+      { class: "provenance-line" },
+      FG.icon("sources"),
+      h("span", null, basis + (latest ? " · " + FG.t("landing.trustUpdated", { date: FG.formatDate(latest) }) : "") + " · "),
+      h("button", { type: "button", class: "button-link", onclick: openDetails }, FG.t("basis.details"))
     );
+  }
+
+  function madeContent(items) {
+    const sources = sourcesOf(items);
+    const actions = actionsOf(items);
     return [
       h("h3", null, FG.t("station.sources")),
       h("ul", null, sources.map((source) => h("li", null, source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name)))),
@@ -634,6 +711,7 @@
         : null,
       details(levelTitle("L2"), "L2", whyContent(entity, items)),
       details(levelTitle("L3"), "L3", madeContent(items)),
+      provenanceLine(items),
       callouts(entity, route.lens),
       resources.length ? h("section", null, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards" }, resources.map(resourceCard))) : null,
       terms.length
@@ -943,6 +1021,35 @@
 
   /* ---------------------------------------------------------------- pages */
 
+  /** The roles behind the guide, from the guide's metadata. */
+  function creditsTable() {
+    const who = (entry) => {
+      const name = FG.text(entry.name) || String(entry.name);
+      return entry.url ? FG.external(entry.url, name) : name;
+    };
+    return h(
+      "table",
+      { class: "credits" },
+      h("thead", null, h("tr", null, h("th", { scope: "col" }, FG.t("credits.role")), h("th", { scope: "col" }, FG.t("credits.who")))),
+      h(
+        "tbody",
+        null,
+        FG.list(FG.config.credits).map((credit) =>
+          h(
+            "tr",
+            null,
+            h("th", { scope: "row" }, FG.t("credits." + credit.role, { work: credit.work || "" })),
+            h(
+              "td",
+              null,
+              credit.people.map((entry, index) => [index ? ", " : "", who(entry)])
+            )
+          )
+        )
+      )
+    );
+  }
+
   FG.views.page = function (route) {
     const page = FG.get("#page-" + route.arg) || FG.get("#page-about");
     const sections = FG.refs(page, "hasPart").sort(FG.byPosition);
@@ -953,7 +1060,15 @@
         "article",
         null,
         heading(1, null, FG.span(page.headline)),
-        sections.map((section) => h("section", null, section.headline ? h("h2", null, FG.span(section.headline)) : null, FG.paragraphs(section.text))),
+        sections.map((section) =>
+          h(
+            "section",
+            section.identifier ? { id: section.identifier, tabindex: "-1" } : null,
+            section.headline ? h("h2", null, FG.span(section.headline)) : null,
+            FG.paragraphs(section.text),
+            section.identifier === "credits" ? creditsTable() : null
+          )
+        ),
         FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier]() : null
       )
     );

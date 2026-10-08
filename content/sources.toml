@@ -9,7 +9,8 @@ inLanguage = "cs"
 doi = "10.71495/5dv6-v116"
 url = "https://doi.org/10.71495/5dv6-v116"
 publisher = "cesnet"
-authors = ["Ilona Trtíková", "Petra Bártková", "Lada Biedermannová", "Jindřich Fejfar", "Robert Pergl", "David Novák", "Tomáš Čížek"]
+version = "1.2"
+authors = ["ilona-trtikova", "petra-bartkova", "lada-biedermannova", "jindrich-fejfar", "robert-pergl", "david-novak", "tomas-cizek"]
 datePublished = 2026-02-15
 license = "https://creativecommons.org/licenses/by/4.0/"
 

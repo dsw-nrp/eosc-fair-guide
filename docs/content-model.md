@@ -142,7 +142,8 @@ once, in their original language, with `inLanguage`.
 | | `vocabularyBase` | URL | Namespace of the guide's own terms (see *Crate mapping*) |
 | | `profile` | URL | IRI of the guide's RO-Crate profile in `profile/fair-guide/`; its version ends the IRI |
 | | `freshnessDays` | integer | Age after which a status is reported as stale |
-| | `authors`, `contributors` | list of IDs | People from `[[person]]` |
+| | `editors` | list of IDs | People who compile and develop the guide; the guide's citation names them as editors (at least one) |
+| | `reviewers`, `contributors` | list of IDs | People who review the texts, and other contributors |
 | | `publisher`, `funder` | ID | Organisations from `[[organization]]` |
 | | `isBasedOn` | list of IDs | Sources the guide refreshes (the FAIR analysis) |
 | | `acknowledgement`, `aiStatement` | text | Mandatory NRP acknowledgement; statement on AI use |
@@ -169,8 +170,9 @@ once, in their original language, with `inLanguage`.
 ### `sources.toml`
 
 `[[source]]`: `id`, `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
-`presentation`), `title`, `inLanguage`, `url`, `doi` (without the resolver), `publisher` (name), `authors`
-(list of names), `datePublished` or `dateAccessed`, `license` (URL).
+`presentation`), `title`, `version`, `inLanguage`, `url`, `doi` (without the resolver), `publisher` (name),
+`authors`, `datePublished` or `dateAccessed`, `license` (URL). An author is a person ID from `guide.toml`, which
+puts the person (with their ORCID iD) into the crate, or a plain name.
 
 ### `ledger.toml`
 
@@ -286,7 +288,8 @@ check reports an icon that is named but not vendored.
 
 ### `pages.toml` and `ui.toml`
 
-`[[page]]`: `id`, `title`, `[[page.section]]` with `heading` and `body` (text). `ui.toml` holds interface strings
+`[[page]]`: `id`, `title`, `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section
+`credits` on the about page carries the roles table, generated from the guide's metadata. `ui.toml` holds interface strings
 as nested tables of texts, for example `[nav] stations = { cs = "Zastávky", en = "Stations" }`.
 
 ## Crate mapping

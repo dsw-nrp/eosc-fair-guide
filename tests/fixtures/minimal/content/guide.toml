@@ -12,7 +12,7 @@ pageUrl = "https://example.org/guide/"
 vocabularyBase = "https://example.org/terms#"
 profile = "https://example.org/profile/0.1"
 freshnessDays = 180
-authors = ["tester"]
+editors = ["tester"]
 publisher = "org"
 acknowledgement = { cs = "Poděkování.", en = "Acknowledgement." }
 aiStatement = { cs = "Prohlášení o AI.", en = "AI statement." }

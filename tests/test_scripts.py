@@ -219,6 +219,39 @@ class ContentCheckTests(FixtureCase):
         )
         self.assertError("unknown lens 'X'")
 
+    def test_guide_needs_an_editor(self) -> None:
+        self.edit("guide.toml", 'editors = ["tester"]', "editors = []")
+        self.assertError("the guide needs at least one editor")
+
+    def test_source_author_id_must_be_a_person(self) -> None:
+        self.edit("sources.toml", 'title = "Test report"', 'title = "Test report"\nauthors = ["nobody-known"]')
+        self.assertError("unknown person 'nobody-known'")
+
+    def test_credit_separates_basis_from_compilation(self) -> None:
+        self.edit(
+            "sources.toml", 'title = "Test report"', 'title = "Test report"\nauthors = ["tester", "Other Author"]'
+        )
+        self.edit("guide.toml", 'editors = ["tester"]', 'editors = ["tester"]\nisBasedOn = ["report"]')
+        self.assertEqual(self.errors(), [])
+        content = build_crate.load_content(self.root / "content")
+        graph = {entity["@id"]: entity for entity in build_crate.build_crate(content)["@graph"]}
+        root = graph["./"]
+        self.assertNotIn("author", root)
+        self.assertEqual(root["editor"], {"@id": "#person-tester"})
+        report = next(entity for entity in graph.values() if entity.get("identifier") == "report")
+        self.assertEqual(report["author"], {"@id": "#person-tester"})
+        self.assertEqual(report["creditText"], "Test Person; Other Author")
+        credits = build_crate.page_config(content)["config"]["credits"]
+        self.assertEqual([credit["role"] for credit in credits], ["analysis", "editor", "tools"])
+        self.edit("guide.toml", 'publisher = "org"', 'publisher = "org"\nfunder = "org"')
+        funding = build_crate.page_config(build_crate.load_content(self.root / "content"))["config"]["credits"][-1]
+        self.assertEqual(funding["role"], "funding")
+        self.assertEqual(
+            funding["people"][0]["name"],
+            [{"@value": "Test Organisation", "@language": lang} for lang in build_crate.LANGS],
+        )
+        self.assertEqual(credits[0]["people"], [{"name": "Test Person", "url": None}, {"name": "Other Author"}])
+
     def test_page_url_must_use_https(self) -> None:
         self.edit("guide.toml", 'pageUrl = "https://example.org/guide/"', 'pageUrl = "http://example.org/guide/"')
         self.assertError("the page URL must use HTTPS")

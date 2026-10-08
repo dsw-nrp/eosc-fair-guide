@@ -461,9 +461,17 @@ def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
         )
 
 
-def build_sources(graph: Graph, sources: list[dict[str, Any]], organizations: dict[str, str]) -> None:
+def build_sources(
+    graph: Graph,
+    sources: list[dict[str, Any]],
+    organizations: dict[str, str],
+    people: dict[str, str],
+    names: dict[str, str],
+) -> None:
+    """Sources; an author given as a person ID becomes a Person entity, any other author stays a name."""
     for source in sources:
         entity_id = f"https://doi.org/{source['doi']}" if source.get("doi") else f"#source-{source['id']}"
+        authors = source.get("authors", [])
         graph.add(
             {
                 "@id": entity_id,
@@ -474,7 +482,9 @@ def build_sources(graph: Graph, sources: list[dict[str, Any]], organizations: di
                 "inLanguage": source.get("inLanguage"),
                 "url": source.get("url"),
                 "publisher": organization_ref(graph, organizations, source.get("publisher")),
-                "creditText": "; ".join(source.get("authors", [])) or None,
+                "version": source.get("version"),
+                "author": refs([people[author] for author in authors if author in people]),
+                "creditText": "; ".join(names.get(author, author) for author in authors) or None,
                 "datePublished": iso(source["datePublished"]) if source.get("datePublished") else None,
                 "sdDatePublished": iso(source["dateAccessed"]) if source.get("dateAccessed") else None,
                 "license": source.get("license"),
@@ -1044,6 +1054,7 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
                 {
                     "@id": section_id,
                     "@type": "CreativeWork",
+                    "identifier": section.get("id"),
                     "headline": text(section.get("heading")),
                     "text": text(section["body"]),
                     "position": number,
@@ -1120,7 +1131,8 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
     build_instruments(graph, guide_file)
     build_terms(graph, vocabulary_base)
     build_principles(graph, content["principles"])
-    build_sources(graph, content["sources"], organizations)
+    names = {person["id"]: person["name"] for person in guide_file.get("person", [])}
+    build_sources(graph, content["sources"], organizations, people, names)
     build_vocabularies(graph, guide_file)
     build_glossary(graph, content["glossary"])
     build_ledger(graph, content["ledger"])
@@ -1174,7 +1186,7 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
         "url": guide.get("url"),
         "keywords": text(guide.get("keywords")),
         "license": ref(LICENSES["CC-BY-4.0"][0]),
-        "author": refs([people[person] for person in guide.get("authors", [])]),
+        "editor": refs([people[person] for person in guide.get("editors", [])]),
         "contributor": refs([people[person] for person in guide.get("contributors", [])]),
         "publisher": ref(organizations[guide["publisher"]]) if guide.get("publisher") else None,
         "funder": ref(organizations[guide["funder"]]) if guide.get("funder") else None,
@@ -1214,6 +1226,46 @@ def script_json(value: Any) -> str:
     return serialised
 
 
+def build_credits(content: dict[str, Any]) -> list[dict[str, Any]]:
+    """The roles shown on the about page: who wrote the content basis, who compiled and reviewed the guide, the
+    tools used and the funding."""
+    guide_file = content["guide"]
+    guide = guide_file["guide"]
+    persons = {person["id"]: person for person in guide_file.get("person", [])}
+    sources = {source["id"]: source for source in content["sources"]}
+    organizations = {organization["id"]: organization for organization in guide_file.get("organization", [])}
+
+    def person(entry: str) -> dict[str, Any]:
+        found = persons.get(entry)
+        return {"name": found["name"], "url": found.get("orcid")} if found else {"name": entry}
+
+    credits: list[dict[str, Any]] = [
+        {
+            "role": "analysis",
+            "work": sources[source]["title"],
+            "people": [person(a) for a in sources[source].get("authors", [])],
+        }
+        for source in guide.get("isBasedOn", [])
+        if source in sources
+    ]
+    credits.append({"role": "editor", "people": [person(entry) for entry in guide.get("editors", [])]})
+    credits.append({"role": "review", "people": [person(entry) for entry in guide.get("reviewers", [])]})
+    used = {tool for action in content["provenance"] for tool in action.get("instruments", [])}
+    tools = [tool for tool in guide_file.get("instrument", []) if tool["id"] in used]
+    credits.append({"role": "tools", "people": [{"name": tool["name"], "url": tool.get("url")} for tool in tools]})
+    funding = []
+    project = organizations.get(guide.get("funder", ""))
+    while project:
+        name = project["name"]
+        label = name if isinstance(name, dict) else dict.fromkeys(LANGS, name)
+        if project.get("identifier"):
+            label = {lang: f"{value} ({project['identifier']})" for lang, value in label.items()}
+        funding.append({"name": text(label), "url": project.get("url")})
+        project = organizations.get(project.get("funder", ""))
+    credits.append({"role": "funding", "people": funding})
+    return [credit for credit in credits if credit["people"]]
+
+
 def page_config(content: dict[str, Any]) -> dict[str, Any]:
     guide = content["guide"]["guide"]
     live = content["live"]
@@ -1248,6 +1300,7 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
                     if data["station"].get("icon")
                 },
             },
+            "credits": build_credits(content),
             "tasks": [
                 {key: task[key] for key in ("lens", "label", "href", "icon") if key in task}
                 for task in content["guide"].get("task", [])

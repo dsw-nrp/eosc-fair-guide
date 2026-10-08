@@ -23,7 +23,7 @@ const lensShown = (page, lens) => page.waitForFunction((expected) => {
   const current = document.querySelector('.lens-option[aria-current="true"]');
   return current && current.dataset.lens === expected;
 }, lens);
-const pages = graph.filter((e) => String(e["@id"]).startsWith("#page-") && e.identifier).map((e) => e.identifier);
+const pages = graph.filter((e) => String(e["@id"]).startsWith("#page-") && e.identifier && !e.isPartOf).map((e) => e.identifier);
 const principles = graph.filter((e) => String(e["@id"]).startsWith("https://w3id.org/fair/principles/terms/") && e.termCode).map((e) => e.termCode);
 const checks = graph.filter((e) => e["@type"] === "Quiz").map((e) => ({ id: e.identifier, lens: [].concat(e.audience)[0]["@id"].replace("#lens-", "") }));
 const failures = [];
@@ -165,6 +165,8 @@ async function axe(page, label) {
     await axe(page, hash);
     // The page shell holds elements only; a view part that is absent leaves no stray text.
     if (await page.evaluate(() => [...document.getElementById("app").childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()))) fail(`${hash}: stray text in the page shell`);
+    // No value reaches the page unformatted.
+    if (/\[object Object\]|\bundefined\b/.test(await page.locator("#app").innerText())) fail(`${hash}: an unformatted value is shown`);
     // Every external link opens in a new tab.
     const sameTab = await page.evaluate(() => [...document.querySelectorAll('a[href^="http"]')].filter((link) => link.target !== "_blank" || !/noopener/.test(link.rel)).map((link) => link.href));
     if (sameTab.length) fail(`${hash}: external links that do not open in a new tab: ${[...new Set(sameTab)].slice(0, 5).join(", ")}`);
@@ -298,6 +300,22 @@ async function axe(page, label) {
   const after = await page.evaluate(() => window.scrollY);
   if (Math.abs(after - before) > 40) fail(`lens switch: the page scrolled from ${before} to ${after}`);
 
+  // Credit: the station line names sources, not people, and opens the full detail; the footer credits the analysis
+  // authors and cites the guide with its compiler as editor; the roles are listed on the about page.
+  const provenance = await page.locator(".provenance-line").textContent();
+  if (!provenance.includes("Analýzy FAIR") || /Novák|Trtíková/.test(provenance)) fail("station: the provenance line is not a sources-only line: " + provenance);
+  await page.locator(".provenance-line button").click();
+  if (!(await page.locator('details[data-key="L3"][open]').count())) fail("station: the provenance line does not open the sources and paradata");
+  const basis = await page.locator(".site-footer p", { hasText: "Obsah vychází z" }).textContent();
+  if (!basis.includes("Trtíková, I.") || !basis.includes("Čížek, T.") || !basis.includes("verze 1.2") || !basis.includes("doi.org/10.71495/5dv6-v116")) fail("footer: the analysis is not cited with its authors: " + basis);
+  const guideCitation = await page.locator(".site-footer p", { hasText: "Jak citovat průvodce" }).textContent();
+  if (!guideCitation.includes("Novák, D. (ed.)") || !guideCitation.includes("[software]")) fail("footer: the guide is not cited as software with its editor: " + guideCitation);
+  await page.locator(".site-footer a", { hasText: "Kdo se podílel" }).click();
+  await page.waitForFunction(() => document.activeElement && document.activeElement.id === "credits");
+  const roles = await page.locator(".credits tbody th").allTextContents();
+  if (roles.length !== 5 || !roles[0].includes("Autoři obsahového základu") || !roles[1].includes("editor")) fail("about: the roles table is incomplete: " + roles.join(" | "));
+  if (!(await page.locator('.credits a[href="https://orcid.org/0000-0001-6491-2947"]').count())) fail("about: the analysis authors do not link their ORCID iDs");
+  await go("#/cs/SR/path/licence");
 
   // The header logo leads to the EOSC CZ home page; the title opens the path's start.
   if ((await page.locator(".brand a").first().getAttribute("href")) !== "https://www.eosc.cz/") fail("header: the EOSC CZ logo does not link to its home page");

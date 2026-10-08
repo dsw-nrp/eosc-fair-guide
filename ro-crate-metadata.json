@@ -124,7 +124,7 @@
       "license": {
         "@id": "https://spdx.org/licenses/CC-BY-4.0"
       },
-      "author": {
+      "editor": {
         "@id": "https://orcid.org/0000-0001-6592-6291"
       },
       "publisher": {
@@ -393,6 +393,36 @@
           "@id": "https://ror.org/0287jta43"
         }
       ]
+    },
+    {
+      "@id": "https://orcid.org/0000-0001-6491-2947",
+      "@type": "Person",
+      "name": "Ilona Trtíková"
+    },
+    {
+      "@id": "https://orcid.org/0000-0001-6484-4710",
+      "@type": "Person",
+      "name": "Petra Bártková"
+    },
+    {
+      "@id": "https://orcid.org/0000-0001-6504-6403",
+      "@type": "Person",
+      "name": "Lada Biedermannová"
+    },
+    {
+      "@id": "https://orcid.org/0000-0002-2048-3682",
+      "@type": "Person",
+      "name": "Jindřich Fejfar"
+    },
+    {
+      "@id": "https://orcid.org/0000-0003-2980-4400",
+      "@type": "Person",
+      "name": "Robert Pergl"
+    },
+    {
+      "@id": "https://orcid.org/0000-0001-7734-2947",
+      "@type": "Person",
+      "name": "Tomáš Čížek"
     },
     {
       "@id": "#instrument-claude-opus-5-5",
@@ -1165,6 +1195,30 @@
       "publisher": {
         "@id": "https://ror.org/050dkka69"
       },
+      "version": "1.2",
+      "author": [
+        {
+          "@id": "https://orcid.org/0000-0001-6491-2947"
+        },
+        {
+          "@id": "https://orcid.org/0000-0001-6484-4710"
+        },
+        {
+          "@id": "https://orcid.org/0000-0001-6504-6403"
+        },
+        {
+          "@id": "https://orcid.org/0000-0002-2048-3682"
+        },
+        {
+          "@id": "https://orcid.org/0000-0003-2980-4400"
+        },
+        {
+          "@id": "https://orcid.org/0000-0001-6592-6291"
+        },
+        {
+          "@id": "https://orcid.org/0000-0001-7734-2947"
+        }
+      ],
       "creditText": "Ilona Trtíková; Petra Bártková; Lada Biedermannová; Jindřich Fejfar; Robert Pergl; David Novák; Tomáš Čížek",
       "datePublished": "2026-02-15",
       "license": "https://creativecommons.org/licenses/by/4.0/"
@@ -39507,23 +39561,24 @@
     {
       "@id": "#page-about-3",
       "@type": "CreativeWork",
+      "identifier": "credits",
       "headline": [
         {
-          "@value": "Kdo průvodce připravil",
+          "@value": "Kdo se na průvodci podílel",
           "@language": "cs"
         },
         {
-          "@value": "Who made the guide",
+          "@value": "Who contributed to the guide",
           "@language": "en"
         }
       ],
       "text": [
         {
-          "@value": "Průvodce připravil David Novák (Knihovna AV ČR a Archeologický ústav AV ČR, Praha) jako výstup klíčové aktivity 5.1 projektu Národní repozitářová platforma. Odborným základem je analýza autorů Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák a Tomáš Čížek. Texty projde redakce týmu.",
+          "@value": "Průvodce je výstupem klíčové aktivity 5.1 projektu Národní repozitářová platforma. Jeho obsah vychází z Analýzy FAIR pro NRP/NDI a dalších publikovaných zdrojů; průvodce je sestavuje, doplňuje o současný stav služeb a převádí do cesty a kontrol. Proto citace průvodce uvádí jeho sestavovatele jako editora a autory analýzy uvádí zvlášť.",
           "@language": "cs"
         },
         {
-          "@value": "The guide was made by David Novák (Library of the Czech Academy of Sciences and Institute of Archaeology of the Czech Academy of Sciences, Prague) as an output of key activity 5.1 of the National Repository Platform project. Its expert basis is the analysis by Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák and Tomáš Čížek. The team will edit the texts.",
+          "@value": "The guide is an output of key activity 5.1 of the National Repository Platform project. Its content builds on the FAIR analysis for NRP/NDI and other published sources; the guide compiles them, brings them up to date with the current state of services and turns them into a path and checks. That is why the guide's citation names its compiler as editor and credits the authors of the analysis separately.",
           "@language": "en"
         }
       ],
@@ -39531,16 +39586,7 @@
       "isPartOf": {
         "@id": "#page-about"
       },
-      "name": [
-        {
-          "@value": "Kdo průvodce připravil",
-          "@language": "cs"
-        },
-        {
-          "@value": "Who made the guide",
-          "@language": "en"
-        }
-      ]
+      "name": "credits"
     },
     {
       "@id": "#page-about-4",
