@@ -71,6 +71,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 ```bash
 python scripts/build_crate.py           # regenerate the crate, the page blocks and the preview copy
 python scripts/build_crate.py --check   # fail if committed output differs from regenerated output
+python scripts/build_crate.py --sizes   # what the page downloads, compressed; every build warns above the page budget
 python scripts/check_content.py         # content contract (--base <ref> also checks paradata freshness)
 python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script
 python scripts/refresh_snapshots.py     # refresh the re3data, Heslář and FIP Dashboard snapshots (scheduled job)

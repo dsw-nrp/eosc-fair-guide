@@ -11,15 +11,18 @@ Reads ``content/**/*.toml`` and writes:
 - ``ro-crate-preview.html``: a copy of the page, which is the crate's HTML preview.
 
 With ``--check`` nothing is written; the script exits with status 1 and shows a diff when the committed output
-differs from the regenerated output. Uses only the Python standard library. The content model is documented in
-``docs/content-model.md``.
+differs from the regenerated output. Either way it warns when what the page downloads, compressed, exceeds the page
+budget; ``--sizes`` prints what the page downloads. Uses only the Python standard library. The content model is
+documented in ``docs/content-model.md``.
 """
 
 from __future__ import annotations
 
 import argparse
 import difflib
+import gzip
 import json
+import os
 import re
 import sys
 import tomllib
@@ -35,6 +38,10 @@ PAGE_FILE = "index.html"
 PREVIEW_FILE = "ro-crate-preview.html"
 KB_SCRIPT = "assets/data/kb.js"
 UI_SCRIPT = "assets/data/ui.js"
+# What the page may download before any user action, gzip-compressed: the page, its scripts and its stylesheets.
+# Above it the build warns, so that loading parts on demand is decided on a measurement.
+PAGE_BUDGET_KB = 300
+PAGE_ASSET = re.compile(r'<script src="(?P<script>[^"]+)"|<link rel="stylesheet" href="(?P<style>[^"]+)"')
 
 RO_CRATE = "https://w3id.org/ro/crate/1.2"
 PROCESS_RUN_CRATE = "https://w3id.org/ro/wfrun/process/0.5"
@@ -1544,9 +1551,32 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     }
 
 
+def page_payload(generated: dict[str, str], root: Path = ROOT) -> dict[str, int]:
+    """Compressed bytes of each file the page loads, read from the page's own script and stylesheet tags; a file the
+    build generates is measured as generated."""
+    page = generated[PAGE_FILE]
+    files = [PAGE_FILE] + [match.group("script") or match.group("style") for match in PAGE_ASSET.finditer(page)]
+    sizes = {}
+    for name in files:
+        text = generated[name] if name in generated else (root / name).read_text(encoding="utf-8")
+        sizes[name] = len(gzip.compress(text.encode("utf-8"), compresslevel=9, mtime=0))
+    return sizes
+
+
+def payload_warning(sizes: dict[str, int], budget_kb: int) -> str | None:
+    """The warning for a page over its budget, naming the largest parts; None within the budget."""
+    total = sum(sizes.values())
+    if total <= budget_kb * 1024:
+        return None
+    largest = sorted(sizes.items(), key=lambda item: -item[1])[:3]
+    parts = ", ".join(f"{name} {size / 1024:.0f} KB" for name, size in largest)
+    return f"the page downloads {total / 1024:.0f} KB compressed, over its budget of {budget_kb} KB; largest: {parts}"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true", help="compare instead of writing; exit 1 on differences")
+    parser.add_argument("--sizes", action="store_true", help="print what the page downloads, compressed")
     args = parser.parse_args(argv)
     try:
         generated = outputs()
@@ -1575,6 +1605,16 @@ def main(argv: list[str] | None = None) -> int:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(value, encoding="utf-8", newline="\n")
             print(f"wrote {name}")
+    sizes = page_payload(generated)
+    if args.sizes:
+        for name, size in sorted(sizes.items(), key=lambda item: -item[1]):
+            print(f"{size / 1024:8.1f} KB  {name}")
+        print(f"{sum(sizes.values()) / 1024:8.1f} KB  total compressed (budget {PAGE_BUDGET_KB} KB)")
+    warning = payload_warning(sizes, PAGE_BUDGET_KB)
+    if warning:
+        print(f"warning: {warning}", file=sys.stderr)
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            print(f"::warning title=Page size::{warning}")
     if stale:
         print(f"build_crate: out of date: {', '.join(stale)}; run python scripts/build_crate.py", file=sys.stderr)
         return 1

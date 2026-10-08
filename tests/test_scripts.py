@@ -128,6 +128,16 @@ class GeneratorTests(FixtureCase):
         line = next(row for row in generated[build_crate.KB_SCRIPT].splitlines() if row.startswith(prefix))
         self.assertEqual(json.loads(line[len(prefix) : -1]), json.loads(generated[build_crate.CRATE_FILE]))
 
+    def test_page_payload_follows_the_page_and_warns_over_budget(self) -> None:
+        generated = build_crate.outputs(self.root)
+        sizes = build_crate.page_payload(generated, self.root)
+        self.assertIn(build_crate.KB_SCRIPT, sizes)
+        self.assertIn(build_crate.UI_SCRIPT, sizes)
+        self.assertIsNone(build_crate.payload_warning(sizes, budget_kb=10_000))
+        warning = build_crate.payload_warning(sizes, budget_kb=0)
+        self.assertIsNotNone(warning)
+        self.assertIn("over its budget of 0 KB; largest: ", warning or "")
+
     def test_missing_marker_is_reported(self) -> None:
         page = self.root / "index.html"
         page.write_text(page.read_text(encoding="utf-8").replace("<!-- generated:ui --><!-- /generated:ui -->", ""))
