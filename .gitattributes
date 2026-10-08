@@ -15,5 +15,6 @@
 
 # Generated output: review the sources, not the diff.
 ro-crate-metadata.json linguist-generated=true
+assets/data/*.js linguist-generated=true
 ro-crate-preview.html linguist-generated=true
 assets/diagrams/*.svg linguist-generated=true

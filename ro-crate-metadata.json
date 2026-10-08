@@ -42780,7 +42780,7 @@
       "@id": "index.html",
       "@type": "File",
       "name": "FAIR guide page",
-      "description": "The guide page, which is also the crate's HTML preview, with the crate inlined.",
+      "description": "The guide page, which is also the crate's HTML preview; it loads the crate from assets/data/kb.js.",
       "encodingFormat": "text/html",
       "license": [
         {

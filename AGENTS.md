@@ -23,7 +23,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
    listed in `content/live.toml`; the Content Security Policy is generated from the same list, and the page
    scripts contain no URLs of their own.
 3. **Sources, not output.** Content is authored in `content/*.toml`. Never hand-edit `ro-crate-metadata.json`
-   or the crate block inlined in `index.html`; run `scripts/build_crate.py`.
+   or the generated data scripts in `assets/data/`; run `scripts/build_crate.py`.
 4. **Published sources only.** Every advice item and check cites ledger clauses, and every clause points to a
    published source. Unpublished working material is never cited or referenced.
 5. **Both languages.** Every user-facing string has Czech and English values.
@@ -54,8 +54,9 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | `scripts/` | `build_crate.py` (generator), `check_content.py` (content contract), `vendor_icons.py` (copies the named icons), `refresh_snapshots.py` (scheduled snapshots) |
 | `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | SHACL profile for the crate |
-| `index.html` | The page and the crate's HTML preview, with the crate inlined |
+| `index.html` | The page and the crate's HTML preview; it loads the crate and the interface strings from `assets/data/` |
 | `ro-crate-metadata.json` | Generated RO-Crate 1.2 |
+| `assets/data/` | Generated classic scripts, so the page also works from a local file: `kb.js` (the crate) and `ui.js` (interface strings and configuration) |
 | `assets/css/` | `tokens.css` (palette, type, spacing) and `app.css` (layout, components) |
 | `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing), `views.js`, `live.js` (connectors), `selfcheck.js` (checks, pre-fill, results, exports), `search.js` (universal search), `app.js` (start-up) |
 | `assets/img/` | Official EOSC CZ logos (own licence in `LICENSES/LicenseRef-EOSC-CZ-Logo.txt`) |

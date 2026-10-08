@@ -34,7 +34,8 @@ kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) neb
 | `scripts/` | Generátor znalostní báze a kontroly obsahu (Python, jen standardní knihovna) |
 | `tests/` | Testy skriptů s minimální ukázkou obsahu |
 | `profile/` | Profil RO-Crate (SHACL) pro kontrolu struktury znalostní báze |
-| `index.html` | Stránka průvodce s vloženou znalostní bází |
+| `index.html` | Stránka průvodce; znalostní bázi a texty rozhraní načítá ze složky `assets/data/` |
+| `assets/data/` | Znalostní báze a texty rozhraní jako generované skripty (`kb.js`, `ui.js`) |
 | `ro-crate-preview.html` | Generovaná kopie stránky: náhled RO-Crate |
 | `ro-crate-metadata.json` | Znalostní báze jako RO-Crate 1.2 (generovaná) |
 | `assets/` | Styly, skripty, obrázky a vykreslené diagramy |

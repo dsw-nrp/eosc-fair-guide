@@ -2,7 +2,7 @@
 
 The guide's content is authored in small TOML files under `content/`. A generator,
 `scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and
-inlines the same crate into `index.html`. This document defines the entities and the rules every content file
+writes the same crate as the script `assets/data/kb.js` that `index.html` loads. This document defines the entities and the rules every content file
 follows. The design behind it is in [design.md](design.md).
 
 ## Entities

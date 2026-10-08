@@ -121,14 +121,14 @@ flowchart LR
 ### Authoring and build
 
 Editors change small content source files: stations, checks, resources, sources, glossary and callouts. A
-generator that needs only the Python standard library turns them into the RO-Crate knowledge base and inlines
-the same crate into the page. Mermaid sources render to SVG. CI regenerates both and fails if the committed
+generator that needs only the Python standard library turns them into the RO-Crate knowledge base and writes
+the same crate, with the interface strings, as classic scripts the page loads. Mermaid sources render to SVG. CI regenerates both and fails if the committed
 output differs, so the browser never needs a build step and pull-request diffs stay readable.
 
 ```mermaid
 flowchart LR
   accTitle: Authoring and build
-  accDescr: Content sources feed a standard-library generator that writes the RO-Crate and the page with the crate inlined. Mermaid sources render to SVG. The browser runs the committed output without a build.
+  accDescr: Content sources feed a standard-library generator that writes the RO-Crate, the page and the data scripts the page loads. Mermaid sources render to SVG. The browser runs the committed output without a build.
   subgraph AUTH[Authoring time]
     direction TB
     C1["content/*.toml<br/>stations, checks, resources,<br/>sources, glossary, callouts"]
@@ -141,7 +141,8 @@ flowchart LR
   subgraph OUT[Committed output]
     direction TB
     CRATE["ro-crate-metadata.json<br/>knowledge base and paradata"]
-    HTML["index.html<br/>the crate's HTML preview,<br/>crate inlined"]
+    HTML["index.html<br/>the crate's HTML preview"]
+    DATA["assets/data/kb.js, ui.js<br/>the crate and strings<br/>as classic scripts"]
     SVG["assets/diagrams/*.svg"]
   end
   subgraph RUN[Browser]
@@ -151,8 +152,10 @@ flowchart LR
   end
   GEN --> CRATE
   GEN --> HTML
+  GEN --> DATA
   MMDC --> SVG
   HTML --> RUN
+  DATA --> RUN
 ```
 
 ### Content model
@@ -344,9 +347,14 @@ flowchart LR
    pull-request diffs for the team's text work, is read by Python's standard library. CI regenerates the crate and compares.
    *Alternatives:* hand-editing the JSON-LD crate (unreadable diffs, easy to break); YAML (needs a third-party
    parser); Markdown with front matter (structured fields such as tiers and prefill mappings become awkward).
-4. **The crate is delivered standalone and inlined.** The inlined copy keeps the page working from a file and
-   in an iframe; the standalone file serves harvesters.
-   *Alternatives:* fetch only (breaks `file://` and some embeddings); inline only (not harvestable).
+4. **The crate is delivered standalone and as a generated classic script.** The script (`assets/data/kb.js`,
+   with the interface strings in `ui.js`) keeps the page working from a file and in an iframe, keeps `index.html`
+   small and readable, and lets the browser cache the data apart from the page; the standalone file serves
+   harvesters, and the page head carries a short schema.org description for search engines. RO-Crate 1.2 no
+   longer recommends a copy of the crate inside the preview.
+   *Alternatives:* fetch only (breaks `file://` and some embeddings); the crate inlined in the page (one large
+   line in every page diff, no separate caching); loading parts on demand (search, identifier chips and the
+   catalogue reach nearly every entity, so the gain is small for the added loading states).
 5. **The backbone is a stage-aware path with four role lenses and levels L0–L3; a principle explorer keeps
    every clause.** People think in their work stage, not in principles. Lenses let one path serve
    researchers, data stewards, repository administrators and communities. The explorer guarantees that
@@ -758,3 +766,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-97 | 2026-10-08 | **The catalogue is one faceted list**: search, station and principle are shared facets; checkbox facets with counts; reader-chosen ordering, groups follow it; the state in the address; resources and cited sources together, marked by usage. | U+S |
 | D-98 | 2026-10-08 | **One linked search; identifiers routed by what they denote**: the catalogue is the landing search's results page; a re3data record leads to the maturity check, a nanopublication to the FIP check, a ROR ID to the institution check; a generic DOI or Handle offers an explicit "find out what it is" lookup first. | U+S |
 | D-99 | 2026-10-09 | In the catalogue the **kind is a single choice** (a picker with every kind's count), not checkboxes; shared facets stay when the kind changes, the previous kind's own facets reset. | U |
+| D-100 | 2026-10-09 | **The crate and the interface strings leave `index.html`** for generated classic scripts (`assets/data/kb.js`, `ui.js`): the page stays small and readable, the data is cached apart from it, a local file and an iframe still work; the head keeps a short schema.org description. Loading parts on demand is not worth it while search and the catalogue reach nearly every entity. | U |

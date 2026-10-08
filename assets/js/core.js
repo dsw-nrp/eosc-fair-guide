@@ -9,9 +9,11 @@
 
   /* ---------------------------------------------------------------- knowledge base */
 
+  /* The crate and the interface data arrive as generated classic scripts (assets/data/), which load from a local
+     file as well as from a web host. */
   FG.load = function () {
-    const crate = JSON.parse(document.getElementById("kb").textContent);
-    const page = JSON.parse(document.getElementById("ui").textContent);
+    const crate = window.FairGuideData.kb;
+    const page = window.FairGuideData.ui;
     FG.graph = crate["@graph"];
     FG.byId = new Map(FG.graph.map((entity) => [entity["@id"], entity]));
     FG.ui = page.ui;

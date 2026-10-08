@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const pageUrl = pathToFileURL(resolve(root, "index.html")).href;
-const config = JSON.parse(readFileSync(resolve(root, "index.html"), "utf8").match(/<script type="application\/json" id="ui">(.*?)<\/script>/s)[1]).config;
+const config = JSON.parse(readFileSync(resolve(root, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config;
 const origins = config.connectors.map((connector) => connector.origin);
 const SAMPLE = {
   doi: "10.5281/zenodo.21726258",

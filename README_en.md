@@ -43,7 +43,8 @@ python -m http.server 8000
 | `scripts/` | Crate generator and content checks (Python standard library only) |
 | `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | The guide's RO-Crate profile (SHACL) for the crate's structure |
-| `index.html` | The guide page, with the crate inlined |
+| `index.html` | The guide page; it loads the knowledge base and the interface strings from `assets/data/` |
+| `assets/data/` | The knowledge base and the interface strings as generated scripts (`kb.js`, `ui.js`) |
 | `ro-crate-preview.html` | Generated copy of the page: the crate's HTML preview |
 | `ro-crate-metadata.json` | The knowledge base as an RO-Crate 1.2 (generated) |
 | `assets/` | Styles, scripts, images and rendered diagrams |

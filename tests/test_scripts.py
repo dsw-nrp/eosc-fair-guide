@@ -110,8 +110,23 @@ class GeneratorTests(FixtureCase):
         generated = build_crate.outputs(self.root)
         page = generated[build_crate.PAGE_FILE]
         self.assertEqual(page, generated[build_crate.PREVIEW_FILE])
-        self.assertEqual(page.count("</script>"), 2)
         self.assertIn("connect-src https://api.example.org", page)
+        kb = generated[build_crate.KB_SCRIPT]
+        self.assertNotIn("</script>", kb)
+        self.assertIn("Take the \\u003c/script\\u003e step.", kb)
+
+    def test_data_leaves_the_page_for_scripts(self) -> None:
+        generated = build_crate.outputs(self.root)
+        page = generated[build_crate.PAGE_FILE]
+        self.assertNotIn('"@graph"', page)
+        self.assertIn(f'<script src="{build_crate.KB_SCRIPT}" defer></script>', page)
+        self.assertIn(f'<script src="{build_crate.UI_SCRIPT}" defer></script>', page)
+        summary = json.loads(page.split('<script type="application/ld+json">')[1].split("</script>")[0])
+        self.assertEqual(summary["@type"], "Dataset")
+        self.assertTrue(summary["distribution"]["contentUrl"].endswith(build_crate.CRATE_FILE))
+        prefix = "window.FairGuideData.kb = "
+        line = next(row for row in generated[build_crate.KB_SCRIPT].splitlines() if row.startswith(prefix))
+        self.assertEqual(json.loads(line[len(prefix) : -1]), json.loads(generated[build_crate.CRATE_FILE]))
 
     def test_missing_marker_is_reported(self) -> None:
         page = self.root / "index.html"
