@@ -1,0 +1,51 @@
+/* Design tokens of the FAIR data guide: EOSC CZ palette with accessible text tints, type scale and spacing.
+   Brand teal and pink are used for accents and large text only; body text uses the darker tints, which reach a
+   contrast of at least 5.6:1 on white. */
+
+:root {
+  /* EOSC CZ brand */
+  --brand-teal: #008691;
+  --brand-pink: #eb5d81;
+  /* Accessible text tints of the brand colours */
+  --tint-teal: #00737d;
+  --tint-pink: #c2264f;
+
+  /* Neutrals */
+  --text: #1d2a30;
+  --text-muted: #4b5a61;
+  --background: #ffffff;
+  --surface: #f2f7f8;
+  --surface-strong: #e3eff1;
+  --border: #c5d5d8;
+  --focus: #c2264f;
+
+  /* Status (always shown with a text label and an icon, never by colour alone) */
+  --status-operational: #dff1e6;
+  --status-pilot: #fff1cc;
+  --status-in-development: #e6e9fb;
+  --status-planned: #eeeeee;
+  --status-prospective: #f6eef8;
+  --notice: #fff4d6;
+  --notice-border: #b98a00;
+
+  /* Type */
+  --font: "Muni", Arial, Helvetica, sans-serif;
+  --size-small: 0.875rem;
+  --size-base: 1rem;
+  --size-lead: 1.125rem;
+  --size-h3: 1.25rem;
+  --size-h2: 1.5rem;
+  --size-h1: 1.875rem;
+  --line: 1.55;
+
+  /* Space and shape */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --radius: 0.5rem;
+  --width: 72rem;
+}

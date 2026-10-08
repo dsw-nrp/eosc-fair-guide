@@ -256,7 +256,8 @@ with `source`, `url` and `retrieved` (and `license` where the source states one)
 ### `live.toml`
 
 `[[connector]]`: `id`, `name`, `origin` (scheme and host), `purpose`. The page calls no other host, and the
-Content Security Policy is generated from this list. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
+Content Security Policy is generated from this list. `[links]`: base URLs the page builds links to (the FIP
+Dashboard, the NMA search, NKR); the page scripts contain no URLs of their own. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
 `[[champion.test]]`: `id`, `principle`, `label`, `health` (`available`, `degraded`, `unavailable`), `asOf`.
 
 ### `provenance.toml`

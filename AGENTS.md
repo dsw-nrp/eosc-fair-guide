@@ -19,8 +19,9 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 
 1. **Static page, no backend.** HTML, CSS and light vanilla JavaScript. No framework, no build step for the
    browser, no server, no accounts. The page works from `file://`, in an iframe and on any static host.
-2. **No external request on load.** External calls start only from a user action and go only to the allowlisted
-   hosts defined in `assets/js/live.js` and the Content Security Policy.
+2. **No external request on load.** External calls start only from a user action and go only to the connectors
+   listed in `content/live.toml`; the Content Security Policy is generated from the same list, and the page
+   scripts contain no URLs of their own.
 3. **Sources, not output.** Content is authored in `content/*.toml`. Never hand-edit `ro-crate-metadata.json`
    or the crate block inlined in `index.html`; run `scripts/build_crate.py`.
 4. **Published sources only.** Every advice item and check cites ledger clauses, and every clause points to a
@@ -55,7 +56,9 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | `profile/` | SHACL profile for the crate |
 | `index.html` | The page and the crate's HTML preview, with the crate inlined |
 | `ro-crate-metadata.json` | Generated RO-Crate 1.2 |
-| `assets/css/`, `assets/js/` | Styles (`tokens.css`, `app.css`) and scripts (`app.js`, `live.js`) |
+| `assets/css/` | `tokens.css` (palette, type, spacing) and `app.css` (layout, components) |
+| `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing), `views.js`, `live.js` (connectors), `app.js` (start-up) |
+| `assets/img/` | Official EOSC CZ logos (own licence in `LICENSES/LicenseRef-EOSC-CZ-Logo.txt`) |
 | `assets/diagrams/` | Rendered SVG diagrams |
 | `diagrams/` | Mermaid sources |
 | `docs/` | `design.md`, `content-model.md` |
@@ -79,7 +82,14 @@ rocrate-validator validate -p process-run-crate-0.5 -nh --skip-availability-chec
 rocrate-validator validate --extra-profiles-path profile -p fair-guide-0.1 -nh --skip-availability-check .
 ```
 
-Page, accessibility, link and diagram checks run in CI; their local commands are in `package.json`.
+Page checks need Node.js and Chromium (installed into the gitignored `.cache/`):
+
+```bash
+npm ci
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run browsers
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .cache/screenshots
+```
 
 ## Git
 

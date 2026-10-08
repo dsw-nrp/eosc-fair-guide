@@ -55,6 +55,12 @@ name = "DMP.eosc.cz status (Upptime)"
 origin = "https://raw.githubusercontent.com"
 purpose = "Availability of DMP.eosc.cz"
 
+# Link targets the page builds links to; links are not calls, and the page fetches nothing from them.
+[links]
+fipDashboard = "https://fip-dashboard.dmp.eosc.cz/"
+nmaSearch = "https://nma.eosc.cz/"
+nkr = "https://repo.cz/"
+
 [champion]
 endpoint = "https://tests.ostrails.eu/tests/assess/test"
 maxParallel = 4

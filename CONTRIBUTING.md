@@ -43,8 +43,8 @@ reuse lint                 # every file has a declared licence and copyright
 cffconvert --validate      # CITATION.cff is valid
 ```
 
-The full set of page checks (accessibility, links, diagrams) runs in CI on every pull request; the commands are
-listed in [AGENTS.md](AGENTS.md).
+Page checks (rendering, accessibility, reflow, embedding) run in Chromium; the commands are listed in
+[AGENTS.md](AGENTS.md), and CI runs them on every pull request.
 
 ## Review
 

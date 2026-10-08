@@ -39,3 +39,11 @@ path = ["ro-crate-metadata.json", "content/snapshots/**", "content/glossary.toml
 precedence = "override"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"
+
+# Official logos, used unchanged; not covered by the guide's licences.
+[[annotations]]
+path = "assets/img/*.svg"
+precedence = "override"
+SPDX-FileCopyrightText = "EOSC CZ initiative; European Union; Ministry of Education, Youth and Sports of the Czech Republic"
+SPDX-License-Identifier = "LicenseRef-EOSC-CZ-Logo"
+

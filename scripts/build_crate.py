@@ -1216,6 +1216,7 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
             "datePublished": iso(guide["datePublished"]),
             "freshnessDays": guide.get("freshnessDays", 180),
             "connectors": live.get("connector", []),
+            "links": live.get("links", {}),
             "champion": champion,
         },
     }
@@ -1225,10 +1226,11 @@ def content_security_policy(content: dict[str, Any]) -> str:
     origins = sorted({connector["origin"] for connector in content["live"].get("connector", [])})
     directives = [
         "default-src 'self'",
-        "script-src 'self'",
-        "style-src 'self'",
-        "img-src 'self' data:",
-        "font-src 'self'",
+        # file: keeps the page working when it is opened from disk; it adds nothing on a web host.
+        "script-src 'self' file:",
+        "style-src 'self' file:",
+        "img-src 'self' data: file:",
+        "font-src 'self' file:",
         "connect-src " + " ".join(origins or ["'none'"]),
         "object-src 'none'",
         "base-uri 'none'",

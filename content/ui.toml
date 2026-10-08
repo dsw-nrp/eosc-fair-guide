@@ -1,10 +1,120 @@
-# Interface strings. Field reference: docs/content-model.md.
+# Interface strings. Placeholders in braces, such as {n}, are filled in by the page. Field reference:
+# docs/content-model.md.
 
 [app]
 title = { cs = "Průvodce FAIR daty", en = "FAIR data guide" }
+tagline = { cs = "Krok za krokem k dohledatelným, přístupným, interoperabilním a opakovaně použitelným datům", en = "Step by step to findable, accessible, interoperable and reusable data" }
 loading = { cs = "Průvodce se načítá.", en = "The guide is loading." }
+skip = { cs = "Přeskočit na obsah", en = "Skip to content" }
+testing = { cs = "Testovací verze", en = "Testing version" }
+error = { cs = "Průvodce se nepodařilo načíst. Zkuste stránku obnovit.", en = "The guide could not be loaded. Try reloading the page." }
 
 [nav]
-stations = { cs = "Zastávky", en = "Stations" }
+label = { cs = "Hlavní navigace", en = "Main navigation" }
+path = { cs = "Cesta", en = "Path" }
+selfcheck = { cs = "Sebehodnocení", en = "Self-check" }
+explorer = { cs = "Principy", en = "Principles" }
+resources = { cs = "Zdroje", en = "Resources" }
+repositories = { cs = "Repozitáře", en = "Repositories" }
+about = { cs = "O průvodci", en = "About" }
+stations = { cs = "Zastávky na cestě", en = "Stations on the path" }
 language = { cs = "Jazyk", en = "Language" }
 lens = { cs = "Pohled", en = "View as" }
+switchTo = { cs = "English", en = "Česky" }
+
+[stage]
+question = { cs = "Kde se právě nacházíte?", en = "Where are you now?" }
+intro = { cs = "Průvodce vás provede od plánu projektu ke zveřejněným, dohledatelným a citovatelným datům. Začněte tam, kde jste.", en = "The guide takes you from the project plan to published, findable and citable data. Start where you are." }
+change = { cs = "Začít jinde", en = "Start somewhere else" }
+
+[station]
+step = { cs = "Krok {n} z {total}", en = "Step {n} of {total}" }
+minutes = { cs = "asi {n} min", en = "about {n} min" }
+principles = { cs = "FAIR principy", en = "FAIR principles" }
+next = { cs = "Další krok: {name}", en = "Next step: {name}" }
+previous = { cs = "Předchozí krok: {name}", en = "Previous step: {name}" }
+ai = { cs = "AI ve FAIRifikaci", en = "AI in FAIRification" }
+resources = { cs = "Užitečné zdroje", en = "Useful resources" }
+glossary = { cs = "Pojmy z Hesláře", en = "Terms from the glossary" }
+help = { cs = "Potřebujete poradit?", en = "Need advice?" }
+whyPrinciples = { cs = "Principy, kterých se zastávka týká", en = "Principles this station covers" }
+whyClauses = { cs = "Na čem rady stojí", en = "What the advice is based on" }
+sources = { cs = "Citované zdroje", en = "Cited sources" }
+madeBy = { cs = "Jak tento obsah vznikl", en = "How this content was made" }
+madeByText = { cs = "Připravil {agent} s nástroji {tools}; dokončeno {date}.", en = "Prepared by {agent} with {tools}; completed {date}." }
+empty = { cs = "Pro tento pohled zde nic dalšího není.", en = "Nothing more here for this view." }
+current = { cs = "aktuální krok", en = "current step" }
+
+[status]
+asOf = { cs = "ověřeno {date}", en = "checked {date}" }
+stale = { cs = "údaj může být zastaralý", en = "this may be out of date" }
+
+[resource]
+open = { cs = "Otevřít {name}", en = "Open {name}" }
+dashboard = { cs = "Záznam ve FIP Dashboardu", en = "Record in the FIP Dashboard" }
+verified = { cs = "Ověřeno: {verifiers}", en = "Verified by: {verifiers}" }
+selfDeclared = { cs = "Vlastní deklarace", en = "Self-declared" }
+underReview = { cs = "V posuzování", en = "Under review" }
+languages = { cs = "Jazyk: {languages}", en = "Language: {languages}" }
+
+[finder]
+title = { cs = "Zdroje", en = "Resources" }
+intro = { cs = "Služby, nástroje, standardy a příručky, které průvodce doporučuje. Filtrujte podle zastávky, pohledu, typu, stavu nebo jazyka.", en = "Services, tools, standards and guides the guide recommends. Filter by station, view, type, status or language." }
+station = { cs = "Zastávka", en = "Station" }
+lens = { cs = "Pohled", en = "View" }
+type = { cs = "Typ", en = "Type" }
+status = { cs = "Stav", en = "Status" }
+language = { cs = "Jazyk", en = "Language" }
+all = { cs = "vše", en = "all" }
+count = { cs = "Nalezeno: {n}", en = "Found: {n}" }
+fers = { cs = "Zdroje umožňující FAIR ve FIP Dashboardu", en = "FAIR-enabling resources in the FIP Dashboard" }
+fersIntro = { cs = "Katalog FER národní datové infrastruktury: které zdroje komunity používají a které ověřily NRP a EOSC CZ. Průvodce zobrazuje snímek; aktuální stav je ve FIP Dashboardu.", en = "The FER catalogue of the national data infrastructure: which resources communities use and which NRP and EOSC CZ have verified. The guide shows a snapshot; the current state is in the FIP Dashboard." }
+snapshot = { cs = "Snímek ze dne {date}", en = "Snapshot of {date}" }
+disclaimer = { cs = "Upozornění FIP Dashboardu", en = "FIP Dashboard notice" }
+openDashboard = { cs = "Otevřít FIP Dashboard", en = "Open the FIP Dashboard" }
+matrix = { cs = "Matice konvergence profilů FIP", en = "FIP convergence matrix" }
+
+[repositories]
+title = { cs = "Repozitáře", en = "Repositories" }
+intro = { cs = "Přednostně ukládejte do oborového repozitáře, jinak do institucionálního; obecné repozitáře jsou poslední možností. Seznam spojuje výběr průvodce, snímek registru re3data a na vyžádání záznamy z Národního katalogu repozitářů (NKR).", en = "Deposit preferably in a domain repository, otherwise in an institutional one; general-purpose repositories are the last option. The list combines the guide's selection, a snapshot of the re3data registry and, on request, records from the National Repository Catalogue (NKR)." }
+search = { cs = "Hledat podle názvu nebo oboru", en = "Search by name or field" }
+kind = { cs = "Druh", en = "Kind" }
+sources = { cs = "Zdroj údajů: {sources}", en = "Data from: {sources}" }
+pids = { cs = "Identifikátory: {pids}", en = "Identifiers: {pids}" }
+curated = { cs = "výběr průvodce", en = "the guide's selection" }
+nkrLoad = { cs = "Načíst záznamy z NKR", en = "Load records from NKR" }
+nkrLoading = { cs = "Načítám záznamy z NKR…", en = "Loading records from NKR…" }
+nkrEmpty = { cs = "NKR zatím žádný repozitář neobsahuje.", en = "NKR does not list any repository yet." }
+nkrFailed = { cs = "NKR se nepodařilo načíst. Otevřete ho přímo: {url}", en = "NKR could not be loaded. Open it directly: {url}" }
+
+[explorer]
+title = { cs = "FAIR principy", en = "FAIR principles" }
+intro = { cs = "Všechny požadavky Analýzy FAIR pro NRP/NDI podle principů, rozdělené podle toho, komu jsou určeny. Cesta průvodce z nich vybírá; zde najdete všechny.", en = "Every requirement of the FAIR analysis for NRP/NDI by principle, grouped by whom it addresses. The path picks from them; here you find them all." }
+choose = { cs = "Vyberte princip", en = "Choose a principle" }
+cts = { cs = "Požadavky CoreTrustSeal", en = "CoreTrustSeal requirements" }
+cdif = { cs = "Profily CDIF", en = "CDIF profiles" }
+dashboard = { cs = "Zdroje pro {p} ve FIP Dashboardu", en = "Resources for {p} in the FIP Dashboard" }
+refresh = { cs = "Aktualizace", en = "Update" }
+superseded = { cs = "Nahrazeno", en = "Superseded" }
+source = { cs = "Zdroj", en = "Source" }
+count = { cs = "Požadavků: {n}", en = "Requirements: {n}" }
+
+[help]
+title = { cs = "Kdo vám poradí", en = "Who can help" }
+
+[footer]
+version = { cs = "Verze {version} ze dne {date}", en = "Version {version} of {date}" }
+cite = { cs = "Jak citovat", en = "How to cite" }
+licence = { cs = "Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.", en = "Content is licensed under CC BY 4.0, code under MIT." }
+accessibility = { cs = "Prohlášení o přístupnosti", en = "Accessibility statement" }
+ai = { cs = "Využití AI", en = "Use of AI" }
+repository = { cs = "Zdrojový kód a data", en = "Source code and data" }
+crate = { cs = "Znalostní báze (RO-Crate)", en = "Knowledge base (RO-Crate)" }
+logos = { cs = "Evropská unie, Ministerstvo školství, mládeže a tělovýchovy, EOSC CZ", en = "European Union, Ministry of Education, Youth and Sports, EOSC CZ" }
+
+[common]
+newWindow = { cs = "otevře se v nové kartě", en = "opens in a new tab" }
+back = { cs = "Zpět na cestu", en = "Back to the path" }
+copy = { cs = "Kopírovat", en = "Copy" }
+copied = { cs = "Zkopírováno", en = "Copied" }
+link = { cs = "Odkaz na tento pohled", en = "Link to this view" }
