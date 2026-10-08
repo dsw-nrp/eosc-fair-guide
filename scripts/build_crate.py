@@ -1230,6 +1230,7 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
             "links": live.get("links", {}),
             "champion": champion,
             "nanopub": live.get("nanopub"),
+            "dmpStatus": live.get("dmpStatus"),
             "vocab": {"roCrate": RO_CRATE, "ftr": FTR, "prov": PROV, "fipTerms": FIP_TERMS},
         },
     }

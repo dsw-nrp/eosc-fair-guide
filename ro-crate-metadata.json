@@ -25184,7 +25184,7 @@
         }
       ],
       "lookup": {
-        "@id": "https://nma.eosc.cz/"
+        "@id": "https://nma.eosc.cz/datasets/"
       },
       "isPartOf": {
         "@id": "#check-dataset"
@@ -39186,7 +39186,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_persistence",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/F1"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_data_identifier_in_metadata",
@@ -39206,7 +39208,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_data_identifier_in_metadata",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/F3"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_searchable",
@@ -39226,7 +39230,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_searchable",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/F4"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_metadata_protocol",
@@ -39246,7 +39252,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_protocol",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/A1.1"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_metadata_persistence",
@@ -39266,7 +39274,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/A2"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_structured_metadata",
@@ -39286,7 +39296,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_structured_metadata",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/I1"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_metadata_uses_fair_vocabularies",
@@ -39306,7 +39318,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_uses_fair_vocabularies",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/I2"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_metadata_outward_links",
@@ -39326,7 +39340,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_outward_links",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/I3"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-fc_metadata_includes_license",
@@ -39346,7 +39362,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/R1.1"
-      }
+      },
+      "healthStatus": "available",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#test-community_metadata_includes_author_affiliation",
@@ -39366,7 +39384,9 @@
       "url": "https://tests.ostrails.eu/tests/assess/test/community_metadata_includes_author_affiliation",
       "about": {
         "@id": "https://w3id.org/fair/principles/terms/R1.2"
-      }
+      },
+      "healthStatus": "degraded",
+      "statusAsOf": "2026-10-08"
     },
     {
       "@id": "#page-about-1",

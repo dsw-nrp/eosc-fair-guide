@@ -69,13 +69,34 @@
     const path = "api/handles/" + pid.value.split("/").map(encodeURIComponent).join("/");
     const data = await live.fetchJson(pid.type === "doi" ? "doi" : "handle", path, { allowNotFound: true });
     const found = Boolean(data && data.responseCode === 1);
-    const url = found
-      ? FG.list(data.values)
-          .filter((value) => value && value.type === "URL")
-          .map((value) => value.data && value.data.value)
-          .find(Boolean)
-      : null;
-    return { found, url: url ? String(url) : null };
+    const valueOf = (type) =>
+      found
+        ? FG.list(data.values)
+            .filter((value) => value && value.type === type)
+            .map((value) => value.data && value.data.value)
+            .find((value) => typeof value === "string" && value)
+        : null;
+    return { found, url: valueOf("URL") || null, title: valueOf("TITLE") || null };
+  };
+
+  /** The public name behind an ORCID iD, or null when ORCID does not know it. */
+  live.orcidName = async function (orcid) {
+    const data = await live.fetchJson("orcid", "v3.0/" + encodeURIComponent(orcid) + "/person", { allowNotFound: true });
+    if (!data) return null;
+    const name = data.name || {};
+    const credit = name["credit-name"] && name["credit-name"].value;
+    const given = name["given-names"] && name["given-names"].value;
+    const family = name["family-name"] && name["family-name"].value;
+    return String(credit || [given, family].filter(Boolean).join(" ") || orcid);
+  };
+
+  /** The display name of a ROR organisation, or null when ROR does not know it. */
+  live.rorName = async function (id) {
+    const data = await live.fetchJson("ror", "v2/organizations/" + encodeURIComponent(id), { allowNotFound: true });
+    if (!data) return null;
+    const names = FG.list(data.names);
+    const display = names.find((name) => FG.list(name && name.types).includes("ror_display")) || names[0] || {};
+    return String(display.value || id);
   };
 
   /** DataCite metadata of a DOI, or null when DataCite does not hold it. */
@@ -122,6 +143,36 @@
   live.dashboard = async function () {
     const [fips, resources] = await Promise.all([live.fetchJson("fip-dashboard", "api/fips"), live.fetchJson("fip-dashboard", "api/resources")]);
     return { fips: FG.list(fips), resources: FG.list(resources) };
+  };
+
+  /* ---------------------------------------------------------------- FAIR Champion and service status */
+
+  /** Run one FAIR Champion test on an identifier; resolves to the verdict and the test's log. Any failure to get a
+      verdict (HTTP error, timeout, an answer without a result) rejects, and the caller reports "no result". */
+  live.championTest = async function (testId, identifier) {
+    const champion = FG.config.champion;
+    const endpoint = new URL(champion.endpoint);
+    const data = await live.fetchJson("champion", endpoint.pathname.replace(/\/$/, "") + "/" + encodeURIComponent(testId), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/ld+json, application/json" },
+      body: JSON.stringify({ resource_identifier: identifier }),
+      timeoutSeconds: champion.timeoutSeconds,
+    });
+    const graph = FG.list(data && (data["@graph"] || data));
+    const result = graph.find((entity) => entity && FG.list(entity["@type"]).some((type) => /TestResult$/.test(String(type))));
+    const vocab = FG.config.vocab;
+    const literal = (value) => String((value && typeof value === "object" ? value["@value"] : value) || "");
+    const value = result ? literal(result["prov:value"] || result[vocab.prov + "value"]).toLowerCase() : "";
+    if (!["pass", "fail", "indeterminate"].includes(value)) throw new Error("no verdict");
+    return { value, log: literal(result["ftr:log"] || result[vocab.ftr + "log"]) };
+  };
+
+  /** Current state of the DMP.eosc.cz components from its status page. */
+  live.dmpStatus = async function () {
+    const data = await live.fetchJson("dmp-status", FG.config.dmpStatus.path);
+    return FG.list(data)
+      .filter((entry) => entry && entry.name)
+      .map((entry) => ({ name: String(entry.name), status: String(entry.status || "") }));
   };
 
   /* ---------------------------------------------------------------- NKR */

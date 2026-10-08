@@ -66,7 +66,7 @@ purpose = "Availability of DMP.eosc.cz"
 # Link targets the page builds links to; links are not calls, and the page fetches nothing from them.
 [links]
 fipDashboard = "https://fip-dashboard.dmp.eosc.cz/"
-nmaSearch = "https://nma.eosc.cz/"
+nmaSearch = "https://nma.eosc.cz/datasets/"
 nkr = "https://repo.cz/"
 
 # Declarations of a published FIP nanopublication (spike in docs/design.md, "Spikes and findings"). The page puts
@@ -92,60 +92,85 @@ SELECT DISTINCT ?fip ?q ?rel ?fer ?ferLabel WHERE {
 } LIMIT 500
 """
 
+# Upptime summary of DMP.eosc.cz on the status connector.
+[dmpStatus]
+path = "dsw-nrp/status/master/history/summary.json"
+
 [champion]
 endpoint = "https://tests.ostrails.eu/tests/assess/test"
 maxParallel = 4
 timeoutSeconds = 60
 
-# Curated core set (FAIR analysis K5.2.1; OSTrails CZ pilot, E.OSTRAILS-CZ). Health is added by the scheduled
-# health job once it has observed the tests.
+# Curated core set (FAIR analysis K5.2.1; OSTrails CZ pilot, E.OSTRAILS-CZ). Health comes from a probe of every
+# test with a DOI and a Handle (docs/design.md); the scheduled health job keeps it current. Unavailable tests
+# are hidden, degraded ones carry a warning.
 
 [[champion.test]]
 id = "fc_metadata_identifier_persistence"
 principle = "F1"
 label = { cs = "Identifikátor metadat je trvalý", en = "Metadata identifier is persistent" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_data_identifier_in_metadata"
 principle = "F3"
 label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_searchable"
 principle = "F4"
 label = { cs = "Záznam je dohledatelný vyhledávači", en = "Record is findable by search engines" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_protocol"
 principle = "A1.1"
 label = { cs = "Metadata jsou dostupná otevřeným protokolem", en = "Metadata are retrievable by an open protocol" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_persistence"
 principle = "A2"
 label = { cs = "Repozitář deklaruje trvalost metadat", en = "Repository declares metadata persistence" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_structured_metadata"
 principle = "I1"
 label = { cs = "Metadata jsou strukturovaná", en = "Metadata are structured" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_uses_fair_vocabularies"
 principle = "I2"
 label = { cs = "Metadata používají FAIR slovníky", en = "Metadata use FAIR vocabularies" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_outward_links"
 principle = "I3"
 label = { cs = "Metadata odkazují na jiné zdroje", en = "Metadata link to other resources" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_includes_license"
 principle = "R1.1"
 label = { cs = "Metadata uvádějí licenci", en = "Metadata include a licence" }
+health = "available"
+asOf = 2026-10-08
 
 [[champion.test]]
 id = "community_metadata_includes_author_affiliation"
 principle = "R1.2"
 label = { cs = "Metadata uvádějí afiliaci autorů", en = "Metadata include author affiliation" }
+health = "degraded"
+asOf = 2026-10-08

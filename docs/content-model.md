@@ -263,7 +263,7 @@ whose API does not admit the guide's origin yet (the page then uses its snapshot
 the Content Security Policy is generated from this list. `[links]`: base URLs the page builds links to (the FIP
 Dashboard, the NMA search, NKR); the page scripts contain no URLs of their own. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
 `[[champion.test]]`: `id`, `principle`, `label`, `health` (`available`, `degraded`, `unavailable`), `asOf`.
-`[nanopub]`: `path` of the SPARQL endpoint, `fipIri` (the IRI forms of a FIP, with `{code}` for the
+`[dmpStatus]`: `path` of the DMP.eosc.cz status summary on the status connector. `[nanopub]`: `path` of the SPARQL endpoint, `fipIri` (the IRI forms of a FIP, with `{code}` for the
 nanopublication's trusty URI code) and `query` (with `{fips}` where the page puts those IRIs).
 
 ### `provenance.toml`

@@ -482,6 +482,21 @@ The query lives in `content/live.toml`, not in the scripts, so it can change wit
 change. The FIP Dashboard API, the primary source, answered only its own development origin in a cross-origin
 check on the same day, so the page uses the dashboard snapshot until `browserAccess` is switched on.
 
+### FAIR Champion and the NMA search link (2026-10-08)
+
+FAIR Champion tests are called with `POST <endpoint>/<test>` and the body `{"resource_identifier": …}`, as each
+test's OpenAPI description at `https://tests.ostrails.eu/tests/<test>/api` states. The service sends
+`Access-Control-Allow-Origin: *`, also on its pre-flight answer, and returns JSON-LD whose `ftr:TestResult` carries
+`prov:value` (`pass`, `fail` or `indeterminate`) and `ftr:log`. A probe of the ten curated tests with a Zenodo DOI
+and a LINDAT Handle confirmed the pilot's reliability findings: the DOI got HTTP 500 from eight tests within a
+second, the Handle got verdicts from nine tests in 0 to 54 seconds, and the author-affiliation test gave no verdict
+for either. That test is marked `degraded` in the health snapshot; the others are `available`.
+
+NMA's search page is `https://nma.eosc.cz/datasets/?q=…` (`/search?q=` redirects there). A DOI in quotes finds the
+record when NMA holds it and shows an empty result otherwise, while the direct record address
+`/datasets/records/doi/<doi>` answers 404 for a dataset NMA does not hold. The guide therefore links the search
+with the quoted identifier.
+
 ## Decision log
 
 Source: **U** = decision of the maintainer, **S** = proposal from analysis, agreed by the maintainer.
@@ -545,3 +560,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-55 | 2026-10-08 | At the first release the OpenSpec change **moves into this repository** (specs to `openspec/specs/`, change to the archive); OpenSpec is a pinned development dependency, so later development is OpenSpec-driven. Nothing in this repository exposes local machine details or the planning environment's internals. | U |
 | D-56 | 2026-10-08 | Self-check pre-fill uses **positive evidence only**: a field, declaration or resolution that is present answers yes (or partly when it proves the item only in part, `prefillLevel`); absence leaves the item open with a note, because a record that omits something does not prove it is missing. A pre-filled value never replaces an answer the user gave, each pre-fill shows its source and date, a changed answer stays marked, and choosing another dataset, repository or profile discards the previous one's evidence. The FIP nanopublication query is recorded in *Spikes and findings*. | S |
 | D-57 | 2026-10-08 | Results export as Markdown, print and an FTR `TestResultSet` in a small RO-Crate (yes is `pass`, no is `fail`, partly and don't know are `indeterminate`; not applicable and items NRP provides are left out). The export is a valid RO-Crate 1.2; its licence is declared as not specified, because the person who saves the result decides on reuse. Exports and shared links name the published page (`pageUrl`), never a local file. A shared link carries only the mode, the profile and the answers, opens as a preview, and replaces the user's own answers only on request. "Don't know" names whom to ask and, where an item has one, a lookup link. | S |
+| D-58 | 2026-10-08 | Live connectors: ORCID and ROR names, resolver titles, FAIR Champion tests (verdict and log; any failure to get a verdict is "no result") and the DMP.eosc.cz status page. The NMA deep link is the search page with the quoted identifier. Spikes in *Spikes and findings*. | S |
