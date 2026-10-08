@@ -3,6 +3,7 @@
 [check]
 id = "institution"
 name = { cs = "Instituce a správa dat", en = "Institution and data management" }
+icon = "building-columns"
 description = { cs = "Volitelná krátká kontrola pro data stewardy: má instituce to, co výzkumníci ke správě dat potřebují?", en = "An optional short check for data stewards: does the institution have what researchers need for data management?" }
 lenses = ["DS"]
 minutes = 5

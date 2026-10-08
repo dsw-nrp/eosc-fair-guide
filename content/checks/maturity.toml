@@ -3,7 +3,8 @@
 [check]
 id = "maturity"
 name = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }
-description = { cs = "Jak dobře repozitář naplňuje FAIR principy? Výsledek ukazuje stav po principech a seznam mezer; žádné celkové skóre. Odpovědi lze předvyplnit ze záznamu repozitáře v NKR a z testů vzorku záznamů.", en = "How well does the repository meet the FAIR principles? The result shows the state per principle and a list of gaps, with no overall score. Answers can be pre-filled from the repository's NKR record and from tests of a sample of records." }
+icon = "chart-simple"
+description = { cs = "Jak dobře repozitář naplňuje FAIR principy? Výsledek ukáže stav podle principů a co chybí; žádné celkové skóre. Odpovědi lze předvyplnit ze záznamu repozitáře v NKR a z testů vzorku záznamů.", en = "How well does the repository meet the FAIR principles? The result shows the state per principle and a list of gaps, with no overall score. Answers can be pre-filled from the repository's NKR record and from tests of a sample of records." }
 lenses = ["SR"]
 minutes = 15
 

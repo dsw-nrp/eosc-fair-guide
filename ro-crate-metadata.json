@@ -25858,11 +25858,11 @@
       ],
       "description": [
         {
-          "@value": "Jak FAIR je vaše datová sada? Před zveřejněním projdete plánovací položky, po zveřejnění položky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a průvodce nepočítá žádné skóre.",
+          "@value": "Jak FAIR je vaše datová sada? Před zveřejněním projdete otázky k plánu, po zveřejnění otázky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a průvodce nepočítá žádné skóre.",
           "@language": "cs"
         },
         {
-          "@value": "How FAIR is your dataset? Before publication you go through planning items, after publication items about the published record. Your answers stay in your browser, and the guide computes no score.",
+          "@value": "How FAIR is your dataset? Before publication you go through questions about the plan, after publication questions about the published record. Your answers stay in your browser, and the guide computes no score.",
           "@language": "en"
         }
       ],
@@ -29314,7 +29314,7 @@
       ],
       "description": [
         {
-          "@value": "Jak dobře repozitář naplňuje FAIR principy? Výsledek ukazuje stav po principech a seznam mezer; žádné celkové skóre. Odpovědi lze předvyplnit ze záznamu repozitáře v NKR a z testů vzorku záznamů.",
+          "@value": "Jak dobře repozitář naplňuje FAIR principy? Výsledek ukáže stav podle principů a co chybí; žádné celkové skóre. Odpovědi lze předvyplnit ze záznamu repozitáře v NKR a z testů vzorku záznamů.",
           "@language": "cs"
         },
         {

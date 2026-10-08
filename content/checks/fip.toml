@@ -5,6 +5,7 @@
 [check]
 id = "fip"
 name = { cs = "Úplnost FIP", en = "FIP completeness" }
+icon = "people-group"
 description = { cs = "Co už FIP vašeho oboru určuje a co v něm chybí? Odpovědi lze předvyplnit z profilu komunity ve FIP Dashboardu nebo z publikované nanopublikace FIP.", en = "What does your domain's FIP already set, and what is missing? Answers can be pre-filled from the community's profile in the FIP Dashboard or from a published FIP nanopublication." }
 lenses = ["K"]
 minutes = 10

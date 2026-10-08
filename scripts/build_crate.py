@@ -1305,6 +1305,7 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
                     for data in content["stations"]
                     if data["station"].get("icon")
                 },
+                "check": {data["check"]["id"]: data["check"]["icon"] for data in content["checks"] if data["check"].get("icon")},
             },
             "credits": build_credits(content),
             "tasks": [

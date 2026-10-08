@@ -157,8 +157,13 @@ forLens = { cs = "Kontroly pro váš pohled", en = "Checks for your view" }
 others = { cs = "Další kontroly", en = "Other checks" }
 start = { cs = "Začít: {name}", en = "Start: {name}" }
 continue = { cs = "Pokračovat: {name}", en = "Continue: {name}" }
+startShort = { cs = "Začít", en = "Start" }
+continueShort = { cs = "Pokračovat", en = "Continue" }
+savedTitle = { cs = "Máte výsledek uložený v souboru?", en = "Have a result saved in a file?" }
+savedText = { cs = "Načtěte ho a otevře se jako náhled; vaše odpovědi se změní, jen když o to požádáte.", en = "Load it and it opens as a preview; your answers change only if you ask." }
 progress = { cs = "Zodpovězeno {n} z {total}", en = "Answered {n} of {total}" }
 items = { cs = "{n} otázka|{n} otázky|{n} otázek", en = "{n} question|{n} questions" }
+itemsRange = { cs = "{low}–{high} otázek", en = "{low}–{high} questions" }
 modeQuestion = { cs = "Je datová sada už zveřejněná?", en = "Has the dataset been published?" }
 profileQuestion = { cs = "Který profil repozitáře platí?", en = "Which repository profile applies?" }
 chooseFirst = { cs = "Nejdřív odpovězte na otázku nahoře; podle ní se ukážou otázky, které se vás týkají.", en = "Answer the question above first; it decides which questions apply to you." }
@@ -175,6 +180,11 @@ reset = { cs = "Smazat odpovědi této kontroly", en = "Clear the answers of thi
 target = { cs = "Kontrolujete: {target}", en = "You are checking: {target}" }
 gapsHere = { cs = "Ze sebehodnocení tu zbývá vyřešit: {n}", en = "Left to resolve here from the self-check: {n}" }
 gapsLegend = { cs = "co zbývá vyřešit podle sebehodnocení", en = "what is left to resolve from the self-check" }
+
+[selfcheck.steps]
+choose = { cs = "Vyberte kontrolu podle toho, co posuzujete.", en = "Choose a check for what you are assessing." }
+answer = { cs = "Odpovězte na otázky; část odpovědí lze vyplnit z veřejných záznamů.", en = "Answer the questions; some answers can be filled in from public records." }
+result = { cs = "Uvidíte, co chybí, kde to vyřešit a kdo to udělá.", en = "See what is missing, where to fix it and who does it." }
 
 [selfcheck.mode]
 before = { cs = "Ještě ne, zveřejnění připravuji", en = "Not yet, I am preparing publication" }

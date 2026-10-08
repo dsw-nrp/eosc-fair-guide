@@ -4,7 +4,8 @@
 [check]
 id = "dataset"
 name = { cs = "Kontrola datové sady", en = "Dataset check" }
-description = { cs = "Jak FAIR je vaše datová sada? Před zveřejněním projdete plánovací položky, po zveřejnění položky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a průvodce nepočítá žádné skóre.", en = "How FAIR is your dataset? Before publication you go through planning items, after publication items about the published record. Your answers stay in your browser, and the guide computes no score." }
+icon = "magnifying-glass-chart"
+description = { cs = "Jak FAIR je vaše datová sada? Před zveřejněním projdete otázky k plánu, po zveřejnění otázky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a průvodce nepočítá žádné skóre.", en = "How FAIR is your dataset? Before publication you go through questions about the plan, after publication questions about the published record. Your answers stay in your browser, and the guide computes no score." }
 lenses = ["V", "DS"]
 minutes = 5
 modes = ["before", "after"]

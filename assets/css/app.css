@@ -872,6 +872,119 @@ details > .content {
 
 /* Lists of resources and repositories */
 
+/* Headings and regions that take focus for screen readers after navigation show no frame; keyboard focus on
+   controls keeps its outline. */
+#main h1:focus,
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* The self-check overview: three steps, a grid of check cards, and saved results at the bottom. */
+.how-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  margin: var(--space-4) 0 var(--space-5);
+  padding: 0;
+}
+
+.how-steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: var(--size-small);
+}
+
+.how-steps .icon {
+  color: var(--tint-teal);
+}
+
+.how-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--tint-teal);
+  color: #fff;
+  font-weight: 700;
+}
+
+.check-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+}
+
+.check-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+}
+
+.check-card p {
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-small);
+}
+
+.check-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.check-card-head h3 {
+  margin: 0;
+  font-size: var(--size-base);
+}
+
+.check-card-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--tint-teal);
+}
+
+.check-card-meta {
+  color: var(--text-muted);
+}
+
+.check-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-small);
+}
+
+.check-progress progress {
+  flex: 1;
+  height: 0.5rem;
+  accent-color: var(--tint-teal);
+}
+
+.check-card-action {
+  margin-top: auto;
+}
+
+.saved-results {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
 .cards {
   list-style: none;
   padding: 0;

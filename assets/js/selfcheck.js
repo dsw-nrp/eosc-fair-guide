@@ -1813,45 +1813,92 @@
     );
   }
 
+  /** How many questions a check asks: a range when its mode or profile decides, one number otherwise. */
+  function questionCount(check) {
+    const choices = modesOf(check).map((term) => ({ mode: term.termCode })).concat(profilesOf(check).map((term) => ({ profile: term.termCode })));
+    const counts = (choices.length ? choices : [{}]).map((choice) => itemsOf(check).filter((item) => applies(item, Object.assign({ mode: null, profile: null }, choice))).length);
+    const low = Math.min(...counts);
+    const high = Math.max(...counts);
+    return low === high ? FG.t("selfcheck.items", { n: low }) : FG.t("selfcheck.itemsRange", { low, high });
+  }
+
+  /** A check as a card: its icon and name, what it is for, how long it takes and for whom, progress once started. */
   function checkCard(check) {
     const st = hasState(check) ? stateOf(check) : null;
+    const total = st ? answerable(check, st).length : 0;
     const answered = st ? answerable(check, st).filter((item) => answerOf(st, item)).length : 0;
     const minutes = String(check.timeRequired || "").replace(/\D/g, "");
+    const icon = FG.config.icons && FG.config.icons.check && FG.config.icons.check[check.identifier];
     const name = FG.text(check.name);
+    const meta = [
+      minutes ? FG.t("station.minutes", { n: minutes }) : null,
+      questionCount(check),
+      FG.refs(check, "audience")
+        .map((lens) => FG.text(lens.name))
+        .join(", "),
+    ].filter(Boolean);
     return h(
       "li",
-      { class: "card" },
-      h("h3", null, FG.span(check.name)),
+      { class: "check-card" },
+      h("div", { class: "check-card-head" }, FG.icon(icon, { class: "check-card-icon" }), h("h3", null, FG.span(check.name))),
       FG.paragraphs(check.description),
+      h("p", { class: "check-card-meta" }, meta.join(" · ")),
+      answered
+        ? h(
+            "div",
+            { class: "check-progress" },
+            h("progress", { max: String(total), value: String(answered), "aria-label": FG.t("selfcheck.progress", { n: answered, total }) }),
+            h("span", null, FG.t("selfcheck.progress", { n: answered, total }))
+          )
+        : null,
       h(
-        "div",
-        { class: "badges" },
-        minutes ? h("span", { class: "badge" }, FG.t("station.minutes", { n: minutes })) : null,
-        h("span", { class: "badge" }, FG.t("selfcheck.items", { n: itemsOf(check).length })),
-        FG.refs(check, "audience").map((lens) => h("span", { class: "badge" }, FG.text(lens.name)))
-      ),
-      answered ? h("p", { class: "small" }, FG.t("selfcheck.progress", { n: answered, total: answerable(check, st).length })) : null,
-      h("p", null, h("a", { class: "button button-primary", href: FG.href("check", check.identifier) }, FG.t(answered ? "selfcheck.continue" : "selfcheck.start", { name })))
+        "p",
+        { class: "check-card-action" },
+        h(
+          "a",
+          { class: "button button-small" + (answered ? "" : " button-primary"), href: FG.href("check", check.identifier) },
+          FG.t(answered ? "selfcheck.continueShort" : "selfcheck.startShort"),
+          h("span", { class: "visually-hidden" }, ": " + name)
+        )
+      )
     );
   }
 
+  /** The self-check overview: what it does in three steps, the checks for the current lens and the others, and a
+      place to load a saved result. */
   function overview(route) {
     const checks = SC.checks();
     const mine = checks.filter((check) => FG.hasRef(check, "audience", "#lens-" + route.lens));
     const others = checks.filter((check) => !mine.includes(check));
+    const steps = [
+      ["check", "selfcheck.steps.choose"],
+      ["answer", "selfcheck.steps.answer"],
+      ["where", "selfcheck.steps.result"],
+    ];
     return h(
       "div",
-      { class: "layout wrap" },
+      { class: "layout wrap selfcheck-overview" },
       h(
         "article",
         null,
         FG.heading(1, null, FG.t("selfcheck.title")),
-        h("p", null, FG.t("selfcheck.intro")),
-        localDataNote(),
-        loadControl("load-file-overview"),
+        h("p", { class: "lead" }, FG.t("selfcheck.intro")),
+        h(
+          "ol",
+          { class: "how-steps" },
+          steps.map(([icon, key], index) => h("li", null, h("span", { class: "how-step-number" }, String(index + 1)), FG.icon(icon), h("span", null, FG.t(key))))
+        ),
         h("h2", null, FG.t("selfcheck.forLens")),
-        h("ul", { class: "cards" }, mine.map(checkCard)),
-        others.length ? [h("h2", null, FG.t("selfcheck.others")), h("ul", { class: "cards" }, others.map(checkCard))] : null
+        h("ul", { class: "check-cards" }, mine.map(checkCard)),
+        others.length ? [h("h2", null, FG.t("selfcheck.others")), h("ul", { class: "check-cards" }, others.map(checkCard))] : null,
+        h(
+          "section",
+          { class: "saved-results", "aria-labelledby": "saved-title" },
+          h("h2", { id: "saved-title" }, FG.t("selfcheck.savedTitle")),
+          h("p", null, FG.t("selfcheck.savedText")),
+          loadControl("load-file-overview"),
+          localDataNote()
+        )
       )
     );
   }
