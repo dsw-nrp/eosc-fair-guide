@@ -12,6 +12,9 @@ target-version = "py311"
 [tool.pylint.format]
 max-line-length = 120
 
+[tool.pylint."messages control"]
+disable = ["missing-module-docstring", "missing-class-docstring", "missing-function-docstring", "wrong-import-position", "invalid-name", "import-outside-toplevel"]
+
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "PL"]
 ignore = ["PLR0912", "PLR0913", "PLR0915", "PLR2004", "PLW0603"]

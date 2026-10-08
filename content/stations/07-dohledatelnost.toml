@@ -1,0 +1,183 @@
+# Station 7: findability in NMA and other services. Field reference: docs/content-model.md.
+
+[station]
+id = "dohledatelnost"
+position = 7
+name = { cs = "Dohledatelnost", en = "Findability" }
+title = { cs = "NMA a další vyhledávače", en = "NMA and other discovery services" }
+principles = ["F4", "A2"]
+minutes = 5
+glossary = ["narodni-metadatovy-adresar", "harvestovani-sklizeni", "open-archives-initiative-protocol-for-metadata-harvesting", "narodni-datova-infrastruktura"]
+
+[[advice]]
+id = "dohledatelnost.V.L0"
+lens = "V"
+level = "L0"
+text = { cs = "Je-li váš repozitář napojený na Národní metadatový adresář (NMA), objeví se tam záznam sám. Pokud ne, můžete ho tam vytvořit sami; stačí, když má datová sada trvalý identifikátor.", en = "If your repository is connected to the National Metadata Directory (NMA), the record appears there by itself. If not, you can create it yourself; the dataset only needs a persistent identifier." }
+action = { label = { cs = "Vyhledat datovou sadu v NMA", en = "Search for your dataset in NMA" }, href = "https://nma.eosc.cz/" }
+sources = ["A.F4.N1", "DOC.NMA.RIV", "DOC.NMA.ACCESS"]
+
+[[advice]]
+id = "dohledatelnost.V.L1.1"
+lens = "V"
+level = "L1"
+text = { cs = "Vyhledejte PID své datové sady v NMA; prohlížení nevyžaduje přihlášení.", en = "Search for your dataset's PID in NMA; browsing needs no login." }
+sources = ["A.F4.N1", "DOC.NMA.INTRO"]
+
+[[advice]]
+id = "dohledatelnost.V.L1.2"
+lens = "V"
+level = "L1"
+text = { cs = "Není tam? Záznam vytvoříte sami:", en = "Not there? Create the record yourself:" }
+steps = [
+  { cs = "účet v NMA může získat kdokoli; s přihlášením přes českou akademickou instituci je schválen automaticky, jinak do dvou pracovních dnů;", en = "anyone can get an NMA account; logging in through a Czech academic institution approves it automatically, otherwise within two working days;" },
+  { cs = "v NMA zvolte „Získat odkaz pro RIV“ a vložte DOI nebo Handle (má-li datová sada obojí, použijte DOI);", en = "in NMA, choose “Get a link for RIV” and enter the DOI or Handle (if the dataset has both, use the DOI);" },
+  { cs = "NMA zkusí metadata načíst z DataCite nebo z repozitáře; co chybí, doplníte ručně;", en = "NMA tries to load the metadata from DataCite or from the repository; you complete whatever is missing by hand;" },
+  { cs = "záznam lze upravovat 7 dní a smazat ho nelze.", en = "the record can be edited for 7 days and cannot be deleted." },
+]
+sources = ["DOC.NMA.ACCESS", "DOC.NMA.RIV"]
+
+[[advice]]
+id = "dohledatelnost.V.L1.3"
+lens = "V"
+level = "L1"
+text = { cs = "Repozitář do NMA sklízen není? Upozorněte jeho správce; NRP má pro napojení návod.", en = "Your repository is not harvested into NMA? Tell its administrator; NRP has instructions for connecting." }
+sources = ["DOC.NMA.RIV", "DOC.NMA.EXPORT"]
+
+[[advice]]
+id = "dohledatelnost.V.L1.4"
+lens = "V"
+level = "L1"
+text = { cs = "Mezinárodní dohledatelnost:", en = "International discovery:" }
+steps = [
+  { cs = "DataCite Commons, pro DOI registrované u DataCite;", en = "DataCite Commons, for DOIs registered with DataCite;" },
+  { cs = "OpenAIRE, kam se napojení přes EOSC Node Czechia připravuje;", en = "OpenAIRE, to which the connection through EOSC Node Czechia is in preparation;" },
+  { cs = "Google Dataset Search, podle metadat Schema.org.", en = "Google Dataset Search, through Schema.org metadata." },
+]
+sources = ["A.F4.N3", "A.F4.X1", "E.SCHEMA-DATASET"]
+
+[[advice]]
+id = "dohledatelnost.V.L1.5"
+lens = "V"
+level = "L1"
+text = { cs = "Pro vykázání v RIV použijete odkaz pro RIV z NMA; v citacích ale vždy uvádějte trvalý identifikátor (viz zastávka Citace a uznání).", en = "For reporting in RIV, use the RIV link from NMA; in citations, however, always give the persistent identifier (see the Citation and credit station)." }
+sources = ["DOC.NMA.RIV"]
+
+[[advice]]
+id = "dohledatelnost.DS.L0"
+lens = "DS"
+level = "L0"
+text = { cs = "Dohledatelnost zajišťuje hlavně repozitář: sklizeň do NMA, strojově čitelná metadata pro vyhledávače a registrace v agregátorech.", en = "Findability is mainly the repository's job: harvesting into NMA, machine-readable metadata for search engines and registration with aggregators." }
+action = { label = { cs = "Jak funguje NMA", en = "How NMA works" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-introduction" }
+sources = ["C.M8", "A.F4.R2", "A.F4.N3", "DOC.NMA.INTRO"]
+
+[[advice]]
+id = "dohledatelnost.DS.L1.1"
+lens = "DS"
+level = "L1"
+text = { cs = "NMA sklízí metadata (CCMM přes OAI-PMH), data neukládá a odkazuje do původního repozitáře: je rozcestníkem a plný popis zůstává v repozitáři.", en = "NMA harvests metadata (CCMM through OAI-PMH), stores no data and links to the original repository: it is a signpost, and the full description stays in the repository." }
+sources = ["A.F2.X1", "A.R1.X1", "DOC.NMA.INTRO"]
+
+[[advice]]
+id = "dohledatelnost.DS.L1.2"
+lens = "DS"
+level = "L1"
+text = { cs = "Které repozitáře NMA sklízí, zjistíte přímo v NMA filtrem podle vydavatele.", en = "To see which repositories NMA harvests, filter by publisher in NMA itself." }
+sources = ["E.NMA", "DOC.NMA.INTRO"]
+
+[[advice]]
+id = "dohledatelnost.DS.L1.3"
+lens = "DS"
+level = "L1"
+text = { cs = "Když data zmizí, minimální záznam v NMA zůstane; záznamy v NMA nelze smazat.", en = "If the data disappear, the minimum record in NMA remains; NMA records cannot be deleted." }
+sources = ["A.A2.N1", "DOC.NMA.RIV"]
+
+[[advice]]
+id = "dohledatelnost.DS.L1.4"
+lens = "DS"
+level = "L1"
+text = { cs = "Výzkumníkům, jejichž repozitář NMA nesklízí, pomozte se založením záznamu.", en = "Help researchers whose repository is not harvested by NMA to create the record." }
+sources = ["DOC.NMA.ACCESS", "DOC.NMA.RIV"]
+
+[[advice]]
+id = "dohledatelnost.SR.L0"
+lens = "SR"
+level = "L0"
+text = { cs = "Zpřístupněte metadata pro sklizeň do NMA (OAI-PMH, CCMM-XML), což vyžadují podmínky NRP, a nabídněte strojově čitelná metadata i vyhledávačům. Autoři pak nemusejí zakládat záznamy ručně.", en = "Make metadata available for harvesting into NMA (OAI-PMH, CCMM-XML), which the NRP conditions require, and offer machine-readable metadata to search engines too. Authors then need not create records by hand." }
+action = { label = { cs = "Export do NMA (dokumentace NRP)", en = "Export to NMA (NRP documentation)" }, href = "https://docs.nrp.eosc.cz/en/docs/repo_admins/national-metadata-directory/exports-to-nma" }
+sources = ["C.M8", "DOC.NMA.EXPORT", "A.F4.R2"]
+
+[[advice]]
+id = "dohledatelnost.SR.L1.1"
+lens = "SR"
+level = "L1"
+text = { cs = "Sklizeň do NMA probíhá podle CCMM:", en = "Harvesting into NMA follows CCMM:" }
+steps = [
+  { cs = "OAI-PMH s metadataPrefix ccmm-xml, což standardní repozitáře NRP umějí;", en = "OAI-PMH with the ccmm-xml metadataPrefix, which standard NRP repositories support;" },
+  { cs = "bez nativního CCMM veřejná transformace XSLT na stabilní HTTPS adrese.", en = "without native CCMM, a public XSLT transformation at a stable HTTPS address." },
+]
+sources = ["C.M8", "A.F4.R1", "S.MIN2", "DOC.NMA.EXPORT"]
+
+[[advice]]
+id = "dohledatelnost.SR.L1.2"
+lens = "SR"
+level = "L1"
+text = { cs = "Pro napojení napište týmu NMA a uveďte endpoint OAI, setSpec, metadataPrefix, případně adresu XSLT. NMA spustí testovací sklizeň a vy získáte roli správce sklizně; průběh a chyby sledujete ve webovém rozhraní.", en = "To connect, write to the NMA team with the OAI endpoint, setSpec, metadataPrefix and, if needed, the XSLT address. NMA runs a test harvest, and you get the harvest manager role; you follow progress and errors in the web interface." }
+sources = ["DOC.NMA.EXPORT"]
+
+[[advice]]
+id = "dohledatelnost.SR.L1.3"
+lens = "SR"
+level = "L1"
+text = { cs = "NMA pracuje s CCMM 1.1.0; podporu verze 2.0.0 připravuje.", en = "NMA works with CCMM 1.1.0 and is preparing to support version 2.0.0." }
+sources = ["A.F2.N1", "E.CCMM"]
+
+[[advice]]
+id = "dohledatelnost.SR.L1.4"
+lens = "SR"
+level = "L1"
+text = { cs = "Metadata zpřístupněte s licencí odpovídající CC0.", en = "Make metadata available under a licence equivalent to CC0." }
+sources = ["C.M4"]
+
+[[advice]]
+id = "dohledatelnost.SR.L1.5"
+lens = "SR"
+level = "L1"
+text = { cs = "Endpoint OAI-PMH uveďte v záznamu NKR.", en = "Give the OAI-PMH endpoint in the NKR record." }
+sources = ["A.A1.N2", "E.NKR-SCHEMA"]
+
+[[advice]]
+id = "dohledatelnost.SR.L1.6"
+lens = "SR"
+level = "L1"
+text = { cs = "Pro vyhledávače a katalogy nabídněte Schema.org/JSON-LD, případně DCAT-AP, sitemap a pravidla robots, která povolují indexaci stránek záznamů, a registrujte se v agregátorech (OpenAIRE, DataCite Commons, oborové).", en = "For search engines and catalogues, offer Schema.org/JSON-LD, or DCAT-AP, a sitemap and robots rules that allow record pages to be indexed, and register with aggregators (OpenAIRE, DataCite Commons, domain ones)." }
+sources = ["A.F4.R2", "A.F4.N2", "A.F4.N3", "A.F4.N4", "E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "dohledatelnost.SR.L1.7"
+lens = "SR"
+level = "L1"
+text = { cs = "Po odstranění dat zůstává plný záznam metadat v repozitáři, mapovaný na minimální záznam v NMA. Politiku uchování zveřejněte a odkažte na ni z metadat, aby byla strojově dohledatelná.", en = "After data removal, the full metadata record stays in the repository, mapped to the minimum record in NMA. Publish the retention policy and link to it from the metadata so that machines can find it." }
+sources = ["A.A2.R1", "E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "dohledatelnost.K.L0"
+lens = "K"
+level = "L0"
+text = { cs = "FIP může určit minimální metadata potřebná pro oborové vyhledávače a mapování na jejich formáty.", en = "The FIP can set the minimum metadata needed for domain search services and the mappings to their formats." }
+action = { label = { cs = "Zdroje pro F4 ve FIP Dashboardu", en = "F4 resources in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources?principles=F4" }
+sources = ["A.F4.F1", "A.F4.F2", "E.FIP-DASHBOARD"]
+
+[[advice]]
+id = "dohledatelnost.K.L1.1"
+lens = "K"
+level = "L1"
+text = { cs = "Určete minimální metadata pro indexaci a mapování na formáty vyhledávačů.", en = "Set the minimum metadata for indexing and the mappings to search-service formats." }
+sources = ["A.F4.F1", "A.F4.F2"]
+
+[[advice]]
+id = "dohledatelnost.K.L1.2"
+lens = "K"
+level = "L1"
+text = { cs = "Určete, která metadata zůstanou veřejná i po ztrátě dat.", en = "Set which metadata remain public after the data are lost." }
+sources = ["A.A2.F1"]

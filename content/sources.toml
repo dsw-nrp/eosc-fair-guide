@@ -504,3 +504,30 @@ doi = "10.14473/CSDA/OJTMJF"
 url = "https://doi.org/10.14473/CSDA/OJTMJF"
 publisher = "Český sociálněvědní datový archiv"
 dateAccessed = 2026-10-08
+
+[[source]]
+id = "fip-dashboard"
+type = "software"
+title = "FIP Dashboard: FAIR Enabling Resources and FAIR Implementation Profiles (NRP)"
+inLanguage = "en"
+url = "https://fip-dashboard.dmp.eosc.cz/"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "cessda-dmeg"
+type = "webpage"
+title = "CESSDA Data Management Expert Guide"
+inLanguage = "en"
+url = "https://dmeg.cessda.eu/"
+publisher = "CESSDA ERIC"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "datarepo"
+type = "webpage"
+title = "Data Catch-all Repository (NRP)"
+inLanguage = "en"
+url = "https://datarepo.eosc.cz/"
+publisher = "nrp"
+dateAccessed = 2026-10-08

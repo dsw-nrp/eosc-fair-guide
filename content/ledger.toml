@@ -1945,6 +1945,30 @@ kind = "statement"
 text = { cs = "Dataspecer je nástroj pro správu metadatových profilů a datových specifikací, dostupný i jako obraz Docker.", en = "Dataspecer is a tool for managing metadata profiles and data specifications, also available as a Docker image." }
 
 [[clause]]
+id = "E.FIP-DASHBOARD"
+source = "fip-dashboard"
+principles = ["R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "FIP Dashboard je katalog zdrojů umožňujících FAIR (FER) národní datové infrastruktury a profilů FIP komunit, které je používají; u zdrojů uvádí ověření (mimo jiné NRP a EOSC CZ). Je v pilotním provozu s ukázkovými daty.", en = "The FIP Dashboard is a catalogue of the FAIR-enabling resources (FERs) of the national data infrastructure and of the FIPs of the communities that use them; it records verifications of resources (among others by NRP and EOSC CZ). It is in pilot operation with sample data." }
+
+[[clause]]
+id = "E.CESSDA-DMEG"
+source = "cessda-dmeg"
+principles = ["R1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "CESSDA Data Management Expert Guide radí, jak data organizovat (pojmenování souborů, struktura složek, verze), dokumentovat, ukládat a zálohovat.", en = "The CESSDA Data Management Expert Guide advises how to organise data (file naming, folder structure, versions), document them, and store and back them up." }
+
+[[clause]]
+id = "E.DATAREPO"
+source = "datarepo"
+principles = ["F1", "A1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Datový catch-all repozitář NRP (datarepo.eosc.cz) přijímá datové sady, pro které se nehodí oborový ani institucionální repozitář; přiděluje DOI přes DataCite a zpřístupňuje metadata přes OAI-PMH.", en = "The NRP Data Catch-all Repository (datarepo.eosc.cz) accepts datasets for which no domain or institutional repository fits; it assigns DOIs through DataCite and exposes metadata through OAI-PMH." }
+
+[[clause]]
 id = "E.FAIR-PRINCIPLES"
 source = "fair-principles-2016"
 principles = []

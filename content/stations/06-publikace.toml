@@ -1,0 +1,187 @@
+# Station 6: publication and the persistent identifier. Field reference: docs/content-model.md.
+
+[station]
+id = "publikace"
+position = 6
+name = { cs = "Publikace", en = "Publication" }
+title = { cs = "Zveřejnění a trvalý identifikátor", en = "Publication and the persistent identifier" }
+principles = ["F1", "F3", "A1", "A1.1", "A2"]
+minutes = 5
+glossary = ["perzistentni-trvaly-identifikator", "digitalni-identifikator-objektu", "handle"]
+
+[[advice]]
+id = "publikace.V.L0"
+lens = "V"
+level = "L0"
+text = { cs = "Při zveřejnění repozitář datové sadě přidělí trvalý identifikátor (PID), nejčastěji DOI, jinde třeba Handle. Odkaz pak funguje i po letech a data lze citovat.", en = "At publication, the repository assigns the dataset a persistent identifier (PID), most often a DOI, elsewhere for example a Handle. The link then works for years, and the data can be cited." }
+action = { label = { cs = "Co zkontrolovat před zveřejněním", en = "What to check before publishing" }, href = "#check-dataset" }
+sources = ["A.F1.R1", "A.F1.N2"]
+
+[[advice]]
+id = "publikace.V.L1.1"
+lens = "V"
+level = "L1"
+text = { cs = "Zkontrolujte náhled záznamu: metadata, soubory a licenci.", en = "Check the record preview: metadata, files and licence." }
+sources = ["A.F2.N2"]
+
+[[advice]]
+id = "publikace.V.L1.2"
+lens = "V"
+level = "L1"
+text = { cs = "Po zveřejnění ověřte, že PID vede na stránku datové sady (landing page).", en = "After publication, check that the PID leads to the dataset's page (landing page)." }
+sources = ["A.F1.R2"]
+
+[[advice]]
+id = "publikace.V.L1.3"
+lens = "V"
+level = "L1"
+text = { cs = "Oprava, nebo nová verze? Podstatná změna dat znamená novou verzi s novým PID, propojenou s předchozí.", en = "Correction or new version? A substantial change to the data means a new version with a new PID, linked to the previous one." }
+sources = ["A.R1.R3", "A.I3.R5"]
+
+[[advice]]
+id = "publikace.V.L1.4"
+lens = "V"
+level = "L1"
+text = { cs = "PID uvádějte všude: v článku (v prohlášení o dostupnosti dat), v profilu ORCID a v DMP.", en = "Use the PID everywhere: in the article (in the data availability statement), in your ORCID profile and in the DMP." }
+sources = ["A.R1.2.N3"]
+
+[[advice]]
+id = "publikace.V.L1.5"
+lens = "V"
+level = "L1"
+text = { cs = "Pokud repozitář trvalý identifikátor nepřiděluje, zvažte jiný: PID je minimum pro zapojení do národní datové infrastruktury.", en = "If the repository does not assign a persistent identifier, consider another one: a PID is the minimum for joining the national data infrastructure." }
+sources = ["S.MIN1"]
+
+[[advice]]
+id = "publikace.DS.L0"
+lens = "DS"
+level = "L0"
+text = { cs = "Ohlídejte, aby zveřejněná data měla PID a landing page a byla propojená s článkem i s autory (ORCID).", en = "Make sure published data have a PID and a landing page and are linked to the article and to the authors (ORCID)." }
+action = { label = { cs = "Centrum PID (identifikatory.cz)", en = "PID Centre (identifikatory.cz)" }, href = "https://identifikatory.cz/cs/" }
+sources = ["S.MIN1", "A.R1.2.N3", "E.PID-CENTRE"]
+
+[[advice]]
+id = "publikace.DS.L1.1"
+lens = "DS"
+level = "L1"
+text = { cs = "Typy PID: DOI je nejrozšířenější a doporučený. Přípustný je i jiný trvalý identifikátor, například Handle nebo ARK, pokud trvale vede na landing page a repozitář ho spravuje.", en = "PID types: DOI is the most widespread and the recommended one. Another persistent identifier, such as a Handle or ARK, is acceptable if it resolves permanently to the landing page and the repository manages it." }
+sources = ["A.F1.N2", "C.EXT"]
+
+[[advice]]
+id = "publikace.DS.L1.2"
+lens = "DS"
+level = "L1"
+text = { cs = "DOI v NRP zajišťuje Národní centrum DOI (NTK): smlouvu, metodiku a prefix; DOI pak přiděluje repozitář. Členům NC DOI hradí NTK v letech 2023–2028 náklady na DOI.", en = "In NRP, DOIs are provided through the National DOI Centre (NTK): contract, methodology and prefix; the repository then assigns the DOIs. For NC DOI members, NTK covers the cost of DOIs in 2023–2028." }
+sources = ["A.F1.X1", "E.NCDOI"]
+
+[[advice]]
+id = "publikace.DS.L1.3"
+lens = "DS"
+level = "L1"
+text = { cs = "I když data zmizí, metadata zůstávají: tombstone stránka s PID, citací a důvodem nedostupnosti.", en = "Even if the data are removed, the metadata remain: a tombstone page with the PID, the citation and the reason the data are unavailable." }
+sources = ["A.A2.R2"]
+
+[[advice]]
+id = "publikace.SR.L0"
+lens = "SR"
+level = "L0"
+text = { cs = "Zajistěte přidělování PID při publikaci a landing page se strojově čitelnými metadaty a odkazy na distribuce. Přidělování PID vyžadují podmínky NRP.", en = "Make sure PIDs are assigned at publication and that landing pages carry machine-readable metadata and links to distributions. The NRP conditions require PID assignment." }
+action = { label = { cs = "Brána NRP pro repozitáře", en = "NRP gate for repositories" }, href = "#check-gate" }
+sources = ["C.M7", "C.M1", "A.F3.N1"]
+
+[[advice]]
+id = "publikace.SR.L1.1"
+lens = "SR"
+level = "L1"
+text = { cs = "Záznamy musí být citovatelné, mít PID a popsanou záruku neměnnosti a repozitář potřebuje politiku změn (verzování nebo „patch“ balíčky). Převzaté záznamy bez PID mají aspoň stabilní URL a postup doplnění PID.", en = "Records must be citable and have PIDs and a described immutability guarantee, and the repository needs a change policy (versioning or patch packages). Imported records without a PID have at least a stable URL and a procedure for adding one." }
+sources = ["C.M1", "C.M3", "A.F1.N1"]
+
+[[advice]]
+id = "publikace.SR.L1.2"
+lens = "SR"
+level = "L1"
+text = { cs = "Přidělování PID integrujte do publikace: DOI přes Národní centrum DOI, jiné PID podle platformy.", en = "Integrate PID assignment into publication: DOIs through the National DOI Centre, other PIDs according to the platform." }
+sources = ["C.M7", "A.F1.R1", "A.F1.N2"]
+
+[[advice]]
+id = "publikace.SR.L1.3"
+lens = "SR"
+level = "L1"
+text = { cs = "PID vede na landing page a v NMA slouží jako identifikátor záznamu; distribuce mají jednoznačné odkazy. Uveďte PID v metadatech i jako explicitní, typovaný identifikátor (například schema.org identifier), jinak ho automatické testy nenajdou.", en = "The PID resolves to the landing page and serves as the record identifier in NMA; distributions have unambiguous links. Also give the PID in the metadata as an explicit, typed identifier (for example schema.org identifier), otherwise automated tests will not find it." }
+sources = ["A.F1.R2", "A.F1.N4", "A.F3.N2", "S.MIN3", "E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "publikace.SR.L1.4"
+lens = "SR"
+level = "L1"
+text = { cs = "Propojení metadata → landing page → distribuce má být strojově zjistitelné:", en = "The link from metadata to landing page to distributions should be machine-discoverable:" }
+steps = [
+  { cs = "minimálně JSON-LD (Schema.org) na landing page s odkazy na distribuce;", en = "at least JSON-LD (Schema.org) on the landing page with links to distributions;" },
+  { cs = "přednostně FAIR Signposting v hlavičkách Link, nativně nebo přes reverse proxy.", en = "preferably FAIR Signposting in Link headers, natively or through a reverse proxy." },
+]
+sources = ["A.F3.R1", "A.F3.N1", "A.F4.R2", "S.REC1", "S.REC2"]
+
+[[advice]]
+id = "publikace.SR.L1.5"
+lens = "SR"
+level = "L1"
+text = { cs = "Spravujte PID: při změnách infrastruktury aktualizujte cílové URL; po odstranění dat ponechte tombstone a PID přesměrujte na něj.", en = "Manage PIDs: update target URLs when the infrastructure changes; after data removal, keep a tombstone and redirect the PID to it." }
+sources = ["A.F1.R3", "A.A2.R2", "A.A2.R3"]
+
+[[advice]]
+id = "publikace.SR.L1.6"
+lens = "SR"
+level = "L1"
+text = { cs = "Nabídněte webové rozhraní i API a přístup přes otevřené protokoly, minimálně HTTPS a pro metadata OAI-PMH.", en = "Offer a web interface and an API, and access through open protocols, at least HTTPS, and OAI-PMH for metadata." }
+sources = ["C.M2", "A.A1.R1", "A.A1.1.R1"]
+
+[[advice]]
+id = "publikace.SR.L1.7"
+lens = "SR"
+level = "L1"
+text = { cs = "Verzujte data i metadata; nová verze je propojená s předchozí, například vazbou isNewVersionOf.", en = "Version both data and metadata; a new version is linked to the previous one, for example with an isNewVersionOf relation." }
+sources = ["A.R1.R3", "A.R1.2.R2", "A.R1.2.N2", "A.I3.R5"]
+
+[[advice]]
+id = "publikace.SR.L2.1"
+lens = "SR"
+level = "L2"
+text = { cs = "Strojově čitelná landing page obvykle kombinuje JSON-LD (Schema.org Dataset), typované hlavičky Link (cite-as, describedby, item, license, type) a sitemap, která povoluje indexaci stránek záznamů.", en = "A machine-readable landing page usually combines JSON-LD (Schema.org Dataset), typed Link headers (cite-as, describedby, item, license, type) and a sitemap that allows record pages to be indexed." }
+sources = ["E.SCHEMA-DATASET", "E.SIGNPOSTING", "E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "publikace.K.L0"
+lens = "K"
+level = "L0"
+text = { cs = "FIP určuje preferované typy PID v oboru, pravidla jejich správy a protokoly přístupu k datům.", en = "The FIP sets the preferred PID types in the domain, the rules for managing them, and the protocols for accessing the data." }
+action = { label = { cs = "Identifikátory ve FIP Dashboardu", en = "Identifiers in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources?principles=F1" }
+sources = ["A.F1.F1", "A.F1.F2", "A.A1.F1", "E.FIP-DASHBOARD"]
+
+[[advice]]
+id = "publikace.K.L1.1"
+lens = "K"
+level = "L1"
+text = { cs = "Určete preferované PID a pravidla jejich dlouhodobé správy.", en = "Set the preferred PIDs and the rules for managing them in the long term." }
+sources = ["A.F1.F1", "A.F1.F2"]
+
+[[advice]]
+id = "publikace.K.L1.2"
+lens = "K"
+level = "L1"
+text = { cs = "Odkažte na metadatový profil se standardním polem pro identifikátor dat.", en = "Point to a metadata profile with a standard field for the data identifier." }
+sources = ["A.F3.F1"]
+
+[[advice]]
+id = "publikace.K.L1.3"
+lens = "K"
+level = "L1"
+text = { cs = "Uveďte podporované a oborově specifické protokoly.", en = "List the supported and domain-specific protocols." }
+sources = ["A.A1.F1", "A.A1.F2", "A.A1.1.F1"]
+
+[[advice]]
+id = "publikace.SR.L1.8"
+lens = "SR"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám může připravit JSON-LD pro landing page podle Schema.org; výsledek před nasazením validujte.", en = "AI can draft JSON-LD for a landing page following Schema.org; validate the result before deploying it." }
+sources = ["E.CERIT-AI", "E.SCHEMA-DATASET"]

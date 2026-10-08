@@ -1,5 +1,5 @@
-# Provenance actions (Process Run Crate). Every change to an advice item, check or resource is covered by an
-# action. Field reference: docs/content-model.md.
+# Provenance actions (Process Run Crate). Every change to an advice item, check, resource or clause is covered by an
+# action that names the person, the tools and the sources. Field reference: docs/content-model.md.
 
 [[action]]
 id = "2026-10-08-content-model-sample"
@@ -9,5 +9,27 @@ description = "First content entries written to test the content model and the g
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nkr-schema"]
-results = ["repozitar.*", "G05", "G07", "nkr", "re3data", "A.*", "C.*", "K2.*", "K5.*", "E.*"]
-endTime = 2026-10-08T22:00:00+02:00
+results = ["repozitar.*", "G05", "G07", "nkr", "re3data"]
+endTime = 2026-10-08T03:11:16+02:00
+
+[[action]]
+id = "2026-10-08-ledger"
+type = "create"
+name = "Clause ledger and sources"
+description = "Clause ledger converted from the planning ledger, with Czech and English text, refresh notes and their supporting sources, and the published sources the clauses come from."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nrp-docs-nma-introduction", "nrp-docs-nma-access", "nrp-docs-nma-riv", "nrp-docs-nma-export", "nkr-schema", "ccmm-releases", "ostrails-cz-pilot", "survey-2025", "ncdoi-2023", "os3-call", "knav-type-t", "tf-semantic-interop", "cdif-1.1", "dsw-nrp"]
+results = ["A.*", "K2.*", "K4.*", "K5.*", "K6", "P1", "G", "S.*", "C.*", "DOC.*", "E.*"]
+endTime = 2026-10-08T03:20:40+02:00
+
+[[action]]
+id = "2026-10-08-content-migration"
+type = "create"
+name = "Stations, self-checks, resources, callouts and pages"
+description = "Nine stations with advice for four lenses in Czech and English, the dataset, gate, maturity, FIP and institution checks, the resource catalogue with FIP Dashboard links, the shared callouts and the pages, drafted from the planning inventory and traced to ledger clauses; three clauses added for the FIP Dashboard, the CESSDA guide and the NRP catch-all repository."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["analyza-fair-1.2", "nrp-conditions-3.4", "nrp-docs-nma-riv", "nrp-docs-nma-export", "nkr-schema", "fip-dashboard", "cessda-dmeg", "datarepo", "ostrails-cz-pilot", "dsw-nrp", "pid-centre", "einfra-docs"]
+results = ["plan.*", "prace.*", "repozitar.*", "popis.*", "licence.*", "publikace.*", "dohledatelnost.*", "citace.*", "kontrola.*", "P0*", "D0*", "D1*", "G0*", "G1*", "S0*", "S1*", "S2*", "K0*", "K1*", "I0*", "dmp-eosc", "dmp-status", "dsw-nrp", "policy-manual", "ds-handbook", "ds-personas", "eosc-data-stewards", "datasteward-cz", "cessda-dmeg", "cesnet-storage", "onedata", "sensitive-cloud", "ddrapp", "nrp-compute", "eosc-training", "cerit-aiaas", "nkr", "fip-dashboard", "re3data", "fairsharing", "datarepo", "coretrustseal", "nrp-conditions", "repo-recommendations", "repo-user-needs", "repo-integration", "os2", "eosc-working-groups", "ccmm", "heslar", "pid-centre", "orcid", "ror", "dataspecer", "cdif", "tf-semantic", "datacite-schema", "copyright-licences", "deposit-licence", "creative-commons", "ethical-seven", "einfra-aai", "aai-sensitive", "datacite", "handle", "fair-signposting", "schema-dataset", "oai-pmh", "nma", "nma-riv-docs", "nma-export-docs", "datacite-commons", "openaire-explore", "google-dataset-search", "force11-citation", "knav-type-t", "os3", "eosc-acknowledgement", "fair-champion", "f-uji", "fair-checker", "fair-aware", "openaire-validator", "fdmm", "ostrails-cli", "ostrails-cz-pilot", "fair-impact", "E.FIP-DASHBOARD", "E.CESSDA-DMEG", "E.DATAREPO"]
+endTime = 2026-10-08T10:15:00+02:00

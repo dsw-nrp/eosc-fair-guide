@@ -34,6 +34,7 @@ CLAUSE_STATUSES = ("current", "refresh", "superseded")
 HEALTH = ("available", "degraded", "unavailable")
 PREFILL_SOURCES = ("datacite", "nkr", "champion", "fip", "resolver")
 ACTION_TYPES = ("create", "update")
+RELEASE_STATUSES = ("testing", "released")
 CHECK_PREFIXES = {"dataset": ("D", "P"), "gate": ("G",), "maturity": ("S",), "fip": ("K",), "institution": ("I",)}
 GATE_TIERS = ("required", "recommended")
 MATURITY_TIERS = ("minimum", "recommended", "advanced")
@@ -73,7 +74,10 @@ FIP_QUESTIONS = (
     "F3",
     "F4-D",
     "F4-MD",
-    "A1",
+    "A1.1-D",
+    "A1.1-MD",
+    "A1.2-D",
+    "A1.2-MD",
     "A2",
     "I1-D",
     "I1-MD",
@@ -81,7 +85,10 @@ FIP_QUESTIONS = (
     "I2-MD",
     "I3-D",
     "I3-MD",
-    "R1",
+    "R1.1-D",
+    "R1.1-MD",
+    "R1.2-D",
+    "R1.2-MD",
 )
 
 PRINCIPLE = r"(?:F[1-4]|A1(?:\.[12])?|A2|I[1-3]|R1(?:\.[1-3])?)"
@@ -423,6 +430,9 @@ def check_resources(report: Report, content: dict[str, Any], vocab: dict[str, se
         for fip_class in resource.get("fipClass", []):
             if fip_class not in FIP_CLASSES:
                 report.error(where, f"unknown FIP class '{fip_class}'")
+        dashboard_id = resource.get("fipDashboard")
+        if dashboard_id is not None and not re.match(r"^[a-z0-9][a-z0-9-]*$", str(dashboard_id)):
+            report.error(where, f"fipDashboard must be a FIP Dashboard resource ID: {dashboard_id}")
 
 
 def check_status(report: Report, where: str, entry: dict[str, Any], vocab: dict[str, set[str]], today: date) -> None:
@@ -455,6 +465,37 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         for repository in snapshot.get("repository", []):
             if repository.get("kind") and repository["kind"] not in vocab["repository_kinds"]:
                 report.error(f"{where}:{repository.get('id')}", f"unknown kind '{repository['kind']}'")
+
+
+VERIFICATION_LEVELS = ("verified", "self-declared", "under-review")
+DECLARATION_STATUSES = ("in-use", "planned", "under-consideration", "to-be-replaced")
+
+
+def check_fip_dashboard(report: Report, content: dict[str, Any], vocab: dict[str, Any]) -> None:
+    """The dashboard snapshot is consistent, and every resource that names a dashboard record finds it."""
+    snapshot = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), None)
+    if snapshot is None:
+        return
+    fers = {resource["id"] for resource in snapshot.get("resource", [])}
+    organizations = {organization["id"] for organization in snapshot.get("organization", [])}
+    for resource in snapshot.get("resource", []):
+        for verification in resource.get("verification", []):
+            if verification.get("level") not in VERIFICATION_LEVELS:
+                report.error(f"fer:{resource['id']}", f"unknown verification level '{verification.get('level')}'")
+            if verification.get("verifier") not in organizations:
+                report.error(f"fer:{resource['id']}", f"unknown verifier '{verification.get('verifier')}'")
+    for fip in snapshot.get("fip", []):
+        for declaration in fip.get("declarations", []):
+            where = f"fip:{fip['id']}:{declaration.get('principle')}"
+            if declaration.get("principle") not in vocab["principles"]:
+                report.error(where, f"unknown principle '{declaration.get('principle')}'")
+            if declaration.get("resource") not in fers:
+                report.error(where, f"declares unknown resource '{declaration.get('resource')}'")
+            if declaration.get("status") not in DECLARATION_STATUSES:
+                report.error(where, f"unknown declaration status '{declaration.get('status')}'")
+    for resource in content["resources"]:
+        if resource.get("fipDashboard") and resource["fipDashboard"] not in fers:
+            report.error(f"resource:{resource['id']}", f"FIP Dashboard has no resource '{resource['fipDashboard']}'")
 
 
 def check_glossary(report: Report, content: dict[str, Any]) -> None:
@@ -607,6 +648,10 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
     guide = guide_file["guide"]
     for field in ("name", "description", "acknowledgement", "aiStatement"):
         require_text(report, "guide", guide.get(field), field)
+    if guide.get("releaseStatus") not in RELEASE_STATUSES:
+        report.error("guide", f"releaseStatus must be one of {', '.join(RELEASE_STATUSES)}")
+    if guide.get("releaseStatus") == "testing":
+        require_text(report, "guide", guide.get("testingNotice"), "testingNotice")
     for stage in guide_file.get("stage", []):
         if stage.get("station") not in vocab["stations"]:
             report.error(f"stage:{stage.get('id')}", f"opens unknown station '{stage.get('station')}'")
@@ -617,6 +662,11 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
     for person in guide.get("authors", []) + guide.get("contributors", []):
         if person not in vocab["people"]:
             report.error("guide", f"unknown person '{person}'")
+    organization_ids = {organization["id"] for organization in guide_file.get("organization", [])}
+    for person in guide_file.get("person", []):
+        for organization in person.get("affiliation", []):
+            if organization not in organization_ids:
+                report.error(f"person:{person['id']}", f"unknown affiliation '{organization}'")
     shapes = root / "profile" / "fair-guide"
     if shapes.exists():
         profile = (shapes / "profile.ttl").read_text(encoding="utf-8")
@@ -668,6 +718,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_resources(report, content, vocab, today or date.today())
     check_repositories(report, content, vocab, today or date.today())
     check_glossary(report, content)
+    check_fip_dashboard(report, content, vocab)
     check_callouts(report, content, vocab)
     check_live(report, content, vocab, root)
     check_provenance(report, content, vocab)

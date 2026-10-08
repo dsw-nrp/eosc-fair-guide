@@ -37,6 +37,7 @@ PROCESS_RUN_CRATE = "https://w3id.org/ro/wfrun/process/0.5"
 FAIR_PRINCIPLES = "https://w3id.org/fair/principles/terms/"
 FTR_TEST = "https://w3id.org/ftr#Test"
 FIP_TERMS = "https://w3id.org/fair/fip/terms/"
+FIP_DASHBOARD = "https://fip-dashboard.dmp.eosc.cz/resources/"
 LANGS = ("cs", "en")
 
 LICENSES = {
@@ -63,12 +64,14 @@ TERMS = {
     "statusAsOf": "Date on which a status was last verified.",
     "healthStatus": "Availability of a live test as last observed.",
     "resourceType": "Type of a resource, used to filter the resource finder.",
+    "catalogueType": "Type of a FAIR-enabling resource in the FIP Dashboard.",
     "repositoryKind": "Kind of a repository: domain, institutional or general-purpose.",
     "clauseKind": "Kind of a ledger clause: requirement, fulfilment in NRP, or statement.",
     "supersededBy": "Clause or source that replaces a superseded clause.",
     "lensOrder": "Order of a callout's items for one lens, written as '<lens>: <item>, <item>, ...'.",
     "relatedTo": "CoreTrustSeal requirement or CDIF profile related to a FAIR principle.",
     "note": "Additional remark shown with a clause or a self-check item.",
+    "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
 }
 
 # Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
@@ -91,7 +94,7 @@ SOURCE_ADDITIONAL_TYPES = {
 
 RESOURCE_TYPES = {
     "service": ["CreativeWork", "Service"],
-    "tool": "SoftwareApplication",
+    "tool": "CreativeWork",
     "registry": "DataCatalog",
     "repository": "DataCatalog",
     "guide": "DigitalDocument",
@@ -284,11 +287,21 @@ def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: 
 # Builders
 
 
-def build_people(graph: Graph, guide: dict[str, Any]) -> dict[str, str]:
+def build_people(graph: Graph, guide: dict[str, Any], organizations: dict[str, str]) -> dict[str, str]:
     people: dict[str, str] = {}
     for person in guide.get("person", []):
         entity_id = person.get("orcid") or f"#person-{person['id']}"
-        people[person["id"]] = graph.add({"@id": entity_id, "@type": "Person", "name": person["name"]}, person["id"])
+        people[person["id"]] = graph.add(
+            {
+                "@id": entity_id,
+                "@type": "Person",
+                "name": person["name"],
+                "affiliation": refs(
+                    [organizations[org] for org in person.get("affiliation", []) if org in organizations]
+                ),
+            },
+            person["id"],
+        )
     return people
 
 
@@ -647,12 +660,16 @@ def build_resources(graph: Graph, resources: list[dict[str, Any]], all_lenses: l
                 "description": text(resource.get("description")),
                 "url": resource.get("url"),
                 "audience": lens_refs(resource.get("lenses", "*"), all_lenses),
-                "additionalType": [FIP_TERMS + fip_class for fip_class in resource.get("fipClass", [])],
+                "additionalType": (["http://schema.org/SoftwareApplication"] if resource["type"] == "tool" else [])
+                + [FIP_TERMS + fip_class for fip_class in resource.get("fipClass", [])],
                 "resourceType": ref(f"#rtype-{resource['type']}"),
                 "serviceStatus": ref(f"#status-{resource['status']}") if resource.get("status") else None,
                 "statusAsOf": iso(resource["asOf"]) if resource.get("asOf") else None,
                 "inLanguage": resource.get("languages"),
-                "sameAs": refs(resource.get("sameAs", [])),
+                "sameAs": refs(
+                    resource.get("sameAs", [])
+                    + ([FIP_DASHBOARD + resource["fipDashboard"]] if resource.get("fipDashboard") else [])
+                ),
             },
             resource["id"],
         )
@@ -675,8 +692,10 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         "name": text(repository["name"]),
         "url": repository.get("url"),
         "repositoryKind": ref(f"#rkind-{repository['kind']}") if repository.get("kind") else None,
-        "keywords": text(repository.get("subjects")),
+        "keywords": text(repository.get("subjects"))
+        or [{"@value": subject, "@language": "en"} for subject in repository.get("subjectsEn", [])],
         "identifier": identifiers,
+        "inLanguage": repository.get("languages"),
         "sameAs": refs(same_as),
         "serviceStatus": ref(f"#status-{repository['status']}") if repository.get("status") else None,
         "statusAsOf": iso(repository["asOf"]) if repository.get("asOf") else None,
@@ -690,6 +709,34 @@ def repository_key(repository: dict[str, Any]) -> str:
     return "url:" + (repository.get("url") or repository["id"]).rstrip("/").lower()
 
 
+def snapshot_id(snapshot: dict[str, Any]) -> str:
+    return f"#snapshot-{slug(snapshot['snapshot']['source'])}"
+
+
+def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
+    """Add one entity per snapshot, with its retrieval date and, for the FIP Dashboard, its disclaimer."""
+    ids = []
+    for snapshot in snapshots:
+        info = snapshot["snapshot"]
+        ids.append(
+            graph.add(
+                {
+                    "@id": snapshot_id(snapshot),
+                    "@type": "CreativeWork",
+                    "name": f"Snapshot of {info['source']}",
+                    "url": info.get("url"),
+                    "dateCreated": iso(info["retrieved"]),
+                    "license": info.get("license"),
+                    "version": info.get("datasetVersion"),
+                    "dateModified": info.get("datasetUpdated"),
+                    "disclaimer": text(info.get("disclaimer")),
+                },
+                f"snapshot:{slug(info['source'])}",
+            )
+        )
+    return ids
+
+
 def build_repositories(graph: Graph, curated: list[dict[str, Any]], snapshots: list[dict[str, Any]]) -> list[str]:
     """Merge the curated list and the snapshots: one entity per repository, crediting every source."""
     merged: dict[str, dict[str, Any]] = {}
@@ -697,19 +744,7 @@ def build_repositories(graph: Graph, curated: list[dict[str, Any]], snapshots: l
     graph.add({"@id": "#repositories-curated", "@type": "CreativeWork", "name": "Curated repository list"})
     sources = [("#repositories-curated", curated)]
     for snapshot in snapshots:
-        info = snapshot["snapshot"]
-        snapshot_id = f"#snapshot-{slug(info['source'])}"
-        graph.add(
-            {
-                "@id": snapshot_id,
-                "@type": "CreativeWork",
-                "name": f"Snapshot of {info['source']}",
-                "url": info.get("url"),
-                "dateCreated": iso(info["retrieved"]),
-                "license": info.get("license"),
-            }
-        )
-        sources.append((snapshot_id, snapshot.get("repository", [])))
+        sources.append((snapshot_id(snapshot), snapshot.get("repository", [])))
     for based_on, repositories in sources:
         for repository in repositories:
             key = repository_key(repository)
@@ -735,6 +770,159 @@ def build_repositories(graph: Graph, curated: list[dict[str, Any]], snapshots: l
         {"@id": "#repositories", "@type": "CreativeWork", "name": "Repositories", "hasPart": refs(repository_ids)}
     )
     return repository_ids
+
+
+DASHBOARD_FIP_CLASS = {
+    "identifier-service": "Identifier-service",
+    "metadata-schema": "Metadata-schema",
+    "vocabulary": "Structured-vocabulary",
+    "repository": "Registry",
+    "access-protocol": "Communication-protocol",
+    "authentication-service": "Authentication-and-authorization-service",
+    "license": "Data-usage-license",
+    "policy": "FAIR-Data-Policy",
+    "provenance-model": "Provenance-model",
+    "longevity-plan": "Metadata-preservation-policy",
+    "tool": "FAIR-Supporting-Software",
+}
+
+
+def build_reviews(graph: Graph, item_id: str, verifications: list[dict[str, Any]]) -> list[str]:
+    """Record catalogue verifications as schema.org reviews: verifier, level and date."""
+    review_ids = []
+    for number, verification in enumerate(verifications, start=1):
+        review_id = f"{item_id}-verification-{number}"
+        review_ids.append(review_id)
+        graph.add(
+            {
+                "@id": review_id,
+                "@type": "Review",
+                "itemReviewed": ref(item_id),
+                "author": ref(f"#fd-org-{verification['verifier']}"),
+                "reviewAspect": verification.get("level"),
+                "dateCreated": verification.get("date"),
+                "url": verification.get("url"),
+                "reviewBody": text(verification.get("note")),
+            }
+        )
+    return review_ids
+
+
+def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
+    """Add the FIP Dashboard snapshot: organisations, FAIR-enabling resources with their verification, and FIPs."""
+    snapshot = next((item for item in snapshots if item.get("fip") or item.get("resource")), None)
+    if snapshot is None:
+        return []
+    based_on = ref(snapshot_id(snapshot))
+    base = snapshot["snapshot"]["url"].rstrip("/")
+    for organization in snapshot.get("organization", []):
+        graph.add(
+            {
+                "@id": f"#fd-org-{organization['id']}",
+                "@type": "Organization",
+                "identifier": organization["id"],
+                "name": text(organization["name"]),
+                "alternateName": organization.get("acronym"),
+                "url": organization.get("url"),
+                "sameAs": refs([organization["ror"]] if organization.get("ror") else []),
+            }
+        )
+    defined_terms(
+        graph,
+        "fd-types",
+        "FIP Dashboard resource types",
+        "fd-type",
+        [{"id": item["id"], "name": item["label"]} for item in snapshot.get("resourceType", [])],
+    )
+    fer_ids = []
+    for resource in snapshot.get("resource", []):
+        fer_id = f"#fer-{resource['id']}"
+        fer_ids.append(fer_id)
+        fip_class = DASHBOARD_FIP_CLASS.get(resource.get("type", ""))
+        review_ids = build_reviews(graph, fer_id, resource.get("verification", []))
+        graph.add(
+            {
+                "@id": fer_id,
+                "@type": "CreativeWork",
+                "identifier": resource["id"],
+                "name": resource["name"],
+                "alternateName": resource.get("acronym"),
+                "description": text(resource.get("description")),
+                "url": resource.get("url"),
+                "additionalType": FIP_TERMS + fip_class if fip_class else None,
+                "catalogueType": ref(f"#fd-type-{resource['type']}") if resource.get("type") else None,
+                "spatialCoverage": resource.get("scope"),
+                "about": refs([principle_iri(principle) for principle in resource.get("principles", [])]),
+                "provider": ref(f"#fd-org-{resource['provider']}") if resource.get("provider") else None,
+                "sameAs": refs(
+                    [f"{base}/resources/{resource['id']}"]
+                    + ([resource["identifier"]] if resource.get("identifier") else [])
+                ),
+                "review": refs(review_ids),
+                "isBasedOn": based_on,
+            },
+            f"fer:{resource['id']}",
+        )
+    fip_ids = []
+    for fip in snapshot.get("fip", []):
+        fip_id = f"#fip-{fip['id']}"
+        fip_ids.append(fip_id)
+        review_ids = build_reviews(graph, fip_id, fip.get("verification", []))
+        declaration_ids = []
+        for declaration in fip.get("declarations", []):
+            declaration_id = f"{fip_id}-{declaration['principle']}-{declaration['resource']}"
+            declaration_ids.append(declaration_id)
+            graph.add(
+                {
+                    "@id": declaration_id,
+                    "@type": "CreativeWork",
+                    "additionalType": FIP_TERMS + "FIP-Declaration",
+                    "about": ref(principle_iri(declaration["principle"])),
+                    "mentions": ref(f"#fer-{declaration['resource']}"),
+                    "creativeWorkStatus": declaration.get("status"),
+                    "description": text(declaration.get("note")),
+                    "isPartOf": ref(fip_id),
+                }
+            )
+        graph.add(
+            {
+                "@id": fip_id,
+                "@type": "CreativeWork",
+                "additionalType": FIP_TERMS + "FAIR-Implementation-Profile",
+                "identifier": fip["id"],
+                "name": text(fip.get("title")),
+                "alternateName": fip.get("acronym"),
+                "abstract": text(fip.get("summary")),
+                "keywords": text(fip.get("domain")),
+                "version": fip.get("version"),
+                "dateModified": fip.get("updated"),
+                "creativeWorkStatus": fip.get("status"),
+                "url": fip.get("url"),
+                "author": ref(f"#fd-org-{fip['community']}") if fip.get("community") else None,
+                "sameAs": ref(f"{base}/profiles/{fip['id']}"),
+                "review": refs(review_ids),
+                "hasPart": refs(declaration_ids),
+                "isBasedOn": based_on,
+            },
+            f"fip:{fip['id']}",
+        )
+    graph.add(
+        {
+            "@id": "#fers",
+            "@type": "CreativeWork",
+            "name": "FAIR-enabling resources (FIP Dashboard)",
+            "hasPart": refs(fer_ids),
+        }
+    )
+    graph.add(
+        {
+            "@id": "#fips",
+            "@type": "CreativeWork",
+            "name": "FAIR Implementation Profiles (FIP Dashboard)",
+            "hasPart": refs(fip_ids),
+        }
+    )
+    return ["#fers", "#fips"]
 
 
 def build_glossary(graph: Graph, glossary: dict[str, Any]) -> None:
@@ -916,8 +1104,8 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
         }
     )
 
-    people = build_people(graph, guide_file)
     organizations = build_organizations(graph, guide_file)
+    people = build_people(graph, guide_file, organizations)
     build_instruments(graph, guide_file)
     build_terms(graph, vocabulary_base)
     build_principles(graph, content["principles"])
@@ -928,7 +1116,9 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
     build_stations(graph, content["stations"], all_lenses)
     check_ids = build_checks(graph, content["checks"])
     build_resources(graph, content["resources"], all_lenses)
+    snapshot_ids = build_snapshots(graph, content["snapshots"])
     build_repositories(graph, content["repositories"], content["snapshots"])
+    catalogue_ids = build_fip_dashboard(graph, content["snapshots"])
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
     page_ids = build_pages(graph, content["pages"])
@@ -964,6 +1154,10 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
         "name": text(guide["name"]),
         "description": text(guide["description"]),
         "version": guide["version"],
+        "creativeWorkStatus": guide.get("releaseStatus"),
+        "disambiguatingDescription": text(guide.get("testingNotice"))
+        if guide.get("releaseStatus") == "testing"
+        else None,
         "datePublished": iso(guide["datePublished"]),
         "inLanguage": list(LANGS),
         "url": guide.get("url"),
@@ -980,7 +1174,16 @@ def build_crate(content: dict[str, Any]) -> dict[str, Any]:
         "mainEntity": ref("#path"),
         "about": refs([principle_iri(principle["id"]) for principle in content["principles"]]),
         "hasPart": refs([PAGE_FILE]),
-        "mentions": refs(action_ids + ["#ledger", "#repositories"] + check_ids + callout_ids + test_ids + page_ids),
+        "mentions": refs(
+            action_ids
+            + ["#ledger", "#repositories"]
+            + catalogue_ids
+            + snapshot_ids
+            + check_ids
+            + callout_ids
+            + test_ids
+            + page_ids
+        ),
     }
     graph.entities["./"] = prune(root)
 
@@ -1008,6 +1211,8 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
         "ui": content["ui"],
         "config": {
             "version": guide["version"],
+            "releaseStatus": guide.get("releaseStatus"),
+            "testingNotice": guide.get("testingNotice") if guide.get("releaseStatus") == "testing" else None,
             "datePublished": iso(guide["datePublished"]),
             "freshnessDays": guide.get("freshnessDays", 180),
             "connectors": live.get("connector", []),

@@ -1,0 +1,219 @@
+# Dataset check for researchers and data stewards, in a before-publication and an after-publication mode.
+# Field reference: docs/content-model.md.
+
+[check]
+id = "dataset"
+name = { cs = "Kontrola datové sady", en = "Dataset check" }
+description = { cs = "Jak FAIR je vaše datová sada? Před zveřejněním projdete plánovací položky, po zveřejnění položky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a průvodce nepočítá žádné skóre.", en = "How FAIR is your dataset? Before publication you go through planning items, after publication items about the published record. Your answers stay in your browser, and the guide computes no score." }
+lenses = ["V", "DS"]
+minutes = 5
+modes = ["before", "after"]
+
+[[item]]
+id = "P01"
+tier = "minimum"
+principles = ["R1"]
+statement = { cs = "Máte plán správy dat (DMP).", en = "You have a data management plan (DMP)." }
+help = { cs = "Plán popisuje, jaká data vzniknou, jak je popíšete, kam je uložíte a za jakých podmínek je zpřístupníte.", en = "The plan describes which data you will create, how you will describe them, where you will deposit them and on what terms you will make them available." }
+sources = ["K2.3.1", "E.DMP"]
+fixAt = "plan"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "P02"
+tier = "minimum"
+principles = ["F1", "F4"]
+statement = { cs = "Víte, do kterého repozitáře data uložíte, a ten přiděluje trvalý identifikátor.", en = "You know which repository you will deposit the data in, and it assigns a persistent identifier." }
+sources = ["A.R1.3.X1", "A.F1.R1"]
+fixAt = "repozitar"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "P03"
+tier = "minimum"
+principles = ["R1.1", "A1.2"]
+statement = { cs = "Máte rozmyšlenou licenci a režim přístupu.", en = "You have decided on the licence and the access mode." }
+sources = ["A.R1.1.R1", "A.A1.2.R2"]
+fixAt = "licence"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "P04"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "Data průběžně dokumentujete (README, záznam postupu).", en = "You document the data as you go (README, a record of how they were made)." }
+sources = ["A.R1.2.X1", "E.CESSDA-DMEG"]
+fixAt = "prace"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "P05"
+tier = "recommended"
+principles = ["A1.2"]
+statement = { cs = "Pokud pracujete s citlivými daty, víte, kdo vám poradí.", en = "If you work with sensitive data, you know who can advise you." }
+sources = ["E.DATA-STEWARDS", "E.ETHICS-SEVEN"]
+fixAt = "plan"
+owner = ["user", "data-steward"]
+modes = ["before"]
+allowNotApplicable = true
+
+[[item]]
+id = "D01"
+tier = "minimum"
+principles = ["F1"]
+statement = { cs = "Datová sada má trvalý identifikátor (DOI, Handle nebo jiný).", en = "The dataset has a persistent identifier (DOI, Handle or another)." }
+sources = ["S.MIN1", "A.F1.R1"]
+fixAt = "publikace"
+owner = ["repository-admin"]
+modes = ["after"]
+prefill = { resolver = true, datacite = ["doi"] }
+
+[[item]]
+id = "D02"
+tier = "minimum"
+principles = ["F1", "A1"]
+statement = { cs = "Identifikátor vede na stránku datové sady (landing page).", en = "The identifier leads to the dataset's page (landing page)." }
+sources = ["A.F1.R2"]
+fixAt = "publikace"
+owner = ["repository-admin"]
+modes = ["after"]
+prefill = { resolver = true, champion = ["fc_metadata_identifier_persistence"] }
+
+[[item]]
+id = "D03"
+tier = "minimum"
+principles = ["F3"]
+statement = { cs = "Ze stránky datové sady vedou odkazy na soubory nebo jiný přístup k datům.", en = "The dataset's page links to the files or to another way of accessing the data." }
+sources = ["S.MIN3", "A.F3.N1"]
+fixAt = "publikace"
+owner = ["repository-admin"]
+modes = ["after"]
+prefill = { champion = ["fc_data_identifier_in_metadata"] }
+
+[[item]]
+id = "D04"
+tier = "minimum"
+principles = ["R1.1"]
+statement = { cs = "Licence je uvedena odkazem (URI), ne jen názvem.", en = "The licence is given as a link (URI), not only by name." }
+sources = ["S.MIN3", "A.R1.1.X1"]
+fixAt = "licence"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+prefill = { datacite = ["rightsList[].rightsUri"], champion = ["fc_metadata_includes_license"] }
+
+[[item]]
+id = "D05"
+tier = "minimum"
+principles = ["F4"]
+statement = { cs = "Datová sada je v Národním metadatovém adresáři (NMA).", en = "The dataset is in the National Metadata Directory (NMA)." }
+help = { cs = "Vyhledejte ji v NMA podle PID; pokud tam není, můžete záznam založit sami.", en = "Search for it in NMA by its PID; if it is not there, you can create the record yourself." }
+note = { cs = "Potřebné pro vykázání datové sady v RIV jako výsledku typu T.", en = "Needed for reporting the dataset in RIV as a result of type T." }
+sources = ["DOC.NMA.RIV", "S.MIN2"]
+fixAt = "dohledatelnost"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+allowNotApplicable = true
+
+[[item]]
+id = "D06"
+tier = "recommended"
+principles = ["F2", "I2"]
+statement = { cs = "Popis obsahuje název, abstrakt a klíčová slova; odborná hesla jsou z řízeného slovníku.", en = "The description includes a title, an abstract and keywords; subject terms come from a controlled vocabulary." }
+sources = ["A.F2.N2", "A.I2.R1"]
+fixAt = "popis"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["descriptions", "subjects[].subjectScheme"] }
+
+[[item]]
+id = "D07"
+tier = "recommended"
+principles = ["I2", "I3"]
+statement = { cs = "Autoři mají ORCID a instituce ROR.", en = "Authors have ORCID iDs and institutions have ROR IDs." }
+sources = ["A.I2.R2"]
+fixAt = "popis"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["creators[].nameIdentifiers", "creators[].affiliation"], champion = ["community_metadata_includes_author_affiliation"] }
+
+[[item]]
+id = "D08"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "Je popsáno, jak data vznikla (metoda, přístroje, software).", en = "It is described how the data were made (method, instruments, software)." }
+sources = ["A.R1.2.X1"]
+fixAt = "popis"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["descriptions[descriptionType=Methods]"] }
+
+[[item]]
+id = "D09"
+tier = "recommended"
+principles = ["I3", "R1.2"]
+statement = { cs = "Vazby na články, zdrojová data a předchozí verze jsou uvedeny pomocí trvalých identifikátorů.", en = "Links to articles, source data and previous versions are given through persistent identifiers." }
+sources = ["A.I3.R3", "A.R1.2.N3"]
+fixAt = "popis"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["relatedIdentifiers"], champion = ["fc_metadata_outward_links"] }
+
+[[item]]
+id = "D10"
+tier = "recommended"
+principles = ["A1.2"]
+statement = { cs = "Podmínky přístupu jsou popsané (otevřený, embargo, omezený).", en = "The access conditions are described (open, embargoed, restricted)." }
+sources = ["A.A1.2.R2"]
+fixAt = "licence"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+prefill = { datacite = ["rightsList"] }
+
+[[item]]
+id = "D11"
+tier = "recommended"
+principles = ["I1", "R1"]
+statement = { cs = "Soubory jsou v otevřených nebo rozšířených formátech a mají README nebo datový slovník.", en = "The files are in open or widely used formats and have a README or a data dictionary." }
+sources = ["A.I1.X1", "E.CESSDA-DMEG"]
+fixAt = "prace"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["formats"] }
+
+[[item]]
+id = "D12"
+tier = "recommended"
+principles = ["R1"]
+statement = { cs = "Verze datové sady je označena.", en = "The dataset's version is stated." }
+sources = ["A.R1.R3"]
+fixAt = "publikace"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+prefill = { datacite = ["version"] }
+
+[[item]]
+id = "D13"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "Datová sada je citována v článku nebo uvedena v prohlášení o dostupnosti dat.", en = "The dataset is cited in an article or listed in a data availability statement." }
+sources = ["A.R1.2.N3", "E.FORCE11"]
+fixAt = "citace"
+owner = ["user"]
+modes = ["after"]
+allowNotApplicable = true
+prefill = { datacite = ["relatedIdentifiers[relationType=IsCitedBy]"] }
+
+[[item]]
+id = "D14"
+tier = "advanced"
+principles = ["R1.3"]
+statement = { cs = "Použili jste oborový metadatový standard, pokud ve vašem oboru existuje.", en = "You used a domain metadata standard, if your field has one." }
+sources = ["A.R1.3.X2"]
+fixAt = "popis"
+owner = ["user", "community"]
+modes = ["after"]
+allowNotApplicable = true

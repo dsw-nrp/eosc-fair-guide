@@ -20,6 +20,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
+import refresh_snapshots  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "minimal"
 TODAY = date(2026, 3, 1)
@@ -191,6 +192,98 @@ class ContentCheckTests(FixtureCase):
         (scripts / "app.js").write_text('fetch("https://api.example.org/x");\nfetch("https://elsewhere.example/y");\n')
         self.assertError("URL outside the connector allowlist: https://elsewhere.example/y")
         self.assertFalse(any("api.example.org/x" in error for error in self.errors()))
+
+
+DASHBOARD_SNAPSHOT = """[snapshot]
+source = "FIP Dashboard"
+url = "https://dashboard.example.org/"
+retrieved = 2026-01-01
+disclaimer = { cs = "Ukázková data.", en = "Sample data." }
+
+[[organization]]
+id = "org1"
+name = { cs = "Organizace", en = "Organisation" }
+
+[[resource]]
+id = "r1"
+name = "Resource one"
+type = "identifier-service"
+description = { cs = "Zdroj.", en = "Resource." }
+principles = ["F1"]
+verification = [{ verifier = "org1", level = "verified", date = "2026-01-01" }]
+
+[[fip]]
+id = "fip1"
+title = { cs = "Profil", en = "Profile" }
+community = "org1"
+status = "published"
+domain = { cs = "Obor", en = "Domain" }
+summary = { cs = "Shrnutí.", en = "Summary." }
+verification = []
+declarations = [
+  { principle = "F1", resource = "r1", status = "in-use" },
+]
+"""
+
+
+class SnapshotTests(FixtureCase):
+    def write_dashboard(self, text: str = DASHBOARD_SNAPSHOT) -> None:
+        snapshots = self.root / "content" / "snapshots"
+        snapshots.mkdir(exist_ok=True)
+        (snapshots / "fip-dashboard.toml").write_text(text, encoding="utf-8")
+
+    def test_dashboard_snapshot_passes_and_enters_the_crate(self) -> None:
+        self.write_dashboard()
+        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
+        self.assertEqual(self.errors(), [])
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        self.assertEqual(graph["#fer-r1"]["review"], {"@id": "#fer-r1-verification-1"})
+        self.assertEqual(graph["#fer-r1-verification-1"]["reviewAspect"], "verified")
+        self.assertEqual(graph["#fip-fip1-F1-r1"]["creativeWorkStatus"], "in-use")
+        self.assertIn({"@value": "Sample data.", "@language": "en"}, graph["#snapshot-fip-dashboard"]["disclaimer"])
+
+    def test_declaration_of_unknown_resource(self) -> None:
+        self.write_dashboard(DASHBOARD_SNAPSHOT.replace('resource = "r1", status', 'resource = "r9", status'))
+        self.assertError("declares unknown resource 'r9'")
+
+    def test_resource_names_missing_dashboard_record(self) -> None:
+        self.write_dashboard()
+        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "nowhere"')
+        self.assertError("FIP Dashboard has no resource 'nowhere'")
+
+    def test_testing_notice_is_required(self) -> None:
+        self.edit("guide.toml", 'testingNotice = { cs = "Testování.", en = "Testing." }\n', "")
+        self.assertError("missing testingNotice")
+
+    def test_unknown_affiliation(self) -> None:
+        self.edit("guide.toml", 'name = "Test Person"', 'name = "Test Person"\naffiliation = ["nowhere"]')
+        self.assertError("unknown affiliation 'nowhere'")
+
+    def test_xml_with_a_dtd_is_refused(self) -> None:
+        with self.assertRaises(ValueError):
+            refresh_snapshots.parse_xml(b'<!DOCTYPE x [<!ENTITY a "b">]><x>&a;</x>')
+
+    def test_re3data_plain_http_home_page_links_to_the_record(self) -> None:
+        inputs = Path(self.temp.name) / "inputs"
+        inputs.mkdir()
+        (inputs / "re3data-list.xml").write_text("<list><repository><id>r3d1</id></repository></list>")
+        (inputs / "re3data-r3d1.xml").write_text(
+            '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
+            "<r3d:repositoryName>Old</r3d:repositoryName><r3d:repositoryURL>http://old.example.org/</r3d:repositoryURL>"
+            "<r3d:type>disciplinary</r3d:type></r3d:repository></r3d:re3data>"
+        )
+        original = refresh_snapshots.ROOT
+        refresh_snapshots.ROOT = self.root
+        try:
+            refresh_snapshots.re3data(refresh_snapshots.Fetcher(inputs), "2026-01-01")
+        finally:
+            refresh_snapshots.ROOT = original
+        self.append("guide.toml", '\n[[repositoryKind]]\nid = "domain"\nname = { cs = "oborový", en = "domain" }\n')
+        snapshot = (self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8")
+        self.assertIn('url = "https://www.re3data.org/repository/r3d1"', snapshot)
+        self.assertIn('kind = "domain"', snapshot)
+        self.assertEqual(self.errors(), [])
 
 
 class FreshnessTests(FixtureCase):

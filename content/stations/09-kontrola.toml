@@ -1,0 +1,212 @@
+# Station 9: checking FAIRness. Results are feedback, mostly about the repository's setup, never a grade for the
+# author. Field reference: docs/content-model.md.
+
+[station]
+id = "kontrola"
+position = 9
+name = { cs = "Kontrola", en = "Check" }
+title = { cs = "Ověření FAIR", en = "Checking FAIRness" }
+principles = ["F1", "F2", "F3", "F4", "A1", "A1.1", "A1.2", "A2", "I1", "I2", "I3", "R1", "R1.1", "R1.2", "R1.3"]
+minutes = 5
+glossary = ["fair-principy", "fairifikace", "fair-datova-sada-soubor-fair-dat"]
+
+[[advice]]
+id = "kontrola.V.L0"
+lens = "V"
+level = "L0"
+text = { cs = "Zveřejněnou datovou sadu si můžete nechat automaticky zkontrolovat; stačí vložit její PID. Výsledek berte jako zpětnou vazbu: vypovídá hodně o nastavení repozitáře a méně o vaší práci.", en = "You can have a published dataset checked automatically; just enter its PID. Take the result as feedback: it says a lot about the repository's setup and less about your work." }
+action = { label = { cs = "Zkontrolovat datovou sadu", en = "Check a dataset" }, href = "#page-live-check" }
+sources = ["K5.2.1", "E.FAIR-CHAMPION"]
+
+[[advice]]
+id = "kontrola.V.L1.1"
+lens = "V"
+level = "L1"
+text = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede a co obsahují metadata. Hloubková kontrola nástrojem FAIR Champion běží až po dalším kliknutí a může trvat i několik minut. Některé testy nemusí odpovědět; to není chyba vaší datové sady.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and what the metadata contain. The deep check with FAIR Champion runs only after a further click and can take several minutes. Some tests may not respond; that is not a fault of your dataset." }
+sources = ["E.OSTRAILS-CZ", "E.FAIR-CHAMPION"]
+
+[[advice]]
+id = "kontrola.V.L1.2"
+lens = "V"
+level = "L1"
+text = { cs = "Výsledek čtěte po principech: co chybí a kdo to může opravit (vy, kurátor, správce repozitáře).", en = "Read the result principle by principle: what is missing and who can fix it (you, the curator, the repository administrator)." }
+sources = ["K5.2.1"]
+
+[[advice]]
+id = "kontrola.V.L1.3"
+lens = "V"
+level = "L1"
+text = { cs = "Co opravíte sami (popis, vazby, licence), opravte v repozitáři; ostatní nahlaste repozitáři.", en = "Fix what you can yourself (description, links, licence) in the repository; report the rest to the repository." }
+sources = ["K5.2.1"]
+
+[[advice]]
+id = "kontrola.V.L1.4"
+lens = "V"
+level = "L1"
+text = { cs = "Ještě před zveřejněním si můžete udělat sebehodnocení, například FAIR-Aware nebo nástroj ARDC v českém překladu.", en = "Before publishing, you can do a self-assessment, for example FAIR-Aware or the ARDC tool in Czech translation." }
+sources = ["K5.1"]
+
+[[advice]]
+id = "kontrola.DS.L0"
+lens = "DS"
+level = "L0"
+text = { cs = "Automatická hodnocení používejte jako podklad k rozhovoru s repozitářem, ne jako známku pro výzkumníka.", en = "Use automated assessments as a basis for a conversation with the repository, not as a grade for the researcher." }
+action = { label = { cs = "Přehled hodnoticích nástrojů", en = "Overview of assessment tools" }, href = "#resources" }
+sources = ["K5.2.1", "K6"]
+
+[[advice]]
+id = "kontrola.DS.L1.1"
+lens = "DS"
+level = "L1"
+text = { cs = "Sebehodnocení lze udělat kdykoli, i před vznikem dat; automatizované testy hodnotí jen zveřejněné záznamy.", en = "Self-assessment can be done at any time, even before the data exist; automated tests assess only published records." }
+sources = ["K5.0"]
+
+[[advice]]
+id = "kontrola.DS.L1.2"
+lens = "DS"
+level = "L1"
+text = { cs = "Nástroje:", en = "Tools:" }
+steps = [
+  { cs = "automatizované: FAIR Champion (preferovaný), F-UJI (nehodnotí A2), FAIR-Checker, FAIR Evaluator;", en = "automated: FAIR Champion (preferred), F-UJI (does not assess A2), FAIR-Checker, FAIR Evaluator;" },
+  { cs = "sebehodnoticí: FAIR-Aware, nástroj ARDC (česky), CAT;", en = "self-assessment: FAIR-Aware, the ARDC tool (in Czech), CAT;" },
+  { cs = "metodika: FAIR Data Maturity Model.", en = "methodology: the FAIR Data Maturity Model." },
+]
+sources = ["K5.1", "K5.2.2"]
+
+[[advice]]
+id = "kontrola.DS.L1.3"
+lens = "DS"
+level = "L1"
+text = { cs = "Stejný záznam může dostat různé skóre podle cesty: ASEP přes DOI (metadata z DataCite) a přes Handle (jen landing page).", en = "The same record can score differently depending on the route: ASEP through its DOI (metadata from DataCite) versus through its Handle (landing page only)." }
+sources = ["P1"]
+
+[[advice]]
+id = "kontrola.DS.L1.4"
+lens = "DS"
+level = "L1"
+text = { cs = "Malá změna nastavení může skóre výrazně změnit; výsledky interpretujte opatrně.", en = "A small change in setup can move the score a lot; interpret results with care." }
+sources = ["K6"]
+
+[[advice]]
+id = "kontrola.DS.L1.5"
+lens = "DS"
+level = "L1"
+text = { cs = "Zjištění směrujte tomu, kdo je může opravit; výsledky slouží především jako zpětná vazba pro správce repozitářů.", en = "Route findings to whoever can fix them; the results serve mainly as feedback for repository administrators." }
+sources = ["K5.2.1"]
+
+[[advice]]
+id = "kontrola.DS.L1.6"
+lens = "DS"
+level = "L1"
+text = { cs = "Testovací služby nejsou vždy dostupné. V pilotním hodnocení 100 záznamů repozitáře ČVUT nevrátilo výsledek 38 % volání a třetina výsledků byla neurčitá. U výsledků proto vždy uvádějte, kolik testů skutečně proběhlo.", en = "Test services are not always available. In the pilot assessment of 100 records of the CTU repository, 38 % of calls returned no verdict and a third of the verdicts were indeterminate. So always state how many tests actually ran." }
+sources = ["E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "kontrola.DS.L1.7"
+lens = "DS"
+level = "L1"
+text = { cs = "Část testů hodnotí jiné druhy zdrojů (ontologie, identifikátory ARK, sociálněvědní metadata DDI); u běžného repozitáře je berte jako „netýká se“.", en = "Some tests assess other kinds of resources (ontologies, ARK identifiers, DDI social-science metadata); for an ordinary repository, treat them as “not applicable”." }
+sources = ["E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "kontrola.SR.L0"
+lens = "SR"
+level = "L0"
+text = { cs = "Pravidelně testujte vzorek záznamů svého repozitáře (například ve FAIR Champion) a výsledky použijte ke zlepšení konfigurace; skóre odráží hlavně repozitář.", en = "Regularly test a sample of your repository's records (for example in FAIR Champion) and use the results to improve the configuration; the score mainly reflects the repository." }
+action = { label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }
+sources = ["K5.2.1", "E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "kontrola.SR.L1.1"
+lens = "SR"
+level = "L1"
+text = { cs = "Testujte malý vzorek záznamů různých typů, ve FAIR Champion nebo dávkově nástrojem OSTrails CLI. Výsledky bývají napříč typy záznamů podobné, protože je určuje konfigurace platformy.", en = "Test a small sample of records of different types, in FAIR Champion or in batches with the OSTrails CLI. Results tend to be similar across record types because the platform's configuration determines them." }
+sources = ["E.OSTRAILS-CZ", "E.OSTRAILS-CLI"]
+
+[[advice]]
+id = "kontrola.SR.L1.2"
+lens = "SR"
+level = "L1"
+text = { cs = "Pro hodnocení celého repozitáře slouží OpenAIRE Validator a certifikace CoreTrustSeal.", en = "For assessing the whole repository there are the OpenAIRE Validator and CoreTrustSeal certification." }
+sources = ["K5.2.2", "E.CTS"]
+
+[[advice]]
+id = "kontrola.SR.L1.3"
+lens = "SR"
+level = "L1"
+text = { cs = "Nabídněte mechanismy (částečně automatického) sebehodnocení a validace vůči komunitním standardům.", en = "Offer mechanisms for (partly automated) self-assessment and validation against community standards." }
+sources = ["A.R1.3.N2"]
+
+[[advice]]
+id = "kontrola.SR.L1.4"
+lens = "SR"
+level = "L1"
+text = { cs = "Dejte uživatelům zpětnou vazbu přímo v rozhraní repozitáře: rychlou kontrolu souladu a automatizované hodnocení.", en = "Give users feedback in the repository's interface: a quick compliance check and automated assessment." }
+sources = ["K2.3.2b"]
+
+[[advice]]
+id = "kontrola.SR.L1.5"
+lens = "SR"
+level = "L1"
+text = { cs = "Příklady z praxe: ČSDA upravila konfiguraci Dataverse podle toho, jak metadata čte F-UJI; v LINDAT chybějící identifikátor dat v metadatech shodil řadu testů.", en = "Examples from practice: ČSDA adjusted its Dataverse configuration to how F-UJI reads metadata; in LINDAT, a missing data identifier in the metadata failed a number of tests." }
+sources = ["P1"]
+
+[[advice]]
+id = "kontrola.SR.L1.6"
+lens = "SR"
+level = "L1"
+text = { cs = "Testy, které neodpověděly, opakujte samostatně, až služba znovu funguje; při dávkách snižte souběžnost.", en = "Repeat tests that did not respond on their own once the service works again; lower the concurrency for batches." }
+sources = ["E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "kontrola.SR.L1.7"
+lens = "SR"
+level = "L1"
+text = { cs = "Nejčastější doporučení pro platformy, seřazená podle přínosu a pracnosti:", en = "The most common recommendations for platforms, ordered by benefit and effort:" }
+steps = [
+  { cs = "PID přímo v metadatech;", en = "the PID directly in the metadata;" },
+  { cs = "strojově čitelná licence (URI);", en = "a machine-readable licence (URI);" },
+  { cs = "strukturovaná metadata (JSON-LD, content negotiation);", en = "structured metadata (JSON-LD, content negotiation);" },
+  { cs = "řízené slovníky a jazyk kódem ISO 639;", en = "controlled vocabularies and the language as an ISO 639 code;" },
+  { cs = "ORCID, ROR a kvalifikované vazby;", en = "ORCID, ROR and qualified relations;" },
+  { cs = "indexace vyhledávači a pole pro vyhledávání (vydavatel, klíčová slova);", en = "indexing by search engines and search fields (publisher, keywords);" },
+  { cs = "strojově dohledatelná politika uchování.", en = "a machine-findable retention policy." },
+]
+sources = ["E.OSTRAILS-CZ"]
+
+[[advice]]
+id = "kontrola.K.L0"
+lens = "K"
+level = "L0"
+text = { cs = "FIP a komunitní standardy umožňují hodnotit data i podle oborových kritérií; zvažte vlastní testy nebo benchmarky.", en = "FIPs and community standards make it possible to assess data against domain criteria as well; consider your own tests or benchmarks." }
+action = { label = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }, href = "https://catalogue.fair-impact.eu/resources" }
+sources = ["K2.3.1", "E.FAIR-IMPACT"]
+
+[[advice]]
+id = "kontrola.K.L1.1"
+lens = "K"
+level = "L1"
+text = { cs = "FAIR Champion pracuje s testy přiřazenými k metrikám; sada se dá rozšířit o oborové testy.", en = "FAIR Champion works with tests linked to metrics; the set can be extended with domain tests." }
+sources = ["E.FAIR-CHAMPION"]
+
+[[advice]]
+id = "kontrola.K.L1.2"
+lens = "K"
+level = "L1"
+text = { cs = "Automatizované hodnocení může kombinovat obecné požadavky NRP s požadavky FIP.", en = "Automated assessment can combine the general NRP requirements with the FIP's requirements." }
+sources = ["K2.3.1"]
+
+[[advice]]
+id = "kontrola.K.L1.3"
+lens = "K"
+level = "L1"
+text = { cs = "Další zdroje k metrikám a hodnocení najdete v katalogu FAIR-IMPACT.", en = "More resources on metrics and assessment are in the FAIR-IMPACT catalogue." }
+sources = ["E.FAIR-IMPACT"]
+
+[[advice]]
+id = "kontrola.all.L1.1"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám může výsledky testů vysvětlit srozumitelným jazykem; mějte na paměti, že skóre odráží hlavně repozitář.", en = "AI can explain test results in plain language; keep in mind that the score mainly reflects the repository." }
+sources = ["E.CERIT-AI", "K5.2.1"]

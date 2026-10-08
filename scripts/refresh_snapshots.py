@@ -1,0 +1,265 @@
+#!/usr/bin/env python3
+"""Refresh dated snapshots of sources that a browser cannot query.
+
+Writes:
+
+- ``content/glossary.toml`` from the Heslář Open Science API (term labels and links; definitions are copied only
+  when Heslář publishes a licence that permits it);
+- ``content/snapshots/re3data.toml`` with the Czech repositories registered in re3data;
+- ``content/snapshots/fip-dashboard.toml`` with the FIP Dashboard's metadata, resources and profiles.
+
+Usage::
+
+    python scripts/refresh_snapshots.py [heslar] [re3data] [fip-dashboard] [--date YYYY-MM-DD] [--input DIR]
+
+Without source names, all three are refreshed. With ``--input``, responses are read from files in DIR instead of
+the network (``heslar.json``, ``re3data-list.xml``, ``re3data-<id>.xml``, ``fip-dashboard-meta.json``,
+``fip-dashboard-resource-types.json``, ``fip-dashboard-organizations.json``, ``fip-dashboard-resources.json``,
+``fip-dashboard-fips.json``). The scheduled refresh job runs this script and opens a pull request with the result.
+Uses only the Python standard library.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+import unicodedata
+import urllib.request
+import xml.etree.ElementTree as ET
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parent.parent
+HESLAR_API = "https://heslar.openscience.cz/api/v1/heslar/"
+HESLAR_TERM = "https://heslar.openscience.cz/heslo.php?id={id}"
+RE3DATA_LIST = "https://www.re3data.org/api/beta/repositories?countries%5B%5D=CZE"
+RE3DATA_REPOSITORY = "https://www.re3data.org/api/v1/repository/{id}"
+DASHBOARD = "https://fip-dashboard.dmp.eosc.cz"
+RE3DATA_KIND = {"disciplinary": "domain", "institutional": "institutional", "other": "general"}
+USER_AGENT = "eosc-fair-guide-snapshot/0.1 (+https://github.com/motyc/eosc-fair-guide)"
+
+
+class Fetcher:
+    """Read a response from the network, or from a file when an input directory is given."""
+
+    def __init__(self, input_dir: Path | None) -> None:
+        self.input_dir = input_dir
+
+    def get(self, url: str, file_name: str) -> bytes:
+        if self.input_dir is not None:
+            return (self.input_dir / file_name).read_bytes()
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
+        with urllib.request.urlopen(request, timeout=60) as response:
+            return response.read()
+
+    def json(self, url: str, file_name: str) -> Any:
+        return json.loads(self.get(url, file_name).decode("utf-8"))
+
+
+# ---------------------------------------------------------------------------
+# TOML output
+
+
+def q(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
+def text(value: dict[str, str] | None) -> str:
+    value = value or {}
+    return "{ cs = " + q((value.get("cs") or "").strip()) + ", en = " + q((value.get("en") or "").strip()) + " }"
+
+
+def inline(table: dict[str, Any]) -> str:
+    parts = []
+    for key, value in table.items():
+        if value is None or value == "":
+            continue
+        rendered = text(value) if isinstance(value, dict) else q(value)
+        parts.append(f"{key} = {rendered}")
+    return "{ " + ", ".join(parts) + " }"
+
+
+def write(path: Path, header: str, blocks: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(header + "\n" + "\n\n".join(blocks) + "\n", encoding="utf-8", newline="\n")
+    print(f"wrote {path.relative_to(ROOT)}")
+
+
+def slug(value: str) -> str:
+    ascii_value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^a-z0-9]+", "-", ascii_value.lower()).strip("-")
+
+
+# ---------------------------------------------------------------------------
+# Sources
+
+
+def heslar(fetch: Fetcher, today: str) -> None:
+    data = fetch.json(HESLAR_API, "heslar.json")
+    terms = sorted(data["data"], key=lambda term: term["id"])
+    seen: set[str] = set()
+    blocks = [
+        "[glossary]\n"
+        f'source = "Heslář Open Science"\nurl = "https://heslar.openscience.cz/"\nretrieved = {today}\n'
+        "# Heslář publishes no licence for its definitions, so only labels and links are kept."
+    ]
+    for term in terms:
+        label_cs = (term.get("termin_cs") or "").strip()
+        label_en = (term.get("termin_en") or "").strip()
+        if not label_cs or not label_en:
+            continue
+        term_id = slug(label_cs) or f"heslo-{term['id']}"
+        if term_id in seen:
+            term_id = f"{term_id}-{term['id']}"
+        seen.add(term_id)
+        blocks.append(
+            "[[term]]\n"
+            f"id = {q(term_id)}\n"
+            f"label = {text({'cs': label_cs, 'en': label_en})}\n"
+            f"url = {q(HESLAR_TERM.format(id=term['id']))}\n"
+            f"heslarId = {int(term['id'])}"
+        )
+    header = (
+        "# Snapshot of Heslář Open Science (NTK). Generated by scripts/refresh_snapshots.py; do not edit by hand.\n"
+    )
+    write(ROOT / "content" / "glossary.toml", header, blocks)
+
+
+def parse_xml(data: bytes) -> ET.Element:
+    """Parse downloaded XML, refusing any document that declares a DTD or entities."""
+    head = data[:4096].lower()
+    if b"<!doctype" in head or b"<!entity" in data.lower():
+        raise ValueError("refusing XML with a DTD or entity declarations")
+    return ET.fromstring(data)
+
+
+def r3d(element: ET.Element, tag: str) -> list[str]:
+    return [(child.text or "").strip() for child in element.iter() if child.tag.endswith("}" + tag) and child.text]
+
+
+def re3data(fetch: Fetcher, today: str) -> None:
+    listing = parse_xml(fetch.get(RE3DATA_LIST, "re3data-list.xml"))
+    ids = sorted(repository.findtext("id") for repository in listing.iter("repository"))
+    blocks = [
+        "[snapshot]\n"
+        f'source = "re3data"\nurl = "https://www.re3data.org/"\nretrieved = {today}\n'
+        'license = "https://creativecommons.org/publicdomain/zero/1.0/"'
+    ]
+    for repository_id in ids:
+        record = parse_xml(fetch.get(RE3DATA_REPOSITORY.format(id=repository_id), f"re3data-{repository_id}.xml"))
+        name = (r3d(record, "repositoryName") or [repository_id])[0]
+        url = (r3d(record, "repositoryURL") or [""])[0]
+        if not url.startswith("https://"):
+            # The guide links only over HTTPS; the re3data record stands in for a plain-HTTP home page.
+            url = f"https://www.re3data.org/repository/{repository_id}"
+        kinds = [RE3DATA_KIND[value] for value in r3d(record, "type") if value in RE3DATA_KIND]
+        subjects = sorted(
+            {re.sub(r"^\d+\s+", "", value) for value in r3d(record, "subject") if re.match(r"^\d\s", value)}
+        )
+        pid_types = sorted({value for value in r3d(record, "pidSystem") if value.lower() not in ("none", "other")})
+        languages = sorted(set(r3d(record, "repositoryLanguage")))
+        lines = ["[[repository]]", f"id = {q(repository_id.lower())}", f"name = {q(name)}", f"url = {q(url)}"]
+        if kinds:
+            lines.append(f"kind = {q(kinds[0])}")
+        lines += [
+            f"re3data = {q(repository_id)}",
+            f"subjectsEn = {q(subjects)}",
+            f"pidTypes = {q(pid_types)}",
+            f"languages = {q(languages)}",
+        ]
+        blocks.append("\n".join(lines))
+    header = (
+        "# Snapshot of the Czech repositories in re3data. Generated by scripts/refresh_snapshots.py; do not edit by\n"
+        "# hand. Repositories whose home page is not served over HTTPS link to their re3data record instead.\n"
+    )
+    write(ROOT / "content" / "snapshots" / "re3data.toml", header, blocks)
+
+
+def verification(items: list[dict[str, Any]]) -> str:
+    rendered = [inline({key: item.get(key) for key in ("verifier", "level", "date", "url", "note")}) for item in items]
+    return "[" + ", ".join(rendered) + "]"
+
+
+def fip_dashboard(fetch: Fetcher, today: str) -> None:
+    meta = fetch.json(f"{DASHBOARD}/api/meta", "fip-dashboard-meta.json")
+    types = fetch.json(f"{DASHBOARD}/api/resource-types", "fip-dashboard-resource-types.json")
+    organizations = fetch.json(f"{DASHBOARD}/api/organizations", "fip-dashboard-organizations.json")
+    resources = fetch.json(f"{DASHBOARD}/api/resources", "fip-dashboard-resources.json")
+    fips = fetch.json(f"{DASHBOARD}/api/fips", "fip-dashboard-fips.json")
+    head = [
+        "[snapshot]",
+        'source = "FIP Dashboard"',
+        f'url = "{DASHBOARD}/"',
+        f'api = "{DASHBOARD}/api"',
+        f"retrieved = {today}",
+        f"datasetName = {text(meta.get('name'))}",
+        f"datasetVersion = {q(meta.get('version', ''))}",
+        f"datasetUpdated = {q(meta.get('updated', ''))}",
+    ]
+    if meta.get("disclaimer"):
+        head.append(f"disclaimer = {text(meta['disclaimer'])}")
+    blocks = ["\n".join(head)]
+    for item in sorted(types, key=lambda value: value["id"]):
+        blocks.append(f"[[resourceType]]\nid = {q(item['id'])}\nlabel = {text(item.get('label'))}")
+    for item in sorted(organizations, key=lambda value: value["id"]):
+        lines = ["[[organization]]", f"id = {q(item['id'])}", f"name = {text(item.get('name'))}"]
+        for key in ("acronym", "url", "ror", "scope"):
+            if item.get(key):
+                lines.append(f"{key} = {q(item[key])}")
+        blocks.append("\n".join(lines))
+    for item in sorted(resources, key=lambda value: value["id"]):
+        lines = ["[[resource]]", f"id = {q(item['id'])}", f"name = {q(item['name'])}"]
+        for key in ("acronym", "type", "scope", "url", "identifier", "provider"):
+            if item.get(key):
+                lines.append(f"{key} = {q(item[key])}")
+        lines += [
+            f"description = {text(item.get('description'))}",
+            f"principles = {q(item.get('principles', []))}",
+            f"verification = {verification(item.get('verification', []))}",
+        ]
+        blocks.append("\n".join(lines))
+    for item in sorted(fips, key=lambda value: value["id"]):
+        lines = ["[[fip]]", f"id = {q(item['id'])}", f"title = {text(item.get('title'))}"]
+        for key in ("acronym", "community", "version", "updated", "status", "url"):
+            if item.get(key):
+                lines.append(f"{key} = {q(item[key])}")
+        lines += [
+            f"domain = {text(item.get('domain'))}",
+            f"summary = {text(item.get('summary'))}",
+            f"verification = {verification(item.get('verification', []))}",
+        ]
+        declarations = [
+            inline({key: declaration.get(key) for key in ("principle", "resource", "status", "note")})
+            for declaration in item.get("declarations", [])
+        ]
+        lines.append(
+            "declarations = [\n  " + ",\n  ".join(declarations) + ",\n]" if declarations else "declarations = []"
+        )
+        blocks.append("\n".join(lines))
+    header = "# Snapshot of the FIP Dashboard. Generated by scripts/refresh_snapshots.py; do not edit by hand.\n"
+    write(ROOT / "content" / "snapshots" / "fip-dashboard.toml", header, blocks)
+
+
+SOURCES = {"heslar": heslar, "re3data": re3data, "fip-dashboard": fip_dashboard}
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("sources", nargs="*", help=f"sources to refresh: {', '.join(SOURCES)} (default: all)")
+    parser.add_argument("--date", default=date.today().isoformat(), help="retrieval date to record (YYYY-MM-DD)")
+    parser.add_argument("--input", type=Path, help="read responses from this directory instead of the network")
+    args = parser.parse_args(argv)
+    unknown = [name for name in args.sources if name not in SOURCES]
+    if unknown:
+        parser.error(f"unknown sources: {', '.join(unknown)}")
+    fetch = Fetcher(args.input)
+    for name in args.sources or list(SOURCES):
+        SOURCES[name](fetch, args.date)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

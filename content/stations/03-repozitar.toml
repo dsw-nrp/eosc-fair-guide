@@ -7,6 +7,7 @@ name = { cs = "Repozitář", en = "Repository" }
 title = { cs = "Výběr repozitáře", en = "Choosing a repository" }
 principles = ["F4", "A1", "A1.1", "A2", "R1.3"]
 minutes = 10
+glossary = ["repozitar", "oborovy-tematicky-repozitar", "obecny-genericky-sirotci-repozitar", "duveryhodny-digitalni-repozitar", "registr-repozitaru-vyzkumnych-dat", "narodni-katalog-repozitaru"]
 
 [[advice]]
 id = "repozitar.V.L0"
@@ -14,21 +15,26 @@ lens = "V"
 level = "L0"
 text = { cs = "Uložte data tam, kde je najde váš obor: přednostně do oborového repozitáře, jinak do institucionálního. Když se nic nehodí, nabízí NRP datový catch-all repozitář.", en = "Deposit your data where your field will find them: preferably in a domain repository, otherwise in an institutional one. If nothing fits, NRP offers a catch-all data repository." }
 action = { label = { cs = "Najít repozitář", en = "Find a repository" }, href = "#repositories" }
-sources = ["A.R1.3.X1"]
+sources = ["A.R1.3.X1", "E.DATAREPO"]
 
 [[advice]]
 id = "repozitar.V.L1.1"
 lens = "V"
 level = "L1"
-position = 1
 text = { cs = "Zeptejte se v oboru nebo data stewarda, kam se data běžně ukládají.", en = "Ask colleagues in your field or your data steward where data are usually deposited." }
-sources = ["A.R1.3.X1"]
+sources = ["A.R1.3.X1", "E.DATA-STEWARDS"]
 
 [[advice]]
 id = "repozitar.V.L1.2"
 lens = "V"
 level = "L1"
-position = 2
+text = { cs = "Vyhledejte repozitář podle oboru a typu dat; vyhledávač průvodce čerpá z Národního katalogu repozitářů (NKR) a z registru re3data.", en = "Search for a repository by field and data type; the guide's finder draws on the National Repository Catalogue (NKR) and the re3data registry." }
+sources = ["E.NKR-SCHEMA"]
+
+[[advice]]
+id = "repozitar.V.L1.3"
+lens = "V"
+level = "L1"
 text = { cs = "Ověřte hlavní vlastnosti repozitáře:", en = "Check the repository's main features:" }
 steps = [
   { cs = "přiděluje trvalý identifikátor (DOI, Handle nebo jiný)?", en = "does it assign a persistent identifier (DOI, Handle or another)?" },
@@ -39,25 +45,130 @@ steps = [
 sources = ["E.NKR-SCHEMA", "A.F1.N2"]
 
 [[advice]]
+id = "repozitar.V.L1.4"
+lens = "V"
+level = "L1"
+text = { cs = "Přečtěte si podmínky repozitáře: datovou politiku a depoziční licenci.", en = "Read the repository's terms: its data policy and its deposit licence." }
+sources = ["K2.3.2a", "E.DEPOSIT-LICENCE"]
+
+[[advice]]
+id = "repozitar.V.L1.5"
+lens = "V"
+level = "L1"
+text = { cs = "Pokud se nic nehodí, použijte datový catch-all repozitář NRP (datarepo.eosc.cz); přiděluje DOI a zpřístupňuje metadata přes OAI-PMH.", en = "If nothing fits, use the NRP catch-all data repository (datarepo.eosc.cz); it assigns DOIs and exposes metadata through OAI-PMH." }
+sources = ["E.DATAREPO"]
+
+[[advice]]
+id = "repozitar.all.L2.1"
+lens = "*"
+level = "L2"
+text = { cs = "Většinu vlastností, které hodnotí automatické testy FAIR, určuje nastavení repozitáře. Výběr repozitáře je proto jedno z nejdůležitějších rozhodnutí.", en = "Most properties that automated FAIR tests assess are set by the repository. Choosing the repository is therefore one of the most important decisions." }
+sources = ["K5.2.1"]
+
+[[advice]]
+id = "repozitar.DS.L0"
+lens = "DS"
+level = "L0"
+text = { cs = "Pomozte vybrat repozitář podle oboru, typu dat a podmínek přístupu. Vyhledávač průvodce filtruje podle údajů z NKR a re3data.", en = "Help choose a repository by field, data type and access conditions. The guide's finder filters by information from NKR and re3data." }
+action = { label = { cs = "Vyhledávač repozitářů", en = "Repository finder" }, href = "#repositories" }
+sources = ["A.R1.3.X1", "E.NKR-SCHEMA"]
+
+[[advice]]
+id = "repozitar.DS.L1.1"
+lens = "DS"
+level = "L1"
+text = { cs = "Posuzujte obor a komunitu, trvalé identifikátory, licence, přístup, podporu citlivých dat, napojení na NMA a certifikaci (CoreTrustSeal).", en = "Weigh the field and community, persistent identifiers, licences, access, sensitive-data support, the NMA connection and certification (CoreTrustSeal)." }
+sources = ["E.NKR-SCHEMA", "E.CTS"]
+
+[[advice]]
+id = "repozitar.DS.L1.2"
+lens = "DS"
+level = "L1"
+text = { cs = "Ověřte, že je repozitář registrován v re3data a FAIRsharing; i repozitář sám má být dohledatelný.", en = "Check that the repository is registered in re3data and FAIRsharing; the repository itself should be findable too." }
+sources = ["E.NKR-SCHEMA"]
+
+[[advice]]
+id = "repozitar.DS.L1.3"
+lens = "DS"
+level = "L1"
+text = { cs = "Instituce bez vlastního repozitáře může zvolit instanci základního systému NRP, integrovat existující repozitář, nebo využít catch-all repozitář.", en = "An institution without its own repository can choose an instance of a core NRP system, integrate an existing repository, or use the catch-all repository." }
+sources = ["C.R4", "E.REPO-INTEGRATION", "E.DATAREPO"]
+
+[[advice]]
 id = "repozitar.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Aby vás výzkumníci našli, zaregistrujte repozitář v Národním katalogu repozitářů (NKR) a záznam udržujte aktuální. Podmínky NRP to vyžadují.", en = "So that researchers can find you, register the repository in the National Repository Catalogue (NKR) and keep the record up to date. The NRP conditions require this." }
-action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
+action = { label = { cs = "Brána NRP pro repozitáře", en = "NRP gate for repositories" }, href = "#check-gate" }
 sources = ["C.M5"]
 
 [[advice]]
 id = "repozitar.SR.L1.1"
 lens = "SR"
 level = "L1"
-position = 1
 text = { cs = "Zaregistrujte repozitář v NKR a záznam aktualizujte. NKR je vedle NMA a Centra PID jednou ze sdílených služeb národní datové infrastruktury.", en = "Register the repository in NKR and keep the record updated. Alongside NMA and the PID Centre, NKR is one of the shared services of the national data infrastructure." }
 sources = ["C.M5", "K2.1"]
 
 [[advice]]
-id = "repozitar.all.L2.1"
-lens = "*"
-level = "L2"
-position = 1
-text = { cs = "Většinu vlastností, které hodnotí automatické testy FAIR, určuje nastavení repozitáře. Výběr repozitáře je proto jedno z nejdůležitějších rozhodnutí.", en = "Most properties that automated FAIR tests assess are set by the repository. Choosing the repository is therefore one of the most important decisions." }
-sources = ["K5.2.1"]
+id = "repozitar.SR.L1.2"
+lens = "SR"
+level = "L1"
+text = { cs = "Zaregistrujte repozitář v re3data a FAIRsharing a v NKR je uveďte jako související registry.", en = "Register the repository in re3data and FAIRsharing and list them in NKR as related registries." }
+sources = ["E.NKR-SCHEMA"]
+
+[[advice]]
+id = "repozitar.SR.L1.3"
+lens = "SR"
+level = "L1"
+text = { cs = "Zakládáte nový repozitář?", en = "Setting up a new repository?" }
+steps = [
+  { cs = "přečtěte si Doporučení pro zakládání repozitářů v prostředí NRP;", en = "read the recommendations for establishing repositories in NRP;" },
+  { cs = "konzultujte oborovou pracovní skupinu EOSC CZ;", en = "consult the EOSC CZ working group for your domain;" },
+  { cs = "nespecializujte repozitář příliš úzce;", en = "do not specialise the repository too narrowly;" },
+  { cs = "využijte základní systémy NRP;", en = "use the core NRP systems;" },
+  { cs = "obsaďte role správce a kurátora více lidmi.", en = "cover the administrator and curator roles with more than one person." },
+]
+sources = ["E.REPO-RECOMMENDATIONS", "C.R1", "C.R2", "C.R3", "C.R4", "C.ROLE.admin"]
+
+[[advice]]
+id = "repozitar.SR.L1.4"
+lens = "SR"
+level = "L1"
+text = { cs = "Než repozitář navrhnete, zjistěte potřeby jeho uživatelů.", en = "Before you design the repository, find out what its users need." }
+sources = ["E.REPO-NEEDS"]
+
+[[advice]]
+id = "repozitar.SR.L1.5"
+lens = "SR"
+level = "L1"
+text = { cs = "Samostatně provozovaný repozitář potřebuje pro napojení na NRP minimum: metadata do NMA, záznam v NKR, AAI, API, trvalé identifikátory (ne nutně DOI), bezpečnost a monitoring.", en = "An independently operated repository needs a minimum to connect to NRP: metadata to NMA, an NKR record, AAI, an API, persistent identifiers (not necessarily DOI), security and monitoring." }
+sources = ["C.EXT", "E.REPO-INTEGRATION"]
+
+[[advice]]
+id = "repozitar.SR.L1.6"
+lens = "SR"
+level = "L1"
+text = { cs = "Zvažte certifikaci CoreTrustSeal.", en = "Consider CoreTrustSeal certification." }
+sources = ["E.CTS", "A.F1.X2"]
+
+[[advice]]
+id = "repozitar.K.L0"
+lens = "K"
+level = "L0"
+text = { cs = "Uveďte ve FIP, které repozitáře váš obor doporučuje. Pokud oborový repozitář chybí, podporuje projekt Open Science II vznik nových.", en = "State in the FIP which repositories your domain recommends. If a domain repository is missing, the Open Science II project supports creating new ones." }
+action = { label = { cs = "Open Science II", en = "Open Science II" }, href = "https://www.eosc.cz/projekty/open-science-ii" }
+sources = ["K4.1", "E.OS2"]
+
+[[advice]]
+id = "repozitar.K.L1.1"
+lens = "K"
+level = "L1"
+text = { cs = "Doporučené repozitáře zapište do FIP jako FER; repozitáře jiných komunit uvidíte ve FIP Dashboardu.", en = "Record recommended repositories in the FIP as FERs; other communities' repositories are listed in the FIP Dashboard." }
+sources = ["K4.1", "E.FIP-DASHBOARD"]
+
+[[advice]]
+id = "repozitar.K.L1.2"
+lens = "K"
+level = "L1"
+text = { cs = "V oborech bez standardů a repozitářů spolupracujte s projektem Open Science II a s oborovými pracovními skupinami.", en = "In domains without standards and repositories, work with the Open Science II project and the domain working groups." }
+sources = ["A.R1.3.N3", "C.R2", "E.OS2"]

@@ -1,4 +1,5 @@
-# Pages: about the guide, accessibility statement, AI overview. Field reference: docs/content-model.md.
+# Pages: about the guide, accessibility statement, AI in FAIRification and the helpers' pages. A helper page holds
+# the text around an interactive tool that the page script adds. Field reference: docs/content-model.md.
 
 [[page]]
 id = "about"
@@ -6,4 +7,72 @@ title = { cs = "O průvodci", en = "About the guide" }
 
 [[page.section]]
 heading = { cs = "Z čeho průvodce vychází", en = "What the guide builds on" }
-body = { cs = "Průvodce vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2, NRP KA 5.1) a doplňuje ji o současný stav národních služeb. Každé doporučení odkazuje na publikovaný zdroj.", en = "The guide builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2, NRP KA 5.1) and brings it up to date with the current state of national services. Every recommendation cites a published source." }
+body = { cs = "Průvodce vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2, NRP KA 5.1) a doplňuje ji o současný stav národních služeb. Každé doporučení odkazuje na publikovaný zdroj; v průzkumníku principů najdete všechny požadavky analýzy.", en = "The guide builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2, NRP KA 5.1) and brings it up to date with the current state of national services. Every recommendation cites a published source; the principle explorer lists every requirement of the analysis." }
+
+[[page.section]]
+heading = { cs = "Průvodce a FIP Dashboard", en = "The guide and the FIP Dashboard" }
+body = { cs = "Průvodce radí, co a proč udělat. FIP Dashboard je katalog zdrojů umožňujících FAIR (FER) a profilů FIP komunit; ukazuje, které zdroje ověřily NRP a EOSC CZ. Obě služby se na sebe odkazují a čtou se jako jeden celek.", en = "The guide advises what to do and why. The FIP Dashboard is the catalogue of FAIR-enabling resources (FERs) and of communities' FIPs; it shows which resources NRP and EOSC CZ have verified. The two services link to each other and are meant to be read together." }
+
+[[page.section]]
+heading = { cs = "Kdo průvodce připravil", en = "Who made the guide" }
+body = { cs = "Průvodce připravil David Novák (Knihovna AV ČR a Archeologický ústav AV ČR, Praha) jako výstup klíčové aktivity 5.1 projektu Národní repozitářová platforma. Odborným základem je analýza autorů Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák a Tomáš Čížek. Texty projde redakce týmu.", en = "The guide was made by David Novák (Library of the Czech Academy of Sciences and Institute of Archaeology of the Czech Academy of Sciences, Prague) as an output of key activity 5.1 of the National Repository Platform project. Its expert basis is the analysis by Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák and Tomáš Čížek. The team will edit the texts." }
+
+[[page.section]]
+heading = { cs = "Využití umělé inteligence", en = "Use of artificial intelligence" }
+body = { cs = "Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). U každé položky průvodce ukazuje, kdo ji připravil, s jakým nástrojem a z jakých zdrojů (úroveň „Zdroje a vznik obsahu“). Texty kontrolují lidé.", en = "An AI assistant (Claude, Anthropic) contributed to the content and code. For every item, the guide shows who prepared it, with which tool and from which sources (the “Sources and how this was made” level). People review the texts." }
+
+[[page.section]]
+heading = { cs = "Ochrana soukromí", en = "Privacy" }
+body = { cs = "Odpovědi v sebehodnocení zůstávají jen ve vašem prohlížeči. Průvodce kontaktuje externí služby (například DataCite nebo FAIR Champion) jen tehdy, když kontrolu sami spustíte, a jen ty uvedené v nastavení stránky.", en = "Your self-check answers stay in your browser. The guide contacts external services (such as DataCite or FAIR Champion) only when you start a check yourself, and only those listed in the page's settings." }
+
+[[page]]
+id = "accessibility"
+title = { cs = "Prohlášení o přístupnosti", en = "Accessibility statement" }
+
+[[page.section]]
+heading = { cs = "Stav souladu", en = "Compliance status" }
+body = { cs = "Průvodce usiluje o soulad s pravidly WCAG 2.2 na úrovni AA, která pokrývají požadavky normy EN 301 549 a zákona č. 99/2019 Sb. Průvodce je ve fázi testování; soulad bude před vydáním ověřen automatickými testy a ručním testem ovládání klávesnicí.", en = "The guide aims to conform to WCAG 2.2 level AA, which covers the requirements of EN 301 549 and Czech Act No. 99/2019 Coll. The guide is in testing; conformance will be verified with automated tests and a manual keyboard test before release." }
+
+[[page.section]]
+heading = { cs = "Co průvodce dělá pro přístupnost", en = "What the guide does for accessibility" }
+body = { cs = "Text má kontrast alespoň 4,5 : 1, stav služeb se sděluje textem a ikonou, ne jen barvou, rozbalovací části používají nativní prvky ovladatelné klávesnicí a stránka se přizpůsobí šířce 320 pixelů. Diagramy mají textový popis a vedle sebe text se stejným významem.", en = "Text has a contrast of at least 4.5:1, service statuses are conveyed by text and icon rather than colour alone, expandable parts use native keyboard-operable elements, and the page reflows at a width of 320 pixels. Diagrams have a text description and are accompanied by text with the same meaning." }
+
+[[page.section]]
+heading = { cs = "Zpětná vazba", en = "Feedback" }
+body = { cs = "Narazíte-li na překážku, napište nám prostřednictvím úložiště průvodce na GitHubu (github.com/motyc/eosc-fair-guide), nebo na adresu info@eosc.cz.", en = "If you meet a barrier, tell us through the guide's repository on GitHub (github.com/motyc/eosc-fair-guide) or at info@eosc.cz." }
+
+[[page]]
+id = "ai"
+title = { cs = "AI ve FAIRifikaci", en = "AI in FAIRification" }
+
+[[page.section]]
+heading = { cs = "Kde AI pomůže", en = "Where AI helps" }
+body = { cs = "AI pomůže s návrhem textů plánu správy dat, se skripty pro zpracování dat, s návrhem README, abstraktu a datového slovníku, s překladem metadat mezi češtinou a angličtinou, s přípravou JSON-LD pro landing page a s vysvětlením výsledků testů FAIR. U každé zastávky najdete konkrétní tip.", en = "AI can help draft DMP texts, write data-processing scripts, draft a README, an abstract and a data dictionary, translate metadata between Czech and English, prepare JSON-LD for a landing page, and explain FAIR test results. Each station has a specific tip." }
+
+[[page.section]]
+heading = { cs = "Tři pravidla", en = "Three rules" }
+body = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které je neposílají mimo infrastrukturu, například AI v e-INFRA CZ (CERIT).\n\nIdentifikátory (ORCID, DOI, ROR) a hesla si vždy ověřte; AI je umí vymyslet.\n\nUveďte, kde a jak jste AI použili.", en = "Put unpublished and sensitive data only into services that keep them within the infrastructure, such as AI in e-INFRA CZ (CERIT).\n\nAlways verify identifiers (ORCID, DOI, ROR) and subject terms; AI can make them up.\n\nState where and how you used AI." }
+
+[[page]]
+id = "citation"
+title = { cs = "Citace z DOI", en = "Citation from a DOI" }
+
+[[page.section]]
+heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
+body = { cs = "Vložte DOI datové sady registrované u DataCite. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.", en = "Enter the DOI of a dataset registered with DataCite. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI." }
+
+[[page]]
+id = "identifiers"
+title = { cs = "Ověřit identifikátory", en = "Verify identifiers" }
+
+[[page.section]]
+heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
+body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde ORCID, DOI, Handle a ROR, kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.", en = "Paste a text, for example metadata drafted with AI. The helper finds ORCID iDs, DOIs, Handles and ROR IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere." }
+
+[[page]]
+id = "live-check"
+title = { cs = "Kontrola datové sady", en = "Dataset check" }
+
+[[page.section]]
+heading = { cs = "Rychlá a hloubková kontrola", en = "Quick and deep check" }
+body = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z DataCite. Hloubková kontrola spustí vybrané testy nástroje FAIR Champion; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from DataCite. The deep check runs selected FAIR Champion tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup." }

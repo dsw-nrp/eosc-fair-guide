@@ -1,4 +1,203 @@
-# Resources recommended by the guide. Field reference: docs/content-model.md.
+# Resources recommended by the guide. Every URL was checked on the as-of date. For a FAIR-enabling resource that
+# the FIP Dashboard holds, `fipDashboard` names its record there. Field reference: docs/content-model.md.
+
+[[resource]]
+id = "dmp-eosc"
+name = "DMP.eosc.cz"
+description = { cs = "Plánování správy dat v Data Stewardship Wizard se šablonami poskytovatelů a průvodcem licencemi.", en = "Data management planning in the Data Stewardship Wizard, with funder templates and a licence selector." }
+url = "https://dmp.eosc.cz/"
+type = "service"
+fipClass = ["FAIR-Data-Stewardship-Plan-Template"]
+fipDashboard = "dsw-tool"
+status = "pilot"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["plan", "licence"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "dmp-status"
+name = { cs = "Stav služby DMP.eosc.cz", en = "DMP.eosc.cz service status" }
+description = { cs = "Dostupnost služby DMP.eosc.cz.", en = "Availability of the DMP.eosc.cz service." }
+url = "https://dsw-nrp.github.io/status"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["plan"]
+languages = ["en"]
+
+[[resource]]
+id = "dsw-nrp"
+name = { cs = "Šablony a znalostní model DMP.eosc.cz", en = "DMP.eosc.cz templates and knowledge model" }
+description = { cs = "Šablony poskytovatelů, národní znalostní model a doplňky pro DMP.eosc.cz.", en = "Funder templates, the national knowledge model and plugins for DMP.eosc.cz." }
+url = "https://github.com/dsw-nrp"
+type = "tool"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["plan"]
+languages = ["en"]
+
+[[resource]]
+id = "policy-manual"
+name = { cs = "Manuál k přípravě institucionální datové politiky", en = "Manual for preparing an institutional data policy" }
+description = { cs = "Rámec a vzor institucionální datové politiky.", en = "A framework and template for an institutional data policy." }
+url = "https://doi.org/10.71495/scvx-yn57"
+type = "guide"
+fipClass = ["FAIR-Data-Policy"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "ds-handbook"
+name = { cs = "FAIR příručka pro data steward komunitu v ČR", en = "FAIR handbook for the data steward community in Czechia" }
+description = { cs = "Výklad FAIR principů s praktickými příklady pro data stewardy.", en = "An explanation of the FAIR principles with practical examples for data stewards." }
+url = "https://doi.org/10.71495/hxfc-6f57"
+type = "guide"
+fipClass = ["FAIR-Training-Material"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "ds-personas"
+name = { cs = "Persony a use casy data stewardů v ČR", en = "Personas and use cases of data stewards in Czechia" }
+description = { cs = "Typické role data stewardů a situace, v nichž pomáhají.", en = "Typical data steward roles and the situations in which they help." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#persony_ds"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "eosc-data-stewards"
+name = { cs = "Komunita data stewardů EOSC CZ", en = "EOSC CZ data steward community" }
+description = { cs = "Setkávání, podpora a materiály pro data stewardy.", en = "Meetings, support and materials for data stewards." }
+url = "https://www.eosc.cz/komunity/data-stewardi"
+type = "community"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["plan", "prace"]
+languages = ["cs"]
+
+[[resource]]
+id = "datasteward-cz"
+name = "datasteward.cz"
+description = { cs = "Web české komunity data stewardů.", en = "Website of the Czech data steward community." }
+url = "https://www.datasteward.cz/"
+type = "community"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "cessda-dmeg"
+name = "CESSDA Data Management Expert Guide"
+description = { cs = "Praktický průvodce organizací, dokumentací, ukládáním a zálohováním dat.", en = "A practical guide to organising, documenting, storing and backing up data." }
+url = "https://dmeg.cessda.eu/"
+type = "guide"
+fipClass = ["FAIR-Training-Material"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["prace"]
+languages = ["en"]
+
+[[resource]]
+id = "cesnet-storage"
+name = { cs = "Datová úložiště CESNET (S3)", en = "CESNET data storage (S3)" }
+description = { cs = "Spravované úložiště pro výzkumná data v e-INFRA CZ.", en = "Managed storage for research data in e-INFRA CZ." }
+url = "https://docs.du.cesnet.cz/"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["prace"]
+languages = ["en"]
+
+[[resource]]
+id = "onedata"
+name = "Onedata"
+description = { cs = "Sdílení a správa dat napříč úložišti v e-INFRA CZ.", en = "Sharing and managing data across storage in e-INFRA CZ." }
+url = "https://docs.onedata.e-infra.cz"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["prace"]
+languages = ["en"]
+
+[[resource]]
+id = "sensitive-cloud"
+name = "Sensitive Cloud"
+description = { cs = "Prostředí pro bezpečné zpracování citlivých dat v e-INFRA CZ.", en = "An environment for processing sensitive data securely in e-INFRA CZ." }
+url = "https://docs.cerit.io/en/docs/sensitivecloud/account"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "SR"]
+stations = ["prace", "licence"]
+languages = ["en"]
+
+[[resource]]
+id = "ddrapp"
+name = "DDRapp"
+description = { cs = "Anotace dat z přístrojů a jejich předávání do repozitáře.", en = "Annotating instrument data and passing them to a repository." }
+url = "https://ddrapp.nrp1.du.cesnet.cz/?lang=cs"
+type = "tool"
+status = "pilot"
+asOf = 2026-10-08
+lenses = ["V", "SR"]
+stations = ["prace"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "nrp-compute"
+name = { cs = "Výpočty s daty z NRP", en = "Computing with data from NRP" }
+description = { cs = "Propojení dat v NRP s výpočetním prostředím e-INFRA CZ.", en = "Connecting data in NRP with the e-INFRA CZ computing environment." }
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing"
+type = "document"
+status = "pilot"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["prace"]
+languages = ["en"]
+
+[[resource]]
+id = "eosc-training"
+name = { cs = "Školení EOSC CZ", en = "EOSC CZ training" }
+description = { cs = "Kurzy ke správě výzkumných dat.", en = "Courses in research data management." }
+url = "https://www.eosc.cz/skoleni"
+type = "course"
+fipClass = ["FAIR-Training-Material"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["prace"]
+languages = ["cs"]
+
+[[resource]]
+id = "cerit-aiaas"
+name = { cs = "AI jako služba (CERIT)", en = "AI as a Service (CERIT)" }
+description = { cs = "AI v infrastruktuře e-INFRA CZ; dotazy neopouštějí infrastrukturu.", en = "AI within the e-INFRA CZ infrastructure; requests stay within the infrastructure." }
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/introduction"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = "*"
+stations = ["plan", "prace", "popis", "kontrola"]
+languages = ["en"]
 
 [[resource]]
 id = "nkr"
@@ -10,7 +209,20 @@ fipClass = ["Registry"]
 status = "pilot"
 asOf = 2026-10-08
 lenses = "*"
-stations = ["repozitar"]
+stations = ["plan", "repozitar"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "fip-dashboard"
+name = "FIP Dashboard"
+description = { cs = "Katalog zdrojů umožňujících FAIR (FER) a profilů FIP komunit, s ověřením NRP a EOSC CZ.", en = "The catalogue of FAIR-enabling resources (FERs) and community FIPs, with verification by NRP and EOSC CZ." }
+url = "https://fip-dashboard.dmp.eosc.cz/"
+type = "registry"
+fipClass = ["Registry"]
+status = "pilot"
+asOf = 2026-10-08
+lenses = ["DS", "SR", "K"]
+stations = ["plan", "popis", "licence", "publikace", "dohledatelnost"]
 languages = ["cs", "en"]
 
 [[resource]]
@@ -26,3 +238,621 @@ lenses = ["V", "DS", "SR"]
 stations = ["repozitar"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RAGv90JSxsBhhVhdJq_6CtOrHCLBbAuMLdkhES3dkog8o#r3data"]
+
+[[resource]]
+id = "fairsharing"
+name = "FAIRsharing"
+description = { cs = "Registr standardů, databází a politik.", en = "Registry of standards, databases and policies." }
+url = "https://fairsharing.org/"
+type = "registry"
+fipClass = ["Generalist-Registry"]
+fipDashboard = "fairsharing"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "SR", "K"]
+stations = ["repozitar", "popis"]
+languages = ["en"]
+sameAs = ["https://w3id.org/np/RAVCg1Kvj3fePeJfmO1hLQ6HavxTL_9audWkERmodE2no#FAIRsharing"]
+
+[[resource]]
+id = "datarepo"
+name = { cs = "Datový catch-all repozitář NRP", en = "NRP Data Catch-all Repository" }
+description = { cs = "Repozitář pro data, pro která se nehodí oborový ani institucionální repozitář; přiděluje DOI.", en = "A repository for data that fit no domain or institutional repository; it assigns DOIs." }
+url = "https://datarepo.eosc.cz/"
+type = "repository"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["repozitar"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "coretrustseal"
+name = "CoreTrustSeal"
+description = { cs = "Certifikace důvěryhodných repozitářů.", en = "Certification of trustworthy repositories." }
+url = "https://www.coretrustseal.org/"
+type = "standard"
+fipClass = ["FAIR-Assessment-Specification"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "SR"]
+stations = ["repozitar", "kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "nrp-conditions"
+name = { cs = "Podmínky NRP pro zakládání repozitářů", en = "NRP conditions for creating repositories" }
+description = { cs = "Povinné a doporučené podmínky pro repozitáře v NRP.", en = "Mandatory and recommended conditions for repositories in NRP." }
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/operating-repositories-in-the-nrp/conditions-for-creating-repositories"
+type = "document"
+fipClass = ["FAIR-Data-Policy"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["repozitar"]
+languages = ["en"]
+
+[[resource]]
+id = "repo-recommendations"
+name = { cs = "Doporučení pro zakládání repozitářů v prostředí NRP", en = "Recommendations for establishing repositories in NRP" }
+description = { cs = "Průvodce zakládáním a provozem repozitáře.", en = "A guide to setting up and running a repository." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#doporuceni_repozitare"
+type = "guide"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR", "K"]
+stations = ["repozitar"]
+languages = ["cs"]
+
+[[resource]]
+id = "repo-user-needs"
+name = { cs = "Zjišťování uživatelských potřeb pro repozitáře", en = "Finding out user needs for repositories" }
+description = { cs = "Praktický průvodce uživatelským výzkumem před stavbou repozitáře.", en = "A practical guide to user research before building a repository." }
+url = "https://doi.org/10.71495/x3e9-mf73"
+type = "guide"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR", "K"]
+stations = ["repozitar"]
+languages = ["cs"]
+
+[[resource]]
+id = "repo-integration"
+name = { cs = "Integrace existujícího repozitáře do NRP", en = "Integrating an existing repository into NRP" }
+description = { cs = "Jak napojit existující repozitář na NRP.", en = "How to connect an existing repository to NRP." }
+url = "https://www.eosc.cz/sluzby/ukladani/repozitare-v-nrp/integrece-repo-nrp"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["repozitar"]
+languages = ["cs"]
+
+[[resource]]
+id = "os2"
+name = "Open Science II"
+description = { cs = "Projekt podporující oborové repozitáře a standardy.", en = "A project supporting domain repositories and standards." }
+url = "https://www.eosc.cz/projekty/open-science-ii"
+type = "project"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["K"]
+stations = ["repozitar", "popis"]
+languages = ["cs"]
+
+[[resource]]
+id = "eosc-working-groups"
+name = { cs = "Pracovní skupiny EOSC CZ", en = "EOSC CZ working groups" }
+description = { cs = "Oborové a tematické pracovní skupiny.", en = "Domain and thematic working groups." }
+url = "https://www.eosc.cz/pracovni-skupiny"
+type = "community"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR", "K"]
+stations = ["plan", "repozitar"]
+languages = ["cs"]
+
+[[resource]]
+id = "ccmm"
+name = { cs = "Český základní metadatový model (CCMM)", en = "Czech Core Metadata Model (CCMM)" }
+description = { cs = "Společné minimum metadat pro NMA; NMA pracuje s verzí 1.1.0, vyšla verze 2.0.0.", en = "The common metadata minimum for NMA; NMA works with version 1.1.0, and version 2.0.0 has been released." }
+url = "https://www.ccmm.cz/"
+type = "standard"
+fipClass = ["Metadata-schema"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "SR", "K"]
+stations = ["popis", "dohledatelnost"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "heslar"
+name = { cs = "Heslář Open Science", en = "Open Science glossary" }
+description = { cs = "Česko-anglický slovník pojmů otevřené vědy.", en = "A Czech-English glossary of open-science terms." }
+url = "https://heslar.openscience.cz/"
+type = "vocabulary"
+status = "operational"
+asOf = 2026-10-08
+lenses = "*"
+stations = ["popis"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "pid-centre"
+name = { cs = "Centrum PID (identifikatory.cz)", en = "PID Centre (identifikatory.cz)" }
+description = { cs = "Národní centrum DOI, Národní centrum ORCID a podpora ROR.", en = "The National DOI Centre, the National ORCID Centre and ROR support." }
+url = "https://identifikatory.cz/cs/"
+type = "service"
+fipClass = ["Identifier-service"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS", "SR"]
+stations = ["popis", "publikace", "citace"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "orcid"
+name = "ORCID"
+description = { cs = "Trvalé identifikátory výzkumných pracovníků.", en = "Persistent identifiers for researchers." }
+url = "https://orcid.org/"
+type = "service"
+fipClass = ["Identifier-service"]
+fipDashboard = "orcid"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["popis", "citace"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RA1MzU1MPio-mtLzm1P7zfTBSMnTNc2I8HLNARhPjpif8#ORCID"]
+
+[[resource]]
+id = "ror"
+name = { cs = "ROR (Research Organization Registry)", en = "ROR (Research Organization Registry)" }
+description = { cs = "Trvalé identifikátory výzkumných organizací.", en = "Persistent identifiers for research organisations." }
+url = "https://ror.org/"
+type = "service"
+fipClass = ["Identifier-service"]
+fipDashboard = "ror"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS", "SR"]
+stations = ["popis"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RAFP-uWPTN5u2kPR8pYeIgdbwyP1_KYZgoogYIv0Wp-fQ#ROR"]
+
+[[resource]]
+id = "dataspecer"
+name = "Dataspecer"
+description = { cs = "Správa metadatových profilů a datových specifikací; i jako obraz Docker.", en = "Managing metadata profiles and data specifications; also as a Docker image." }
+url = "https://dataspecer.com/"
+type = "tool"
+fipClass = ["FAIR-Supporting-Software"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR", "K"]
+stations = ["popis"]
+languages = ["en"]
+
+[[resource]]
+id = "cdif"
+name = "CDIF 1.1"
+description = { cs = "Rámec pro mezioborovou interoperabilitu metadat.", en = "A framework for cross-domain metadata interoperability." }
+url = "https://book.cdif.org/"
+type = "standard"
+fipClass = ["Metadata-schema"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["K"]
+stations = ["popis"]
+languages = ["en"]
+
+[[resource]]
+id = "tf-semantic"
+name = { cs = "Doporučení EOSC pro sémantickou interoperabilitu", en = "EOSC recommendations on semantic interoperability" }
+description = { cs = "Praktická doporučení EOSC Task Force pro sémantickou interoperabilitu (2026).", en = "Practical recommendations of the EOSC Task Force on semantic interoperability (2026)." }
+url = "https://doi.org/10.5281/zenodo.22831063"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["K"]
+stations = ["popis"]
+languages = ["en"]
+
+[[resource]]
+id = "datacite-schema"
+name = "DataCite Metadata Schema"
+description = { cs = "Metadatové schéma DataCite včetně typů vazeb a rolí přispěvatelů.", en = "The DataCite metadata schema, including relation types and contributor roles." }
+url = "https://schema.datacite.org/"
+type = "standard"
+fipClass = ["Metadata-schema"]
+fipDashboard = "datacite-schema"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["popis", "citace"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RABtwdGxVZoYNbhMoN-xeEmB5ctXCsgSCOc8G-5QQR7fA#datacite_metadata_scheme"]
+
+[[resource]]
+id = "copyright-licences"
+name = { cs = "Autorská práva a licence", en = "Copyright and licences" }
+description = { cs = "Autorské právo, ochrana výzkumných dat, depoziční a uživatelské licence, Creative Commons.", en = "Copyright, legal protection of research data, deposit and user licences, Creative Commons." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng"
+type = "guide"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["licence"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "deposit-licence"
+name = { cs = "Vzor depoziční licence", en = "Deposit licence template" }
+description = { cs = "Vzorová smlouva o uložení dat v repozitáři.", en = "A template agreement for depositing data in a repository." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "SR"]
+stations = ["licence", "repozitar"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "creative-commons"
+name = "Creative Commons"
+description = { cs = "Standardní veřejné licence, například CC BY 4.0 a CC0.", en = "Standard public licences, such as CC BY 4.0 and CC0." }
+url = "https://creativecommons.org/licenses/"
+type = "standard"
+fipClass = ["Data-usage-license"]
+fipDashboard = "cc-by-40"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V"]
+stations = ["licence"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RArwY4j9hx40cvd_La20zXCutOM-D4whR2lwbG0WoW5Ys#cc-by-4-0"]
+
+[[resource]]
+id = "ethical-seven"
+name = { cs = "Etické sedmero pro práci s výzkumnými daty", en = "The Ethical Seven for working with research data" }
+description = { cs = "Etické zásady práce s výzkumnými daty.", en = "Ethical principles for working with research data." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#sedmoro"
+type = "guide"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["licence"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "einfra-aai"
+name = { cs = "Účet a AAI e-INFRA CZ", en = "e-INFRA CZ account and AAI" }
+description = { cs = "Přihlašování a správa přístupů v e-INFRA CZ.", en = "Login and access management in e-INFRA CZ." }
+url = "https://docs.account.e-infra.cz/en/docs/"
+type = "service"
+fipClass = ["Authentication-and-authorization-service"]
+fipDashboard = "e-infra-aai"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["licence"]
+languages = ["en"]
+
+[[resource]]
+id = "aai-sensitive"
+name = "Initial AAI architecture for sensitive data in NRP"
+description = { cs = "Architektura správy identit a přístupů pro citlivá data v NRP.", en = "Identity and access management architecture for sensitive data in NRP." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#AAI_NRP_SD"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["licence"]
+languages = ["en"]
+
+[[resource]]
+id = "datacite"
+name = "DataCite"
+description = { cs = "Registrační agentura DOI pro výzkumná data.", en = "The DOI registration agency for research data." }
+url = "https://datacite.org/"
+type = "service"
+fipClass = ["Identifier-service"]
+fipDashboard = "doi-datacite"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["publikace"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RANGw57Qlx5BklwMWCP1srqv4KG1o1I8cvA2IRaHq_HDg#DataCite"]
+
+[[resource]]
+id = "handle"
+name = "Handle System"
+description = { cs = "Systém trvalých identifikátorů, na kterém stojí i DOI.", en = "A persistent identifier system, which DOI also builds on." }
+url = "https://www.handle.net/"
+type = "service"
+fipClass = ["Identifier-service"]
+fipDashboard = "handle"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["publikace"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RAvSpggcYeB-tEfjF6SwIkM3R6LmxuOvK4FqJqIDIkxt0#Handle_System"]
+
+[[resource]]
+id = "fair-signposting"
+name = "FAIR Signposting"
+description = { cs = "Typované odkazy mezi PID, metadaty a soubory v hlavičkách HTTP Link.", en = "Typed links between PID, metadata and files in HTTP Link headers." }
+url = "https://signposting.org/FAIR/"
+type = "standard"
+fipClass = ["Metadata-data-linking-schema"]
+fipDashboard = "signposting"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["publikace"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RA6roi86ztkS2GF7WbbFpLvhmJCCEA7AByx6M9fJfZVZs#fsp"]
+
+[[resource]]
+id = "schema-dataset"
+name = "Schema.org Dataset"
+description = { cs = "Popis datových sad pro vyhledávače.", en = "Describing datasets for search engines." }
+url = "https://schema.org/Dataset"
+type = "standard"
+fipClass = ["Metadata-schema"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["publikace", "dohledatelnost"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RALwYq_U0Sk5nogz0XMvH9wFPe37fid3gVXxloIakNJX8#schema.org-dataset"]
+
+[[resource]]
+id = "oai-pmh"
+name = "OAI-PMH"
+description = { cs = "Protokol pro sklízení metadat.", en = "A protocol for harvesting metadata." }
+url = "https://www.openarchives.org/pmh/"
+type = "standard"
+fipClass = ["Communication-protocol"]
+fipDashboard = "oai-pmh"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["dohledatelnost"]
+languages = ["en"]
+sameAs = ["http://purl.org/np/RAhRzHY30rI0MoohlPbosSSgE-tu_bcKtTyE3JhTIyA3c#OAI-PMH"]
+
+[[resource]]
+id = "nma"
+name = { cs = "Národní metadatový adresář (NMA)", en = "National Metadata Directory (NMA)" }
+description = { cs = "Národní vyhledávání metadat výzkumných dat; odkaz pro RIV.", en = "National search of research data metadata; the RIV link." }
+url = "https://nma.eosc.cz/"
+type = "service"
+fipClass = ["Registry"]
+fipDashboard = "nma"
+status = "operational"
+asOf = 2026-10-08
+lenses = "*"
+stations = ["dohledatelnost", "citace"]
+languages = ["cs", "en"]
+sameAs = ["https://doi.org/10.25504/FAIRsharing.dbab97"]
+
+[[resource]]
+id = "nma-riv-docs"
+name = { cs = "NMA: ověření datových sad pro RIV", en = "NMA: verifying datasets for RIV" }
+description = { cs = "Návod NRP k založení záznamu a získání odkazu pro RIV.", en = "NRP instructions for creating a record and getting the RIV link." }
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-verifying-datasets-for-RIV"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["dohledatelnost", "citace"]
+languages = ["en"]
+
+[[resource]]
+id = "nma-export-docs"
+name = { cs = "NMA: export z repozitáře", en = "NMA: exports from repositories" }
+description = { cs = "Návod NRP k napojení repozitáře na sklizeň do NMA.", en = "NRP instructions for connecting a repository to NMA harvesting." }
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/national-metadata-directory/exports-to-nma"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["dohledatelnost"]
+languages = ["en"]
+
+[[resource]]
+id = "datacite-commons"
+name = "DataCite Commons"
+description = { cs = "Vyhledávání v metadatech DataCite.", en = "Search across DataCite metadata." }
+url = "https://commons.datacite.org/"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V"]
+stations = ["dohledatelnost"]
+languages = ["en"]
+
+[[resource]]
+id = "openaire-explore"
+name = "OpenAIRE Explore"
+description = { cs = "Evropské vyhledávání výsledků výzkumu.", en = "European search of research outputs." }
+url = "https://explore.openaire.eu/"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "SR"]
+stations = ["dohledatelnost"]
+languages = ["en"]
+
+[[resource]]
+id = "google-dataset-search"
+name = "Google Dataset Search"
+description = { cs = "Vyhledávání datových sad podle metadat Schema.org.", en = "Dataset search based on Schema.org metadata." }
+url = "https://datasetsearch.research.google.com/"
+type = "service"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "SR"]
+stations = ["dohledatelnost"]
+languages = ["en"]
+
+[[resource]]
+id = "force11-citation"
+name = { cs = "Zásady citování dat (FORCE11)", en = "Data citation principles (FORCE11)" }
+description = { cs = "Společná deklarace zásad citování dat.", en = "The Joint Declaration of Data Citation Principles." }
+url = "https://force11.org/info/joint-declaration-of-data-citation-principles-final/"
+type = "standard"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "K"]
+stations = ["citace"]
+languages = ["en"]
+
+[[resource]]
+id = "knav-type-t"
+name = { cs = "Výsledek typu T a NMA", en = "Type T results and NMA" }
+description = { cs = "Výklad Knihovny AV ČR k výsledku typu T a Národnímu metadatovému adresáři.", en = "The Library of the Czech Academy of Sciences on type T results and the National Metadata Directory." }
+url = "https://openscience.lib.cas.cz/en/funders-en/new-type-t-research-output-and-the-national-metadata-directory/"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["citace"]
+languages = ["en"]
+
+[[resource]]
+id = "os3"
+name = "Open Science III"
+description = { cs = "Výzva vyžadující FAIR datovou sadu v NMA a zapojení data stewarda.", en = "A call requiring a FAIR dataset in NMA and the involvement of a data steward." }
+url = "https://www.eosc.cz/projekty/open-science-iii"
+type = "project"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["citace"]
+languages = ["cs"]
+
+[[resource]]
+id = "eosc-acknowledgement"
+name = { cs = "Poděkování a citace EOSC CZ", en = "EOSC CZ acknowledgement and citation" }
+description = { cs = "Doporučené texty poděkování a citace.", en = "Recommended acknowledgement and citation texts." }
+url = "https://www.eosc.cz/o-nas/acknowledgement"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V"]
+stations = ["citace"]
+languages = ["cs"]
+
+[[resource]]
+id = "fair-champion"
+name = "FAIR Champion"
+description = { cs = "Automatizované testy FAIR projektu OSTrails.", en = "Automated FAIR tests from the OSTrails project." }
+url = "https://tools.ostrails.eu/champion/"
+type = "tool"
+fipClass = ["FAIR-Assessment-Specification"]
+status = "operational"
+asOf = 2026-10-08
+lenses = "*"
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "f-uji"
+name = "F-UJI"
+description = { cs = "Automatizované hodnocení FAIR datových sad.", en = "Automated FAIR assessment of datasets." }
+url = "https://www.f-uji.net/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "SR"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "fair-checker"
+name = "FAIR-Checker"
+description = { cs = "Automatizované hodnocení FAIR.", en = "Automated FAIR assessment." }
+url = "https://fair-checker.france-bioinformatique.fr/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "fair-aware"
+name = "FAIR-Aware"
+description = { cs = "Sebehodnocení znalosti FAIR před zveřejněním dat.", en = "Self-assessment of FAIR awareness before publishing data." }
+url = "https://fairaware.dans.knaw.nl/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["V", "DS"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "openaire-validator"
+name = "OpenAIRE Validator"
+description = { cs = "Ověření souladu repozitáře s pravidly OpenAIRE.", en = "Checking a repository's compliance with the OpenAIRE guidelines." }
+url = "https://catalogue.openaire.eu/service/openaire.metadata_validator/overview"
+type = "tool"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "fdmm"
+name = "FAIR Data Maturity Model"
+description = { cs = "Metodika RDA pro hodnocení zralosti FAIR.", en = "The RDA methodology for assessing FAIR maturity." }
+url = "https://doi.org/10.15497/RDA00050"
+type = "standard"
+fipClass = ["FAIR-Assessment-Specification"]
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "ostrails-cli"
+name = "OSTrails CLI"
+description = { cs = "Dávkové spouštění testů FAIR Champion nad vzorkem záznamů.", en = "Running FAIR Champion tests in batches over a sample of records." }
+url = "https://github.com/MarekSuchanek/ostrails-ctu-dspace-fair"
+type = "tool"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["SR"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "ostrails-cz-pilot"
+name = { cs = "Pilot OSTrails CZ: hodnocení vzorku DSpace ČVUT", en = "OSTrails CZ pilot: assessment of a CTU DSpace sample" }
+description = { cs = "Výsledky a doporučení z hodnocení 100 záznamů nástrojem FAIR Champion (2026).", en = "Results and recommendations from assessing 100 records with FAIR Champion (2026)." }
+url = "https://doi.org/10.5281/zenodo.21726258"
+type = "document"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "SR"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[[resource]]
+id = "fair-impact"
+name = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }
+description = { cs = "Zdroje pro zavádění FAIR včetně metrik a hodnocení.", en = "Resources for implementing FAIR, including metrics and assessment." }
+url = "https://catalogue.fair-impact.eu/resources"
+type = "registry"
+status = "operational"
+asOf = 2026-10-08
+lenses = ["DS", "K"]
+stations = ["kontrola"]
+languages = ["en"]

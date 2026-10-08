@@ -86,7 +86,7 @@ Code is licensed under MIT and content under CC BY 4.0. Per-file licensing is de
 
 ## Authors and citation
 
-The guide is implemented by David Novák (<https://orcid.org/0000-0001-6592-6291>). Its expert basis is the
+The guide is implemented by David Novák (Library of the Czech Academy of Sciences and Institute of Archaeology of the Czech Academy of Sciences, Prague; <https://orcid.org/0000-0001-6592-6291>). Its expert basis is the
 analysis by Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák
 and Tomáš Čížek. How to cite the guide: [CITATION.cff](CITATION.cff).
 

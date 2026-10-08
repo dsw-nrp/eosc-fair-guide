@@ -19,7 +19,6 @@ path = [
   "docs/**",
   "diagrams/**",
   "assets/diagrams/**",
-  "ro-crate-metadata.json",
   "**/*.md",
   "CITATION.cff",
 ]
@@ -27,9 +26,16 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"
 
-# The page and its preview copy carry code and the inlined content.
+# The page and its preview copy carry code and the inlined content. Generated files are not scanned for
+# copyright notices, because their content contains arbitrary text.
 [[annotations]]
 path = ["index.html", "ro-crate-preview.html"]
-precedence = "aggregate"
+precedence = "override"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "MIT AND CC-BY-4.0"
+
+[[annotations]]
+path = ["ro-crate-metadata.json", "content/snapshots/**", "content/glossary.toml"]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
+SPDX-License-Identifier = "CC-BY-4.0"

@@ -1,0 +1,127 @@
+# Station 8: citation and credit. Citation practice comes first; RIV is a factual note. Field reference:
+# docs/content-model.md.
+
+[station]
+id = "citace"
+position = 8
+name = { cs = "Citace a uznání", en = "Citation and credit" }
+title = { cs = "Citace dat a uznání", en = "Data citation and credit" }
+principles = ["F1", "R1"]
+minutes = 5
+glossary = ["perzistentni-trvaly-identifikator", "digitalni-identifikator-objektu"]
+
+[[advice]]
+id = "citace.V.L0"
+lens = "V"
+level = "L0"
+text = { cs = "Data, která používáte, citujte stejně jako články. Vaše datová sada je díky PID citovatelná; uveďte ji v článku i v profilu ORCID.", en = "Cite the data you use just as you cite articles. Thanks to its PID, your dataset is citable; list it in your article and in your ORCID profile." }
+action = { label = { cs = "Vytvořit citaci z DOI", en = "Create a citation from a DOI" }, href = "#page-citation" }
+sources = ["E.FORCE11", "A.F1.X2", "A.R1.2.N3"]
+
+[[advice]]
+id = "citace.V.L1.1"
+lens = "V"
+level = "L1"
+text = { cs = "Cizí data citujte v seznamu literatury: autor, rok, název, repozitář, verze a PID.", en = "Cite other people's data in the reference list: author, year, title, repository, version and PID." }
+sources = ["E.FORCE11", "A.F1.X2"]
+
+[[advice]]
+id = "citace.V.L1.2"
+lens = "V"
+level = "L1"
+text = { cs = "V článku uveďte prohlášení o dostupnosti dat s PID.", en = "Include a data availability statement with the PID in your article." }
+sources = ["A.R1.2.N3"]
+
+[[advice]]
+id = "citace.V.L1.3"
+lens = "V"
+level = "L1"
+text = { cs = "Propojte datovou sadu se svým profilem ORCID; s ORCID pomůže Národní centrum ORCID.", en = "Link the dataset to your ORCID profile; the National ORCID Centre helps with ORCID." }
+sources = ["A.R1.2.N3", "E.PID-CENTRE"]
+
+[[advice]]
+id = "citace.V.L1.4"
+lens = "V"
+level = "L1"
+text = { cs = "Záznam v NMA je podmínkou vykázání datové sady v RIV jako výsledku typu T. Odkaz pro RIV získáte v NMA (viz zastávka Dohledatelnost); v citacích ale vždy uvádějte PID.", en = "An NMA record is required for reporting a dataset in RIV as a result of type T. You get the RIV link in NMA (see the Findability station); in citations, however, always give the PID." }
+sources = ["DOC.NMA.RIV", "E.KNAV-T"]
+
+[[advice]]
+id = "citace.V.L1.5"
+lens = "V"
+level = "L1"
+text = { cs = "Používali jste služby EOSC CZ? Poděkování můžete vyjádřit doporučeným textem.", en = "Did you use EOSC CZ services? You can acknowledge them with the recommended text." }
+sources = ["E.ACKNOWLEDGEMENT"]
+
+[[advice]]
+id = "citace.DS.L0"
+lens = "DS"
+level = "L0"
+text = { cs = "Podporujte citační praxi: data citovat, zpřístupňovat je citovatelně a vykazovat je tam, kde to pravidla umožňují.", en = "Support citation practice: cite data, make them citable, and report them where the rules allow." }
+action = { label = { cs = "Zásady citování dat", en = "Data citation principles" }, href = "https://force11.org/info/joint-declaration-of-data-citation-principles-final/" }
+sources = ["E.FORCE11", "DOC.NMA.RIV"]
+
+[[advice]]
+id = "citace.DS.L1.1"
+lens = "DS"
+level = "L1"
+text = { cs = "Opřete se o Společnou deklaraci zásad citování dat (FORCE11).", en = "Rely on the Joint Declaration of Data Citation Principles (FORCE11)." }
+sources = ["E.FORCE11"]
+
+[[advice]]
+id = "citace.DS.L1.2"
+lens = "DS"
+level = "L1"
+text = { cs = "Seznamte se s podmínkami vykázání výsledku typu T v RIV a s postupem v NMA.", en = "Learn the conditions for reporting a type T result in RIV and the procedure in NMA." }
+sources = ["E.KNAV-T", "DOC.NMA.RIV"]
+
+[[advice]]
+id = "citace.DS.L1.3"
+lens = "DS"
+level = "L1"
+text = { cs = "Data steward může být v metadatech uveden jako přispěvatel (například DataCite contributorType). Ve výzvě Open Science III je zapojení data stewarda do tvorby FAIR datové sady, jako autora nebo přispěvatele, povinné.", en = "A data steward can be listed in the metadata as a contributor (for example DataCite contributorType). In the Open Science III call, involving a data steward in creating the FAIR dataset, as author or contributor, is mandatory." }
+sources = ["E.DATACITE-SCHEMA", "E.OS3"]
+
+[[advice]]
+id = "citace.SR.L0"
+lens = "SR"
+level = "L0"
+text = { cs = "Usnadněte citování: nabídněte na landing page doporučenou citaci a její export (BibTeX, RIS) a v metadatech uvádějte autory s ORCID.", en = "Make citing easy: offer a recommended citation and its export (BibTeX, RIS) on the landing page, and give authors with ORCID in the metadata." }
+action = { label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }
+sources = ["A.F1.X2", "A.I2.R2"]
+
+[[advice]]
+id = "citace.SR.L1.1"
+lens = "SR"
+level = "L1"
+text = { cs = "Na landing page nabídněte doporučenou citaci a její export.", en = "Offer a recommended citation and its export on the landing page." }
+sources = ["A.F1.X2"]
+
+[[advice]]
+id = "citace.SR.L1.2"
+lens = "SR"
+level = "L1"
+text = { cs = "Kvalitní metadata v DataCite (ORCID, ROR, vazby) zlepšují citovatelnost i dohledatelnost.", en = "Good metadata in DataCite (ORCID, ROR, relations) improve both citability and findability." }
+sources = ["A.I2.R2", "A.I3.R1", "E.DATACITE-SCHEMA"]
+
+[[advice]]
+id = "citace.SR.L1.3"
+lens = "SR"
+level = "L1"
+text = { cs = "Zajistěte sklizeň do NMA, aby autoři nemuseli zakládat záznamy pro RIV ručně.", en = "Make sure records are harvested into NMA so that authors need not create them by hand for RIV." }
+sources = ["DOC.NMA.EXPORT", "DOC.NMA.RIV"]
+
+[[advice]]
+id = "citace.K.L0"
+lens = "K"
+level = "L0"
+text = { cs = "Komunita může doporučit citační praxi pro data svého oboru, včetně citace verzí a podmnožin dat.", en = "A community can recommend citation practice for its domain's data, including citing versions and subsets of data." }
+action = { label = { cs = "Zásady citování dat", en = "Data citation principles" }, href = "https://force11.org/info/joint-declaration-of-data-citation-principles-final/" }
+sources = ["E.FORCE11"]
+
+[[advice]]
+id = "citace.K.L1.1"
+lens = "K"
+level = "L1"
+text = { cs = "Doporučte citační formát a citaci verzí, případně dynamických dat, ve FIP nebo v komunitních pravidlech.", en = "Recommend a citation format and how to cite versions, or dynamic data, in the FIP or in community rules." }
+sources = ["E.FORCE11", "A.F1.F2"]
