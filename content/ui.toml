@@ -18,6 +18,7 @@ selfcheck = { cs = "Sebehodnocení", en = "Self-check" }
 explorer = { cs = "Principy", en = "Principles" }
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře", en = "Repositories" }
+tools = { cs = "Nástroje", en = "Tools" }
 about = { cs = "O průvodci", en = "About" }
 stations = { cs = "Zastávky na cestě", en = "Stations on the path" }
 language = { cs = "Jazyk", en = "Language" }
@@ -122,7 +123,7 @@ matrix = { cs = "Matice konvergence profilů FIP", en = "FIP convergence matrix"
 
 [repositories]
 title = { cs = "Repozitáře", en = "Repositories" }
-intro = { cs = "Přednostně ukládejte do oborového repozitáře, jinak do institucionálního; obecné repozitáře jsou poslední možností. Seznam spojuje výběr průvodce, snímek registru re3data a na vyžádání záznamy z Národního katalogu repozitářů (NKR).", en = "Deposit preferably in a domain repository, otherwise in an institutional one; general-purpose repositories are the last option. The list combines the guide's selection, a snapshot of the re3data registry and, on request, records from the National Repository Catalogue (NKR)." }
+intro = { cs = "Přednostně ukládejte do oborového repozitáře, jinak do institucionálního; obecné repozitáře jsou poslední možností. Seznam spojuje výběr průvodce, snímek registru re3data a na vyžádání záznamy z Národního katalogu repozitářů (NKR) a z FAIRsharing.", en = "Deposit preferably in a domain repository, otherwise in an institutional one; general-purpose repositories are the last option. The list combines the guide's selection, a snapshot of the re3data registry and, on request, records from the National Repository Catalogue (NKR) and from FAIRsharing." }
 search = { cs = "Hledat podle názvu nebo oboru", en = "Search by name or field" }
 kind = { cs = "Druh", en = "Kind" }
 sources = { cs = "Zdroj údajů: {sources}", en = "Data from: {sources}" }
@@ -132,6 +133,11 @@ nkrLoad = { cs = "Načíst záznamy z NKR", en = "Load records from NKR" }
 nkrLoading = { cs = "Načítám záznamy z NKR…", en = "Loading records from NKR…" }
 nkrEmpty = { cs = "NKR zatím žádný repozitář neobsahuje.", en = "NKR does not list any repository yet." }
 nkrFailed = { cs = "NKR se nepodařilo načíst. Otevřete ho přímo: {url}", en = "NKR could not be loaded. Open it directly: {url}" }
+fairsharingLoad = { cs = "Načíst záznamy z FAIRsharing", en = "Load records from FAIRsharing" }
+fairsharingLoading = { cs = "Hledám záznamy ve FAIRsharing…", en = "Looking for records in FAIRsharing…" }
+fairsharingFound = { cs = "Záznam ve FAIRsharing má {n} z {total} repozitářů v seznamu (vyhledáno přes DataCite). Ostatní tam zapsané být mohou, jen je průvodce podle adresy nenašel.", en = "{n} of the {total} repositories listed have a FAIRsharing record (found through DataCite). Others may be registered too; the guide did not find them by their address." }
+fairsharingFailed = { cs = "FAIRsharing se nepodařilo prohledat. Zkuste to znovu, nebo hledejte přímo: {url}", en = "FAIRsharing could not be searched. Try again, or search it directly: {url}" }
+fairsharingRecord = { cs = "Záznam ve FAIRsharing", en = "Record in FAIRsharing" }
 
 [explorer]
 title = { cs = "FAIR principy", en = "FAIR principles" }
@@ -220,7 +226,7 @@ nkrChoose = { cs = "Repozitář v NKR", en = "Repository in NKR" }
 nkrButton = { cs = "Vyplnit podle NKR", en = "Fill in from NKR" }
 re3data = { cs = "Záznam v re3data: DOI, identifikátor r3d nebo adresa záznamu", en = "Record in re3data: DOI, r3d identifier or the record's address" }
 re3dataButton = { cs = "Vyplnit podle re3data", en = "Fill in from re3data" }
-re3dataHint = { cs = "Údaje bere průvodce ze snímku re3data, který s ním přichází; re3data nelze číst přímo z prohlížeče.", en = "The guide takes the facts from the re3data snapshot it carries; re3data cannot be read directly from a browser." }
+re3dataHint = { cs = "Údaje bere průvodce ze snímku re3data, který s ním přichází; re3data nelze číst přímo z prohlížeče. Zápis ve FAIRsharing ověří přes DataCite.", en = "The guide takes the facts from the re3data snapshot it carries; re3data cannot be read directly from a browser. It checks the FAIRsharing registration through DataCite." }
 re3dataInvalid = { cs = "Zadejte DOI záznamu v re3data (10.17616/…), identifikátor r3d (například r3d100010386) nebo adresu záznamu.", en = "Enter the DOI of a re3data record (10.17616/…), an r3d identifier (for example r3d100010386) or the record's address." }
 re3dataMissing = { cs = "Repozitář {id} není ve snímku re3data, který průvodce nese (jsou v něm repozitáře z Česka). Odpovězte ručně, nebo otevřete jeho záznam v re3data.", en = "Repository {id} is not in the re3data snapshot the guide carries (it holds repositories from Czechia). Answer by hand, or open its record in re3data." }
 fipChoose = { cs = "Profil komunity ve FIP Dashboardu", en = "Community profile in the FIP Dashboard" }
@@ -264,6 +270,7 @@ notResolved = { cs = "Identifikátor se nepodařilo přeložit na adresu.", en =
 noDeclaration = { cs = "FIP k tomu nic nedeklaruje; doplňte to v profilu, nebo odpovězte ručně.", en = "The FIP declares nothing for this; add it to the profile or answer by hand." }
 declared = { cs = "Deklarované zdroje", en = "Declared resources" }
 noVerdict = { cs = "Testy nedaly výsledek; odpovězte ručně.", en = "The tests gave no verdict; answer by hand." }
+lookupFailed = { cs = "{source} se nepodařilo ověřit; odpovězte ručně, nebo to zkuste znovu.", en = "{source} could not be checked; answer by hand or try again." }
 
 [selfcheck.fipStatus]
 in-use = { cs = "používá se", en = "in use" }
@@ -423,6 +430,11 @@ delete = { cs = "tlačítkem „Smazat vše, co průvodce uložil“ vedle tohot
 deleteAll = { cs = "Smazat vše, co průvodce uložil", en = "Delete everything the guide stored" }
 confirm = { cs = "Smazat všechny odpovědi a nastavení, které průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the guide stored in this browser? This cannot be undone." }
 deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the guide stored in this browser is deleted." }
+
+[tools]
+title = { cs = "Nástroje", en = "Tools" }
+intro = { cs = "Pomocníci pro konkrétní úkoly na cestě a rady, jak při FAIRifikaci využít AI.", en = "Helpers for specific tasks on the path, and advice on using AI in FAIRification." }
+coming = { cs = "připravuje se", en = "in preparation" }
 
 [page]
 helperComing = { cs = "Pomocník se teprve připravuje a v této testovací verzi ještě není; zatím postupujte podle popisu výše.", en = "The helper is still being built and is not in this test version yet; for now, follow the description above." }

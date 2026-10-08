@@ -237,6 +237,9 @@
           "@id": "#action-2026-10-08-nrp-conditions-name"
         },
         {
+          "@id": "#action-2026-10-08-fairsharing-lookup"
+        },
+        {
           "@id": "#ledger"
         },
         {
@@ -312,16 +315,16 @@
           "@id": "#page-accessibility"
         },
         {
-          "@id": "#page-ai"
-        },
-        {
-          "@id": "#page-citation"
+          "@id": "#page-live-check"
         },
         {
           "@id": "#page-identifiers"
         },
         {
-          "@id": "#page-live-check"
+          "@id": "#page-citation"
+        },
+        {
+          "@id": "#page-ai"
         }
       ]
     },
@@ -1720,6 +1723,23 @@
       },
       "creditText": "Kurt Baumann; et al.",
       "datePublished": "2026-09-18"
+    },
+    {
+      "@id": "#org-fairsharing",
+      "@type": "Organization",
+      "name": "FAIRsharing"
+    },
+    {
+      "@id": "#source-fairsharing",
+      "@type": "WebPage",
+      "identifier": "fairsharing",
+      "name": "FAIRsharing: a curated, informative and educational resource on data and metadata standards, databases and policies",
+      "inLanguage": "en",
+      "url": "https://fairsharing.org/",
+      "publisher": {
+        "@id": "#org-fairsharing"
+      },
+      "sdDatePublished": "2026-10-08"
     },
     {
       "@id": "#org-re3data",
@@ -29161,6 +29181,16 @@
       "name": "prefill:nkr"
     },
     {
+      "@id": "#item-S18-prefill-re3data",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:re3data",
+      "value": [
+        "registries=re3data",
+        "registries=FAIRsharing"
+      ],
+      "name": "prefill:re3data"
+    },
+    {
       "@id": "#item-S18",
       "@type": "Question",
       "identifier": "S18",
@@ -29191,9 +29221,14 @@
         "@id": "#actor-repository-admin"
       },
       "allowsNotApplicable": false,
-      "additionalProperty": {
-        "@id": "#item-S18-prefill-nkr"
-      },
+      "additionalProperty": [
+        {
+          "@id": "#item-S18-prefill-nkr"
+        },
+        {
+          "@id": "#item-S18-prefill-re3data"
+        }
+      ],
       "isPartOf": {
         "@id": "#check-maturity"
       },
@@ -39998,6 +40033,210 @@
       "name": "accessibility"
     },
     {
+      "@id": "#page-live-check-1",
+      "@type": "CreativeWork",
+      "headline": [
+        {
+          "@value": "Rychlá a hloubková kontrola",
+          "@language": "cs"
+        },
+        {
+          "@value": "Quick and deep check",
+          "@language": "en"
+        }
+      ],
+      "text": [
+        {
+          "@value": "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z DataCite. Hloubková kontrola spustí vybrané testy nástroje FAIR Champion; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from DataCite. The deep check runs selected FAIR Champion tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup.",
+          "@language": "en"
+        }
+      ],
+      "position": 1,
+      "isPartOf": {
+        "@id": "#page-live-check"
+      },
+      "name": [
+        {
+          "@value": "Rychlá a hloubková kontrola",
+          "@language": "cs"
+        },
+        {
+          "@value": "Quick and deep check",
+          "@language": "en"
+        }
+      ]
+    },
+    {
+      "@id": "#page-live-check",
+      "@type": "CreativeWork",
+      "identifier": "live-check",
+      "additionalType": "https://schema.org/WebApplication",
+      "headline": [
+        {
+          "@value": "Kontrola datové sady",
+          "@language": "cs"
+        },
+        {
+          "@value": "Dataset check",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Ověří, kam vede DOI nebo Handle datové sady, a spustí vybrané testy FAIR.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Checks where a dataset's DOI or Handle leads and runs selected FAIR tests.",
+          "@language": "en"
+        }
+      ],
+      "hasPart": {
+        "@id": "#page-live-check-1"
+      },
+      "name": "live-check"
+    },
+    {
+      "@id": "#page-identifiers-1",
+      "@type": "CreativeWork",
+      "headline": [
+        {
+          "@value": "Jak pomocník funguje",
+          "@language": "cs"
+        },
+        {
+          "@value": "How the helper works",
+          "@language": "en"
+        }
+      ],
+      "text": [
+        {
+          "@value": "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde ORCID, DOI, Handle a ROR, kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Paste a text, for example metadata drafted with AI. The helper finds ORCID iDs, DOIs, Handles and ROR IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere.",
+          "@language": "en"
+        }
+      ],
+      "position": 1,
+      "isPartOf": {
+        "@id": "#page-identifiers"
+      },
+      "name": [
+        {
+          "@value": "Jak pomocník funguje",
+          "@language": "cs"
+        },
+        {
+          "@value": "How the helper works",
+          "@language": "en"
+        }
+      ]
+    },
+    {
+      "@id": "#page-identifiers",
+      "@type": "CreativeWork",
+      "identifier": "identifiers",
+      "additionalType": "https://schema.org/WebApplication",
+      "headline": [
+        {
+          "@value": "Ověřit identifikátory",
+          "@language": "cs"
+        },
+        {
+          "@value": "Verify identifiers",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Najde v textu ORCID, DOI, Handle a ROR a ukáže, ke komu nebo čemu vedou.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Finds ORCID iDs, DOIs, Handles and ROR IDs in a text and shows whom or what they lead to.",
+          "@language": "en"
+        }
+      ],
+      "hasPart": {
+        "@id": "#page-identifiers-1"
+      },
+      "name": "identifiers"
+    },
+    {
+      "@id": "#page-citation-1",
+      "@type": "CreativeWork",
+      "headline": [
+        {
+          "@value": "Jak pomocník funguje",
+          "@language": "cs"
+        },
+        {
+          "@value": "How the helper works",
+          "@language": "en"
+        }
+      ],
+      "text": [
+        {
+          "@value": "Vložte DOI datové sady registrované u DataCite. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Enter the DOI of a dataset registered with DataCite. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI.",
+          "@language": "en"
+        }
+      ],
+      "position": 1,
+      "isPartOf": {
+        "@id": "#page-citation"
+      },
+      "name": [
+        {
+          "@value": "Jak pomocník funguje",
+          "@language": "cs"
+        },
+        {
+          "@value": "How the helper works",
+          "@language": "en"
+        }
+      ]
+    },
+    {
+      "@id": "#page-citation",
+      "@type": "CreativeWork",
+      "identifier": "citation",
+      "additionalType": "https://schema.org/WebApplication",
+      "headline": [
+        {
+          "@value": "Citace z DOI",
+          "@language": "cs"
+        },
+        {
+          "@value": "Citation from a DOI",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Připraví citaci datové sady z jejího DOI podle APA a ČSN ISO 690 a export do BibTeX a RIS.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Prepares a dataset citation from its DOI in APA and Czech ISO 690 style, with BibTeX and RIS exports.",
+          "@language": "en"
+        }
+      ],
+      "hasPart": {
+        "@id": "#page-citation-1"
+      },
+      "name": "citation"
+    },
+    {
       "@id": "#page-ai-1",
       "@type": "CreativeWork",
       "headline": [
@@ -40087,6 +40326,16 @@
           "@language": "en"
         }
       ],
+      "description": [
+        {
+          "@value": "Kde při FAIRifikaci pomůže AI a na co si dát pozor.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Where AI helps in FAIRification and what to watch out for.",
+          "@language": "en"
+        }
+      ],
       "hasPart": [
         {
           "@id": "#page-ai-1"
@@ -40096,180 +40345,6 @@
         }
       ],
       "name": "ai"
-    },
-    {
-      "@id": "#page-citation-1",
-      "@type": "CreativeWork",
-      "headline": [
-        {
-          "@value": "Jak pomocník funguje",
-          "@language": "cs"
-        },
-        {
-          "@value": "How the helper works",
-          "@language": "en"
-        }
-      ],
-      "text": [
-        {
-          "@value": "Vložte DOI datové sady registrované u DataCite. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.",
-          "@language": "cs"
-        },
-        {
-          "@value": "Enter the DOI of a dataset registered with DataCite. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI.",
-          "@language": "en"
-        }
-      ],
-      "position": 1,
-      "isPartOf": {
-        "@id": "#page-citation"
-      },
-      "name": [
-        {
-          "@value": "Jak pomocník funguje",
-          "@language": "cs"
-        },
-        {
-          "@value": "How the helper works",
-          "@language": "en"
-        }
-      ]
-    },
-    {
-      "@id": "#page-citation",
-      "@type": "CreativeWork",
-      "identifier": "citation",
-      "additionalType": "https://schema.org/WebApplication",
-      "headline": [
-        {
-          "@value": "Citace z DOI",
-          "@language": "cs"
-        },
-        {
-          "@value": "Citation from a DOI",
-          "@language": "en"
-        }
-      ],
-      "hasPart": {
-        "@id": "#page-citation-1"
-      },
-      "name": "citation"
-    },
-    {
-      "@id": "#page-identifiers-1",
-      "@type": "CreativeWork",
-      "headline": [
-        {
-          "@value": "Jak pomocník funguje",
-          "@language": "cs"
-        },
-        {
-          "@value": "How the helper works",
-          "@language": "en"
-        }
-      ],
-      "text": [
-        {
-          "@value": "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde ORCID, DOI, Handle a ROR, kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.",
-          "@language": "cs"
-        },
-        {
-          "@value": "Paste a text, for example metadata drafted with AI. The helper finds ORCID iDs, DOIs, Handles and ROR IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere.",
-          "@language": "en"
-        }
-      ],
-      "position": 1,
-      "isPartOf": {
-        "@id": "#page-identifiers"
-      },
-      "name": [
-        {
-          "@value": "Jak pomocník funguje",
-          "@language": "cs"
-        },
-        {
-          "@value": "How the helper works",
-          "@language": "en"
-        }
-      ]
-    },
-    {
-      "@id": "#page-identifiers",
-      "@type": "CreativeWork",
-      "identifier": "identifiers",
-      "additionalType": "https://schema.org/WebApplication",
-      "headline": [
-        {
-          "@value": "Ověřit identifikátory",
-          "@language": "cs"
-        },
-        {
-          "@value": "Verify identifiers",
-          "@language": "en"
-        }
-      ],
-      "hasPart": {
-        "@id": "#page-identifiers-1"
-      },
-      "name": "identifiers"
-    },
-    {
-      "@id": "#page-live-check-1",
-      "@type": "CreativeWork",
-      "headline": [
-        {
-          "@value": "Rychlá a hloubková kontrola",
-          "@language": "cs"
-        },
-        {
-          "@value": "Quick and deep check",
-          "@language": "en"
-        }
-      ],
-      "text": [
-        {
-          "@value": "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z DataCite. Hloubková kontrola spustí vybrané testy nástroje FAIR Champion; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.",
-          "@language": "cs"
-        },
-        {
-          "@value": "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from DataCite. The deep check runs selected FAIR Champion tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup.",
-          "@language": "en"
-        }
-      ],
-      "position": 1,
-      "isPartOf": {
-        "@id": "#page-live-check"
-      },
-      "name": [
-        {
-          "@value": "Rychlá a hloubková kontrola",
-          "@language": "cs"
-        },
-        {
-          "@value": "Quick and deep check",
-          "@language": "en"
-        }
-      ]
-    },
-    {
-      "@id": "#page-live-check",
-      "@type": "CreativeWork",
-      "identifier": "live-check",
-      "additionalType": "https://schema.org/WebApplication",
-      "headline": [
-        {
-          "@value": "Kontrola datové sady",
-          "@language": "cs"
-        },
-        {
-          "@value": "Dataset check",
-          "@language": "en"
-        }
-      ],
-      "hasPart": {
-        "@id": "#page-live-check-1"
-      },
-      "name": "live-check"
     },
     {
       "@id": "#action-2026-10-08-content-model-sample",
@@ -42153,6 +42228,9 @@
           "@id": "#resource-re3data"
         },
         {
+          "@id": "#source-fairsharing"
+        },
+        {
           "@id": "#resource-fairsharing"
         },
         {
@@ -42528,6 +42606,38 @@
         }
       ],
       "endTime": "2026-10-08T21:20:00+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-08-fairsharing-lookup",
+      "@type": "UpdateAction",
+      "name": "Repository registration checked in FAIRsharing",
+      "description": "The question whether a repository is registered in re3data and FAIRsharing is answered from the re3data snapshot together with a FAIRsharing record found through its DataCite DOI, which lists the repository's re3data record.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "object": [
+        {
+          "@id": "#source-fairsharing"
+        },
+        {
+          "@id": "#resource-fairsharing"
+        }
+      ],
+      "result": {
+        "@id": "#item-S18"
+      },
+      "endTime": "2026-10-08T23:10:00+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }

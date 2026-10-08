@@ -3,6 +3,7 @@
 // - a real Handle pre-fills from the Handle resolver;
 // - an identifier that does not exist leaves the items open with a note;
 // - a published FIP nanopublication pre-fills the FIP check;
+// - FAIRsharing records are found through DataCite for the repositories page and the maturity check;
 // - every request goes to an allowlisted connector, and only after a click.
 // These checks need the network and depend on outside services, so they are not part of the pull-request gate.
 // Usage: npm run check:live   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
@@ -98,6 +99,24 @@ if (!answered) fail("nanopublication: no FIP item was pre-filled");
 const origin = await page.locator(".source-chip").first().textContent();
 if (!origin.includes("nanopublikace")) fail("nanopublication: the source is not named: " + origin);
 if (!(await page.locator(".origin a").count())) fail("nanopublication: declared resources are not listed");
+
+// FAIRsharing records through DataCite: the repositories page and the maturity check's registration question.
+await open("#/cs/V/repositories");
+await page.locator("#fairsharing-load").click();
+await page.waitForFunction(() => {
+  const status = document.getElementById("fairsharing-status");
+  return status && !status.textContent.includes("Hledám");
+}, null, { timeout: 60000 });
+const fairsharingStatus = await page.locator("#fairsharing-status").textContent();
+console.log("FAIRsharing:", fairsharingStatus);
+const csda = page.locator(".card", { hasText: "Czech Social Science Data Archive" });
+if (!(await csda.locator(".fairsharing-record").count())) fail("FAIRsharing: the ČSDA record was not found: " + fairsharingStatus);
+await open("#/cs/SR/check/maturity");
+await page.locator('label[for="extended-toggle"]').click();
+await page.locator("#prefill-re3data").fill("r3d100010484");
+status = await prefill("#prefill-re3data-run");
+console.log("re3data and FAIRsharing:", status);
+if ((await answer("S18")) !== "yes") fail("FAIRsharing: S18 is not answered yes for ČSDA");
 
 for (const url of requests) {
   if (!origins.some((allowed) => url.startsWith(allowed + "/"))) fail("request outside the connector allowlist: " + url);

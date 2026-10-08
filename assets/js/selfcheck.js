@@ -28,7 +28,7 @@
   const MAX_FILE = 2 * 1024 * 1024;
   const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared"];
   const R3D = /r3d\d{9}/i;
-  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved"];
+  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed"];
   const LENS_ACTOR = { V: "#actor-user", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
   const status = { check: null, text: "", busy: false };
 
@@ -195,7 +195,7 @@
       }
       const current = record(st, item) || {};
       if (!value && current.prefill && current.prefill.value) continue;
-      const prefill = { source: result.source || source, date, value, notes, list: result.list || [], fields: result.fields || [], record: result.record || recordUrl || null };
+      const prefill = { source: result.source || source, date: result.date || date, value, notes, list: result.list || [], fields: result.fields || [], record: result.record || recordUrl || null };
       const next = Object.assign({}, current, { prefill });
       if (current.origin !== "user" && value) Object.assign(next, { value, origin: "prefill" });
       else if (!current.origin) next.origin = "prefill";
@@ -558,9 +558,31 @@
       return Promise.resolve();
     }
     describeTarget(check, { name: facts.name, kind: "re3data" });
-    return runPrefill(check, "re3data", "prefill-re3data-run", async () =>
-      applyEvidence(check, "re3data", (item, fields) => Object.assign(fieldEvidence(fields.map((field) => pathState(facts, field))), { fields: fieldsOf(facts, fields) }), facts.date, st.target)
-    );
+    return runPrefill(check, "re3data", "prefill-re3data-run", async () => {
+      /* Being in the re3data snapshot is being registered in re3data; FAIRsharing is asked through DataCite. A
+         failed lookup leaves the question open rather than answering it from re3data alone. */
+      let fairsharing = null;
+      let failed = false;
+      try {
+        fairsharing = FG.live.fairsharingOf({ identifiers: [id] }, await FG.live.findFairsharing([{ identifiers: [id] }]));
+      } catch (error) {
+        failed = true;
+      }
+      const known = Object.assign({}, facts, { registries: ["re3data"].concat(fairsharing ? ["FAIRsharing"] : []) });
+      return applyEvidence(
+        check,
+        "re3data",
+        (item, fields) => {
+          const asksFairsharing = fields.some((field) => /=FAIRsharing$/i.test(field));
+          if (asksFairsharing && failed) return { value: null, notes: [{ key: "selfcheck.note.lookupFailed", params: { source: "FAIRsharing" } }] };
+          const evidence = Object.assign(fieldEvidence(fields.map((field) => pathState(known, field))), { fields: fieldsOf(known, fields) });
+          if (asksFairsharing) Object.assign(evidence, { date: today(), record: fairsharing ? FG.live.pidUrl({ type: "doi", value: fairsharing.doi }) : undefined });
+          return evidence;
+        },
+        facts.date,
+        st.target
+      );
+    });
   }
 
   /** Open the dataset check for an identifier from the landing's search and run the lookup the user chose. */

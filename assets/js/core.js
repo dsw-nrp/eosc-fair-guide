@@ -211,7 +211,7 @@
 
   /* ---------------------------------------------------------------- routing */
 
-  const VIEWS = ["path", "check", "explorer", "resources", "repositories", "page", "selfcheck"];
+  const VIEWS = ["path", "check", "explorer", "resources", "repositories", "tools", "page", "selfcheck"];
 
   /** In-page targets that name crate entities, as used by advice actions. */
   FG.entityRoute = function (hash) {

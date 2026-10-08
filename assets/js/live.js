@@ -175,6 +175,101 @@
       .map((entry) => ({ name: String(entry.name), status: String(entry.status || "") }));
   };
 
+  /* ---------------------------------------------------------------- FAIRsharing */
+
+  /* FAIRsharing's API needs a login, but every FAIRsharing record has a DataCite DOI whose metadata lists the
+     described resource's addresses, including its re3data record, so a DataCite search finds the records. */
+  live.fairsharing = { state: "idle", records: [], asked: 0 };
+
+  /** An address without its scheme, "www." and trailing slashes, for matching. */
+  live.bareUrl = (url) =>
+    String(url || "")
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(/\/+$/, "");
+
+  function fairsharingRecord(entry) {
+    const attributes = (entry && entry.attributes) || {};
+    const first = (list, key) => FG.list(list).map((item) => item && item[key]).find((value) => typeof value === "string" && value) || "";
+    const related = FG.list(attributes.relatedIdentifiers)
+      .map((item) => String((item && item.relatedIdentifier) || ""))
+      .filter(Boolean);
+    return {
+      doi: String((entry && entry.id) || attributes.doi || ""),
+      name: first(attributes.titles, "title").replace(/^FAIRsharing record for:\s*/i, ""),
+      re3data: related.map((value) => (value.match(/r3d\d{9}/i) || [""])[0].toLowerCase()).find(Boolean) || null,
+      addresses: related.map(live.bareUrl),
+    };
+  }
+
+  /** FAIRsharing records of the given repositories ({ identifiers, url }), found by their re3data records and
+      addresses in DataCite searches of at most 30 terms each. */
+  live.findFairsharing = async function (repositories) {
+    const terms = new Set();
+    for (const repository of repositories) {
+      for (const id of FG.list(repository.identifiers)) if (/^r3d\d{9}$/i.test(id)) terms.add(FG.config.links.re3dataRecord + id.toLowerCase());
+      const url = String(repository.url || "");
+      if (/^https?:\/\//.test(url) && !url.includes('"')) {
+        terms.add(url);
+        terms.add(url.endsWith("/") ? url.replace(/\/+$/, "") : url + "/");
+      }
+    }
+    const all = [...terms];
+    const batches = [];
+    for (let start = 0; start < all.length; start += 30) batches.push(all.slice(start, start + 30));
+    const prefix = FG.config.fairsharing.prefix;
+    const answers = await Promise.all(
+      batches.map((batch) =>
+        live.fetchJson(
+          "datacite",
+          "dois?query=" + encodeURIComponent("relatedIdentifiers.relatedIdentifier:(" + batch.map((term) => '"' + term + '"').join(" OR ") + ")") + "&prefix=" + encodeURIComponent(prefix) + "&page[size]=100"
+        )
+      )
+    );
+    const records = new Map();
+    for (const answer of answers) for (const entry of FG.list(answer && answer.data)) {
+      const found = fairsharingRecord(entry);
+      if (found.doi && found.name) records.set(found.doi.toLowerCase(), found);
+    }
+    return [...records.values()];
+  };
+
+  /** The FAIRsharing record of a repository among those found, by its re3data record or its address. */
+  live.fairsharingOf = function (repository, records) {
+    const ids = FG.list(repository.identifiers).map((id) => String(id).toLowerCase());
+    const address = live.bareUrl(repository.url);
+    return (records || live.fairsharing.records).find((record) => (record.re3data && ids.includes(record.re3data)) || (address && record.addresses.includes(address))) || null;
+  };
+
+  live.loadFairsharing = async function (repositories) {
+    live.fairsharing.state = "loading";
+    live.fairsharing.asked = repositories.length;
+    FG.rerender("fairsharing-load");
+    try {
+      live.fairsharing.records = await live.findFairsharing(repositories);
+      live.fairsharing.state = "done";
+    } catch (error) {
+      live.fairsharing.state = "failed";
+    }
+    FG.rerender("fairsharing-load");
+  };
+
+  /** The FAIRsharing button and its status line, placed apart by the caller. */
+  live.fairsharingControls = function (repositories) {
+    const found = repositories.filter((repository) => live.fairsharingOf(repository)).length;
+    const status = {
+      loading: FG.t("repositories.fairsharingLoading"),
+      done: FG.t("repositories.fairsharingFound", { n: found, total: repositories.length }),
+      failed: FG.t("repositories.fairsharingFailed", { url: FG.config.links.fairsharing }),
+    }[live.fairsharing.state];
+    return {
+      button: FG.h("button", { type: "button", id: "fairsharing-load", onclick: () => live.loadFairsharing(repositories), disabled: live.fairsharing.state === "loading" }, FG.t("repositories.fairsharingLoad")),
+      status: status ? FG.h("p", { id: "fairsharing-status", role: "status", class: "small" }, status) : null,
+    };
+  };
+
   /* ---------------------------------------------------------------- NKR */
 
   live.nkr = { state: "idle", records: [] };
@@ -210,17 +305,21 @@
     FG.rerender("nkr-load");
   };
 
-  live.nkrButton = function () {
+  /** The NKR button and its status line, placed apart by the caller. */
+  live.nkrControls = function () {
     const status = {
       loading: FG.t("repositories.nkrLoading"),
       done: live.nkr.records.length ? null : FG.t("repositories.nkrEmpty"),
       failed: FG.t("repositories.nkrFailed", { url: FG.config.links.nkr }),
     }[live.nkr.state];
-    return FG.h(
-      "div",
-      null,
-      FG.h("button", { type: "button", id: "nkr-load", onclick: live.loadNkr, disabled: live.nkr.state === "loading" }, FG.t("repositories.nkrLoad")),
-      status ? FG.h("p", { role: "status", class: "small" }, status) : null
-    );
+    return {
+      button: FG.h("button", { type: "button", id: "nkr-load", onclick: live.loadNkr, disabled: live.nkr.state === "loading" }, FG.t("repositories.nkrLoad")),
+      status: status ? FG.h("p", { id: "nkr-status", role: "status", class: "small" }, status) : null,
+    };
+  };
+
+  live.nkrButton = function () {
+    const controls = live.nkrControls();
+    return FG.h("div", null, controls.button, controls.status);
   };
 })();

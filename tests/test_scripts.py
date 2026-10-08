@@ -252,6 +252,17 @@ class ContentCheckTests(FixtureCase):
         )
         self.assertEqual(credits[0]["people"], [{"name": "Test Person", "url": None}, {"name": "Other Author"}])
 
+    def test_every_page_sits_under_a_menu_item(self) -> None:
+        pages = self.root / "content" / "pages.toml"
+        title = 'title = { cs = "Stránka", en = "Page" }\n'
+        pages.write_text('[[page]]\nid = "lost"\n' + title, encoding="utf-8")
+        self.assertError("menu must be one of tools, about")
+        pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + title, encoding="utf-8")
+        self.assertError("missing description")
+        described = 'description = { cs = "Co dělá.", en = "What it does." }\n'
+        pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + described + title, encoding="utf-8")
+        self.assertFalse(any(error.startswith("page:") for error in self.errors()), self.errors())
+
     def test_page_url_must_use_https(self) -> None:
         self.edit("guide.toml", 'pageUrl = "https://example.org/guide/"', 'pageUrl = "http://example.org/guide/"')
         self.assertError("the page URL must use HTTPS")

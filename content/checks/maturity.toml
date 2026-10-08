@@ -184,7 +184,7 @@ statement = { cs = "Repozitář je registrován v re3data a FAIRsharing.", en = 
 sources = ["E.NKR-SCHEMA"]
 fixAt = "repozitar"
 owner = ["repository-admin"]
-prefill = { nkr = ["relatedRegistry", "indexedIn"] }
+prefill = { nkr = ["relatedRegistry", "indexedIn"], re3data = ["registries=re3data", "registries=FAIRsharing"] }
 
 [[item]]
 id = "S19"

@@ -71,6 +71,7 @@ nkr = "https://repo.cz/"
 eoscHome = "https://www.eosc.cz/"
 opJak = "https://opjak.cz/"
 dataciteRecord = "https://commons.datacite.org/doi.org/"
+fairsharing = "https://fairsharing.org/"
 re3dataRecord = "https://www.re3data.org/repository/"
 
 # Declarations of a published FIP nanopublication (spike in docs/design.md, "Spikes and findings"). The page puts
@@ -178,3 +179,8 @@ principle = "R1.2"
 label = { cs = "Metadata uvádějí afiliaci autorů", en = "Metadata include author affiliation" }
 health = "degraded"
 asOf = 2026-10-08
+
+# FAIRsharing's API needs a login, so the page finds FAIRsharing records through their DataCite DOIs: each record's
+# DataCite metadata lists the described resource's addresses, including its re3data record.
+[fairsharing]
+prefix = "10.25504"

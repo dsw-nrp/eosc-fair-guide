@@ -2283,6 +2283,64 @@ main p > button {
   }
 }
 
+/* The finder's live sources side by side. */
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.filter-status p {
+  margin: 0 0 var(--space-2);
+}
+
+.badges .fairsharing-record {
+  align-self: center;
+  font-size: var(--size-small);
+}
+
+/* The tools view: one card per tool, its icon beside the name and what it does. */
+.tool-cards {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-5) 0 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.tool-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+}
+
+.tool-card-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--tint-teal);
+}
+
+.tool-card h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-h3);
+}
+
+.tool-card p {
+  margin: 0;
+}
+
+.tool-card .tool-coming {
+  display: inline-block;
+  margin-top: var(--space-2);
+}
+
 .helper-coming {
   margin-top: var(--space-4);
 }

@@ -3,6 +3,7 @@
 
 [[page]]
 id = "about"
+menu = "about"
 title = { cs = "O průvodci", en = "About the guide" }
 
 [[page.section]]
@@ -28,6 +29,7 @@ body = { cs = "Odpovědi v sebehodnocení zůstávají jen ve vašem prohlíže�
 
 [[page]]
 id = "accessibility"
+menu = "about"
 title = { cs = "Prohlášení o přístupnosti", en = "Accessibility statement" }
 
 [[page.section]]
@@ -43,7 +45,46 @@ heading = { cs = "Zpětná vazba", en = "Feedback" }
 body = { cs = "Narazíte-li na překážku, napište nám prostřednictvím úložiště průvodce na GitHubu (github.com/motyc/eosc-fair-guide), nebo na adresu info@eosc.cz.", en = "If you meet a barrier, tell us through the guide's repository on GitHub (github.com/motyc/eosc-fair-guide) or at info@eosc.cz." }
 
 [[page]]
+id = "live-check"
+menu = "tools"
+icon = "magnifying-glass-chart"
+description = { cs = "Ověří, kam vede DOI nebo Handle datové sady, a spustí vybrané testy FAIR.", en = "Checks where a dataset's DOI or Handle leads and runs selected FAIR tests." }
+helper = true
+title = { cs = "Kontrola datové sady", en = "Dataset check" }
+
+[[page.section]]
+heading = { cs = "Rychlá a hloubková kontrola", en = "Quick and deep check" }
+body = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z DataCite. Hloubková kontrola spustí vybrané testy nástroje FAIR Champion; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from DataCite. The deep check runs selected FAIR Champion tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup." }
+
+[[page]]
+id = "identifiers"
+menu = "tools"
+icon = "fingerprint"
+description = { cs = "Najde v textu ORCID, DOI, Handle a ROR a ukáže, ke komu nebo čemu vedou.", en = "Finds ORCID iDs, DOIs, Handles and ROR IDs in a text and shows whom or what they lead to." }
+helper = true
+title = { cs = "Ověřit identifikátory", en = "Verify identifiers" }
+
+[[page.section]]
+heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
+body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde ORCID, DOI, Handle a ROR, kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.", en = "Paste a text, for example metadata drafted with AI. The helper finds ORCID iDs, DOIs, Handles and ROR IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere." }
+
+[[page]]
+id = "citation"
+menu = "tools"
+icon = "quote-right"
+description = { cs = "Připraví citaci datové sady z jejího DOI podle APA a ČSN ISO 690 a export do BibTeX a RIS.", en = "Prepares a dataset citation from its DOI in APA and Czech ISO 690 style, with BibTeX and RIS exports." }
+helper = true
+title = { cs = "Citace z DOI", en = "Citation from a DOI" }
+
+[[page.section]]
+heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
+body = { cs = "Vložte DOI datové sady registrované u DataCite. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.", en = "Enter the DOI of a dataset registered with DataCite. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI." }
+
+[[page]]
 id = "ai"
+menu = "tools"
+icon = "robot"
+description = { cs = "Kde při FAIRifikaci pomůže AI a na co si dát pozor.", en = "Where AI helps in FAIRification and what to watch out for." }
 title = { cs = "AI ve FAIRifikaci", en = "AI in FAIRification" }
 
 [[page.section]]
@@ -53,30 +94,3 @@ body = { cs = "AI pomůže s návrhem textů plánu správy dat, se skripty pro 
 [[page.section]]
 heading = { cs = "Tři pravidla", en = "Three rules" }
 body = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které je neposílají mimo infrastrukturu, například AI v e-INFRA CZ (CERIT).\n\nIdentifikátory (ORCID, DOI, ROR) a hesla si vždy ověřte; AI je umí vymyslet.\n\nUveďte, kde a jak jste AI použili.", en = "Put unpublished and sensitive data only into services that keep them within the infrastructure, such as AI in e-INFRA CZ (CERIT).\n\nAlways verify identifiers (ORCID, DOI, ROR) and subject terms; AI can make them up.\n\nState where and how you used AI." }
-
-[[page]]
-id = "citation"
-helper = true
-title = { cs = "Citace z DOI", en = "Citation from a DOI" }
-
-[[page.section]]
-heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
-body = { cs = "Vložte DOI datové sady registrované u DataCite. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.", en = "Enter the DOI of a dataset registered with DataCite. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI." }
-
-[[page]]
-id = "identifiers"
-helper = true
-title = { cs = "Ověřit identifikátory", en = "Verify identifiers" }
-
-[[page.section]]
-heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
-body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde ORCID, DOI, Handle a ROR, kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.", en = "Paste a text, for example metadata drafted with AI. The helper finds ORCID iDs, DOIs, Handles and ROR IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere." }
-
-[[page]]
-id = "live-check"
-helper = true
-title = { cs = "Kontrola datové sady", en = "Dataset check" }
-
-[[page.section]]
-heading = { cs = "Rychlá a hloubková kontrola", en = "Quick and deep check" }
-body = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z DataCite. Hloubková kontrola spustí vybrané testy nástroje FAIR Champion; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from DataCite. The deep check runs selected FAIR Champion tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup." }

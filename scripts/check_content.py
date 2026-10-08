@@ -636,6 +636,9 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             report.error(f"{kind}:{item_id}", "no provenance action covers this item")
 
 
+PAGE_MENUS = ("tools", "about")
+
+
 def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
     unique(report, "pages", [page.get("id", "") for page in content["pages"]], "page")
     for page in content["pages"]:
@@ -643,6 +646,11 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
         require_text(report, where, page.get("title"), "title")
         if not isinstance(page.get("helper", False), bool):
             report.error(where, "helper must be true or false")
+        if page.get("menu") not in PAGE_MENUS:
+            menus = ", ".join(PAGE_MENUS)
+            report.error(where, f"menu must be one of {menus}, so the page can be reached from the main menu")
+        elif page["menu"] == "tools":
+            require_text(report, where, page.get("description"), "description")
         for number, section in enumerate(page.get("section", []), start=1):
             require_text(report, f"{where}[{number}]", section.get("body"), "body")
 

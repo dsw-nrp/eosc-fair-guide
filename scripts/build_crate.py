@@ -1071,6 +1071,7 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
                 "identifier": page["id"],
                 "additionalType": WEB_APPLICATION if page.get("helper") else None,
                 "headline": text(page["title"]),
+                "description": text(page.get("description")),
                 "hasPart": refs(section_ids),
             },
             f"page:{page['id']}",
@@ -1316,6 +1317,7 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
             "champion": champion,
             "nanopub": live.get("nanopub"),
             "dmpStatus": live.get("dmpStatus"),
+            "fairsharing": live.get("fairsharing"),
             "vocab": {
                 "roCrate": RO_CRATE,
                 "ftr": FTR,
@@ -1343,8 +1345,10 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
                     for data in content["checks"]
                     if data["check"].get("icon")
                 },
+                "page": {page["id"]: page["icon"] for page in content["pages"] if page.get("icon")},
             },
             "credits": build_credits(content),
+            "pageMenu": {page["id"]: page["menu"] for page in content["pages"] if page.get("menu")},
             "re3data": re3data_facts(content),
             "tasks": [
                 {key: task[key] for key in ("lens", "label", "href", "icon") if key in task}

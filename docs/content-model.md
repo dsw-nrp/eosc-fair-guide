@@ -274,7 +274,9 @@ and footer logos link to; the
 ministry's logo links to the funder's organisation `url`); the page scripts contain no URLs of their own. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
 `[[champion.test]]`: `id`, `principle`, `label`, `health` (`available`, `degraded`, `unavailable`), `asOf`.
 `[dmpStatus]`: `path` of the DMP.eosc.cz status summary on the status connector. `[nanopub]`: `path` of the SPARQL endpoint, `fipIri` (the IRI forms of a FIP, with `{code}` for the
-nanopublication's trusty URI code) and `query` (with `{fips}` where the page puts those IRIs).
+nanopublication's trusty URI code) and `query` (with `{fips}` where the page puts those IRIs). `[fairsharing]`:
+`prefix`, the DOI prefix of FAIRsharing records, which the page searches in DataCite by a repository's re3data record
+and address (FAIRsharing's own API needs a login); `[links]` `fairsharing` is where a failed search sends the user.
 
 ### `provenance.toml`
 
@@ -292,8 +294,10 @@ check reports an icon that is named but not vendored.
 
 ### `pages.toml` and `ui.toml`
 
-`[[page]]`: `id`, `title`, `helper` (true for a page that holds an interactive helper; until the page script
-provides it, the page says it is still being built), `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section
+`[[page]]`: `id`, `title`, `menu` (`tools` or `about`: the main-menu item the page sits under; required, so every
+page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `helper` (true
+for a page that holds an interactive helper; until the page script provides it, the page says it is still being
+built), `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section
 `credits` on the about page carries the roles table, generated from the guide's metadata. `ui.toml` holds interface strings
 as nested tables of texts, for example `[nav] stations = { cs = "Zastávky", en = "Stations" }`. A text with a
 count gives its plural forms separated by `|`: Czech one, few (2 to 4) and many, English one and other, for

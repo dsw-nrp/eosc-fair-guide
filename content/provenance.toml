@@ -66,3 +66,14 @@ instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["nrp-conditions-3.4"]
 results = ["prace.SR.L0", "repozitar.SR.L0", "licence.SR.L0", "publikace.SR.L0"]
 endTime = 2026-10-08T21:20:00+02:00
+
+[[action]]
+id = "2026-10-08-fairsharing-lookup"
+type = "update"
+name = "Repository registration checked in FAIRsharing"
+description = "The question whether a repository is registered in re3data and FAIRsharing is answered from the re3data snapshot together with a FAIRsharing record found through its DataCite DOI, which lists the repository's re3data record."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["fairsharing"]
+results = ["S18"]
+endTime = 2026-10-08T23:10:00+02:00

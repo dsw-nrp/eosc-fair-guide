@@ -590,6 +590,14 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   a helper (`helper = true`) says the helper is still being built until the page script provides it; on phones the
   language switch shares the logo's row; cards keep even padding; stage-card descriptions are set in regular weight;
   the about page describes the station history as it is (sources and dates, with people and tools in the paradata).
+- FAIRsharing's API needs a login, so the guide finds FAIRsharing records through their DataCite DOIs (prefix
+  `10.25504`), whose metadata lists the described repository's addresses, including its re3data record. The
+  repositories page loads them on request and links each to its repository; the maturity check answers "registered
+  in re3data and FAIRsharing" from the re3data snapshot and the record found, and leaves it open when the lookup
+  fails. A repository the search does not find may still be registered, and the page says so.
+- Every page sits under a main-menu item, declared in its content (`menu`): "Nástroje" (tools) lists the helpers and
+  the AI advice as cards and stays current on each of them; "O průvodci" covers the about page and the accessibility
+  statement. The content checks refuse a page without a menu item.
 
 ### Answers that stay in the browser, and can travel
 
@@ -707,3 +715,5 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-87 | 2026-10-08 | **Both exports load back completely**: the state names every identifier entered (DOI or Handle, NKR, re3data, FIP profile) with what it is, and the Markdown summary carries the same state as the JSON-LD, base64-encoded in a hidden comment, instead of only the shared link's answers. A summary from an earlier version still loads its answers. | U |
 | D-88 | 2026-10-08 | **Loading a saved result is a way to start a check**: offered at the top under "Předvyplnit odpovědi" beside the public records, and on its own before the mode or profile is chosen; it leaves the saving controls. | U |
 | D-89 | 2026-10-08 | Station order **how, why, AI, sources**; **glossary terms above** the callouts and resources; **callouts closed** until opened, keeping their frame. The AI part is to be developed with tool links, hints and prompt samples (task 8.21). | U |
+| D-90 | 2026-10-08 | **FAIRsharing as a repository source**, found live through DataCite (FAIRsharing's API needs a login): records loaded on request on the repositories page, and the maturity check's registration question answered from re3data and FAIRsharing together. | U |
+| D-91 | 2026-10-08 | **Every page is reachable from the main menu**: a "Nástroje" item with the helpers and the AI advice; "O průvodci" for the about page and the accessibility statement; enforced by the content checks. | U |

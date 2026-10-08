@@ -359,6 +359,15 @@ authors = ["Kurt Baumann", "et al."]
 datePublished = 2026-09-18
 
 [[source]]
+id = "fairsharing"
+type = "webpage"
+title = "FAIRsharing: a curated, informative and educational resource on data and metadata standards, databases and policies"
+inLanguage = "en"
+url = "https://fairsharing.org/"
+publisher = "FAIRsharing"
+dateAccessed = 2026-10-08
+
+[[source]]
 id = "re3data-schema-3.1"
 type = "standard"
 title = "Metadata Schema for the Description of Research Data Repositories, version 3.1"

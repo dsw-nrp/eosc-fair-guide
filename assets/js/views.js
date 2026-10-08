@@ -183,6 +183,9 @@
     );
   };
 
+  /** The menu item a page sits under: tools or about. */
+  const pageMenu = (route) => (route.view === "page" ? (FG.config.pageMenu || {})[route.arg] || "about" : null);
+
   FG.views.nav = function (route) {
     const first = FG.stations()[0];
     const station = FG.state.lastStation || FG.state.entryStation || (first && first.identifier);
@@ -194,7 +197,8 @@
       ["explorer", null, "nav.explorer", route.view === "explorer"],
       ["resources", null, "nav.resources", route.view === "resources"],
       ["repositories", null, "nav.repositories", route.view === "repositories"],
-      ["page", "about", "nav.about", route.view === "page" && route.arg === "about"],
+      ["tools", null, "nav.tools", route.view === "tools" || pageMenu(route) === "tools"],
+      ["page", "about", "nav.about", pageMenu(route) === "about"],
     ];
     return h(
       "nav",
@@ -983,13 +987,22 @@
           (record.url && repository.url && repository.url.replace(/\/$/, "").toLowerCase() === record.url.replace(/\/$/, "").toLowerCase())
       );
       if (match) match.nkr = true;
-      else merged.push({ name: record.name, url: record.url, repositoryKind: record.kind, keywords: record.keywords, nkr: true, isBasedOn: [] });
+      else merged.push({ name: record.name, url: record.url, identifier: record.re3data ? [record.re3data] : [], repositoryKind: record.kind, keywords: record.keywords, nkr: true, isBasedOn: [] });
     }
     return merged;
   }
 
+  /** Add the FAIRsharing record found for each repository, once the user loaded them. */
+  function withFairsharing(repositories) {
+    if (!FG.live || !FG.live.fairsharing) return repositories;
+    return repositories.map((repository) => Object.assign(repository, { fairsharing: FG.live.fairsharingOf({ identifiers: repository.identifier, url: repository.url }) }));
+  }
+
   FG.views.repositories = function () {
-    const repositories = withNkr(FG.refs(FG.get("#repositories"), "hasPart"));
+    const repositories = withFairsharing(withNkr(FG.refs(FG.get("#repositories"), "hasPart")));
+    const lookup = repositories.map((repository) => ({ identifiers: repository.identifier, url: repository.url }));
+    const nkr = FG.live.nkrControls();
+    const fairsharing = FG.live.fairsharingControls(lookup);
     const sourceName = (id) => (id === "#repositories-curated" ? FG.t("repositories.curated") : FG.text((FG.get(id) || {}).name).replace(/^Snapshot of /, ""));
     const matches = (repository) => {
       const haystack = [FG.text(repository.name), ...FG.list(repository.keywords).map((keyword) => (typeof keyword === "string" ? keyword : keyword["@value"]))].join(" ").toLowerCase();
@@ -1027,8 +1040,9 @@
               KIND_ORDER.map((kind) => h("option", { value: kind, selected: repositoryKind === kind }, FG.termName(kind)))
             )
           ),
-          FG.live && FG.live.nkrButton ? FG.live.nkrButton() : null
+          h("div", { class: "filter-actions" }, nkr.button, fairsharing.button)
         ),
+        nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null,
         h("div", { id: "repository-list" }, repositoryList(shown, sourceName))
       )
     );
@@ -1057,7 +1071,12 @@
               { class: "badges" },
               repository.repositoryKind ? h("span", { class: "badge" }, FG.termName(FG.id(repository.repositoryKind))) : null,
               statusBadge(repository),
-              h("span", { class: "badge" }, FG.t("repositories.sources", { sources: FG.refIds(repository, "isBasedOn").map(sourceName).concat(repository.nkr ? ["NKR"] : []).join(", ") }))
+              h(
+                "span",
+                { class: "badge" },
+                FG.t("repositories.sources", { sources: FG.refIds(repository, "isBasedOn").map(sourceName).concat(repository.nkr ? ["NKR"] : [], repository.fairsharing ? ["FAIRsharing"] : []).join(", ") })
+              ),
+              repository.fairsharing ? FG.external(FG.live.pidUrl({ type: "doi", value: repository.fairsharing.doi }), FG.t("repositories.fairsharingRecord"), { class: "fairsharing-record" }) : null
             )
           )
         )
@@ -1120,11 +1139,48 @@
             section.identifier === "credits" ? creditsTable() : null
           )
         ),
-        FG.helpers && FG.helpers[page.identifier]
-          ? FG.helpers[page.identifier]()
-          : FG.list(page.additionalType).includes(FG.config.vocab.webApplication)
-            ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing"))
-            : null
+        FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier]() : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
+      )
+    );
+  };
+
+  /** Whether a page holds a helper that the page script does not provide yet. */
+  function helperComing(page) {
+    return FG.list(page.additionalType).includes(FG.config.vocab.webApplication) && !(FG.helpers && FG.helpers[page.identifier]);
+  }
+
+  /** The tools: the helpers for single tasks on the path and the advice on AI, each as a card. */
+  FG.views.tools = function () {
+    const pages = Object.entries(FG.config.pageMenu || {})
+      .filter(([, menu]) => menu === "tools")
+      .map(([id]) => FG.get("#page-" + id))
+      .filter(Boolean);
+    return h(
+      "div",
+      { class: "layout wrap tools" },
+      h(
+        "article",
+        null,
+        heading(1, null, FG.t("tools.title")),
+        h("p", { class: "lead" }, FG.t("tools.intro")),
+        h(
+          "ul",
+          { class: "tool-cards" },
+          pages.map((page) =>
+            h(
+              "li",
+              { class: "tool-card" },
+              FG.icon((FG.config.icons.page || {})[page.identifier], { class: "tool-card-icon" }),
+              h(
+                "div",
+                null,
+                h("h2", null, h("a", { href: FG.href("page", page.identifier) }, FG.span(page.headline))),
+                page.description ? h("p", null, FG.span(page.description)) : null,
+                helperComing(page) ? h("p", { class: "badge tool-coming" }, FG.t("tools.coming")) : null
+              )
+            )
+          )
+        )
       )
     );
   };

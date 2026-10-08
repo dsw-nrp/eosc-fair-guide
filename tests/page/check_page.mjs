@@ -88,6 +88,52 @@ async function axe(page, label) {
   if (Number(stageWeights[1]) >= Number(stageWeights[0]) || Number(stageWeights[1]) > 400) fail("landing: a stage card's description is as bold as its title: " + stageWeights.join("/"));
   await axe(page, "landing");
 
+  // Every page sits under a menu item: the tools view lists the helpers and the AI page, and its item stays current
+  // on each of them; the about item covers the about page and the accessibility statement.
+  {
+    const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    const current = async () => (await view.locator('.main-nav [aria-current="page"]').textContent()).trim();
+    await view.goto(pageUrl + "#/cs/V/tools");
+    await view.waitForSelector(".tool-cards");
+    if ((await current()) !== "Nástroje") fail("tools: the menu does not mark the tools item on the tools view");
+    const tools = await view.locator(".tool-card h2 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
+    if (tools.join(",") !== "live-check,identifiers,citation,ai") fail("tools: the tools view does not list the tool pages in order: " + tools.join(","));
+    if ((await view.locator(".tool-coming").count()) !== 3) fail("tools: the helpers in preparation are not marked as such");
+    for (const [id, item] of [["identifiers", "Nástroje"], ["ai", "Nástroje"], ["live-check", "Nástroje"], ["citation", "Nástroje"], ["about", "O průvodci"], ["accessibility", "O průvodci"]]) {
+      await view.goto(pageUrl + "#/cs/V/page/" + id);
+      await view.waitForSelector("#main h1");
+      if ((await current()) !== item) fail(`page ${id}: the menu does not mark ${item}`);
+    }
+    await view.close();
+  }
+
+  // Repositories: FAIRsharing records are loaded on request, link from each repository they describe, and the
+  // repository names FAIRsharing among its sources.
+  {
+    const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await view.goto(pageUrl + "#/cs/V/repositories");
+    await view.waitForSelector("#fairsharing-load");
+    if (await view.locator(".fairsharing-record").count()) fail("repositories: FAIRsharing records show before they are loaded");
+    const asked = await view.evaluate(async () => {
+      const seen = [];
+      window.FairGuide.live.findFairsharing = async (repositories) => {
+        seen.push(...repositories);
+        return [{ doi: "10.25504/FAIRsharing.f4bfb1", name: "Czech Social Science Data Archive", re3data: "r3d100010484", addresses: [] }];
+      };
+      document.getElementById("fairsharing-load").click();
+      await new Promise((done) => setTimeout(done, 300));
+      return seen.filter((repository) => (repository.identifiers || []).length).length;
+    });
+    if (!asked) fail("repositories: the FAIRsharing lookup is not given the repositories' re3data records");
+    const card = view.locator(".card", { has: view.locator(".fairsharing-record") });
+    if ((await card.count()) !== 1 || !(await card.textContent()).includes("FAIRsharing")) fail("repositories: the FAIRsharing record does not show on its repository");
+    if ((await card.locator(".fairsharing-record").getAttribute("href")) !== "https://doi.org/10.25504/FAIRsharing.f4bfb1") fail("repositories: the FAIRsharing link does not lead to the record's DOI");
+    if (!(await view.locator("#fairsharing-status").textContent()).includes("1 z")) fail("repositories: the FAIRsharing status does not say how many were found");
+    const buttons = await view.locator(".filter-actions button").evaluateAll((all) => all.map((button) => Math.round(button.getBoundingClientRect().top)));
+    if (new Set(buttons).size !== 1) fail("repositories: the live-source buttons are not aligned: " + buttons.join(", "));
+    await view.close();
+  }
+
   // Visual rules from the visual pass: cards keep even padding; the explorer shows an overview before a principle is
   // chosen; a helper page says when its helper is not there yet; on a phone the language switch shares the logo's row.
   {
@@ -186,7 +232,7 @@ async function axe(page, label) {
   const views = [];
   for (const lang of ["cs", "en"]) {
     for (const lens of lenses) for (const station of stations) views.push(`#/${lang}/${lens}/path/${station}`);
-    for (const view of ["explorer", "resources", "repositories", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
+    for (const view of ["explorer", "resources", "repositories", "tools", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
     for (const check of checks) views.push(`#/${lang}/${check.lens}/check/${check.id}`);
     for (const principle of principles.slice(0, 3)) views.push(`#/${lang}/K/explorer/${principle}`);
     for (const id of pages) views.push(`#/${lang}/V/page/${id}`);
@@ -591,12 +637,28 @@ async function axe(page, label) {
   // The maturity check fills in from the re3data snapshot and says which repository it is; a repository outside
   // the snapshot is explained rather than guessed.
   await page.locator('label[for="extended-toggle"]').click();
+  // The FAIRsharing lookup goes to DataCite; here it is replaced, as every request is in these checks.
+  await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => []; });
   await page.fill("#prefill-re3data", "https://www.re3data.org/repository/r3d100010386");
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if (!(await checked("answer-S18-partly")) || !(await page.locator("#origin-S18").textContent()).includes("re3data")) fail("maturity check: S18 is not partly met from re3data alone");
   if (!(await checked("answer-S01-yes")) || !(await checked("answer-S19-yes"))) fail("maturity check: re3data facts do not fill in S01 and S19");
   if (!(await page.locator(".target-card").textContent()).includes("LINDAT")) fail("maturity check: the re3data record does not say which repository it is");
   if (!(await page.locator("#origin-S05").textContent()).includes("OAI-PMH")) fail("maturity check: S05 does not show the OAI-PMH evidence from re3data");
+  // A failed FAIRsharing lookup leaves S18 open with a note; a record found answers it and links to the record.
+  await page.locator("#prefill-re3data-clear").click();
+  await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => { throw new Error("offline"); }; });
+  await page.fill("#prefill-re3data", "r3d100010386");
+  await page.locator("#prefill-re3data-run").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if ((await page.locator('input[name="answer-S18"]:checked').count()) || !(await page.locator("#origin-S18").textContent()).includes("nepodařilo ověřit")) fail("maturity check: a failed FAIRsharing lookup does not leave S18 open with a note");
+  if (!(await checked("answer-S01-yes"))) fail("maturity check: a failed FAIRsharing lookup stopped the re3data answers");
+  await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => [{ doi: "10.25504/FAIRsharing.test", name: "LINDAT", re3data: "r3d100010386", addresses: [] }]; });
+  await page.locator("#prefill-re3data-run").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if (!(await checked("answer-S18-yes"))) fail("maturity check: a FAIRsharing record does not complete S18");
+  if (!(await page.locator('#origin-S18 a[href="https://doi.org/10.25504/FAIRsharing.test"]').count())) fail("maturity check: S18 does not link to the FAIRsharing record");
   await page.fill("#prefill-re3data", "r3d999999999");
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("není ve snímku"));
