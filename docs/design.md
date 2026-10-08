@@ -497,6 +497,68 @@ record when NMA holds it and shows an empty result otherwise, while the direct r
 `/datasets/records/doi/<doi>` answers 404 for a dataset NMA does not hold. The guide therefore links the search
 with the quoted identifier.
 
+## Review round 1
+
+A review of the first working version (2026-10-08) reshaped the experience before the remaining live-check helpers
+were built. A small throwaway prototype covered only the parts that needed a decision: the landing, one station and
+the self-check. The decisions below record the maintainer's answers; the decision log carries the rows.
+
+### Landing
+
+- One search box leads. Results appear after the search is confirmed, not while typing; typing searches only the
+  guide's own content in any case, and sends nothing.
+- The stage is chosen from four cards with a short description each (planning, working with data, publishing,
+  published), not from a strip of stations.
+- The line on what the content is based on, the privacy promise and the date moves to the bottom of the landing,
+  and names the FAIR analysis as a link.
+- Task shortcuts follow the order of the path, then institution-level and community tasks:
+
+  | Lens | Shortcuts, in this order |
+  | --- | --- |
+  | Researcher | Prepare a data management plan · Choose a repository · Choose a licence · Cite data · Check a dataset · Output for Open Science III or a minizáměr |
+  | Data steward | DMP templates and the planning tool · Check a dataset with a researcher · Output for Open Science III or a minizáměr · Institution check (strategy, action plan, policy) · Training for the team · Data steward community and map |
+  | Repository administrator | Found a repository in NRP · NRP gate · Connect to NMA and register in NKR · Repository FAIR maturity · Deep check of sample records |
+  | Community / FIP | Find the community's profile in the FIP Dashboard · FIP completeness · Create or update a FIP in FIP Wizard · Domain standards and vocabularies · EOSC CZ working groups |
+
+### Station
+
+- Principle tiles (a coloured F/A/I/R letter with the code and short title) stay as prototyped.
+- The "what to do now" level is a lighter callout: no background, an accent line beside the text, and a smaller
+  action button on the right, so it guides without dominating.
+- Links in running text use a dotted underline that becomes solid on hover.
+- The provenance line on a station says only what the content is based on, its date and a link to the details;
+  the statement on AI use and human review lives in the details and on the about page.
+- The footer gives the full citation of the guide as software (editor, title, version, year, publisher,
+  repository) next to the credit for the analysis, instead of a bare "compiled by".
+- The station rail gets simple top and bottom rules so it does not float; the legend for the self-check marks is
+  set apart and aligned with the icon column.
+
+### Self-check
+
+- The split view, the evidence line beside each criterion, the grid of principles in the result and the
+  explanation of the basic tier stay as prototyped.
+- The result panel can be collapsed; the choice is remembered in the browser.
+
+### Answers that stay in the browser, and can travel
+
+The self-check keeps answers only in the user's browser. The review asked that this be said clearly, understood at
+a glance, and made useful:
+
+- **Said where it matters:** each check and the self-check overview carry one short statement ("Your answers stay
+  in this browser; you can move them as a file or a link") with a "how it works" disclosure: what is stored (the
+  answers, the chosen mode or profile, the identifiers entered and the evidence found), where (this browser's
+  storage for this site only; other browsers and devices do not see it, and private windows forget it), what is
+  sent (nothing, except an identifier to the named service when the user starts a lookup), how to move it, and how
+  to delete it.
+- **Deletable:** one control removes everything the guide stores in the browser, after a confirmation.
+- **Portable:** the JSON-LD export carries the native answers, the check, the mode or profile, the assessed target
+  and the evidence, so a file can be loaded back; the Markdown summary ends with the same compact payload that a
+  shared link carries, in a comment a reader does not see. A file loaded into the guide opens as a preview, exactly
+  like a shared link, and replaces the user's answers for that check only on request. Files the guide did not
+  produce are refused with a message.
+- **Readable by services:** the JSON-LD remains an FTR test result set in an RO-Crate, so other services can read
+  the same file the guide reloads.
+
 ## Decision log
 
 Source: **U** = decision of the maintainer, **S** = proposal from analysis, agreed by the maintainer.
@@ -561,3 +623,20 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-56 | 2026-10-08 | Self-check pre-fill uses **positive evidence only**: a field, declaration or resolution that is present answers yes (or partly when it proves the item only in part, `prefillLevel`); absence leaves the item open with a note, because a record that omits something does not prove it is missing. A pre-filled value never replaces an answer the user gave, each pre-fill shows its source and date, a changed answer stays marked, and choosing another dataset, repository or profile discards the previous one's evidence. The FIP nanopublication query is recorded in *Spikes and findings*. | S |
 | D-57 | 2026-10-08 | Results export as Markdown, print and an FTR `TestResultSet` in a small RO-Crate (yes is `pass`, no is `fail`, partly and don't know are `indeterminate`; not applicable and items NRP provides are left out). The export is a valid RO-Crate 1.2; its licence is declared as not specified, because the person who saves the result decides on reuse. Exports and shared links name the published page (`pageUrl`), never a local file. A shared link carries only the mode, the profile and the answers, opens as a preview, and replaces the user's own answers only on request. "Don't know" names whom to ask and, where an item has one, a lookup link. | S |
 | D-58 | 2026-10-08 | Live connectors: ORCID and ROR names, resolver titles, FAIR Champion tests (verdict and log; any failure to get a verdict is "no result") and the DMP.eosc.cz status page. The NMA deep link is the search page with the quoted identifier. Spikes in *Spikes and findings*. | S |
+| D-59 | 2026-10-08 | A review of the first working version opens **review round 1** before the remaining live-check helpers; only the parts that need a decision are prototyped first (landing, one station, self-check). | U+S |
+| D-60 | 2026-10-08 | The lens switch becomes a **band of four icon-and-label links** under the main menu, shown on the path, the self-check overview and the resource finder only; switching keeps open levels and the scroll position. | U |
+| D-61 | 2026-10-08 | Visual anchors use **Font Awesome Free** (as eosc.cz does) and the **FIP Dashboard's F/A/I/R colours**, darkened only for contrast; principles always appear as code plus short title. | U+S |
+| D-62 | 2026-10-08 | **Credit model:** the footer credits the FAIR analysis authors and gives the guide's own citation with its compiler as **editor**; the about page lists roles; each station shows one sources line without names; full paradata stay in the crate. | U+S |
+| D-63 | 2026-10-08 | Self-check: **split view** with a live result, grouping **by FAIR principle** with a toggle to path steps, **evidence beside each criterion** (also in the exports), a clear control on identifier fields, and a stated meaning of the first-view tier. | U+S |
+| D-64 | 2026-10-08 | One **catalogue** with a tab per entity type (the explorer stays separate), a **page for machines**, a JSON link on every item, **exports from every view**, and **links from text** through explicit references in the content files. | U+S |
+| D-65 | 2026-10-08 | A **static read-only API** (OpenAPI 3.1, JSON with a JSON-LD context, paths aligned with the FIP Dashboard API, FTR definitions of the checks) with **Swagger UI**; the dashboard's next iteration is its first intended consumer. | U+S |
+| D-66 | 2026-10-08 | **Generated files are built at deployment and never committed**; pull requests carry authored files only; reviewed snapshots stay committed. | U |
+| D-67 | 2026-10-08 | The Swagger UI page is **waived from the WCAG gate** for this site and named in the accessibility statement. | U |
+| D-68 | 2026-10-08 | The **institution check** follows the Open Science III minimum requirements for strategy, action plan and policy, detailed by the EOSC CZ policy manual and anchored in zákon č. 328/2025 Sb. § 83, plus a block on national infrastructure and people. | U+S |
+| D-69 | 2026-10-08 | The dataset check gets a **funded-output profile with a programme picker** (Open Science III; Open Science II minizáměr); software and document outputs are a later idea. | U+S |
+| D-70 | 2026-10-08 | **Sample NKR records** for testers come from public re3data facts and carry a sample label. | U |
+| D-71 | 2026-10-08 | When the repository becomes public, the planning change moves in **redacted**: only its proposal, design, specs and tasks; no transcriptions or working notes. | U |
+| D-72 | 2026-10-08 | An inventory of eosc.cz adds sources and resources, and a scheduled job **watches** the EOSC CZ pages the guide depends on. | U+S |
+| D-73 | 2026-10-08 | The **landing leads with a universal search box** (identifiers to the dataset check or identifier helper, other text to a local bilingual search), followed by the stage choice, task shortcuts per lens and a resume line; the landing is the path's start. | U |
+| D-74 | 2026-10-08 | **Prototype decisions** (see *Review round 1*): results after confirming the search; stage cards; shortcuts in path order; the trust line at the bottom with the analysis linked; a lighter "what to do now" callout; dotted links in text; no AI phrase in the station line; the guide's full citation in the footer; ruled rail with a set-apart legend; a collapsible result panel. | U |
+| D-75 | 2026-10-08 | Answers stay in the browser, **said plainly and deletable**, and **portable**: the JSON-LD and Markdown exports can be loaded back, opening as a preview like a shared link. | U |
