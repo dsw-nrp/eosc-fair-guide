@@ -149,7 +149,6 @@ cdif = { cs = "Profily CDIF", en = "CDIF profiles" }
 dashboard = { cs = "Zdroje pro {p} ve FIP Dashboardu", en = "Resources for {p} in the FIP Dashboard" }
 refresh = { cs = "Aktualizace", en = "Update" }
 superseded = { cs = "Nahrazeno", en = "Superseded" }
-source = { cs = "Zdroj", en = "Source" }
 count = { cs = "Požadavků: {n}", en = "Requirements: {n}" }
 pick = { cs = "Vyberte princip v nabídce; ukážeme všechny požadavky analýzy, které se ho týkají.", en = "Choose a principle from the menu to see every requirement of the analysis that concerns it." }
 overview = { cs = "{n} požadavek podle principů a toho, komu je určen|{n} požadavky podle principů a toho, komu jsou určeny|{n} požadavků podle principů a toho, komu jsou určeny", en = "{n} requirement by principle and by whom it addresses|{n} requirements by principle and by whom they address" }
@@ -449,14 +448,28 @@ created = { cs = "obsah vytvořen", en = "content created" }
 updated = { cs = "obsah upraven", en = "content updated" }
 changedItems = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{n} items" }
 drewOn = { cs = "Podklady", en = "Drew on" }
+openEntry = { cs = "{id} v katalogu", en = "{id} in the catalogue" }
+usedIn = { cs = "Používá se", en = "Used in" }
+basedOn = { cs = "Vychází z", en = "Based on" }
+kind = { cs = "Druh", en = "Kind" }
+entries = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} entry|{n} entries" }
+clausesTitle = { cs = "Požadavky a zjištění", en = "Requirements and findings" }
+
+[catalogue.clauseKind]
+requirement = { cs = "požadavek", en = "requirement" }
+recommendation = { cs = "doporučení", en = "recommendation" }
+fulfilment = { cs = "plnění", en = "fulfilment" }
+statement = { cs = "zjištění", en = "finding" }
 
 [catalogue.tab]
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře", en = "Repositories" }
 sources = { cs = "Podklady", en = "Cited sources" }
+clauses = { cs = "Požadavky", en = "Requirements" }
 terms = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
 tests = { cs = "Testy FAIR", en = "FAIR tests" }
+questions = { cs = "Otázky kontrol", en = "Check questions" }
 actions = { cs = "Změny obsahu", en = "Content changes" }
 
 [catalogue.intro]
@@ -465,6 +478,8 @@ sources = { cs = "Publikované dokumenty, stránky a data, ze kterých obsah pr�
 terms = { cs = "Pojmy otevřené vědy, na které průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the guide links to, taken from Heslář." }
 fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
 tests = { cs = "Automatické testy FAIR Champion, které průvodce používá; každý ověřuje jeden princip.", en = "The FAIR Champion automated tests the guide uses; each checks one principle." }
+clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
+questions = { cs = "Otázky všech kontrol sebehodnocení, s principy, které ověřují, a požadavky, ze kterých vycházejí.", en = "The questions of every self-check, with the principles they test and the requirements they rest on." }
 actions = { cs = "Kdy a jak se obsah průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
 
 [catalogue.sourceType]

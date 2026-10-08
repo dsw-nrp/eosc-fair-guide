@@ -135,6 +135,40 @@ async function axe(page, label) {
     await view.close();
   }
 
+  // Requirement identifiers resolve to the catalogue: a cited requirement shows its text, then its identifier as a chip
+  // that leads to the catalogue entry, which is brought into view and marked, also when opened directly; the
+  // catalogue lists the requirements by source, with a kind filter, and the check questions with their basis.
+  {
+    const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await view.waitForSelector(".station");
+    await view.locator('details[data-key="L2"] summary').click();
+    const entries = await view.locator('details[data-key="L2"] ul.clauses > li').count();
+    const chips = await view.locator('details[data-key="L2"] ul.clauses > li a.id-chip').count();
+    if (!entries || chips < entries - 1) fail(`ids: the cited requirements do not carry linked identifiers (${chips} of ${entries})`);
+    if (await view.locator('details[data-key="L2"] ul.clauses > li > .clause-text .id-chip').count()) fail("ids: an identifier leads the requirement's text instead of following it");
+    const chip = view.locator('details[data-key="L2"] ul.clauses a.id-chip').first();
+    const id = (await chip.textContent()).trim();
+    await chip.click();
+    await view.waitForSelector(".catalogue-tabs");
+    await view.waitForFunction((expected) => document.activeElement && document.activeElement.id === "item-" + expected, id);
+    if (!(await view.evaluate(() => document.activeElement.classList.contains("jumped")))) fail("ids: the catalogue entry is not marked when the identifier is followed");
+    if (!(await view.locator('.catalogue-tabs [aria-current="page"]').getAttribute("data-tab")).includes("clauses")) fail("ids: the identifier does not open the requirements tab");
+    await view.goto("about:blank");
+    await view.goto(pageUrl + "#/cs/V/catalogue/clauses/A.F1.N1");
+    await view.waitForSelector('[id="item-A.F1.N1"]');
+    const box = await view.locator('[id="item-A.F1.N1"]').boundingBox();
+    if (!box || box.y < 0 || box.y > 900) fail("ids: a directly opened link to a requirement does not bring it into view");
+    const all = await view.locator(".clause-card").count();
+    await view.locator('select[name="clause-kind"]').selectOption("recommendation");
+    const recommendations = await view.locator(".clause-card").count();
+    if (!(recommendations > 0 && recommendations < all)) fail("ids: the kind filter does not narrow the requirements");
+    await view.goto(pageUrl + "#/cs/V/catalogue/questions/S18");
+    await view.waitForSelector("#item-S18");
+    if (!(await view.locator("#item-S18 a.id-chip").count())) fail("ids: a check question does not link the requirements it rests on");
+    await view.close();
+  }
+
   // Every page sits under a menu item: the tools view lists the helpers and the AI page, and its item stays current
   // on each of them; the about item covers the about page and the accessibility statement.
   {

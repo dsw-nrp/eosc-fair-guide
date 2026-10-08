@@ -45,11 +45,19 @@
       const control = FG.focusSelector ? document.querySelector(FG.focusSelector) : null;
       if (control) control.focus({ preventScroll: true });
       FG.focusSelector = null;
-    } else if (FG.focusAfterRender) {
-      const anchor = route.extra ? main.querySelector("#" + CSS.escape(route.extra)) : null;
-      const target = anchor || main.querySelector("h1") || main;
-      target.focus({ preventScroll: false });
+    } else {
+      const entry = route.extra ? main.querySelector("#item-" + CSS.escape(route.extra)) : null;
+      const anchor = route.extra ? main.querySelector("#" + CSS.escape(route.extra)) || entry : null;
+      if (entry && anchor === entry && (FG.focusAfterRender || FG.firstRender)) {
+        /* A link to one entry of a list, followed or opened directly: bring it to the middle of the view and mark it
+           briefly. */
+        entry.scrollIntoView({ block: "center" });
+        entry.focus({ preventScroll: true });
+        entry.classList.add("jumped");
+        setTimeout(() => entry.classList.remove("jumped"), 1600);
+      } else if (FG.focusAfterRender) (anchor || main.querySelector("h1") || main).focus({ preventScroll: false });
     }
+    FG.firstRender = false;
     FG.focusAfterRender = true;
   };
 
@@ -102,6 +110,7 @@
     if (!known(FG.state.entryStation)) FG.state.entryStation = null;
     if (!known(FG.state.lastStation)) FG.state.lastStation = null;
     FG.focusAfterRender = false;
+    FG.firstRender = true;
     window.addEventListener("hashchange", FG.render);
     FG.render();
   }

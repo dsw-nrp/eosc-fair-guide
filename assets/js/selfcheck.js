@@ -893,7 +893,7 @@
           "details",
           { class: "item-basis" },
           h("summary", null, FG.t("selfcheck.basedOn")),
-          h("ul", { class: "content" }, clauses.map((clause) => h("li", null, h("span", { class: "code" }, clause.identifier || ""), " ", FG.span(clause.text || clause.name))))
+          h("ul", { class: "content clauses" }, clauses.map(FG.clauseEntry))
         )
       : null;
     if (providedByNrp(item, st)) {

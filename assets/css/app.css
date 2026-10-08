@@ -883,7 +883,6 @@ details > .content {
   border-color: var(--tint-pink);
 }
 
-.clause-id,
 .code {
   font-family: Consolas, "Courier New", monospace;
   font-size: var(--size-small);
@@ -1183,6 +1182,57 @@ main p > button {
 
 .clauses > li {
   margin-bottom: var(--space-3);
+}
+
+/* A requirement where the guide cites it: the text, then its identifier and source on a quieter line. */
+.clause p {
+  margin: 0;
+}
+
+.clause .clause-meta {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+}
+
+.clause .clause-note {
+  margin-top: var(--space-1);
+}
+
+/* An identifier as a chip; as a link it leads to the catalogue entry. */
+.id-chip {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--tint-teal);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--size-small);
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+a.id-chip:hover,
+a.id-chip:focus-visible {
+  border-color: var(--tint-teal);
+  text-decoration: underline;
+}
+
+.id-chip-static {
+  color: var(--text);
+}
+
+.clause-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+}
+
+.catalogue-group > h3 {
+  margin: var(--space-5) 0 var(--space-2);
 }
 
 /* Footer */
@@ -2700,7 +2750,8 @@ main p > button {
   font-weight: 400;
 }
 
-.jumped {
+.jumped,
+[tabindex="-1"].jumped:focus {
   outline: 3px solid var(--tint-teal);
   outline-offset: 4px;
   transition: outline-color 1.5s ease-in;

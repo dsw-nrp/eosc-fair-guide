@@ -80,7 +80,7 @@
     const languages = FG.list(resource.inLanguage);
     return h(
       "li",
-      { class: "card" },
+      { class: "card", id: "item-" + resource.identifier, tabindex: "-1" },
       h("h3", null, FG.external(resource.url, name)),
       resource.description ? h("p", null, FG.span(resource.description)) : null,
       h(
@@ -555,21 +555,7 @@
       h("h3", null, FG.t("station.whyPrinciples")),
       principleTiles(principles),
       h("h3", null, FG.t("station.whyClauses")),
-      h(
-        "ul",
-        { class: "clauses" },
-        clauses.map((clause) => {
-          const source = FG.get(clause.isPartOf);
-          return h(
-            "li",
-            null,
-            h("span", { class: "clause-id" }, clause.identifier),
-            " ",
-            FG.span(clause.text),
-            source ? h("span", { class: "muted small" }, " (", source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name), ")") : null
-          );
-        })
-      ),
+      h("ul", { class: "clauses" }, clauses.map(FG.clauseEntry)),
     ];
   }
 
@@ -827,7 +813,7 @@
               actors.map((actor) => {
                 const group = clauses.filter((clause) => FG.hasRef(clause, "audience", actor));
                 if (!group.length) return null;
-                return h("section", null, h("h3", null, FG.termName(actor)), h("ul", { class: "clauses" }, group.map(clauseItem)));
+                return h("section", null, h("h3", null, FG.termName(actor)), h("ul", { class: "clauses" }, group.map(FG.clauseEntry)));
               })
             )
           : explorerOverview(principles, actors)
@@ -881,22 +867,6 @@
     );
   }
 
-  function clauseItem(clause) {
-    const source = FG.get(clause.isPartOf);
-    const status = clause.creativeWorkStatus;
-    return h(
-      "li",
-      null,
-      h("span", { class: "clause-id" }, clause.identifier),
-      " ",
-      FG.span(clause.text),
-      source ? h("div", { class: "muted small" }, FG.t("explorer.source") + ": ", source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name)) : null,
-      status && status !== "current" && clause.note
-        ? h("div", { class: "small" }, h("strong", null, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh") + ": "), FG.span(clause.note))
-        : null
-    );
-  }
-
   /* ---------------------------------------------------------------- resource finder */
 
   /* The lens filter starts from the reader's lens (null) until they choose another, or all ("") . */
@@ -925,7 +895,8 @@
   FG.tabs = FG.tabs || {};
 
   FG.tabs.resources = function (route) {
-    if (route.extra && FG.get("#resource-" + route.extra)) filters.station = "";
+    /* A link to one resource shows them all, so no filter hides it. */
+    if (route.extra && FG.get("#resource-" + route.extra)) Object.assign(filters, { lens: "", station: "", type: "", status: "", language: "" });
     const resources = FG.graph.filter((entity) => entity.resourceType && entity["@id"].startsWith("#resource-"));
     const lens = filters.lens === null ? route.lens : filters.lens;
     const stationOf = new Map();

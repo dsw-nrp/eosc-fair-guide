@@ -6,8 +6,10 @@
 
   const FG = window.FairGuide;
   const h = (...args) => FG.h(...args);
-  const TABS = ["resources", "repositories", "sources", "terms", "fips", "tests", "actions"];
+  const TABS = ["resources", "repositories", "sources", "clauses", "terms", "fips", "tests", "questions", "actions"];
+  const CLAUSE_KINDS = ["requirement", "recommendation", "fulfilment", "statement"];
   const queries = {};
+  const kinds = { clauses: "" };
   FG.tabs = FG.tabs || {};
 
   /** The link to an entity's JSON record in the guide's API; nothing until the API is published. */
@@ -20,13 +22,41 @@
   /** The address of a catalogue tab, or of one item in it. */
   FG.catalogueHref = (tab, item) => FG.href("catalogue", tab) + (item ? "/" + encodeURIComponent(item) : "");
 
+  /** An identifier as a small chip that leads to its entry in the catalogue. */
+  FG.idChip = function (tab, id) {
+    return h("a", { class: "id-chip", href: FG.catalogueHref(tab, id), title: FG.t("catalogue.openEntry", { id }) }, id);
+  };
+
+  /** A requirement or finding as the guide shows it wherever it cites one: the text first, then its identifier,
+      leading to the catalogue, and its source; a note when the statement needs refreshing or was superseded. */
+  FG.clauseEntry = function (clause) {
+    const source = FG.get(clause.isPartOf);
+    const status = clause.creativeWorkStatus;
+    const isClause = String(clause["@id"]).startsWith("#clause-");
+    return h(
+      "li",
+      { class: "clause" },
+      h("p", { class: "clause-text" }, FG.span(clause.text || clause.name)),
+      h(
+        "p",
+        { class: "clause-meta small" },
+        isClause ? FG.idChip("clauses", clause.identifier) : null,
+        source ? [isClause ? " · " : null, h("span", { lang: source.inLanguage || null }, source.url ? FG.external(source.url, FG.text(source.name)) : FG.text(source.name))] : null
+      ),
+      status && status !== "current" && clause.note
+        ? h("p", { class: "small clause-note" }, h("strong", null, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh") + ": "), FG.span(clause.note))
+        : null
+    );
+  };
+
   const matches = (tab, ...texts) => !queries[tab] || FG.fold(texts.join(" ")).includes(FG.fold(queries[tab]));
 
-  /** A search field that narrows the tab's list as it is typed. */
-  function searchBox(tab, build) {
+  /** A search field that narrows the tab's list as it is typed, with any other filters of the tab. */
+  function searchBox(tab, build, ...others) {
     return h(
       "div",
       { class: "filters" },
+      ...others,
       h(
         "label",
         null,
@@ -62,25 +92,30 @@
 
   /* ---------------------------------------------------------------- cited sources */
 
-  /** Where each source is cited: the stations and checks whose items cite one of its clauses. */
-  function citedBy() {
-    const map = new Map();
+  /** Where each clause and each source is cited: the stations and checks whose items cite the clause. */
+  function citations() {
+    const bySource = new Map();
+    const byClause = new Map();
+    const note = (map, key, holder) => {
+      const list = map.get(key) || [];
+      if (!list.includes(holder)) list.push(holder);
+      map.set(key, list);
+    };
     const holders = FG.stations()
       .map((station) => [station, FG.refs(station, "itemListElement")])
       .concat(FG.ofType("Quiz").map((check) => [check, FG.refs(check, "hasPart")]));
     for (const [holder, items] of holders) {
       for (const item of items) {
         for (const clause of FG.refs(item, "citation")) {
-          const source = FG.id(clause.isPartOf);
-          if (!source) continue;
-          const list = map.get(source) || [];
-          if (!list.includes(holder)) list.push(holder);
-          map.set(source, list);
+          note(byClause, clause["@id"], holder);
+          if (FG.id(clause.isPartOf)) note(bySource, FG.id(clause.isPartOf), holder);
         }
       }
     }
-    return map;
+    return { bySource, byClause };
   }
+
+  const citedBy = () => citations().bySource;
 
   function sourceKind(source) {
     const extra = FG.list(source.additionalType).map(String);
@@ -126,6 +161,98 @@
         cards
       );
     return [h("h2", null, FG.t("catalogue.tab.sources")), h("p", null, FG.t("catalogue.intro.sources")), searchBox("sources", build), h("div", { id: "catalogue-list" }, build())];
+  };
+
+  /* ---------------------------------------------------------------- requirements and findings */
+
+  function clauseCard(clause, holders) {
+    const status = clause.creativeWorkStatus || "current";
+    const audience = FG.id(clause.audience);
+    return h(
+      "li",
+      { class: "card clause-card", id: "item-" + clause.identifier, tabindex: "-1" },
+      h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, clause.identifier), clause.clauseKind ? h("span", { class: "badge" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null),
+      h("p", null, FG.span(clause.text)),
+      h(
+        "div",
+        { class: "badges" },
+        FG.principlesOf(clause).map((principle) => FG.principleTile(principle)),
+        audience ? h("span", { class: "badge" }, FG.termName(audience)) : null,
+        status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null,
+        FG.apiLink("clauses", clause.identifier)
+      ),
+      status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
+      holders.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.usedIn") + ": ", joined(holders.map(holderLink))) : null
+    );
+  }
+
+  FG.tabs.clauses = function () {
+    const clauses = FG.refs(FG.get("#ledger"), "hasPart");
+    const analysis = FG.id(FG.refs(FG.root, "isBasedOn")[0]);
+    const used = citations().byClause;
+    const kindSelect = h(
+      "label",
+      null,
+      FG.t("catalogue.kind"),
+      h(
+        "select",
+        { name: "clause-kind", onchange: (event) => { kinds.clauses = event.target.value; FG.renderList("catalogue-list", build); } },
+        h("option", { value: "" }, FG.t("finder.all")),
+        CLAUSE_KINDS.map((kind) => h("option", { value: kind, selected: kinds.clauses === kind }, FG.t("catalogue.clauseKind." + kind)))
+      )
+    );
+    function build() {
+      const shown = clauses.filter((clause) => (!kinds.clauses || clause.clauseKind === kinds.clauses) && matches("clauses", clause.identifier, FG.bothLanguages(clause.text)));
+      const groups = new Map();
+      for (const clause of shown) groups.set(FG.id(clause.isPartOf), (groups.get(FG.id(clause.isPartOf)) || []).concat(clause));
+      const ordered = [...groups.entries()].sort(([a], [b]) => (a === analysis ? -1 : b === analysis ? 1 : FG.text((FG.get(a) || {}).name).localeCompare(FG.text((FG.get(b) || {}).name))));
+      return h(
+        "div",
+        null,
+        h("p", { role: "status" }, FG.t("finder.count", { n: shown.length })),
+        ordered.map(([sourceId, list]) => {
+          const source = FG.get(sourceId) || {};
+          return h(
+            "section",
+            { class: "catalogue-group" },
+            h("h3", null, source.identifier ? h("a", { href: FG.catalogueHref("sources", source.identifier), lang: source.inLanguage || null }, FG.text(source.name)) : FG.text(source.name), h("span", { class: "muted" }, " · " + FG.t("catalogue.entries", { n: list.length }))),
+            cards(list.map((clause) => clauseCard(clause, used.get(clause["@id"]) || [])))
+          );
+        })
+      );
+    }
+    return [h("h2", null, FG.t("catalogue.clausesTitle")), h("p", null, FG.t("catalogue.intro.clauses")), searchBox("clauses", build, kindSelect), h("div", { id: "catalogue-list" }, build())];
+  };
+
+  /* ---------------------------------------------------------------- check questions */
+
+  function questionCard(item) {
+    const clauses = FG.refs(item, "citation").filter((clause) => String(clause["@id"]).startsWith("#clause-"));
+    return h(
+      "li",
+      { class: "card", id: "item-" + item.identifier, tabindex: "-1" },
+      h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, item.identifier), item.tier ? h("span", { class: "badge" }, FG.termName(FG.id(item.tier))) : null),
+      h("p", null, FG.span(item.text)),
+      h("div", { class: "badges" }, FG.principlesOf(item).map((principle) => FG.principleTile(principle)), FG.apiLink("questions", item.identifier)),
+      clauses.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.basedOn") + ": ", joined(clauses.map((clause) => FG.idChip("clauses", clause.identifier)))) : null
+    );
+  }
+
+  FG.tabs.questions = function () {
+    const checks = FG.ofType("Quiz");
+    const build = () => {
+      const groups = checks.map((check) => [check, FG.refs(check, "hasPart").sort(FG.byPosition).filter((item) => matches("questions", item.identifier, FG.bothLanguages(item.text)))]).filter(([, items]) => items.length);
+      const total = groups.reduce((sum, [, items]) => sum + items.length, 0);
+      return h(
+        "div",
+        null,
+        h("p", { role: "status" }, FG.t("finder.count", { n: total })),
+        groups.map(([check, items]) =>
+          h("section", { class: "catalogue-group" }, h("h3", null, h("a", { href: FG.href("check", check.identifier) }, FG.span(check.name)), h("span", { class: "muted" }, " · " + FG.t("catalogue.entries", { n: items.length }))), cards(items.map(questionCard)))
+        )
+      );
+    };
+    return [h("h2", null, FG.t("catalogue.tab.questions")), h("p", null, FG.t("catalogue.intro.questions")), searchBox("questions", build), h("div", { id: "catalogue-list" }, build())];
   };
 
   /* ---------------------------------------------------------------- glossary terms */
@@ -274,6 +401,11 @@
 
   FG.views.catalogue = function (route) {
     const tab = TABS.includes(route.arg) ? route.arg : "resources";
+    /* A link to one entry shows the whole list, so no filter hides the entry. */
+    if (route.extra) {
+      queries[tab] = "";
+      if (tab in kinds) kinds[tab] = "";
+    }
     return h(
       "div",
       { class: "wrap catalogue" },

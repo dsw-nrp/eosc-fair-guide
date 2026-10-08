@@ -605,6 +605,12 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   select box among the resource filters, not the band. The page for machines ("Data pro stroje") sits under the
   catalogue, explains the knowledge base, its profiles and licence, and lists links read from the crate's root; the
   head carries the typed `describedby` link. Each item gets its JSON link once the API is published (task 8.16).
+- Identifiers resolve to the catalogue. Wherever the guide cites a requirement or finding (the stations' "Proč", the
+  explorer, a check question's basis), the text comes first and a quieter line follows with the identifier as a
+  chip linking to its catalogue entry, and the source. The catalogue lists all of them under "Požadavky", grouped by
+  source with kind, audience, principles, status and where they are used, and every check question under "Otázky
+  kontrol" with the requirements it rests on. A link to one entry clears the filters, brings the entry to the middle
+  of the view and marks it briefly. Search results for requirements lead there as well.
 
 ### Answers that stay in the browser, and can travel
 
@@ -726,3 +732,5 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-91 | 2026-10-08 | **Every page is reachable from the main menu**: a "Nástroje" item with the helpers and the AI advice; "O průvodci" for the about page and the accessibility statement; enforced by the content checks. | U |
 | D-92 | 2026-10-08 | **The catalogue** replaces the resource and repository menu items with tabs for resources, repositories, cited sources, glossary terms, FIP profiles, FAIR tests and content changes; the page for machines sits under it. Content changes name no people; the paradata keep them. | U+S |
 | D-93 | 2026-10-08 | In the catalogue the **lens is a select box** among the resource filters (starting from the reader's lens), not the lens band, which stays on the path and the self-check overview. | U |
+| D-94 | 2026-10-08 | **Requirement identifiers resolve to the catalogue**: text first, then the identifier as a linked chip and the source, wherever a requirement is cited; the catalogue gains the requirements and findings and the check questions, and a link to one entry lands on it. | U |
+| D-95 | 2026-10-08 | **No credentialed FAIRsharing access**: FAIRsharing's facts sit behind a login and are CC BY-SA, and re3data already answers the same questions; the guide keeps the DataCite route (records and the registration question) and drops the snapshot task. | U |
