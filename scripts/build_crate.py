@@ -477,6 +477,13 @@ def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
             },
             clause["id"],
         )
+    for clause in clauses:
+        # A note may cite clauses later in the ledger, so citations are added once every clause exists.
+        if clause.get("noteSources"):
+            entity = graph.entities[f"#clause-{clause['id']}"]
+            entity["citation"] = refs(graph.resolve(clause["noteSources"]))
+            if len(entity["citation"]) == 1:
+                entity["citation"] = entity["citation"][0]
 
 
 def lens_refs(lens: Any, all_lenses: list[str]) -> list[dict[str, str]]:

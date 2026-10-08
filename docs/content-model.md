@@ -170,8 +170,9 @@ once, in their original language, with `inLanguage`.
 ### `ledger.toml`
 
 `[[clause]]`: `id`, `source` (source ID), `locator` (chapter, table row or section), `principles` (list),
-`actor` (actor ID with `role = "clause"`), `kind` (`requirement`, `fulfilment`, `statement`), `text`, `status`
-(`current`, `refresh`, `superseded`), `note` (text, why it needs a refresh), `supersededBy` (clause ID).
+`actor` (actor ID with `role = "clause"`), `kind` (`requirement`, `recommendation`, `fulfilment`, `statement`),
+`text`, `status` (`current`, `refresh`, `superseded`), `note` (text: what has changed since the source was
+published), `noteSources` (clause or source IDs that support the note), `supersededBy` (clause or source ID).
 
 ### `stations/NN-<id>.toml`
 
@@ -273,7 +274,7 @@ profile 0.5. Schema.org types and properties are used wherever they fit; the gui
 | Level, tier, status, actor, profile, mode | `DefinedTerm` | `#<set>-<id>` | `name`, `termCode`, `inDefinedTermSet` |
 | Principle | `DefinedTerm` | w3id IRI | `termCode`, `name`, `description` |
 | Source | `ScholarlyArticle`, `Report`, `WebPage`, `Dataset`, `CreativeWork` | DOI URL, or `#source-<id>` | `name`, `url`, `publisher`, `datePublished`, `license` |
-| Clause | `CreativeWork` | `#clause-<id>` | `identifier`, `text`, `about`, `audience`, `isPartOf`, `clauseKind`, `creativeWorkStatus`, `supersededBy` |
+| Clause | `CreativeWork` | `#clause-<id>` | `identifier`, `text`, `about`, `audience`, `isPartOf`, `clauseKind`, `creativeWorkStatus`, `note`, `citation` (note sources), `supersededBy` |
 | Check | `Quiz` | `#check-<id>` | `name`, `description`, `audience`, `hasPart` |
 | Check item | `Question` | `#item-<id>` | `text`, `description`, `about`, `citation`, `tier`, `fixAt`, `fixedBy`, `appliesTo`, `providedByNrpFor`, `allowsNotApplicable`, `additionalProperty` (pre-fill) |
 | Resource | by `type` | `#resource-<id>` | `name`, `description`, `url`, `audience`, `additionalType` (FIP class IRIs), `resourceType`, `serviceStatus`, `statusAsOf`, `inLanguage`, `sameAs` |

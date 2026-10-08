@@ -1,5 +1,15 @@
 # Clause ledger: every statement the guide relies on, with a stable ID and its published source.
-# Field reference and ID prefixes: docs/content-model.md.
+# Field reference and ID prefixes: docs/content-model.md. Every clause of the FAIR analysis' principle table
+# (A.*) is listed under its principle, so the principle explorer shows all of them.
+
+[[clause]]
+id = "A.F1.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na NRP"
+principles = ["F1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Každá publikovaná datová sada má trvalý identifikátor (PID); převzaté záznamy bez PID mají aspoň stabilní URL a postup doplnění PID.", en = "Every published dataset has a persistent identifier (PID); imported records without a PID have at least a stable URL and a procedure for adding a PID." }
 
 [[clause]]
 id = "A.F1.N2"
@@ -11,6 +21,1087 @@ kind = "requirement"
 text = { cs = "NRP garantuje DOI (NC DOI / DataCite); jiné PID (Handle, ARK) lze evidovat v NMA, pokud je přiděluje repozitář.", en = "NRP guarantees DOIs (NC DOI / DataCite); other PIDs (Handle, ARK) can be recorded in NMA if the repository assigns them." }
 
 [[clause]]
+id = "A.F1.N3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na NRP"
+principles = ["F1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Pole pro identifikátory se mapují mezi CCMM a exportními profily (DataCite, DCAT-AP).", en = "Identifier fields are mapped between CCMM and export profiles (DataCite, DCAT-AP)." }
+status = "refresh"
+note = { cs = "CCMM 2.0.0 se profiluje vůči DCAT-AP.", en = "CCMM 2.0.0 is profiled against DCAT-AP." }
+noteSources = ["E.CCMM"]
+
+[[clause]]
+id = "A.F1.N4"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na NRP"
+principles = ["F1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "PID je identifikátorem záznamu v NMA a vede na landing page; distribuce mají jednoznačné odkazy a jejich PID se uvádí explicitně.", en = "The PID is the record identifier in NMA and resolves to the landing page; distributions have unambiguous links and their PIDs are stated explicitly." }
+
+[[clause]]
+id = "A.F1.N5"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na NRP"
+principles = ["F1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "PID musí zůstat dlouhodobě dostupné.", en = "PIDs must remain available in the long term." }
+
+[[clause]]
+id = "A.F1.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na repozitáře"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář přiděluje PID při publikaci, přednostně DOI, jinak jiný uznávaný PID.", en = "The repository assigns a PID at publication, preferably a DOI, otherwise another recognised PID." }
+
+[[clause]]
+id = "A.F1.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na repozitáře"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "PID je součástí metadat a vede na landing page; distribuce se zpřístupňují podle F3 a F4.", en = "The PID is part of the metadata and resolves to the landing page; distributions are made available according to F3 and F4." }
+
+[[clause]]
+id = "A.F1.R3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na repozitáře"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Správa PID: landing page je vždy platná, po odstranění dat zůstává tombstone a cílové URL se aktualizují.", en = "PID management: the landing page is always valid, a tombstone remains after data removal, and target URLs are kept up to date." }
+
+[[clause]]
+id = "A.F1.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na FIP"
+principles = ["F1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje preferované typy PID v oboru a jejich implementaci.", en = "The FIP sets the preferred PID types in the domain and their implementation." }
+
+[[clause]]
+id = "A.F1.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Požadavky na FIP"
+principles = ["F1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP dává pokyny pro dlouhodobou správu PID a jejich propojení s metadaty.", en = "The FIP gives guidance on long-term PID management and on linking PIDs with metadata." }
+
+[[clause]]
+id = "A.F1.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Naplnění v NRP"
+principles = ["F1"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "DOI v NRP zajišťuje Národní centrum DOI (Centrum PID v NTK): smluvní a metodickou podporu a prefix; DOI přiděluje repozitář.", en = "In NRP, DOIs are provided through the National DOI Centre (PID Centre at NTK): contractual and methodological support and a prefix; the repository mints the DOIs." }
+status = "refresh"
+note = { cs = "Členům NC DOI hradí NTK v letech 2023–2028 náklady na DOI přes DataCite.", en = "For NC DOI members, NTK covers the cost of DataCite DOIs in 2023–2028." }
+noteSources = ["E.NCDOI"]
+
+[[clause]]
+id = "A.F1.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F1, Doporučení CDIF / Požadavky CTS"
+principles = ["F1"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R12: datové sady jsou citovatelné prostřednictvím PID.", en = "CoreTrustSeal R12: datasets are citable through PIDs." }
+
+[[clause]]
+id = "A.F2.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Požadavky na NRP"
+principles = ["F2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Minimální sadu metadat definuje Český základní metadatový model (CCMM).", en = "The minimum metadata set is defined by the Czech Core Metadata Model (CCMM)." }
+status = "refresh"
+note = { cs = "NMA sklízí metadata ve formátu ccmm-xml podle CCMM 1.1.0; CCMM 2.0.0 vyšel v říjnu 2026 a jeho podporu NMA připravuje (plánováno na rok 2027).", en = "NMA harvests metadata as ccmm-xml following CCMM 1.1.0; CCMM 2.0.0 was released in October 2026 and NMA is preparing to support it (planned for 2027)." }
+noteSources = ["E.CCMM"]
+
+[[clause]]
+id = "A.F2.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Požadavky na NRP"
+principles = ["F2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Každá datová sada obsahuje povinná metadata, například původ a licenci.", en = "Every dataset includes the mandatory metadata, such as provenance and licence." }
+
+[[clause]]
+id = "A.F2.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Požadavky na repozitáře"
+principles = ["F2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář poskytuje minimální záznam, který splňuje požadavky NMA a je mapovaný na CCMM.", en = "The repository provides a minimum record that meets the NMA requirements and is mapped to CCMM." }
+
+[[clause]]
+id = "A.F2.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Požadavky na repozitáře"
+principles = ["F2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Vedle CCMM nabízí repozitář oborový profil podle FIP; FIP uvádí profil a kde je plný záznam.", en = "Alongside CCMM, the repository offers a domain profile according to the FIP; the FIP names the profile and where the full record is." }
+
+[[clause]]
+id = "A.F2.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Požadavky na FIP"
+principles = ["F2"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje povinné a doporučené metadatové profily oboru.", en = "The FIP sets the mandatory and recommended metadata profiles of the domain." }
+
+[[clause]]
+id = "A.F2.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Naplnění v NRP"
+principles = ["F2"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Metadata mají dvě úrovně: jádro CCMM sklízené do NMA a bohatá oborová metadata v repozitáři (landing page, API); komunity mohou CCMM rozšířit nebo dodat druhý záznam.", en = "Metadata have two levels: the CCMM core harvested into NMA, and rich domain metadata in the repository (landing page, API); communities can extend CCMM or provide a second record." }
+
+[[clause]]
+id = "A.F2.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Naplnění v NRP"
+principles = ["F2"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "CCMM udržuje pracovní skupina EOSC-CZ Metadata spolu s provozovatelem NMA a správci repozitářů.", en = "CCMM is maintained by the EOSC-CZ Metadata working group together with the NMA operator and repository managers." }
+status = "refresh"
+note = { cs = "Vývoj modelu popisuje web ccmm.cz; vydání jsou na GitHubu (techlib/CCMM).", en = "Model development is described at ccmm.cz; releases are on GitHub (techlib/CCMM)." }
+noteSources = ["E.CCMM"]
+
+[[clause]]
+id = "A.F2.X3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Doporučení CDIF / Požadavky CTS"
+principles = ["F2"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R8, R11, R13 a R14 se týkají kvality metadat.", en = "CoreTrustSeal R8, R11, R13 and R14 concern metadata quality." }
+
+[[clause]]
+id = "A.F2.X4"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F2, Doporučení CDIF / Požadavky CTS"
+principles = ["F2"]
+actor = "other"
+kind = "statement"
+text = { cs = "CDIF: Discovery (Schema.org) a řízené slovníky (SKOS, OWL).", en = "CDIF: Discovery (Schema.org) and controlled vocabularies (SKOS, OWL)." }
+status = "refresh"
+note = { cs = "CDIF 1.1 pojmenovává profily Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure a Manifest.", en = "CDIF 1.1 names the profiles Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure and Manifest." }
+noteSources = ["E.CDIF"]
+
+[[clause]]
+id = "A.F3.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F3, Požadavky na NRP"
+principles = ["F3"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Minimální propojení: identifikátor vede na landing page, ta obsahuje strojově čitelná metadata (JSON-LD) s odkazy na distribuce; preferovaný je signposting.", en = "Minimum linkage: the identifier resolves to the landing page, which carries machine-readable metadata (JSON-LD) with links to the distributions; signposting is preferred." }
+
+[[clause]]
+id = "A.F3.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F3, Požadavky na NRP"
+principles = ["F3"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Distribuce mají jedinečné identifikátory (URL).", en = "Distributions have unique identifiers (URLs)." }
+
+[[clause]]
+id = "A.F3.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F3, Požadavky na repozitáře"
+principles = ["F3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Propojení metadata → landing page → distribuce je strojově zjistitelné; preferovaný je signposting (nativně nebo přes reverse proxy), minimem je JSON-LD s odkazy na distribuce.", en = "The link from metadata to landing page to distributions is machine-discoverable; signposting is preferred (natively or through a reverse proxy), and JSON-LD with links to distributions is the minimum." }
+
+[[clause]]
+id = "A.F3.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F3, Požadavky na FIP"
+principles = ["F3"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP odkazuje na metadatový profil se standardním polem pro identifikátor dat.", en = "The FIP points to a metadata profile with a standard field for the data identifier." }
+
+[[clause]]
+id = "A.F3.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F3, Naplnění v NRP"
+principles = ["F3"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "NRP bude požadovat jasnou metodiku tvorby odkazu na datovou sadu.", en = "NRP will require a clear method for creating the link to a dataset." }
+
+[[clause]]
+id = "A.F4.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na NRP"
+principles = ["F4"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata se automaticky indexují v NMA.", en = "Metadata are indexed in NMA automatically." }
+
+[[clause]]
+id = "A.F4.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na NRP"
+principles = ["F4"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata jsou dostupná přes OAI-PMH a ve strojově čitelných exportních profilech (Schema.org/JSON-LD, DCAT-AP).", en = "Metadata are available through OAI-PMH and in machine-readable export profiles (Schema.org/JSON-LD, DCAT-AP)." }
+
+[[clause]]
+id = "A.F4.N3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na NRP"
+principles = ["F4"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata se synchronizují s mezinárodními agregátory (OpenAIRE, DataCite Commons).", en = "Metadata are synchronised with international aggregators (OpenAIRE, DataCite Commons)." }
+status = "refresh"
+note = { cs = "Napojení na OpenAIRE přes EOSC Node Czechia se připravuje.", en = "The connection to OpenAIRE through EOSC Node Czechia is in preparation." }
+
+[[clause]]
+id = "A.F4.N4"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na NRP"
+principles = ["F4"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata jsou optimalizovaná pro internetové vyhledávače.", en = "Metadata are optimised for web search engines." }
+
+[[clause]]
+id = "A.F4.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na repozitáře"
+principles = ["F4"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář zpřístupňuje metadata přes OAI-PMH ve formátu CCMM (pro NMA) a Dublin Core.", en = "The repository exposes metadata through OAI-PMH in CCMM (for NMA) and Dublin Core." }
+status = "refresh"
+note = { cs = "NMA sklízí formát ccmm-xml; repozitáře bez nativního CCMM mohou dodat veřejnou transformaci XSLT.", en = "NMA harvests the ccmm-xml format; repositories without native CCMM can provide a public XSLT transformation." }
+noteSources = ["DOC.NMA.EXPORT"]
+
+[[clause]]
+id = "A.F4.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na repozitáře"
+principles = ["F4"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář nabízí strojově čitelnou reprezentaci pro indexaci, minimálně Schema.org/JSON-LD na landing page; REST API je doporučené, ne povinné minimum.", en = "The repository offers a machine-readable representation for indexing, at least Schema.org/JSON-LD on the landing page; a REST API is recommended but not part of the minimum." }
+
+[[clause]]
+id = "A.F4.R3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na repozitáře"
+principles = ["F4"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata se před uložením validují.", en = "Metadata are validated before they are stored." }
+
+[[clause]]
+id = "A.F4.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na FIP"
+principles = ["F4"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje minimální metadata pro indexaci v oborových vyhledávačích.", en = "The FIP sets the minimum metadata for indexing in domain search services." }
+
+[[clause]]
+id = "A.F4.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Požadavky na FIP"
+principles = ["F4"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje mapování na formáty vyhledávacích systémů.", en = "The FIP sets mappings to the formats of search systems." }
+
+[[clause]]
+id = "A.F4.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Naplnění v NRP"
+principles = ["F4"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "DataCite Commons zobrazuje jen datové sady s DOI registrovaným u DataCite.", en = "DataCite Commons shows only datasets with a DOI registered with DataCite." }
+
+[[clause]]
+id = "A.F4.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, F4, Doporučení CDIF / Požadavky CTS"
+principles = ["F4"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R8 a R13 se týkají uložených metadat a dohledatelnosti.", en = "CoreTrustSeal R8 and R13 concern deposited metadata and discoverability." }
+
+[[clause]]
+id = "A.A1.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1, Požadavky na NRP"
+principles = ["A1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Protokoly přístupu: HTTPS a OAI-PMH, v odůvodněných případech SPARQL.", en = "Access protocols: HTTPS and OAI-PMH, and SPARQL where justified." }
+
+[[clause]]
+id = "A.A1.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1, Požadavky na NRP"
+principles = ["A1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Informace o strojovém přístupu jsou součástí metadat; signposting je doporučen; endpoint OAI-PMH je uveden v záznamu NKR.", en = "Information on machine access is part of the metadata; signposting is recommended; the OAI-PMH endpoint is given in the NKR record." }
+status = "refresh"
+note = { cs = "Záznam repozitáře v NKR má pole oaipmhEndpoint.", en = "The NKR repository record has an oaipmhEndpoint field." }
+noteSources = ["E.NKR-SCHEMA"]
+
+[[clause]]
+id = "A.A1.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1, Požadavky na repozitáře"
+principles = ["A1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář podporuje alespoň jeden standardizovaný protokol pro data i metadata.", en = "The repository supports at least one standardised protocol for both data and metadata." }
+
+[[clause]]
+id = "A.A1.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1, Požadavky na FIP"
+principles = ["A1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP uvádí podporované protokoly.", en = "The FIP lists the supported protocols." }
+
+[[clause]]
+id = "A.A1.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1, Požadavky na FIP"
+principles = ["A1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP uvádí oborově specifické protokoly.", en = "The FIP lists domain-specific protocols." }
+
+[[clause]]
+id = "A.A1.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1, Doporučení CDIF / Požadavky CTS"
+principles = ["A1"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R15 se týká technické infrastruktury.", en = "CoreTrustSeal R15 concerns technical infrastructure." }
+
+[[clause]]
+id = "A.A1.1.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.1, Požadavky na NRP"
+principles = ["A1.1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Protokoly jsou otevřené a bezplatné; minimem je HTTPS a OAI-PMH, další určuje FIP.", en = "Protocols are open and free; HTTPS and OAI-PMH are the minimum, and the FIP sets any others." }
+
+[[clause]]
+id = "A.A1.1.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.1, Požadavky na repozitáře"
+principles = ["A1.1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitáře podporují minimálně HTTPS a OAI-PMH.", en = "Repositories support at least HTTPS and OAI-PMH." }
+
+[[clause]]
+id = "A.A1.1.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.1, Požadavky na FIP"
+principles = ["A1.1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP doporučuje protokoly pro obor.", en = "The FIP recommends protocols for the domain." }
+
+[[clause]]
+id = "A.A1.2.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.2, Požadavky na NRP"
+principles = ["A1.2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "NRP umožní repozitářům zavést ověřování a autorizaci podle povahy dat.", en = "NRP enables repositories to introduce authentication and authorisation according to the nature of the data." }
+status = "refresh"
+note = { cs = "Integrace s e-INFRA CZ AAI je v provozu a je podmínkou NRP (C.M6).", en = "Integration with e-INFRA CZ AAI is in operation and is an NRP condition (C.M6)." }
+noteSources = ["C.M6"]
+
+[[clause]]
+id = "A.A1.2.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.2, Požadavky na repozitáře"
+principles = ["A1.2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Tam, kde je to nutné, se k datům přistupuje přes autentizační a autorizační protokoly.", en = "Where necessary, data are accessed through authentication and authorisation protocols." }
+status = "refresh"
+note = { cs = "Prostřednictvím e-INFRA CZ AAI.", en = "Through e-INFRA CZ AAI." }
+noteSources = ["C.M6"]
+
+[[clause]]
+id = "A.A1.2.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.2, Požadavky na repozitáře"
+principles = ["A1.2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář má pravidla přístupu a úrovně oprávnění (veřejná data, data před zveřejněním, citlivá data).", en = "The repository has access rules and permission levels (public data, data before publication, sensitive data)." }
+
+[[clause]]
+id = "A.A1.2.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.2, Požadavky na FIP"
+principles = ["A1.2"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP dává doporučení pro bezpečný přístup.", en = "The FIP gives recommendations for secure access." }
+
+[[clause]]
+id = "A.A1.2.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.2, Požadavky na FIP"
+principles = ["A1.2"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje přístupová pravidla v oboru (etická, bezpečnostní a právní omezení).", en = "The FIP sets the access rules of the domain (ethical, security and legal restrictions)." }
+
+[[clause]]
+id = "A.A1.2.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A1.2, Naplnění v NRP"
+principles = ["A1.2"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Ověřování a autorizaci řeší klíčová aktivita AAI s napojením na identitní federace (eduID.cz).", en = "Authentication and authorisation are handled by the AAI key activity, connected to identity federations (eduID.cz)." }
+status = "refresh"
+note = { cs = "Platí e-INFRA CZ AAI; pro citlivá data vyšel dokument Initial AAI architecture for sensitive data in NRP (březen 2026).", en = "e-INFRA CZ AAI applies; for sensitive data, the document Initial AAI architecture for sensitive data in NRP was published (March 2026)." }
+noteSources = ["E.AAI-SENSITIVE"]
+
+[[clause]]
+id = "A.A2.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A2, Požadavky na NRP"
+principles = ["A2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "NRP uchová minimální záznam v NMA i poté, co data přestanou být dostupná.", en = "NRP keeps the minimum record in NMA even after the data are no longer available." }
+
+[[clause]]
+id = "A.A2.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A2, Požadavky na repozitáře"
+principles = ["A2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář uchovává metadata i po odstranění dat; plný záznam zůstává v repozitáři a je mapovaný na NMA.", en = "The repository keeps the metadata after the data are removed; the full record stays in the repository, mapped to NMA." }
+
+[[clause]]
+id = "A.A2.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A2, Požadavky na repozitáře"
+principles = ["A2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Po odstranění dat zůstává tombstone stránka s PID, citací a důvodem nedostupnosti.", en = "After data removal, a tombstone page remains with the PID, the citation and the reason the data are unavailable." }
+
+[[clause]]
+id = "A.A2.R3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A2, Požadavky na repozitáře"
+principles = ["A2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "PID se přesměruje na tombstone stránku.", en = "The PID is redirected to the tombstone page." }
+
+[[clause]]
+id = "A.A2.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A2, Požadavky na FIP"
+principles = ["A2"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje, která metadata zůstanou veřejná i po ztrátě dat.", en = "The FIP sets which metadata remain public after the data are lost." }
+
+[[clause]]
+id = "A.A2.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, A2, Doporučení CDIF / Požadavky CTS"
+principles = ["A2"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R8 a R10; tombstone stránky podle praxe DataCite.", en = "CoreTrustSeal R8 and R10; tombstone pages follow DataCite practice." }
+
+[[clause]]
+id = "A.I1.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Požadavky na NRP"
+principles = ["I1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata se vyjadřují v sémantických jazycích (RDF, OWL).", en = "Metadata are expressed in semantic languages (RDF, OWL)." }
+
+[[clause]]
+id = "A.I1.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Požadavky na NRP"
+principles = ["I1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata jsou ve strojově čitelných formátech (JSON-LD, RDF/XML, Turtle, XML).", en = "Metadata are in machine-readable formats (JSON-LD, RDF/XML, Turtle, XML)." }
+
+[[clause]]
+id = "A.I1.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Požadavky na repozitáře"
+principles = ["I1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář vyjadřuje metadata v sémantických jazycích (RDF, OWL).", en = "The repository expresses metadata in semantic languages (RDF, OWL)." }
+
+[[clause]]
+id = "A.I1.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Požadavky na repozitáře"
+principles = ["I1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář zpřístupňuje metadata ve strojově čitelných formátech (JSON-LD, RDF/XML, Turtle, XML).", en = "The repository makes metadata available in machine-readable formats (JSON-LD, RDF/XML, Turtle, XML)." }
+
+[[clause]]
+id = "A.I1.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Požadavky na FIP"
+principles = ["I1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje sémantické zdroje (SKOS, OWL, PROV-O, SIO).", en = "The FIP sets the semantic resources (SKOS, OWL, PROV-O, SIO)." }
+
+[[clause]]
+id = "A.I1.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Požadavky na FIP"
+principles = ["I1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje syntaxi a serializaci.", en = "The FIP sets the syntax and serialisation." }
+
+[[clause]]
+id = "A.I1.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Naplnění v NRP"
+principles = ["I1"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Přípustné jsou i zavedené oborové formáty (například XML); je třeba rozlišovat rámec (RDF) a serializaci (JSON-LD).", en = "Established domain formats (such as XML) are also acceptable; the framework (RDF) and the serialisation (JSON-LD) must be told apart." }
+
+[[clause]]
+id = "A.I1.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I1, Doporučení CDIF / Požadavky CTS"
+principles = ["I1"]
+actor = "other"
+kind = "statement"
+text = { cs = "CDIF: řízené slovníky a univerzální veličiny (čas, geografie, jednotky); CoreTrustSeal R14 a R15.", en = "CDIF: controlled vocabularies and universals (time, geography, units); CoreTrustSeal R14 and R15." }
+status = "refresh"
+note = { cs = "CDIF 1.1 to pokrývá profily Concept Scheme a Codelist a doporučeními k univerzálním veličinám.", en = "CDIF 1.1 covers this with the Concept Scheme and Codelist profiles and with guidance on universals." }
+noteSources = ["E.CDIF"]
+
+[[clause]]
+id = "A.I2.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Požadavky na NRP"
+principles = ["I2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Používané slovníky se evidují v NKR.", en = "The vocabularies in use are recorded in NKR." }
+status = "refresh"
+note = { cs = "Záznam repozitáře v NKR má pole controlledVocabulary a NKR přijímá žádosti o slovníky.", en = "The NKR repository record has a controlledVocabulary field, and NKR accepts vocabulary requests." }
+noteSources = ["E.NKR-SCHEMA"]
+
+[[clause]]
+id = "A.I2.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Požadavky na NRP"
+principles = ["I2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Slovníky jsou sdílené, dokumentované, mají URI a jsou publikované v otevřených katalozích (LOV, BioPortal, OLS).", en = "Vocabularies are shared, documented, have URIs and are published in open catalogues (LOV, BioPortal, OLS)." }
+
+[[clause]]
+id = "A.I2.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Požadavky na repozitáře"
+principles = ["I2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář podporuje komunitní slovníky včetně těch z FIP; jinak používá vlastní model sdílený přes FIP.", en = "The repository supports community vocabularies, including those from the FIP; otherwise it uses its own model shared through the FIP." }
+
+[[clause]]
+id = "A.I2.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Požadavky na repozitáře"
+principles = ["I2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata odkazují na ORCID a ROR.", en = "Metadata link to ORCID and ROR." }
+
+[[clause]]
+id = "A.I2.R3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Požadavky na repozitáře"
+principles = ["I2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Do repozitáře lze přidávat oborové slovníky.", en = "Domain vocabularies can be added to the repository." }
+
+[[clause]]
+id = "A.I2.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Požadavky na FIP"
+principles = ["I2"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje preferované slovníky a ontologie a dává pokyny k jejich použití.", en = "The FIP sets the preferred vocabularies and ontologies and gives guidance on their use." }
+
+[[clause]]
+id = "A.I2.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Naplnění v NRP"
+principles = ["I2"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Rozsah metadat má odpovídat jejich přínosu; repozitář nemá vyžadovat oborová metadata, která nevyužije.", en = "The extent of metadata should match their benefit; a repository should not require domain metadata it will not use." }
+
+[[clause]]
+id = "A.I2.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I2, Naplnění v NRP"
+principles = ["I2"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Příklady slovníků: DCMI, Schema.org, GO, MeSH, Wikidata, ROR, ORCID; katalogem je FAIRsharing; pro klasifikace XKOS.", en = "Example vocabularies: DCMI, Schema.org, GO, MeSH, Wikidata, ROR, ORCID; FAIRsharing serves as a catalogue; XKOS for classifications." }
+
+[[clause]]
+id = "A.I3.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na NRP"
+principles = ["I3"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata mají pole pro propojení s jinými metadaty a datovými sadami.", en = "Metadata have fields for links to other metadata and datasets." }
+
+[[clause]]
+id = "A.I3.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na repozitáře"
+principles = ["I3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Vztahy se vyjadřují ontologiemi vztahů (PROV-O, DataCite, DCAT-AP).", en = "Relations are expressed with relation ontologies (PROV-O, DataCite, DCAT-AP)." }
+
+[[clause]]
+id = "A.I3.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na repozitáře"
+principles = ["I3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata uvádějí ORCID a ROR.", en = "Metadata include ORCID and ROR." }
+
+[[clause]]
+id = "A.I3.R3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na repozitáře"
+principles = ["I3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata odkazují na původní data, publikace a další zdroje.", en = "Metadata link to source data, publications and other resources." }
+
+[[clause]]
+id = "A.I3.R4"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na repozitáře"
+principles = ["I3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář ověřuje platnost externích odkazů.", en = "The repository validates external links." }
+
+[[clause]]
+id = "A.I3.R5"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na repozitáře"
+principles = ["I3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Verze jsou propojené s předchozími verzemi a s odvozenými datovými sadami.", en = "Versions are linked to previous versions and to derived datasets." }
+
+[[clause]]
+id = "A.I3.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na FIP"
+principles = ["I3"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje povinné a doporučené vztahy.", en = "The FIP sets the mandatory and recommended relations." }
+
+[[clause]]
+id = "A.I3.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Požadavky na FIP"
+principles = ["I3"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje preferované slovníky a modely vztahů.", en = "The FIP sets the preferred vocabularies and models for relations." }
+
+[[clause]]
+id = "A.I3.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, I3, Doporučení CDIF / Požadavky CTS"
+principles = ["I3"]
+actor = "other"
+kind = "statement"
+text = { cs = "Příklady vztahů DataCite (isDerivedFrom, isCitedBy, hasPart…); DDI-CDI; CoreTrustSeal R11 a R14.", en = "Examples of DataCite relations (isDerivedFrom, isCitedBy, hasPart…); DDI-CDI; CoreTrustSeal R11 and R14." }
+status = "refresh"
+note = { cs = "V CDIF 1.1 odpovídají profily Data Description a Data Structure.", en = "In CDIF 1.1, the Data Description and Data Structure profiles correspond." }
+noteSources = ["E.CDIF"]
+
+[[clause]]
+id = "A.R1.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Požadavky na NRP"
+principles = ["R1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Minimální schéma obsahuje klíčové atributy pro opakované použití.", en = "The minimum schema contains the key attributes for reuse." }
+
+[[clause]]
+id = "A.R1.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Požadavky na repozitáře"
+principles = ["R1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Minimální schéma repozitáře je v souladu s NMA.", en = "The repository's minimum schema is aligned with NMA." }
+
+[[clause]]
+id = "A.R1.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Požadavky na repozitáře"
+principles = ["R1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář nabízí oborově specifické prvky podle FIP.", en = "The repository offers domain-specific elements according to the FIP." }
+
+[[clause]]
+id = "A.R1.R3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Požadavky na repozitáře"
+principles = ["R1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata se verzují; minimem je, že nová verze dostane nový PID a vazbu isNewVersionOf.", en = "Metadata are versioned; at minimum, a new version gets a new PID and an isNewVersionOf relation." }
+
+[[clause]]
+id = "A.R1.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Požadavky na FIP"
+principles = ["R1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje povinné atributy.", en = "The FIP sets the mandatory attributes." }
+
+[[clause]]
+id = "A.R1.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Požadavky na FIP"
+principles = ["R1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje doporučené slovníky a standardy.", en = "The FIP sets the recommended vocabularies and standards." }
+
+[[clause]]
+id = "A.R1.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Naplnění v NRP"
+principles = ["R1"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Profil pro vyhledání (CCMM) a profil pro opakované použití (oborová metadata); NMA slouží jako rozcestník.", en = "A discovery profile (CCMM) and a reusability profile (domain metadata); NMA serves as a signpost." }
+
+[[clause]]
+id = "A.R1.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1, Doporučení CDIF / Požadavky CTS"
+principles = ["R1"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R8, R11 a R14.", en = "CoreTrustSeal R8, R11 and R14." }
+
+[[clause]]
+id = "A.R1.1.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.1, Požadavky na NRP"
+principles = ["R1.1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "NRP nabídne centrální katalog doporučených licencí (KA 4.2) a metodickou podporu.", en = "NRP will offer a central catalogue of recommended licences (KA 4.2) and methodological support." }
+status = "refresh"
+note = { cs = "Stav katalogu je třeba ověřit.", en = "The status of the catalogue needs to be verified." }
+
+[[clause]]
+id = "A.R1.1.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.1, Požadavky na NRP"
+principles = ["R1.1"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Pro výběr licence slouží Public Licence Selector.", en = "The Public Licence Selector helps to choose a licence." }
+status = "superseded"
+note = { cs = "Výběr licence nabízí průvodce licencemi v DMP.eosc.cz.", en = "The licence selector in DMP.eosc.cz helps to choose a licence." }
+supersededBy = "E.DMP"
+
+[[clause]]
+id = "A.R1.1.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.1, Požadavky na repozitáře"
+principles = ["R1.1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář nabízí výběr z doporučených licencí; licence je u každé datové sady a validuje se její přítomnost a strojová čitelnost (minimálně URI).", en = "The repository offers a choice of recommended licences; every dataset has a licence, and its presence and machine readability (at least a URI) are validated." }
+
+[[clause]]
+id = "A.R1.1.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.1, Požadavky na FIP"
+principles = ["R1.1"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje doporučenou sadu licencí v komunitě a formáty strojově čitelných licencí.", en = "The FIP sets the community's recommended licences and the formats of machine-readable licences." }
+
+[[clause]]
+id = "A.R1.1.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.1, Naplnění v NRP"
+principles = ["R1.1"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Licence je součástí metadat (název a URI) a je dostupná přes NMA.", en = "The licence is part of the metadata (name and URI) and is available through NMA." }
+status = "refresh"
+note = { cs = "V CCMM 2.0.0 se licence váže ke třídám.", en = "In CCMM 2.0.0, licences are attached per class." }
+noteSources = ["E.CCMM"]
+
+[[clause]]
+id = "A.R1.1.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.1, Naplnění v NRP"
+principles = ["R1.1"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Formáty pro vyjádření licencí: CC REL, DC Terms, DCAT-AP, JSON-LD, ODRL, SPDX.", en = "Formats for expressing licences: CC REL, DC Terms, DCAT-AP, JSON-LD, ODRL, SPDX." }
+
+[[clause]]
+id = "A.R1.1.X3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.1, Doporučení CDIF / Požadavky CTS"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R2; CDIF Data Access (ODRL).", en = "CoreTrustSeal R2; CDIF Data Access (ODRL)." }
+status = "refresh"
+note = { cs = "CDIF 1.1 obsahuje doporučení k ODRL.", en = "CDIF 1.1 includes guidance on ODRL." }
+noteSources = ["E.CDIF"]
+
+[[clause]]
+id = "A.R1.2.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Požadavky na NRP"
+principles = ["R1.2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Metadata obsahují provenienci (autoři, metodologie, historie změn) minimálně v rozsahu CCMM.", en = "Metadata include provenance (authors, methodology, change history) at least to the extent of CCMM." }
+status = "refresh"
+note = { cs = "CCMM 2.0.0 přidává popis provenienční aktivity.", en = "CCMM 2.0.0 adds a description of the provenance activity." }
+noteSources = ["E.CCMM"]
+
+[[clause]]
+id = "A.R1.2.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Požadavky na NRP"
+principles = ["R1.2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Repozitáře mají mechanismy verzování.", en = "Repositories have versioning mechanisms." }
+
+[[clause]]
+id = "A.R1.2.N3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Požadavky na NRP"
+principles = ["R1.2"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Datové sady se propojují s publikacemi a projekty pomocí DOI, ORCID a dalších PID.", en = "Datasets are linked to publications and projects through DOI, ORCID and other PIDs." }
+
+[[clause]]
+id = "A.R1.2.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Požadavky na repozitáře"
+principles = ["R1.2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Základní provenienční informace (původ, verze, historie) jsou povinné, minimálně v rozsahu CCMM.", en = "Basic provenance information (origin, version, history) is mandatory, at least to the extent of CCMM." }
+
+[[clause]]
+id = "A.R1.2.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Požadavky na repozitáře"
+principles = ["R1.2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář uchovává verze dat i metadat.", en = "The repository keeps versions of data and metadata." }
+
+[[clause]]
+id = "A.R1.2.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Požadavky na FIP"
+principles = ["R1.2"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje minimální rozsah provenience v oboru.", en = "The FIP sets the minimum provenance for the domain." }
+
+[[clause]]
+id = "A.R1.2.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Požadavky na FIP"
+principles = ["R1.2"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje standardy provenience (PROV-O, DataCite).", en = "The FIP sets provenance standards (PROV-O, DataCite)." }
+
+[[clause]]
+id = "A.R1.2.X1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Naplnění v NRP"
+principles = ["R1.2"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "V současnosti se uvádí ORCID tvůrců, textový popis metodiky a PID zdrojových dat; výhledově PROV-O.", en = "Currently, creators' ORCIDs, a textual description of the methodology and PIDs of source data are given; PROV-O is foreseen." }
+status = "refresh"
+note = { cs = "CCMM 2.0.0 část toho posouvá dál (provenienční aktivita).", en = "CCMM 2.0.0 takes part of this further (provenance activity)." }
+noteSources = ["E.CCMM"]
+
+[[clause]]
+id = "A.R1.2.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.2, Doporučení CDIF / Požadavky CTS"
+principles = ["R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal R7 a R14; CDIF Data Integration (DDI-CDI).", en = "CoreTrustSeal R7 and R14; CDIF Data Integration (DDI-CDI)." }
+status = "refresh"
+note = { cs = "Viz CDIF 1.1.", en = "See CDIF 1.1." }
+noteSources = ["E.CDIF"]
+
+[[clause]]
+id = "A.R1.3.N1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na NRP"
+principles = ["R1.3"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "Repozitáře podporují oborové standardy, zejména na základě FIP.", en = "Repositories support domain standards, especially on the basis of FIPs." }
+
+[[clause]]
+id = "A.R1.3.N2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na NRP"
+principles = ["R1.3"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "NRP nabízí mechanismy (částečně automatického) sebehodnocení a validace vůči komunitním standardům (FAIR-Checker, F-UJI).", en = "NRP offers mechanisms for (partly automated) self-assessment and validation against community standards (FAIR-Checker, F-UJI)." }
+status = "refresh"
+note = { cs = "Pro automatizované hodnocení průvodce doporučuje FAIR Champion.", en = "For automated assessment, the guide recommends FAIR Champion." }
+noteSources = ["E.FAIR-CHAMPION"]
+
+[[clause]]
+id = "A.R1.3.N3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na NRP"
+principles = ["R1.3"]
+actor = "nrp"
+kind = "requirement"
+text = { cs = "V oborech bez standardů se standardy vyvíjejí ve spolupráci s projektem Open Science II.", en = "In domains without standards, standards are developed in cooperation with the Open Science II project." }
+
+[[clause]]
+id = "A.R1.3.R1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na repozitáře"
+principles = ["R1.3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář spolupracuje s komunitou: metadatové schéma odpovídá oborovým standardům ve FIP.", en = "The repository cooperates with the community: the metadata schema follows the domain standards in the FIP." }
+
+[[clause]]
+id = "A.R1.3.R2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na repozitáře"
+principles = ["R1.3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata se validují vůči komunitním schématům.", en = "Metadata are validated against community schemas." }
+
+[[clause]]
+id = "A.R1.3.R3"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na repozitáře"
+principles = ["R1.3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář umožňuje zavádět nové a aktualizované oborové standardy.", en = "The repository can implement new and updated domain standards." }
+
+[[clause]]
+id = "A.R1.3.F1"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na FIP"
+principles = ["R1.3"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje doporučené metadatové a datové standardy oboru.", en = "The FIP sets the recommended metadata and data standards of the domain." }
+
+[[clause]]
+id = "A.R1.3.F2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Požadavky na FIP"
+principles = ["R1.3"]
+actor = "fip"
+kind = "requirement"
+text = { cs = "FIP určuje povinné a doporučené atributy metadat.", en = "The FIP sets the mandatory and recommended metadata attributes." }
+
+[[clause]]
 id = "A.R1.3.X1"
 source = "analyza-fair-1.2"
 locator = "kap. 3, R1.3, Naplnění v NRP"
@@ -20,15 +1111,159 @@ kind = "fulfilment"
 text = { cs = "NRP podporuje ukládání dat přednostně ve vhodném oborovém repozitáři.", en = "NRP supports depositing data preferably in a suitable domain repository." }
 
 [[clause]]
+id = "A.R1.3.X2"
+source = "analyza-fair-1.2"
+locator = "kap. 3, R1.3, Naplnění v NRP"
+principles = ["R1.3"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "Příklady oborových standardů: Darwin Core, MIAME, DDI-C, HDF5, CIDOC CRM; CoreTrustSeal R14.", en = "Examples of domain standards: Darwin Core, MIAME, DDI-C, HDF5, CIDOC CRM; CoreTrustSeal R14." }
+
+[[clause]]
 id = "K2.1"
 source = "analyza-fair-1.2"
 locator = "kap. 2.1"
-principles = []
-actor = "nrp"
+principles = ["F4"]
+actor = "other"
 kind = "statement"
-text = { cs = "Architektura NDI: Národní metadatový adresář (NMA), Národní katalog repozitářů (NKR) a Centrum PID.", en = "NDI architecture: the National Metadata Directory (NMA), the National Repository Catalogue (NKR) and the PID Centre." }
+text = { cs = "Architektura národní datové infrastruktury: Národní metadatový adresář (NMA), Národní katalog repozitářů (NKR) a Centrum PID.", en = "Architecture of the national data infrastructure: the National Metadata Directory (NMA), the National Repository Catalogue (NKR) and the PID Centre." }
 status = "refresh"
 note = { cs = "NMA je v provozu, NKR v pilotním provozu s otevřeným API; Centrum PID působí jako identifikatory.cz.", en = "NMA is in operation, NKR in pilot operation with an open API; the PID Centre operates as identifikatory.cz." }
+noteSources = ["E.PID-CENTRE"]
+
+[[clause]]
+id = "K2.2.1"
+source = "analyza-fair-1.2"
+locator = "kap. 2.2.1"
+principles = ["R1.3", "I1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Metadatové profily lze spravovat v nástroji Dataspecer (verze, export SHACL a JSON Schema, mapování); jejich správa potřebuje pravidla (governance).", en = "Metadata profiles can be managed in Dataspecer (versions, SHACL and JSON Schema export, mappings); their management needs governance." }
+
+[[clause]]
+id = "K2.2.2"
+source = "analyza-fair-1.2"
+locator = "kap. 2.2.2"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Nástroje pro výběr licence (Public Licence Selector) samostatně i v repozitářích.", en = "Tools for choosing a licence (Public Licence Selector), standalone and within repositories." }
+status = "superseded"
+note = { cs = "Výběr licence nabízí průvodce licencemi v DMP.eosc.cz.", en = "The licence selector in DMP.eosc.cz helps to choose a licence." }
+supersededBy = "E.DMP"
+
+[[clause]]
+id = "K2.2.3"
+source = "analyza-fair-1.2"
+locator = "kap. 2.2.3"
+principles = ["A1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Řízení přístupu, citlivá data a specializované repozitáře jsou plánované.", en = "Access control, sensitive data and specialised repositories are planned." }
+status = "refresh"
+note = { cs = "Vyšel dokument Initial AAI architecture for sensitive data in NRP; pro zpracování citlivých dat slouží Sensitive Cloud v e-INFRA CZ.", en = "The document Initial AAI architecture for sensitive data in NRP has been published; Sensitive Cloud in e-INFRA CZ serves for processing sensitive data." }
+noteSources = ["E.AAI-SENSITIVE"]
+
+[[clause]]
+id = "K2.2.4"
+source = "analyza-fair-1.2"
+locator = "kap. 2.2.4"
+principles = ["R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Plánuje se automatizovaný sběr dat z přístrojů.", en = "Automated collection of data from instruments is planned." }
+status = "refresh"
+note = { cs = "K tomu slouží aplikace DDRapp.", en = "The DDRapp application serves this purpose." }
+noteSources = ["E.DDRAPP"]
+
+[[clause]]
+id = "K2.3.1"
+source = "analyza-fair-1.2"
+locator = "kap. 2.3.1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Aktéři a nástroje: DMP v Data Stewardship Wizard, sebehodnocení, FIP a automatizované hodnocení.", en = "Actors and tools: DMPs in the Data Stewardship Wizard, self-assessment, FIPs and automated assessment." }
+
+[[clause]]
+id = "K2.3.2a"
+source = "analyza-fair-1.2"
+locator = "kap. 2.3.2"
+principles = ["R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "Pravidla repozitáře tvoří metadatový profil, datová politika a případně FIP.", en = "A repository's rules consist of its metadata profile, its data policy and, optionally, a FIP." }
+
+[[clause]]
+id = "K2.3.2b"
+source = "analyza-fair-1.2"
+locator = "kap. 2.3.2"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Repozitář dává zpětnou vazbu přímo v rozhraní: rychlou kontrolu souladu a automatizované hodnocení.", en = "The repository gives feedback in its interface: a quick compliance check and automated assessment." }
+
+[[clause]]
+id = "K2.3.2c"
+source = "analyza-fair-1.2"
+locator = "kap. 2.3.2"
+principles = ["R1.1", "R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "Pravidla repozitáře jsou strojově čitelná: profil (SHACL, JSON Schema), licence a přístup jako URI a seznam formátů.", en = "A repository's rules are machine-readable: the profile (SHACL, JSON Schema), licences and access as URIs, and a list of formats." }
+status = "refresh"
+note = { cs = "Část těchto údajů nese záznam repozitáře v NKR.", en = "Part of this information is carried by the repository's NKR record." }
+noteSources = ["E.NKR-SCHEMA"]
+
+[[clause]]
+id = "K4.1"
+source = "analyza-fair-1.2"
+locator = "kap. 4.1"
+principles = ["R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "FIP zachycuje komunitní volbu zdrojů umožňujících FAIR (FER); je strojově zpracovatelný (nanopublikace).", en = "A FIP records a community's choice of FAIR-enabling resources (FERs); it is machine-actionable (nanopublications)." }
+
+[[clause]]
+id = "K4.2"
+source = "analyza-fair-1.2"
+locator = "kap. 4.2"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Pro tvorbu FIP slouží FIP Wizard; zvažovala se národní instance.", en = "FIPs are created with the FIP Wizard; a national instance was considered." }
+status = "superseded"
+note = { cs = "Průvodce nepočítá se samostatnou národní instancí FIP Wizard; schválené FER bude nabízet NKR.", en = "The guide does not assume a separate national FIP Wizard instance; NKR will offer approved FERs." }
+
+[[clause]]
+id = "K4.3"
+source = "analyza-fair-1.2"
+locator = "kap. 4.3"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "FIP se propojuje s DMP (FIP2DMP); Data Stewardship Wizard slouží jako „kokpit“; strojově zpracovatelné DMP (maDMP).", en = "FIPs connect to DMPs (FIP2DMP); the Data Stewardship Wizard serves as a cockpit; machine-actionable DMPs (maDMP)." }
+status = "refresh"
+note = { cs = "DMP.eosc.cz je v pilotním provozu; modul FIP je ve vývoji.", en = "DMP.eosc.cz is in pilot operation; the FIP module is in development." }
+noteSources = ["E.DMP"]
+
+[[clause]]
+id = "K5.0"
+source = "analyza-fair-1.2"
+locator = "kap. 5"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Sebehodnocení a automatizované nástroje se doplňují a liší se načasováním.", en = "Self-assessment and automated tools complement each other and differ in timing." }
+
+[[clause]]
+id = "K5.1"
+source = "analyza-fair-1.2"
+locator = "kap. 5.1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Nástroje sebehodnocení: FAIR Data Maturity Model, ARDC FAIR self-assessment (český překlad VUT), FAIR-Aware, CAT.", en = "Self-assessment tools: FAIR Data Maturity Model, ARDC FAIR self-assessment (Czech translation by BUT), FAIR-Aware, CAT." }
 
 [[clause]]
 id = "K5.2.1"
@@ -40,6 +1275,135 @@ kind = "statement"
 text = { cs = "Výsledky automatických testů FAIR odrážejí hlavně nastavení repozitáře, ne práci autora.", en = "Results of automated FAIR tests mainly reflect the repository's setup, not the author's work." }
 
 [[clause]]
+id = "K5.2.2"
+source = "analyza-fair-1.2"
+locator = "kap. 5.2.2"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Automatizované nástroje: FAIR-Checker, F-UJI (nehodnotí A2), FAIR Evaluator, OpenAIRE Validator, FAIR Assist, FAIR Implementation Framework, FC4E-CAT.", en = "Automated tools: FAIR-Checker, F-UJI (does not assess A2), FAIR Evaluator, OpenAIRE Validator, FAIR Assist, FAIR Implementation Framework, FC4E-CAT." }
+status = "refresh"
+note = { cs = "Průvodce doporučuje především FAIR Champion (OSTrails).", en = "The guide primarily recommends FAIR Champion (OSTrails)." }
+noteSources = ["E.FAIR-CHAMPION"]
+
+[[clause]]
+id = "K6"
+source = "analyza-fair-1.2"
+locator = "kap. 6"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Výsledky hodnocení jsou měkká zpětná vazba; malá změna může skóre výrazně změnit.", en = "Assessment results are soft feedback; a small change can move the score a lot." }
+
+[[clause]]
+id = "P1"
+source = "analyza-fair-1.2"
+locator = "příloha 1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Případové studie F-UJI: ASEP (rozdíl mezi DOI a Handle), LINDAT (chybějící identifikátor dat), ČSDA (úprava Dataverse).", en = "F-UJI case studies: ASEP (DOI versus Handle), LINDAT (missing data identifier), ČSDA (Dataverse adjustment)." }
+
+[[clause]]
+id = "G"
+source = "analyza-fair-1.2"
+locator = "glosář"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Glosář analýzy (od „datová sada“ po „datová politika“).", en = "Glossary of the analysis (from “dataset” to “data policy”)." }
+
+[[clause]]
+id = "S.MIN1"
+source = "analyza-fair-1.2"
+locator = "Shrnutí"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Minimum: trvalý identifikátor (přednostně DOI) a landing page.", en = "Minimum: a persistent identifier (preferably a DOI) and a landing page." }
+
+[[clause]]
+id = "S.MIN2"
+source = "analyza-fair-1.2"
+locator = "Shrnutí"
+principles = ["F2", "F4"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Minimum: základní metadata v CCMM zpřístupněná pro sklizeň do NMA.", en = "Minimum: basic metadata in CCMM, available for harvesting into NMA." }
+
+[[clause]]
+id = "S.MIN3"
+source = "analyza-fair-1.2"
+locator = "Shrnutí"
+principles = ["F3", "R1.1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Minimum: odkazy na distribuce a licence (minimálně jako URI).", en = "Minimum: links to distributions, and a licence (at least as a URI)." }
+
+[[clause]]
+id = "S.REC1"
+source = "analyza-fair-1.2"
+locator = "Shrnutí"
+principles = ["R1", "I1"]
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Doporučení: bohatá oborová metadata a strojově čitelná reprezentace (JSON-LD) nebo API.", en = "Recommended: rich domain metadata and a machine-readable representation (JSON-LD) or an API." }
+
+[[clause]]
+id = "S.REC2"
+source = "analyza-fair-1.2"
+locator = "Shrnutí"
+principles = ["F3"]
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Doporučení: signposting, kde to platforma umožňuje.", en = "Recommended: signposting where the platform allows it." }
+
+[[clause]]
+id = "S.REC3"
+source = "analyza-fair-1.2"
+locator = "Shrnutí"
+principles = ["R1.3"]
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Doporučení: oborové profily a FIP.", en = "Recommended: domain profiles and FIPs." }
+
+[[clause]]
+id = "C.M1"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 1"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Záznamy jsou citovatelné, mají PID a repozitář popisuje záruku jejich neměnnosti.", en = "Records are citable and have PIDs, and the repository describes how their immutability is guaranteed." }
+
+[[clause]]
+id = "C.M2"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 2"
+principles = ["A1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář má webové rozhraní i API.", en = "The repository has a web interface and an API." }
+
+[[clause]]
+id = "C.M3"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 3"
+principles = ["R1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář má politiku změn; preferuje verzování nebo „patch“ balíčky.", en = "The repository has a change policy; versioning or patch packages are preferred." }
+
+[[clause]]
+id = "C.M4"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 4"
+principles = ["R1.1", "F4"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata mají permisivní licenci (odpovídající CC0), aby je šlo sklízet.", en = "Metadata have a permissive licence (equivalent to CC0) so they can be harvested." }
+
+[[clause]]
 id = "C.M5"
 source = "nrp-conditions-3.4"
 locator = "Mandatory conditions, 5"
@@ -47,6 +1411,15 @@ principles = ["F4"]
 actor = "repository"
 kind = "requirement"
 text = { cs = "Repozitář je registrován v Národním katalogu repozitářů (NKR) a svůj záznam udržuje aktuální.", en = "The repository is registered in the National Repository Catalogue (NKR) and keeps its record up to date." }
+
+[[clause]]
+id = "C.M6"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 6"
+principles = ["A1.2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář je integrován s AAI e-INFRA CZ / EOSC CZ.", en = "The repository is integrated with the e-INFRA CZ / EOSC CZ AAI." }
 
 [[clause]]
 id = "C.M7"
@@ -58,6 +1431,114 @@ kind = "requirement"
 text = { cs = "Repozitář přiděluje trvalé identifikátory a využívá metodickou podporu Centra PID (identifikatory.cz).", en = "The repository assigns persistent identifiers and uses the methodological support of the PID Centre (identifikatory.cz)." }
 
 [[clause]]
+id = "C.M8"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 8"
+principles = ["F4"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Metadata se sklízejí do NMA podle CCMM.", en = "Metadata are harvested into NMA according to CCMM." }
+
+[[clause]]
+id = "C.M9"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 9"
+principles = []
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář je zapojen do monitoringu kybernetické bezpečnosti (CESNET-CERTS, FTAS) a prochází penetračními testy.", en = "The repository takes part in cyber-security monitoring (CESNET-CERTS, FTAS) and undergoes penetration tests." }
+
+[[clause]]
+id = "C.M10"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 10"
+principles = []
+actor = "repository"
+kind = "requirement"
+text = { cs = "Systém loguje do centrálního logování.", en = "The system logs to central logging." }
+
+[[clause]]
+id = "C.M11"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 11"
+principles = ["A1.2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář má depoziční a přístupový workflow, od otevřeného po schvalovaný přístup.", en = "The repository has deposit and access workflows, from open to approved access." }
+
+[[clause]]
+id = "C.M12"
+source = "nrp-conditions-3.4"
+locator = "Mandatory conditions, 12"
+principles = ["R1.3", "F2"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář nasazuje metadatové profily a harmonizuje metadata podle oborových profilů.", en = "The repository deploys metadata profiles and harmonises metadata according to domain profiles." }
+
+[[clause]]
+id = "C.R1"
+source = "nrp-conditions-3.4"
+locator = "Recommended conditions, 1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Klíčové role obsazuje více osob.", en = "Key roles are covered by more than one person." }
+
+[[clause]]
+id = "C.R2"
+source = "nrp-conditions-3.4"
+locator = "Recommended conditions, 2"
+principles = []
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Repozitář konzultuje oborovou pracovní skupinu EOSC CZ.", en = "The repository consults the EOSC CZ domain working group." }
+
+[[clause]]
+id = "C.R3"
+source = "nrp-conditions-3.4"
+locator = "Recommended conditions, 3"
+principles = []
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Repozitáře nemají být příliš úzce specializované.", en = "Repositories should not be too narrowly specialised." }
+
+[[clause]]
+id = "C.R4"
+source = "nrp-conditions-3.4"
+locator = "Recommended conditions, 4"
+principles = []
+actor = "repository"
+kind = "recommendation"
+text = { cs = "Přednost mají instance základních systémů NRP (InvenioRDM/OARepo, CLARIN-DSpace, ASEP/ARL).", en = "Instances of the core NRP systems (InvenioRDM/OARepo, CLARIN-DSpace, ASEP/ARL) are preferred." }
+
+[[clause]]
+id = "C.ROLE.admin"
+source = "nrp-conditions-3.4"
+locator = "Roles: repository administrator"
+principles = []
+actor = "repository"
+kind = "requirement"
+text = { cs = "Správce repozitáře je partnerem pro infrastrukturu, odpovídá za data a řeší incidenty.", en = "The repository administrator is the partner for the infrastructure, is responsible for the data and handles incidents." }
+
+[[clause]]
+id = "C.ROLE.curator"
+source = "nrp-conditions-3.4"
+locator = "Roles: data curator"
+principles = ["R1.3"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Datový kurátor stanovuje pravidla ukládání, rozhoduje o datech a harmonizuje metadata.", en = "The data curator sets deposit rules, decides on data and harmonises metadata." }
+
+[[clause]]
+id = "C.CS"
+source = "nrp-conditions-3.4"
+locator = "Community obligations for core systems"
+principles = []
+actor = "repository"
+kind = "requirement"
+text = { cs = "U základních systémů NRP komunita zajišťuje metadatový profil, licence, formáty, workflow, dokumentaci, politiku, podporu L1 a záznam v NKR.", en = "For core NRP systems, the community provides the metadata profile, licences, formats, workflows, documentation, policy, first-line support and the NKR record." }
+
+[[clause]]
 id = "C.EXT"
 source = "nrp-conditions-3.4"
 locator = "Independently operated repositories"
@@ -67,10 +1548,406 @@ kind = "requirement"
 text = { cs = "Minimum pro samostatně provozované repozitáře: metadata do NMA, registrace v NKR, AAI, API, PID (ne nutně DOI), bezpečnost, monitoring, statistiky a logování.", en = "Minimum for independently operated repositories: metadata to NMA, registration in NKR, AAI, an API, PIDs (not necessarily DOI), security, monitoring, statistics and logging." }
 
 [[clause]]
+id = "DOC.NMA.INTRO"
+source = "nrp-docs-nma-introduction"
+locator = "Introduction"
+principles = ["F4"]
+actor = "other"
+kind = "statement"
+text = { cs = "NMA sklízí metadata z repozitářů NRP i z dalších zdrojů s daty české komunity; data neukládá, odkaz „Original record“ vede do repozitáře; prohlížení nevyžaduje přihlášení.", en = "NMA harvests metadata from NRP repositories and other sources with data of the Czech community; it stores no data, the “Original record” link leads to the repository, and browsing needs no login." }
+
+[[clause]]
+id = "DOC.NMA.ACCESS"
+source = "nrp-docs-nma-access"
+locator = "Access"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Účet v NMA může získat kdokoli; přihlášení přes českou akademickou instituci se schvaluje automaticky, jinak (Apple, GitHub, Google, LinkedIn, Microsoft, ORCID) ručně do dvou pracovních dnů.", en = "Anyone can get an NMA account; logging in through a Czech academic institution is approved automatically, otherwise (Apple, GitHub, Google, LinkedIn, Microsoft, ORCID) manually within two working days." }
+
+[[clause]]
+id = "DOC.NMA.RIV"
+source = "nrp-docs-nma-riv"
+locator = "Verifying datasets for RIV"
+principles = ["F4", "F1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Záznam v NMA je podmínkou pro výsledky typu T. „Získat odkaz pro RIV“ funguje s DOI nebo Handle (přednostně DOI); metadata se načtou z NMA, z DataCite či z repozitáře, nebo se doplní ručně. Odkaz pro RIV nikdy nenahrazuje PID; záznam lze upravovat 7 dní a nelze ho smazat.", en = "An NMA record is required for results of type T. “Get a link for RIV” works with a DOI or Handle (DOI preferred); metadata come from NMA, from DataCite or the repository, or are completed by hand. The RIV link never replaces the PID; the record can be edited for 7 days and cannot be deleted." }
+
+[[clause]]
+id = "DOC.NMA.EXPORT"
+source = "nrp-docs-nma-export"
+locator = "Exports to NMA"
+principles = ["F4", "A1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Export do NMA: OAI-PMH s metadataPrefix ccmm-xml, nebo veřejná transformace XSLT na stabilní HTTPS adrese; správce repozitáře kontaktuje tým NMA (endpoint, setSpec, prefix, XSLT), proběhne testovací sklizeň a správce získá roli správce sklizně.", en = "Export to NMA: OAI-PMH with the ccmm-xml metadataPrefix, or a public XSLT transformation at a stable HTTPS address; the repository administrator contacts the NMA team (endpoint, setSpec, prefix, XSLT), a test harvest runs, and the administrator gets the harvest manager role." }
+
+[[clause]]
+id = "E.SURVEY"
+source = "survey-2025"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Národní průzkum správy výzkumných dat 2025 (N = 1121): během projektů 66,4 % respondentů ukládá data na osobní počítač, 53,2 % na přenosná média a 14,5 % do národní infrastruktury.", en = "National survey of research data management 2025 (N = 1121): during projects, 66.4 % of respondents store data on a personal computer, 53.2 % on portable media and 14.5 % in the national infrastructure." }
+noteSources = ["survey-2025-data"]
+
+[[clause]]
+id = "E.MBDB"
+source = "mbdb-2026"
+principles = ["R1.3", "I1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Databáze MBDB ukazuje, jak zpřístupnit surová měření z přístrojů: originální formáty uchovat a harmonizovat jejich popis.", en = "The MBDB database shows how to make raw instrument measurements findable and reusable: keep the original formats and harmonise their description." }
+
+[[clause]]
+id = "E.KNAV-T"
+source = "knav-type-t"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Knihovna AV ČR vysvětluje nový druh výsledku „T“ (výzkumná data) a jeho vazbu na Národní metadatový adresář.", en = "The Library of the Czech Academy of Sciences explains the new result type “T” (research data) and its link to the National Metadata Directory." }
+
+[[clause]]
+id = "E.OS3"
+source = "os3-call"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Výzva Open Science III vyžaduje FAIR datovou sadu v NMA, zapojení data stewarda (jako autora nebo přispěvatele) a strategii správy výzkumných dat.", en = "The Open Science III call requires a FAIR dataset in NMA, the involvement of a data steward (as author or contributor) and a research data management strategy." }
+
+[[clause]]
+id = "E.NCDOI"
+source = "ncdoi-2023"
+principles = ["F1"]
+actor = "other"
+kind = "statement"
+text = { cs = "NTK v letech 2023–2028 hradí členům Národního centra DOI náklady na přidělování DOI přes DataCite.", en = "In 2023–2028, NTK covers the cost of assigning DOIs through DataCite for members of the National DOI Centre." }
+
+[[clause]]
+id = "E.OSTRAILS-CZ"
+source = "ostrails-cz-pilot"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Pilotní hodnocení 100 záznamů repozitáře DSpace ČVUT nástrojem FAIR Champion (červenec 2026): 38 % volání testů nevrátilo výsledek, třetina výsledků byla neurčitá, některé sady testů se na běžný repozitář nevztahují a výsledky byly napříč typy záznamů podobné; zpráva uvádí deset doporučení pro platformy.", en = "Pilot assessment of 100 records of the CTU DSpace repository with FAIR Champion (July 2026): 38 % of test calls returned no verdict, a third of verdicts were indeterminate, some test suites do not apply to an ordinary repository, and results were uniform across record types; the report gives ten recommendations for platforms." }
+
+[[clause]]
+id = "E.LINKAGES"
+source = "os-linkages-1.1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Přehled výstupů a provazeb projektů Open Science popisuje, jak na sebe navazují služby NRP, NKR a strojově čitelné požadavky repozitářů.", en = "The overview of outputs and linkages of the Open Science projects describes how NRP services, NKR and machine-readable repository requirements connect." }
+
+[[clause]]
 id = "E.NKR-SCHEMA"
 source = "nkr-schema"
-locator = "Repository schema"
 principles = ["F1", "F4", "A1", "R1.1"]
-actor = "repository"
+actor = "other"
 kind = "statement"
-text = { cs = "Záznam repozitáře v NKR popisuje mimo jiné typy PID, licence, režimy přístupu, podporu citlivých dat, rozhraní API a OAI-PMH a napojení na registry.", en = "An NKR repository record describes, among other things, PID types, licences, access modes, sensitive-data support, API and OAI-PMH interfaces and links to registries." }
+text = { cs = "Záznam repozitáře v NKR popisuje mimo jiné typy PID, licence, režimy přístupu, podporu citlivých dat, rozhraní API a OAI-PMH, slovníky a napojení na registry.", en = "An NKR repository record describes, among other things, PID types, licences, access modes, sensitive-data support, API and OAI-PMH interfaces, vocabularies and links to registries." }
+
+[[clause]]
+id = "E.CCMM"
+source = "ccmm-releases"
+principles = ["F2", "R1", "R1.1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "CCMM 2.0.0 (říjen 2026) se profiluje vůči DCAT-AP, rozlišuje odborná hesla a klíčová slova, váže licence ke třídám a popisuje provenienční aktivitu.", en = "CCMM 2.0.0 (October 2026) is profiled against DCAT-AP, distinguishes subjects from keywords, attaches licences per class and describes the provenance activity." }
+
+[[clause]]
+id = "E.DMP"
+source = "dsw-nrp"
+principles = ["R1", "R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "DMP.eosc.cz (Data Stewardship Wizard) je v pilotním provozu s přihlášením účtem e-INFRA CZ; nabízí šablony poskytovatelů (GA ČR, TA ČR, AZV ČR, MŠMT, Horizont Evropa, Science Europe), národní znalostní model a průvodce licencemi.", en = "DMP.eosc.cz (Data Stewardship Wizard) is in pilot operation with e-INFRA CZ login; it offers funder templates (GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe, Science Europe), a national knowledge model and a licence selector." }
+
+[[clause]]
+id = "E.POLICY-MANUAL"
+source = "policy-manual"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Manuál k přípravě institucionální datové politiky dává institucím rámec a vzor datové politiky.", en = "The manual for preparing an institutional data policy gives institutions a framework and a template." }
+
+[[clause]]
+id = "E.DS-HANDBOOK"
+source = "ds-handbook"
+principles = ["F2", "R1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "FAIR příručka pro data steward komunitu vysvětluje FAIR principy s praktickými příklady, včetně organizace a dokumentace dat.", en = "The FAIR handbook for the data steward community explains the FAIR principles with practical examples, including data organisation and documentation." }
+
+[[clause]]
+id = "E.DS-PERSONAS"
+source = "ds-personas"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Persony a use casy data stewardů popisují typické role data stewardů v Česku a situace, v nichž podporují výzkum.", en = "The personas and use cases of data stewards describe typical data steward roles in Czechia and the situations in which they support research." }
+
+[[clause]]
+id = "E.REPO-NEEDS"
+source = "repo-user-needs"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Praktický průvodce popisuje, jak před stavbou repozitáře zjistit potřeby uživatelů.", en = "The practical guide describes how to find out user needs before building a repository." }
+
+[[clause]]
+id = "E.REPO-RECOMMENDATIONS"
+source = "repo-recommendations"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Doporučení pro zakládání repozitářů v NRP provádějí zakládáním a provozem repozitáře a jeho rolemi.", en = "The recommendations for establishing repositories in NRP guide through setting up and running a repository and its roles." }
+
+[[clause]]
+id = "E.REPO-INTEGRATION"
+source = "repo-integration"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "EOSC CZ popisuje, jak integrovat existující repozitář do NRP.", en = "EOSC CZ describes how to integrate an existing repository into NRP." }
+
+[[clause]]
+id = "E.COPYRIGHT"
+source = "copyright-licences"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Příručka Autorská práva a licence vysvětluje autorskoprávní pojmy, ochranu výzkumných dat, depoziční a uživatelské licence a licence Creative Commons.", en = "The handbook on copyright and licences explains copyright concepts, the legal protection of research data, deposit and user licences, and Creative Commons licences." }
+
+[[clause]]
+id = "E.DEPOSIT-LICENCE"
+source = "deposit-licence"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Vzor depoziční licence zajišťuje oprávnění ke zveřejnění a archivaci dat v repozitáři.", en = "The deposit licence template secures the permissions needed to publish and archive data in a repository." }
+
+[[clause]]
+id = "E.ETHICS-SEVEN"
+source = "ethical-seven"
+principles = ["A1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Etické sedmero shrnuje etické zásady práce s výzkumnými daty: důvěryhodnost, transparentnost, odpovědnost, udržitelnost a ochranu účastníků výzkumu.", en = "The Ethical Seven summarises ethical principles for working with research data: trustworthiness, transparency, accountability, sustainability and the protection of research participants." }
+
+[[clause]]
+id = "E.AAI-SENSITIVE"
+source = "aai-sensitive"
+principles = ["A1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Initial AAI architecture for sensitive data in NRP popisuje správu identit a přístupů pro repozitáře a výpočetní workflow s citlivými daty.", en = "Initial AAI architecture for sensitive data in NRP describes identity and access management for repositories and computing workflows with sensitive data." }
+
+[[clause]]
+id = "E.EINFRA"
+source = "einfra-docs"
+principles = ["A1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "e-INFRA CZ nabízí výzkumným pracovníkům úložiště (S3, Onedata), výpočetní kapacity a Sensitive Cloud pro citlivá data.", en = "e-INFRA CZ offers researchers storage (S3, Onedata), computing and Sensitive Cloud for sensitive data." }
+
+[[clause]]
+id = "E.CERIT-AI"
+source = "cerit-aiaas"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "CERIT-SC provozuje AI jako službu v infrastruktuře e-INFRA CZ (chat, API, asistenti pro programování, JupyterHub); dotazy neopouštějí infrastrukturu.", en = "CERIT-SC runs AI as a service within the e-INFRA CZ infrastructure (chat, API, coding assistants, JupyterHub); requests stay within the infrastructure." }
+
+[[clause]]
+id = "E.NRP-COMPUTE"
+source = "nrp-docs-compute"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Dokumentace NRP popisuje propojení dat v NRP s výpočetním prostředím e-INFRA CZ.", en = "The NRP documentation describes how data in NRP connect to the e-INFRA CZ computing environment." }
+
+[[clause]]
+id = "E.DDRAPP"
+source = "ddrapp"
+principles = ["R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "DDRapp umožňuje anotovat data z přístrojů a předávat je do repozitáře.", en = "DDRapp lets you annotate instrument data and pass them to a repository." }
+
+[[clause]]
+id = "E.TRAINING"
+source = "eosc-training"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "EOSC CZ nabízí školení ke správě výzkumných dat.", en = "EOSC CZ offers training in research data management." }
+
+[[clause]]
+id = "E.WORKING-GROUPS"
+source = "eosc-working-groups"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Oborové a tematické pracovní skupiny EOSC CZ sdružují komunity kolem správy dat.", en = "EOSC CZ domain and thematic working groups bring communities together around data management." }
+
+[[clause]]
+id = "E.DATA-STEWARDS"
+source = "eosc-data-stewards"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "EOSC CZ sdružuje komunitu data stewardů a nabízí jí podporu.", en = "EOSC CZ brings together the data steward community and supports it." }
+
+[[clause]]
+id = "E.OS2"
+source = "os2-project"
+principles = ["R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "Projekt Open Science II podporuje vznik oborových repozitářů a standardů.", en = "The Open Science II project supports the creation of domain repositories and standards." }
+
+[[clause]]
+id = "E.ACKNOWLEDGEMENT"
+source = "eosc-acknowledgement"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "EOSC CZ zveřejňuje doporučené texty poděkování a citace pro výstupy související s iniciativou.", en = "EOSC CZ publishes recommended acknowledgement and citation texts for outputs related to the initiative." }
+
+[[clause]]
+id = "E.PID-CENTRE"
+source = "pid-centre"
+principles = ["F1", "I2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Centrum PID v NTK (identifikatory.cz) provozuje Národní centrum DOI, Národní centrum ORCID a podporu ROR.", en = "The PID Centre at NTK (identifikatory.cz) runs the National DOI Centre, the National ORCID Centre and ROR support." }
+
+[[clause]]
+id = "E.NMA"
+source = "nma"
+principles = ["F4"]
+actor = "other"
+kind = "statement"
+text = { cs = "Národní metadatový adresář umožňuje vyhledávat metadata výzkumných dat bez přihlášení.", en = "The National Metadata Directory lets anyone search metadata of research data without logging in." }
+
+[[clause]]
+id = "E.TF-SEMANTIC"
+source = "tf-semantic-interop"
+principles = ["I1", "I2", "I3"]
+actor = "other"
+kind = "statement"
+text = { cs = "Doporučení EOSC Task Force pro praktickou sémantickou interoperabilitu (2026): DCAT jako základ, mapování SSSOM, katalogy sémantických artefaktů.", en = "The EOSC Task Force recommendations for practical semantic interoperability (2026): DCAT as the baseline, SSSOM mappings, semantic artefact catalogues." }
+
+[[clause]]
+id = "E.CDIF"
+source = "cdif-1.1"
+principles = ["I1", "I2", "I3", "F2"]
+actor = "other"
+kind = "statement"
+text = { cs = "CDIF 1.1 je finální verze rámce pro mezioborovou interoperabilitu s profily Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure a Manifest.", en = "CDIF 1.1 is the final version of the cross-domain interoperability framework, with the profiles Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure and Manifest." }
+
+[[clause]]
+id = "E.SIGNPOSTING"
+source = "fair-signposting"
+principles = ["F3", "A1"]
+actor = "other"
+kind = "statement"
+text = { cs = "FAIR Signposting zpřístupňuje vazby mezi PID, metadaty a soubory pomocí typovaných odkazů v hlavičkách HTTP Link.", en = "FAIR Signposting exposes the links between PID, metadata and files through typed links in HTTP Link headers." }
+
+[[clause]]
+id = "E.SCHEMA-DATASET"
+source = "schema-org-dataset"
+principles = ["F4", "I1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Typ Schema.org Dataset popisuje datové sady pro vyhledávače, včetně odkazů na distribuce.", en = "The Schema.org Dataset type describes datasets for search engines, including links to distributions." }
+
+[[clause]]
+id = "E.DATACITE-SCHEMA"
+source = "datacite-schema"
+principles = ["I3", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Metadatové schéma DataCite definuje typy vazeb (relationType) a role přispěvatelů (contributorType).", en = "The DataCite metadata schema defines relation types (relationType) and contributor roles (contributorType)." }
+
+[[clause]]
+id = "E.FORCE11"
+source = "force11-citation"
+principles = ["F1", "R1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Společná deklarace zásad citování dat (FORCE11) stanovuje, že data se citují jako výsledky výzkumu.", en = "The Joint Declaration of Data Citation Principles (FORCE11) states that data are cited as research outputs." }
+
+[[clause]]
+id = "E.FAIR-CHAMPION"
+source = "fair-champion"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "FAIR Champion (OSTrails) spouští automatizované testy FAIR přes otevřené API; testy jsou přiřazené k metrikám.", en = "FAIR Champion (OSTrails) runs automated FAIR tests through an open API; tests are linked to metrics." }
+
+[[clause]]
+id = "E.OSTRAILS-CLI"
+source = "ostrails-cli"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Nástroj OSTrails CLI spouští testy FAIR Champion dávkově nad vzorkem záznamů.", en = "The OSTrails CLI tool runs FAIR Champion tests in batches over a sample of records." }
+
+[[clause]]
+id = "E.FAIR-IMPACT"
+source = "fair-impact-catalogue"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Katalog FAIR-IMPACT shromažďuje zdroje pro zavádění FAIR, včetně metrik a hodnocení.", en = "The FAIR-IMPACT catalogue collects resources for implementing FAIR, including metrics and assessment." }
+
+[[clause]]
+id = "E.FIP-TEMPLATES"
+source = "fip-wizard-templates"
+principles = ["R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "FIP Wizard publikuje šablony nanopublikací pro FER, včetně převodu záznamu FAIRsharing na FER.", en = "FIP Wizard publishes nanopublication templates for FERs, including turning a FAIRsharing record into a FER." }
+
+[[clause]]
+id = "E.FIP-ONTOLOGY"
+source = "fip-ontology"
+principles = ["R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "Ontologie FIP definuje typy zdrojů umožňujících FAIR (FER) a otázky FIP podle principů.", en = "The FIP ontology defines the types of FAIR-enabling resources (FERs) and the FIP questions per principle." }
+
+[[clause]]
+id = "E.CTS"
+source = "coretrustseal"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "CoreTrustSeal certifikuje důvěryhodné repozitáře podle souboru požadavků.", en = "CoreTrustSeal certifies trustworthy repositories against a set of requirements." }
+
+[[clause]]
+id = "E.HESLAR"
+source = "heslar"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Heslář Open Science (NTK) vysvětluje české a anglické pojmy otevřené vědy.", en = "The Open Science glossary (NTK) explains Czech and English open-science terms." }
+
+[[clause]]
+id = "E.DATASPECER"
+source = "dataspecer"
+principles = ["R1.3", "I1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Dataspecer je nástroj pro správu metadatových profilů a datových specifikací, dostupný i jako obraz Docker.", en = "Dataspecer is a tool for managing metadata profiles and data specifications, also available as a Docker image." }
+
+[[clause]]
+id = "E.FAIR-PRINCIPLES"
+source = "fair-principles-2016"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "FAIR principy (Wilkinson et al., 2016) formulují patnáct zásad, aby data byla dohledatelná, přístupná, interoperabilní a opakovaně použitelná.", en = "The FAIR principles (Wilkinson et al., 2016) set out fifteen principles that make data findable, accessible, interoperable and reusable." }

@@ -29,7 +29,7 @@ from build_crate import ROOT, ContentError, load_content  # noqa: E402
 
 LANGS = ("cs", "en")
 LEVELS = ("L0", "L1", "L2")
-CLAUSE_KINDS = ("requirement", "fulfilment", "statement")
+CLAUSE_KINDS = ("requirement", "recommendation", "fulfilment", "statement")
 CLAUSE_STATUSES = ("current", "refresh", "superseded")
 HEALTH = ("available", "degraded", "unavailable")
 PREFILL_SOURCES = ("datacite", "nkr", "champion", "fip", "resolver")
@@ -236,6 +236,9 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
             report.error(where, f"status must be one of {', '.join(CLAUSE_STATUSES)}")
         if clause.get("status") == "refresh" and not clause.get("note"):
             report.error(where, "a clause marked for refresh needs a note saying what changed")
+        for note_source in clause.get("noteSources", []):
+            if note_source not in clause_ids | source_ids:
+                report.error(where, f"noteSources names an unknown clause or source '{note_source}'")
         superseded_by = clause.get("supersededBy")
         if superseded_by and superseded_by not in clause_ids | source_ids:
             report.error(where, f"supersededBy names an unknown clause or source '{superseded_by}'")
@@ -252,8 +255,8 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                 actor, kind = LETTER_KIND[letter]
                 if clause.get("actor") != actor or clause.get("kind") != kind:
                     report.error(where, f"'{letter}' clauses are {kind}s addressed to '{actor}'")
-            elif clause.get("kind") != "fulfilment":
-                report.error(where, "'X' clauses describe fulfilment in NRP (kind = 'fulfilment')")
+            elif clause.get("kind") not in ("fulfilment", "statement"):
+                report.error(where, "'X' clauses state fulfilment in NRP or a CoreTrustSeal/CDIF link, not a requirement")
     return clause_ids
 
 

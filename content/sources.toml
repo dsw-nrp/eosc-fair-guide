@@ -1,4 +1,4 @@
-# Published sources. Every ledger clause names one of these. Unpublished working material is never listed.
+# Published sources. Every ledger clause names one of these; unpublished working material is never listed.
 # Field reference: docs/content-model.md.
 
 [[source]]
@@ -23,10 +23,484 @@ publisher = "nrp"
 dateAccessed = 2026-10-08
 
 [[source]]
+id = "nrp-docs-nma-introduction"
+type = "webpage"
+title = "National Metadata Directory: introduction (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-introduction"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "nrp-docs-nma-access"
+type = "webpage"
+title = "National Metadata Directory: access (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-access"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "nrp-docs-nma-riv"
+type = "webpage"
+title = "National Metadata Directory: verifying datasets for RIV (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-verifying-datasets-for-RIV"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "nrp-docs-nma-export"
+type = "webpage"
+title = "Exports to the National Metadata Directory (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/national-metadata-directory/exports-to-nma"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "nrp-docs-compute"
+type = "webpage"
+title = "Support for computing with NRP data (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
 id = "nkr-schema"
 type = "webpage"
 title = "Národní katalog repozitářů (NKR): schéma záznamu Repository"
 inLanguage = "cs"
 url = "https://repo.cz/schemas/Repository"
 publisher = "cesnet"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "survey-2025"
+type = "presentation"
+title = "Stav správy výzkumných dat v České republice 2025"
+inLanguage = "cs"
+url = "https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf"
+publisher = "EOSC CZ"
+authors = ["M. Vávra", "T. Čížek", "J. Klusáček"]
+datePublished = 2026-04-01
+
+[[source]]
+id = "mbdb-2026"
+type = "article"
+title = "Molecular Biophysics Database (MBDB) makes raw measurements findable and reusable"
+inLanguage = "en"
+doi = "10.1007/s00249-025-01789-1"
+url = "https://doi.org/10.1007/s00249-025-01789-1"
+publisher = "European Biophysics Journal"
+authors = ["E. D. Agerschou", "et al."]
+datePublished = "2026"
+
+[[source]]
+id = "knav-type-t"
+type = "webpage"
+title = "New type “T” research output and the National Metadata Directory"
+inLanguage = "en"
+url = "https://openscience.lib.cas.cz/en/funders-en/new-type-t-research-output-and-the-national-metadata-directory/"
+publisher = "Knihovna AV ČR"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "os3-call"
+type = "webpage"
+title = "Open Science III"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/open-science-iii"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "ncdoi-2023"
+type = "webpage"
+title = "NTK establishes two new national centres that can help Czech scientists with bureaucracy"
+inLanguage = "en"
+url = "https://identifikatory.cz/en/ntk-establishes-two-new-national-centres-that-can-help-czech-scientists-with-bureaucracy/"
+publisher = "Národní technická knihovna"
+datePublished = 2023-06-02
+
+[[source]]
+id = "ostrails-cz-pilot"
+type = "dataset"
+title = "FAIR assessment of a sample of the CTU DSpace repository (OSTrails CZ Pilot, FAIR Champion, July 2026)"
+inLanguage = "en"
+doi = "10.5281/zenodo.21726258"
+url = "https://doi.org/10.5281/zenodo.21726258"
+publisher = "Zenodo"
+authors = ["M. Suchánek", "J. Martínková", "E. Hnátková", "R. Pergl"]
+datePublished = "2026-07"
+
+[[source]]
+id = "os-linkages-1.1"
+type = "document"
+title = "Výstupy a provazby projektů Open Science, verze 1.1"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz"
+publisher = "EOSC CZ"
+authors = ["Michaela Capandová", "et al."]
+datePublished = 2024-09-26
+
+[[source]]
+id = "ccmm-releases"
+type = "software"
+title = "Czech Core Metadata Model (CCMM): releases"
+inLanguage = "en"
+url = "https://github.com/techlib/CCMM/releases"
+publisher = "Národní technická knihovna"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "dsw-nrp"
+type = "software"
+title = "dsw-nrp: Data Stewardship Wizard for NRP (templates, knowledge model, plugins)"
+inLanguage = "en"
+url = "https://github.com/dsw-nrp"
+publisher = "cesnet"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "dmp-eosc"
+type = "webpage"
+title = "DMP.eosc.cz"
+inLanguage = "en"
+url = "https://dmp.eosc.cz/"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "policy-manual"
+type = "document"
+title = "Manuál k přípravě institucionální datové politiky"
+inLanguage = "cs"
+doi = "10.71495/scvx-yn57"
+url = "https://doi.org/10.71495/scvx-yn57"
+publisher = "EOSC CZ"
+datePublished = 2026-09-08
+
+[[source]]
+id = "ds-handbook"
+type = "document"
+title = "FAIR příručka pro data steward komunitu v ČR"
+inLanguage = "cs"
+doi = "10.71495/hxfc-6f57"
+url = "https://doi.org/10.71495/hxfc-6f57"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "ds-personas"
+type = "document"
+title = "Persony a use casy data stewardů v České republice"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#persony_ds"
+publisher = "EOSC CZ"
+datePublished = 2026-06-18
+
+[[source]]
+id = "repo-user-needs"
+type = "document"
+title = "Zjišťování uživatelských potřeb pro repozitáře: praktický průvodce"
+inLanguage = "cs"
+doi = "10.71495/x3e9-mf73"
+url = "https://doi.org/10.71495/x3e9-mf73"
+publisher = "EOSC CZ"
+datePublished = 2026-03-13
+
+[[source]]
+id = "repo-recommendations"
+type = "document"
+title = "Doporučení pro zakládání repozitářů v prostředí NRP"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#doporuceni_repozitare"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "repo-integration"
+type = "webpage"
+title = "Integrace existujícího repozitáře do NRP"
+inLanguage = "cs"
+url = "https://www.eosc.cz/sluzby/ukladani/repozitare-v-nrp/integrece-repo-nrp"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "copyright-licences"
+type = "document"
+title = "Autorská práva a licence"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "deposit-licence"
+type = "document"
+title = "Vzor depoziční licence"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "ethical-seven"
+type = "document"
+title = "Etické sedmero pro práci s výzkumnými daty"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#sedmoro"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "aai-sensitive"
+type = "document"
+title = "Initial AAI architecture for sensitive data in NRP"
+inLanguage = "en"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#AAI_NRP_SD"
+publisher = "EOSC CZ"
+datePublished = 2026-03-31
+
+[[source]]
+id = "einfra-docs"
+type = "webpage"
+title = "e-INFRA CZ documentation"
+inLanguage = "en"
+url = "https://docs.e-infra.cz/"
+publisher = "e-INFRA CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "cerit-aiaas"
+type = "webpage"
+title = "AI as a Service (CERIT-SC documentation)"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/introduction"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "eosc-training"
+type = "webpage"
+title = "Školení EOSC CZ"
+inLanguage = "cs"
+url = "https://www.eosc.cz/skoleni"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "eosc-working-groups"
+type = "webpage"
+title = "Pracovní skupiny EOSC CZ"
+inLanguage = "cs"
+url = "https://www.eosc.cz/pracovni-skupiny"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "eosc-data-stewards"
+type = "webpage"
+title = "Data stewardi (EOSC CZ)"
+inLanguage = "cs"
+url = "https://www.eosc.cz/komunity/data-stewardi"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "os2-project"
+type = "webpage"
+title = "Open Science II"
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/open-science-ii"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "eosc-acknowledgement"
+type = "webpage"
+title = "Poděkování a citace (EOSC CZ)"
+inLanguage = "cs"
+url = "https://www.eosc.cz/o-nas/acknowledgement"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "pid-centre"
+type = "webpage"
+title = "Centrum PID (identifikatory.cz)"
+inLanguage = "cs"
+url = "https://identifikatory.cz/cs/"
+publisher = "Národní technická knihovna"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "nma"
+type = "webpage"
+title = "Národní metadatový adresář (NMA)"
+inLanguage = "cs"
+url = "https://nma.eosc.cz/"
+publisher = "cesnet"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "tf-semantic-interop"
+type = "report"
+title = "Practical Semantic Interoperability recommendations for the EOSC Federation"
+inLanguage = "en"
+doi = "10.5281/zenodo.22831063"
+url = "https://doi.org/10.5281/zenodo.22831063"
+publisher = "EOSC Association"
+authors = ["Kurt Baumann", "et al."]
+datePublished = 2026-09-18
+
+[[source]]
+id = "cdif-1.1"
+type = "standard"
+title = "Cross-Domain Interoperability Framework (CDIF), version 1.1"
+inLanguage = "en"
+url = "https://book.cdif.org/"
+publisher = "CODATA"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "fair-signposting"
+type = "standard"
+title = "FAIR Signposting Profile"
+inLanguage = "en"
+url = "https://signposting.org/FAIR/"
+publisher = "Signposting"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "schema-org-dataset"
+type = "standard"
+title = "Schema.org: Dataset"
+inLanguage = "en"
+url = "https://schema.org/Dataset"
+publisher = "Schema.org"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "datacite-schema"
+type = "standard"
+title = "DataCite Metadata Schema"
+inLanguage = "en"
+url = "https://schema.datacite.org/"
+publisher = "DataCite"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "force11-citation"
+type = "standard"
+title = "Joint Declaration of Data Citation Principles"
+inLanguage = "en"
+url = "https://force11.org/info/joint-declaration-of-data-citation-principles-final/"
+publisher = "FORCE11"
+datePublished = "2014"
+
+[[source]]
+id = "fair-champion"
+type = "software"
+title = "FAIR Champion (OSTrails)"
+inLanguage = "en"
+url = "https://tools.ostrails.eu/champion/"
+publisher = "OSTrails"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "ostrails-cli"
+type = "software"
+title = "ostrails-ctu-dspace-fair (OSTrails CLI)"
+inLanguage = "en"
+url = "https://github.com/MarekSuchanek/ostrails-ctu-dspace-fair"
+publisher = "GitHub"
+authors = ["Marek Suchánek"]
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "fair-impact-catalogue"
+type = "webpage"
+title = "FAIR-IMPACT catalogue of resources"
+inLanguage = "en"
+url = "https://catalogue.fair-impact.eu/resources"
+publisher = "FAIR-IMPACT"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "fip-wizard-templates"
+type = "software"
+title = "FIP Wizard: nanopublication templates"
+inLanguage = "en"
+url = "https://github.com/fip-wizard"
+publisher = "GitHub"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "fip-ontology"
+type = "standard"
+title = "FAIR Implementation Profile ontology"
+inLanguage = "en"
+url = "https://w3id.org/fair/fip/terms/"
+publisher = "GO FAIR Foundation"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "coretrustseal"
+type = "standard"
+title = "CoreTrustSeal Requirements 2023–2025"
+inLanguage = "en"
+url = "https://www.coretrustseal.org/"
+publisher = "CoreTrustSeal"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "heslar"
+type = "webpage"
+title = "Heslář Open Science"
+inLanguage = "cs"
+url = "https://heslar.openscience.cz/"
+publisher = "Národní technická knihovna"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "ddrapp"
+type = "software"
+title = "DDRapp"
+inLanguage = "cs"
+url = "https://ddrapp.nrp1.du.cesnet.cz/?lang=cs"
+publisher = "cesnet"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "dataspecer"
+type = "software"
+title = "Dataspecer"
+inLanguage = "en"
+url = "https://dataspecer.com/"
+publisher = "Dataspecer"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "fair-principles-2016"
+type = "article"
+title = "The FAIR Guiding Principles for scientific data management and stewardship"
+inLanguage = "en"
+doi = "10.1038/sdata.2016.18"
+url = "https://doi.org/10.1038/sdata.2016.18"
+publisher = "Scientific Data"
+authors = ["Mark D. Wilkinson", "et al."]
+datePublished = 2016-03-15
+
+[[source]]
+id = "survey-2025-data"
+type = "dataset"
+title = "Stav správy výzkumných dat v ČR 2025 (data)"
+inLanguage = "cs"
+doi = "10.14473/CSDA/OJTMJF"
+url = "https://doi.org/10.14473/CSDA/OJTMJF"
+publisher = "Český sociálněvědní datový archiv"
 dateAccessed = 2026-10-08
