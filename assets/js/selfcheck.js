@@ -602,7 +602,7 @@
       "div",
       { class: "badges" },
       h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
-      FG.refs(item, "about").map((principle) => h("a", { class: "chip", href: FG.href("explorer", principle.termCode) }, principle.termCode))
+      FG.refs(item, "about").map((principle) => FG.principleTile(principle))
     );
     const statement = [h("span", { class: "item-id" }, id), " ", FG.span(item.text)];
     const clauses = FG.refs(item, "citation");
@@ -780,7 +780,7 @@
       FG.t("selfcheck.result.principles"),
       [FG.t("selfcheck.result.principle"), FG.t("selfcheck.result.state"), FG.t("selfcheck.result.answered")],
       principleRows(check, st).map((row) => [
-        h("a", { href: FG.href("explorer", row.principle.termCode) }, row.principle.termCode),
+        h("a", { href: FG.href("explorer", row.principle.termCode) }, row.principle.termCode + " ", FG.span(row.principle.name)),
         stateLabel(row.state),
         FG.t("selfcheck.result.ofTotal", { n: row.answered, total: row.total }),
       ])

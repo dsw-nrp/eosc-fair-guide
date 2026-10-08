@@ -19,6 +19,12 @@
   --border: #c5d5d8;
   --focus: #c2264f;
 
+  /* F/A/I/R colours of the FIP Dashboard; F and R darkened slightly so white letters reach 4.5:1 */
+  --fair-f: #00818c;
+  --fair-a: #2f6f9f;
+  --fair-i: #9f0d54;
+  --fair-r: #9e6b09;
+
   /* Status (always shown with a text label and an icon, never by colour alone) */
   --status-operational: #dff1e6;
   --status-pilot: #fff1cc;

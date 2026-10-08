@@ -5,6 +5,7 @@ id = "popis"
 position = 4
 name = { cs = "Popis", en = "Description" }
 title = { cs = "Popis dat (metadata)", en = "Describing the data (metadata)" }
+icon = "tags"
 principles = ["F2", "I1", "I2", "I3", "R1", "R1.2", "R1.3"]
 minutes = 15
 glossary = ["metadata-metadatovy-zaznam", "metadatovy-standard", "metadatovy-aplikacni-profil", "zakladni-metadatovy-model-pro-popis-vyzkumnych-dat", "rizeny-slovnik", "registr-vyzkumnych-organizaci"]

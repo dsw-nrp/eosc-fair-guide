@@ -533,6 +533,8 @@ the self-check. The decisions below record the maintainer's answers; the decisio
 - The "what to do now" level is a lighter callout: no background, an accent line beside the text, and a smaller
   action button on the right, so it guides without dominating.
 - Links in running text use a dotted underline that becomes solid on hover.
+- Every link to an external URL opens in a new tab and says so to assistive technology; this includes the EOSC CZ
+  logo in the header.
 - The provenance line on a station says only what the content is based on, its date and a link to the details;
   the statement on AI use and human review lives in the details and on the about page.
 - The footer gives the full citation of the guide as software (editor, title, version, year, publisher,
@@ -652,3 +654,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-78 | 2026-10-08 | The main menu item reads **"Cesta k FAIR" / "Path to FAIR"**; the stage card mark says **where the visitor was last** ("Naposledy u kroku 5") instead of "You are here", which read as marking the page shown. | U |
 | D-79 | 2026-10-08 | The **landing is its own first menu item** ("Úvod" / "Home"); the path item opens the station the visitor was last at (the first station on a first visit). | U |
 | D-80 | 2026-10-08 | The stage mark appears **only after a stage is chosen** and reads "Vybráno" with the date of the last visit; the stage can be **changed on the path** in a "Vaše fáze" switch above the stations, replacing the "Začít jinde" link, because the choice decides where the path menu item leads. | U |
+| D-81 | 2026-10-08 | **Every external link opens in a new tab** (the header logo included, which previously replaced the embedding page); a page check enforces it on every view. | U |

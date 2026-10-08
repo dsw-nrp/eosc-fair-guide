@@ -88,6 +88,24 @@
 
   /* ---------------------------------------------------------------- shell */
 
+  /** A FAIR principle as a tile: its letter in the F/A/I/R colour, then the rest of the code and the short title,
+      so the tile reads "R1.1 Licence" and links to the principle in the explorer. */
+  FG.principleTile = function (principle, attrs) {
+    const code = String(principle.termCode);
+    return h(
+      "a",
+      Object.assign({ class: "principle-tile", "data-letter": code.charAt(0), href: FG.href("explorer", code) }, attrs || {}),
+      h("span", { class: "principle-letter" }, code.charAt(0)),
+      h("span", null, code.slice(1) + " ", FG.span(principle.name))
+    );
+  };
+
+  const principleTiles = (principles, label) =>
+    h("ul", { class: "principle-tiles", "aria-label": label || null }, principles.map((principle) => h("li", null, FG.principleTile(principle))));
+
+  /** The icon of a disclosure level, or of a named interface role. */
+  const levelIcon = (code) => FG.icon((FG.config.icons && FG.config.icons.level && FG.config.icons.level[code]) || "");
+
   /** Whether a path route shows the landing (the path's start) rather than a station. */
   FG.landingShown = function (route) {
     return route.view === "path" && (route.arg === "start" || (!route.arg && !FG.state.started));
@@ -104,11 +122,7 @@
         h(
           "div",
           { class: "brand" },
-          h(
-            "a",
-            { href: FG.config.links.eoscHome, target: "_top" },
-            h("img", { src: "assets/img/eosc-cz-logo.svg", alt: FG.t("app.home"), width: "144", height: "30" })
-          ),
+          FG.external(FG.config.links.eoscHome, h("img", { src: "assets/img/eosc-cz-logo.svg", alt: FG.t("app.home"), width: "144", height: "30" })),
           h("a", { class: "brand-title", href: FG.href("path", "start") }, FG.t("app.title"))
         ),
         h(
@@ -289,6 +303,7 @@
   }
 
   function railList(currentId) {
+    const icons = (FG.config.icons && FG.config.icons.station) || {};
     const entryStation = FG.state.entryStation;
     let beforeEntry = Boolean(entryStation);
     return h(
@@ -304,6 +319,7 @@
               "a",
               { href: FG.href("path", station.identifier), "aria-current": station.identifier === currentId ? "step" : null },
               h("span", { class: "number" }, String(station.position)),
+              FG.icon(icons[station.identifier]) || h("span"),
               FG.span(station.name),
               gaps ? h("span", { class: "gap-mark" }, h("span", { "aria-hidden": "true" }, String(gaps)), h("span", { class: "visually-hidden" }, " " + FG.t("selfcheck.gapsHere", { n: gaps }))) : null
             )
@@ -482,13 +498,7 @@
     return [
       notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.span(note.text)))) : null,
       h("h3", null, FG.t("station.whyPrinciples")),
-      h(
-        "ul",
-        { class: "chips" },
-        principles.map((principle) =>
-          h("li", null, h("a", { class: "chip", href: FG.href("explorer", principle.termCode) }, principle.termCode + " · ", FG.span(principle.name)))
-        )
-      ),
+      principleTiles(principles),
       h("h3", null, FG.t("station.whyClauses")),
       h(
         "ul",
@@ -588,43 +598,42 @@
     const action = now ? FG.get(now.potentialAction) : null;
     const minutes = String(entity.timeRequired || "").replace(/\D/g, "");
     const levelName = (code) => FG.termName("#level-" + code);
+    const levelTitle = (code) => [levelIcon(code), h("span", null, levelName(code))];
+    const stationIcon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[entity.identifier];
+    const stepLine = FG.t("station.step", { n: entity.position, total: stations.length }) + (minutes ? " · " + FG.t("station.minutes", { n: minutes }) : "");
     return h(
       "article",
       { class: "station" },
       h(
         "header",
         { class: "station-header" },
-        h("p", { class: "muted" }, FG.t("station.step", { n: entity.position, total: stations.length })),
-        heading(1, null, FG.span(entity.name), " · ", FG.span(entity.headline)),
+        FG.icon(stationIcon, { class: "station-icon" }),
         h(
           "div",
-          { class: "meta" },
-          minutes ? h("span", null, FG.t("station.minutes", { n: minutes })) : null,
-          h("span", { class: "visually-hidden" }, FG.t("station.principles") + ":"),
-          h(
-            "ul",
-            { class: "chips" },
-            FG.refs(entity, "about").map((principle) => h("li", null, h("a", { class: "chip", href: FG.href("explorer", principle.termCode) }, principle.termCode)))
-          )
+          null,
+          h("p", { class: "muted" }, stepLine),
+          heading(1, null, FG.span(entity.name), " · ", FG.span(entity.headline)),
+          principleTiles(FG.refs(entity, "about"), FG.t("station.principles"))
         )
       ),
       now
         ? h(
             "section",
             { class: "now", "aria-label": levelName("L0") },
-            h("p", { class: "level" }, levelName("L0")),
-            h("p", null, FG.span(now.text)),
+            h("div", null, h("p", { class: "level" }, levelTitle("L0")), h("p", { class: "now-text" }, FG.span(now.text))),
             action
               ? FG.id(action.target).startsWith("#")
-                ? h("a", { class: "button button-primary", href: FG.actionHref(FG.id(action.target)) }, FG.span(action.name))
-                : FG.external(FG.id(action.target), FG.text(action.name), { class: "button button-primary" })
+                ? h("a", { class: "button button-primary button-small", href: FG.actionHref(FG.id(action.target)) }, FG.span(action.name))
+                : FG.external(FG.id(action.target), [FG.text(action.name), FG.icon("external")], { class: "button button-primary button-small" })
               : null
           )
         : h("p", null, FG.t("station.empty")),
-      steps.length ? details(levelName("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
-      ai.length ? details(FG.t("station.ai"), "ai", ai.map((item) => h("p", { class: "tip" }, FG.span(item.text))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline)))) : null,
-      details(levelName("L2"), "L2", whyContent(entity, items)),
-      details(levelName("L3"), "L3", madeContent(items)),
+      steps.length ? details(levelTitle("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
+      ai.length
+        ? details([FG.icon("ai"), h("span", null, FG.t("station.ai"))], "ai", ai.map((item) => h("p", { class: "tip" }, FG.span(item.text))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline))))
+        : null,
+      details(levelTitle("L2"), "L2", whyContent(entity, items)),
+      details(levelTitle("L3"), "L3", madeContent(items)),
       callouts(entity, route.lens),
       resources.length ? h("section", null, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards" }, resources.map(resourceCard))) : null,
       terms.length
@@ -666,26 +675,38 @@
       ? FG.graph.filter((entity) => entity.clauseKind && FG.hasRef(entity, "about", selected["@id"]))
       : [];
     const actors = ["#actor-nrp", "#actor-repository", "#actor-fip", "#actor-other"];
+    const menu = h(
+      "nav",
+      { class: "principle-menu", "aria-label": FG.t("explorer.choose") },
+      ["F", "A", "I", "R"].map((letter) =>
+        h(
+          "div",
+          { class: "principle-group" },
+          h("p", { class: "principle-group-name" }, h("span", { class: "principle-letter", "data-letter": letter }, letter), FG.t("explorer.group." + letter)),
+          h(
+            "ul",
+            null,
+            principles
+              .filter((principle) => String(principle.termCode).charAt(0) === letter)
+              .map((principle) => h("li", null, FG.principleTile(principle, { "aria-current": principle === selected ? "true" : null })))
+          )
+        )
+      )
+    );
     return h(
       "div",
-      { class: "layout wrap" },
+      { class: "wrap explorer" },
+      heading(1, null, FG.t("explorer.title")),
+      h("p", null, FG.t("explorer.intro")),
       h(
-        "section",
-        null,
-        heading(1, null, FG.t("explorer.title")),
-        h("p", null, FG.t("explorer.intro")),
-        h(
-          "ul",
-          { class: "principles-grid", "aria-label": FG.t("explorer.choose") },
-          principles.map((principle) =>
-            h("li", null, h("a", { href: FG.href("explorer", principle.termCode), "aria-current": principle === selected ? "true" : null }, h("strong", null, principle.termCode), " ", FG.span(principle.name)))
-          )
-        ),
+        "div",
+        { class: "layout layout-explorer" },
+        menu,
         selected
           ? h(
               "section",
               { "aria-labelledby": "principle-heading" },
-              heading(2, { id: "principle-heading" }, selected.termCode + " · ", FG.span(selected.name)),
+              heading(2, { id: "principle-heading" }, h("span", { class: "principle-letter", "data-letter": String(selected.termCode).charAt(0) }, String(selected.termCode).charAt(0)), String(selected.termCode).slice(1) + " · ", FG.span(selected.name)),
               h("p", { class: "lead" }, FG.span(selected.description)),
               h("p", null, FG.external(FG.DASHBOARD + "resources?principles=" + encodeURIComponent(selected.termCode), FG.t("explorer.dashboard", { p: selected.termCode }))),
               relatedTerms(selected),
@@ -696,7 +717,7 @@
                 return h("section", null, h("h3", null, FG.termName(actor)), h("ul", { class: "clauses" }, group.map(clauseItem)));
               })
             )
-          : null
+          : h("p", { class: "muted" }, FG.t("explorer.pick"))
       )
     );
   };

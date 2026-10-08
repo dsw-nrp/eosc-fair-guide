@@ -5,6 +5,7 @@ id = "dohledatelnost"
 position = 7
 name = { cs = "Dohledatelnost", en = "Findability" }
 title = { cs = "NMA a další vyhledávače", en = "NMA and other discovery services" }
+icon = "magnifying-glass"
 principles = ["F4", "A2"]
 minutes = 5
 glossary = ["narodni-metadatovy-adresar", "harvestovani-sklizeni", "open-archives-initiative-protocol-for-metadata-harvesting", "narodni-datova-infrastruktura"]

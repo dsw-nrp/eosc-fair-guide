@@ -6,6 +6,7 @@ id = "kontrola"
 position = 9
 name = { cs = "Kontrola", en = "Check" }
 title = { cs = "Ověření FAIR", en = "Checking FAIRness" }
+icon = "list-check"
 principles = ["F1", "F2", "F3", "F4", "A1", "A1.1", "A1.2", "A2", "I1", "I2", "I3", "R1", "R1.1", "R1.2", "R1.3"]
 minutes = 5
 glossary = ["fair-principy", "fairifikace", "fair-datova-sada-soubor-fair-dat"]

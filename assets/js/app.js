@@ -29,15 +29,16 @@
     const view = (route.view === "check" || route.view === "selfcheck") && FG.views.selfcheck ? FG.views.selfcheck : FG.views[route.view] || FG.views.path;
     const app = document.getElementById("app");
     const main = FG.h("main", { id: "main", tabindex: "-1" }, view(route));
-    app.replaceChildren(
+    const parts = [
       FG.h("a", { class: "skip-link", href: "#main", onclick: skipToMain }, FG.t("app.skip")),
       FG.views.header(route),
       FG.views.notice(),
       FG.views.nav(route),
       FG.views.lensBand(route),
       main,
-      FG.views.footer()
-    );
+      FG.views.footer(),
+    ];
+    app.replaceChildren(...parts.filter(Boolean));
     if (typeof FG.keepScroll === "number") {
       window.scrollTo(0, FG.keepScroll);
       FG.keepScroll = null;

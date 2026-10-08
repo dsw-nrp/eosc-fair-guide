@@ -5,6 +5,7 @@ id = "publikace"
 position = 6
 name = { cs = "Publikace", en = "Publication" }
 title = { cs = "Zveřejnění a trvalý identifikátor", en = "Publication and the persistent identifier" }
+icon = "paper-plane"
 principles = ["F1", "F3", "A1", "A1.1", "A2"]
 minutes = 5
 glossary = ["perzistentni-trvaly-identifikator", "digitalni-identifikator-objektu", "handle"]

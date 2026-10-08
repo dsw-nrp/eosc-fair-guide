@@ -1239,6 +1239,9 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
                     stage["id"]: stage["icon"] for stage in content["guide"].get("stage", []) if stage.get("icon")
                 },
                 "lens": {lens["id"]: lens["icon"] for lens in content["guide"].get("lens", []) if lens.get("icon")},
+                "level": {
+                    level["id"]: level["icon"] for level in content["guide"].get("level", []) if level.get("icon")
+                },
                 "station": {
                     data["station"]["id"]: data["station"]["icon"]
                     for data in content["stations"]

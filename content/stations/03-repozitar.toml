@@ -5,6 +5,7 @@ id = "repozitar"
 position = 3
 name = { cs = "Repozitář", en = "Repository" }
 title = { cs = "Výběr repozitáře", en = "Choosing a repository" }
+icon = "box-archive"
 principles = ["F4", "A1", "A1.1", "A2", "R1.3"]
 minutes = 10
 glossary = ["repozitar", "oborovy-tematicky-repozitar", "obecny-genericky-sirotci-repozitar", "duveryhodny-digitalni-repozitar", "registr-repozitaru-vyzkumnych-dat", "narodni-katalog-repozitaru"]

@@ -5,6 +5,7 @@ id = "prace"
 position = 2
 name = { cs = "Práce", en = "Work" }
 title = { cs = "Práce s daty během výzkumu", en = "Working with data during research" }
+icon = "flask"
 principles = ["R1.2", "I1", "R1", "A1.2"]
 minutes = 5
 glossary = ["metadata-metadatovy-zaznam", "podkladova-podpurna-doprovodna-data", "strojove-citelny-dokument-format"]

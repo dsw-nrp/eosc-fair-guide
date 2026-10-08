@@ -104,21 +104,25 @@ icon = "people-group"
 
 [[level]]
 id = "L0"
+icon = "hand-point-right"
 name = { cs = "Co udělat teď", en = "What to do now" }
 description = { cs = "Jedna věta a jeden konkrétní krok.", en = "One sentence and one concrete action." }
 
 [[level]]
 id = "L1"
+icon = "list-ol"
 name = { cs = "Jak na to", en = "How to do it" }
 description = { cs = "Postup v krocích.", en = "Steps." }
 
 [[level]]
 id = "L2"
+icon = "circle-question"
 name = { cs = "Proč", en = "Why" }
 description = { cs = "Principy FAIR, požadavky a souvislosti.", en = "FAIR principles, requirements and context." }
 
 [[level]]
 id = "L3"
+icon = "book"
 name = { cs = "Zdroje a vznik obsahu", en = "Sources and how this was made" }
 description = { cs = "Citované zdroje a paradata.", en = "Cited sources and paradata." }
 

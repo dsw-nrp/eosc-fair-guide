@@ -150,7 +150,7 @@ once, in their original language, with `inLanguage`.
 | `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder` | | An organisation or project; all but `id` and `name` are optional |
 | `[[instrument]]` | `id`, `name`, `version`, `url`, `kind` | | A tool used in provenance actions; `kind` is `ai-model`, `software` or `service` |
 | `[[lens]]` | `id`, `name`, `description`, `icon` | | `V`, `DS`, `SR`, `K` |
-| `[[level]]` | `id`, `name`, `description` | | `L0`–`L3` |
+| `[[level]]` | `id`, `name`, `description`, `icon` | | `L0`–`L3`; the icon leads the level's heading on a station |
 | `[[stage]]` | `id`, `label`, `station`, `description`, `icon` | | An answer of the entry question, shown as a card, and the station it opens |
 | `[[actor]]` | `id`, `name`, `role` | | Who a clause addresses (`role = "clause"`) or who fixes a gap (`role = "owner"`) |
 | `[[status]]` | `id`, `name` | | The five-level status vocabulary |
@@ -181,7 +181,8 @@ published), `noteSources` (clause or source IDs that support the note), `superse
 
 ### `stations/NN-<id>.toml`
 
-`[station]`: `id`, `position`, `name` (short label), `title`, `principles`, `minutes`, `glossary` (term IDs).
+`[station]`: `id`, `position`, `name` (short label), `title`, `icon` (shown in the station header and on the rail),
+`principles`, `minutes`, `glossary` (term IDs).
 
 `[[advice]]`:
 

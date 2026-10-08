@@ -356,20 +356,24 @@ button:hover,
 
 /* Path rail */
 
+/* A ruled list of stations: number, icon and name in fixed columns; the legend for the self-check marks sits
+   below the rule with its mark in the icon column. */
+.rail {
+  --rail-number: 1.25rem;
+  --rail-icon: 1.1rem;
+}
+
 .rail ol {
   list-style: none;
   margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  display: grid;
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 @media (min-width: 60rem) {
-  .rail ol {
-    flex-direction: column;
-    flex-wrap: nowrap;
-  }
 
   /* Below the lens band, which stays in view on the path. */
   .path-side {
@@ -450,19 +454,30 @@ button:hover,
 }
 
 .rail a {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--rail-number) var(--rail-icon) minmax(0, 1fr) auto;
   gap: var(--space-2);
-  align-items: baseline;
-  padding: var(--space-2) var(--space-3);
+  align-items: center;
+  padding: var(--space-2) var(--space-2);
   border-radius: var(--radius);
-  border: 1px solid var(--border);
   text-decoration: none;
   color: var(--text);
-  background: var(--background);
+}
+
+.rail a:hover {
+  background: var(--surface);
+}
+
+.rail a .number {
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.rail a .icon {
+  color: var(--tint-teal);
 }
 
 .rail a[aria-current="step"] {
-  border-color: var(--brand-teal);
   background: var(--surface-strong);
   font-weight: 700;
 }
@@ -512,16 +527,18 @@ button:hover,
 }
 
 .rail-legend {
-  display: flex;
+  display: grid;
+  grid-template-columns: var(--rail-number) var(--rail-icon) minmax(0, 1fr);
   gap: var(--space-2);
   align-items: center;
-  margin: var(--space-3) 0 0;
-  padding: var(--space-2) var(--space-3);
-  border-top: 1px dashed var(--border);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-1) var(--space-2);
   font-size: var(--size-small);
 }
 
 .rail-legend .gap-mark {
+  grid-column: 2;
+  justify-self: center;
   margin-left: 0;
 }
 
@@ -566,12 +583,102 @@ button:hover,
 
 /* Station */
 
-.station-header .meta {
-  color: var(--text-muted);
+.station-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.station-header h1 {
+  margin-top: 0;
+}
+
+.station-header .muted {
+  margin: 0 0 var(--space-1);
+}
+
+.station-header .station-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-top: var(--space-1);
+  color: var(--tint-teal);
+}
+
+@media (max-width: 39.99rem) {
+  .station-header .station-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* Principle tiles: the F/A/I/R letter on its colour, then the code and the short title. */
+.principle-tiles {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+
+.principle-tile {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--background);
+  color: var(--text);
+  font-size: var(--size-small);
+  text-decoration: none;
+}
+
+.principle-tile > span:last-child {
+  padding: var(--space-1) var(--space-3);
+}
+
+.principle-tile:hover {
+  border-color: var(--tint-teal);
+  color: var(--text);
+}
+
+.principle-tile[aria-current="true"] {
+  border-color: var(--tint-teal);
+  box-shadow: inset 0 0 0 1px var(--tint-teal);
+  font-weight: 700;
+}
+
+.principle-letter {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: 1.9em;
+  padding: 0 var(--space-2);
+  background: var(--fair-f);
+  color: #fff;
+  font-weight: 700;
+}
+
+[data-letter="A"] > .principle-letter,
+.principle-letter[data-letter="A"] {
+  background: var(--fair-a);
+}
+
+[data-letter="I"] > .principle-letter,
+.principle-letter[data-letter="I"] {
+  background: var(--fair-i);
+}
+
+[data-letter="R"] > .principle-letter,
+.principle-letter[data-letter="R"] {
+  background: var(--fair-r);
+}
+
+h2 > .principle-letter {
+  margin-right: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
 }
 
 .chips {
@@ -598,25 +705,63 @@ a.chip:hover {
   border-color: var(--tint-teal);
 }
 
+/* "What to do now": a callout with an accent line on the left, no background, and a smaller action on the right. */
 .now {
-  border-left: 6px solid var(--brand-teal);
-  background: var(--surface);
-  padding: var(--space-4) var(--space-5);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  margin: var(--space-4) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+  border-left: 4px solid var(--brand-teal);
+  padding: var(--space-2) 0 var(--space-2) var(--space-4);
+  margin: var(--space-5) 0;
+}
+
+@media (max-width: 39.99rem) {
+  .now {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
 }
 
 .now .level {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--size-small);
   font-weight: 700;
   color: var(--tint-teal);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--space-1);
 }
 
-.now p {
+.now .now-text {
   font-size: var(--size-lead);
+  margin: 0;
+}
+
+.button-small {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--size-small);
+}
+
+.button .icon {
+  margin-left: var(--space-1);
+}
+
+details > summary .icon {
+  margin-right: var(--space-2);
+  color: var(--tint-teal);
+}
+
+/* Links in running text: dotted underline, solid on hover. */
+main :is(p, li, td) > a:not([class]) {
+  text-decoration-style: dotted;
+  text-underline-offset: 0.15em;
+}
+
+main :is(p, li, td) > a:not([class]):hover {
+  text-decoration-style: solid;
 }
 
 details {
@@ -790,27 +935,51 @@ main p > button {
 
 /* Explorer */
 
-.principles-grid {
+.explorer {
+  padding-top: var(--space-4);
+}
+
+@media (min-width: 60rem) {
+  .layout-explorer {
+    grid-template-columns: 17rem minmax(0, 1fr);
+  }
+
+  .principle-menu {
+    position: sticky;
+    top: var(--space-4);
+    align-self: start;
+  }
+}
+
+.principle-menu {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: var(--space-3);
+}
+
+.principle-group-name {
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
-  list-style: none;
-  padding: 0;
-}
-
-.principles-grid a {
-  display: block;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  text-decoration: none;
-  color: var(--text);
-}
-
-.principles-grid a[aria-current="true"] {
-  border-color: var(--brand-teal);
-  background: var(--surface-strong);
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-small);
   font-weight: 700;
+}
+
+.principle-group-name .principle-letter {
+  border-radius: var(--radius);
+  min-height: 1.6em;
+}
+
+.principle-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.principle-group .principle-tile {
+  display: flex;
 }
 
 .clauses > li {

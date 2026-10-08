@@ -5,6 +5,7 @@ id = "plan"
 position = 1
 name = { cs = "Plán", en = "Plan" }
 title = { cs = "Plán správy dat", en = "Data management plan" }
+icon = "clipboard-list"
 principles = ["R1", "R1.1", "R1.2"]
 minutes = 5
 glossary = ["plan-spravy-dat", "data-steward", "fair-principy", "perzistentni-trvaly-identifikator", "data-stewardship-wizard"]

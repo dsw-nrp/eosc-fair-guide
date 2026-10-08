@@ -5,6 +5,7 @@ id = "licence"
 position = 5
 name = { cs = "Licence a přístup", en = "Licence and access" }
 title = { cs = "Licence a podmínky přístupu", en = "Licence and access conditions" }
+icon = "scale-balanced"
 principles = ["R1.1", "A1.2"]
 minutes = 10
 glossary = ["otevrena-licence-otevrene-licencovani", "verejna-licence-verejne-licencovani", "licence-creative-commons", "embargovany-pozdrzeny-odlozeny-pristup", "open-data-commons"]

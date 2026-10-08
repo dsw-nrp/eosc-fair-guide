@@ -163,6 +163,11 @@ async function axe(page, label) {
       if (!now) fail(`${hash}: no L0 block`);
     }
     await axe(page, hash);
+    // The page shell holds elements only; a view part that is absent leaves no stray text.
+    if (await page.evaluate(() => [...document.getElementById("app").childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()))) fail(`${hash}: stray text in the page shell`);
+    // Every external link opens in a new tab.
+    const sameTab = await page.evaluate(() => [...document.querySelectorAll('a[href^="http"]')].filter((link) => link.target !== "_blank" || !/noopener/.test(link.rel)).map((link) => link.href));
+    if (sameTab.length) fail(`${hash}: external links that do not open in a new tab: ${[...new Set(sameTab)].slice(0, 5).join(", ")}`);
   }
   if (external.length) fail("requests while navigating: " + external.join(", "));
   for (const problem of problems) fail("navigation: " + problem);
