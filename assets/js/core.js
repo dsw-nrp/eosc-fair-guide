@@ -75,6 +75,12 @@
     return FG.state.lang === "cs" ? `${Number(parts[2])}. ${Number(parts[1])}. ${parts[0]}` : parts.join("-");
   };
 
+  /** Today's date in the visitor's time zone, as YYYY-MM-DD. */
+  FG.today = function () {
+    const now = new Date();
+    return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+  };
+
   /* ---------------------------------------------------------------- safe DOM */
 
   const SAFE_SCHEME = /^(https:|mailto:)/i;
@@ -149,7 +155,7 @@
     },
   };
 
-  FG.state = { lang: "cs", lens: "V", answers: {}, started: false, entryStation: null, lastStation: null };
+  FG.state = { lang: "cs", lens: "V", answers: {}, started: false, entryStation: null, lastStation: null, lastVisit: null };
 
   /** Disclosure levels the user opened (L1, L2, L3, ai); kept while the page is open, so switching lens keeps them. */
   FG.openLevels = new Set();
@@ -162,6 +168,7 @@
       started: FG.state.started,
       entryStation: FG.state.entryStation,
       lastStation: FG.state.lastStation,
+      lastVisit: FG.state.lastVisit,
     });
   };
 

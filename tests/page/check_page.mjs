@@ -245,6 +245,23 @@ async function axe(page, label) {
   const legend = page.locator(".rail-desktop .rail-legend a");
   if (!(await legend.count()) || (await legend.getAttribute("href")) !== "#/cs/V/selfcheck") fail("path: the self-check marks have no visible legend linking to the self-check");
 
+  // Until the visitor chooses a stage, no stage is shown as chosen, on the path or on the landing.
+  if (!(await page.locator(".stage-switch summary").textContent()).includes("zatím nevybraná")) fail("path: the stage switch claims a stage before one was chosen");
+  await go("#/cs/V/path/start");
+  if (await page.locator(".stage-current").count()) fail("landing: a stage is marked although none was chosen");
+
+  // The stage can be changed on the path itself; the choice opens the stage's first station.
+  await go("#/cs/V/path/licence");
+  await page.locator(".stage-switch summary").click();
+  await page.locator(".stage-switch button", { hasText: "Chci data zveřejnit" }).click();
+  try {
+    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/repozitar" && document.querySelector(".stage-switch summary").textContent.includes("Chci data zveřejnit"), null, { timeout: 5000 });
+  } catch (error) {
+    fail("path: choosing a stage does not open its first station and show the choice");
+  }
+  if ((await page.locator('.stage-switch button[aria-pressed="true"]').count()) !== 1) fail("path: the chosen stage is not pressed in the stage switch");
+  await go("#/cs/V/path/licence");
+
   // The menu's path item opens the station the visitor was last at; the home item opens the path's start, with a
   // line to resume where they were.
   if ((await page.locator(".main-nav a", { hasText: "Cesta k FAIR" }).getAttribute("href")) !== "#/cs/V/path/licence") fail("menu: the path item does not open the last station");
@@ -258,11 +275,11 @@ async function axe(page, label) {
   if ((await page.locator('.main-nav a[aria-current="page"]').textContent()) !== "Úvod") fail("menu: the home item is not marked on the landing");
   if (!(await page.locator(".resume a").textContent()).includes("Licence")) fail("path: no resume line for the last station");
   const current = await page.locator(".stage-current").allTextContents();
-  if (current.length !== 1 || !current[0].includes("Kroky 3–6") || !current[0].includes("Naposledy u kroku 5")) fail("path: the stage of the last station is not marked: " + current.join(" | "));
+  if (current.length !== 1 || !current[0].includes("Kroky 3–6") || !current[0].includes("Vybráno ")) fail("landing: the chosen stage is not marked with the last visit: " + current.join(" | "));
 
   // Switching the lens keeps open levels and the scroll position.
   await go("#/cs/V/path/licence");
-  await page.locator("details:not(.rail) summary").first().click();
+  await page.locator(".station details summary").first().click();
   await page.evaluate(() => window.scrollTo(0, 400));
   const before = await page.evaluate(() => window.scrollY);
   // Click where the option is, as a user does: Playwright's locator click scrolls a sticky element to its place in
@@ -272,7 +289,7 @@ async function axe(page, label) {
   await lensShown(page, "SR");
   if ((await page.evaluate(() => window.location.hash)) !== "#/cs/SR/path/licence") fail("lens switch: the station changed");
   if ((await page.evaluate(() => document.activeElement.dataset.lens)) !== "SR") fail("lens switch: focus does not stay on the chosen lens");
-  if (!(await page.locator("details:not(.rail)[open]").count())) fail("lens switch: the open level closed");
+  if (!(await page.locator(".station details[open]").count())) fail("lens switch: the open level closed");
   const after = await page.evaluate(() => window.scrollY);
   if (Math.abs(after - before) > 40) fail(`lens switch: the page scrolled from ${before} to ${after}`);
 

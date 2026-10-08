@@ -27,11 +27,14 @@ switchTo = { cs = "English", en = "Česky" }
 [stage]
 question = { cs = "Kde se právě nacházíte?", en = "Where are you now?" }
 intro = { cs = "Průvodce vás provede od plánu projektu ke zveřejněným, dohledatelným a citovatelným datům. Začněte tam, kde jste.", en = "The guide takes you from the project plan to published, findable and citable data. Start where you are." }
-change = { cs = "Začít jinde", en = "Start somewhere else" }
+change = { cs = "Změnit", en = "Change" }
+yours = { cs = "Vaše fáze", en = "Your stage" }
+none = { cs = "zatím nevybraná", en = "not chosen yet" }
 resume = { cs = "Pokračovat: krok {n} · {station}", en = "Continue: step {n} · {station}" }
 step = { cs = "Krok {n}", en = "Step {n}" }
 steps = { cs = "Kroky {from}–{to}", en = "Steps {from}–{to}" }
-current = { cs = "Naposledy u kroku {n}", en = "Last at step {n}" }
+chosen = { cs = "Vybráno", en = "Selected" }
+chosenOn = { cs = "Vybráno {date}", en = "Selected {date}" }
 
 [landing]
 tasks = { cs = "Co potřebujete udělat?", en = "What do you need to do?" }

@@ -240,9 +240,44 @@
 
   /* ---------------------------------------------------------------- path */
 
+  /** The stage switch on the path: the chosen stage, changeable without returning to the landing. */
+  function stageSwitch() {
+    const stages = stageRanges();
+    const chosen = chosenStage(stages);
+    const icons = (FG.config.icons && FG.config.icons.stage) || {};
+    return h(
+      "details",
+      { class: "stage-switch" },
+      h(
+        "summary",
+        null,
+        h("span", { class: "small muted" }, FG.t("stage.yours")),
+        h("strong", null, chosen ? FG.span(chosen.stage.name) : FG.t("stage.none")),
+        h("span", { class: "small stage-switch-action" }, FG.t("stage.change"))
+      ),
+      h(
+        "ul",
+        null,
+        stages.map((entry) =>
+          h(
+            "li",
+            null,
+            h(
+              "button",
+              { type: "button", "aria-pressed": String(entry === chosen), onclick: () => chooseStage(entry.stage) },
+              FG.icon(icons[entry.stage.termCode]),
+              h("span", null, FG.span(entry.stage.name), h("span", { class: "small muted" }, " · " + stepsLabel(entry.from, entry.to)))
+            )
+          )
+        )
+      )
+    );
+  }
+
   function rail(route, currentId) {
     const current = FG.stations().find((station) => station.identifier === currentId);
     return [
+      stageSwitch(),
       h("nav", { class: "rail rail-desktop", "aria-label": FG.t("nav.stations") }, railList(currentId), railLegend()),
       h(
         "details",
@@ -299,22 +334,44 @@
     );
   }
 
-  /** The stage question as a journey: four cards in path order, each naming the steps it covers; the card holding
-      the visitor's last station says at which step they were. */
-  function stageCards() {
-    const stations = FG.stations();
+  /** The four stages in path order, each with the range of steps it covers. */
+  function stageRanges() {
     const stages = FG.ofType("DefinedTerm")
       .filter((term) => FG.id(term.inDefinedTermSet) === "#stages")
       .map((stage) => ({ stage, from: FG.get(stage.startsAt).position }))
       .sort((a, b) => a.from - b.from);
-    stages.forEach((entry, index) => (entry.to = index + 1 < stages.length ? stages[index + 1].from - 1 : stations.length));
-    const here = stations.find((station) => station.identifier === (FG.state.lastStation || FG.state.entryStation));
+    stages.forEach((entry, index) => (entry.to = index + 1 < stages.length ? stages[index + 1].from - 1 : FG.stations().length));
+    return stages;
+  }
+
+  const stepsLabel = (from, to) => (from === to ? FG.t("stage.step", { n: from }) : FG.t("stage.steps", { from, to }));
+
+  /** Choosing a stage starts the path at its first station; the menu's path item and the rail follow the choice. */
+  function chooseStage(stage) {
+    const station = FG.get(stage.startsAt).identifier;
+    FG.state.started = true;
+    FG.state.entryStation = station;
+    FG.saveState();
+    FG.navigate(FG.href("path", station));
+  }
+
+  /** The stage the visitor chose; none until they choose one. */
+  function chosenStage(stages) {
+    return FG.state.started ? stages.find(({ stage }) => FG.get(stage.startsAt).identifier === FG.state.entryStation) || null : null;
+  }
+
+  /** The stage question as a journey: four cards in path order, each naming the steps it covers. The card of the
+      stage the visitor chose says so, with the date of their last visit to the path. */
+  function stageCards() {
+    const stages = stageRanges();
+    const chosen = chosenStage(stages);
     const icons = (FG.config.icons && FG.config.icons.stage) || {};
     return h(
       "ol",
       { class: "stage-options" },
-      stages.map(({ stage, from, to }) => {
-        const current = here && here.position >= from && here.position <= to;
+      stages.map((entry) => {
+        const { stage, from, to } = entry;
+        const current = entry === chosen;
         return h(
           "li",
           null,
@@ -323,20 +380,16 @@
             {
               type: "button",
               class: "stage-card" + (current ? " stage-current" : ""),
-              onclick: () => {
-                const station = FG.get(stage.startsAt).identifier;
-                FG.state.started = true;
-                FG.state.entryStation = station;
-                FG.saveState();
-                FG.navigate(FG.href("path", station));
-              },
+              onclick: () => chooseStage(stage),
             },
             h(
               "span",
               { class: "stage-steps" },
               FG.icon(icons[stage.termCode], { class: "icon-large" }),
-              from === to ? FG.t("stage.step", { n: from }) : FG.t("stage.steps", { from, to }),
-              current ? h("span", { class: "badge" }, FG.t("stage.current", { n: here.position })) : null
+              stepsLabel(from, to),
+              current
+                ? h("span", { class: "badge" }, FG.state.lastVisit ? FG.t("stage.chosenOn", { date: FG.formatDate(FG.state.lastVisit) }) : FG.t("stage.chosen"))
+                : null
             ),
             h("strong", null, FG.span(stage.name)),
             stage.description ? h("span", { class: "small muted" }, FG.span(stage.description)) : null
@@ -552,8 +605,7 @@
             "ul",
             { class: "chips" },
             FG.refs(entity, "about").map((principle) => h("li", null, h("a", { class: "chip", href: FG.href("explorer", principle.termCode) }, principle.termCode)))
-          ),
-          h("button", { type: "button", class: "button-link", onclick: () => FG.navigate(FG.href("path", "start")) }, FG.t("stage.change"))
+          )
         )
       ),
       now
@@ -596,12 +648,13 @@
   FG.views.path = function (route) {
     const showEntry = FG.landingShown(route);
     const currentId = showEntry ? null : route.arg || FG.state.lastStation || FG.state.entryStation || FG.stations()[0].identifier;
-    if (currentId && currentId !== FG.state.lastStation && FG.stations().some((station) => station.identifier === currentId)) {
+    if (currentId && FG.stations().some((station) => station.identifier === currentId) && (currentId !== FG.state.lastStation || FG.state.lastVisit !== FG.today())) {
       FG.state.lastStation = currentId;
+      FG.state.lastVisit = FG.today();
       FG.saveState();
     }
     if (showEntry) return landing(route);
-    return h("div", { class: "layout layout-path wrap" }, rail(route, currentId), h("div", null, station(Object.assign({}, route, { arg: currentId }))));
+    return h("div", { class: "layout layout-path wrap" }, h("div", { class: "path-side" }, rail(route, currentId)), h("div", null, station(Object.assign({}, route, { arg: currentId }))));
   };
 
   /* ---------------------------------------------------------------- principle explorer */

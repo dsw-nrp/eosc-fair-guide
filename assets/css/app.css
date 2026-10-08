@@ -369,9 +369,84 @@ button:hover,
   .rail ol {
     flex-direction: column;
     flex-wrap: nowrap;
-    position: sticky;
-    top: var(--space-4);
   }
+
+  /* Below the lens band, which stays in view on the path. */
+  .path-side {
+    position: sticky;
+    top: 4.5rem;
+    align-self: start;
+  }
+}
+
+.path-side {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.stage-switch {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.stage-switch summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  list-style: none;
+}
+
+.stage-switch summary::-webkit-details-marker {
+  display: none;
+}
+
+.stage-switch summary .muted {
+  grid-column: 1 / -1;
+}
+
+.stage-switch-action {
+  align-self: end;
+  color: var(--tint-teal);
+  text-decoration: underline;
+}
+
+.stage-switch ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-2);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.stage-switch button {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+}
+
+.stage-switch button:hover {
+  border-color: var(--tint-teal);
+}
+
+.stage-switch button[aria-pressed="true"] {
+  border-color: var(--tint-teal);
+  font-weight: 700;
+}
+
+.stage-switch .icon {
+  color: var(--tint-teal);
 }
 
 .rail a {

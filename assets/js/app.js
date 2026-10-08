@@ -92,6 +92,7 @@
       started: Boolean(saved.started),
       entryStation: typeof saved.entryStation === "string" ? saved.entryStation : null,
       lastStation: typeof saved.lastStation === "string" ? saved.lastStation : null,
+      lastVisit: typeof saved.lastVisit === "string" && /^\d{4}-\d{2}-\d{2}$/.test(saved.lastVisit) ? saved.lastVisit : null,
     });
     const known = (id) => FG.stations().some((station) => station.identifier === id);
     if (!known(FG.state.entryStation)) FG.state.entryStation = null;
