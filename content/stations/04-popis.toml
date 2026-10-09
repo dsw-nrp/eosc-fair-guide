@@ -277,5 +277,17 @@ id = "popis.all.L1.1"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "AI pomůže s návrhem abstraktu, README a datového slovníku, s překladem metadat mezi češtinou a angličtinou a s návrhy hesel. Identifikátory a hesla si ale vždy ověřte (viz Ověřte identifikátory).", en = "AI can help draft the abstract, the README and the data dictionary, translate metadata between Czech and English, and suggest subject terms. Always verify identifiers and terms, though (see Verify identifiers)." }
-sources = ["E.CERIT-AI"]
+text = { cs = "AI pomůže s návrhem abstraktu, README a datového slovníku, s překladem metadat mezi češtinou a angličtinou a s návrhy klíčových slov.", en = "AI can help draft the abstract, the README and the data dictionary, translate metadata between Czech and English, and suggest keywords." }
+check = { cs = "Popis musí odpovídat datům, ne tomu, co zní dobře. Identifikátory a hesla ověřte strojem, například v pomocníkovi [[page:identifiers|Ověřit identifikátory]]; AI je umí vymyslet.", en = "The description must match the data, not what sounds good. Verify identifiers and terms by machine, for example in the [[page:identifiers|Verify identifiers]] helper; AI can make them up." }
+prompt = { cs = "Z tabulky níže navrhni datový slovník: pro každý sloupec název, popis, jednotku, datový typ a povolené hodnoty. Co z dat nepoznáš, označ otazníkem a nedomýšlej.\n\nTabulka (záhlaví a několik řádků): […]", en = "From the table below, draft a data dictionary: for each column its name, description, unit, data type and allowed values. Mark what you cannot tell from the data with a question mark and do not guess.\n\nTable (header and a few rows): […]" }
+sources = ["E.CERIT-AI", "E.GENAI.R1", "E.GENAI.CITATIONS"]
+
+[[advice]]
+id = "popis.SR.L1.12"
+lens = "SR"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám pomůže navrhnout mapování polí vašeho metadatového schématu na [[datacite-schema|schéma DataCite]], aby záznamy převzaly vyhledávače bez ztrát.", en = "AI helps you draft a mapping of your metadata schema's fields to the [[datacite-schema|DataCite schema]], so that discovery services take over the records without losses." }
+check = { cs = "Mapování ověřte proti specifikaci schématu, ne proti paměti modelu, a vyzkoušejte ho na několika skutečných záznamech.", en = "Check the mapping against the schema's specification, not the model's memory, and try it on a few real records." }
+prompt = { cs = "Navrhni mapování polí našeho metadatového schématu (níže) na pole schématu DataCite podle specifikace, kterou vložím. U každého pole uveď, zda je mapování úplné, částečné, nebo chybí, a co se při převodu ztratí.\n\nNaše schéma: […]\n\nSpecifikace DataCite: […]", en = "Draft a mapping of our metadata schema's fields (below) to the fields of the DataCite schema, following the specification I paste. For each field say whether the mapping is complete, partial or missing, and what is lost in conversion.\n\nOur schema: […]\n\nDataCite specification: […]" }
+sources = ["E.GENAI.R1"]

@@ -1880,36 +1880,17 @@
     return base + FG.href("check", check.identifier) + "/" + SC.sharePayload(check, st);
   }
 
-  async function copy(text, fallbackId) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (error) {
-      const field = document.getElementById(fallbackId);
-      if (field) {
-        field.focus();
-        field.select();
-      }
-      return false;
-    }
-  }
-
   function showShare(check, st) {
     const url = shareUrl(check, st);
     FG.renderList("share-output", () =>
       fragment(
         h("label", { for: "share-url" }, FG.t("selfcheck.export.shareLabel")),
-        h("div", { class: "inline" }, h("input", { id: "share-url", type: "text", readonly: true, value: url }), h("button", { type: "button", onclick: (event) => copyWithFeedback(event, url, "share-url") }, FG.t("common.copy"))),
+        h("div", { class: "inline" }, h("input", { id: "share-url", type: "text", readonly: true, value: url }), h("button", { type: "button", onclick: (event) => FG.copyText(event, url, "share-url") }, FG.t("common.copy"))),
         h("p", { class: "small" }, FG.t("selfcheck.export.shareNote"))
       )
     );
     const field = document.getElementById("share-url");
     if (field) field.focus();
-  }
-
-  async function copyWithFeedback(event, text, fallbackId) {
-    const button = event.currentTarget;
-    if (await copy(text, fallbackId)) button.textContent = FG.t("common.copied");
   }
 
   /* The format chosen for saving, kept while the page is open. */
@@ -1973,7 +1954,7 @@
           FG.icon("download"),
           FG.t("selfcheck.export.download")
         ),
-        h("button", { type: "button", class: "button-small", id: "export-copy", onclick: (event) => copyWithFeedback(event, exportText(check, st), "export-preview-text") }, FG.icon("copy"), FG.t("common.copy"))
+        h("button", { type: "button", class: "button-small", id: "export-copy", onclick: (event) => FG.copyText(event, exportText(check, st), "export-preview-text") }, FG.icon("copy"), h("span", { class: "copy-label" }, FG.t("common.copy")))
       ),
       h(
         "details",

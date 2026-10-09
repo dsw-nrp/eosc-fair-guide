@@ -230,6 +230,8 @@ published), `noteSources` (clause or source IDs that support the note), `superse
 | `steps` | list of text | Sub-steps shown as a list under the item |
 | `action` | table | L0 only: `label` (text) and `href`: an HTTPS URL, or an in-page target naming a crate entity (`#repositories`, `#ledger`, `#resources`, `#check-<id>`, `#station-<id>`, `#page-<id>`, `#resource-<id>`) |
 | `kind` | string | `ai` for the AI-in-FAIRification overlay; omitted otherwise |
+| `check` | text | AI items only, required: what to check after following the tip |
+| `prompt` | text | AI items only, required: a short prompt to copy; parts the reader fills in are written `[…]` |
 | `sources` | list | Clause IDs; at least one |
 
 ### `checks/<id>.toml`
@@ -361,7 +363,7 @@ profile 0.5. Schema.org types and properties are used wherever they fit; the gui
 | Guide | `Dataset` (root) | `./` | `name`, `description`, `version`, `datePublished`, `license`, `author`, `contributor`, `publisher`, `funder`, `isBasedOn`, `mainEntity`, `about`, `mentions`, `conformsTo` |
 | Path | `HowTo` | `#path` | `step` |
 | Station | `HowToSection` | `#station-<id>` | `name`, `headline`, `position`, `about`, `timeRequired`, `itemListElement`, `hasPart` (callouts), `mentions` (resources, terms) |
-| Advice item | `HowToDirection` (L0, L1), `HowToTip` (L2, AI overlay) | `#advice-<id>` | `text`, `position`, `audience`, `disclosureLevel`, `citation`, `isPartOf`, `potentialAction`, `adviceKind` |
+| Advice item | `HowToDirection` (L0, L1), `HowToTip` (L2, AI overlay) | `#advice-<id>` | `text`, `position`, `audience`, `disclosureLevel`, `citation`, `isPartOf`, `potentialAction`, `adviceKind`, `checkAfter`, `promptSample` |
 | Lens | `Audience` | `#lens-<id>` | `name`, `audienceType` |
 | Level, tier, status, actor, profile, mode | `DefinedTerm` | `#<set>-<id>` | `name`, `termCode`, `inDefinedTermSet` |
 | Principle | `DefinedTerm` | w3id IRI | `termCode`, `name`, `description` |

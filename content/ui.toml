@@ -131,6 +131,10 @@ principles = { cs = "FAIR principy", en = "FAIR principles" }
 next = { cs = "Další krok: {name}", en = "Next step: {name}" }
 previous = { cs = "Předchozí krok: {name}", en = "Previous step: {name}" }
 ai = { cs = "AI ve FAIRifikaci", en = "AI in FAIRification" }
+aiCheck = { cs = "Co zkontrolovat", en = "What to check" }
+aiPrompt = { cs = "Zadání ke zkopírování", en = "Prompt to copy" }
+aiPromptFill = { cs = "Zadání ke zkopírování; doplňte části v hranatých závorkách", en = "Prompt to copy; fill in the parts in brackets" }
+aiReminder = { cs = "Výstup AI vždy ověřte. Nepublikovaná, citlivá a osobní data vkládejte jen do služeb, které je neposílají mimo infrastrukturu.", en = "Always verify what AI produces. Put unpublished, sensitive and personal data only into services that keep them within the infrastructure." }
 resources = { cs = "Užitečné zdroje", en = "Useful resources" }
 glossary = { cs = "Pojmy z Hesláře", en = "Terms from the glossary" }
 help = { cs = "Potřebujete poradit?", en = "Need advice?" }

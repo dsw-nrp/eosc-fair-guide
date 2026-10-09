@@ -198,5 +198,17 @@ id = "plan.all.L1.1"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "Návrh textů DMP z popisu projektu můžete připravit s AI v prostředí CERIT; dotazy neopouštějí infrastrukturu e-INFRA CZ. Návrh vždy zkontrolujte a nevkládejte do něj osobní údaje.", en = "You can draft DMP texts from a project description with AI in the CERIT environment; requests stay within the e-INFRA CZ infrastructure. Always check the draft and do not put personal data into it." }
-sources = ["E.CERIT-AI"]
+text = { cs = "Návrh odpovědí do plánu správy dat z popisu projektu připravíte s [[cerit-aiaas|AI v prostředí CERIT]]; dotazy neopouštějí infrastrukturu e-INFRA CZ.", en = "You can draft the answers of a data management plan from a project description with [[cerit-aiaas|AI in the CERIT environment]]; requests stay within the e-INFRA CZ infrastructure." }
+check = { cs = "Porovnejte návrh se šablonou poskytovatele a se skutečností projektu: repozitář, licenci a odpovědnosti rozhodujete vy, ne AI.", en = "Compare the draft with your funder's template and with the project as it is: you decide the repository, the licence and the responsibilities, not the AI." }
+prompt = { cs = "Z popisu projektu níže navrhni odpovědi do plánu správy dat: jaká data vzniknou, v jakých formátech a jakém objemu, kde budou uložena a zálohována, kdy a pod jakou licencí se zveřejní a kdo za ně odpovídá. Kde informace chybí, napiš místo odhadu otázku.\n\nPopis projektu: […]", en = "From the project description below, draft the answers of a data management plan: which data will be created, in which formats and volume, where they will be stored and backed up, when and under which licence they will be published, and who is responsible for them. Where information is missing, write a question instead of a guess.\n\nProject description: […]" }
+sources = ["E.CERIT-AI", "E.GENAI.R1", "E.GENAI.R3"]
+
+[[advice]]
+id = "plan.DS.L1.5"
+lens = "DS"
+level = "L1"
+kind = "ai"
+text = { cs = "Při kontrole plánů správy dat vám AI pomůže najít části, které vůči šabloně poskytovatele chybějí, jsou neúplné nebo si odporují.", en = "When you review data management plans, AI helps you find the parts that are missing, incomplete or contradictory against the funder's template." }
+check = { cs = "Každou výtku ověřte v plánu i v šabloně; o plánu nerozhoduje AI. Plán výzkumníka vkládejte jen do nástroje, který data neposílá mimo infrastrukturu.", en = "Verify each finding in the plan and in the template; the AI does not decide on the plan. Put a researcher's plan only into a tool that keeps it within the infrastructure." }
+prompt = { cs = "Porovnej plán správy dat níže se šablonou poskytovatele a vypiš části, které chybějí, jsou neúplné nebo si odporují; ke každé uveď místo v plánu. Nic nedoplňuj.\n\nŠablona: […]\n\nPlán: […]", en = "Compare the data management plan below with the funder's template and list the parts that are missing, incomplete or contradictory, each with its place in the plan. Do not fill anything in.\n\nTemplate: […]\n\nPlan: […]" }
+sources = ["E.GENAI.R1", "E.GENAI.R3", "E.GENAI.ORG4"]

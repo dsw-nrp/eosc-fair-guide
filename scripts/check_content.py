@@ -355,6 +355,12 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
                     report.error(item, f"cites unknown clause '{source}'")
             if advice.get("kind") not in (None, "ai"):
                 report.error(item, "kind must be 'ai' or omitted")
+            if advice.get("kind") == "ai":
+                # An AI tip says what to check afterwards and gives a prompt to copy.
+                require_text(report, item, advice.get("check"), "check")
+                require_text(report, item, advice.get("prompt"), "prompt")
+            elif "check" in advice or "prompt" in advice:
+                report.error(item, "only an AI item carries check and prompt")
             if advice.get("level") == "L0" and advice.get("kind") != "ai":
                 if not advice.get("action"):
                     report.error(item, "an L0 item needs one concrete action")

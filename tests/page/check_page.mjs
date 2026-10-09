@@ -523,6 +523,14 @@ function collisions() {
     const markdown = await saved("markdown");
     if (!markdown.name.startsWith("fair-guide-station-licence-DS-en-") || !markdown.text.startsWith("# Licence and access") || !markdown.text.includes("\n## How to do it\n") || !markdown.text.includes("#/en/DS/path/licence")) fail("exports: the station's Markdown lacks its title, levels or address: " + markdown.name);
     if (/\n\n\n/.test(markdown.text)) fail("exports: the station's Markdown has empty runs of lines");
+    if (!markdown.text.includes("\n  What to check: ") || !markdown.text.includes("\n  ```text\n") || !markdown.text.includes("Always verify what AI produces.")) fail("exports: the station's Markdown lacks an AI tip's check, prompt or reminder");
+    // Copying a prompt: the button says it copied, or, where the clipboard is refused, the prompt is selected.
+    await view.evaluate(() => { document.querySelector('#main details[data-key="ai"]').open = true; });
+    const prompt = view.locator("#main .ai-prompt").first();
+    await prompt.locator("button").click();
+    await view.waitForTimeout(100);
+    const copied = await prompt.evaluate((block) => ({ label: block.querySelector(".copy-label").textContent, selected: window.getSelection().toString().trim(), text: block.querySelector("pre").textContent.trim() }));
+    if (copied.label !== "Copied" && copied.selected !== copied.text) fail(`exports: copying a prompt neither copies nor selects it (${copied.label})`);
     const closed = await view.locator("#main details:not([open])").count();
     await view.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
     if (!closed || (await view.locator("#main details:not([open])").count())) fail("exports: printing does not open the closed sections");
@@ -848,6 +856,15 @@ function collisions() {
     if (hash.includes("/path/")) {
       const now = await page.locator(".now").count();
       if (!now) fail(`${hash}: no L0 block`);
+      // Every station offers AI tips, each with what to check, a prompt and its copy button. Opened once, the block
+      // stays open in the views that follow, so the alignment and spacing checks below measure it.
+      const tips = await page.evaluate(() => {
+        const block = document.querySelector('#main details[data-key="ai"]');
+        if (!block) return null;
+        block.open = true;
+        return [...block.querySelectorAll(".ai-tip")].map((tip) => Boolean(tip.querySelector("p > strong") && tip.querySelector(".ai-prompt pre")?.textContent.trim() && tip.querySelector(".ai-prompt button .copy-label")));
+      });
+      if (!tips || !tips.length || !tips.every(Boolean)) fail(`${hash}: no AI tip, or one without what to check, a prompt and its copy button`);
     }
     await axe(page, hash);
     // The page shell holds elements only; a view part that is absent leaves no stray text.
@@ -877,6 +894,8 @@ function collisions() {
   for (const hash of narrow) {
     await page.goto(pageUrl + hash);
     await rendered(page);
+    // A station's AI block, opened, so its prompts and copy buttons are measured too.
+    await page.evaluate(() => document.querySelectorAll('#main details[data-key="ai"]').forEach((block) => { block.open = true; }));
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 1) fail(`${hash}: horizontal scroll of ${overflow}px at 320 px`);
     const misaligned = await page.evaluate(misalignedControls);

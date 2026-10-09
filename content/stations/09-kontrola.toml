@@ -209,5 +209,17 @@ id = "kontrola.all.L1.1"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "AI vám může výsledky testů vysvětlit srozumitelným jazykem; mějte na paměti, že skóre odráží hlavně repozitář.", en = "AI can explain test results in plain language; keep in mind that the score mainly reflects the repository." }
-sources = ["E.CERIT-AI", "K5.2.1"]
+text = { cs = "AI vám vysvětlí výsledky testů FAIR srozumitelným jazykem a navrhne, co zlepšit; mějte na paměti, že skóre odráží hlavně repozitář.", en = "AI explains FAIR test results in plain language and suggests what to improve; keep in mind that the score mainly reflects the repository." }
+check = { cs = "Navržené úpravy ověřte znovu spuštěným testem; co je věcí repozitáře, řešte se správcem repozitáře.", en = "Check the suggested changes by running the test again; take what is the repository's business to the repository administrator." }
+prompt = { cs = "Vysvětli srozumitelně výsledky testů FAIR níže: co každý test ověřuje, proč neprošel, co mohu zlepšit sám a co je věcí repozitáře. Netvrď nic, co z výsledků neplyne.\n\nVýsledky: […]", en = "Explain the FAIR test results below in plain language: what each test checks, why it failed, what I can improve myself and what is the repository's business. Claim nothing the results do not show.\n\nResults: […]" }
+sources = ["E.CERIT-AI", "K5.2.1", "E.GENAI.R1"]
+
+[[advice]]
+id = "kontrola.K.L1.4"
+lens = "K"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám pomůže převést popis praxe komunity na přehled, které zdroje komunita používá pro jednotlivé principy FAIR, jako podklad pro profil FAIR implementace; profily jiných komunit najdete ve [[fip-dashboard|FIP Dashboardu]].", en = "AI helps you turn a description of your community's practice into an overview of which resources the community uses for each FAIR principle, as a basis for a FAIR Implementation Profile; other communities' profiles are in the [[fip-dashboard|FIP Dashboard]]." }
+check = { cs = "Každý zdroj ověřte, že ho komunita opravdu používá a že existuje pod tím jménem; deklarace profilu potvrzuje komunita, ne AI.", en = "Check that the community really uses each resource and that it exists under that name; the community confirms the profile's declarations, not the AI." }
+prompt = { cs = "Z popisu praxe naší komunity níže sestav pro každý princip FAIR seznam zdrojů, které komunita používá (standardy, slovníky, repozitáře, protokoly). Uveď jen zdroje, které v popisu jsou; co chybí, označ jako otázku.\n\nPopis praxe: […]", en = "From the description of our community's practice below, list for each FAIR principle the resources the community uses (standards, vocabularies, repositories, protocols). Include only resources the description names; mark what is missing as a question.\n\nDescription of practice: […]" }
+sources = ["E.GENAI.R1"]

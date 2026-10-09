@@ -189,3 +189,15 @@ url = "https://www.eosc.cz/media/4219027/priloha_c_2_katalog_vystupu.pdf"
 publisher = "cuni"
 datePublished = 2026-09-01
 dateAccessed = 2026-10-09
+
+[[source]]
+id = "ec-genai-guidelines"
+type = "report"
+title = "Living guidelines on the responsible use of generative AI in research"
+inLanguage = "en"
+url = "https://research-and-innovation.ec.europa.eu/document/download/2b6cf7e5-36ac-41cb-aab5-0d32050143dc_en"
+publisher = "European Commission, Directorate-General for Research and Innovation"
+version = "3"
+datePublished = "2026-05"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-09

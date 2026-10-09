@@ -173,3 +173,13 @@ lens = "K"
 level = "L1"
 text = { cs = "V oborech bez standardů a repozitářů spolupracujte s projektem [[os2|Open Science II]] a s oborovými pracovními skupinami.", en = "In domains without standards and repositories, work with the [[os2|Open Science II]] project and the domain working groups." }
 sources = ["A.R1.3.N3", "C.R2", "E.OS2"]
+
+[[advice]]
+id = "repozitar.all.L1.1"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám pomůže sepsat, co od repozitáře potřebujete (obor, formáty, objem, přístup, licence, trvalý identifikátor), a porovnat to s podmínkami repozitářů. Fakta o repozitářích berte z jejich stránek, z [[re3data|re3data]] a z [[nkr|Národního katalogu repozitářů]], ne z paměti modelu.", en = "AI helps you write down what you need from a repository (field, formats, volume, access, licence, persistent identifier) and compare it with the repositories' terms. Take the facts about repositories from their own pages, from [[re3data|re3data]] and from the [[nkr|National Repository Catalogue]], not from the model's memory." }
+check = { cs = "Každé tvrzení o repozitáři ověřte na jeho stránce nebo v jeho záznamu v re3data; podmínky se mění a model je nemusí znát.", en = "Verify every statement about a repository on its own page or in its re3data record; terms change and the model may not know them." }
+prompt = { cs = "Z požadavků níže sestav tabulku kritérií pro výběr repozitáře (obor, formáty, objem, omezení přístupu, licence, trvalý identifikátor, poplatky). Pak ji porovnej s podmínkami repozitářů, které vložím, a u každého tvrzení uveď, ze které vložené podmínky pochází. Nic nedoplňuj z paměti.\n\nPožadavky: […]\n\nPodmínky repozitářů: […]", en = "From the requirements below, build a table of criteria for choosing a repository (field, formats, volume, access restrictions, licence, persistent identifier, fees). Then compare it with the repository terms I paste, and for each statement say which pasted term it comes from. Add nothing from memory.\n\nRequirements: […]\n\nRepository terms: […]" }
+sources = ["E.GENAI.R1"]

@@ -184,5 +184,17 @@ id = "publikace.SR.L1.8"
 lens = "SR"
 level = "L1"
 kind = "ai"
-text = { cs = "AI vám může připravit JSON-LD pro landing page podle Schema.org; výsledek před nasazením validujte.", en = "AI can draft JSON-LD for a landing page following Schema.org; validate the result before deploying it." }
-sources = ["E.CERIT-AI", "E.SCHEMA-DATASET"]
+text = { cs = "AI vám může připravit JSON-LD pro landing page podle [[schema-dataset|Schema.org Dataset]] ze záznamu DataCite.", en = "AI can draft JSON-LD for a landing page following [[schema-dataset|Schema.org Dataset]] from a DataCite record." }
+check = { cs = "Výsledek před nasazením validujte a porovnejte s metadaty záznamu; identifikátory a adresy ověřte, že se rozřeší.", en = "Validate the result before deploying it and compare it with the record's metadata; check that identifiers and addresses resolve." }
+prompt = { cs = "Z metadat DataCite níže vytvoř JSON-LD typu schema.org Dataset pro landing page: name, description, identifier (DOI jako URL), creator s ORCID, license, datePublished a distribution s contentUrl a encodingFormat. Použij jen údaje z metadat; co chybí, vynech.\n\nMetadata: […]", en = "From the DataCite metadata below, create schema.org Dataset JSON-LD for a landing page: name, description, identifier (the DOI as a URL), creator with ORCID, license, datePublished and distribution with contentUrl and encodingFormat. Use only what the metadata say; leave out what is missing.\n\nMetadata: […]" }
+sources = ["E.CERIT-AI", "E.SCHEMA-DATASET", "E.GENAI.R1"]
+
+[[advice]]
+id = "publikace.all.L1.1"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám pomůže napsat do článku prohlášení o dostupnosti dat z údajů o zveřejněné datové sadě.", en = "AI helps you write the data availability statement of an article from the facts about the published dataset." }
+check = { cs = "DOI, repozitář, licenci a podmínky přístupu porovnejte se záznamem datové sady, ověřte, že DOI vede na landing page, a dodržte pokyny časopisu.", en = "Compare the DOI, the repository, the licence and the access conditions with the dataset's record, check that the DOI leads to the landing page, and follow the journal's instructions." }
+prompt = { cs = "Z údajů níže napiš krátké prohlášení o dostupnosti dat do článku: kde jsou data uložena, pod jakým DOI, pod jakou licencí a za jakých podmínek jsou přístupná. Použij jen uvedené údaje a drž se pokynů časopisu.\n\nÚdaje o datové sadě (název, repozitář, DOI, licence, omezení přístupu): […]\n\nPokyny časopisu: […]", en = "From the facts below, write a short data availability statement for an article: where the data are deposited, under which DOI, under which licence and on what conditions they are accessible. Use only the facts given and follow the journal's instructions.\n\nFacts about the dataset (title, repository, DOI, licence, access restrictions): […]\n\nJournal instructions: […]" }
+sources = ["A.R1.2.N3", "E.GENAI.R1"]

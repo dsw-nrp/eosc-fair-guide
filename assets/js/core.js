@@ -83,6 +83,22 @@
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   };
 
+  /** Copy text from a button and say so on its label (`.copy-label`, or the whole button). When the clipboard is
+      refused, select the element that shows the text, so the reader can copy it themselves. */
+  FG.copyText = async function (event, text, fallbackId) {
+    const button = event.currentTarget;
+    try {
+      await navigator.clipboard.writeText(text);
+      (button.querySelector(".copy-label") || button).textContent = FG.t("common.copied");
+    } catch (error) {
+      const field = document.getElementById(fallbackId);
+      if (!field) return;
+      field.focus();
+      if (typeof field.select === "function") field.select();
+      else window.getSelection().selectAllChildren(field);
+    }
+  };
+
   /** A file name for an export: the guide, what it holds, and today's date. */
   FG.exportName = (parts, extension) => ["fair-guide"].concat(parts).concat(FG.today()).join("-") + "." + extension;
 

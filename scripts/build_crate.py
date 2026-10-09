@@ -70,6 +70,8 @@ LICENSES = {
 TERMS = {
     "disclosureLevel": "Disclosure level (L0 to L3) at which an advice item is shown.",
     "adviceKind": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay.",
+    "checkAfter": "What to check after following an AI tip, so that its output is verified before it is used.",
+    "promptSample": "A short prompt to copy for an AI tip; the parts in brackets are filled in by the user.",
     "block": "Block of a self-check that a question belongs to; a check's blocks are a defined term set in order.",
     "defaultProfile": "Profile a self-check starts with, such as no funding programme for the dataset check.",
     "startsAt": "Station at which the path opens for an answer to the entry question.",
@@ -650,6 +652,8 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
                     "audience": lens_refs(advice["lens"], all_lenses),
                     "disclosureLevel": ref(f"#level-{level}"),
                     "adviceKind": advice.get("kind"),
+                    "checkAfter": text(advice.get("check")),
+                    "promptSample": text(advice.get("prompt")),
                     "citation": refs(graph.resolve(advice.get("sources", []))),
                     "isPartOf": ref(station_id),
                     "hasPart": refs(step_ids),

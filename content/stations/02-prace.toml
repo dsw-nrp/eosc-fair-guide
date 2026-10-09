@@ -159,5 +159,7 @@ id = "prace.all.L1.1"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "Skripty a zpracování dat s asistenty pro programování nebo v JupyterHubu v prostředí CERIT; návrhy README a datového slovníku. Nepublikovaná data zpracovávejte s AI jen v prostředí CERIT a výsledky vždy ověřte.", en = "Scripts and data processing with coding assistants or in JupyterHub in the CERIT environment; drafts of a README and a data dictionary. Process unpublished data with AI only in the CERIT environment, and always check the results." }
-sources = ["E.CERIT-AI"]
+text = { cs = "Skripty pro zpracování dat napíšete s asistenty pro programování nebo v JupyterHubu v [[cerit-aiaas|prostředí CERIT]], kde nepublikovaná data zůstávají v infrastruktuře.", en = "Write data-processing scripts with coding assistants or in JupyterHub in [[cerit-aiaas|the CERIT environment]], where unpublished data stay within the infrastructure." }
+check = { cs = "Skript nejdřív spusťte na kopii dat a výsledek porovnejte s očekáváním (počty řádků, součty, rozsahy hodnot). Skript uložte k datům, aby se zpracování dalo zopakovat.", en = "Run the script on a copy of the data first and compare the result with what you expect (row counts, totals, value ranges). Keep the script with the data so the processing can be repeated." }
+prompt = { cs = "Napiš skript v Pythonu, který načte všechny soubory CSV ve složce data/, převede kódování na UTF-8 a oddělovač na čárku, zachová názvy sloupců a pro každý soubor vypíše počet řádků před převodem a po něm. Každý krok okomentuj a nic nemaž.", en = "Write a Python script that reads every CSV file in the data/ folder, converts the encoding to UTF-8 and the separator to a comma, keeps the column names, and prints each file's row count before and after the conversion. Comment every step and delete nothing." }
+sources = ["E.CERIT-AI", "E.GENAI.R1", "E.GENAI.R3"]

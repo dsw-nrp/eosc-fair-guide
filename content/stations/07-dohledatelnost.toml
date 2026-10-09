@@ -182,3 +182,13 @@ lens = "K"
 level = "L1"
 text = { cs = "Určete, která metadata zůstanou veřejná i po ztrátě dat.", en = "Set which metadata remain public after the data are lost." }
 sources = ["A.A2.F1"]
+
+[[advice]]
+id = "dohledatelnost.all.L1.1"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI navrhne klíčová slova a obory k popisu dat. Použijte ale termíny ze sdílených slovníků, které obor nebo repozitář používá, aby data našly i vyhledávače jako [[nma|Národní metadatový adresář]].", en = "AI suggests keywords and fields to describe the data. Use terms from the shared vocabularies your field or repository uses, though, so that discovery services such as the [[nma|National Metadata Directory]] find the data too." }
+check = { cs = "Každý navržený termín vyhledejte v daném slovníku a použijte jeho identifikátor; termín, který ve slovníku není, nepoužívejte.", en = "Look up each suggested term in the vocabulary and use its identifier; do not use a term the vocabulary does not have." }
+prompt = { cs = "Navrhni pět až osm klíčových slov k popisu datové sady níže, česky i anglicky, a ke každému uveď obecnější a užší pojem. Vrať je jen jako návrhy; ve slovníku je dohledám sám.\n\nPopis datové sady: […]", en = "Suggest five to eight keywords for the dataset described below, in Czech and English, each with a broader and a narrower term. Return them as suggestions only; I will look them up in the vocabulary myself.\n\nDataset description: […]" }
+sources = ["E.GENAI.R1", "A.I2.N2"]

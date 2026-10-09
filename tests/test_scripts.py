@@ -249,6 +249,16 @@ class ContentCheckTests(FixtureCase):
         )
         self.assertError("explorer would miss it")
 
+    def test_ai_item_says_what_to_check_and_gives_a_prompt(self) -> None:
+        self.append(
+            "stations/01-one.toml",
+            '\n[[advice]]\nid = "one.V.L1.2"\nlens = "V"\nlevel = "L1"\nkind = "ai"\n'
+            'text = { cs = "Tip.", en = "Tip." }\nprompt = { cs = "Zadání.", en = "Prompt." }\nsources = ["A.F1.X1"]\n',
+        )
+        self.assertError("missing check")
+        self.edit("stations/01-one.toml", 'kind = "ai"\n', "")
+        self.assertError("only an AI item carries check and prompt")
+
     def test_station_without_next_action(self) -> None:
         self.edit(
             "stations/01-one.toml", 'action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }\n', ""

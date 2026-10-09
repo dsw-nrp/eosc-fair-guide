@@ -749,7 +749,12 @@
     };
     const basis = clauses.length ? ["### " + mdText(FG.t("station.whyClauses")), "", ...clauses.map(clauseLine)] : [];
     section(levelName("L2"), notes.map((note) => "- " + mdLine(note.text)).concat(notes.length && basis.length ? [""] : [], basis));
-    section(FG.t("station.ai"), ai.map((item) => "- " + mdLine(item.text)));
+    /* An AI tip, what to check after it, and its prompt as a code block under the same list item. */
+    const aiLines = (item) =>
+      ["- " + mdLine(item.text)]
+        .concat(item.checkAfter ? ["", "  " + mdText(FG.t("station.aiCheck")) + ": " + mdLine(item.checkAfter)] : [])
+        .concat(item.promptSample ? ["", "  ```text", ...FG.text(item.promptSample).split("\n").map((line) => (line ? "  " + line : "")), "  ```"] : []);
+    section(FG.t("station.ai"), ai.flatMap((item, index) => (index ? [""] : []).concat(aiLines(item))).concat(ai.length ? ["", mdText(FG.t("station.aiReminder"))] : []));
     for (const callout of FG.refs(entity, "hasPart").filter((part) => part["@id"].startsWith("#callout-"))) {
       section(
         FG.text(callout.headline),
@@ -767,6 +772,35 @@
     return lines.join("\n");
   }
 
+  /** An AI tip: the tip, what to check afterwards, and a short prompt to copy. */
+  function aiTip(item) {
+    const promptId = "prompt-" + item.identifier.replace(/\W/g, "-");
+    return h(
+      "div",
+      { class: "tip ai-tip" },
+      h("p", null, FG.linkedSpan(item)),
+      item.checkAfter ? h("p", null, h("strong", null, FG.t("station.aiCheck") + ": "), FG.linkedSpan(item, "checkAfter")) : null,
+      item.promptSample
+        ? h(
+            "div",
+            { class: "ai-prompt" },
+            h(
+              "div",
+              { class: "ai-prompt-head" },
+              h("span", { class: "small muted" }, FG.t(FG.text(item.promptSample).includes("[…]") ? "station.aiPromptFill" : "station.aiPrompt")),
+              h(
+                "button",
+                { type: "button", class: "button button-small", onclick: (event) => FG.copyText(event, FG.text(item.promptSample), promptId) },
+                FG.icon("copy"),
+                h("span", { class: "copy-label" }, FG.t("common.copy"))
+              )
+            ),
+            h("pre", { id: promptId, tabindex: "0", lang: FG.textOf(item.promptSample, FG.state.lang).lang || null }, FG.text(item.promptSample))
+          )
+        : null
+    );
+  }
+
   function station(route) {
     const entity = FG.get("#station-" + route.arg) || FG.stations()[0];
     const stations = FG.stations();
@@ -775,7 +809,7 @@
     const level = (code) => items.filter((item) => FG.id(item.disclosureLevel) === "#level-" + code && item.adviceKind !== "ai").sort(FG.byPosition);
     const now = level("L0")[0];
     const steps = level("L1");
-    const ai = items.filter((item) => item.adviceKind === "ai");
+    const ai = items.filter((item) => item.adviceKind === "ai").sort(FG.byPosition);
     const mentioned = FG.refs(entity, "mentions").filter((item) => item.resourceType && lensOf(item, route.lens));
     const courses = mentioned.filter((item) => FG.id(item.resourceType) === "#rtype-course");
     const resources = mentioned.filter((item) => !courses.includes(item));
@@ -825,7 +859,13 @@
       steps.length ? details(levelTitle("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
       details(levelTitle("L2"), "L2", whyContent(entity, items)),
       ai.length
-        ? details([FG.icon("ai"), h("span", null, FG.t("station.ai"))], "ai", ai.map((item) => h("p", { class: "tip" }, FG.linkedSpan(item))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline))))
+        ? details(
+            [FG.icon("ai"), h("span", null, FG.t("station.ai"))],
+            "ai",
+            ai.map(aiTip),
+            h("p", { class: "small muted" }, FG.t("station.aiReminder")),
+            h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline)))
+          )
         : null,
       details(levelTitle("L3"), "L3", madeContent(items, entity)),
       provenanceLine(items),

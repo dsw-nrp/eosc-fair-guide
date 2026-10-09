@@ -126,3 +126,13 @@ lens = "K"
 level = "L1"
 text = { cs = "Doporučte citační formát a citaci verzí, případně dynamických dat, ve FIP nebo v komunitních pravidlech.", en = "Recommend a citation format and how to cite versions, or dynamic data, in the FIP or in community rules." }
 sources = ["E.FORCE11", "A.F1.F2"]
+
+[[advice]]
+id = "citace.all.L1.1"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám pomůže najít v textu místa, kde používáte data, a navrhnout, co citovat. Citaci samotnou ale sestavte z metadat DOI, například v pomocníkovi [[page:citation|Citace z DOI]]: AI umí citace vymyslet.", en = "AI helps you find the places in a text where you use data and suggest what to cite. Build the citation itself from the DOI's metadata, though, for example in the [[page:citation|Citation from a DOI]] helper: AI can make citations up." }
+check = { cs = "Každý DOI v citaci rozřešte a porovnejte autory, název, rok a verzi se záznamem.", en = "Resolve every DOI in a citation and compare the authors, title, year and version with the record." }
+prompt = { cs = "Projdi text níže a vypiš místa, kde se používají nebo zmiňují výzkumná data, včetně dat jiných autorů. U každého uveď větu a jaká data by se měla citovat. Citace nevytvářej.\n\nText: […]", en = "Go through the text below and list the places where research data are used or mentioned, including other authors' data. For each, give the sentence and which data should be cited. Do not create citations.\n\nText: […]" }
+sources = ["E.GENAI.CITATIONS", "E.GENAI.R1"]

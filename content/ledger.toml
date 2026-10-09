@@ -2305,3 +2305,45 @@ principles = ["F1", "F4", "R1"]
 actor = "other"
 kind = "requirement"
 text = { cs = "Dataset jako výstup minizáměru musí mít volně dostupná metadata a splňovat FAIR principy, mít mezinárodně uznávaný perzistentní identifikátor (například DOI) a kompletní záznam v NMA; dokládá se funkčním odkazem na dataset v repozitáři s přiděleným PID.", en = "A dataset output of a mini-project must have freely available metadata and meet the FAIR principles, have an internationally recognised persistent identifier (such as a DOI) and a complete NMA record; it is evidenced by a working link to the dataset in a repository with its PID." }
+
+# The European Commission's living guidelines on the responsible use of generative AI in research (third version).
+
+[[clause]]
+id = "E.GENAI.R1"
+source = "ec-genai-guidelines"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Výzkumník zůstává za výstup plně odpovědný: výstupy generativní AI posuzuje kriticky s vědomím jejích omezení, jako jsou zkreslení a vymyšlené informace. AI není autorem ani spoluautorem.", en = "Researchers remain ultimately responsible for scientific output: they take a critical approach to the output of generative AI, aware of its limitations such as bias and hallucinations. AI systems are neither authors nor co-authors." }
+
+[[clause]]
+id = "E.GENAI.CITATIONS"
+source = "ec-genai-guidelines"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Generativní AI umí vytvořit věrohodně vypadající, ale nesprávné citace a shrnutí; výzkumník odpovídá za kontrolu všech odkazů a jejich obsahu.", en = "Generative AI can produce plausible but incorrect citations and summaries; researchers are responsible for checking all references and their content." }
+
+[[clause]]
+id = "E.GENAI.R2"
+source = "ec-genai-guidelines"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Výzkumník používá generativní AI transparentně: uvádí, které nástroje podstatně použil a jak, a kde je to vhodné, zpřístupní zadání a výstupy v souladu s otevřenou vědou a principy FAIR.", en = "Researchers use generative AI transparently: they state which tools they used substantially and how, and where relevant make the prompts and the output available in line with open science and the FAIR principles." }
+
+[[clause]]
+id = "E.GENAI.R3"
+source = "ec-genai-guidelines"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Nepublikovanou nebo citlivou práci výzkumník nevkládá do externího systému AI, pokud nemá záruku, že data nebudou dále využita, například k učení modelů; osobní údaje třetích osob jen se souhlasem a v souladu s ochranou osobních údajů. Ověřuje, kdo nástroj spravuje a kde běží.", en = "Researchers do not upload unpublished or sensitive work into an external AI system unless there are assurances that the data will not be re-used, for example to train models; third parties' personal data only with consent and in compliance with data protection rules. They check who manages the tool and where it runs." }
+
+[[clause]]
+id = "E.GENAI.ORG4"
+source = "ec-genai-guidelines"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Výzkumné organizace mají tam, kde je to možné, zavádět nástroje generativní AI hostované lokálně nebo spravované důvěryhodnou stranou, aby do nich zaměstnanci mohli vkládat vědecká data se zajištěnou ochranou dat a důvěrností.", en = "Where possible, research organisations implement generative AI tools hosted locally or governed by trusted parties, so that staff can feed scientific data into a tool that ensures data protection and confidentiality." }

@@ -180,5 +180,7 @@ id = "licence.all.L1.1"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "AI vám může licence vysvětlit srozumitelným jazykem, ale nenahradí právní radu. Rozhodnutí ověřte s data stewardem nebo s právníkem instituce.", en = "AI can explain licences in plain language, but it does not replace legal advice. Check decisions with your data steward or the institution's lawyer." }
-sources = ["E.CERIT-AI", "E.COPYRIGHT"]
+text = { cs = "AI vám vysvětlí licence srozumitelným jazykem a připraví otázky pro data stewarda nebo právníka instituce; právní radu nenahradí.", en = "AI explains licences in plain language and prepares questions for your data steward or the institution's lawyer; it does not replace legal advice." }
+check = { cs = "Rozhodnutí o licenci ověřte s data stewardem nebo s právníkem instituce a s podmínkami poskytovatele. Licenční texty berte od Creative Commons, ne z odpovědi modelu.", en = "Check the licence decision with your data steward or the institution's lawyer and with the funder's terms. Take licence texts from Creative Commons, not from the model's answer." }
+prompt = { cs = "Vysvětli srozumitelně rozdíl mezi licencemi CC BY 4.0 a CC0 1.0 pro zveřejnění výzkumných dat: co uživatel smí, co musí a co z toho plyne pro citování. Uveď, na co se mám zeptat právníka své instituce, a netvrď nic o zákonech konkrétní země.", en = "Explain in plain language the difference between the CC BY 4.0 and CC0 1.0 licences for publishing research data: what users may do, what they must do, and what it means for citation. List what I should ask my institution's lawyer, and make no claims about the laws of a particular country." }
+sources = ["E.CERIT-AI", "E.COPYRIGHT", "E.GENAI.R1"]

@@ -454,6 +454,17 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-09-ai-part"
+type = "update"
+name = "The AI part of each station"
+description = "Every station gets AI tips by lens, each with what to check afterwards and a prompt to copy, grounded in the European Commission's living guidelines on the responsible use of generative AI in research (third version); the AI page's rules follow the guidelines."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["ec-genai-guidelines", "E.CERIT-AI"]
+results = ["plan.all.L1.1", "publikace.all.L1.1", "plan.DS.L1.5", "prace.all.L1.1", "repozitar.all.L1.1", "popis.all.L1.1", "popis.SR.L1.12", "licence.all.L1.1", "publikace.SR.L1.8", "dohledatelnost.all.L1.1", "citace.all.L1.1", "kontrola.all.L1.1", "kontrola.K.L1.4", "E.GENAI.R1", "E.GENAI.CITATIONS", "E.GENAI.R2", "E.GENAI.R3", "E.GENAI.ORG4"]
+endTime = 2026-10-09T22:30:00+02:00
+
+[[action]]
 id = "2026-10-09-crate-standards"
 type = "create"
 name = "RO-Crate and Process Run Crate as resources"
