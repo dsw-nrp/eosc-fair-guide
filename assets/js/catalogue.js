@@ -33,6 +33,12 @@
 
   /** A requirement or finding as the guide shows it wherever it cites one: the text first, then its identifier,
       leading to the catalogue, and its source; a note when the statement needs refreshing or was superseded. */
+  /** A requirement's guidance, as its source publishes it, behind a disclosure. */
+  FG.guidance = (clause) =>
+    clause.guidance
+      ? h("details", { class: "clause-guidance" }, h("summary", null, FG.t("catalogue.guidance")), h("div", { class: "content", lang: "en" }, FG.paragraphs(clause.guidance)))
+      : null;
+
   FG.clauseEntry = function (clause) {
     const source = FG.get(clause.isPartOf);
     const status = clause.creativeWorkStatus;
@@ -40,7 +46,8 @@
     return h(
       "li",
       { class: "clause" },
-      h("p", { class: "clause-text" }, FG.span(clause.text || clause.name)),
+      h("p", { class: "clause-text" }, clause.name && clause.text ? [h("strong", null, FG.span(clause.name)), " "] : null, FG.linkedSpan(clause, clause.text ? "text" : "name")),
+      FG.guidance(clause),
       h(
         "p",
         { class: "clause-meta small" },
@@ -245,7 +252,7 @@
         entity: clause,
         name: clause.identifier,
         export: { text: FG.text(clause.text) },
-        text: [clause.identifier, FG.bothLanguages(clause.text)].join(" "),
+        text: [clause.identifier, FG.bothLanguages(clause.name), FG.bothLanguages(clause.text)].join(" "),
         stations: stationsOf(holders),
         principles: FG.principlesOf(clause).map((principle) => principle.termCode),
         order: String(index).padStart(4, "0"),
@@ -256,7 +263,9 @@
             "li",
             { class: "card clause-card", id: "item-" + clause.identifier, tabindex: "-1" },
             h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, clause.identifier), clause.clauseKind ? h("span", { class: "badge" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null),
-            h("p", null, FG.span(clause.text)),
+            clause.name ? h("h3", { class: "clause-title" }, FG.span(clause.name)) : null,
+            h("p", null, FG.linkedSpan(clause)),
+            FG.guidance(clause),
             h(
               "div",
               { class: "badges" },

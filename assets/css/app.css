@@ -913,6 +913,16 @@ details > .content {
   color: var(--tint-teal);
 }
 
+/* A requirement's title on its catalogue card, and its guidance as published, behind a disclosure. */
+.clause-title {
+  margin: 0 0 var(--space-1);
+  font-size: 1rem;
+}
+
+.clause-guidance {
+  margin: var(--space-2) 0;
+}
+
 /* A page section's action, below its text. */
 .section-action {
   margin: var(--space-3) 0 var(--space-4);

@@ -1002,12 +1002,17 @@
 
   function itemField(check, st, item) {
     const id = item.identifier;
-    const meta = h(
-      "div",
-      { class: "badges" },
-      isFirstTier(item) ? null : h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
-      FG.principlesOf(item).map((principle) => FG.principleTile(principle))
-    );
+    /* The item's tier and principles; a first-tier item with no principle has none, and no empty row. */
+    const principles = FG.principlesOf(item);
+    const meta =
+      isFirstTier(item) && !principles.length
+        ? null
+        : h(
+            "div",
+            { class: "badges" },
+            isFirstTier(item) ? null : h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
+            principles.map((principle) => FG.principleTile(principle))
+          );
     const statement = [h("span", { class: "item-id" }, id), " ", FG.linkedSpan(item)];
     const clauses = FG.refs(item, "citation");
     const basedOn = clauses.length

@@ -652,6 +652,31 @@ sections.push(["page", async () => {
     if (!gathered.all || gathered.shown !== gathered.all || gathered.prompts !== gathered.all || gathered.tagged !== gathered.forOne) fail("ai page: the stations' AI tips are not all gathered with their prompts, or a tip for one view lacks its icon: " + JSON.stringify(gathered));
     const chat = view.locator('[id="cerit"] .section-action a');
     if (!(await chat.count()) || !(await chat.getAttribute("href")).startsWith("https://chat.ai.e-infra.cz") || (await chat.getAttribute("target")) !== "_blank") fail("ai page: the CERIT section does not lead to the e-INFRA CZ AI chat");
+    // The About page links the analysis the guide is built on, where it first names it.
+    await view.goto(pageUrl + "#/cs/V/page/about");
+    await view.waitForSelector("#main h1");
+    const basis = view.locator("#main section").first().locator("a.text-ref", { hasText: "Analýzy a návrhu postupů" });
+    if (!(await basis.count())) fail("about: the analysis the guide is built on is not linked where the page first names it");
+    // CoreTrustSeal: one question per requirement in three blocks, each with the requirement's guidance as published;
+    // a question with no FAIR principle has no empty row of tags.
+    await view.goto(pageUrl + "#/cs/SR/check/coretrustseal");
+    await view.waitForSelector("#main h1");
+    const cts = await view.evaluate(() => {
+      const items = [...document.querySelectorAll("#main fieldset")].filter((field) => /^C\d\d\b/.test(field.querySelector("legend")?.textContent.trim() || ""));
+      const guidance = [...document.querySelectorAll("#main details.item-basis details.clause-guidance .content")];
+      const first = items.find((field) => field.querySelector("legend").textContent.trim().startsWith("C01"));
+      return { items: items.length, guidance: guidance.length, english: guidance.every((node) => node.lang === "en"), emptyTags: first ? first.querySelectorAll(".badges").length : -1 };
+    });
+    const ctsBlocks = await view.locator("#main .check-block > h2, #main section h2").allTextContents();
+    if (cts.items !== 16 || cts.guidance !== 16 || !cts.english || cts.emptyTags !== 0) fail("coretrustseal: not sixteen questions each with English guidance, or an empty row of tags: " + JSON.stringify(cts));
+    if (!["Organizační infrastruktura", "Správa digitálních objektů", "Informační technologie a bezpečnost"].every((name) => ctsBlocks.some((heading) => heading.includes(name)))) fail("coretrustseal: the questions are not in the three CoreTrustSeal areas: " + ctsBlocks.join(" | "));
+    // A principle links the CoreTrustSeal requirements it relates to, and an analysis clause links the numbers it
+    // names to the requirement they are about (the analysis's "R14", reuse, is R13 in the 2026-2028 edition).
+    await view.goto(pageUrl + "#/cs/V/explorer/F2");
+    await view.waitForSelector("#main h1");
+    const ctsLinks = await view.locator('#main a[href*="catalogue/clauses/CTS."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href"))]));
+    if (!ctsLinks.some(([text, href]) => text.startsWith("R13") && href.endsWith("/CTS.R13"))) fail("explorer: F2 does not link its CoreTrustSeal requirements: " + JSON.stringify(ctsLinks));
+    if (!ctsLinks.some(([text, href]) => text === "R14" && href.endsWith("/CTS.R13"))) fail("explorer: the analysis's R14 (reuse) does not lead to requirement R13: " + JSON.stringify(ctsLinks));
     await view.close();
   }
 

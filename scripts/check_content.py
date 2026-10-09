@@ -46,7 +46,14 @@ HEALTH = ("available", "degraded", "unavailable")
 PREFILL_SOURCES = ("datacite", "nkr", "champion", "fip", "resolver", "re3data")
 ACTION_TYPES = ("create", "update")
 RELEASE_STATUSES = ("testing", "released")
-CHECK_PREFIXES = {"dataset": ("D", "P", "O"), "gate": ("G",), "maturity": ("S",), "fip": ("K",), "institution": ("I",)}
+CHECK_PREFIXES = {
+    "dataset": ("D", "P", "O"),
+    "gate": ("G",),
+    "maturity": ("S",),
+    "fip": ("K",),
+    "institution": ("I",),
+    "coretrustseal": ("C",),
+}
 GATE_TIERS = ("required", "recommended")
 MATURITY_TIERS = ("minimum", "recommended", "advanced")
 FORBIDDEN_KEYS = ("score", "percentage", "points")
@@ -105,7 +112,9 @@ FIP_QUESTIONS = (
 
 PRINCIPLE = r"(?:F[1-4]|A1(?:\.[12])?|A2|I[1-3]|R1(?:\.[1-3])?)"
 ANALYSIS_CLAUSE = re.compile(rf"^A\.(?P<principle>{PRINCIPLE})\.(?P<kind>[NRFX])(?P<number>\d+)$")
-CLAUSE_ID = re.compile(r"^(A\.[A-Z0-9.]+|K\d[\w.]*|P\d+|S\.(?:MIN|REC)\d+|C\.[A-Z][\w.]*|DOC\.[\w.-]+|E\.[\w.-]+|G)$")
+CLAUSE_ID = re.compile(
+    r"^(A\.[A-Z0-9.]+|K\d[\w.]*|P\d+|S\.(?:MIN|REC)\d+|C\.[A-Z][\w.]*|CTS\.R\d+|DOC\.[\w.-]+|E\.[\w.-]+|G)$"
+)
 ADVICE_ID = re.compile(r"^(?P<station>[a-z0-9-]+)\.(?P<lens>[A-Z]+|all)\.(?P<level>L[0-2])(?:\.\d+)?$")
 RAW_HTML = re.compile(r"<\s*[a-zA-Z/!]")
 # Letters that mark a name as Czech; a plain name with one of them has no English form.
@@ -265,6 +274,10 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
         if superseded_by and superseded_by not in clause_ids | source_ids:
             report.error(where, f"supersededBy names an unknown clause or source '{superseded_by}'")
         require_text(report, where, clause.get("text"), "text")
+        if "title" in clause:
+            require_text(report, where, clause["title"], "title")
+        if "guidance" in clause and not (isinstance(clause["guidance"], str) and clause["guidance"].strip()):
+            report.error(where, "guidance is the source's own text, in English as published")
         match = ANALYSIS_CLAUSE.match(clause.get("id", ""))
         if match:
             # Lossless coverage: an analysis clause is reachable in the explorer under its own principle.
@@ -395,7 +408,7 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
         if check.get("defaultProfile") is not None and check["defaultProfile"] not in profiles:
             report.error(where, f"defaultProfile must be one of {', '.join(sorted(profiles)) or 'its profiles'}")
         modes = set(check.get("modes", []))
-        tiers = GATE_TIERS if check["id"] == "gate" else MATURITY_TIERS
+        tiers = GATE_TIERS if check["id"] in ("gate", "coretrustseal") else MATURITY_TIERS
         # A check either has no blocks, or every item belongs to one of its blocks.
         blocks = [block.get("id", "") for block in data.get("block", [])]
         unique(report, where, blocks, "block")
@@ -417,6 +430,8 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                 report.error(here, "prefillLevel can only be 'partly'")
             if item.get("tier") not in tiers:
                 report.error(here, f"tier must be one of {', '.join(tiers)}")
+            if "requirement" in item and item["requirement"] not in clause_ids:
+                report.error(here, f"requirement names unknown clause '{item['requirement']}'")
             require_text(report, here, item.get("statement"), "statement")
             if item.get("help") is not None:
                 require_text(report, here, item.get("help"), "help")
@@ -823,6 +838,7 @@ def check_references(report: Report, content: dict[str, Any]) -> None:
     known = {item["id"] for item in content["resources"] + content["sources"]}
     known |= {"term:" + term["id"] for term in content["glossary"].get("term", [])}
     known |= {"page:" + page["id"] for page in content["pages"]}
+    known |= {"clause:" + clause["id"] for clause in content["ledger"]}
     known.add("profile")
 
     def entries(where: str, text: str) -> set[str]:
@@ -1051,6 +1067,12 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_links(report, content, in_page_targets(content))
     check_sources(report, content)
     clause_ids = check_ledger(report, content, vocab)
+    for principle in content["principles"]:
+        for code in principle.get("cts", []):
+            if f"CTS.{code}" not in clause_ids:
+                report.error(
+                    f"principle:{principle['id']}", f"cts names no CoreTrustSeal requirement clause 'CTS.{code}'"
+                )
     check_stations(report, content, vocab, clause_ids)
     check_checks(report, content, vocab, clause_ids)
     check_resources(report, content, vocab, today or date.today())

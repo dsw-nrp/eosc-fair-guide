@@ -92,6 +92,7 @@ TERMS = {
     "lensOrder": "Order of a callout's items for one lens, written as '<lens>: <item>, <item>, ...'.",
     "relatedTo": "CoreTrustSeal requirement or CDIF profile related to a FAIR principle.",
     "note": "Additional remark shown with a clause or a self-check item.",
+    "guidance": "Guidance a standard publishes with a requirement, quoted in English as published.",
     "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
     "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
     "lookup": "Service where a user can find out the answer to a self-check item.",
@@ -168,7 +169,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
     snapshots = [load_toml(path) for path in sorted((content_dir / "snapshots").glob("*.toml"))]
     guide = load_toml(content_dir / "guide.toml")
     apply_base_url(guide["guide"])
-    return {
+    content = {
         "guide": guide,
         "principles": optional("principles.toml").get("principle", []),
         "sources": optional("sources.toml").get("source", []),
@@ -186,6 +187,27 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "ui": optional("ui.toml"),
         "icons": optional("icons.toml"),
     }
+    resolve_requirements(content)
+    return content
+
+
+def resolve_requirements(content: dict[str, Any]) -> None:
+    """A check item that names the requirement it asks about (`requirement = "<clause ID>"`) takes from it what it
+    does not state itself: its question (the clause's text), its first source (the clause) and its FAIR principles
+    (those that link the requirement). A requirement that names no clause is left for the content checks to report."""
+    clauses = {clause.get("id"): clause for clause in content["ledger"]}
+    linked: dict[str, list[str]] = {}
+    for principle in content["principles"]:
+        for code in principle.get("cts", []):
+            linked.setdefault(f"CTS.{code}", []).append(principle["id"])
+    for data in content["checks"]:
+        for item in data.get("item", []):
+            clause = clauses.get(item.get("requirement"))
+            if clause is None:
+                continue
+            item.setdefault("statement", clause.get("text"))
+            item["sources"] = [clause["id"]] + [source for source in item.get("sources", []) if source != clause["id"]]
+            item.setdefault("principles", linked.get(clause["id"], []))
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +326,7 @@ class Graph:
 
 def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
     """What a reference in text may name: a resource or source by its ID, a glossary term as term:<id>, a page of
-    the guide as page:<id>, and the guide's profile as profile."""
+    the guide as page:<id>, a ledger clause as clause:<id>, and the guide's profile as profile."""
     targets = {
         item["id"]: graph.index[item["id"]][0]
         for item in content["resources"] + content["sources"]
@@ -316,6 +338,7 @@ def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
         if entity_id.startswith("#term-")
     }
     targets |= {"page:" + page["id"]: f"#page-{page['id']}" for page in content["pages"]}
+    targets |= {"clause:" + clause["id"]: f"#clause-{clause['id']}" for clause in content["ledger"]}
     targets["profile"] = content["guide"]["guide"]["profile"]
     return targets
 
@@ -491,18 +514,9 @@ def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
         }
     )
     for principle in principles:
-        related = [f"#cts-{requirement}" for requirement in principle.get("cts", [])]
+        # CoreTrustSeal requirements are ledger clauses (CTS.R01 ...), with their statement and guidance.
+        related = [f"#clause-CTS.{requirement}" for requirement in principle.get("cts", [])]
         related += [f"#cdif-{slug(profile)}" for profile in principle.get("cdif", [])]
-        for requirement in principle.get("cts", []):
-            graph.add(
-                {
-                    "@id": f"#cts-{requirement}",
-                    "@type": "DefinedTerm",
-                    "termCode": requirement,
-                    "name": f"CoreTrustSeal {requirement}",
-                    "inDefinedTermSet": ref("#coretrustseal"),
-                }
-            )
         for profile in principle.get("cdif", []):
             graph.add(
                 {
@@ -524,15 +538,6 @@ def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
                 "relatedTo": refs(related),
             },
             principle["id"],
-        )
-    if any(principle.get("cts") for principle in principles):
-        graph.add(
-            {
-                "@id": "#coretrustseal",
-                "@type": "DefinedTermSet",
-                "name": "CoreTrustSeal Requirements",
-                "url": "https://www.coretrustseal.org/",
-            }
         )
     if any(principle.get("cdif") for principle in principles):
         graph.add(
@@ -600,7 +605,11 @@ def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
                 "@id": f"#clause-{clause['id']}",
                 "@type": "CreativeWork",
                 "identifier": clause["id"],
+                "name": text(clause.get("title")),
                 "text": text(clause.get("text")),
+                "guidance": {"@value": clause["guidance"].strip(), "@language": "en"}
+                if isinstance(clause.get("guidance"), str)
+                else None,
                 "about": refs([principle_iri(principle) for principle in clause.get("principles", [])]),
                 "audience": refs([f"#actor-{clause['actor']}"] if clause.get("actor") else []),
                 "isPartOf": refs(graph.resolve([clause["source"]])) if clause.get("source") else None,

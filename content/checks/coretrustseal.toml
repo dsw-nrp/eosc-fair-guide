@@ -1,0 +1,153 @@
+# CoreTrustSeal readiness, for repository administrators: one question per requirement of the CoreTrustSeal
+# Requirements 2026-2028, which supplies the question's text, its source and its FAIR principles.
+
+[check]
+id = "coretrustseal"
+name = { cs = "Připravenost na CoreTrustSeal", en = "CoreTrustSeal readiness" }
+icon = "certificate"
+description = { cs = "Je repozitář připraven požádat o certifikaci CoreTrustSeal? Otázky odpovídají požadavkům vydání 2026–2028 a u každé najdete pokyny CoreTrustSeal k tomu, co má žádost doložit. Odpověď Ano odpovídá v žádosti úrovni Implemented, Částečně úrovni In progress. Certifikaci uděluje CoreTrustSeal; průvodce jen radí.", en = "Is the repository ready to apply for CoreTrustSeal certification? The questions follow the 2026–2028 requirements, and each carries CoreTrustSeal's guidance on what an application must show. Yes corresponds to the Implemented compliance level in an application, Partly to In progress. CoreTrustSeal grants the certification; the guide only advises." }
+lenses = ["SR"]
+minutes = 30
+
+[[block]]
+id = "organisational"
+icon = "building-columns"
+name = { cs = "Organizační infrastruktura", en = "Organisational Infrastructure" }
+
+[[block]]
+id = "objects"
+icon = "box-archive"
+name = { cs = "Správa digitálních objektů", en = "Digital Object Management" }
+
+[[block]]
+id = "technology"
+icon = "shield-halved"
+name = { cs = "Informační technologie a bezpečnost", en = "Information Technology & Security" }
+
+[[item]]
+id = "C01"
+requirement = "CTS.R01"
+tier = "required"
+block = "organisational"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C02"
+requirement = "CTS.R02"
+tier = "required"
+block = "organisational"
+fixAt = "licence"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C03"
+requirement = "CTS.R03"
+tier = "required"
+block = "organisational"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C04"
+requirement = "CTS.R04"
+tier = "required"
+block = "organisational"
+fixAt = "licence"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C05"
+requirement = "CTS.R05"
+tier = "required"
+block = "organisational"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C06"
+requirement = "CTS.R06"
+tier = "required"
+block = "organisational"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C07"
+requirement = "CTS.R07"
+tier = "required"
+block = "objects"
+fixAt = "popis"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C08"
+requirement = "CTS.R08"
+tier = "required"
+block = "objects"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C09"
+requirement = "CTS.R09"
+tier = "required"
+block = "objects"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C10"
+requirement = "CTS.R10"
+tier = "required"
+block = "objects"
+fixAt = "popis"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C11"
+requirement = "CTS.R11"
+tier = "required"
+block = "objects"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C12"
+requirement = "CTS.R12"
+tier = "required"
+block = "objects"
+fixAt = "dohledatelnost"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C13"
+requirement = "CTS.R13"
+tier = "required"
+block = "objects"
+fixAt = "popis"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C14"
+requirement = "CTS.R14"
+tier = "required"
+block = "technology"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C15"
+requirement = "CTS.R15"
+tier = "required"
+block = "technology"
+fixAt = "repozitar"
+owner = ["repository-admin"]
+
+[[item]]
+id = "C16"
+requirement = "CTS.R16"
+tier = "required"
+block = "technology"
+fixAt = "repozitar"
+owner = ["repository-admin"]

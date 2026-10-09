@@ -1,4 +1,7 @@
 # The FAIR Guiding Principles (Wilkinson et al. 2016, https://doi.org/10.1038/sdata.2016.18).
+# CoreTrustSeal links name the 2026-2028 requirements (ledger clauses CTS.R01-CTS.R16). The analysis numbers them
+# mostly by the 2020-2022 edition (R10 preservation plan, R11 data quality, R13 discovery, R14 reuse), F1's R12 by
+# the 2023 one; each link follows what the analysis says the requirement is about, not its number.
 # Czech statements and CoreTrustSeal links follow the FAIR analysis v1.2, chapter 3 (source analyza-fair-1.2);
 # the Czech I3 statement adds "kvalifikované" to match the original principle.
 
@@ -12,19 +15,19 @@ cts = ["R12"]
 id = "F2"
 label = { cs = "Bohatá metadata", en = "Rich metadata" }
 statement = { cs = "Data jsou popsána bohatými metadaty.", en = "Data are described with rich metadata." }
-cts = ["R8", "R11", "R13", "R14"]
+cts = ["R08", "R10", "R12", "R13"]
 
 [[principle]]
 id = "F3"
 label = { cs = "Identifikátor dat v metadatech", en = "Data identifier in metadata" }
 statement = { cs = "Metadata jasně a explicitně uvádějí identifikátor dat, která popisují.", en = "Metadata clearly and explicitly include the identifier of the data they describe." }
-cts = ["R8", "R13"]
+cts = ["R08", "R12"]
 
 [[principle]]
 id = "F4"
 label = { cs = "Registrace a indexace", en = "Registered and indexed" }
 statement = { cs = "(Meta)data jsou registrována nebo indexována v prohledávatelných zdrojích.", en = "(Meta)data are registered or indexed in a searchable resource." }
-cts = ["R8", "R13"]
+cts = ["R08", "R12"]
 
 [[principle]]
 id = "A1"
@@ -48,46 +51,46 @@ cts = ["R15"]
 id = "A2"
 label = { cs = "Trvalost metadat", en = "Persistent metadata" }
 statement = { cs = "Metadata jsou přístupná, i když data již nejsou k dispozici.", en = "Metadata are accessible, even when the data are no longer available." }
-cts = ["R8", "R10"]
+cts = ["R08", "R09"]
 
 [[principle]]
 id = "I1"
 label = { cs = "Formální jazyk", en = "Formal language" }
 statement = { cs = "(Meta)data používají pro reprezentaci znalostí jazyk, který je formální, dostupný, sdílený a široce aplikovatelný.", en = "(Meta)data use a formal, accessible, shared, and broadly applicable language for knowledge representation." }
-cts = ["R14", "R15"]
+cts = ["R13", "R15"]
 
 [[principle]]
 id = "I2"
 label = { cs = "FAIR slovníky", en = "FAIR vocabularies" }
 statement = { cs = "(Meta)data používají slovníky, které se řídí zásadami FAIR.", en = "(Meta)data use vocabularies that follow FAIR principles." }
-cts = ["R14"]
+cts = ["R13"]
 
 [[principle]]
 id = "I3"
 label = { cs = "Kvalifikované odkazy", en = "Qualified references" }
 statement = { cs = "(Meta)data obsahují kvalifikované odkazy na další (meta)data.", en = "(Meta)data include qualified references to other (meta)data." }
-cts = ["R11", "R14"]
+cts = ["R10", "R13"]
 
 [[principle]]
 id = "R1"
 label = { cs = "Bohatý popis", en = "Richly described" }
 statement = { cs = "(Meta)data jsou bohatě popsána množstvím přesných a relevantních atributů.", en = "(Meta)data are richly described with a plurality of accurate and relevant attributes." }
-cts = ["R8", "R11", "R14"]
+cts = ["R08", "R10", "R13"]
 
 [[principle]]
 id = "R1.1"
 label = { cs = "Licence", en = "Licence" }
 statement = { cs = "(Meta)data jsou zveřejněna s jasnou a přístupnou licencí na používání dat.", en = "(Meta)data are released with a clear and accessible data usage licence." }
-cts = ["R2"]
+cts = ["R02"]
 
 [[principle]]
 id = "R1.2"
 label = { cs = "Provenience", en = "Provenance" }
 statement = { cs = "(Meta)data jsou spjata s podrobnou proveniencí.", en = "(Meta)data are associated with detailed provenance." }
-cts = ["R7", "R14"]
+cts = ["R07", "R13"]
 
 [[principle]]
 id = "R1.3"
 label = { cs = "Komunitní standardy", en = "Community standards" }
 statement = { cs = "(Meta)data splňují komunitní standardy relevantní pro danou oblast.", en = "(Meta)data meet domain-relevant community standards." }
-cts = ["R14"]
+cts = ["R13"]

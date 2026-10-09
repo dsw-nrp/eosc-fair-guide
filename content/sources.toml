@@ -315,3 +315,15 @@ authors = ["M. Růžička"]
 version = "1.0.1"
 datePublished = 2025-03-27
 license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "cts-2026"
+type = "standard"
+title = "CoreTrustSeal Trustworthy Digital Repositories Requirements 2026-2028"
+inLanguage = "en"
+doi = "10.5281/zenodo.17660462"
+url = "https://doi.org/10.5281/zenodo.17660462"
+publisher = "CoreTrustSeal Standards and Certification Board"
+version = "01.00"
+datePublished = 2025-11-20
+license = "https://creativecommons.org/licenses/by/4.0/"

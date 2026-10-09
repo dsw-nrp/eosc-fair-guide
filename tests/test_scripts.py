@@ -260,6 +260,48 @@ class ContentCheckTests(FixtureCase):
         self.edit("stations/01-one.toml", 'kind = "ai"\n', "")
         self.assertError("only an AI item carries check and prompt")
 
+    def test_a_clause_carries_its_title_and_guidance(self) -> None:
+        self.assertEqual(self.errors(), [])
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        clause = next(entity for entity in crate["@graph"] if entity["@id"] == "#clause-CTS.R12")
+        self.assertEqual(clause["guidance"]["@language"], "en")
+        self.assertIn("- One item.", clause["guidance"]["@value"])
+        self.assertIn({"@value": "Discovery and Identification", "@language": "en"}, clause["name"])
+        principle = next(
+            entity for entity in crate["@graph"] if entity.get("termCode") == "F1" and "relatedTo" in entity
+        )
+        self.assertIn({"@id": "#clause-CTS.R12"}, build_crate.as_list(principle["relatedTo"]))
+        self.edit("ledger.toml", "guidance = '''", "guidance = 1\nnote = '''")
+        self.assertError("guidance is the source's own text")
+
+    def test_a_principle_links_only_existing_requirements(self) -> None:
+        self.edit("principles.toml", 'cts = ["R12"]', 'cts = ["R99"]')
+        self.assertError("cts names no CoreTrustSeal requirement clause 'CTS.R99'")
+
+    def test_an_item_takes_its_question_from_the_requirement(self) -> None:
+        self.append(
+            "checks/gate.toml",
+            '\n[[item]]\nid = "G02"\nrequirement = "CTS.R12"\ntier = "required"\nowner = ["repository-admin"]\n',
+        )
+        content = build_crate.load_content(self.root / "content")
+        item = next(item for item in content["checks"][0]["item"] if item["id"] == "G02")
+        self.assertEqual(item["statement"]["en"], "The repository enables discovery and citation.")
+        self.assertEqual(item["sources"], ["CTS.R12"])
+        self.assertEqual(item["principles"], ["F1"])
+        self.edit("checks/gate.toml", 'requirement = "CTS.R12"', 'requirement = "CTS.R98"')
+        self.assertError("requirement names unknown clause 'CTS.R98'")
+
+    def test_text_may_refer_to_a_clause(self) -> None:
+        self.edit(
+            "ledger.toml",
+            'text = { cs = "NRP zajišťuje DOI.", en = "NRP provides DOIs." }',
+            'text = { cs = "NRP zajišťuje DOI podle [[clause:CTS.R12|R12]].", '
+            'en = "NRP provides DOIs as [[clause:CTS.R12|R12]] asks." }',
+        )
+        self.assertEqual(self.errors(), [])
+        self.edit("ledger.toml", "[[clause:CTS.R12|R12]].", "[[clause:CTS.R77|R12]].")
+        self.assertError("refers to an unknown entry 'clause:CTS.R77'")
+
     def test_station_without_next_action(self) -> None:
         self.edit(
             "stations/01-one.toml", 'action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }\n', ""

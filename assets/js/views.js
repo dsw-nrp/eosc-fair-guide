@@ -1075,12 +1075,19 @@
 
   function relatedTerms(principle) {
     const related = FG.refs(principle, "relatedTo");
-    const cts = related.filter((term) => FG.id(term.inDefinedTermSet) === "#coretrustseal");
+    const cts = related.filter((entity) => String(entity["@id"]).startsWith("#clause-CTS."));
     const cdif = related.filter((term) => FG.id(term.inDefinedTermSet) === "#cdif");
+    /* A CoreTrustSeal requirement by its number and title, leading to its record in the catalogue. */
+    const requirement = (clause) => h("a", { href: FG.catalogueHref("clauses", clause.identifier) }, clause.identifier.replace(/^CTS\./, "") + " ", FG.span(clause.name));
     return h(
       "div",
       null,
-      cts.length ? h("p", null, h("strong", null, FG.t("explorer.cts") + ": "), cts.map((term) => term.termCode).join(", ")) : null,
+      cts.length
+        ? [
+            h("p", null, h("strong", null, FG.t("explorer.cts") + ": "), cts.flatMap((clause, index) => (index ? [", ", requirement(clause)] : [requirement(clause)]))),
+            h("p", { class: "small muted" }, FG.t("explorer.ctsNote")),
+          ]
+        : null,
       cdif.length ? h("p", null, h("strong", null, FG.t("explorer.cdif") + ": "), cdif.map((term) => term.termCode).join(", ")) : null
     );
   }

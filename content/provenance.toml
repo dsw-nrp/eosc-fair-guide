@@ -454,6 +454,17 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-09-coretrustseal"
+type = "create"
+name = "CoreTrustSeal requirements in full, and a readiness check"
+description = "The CoreTrustSeal Requirements 2026-2028 enter the ledger in full: each requirement with its statement in English as published and in Czech, and its guidance in English as published, read from the PDF and checked against it word for word. The principles' CoreTrustSeal links, taken from the FAIR analysis, follow what the analysis says each requirement is about, since its numbers mostly follow the 2020-2022 edition; the analysis clauses link the numbers they name. A readiness check asks one question per requirement."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["cts-2026", "analyza-fair-1.2"]
+results = ["CTS.R0", "CTS.R01", "CTS.R02", "CTS.R03", "CTS.R04", "CTS.R05", "CTS.R06", "CTS.R07", "CTS.R08", "CTS.R09", "CTS.R10", "CTS.R11", "CTS.R12", "CTS.R13", "CTS.R14", "CTS.R15", "CTS.R16", "A.F1.X2", "A.F2.X3", "A.F4.X2", "A.A1.X1", "A.A2.X1", "A.I1.X2", "A.I3.X1", "A.R1.X2", "A.R1.1.X3", "A.R1.2.X2", "A.R1.3.X2", "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16"]
+endTime = 2026-10-09T21:52:00+02:00
+
+[[action]]
 id = "2026-10-09-gate-about-sources"
 type = "update"
 name = "Sources behind the gate's infrastructure questions and the About page"

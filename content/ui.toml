@@ -217,6 +217,7 @@ title = { cs = "FAIR principy", en = "FAIR principles" }
 intro = { cs = "Všechny požadavky Analýzy FAIR pro NRP/NDI podle principů, rozdělené podle toho, komu jsou určeny. Cesta průvodce z nich vybírá; zde najdete všechny.", en = "Every requirement of the FAIR analysis for NRP/NDI by principle, grouped by whom it addresses. The path picks from them; here you find them all." }
 choose = { cs = "Vyberte princip", en = "Choose a principle" }
 cts = { cs = "Požadavky CoreTrustSeal", en = "CoreTrustSeal requirements" }
+ctsNote = { cs = "Požadavky vydání 2026–2028. Analýza FAIR je čísluje převážně podle vydání 2020–2022; průvodce je propojuje podle toho, čeho se podle analýzy týkají.", en = "Requirements of the 2026–2028 edition. The FAIR analysis numbers them mostly by the 2020–2022 edition; the guide links them by what the analysis says they are about." }
 cdif = { cs = "Profily CDIF", en = "CDIF profiles" }
 dashboard = { cs = "Zdroje pro {p} ve FIP Dashboardu", en = "Resources for {p} in the FIP Dashboard" }
 refresh = { cs = "Aktualizace", en = "Update" }
@@ -549,6 +550,7 @@ changedItems = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{
 drewOn = { cs = "Podklady", en = "Drew on" }
 openEntry = { cs = "{id} v katalogu", en = "{id} in the catalogue" }
 usedIn = { cs = "Používá se", en = "Used in" }
+guidance = { cs = "Pokyny k požadavku (anglicky, jak je zdroj zveřejňuje)", en = "Guidance on the requirement (as the source publishes it)" }
 basedOn = { cs = "Vychází z", en = "Based on" }
 entries = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} entry|{n} entries" }
 filters = { cs = "Filtry", en = "Filters" }

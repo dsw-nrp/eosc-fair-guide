@@ -73,8 +73,8 @@ contains a phrase in another language marks it, so the page can set the right `l
 ### References in text
 
 A text that names a resource, a source or a glossary term marks the name as a reference: `[[id|phrase]]`, where
-`id` is the resource's or source's ID, `term:<id>` for a glossary term, `page:<id>` for a page of the guide or
-`profile` for the guide's profile, and
+`id` is the resource's or source's ID, `term:<id>` for a glossary term, `page:<id>` for a page of the guide,
+`clause:<id>` for a ledger clause (such as a CoreTrustSeal requirement) or `profile` for the guide's profile, and
 `phrase` is the words that name it
 in that language, inflected as the sentence needs (`v [[nma|Národním metadatovém adresáři]]`). Mark the first
 time a text names the entry; a button label is already a link and carries no reference. The Czech and the English
@@ -193,7 +193,9 @@ publisher named like a curated organisation.
 ### `principles.toml`
 
 `[[principle]]`: `id` (`F1` … `R1.3`), `statement` (text: the principle), `label` (text: a short label),
-`cts` (list of CoreTrustSeal requirement IDs such as `R12`), `cdif` (list of CDIF profile names). The IRI is
+`cts` (list of CoreTrustSeal requirement numbers of the 2026–2028 edition, such as `R12`, each naming the ledger
+clause `CTS.<number>`; the FAIR analysis numbers them mostly by the 2020–2022 edition, so each link follows what
+the analysis says the requirement is about), `cdif` (list of CDIF profile names). The IRI is
 `https://w3id.org/fair/principles/terms/<id>`.
 
 ### `sources.toml`
@@ -211,7 +213,11 @@ puts the person (with their ORCID iD) into the crate, or a plain name.
 `[[clause]]`: `id`, `source` (source ID), `locator` (chapter, table row or section), `principles` (list),
 `actor` (actor ID with `role = "clause"`), `kind` (`requirement`, `recommendation`, `fulfilment`, `statement`),
 `text`, `status` (`current`, `refresh`, `superseded`), `note` (text: what has changed since the source was
-published), `noteSources` (clause or source IDs that support the note), `supersededBy` (clause or source ID).
+published), `noteSources` (clause or source IDs that support the note), `supersededBy` (clause or source ID),
+`title` (text: a requirement's own title, when its source gives one) and `guidance` (a string: the guidance its
+source publishes with it, quoted in English as published; paragraphs and `- ` lists as in page text). The
+CoreTrustSeal Requirements 2026–2028 are clauses `CTS.R0` (the context an application gives) and `CTS.R01` to
+`CTS.R16`, with the statement in English as published and in the guide's Czech translation.
 
 ### `stations/NN-<id>.toml`
 
@@ -248,8 +254,9 @@ block instead of by principle or path step.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `id` | string | `D01`, `P01`, `O01` (dataset check: a funded output), `G01`, `S01`, `K01`, `I01`, … |
-| `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended` |
+| `id` | string | `D01`, `P01`, `O01` (dataset check: a funded output), `G01`, `S01`, `K01`, `I01`, `C01` (CoreTrustSeal), … |
+| `requirement` | string | A ledger clause the item asks about; it supplies the statement, the first source and the principles the item does not state |
+| `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended`, the CoreTrustSeal check `required` |
 | `principles` | list | Principle IDs; empty for gate items and for institution items that serve no single principle |
 | `statement` | text | The statement the user answers |
 | `help` | text | A short explanation |
@@ -370,7 +377,7 @@ profile 0.5. Schema.org types and properties are used wherever they fit; the gui
 | Level, tier, status, actor, profile, mode | `DefinedTerm` | `#<set>-<id>` | `name`, `termCode`, `inDefinedTermSet` |
 | Principle | `DefinedTerm` | w3id IRI | `termCode`, `name`, `description` |
 | Source | `ScholarlyArticle`, `Report`, `WebPage`, `Dataset`, `CreativeWork` | DOI URL, or `#source-<id>` | `name`, `url`, `publisher`, `datePublished`, `license` |
-| Clause | `CreativeWork` | `#clause-<id>` | `identifier`, `text`, `about`, `audience`, `isPartOf`, `clauseKind`, `creativeWorkStatus`, `note`, `citation` (note sources), `supersededBy` |
+| Clause | `CreativeWork` | `#clause-<id>` | `identifier`, `name` (title), `text`, `guidance`, `about`, `audience`, `isPartOf`, `clauseKind`, `creativeWorkStatus`, `note`, `citation` (note sources), `supersededBy` |
 | Check | `Quiz` | `#check-<id>` | `name`, `description`, `audience`, `hasPart` |
 | Check item | `Question` | `#item-<id>` | `text`, `description`, `about`, `citation`, `tier`, `fixAt`, `fixedBy`, `appliesTo`, `providedByNrpFor`, `allowsNotApplicable`, `additionalProperty` (pre-fill) |
 | Resource | by `type` | `#resource-<id>` | `name`, `description`, `url`, `audience`, `additionalType` (FIP class IRIs), `resourceType`, `serviceStatus`, `statusAsOf`, `inLanguage`, `sameAs` |

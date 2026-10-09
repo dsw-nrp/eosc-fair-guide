@@ -171,6 +171,7 @@
     const entity = FG.get(id);
     if (!entity) return null;
     if (String(id).startsWith("#page-")) return FG.href("page", entity.identifier);
+    if (String(id).startsWith("#clause-")) return FG.catalogueHref("clauses", entity.identifier);
     /* Something of the guide's own site, such as its profile: its page at the same place, wherever the site is. */
     const base = FG.config.pageUrl || "";
     if (base && String(id).startsWith(base)) return String(id).slice(base.length).replace(/\/?$/, "/");
