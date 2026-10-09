@@ -621,7 +621,9 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   facets with counts. Kind (resources, repositories, requirements, check questions, glossary terms, FIP profiles,
   FAIR tests, content changes) is a single choice that shows every kind with its count; search, station and
   principle apply across kinds and stay when the kind changes, and a kind without that dimension shows none and says
-  why; the facets of the chosen kind are grouped under it and reset when the kind changes.
+  why; a kind whose entries carry no station or no principle shows no such facet or order, FIP profiles take their
+  principles from their declarations and content changes the stations and principles of what they changed; the
+  facets of the chosen kind are grouped under it and reset when the kind changes.
   Resources and cited sources are one kind marked by usage (recommended by the guide, basis of the content, in the
   FIP Dashboard), with the dashboard's own resources folded in. The reader chooses the ordering and groups follow
   it; the whole state is part of the address, so a filtered list is a link, and older addresses select their kind.
@@ -774,3 +776,4 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-103 | 2026-10-09 | **Exports under every view**: one "Uložit a sdílet" bar offers printing or a PDF and the whole crate, plus what the view registers: the catalogue's filtered list as CSV and JSON (in the order shown, with its filters and a link to each entry), a station as Markdown for the reader's lens and language; a single check keeps its own export area. Printing opens closed sections and prints addresses only for links in the content. | U |
 | D-104 | 2026-10-09 | **References in text** are marked `[[id\|phrase]]` with the words each language uses, so inflected Czech names link too. The crate keeps the text clean and records the entry as mentioned; the phrase to link travels in the page's own data (`ui.js`), not as Web Annotation selectors in the crate, which would add entities for a presentation detail. One link per entry and text; button labels carry none. | U |
 | D-105 | 2026-10-09 | **Finder orders, tags and sources**: resources order by type, status or the date their status was checked (oldest first), repositories by data source; cards carry principle tiles and lens icons; a repository's sources link to their records (re3data, NKR, FAIRsharing). A citation form that is also a resource type files under that type. **Sample NKR records** are offered once NKR, asked, lists no repository: three real Czech repositories with only their re3data values, labelled as samples. | U |
+| D-106 | 2026-10-09 | **No facet with only zeros**: a catalogue kind shows the station and principle facets, and orders by them, only where its entries carry them (or a filter on them is active); FIP profiles take principles from their declarations and content changes the stations and principles of the items they produced. | U |

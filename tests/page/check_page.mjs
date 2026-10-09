@@ -204,6 +204,23 @@ async function axe(page, label) {
     await openAll("#/cs/V/catalogue/resources");
     if ((await surveyTitle()).includes("[")) fail("catalogue: in Czech a Czech work shows a translation: " + (await surveyTitle()));
 
+    // No shared facet shows only zeros: a kind whose entries carry no station or principle shows no such facet or
+    // order; FIP profiles take principles from their declarations, content changes the places of what they changed.
+    for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
+      await open("#/cs/V/catalogue/" + kind);
+      const empty = await view.evaluate(() =>
+        ["station", "principle"].filter((name) => {
+          const group = document.querySelector(`[data-facet="${name}"]`);
+          return group && ![...group.querySelectorAll(".facet-count")].some((node) => Number(node.textContent) > 0);
+        })
+      );
+      if (empty.length) fail(`catalogue: ${kind} shows a facet with only zeros: ${empty.join(", ")}`);
+    }
+    await open("#/cs/V/catalogue/fips");
+    if (!(await view.locator('[data-facet="principle"]').count()) || (await view.locator('[data-facet="station"]').count())) fail("catalogue: FIP profiles do not filter by principle alone");
+    await open("#/cs/V/catalogue/actions");
+    if (!(await view.locator('[data-facet="station"]').count())) fail("catalogue: content changes do not filter by the stations they changed");
+
     // Finders: resources order by type, status or the date their status was checked, oldest first, and keep their
     // orientation tags; repositories order by data source and link each source to its record; while NKR lists no
     // repository, sample records built from re3data facts show on request, labelled as samples.

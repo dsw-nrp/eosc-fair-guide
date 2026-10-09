@@ -344,7 +344,7 @@
         export: { url },
         text: [FG.bothLanguages(fip.name), fip.alternateName, FG.bothLanguages(fip.abstract)].join(" "),
         stations: [],
-        principles: [],
+        principles: [...new Set(FG.refs(fip, "hasPart").flatMap((declaration) => FG.principlesOf(declaration).map((principle) => principle.termCode)))],
         facets: {},
         render: () =>
           h(
@@ -394,7 +394,29 @@
 
   /** A content change: when, what kind, what was done and on what it drew; who and with which tool stays in the
       paradata, so the catalogue repeats no names. */
-  function actionEntries() {
+  /** Where each entity a content change can produce sits: its stations and principles, from the advice of each
+      station and from the entries of the other kinds. */
+  function reachOf(kinds) {
+    const reach = new Map();
+    const add = (id, stations, principles) => {
+      const known = reach.get(id) || { stations: new Set(), principles: new Set() };
+      for (const station of stations) known.stations.add(station);
+      for (const principle of principles) known.principles.add(principle);
+      reach.set(id, known);
+    };
+    for (const station of FG.stations()) {
+      for (const item of FG.refs(station, "itemListElement")) {
+        const principles = FG.refs(item, "citation").flatMap((clause) => FG.principlesOf(clause).map((principle) => principle.termCode));
+        for (const part of [item].concat(FG.refs(item, "hasPart"))) add(part["@id"], [station.identifier], principles);
+      }
+    }
+    for (const entry of kinds.clauses) add("#clause-" + entry.anchor, entry.stations, entry.principles);
+    for (const entry of kinds.questions) add("#item-" + entry.anchor, entry.stations, entry.principles);
+    for (const entry of kinds.resources) add("#resource-" + entry.anchor, entry.stations, entry.principles);
+    return reach;
+  }
+
+  function actionEntries(reach) {
     const cited = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
     return FG.graph
       .filter((entity) => String(entity["@id"]).startsWith("#action-"))
@@ -402,6 +424,8 @@
         const created = /^Create/.test(String(FG.list(action["@type"])[0]));
         const sources = FG.refs(action, "object").filter((entity) => cited.has(entity["@id"]));
         const id = String(action["@id"]).replace(/^#action-/, "");
+        /* A change sits where the items it produced sit. */
+        const reached = FG.refIds(action, "result").map((result) => reach.get(result)).filter(Boolean);
         return {
           kind: "actions",
           anchor: id,
@@ -409,8 +433,8 @@
           export: { text: FG.text(action.description) },
           date: String(action.endTime || ""),
           text: [FG.text(action.name), FG.text(action.description)].join(" "),
-          stations: [],
-          principles: [],
+          stations: [...new Set(reached.flatMap((place) => [...place.stations]))],
+          principles: [...new Set(reached.flatMap((place) => [...place.principles]))],
           facets: { change: [created ? "created" : "updated"] },
           render: () =>
             h(
@@ -434,7 +458,7 @@
 
   function allEntries() {
     const { bySource, byClause } = citations();
-    return {
+    const kinds = {
       resources: resourceEntries(bySource),
       repositories: repositoryEntries(),
       clauses: clauseEntries(byClause),
@@ -442,8 +466,9 @@
       terms: termEntries(),
       fips: fipEntries(),
       tests: testEntries(),
-      actions: actionEntries(),
     };
+    kinds.actions = actionEntries(reachOf(kinds));
+    return kinds;
   }
 
   /* ---------------------------------------------------------------- exports */
@@ -774,7 +799,12 @@
     const selected = [kind];
     const inKinds = entries[kind];
     const visible = inKinds.filter((entry) => passesShared(entry, state) && passesKind(entry, state, route));
-    const orders = ordersFor(kind);
+    /* A shared dimension the chosen kind has no values for shows no facet and no order, unless a filter on it is
+       active, so that it can be cleared where it was set. */
+    const carries = (dimension) => entries[kind].some((entry) => entry[dimension].length);
+    const showStations = carries("stations") || state.stations.length > 0;
+    const showPrinciples = carries("principles") || state.principles.length > 0;
+    const orders = ordersFor(kind).filter((name) => (name !== "station" || carries("stations")) && (name !== "principle" || carries("principles")));
     const order = orders.includes(state.order) ? state.order : orders[0];
 
     /* Counts: kinds under every filter; a shared facet under every other filter; a kind's facet within that kind. */
@@ -831,12 +861,16 @@
       search,
       /* Changing the kind keeps search, station, principle and lens, and drops the previous kind's own facets. */
       kindPicker(kind, kindCounts, kindNote, (other, focus) => go(Object.assign({}, state, { kinds: [other], order: "", f: state.f.lens === undefined ? {} : { lens: state.f.lens } }), focus)),
-      facetGroup("station", FG.t("catalogue.facet.station"), FG.stations().map((station) => station.identifier), state.stations, sharedCounts("stations", "station"), stationLabel, (id, focus) =>
-        go(Object.assign({}, state, { stations: toggle(state.stations, id) }), focus)
-      ),
-      facetGroup("principle", FG.t("catalogue.facet.principle"), rankedPrinciples(), state.principles, sharedCounts("principles", "principle"), principleLabel, (value, focus) =>
-        go(Object.assign({}, state, { principles: toggle(state.principles, value) }), focus)
-      ),
+      showStations
+        ? facetGroup("station", FG.t("catalogue.facet.station"), FG.stations().map((station) => station.identifier), state.stations, sharedCounts("stations", "station"), stationLabel, (id, focus) =>
+            go(Object.assign({}, state, { stations: toggle(state.stations, id) }), focus)
+          )
+        : null,
+      showPrinciples
+        ? facetGroup("principle", FG.t("catalogue.facet.principle"), rankedPrinciples(), state.principles, sharedCounts("principles", "principle"), principleLabel, (value, focus) =>
+            go(Object.assign({}, state, { principles: toggle(state.principles, value) }), focus)
+          )
+        : null,
       selected.map((own) => {
         const ownFacets = KIND_FACETS[own] || [];
         if (!ownFacets.length) return null;
