@@ -337,7 +337,8 @@
     const part = (url, name, which) => (url ? FG.external(url, h("span", { class: "visually-hidden" }, name), { class: "logolink-part logolink-" + which }) : null);
     return h(
       "div",
-      { class: "logolink logolink-" + FG.state.lang },
+      /* The funder's published logo set, shown through two windows onto one image: they meet by design. */
+      { class: "logolink logolink-" + FG.state.lang, "data-joined": "" },
       h("div", { class: "logolink-crop logolink-funding" }, image(), part(FG.config.links.opJak, FG.t("footer.logoEu"), "eu"), part(ministry && ministry.url, FG.text(ministry && ministry.name), "ministry")),
       h("div", { class: "logolink-crop logolink-initiative" }, image(), part(FG.config.links.eoscHome, FG.t("footer.logoEosc"), "eosc"))
     );
@@ -371,7 +372,7 @@
               "button",
               { type: "button", "aria-pressed": String(entry === chosen), onclick: () => chooseStage(entry.stage) },
               FG.icon(icons[entry.stage.termCode]),
-              h("span", null, FG.span(entry.stage.name), h("span", { class: "small muted" }, " · " + stepsLabel(entry.from, entry.to)))
+              h("span", null, FG.span(entry.stage.name), h("span", { class: "small muted" }, "\u00a0· " + stepsLabel(entry.from, entry.to)))
             )
           )
         )

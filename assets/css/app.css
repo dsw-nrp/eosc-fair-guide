@@ -485,7 +485,7 @@ button:hover,
 .stage-switch button {
   display: flex;
   gap: var(--space-2);
-  align-items: baseline;
+  align-items: flex-start;
   width: 100%;
   padding: var(--space-2);
   border: 1px solid transparent;
@@ -494,6 +494,11 @@ button:hover,
   color: var(--text);
   text-align: left;
   font: inherit;
+}
+
+/* The icon sits on the middle of the label's first line, however many lines the label takes. */
+.stage-switch button .icon {
+  margin-top: calc((1lh - 1.1em) / 2);
 }
 
 .stage-switch button:hover {
@@ -799,10 +804,6 @@ a.chip:hover {
 .button-small {
   padding: var(--space-1) var(--space-3);
   font-size: var(--size-small);
-}
-
-.button .icon {
-  margin-left: var(--space-1);
 }
 
 details > summary .icon {
@@ -2159,10 +2160,6 @@ a.id-chip:focus-visible {
   overflow-wrap: anywhere;
 }
 
-.export-actions .icon {
-  margin: 0;
-}
-
 /* The control row of a check: the extended switch and the grouping. */
 .check-toolbar {
   display: flex;
@@ -2574,16 +2571,32 @@ a.id-chip:focus-visible {
   position: relative;
 }
 
-.card:has(.json-link) > :first-child {
-  padding-right: 4.5rem;
-}
-
 .json-link {
   position: absolute;
-  top: var(--space-3);
   right: var(--space-4);
   font-family: ui-monospace, monospace;
   font-size: var(--size-small);
+}
+
+/* Beside the first row on wider screens; on phones in the bottom corner, so a long identifier keeps the width. */
+@media (min-width: 40rem) {
+  .card:has(.json-link) > :first-child {
+    padding-right: 4.5rem;
+  }
+
+  .json-link {
+    top: var(--space-3);
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .card:has(.json-link) {
+    padding-bottom: calc(var(--space-3) + 1.75rem);
+  }
+
+  .json-link {
+    bottom: var(--space-3);
+  }
 }
 
 .json-link::before {

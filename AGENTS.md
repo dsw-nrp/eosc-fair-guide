@@ -100,6 +100,31 @@ PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:diagrams   # every M
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .cache/screenshots
 ```
 
+## GUI and UX principles
+
+Alignment, spacing and consistency are part of correctness here, not polish. The page checks enforce what can be
+measured (`misalignedControls` and `collisions` in `tests/page/check_page.mjs`); the visual pass covers the rest.
+
+- **Centre what belongs together.** Icon and label in a control sit on one middle line; when a label wraps, the icon
+  sits on its first line or on the whole label, never in between, and an icon-only control centres its icon exactly.
+  Space comes from the container's `gap` and the spacing tokens, never from a margin on an icon or a one-off value.
+- **Nothing collides or touches unless decided.** Text, icons, fields and boxes keep apart, and boxes side by side or
+  stacked keep at least the smallest spacing token between them. Where contact is the design (the funder's logo set),
+  mark the container `data-joined` so the decision shows in the markup and in review. Something may lie over a form
+  field only within its padding, as the clear button does.
+- **Reflow and touch.** Nothing scrolls sideways at 320 px; a button is at least 2.75rem (44 px) high and every other
+  target at least 24 px (WCAG 2.2, checked by axe); a long identifier or address never widens a column, so room
+  reserved for a corner element must still fit a phone.
+- **One look per role.** Actions in one row share one style (an export that is a link looks like the buttons beside
+  it); a control marks the page it opens, not an unrelated menu item; links in running text stay quiet (a dotted
+  underline), buttons do not.
+- **Say it once.** A heading does not repeat what the navigation beside it already says; a separator stays with the
+  word before it (a non-breaking space), never starting a line.
+- **Plain words.** Spell out an abbreviation where a reader first meets it and link the entry that explains it; give
+  an icon-only control an accessible name.
+- **Enforce, then trust.** A fix that establishes a rule gets a page check, and a check is trusted only after it has
+  reported a planted regression.
+
 ## Visual pass
 
 Passing checks do not make a page finished. Before a page or view is reported done, drive it through its states
