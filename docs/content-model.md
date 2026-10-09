@@ -199,7 +199,8 @@ Published works the guide cites but does not recommend as a resource (a cited re
 `resources.toml`). `[[source]]`: `id`, `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
 `presentation`), `title` (a string, or a table whose `inLanguage` value is the original title), `version`,
 `inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),
-`authors`, `datePublished` or `dateAccessed`, `license` (URL). An author is a person ID from `guide.toml`, which
+`authors`, `datePublished` or `dateAccessed`, `dateModified` (when the publisher records an update), `license`
+(URL). An author is a person ID from `guide.toml`, which
 puts the person (with their ORCID iD) into the crate, or a plain name.
 
 ### `ledger.toml`
@@ -261,7 +262,8 @@ self-check overview), `description`, `lenses`, `minutes`, `modes` (dataset check
 `tool`, `registry`, `repository`, `guide`, `document`, `standard`, `vocabulary`, `community`, `project`,
 `course`), `fipClass` (FAIR-enabling resource classes of the FIP ontology, such as `Identifier-service` or
 `Metadata-schema`), `fipDashboard` (the resource's ID in the FIP Dashboard), `status`, `asOf`, `lenses`,
-`stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs).
+`stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs). A `course` at a station is that
+step's training: the station lists it among the help routes as "Školení k tomuto kroku", not as a resource card.
 
 `[resource.citation]` (when the guide also cites the resource): the fields of a `[[source]]` except `id` and `url`,
 which come from the resource; `title` is the work's title as published and becomes the entity's `alternateName` when

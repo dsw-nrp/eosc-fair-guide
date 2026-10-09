@@ -8,7 +8,7 @@ title = { cs = "O průvodci", en = "About the guide" }
 
 [[page.section]]
 heading = { cs = "Z čeho průvodce vychází", en = "What the guide builds on" }
-body = { cs = "Průvodce vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2, NRP KA 5.1) a doplňuje ji o současný stav národních služeb. Každé doporučení odkazuje na publikovaný zdroj; v průzkumníku principů najdete všechny požadavky analýzy.", en = "The guide builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2, NRP KA 5.1) and brings it up to date with the current state of national services. Every recommendation cites a published source; the principle explorer lists every requirement of the analysis." }
+body = { cs = "Průvodce vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2, NRP KA 5.1) a doplňuje ji o současný stav národních služeb. Každé doporučení odkazuje na publikovaný zdroj; v průzkumníku principů najdete všechny požadavky analýzy. Kdo s tématem začíná, najde úvod v [[training-overview|přehledových a úvodních kurzech EOSC CZ]].", en = "The guide builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2, NRP KA 5.1) and brings it up to date with the current state of national services. Every recommendation cites a published source; the principle explorer lists every requirement of the analysis. If you are new to the topic, the [[training-overview|EOSC CZ overview and introductory courses]] are a good start." }
 
 [[page.section]]
 heading = { cs = "Průvodce a FIP Dashboard", en = "The guide and the FIP Dashboard" }

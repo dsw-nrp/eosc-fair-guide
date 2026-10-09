@@ -249,6 +249,9 @@
           "@id": "#action-2026-10-09-text-references"
         },
         {
+          "@id": "#action-2026-10-09-eosc-inventory-resources"
+        },
+        {
           "@id": "#ledger"
         },
         {
@@ -7394,6 +7397,7 @@
         "@id": "#org-eosc-cz"
       },
       "datePublished": "2026-06-18",
+      "dateModified": "2026-08-27",
       "alternateName": "Persony a use casy data stewardů v České republice"
     },
     {
@@ -10079,6 +10083,1086 @@
       },
       "sdDatePublished": "2026-10-08",
       "alternateName": "FAIR-IMPACT catalogue of resources"
+    },
+    {
+      "@id": "#resource-argos",
+      "@type": "CreativeWork",
+      "identifier": "argos",
+      "name": "ARGOS",
+      "description": [
+        {
+          "@value": "Platforma OpenAIRE a EUDAT pro tvorbu plánů správy dat (DMP).",
+          "@language": "cs"
+        },
+        {
+          "@value": "The OpenAIRE and EUDAT platform for writing data management plans (DMPs).",
+          "@language": "en"
+        }
+      ],
+      "url": "https://argos.openaire.eu/splash/",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "additionalType": "http://schema.org/SoftwareApplication",
+      "resourceType": {
+        "@id": "#rtype-tool"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "en"
+    },
+    {
+      "@id": "#resource-dmponline",
+      "@type": "CreativeWork",
+      "identifier": "dmponline",
+      "name": "DMPonline",
+      "description": [
+        {
+          "@value": "Nástroj britského Digital Curation Centre pro tvorbu plánů správy dat (DMP).",
+          "@language": "cs"
+        },
+        {
+          "@value": "The UK Digital Curation Centre's tool for writing data management plans (DMPs).",
+          "@language": "en"
+        }
+      ],
+      "url": "https://dmponline.dcc.ac.uk/",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "additionalType": "http://schema.org/SoftwareApplication",
+      "resourceType": {
+        "@id": "#rtype-tool"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "en"
+    },
+    {
+      "@id": "#resource-he-dmp-template",
+      "@type": "DigitalDocument",
+      "identifier": "he-dmp-template",
+      "name": [
+        {
+          "@value": "Vzor plánu správy dat pro Horizont Evropa",
+          "@language": "cs"
+        },
+        {
+          "@value": "Horizon Europe data management plan template",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Český překlad vzoru DMP Horizontu Evropa (verze 2.0), zveřejněný TA ČR.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The Czech translation of the Horizon Europe DMP template (version 2.0), published by TA ČR.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.tacr.cz/wp-content/uploads/documents/2024/04/23/1713865197_Pl%C3%A1n%20spr%C3%A1vy%20dat%20-%20Horizont%20Evropa.docx",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-document"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-it4i-compute",
+      "@type": [
+        "CreativeWork",
+        "Service"
+      ],
+      "identifier": "it4i-compute",
+      "name": [
+        {
+          "@value": "IT4Innovations: výpočetní čas",
+          "@language": "cs"
+        },
+        {
+          "@value": "IT4Innovations: computing time",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Národní superpočítačové centrum; výpočetní čas přiděluje v otevřených, tematických a mezinárodních výzvách.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The national supercomputing centre; it allocates computing time through open, thematic and international calls.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.it4i.cz/pro-uzivatele/jak-ziskat-vypocetni-cas",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-service"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-metacentrum",
+      "@type": [
+        "CreativeWork",
+        "Service"
+      ],
+      "identifier": "metacentrum",
+      "name": [
+        {
+          "@value": "Služby MetaCentra",
+          "@language": "cs"
+        },
+        {
+          "@value": "MetaCentrum services",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Gridové výpočty, cloud a kontejnerová platforma CERIT-SC, dostupné s účtem MetaCentra.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Grid computing, cloud and the CERIT-SC container platform, available with a MetaCentrum account.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.metacentrum.cz/cs/Sluzby/",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-service"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-data-europa",
+      "@type": [
+        "CreativeWork",
+        "Service"
+      ],
+      "identifier": "data-europa",
+      "name": "data.europa.eu",
+      "description": [
+        {
+          "@value": "Evropský portál otevřených dat veřejného sektoru.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The European portal for public-sector open data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://data.europa.eu/en",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-service"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": [
+        "cs",
+        "en"
+      ]
+    },
+    {
+      "@id": "#resource-data-gov-cz",
+      "@type": [
+        "CreativeWork",
+        "Service"
+      ],
+      "identifier": "data-gov-cz",
+      "name": "data.gov.cz",
+      "description": [
+        {
+          "@value": "Portál o datech České republiky s Národním katalogem otevřených dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The Czech data portal with the National Open Data Catalogue.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://data.gov.cz/datov%C3%A9-sady",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-service"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": [
+        "cs",
+        "en"
+      ]
+    },
+    {
+      "@id": "#resource-metodika-2025",
+      "@type": "DigitalDocument",
+      "identifier": "metodika-2025",
+      "name": [
+        {
+          "@value": "Metodika hodnocení výzkumných organizací (2025+)",
+          "@language": "cs"
+        },
+        {
+          "@value": "Methodology for evaluating research organisations (2025+)",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Metodika hodnocení schválená vládou v červnu 2025; definice druhů výsledků obsahuje příloha 1.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The evaluation methodology approved by the government in June 2025; annex 1 defines the kinds of results.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://vyzkum.gov.cz/FrontClanek.aspx?idsekce=1064052",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-document"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-scientific-data",
+      "@type": [
+        "CreativeWork",
+        "Service"
+      ],
+      "identifier": "scientific-data",
+      "name": "Scientific Data",
+      "description": [
+        {
+          "@value": "Časopis nakladatelství Nature Portfolio pro popisy datových sad (data descriptors).",
+          "@language": "cs"
+        },
+        {
+          "@value": "A Nature Portfolio journal for descriptions of datasets (Data Descriptors).",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.nature.com/sdata/",
+      "audience": {
+        "@id": "#lens-V"
+      },
+      "resourceType": {
+        "@id": "#rtype-service"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "en"
+    },
+    {
+      "@id": "#resource-cc-signals",
+      "@type": "CreativeWork",
+      "identifier": "cc-signals",
+      "name": "CC Signals",
+      "description": [
+        {
+          "@value": "Rámec Creative Commons, kterým autoři a správci obsahu vyjadřují, jak si přejí, aby se jejich díla využívala k trénování AI; ve stavu prototypu.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A Creative Commons framework in which creators and content stewards state how they want their works used for AI training; at prototype stage.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/sluzby/ukladani/cc-signals",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-standard"
+      },
+      "serviceStatus": {
+        "@id": "#status-in-development"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-strazci-dat",
+      "@type": "DigitalDocument",
+      "identifier": "strazci-dat",
+      "name": [
+        {
+          "@value": "Strážci dat: Mise FAIR",
+          "@language": "cs"
+        },
+        {
+          "@value": "Data guardians: Mission FAIR",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Šestidílný seriál článků EOSC CZ o roli data stewardů, jejich nástrojích a vzdělávání.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A six-part EOSC CZ article series on the data steward role, its tools and training.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/komunity/data-stewardi/strazci-dat-mise-fair",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-guide"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-ds-manual",
+      "@type": "DigitalDocument",
+      "identifier": "ds-manual",
+      "name": [
+        {
+          "@value": "Manuál začínajícího data stewarda",
+          "@language": "cs"
+        },
+        {
+          "@value": "Manual for beginning data stewards",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kde začít, kurzy a zdroje a tipy pro první kroky; vznikl na Univerzitě Karlově a recenzovala ho komunita data stewardů v ČR.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Where to start, courses and resources, and tips for the first steps; written at Charles University and reviewed by the Czech data steward community.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/media/3795276/manual_ds_10012025_cz_v_1-3.pdf",
+      "audience": {
+        "@id": "#lens-DS"
+      },
+      "resourceType": {
+        "@id": "#rtype-guide"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-aai-nrp",
+      "@type": "DigitalDocument",
+      "identifier": "aai-nrp",
+      "name": [
+        {
+          "@value": "Iniciální architektura AAI pro NRP",
+          "@language": "cs"
+        },
+        {
+          "@value": "Initial AAI architecture for NRP",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Výstup NRP (KA 4.3 Řízení přístupu k datům) s návrhem autentizační a autorizační infrastruktury NRP.",
+          "@language": "cs"
+        },
+        {
+          "@value": "An NRP output (activity 4.3, data access control) proposing the authentication and authorisation infrastructure of NRP.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/media/4116431/inicialni-architektura-aai-pro-nrp.pdf",
+      "audience": {
+        "@id": "#lens-SR"
+      },
+      "resourceType": {
+        "@id": "#rtype-document"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-nrp-support",
+      "@type": "DigitalDocument",
+      "identifier": "nrp-support",
+      "name": [
+        {
+          "@value": "Zásady podpory v NRP",
+          "@language": "cs"
+        },
+        {
+          "@value": "General support principles in NRP",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Úrovně podpory v NRP: service desk jako první kontakt, provozovatelé repozitářů a specializovaných služeb a eskalace k provozovatelům infrastruktury.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Support levels in NRP: the service desk as first contact, repository and specialised service operators, and escalation to infrastructure operators.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://docs.nrp.eosc.cz/en/docs/repo_admins/user_support/general-support-principles-in-the-NRP",
+      "audience": {
+        "@id": "#lens-SR"
+      },
+      "resourceType": {
+        "@id": "#rtype-document"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "en"
+    },
+    {
+      "@id": "#resource-nrp-admin-docs",
+      "@type": "DigitalDocument",
+      "identifier": "nrp-admin-docs",
+      "name": [
+        {
+          "@value": "Dokumentace NRP pro správce repozitářů",
+          "@language": "cs"
+        },
+        {
+          "@value": "NRP documentation for repository administrators",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Návody NRP pro provoz repozitáře, včetně podpory uživatelů a napojení na NMA.",
+          "@language": "cs"
+        },
+        {
+          "@value": "NRP guidance on running a repository, including user support and the connection to NMA.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://docs.nrp.eosc.cz/en/docs/repo_admins/repo_admins",
+      "audience": {
+        "@id": "#lens-SR"
+      },
+      "resourceType": {
+        "@id": "#rtype-guide"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "en"
+    },
+    {
+      "@id": "#resource-nrp-repo-conditions",
+      "@type": "DigitalDocument",
+      "identifier": "nrp-repo-conditions",
+      "name": [
+        {
+          "@value": "Provozní podmínky služby Repozitáře v NRP",
+          "@language": "cs"
+        },
+        {
+          "@value": "Operating conditions of the Repositories in NRP service",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Pravidla pro zřizování, správu a provoz repozitářů v NRP: role a odpovědnosti, požadavky na ukládání a správu dat, bezpečnostní pravidla a dlouhodobá udržitelnost.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Rules for setting up, managing and operating repositories in NRP: roles and responsibilities, requirements for storing and managing data, security rules and long-term sustainability.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#provozni-podminky-sluzby-repozitare-v-nrp-cz",
+      "audience": {
+        "@id": "#lens-SR"
+      },
+      "resourceType": {
+        "@id": "#rtype-document"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": [
+        "cs",
+        "en"
+      ]
+    },
+    {
+      "@id": "#resource-repo-proposal-template",
+      "@type": "DigitalDocument",
+      "identifier": "repo-proposal-template",
+      "name": [
+        {
+          "@value": "Šablona: účel a základní vlastnosti navrhovaného repozitáře",
+          "@language": "cs"
+        },
+        {
+          "@value": "Template: purpose and basic properties of a proposed repository",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Šablona pro uživatelské skupiny, které v NRP navrhují nový repozitář; vyplněnou ji posílají metodikům repozitářových systémů.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A template for user groups proposing a new repository in NRP; they send it, filled in, to the repository system methodologists.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/media/3921330/cj_sablona.docx",
+      "audience": {
+        "@id": "#lens-SR"
+      },
+      "resourceType": {
+        "@id": "#rtype-document"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-nrp-roadmap-2026",
+      "@type": "DigitalDocument",
+      "identifier": "nrp-roadmap-2026",
+      "name": [
+        {
+          "@value": "Roadmapa služeb NRP pro rok 2026",
+          "@language": "cs"
+        },
+        {
+          "@value": "NRP service roadmap for 2026",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Přehled služeb a výstupů NRP dostupných nebo plánovaných v roce 2026, jako infografika.",
+          "@language": "cs"
+        },
+        {
+          "@value": "An overview of the NRP services and outputs available or planned in 2026, as an infographic.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#roadmapa-sluzeb-nrp-pro-rok-2026-cz",
+      "audience": [
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-document"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-planning",
+      "@type": "Course",
+      "identifier": "training-planning",
+      "name": [
+        {
+          "@value": "Školení: plánování a příprava dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: planning and preparing data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kurzy EOSC CZ k plánování a přípravě dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ courses on planning and preparing data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/planovani-a-priprava-dat",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-collection",
+      "@type": "Course",
+      "identifier": "training-collection",
+      "name": [
+        {
+          "@value": "Školení: sběr dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: collecting data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kurzy EOSC CZ ke sběru dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ courses on collecting data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/sber-dat",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-processing",
+      "@type": "Course",
+      "identifier": "training-processing",
+      "name": [
+        {
+          "@value": "Školení: zpracování dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: processing data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kurzy EOSC CZ ke zpracování dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ courses on processing data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/zpracovani-dat",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-analysis",
+      "@type": "Course",
+      "identifier": "training-analysis",
+      "name": [
+        {
+          "@value": "Školení: analýza dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: analysing data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kurzy EOSC CZ k analýze dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ courses on analysing data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/analyza-dat",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-storage",
+      "@type": "Course",
+      "identifier": "training-storage",
+      "name": [
+        {
+          "@value": "Školení: ukládání dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: storing data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kurzy EOSC CZ k ukládání dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ courses on storing data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/ukladani-dat",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-sharing",
+      "@type": "Course",
+      "identifier": "training-sharing",
+      "name": [
+        {
+          "@value": "Školení: sdílení dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: sharing data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kurzy EOSC CZ ke sdílení dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ courses on sharing data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/sdileni-dat",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-reuse",
+      "@type": "Course",
+      "identifier": "training-reuse",
+      "name": [
+        {
+          "@value": "Školení: znovuvyužití dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: reusing data",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Kurzy EOSC CZ ke znovuvyužití dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ courses on reusing data.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/znovuvyuziti-dat",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
+    },
+    {
+      "@id": "#resource-training-overview",
+      "@type": "Course",
+      "identifier": "training-overview",
+      "name": [
+        {
+          "@value": "Školení: přehledové a úvodní kurzy",
+          "@language": "cs"
+        },
+        {
+          "@value": "Training: overview and introductory courses",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Úvodní kurzy EOSC CZ k otevřené vědě a správě výzkumných dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "EOSC CZ introductory courses on open science and research data management.",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/skoleni/prehledove-a-uvodni-kurzy",
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "resourceType": {
+        "@id": "#rtype-course"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "inLanguage": "cs"
     },
     {
       "@id": "#sources",
@@ -18383,6 +19467,27 @@
         },
         {
           "@id": "#resource-eosc-working-groups"
+        },
+        {
+          "@id": "#resource-argos"
+        },
+        {
+          "@id": "#resource-dmponline"
+        },
+        {
+          "@id": "#resource-he-dmp-template"
+        },
+        {
+          "@id": "#resource-strazci-dat"
+        },
+        {
+          "@id": "#resource-ds-manual"
+        },
+        {
+          "@id": "#resource-nrp-roadmap-2026"
+        },
+        {
+          "@id": "#resource-training-planning"
         }
       ],
       "hasPart": {
@@ -19302,6 +20407,21 @@
         },
         {
           "@id": "#resource-cerit-aiaas"
+        },
+        {
+          "@id": "#resource-it4i-compute"
+        },
+        {
+          "@id": "#resource-metacentrum"
+        },
+        {
+          "@id": "#resource-training-collection"
+        },
+        {
+          "@id": "#resource-training-processing"
+        },
+        {
+          "@id": "#resource-training-analysis"
         }
       ],
       "hasPart": {
@@ -20553,6 +21673,24 @@
         },
         {
           "@id": "#resource-deposit-licence"
+        },
+        {
+          "@id": "#resource-nrp-support"
+        },
+        {
+          "@id": "#resource-nrp-admin-docs"
+        },
+        {
+          "@id": "#resource-nrp-repo-conditions"
+        },
+        {
+          "@id": "#resource-repo-proposal-template"
+        },
+        {
+          "@id": "#resource-nrp-roadmap-2026"
+        },
+        {
+          "@id": "#resource-training-storage"
         }
       ],
       "hasPart": {
@@ -23421,6 +24559,12 @@
         },
         {
           "@id": "#resource-aai-sensitive"
+        },
+        {
+          "@id": "#resource-cc-signals"
+        },
+        {
+          "@id": "#resource-aai-nrp"
         }
       ],
       "hasPart": {
@@ -24566,6 +25710,9 @@
         },
         {
           "@id": "#resource-schema-dataset"
+        },
+        {
+          "@id": "#resource-training-sharing"
         }
       ]
     },
@@ -25891,6 +27038,15 @@
         },
         {
           "@id": "#resource-google-dataset-search"
+        },
+        {
+          "@id": "#resource-data-europa"
+        },
+        {
+          "@id": "#resource-data-gov-cz"
+        },
+        {
+          "@id": "#resource-metodika-2025"
         }
       ]
     },
@@ -26670,6 +27826,12 @@
         },
         {
           "@id": "#resource-eosc-acknowledgement"
+        },
+        {
+          "@id": "#resource-scientific-data"
+        },
+        {
+          "@id": "#resource-training-reuse"
         }
       ],
       "hasPart": {
@@ -33045,6 +34207,92 @@
       }
     },
     {
+      "@id": "#repository-mbdb",
+      "@type": "DataCatalog",
+      "name": "Molecular Biophysics Database (MBDB)",
+      "url": "https://mbdb-data.org",
+      "repositoryKind": {
+        "@id": "#rkind-domain"
+      },
+      "keywords": [
+        {
+          "@value": "molekulární biofyzika",
+          "@language": "cs"
+        },
+        {
+          "@value": "molecular biophysics",
+          "@language": "en"
+        }
+      ],
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "isBasedOn": {
+        "@id": "#repositories-curated"
+      }
+    },
+    {
+      "@id": "#repository-dryad",
+      "@type": "DataCatalog",
+      "name": "Dryad",
+      "url": "https://datadryad.org/stash",
+      "repositoryKind": {
+        "@id": "#rkind-general"
+      },
+      "keywords": [
+        {
+          "@value": "všechny obory",
+          "@language": "cs"
+        },
+        {
+          "@value": "all fields",
+          "@language": "en"
+        }
+      ],
+      "identifier": "r3d100000044",
+      "sameAs": {
+        "@id": "https://www.re3data.org/repository/r3d100000044"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "isBasedOn": {
+        "@id": "#repositories-curated"
+      }
+    },
+    {
+      "@id": "#repository-harvard-dataverse",
+      "@type": "DataCatalog",
+      "name": "Harvard Dataverse",
+      "url": "https://dataverse.harvard.edu/",
+      "repositoryKind": {
+        "@id": "#rkind-general"
+      },
+      "keywords": [
+        {
+          "@value": "všechny obory",
+          "@language": "cs"
+        },
+        {
+          "@value": "all fields",
+          "@language": "en"
+        }
+      ],
+      "identifier": "r3d100010051",
+      "sameAs": {
+        "@id": "https://www.re3data.org/repository/r3d100010051"
+      },
+      "serviceStatus": {
+        "@id": "#status-operational"
+      },
+      "statusAsOf": "2026-10-09",
+      "isBasedOn": {
+        "@id": "#repositories-curated"
+      }
+    },
+    {
       "@id": "#repository-r3d100010386",
       "@type": "DataCatalog",
       "name": "LINDAT/CLARIAH-CZ repository",
@@ -33412,6 +34660,15 @@
       "hasPart": [
         {
           "@id": "#repository-zenodo"
+        },
+        {
+          "@id": "#repository-mbdb"
+        },
+        {
+          "@id": "#repository-dryad"
+        },
+        {
+          "@id": "#repository-harvard-dataverse"
         },
         {
           "@id": "#resource-datarepo"
@@ -40006,21 +41263,89 @@
       "name": "sensitive-data"
     },
     {
+      "@id": "#callout-verify-identifiers-helper",
+      "@type": "CreativeWork",
+      "identifier": "helper",
+      "text": [
+        {
+          "@value": "Vložte text do pomocníka Ověřit identifikátory: najde ORCID, DOI, Handle a ROR, ověří kontrolní číslice a ukáže, komu nebo čemu identifikátor patří.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Paste the text into the Verify identifiers helper: it finds ORCID iDs, DOIs, Handles and ROR IDs, checks their check digits and shows whom or what each belongs to.",
+          "@language": "en"
+        }
+      ],
+      "position": 1,
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "isPartOf": {
+        "@id": "#callout-verify-identifiers"
+      },
+      "name": "helper"
+    },
+    {
+      "@id": "#callout-verify-identifiers-script",
+      "@type": "CreativeWork",
+      "identifier": "script",
+      "text": [
+        {
+          "@value": "Pracujete-li s AI v kódu nebo v tabulce, nechte ji napsat a spustit skript, který každý identifikátor rozřeší přes doi.org, ORCID a ROR a vypíše jméno nebo název; výpis porovnejte s tím, co čekáte.",
+          "@language": "cs"
+        },
+        {
+          "@value": "When you work with AI on code or a spreadsheet, have it write and run a script that resolves every identifier through doi.org, ORCID and ROR and prints the name or title; compare the output with what you expect.",
+          "@language": "en"
+        }
+      ],
+      "position": 2,
+      "audience": [
+        {
+          "@id": "#lens-V"
+        },
+        {
+          "@id": "#lens-DS"
+        },
+        {
+          "@id": "#lens-SR"
+        },
+        {
+          "@id": "#lens-K"
+        }
+      ],
+      "isPartOf": {
+        "@id": "#callout-verify-identifiers"
+      },
+      "name": "script"
+    },
+    {
       "@id": "#callout-verify-identifiers-orcid",
       "@type": "CreativeWork",
       "identifier": "orcid",
       "text": [
         {
-          "@value": "ORCID otevřete a zkontrolujte jméno; afiliaci ověřte v registru ROR.",
+          "@value": "Jednotlivý ORCID otevřete a zkontrolujte jméno; afiliaci ověřte v registru ROR.",
           "@language": "cs"
         },
         {
-          "@value": "Open the ORCID record and check the name; verify the affiliation in the ROR registry.",
+          "@value": "To check a single ORCID, open the record and check the name; verify the affiliation in the ROR registry.",
           "@language": "en"
         }
       ],
       "url": "https://orcid.org/",
-      "position": 1,
+      "position": 3,
       "audience": [
         {
           "@id": "#lens-V"
@@ -40055,7 +41380,7 @@
         }
       ],
       "url": "https://doi.org/",
-      "position": 2,
+      "position": 4,
       "audience": [
         {
           "@id": "#lens-V"
@@ -40089,7 +41414,7 @@
           "@language": "en"
         }
       ],
-      "position": 3,
+      "position": 5,
       "audience": [
         {
           "@id": "#lens-V"
@@ -40124,7 +41449,7 @@
         }
       ],
       "url": "https://docs.cerit.io/en/docs/ai-as-a-service/introduction",
-      "position": 4,
+      "position": 6,
       "audience": [
         {
           "@id": "#lens-V"
@@ -40145,40 +41470,6 @@
       "name": "private"
     },
     {
-      "@id": "#callout-verify-identifiers-helper",
-      "@type": "CreativeWork",
-      "identifier": "helper",
-      "text": [
-        {
-          "@value": "Pomocník Ověřit identifikátory najde ve vloženém textu ORCID, DOI, Handle a ROR a ukáže, komu nebo čemu patří.",
-          "@language": "cs"
-        },
-        {
-          "@value": "The Verify identifiers helper finds ORCID iDs, DOIs, Handles and ROR IDs in pasted text and shows whom or what they belong to.",
-          "@language": "en"
-        }
-      ],
-      "position": 5,
-      "audience": [
-        {
-          "@id": "#lens-V"
-        },
-        {
-          "@id": "#lens-DS"
-        },
-        {
-          "@id": "#lens-SR"
-        },
-        {
-          "@id": "#lens-K"
-        }
-      ],
-      "isPartOf": {
-        "@id": "#callout-verify-identifiers"
-      },
-      "name": "helper"
-    },
-    {
       "@id": "#callout-verify-identifiers",
       "@type": "CreativeWork",
       "identifier": "verify-identifiers",
@@ -40194,15 +41485,21 @@
       ],
       "text": [
         {
-          "@value": "Jazykové modely umějí vytvořit ORCID, DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému.",
+          "@value": "Jazykové modely umějí vytvořit ORCID, DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému. Neposuzujte je odhadem: nechte je rozřešit strojem a výsledek porovnejte.",
           "@language": "cs"
         },
         {
-          "@value": "Language models can produce an ORCID, a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else.",
+          "@value": "Language models can produce an ORCID, a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else. Do not judge them by eye: have a machine resolve them and compare the result.",
           "@language": "en"
         }
       ],
       "hasPart": [
+        {
+          "@id": "#callout-verify-identifiers-helper"
+        },
+        {
+          "@id": "#callout-verify-identifiers-script"
+        },
         {
           "@id": "#callout-verify-identifiers-orcid"
         },
@@ -40214,9 +41511,6 @@
         },
         {
           "@id": "#callout-verify-identifiers-private"
-        },
-        {
-          "@id": "#callout-verify-identifiers-helper"
         }
       ],
       "name": "verify-identifiers"
@@ -40456,11 +41750,11 @@
       ],
       "text": [
         {
-          "@value": "Průvodce vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2, NRP KA 5.1) a doplňuje ji o současný stav národních služeb. Každé doporučení odkazuje na publikovaný zdroj; v průzkumníku principů najdete všechny požadavky analýzy.",
+          "@value": "Průvodce vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2, NRP KA 5.1) a doplňuje ji o současný stav národních služeb. Každé doporučení odkazuje na publikovaný zdroj; v průzkumníku principů najdete všechny požadavky analýzy. Kdo s tématem začíná, najde úvod v přehledových a úvodních kurzech EOSC CZ.",
           "@language": "cs"
         },
         {
-          "@value": "The guide builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2, NRP KA 5.1) and brings it up to date with the current state of national services. Every recommendation cites a published source; the principle explorer lists every requirement of the analysis.",
+          "@value": "The guide builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2, NRP KA 5.1) and brings it up to date with the current state of national services. Every recommendation cites a published source; the principle explorer lists every requirement of the analysis. If you are new to the topic, the EOSC CZ overview and introductory courses are a good start.",
           "@language": "en"
         }
       ],
@@ -40476,6 +41770,11 @@
         {
           "@value": "What the guide builds on",
           "@language": "en"
+        }
+      ],
+      "mentions": [
+        {
+          "@id": "#resource-training-overview"
         }
       ]
     },
@@ -44115,6 +45414,110 @@
         }
       ],
       "endTime": "2026-10-09T08:59:39+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-09-eosc-inventory-resources",
+      "@type": "CreateAction",
+      "name": "Resources from the EOSC CZ website",
+      "description": "Resources the EOSC CZ website lists and the guide did not: planning and computing services, data portals, the evaluation methodology, a data journal, CC Signals, data steward and repository administrator materials, and the EOSC CZ training by life-cycle phase as each step's training link; each checked at its address on this date. The personas document records its update.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "result": [
+        {
+          "@id": "#resource-argos"
+        },
+        {
+          "@id": "#resource-dmponline"
+        },
+        {
+          "@id": "#resource-he-dmp-template"
+        },
+        {
+          "@id": "#resource-it4i-compute"
+        },
+        {
+          "@id": "#resource-metacentrum"
+        },
+        {
+          "@id": "#resource-data-europa"
+        },
+        {
+          "@id": "#resource-data-gov-cz"
+        },
+        {
+          "@id": "#resource-metodika-2025"
+        },
+        {
+          "@id": "#resource-scientific-data"
+        },
+        {
+          "@id": "#resource-cc-signals"
+        },
+        {
+          "@id": "#resource-strazci-dat"
+        },
+        {
+          "@id": "#resource-ds-manual"
+        },
+        {
+          "@id": "#resource-aai-nrp"
+        },
+        {
+          "@id": "#resource-nrp-support"
+        },
+        {
+          "@id": "#resource-nrp-admin-docs"
+        },
+        {
+          "@id": "#resource-nrp-repo-conditions"
+        },
+        {
+          "@id": "#resource-repo-proposal-template"
+        },
+        {
+          "@id": "#resource-nrp-roadmap-2026"
+        },
+        {
+          "@id": "#resource-training-planning"
+        },
+        {
+          "@id": "#resource-training-collection"
+        },
+        {
+          "@id": "#resource-training-processing"
+        },
+        {
+          "@id": "#resource-training-analysis"
+        },
+        {
+          "@id": "#resource-training-storage"
+        },
+        {
+          "@id": "#resource-training-sharing"
+        },
+        {
+          "@id": "#resource-training-reuse"
+        },
+        {
+          "@id": "#resource-training-overview"
+        },
+        {
+          "@id": "#resource-ds-personas"
+        }
+      ],
+      "endTime": "2026-10-09T09:51:51+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }

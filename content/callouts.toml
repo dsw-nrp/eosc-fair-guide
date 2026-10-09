@@ -37,12 +37,20 @@ lenses = ["SR", "DS"]
 [[callout]]
 id = "verify-identifiers"
 title = { cs = "AI pomůže s texty, identifikátory si ale ověřte", en = "AI helps with texts, but verify the identifiers" }
-intro = { cs = "Jazykové modely umějí vytvořit ORCID, DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému.", en = "Language models can produce an ORCID, a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else." }
+intro = { cs = "Jazykové modely umějí vytvořit ORCID, DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému. Neposuzujte je odhadem: nechte je rozřešit strojem a výsledek porovnejte.", en = "Language models can produce an ORCID, a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else. Do not judge them by eye: have a machine resolve them and compare the result." }
 stations = ["popis", "citace"]
 
 [[callout.item]]
+id = "helper"
+text = { cs = "Vložte text do pomocníka Ověřit identifikátory: najde ORCID, DOI, Handle a ROR, ověří kontrolní číslice a ukáže, komu nebo čemu identifikátor patří.", en = "Paste the text into the Verify identifiers helper: it finds ORCID iDs, DOIs, Handles and ROR IDs, checks their check digits and shows whom or what each belongs to." }
+
+[[callout.item]]
+id = "script"
+text = { cs = "Pracujete-li s AI v kódu nebo v tabulce, nechte ji napsat a spustit skript, který každý identifikátor rozřeší přes doi.org, ORCID a ROR a vypíše jméno nebo název; výpis porovnejte s tím, co čekáte.", en = "When you work with AI on code or a spreadsheet, have it write and run a script that resolves every identifier through doi.org, ORCID and ROR and prints the name or title; compare the output with what you expect." }
+
+[[callout.item]]
 id = "orcid"
-text = { cs = "ORCID otevřete a zkontrolujte jméno; afiliaci ověřte v registru ROR.", en = "Open the ORCID record and check the name; verify the affiliation in the ROR registry." }
+text = { cs = "Jednotlivý ORCID otevřete a zkontrolujte jméno; afiliaci ověřte v registru ROR.", en = "To check a single ORCID, open the record and check the name; verify the affiliation in the ROR registry." }
 url = "https://orcid.org/"
 
 [[callout.item]]
@@ -59,6 +67,3 @@ id = "private"
 text = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které je neposílají mimo infrastrukturu, například AI v e-INFRA CZ (CERIT).", en = "Put unpublished and sensitive data only into services that keep them within the infrastructure, such as AI in e-INFRA CZ (CERIT)." }
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/introduction"
 
-[[callout.item]]
-id = "helper"
-text = { cs = "Pomocník Ověřit identifikátory najde ve vloženém textu ORCID, DOI, Handle a ROR a ukáže, komu nebo čemu patří.", en = "The Verify identifiers helper finds ORCID iDs, DOIs, Handles and ROR IDs in pasted text and shows whom or what they belong to." }

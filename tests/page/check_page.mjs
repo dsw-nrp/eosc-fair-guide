@@ -259,6 +259,27 @@ async function axe(page, label) {
     if (!lindat.includes("OAI-PMH") || !lindat.includes("neuvedeno")) fail("finders: a sample record does not show re3data's values and what re3data does not state");
     if ((await view.evaluate(() => document.activeElement && document.activeElement.id)) !== "nkr-samples") fail("finders: showing the samples moves focus away from the control");
 
+    // Content from the EOSC CZ website: each step's training is a line among the help routes, not a resource card;
+    // the identifier callout leads with scripted verification; the About page links the introductory courses; the
+    // repository finder lists the added general-purpose and domain repositories.
+    await view.goto(pageUrl + "#/cs/V/path/prace");
+    await view.waitForSelector("#main h1");
+    const training = view.locator("li.training");
+    if ((await training.locator("a").count()) !== 3 || !(await training.textContent()).startsWith("Školení k tomuto kroku")) fail("training: the Práce step does not list its three trainings in one line");
+    if (await view.locator('.cards .card a[href*="eosc.cz/skoleni/"]').count()) fail("training: a training shows as a resource card as well");
+    await view.goto(pageUrl + "#/cs/V/path/popis");
+    await view.waitForSelector("#main h1");
+    await view.locator(".callout-verify-identifiers summary").click();
+    const steps = await view.locator(".callout-verify-identifiers ol li").allTextContents();
+    if (!steps[0].includes("Ověřit identifikátory") || !steps[1].includes("skript")) fail("identifier callout: it does not lead with the helper and a script: " + steps.slice(0, 2).join(" | "));
+    await view.goto(pageUrl + "#/cs/V/page/about");
+    await view.waitForSelector("#main h1");
+    if (!(await view.locator('a.text-ref[href$="/catalogue/resources/training-overview"]').count())) fail("about: the introductory courses are not linked");
+    await open("#/cs/V/catalogue/repositories");
+    for (const name of ["Dryad", "Harvard Dataverse", "Molecular Biophysics Database (MBDB)"]) {
+      if (!(await view.locator(".catalogue-results .card h3", { hasText: name }).count())) fail("repositories: " + name + " is not listed");
+    }
+
     // Exports: every view but a single check offers printing and the whole crate under it; the catalogue saves the
     // filtered list it shows as CSV and JSON, a station saves itself as Markdown, and printing opens closed sections.
     const exportIds = async () => view.evaluate(() => [...document.querySelectorAll(".export-bar .export-actions > *")].map((node) => node.id).join(","));

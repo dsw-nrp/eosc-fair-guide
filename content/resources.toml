@@ -113,6 +113,7 @@ title = "Persony a use casy data stewardů v České republice"
 inLanguage = "cs"
 publisher = "EOSC CZ"
 datePublished = 2026-06-18
+dateModified = 2026-08-27
 
 [[resource]]
 id = "eosc-data-stewards"
@@ -1177,3 +1178,319 @@ title = "FAIR-IMPACT catalogue of resources"
 inLanguage = "en"
 publisher = "FAIR-IMPACT"
 dateAccessed = 2026-10-08
+
+# From the eosc.cz inventory (2026-10-09): planning, computing, discovery, citation, licences, data stewards,
+# repository administrators.
+
+[[resource]]
+id = "argos"
+name = "ARGOS"
+description = { cs = "Platforma OpenAIRE a EUDAT pro tvorbu plánů správy dat (DMP).", en = "The OpenAIRE and EUDAT platform for writing data management plans (DMPs)." }
+url = "https://argos.openaire.eu/splash/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["plan"]
+languages = ["en"]
+
+[[resource]]
+id = "dmponline"
+name = "DMPonline"
+description = { cs = "Nástroj britského Digital Curation Centre pro tvorbu plánů správy dat (DMP).", en = "The UK Digital Curation Centre's tool for writing data management plans (DMPs)." }
+url = "https://dmponline.dcc.ac.uk/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["plan"]
+languages = ["en"]
+
+[[resource]]
+id = "he-dmp-template"
+name = { cs = "Vzor plánu správy dat pro Horizont Evropa", en = "Horizon Europe data management plan template" }
+description = { cs = "Český překlad vzoru DMP Horizontu Evropa (verze 2.0), zveřejněný TA ČR.", en = "The Czech translation of the Horizon Europe DMP template (version 2.0), published by TA ČR." }
+url = "https://www.tacr.cz/wp-content/uploads/documents/2024/04/23/1713865197_Pl%C3%A1n%20spr%C3%A1vy%20dat%20-%20Horizont%20Evropa.docx"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "it4i-compute"
+name = { cs = "IT4Innovations: výpočetní čas", en = "IT4Innovations: computing time" }
+description = { cs = "Národní superpočítačové centrum; výpočetní čas přiděluje v otevřených, tematických a mezinárodních výzvách.", en = "The national supercomputing centre; it allocates computing time through open, thematic and international calls." }
+url = "https://www.it4i.cz/pro-uzivatele/jak-ziskat-vypocetni-cas"
+type = "service"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["prace"]
+languages = ["cs"]
+
+[[resource]]
+id = "metacentrum"
+name = { cs = "Služby MetaCentra", en = "MetaCentrum services" }
+description = { cs = "Gridové výpočty, cloud a kontejnerová platforma CERIT-SC, dostupné s účtem MetaCentra.", en = "Grid computing, cloud and the CERIT-SC container platform, available with a MetaCentrum account." }
+url = "https://www.metacentrum.cz/cs/Sluzby/"
+type = "service"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["prace"]
+languages = ["cs"]
+
+[[resource]]
+id = "data-europa"
+name = "data.europa.eu"
+description = { cs = "Evropský portál otevřených dat veřejného sektoru.", en = "The European portal for public-sector open data." }
+url = "https://data.europa.eu/en"
+type = "service"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["dohledatelnost"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "data-gov-cz"
+name = "data.gov.cz"
+description = { cs = "Portál o datech České republiky s Národním katalogem otevřených dat.", en = "The Czech data portal with the National Open Data Catalogue." }
+url = "https://data.gov.cz/datov%C3%A9-sady"
+type = "service"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["dohledatelnost"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "metodika-2025"
+name = { cs = "Metodika hodnocení výzkumných organizací (2025+)", en = "Methodology for evaluating research organisations (2025+)" }
+description = { cs = "Metodika hodnocení schválená vládou v červnu 2025; definice druhů výsledků obsahuje příloha 1.", en = "The evaluation methodology approved by the government in June 2025; annex 1 defines the kinds of results." }
+url = "https://vyzkum.gov.cz/FrontClanek.aspx?idsekce=1064052"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["dohledatelnost"]
+languages = ["cs"]
+
+[[resource]]
+id = "scientific-data"
+name = "Scientific Data"
+description = { cs = "Časopis nakladatelství Nature Portfolio pro popisy datových sad (data descriptors).", en = "A Nature Portfolio journal for descriptions of datasets (Data Descriptors)." }
+url = "https://www.nature.com/sdata/"
+type = "service"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V"]
+stations = ["citace"]
+languages = ["en"]
+
+[[resource]]
+id = "cc-signals"
+name = "CC Signals"
+description = { cs = "Rámec Creative Commons, kterým autoři a správci obsahu vyjadřují, jak si přejí, aby se jejich díla využívala k trénování AI; ve stavu prototypu.", en = "A Creative Commons framework in which creators and content stewards state how they want their works used for AI training; at prototype stage." }
+url = "https://www.eosc.cz/sluzby/ukladani/cc-signals"
+type = "standard"
+status = "in-development"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR"]
+stations = ["licence"]
+languages = ["cs"]
+
+[[resource]]
+id = "strazci-dat"
+name = { cs = "Strážci dat: Mise FAIR", en = "Data guardians: Mission FAIR" }
+description = { cs = "Šestidílný seriál článků EOSC CZ o roli data stewardů, jejich nástrojích a vzdělávání.", en = "A six-part EOSC CZ article series on the data steward role, its tools and training." }
+url = "https://www.eosc.cz/komunity/data-stewardi/strazci-dat-mise-fair"
+type = "guide"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "ds-manual"
+name = { cs = "Manuál začínajícího data stewarda", en = "Manual for beginning data stewards" }
+description = { cs = "Kde začít, kurzy a zdroje a tipy pro první kroky; vznikl na Univerzitě Karlově a recenzovala ho komunita data stewardů v ČR.", en = "Where to start, courses and resources, and tips for the first steps; written at Charles University and reviewed by the Czech data steward community." }
+url = "https://www.eosc.cz/media/3795276/manual_ds_10012025_cz_v_1-3.pdf"
+type = "guide"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["DS"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "aai-nrp"
+name = { cs = "Iniciální architektura AAI pro NRP", en = "Initial AAI architecture for NRP" }
+description = { cs = "Výstup NRP (KA 4.3 Řízení přístupu k datům) s návrhem autentizační a autorizační infrastruktury NRP.", en = "An NRP output (activity 4.3, data access control) proposing the authentication and authorisation infrastructure of NRP." }
+url = "https://www.eosc.cz/media/4116431/inicialni-architektura-aai-pro-nrp.pdf"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["SR"]
+stations = ["licence"]
+languages = ["cs"]
+
+[[resource]]
+id = "nrp-support"
+name = { cs = "Zásady podpory v NRP", en = "General support principles in NRP" }
+description = { cs = "Úrovně podpory v NRP: service desk jako první kontakt, provozovatelé repozitářů a specializovaných služeb a eskalace k provozovatelům infrastruktury.", en = "Support levels in NRP: the service desk as first contact, repository and specialised service operators, and escalation to infrastructure operators." }
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/user_support/general-support-principles-in-the-NRP"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["SR"]
+stations = ["repozitar"]
+languages = ["en"]
+
+[[resource]]
+id = "nrp-admin-docs"
+name = { cs = "Dokumentace NRP pro správce repozitářů", en = "NRP documentation for repository administrators" }
+description = { cs = "Návody NRP pro provoz repozitáře, včetně podpory uživatelů a napojení na NMA.", en = "NRP guidance on running a repository, including user support and the connection to NMA." }
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/repo_admins"
+type = "guide"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["SR"]
+stations = ["repozitar"]
+languages = ["en"]
+
+[[resource]]
+id = "nrp-repo-conditions"
+name = { cs = "Provozní podmínky služby Repozitáře v NRP", en = "Operating conditions of the Repositories in NRP service" }
+description = { cs = "Pravidla pro zřizování, správu a provoz repozitářů v NRP: role a odpovědnosti, požadavky na ukládání a správu dat, bezpečnostní pravidla a dlouhodobá udržitelnost.", en = "Rules for setting up, managing and operating repositories in NRP: roles and responsibilities, requirements for storing and managing data, security rules and long-term sustainability." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#provozni-podminky-sluzby-repozitare-v-nrp-cz"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["SR"]
+stations = ["repozitar"]
+languages = ["cs", "en"]
+
+[[resource]]
+id = "repo-proposal-template"
+name = { cs = "Šablona: účel a základní vlastnosti navrhovaného repozitáře", en = "Template: purpose and basic properties of a proposed repository" }
+description = { cs = "Šablona pro uživatelské skupiny, které v NRP navrhují nový repozitář; vyplněnou ji posílají metodikům repozitářových systémů.", en = "A template for user groups proposing a new repository in NRP; they send it, filled in, to the repository system methodologists." }
+url = "https://www.eosc.cz/media/3921330/cj_sablona.docx"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["SR"]
+stations = ["repozitar"]
+languages = ["cs"]
+
+[[resource]]
+id = "nrp-roadmap-2026"
+name = { cs = "Roadmapa služeb NRP pro rok 2026", en = "NRP service roadmap for 2026" }
+description = { cs = "Přehled služeb a výstupů NRP dostupných nebo plánovaných v roce 2026, jako infografika.", en = "An overview of the NRP services and outputs available or planned in 2026, as an infographic." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#roadmapa-sluzeb-nrp-pro-rok-2026-cz"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["DS", "SR"]
+stations = ["plan", "repozitar"]
+languages = ["cs"]
+
+# EOSC CZ training by life-cycle phase: the training link of each step.
+
+[[resource]]
+id = "training-planning"
+name = { cs = "Školení: plánování a příprava dat", en = "Training: planning and preparing data" }
+description = { cs = "Kurzy EOSC CZ k plánování a přípravě dat.", en = "EOSC CZ courses on planning and preparing data." }
+url = "https://www.eosc.cz/skoleni/planovani-a-priprava-dat"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+stations = ["plan"]
+languages = ["cs"]
+
+[[resource]]
+id = "training-collection"
+name = { cs = "Školení: sběr dat", en = "Training: collecting data" }
+description = { cs = "Kurzy EOSC CZ ke sběru dat.", en = "EOSC CZ courses on collecting data." }
+url = "https://www.eosc.cz/skoleni/sber-dat"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+stations = ["prace"]
+languages = ["cs"]
+
+[[resource]]
+id = "training-processing"
+name = { cs = "Školení: zpracování dat", en = "Training: processing data" }
+description = { cs = "Kurzy EOSC CZ ke zpracování dat.", en = "EOSC CZ courses on processing data." }
+url = "https://www.eosc.cz/skoleni/zpracovani-dat"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+stations = ["prace"]
+languages = ["cs"]
+
+[[resource]]
+id = "training-analysis"
+name = { cs = "Školení: analýza dat", en = "Training: analysing data" }
+description = { cs = "Kurzy EOSC CZ k analýze dat.", en = "EOSC CZ courses on analysing data." }
+url = "https://www.eosc.cz/skoleni/analyza-dat"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+stations = ["prace"]
+languages = ["cs"]
+
+[[resource]]
+id = "training-storage"
+name = { cs = "Školení: ukládání dat", en = "Training: storing data" }
+description = { cs = "Kurzy EOSC CZ k ukládání dat.", en = "EOSC CZ courses on storing data." }
+url = "https://www.eosc.cz/skoleni/ukladani-dat"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+stations = ["repozitar"]
+languages = ["cs"]
+
+[[resource]]
+id = "training-sharing"
+name = { cs = "Školení: sdílení dat", en = "Training: sharing data" }
+description = { cs = "Kurzy EOSC CZ ke sdílení dat.", en = "EOSC CZ courses on sharing data." }
+url = "https://www.eosc.cz/skoleni/sdileni-dat"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+stations = ["publikace"]
+languages = ["cs"]
+
+[[resource]]
+id = "training-reuse"
+name = { cs = "Školení: znovuvyužití dat", en = "Training: reusing data" }
+description = { cs = "Kurzy EOSC CZ ke znovuvyužití dat.", en = "EOSC CZ courses on reusing data." }
+url = "https://www.eosc.cz/skoleni/znovuvyuziti-dat"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+stations = ["citace"]
+languages = ["cs"]
+
+[[resource]]
+id = "training-overview"
+name = { cs = "Školení: přehledové a úvodní kurzy", en = "Training: overview and introductory courses" }
+description = { cs = "Úvodní kurzy EOSC CZ k otevřené vědě a správě výzkumných dat.", en = "EOSC CZ introductory courses on open science and research data management." }
+url = "https://www.eosc.cz/skoleni/prehledove-a-uvodni-kurzy"
+type = "course"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS", "SR", "K"]
+languages = ["cs"]

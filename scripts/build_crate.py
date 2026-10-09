@@ -566,6 +566,7 @@ def citation_properties(
         "author": refs([people[author] for author in authors if author in people]),
         "creditText": "; ".join(names.get(author, author) for author in authors) or None,
         "datePublished": iso(citation["datePublished"]) if citation.get("datePublished") else None,
+        "dateModified": iso(citation["dateModified"]) if citation.get("dateModified") else None,
         "sdDatePublished": iso(citation["dateAccessed"]) if citation.get("dateAccessed") else None,
         "license": citation.get("license"),
     }

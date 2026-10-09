@@ -708,7 +708,7 @@
 
   /** A station as Markdown: what it shows for the reader's lens, in their language, with where it came from. */
   function stationMarkdown(entity, route, parts) {
-    const { items, now, steps, ai, action, resources, terms, helps } = parts;
+    const { items, now, steps, ai, action, resources, terms, helps, courses } = parts;
     const levelName = (code) => FG.termName("#level-" + code);
     const lines = ["# " + mdText(FG.text(entity.name) + " · " + FG.text(entity.headline)), ""];
     lines.push(mdText(FG.t("export.mdLens", { lens: FG.text((FG.get("#lens-" + route.lens) || {}).name) })), "");
@@ -740,7 +740,10 @@
     }
     section(FG.t("station.glossary"), terms.map((term) => "- " + mdLink(FG.text(term.name), term.url)));
     section(FG.t("station.resources"), resources.map((resource) => "- " + mdLink(FG.text(resource.name), resource.url) + (resource.description ? " — " + mdLine(resource.description) : "")));
-    section(FG.t("station.help"), helps.map((help) => "- " + mdLink(FG.text(help.name), help.url)));
+    section(
+      FG.t("station.help"),
+      helps.map((help) => "- " + mdLink(FG.text(help.name), help.url)).concat(courses.length ? ["- " + mdText(FG.t("station.training")) + ": " + courses.map((course) => mdLink(FG.text(course.name), course.url)).join(", ")] : [])
+    );
     section(FG.t("station.sources"), sourcesOf(items).map((source) => "- " + mdLink(FG.nameText(source), source.url)));
     lines.push("---", "", mdText(FG.t("export.mdFooter", { version: FG.root.version, date: FG.formatDate(FG.today()) })) + " " + guideUrl(FG.href("path", entity.identifier)), "");
     return lines.join("\n");
@@ -755,7 +758,9 @@
     const now = level("L0")[0];
     const steps = level("L1");
     const ai = items.filter((item) => item.adviceKind === "ai");
-    const resources = FG.refs(entity, "mentions").filter((item) => item.resourceType && lensOf(item, route.lens));
+    const mentioned = FG.refs(entity, "mentions").filter((item) => item.resourceType && lensOf(item, route.lens));
+    const courses = mentioned.filter((item) => FG.id(item.resourceType) === "#rtype-course");
+    const resources = mentioned.filter((item) => !courses.includes(item));
     const terms = FG.refs(entity, "mentions").filter((item) => item["@id"].startsWith("#term-"));
     const helps = FG.graph.filter((item) => item["@id"].startsWith("#help-") && lensOf(item, route.lens));
     const action = now ? FG.get(now.potentialAction) : null;
@@ -764,7 +769,7 @@
     const levelTitle = (code) => [levelIcon(code), h("span", null, levelName(code))];
     const stationIcon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[entity.identifier];
     const stepLine = FG.t("station.step", { n: entity.position, total: stations.length }) + (minutes ? " · " + FG.t("station.minutes", { n: minutes }) : "");
-    const parts = { items, now, steps, ai, action, resources, terms, helps };
+    const parts = { items, now, steps, ai, action, resources, terms, helps, courses };
     FG.offerExport({
       id: "markdown",
       label: FG.t("export.markdown"),
@@ -818,7 +823,14 @@
         "section",
         null,
         h("h2", null, FG.t("station.help")),
-        h("ul", null, helps.map((help) => h("li", null, help.url.startsWith("mailto:") ? h("a", { href: help.url }, FG.text(help.name)) : FG.external(help.url, FG.text(help.name)))))
+        h(
+          "ul",
+          null,
+          helps.map((help) => h("li", null, help.url.startsWith("mailto:") ? h("a", { href: help.url }, FG.text(help.name)) : FG.external(help.url, FG.text(help.name)))),
+          courses.length
+            ? h("li", { class: "training" }, FG.t("station.training") + ": ", courses.map((course, index) => [index ? ", " : "", FG.external(course.url, FG.text(course.name).replace(/^[^:]+:\s*/, ""))]))
+            : null
+        )
       ),
       h(
         "nav",

@@ -310,3 +310,41 @@ results = [
   "repozitar.V.L1.5",
 ]
 endTime = 2026-10-09T08:59:39+02:00
+
+[[action]]
+id = "2026-10-09-eosc-inventory-resources"
+type = "create"
+name = "Resources from the EOSC CZ website"
+description = "Resources the EOSC CZ website lists and the guide did not: planning and computing services, data portals, the evaluation methodology, a data journal, CC Signals, data steward and repository administrator materials, and the EOSC CZ training by life-cycle phase as each step's training link; each checked at its address on this date. The personas document records its update."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+results = [
+  "argos",
+  "dmponline",
+  "he-dmp-template",
+  "it4i-compute",
+  "metacentrum",
+  "data-europa",
+  "data-gov-cz",
+  "metodika-2025",
+  "scientific-data",
+  "cc-signals",
+  "strazci-dat",
+  "ds-manual",
+  "aai-nrp",
+  "nrp-support",
+  "nrp-admin-docs",
+  "nrp-repo-conditions",
+  "repo-proposal-template",
+  "nrp-roadmap-2026",
+  "training-planning",
+  "training-collection",
+  "training-processing",
+  "training-analysis",
+  "training-storage",
+  "training-sharing",
+  "training-reuse",
+  "training-overview",
+  "ds-personas",
+]
+endTime = 2026-10-09T09:51:51+02:00
