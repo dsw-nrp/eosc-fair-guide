@@ -1953,6 +1953,22 @@ kind = "statement"
 text = { cs = "FIP Dashboard je katalog zdrojů umožňujících FAIR (FER) národní datové infrastruktury a profilů FIP komunit, které je používají; u zdrojů uvádí ověření (mimo jiné NRP a EOSC CZ). Je v pilotním provozu s ukázkovými daty.", en = "The FIP Dashboard is a catalogue of the FAIR-enabling resources (FERs) of the national data infrastructure and of the FIPs of the communities that use them; it records verifications of resources (among others by NRP and EOSC CZ). It is in pilot operation with sample data." }
 
 [[clause]]
+id = "E.CDSC-README"
+source = "cdsc-readme"
+principles = ["R1", "R1.1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Česká komunita data stewardů zveřejňuje šablony README pro dokumentaci dat ve formátech TXT, Markdown a JSON s pokyny ke každé části, od popisu a struktury souborů přes proměnné, metodiku a zpracování po licenci, doporučenou citaci a ochranu osobních údajů.", en = "The Czech data steward community publishes README templates for documenting data in TXT, Markdown and JSON, with guidance for each section, from the description and file structure through variables, methods and processing to the licence, suggested citation and personal data protection." }
+
+[[clause]]
+id = "E.CDSC-ELN"
+source = "cdsc-eln"
+principles = ["R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Česká komunita data stewardů ukazuje na příkladu, jak vést elektronický laboratorní deník v Jupyter Notebooku a vytáhnout z něj metadata.", en = "The Czech data steward community shows by example how to keep an electronic lab notebook in Jupyter Notebook and extract metadata from it." }
+
+[[clause]]
 id = "E.CESSDA-DMEG"
 source = "cessda-dmeg"
 principles = ["R1", "R1.2"]

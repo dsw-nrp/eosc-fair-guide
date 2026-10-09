@@ -201,3 +201,16 @@ version = "3"
 datePublished = "2026-05"
 license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-09
+
+[[source]]
+id = "iap-cas-readme"
+type = "document"
+title = "Readme template of IAP-CAS"
+inLanguage = "en"
+doi = "10.5281/zenodo.20624364"
+url = "https://doi.org/10.5281/zenodo.20624364"
+publisher = "Zenodo"
+authors = ["T. Kolmačka"]
+version = "1.0.0"
+datePublished = 2026-06-10
+license = "https://creativecommons.org/licenses/by/4.0/"

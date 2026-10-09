@@ -454,6 +454,17 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-09-steward-community"
+type = "create"
+name = "The data steward community's README templates and lab notebook example"
+description = "The Czech data steward community's README templates, with the IAP-CAS template they build on, and its example of Jupyter as an electronic lab notebook become resources, read from their repositories and the template's DataCite record, and the README and record-keeping advice points to them."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["cdsc-readme", "cdsc-eln", "iap-cas-readme"]
+results = ["cdsc-readme", "cdsc-eln", "E.CDSC-README", "E.CDSC-ELN", "prace.V.L1.3", "prace.V.L1.4", "prace.DS.L1.2", "popis.V.L1.5"]
+endTime = 2026-10-09T23:30:00+02:00
+
+[[action]]
 id = "2026-10-09-ai-part"
 type = "update"
 name = "The AI part of each station"

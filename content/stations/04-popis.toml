@@ -50,8 +50,8 @@ sources = ["A.I3.R3", "A.R1.2.N3"]
 id = "popis.V.L1.5"
 lens = "V"
 level = "L1"
-text = { cs = "K souborům přidejte README nebo datový slovník.", en = "Add a README or a data dictionary to the files." }
-sources = ["E.CESSDA-DMEG"]
+text = { cs = "K souborům přidejte README nebo datový slovník, například podle [[cdsc-readme|šablony komunity data stewardů]].", en = "Add a README or a data dictionary to the files, for example following the [[cdsc-readme|Czech data steward community's template]]." }
+sources = ["E.CESSDA-DMEG", "E.CDSC-README"]
 
 [[advice]]
 id = "popis.V.L1.6"

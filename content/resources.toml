@@ -147,6 +147,46 @@ stations = ["plan"]
 languages = ["cs"]
 
 [[resource]]
+id = "cdsc-readme"
+name = { cs = "Šablony README komunity data stewardů", en = "README templates of the Czech data steward community" }
+description = { cs = "Šablony README pro dokumentaci dat (ne softwaru) ve formátech TXT, Markdown a JSON se stejným obsahem a s pokyny ke každé části: popis, obsah a struktura souborů, proměnné, metodika a zpracování, licence, doporučená citace, etika a ochrana osobních údajů. Vycházejí ze [[iap-cas-readme|šablony README Archeologického ústavu AV ČR, Praha]].", en = "README templates for documenting data (not software) in TXT, Markdown and JSON, with the same content and guidance for each section: description, contents and file structure, variables, methods and processing, licence, suggested citation, ethics and personal data protection. They build on the [[iap-cas-readme|README template of the Institute of Archaeology of the CAS, Prague]]." }
+url = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES"
+type = "document"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["prace", "popis"]
+languages = ["en"]
+
+[resource.citation]
+type = "document"
+title = "README_FILES_EXAMPLES"
+inLanguage = "en"
+publisher = "Czech Data Steward Community"
+authors = ["G. Koutentaki", "T. Kolmačka", "P. Martinková", "A. Soldánová"]
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-09
+
+[[resource]]
+id = "cdsc-eln"
+name = { cs = "Jupyter jako elektronický laboratorní deník", en = "Jupyter as an electronic lab notebook" }
+description = { cs = "Příklad komunity data stewardů: Jupyter Notebook jako elektronický laboratorní deník na vzorovém experimentu, s vytažením metadat, kontrolou dat, souhrnem v Jupyter Booku a prostředím, které lze zopakovat (Conda, Docker).", en = "An example from the data steward community: Jupyter Notebook as an electronic lab notebook for a sample experiment, with metadata extraction, data checks, a summary in Jupyter Book and an environment that can be recreated (Conda, Docker)." }
+url = "https://github.com/Czech-Data-Steward-Community/jupyter-ELN-example"
+type = "guide"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["V", "DS"]
+stations = ["prace"]
+languages = ["en"]
+
+[resource.citation]
+type = "software"
+title = "jupyter-ELN-example"
+inLanguage = "en"
+publisher = "Czech Data Steward Community"
+dateAccessed = 2026-10-09
+
+[[resource]]
 id = "cessda-dmeg"
 name = "CESSDA Data Management Expert Guide"
 description = { cs = "Praktický průvodce organizací, dokumentací, ukládáním a zálohováním dat.", en = "A practical guide to organising, documenting, storing and backing up data." }

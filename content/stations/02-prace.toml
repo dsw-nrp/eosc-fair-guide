@@ -36,15 +36,15 @@ sources = ["E.CESSDA-DMEG"]
 id = "prace.V.L1.3"
 lens = "V"
 level = "L1"
-text = { cs = "Průběžně pište README a datový slovník: co znamenají proměnné, jednotky a kódy.", en = "Write a README and a data dictionary as you go: what the variables, units and codes mean." }
-sources = ["E.CESSDA-DMEG"]
+text = { cs = "Průběžně pište README a datový slovník: co znamenají proměnné, jednotky a kódy. Začít můžete ze [[cdsc-readme|šablon README komunity data stewardů]].", en = "Write a README and a data dictionary as you go: what the variables, units and codes mean. You can start from the [[cdsc-readme|Czech data steward community's README templates]]." }
+sources = ["E.CESSDA-DMEG", "E.CDSC-README"]
 
 [[advice]]
 id = "prace.V.L1.4"
 lens = "V"
 level = "L1"
-text = { cs = "Zaznamenávejte, jak data vznikla: přístroje, software a jeho verze, kroky zpracování.", en = "Record how the data were made: instruments, software and its versions, processing steps." }
-sources = ["A.R1.2.X1"]
+text = { cs = "Zaznamenávejte, jak data vznikla: přístroje, software a jeho verze, kroky zpracování. Jako elektronický laboratorní deník poslouží i Jupyter Notebook; jak na to, ukazuje [[cdsc-eln|příklad komunity data stewardů]].", en = "Record how the data were made: instruments, software and its versions, processing steps. A Jupyter notebook can serve as an electronic lab notebook; [[cdsc-eln|an example from the data steward community]] shows how." }
+sources = ["A.R1.2.X1", "E.CDSC-ELN"]
 
 [[advice]]
 id = "prace.V.L1.5"
@@ -79,8 +79,8 @@ sources = ["E.EINFRA"]
 id = "prace.DS.L1.2"
 lens = "DS"
 level = "L1"
-text = { cs = "Připravte pro týmy šablony README a datového slovníku.", en = "Prepare README and data dictionary templates for research teams." }
-sources = ["E.CESSDA-DMEG"]
+text = { cs = "Připravte pro týmy šablony README a datového slovníku. Vyjít můžete ze [[cdsc-readme|šablon komunity data stewardů]] ve formátech TXT, Markdown a JSON.", en = "Prepare README and data dictionary templates for research teams. You can build on the [[cdsc-readme|Czech data steward community's templates]] in TXT, Markdown and JSON." }
+sources = ["E.CESSDA-DMEG", "E.CDSC-README"]
 
 [[advice]]
 id = "prace.DS.L1.3"
