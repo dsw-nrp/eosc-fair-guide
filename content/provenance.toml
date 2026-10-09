@@ -409,3 +409,46 @@ results = [
   "policy-manual",
 ]
 endTime = 2026-10-09T10:17:44+02:00
+
+[[action]]
+id = "2026-10-09-institution-basic"
+type = "update"
+name = "Basic institution check: the strategy and the research act"
+description = "The basic institution check is the research data strategy, which the Open Science III call requires before it accepts outputs, and the obligations of section 83 of the research act, each paragraph a requirement of its own; the minimum content the call sets for an action plan and a policy applies when an institution prepares them, so those blocks join the national infrastructure block in the extended check. The research act's block comes first, and the items are numbered in block order."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["os3-rules", "law-328-2025"]
+results = [
+  "E.LAW-328.83",
+  "E.LAW-328.83.2",
+  "E.LAW-328.83.3",
+  "E.LAW-328.83.5",
+  "I01",
+  "I02",
+  "I03",
+  "I04",
+  "I05",
+  "I06",
+  "I07",
+  "I08",
+  "I09",
+  "I10",
+  "I11",
+  "I12",
+  "I13",
+  "I14",
+  "I15",
+  "I16",
+  "I17",
+  "I18",
+  "I19",
+  "I20",
+  "I21",
+  "I22",
+  "I23",
+  "I24",
+  "I25",
+  "I26",
+  "I27",
+]
+endTime = 2026-10-09T10:39:16+02:00

@@ -2181,4 +2181,28 @@ source = "law-328-2025"
 principles = ["F1", "A1", "R1"]
 actor = "other"
 kind = "requirement"
-text = { cs = "Příjemce zajistí správu údajů z výzkumu podpořeného z veřejných prostředků tak, aby byly dohledatelné, přístupné a opakovaně využitelné; údaje zveřejněné v repozitáři poskytuje bezplatně v otevřeném a strojově čitelném formátu a odmítnout je může jen z důvodů, které zákon uvádí (§ 83, účinnost od 1. ledna 2027).", en = "The recipient manages the data from publicly funded research so that they are findable, accessible and reusable; it provides data published in a repository free of charge in an open, machine-readable format, and may refuse only on the grounds the act lists (section 83, in force from 1 January 2027)." }
+text = { cs = "Příjemce spravuje údaje z výzkumu podpořeného z veřejných prostředků, tedy elektronické dokumenty kromě odborných publikací, které při výzkumu vznikly a slouží jako doklad nebo k ověření jeho zjištění, tak, aby byly dohledatelné, přístupné a opakovaně využitelné (§ 83 odst. 1, účinnost od 1. ledna 2027).", en = "The recipient manages the data from publicly funded research, that is the electronic documents other than scientific publications created in research and serving as evidence or to validate its findings, so that they are findable, accessible and reusable (section 83(1), in force from 1 January 2027)." }
+
+[[clause]]
+id = "E.LAW-328.83.2"
+source = "law-328-2025"
+principles = ["A1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Na žádost poskytuje příjemce třetím osobám bezplatně údaje z výzkumu podpořeného z veřejných prostředků, které už zveřejnil v institucionálním nebo oborovém repozitáři, pokud je nechrání autorské, patentové nebo obdobné právo; jsou-li volně dostupné na dálku, stačí odkaz na ně (§ 83 odst. 2 a 4).", en = "On request, the recipient provides third parties free of charge with data from publicly funded research that it has already published in an institutional or domain repository, unless copyright, patent or similar rights protect them; where the data are freely available remotely, a link is enough (section 83(2) and (4))." }
+
+[[clause]]
+id = "E.LAW-328.83.3"
+source = "law-328-2025"
+principles = ["I1", "R1.1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Údaje z výzkumu a informace o nich poskytuje příjemce v otevřeném a strojově čitelném formátu, za objektivních, přiměřených, nevýhradních a nediskriminačních podmínek, které neomezují jejich další využití (§ 83 odst. 3).", en = "The recipient provides research data and information about them in an open, machine-readable format, on objective, reasonable, non-exclusive and non-discriminatory terms that do not restrict their further use (section 83(3))." }
+
+[[clause]]
+id = "E.LAW-328.83.5"
+source = "law-328-2025"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Příjemce může poskytnutí údajů z výzkumu odmítnout, pokud by zasáhlo do ochrany soukromí včetně osobních údajů, duševního vlastnictví, obchodního tajemství, bezpečnosti nebo obrany státu, kybernetické bezpečnosti nebo jiných oprávněných zájmů příjemce, zejména transferu znalostí (§ 83 odst. 5).", en = "The recipient may refuse to provide research data where doing so would interfere with privacy, including personal data, intellectual property, trade secrets, state security or defence, cybersecurity or other legitimate interests of the recipient, in particular knowledge transfer (section 83(5))." }

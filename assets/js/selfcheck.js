@@ -997,10 +997,10 @@
     );
   }
 
-  /** The path step where an item is addressed, named on every item. */
+  /** The path step where an item is addressed, as a link to it, on every item. */
   function fixAtLine(item) {
     const station = FG.get(item.fixAt);
-    return station ? h("p", { class: "fix-at small muted" }, FG.t("selfcheck.fixAt", { station: FG.text(station.name) })) : null;
+    return station ? h("p", { class: "fix-at small muted" }, FG.t("selfcheck.result.whereFix") + ": ", stepLink(station)) : null;
   }
 
   const letterOf = (item) => String((FG.principlesOf(item)[0] || {}).termCode || "").charAt(0);
@@ -1063,7 +1063,10 @@
 
   /** A group's mark: the principle letter in its colour, or the path step's icon as on the path. */
   function groupMark(group) {
-    if (group.block) return h("span", { class: "group-block" }, String(group.position));
+    if (group.block) {
+      const icon = FG.config.icons && FG.config.icons.block && FG.config.icons.block[group.block.termCode];
+      return FG.icon(icon, { class: "group-icon" }) || h("span", { class: "group-block" }, String(group.position));
+    }
     if (group.letter) return h("span", { class: "principle-letter", "data-letter": group.letter }, group.letter);
     if (group.station) {
       const icon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[group.station.identifier];
@@ -1138,7 +1141,13 @@
       tierInfo(check, st, first, more),
       controlsInSummary() ? null : h("div", { class: "check-toolbar no-print" }, checkControls(check, st)),
       groupsOf(shown).map((group) =>
-        h("section", { class: "item-group" }, groupTitle(group) ? h("h2", null, groupTitle(group)) : null, group.items.map((item) => itemField(check, st, item)))
+        h(
+          "section",
+          { class: "item-group" },
+          groupTitle(group) ? h("h2", null, groupTitle(group)) : null,
+          group.block && group.block.description ? h("p", { class: "group-description small muted" }, FG.span(group.block.description)) : null,
+          group.items.map((item) => itemField(check, st, item))
+        )
       )
     );
   }

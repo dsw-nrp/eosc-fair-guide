@@ -241,7 +241,6 @@ extendedSwitch = { cs = "Rozšířená kontrola: doporučené a pokročilé otá
 extendedShort = { cs = "Rozšířená (+{n})", en = "Extended (+{n})" }
 extendedExplain = { cs = "Rozšířená kontrola přidá doporučené a pokročilé otázky; vaše odpovědi zůstanou.", en = "The extended check adds the recommended and advanced questions; your answers stay." }
 basedOn = { cs = "Z čeho otázka vychází", en = "What this question is based on" }
-fixAt = { cs = "Kde to vyřešit: krok {station}", en = "Where to fix it: the step {station}" }
 grouping = { cs = "Seskupit podle", en = "Group by" }
 groupOther = { cs = "Ostatní", en = "Other" }
 tierCount = { cs = "{tier} ({n} otázka):|{tier} ({n} otázky):|{tier} ({n} otázek):", en = "{tier} ({n} question):|{tier} ({n} questions):" }

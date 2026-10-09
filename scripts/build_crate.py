@@ -707,7 +707,14 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                 f"blocks-{check['id']}",
                 f"Blocks of the {check['id']} check",
                 "block",
-                [{"id": f"{check['id']}-{block['id']}", "name": block["name"]} for block in blocks],
+                [
+                    {
+                        "id": f"{check['id']}-{block['id']}",
+                        "name": block["name"],
+                        "description": block.get("description"),
+                    }
+                    for block in blocks
+                ],
             )
         item_ids: list[str] = []
         for order, item in enumerate(data.get("item", []), start=1):
@@ -1497,6 +1504,12 @@ def page_config(content: dict[str, Any], text_links: dict[str, list[dict[str, st
                     data["station"]["id"]: data["station"]["icon"]
                     for data in content["stations"]
                     if data["station"].get("icon")
+                },
+                "block": {
+                    f"{data['check']['id']}-{block['id']}": block["icon"]
+                    for data in content["checks"]
+                    for block in data.get("block", [])
+                    if block.get("icon")
                 },
                 "check": {
                     data["check"]["id"]: data["check"]["icon"]
