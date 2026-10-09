@@ -312,11 +312,13 @@
     FG.rerender("nkr-load");
   };
 
-  /** The NKR button and its status line, placed apart by the caller. */
-  live.nkrControls = function () {
+  /** The NKR button and its status line, placed apart by the caller. The sample records are offered where the
+      caller shows them (the repositories in the catalogue); elsewhere `empty` says what to do while NKR lists none. */
+  live.nkrControls = function (options) {
+    const own = options && options.empty;
     const status = {
       loading: FG.t("repositories.nkrLoading"),
-      done: live.nkr.records.length ? null : FG.t("repositories.nkrEmpty"),
+      done: live.nkr.records.length ? null : own || FG.t("repositories.nkrEmpty"),
       failed: FG.t("repositories.nkrFailed", { url: FG.config.links.nkr }),
     }[live.nkr.state];
     /* While NKR lists no repository, testers can see how its records will look, from public re3data facts. */
@@ -325,18 +327,18 @@
       live.nkr.samples = !live.nkr.samples;
       FG.rerender("nkr-samples");
     };
-    const samples = empty
+    const samples = empty && !own
       ? FG.h("button", { type: "button", id: "nkr-samples", class: "button-link", "aria-expanded": String(live.nkr.samples), onclick: toggle }, FG.t(live.nkr.samples ? "repositories.nkrSamplesHide" : "repositories.nkrSamples"))
       : null;
     return {
       button: FG.h("button", { type: "button", id: "nkr-load", onclick: live.loadNkr, disabled: live.nkr.state === "loading" }, FG.t("repositories.nkrLoad")),
       status: status ? FG.h("p", { id: "nkr-status", role: "status", class: "small" }, status, samples ? [" ", samples] : null) : null,
-      samples: empty && live.nkr.samples,
+      samples: empty && !own && live.nkr.samples,
     };
   };
 
-  live.nkrButton = function () {
-    const controls = live.nkrControls();
+  live.nkrButton = function (options) {
+    const controls = live.nkrControls(options);
     return FG.h("div", null, controls.button, controls.status);
   };
 })();

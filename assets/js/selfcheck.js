@@ -360,7 +360,11 @@
   function retarget(check, target) {
     const st = stateOf(check);
     if (st.target !== target) delete st.targetInfo;
-    if (st.target && st.target !== target) dropEvidence(st);
+    if (st.target && st.target !== target) {
+      dropEvidence(st);
+      delete st.champion;
+      delete st.verdicts;
+    }
     st.target = target;
     save();
   }
@@ -370,6 +374,8 @@
     const st = stateOf(check);
     delete st[key];
     dropEvidence(st);
+    delete st.champion;
+    delete st.verdicts;
     delete st.target;
     delete st.targetInfo;
     save();
@@ -682,7 +688,9 @@
 
   function noteText(note) {
     if (note.text) return localized(note.text);
-    return FG.t(note.key, note.params || {});
+    /* Tests are kept by identifier and named in the language shown. */
+    const tests = FG.list(note.tests).map((id) => FG.text((FG.get("#test-" + id) || {}).name) || String(id));
+    return FG.t(note.key, Object.assign({}, note.params || {}, tests.length ? { tests: tests.join(", ") } : {}));
   }
 
   /** The fields and values an answer was taken from, as "field = value" pairs. */
@@ -862,11 +870,14 @@
     );
   }
 
-  /** The re3data field: a re3data DOI (resolved through doi.org), an r3d identifier or the record's address. */
-  /* A sample of a repository's records for the FAIR Champion tests the check's questions name: a few, of different
-     types, since the platform's configuration rather than the record mostly decides the result. */
+  /* FAIR Champion runs the curated tests the check's questions name: on the dataset a check is about (the deep
+     check, after the identifier is looked up) or on a sample of a repository's records. A sample holds a few records
+     of different types, since the platform's configuration rather than the record mostly decides the result. */
   const SAMPLE_MAX = 5;
+  const VERDICTS = ["pass", "fail", "indeterminate"];
   const sampleOf = (text) => [...new Set(String(text || "").split(/[\s,;]+/).map((value) => value.trim()).filter(Boolean))];
+  const healthOf = (test) => (test ? FG.id(test.healthStatus) || test.healthStatus : null);
+  const verdictKey = (test, record) => test + " " + record;
 
   /** Run tasks, at most `limit` at a time. */
   async function inBatches(tasks, limit) {
@@ -874,77 +885,239 @@
     await Promise.all(Array.from({ length: Math.min(limit, queue.length) }, async () => { while (queue.length) await queue.shift()(); }));
   }
 
-  /** Run the FAIR Champion tests the check's questions name over a sample of records, a few at a time, and answer
-      each question from the verdicts across the sample: every record with a result passes (yes), some do (partly),
-      none do (no). A test that gives no result is not a failure, and a record without a result does not count. */
-  function prefillFromChampion(check, sample) {
+  /** The FAIR Champion tests the check's questions name, each with the questions it answers, in the questions'
+      order; a test known to be unavailable is left out. */
+  function championTests(check, st) {
+    const pairs = new Map();
+    for (const item of answerable(check, st)) {
+      for (const id of FG.list((prefillOf(item, "champion") || {}).value).map(String)) {
+        const test = FG.get("#test-" + id);
+        if (healthOf(test) === "unavailable") continue;
+        if (!pairs.has(id)) pairs.set(id, { id, test, items: [] });
+        pairs.get(id).items.push(item);
+      }
+    }
+    return [...pairs.values()];
+  }
+
+  /** The tests of the last run that gave no verdict, which a manual retry runs again. */
+  function missingVerdicts(check, st) {
+    const run = st.champion;
+    if (!run) return [];
+    return championTests(check, st).flatMap((pair) => run.records.map((record) => [pair.id, record])).filter(([test, record]) => !VERDICTS.includes((run.verdicts[verdictKey(test, record)] || {}).value));
+  }
+
+  /** How far a long pre-fill has got, as a bar beside the status; the status itself announces only the start and
+      the end, so a screen reader is not interrupted by every test. */
+  function setProgress(done, total) {
+    status.progress = total ? { done, total } : null;
+    const box = document.getElementById("prefill-progress");
+    if (!box) return;
+    box.hidden = !total;
+    const bar = box.querySelector("progress");
+    bar.max = total || 1;
+    bar.value = done;
+    box.querySelector(".progress-count").textContent = total ? FG.t("selfcheck.prefill.progress", { done, total }) : "";
+  }
+
+  function progressBox() {
+    const progress = status.busy && status.progress;
+    return h(
+      "div",
+      { id: "prefill-progress", class: "prefill-progress", hidden: !progress },
+      h("progress", { max: progress ? progress.total : 1, value: progress ? progress.done : 0, "aria-labelledby": "prefill-progress-count" }),
+      h("span", { id: "prefill-progress-count", class: "progress-count small" }, progress ? FG.t("selfcheck.prefill.progress", progress) : "")
+    );
+  }
+
+  /** Run the FAIR Champion tests the check's questions name on one or more records, a few at a time, keeping every
+      verdict; a retry runs again only the tests that gave none. A record's state for a question is failed when any
+      of its tests failed, passed when all passed, and otherwise indeterminate or without a result; the question is
+      Yes when every record with a pass or fail passed, Partly when some did and No when none did. A test without a
+      result never counts as a failure, and the coverage is always stated. */
+  function prefillFromChampion(check, records, input, retry, notices) {
     const st = stateOf(check);
-    const tests = [...new Set(answerable(check, st).flatMap((item) => FG.list((prefillOf(item, "champion") || {}).value).map(String)))];
+    const tests = championTests(check, st).map((pair) => pair.id);
+    const single = records.length === 1;
+    if (!retry || !st.champion) st.champion = { input, records, verdicts: {} };
+    const run = st.champion;
+    const valueOf = (test, record) => (run.verdicts[verdictKey(test, record)] || {}).value || null;
     return runPrefill(check, "champion", "prefill-champion-run", async (messages) => {
-      const verdicts = {};
-      const key = (test, record) => test + " " + record;
-      const tasks = tests.flatMap((test) =>
-        sample.map((record) => async () => {
-          try {
-            verdicts[key(test, record)] = (await FG.live.championTest(test, record)).value;
-          } catch (error) {
-            verdicts[key(test, record)] = null;
-          }
-        })
-      );
+      messages.push(...(notices || []));
+      let done = 0;
+      const tasks = missingVerdicts(check, st).map(([test, record]) => async () => {
+        try {
+          const verdict = await FG.live.championTest(test, record);
+          /* Logs explain a single dataset's results in the export; a sample keeps verdicts only. */
+          run.verdicts[verdictKey(test, record)] = single ? verdict : { value: verdict.value };
+        } catch (error) {
+          run.verdicts[verdictKey(test, record)] = null;
+        }
+        setProgress((done += 1), tasks.length);
+      });
+      setProgress(0, tasks.length);
       await inBatches(tasks, (FG.config.champion && FG.config.champion.maxParallel) || 4);
-      const missing = Object.values(verdicts).filter((value) => value !== "pass" && value !== "fail").length;
-      if (missing) messages.push(FG.t("selfcheck.prefill.championMissing", { n: missing, total: tasks.length }));
+      setProgress(0, 0);
+      const total = tests.length * run.records.length;
+      messages.push(FG.t("selfcheck.prefill.championCoverage", { n: total - missingVerdicts(check, st).length, total }));
+      /* A dataset's test results join its exported result set. */
+      if (single) st.verdicts = tests.map((test) => Object.assign({ test }, run.verdicts[verdictKey(test, records[0])] || { value: null }));
       return applyEvidence(
         check,
         "champion",
-        (item, itemTests) => {
-          const states = sample.map((record) => {
-            const values = itemTests.map((test) => verdicts[key(test, record)]);
+        (item, named) => {
+          const itemTests = named.filter((test) => tests.includes(test));
+          if (!itemTests.length) return null;
+          const states = run.records.map((record) => {
+            const values = itemTests.map((test) => valueOf(test, record));
             if (values.includes("fail")) return "fail";
-            return values.every((value) => value === "pass") ? "pass" : null;
+            if (values.every((value) => value === "pass")) return "pass";
+            return values.includes("indeterminate") ? "indeterminate" : "none";
           });
-          const known = states.filter(Boolean).length;
+          const known = states.filter((state) => state === "pass" || state === "fail").length;
           const passed = states.filter((state) => state === "pass").length;
           return {
             value: !known ? null : passed === known ? "yes" : passed ? "partly" : "no",
-            notes: [{ key: "selfcheck.note.championSample", params: { passed, n: known, total: sample.length } }],
-            fields: sample.map((record, index) => ({ path: record, values: [FG.t("selfcheck.champion." + (states[index] || "none"))] })),
+            notes: (single ? [] : [{ key: "selfcheck.note.championSample", params: { passed, n: known, total: run.records.length } }]).concat([{ key: "selfcheck.note.championTests", tests: itemTests }]),
+            fields: single
+              ? itemTests.map((test) => ({ path: test, values: [FG.t("selfcheck.champion." + (valueOf(test, records[0]) || "none"))] }))
+              : run.records.map((record, index) => ({ path: record, values: [FG.t("selfcheck.champion." + states[index])] })),
           };
         },
         today(),
-        null
+        single ? st.target || null : null
       );
     });
   }
 
-  /** The sample of records to test, and the button that runs the tests. */
-  function championControl(check, st) {
+  /** The identifier FAIR Champion is given: a DOI or Handle as its resolver address, which the tests accept where
+      they refuse a bare DOI, and an address as it is. */
+  function championTarget(entry) {
+    const pid = FG.live.parsePid(entry);
+    return pid ? { pid, record: FG.live.pidUrl(pid) } : { pid: null, record: String(entry).trim() };
+  }
+
+  /** Resolve each persistent identifier before any test runs: a test on an identifier that does not resolve would
+      only fail, so such a record is left out and reported. */
+  async function resolvedTargets(check, entries) {
+    setStatus(check, FG.t("selfcheck.prefill.working", { source: label("resolver") }));
+    const records = [];
+    const unresolved = [];
+    for (const entry of entries) {
+      const target = championTarget(entry);
+      let found = !target.pid;
+      if (target.pid) {
+        try {
+          found = (await FG.live.resolvePid(target.pid)).found;
+        } catch (error) {
+          found = false;
+        }
+      }
+      if (found) records.push(target.record);
+      else unresolved.push(entry);
+    }
+    return { records, unresolved };
+  }
+
+  /** Which tests run and which questions each answers, behind a disclosure, each test leading to its catalogue entry. */
+  function championPairing(check, st) {
+    const pairs = championTests(check, st);
+    if (!pairs.length) return null;
+    return h(
+      "details",
+      { class: "champion-tests" },
+      h("summary", null, FG.t("selfcheck.prefill.championTests", { n: pairs.length })),
+      h(
+        "div",
+        { class: "content" },
+        h(
+          "ul",
+          { class: "small" },
+          pairs.map((pair) =>
+            h(
+              "li",
+              null,
+              pair.test ? h("a", { href: FG.catalogueHref("tests", pair.id) }, FG.text(pair.test.name)) : h("code", null, pair.id),
+              healthOf(pair.test) === "degraded" ? [" ", h("span", { class: "badge", "data-health": "degraded" }, FG.t("catalogue.health.degraded"))] : null,
+              h("span", { class: "muted" }, " → "),
+              pair.items.map((item, index) => [index ? ", " : "", h("span", { class: "item-id", title: FG.text(item.text) }, item.identifier)])
+            )
+          )
+        )
+      )
+    );
+  }
+
+  /** A retry of the last run's tests that gave no result, while the identifiers it ran on are still the ones given. */
+  function retryButton(check, st, input) {
+    const missing = st.champion && st.champion.input === input ? missingVerdicts(check, st) : [];
+    if (!missing.length) return null;
+    const retry = () => prefillFromChampion(check, st.champion.records, input, true);
+    return h("button", { type: "button", id: "prefill-champion-retry", onclick: retry }, FG.t("selfcheck.prefill.championRetry", { n: missing.length }));
+  }
+
+  /** The deep check of the dataset the check is about: a second action after the identifier is looked up. */
+  function championDeepControl(check, st) {
+    const run = async () => {
+      if (status.busy) return;
+      const pid = FG.live.parsePid(st.pid || "");
+      if (!pid) {
+        setStatus(check, FG.t("selfcheck.prefill.championNeedsPid"));
+        return;
+      }
+      const { records } = await resolvedTargets(check, [pid.value]);
+      if (!records.length) {
+        setStatus(check, FG.t("selfcheck.prefill.championNotResolved"));
+        return;
+      }
+      prefillFromChampion(check, records, st.pid, false);
+    };
+    return h(
+      "div",
+      { class: "prefill-row" },
+      h("h3", null, FG.t("selfcheck.prefill.championDeep")),
+      h("div", { class: "inline" }, h("button", { type: "button", id: "prefill-champion-run", onclick: run }, FG.t("selfcheck.prefill.championDeepButton")), retryButton(check, st, st.pid)),
+      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.championDeepHint")),
+      championPairing(check, st)
+    );
+  }
+
+  /** A sample of a repository's records to test, and the button that runs the tests. */
+  function championSampleControl(check, st) {
     const field = h("textarea", { id: "prefill-champion", rows: "3", spellcheck: "false", autocomplete: "off" }, st.sample || "");
     field.addEventListener("change", () => {
       st.sample = field.value;
       save();
     });
-    const run = () => {
-      const sample = sampleOf(field.value);
-      if (!sample.length || sample.length > SAMPLE_MAX) {
+    const run = async () => {
+      if (status.busy) return;
+      const entries = sampleOf(field.value);
+      if (!entries.length || entries.length > SAMPLE_MAX) {
         setStatus(check, FG.t("selfcheck.prefill.championInvalid", { n: SAMPLE_MAX }));
         return;
       }
       st.sample = field.value;
       save();
-      prefillFromChampion(check, sample);
+      const { records, unresolved } = await resolvedTargets(check, entries);
+      const notices = unresolved.length ? [FG.t("selfcheck.prefill.championUnresolved", { records: unresolved.join(", ") })] : [];
+      if (!records.length) {
+        setStatus(check, notices.join(" "));
+        return;
+      }
+      prefillFromChampion(check, records, st.sample, false, notices);
     };
     return h(
       "div",
       { class: "prefill-row" },
       h("label", { for: "prefill-champion" }, FG.t("selfcheck.prefill.champion", { n: SAMPLE_MAX })),
       field,
-      h("div", { class: "inline" }, h("button", { type: "button", id: "prefill-champion-run", onclick: run }, FG.t("selfcheck.prefill.championButton"))),
-      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.championHint"))
+      h("div", { class: "inline" }, h("button", { type: "button", id: "prefill-champion-run", onclick: run }, FG.t("selfcheck.prefill.championButton")), retryButton(check, st, st.sample)),
+      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.championHint")),
+      championPairing(check, st)
     );
   }
 
+  /** The re3data field: a re3data DOI (resolved through doi.org), an r3d identifier or the record's address. */
   function re3dataControl(check, st) {
     const input = h("input", { id: "prefill-re3data", type: "text", autocomplete: "off", spellcheck: "false", value: st.re3data || "" });
     const run = async () => {
@@ -977,7 +1150,8 @@
     );
   }
 
-  function nkrControl(check, st) {
+  /** NKR's repositories to fill the check from; while NKR lists none, the status says how to go on instead. */
+  function nkrControl(check, st, re3data) {
     const nkr = FG.live.nkr;
     const records = nkr.state === "done" ? nkr.records : [];
     let picker = null;
@@ -997,7 +1171,7 @@
         ),
       ];
     }
-    return h("div", { class: "prefill-row" }, FG.live.nkrButton(), picker);
+    return h("div", { class: "prefill-row" }, FG.live.nkrButton({ empty: FG.t(re3data ? "selfcheck.prefill.nkrEmptyRe3data" : "selfcheck.prefill.nkrEmptyByHand") }), picker);
   }
 
   function fipControl(check, st) {
@@ -1057,11 +1231,11 @@
     const controls = [];
     if (sources.has("datacite") || sources.has("resolver")) controls.push(pidControl(check, st));
     if (ready && needsSteward(check, st)) controls.push(stewardControl(check, st));
-    if (sources.has("nkr")) controls.push(nkrControl(check, st));
+    if (sources.has("nkr")) controls.push(nkrControl(check, st, sources.has("re3data")));
     if (sources.has("re3data")) controls.push(re3dataControl(check, st));
-    /* A check about a repository tests a sample of its records; a check about one object tests that object (live
-       checks), so the sample is offered only where no identifier of a single object is asked for. */
-    if (sources.has("champion") && !sources.has("datacite") && !sources.has("resolver")) controls.push(championControl(check, st));
+    /* A check about one object tests that object once its identifier is looked up; a check about a repository
+       tests a sample of its records. */
+    if (sources.has("champion")) controls.push(sources.has("datacite") || sources.has("resolver") ? championDeepControl(check, st) : championSampleControl(check, st));
     if (sources.has("fip")) controls.push(fipControl(check, st));
     if (!controls.length) {
       return h(
@@ -1081,6 +1255,7 @@
       controls,
       targetCard(st),
       h("p", { id: "prefill-status", role: "status", class: "small" }, status.check === check.identifier ? status.text : ""),
+      progressBox(),
       h("div", { class: "prefill-file" }, h("h3", null, FG.t("selfcheck.prefill.fromFile")), h("p", { class: "small" }, FG.t("selfcheck.prefill.fromFileText")), loadControl("load-file"))
     );
   }
