@@ -214,3 +214,39 @@ authors = ["T. Kolmačka"]
 version = "1.0.0"
 datePublished = 2026-06-10
 license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "cerit-chat-ai"
+type = "webpage"
+title = "Chat AI (LLM models)"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "cerit-ai-api"
+type = "webpage"
+title = "OpenAI API"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/ai-api"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "cerit-ai-coding"
+type = "webpage"
+title = "AI Coding Assistants Integration"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/llm-integration"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "cerit-ai-privacy"
+type = "webpage"
+title = "AI Data Privacy Policy"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/ai-data-privacy"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09

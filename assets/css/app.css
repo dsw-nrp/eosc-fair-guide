@@ -913,6 +913,20 @@ details > .content {
   color: var(--tint-teal);
 }
 
+/* A page section's action, below its text. */
+.section-action {
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+/* The AI page's tips, grouped under the station they belong to. */
+.ai-station-tips > section + section {
+  margin-top: var(--space-5);
+}
+
+.ai-station-tips h3 {
+  margin-bottom: var(--space-3);
+}
+
 /* A list in authored text: its items spaced like short paragraphs. */
 .text-list > li {
   margin-bottom: var(--space-2);

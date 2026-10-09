@@ -908,6 +908,10 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
             require_text(report, where, page.get("description"), "description")
         for number, section in enumerate(page.get("section", []), start=1):
             require_text(report, f"{where}[{number}]", section.get("body"), "body")
+            if "action" in section:
+                require_text(report, f"{where}[{number}].action", section["action"].get("label"), "label")
+                if not section["action"].get("href"):
+                    report.error(f"{where}[{number}].action", "an action needs an href")
 
     def ui_strings(value: Any, path: str) -> None:
         if is_text(value):

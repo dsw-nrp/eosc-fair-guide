@@ -622,6 +622,8 @@ function collisions() {
     if (!roCrate.holders || roCrate.plainIcons) fail("catalogue: a station an entry names lacks its icon");
     const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "zenodo");
     if (!zenodo.pids.some(([scheme, href]) => scheme === "re3data" && href.endsWith("/r3d100010468"))) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
+    const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
+    if (!datacite.pids.some(([scheme, href, text]) => scheme === "Nanopublikace" && href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
     const clause = await pidsOf("#/cs/V/catalogue/k!clauses~q!A.F1.N1", "A.F1.N1");
     if (clause.pids.length) fail("catalogue: a requirement shows a persistent identifier it does not have");
     // The accessibility statement names the API documentation as exempt and points to the accessible list.
@@ -634,6 +636,16 @@ function collisions() {
     await view.waitForSelector("#main h1");
     const agentPractice = view.locator("#main section", { hasText: "When an AI agent does the work" }).locator("ul.text-list");
     if ((await agentPractice.locator("li").count()) < 8 || (await agentPractice.innerText()).includes("- ") || !(await agentPractice.locator("a.text-ref").count())) fail("ai page: the practice for agents is not a list of items with its link");
+    const gathered = await view.evaluate(() => {
+      const FG = window.FairGuide;
+      const all = FG.stations().flatMap((station) => FG.refs(station, "itemListElement").filter((item) => item.adviceKind === "ai"));
+      const forOne = all.filter((item) => FG.refIds(item, "audience").length < FG.lenses().length).length;
+      const shown = [...document.querySelectorAll(".ai-station-tips .ai-tip")];
+      return { all: all.length, forOne, shown: shown.length, tagged: shown.filter((tip) => tip.querySelector(".orientation .lens-tag")).length, prompts: shown.filter((tip) => tip.querySelector(".ai-prompt pre")).length };
+    });
+    if (!gathered.all || gathered.shown !== gathered.all || gathered.prompts !== gathered.all || gathered.tagged !== gathered.forOne) fail("ai page: the stations' AI tips are not all gathered with their prompts, or a tip for one view lacks its icon: " + JSON.stringify(gathered));
+    const chat = view.locator('[id="cerit"] .section-action a');
+    if (!(await chat.count()) || !(await chat.getAttribute("href")).startsWith("https://chat.ai.e-infra.cz") || (await chat.getAttribute("target")) !== "_blank") fail("ai page: the CERIT section does not lead to the e-INFRA CZ AI chat");
     await view.close();
   }
 
@@ -894,6 +906,8 @@ function collisions() {
     if (await page.evaluate(() => [...document.getElementById("app").childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()))) fail(`${hash}: stray text in the page shell`);
     // No value reaches the page unformatted.
     if (/\[object Object\]|\bundefined\b/.test(await page.locator("#app").innerText())) fail(`${hash}: an unformatted value is shown`);
+    // No link leads back to the start because its address was refused.
+    if (await page.locator('#app a[href="#"]').count()) fail(`${hash}: a link that leads nowhere (href="#")`);
     // Every external link opens in a new tab.
     const sameTab = await page.evaluate(() => [...document.querySelectorAll('a[href^="http"]')].filter((link) => link.target !== "_blank" || !/noopener/.test(link.rel)).map((link) => link.href));
     if (sameTab.length) fail(`${hash}: external links that do not open in a new tab: ${[...new Set(sameTab)].slice(0, 5).join(", ")}`);
@@ -1236,19 +1250,15 @@ function collisions() {
   if (!(await page.locator(".lens-band").count())) fail("lens band: missing on the self-check overview");
   const cornerOffsets = await page.locator(".check-card").evaluateAll((cards) => cards.map((card) => { const box = card.getBoundingClientRect(); const button = card.querySelector(".check-card-action a").getBoundingClientRect(); return Math.round(box.bottom - button.bottom) + "/" + Math.round(box.right - button.right); }));
   if (new Set(cornerOffsets).size !== 1) fail("overview: the check cards' buttons are not in the same corner: " + cornerOffsets.join(" "));
-  // In the catalogue the lens is a facet of the resources, starting from the reader's lens; it narrows what the
-  // guide recommends and leaves cited works in.
+  // In the catalogue the lens is a facet of the resources that starts empty, whatever the reader's lens; chosen, it
+  // narrows what the guide recommends and leaves cited works in.
   await go("#/cs/V/resources");
   const shownNow = async () => Number(((await page.locator(".catalogue-count").textContent()).match(/\d+/) || [0])[0]);
-  if (!(await page.locator("#facet-resources-lens-v").isChecked())) fail("finder: the lens facet does not start from the reader's lens");
-  const researcherCount = await shownNow();
-  await page.locator("#facet-resources-lens-v").uncheck();
-  await page.waitForFunction(() => location.hash.includes("f.lens!"));
+  if (await page.locator('input[id^="facet-resources-lens-"]:checked').count()) fail("finder: the lens facet starts with a lens chosen");
   const allLenses = await shownNow();
-  if (allLenses < researcherCount) fail("finder: all lenses do not show at least the researcher's resources");
   await page.locator("#facet-resources-lens-ds").check();
   await page.waitForFunction(() => location.hash.includes("f.lens!DS"));
-  if ((await shownNow()) === researcherCount && researcherCount === allLenses) fail("finder: the lens facet does not filter the resources");
+  if ((await shownNow()) >= allLenses) fail("finder: the lens facet does not filter the resources");
   if (!(await page.locator(".card", { hasText: "Analýza a návrh postupů" }).count())) fail("finder: the lens hides a cited work, which has no audience");
 
   // A shared link opens as a preview in a browser without the answers, and can be adopted.

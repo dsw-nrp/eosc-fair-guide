@@ -603,8 +603,8 @@
     return FG.href("catalogue", fields.join("~"));
   }
 
-  /** The lens filter starts from the reader's lens until they choose otherwise. */
-  const chosenValues = (state, route, key) => (key === "lens" && state.f.lens === undefined ? [route.lens] : state.f[key] || []);
+  /** The values chosen for a facet; the lens facet, like every other, starts with none. */
+  const chosenValues = (state, route, key) => state.f[key] || [];
 
   function passesShared(entry, state, skip) {
     if (state.q && !FG.fold(entry.text).includes(FG.fold(state.q))) return false;
@@ -886,7 +886,7 @@
     const facets = [
       search,
       /* Changing the kind keeps search, station, principle and lens, and drops the previous kind's own facets. */
-      kindPicker(kind, kindCounts, kindNote, (other, focus) => go(Object.assign({}, state, { kinds: [other], order: "", f: state.f.lens === undefined ? {} : { lens: state.f.lens } }), focus)),
+      kindPicker(kind, kindCounts, kindNote, (other, focus) => go(Object.assign({}, state, { kinds: [other], order: "", f: state.f.lens ? { lens: state.f.lens } : {} }), focus)),
       showStations
         ? facetGroup("station", FG.t("catalogue.facet.station"), FG.stations().map((station) => station.identifier), state.stations, sharedCounts("stations", "station"), stationLabel, (id, focus) =>
             go(Object.assign({}, state, { stations: toggle(state.stations, id) }), focus)

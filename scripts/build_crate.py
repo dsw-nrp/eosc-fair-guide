@@ -1232,6 +1232,7 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
         for number, section in enumerate(page.get("section", []), start=1):
             section_id = f"{page_id}-{number}"
             section_ids.append(section_id)
+            action_id = f"{section_id}-action" if section.get("action") else None
             graph.add(
                 {
                     "@id": section_id,
@@ -1241,8 +1242,14 @@ def build_pages(graph: Graph, pages: list[dict[str, Any]]) -> list[str]:
                     "text": text(section["body"]),
                     "position": number,
                     "isPartOf": ref(page_id),
+                    "potentialAction": ref(action_id) if action_id else None,
                 }
             )
+            if action_id:
+                action = section["action"]
+                graph.add(
+                    {"@id": action_id, "@type": "Action", "name": text(action["label"]), "target": ref(action["href"])}
+                )
         graph.add(
             {
                 "@id": page_id,

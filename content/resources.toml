@@ -303,11 +303,11 @@ dateAccessed = 2026-10-08
 [[resource]]
 id = "cerit-aiaas"
 name = { cs = "AI jako služba (CERIT)", en = "AI as a Service (CERIT)" }
-description = { cs = "AI v infrastruktuře e-INFRA CZ; dotazy neopouštějí infrastrukturu.", en = "AI within the e-INFRA CZ infrastructure; requests stay within the infrastructure." }
+description = { cs = "AI v infrastruktuře e-INFRA CZ: chat, API, asistenti pro programování a AI v JupyterHubu; dotazy neopouštějí infrastrukturu.", en = "AI within the e-INFRA CZ infrastructure: chat, API, coding assistants and AI in JupyterHub; requests stay within the infrastructure." }
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/introduction"
 type = "service"
 status = "operational"
-asOf = 2026-10-08
+asOf = 2026-10-09
 lenses = "*"
 stations = ["plan", "prace", "popis", "kontrola"]
 languages = ["en"]

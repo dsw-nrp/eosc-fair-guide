@@ -814,12 +814,23 @@
     return lines.join("\n");
   }
 
-  /** An AI tip: the tip, what to check afterwards, and a short prompt to copy. */
-  function aiTip(item) {
+  /** An action as a button: a place in the guide, or an address outside it that opens in a new tab. */
+  function actionButton(action) {
+    const target = FG.id(action.target);
+    return target.startsWith("#")
+      ? h("a", { class: "button button-primary button-small", href: FG.actionHref(target) }, FG.span(action.name))
+      : FG.external(target, [FG.text(action.name), FG.icon("external")], { class: "button button-primary button-small" });
+  }
+
+  /** An AI tip: the tip, what to check afterwards, and a short prompt to copy; where tips of every view are shown
+      together, a tip for one view carries its icon. */
+  function aiTip(item, showLens) {
     const promptId = "prompt-" + item.identifier.replace(/\W/g, "-");
+    const lenses = FG.refIds(item, "audience");
     return h(
       "div",
       { class: "tip ai-tip" },
+      showLens === true && lenses.length < FG.lenses().length ? orientationTags([], lenses) : null,
       h("p", null, FG.linkedSpan(item)),
       item.checkAfter ? h("p", null, h("strong", null, FG.t("station.aiCheck") + ": "), FG.linkedSpan(item, "checkAfter")) : null,
       item.promptSample
@@ -840,6 +851,26 @@
             h("pre", { id: promptId, tabindex: "0", lang: FG.textOf(item.promptSample, FG.state.lang).lang || null }, FG.text(item.promptSample))
           )
         : null
+    );
+  }
+
+  /** Every station's AI tips for every view, under the station they belong to: what the path offers, gathered on
+      the AI page. */
+  function aiStationTips() {
+    const icons = (FG.config.icons && FG.config.icons.station) || {};
+    return h(
+      "div",
+      { class: "ai-station-tips" },
+      FG.stations().map((station) => {
+        const tips = FG.refs(station, "itemListElement").filter((item) => item.adviceKind === "ai").sort(FG.byPosition);
+        if (!tips.length) return null;
+        return h(
+          "section",
+          { "aria-labelledby": "ai-tips-" + station.identifier },
+          h("h3", { id: "ai-tips-" + station.identifier }, h("a", { class: "holder-link", href: FG.href("path", station.identifier) }, FG.icon(icons[station.identifier]), station.position + " · ", FG.span(station.name))),
+          tips.map((item) => aiTip(item, true))
+        );
+      })
     );
   }
 
@@ -891,11 +922,7 @@
             "section",
             { class: "now", "aria-label": levelName("L0") },
             h("div", null, h("p", { class: "level" }, levelTitle("L0")), h("p", { class: "now-text" }, FG.linkedSpan(now))),
-            action
-              ? FG.id(action.target).startsWith("#")
-                ? h("a", { class: "button button-primary button-small", href: FG.actionHref(FG.id(action.target)) }, FG.span(action.name))
-                : FG.external(FG.id(action.target), [FG.text(action.name), FG.icon("external")], { class: "button button-primary button-small" })
-              : null
+            action ? actionButton(action) : null
           )
         : h("p", null, FG.t("station.empty")),
       steps.length ? details(levelTitle("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
@@ -904,7 +931,7 @@
         ? details(
             [FG.icon("ai"), h("span", null, FG.t("station.ai"))],
             "ai",
-            ai.map(aiTip),
+            ai.map((item) => aiTip(item)),
             h("p", { class: "small muted" }, FG.t("station.aiReminder")),
             h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline)))
           )
@@ -1241,6 +1268,8 @@
             section.identifier ? { id: section.identifier, tabindex: "-1" } : null,
             section.headline ? h("h2", null, FG.span(section.headline)) : null,
             FG.linkedParagraphs(section),
+            section.potentialAction ? h("p", { class: "section-action" }, actionButton(FG.get(section.potentialAction))) : null,
+            page.identifier === "ai" && section.identifier === "station-tips" ? aiStationTips() : null,
             section.identifier === "credits" ? creditsTable() : null,
             page.identifier === "machines" && section.identifier === "tasks" ? machineTasks() : null,
             page.identifier === "machines" && section.identifier === "practice" ? signpostTable() : null,

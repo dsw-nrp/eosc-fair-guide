@@ -454,6 +454,17 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-09-cerit-ai"
+type = "update"
+name = "AI in e-INFRA CZ, read from its documentation"
+description = "The AI page leads to AI in e-INFRA CZ (CERIT): what it offers, who can use it and how its data are handled, read from CERIT-SC's documentation; the guide's data rule follows CERIT-SC's privacy policy, which does not admit sensitive or personal data to the chat."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["cerit-aiaas", "cerit-chat-ai", "cerit-ai-api", "cerit-ai-coding", "cerit-ai-privacy"]
+results = ["cerit-aiaas"]
+endTime = 2026-10-10T00:30:00+02:00
+
+[[action]]
 id = "2026-10-09-steward-community"
 type = "create"
 name = "The data steward community's README templates and lab notebook example"

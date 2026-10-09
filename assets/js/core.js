@@ -272,10 +272,17 @@
   const ANY_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
 
   /** Only HTTPS, mailto, in-page and relative links are allowed; anything else becomes inert. */
+  /* Identifier resolvers that also answer over HTTPS: an identifier minted on plain HTTP, such as a nanopublication
+     IRI, is shown as it is and linked over HTTPS. */
+  const HTTPS_RESOLVER = /^http:\/\/((www\.)?purl\.org|w3id\.org|(dx\.)?doi\.org|hdl\.handle\.net|identifiers\.org|n2t\.net)\//i;
+
+  /** A link's address if it is safe to follow; null when it is not, so the element is not a link at all rather than
+      one that leads back to the start. */
   FG.safeHref = function (href) {
     const value = String(href || "").trim();
     if (value.startsWith("#") || SAFE_SCHEME.test(value)) return value;
-    if (ANY_SCHEME.test(value) || value.startsWith("//")) return "#";
+    if (HTTPS_RESOLVER.test(value)) return "https://" + value.slice("http://".length);
+    if (ANY_SCHEME.test(value) || value.startsWith("//")) return null;
     return value;
   };
 
@@ -285,7 +292,10 @@
       if (value == null || value === false) continue;
       if (name === "class") element.className = value;
       else if (name.startsWith("on") && typeof value === "function") element.addEventListener(name.slice(2), value);
-      else if (name === "href") element.setAttribute("href", FG.safeHref(value));
+      else if (name === "href") {
+        const safe = FG.safeHref(value);
+        if (safe !== null) element.setAttribute("href", safe);
+      }
       else element.setAttribute(name, value === true ? "" : String(value));
     }
     for (const child of children.flat(Infinity)) {
