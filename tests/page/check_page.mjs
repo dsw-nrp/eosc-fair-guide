@@ -221,6 +221,21 @@ async function axe(page, label) {
     await view.evaluate(() => window.dispatchEvent(new Event("afterprint")));
     if ((await view.locator("#main details:not([open])").count()) !== closed) fail("exports: the sections opened for printing do not close again");
 
+    // Links from text: a step that names DataCite links the name to its catalogue entry, quietly, and the crate
+    // records DataCite as mentioned by the step, with no markup in the text.
+    await view.goto(pageUrl + "#/cs/V/path/dohledatelnost");
+    await view.waitForSelector("#main h1");
+    await view.locator('details[data-key="L1"] > summary').click();
+    const named = view.locator('details[data-key="L1"] a.text-ref', { hasText: "DataCite" }).first();
+    if (!(await named.count()) || !(await named.getAttribute("href")).endsWith("/catalogue/resources/datacite")) fail("text links: DataCite in a step does not link to its catalogue entry");
+    const quiet = await named.evaluate((link) => getComputedStyle(link).color === getComputedStyle(link.parentElement).color && getComputedStyle(link).textDecorationStyle === "dotted");
+    if (!quiet) fail("text links: a link in text does not keep the text's colour with a dotted underline");
+    const step = crate["@graph"].find((entity) => entity["@id"] === "#advice-dohledatelnost.V.L1.2-step-3");
+    if (!step || JSON.stringify(step.text).includes("[[") || !JSON.stringify(step.mentions).includes("#resource-datacite")) fail("text links: the crate does not record DataCite as mentioned by the step with clean text");
+    if (JSON.stringify(crate).includes("[[")) fail("text links: reference markup reached the crate");
+    await named.click();
+    await view.waitForSelector("#item-datacite.jumped");
+
     await view.goto(pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
     if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");

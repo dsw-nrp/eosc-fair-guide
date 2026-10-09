@@ -41,6 +41,9 @@ UI_SCRIPT = "assets/data/ui.js"
 # What the page may download before any user action, gzip-compressed: the page, its scripts and its stylesheets.
 # Above it the build warns, so that loading parts on demand is decided on a measurement.
 PAGE_BUDGET_KB = 300
+# A reference editors mark in a text: [[id|phrase]], where id names a resource or source, or term:<id> a glossary
+# term, and phrase is the words in this language that name it.
+REFERENCE = re.compile(r"\[\[(?P<id>[^\[\]|]+)\|(?P<phrase>[^\[\]|]+)\]\]")
 PAGE_ASSET = re.compile(r'<script src="(?P<script>[^"]+)"|<link rel="stylesheet" href="(?P<style>[^"]+)"')
 
 RO_CRATE = "https://w3id.org/ro/crate/1.2"
@@ -251,6 +254,8 @@ class Graph:
     def __init__(self) -> None:
         self.entities: dict[str, dict[str, Any]] = {}
         self.index: dict[str, list[str]] = {}
+        # Per entity whose text names others by reference: the phrase to link in each language.
+        self.text_links: dict[str, list[dict[str, str]]] = {}
 
     def add(self, entity: dict[str, Any], content_id: str | None = None) -> str:
         entity = prune(entity)
@@ -279,6 +284,54 @@ class Graph:
                 if entity_id not in resolved:
                     resolved.append(entity_id)
         return resolved
+
+
+def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
+    """What a reference in text may name: a resource or source by its ID, a glossary term as term:<id>."""
+    targets = {
+        item["id"]: graph.index[item["id"]][0]
+        for item in content["resources"] + content["sources"]
+        if graph.index.get(item["id"])
+    }
+    targets |= {
+        "term:" + entity_id[len("#term-") :]: entity_id
+        for entity_id in graph.entities
+        if entity_id.startswith("#term-")
+    }
+    return targets
+
+
+def link_texts(graph: Graph, targets: dict[str, str]) -> None:
+    """Strip the references editors mark in text to their phrases, record each referenced entity as mentioned by the
+    entity whose text names it, and keep per entity the phrase to link in each language for the page."""
+    for entity_id, entity in graph.entities.items():
+        found: dict[str, dict[str, str]] = {}
+
+        def clean(
+            value: Any, lang: str = "und", owner: str = entity_id, found: dict[str, dict[str, str]] = found
+        ) -> Any:
+            if isinstance(value, list):
+                return [clean(item) for item in value]
+            if isinstance(value, dict) and "@value" in value:
+                return value | {"@value": clean(value["@value"], value.get("@language", "und"))}
+            if not isinstance(value, str) or "[[" not in value:
+                return value
+
+            def phrase(match: re.Match[str]) -> str:
+                target = targets.get(match["id"])
+                if target is None:
+                    raise ContentError(f"{owner}: the text refers to an unknown entry '{match['id']}'")
+                found.setdefault(target, {"ref": target}).setdefault(lang, match["phrase"])
+                return match["phrase"]
+
+            return REFERENCE.sub(phrase, value)
+
+        for key in [key for key in entity if not key.startswith("@")]:
+            entity[key] = clean(entity[key])
+        if found:
+            mentioned = [item["@id"] for item in as_list(entity.get("mentions"))]
+            entity["mentions"] = refs(mentioned + [target for target in found if target not in mentioned])
+            graph.text_links[entity_id] = list(found.values())
 
 
 def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: list[dict[str, Any]]) -> list[str]:
@@ -1305,6 +1358,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         ),
     }
     graph.entities["./"] = prune(root)
+    link_texts(graph, reference_targets(content, graph))
 
     context: dict[str, Any] = {term: vocabulary_base + term for term in TERMS}
     return {"@context": [f"{RO_CRATE}/context", context], "@graph": list(graph.entities.values())}
@@ -1390,7 +1444,7 @@ def re3data_facts(content: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def page_config(content: dict[str, Any]) -> dict[str, Any]:
+def page_config(content: dict[str, Any], text_links: dict[str, list[dict[str, str]]] | None = None) -> dict[str, Any]:
     guide = content["guide"]["guide"]
     live = content["live"]
     champion = {key: value for key, value in live.get("champion", {}).items() if key != "test"}
@@ -1403,6 +1457,7 @@ def page_config(content: dict[str, Any]) -> dict[str, Any]:
             "datePublished": iso(guide["datePublished"]),
             "freshnessDays": guide.get("freshnessDays", 180),
             "pageUrl": guide.get("pageUrl"),
+            "textLinks": text_links or {},
             "connectors": live.get("connector", []),
             "links": live.get("links", {}),
             "champion": champion,
@@ -1538,14 +1593,15 @@ def render_page(page: str, content: dict[str, Any], crate: dict[str, Any], sprit
 
 def outputs(root: Path = ROOT) -> dict[str, str]:
     content = load_content(root / "content")
-    crate = build_crate(content)
+    graph = Graph()
+    crate = build_crate(content, graph)
     page = render_page(
         (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
     )
     return {
         CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
         KB_SCRIPT: data_script("kb", crate, "The knowledge base, the same RO-Crate as ro-crate-metadata.json."),
-        UI_SCRIPT: data_script("ui", page_config(content), "Interface strings and configuration."),
+        UI_SCRIPT: data_script("ui", page_config(content, graph.text_links), "Interface strings and configuration."),
         PAGE_FILE: page,
         PREVIEW_FILE: page,
     }

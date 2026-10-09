@@ -42,7 +42,7 @@ prefill = { champion = ["fc_data_identifier_in_metadata", "fc_structured_metadat
 id = "S04"
 tier = "minimum"
 principles = ["F2", "R1"]
-statement = { cs = "Každá datová sada má minimální záznam podle CCMM.", en = "Every dataset has a minimum record following CCMM." }
+statement = { cs = "Každá datová sada má minimální záznam podle [[ccmm|CCMM]].", en = "Every dataset has a minimum record following [[ccmm|CCMM]]." }
 sources = ["S.MIN2", "A.F2.R1", "A.R1.R1"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
@@ -52,7 +52,7 @@ prefill = { nkr = ["metadataSchema"], re3data = ["metadataStandards"] }
 id = "S05"
 tier = "minimum"
 principles = ["F4", "A1"]
-statement = { cs = "Metadata jsou dostupná přes OAI-PMH (CCMM-XML, Dublin Core) a endpoint je uveden v NKR.", en = "Metadata are available through OAI-PMH (CCMM-XML, Dublin Core), and the endpoint is given in NKR." }
+statement = { cs = "Metadata jsou dostupná přes [[oai-pmh|OAI-PMH]] (CCMM-XML, Dublin Core) a endpoint je uveden v [[nkr|NKR]].", en = "Metadata are available through [[oai-pmh|OAI-PMH]] (CCMM-XML, Dublin Core), and the endpoint is given in [[nkr|NKR]]." }
 sources = ["A.F4.R1", "A.A1.N2", "A.A1.R1", "A.A1.1.R1"]
 fixAt = "dohledatelnost"
 owner = ["repository-admin"]
@@ -72,7 +72,7 @@ prefill = { nkr = ["license"], champion = ["fc_metadata_includes_license"], re3d
 id = "S07"
 tier = "recommended"
 principles = ["F3"]
-statement = { cs = "Repozitář podporuje FAIR Signposting (hlavičky Link).", en = "The repository supports FAIR Signposting (Link headers)." }
+statement = { cs = "Repozitář podporuje [[fair-signposting|FAIR Signposting]] (hlavičky Link).", en = "The repository supports [[fair-signposting|FAIR Signposting]] (Link headers)." }
 sources = ["S.REC2", "A.F3.R1", "E.SIGNPOSTING"]
 fixAt = "publikace"
 owner = ["repository-admin"]
@@ -81,7 +81,7 @@ owner = ["repository-admin"]
 id = "S08"
 tier = "recommended"
 principles = ["F2", "R1.3"]
-statement = { cs = "Vedle CCMM je k dispozici oborový metadatový profil (podle FIP).", en = "Alongside CCMM, a domain metadata profile (following the FIP) is available." }
+statement = { cs = "Vedle [[ccmm|CCMM]] je k dispozici oborový metadatový profil (podle FIP).", en = "Alongside [[ccmm|CCMM]], a domain metadata profile (following the FIP) is available." }
 sources = ["S.REC3", "A.F2.R2"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
@@ -92,7 +92,7 @@ prefillLevel = "partly"
 id = "S09"
 tier = "recommended"
 principles = ["F4", "R1.3"]
-statement = { cs = "Metadata se před uložením validují vůči CCMM i komunitnímu schématu.", en = "Metadata are validated against CCMM and the community schema before they are stored." }
+statement = { cs = "Metadata se před uložením validují vůči [[ccmm|CCMM]] i komunitnímu schématu.", en = "Metadata are validated against [[ccmm|CCMM]] and the community schema before they are stored." }
 sources = ["A.F4.R3", "A.R1.3.R2"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
@@ -131,7 +131,7 @@ prefill = { champion = ["fc_structured_metadata"] }
 id = "S13"
 tier = "recommended"
 principles = ["I2"]
-statement = { cs = "Repozitář podporuje řízené slovníky, i komunitní, a eviduje je v NKR.", en = "The repository supports controlled vocabularies, community ones included, and records them in NKR." }
+statement = { cs = "Repozitář podporuje řízené slovníky, i komunitní, a eviduje je v [[nkr|NKR]].", en = "The repository supports controlled vocabularies, community ones included, and records them in [[nkr|NKR]]." }
 sources = ["A.I2.R1", "A.I2.N1"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
@@ -141,7 +141,7 @@ prefill = { nkr = ["controlledVocabulary"], champion = ["fc_metadata_uses_fair_v
 id = "S14"
 tier = "recommended"
 principles = ["I2", "I3"]
-statement = { cs = "Metadata obsahují ORCID a ROR.", en = "Metadata include ORCID and ROR." }
+statement = { cs = "Metadata obsahují [[orcid|ORCID]] a [[ror|ROR]].", en = "Metadata include [[orcid|ORCID]] and [[ror|ROR]]." }
 sources = ["A.I2.R2", "A.I3.R2"]
 fixAt = "popis"
 owner = ["repository-admin"]
@@ -151,7 +151,7 @@ prefill = { nkr = ["pidPerson"] }
 id = "S15"
 tier = "recommended"
 principles = ["I3"]
-statement = { cs = "Metadata obsahují kvalifikované vazby (DataCite, PROV-O, DCAT-AP) na publikace a související data.", en = "Metadata include qualified relations (DataCite, PROV-O, DCAT-AP) to publications and related data." }
+statement = { cs = "Metadata obsahují kvalifikované vazby ([[datacite|DataCite]], PROV-O, DCAT-AP) na publikace a související data.", en = "Metadata include qualified relations ([[datacite|DataCite]], PROV-O, DCAT-AP) to publications and related data." }
 sources = ["A.I3.R1", "A.I3.R3"]
 fixAt = "popis"
 owner = ["repository-admin"]
@@ -171,7 +171,7 @@ prefill = { nkr = ["versioning"], re3data = ["versioning"] }
 id = "S17"
 tier = "recommended"
 principles = ["R1.2"]
-statement = { cs = "Metadata obsahují základní provenienci (původ, verze, historie), alespoň v rozsahu CCMM.", en = "Metadata include basic provenance (origin, version, history), at least to the extent of CCMM." }
+statement = { cs = "Metadata obsahují základní provenienci (původ, verze, historie), alespoň v rozsahu [[ccmm|CCMM]].", en = "Metadata include basic provenance (origin, version, history), at least to the extent of [[ccmm|CCMM]]." }
 sources = ["A.R1.2.R1"]
 fixAt = "popis"
 owner = ["repository-admin", "curator"]
@@ -180,7 +180,7 @@ owner = ["repository-admin", "curator"]
 id = "S18"
 tier = "advanced"
 principles = ["F4"]
-statement = { cs = "Repozitář je registrován v re3data a FAIRsharing.", en = "The repository is registered in re3data and FAIRsharing." }
+statement = { cs = "Repozitář je registrován v [[re3data|re3data]] a [[fairsharing|FAIRsharing]].", en = "The repository is registered in [[re3data|re3data]] and [[fairsharing|FAIRsharing]]." }
 sources = ["E.NKR-SCHEMA"]
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -190,7 +190,7 @@ prefill = { nkr = ["relatedRegistry", "indexedIn"], re3data = ["registries=re3da
 id = "S19"
 tier = "advanced"
 principles = []
-statement = { cs = "Repozitář má certifikaci CoreTrustSeal nebo se na ni připravuje.", en = "The repository holds CoreTrustSeal certification or is preparing for it." }
+statement = { cs = "Repozitář má certifikaci [[coretrustseal|CoreTrustSeal]] nebo se na ni připravuje.", en = "The repository holds [[coretrustseal|CoreTrustSeal]] certification or is preparing for it." }
 sources = ["E.CTS", "A.F1.X2"]
 fixAt = "repozitar"
 owner = ["repository-admin"]

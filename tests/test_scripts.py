@@ -138,6 +138,46 @@ class GeneratorTests(FixtureCase):
         self.assertIsNotNone(warning)
         self.assertIn("over its budget of 0 KB; largest: ", warning or "")
 
+    def test_reference_in_text_becomes_a_mention(self) -> None:
+        self.edit(
+            "stations/01-one.toml",
+            'text = { cs = "Udělejte první krok.", en = "Take the first step." }',
+            'text = { cs = "Udělejte první krok v [[service|testovací službě]].", '
+            'en = "Take the first step in the [[service|Test service]]." }',
+        )
+        graph = build_crate.Graph()
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"), graph)
+        advice = next(entity for entity in crate["@graph"] if "Take the first step" in json.dumps(entity))
+        self.assertNotIn("[[", json.dumps(advice, ensure_ascii=False))
+        self.assertIn({"@value": "Take the first step in the Test service.", "@language": "en"}, advice["text"])
+        self.assertIn({"@id": "#resource-service"}, build_crate.as_list(advice["mentions"]))
+        self.assertEqual(
+            graph.text_links[advice["@id"]],
+            [{"ref": "#resource-service", "cs": "testovací službě", "en": "Test service"}],
+        )
+        self.assertEqual(self.errors(), [])
+
+    def test_references_are_checked(self) -> None:
+        old = 'text = { cs = "Udělejte první krok.", en = "Take the first step." }'
+        self.edit(
+            "stations/01-one.toml",
+            old,
+            'text = { cs = "Krok v [[nowhere|ničem]].", en = "A step in [[nowhere|nothing]]." }',
+        )
+        self.assertError("refers to an unknown entry 'nowhere'")
+        self.edit(
+            "stations/01-one.toml",
+            'text = { cs = "Krok v [[nowhere|ničem]].", en = "A step in [[nowhere|nothing]]." }',
+            'text = { cs = "Krok v [[service|službě]].", en = "A step in the service." }',
+        )
+        self.assertError("the Czech and English texts refer to different entries: service")
+        self.edit(
+            "stations/01-one.toml",
+            'en = "A step in the service." }',
+            'en = "A step in the [[service Test service]]." }',
+        )
+        self.assertError("a reference is not well formed; write [[id|phrase]]")
+
     def test_missing_marker_is_reported(self) -> None:
         page = self.root / "index.html"
         page.write_text(page.read_text(encoding="utf-8").replace("<!-- generated:ui --><!-- /generated:ui -->", ""))

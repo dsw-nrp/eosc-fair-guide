@@ -246,6 +246,9 @@
           "@id": "#action-2026-10-09-english-names"
         },
         {
+          "@id": "#action-2026-10-09-text-references"
+        },
+        {
           "@id": "#ledger"
         },
         {
@@ -17166,7 +17169,12 @@
       "potentialAction": {
         "@id": "#advice-plan.V.L0-action"
       },
-      "name": "plan.V.L0"
+      "name": "plan.V.L0",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.V.L0-action",
@@ -17212,7 +17220,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.V.L1.1"
+      "name": "plan.V.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.V.L1.2",
@@ -17241,7 +17254,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.V.L1.2"
+      "name": "plan.V.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.V.L1.3",
@@ -17364,7 +17382,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.V.L1.4"
+      "name": "plan.V.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.V.L1.5",
@@ -17454,7 +17477,12 @@
       "potentialAction": {
         "@id": "#advice-plan.DS.L0-action"
       },
-      "name": "plan.DS.L0"
+      "name": "plan.DS.L0",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.DS.L0-action",
@@ -17529,7 +17557,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.DS.L1.2"
+      "name": "plan.DS.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-policy-manual"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.DS.L1.3",
@@ -17563,7 +17596,15 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.DS.L1.3"
+      "name": "plan.DS.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-ds-handbook"
+        },
+        {
+          "@id": "#resource-eosc-data-stewards"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.DS.L1.4",
@@ -17592,7 +17633,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.DS.L1.4"
+      "name": "plan.DS.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-ds-personas"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.DS.L2.1",
@@ -17626,7 +17672,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.DS.L2.1"
+      "name": "plan.DS.L2.1",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.SR.L0",
@@ -17663,7 +17714,12 @@
       "potentialAction": {
         "@id": "#advice-plan.SR.L0-action"
       },
-      "name": "plan.SR.L0"
+      "name": "plan.SR.L0",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.SR.L0-action",
@@ -17709,7 +17765,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.SR.L1.1"
+      "name": "plan.SR.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.SR.L1.2",
@@ -17721,7 +17782,7 @@
           "@language": "cs"
         },
         {
-          "@value": "Fill in the details researchers need when planning:",
+          "@value": "Fill in, in NKR, the details researchers need when planning:",
           "@language": "en"
         }
       ],
@@ -17757,7 +17818,12 @@
           "@id": "#advice-plan.SR.L1.2-step-4"
         }
       ],
-      "name": "plan.SR.L1.2"
+      "name": "plan.SR.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.SR.L1.2-step-1",
@@ -17921,7 +17987,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.SR.L2.1"
+      "name": "plan.SR.L2.1",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.K.L0",
@@ -17961,7 +18032,12 @@
       "potentialAction": {
         "@id": "#advice-plan.K.L0-action"
       },
-      "name": "plan.K.L0"
+      "name": "plan.K.L0",
+      "mentions": [
+        {
+          "@id": "#resource-fip-dashboard"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.K.L0-action",
@@ -18036,7 +18112,12 @@
       "isPartOf": {
         "@id": "#station-plan"
       },
-      "name": "plan.K.L1.2"
+      "name": "plan.K.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-fip-dashboard"
+        }
+      ]
     },
     {
       "@id": "#advice-plan.K.L1.3",
@@ -18549,7 +18630,12 @@
       "isPartOf": {
         "@id": "#station-prace"
       },
-      "name": "prace.V.L1.6"
+      "name": "prace.V.L1.6",
+      "mentions": [
+        {
+          "@id": "#resource-ddrapp"
+        }
+      ]
     },
     {
       "@id": "#advice-prace.DS.L0",
@@ -18632,7 +18718,15 @@
       "isPartOf": {
         "@id": "#station-prace"
       },
-      "name": "prace.DS.L1.1"
+      "name": "prace.DS.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-onedata"
+        },
+        {
+          "@id": "#resource-sensitive-cloud"
+        }
+      ]
     },
     {
       "@id": "#advice-prace.DS.L1.2",
@@ -18719,7 +18813,12 @@
       "isPartOf": {
         "@id": "#station-prace"
       },
-      "name": "prace.DS.L1.4"
+      "name": "prace.DS.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-eosc-training"
+        }
+      ]
     },
     {
       "@id": "#advice-prace.DS.L2.1",
@@ -18894,7 +18993,12 @@
       "isPartOf": {
         "@id": "#station-prace"
       },
-      "name": "prace.SR.L1.3"
+      "name": "prace.SR.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-ddrapp"
+        }
+      ]
     },
     {
       "@id": "#advice-prace.K.L0",
@@ -19319,7 +19423,15 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.V.L1.2"
+      "name": "repozitar.V.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        },
+        {
+          "@id": "#resource-re3data"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.V.L1.3",
@@ -19439,7 +19551,12 @@
       "position": 4,
       "isPartOf": {
         "@id": "#advice-repozitar.V.L1.3"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.V.L1.4",
@@ -19502,7 +19619,12 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.V.L1.5"
+      "name": "repozitar.V.L1.5",
+      "mentions": [
+        {
+          "@id": "#resource-oai-pmh"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.all.L2.1",
@@ -19579,7 +19701,15 @@
       "potentialAction": {
         "@id": "#advice-repozitar.DS.L0-action"
       },
-      "name": "repozitar.DS.L0"
+      "name": "repozitar.DS.L0",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        },
+        {
+          "@id": "#resource-re3data"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.DS.L0-action",
@@ -19630,7 +19760,15 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.DS.L1.1"
+      "name": "repozitar.DS.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-coretrustseal"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.DS.L1.2",
@@ -19659,7 +19797,15 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.DS.L1.2"
+      "name": "repozitar.DS.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-re3data"
+        },
+        {
+          "@id": "#resource-fairsharing"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.DS.L1.3",
@@ -19728,7 +19874,12 @@
       "potentialAction": {
         "@id": "#advice-repozitar.SR.L0-action"
       },
-      "name": "repozitar.SR.L0"
+      "name": "repozitar.SR.L0",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.SR.L0-action",
@@ -19779,7 +19930,18 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.SR.L1.1"
+      "name": "repozitar.SR.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        },
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-pid-centre"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.SR.L1.2",
@@ -19808,7 +19970,18 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.SR.L1.2"
+      "name": "repozitar.SR.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-re3data"
+        },
+        {
+          "@id": "#resource-fairsharing"
+        },
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.SR.L1.3",
@@ -19889,7 +20062,12 @@
       "position": 1,
       "isPartOf": {
         "@id": "#advice-repozitar.SR.L1.3"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-repo-recommendations"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.SR.L1.3-step-2",
@@ -20024,7 +20202,15 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.SR.L1.5"
+      "name": "repozitar.SR.L1.5",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.SR.L1.6",
@@ -20058,7 +20244,12 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.SR.L1.6"
+      "name": "repozitar.SR.L1.6",
+      "mentions": [
+        {
+          "@id": "#resource-coretrustseal"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.K.L0",
@@ -20095,7 +20286,12 @@
       "potentialAction": {
         "@id": "#advice-repozitar.K.L0-action"
       },
-      "name": "repozitar.K.L0"
+      "name": "repozitar.K.L0",
+      "mentions": [
+        {
+          "@id": "#resource-os2"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.K.L0-action",
@@ -20146,7 +20342,12 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.K.L1.1"
+      "name": "repozitar.K.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-fip-dashboard"
+        }
+      ]
     },
     {
       "@id": "#advice-repozitar.K.L1.2",
@@ -20183,7 +20384,12 @@
       "isPartOf": {
         "@id": "#station-repozitar"
       },
-      "name": "repozitar.K.L1.2"
+      "name": "repozitar.K.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-os2"
+        }
+      ]
     },
     {
       "@id": "#station-repozitar",
@@ -20391,7 +20597,15 @@
       "potentialAction": {
         "@id": "#advice-popis.V.L0-action"
       },
-      "name": "popis.V.L0"
+      "name": "popis.V.L0",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.V.L0-action",
@@ -20445,7 +20659,18 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.V.L1.1"
+      "name": "popis.V.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        },
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.V.L1.2",
@@ -20479,7 +20704,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.V.L1.2"
+      "name": "popis.V.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.V.L1.3",
@@ -20639,7 +20869,15 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.all.L2.1"
+      "name": "popis.all.L2.1",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        },
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.DS.L0",
@@ -20676,7 +20914,12 @@
       "potentialAction": {
         "@id": "#advice-popis.DS.L0-action"
       },
-      "name": "popis.DS.L0"
+      "name": "popis.DS.L0",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.DS.L0-action",
@@ -20727,7 +20970,15 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.DS.L1.1"
+      "name": "popis.DS.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        },
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.DS.L1.2",
@@ -20761,7 +21012,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.DS.L1.2"
+      "name": "popis.DS.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-fairsharing"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.DS.L1.3",
@@ -20795,7 +21051,15 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.DS.L1.3"
+      "name": "popis.DS.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.DS.L1.4",
@@ -20824,7 +21088,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.DS.L1.4"
+      "name": "popis.DS.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.DS.L1.5",
@@ -20893,7 +21162,12 @@
       "potentialAction": {
         "@id": "#advice-popis.SR.L0-action"
       },
-      "name": "popis.SR.L0"
+      "name": "popis.SR.L0",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L0-action",
@@ -20950,7 +21224,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.SR.L1.1"
+      "name": "popis.SR.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.2",
@@ -20996,7 +21275,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.SR.L1.2"
+      "name": "popis.SR.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.3",
@@ -21030,7 +21314,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.SR.L1.3"
+      "name": "popis.SR.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.4",
@@ -21123,7 +21412,15 @@
       "position": 2,
       "isPartOf": {
         "@id": "#advice-popis.SR.L1.4"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.4-step-3",
@@ -21141,7 +21438,12 @@
       "position": 3,
       "isPartOf": {
         "@id": "#advice-popis.SR.L1.4"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.4-step-4",
@@ -21196,7 +21498,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.SR.L1.5"
+      "name": "popis.SR.L1.5",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.6",
@@ -21262,7 +21569,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.SR.L1.7"
+      "name": "popis.SR.L1.7",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.8",
@@ -21330,7 +21642,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.SR.L1.9"
+      "name": "popis.SR.L1.9",
+      "mentions": [
+        {
+          "@id": "#resource-dataspecer"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.SR.L1.10",
@@ -21468,7 +21785,12 @@
       "potentialAction": {
         "@id": "#advice-popis.K.L0-action"
       },
-      "name": "popis.K.L0"
+      "name": "popis.K.L0",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.K.L0-action",
@@ -21690,7 +22012,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.K.L1.6"
+      "name": "popis.K.L1.6",
+      "mentions": [
+        {
+          "@id": "#resource-fairsharing"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.K.L1.7",
@@ -21724,7 +22051,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.K.L1.7"
+      "name": "popis.K.L1.7",
+      "mentions": [
+        {
+          "@id": "#resource-os2"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.K.L1.8",
@@ -21761,7 +22093,12 @@
       "isPartOf": {
         "@id": "#station-popis"
       },
-      "name": "popis.K.L1.8"
+      "name": "popis.K.L1.8",
+      "mentions": [
+        {
+          "@id": "#resource-cdif"
+        }
+      ]
     },
     {
       "@id": "#advice-popis.all.L1.1",
@@ -22116,7 +22453,12 @@
       "isPartOf": {
         "@id": "#station-licence"
       },
-      "name": "licence.V.L1.1"
+      "name": "licence.V.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-copyright-licences"
+        }
+      ]
     },
     {
       "@id": "#advice-licence.V.L1.2",
@@ -22150,7 +22492,12 @@
       "isPartOf": {
         "@id": "#station-licence"
       },
-      "name": "licence.V.L1.2"
+      "name": "licence.V.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#advice-licence.V.L1.3",
@@ -22330,7 +22677,15 @@
       "isPartOf": {
         "@id": "#station-licence"
       },
-      "name": "licence.DS.L1.1"
+      "name": "licence.DS.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-copyright-licences"
+        },
+        {
+          "@id": "#resource-deposit-licence"
+        }
+      ]
     },
     {
       "@id": "#advice-licence.DS.L1.2",
@@ -22388,7 +22743,12 @@
       "isPartOf": {
         "@id": "#station-licence"
       },
-      "name": "licence.DS.L1.3"
+      "name": "licence.DS.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-ethical-seven"
+        }
+      ]
     },
     {
       "@id": "#advice-licence.DS.L1.4",
@@ -22663,7 +23023,12 @@
       "isPartOf": {
         "@id": "#station-licence"
       },
-      "name": "licence.SR.L1.6"
+      "name": "licence.SR.L1.6",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-licence.SR.L1.7",
@@ -22697,7 +23062,12 @@
       "isPartOf": {
         "@id": "#station-licence"
       },
-      "name": "licence.SR.L1.7"
+      "name": "licence.SR.L1.7",
+      "mentions": [
+        {
+          "@id": "#resource-aai-sensitive"
+        }
+      ]
     },
     {
       "@id": "#advice-licence.SR.L2.1",
@@ -22731,7 +23101,12 @@
       "isPartOf": {
         "@id": "#station-licence"
       },
-      "name": "licence.SR.L2.1"
+      "name": "licence.SR.L2.1",
+      "mentions": [
+        {
+          "@id": "#resource-cdif"
+        }
+      ]
     },
     {
       "@id": "#advice-licence.K.L0",
@@ -23225,7 +23600,12 @@
       "isPartOf": {
         "@id": "#station-publikace"
       },
-      "name": "publikace.V.L1.4"
+      "name": "publikace.V.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        }
+      ]
     },
     {
       "@id": "#advice-publikace.V.L1.5",
@@ -23294,7 +23674,12 @@
       "potentialAction": {
         "@id": "#advice-publikace.DS.L0-action"
       },
-      "name": "publikace.DS.L0"
+      "name": "publikace.DS.L0",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        }
+      ]
     },
     {
       "@id": "#advice-publikace.DS.L0-action",
@@ -23582,7 +23967,12 @@
       "isPartOf": {
         "@id": "#station-publikace"
       },
-      "name": "publikace.SR.L1.3"
+      "name": "publikace.SR.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-publikace.SR.L1.4",
@@ -23669,7 +24059,12 @@
       "position": 2,
       "isPartOf": {
         "@id": "#advice-publikace.SR.L1.4"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-fair-signposting"
+        }
+      ]
     },
     {
       "@id": "#advice-publikace.SR.L1.5",
@@ -23743,7 +24138,12 @@
       "isPartOf": {
         "@id": "#station-publikace"
       },
-      "name": "publikace.SR.L1.6"
+      "name": "publikace.SR.L1.6",
+      "mentions": [
+        {
+          "@id": "#resource-oai-pmh"
+        }
+      ]
     },
     {
       "@id": "#advice-publikace.SR.L1.7",
@@ -23820,7 +24220,12 @@
       "isPartOf": {
         "@id": "#station-publikace"
       },
-      "name": "publikace.SR.L2.1"
+      "name": "publikace.SR.L2.1",
+      "mentions": [
+        {
+          "@id": "#resource-schema-dataset"
+        }
+      ]
     },
     {
       "@id": "#advice-publikace.K.L0",
@@ -24202,7 +24607,12 @@
       "potentialAction": {
         "@id": "#advice-dohledatelnost.V.L0-action"
       },
-      "name": "dohledatelnost.V.L0"
+      "name": "dohledatelnost.V.L0",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L0-action",
@@ -24253,7 +24663,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.V.L1.1"
+      "name": "dohledatelnost.V.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L1.2",
@@ -24319,7 +24734,12 @@
       "position": 1,
       "isPartOf": {
         "@id": "#advice-dohledatelnost.V.L1.2"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L1.2-step-2",
@@ -24337,7 +24757,12 @@
       "position": 2,
       "isPartOf": {
         "@id": "#advice-dohledatelnost.V.L1.2"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L1.2-step-3",
@@ -24355,7 +24780,15 @@
       "position": 3,
       "isPartOf": {
         "@id": "#advice-dohledatelnost.V.L1.2"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-datacite"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L1.2-step-4",
@@ -24407,7 +24840,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.V.L1.3"
+      "name": "dohledatelnost.V.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L1.4",
@@ -24473,7 +24911,15 @@
       "position": 1,
       "isPartOf": {
         "@id": "#advice-dohledatelnost.V.L1.4"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-datacite-commons"
+        },
+        {
+          "@id": "#resource-datacite"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L1.4-step-2",
@@ -24509,7 +24955,12 @@
       "position": 3,
       "isPartOf": {
         "@id": "#advice-dohledatelnost.V.L1.4"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-google-dataset-search"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.V.L1.5",
@@ -24538,7 +24989,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.V.L1.5"
+      "name": "dohledatelnost.V.L1.5",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.DS.L0",
@@ -24581,7 +25037,12 @@
       "potentialAction": {
         "@id": "#advice-dohledatelnost.DS.L0-action"
       },
-      "name": "dohledatelnost.DS.L0"
+      "name": "dohledatelnost.DS.L0",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.DS.L0-action",
@@ -24635,7 +25096,18 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.DS.L1.1"
+      "name": "dohledatelnost.DS.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-ccmm"
+        },
+        {
+          "@id": "#resource-oai-pmh"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.DS.L1.2",
@@ -24669,7 +25141,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.DS.L1.2"
+      "name": "dohledatelnost.DS.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.DS.L1.3",
@@ -24703,7 +25180,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.DS.L1.3"
+      "name": "dohledatelnost.DS.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.DS.L1.4",
@@ -24737,7 +25219,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.DS.L1.4"
+      "name": "dohledatelnost.DS.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L0",
@@ -24777,7 +25264,15 @@
       "potentialAction": {
         "@id": "#advice-dohledatelnost.SR.L0-action"
       },
-      "name": "dohledatelnost.SR.L0"
+      "name": "dohledatelnost.SR.L0",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-oai-pmh"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L0-action",
@@ -24842,7 +25337,15 @@
           "@id": "#advice-dohledatelnost.SR.L1.1-step-2"
         }
       ],
-      "name": "dohledatelnost.SR.L1.1"
+      "name": "dohledatelnost.SR.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L1.1-step-1",
@@ -24860,7 +25363,12 @@
       "position": 1,
       "isPartOf": {
         "@id": "#advice-dohledatelnost.SR.L1.1"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-oai-pmh"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L1.1-step-2",
@@ -24878,7 +25386,12 @@
       "position": 2,
       "isPartOf": {
         "@id": "#advice-dohledatelnost.SR.L1.1"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L1.2",
@@ -24907,7 +25420,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.SR.L1.2"
+      "name": "dohledatelnost.SR.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L1.3",
@@ -24941,7 +25459,15 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.SR.L1.3"
+      "name": "dohledatelnost.SR.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L1.4",
@@ -25004,7 +25530,15 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.SR.L1.5"
+      "name": "dohledatelnost.SR.L1.5",
+      "mentions": [
+        {
+          "@id": "#resource-oai-pmh"
+        },
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L1.6",
@@ -25047,7 +25581,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.SR.L1.6"
+      "name": "dohledatelnost.SR.L1.6",
+      "mentions": [
+        {
+          "@id": "#resource-datacite-commons"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.SR.L1.7",
@@ -25081,7 +25620,12 @@
       "isPartOf": {
         "@id": "#station-dohledatelnost"
       },
-      "name": "dohledatelnost.SR.L1.7"
+      "name": "dohledatelnost.SR.L1.7",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-dohledatelnost.K.L0",
@@ -25388,7 +25932,12 @@
       "potentialAction": {
         "@id": "#advice-citace.V.L0-action"
       },
-      "name": "citace.V.L0"
+      "name": "citace.V.L0",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.V.L0-action",
@@ -25502,7 +26051,12 @@
       "isPartOf": {
         "@id": "#station-citace"
       },
-      "name": "citace.V.L1.3"
+      "name": "citace.V.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.V.L1.4",
@@ -25536,7 +26090,12 @@
       "isPartOf": {
         "@id": "#station-citace"
       },
-      "name": "citace.V.L1.4"
+      "name": "citace.V.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.V.L1.5",
@@ -25648,7 +26207,12 @@
       "isPartOf": {
         "@id": "#station-citace"
       },
-      "name": "citace.DS.L1.1"
+      "name": "citace.DS.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-force11-citation"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.DS.L1.2",
@@ -25682,7 +26246,12 @@
       "isPartOf": {
         "@id": "#station-citace"
       },
-      "name": "citace.DS.L1.2"
+      "name": "citace.DS.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.DS.L1.3",
@@ -25716,7 +26285,15 @@
       "isPartOf": {
         "@id": "#station-citace"
       },
-      "name": "citace.DS.L1.3"
+      "name": "citace.DS.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
+        },
+        {
+          "@id": "#resource-os3"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.SR.L0",
@@ -25753,7 +26330,12 @@
       "potentialAction": {
         "@id": "#advice-citace.SR.L0-action"
       },
-      "name": "citace.SR.L0"
+      "name": "citace.SR.L0",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.SR.L0-action",
@@ -25836,7 +26418,18 @@
       "isPartOf": {
         "@id": "#station-citace"
       },
-      "name": "citace.SR.L1.2"
+      "name": "citace.SR.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
+        },
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.SR.L1.3",
@@ -25870,7 +26463,12 @@
       "isPartOf": {
         "@id": "#station-citace"
       },
-      "name": "citace.SR.L1.3"
+      "name": "citace.SR.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#advice-citace.K.L0",
@@ -26164,7 +26762,12 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.V.L1.1"
+      "name": "kontrola.V.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-fair-champion"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.V.L1.2",
@@ -26251,7 +26854,12 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.V.L1.4"
+      "name": "kontrola.V.L1.4",
+      "mentions": [
+        {
+          "@id": "#resource-fair-aware"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.DS.L0",
@@ -26397,7 +27005,18 @@
       "position": 1,
       "isPartOf": {
         "@id": "#advice-kontrola.DS.L1.2"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-fair-champion"
+        },
+        {
+          "@id": "#resource-f-uji"
+        },
+        {
+          "@id": "#resource-fair-checker"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.DS.L1.2-step-2",
@@ -26415,7 +27034,12 @@
       "position": 2,
       "isPartOf": {
         "@id": "#advice-kontrola.DS.L1.2"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-fair-aware"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.DS.L1.2-step-3",
@@ -26433,7 +27057,12 @@
       "position": 3,
       "isPartOf": {
         "@id": "#advice-kontrola.DS.L1.2"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-fdmm"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.DS.L1.3",
@@ -26462,7 +27091,12 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.DS.L1.3"
+      "name": "kontrola.DS.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.DS.L1.4",
@@ -26615,7 +27249,12 @@
       "potentialAction": {
         "@id": "#advice-kontrola.SR.L0-action"
       },
-      "name": "kontrola.SR.L0"
+      "name": "kontrola.SR.L0",
+      "mentions": [
+        {
+          "@id": "#resource-fair-champion"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.SR.L0-action",
@@ -26666,7 +27305,15 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.SR.L1.1"
+      "name": "kontrola.SR.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-fair-champion"
+        },
+        {
+          "@id": "#resource-ostrails-cli"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.SR.L1.2",
@@ -26700,7 +27347,15 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.SR.L1.2"
+      "name": "kontrola.SR.L1.2",
+      "mentions": [
+        {
+          "@id": "#resource-openaire-validator"
+        },
+        {
+          "@id": "#resource-coretrustseal"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.SR.L1.3",
@@ -26787,7 +27442,12 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.SR.L1.5"
+      "name": "kontrola.SR.L1.5",
+      "mentions": [
+        {
+          "@id": "#resource-f-uji"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.SR.L1.6",
@@ -26958,7 +27618,15 @@
       "position": 5,
       "isPartOf": {
         "@id": "#advice-kontrola.SR.L1.7"
-      }
+      },
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.SR.L1.7-step-6",
@@ -27077,7 +27745,12 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.K.L1.1"
+      "name": "kontrola.K.L1.1",
+      "mentions": [
+        {
+          "@id": "#resource-fair-champion"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.K.L1.2",
@@ -27135,7 +27808,12 @@
       "isPartOf": {
         "@id": "#station-kontrola"
       },
-      "name": "kontrola.K.L1.3"
+      "name": "kontrola.K.L1.3",
+      "mentions": [
+        {
+          "@id": "#resource-fair-impact"
+        }
+      ]
     },
     {
       "@id": "#advice-kontrola.all.L1.1",
@@ -28018,7 +28696,12 @@
       "isPartOf": {
         "@id": "#check-dataset"
       },
-      "name": "D05"
+      "name": "D05",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
     },
     {
       "@id": "#item-D06-prefill-datacite",
@@ -28149,7 +28832,15 @@
       "isPartOf": {
         "@id": "#check-dataset"
       },
-      "name": "D07"
+      "name": "D07",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
+      ]
     },
     {
       "@id": "#item-D08-prefill-datacite",
@@ -29265,7 +29956,12 @@
       "isPartOf": {
         "@id": "#check-fip"
       },
-      "name": "K13"
+      "name": "K13",
+      "mentions": [
+        {
+          "@id": "#resource-fip-dashboard"
+        }
+      ]
     },
     {
       "@id": "#check-fip",
@@ -29700,7 +30396,12 @@
       "isPartOf": {
         "@id": "#check-gate"
       },
-      "name": "G05"
+      "name": "G05",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#item-G06-prefill-nkr",
@@ -29900,7 +30601,15 @@
       "isPartOf": {
         "@id": "#check-gate"
       },
-      "name": "G08"
+      "name": "G08",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        },
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#item-G09",
@@ -30660,7 +31369,12 @@
       "isPartOf": {
         "@id": "#check-institution"
       },
-      "name": "I02"
+      "name": "I02",
+      "mentions": [
+        {
+          "@id": "#resource-dmp-eosc"
+        }
+      ]
     },
     {
       "@id": "#item-I03",
@@ -30729,7 +31443,12 @@
       "isPartOf": {
         "@id": "#check-institution"
       },
-      "name": "I04"
+      "name": "I04",
+      "mentions": [
+        {
+          "@id": "#resource-os3"
+        }
+      ]
     },
     {
       "@id": "#check-institution",
@@ -31044,7 +31763,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S04"
+      "name": "S04",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#item-S05-prefill-nkr",
@@ -31118,7 +31842,15 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S05"
+      "name": "S05",
+      "mentions": [
+        {
+          "@id": "#resource-oai-pmh"
+        },
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#item-S06-prefill-nkr",
@@ -31235,7 +31967,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S07"
+      "name": "S07",
+      "mentions": [
+        {
+          "@id": "#resource-fair-signposting"
+        }
+      ]
     },
     {
       "@id": "#item-S08-prefill-nkr",
@@ -31309,7 +32046,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S08"
+      "name": "S08",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#item-S09",
@@ -31360,7 +32102,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S09"
+      "name": "S09",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#item-S10-prefill-nkr",
@@ -31587,7 +32334,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S13"
+      "name": "S13",
+      "mentions": [
+        {
+          "@id": "#resource-nkr"
+        }
+      ]
     },
     {
       "@id": "#item-S14-prefill-nkr",
@@ -31643,7 +32395,15 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S14"
+      "name": "S14",
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
+      ]
     },
     {
       "@id": "#item-S15-prefill-nkr",
@@ -31706,7 +32466,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S15"
+      "name": "S15",
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
+        }
+      ]
     },
     {
       "@id": "#item-S16-prefill-nkr",
@@ -31818,7 +32583,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S17"
+      "name": "S17",
+      "mentions": [
+        {
+          "@id": "#resource-ccmm"
+        }
+      ]
     },
     {
       "@id": "#item-S18-prefill-nkr",
@@ -31882,7 +32652,15 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S18"
+      "name": "S18",
+      "mentions": [
+        {
+          "@id": "#resource-re3data"
+        },
+        {
+          "@id": "#resource-fairsharing"
+        }
+      ]
     },
     {
       "@id": "#item-S19-prefill-nkr",
@@ -31942,7 +32720,12 @@
       "isPartOf": {
         "@id": "#check-maturity"
       },
-      "name": "S19"
+      "name": "S19",
+      "mentions": [
+        {
+          "@id": "#resource-coretrustseal"
+        }
+      ]
     },
     {
       "@id": "#item-S20",
@@ -39732,6 +40515,11 @@
           "@value": "The guide and the FIP Dashboard",
           "@language": "en"
         }
+      ],
+      "mentions": [
+        {
+          "@id": "#resource-fip-dashboard"
+        }
       ]
     },
     {
@@ -39837,6 +40625,14 @@
         {
           "@value": "Privacy",
           "@language": "en"
+        }
+      ],
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
+        },
+        {
+          "@id": "#resource-fair-champion"
         }
       ]
     },
@@ -40050,6 +40846,14 @@
           "@value": "Quick and deep check",
           "@language": "en"
         }
+      ],
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
+        },
+        {
+          "@id": "#resource-fair-champion"
+        }
       ]
     },
     {
@@ -40118,6 +40922,14 @@
           "@value": "How the helper works",
           "@language": "en"
         }
+      ],
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
+        }
       ]
     },
     {
@@ -40185,6 +40997,11 @@
         {
           "@value": "How the helper works",
           "@language": "en"
+        }
+      ],
+      "mentions": [
+        {
+          "@id": "#resource-datacite"
         }
       ]
     },
@@ -40291,6 +41108,14 @@
         {
           "@value": "Three rules",
           "@language": "en"
+        }
+      ],
+      "mentions": [
+        {
+          "@id": "#resource-orcid"
+        },
+        {
+          "@id": "#resource-ror"
         }
       ]
     },
@@ -42895,6 +43720,401 @@
         }
       ],
       "endTime": "2026-10-09T01:25:21+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-09-text-references",
+      "@type": "UpdateAction",
+      "name": "Named entries linked from text",
+      "description": "Texts that name a resource mark it as a reference, so the page links the name to its catalogue entry and the crate records the resource as mentioned. The English text of one NKR step names NKR, as the Czech text does.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "result": [
+        {
+          "@id": "#item-D05"
+        },
+        {
+          "@id": "#item-D07"
+        },
+        {
+          "@id": "#item-G05"
+        },
+        {
+          "@id": "#item-G08"
+        },
+        {
+          "@id": "#item-I02"
+        },
+        {
+          "@id": "#item-I04"
+        },
+        {
+          "@id": "#item-K13"
+        },
+        {
+          "@id": "#item-S04"
+        },
+        {
+          "@id": "#item-S05"
+        },
+        {
+          "@id": "#item-S07"
+        },
+        {
+          "@id": "#item-S08"
+        },
+        {
+          "@id": "#item-S09"
+        },
+        {
+          "@id": "#item-S13"
+        },
+        {
+          "@id": "#item-S14"
+        },
+        {
+          "@id": "#item-S15"
+        },
+        {
+          "@id": "#item-S17"
+        },
+        {
+          "@id": "#item-S18"
+        },
+        {
+          "@id": "#item-S19"
+        },
+        {
+          "@id": "#advice-citace.DS.L1.1"
+        },
+        {
+          "@id": "#advice-citace.DS.L1.2"
+        },
+        {
+          "@id": "#advice-citace.DS.L1.3"
+        },
+        {
+          "@id": "#advice-citace.SR.L0"
+        },
+        {
+          "@id": "#advice-citace.SR.L1.2"
+        },
+        {
+          "@id": "#advice-citace.SR.L1.3"
+        },
+        {
+          "@id": "#advice-citace.V.L0"
+        },
+        {
+          "@id": "#advice-citace.V.L1.3"
+        },
+        {
+          "@id": "#advice-citace.V.L1.4"
+        },
+        {
+          "@id": "#advice-dohledatelnost.DS.L0"
+        },
+        {
+          "@id": "#advice-dohledatelnost.DS.L1.1"
+        },
+        {
+          "@id": "#advice-dohledatelnost.DS.L1.2"
+        },
+        {
+          "@id": "#advice-dohledatelnost.DS.L1.3"
+        },
+        {
+          "@id": "#advice-dohledatelnost.DS.L1.4"
+        },
+        {
+          "@id": "#advice-dohledatelnost.SR.L0"
+        },
+        {
+          "@id": "#advice-dohledatelnost.SR.L1.1"
+        },
+        {
+          "@id": "#advice-dohledatelnost.SR.L1.2"
+        },
+        {
+          "@id": "#advice-dohledatelnost.SR.L1.3"
+        },
+        {
+          "@id": "#advice-dohledatelnost.SR.L1.5"
+        },
+        {
+          "@id": "#advice-dohledatelnost.SR.L1.6"
+        },
+        {
+          "@id": "#advice-dohledatelnost.SR.L1.7"
+        },
+        {
+          "@id": "#advice-dohledatelnost.V.L0"
+        },
+        {
+          "@id": "#advice-dohledatelnost.V.L1.1"
+        },
+        {
+          "@id": "#advice-dohledatelnost.V.L1.2"
+        },
+        {
+          "@id": "#advice-dohledatelnost.V.L1.3"
+        },
+        {
+          "@id": "#advice-dohledatelnost.V.L1.4"
+        },
+        {
+          "@id": "#advice-dohledatelnost.V.L1.5"
+        },
+        {
+          "@id": "#advice-kontrola.DS.L1.2"
+        },
+        {
+          "@id": "#advice-kontrola.DS.L1.3"
+        },
+        {
+          "@id": "#advice-kontrola.K.L1.1"
+        },
+        {
+          "@id": "#advice-kontrola.K.L1.3"
+        },
+        {
+          "@id": "#advice-kontrola.SR.L0"
+        },
+        {
+          "@id": "#advice-kontrola.SR.L1.1"
+        },
+        {
+          "@id": "#advice-kontrola.SR.L1.2"
+        },
+        {
+          "@id": "#advice-kontrola.SR.L1.5"
+        },
+        {
+          "@id": "#advice-kontrola.SR.L1.7"
+        },
+        {
+          "@id": "#advice-kontrola.V.L1.1"
+        },
+        {
+          "@id": "#advice-kontrola.V.L1.4"
+        },
+        {
+          "@id": "#advice-licence.DS.L1.1"
+        },
+        {
+          "@id": "#advice-licence.DS.L1.3"
+        },
+        {
+          "@id": "#advice-licence.SR.L1.6"
+        },
+        {
+          "@id": "#advice-licence.SR.L1.7"
+        },
+        {
+          "@id": "#advice-licence.SR.L2.1"
+        },
+        {
+          "@id": "#advice-licence.V.L1.1"
+        },
+        {
+          "@id": "#advice-licence.V.L1.2"
+        },
+        {
+          "@id": "#advice-plan.DS.L0"
+        },
+        {
+          "@id": "#advice-plan.DS.L1.2"
+        },
+        {
+          "@id": "#advice-plan.DS.L1.3"
+        },
+        {
+          "@id": "#advice-plan.DS.L1.4"
+        },
+        {
+          "@id": "#advice-plan.DS.L2.1"
+        },
+        {
+          "@id": "#advice-plan.K.L0"
+        },
+        {
+          "@id": "#advice-plan.K.L1.2"
+        },
+        {
+          "@id": "#advice-plan.SR.L0"
+        },
+        {
+          "@id": "#advice-plan.SR.L1.1"
+        },
+        {
+          "@id": "#advice-plan.SR.L1.2"
+        },
+        {
+          "@id": "#advice-plan.SR.L2.1"
+        },
+        {
+          "@id": "#advice-plan.V.L0"
+        },
+        {
+          "@id": "#advice-plan.V.L1.1"
+        },
+        {
+          "@id": "#advice-plan.V.L1.2"
+        },
+        {
+          "@id": "#advice-plan.V.L1.4"
+        },
+        {
+          "@id": "#advice-popis.DS.L0"
+        },
+        {
+          "@id": "#advice-popis.DS.L1.1"
+        },
+        {
+          "@id": "#advice-popis.DS.L1.2"
+        },
+        {
+          "@id": "#advice-popis.DS.L1.3"
+        },
+        {
+          "@id": "#advice-popis.DS.L1.4"
+        },
+        {
+          "@id": "#advice-popis.K.L0"
+        },
+        {
+          "@id": "#advice-popis.K.L1.6"
+        },
+        {
+          "@id": "#advice-popis.K.L1.7"
+        },
+        {
+          "@id": "#advice-popis.K.L1.8"
+        },
+        {
+          "@id": "#advice-popis.SR.L0"
+        },
+        {
+          "@id": "#advice-popis.SR.L1.1"
+        },
+        {
+          "@id": "#advice-popis.SR.L1.2"
+        },
+        {
+          "@id": "#advice-popis.SR.L1.3"
+        },
+        {
+          "@id": "#advice-popis.SR.L1.4"
+        },
+        {
+          "@id": "#advice-popis.SR.L1.5"
+        },
+        {
+          "@id": "#advice-popis.SR.L1.7"
+        },
+        {
+          "@id": "#advice-popis.SR.L1.9"
+        },
+        {
+          "@id": "#advice-popis.V.L0"
+        },
+        {
+          "@id": "#advice-popis.V.L1.1"
+        },
+        {
+          "@id": "#advice-popis.V.L1.2"
+        },
+        {
+          "@id": "#advice-popis.all.L2.1"
+        },
+        {
+          "@id": "#advice-prace.DS.L1.1"
+        },
+        {
+          "@id": "#advice-prace.DS.L1.4"
+        },
+        {
+          "@id": "#advice-prace.SR.L1.3"
+        },
+        {
+          "@id": "#advice-prace.V.L1.6"
+        },
+        {
+          "@id": "#advice-publikace.DS.L0"
+        },
+        {
+          "@id": "#advice-publikace.SR.L1.3"
+        },
+        {
+          "@id": "#advice-publikace.SR.L1.4"
+        },
+        {
+          "@id": "#advice-publikace.SR.L1.6"
+        },
+        {
+          "@id": "#advice-publikace.SR.L2.1"
+        },
+        {
+          "@id": "#advice-publikace.V.L1.4"
+        },
+        {
+          "@id": "#advice-repozitar.DS.L0"
+        },
+        {
+          "@id": "#advice-repozitar.DS.L1.1"
+        },
+        {
+          "@id": "#advice-repozitar.DS.L1.2"
+        },
+        {
+          "@id": "#advice-repozitar.K.L0"
+        },
+        {
+          "@id": "#advice-repozitar.K.L1.1"
+        },
+        {
+          "@id": "#advice-repozitar.K.L1.2"
+        },
+        {
+          "@id": "#advice-repozitar.SR.L0"
+        },
+        {
+          "@id": "#advice-repozitar.SR.L1.1"
+        },
+        {
+          "@id": "#advice-repozitar.SR.L1.2"
+        },
+        {
+          "@id": "#advice-repozitar.SR.L1.3"
+        },
+        {
+          "@id": "#advice-repozitar.SR.L1.5"
+        },
+        {
+          "@id": "#advice-repozitar.SR.L1.6"
+        },
+        {
+          "@id": "#advice-repozitar.V.L1.2"
+        },
+        {
+          "@id": "#advice-repozitar.V.L1.3"
+        },
+        {
+          "@id": "#advice-repozitar.V.L1.5"
+        }
+      ],
+      "endTime": "2026-10-09T08:59:39+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }

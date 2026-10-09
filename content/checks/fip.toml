@@ -134,7 +134,7 @@ owner = ["community"]
 id = "K13"
 tier = "recommended"
 principles = []
-statement = { cs = "FIP je publikován (ve FIP Dashboardu nebo jako nanopublikace) a jeho FER jsou dohledatelné.", en = "The FIP is published (in the FIP Dashboard or as a nanopublication), and its FERs are findable." }
+statement = { cs = "FIP je publikován (ve [[fip-dashboard|FIP Dashboardu]] nebo jako nanopublikace) a jeho FER jsou dohledatelné.", en = "The FIP is published (in the [[fip-dashboard|FIP Dashboard]] or as a nanopublication), and its FERs are findable." }
 sources = ["K4.1", "E.FIP-DASHBOARD"]
 fixAt = "plan"
 owner = ["community"]

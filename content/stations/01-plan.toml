@@ -14,7 +14,7 @@ glossary = ["plan-spravy-dat", "data-steward", "fair-principy", "perzistentni-tr
 id = "plan.V.L0"
 lens = "V"
 level = "L0"
-text = { cs = "Sepište plán správy dat (DMP): jaká data vzniknou, jak je popíšete, kam je uložíte a za jakých podmínek je zpřístupníte. Nejsnáz to půjde v DMP.eosc.cz se šablonou vašeho poskytovatele.", en = "Write a data management plan (DMP): which data you will create, how you will describe them, where you will deposit them and on what terms you will make them available. The easiest way is DMP.eosc.cz with your funder's template." }
+text = { cs = "Sepište plán správy dat (DMP): jaká data vzniknou, jak je popíšete, kam je uložíte a za jakých podmínek je zpřístupníte. Nejsnáz to půjde v [[dmp-eosc|DMP.eosc.cz]] se šablonou vašeho poskytovatele.", en = "Write a data management plan (DMP): which data you will create, how you will describe them, where you will deposit them and on what terms you will make them available. The easiest way is [[dmp-eosc|DMP.eosc.cz]] with your funder's template." }
 action = { label = { cs = "Otevřít DMP.eosc.cz", en = "Open DMP.eosc.cz" }, href = "https://dmp.eosc.cz/" }
 sources = ["E.DMP", "K2.3.1"]
 
@@ -22,14 +22,14 @@ sources = ["E.DMP", "K2.3.1"]
 id = "plan.V.L1.1"
 lens = "V"
 level = "L1"
-text = { cs = "Zjistěte, zda a v jaké podobě DMP vyžaduje váš poskytovatel. DMP.eosc.cz nabízí šablony GA ČR, TA ČR, AZV ČR, MŠMT, Horizontu Evropa a Science Europe.", en = "Find out whether and in what form your funder requires a DMP. DMP.eosc.cz offers templates for GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe and Science Europe." }
+text = { cs = "Zjistěte, zda a v jaké podobě DMP vyžaduje váš poskytovatel. [[dmp-eosc|DMP.eosc.cz]] nabízí šablony GA ČR, TA ČR, AZV ČR, MŠMT, Horizontu Evropa a Science Europe.", en = "Find out whether and in what form your funder requires a DMP. [[dmp-eosc|DMP.eosc.cz]] offers templates for GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe and Science Europe." }
 sources = ["E.DMP"]
 
 [[advice]]
 id = "plan.V.L1.2"
 lens = "V"
 level = "L1"
-text = { cs = "Přihlaste se do DMP.eosc.cz účtem e-INFRA CZ a zvolte šablonu svého poskytovatele.", en = "Log in to DMP.eosc.cz with your e-INFRA CZ account and choose your funder's template." }
+text = { cs = "Přihlaste se do [[dmp-eosc|DMP.eosc.cz]] účtem e-INFRA CZ a zvolte šablonu svého poskytovatele.", en = "Log in to [[dmp-eosc|DMP.eosc.cz]] with your e-INFRA CZ account and choose your funder's template." }
 sources = ["E.DMP"]
 
 [[advice]]
@@ -48,7 +48,7 @@ sources = ["K2.3.1"]
 id = "plan.V.L1.4"
 lens = "V"
 level = "L1"
-text = { cs = "S volbou licence vám pomůže průvodce licencemi přímo v DMP.eosc.cz.", en = "The licence selector in DMP.eosc.cz helps you choose a licence." }
+text = { cs = "S volbou licence vám pomůže průvodce licencemi přímo v [[dmp-eosc|DMP.eosc.cz]].", en = "The licence selector in [[dmp-eosc|DMP.eosc.cz]] helps you choose a licence." }
 sources = ["E.DMP"]
 
 [[advice]]
@@ -69,7 +69,7 @@ sources = ["K4.3"]
 id = "plan.DS.L0"
 lens = "DS"
 level = "L0"
-text = { cs = "Pomozte výzkumníkům s DMP včas, ideálně už při přípravě žádosti. DMP.eosc.cz nabízí šablony českých i evropských poskytovatelů a národní znalostní model.", en = "Help researchers with their DMP early, ideally while they prepare the proposal. DMP.eosc.cz offers templates of Czech and European funders and a national knowledge model." }
+text = { cs = "Pomozte výzkumníkům s DMP včas, ideálně už při přípravě žádosti. [[dmp-eosc|DMP.eosc.cz]] nabízí šablony českých i evropských poskytovatelů a národní znalostní model.", en = "Help researchers with their DMP early, ideally while they prepare the proposal. [[dmp-eosc|DMP.eosc.cz]] offers templates of Czech and European funders and a national knowledge model." }
 action = { label = { cs = "Šablony DMP.eosc.cz", en = "DMP.eosc.cz templates" }, href = "https://github.com/dsw-nrp" }
 sources = ["E.DMP"]
 
@@ -84,35 +84,35 @@ sources = ["E.DMP"]
 id = "plan.DS.L1.2"
 lens = "DS"
 level = "L1"
-text = { cs = "Propojte DMP s institucionální datovou politikou; pomůže Manuál k přípravě institucionální datové politiky.", en = "Connect DMPs with the institutional data policy; the manual for preparing an institutional data policy helps." }
+text = { cs = "Propojte DMP s institucionální datovou politikou; pomůže [[policy-manual|Manuál k přípravě institucionální datové politiky]].", en = "Connect DMPs with the institutional data policy; the [[policy-manual|manual for preparing an institutional data policy]] helps." }
 sources = ["E.POLICY-MANUAL"]
 
 [[advice]]
 id = "plan.DS.L1.3"
 lens = "DS"
 level = "L1"
-text = { cs = "Opřete se o FAIR příručku pro data steward komunitu a o komunitu data stewardů EOSC CZ.", en = "Rely on the FAIR handbook for the data steward community and on the EOSC CZ data steward community." }
+text = { cs = "Opřete se o [[ds-handbook|FAIR příručku pro data steward komunitu]] a o [[eosc-data-stewards|komunitu data stewardů EOSC CZ]].", en = "Rely on the [[ds-handbook|FAIR handbook for the data steward community]] and on the [[eosc-data-stewards|EOSC CZ data steward community]]." }
 sources = ["E.DS-HANDBOOK", "E.DATA-STEWARDS"]
 
 [[advice]]
 id = "plan.DS.L1.4"
 lens = "DS"
 level = "L1"
-text = { cs = "Persony a use casy data stewardů pomohou vysvětlit vaši roli výzkumníkům i vedení instituce.", en = "The personas and use cases of data stewards help to explain your role to researchers and to the institution's management." }
+text = { cs = "[[ds-personas|Persony a use casy data stewardů]] pomohou vysvětlit vaši roli výzkumníkům i vedení instituce.", en = "The [[ds-personas|personas and use cases of data stewards]] help to explain your role to researchers and to the institution's management." }
 sources = ["E.DS-PERSONAS"]
 
 [[advice]]
 id = "plan.DS.L2.1"
 lens = "DS"
 level = "L2"
-text = { cs = "DMP.eosc.cz je v pilotním provozu; modul pro propojení s profily FIP je ve vývoji.", en = "DMP.eosc.cz is in pilot operation; the module connecting it to FIPs is in development." }
+text = { cs = "[[dmp-eosc|DMP.eosc.cz]] je v pilotním provozu; modul pro propojení s profily FIP je ve vývoji.", en = "[[dmp-eosc|DMP.eosc.cz]] is in pilot operation; the module connecting it to FIPs is in development." }
 sources = ["K4.3", "E.DMP"]
 
 [[advice]]
 id = "plan.SR.L0"
 lens = "SR"
 level = "L0"
-text = { cs = "Ve výzkumných plánech se váš repozitář objevuje jako místo uložení. Čím jasněji popíšete své podmínky v Národním katalogu repozitářů (NKR), tím lépe s nimi výzkumníci počítají už při plánování.", en = "Research plans name your repository as the place of deposit. The more clearly you describe your terms in the National Repository Catalogue (NKR), the better researchers can plan for them." }
+text = { cs = "Ve výzkumných plánech se váš repozitář objevuje jako místo uložení. Čím jasněji popíšete své podmínky v Národním katalogu repozitářů ([[nkr|NKR]]), tím lépe s nimi výzkumníci počítají už při plánování.", en = "Research plans name your repository as the place of deposit. The more clearly you describe your terms in the [[nkr|National Repository Catalogue (NKR)]], the better researchers can plan for them." }
 action = { label = { cs = "Národní katalog repozitářů", en = "National Repository Catalogue" }, href = "https://repo.cz" }
 sources = ["C.M5", "E.NKR-SCHEMA"]
 
@@ -120,14 +120,14 @@ sources = ["C.M5", "E.NKR-SCHEMA"]
 id = "plan.SR.L1.1"
 lens = "SR"
 level = "L1"
-text = { cs = "Zaregistrujte repozitář v NKR a udržujte záznam aktuální; podmínky NRP to vyžadují.", en = "Register the repository in NKR and keep the record up to date; the NRP conditions require this." }
+text = { cs = "Zaregistrujte repozitář v [[nkr|NKR]] a udržujte záznam aktuální; podmínky NRP to vyžadují.", en = "Register the repository in [[nkr|NKR]] and keep the record up to date; the NRP conditions require this." }
 sources = ["C.M5"]
 
 [[advice]]
 id = "plan.SR.L1.2"
 lens = "SR"
 level = "L1"
-text = { cs = "Vyplňte v NKR údaje, které výzkumníci potřebují při plánování:", en = "Fill in the details researchers need when planning:" }
+text = { cs = "Vyplňte v [[nkr|NKR]] údaje, které výzkumníci potřebují při plánování:", en = "Fill in, in [[nkr|NKR]], the details researchers need when planning:" }
 steps = [
   { cs = "podporované licence a typy trvalých identifikátorů;", en = "supported licences and types of persistent identifiers;" },
   { cs = "typy a maximální velikost datových sad;", en = "types and maximum size of datasets;" },
@@ -154,14 +154,14 @@ sources = ["C.CS"]
 id = "plan.SR.L2.1"
 lens = "SR"
 level = "L2"
-text = { cs = "Strojově čitelné požadavky repozitářů nese z části záznam v NKR, který je v pilotním provozu; jejich využití při plánování se teprve připravuje.", en = "Part of a repository's machine-readable requirements is carried by its NKR record, which is in pilot operation; using them during planning is still in preparation." }
+text = { cs = "Strojově čitelné požadavky repozitářů nese z části záznam v [[nkr|NKR]], který je v pilotním provozu; jejich využití při plánování se teprve připravuje.", en = "Part of a repository's machine-readable requirements is carried by its [[nkr|NKR]] record, which is in pilot operation; using them during planning is still in preparation." }
 sources = ["E.LINKAGES", "E.NKR-SCHEMA"]
 
 [[advice]]
 id = "plan.K.L0"
 lens = "K"
 level = "L0"
-text = { cs = "Komunitní rozhodnutí zapsaná ve FIP (doporučené standardy, slovníky, repozitáře) usnadní výzkumníkům plánování; FIP lze propojit s DMP. Profily komunit a zdroje najdete ve FIP Dashboardu.", en = "Community decisions recorded in a FIP (recommended standards, vocabularies, repositories) make planning easier for researchers, and a FIP can connect to DMPs. Community profiles and resources are in the FIP Dashboard." }
+text = { cs = "Komunitní rozhodnutí zapsaná ve FIP (doporučené standardy, slovníky, repozitáře) usnadní výzkumníkům plánování; FIP lze propojit s DMP. Profily komunit a zdroje najdete ve [[fip-dashboard|FIP Dashboardu]].", en = "Community decisions recorded in a FIP (recommended standards, vocabularies, repositories) make planning easier for researchers, and a FIP can connect to DMPs. Community profiles and resources are in the [[fip-dashboard|FIP Dashboard]]." }
 action = { label = { cs = "Profily ve FIP Dashboardu", en = "Profiles in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/profiles" }
 sources = ["K4.1", "K4.3", "E.FIP-DASHBOARD"]
 
@@ -176,7 +176,7 @@ sources = ["K4.1"]
 id = "plan.K.L1.2"
 lens = "K"
 level = "L1"
-text = { cs = "Existující FER a profily jiných komunit hledejte ve FIP Dashboardu, národním katalogu FER; zdroje ověřené NRP a EOSC CZ jsou v něm označené.", en = "Look for existing FERs and other communities' profiles in the FIP Dashboard, the national FER catalogue; resources verified by NRP and EOSC CZ are marked there." }
+text = { cs = "Existující FER a profily jiných komunit hledejte ve [[fip-dashboard|FIP Dashboardu]], národním katalogu FER; zdroje ověřené NRP a EOSC CZ jsou v něm označené.", en = "Look for existing FERs and other communities' profiles in the [[fip-dashboard|FIP Dashboard]], the national FER catalogue; resources verified by NRP and EOSC CZ are marked there." }
 sources = ["E.FIP-DASHBOARD"]
 
 [[advice]]

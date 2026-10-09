@@ -57,7 +57,7 @@ sources = ["A.I1.X1", "E.MBDB"]
 id = "prace.V.L1.6"
 lens = "V"
 level = "L1"
-text = { cs = "Data z přístrojů lze anotovat a předávat do repozitáře automaticky, například aplikací DDRapp.", en = "Instrument data can be annotated and passed to a repository automatically, for example with the DDRapp application." }
+text = { cs = "Data z přístrojů lze anotovat a předávat do repozitáře automaticky, například aplikací [[ddrapp|DDRapp]].", en = "Instrument data can be annotated and passed to a repository automatically, for example with the [[ddrapp|DDRapp]] application." }
 sources = ["K2.2.4", "E.DDRAPP"]
 
 [[advice]]
@@ -72,7 +72,7 @@ sources = ["E.EINFRA", "E.CESSDA-DMEG"]
 id = "prace.DS.L1.1"
 lens = "DS"
 level = "L1"
-text = { cs = "Doporučte vhodné úložiště: institucionální, CESNET (S3, Onedata), pro citlivá data Sensitive Cloud.", en = "Recommend suitable storage: institutional, CESNET (S3, Onedata), and Sensitive Cloud for sensitive data." }
+text = { cs = "Doporučte vhodné úložiště: institucionální, CESNET (S3, [[onedata|Onedata]]), pro citlivá data [[sensitive-cloud|Sensitive Cloud]].", en = "Recommend suitable storage: institutional, CESNET (S3, [[onedata|Onedata]]), and [[sensitive-cloud|Sensitive Cloud]] for sensitive data." }
 sources = ["E.EINFRA"]
 
 [[advice]]
@@ -93,7 +93,7 @@ sources = ["E.NRP-COMPUTE"]
 id = "prace.DS.L1.4"
 lens = "DS"
 level = "L1"
-text = { cs = "Doporučte školení ke správě výzkumných dat od EOSC CZ.", en = "Recommend EOSC CZ training in research data management." }
+text = { cs = "Doporučte [[eosc-training|školení ke správě výzkumných dat od EOSC CZ]].", en = "Recommend [[eosc-training|EOSC CZ training]] in research data management." }
 sources = ["E.TRAINING"]
 
 [[advice]]
@@ -129,7 +129,7 @@ sources = ["K2.3.2c", "C.CS"]
 id = "prace.SR.L1.3"
 lens = "SR"
 level = "L1"
-text = { cs = "Zvažte napojení na automatizovaný sběr dat z přístrojů (DDRapp).", en = "Consider connecting to automated collection of instrument data (DDRapp)." }
+text = { cs = "Zvažte napojení na automatizovaný sběr dat z přístrojů ([[ddrapp|DDRapp]]).", en = "Consider connecting to automated collection of instrument data ([[ddrapp|DDRapp]])." }
 sources = ["K2.2.4", "E.DDRAPP"]
 
 [[advice]]

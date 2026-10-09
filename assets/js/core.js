@@ -121,6 +121,55 @@
     );
   };
 
+  /* ---------------------------------------------------------------- references in text */
+
+  /** Where a reference in text leads: the catalogue entry of the resource, source or glossary term. */
+  FG.referenceHref = function (id) {
+    const entity = FG.get(id);
+    if (!entity) return null;
+    return String(id).startsWith("#term-") ? FG.catalogueHref("terms", entity.termCode) : FG.catalogueHref("resources", entity.identifier);
+  };
+
+  /** A text as nodes, with the first occurrence of each phrase its entity names by reference linked; a link already
+      made in an earlier paragraph of the same text is not repeated. */
+  function linkedNodes(entity, text, lang, used) {
+    const links = ((FG.config && FG.config.textLinks) || {})[entity && entity["@id"]] || [];
+    const matches = [];
+    for (const link of links) {
+      const phrase = link[lang] || link.und;
+      const at = phrase && !used.has(link.ref) ? text.indexOf(phrase) : -1;
+      if (at >= 0) matches.push({ at, end: at + phrase.length, link });
+    }
+    matches.sort((a, b) => a.at - b.at);
+    const nodes = [];
+    let from = 0;
+    for (const match of matches) {
+      const href = FG.referenceHref(match.link.ref);
+      if (match.at < from || !href) continue;
+      nodes.push(text.slice(from, match.at), FG.h("a", { class: "text-ref", href }, text.slice(match.at, match.end)));
+      used.add(match.link.ref);
+      from = match.end;
+    }
+    nodes.push(text.slice(from));
+    return nodes.filter((node) => node !== "");
+  }
+
+  /** An entity's text with the entries it names linked, as FG.span shows it otherwise. */
+  FG.linkedSpan = function (entity, prop) {
+    const { text, lang } = FG.textOf(entity[prop || "text"], FG.state.lang);
+    return FG.h("span", { lang: lang || null }, ...linkedNodes(entity, text, lang || FG.state.lang, new Set()));
+  };
+
+  /** An entity's text as paragraphs with the entries it names linked, as FG.paragraphs shows it otherwise. */
+  FG.linkedParagraphs = function (entity, prop) {
+    const { text, lang } = FG.textOf(entity[prop || "text"], FG.state.lang);
+    const used = new Set();
+    return text
+      .split(/\n\s*\n/)
+      .filter(Boolean)
+      .map((paragraph) => FG.h("p", { lang: lang || null }, ...linkedNodes(entity, paragraph, lang || FG.state.lang, used)));
+  };
+
   /** Paragraphs of a text whose paragraphs are separated by a blank line. */
   FG.paragraphs = function (value) {
     const { text, lang } = FG.textOf(value, FG.state.lang);

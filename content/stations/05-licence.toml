@@ -22,14 +22,14 @@ sources = ["A.R1.1.R1", "A.A1.2.R2", "E.DMP", "E.COPYRIGHT"]
 id = "licence.V.L1.1"
 lens = "V"
 level = "L1"
-text = { cs = "Ověřte, že k datům máte potřebná práva (autorské a databázové právo, smlouvy, osobní údaje); pomůže příručka Autorská práva a licence.", en = "Check that you hold the necessary rights to the data (copyright and database rights, contracts, personal data); the handbook on copyright and licences helps." }
+text = { cs = "Ověřte, že k datům máte potřebná práva (autorské a databázové právo, smlouvy, osobní údaje); pomůže příručka [[copyright-licences|Autorská práva a licence]].", en = "Check that you hold the necessary rights to the data (copyright and database rights, contracts, personal data); the [[copyright-licences|handbook on copyright and licences]] helps." }
 sources = ["E.COPYRIGHT"]
 
 [[advice]]
 id = "licence.V.L1.2"
 lens = "V"
 level = "L1"
-text = { cs = "Vyberte licenci z nabídky repozitáře; s výběrem pomůže průvodce licencemi v DMP.eosc.cz.", en = "Choose a licence from the repository's options; the licence selector in DMP.eosc.cz helps." }
+text = { cs = "Vyberte licenci z nabídky repozitáře; s výběrem pomůže průvodce licencemi v [[dmp-eosc|DMP.eosc.cz]].", en = "Choose a licence from the repository's options; the licence selector in [[dmp-eosc|DMP.eosc.cz]] helps." }
 sources = ["A.R1.1.R1", "E.DMP"]
 
 [[advice]]
@@ -65,7 +65,7 @@ sources = ["E.COPYRIGHT", "E.DMP"]
 id = "licence.DS.L1.1"
 lens = "DS"
 level = "L1"
-text = { cs = "Opřete se o příručku Autorská práva a licence a o vzor depoziční licence.", en = "Rely on the handbook on copyright and licences and on the deposit licence template." }
+text = { cs = "Opřete se o příručku [[copyright-licences|Autorská práva a licence]] a o [[deposit-licence|vzor depoziční licence]].", en = "Rely on the [[copyright-licences|handbook on copyright and licences]] and on the [[deposit-licence|deposit licence template]]." }
 sources = ["E.COPYRIGHT", "E.DEPOSIT-LICENCE"]
 
 [[advice]]
@@ -79,7 +79,7 @@ sources = ["C.M4"]
 id = "licence.DS.L1.3"
 lens = "DS"
 level = "L1"
-text = { cs = "Etické aspekty práce s daty shrnuje Etické sedmero pro práci s výzkumnými daty.", en = "The Ethical Seven for working with research data summarises the ethical aspects." }
+text = { cs = "Etické aspekty práce s daty shrnuje [[ethical-seven|Etické sedmero pro práci s výzkumnými daty]].", en = "[[ethical-seven|The Ethical Seven for working with research data]] summarises the ethical aspects." }
 sources = ["E.ETHICS-SEVEN"]
 
 [[advice]]
@@ -136,21 +136,21 @@ sources = ["A.A1.2.R2"]
 id = "licence.SR.L1.6"
 lens = "SR"
 level = "L1"
-text = { cs = "Licence a podmínky přístupu zpřístupněte strojově čitelně (URI); v CCMM 2.0.0 se licence váží přímo ke třídám.", en = "Make licences and access conditions machine-readable (URIs); in CCMM 2.0.0, licences are attached directly to classes." }
+text = { cs = "Licence a podmínky přístupu zpřístupněte strojově čitelně (URI); v [[ccmm|CCMM]] 2.0.0 se licence váží přímo ke třídám.", en = "Make licences and access conditions machine-readable (URIs); in [[ccmm|CCMM]] 2.0.0, licences are attached directly to classes." }
 sources = ["K2.3.2c", "E.CCMM"]
 
 [[advice]]
 id = "licence.SR.L1.7"
 lens = "SR"
 level = "L1"
-text = { cs = "Pro citlivá data vyjděte z dokumentu Initial AAI architecture for sensitive data in NRP.", en = "For sensitive data, start from the document Initial AAI architecture for sensitive data in NRP." }
+text = { cs = "Pro citlivá data vyjděte z dokumentu [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]].", en = "For sensitive data, start from the document [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]]." }
 sources = ["A.A1.2.X1", "E.AAI-SENSITIVE"]
 
 [[advice]]
 id = "licence.SR.L2.1"
 lens = "SR"
 level = "L2"
-text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v CDIF 1.1), CC REL a SPDX.", en = "For advanced rights expression there are ODRL (with guidance in CDIF 1.1), CC REL and SPDX." }
+text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v [[cdif|CDIF 1.1]]), CC REL a SPDX.", en = "For advanced rights expression there are ODRL (with guidance in [[cdif|CDIF 1.1]]), CC REL and SPDX." }
 sources = ["A.R1.1.X2", "A.R1.1.X3"]
 
 [[advice]]

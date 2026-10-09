@@ -29,7 +29,7 @@ sources = ["A.R1.3.X1", "E.DATA-STEWARDS"]
 id = "repozitar.V.L1.2"
 lens = "V"
 level = "L1"
-text = { cs = "Vyhledejte repozitář podle oboru a typu dat; vyhledávač průvodce čerpá z Národního katalogu repozitářů (NKR) a z registru re3data.", en = "Search for a repository by field and data type; the guide's finder draws on the National Repository Catalogue (NKR) and the re3data registry." }
+text = { cs = "Vyhledejte repozitář podle oboru a typu dat; vyhledávač průvodce čerpá z Národního katalogu repozitářů ([[nkr|NKR]]) a z registru [[re3data|re3data]].", en = "Search for a repository by field and data type; the guide's finder draws on the [[nkr|National Repository Catalogue (NKR)]] and the [[re3data|re3data]] registry." }
 sources = ["E.NKR-SCHEMA"]
 
 [[advice]]
@@ -41,7 +41,7 @@ steps = [
   { cs = "přiděluje trvalý identifikátor (DOI, Handle nebo jiný)?", en = "does it assign a persistent identifier (DOI, Handle or another)?" },
   { cs = "jaké licence a režimy přístupu podporuje?", en = "which licences and access modes does it support?" },
   { cs = "jaký má limit velikosti a podporuje citlivá data?", en = "what is its size limit, and does it support sensitive data?" },
-  { cs = "je napojen na Národní metadatový adresář (NMA)? To je důležité pro vykázání dat v RIV.", en = "is it connected to the National Metadata Directory (NMA)? This matters for reporting the data in RIV." },
+  { cs = "je napojen na [[nma|Národní metadatový adresář (NMA)]]? To je důležité pro vykázání dat v RIV.", en = "is it connected to the [[nma|National Metadata Directory (NMA)]]? This matters for reporting the data in RIV." },
 ]
 sources = ["E.NKR-SCHEMA", "A.F1.N2"]
 
@@ -56,7 +56,7 @@ sources = ["K2.3.2a", "E.DEPOSIT-LICENCE"]
 id = "repozitar.V.L1.5"
 lens = "V"
 level = "L1"
-text = { cs = "Pokud se nic nehodí, použijte datový catch-all repozitář NRP (datarepo.eosc.cz); přiděluje DOI a zpřístupňuje metadata přes OAI-PMH.", en = "If nothing fits, use the NRP catch-all data repository (datarepo.eosc.cz); it assigns DOIs and exposes metadata through OAI-PMH." }
+text = { cs = "Pokud se nic nehodí, použijte datový catch-all repozitář NRP (datarepo.eosc.cz); přiděluje DOI a zpřístupňuje metadata přes [[oai-pmh|OAI-PMH]].", en = "If nothing fits, use the NRP catch-all data repository (datarepo.eosc.cz); it assigns DOIs and exposes metadata through [[oai-pmh|OAI-PMH]]." }
 sources = ["E.DATAREPO"]
 
 [[advice]]
@@ -70,7 +70,7 @@ sources = ["K5.2.1"]
 id = "repozitar.DS.L0"
 lens = "DS"
 level = "L0"
-text = { cs = "Pomozte vybrat repozitář podle oboru, typu dat a podmínek přístupu. Vyhledávač průvodce filtruje podle údajů z NKR a re3data.", en = "Help choose a repository by field, data type and access conditions. The guide's finder filters by information from NKR and re3data." }
+text = { cs = "Pomozte vybrat repozitář podle oboru, typu dat a podmínek přístupu. Vyhledávač průvodce filtruje podle údajů z [[nkr|NKR]] a [[re3data|re3data]].", en = "Help choose a repository by field, data type and access conditions. The guide's finder filters by information from [[nkr|NKR]] and [[re3data|re3data]]." }
 action = { label = { cs = "Vyhledávač repozitářů", en = "Repository finder" }, href = "#repositories" }
 sources = ["A.R1.3.X1", "E.NKR-SCHEMA"]
 
@@ -78,14 +78,14 @@ sources = ["A.R1.3.X1", "E.NKR-SCHEMA"]
 id = "repozitar.DS.L1.1"
 lens = "DS"
 level = "L1"
-text = { cs = "Posuzujte obor a komunitu, trvalé identifikátory, licence, přístup, podporu citlivých dat, napojení na NMA a certifikaci (CoreTrustSeal).", en = "Weigh the field and community, persistent identifiers, licences, access, sensitive-data support, the NMA connection and certification (CoreTrustSeal)." }
+text = { cs = "Posuzujte obor a komunitu, trvalé identifikátory, licence, přístup, podporu citlivých dat, napojení na [[nma|NMA]] a certifikaci ([[coretrustseal|CoreTrustSeal]]).", en = "Weigh the field and community, persistent identifiers, licences, access, sensitive-data support, the [[nma|NMA]] connection and certification ([[coretrustseal|CoreTrustSeal]])." }
 sources = ["E.NKR-SCHEMA", "E.CTS"]
 
 [[advice]]
 id = "repozitar.DS.L1.2"
 lens = "DS"
 level = "L1"
-text = { cs = "Ověřte, že je repozitář registrován v re3data a FAIRsharing; i repozitář sám má být dohledatelný.", en = "Check that the repository is registered in re3data and FAIRsharing; the repository itself should be findable too." }
+text = { cs = "Ověřte, že je repozitář registrován v [[re3data|re3data]] a [[fairsharing|FAIRsharing]]; i repozitář sám má být dohledatelný.", en = "Check that the repository is registered in [[re3data|re3data]] and [[fairsharing|FAIRsharing]]; the repository itself should be findable too." }
 sources = ["E.NKR-SCHEMA"]
 
 [[advice]]
@@ -99,7 +99,7 @@ sources = ["C.R4", "E.REPO-INTEGRATION", "E.DATAREPO"]
 id = "repozitar.SR.L0"
 lens = "SR"
 level = "L0"
-text = { cs = "Aby vás výzkumníci našli, zaregistrujte repozitář v Národním katalogu repozitářů (NKR) a záznam udržujte aktuální. Podmínky NRP to vyžadují.", en = "So that researchers can find you, register the repository in the National Repository Catalogue (NKR) and keep the record up to date. The NRP conditions require this." }
+text = { cs = "Aby vás výzkumníci našli, zaregistrujte repozitář v Národním katalogu repozitářů ([[nkr|NKR]]) a záznam udržujte aktuální. Podmínky NRP to vyžadují.", en = "So that researchers can find you, register the repository in the [[nkr|National Repository Catalogue (NKR)]] and keep the record up to date. The NRP conditions require this." }
 action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
 sources = ["C.M5"]
 
@@ -107,14 +107,14 @@ sources = ["C.M5"]
 id = "repozitar.SR.L1.1"
 lens = "SR"
 level = "L1"
-text = { cs = "Zaregistrujte repozitář v NKR a záznam aktualizujte. NKR je vedle NMA a Centra PID jednou ze sdílených služeb národní datové infrastruktury.", en = "Register the repository in NKR and keep the record updated. Alongside NMA and the PID Centre, NKR is one of the shared services of the national data infrastructure." }
+text = { cs = "Zaregistrujte repozitář v [[nkr|NKR]] a záznam aktualizujte. NKR je vedle [[nma|NMA]] a [[pid-centre|Centra PID]] jednou ze sdílených služeb národní datové infrastruktury.", en = "Register the repository in [[nkr|NKR]] and keep the record updated. Alongside [[nma|NMA]] and the [[pid-centre|PID Centre]], NKR is one of the shared services of the national data infrastructure." }
 sources = ["C.M5", "K2.1"]
 
 [[advice]]
 id = "repozitar.SR.L1.2"
 lens = "SR"
 level = "L1"
-text = { cs = "Zaregistrujte repozitář v re3data a FAIRsharing a v NKR je uveďte jako související registry.", en = "Register the repository in re3data and FAIRsharing and list them in NKR as related registries." }
+text = { cs = "Zaregistrujte repozitář v [[re3data|re3data]] a [[fairsharing|FAIRsharing]] a v [[nkr|NKR]] je uveďte jako související registry.", en = "Register the repository in [[re3data|re3data]] and [[fairsharing|FAIRsharing]] and list them in [[nkr|NKR]] as related registries." }
 sources = ["E.NKR-SCHEMA"]
 
 [[advice]]
@@ -123,7 +123,7 @@ lens = "SR"
 level = "L1"
 text = { cs = "Zakládáte nový repozitář?", en = "Setting up a new repository?" }
 steps = [
-  { cs = "přečtěte si Doporučení pro zakládání repozitářů v prostředí NRP;", en = "read the recommendations for establishing repositories in NRP;" },
+  { cs = "přečtěte si [[repo-recommendations|Doporučení pro zakládání repozitářů v prostředí NRP]];", en = "read the [[repo-recommendations|recommendations for establishing repositories in NRP]];" },
   { cs = "konzultujte oborovou pracovní skupinu EOSC CZ;", en = "consult the EOSC CZ working group for your domain;" },
   { cs = "nespecializujte repozitář příliš úzce;", en = "do not specialise the repository too narrowly;" },
   { cs = "využijte základní systémy NRP;", en = "use the core NRP systems;" },
@@ -142,21 +142,21 @@ sources = ["E.REPO-NEEDS"]
 id = "repozitar.SR.L1.5"
 lens = "SR"
 level = "L1"
-text = { cs = "Samostatně provozovaný repozitář potřebuje pro napojení na NRP minimum: metadata do NMA, záznam v NKR, AAI, API, trvalé identifikátory (ne nutně DOI), bezpečnost a monitoring.", en = "An independently operated repository needs a minimum to connect to NRP: metadata to NMA, an NKR record, AAI, an API, persistent identifiers (not necessarily DOI), security and monitoring." }
+text = { cs = "Samostatně provozovaný repozitář potřebuje pro napojení na NRP minimum: metadata do [[nma|NMA]], záznam v [[nkr|NKR]], AAI, API, trvalé identifikátory (ne nutně DOI), bezpečnost a monitoring.", en = "An independently operated repository needs a minimum to connect to NRP: metadata to [[nma|NMA]], an [[nkr|NKR]] record, AAI, an API, persistent identifiers (not necessarily DOI), security and monitoring." }
 sources = ["C.EXT", "E.REPO-INTEGRATION"]
 
 [[advice]]
 id = "repozitar.SR.L1.6"
 lens = "SR"
 level = "L1"
-text = { cs = "Zvažte certifikaci CoreTrustSeal.", en = "Consider CoreTrustSeal certification." }
+text = { cs = "Zvažte certifikaci [[coretrustseal|CoreTrustSeal]].", en = "Consider [[coretrustseal|CoreTrustSeal]] certification." }
 sources = ["E.CTS", "A.F1.X2"]
 
 [[advice]]
 id = "repozitar.K.L0"
 lens = "K"
 level = "L0"
-text = { cs = "Uveďte ve FIP, které repozitáře váš obor doporučuje. Pokud oborový repozitář chybí, podporuje projekt Open Science II vznik nových.", en = "State in the FIP which repositories your domain recommends. If a domain repository is missing, the Open Science II project supports creating new ones." }
+text = { cs = "Uveďte ve FIP, které repozitáře váš obor doporučuje. Pokud oborový repozitář chybí, podporuje projekt [[os2|Open Science II]] vznik nových.", en = "State in the FIP which repositories your domain recommends. If a domain repository is missing, the [[os2|Open Science II]] project supports creating new ones." }
 action = { label = { cs = "Open Science II", en = "Open Science II" }, href = "https://www.eosc.cz/projekty/open-science-ii" }
 sources = ["K4.1", "E.OS2"]
 
@@ -164,12 +164,12 @@ sources = ["K4.1", "E.OS2"]
 id = "repozitar.K.L1.1"
 lens = "K"
 level = "L1"
-text = { cs = "Doporučené repozitáře zapište do FIP jako FER; repozitáře jiných komunit uvidíte ve FIP Dashboardu.", en = "Record recommended repositories in the FIP as FERs; other communities' repositories are listed in the FIP Dashboard." }
+text = { cs = "Doporučené repozitáře zapište do FIP jako FER; repozitáře jiných komunit uvidíte ve [[fip-dashboard|FIP Dashboardu]].", en = "Record recommended repositories in the FIP as FERs; other communities' repositories are listed in the [[fip-dashboard|FIP Dashboard]]." }
 sources = ["K4.1", "E.FIP-DASHBOARD"]
 
 [[advice]]
 id = "repozitar.K.L1.2"
 lens = "K"
 level = "L1"
-text = { cs = "V oborech bez standardů a repozitářů spolupracujte s projektem Open Science II a s oborovými pracovními skupinami.", en = "In domains without standards and repositories, work with the Open Science II project and the domain working groups." }
+text = { cs = "V oborech bez standardů a repozitářů spolupracujte s projektem [[os2|Open Science II]] a s oborovými pracovními skupinami.", en = "In domains without standards and repositories, work with the [[os2|Open Science II]] project and the domain working groups." }
 sources = ["A.R1.3.N3", "C.R2", "E.OS2"]

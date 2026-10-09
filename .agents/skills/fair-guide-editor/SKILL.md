@@ -22,7 +22,9 @@ For an **advice item**:
 
 1. Set the station, lens (`V`, `DS`, `SR`, `K`) and level (`L0`–`L3`). L0 is one sentence and one concrete
    action. L1 is steps. L2 is generated from the cited clauses. L3 is generated from sources and paradata.
-2. Write both `cs` and `en` text. Czech is the primary language; English says the same, not more.
+2. Write both `cs` and `en` text. Czech is the primary language; English says the same, not more. Where the
+   text names a resource, source or glossary term, mark it as `[[id|phrase]]` (`term:<id>` for a term), in both
+   languages with the words each sentence uses; the content checks reject unknown IDs and uneven languages.
 3. Cite at least one ledger clause in `sources`. If the fact has no clause yet, add one to the ledger first
    (step 3).
 

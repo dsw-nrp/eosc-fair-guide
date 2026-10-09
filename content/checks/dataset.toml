@@ -110,7 +110,7 @@ prefill = { datacite = ["rightsList[].rightsUri"], champion = ["fc_metadata_incl
 id = "D05"
 tier = "minimum"
 principles = ["F4"]
-statement = { cs = "Datová sada je v Národním metadatovém adresáři (NMA).", en = "The dataset is in the National Metadata Directory (NMA)." }
+statement = { cs = "Datová sada je v Národním metadatovém adresáři ([[nma|NMA]]).", en = "The dataset is in the [[nma|National Metadata Directory (NMA)]]." }
 help = { cs = "Vyhledejte ji v NMA podle PID; pokud tam není, můžete záznam založit sami.", en = "Search for it in NMA by its PID; if it is not there, you can create the record yourself." }
 note = { cs = "Potřebné pro vykázání datové sady v RIV jako výsledku typu T.", en = "Needed for reporting the dataset in RIV as a result of type T." }
 sources = ["DOC.NMA.RIV", "S.MIN2"]
@@ -135,7 +135,7 @@ prefill = { datacite = ["descriptions", "subjects[].subjectScheme"] }
 id = "D07"
 tier = "recommended"
 principles = ["I2", "I3"]
-statement = { cs = "Autoři mají ORCID a instituce ROR.", en = "Authors have ORCID iDs and institutions have ROR IDs." }
+statement = { cs = "Autoři mají [[orcid|ORCID]] a instituce [[ror|ROR]].", en = "Authors have [[orcid|ORCID]] iDs and institutions have [[ror|ROR]] IDs." }
 sources = ["A.I2.R2"]
 fixAt = "popis"
 owner = ["user"]

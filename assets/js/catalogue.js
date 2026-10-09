@@ -290,7 +290,7 @@
                 "li",
                 { class: "card", id: "item-" + item.identifier, tabindex: "-1" },
                 h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, item.identifier), item.tier ? h("span", { class: "badge" }, FG.termName(FG.id(item.tier))) : null),
-                h("p", null, FG.span(item.text)),
+                h("p", null, FG.linkedSpan(item)),
                 h("div", { class: "badges" }, FG.principlesOf(item).map((principle) => FG.principleTile(principle)), FG.apiLink("questions", item.identifier)),
                 h("p", { class: "small cited-by" }, FG.t("catalogue.inCheck") + ": ", h("a", { href: FG.href("check", check.identifier) }, FG.span(check.name))),
                 clauses.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.basedOn") + ": ", joined(clauses.map((clause) => FG.idChip("clauses", clause.identifier)))) : null

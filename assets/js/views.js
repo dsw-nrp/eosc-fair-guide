@@ -532,7 +532,7 @@
 
   function adviceItem(item) {
     const steps = FG.refs(item, "hasPart").sort(FG.byPosition);
-    return h("li", null, FG.span(item.text), steps.length ? h("ul", null, steps.map((step) => h("li", null, FG.span(step.text)))) : null);
+    return h("li", null, FG.linkedSpan(item), steps.length ? h("ul", null, steps.map((step) => h("li", null, FG.linkedSpan(step)))) : null);
   }
 
   /** A disclosure level whose open state survives a lens switch while the page stays open. */
@@ -557,7 +557,7 @@
       for (const clause of FG.refs(item, "citation")) if (!clauses.includes(clause)) clauses.push(clause);
     }
     return [
-      notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.span(note.text)))) : null,
+      notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.linkedSpan(note)))) : null,
       h("h3", null, FG.t("station.whyPrinciples")),
       principleTiles(principles),
       h("h3", null, FG.t("station.whyClauses")),
@@ -668,7 +668,7 @@
           details(
             h("span", null, FG.span(callout.headline)),
             "callout-" + callout.identifier,
-            callout.text ? h("p", null, FG.span(callout.text)) : null,
+            callout.text ? h("p", null, FG.linkedSpan(callout)) : null,
             h(
               "ol",
               null,
@@ -775,7 +775,7 @@
         ? h(
             "section",
             { class: "now", "aria-label": levelName("L0") },
-            h("div", null, h("p", { class: "level" }, levelTitle("L0")), h("p", { class: "now-text" }, FG.span(now.text))),
+            h("div", null, h("p", { class: "level" }, levelTitle("L0")), h("p", { class: "now-text" }, FG.linkedSpan(now))),
             action
               ? FG.id(action.target).startsWith("#")
                 ? h("a", { class: "button button-primary button-small", href: FG.actionHref(FG.id(action.target)) }, FG.span(action.name))
@@ -786,7 +786,7 @@
       steps.length ? details(levelTitle("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
       details(levelTitle("L2"), "L2", whyContent(entity, items)),
       ai.length
-        ? details([FG.icon("ai"), h("span", null, FG.t("station.ai"))], "ai", ai.map((item) => h("p", { class: "tip" }, FG.span(item.text))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline))))
+        ? details([FG.icon("ai"), h("span", null, FG.t("station.ai"))], "ai", ai.map((item) => h("p", { class: "tip" }, FG.linkedSpan(item))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline))))
         : null,
       details(levelTitle("L3"), "L3", madeContent(items)),
       provenanceLine(items),
@@ -1048,7 +1048,7 @@
             "section",
             section.identifier ? { id: section.identifier, tabindex: "-1" } : null,
             section.headline ? h("h2", null, FG.span(section.headline)) : null,
-            FG.paragraphs(section.text),
+            FG.linkedParagraphs(section),
             section.identifier === "credits" ? creditsTable() : null
           )
         ),

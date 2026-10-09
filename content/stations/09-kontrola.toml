@@ -23,7 +23,7 @@ sources = ["K5.2.1", "E.FAIR-CHAMPION"]
 id = "kontrola.V.L1.1"
 lens = "V"
 level = "L1"
-text = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede a co obsahují metadata. Hloubková kontrola nástrojem FAIR Champion běží až po dalším kliknutí a může trvat i několik minut. Některé testy nemusí odpovědět; to není chyba vaší datové sady.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and what the metadata contain. The deep check with FAIR Champion runs only after a further click and can take several minutes. Some tests may not respond; that is not a fault of your dataset." }
+text = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede a co obsahují metadata. Hloubková kontrola nástrojem [[fair-champion|FAIR Champion]] běží až po dalším kliknutí a může trvat i několik minut. Některé testy nemusí odpovědět; to není chyba vaší datové sady.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and what the metadata contain. The deep check with [[fair-champion|FAIR Champion]] runs only after a further click and can take several minutes. Some tests may not respond; that is not a fault of your dataset." }
 sources = ["E.OSTRAILS-CZ", "E.FAIR-CHAMPION"]
 
 [[advice]]
@@ -44,7 +44,7 @@ sources = ["K5.2.1"]
 id = "kontrola.V.L1.4"
 lens = "V"
 level = "L1"
-text = { cs = "Ještě před zveřejněním si můžete udělat sebehodnocení, například FAIR-Aware nebo nástroj ARDC v českém překladu.", en = "Before publishing, you can do a self-assessment, for example FAIR-Aware or the ARDC tool in Czech translation." }
+text = { cs = "Ještě před zveřejněním si můžete udělat sebehodnocení, například [[fair-aware|FAIR-Aware]] nebo nástroj ARDC v českém překladu.", en = "Before publishing, you can do a self-assessment, for example [[fair-aware|FAIR-Aware]] or the ARDC tool in Czech translation." }
 sources = ["K5.1"]
 
 [[advice]]
@@ -68,9 +68,9 @@ lens = "DS"
 level = "L1"
 text = { cs = "Nástroje:", en = "Tools:" }
 steps = [
-  { cs = "automatizované: FAIR Champion (preferovaný), F-UJI (nehodnotí A2), FAIR-Checker, FAIR Evaluator;", en = "automated: FAIR Champion (preferred), F-UJI (does not assess A2), FAIR-Checker, FAIR Evaluator;" },
-  { cs = "sebehodnoticí: FAIR-Aware, nástroj ARDC (česky), CAT;", en = "self-assessment: FAIR-Aware, the ARDC tool (in Czech), CAT;" },
-  { cs = "metodika: FAIR Data Maturity Model.", en = "methodology: the FAIR Data Maturity Model." },
+  { cs = "automatizované: [[fair-champion|FAIR Champion]] (preferovaný), [[f-uji|F-UJI]] (nehodnotí A2), [[fair-checker|FAIR-Checker]], FAIR Evaluator;", en = "automated: [[fair-champion|FAIR Champion]] (preferred), [[f-uji|F-UJI]] (does not assess A2), [[fair-checker|FAIR-Checker]], FAIR Evaluator;" },
+  { cs = "sebehodnoticí: [[fair-aware|FAIR-Aware]], nástroj ARDC (česky), CAT;", en = "self-assessment: [[fair-aware|FAIR-Aware]], the ARDC tool (in Czech), CAT;" },
+  { cs = "metodika: [[fdmm|FAIR Data Maturity Model]].", en = "methodology: the [[fdmm|FAIR Data Maturity Model]]." },
 ]
 sources = ["K5.1", "K5.2.2"]
 
@@ -78,7 +78,7 @@ sources = ["K5.1", "K5.2.2"]
 id = "kontrola.DS.L1.3"
 lens = "DS"
 level = "L1"
-text = { cs = "Stejný záznam může dostat různé skóre podle cesty: ASEP přes DOI (metadata z DataCite) a přes Handle (jen landing page).", en = "The same record can score differently depending on the route: ASEP through its DOI (metadata from DataCite) versus through its Handle (landing page only)." }
+text = { cs = "Stejný záznam může dostat různé skóre podle cesty: ASEP přes DOI (metadata z [[datacite|DataCite]]) a přes Handle (jen landing page).", en = "The same record can score differently depending on the route: ASEP through its DOI (metadata from [[datacite|DataCite]]) versus through its Handle (landing page only)." }
 sources = ["P1"]
 
 [[advice]]
@@ -113,7 +113,7 @@ sources = ["E.OSTRAILS-CZ"]
 id = "kontrola.SR.L0"
 lens = "SR"
 level = "L0"
-text = { cs = "Pravidelně testujte vzorek záznamů svého repozitáře (například ve FAIR Champion) a výsledky použijte ke zlepšení konfigurace; skóre odráží hlavně repozitář.", en = "Regularly test a sample of your repository's records (for example in FAIR Champion) and use the results to improve the configuration; the score mainly reflects the repository." }
+text = { cs = "Pravidelně testujte vzorek záznamů svého repozitáře (například ve [[fair-champion|FAIR Champion]]) a výsledky použijte ke zlepšení konfigurace; skóre odráží hlavně repozitář.", en = "Regularly test a sample of your repository's records (for example in [[fair-champion|FAIR Champion]]) and use the results to improve the configuration; the score mainly reflects the repository." }
 action = { label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }
 sources = ["K5.2.1", "E.OSTRAILS-CZ"]
 
@@ -121,14 +121,14 @@ sources = ["K5.2.1", "E.OSTRAILS-CZ"]
 id = "kontrola.SR.L1.1"
 lens = "SR"
 level = "L1"
-text = { cs = "Testujte malý vzorek záznamů různých typů, ve FAIR Champion nebo dávkově nástrojem OSTrails CLI. Výsledky bývají napříč typy záznamů podobné, protože je určuje konfigurace platformy.", en = "Test a small sample of records of different types, in FAIR Champion or in batches with the OSTrails CLI. Results tend to be similar across record types because the platform's configuration determines them." }
+text = { cs = "Testujte malý vzorek záznamů různých typů, ve [[fair-champion|FAIR Champion]] nebo dávkově nástrojem [[ostrails-cli|OSTrails CLI]]. Výsledky bývají napříč typy záznamů podobné, protože je určuje konfigurace platformy.", en = "Test a small sample of records of different types, in [[fair-champion|FAIR Champion]] or in batches with the [[ostrails-cli|OSTrails CLI]]. Results tend to be similar across record types because the platform's configuration determines them." }
 sources = ["E.OSTRAILS-CZ", "E.OSTRAILS-CLI"]
 
 [[advice]]
 id = "kontrola.SR.L1.2"
 lens = "SR"
 level = "L1"
-text = { cs = "Pro hodnocení celého repozitáře slouží OpenAIRE Validator a certifikace CoreTrustSeal.", en = "For assessing the whole repository there are the OpenAIRE Validator and CoreTrustSeal certification." }
+text = { cs = "Pro hodnocení celého repozitáře slouží [[openaire-validator|OpenAIRE Validator]] a certifikace [[coretrustseal|CoreTrustSeal]].", en = "For assessing the whole repository there are the [[openaire-validator|OpenAIRE Validator]] and [[coretrustseal|CoreTrustSeal]] certification." }
 sources = ["K5.2.2", "E.CTS"]
 
 [[advice]]
@@ -149,7 +149,7 @@ sources = ["K2.3.2b"]
 id = "kontrola.SR.L1.5"
 lens = "SR"
 level = "L1"
-text = { cs = "Příklady z praxe: ČSDA upravila konfiguraci Dataverse podle toho, jak metadata čte F-UJI; v LINDAT chybějící identifikátor dat v metadatech shodil řadu testů.", en = "Examples from practice: ČSDA adjusted its Dataverse configuration to how F-UJI reads metadata; in LINDAT, a missing data identifier in the metadata failed a number of tests." }
+text = { cs = "Příklady z praxe: ČSDA upravila konfiguraci Dataverse podle toho, jak metadata čte [[f-uji|F-UJI]]; v LINDAT chybějící identifikátor dat v metadatech shodil řadu testů.", en = "Examples from practice: ČSDA adjusted its Dataverse configuration to how [[f-uji|F-UJI]] reads metadata; in LINDAT, a missing data identifier in the metadata failed a number of tests." }
 sources = ["P1"]
 
 [[advice]]
@@ -169,7 +169,7 @@ steps = [
   { cs = "strojově čitelná licence (URI);", en = "a machine-readable licence (URI);" },
   { cs = "strukturovaná metadata (JSON-LD, content negotiation);", en = "structured metadata (JSON-LD, content negotiation);" },
   { cs = "řízené slovníky a jazyk kódem ISO 639;", en = "controlled vocabularies and the language as an ISO 639 code;" },
-  { cs = "ORCID, ROR a kvalifikované vazby;", en = "ORCID, ROR and qualified relations;" },
+  { cs = "[[orcid|ORCID]], [[ror|ROR]] a kvalifikované vazby;", en = "[[orcid|ORCID]], [[ror|ROR]] and qualified relations;" },
   { cs = "indexace vyhledávači a pole pro vyhledávání (vydavatel, klíčová slova);", en = "indexing by search engines and search fields (publisher, keywords);" },
   { cs = "strojově dohledatelná politika uchování.", en = "a machine-findable retention policy." },
 ]
@@ -187,7 +187,7 @@ sources = ["K2.3.1", "E.FAIR-IMPACT"]
 id = "kontrola.K.L1.1"
 lens = "K"
 level = "L1"
-text = { cs = "FAIR Champion pracuje s testy přiřazenými k metrikám; sada se dá rozšířit o oborové testy.", en = "FAIR Champion works with tests linked to metrics; the set can be extended with domain tests." }
+text = { cs = "[[fair-champion|FAIR Champion]] pracuje s testy přiřazenými k metrikám; sada se dá rozšířit o oborové testy.", en = "[[fair-champion|FAIR Champion]] works with tests linked to metrics; the set can be extended with domain tests." }
 sources = ["E.FAIR-CHAMPION"]
 
 [[advice]]
@@ -201,7 +201,7 @@ sources = ["K2.3.1"]
 id = "kontrola.K.L1.3"
 lens = "K"
 level = "L1"
-text = { cs = "Další zdroje k metrikám a hodnocení najdete v katalogu FAIR-IMPACT.", en = "More resources on metrics and assessment are in the FAIR-IMPACT catalogue." }
+text = { cs = "Další zdroje k metrikám a hodnocení najdete v [[fair-impact|katalogu FAIR-IMPACT]].", en = "More resources on metrics and assessment are in the [[fair-impact|FAIR-IMPACT catalogue]]." }
 sources = ["E.FAIR-IMPACT"]
 
 [[advice]]

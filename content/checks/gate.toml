@@ -68,7 +68,7 @@ profiles = ["a", "b", "c"]
 id = "G05"
 tier = "required"
 principles = ["F4"]
-statement = { cs = "Repozitář je registrován v NKR a záznam je aktuální.", en = "The repository is registered in NKR and its record is up to date." }
+statement = { cs = "Repozitář je registrován v [[nkr|NKR]] a záznam je aktuální.", en = "The repository is registered in [[nkr|NKR]] and its record is up to date." }
 help = { cs = "NKR je národní katalog repozitářů; záznam v něm hledají výzkumníci i NRP.", en = "NKR is the national repository catalogue; researchers and NRP look for repositories there." }
 sources = ["C.M5", "C.EXT"]
 fixAt = "repozitar"
@@ -103,7 +103,7 @@ prefill = { nkr = ["pidType"] }
 id = "G08"
 tier = "required"
 principles = ["F4"]
-statement = { cs = "Metadata se sklízejí do NMA podle CCMM.", en = "Metadata are harvested into NMA according to CCMM." }
+statement = { cs = "Metadata se sklízejí do [[nma|NMA]] podle [[ccmm|CCMM]].", en = "Metadata are harvested into [[nma|NMA]] according to [[ccmm|CCMM]]." }
 sources = ["C.M8", "DOC.NMA.EXPORT"]
 fixAt = "dohledatelnost"
 owner = ["repository-admin"]

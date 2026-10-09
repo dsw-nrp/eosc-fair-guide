@@ -43,7 +43,7 @@ sources = ["A.R1.R3", "A.I3.R5"]
 id = "publikace.V.L1.4"
 lens = "V"
 level = "L1"
-text = { cs = "PID uvádějte všude: v článku (v prohlášení o dostupnosti dat), v profilu ORCID a v DMP.", en = "Use the PID everywhere: in the article (in the data availability statement), in your ORCID profile and in the DMP." }
+text = { cs = "PID uvádějte všude: v článku (v prohlášení o dostupnosti dat), v profilu [[orcid|ORCID]] a v DMP.", en = "Use the PID everywhere: in the article (in the data availability statement), in your [[orcid|ORCID]] profile and in the DMP." }
 sources = ["A.R1.2.N3"]
 
 [[advice]]
@@ -57,7 +57,7 @@ sources = ["S.MIN1"]
 id = "publikace.DS.L0"
 lens = "DS"
 level = "L0"
-text = { cs = "Ohlídejte, aby zveřejněná data měla PID a landing page a byla propojená s článkem i s autory (ORCID).", en = "Make sure published data have a PID and a landing page and are linked to the article and to the authors (ORCID)." }
+text = { cs = "Ohlídejte, aby zveřejněná data měla PID a landing page a byla propojená s článkem i s autory ([[orcid|ORCID]]).", en = "Make sure published data have a PID and a landing page and are linked to the article and to the authors ([[orcid|ORCID]])." }
 action = { label = { cs = "Centrum PID (identifikatory.cz)", en = "PID Centre (identifikatory.cz)" }, href = "https://identifikatory.cz/cs/" }
 sources = ["S.MIN1", "A.R1.2.N3", "E.PID-CENTRE"]
 
@@ -108,7 +108,7 @@ sources = ["C.M7", "A.F1.R1", "A.F1.N2"]
 id = "publikace.SR.L1.3"
 lens = "SR"
 level = "L1"
-text = { cs = "PID vede na landing page a v NMA slouží jako identifikátor záznamu; distribuce mají jednoznačné odkazy. Uveďte PID v metadatech i jako explicitní, typovaný identifikátor (například schema.org identifier), jinak ho automatické testy nenajdou.", en = "The PID resolves to the landing page and serves as the record identifier in NMA; distributions have unambiguous links. Also give the PID in the metadata as an explicit, typed identifier (for example schema.org identifier), otherwise automated tests will not find it." }
+text = { cs = "PID vede na landing page a v [[nma|NMA]] slouží jako identifikátor záznamu; distribuce mají jednoznačné odkazy. Uveďte PID v metadatech i jako explicitní, typovaný identifikátor (například schema.org identifier), jinak ho automatické testy nenajdou.", en = "The PID resolves to the landing page and serves as the record identifier in [[nma|NMA]]; distributions have unambiguous links. Also give the PID in the metadata as an explicit, typed identifier (for example schema.org identifier), otherwise automated tests will not find it." }
 sources = ["A.F1.R2", "A.F1.N4", "A.F3.N2", "S.MIN3", "E.OSTRAILS-CZ"]
 
 [[advice]]
@@ -118,7 +118,7 @@ level = "L1"
 text = { cs = "Propojení metadata → landing page → distribuce má být strojově zjistitelné:", en = "The link from metadata to landing page to distributions should be machine-discoverable:" }
 steps = [
   { cs = "minimálně JSON-LD (Schema.org) na landing page s odkazy na distribuce;", en = "at least JSON-LD (Schema.org) on the landing page with links to distributions;" },
-  { cs = "přednostně FAIR Signposting v hlavičkách Link, nativně nebo přes reverse proxy.", en = "preferably FAIR Signposting in Link headers, natively or through a reverse proxy." },
+  { cs = "přednostně [[fair-signposting|FAIR Signposting]] v hlavičkách Link, nativně nebo přes reverse proxy.", en = "preferably [[fair-signposting|FAIR Signposting]] in Link headers, natively or through a reverse proxy." },
 ]
 sources = ["A.F3.R1", "A.F3.N1", "A.F4.R2", "S.REC1", "S.REC2"]
 
@@ -133,7 +133,7 @@ sources = ["A.F1.R3", "A.A2.R2", "A.A2.R3"]
 id = "publikace.SR.L1.6"
 lens = "SR"
 level = "L1"
-text = { cs = "Nabídněte webové rozhraní i API a přístup přes otevřené protokoly, minimálně HTTPS a pro metadata OAI-PMH.", en = "Offer a web interface and an API, and access through open protocols, at least HTTPS, and OAI-PMH for metadata." }
+text = { cs = "Nabídněte webové rozhraní i API a přístup přes otevřené protokoly, minimálně HTTPS a pro metadata [[oai-pmh|OAI-PMH]].", en = "Offer a web interface and an API, and access through open protocols, at least HTTPS, and [[oai-pmh|OAI-PMH]] for metadata." }
 sources = ["C.M2", "A.A1.R1", "A.A1.1.R1"]
 
 [[advice]]
@@ -147,7 +147,7 @@ sources = ["A.R1.R3", "A.R1.2.R2", "A.R1.2.N2", "A.I3.R5"]
 id = "publikace.SR.L2.1"
 lens = "SR"
 level = "L2"
-text = { cs = "Strojově čitelná landing page obvykle kombinuje JSON-LD (Schema.org Dataset), typované hlavičky Link (cite-as, describedby, item, license, type) a sitemap, která povoluje indexaci stránek záznamů.", en = "A machine-readable landing page usually combines JSON-LD (Schema.org Dataset), typed Link headers (cite-as, describedby, item, license, type) and a sitemap that allows record pages to be indexed." }
+text = { cs = "Strojově čitelná landing page obvykle kombinuje JSON-LD ([[schema-dataset|Schema.org Dataset]]), typované hlavičky Link (cite-as, describedby, item, license, type) a sitemap, která povoluje indexaci stránek záznamů.", en = "A machine-readable landing page usually combines JSON-LD ([[schema-dataset|Schema.org Dataset]]), typed Link headers (cite-as, describedby, item, license, type) and a sitemap that allows record pages to be indexed." }
 sources = ["E.SCHEMA-DATASET", "E.SIGNPOSTING", "E.OSTRAILS-CZ"]
 
 [[advice]]

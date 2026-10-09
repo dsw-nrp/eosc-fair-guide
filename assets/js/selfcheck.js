@@ -950,7 +950,7 @@
       isFirstTier(item) ? null : h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
       FG.principlesOf(item).map((principle) => FG.principleTile(principle))
     );
-    const statement = [h("span", { class: "item-id" }, id), " ", FG.span(item.text)];
+    const statement = [h("span", { class: "item-id" }, id), " ", FG.linkedSpan(item)];
     const clauses = FG.refs(item, "citation");
     const basedOn = clauses.length
       ? h(

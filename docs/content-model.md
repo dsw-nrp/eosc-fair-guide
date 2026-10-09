@@ -69,6 +69,17 @@ a re3data record links it, and entries nothing uses are reported as warnings.
 Every user-facing text is a table with a `cs` and an `en` value. Czech is the primary language. A text that
 contains a phrase in another language marks it, so the page can set the right `lang` attribute.
 
+### References in text
+
+A text that names a resource, a source or a glossary term marks the name as a reference: `[[id|phrase]]`, where
+`id` is the resource's or source's ID, or `term:<id>` for a glossary term, and `phrase` is the words that name it
+in that language, inflected as the sentence needs (`v [[nma|Národním metadatovém adresáři]]`). Mark the first
+time a text names the entry; a button label is already a link and carries no reference. The Czech and the English
+text of one item refer to the same entries. The generator writes the text without the markup and records each
+entry as mentioned by the item; the page links the phrase quietly to the entry in the catalogue. The content
+checks refuse a reference that is not well formed, one to an unknown entry, and texts whose languages refer to
+different entries.
+
 ### Sources
 
 Every advice item and every check cites at least one clause ID in `sources`. Every clause names a published

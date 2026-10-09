@@ -25,7 +25,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from build_crate import ROOT, SOURCE_TYPES, ContentError, Graph, build_crate, load_content  # noqa: E402
+from build_crate import REFERENCE, ROOT, SOURCE_TYPES, ContentError, Graph, build_crate, load_content  # noqa: E402
 
 LANGS = ("cs", "en")
 LEVELS = ("L0", "L1", "L2")
@@ -744,6 +744,7 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
     # R5, entries nothing uses
     cited = {clause.get("source") for clause in content["ledger"]} | set(content["guide"]["guide"].get("isBasedOn", []))
     cited |= {obj for action in content["provenance"] for obj in action.get("objects", [])}
+    cited |= referenced(content)
     for resource in content["resources"]:
         if not resource.get("stations") and resource["id"] not in cited and not resource.get("repository"):
             report.warn(
@@ -755,6 +756,43 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
     for source in content["sources"]:
         if source["id"] not in cited:
             report.warn(f"sources:{source['id']}", "nothing cites this source")
+
+
+def referenced(content: dict[str, Any]) -> set[str]:
+    """Every entry a text refers to with [[id|phrase]]."""
+    return {
+        match["id"]
+        for name, data in content.items()
+        for _, _, value in walk(data, name)
+        if isinstance(value, str)
+        for match in REFERENCE.finditer(value)
+    }
+
+
+def check_references(report: Report, content: dict[str, Any]) -> None:
+    """A reference in text, [[id|phrase]], is well formed and names a known resource, source or glossary term
+    (term:<id>), and a bilingual text refers to the same entries in both languages."""
+    known = {item["id"] for item in content["resources"] + content["sources"]}
+    known |= {"term:" + term["id"] for term in content["glossary"].get("term", [])}
+
+    def entries(where: str, text: str) -> set[str]:
+        if "[[" in REFERENCE.sub("", text) or "]]" in REFERENCE.sub("", text):
+            report.error(where, "a reference is not well formed; write [[id|phrase]]")
+        found = {match["id"] for match in REFERENCE.finditer(text)}
+        for entry in sorted(found - known):
+            report.error(where, f"refers to an unknown entry '{entry}'")
+        return found
+
+    for name, data in content.items():
+        for path, key, value in walk(data, name):
+            where = f"{path}.{key}" if path else key
+            if isinstance(value, dict) and value and set(value) <= set(LANGS):
+                found = {lang: entries(f"{where}.{lang}", str(value.get(lang, ""))) for lang in LANGS}
+                if found["cs"] != found["en"]:
+                    differ = sorted(found["cs"] ^ found["en"])
+                    report.error(where, "the Czech and English texts refer to different entries: " + ", ".join(differ))
+            elif isinstance(value, str) and key not in LANGS and ("[[" in value or "]]" in value):
+                entries(where, value)
 
 
 def check_names(report: Report, content: dict[str, Any]) -> None:
@@ -951,6 +989,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_provenance(report, content, vocab)
     check_coherence(report, content)
     check_names(report, content)
+    check_references(report, content)
     check_pages_and_ui(report, content)
     check_guide(report, content, vocab, root)
     return report

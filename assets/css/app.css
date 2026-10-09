@@ -3123,6 +3123,20 @@ a.id-chip:focus-visible {
   }
 }
 
+/* A phrase the text names an entry by: a link that does not interrupt reading. */
+.text-ref {
+  color: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--tint-teal);
+  text-underline-offset: 0.2em;
+}
+
+.text-ref:hover,
+.text-ref:focus-visible {
+  color: var(--tint-teal);
+  text-decoration-style: solid;
+}
+
 .export-bar {
   margin-top: var(--space-7);
   margin-bottom: var(--space-6);

@@ -12,7 +12,7 @@ body = { cs = "Průvodce vychází z Analýzy a návrhu postupů k naplňování
 
 [[page.section]]
 heading = { cs = "Průvodce a FIP Dashboard", en = "The guide and the FIP Dashboard" }
-body = { cs = "Průvodce radí, co a proč udělat. FIP Dashboard je katalog zdrojů umožňujících FAIR (FER) a profilů FIP komunit; ukazuje, které zdroje ověřily NRP a EOSC CZ. Obě služby se na sebe odkazují a čtou se jako jeden celek.", en = "The guide advises what to do and why. The FIP Dashboard is the catalogue of FAIR-enabling resources (FERs) and of communities' FIPs; it shows which resources NRP and EOSC CZ have verified. The two services link to each other and are meant to be read together." }
+body = { cs = "Průvodce radí, co a proč udělat. [[fip-dashboard|FIP Dashboard]] je katalog zdrojů umožňujících FAIR (FER) a profilů FIP komunit; ukazuje, které zdroje ověřily NRP a EOSC CZ. Obě služby se na sebe odkazují a čtou se jako jeden celek.", en = "The guide advises what to do and why. The [[fip-dashboard|FIP Dashboard]] is the catalogue of FAIR-enabling resources (FERs) and of communities' FIPs; it shows which resources NRP and EOSC CZ have verified. The two services link to each other and are meant to be read together." }
 
 [[page.section]]
 id = "credits"
@@ -25,7 +25,7 @@ body = { cs = "Na přípravě obsahu a kódu se podílel AI asistent (Claude, An
 
 [[page.section]]
 heading = { cs = "Ochrana soukromí", en = "Privacy" }
-body = { cs = "Odpovědi v sebehodnocení zůstávají jen ve vašem prohlížeči. Průvodce kontaktuje externí služby (například DataCite nebo FAIR Champion) jen tehdy, když kontrolu sami spustíte, a jen ty uvedené v nastavení stránky.", en = "Your self-check answers stay in your browser. The guide contacts external services (such as DataCite or FAIR Champion) only when you start a check yourself, and only those listed in the page's settings." }
+body = { cs = "Odpovědi v sebehodnocení zůstávají jen ve vašem prohlížeči. Průvodce kontaktuje externí služby (například [[datacite|DataCite]] nebo [[fair-champion|FAIR Champion]]) jen tehdy, když kontrolu sami spustíte, a jen ty uvedené v nastavení stránky.", en = "Your self-check answers stay in your browser. The guide contacts external services (such as [[datacite|DataCite]] or [[fair-champion|FAIR Champion]]) only when you start a check yourself, and only those listed in the page's settings." }
 
 [[page]]
 id = "accessibility"
@@ -54,7 +54,7 @@ title = { cs = "Kontrola datové sady", en = "Dataset check" }
 
 [[page.section]]
 heading = { cs = "Rychlá a hloubková kontrola", en = "Quick and deep check" }
-body = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z DataCite. Hloubková kontrola spustí vybrané testy nástroje FAIR Champion; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from DataCite. The deep check runs selected FAIR Champion tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup." }
+body = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z [[datacite|DataCite]]. Hloubková kontrola spustí vybrané testy nástroje [[fair-champion|FAIR Champion]]; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from [[datacite|DataCite]]. The deep check runs selected [[fair-champion|FAIR Champion]] tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup." }
 
 [[page]]
 id = "identifiers"
@@ -66,7 +66,7 @@ title = { cs = "Ověřit identifikátory", en = "Verify identifiers" }
 
 [[page.section]]
 heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
-body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde ORCID, DOI, Handle a ROR, kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.", en = "Paste a text, for example metadata drafted with AI. The helper finds ORCID iDs, DOIs, Handles and ROR IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere." }
+body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde [[orcid|ORCID]], DOI, Handle a [[ror|ROR]], kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.", en = "Paste a text, for example metadata drafted with AI. The helper finds [[orcid|ORCID]] iDs, DOIs, Handles and [[ror|ROR]] IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere." }
 
 [[page]]
 id = "citation"
@@ -78,7 +78,7 @@ title = { cs = "Citace z DOI", en = "Citation from a DOI" }
 
 [[page.section]]
 heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
-body = { cs = "Vložte DOI datové sady registrované u DataCite. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.", en = "Enter the DOI of a dataset registered with DataCite. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI." }
+body = { cs = "Vložte DOI datové sady registrované u [[datacite|DataCite]]. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.", en = "Enter the DOI of a dataset registered with [[datacite|DataCite]]. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI." }
 
 [[page]]
 id = "ai"
@@ -93,7 +93,7 @@ body = { cs = "AI pomůže s návrhem textů plánu správy dat, se skripty pro 
 
 [[page.section]]
 heading = { cs = "Tři pravidla", en = "Three rules" }
-body = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které je neposílají mimo infrastrukturu, například AI v e-INFRA CZ (CERIT).\n\nIdentifikátory (ORCID, DOI, ROR) a hesla si vždy ověřte; AI je umí vymyslet.\n\nUveďte, kde a jak jste AI použili.", en = "Put unpublished and sensitive data only into services that keep them within the infrastructure, such as AI in e-INFRA CZ (CERIT).\n\nAlways verify identifiers (ORCID, DOI, ROR) and subject terms; AI can make them up.\n\nState where and how you used AI." }
+body = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které je neposílají mimo infrastrukturu, například AI v e-INFRA CZ (CERIT).\n\nIdentifikátory ([[orcid|ORCID]], DOI, [[ror|ROR]]) a hesla si vždy ověřte; AI je umí vymyslet.\n\nUveďte, kde a jak jste AI použili.", en = "Put unpublished and sensitive data only into services that keep them within the infrastructure, such as AI in e-INFRA CZ (CERIT).\n\nAlways verify identifiers ([[orcid|ORCID]], DOI, [[ror|ROR]]) and subject terms; AI can make them up.\n\nState where and how you used AI." }
 
 [[page]]
 id = "machines"

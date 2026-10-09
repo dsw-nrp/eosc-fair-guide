@@ -21,7 +21,7 @@ owner = ["data-steward"]
 id = "I02"
 tier = "recommended"
 principles = ["R1"]
-statement = { cs = "Výzkumníci mají podporu s plány správy dat (data steward, DMP.eosc.cz).", en = "Researchers get support with data management plans (a data steward, DMP.eosc.cz)." }
+statement = { cs = "Výzkumníci mají podporu s plány správy dat (data steward, [[dmp-eosc|DMP.eosc.cz]]).", en = "Researchers get support with data management plans (a data steward, [[dmp-eosc|DMP.eosc.cz]])." }
 sources = ["E.DATA-STEWARDS", "E.DMP"]
 fixAt = "plan"
 owner = ["data-steward"]
@@ -39,7 +39,7 @@ owner = ["data-steward"]
 id = "I04"
 tier = "recommended"
 principles = []
-statement = { cs = "Instituce má strategii správy výzkumných dat; výzva Open Science III ji vyžaduje.", en = "The institution has a research data management strategy; the Open Science III call requires one." }
+statement = { cs = "Instituce má strategii správy výzkumných dat; výzva [[os3|Open Science III]] ji vyžaduje.", en = "The institution has a research data management strategy; the [[os3|Open Science III]] call requires one." }
 sources = ["E.OS3"]
 fixAt = "plan"
 owner = ["data-steward"]

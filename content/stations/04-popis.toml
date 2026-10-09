@@ -14,7 +14,7 @@ glossary = ["metadata-metadatovy-zaznam", "metadatovy-standard", "metadatovy-apl
 id = "popis.V.L0"
 lens = "V"
 level = "L0"
-text = { cs = "Popište data tak, aby jim porozuměl i někdo z jiného týmu za deset let: název, abstrakt, autoři s ORCID, instituce s ROR, způsob vzniku dat, odborná hesla a klíčová slova.", en = "Describe the data so that someone from another team can understand them in ten years: title, abstract, authors with ORCID, institutions with ROR, how the data were made, subject terms and keywords." }
+text = { cs = "Popište data tak, aby jim porozuměl i někdo z jiného týmu za deset let: název, abstrakt, autoři s [[orcid|ORCID]], instituce s [[ror|ROR]], způsob vzniku dat, odborná hesla a klíčová slova.", en = "Describe the data so that someone from another team can understand them in ten years: title, abstract, authors with [[orcid|ORCID]], institutions with [[ror|ROR]], how the data were made, subject terms and keywords." }
 action = { label = { cs = "Co připravit před vyplněním formuláře", en = "What to prepare before filling in the form" }, href = "#check-dataset" }
 sources = ["A.F2.N2", "A.I2.R2", "A.R1.2.X1"]
 
@@ -22,14 +22,14 @@ sources = ["A.F2.N2", "A.I2.R2", "A.R1.2.X1"]
 id = "popis.V.L1.1"
 lens = "V"
 level = "L1"
-text = { cs = "Připravte základní údaje: název, popis, autory s ORCID, afiliace s ROR, data vzniku, typ a jazyk. Repozitář je převede do společného modelu CCMM.", en = "Prepare the basic details: title, description, authors with ORCID, affiliations with ROR, dates, type and language. The repository converts them to the common CCMM model." }
+text = { cs = "Připravte základní údaje: název, popis, autory s [[orcid|ORCID]], afiliace s [[ror|ROR]], data vzniku, typ a jazyk. Repozitář je převede do společného modelu [[ccmm|CCMM]].", en = "Prepare the basic details: title, description, authors with [[orcid|ORCID]], affiliations with [[ror|ROR]], dates, type and language. The repository converts them to the common [[ccmm|CCMM]] model." }
 sources = ["A.F2.N2", "A.I2.R2", "A.F2.R1"]
 
 [[advice]]
 id = "popis.V.L1.2"
 lens = "V"
 level = "L1"
-text = { cs = "Odborná hesla vybírejte z řízených slovníků; volná klíčová slova je jen doplňují. CCMM 2.0.0 obojí rozlišuje.", en = "Choose subject terms from controlled vocabularies; free keywords only complement them. CCMM 2.0.0 distinguishes the two." }
+text = { cs = "Odborná hesla vybírejte z řízených slovníků; volná klíčová slova je jen doplňují. [[ccmm|CCMM]] 2.0.0 obojí rozlišuje.", en = "Choose subject terms from controlled vocabularies; free keywords only complement them. [[ccmm|CCMM]] 2.0.0 distinguishes the two." }
 sources = ["A.I2.R1", "E.CCMM"]
 
 [[advice]]
@@ -64,14 +64,14 @@ sources = ["A.R1.3.X2"]
 id = "popis.all.L2.1"
 lens = ["V", "DS"]
 level = "L2"
-text = { cs = "Metadata mají dvě úrovně. Jádro (CCMM) se sklízí do NMA a slouží k vyhledání; bohatý oborový popis zůstává v repozitáři a slouží k opakovanému použití.", en = "Metadata have two levels. The core (CCMM) is harvested into NMA and serves discovery; the rich domain description stays in the repository and serves reuse." }
+text = { cs = "Metadata mají dvě úrovně. Jádro ([[ccmm|CCMM]]) se sklízí do [[nma|NMA]] a slouží k vyhledání; bohatý oborový popis zůstává v repozitáři a slouží k opakovanému použití.", en = "Metadata have two levels. The core ([[ccmm|CCMM]]) is harvested into [[nma|NMA]] and serves discovery; the rich domain description stays in the repository and serves reuse." }
 sources = ["A.F2.X1", "A.R1.X1"]
 
 [[advice]]
 id = "popis.DS.L0"
 lens = "DS"
 level = "L0"
-text = { cs = "Pomozte s výběrem slovníků a se strukturou popisu. CCMM je společné minimum, oborový profil přidává hloubku.", en = "Help with choosing vocabularies and structuring the description. CCMM is the common minimum; a domain profile adds depth." }
+text = { cs = "Pomozte s výběrem slovníků a se strukturou popisu. [[ccmm|CCMM]] je společné minimum, oborový profil přidává hloubku.", en = "Help with choosing vocabularies and structuring the description. [[ccmm|CCMM]] is the common minimum; a domain profile adds depth." }
 action = { label = { cs = "CCMM na ccmm.cz", en = "CCMM at ccmm.cz" }, href = "https://www.ccmm.cz" }
 sources = ["A.F2.N1", "A.F2.X1"]
 
@@ -79,28 +79,28 @@ sources = ["A.F2.N1", "A.F2.X1"]
 id = "popis.DS.L1.1"
 lens = "DS"
 level = "L1"
-text = { cs = "CCMM: NMA pracuje s verzí 1.1.0; verze 2.0.0 vyšla v říjnu 2026 a NMA její podporu připravuje.", en = "CCMM: NMA works with version 1.1.0; version 2.0.0 was released in October 2026, and NMA is preparing to support it." }
+text = { cs = "[[ccmm|CCMM]]: [[nma|NMA]] pracuje s verzí 1.1.0; verze 2.0.0 vyšla v říjnu 2026 a NMA její podporu připravuje.", en = "[[ccmm|CCMM]]: [[nma|NMA]] works with version 1.1.0; version 2.0.0 was released in October 2026, and NMA is preparing to support it." }
 sources = ["A.F2.N1", "E.CCMM"]
 
 [[advice]]
 id = "popis.DS.L1.2"
 lens = "DS"
 level = "L1"
-text = { cs = "Slovníky hledejte v katalozích (FAIRsharing, LOV, BioPortal, OLS) a dávejte přednost těm s trvalými URI.", en = "Look for vocabularies in catalogues (FAIRsharing, LOV, BioPortal, OLS) and prefer those with persistent URIs." }
+text = { cs = "Slovníky hledejte v katalozích ([[fairsharing|FAIRsharing]], LOV, BioPortal, OLS) a dávejte přednost těm s trvalými URI.", en = "Look for vocabularies in catalogues ([[fairsharing|FAIRsharing]], LOV, BioPortal, OLS) and prefer those with persistent URIs." }
 sources = ["A.I2.N2", "A.I2.X2"]
 
 [[advice]]
 id = "popis.DS.L1.3"
 lens = "DS"
 level = "L1"
-text = { cs = "S ORCID a ROR pomůže Národní centrum ORCID a národní podpora ROR na identifikatory.cz.", en = "The National ORCID Centre and national ROR support at identifikatory.cz help with ORCID and ROR." }
+text = { cs = "S [[orcid|ORCID]] a [[ror|ROR]] pomůže Národní centrum ORCID a národní podpora ROR na identifikatory.cz.", en = "The National [[orcid|ORCID]] Centre and national [[ror|ROR]] support at identifikatory.cz help with ORCID and ROR." }
 sources = ["A.I2.R2", "E.PID-CENTRE"]
 
 [[advice]]
 id = "popis.DS.L1.4"
 lens = "DS"
 level = "L1"
-text = { cs = "Provenience patří do metadat alespoň v rozsahu CCMM: tvůrci, metodika a verze.", en = "Provenance belongs in the metadata at least to the extent of CCMM: creators, methodology and versions." }
+text = { cs = "Provenience patří do metadat alespoň v rozsahu [[ccmm|CCMM]]: tvůrci, metodika a verze.", en = "Provenance belongs in the metadata at least to the extent of [[ccmm|CCMM]]: creators, methodology and versions." }
 sources = ["A.R1.2.N1"]
 
 [[advice]]
@@ -114,7 +114,7 @@ sources = ["C.ROLE.curator"]
 id = "popis.SR.L0"
 lens = "SR"
 level = "L0"
-text = { cs = "Formulář repozitáře má pokrýt povinné prvky CCMM a nabídnout oborový profil a metadata je třeba harmonizovat. Obojí vyžadují podmínky NRP.", en = "The repository's form should cover the mandatory CCMM elements and offer a domain profile, and metadata need to be harmonised. The NRP conditions require both." }
+text = { cs = "Formulář repozitáře má pokrýt povinné prvky [[ccmm|CCMM]] a nabídnout oborový profil a metadata je třeba harmonizovat. Obojí vyžadují podmínky NRP.", en = "The repository's form should cover the mandatory [[ccmm|CCMM]] elements and offer a domain profile, and metadata need to be harmonised. The NRP conditions require both." }
 action = { label = { cs = "CCMM: verze a vydání", en = "CCMM: versions and releases" }, href = "https://github.com/techlib/CCMM/releases" }
 sources = ["C.M12", "C.M8", "A.F2.R1"]
 
@@ -122,21 +122,21 @@ sources = ["C.M12", "C.M8", "A.F2.R1"]
 id = "popis.SR.L1.1"
 lens = "SR"
 level = "L1"
-text = { cs = "Poskytujte minimální záznam mapovaný na CCMM a sledujte přechod z verze 1.1.0 na 2.0.0.", en = "Provide a minimum record mapped to CCMM, and follow the move from version 1.1.0 to 2.0.0." }
+text = { cs = "Poskytujte minimální záznam mapovaný na [[ccmm|CCMM]] a sledujte přechod z verze 1.1.0 na 2.0.0.", en = "Provide a minimum record mapped to [[ccmm|CCMM]], and follow the move from version 1.1.0 to 2.0.0." }
 sources = ["A.F2.R1", "A.R1.R1", "S.MIN2", "A.F2.N1"]
 
 [[advice]]
 id = "popis.SR.L1.2"
 lens = "SR"
 level = "L1"
-text = { cs = "Vedle CCMM nabídněte oborový profil a oborové standardy podle FIP, ve spolupráci s komunitou.", en = "Alongside CCMM, offer a domain profile and domain standards according to the FIP, together with the community." }
+text = { cs = "Vedle [[ccmm|CCMM]] nabídněte oborový profil a oborové standardy podle FIP, ve spolupráci s komunitou.", en = "Alongside [[ccmm|CCMM]], offer a domain profile and domain standards according to the FIP, together with the community." }
 sources = ["A.F2.R2", "A.R1.R2", "A.R1.3.N1", "A.R1.3.R1", "S.REC1", "C.M12"]
 
 [[advice]]
 id = "popis.SR.L1.3"
 lens = "SR"
 level = "L1"
-text = { cs = "Validujte metadata před uložením, vůči CCMM i vůči komunitním schématům.", en = "Validate metadata before they are stored, against CCMM and against community schemas." }
+text = { cs = "Validujte metadata před uložením, vůči [[ccmm|CCMM]] i vůči komunitním schématům.", en = "Validate metadata before they are stored, against [[ccmm|CCMM]] and against community schemas." }
 sources = ["A.F4.R3", "A.R1.3.R2"]
 
 [[advice]]
@@ -146,8 +146,8 @@ level = "L1"
 text = { cs = "Vazby a identifikátory v metadatech:", en = "Links and identifiers in the metadata:" }
 steps = [
   { cs = "pole pro vazby na jiné záznamy a datové sady;", en = "fields for links to other records and datasets;" },
-  { cs = "ORCID a ROR;", en = "ORCID and ROR;" },
-  { cs = "vztahy podle DataCite, PROV-O nebo DCAT-AP;", en = "relations following DataCite, PROV-O or DCAT-AP;" },
+  { cs = "[[orcid|ORCID]] a [[ror|ROR]];", en = "[[orcid|ORCID]] and [[ror|ROR]];" },
+  { cs = "vztahy podle [[datacite|DataCite]], PROV-O nebo DCAT-AP;", en = "relations following [[datacite|DataCite]], PROV-O or DCAT-AP;" },
   { cs = "kontrola, že externí odkazy fungují.", en = "a check that external links work." },
 ]
 sources = ["A.I3.N1", "A.I2.R2", "A.I3.R2", "A.I3.R1", "A.I3.R4"]
@@ -156,7 +156,7 @@ sources = ["A.I3.N1", "A.I2.R2", "A.I3.R2", "A.I3.R1", "A.I3.R4"]
 id = "popis.SR.L1.5"
 lens = "SR"
 level = "L1"
-text = { cs = "Podporujte slovníky komunity, umožněte přidávat oborové slovníky a evidujte je v záznamu NKR.", en = "Support community vocabularies, allow domain vocabularies to be added, and record them in the NKR entry." }
+text = { cs = "Podporujte slovníky komunity, umožněte přidávat oborové slovníky a evidujte je v záznamu [[nkr|NKR]].", en = "Support community vocabularies, allow domain vocabularies to be added, and record them in the [[nkr|NKR]] entry." }
 sources = ["A.I2.R1", "A.I2.R3", "A.I2.N1"]
 
 [[advice]]
@@ -170,7 +170,7 @@ sources = ["A.I1.R1", "A.I1.R2", "A.I1.N2"]
 id = "popis.SR.L1.7"
 lens = "SR"
 level = "L1"
-text = { cs = "Vyžadujte základní provenienční informace (původ, verze, historie změn), alespoň v rozsahu CCMM.", en = "Require basic provenance information (origin, version, change history), at least to the extent of CCMM." }
+text = { cs = "Vyžadujte základní provenienční informace (původ, verze, historie změn), alespoň v rozsahu [[ccmm|CCMM]].", en = "Require basic provenance information (origin, version, change history), at least to the extent of [[ccmm|CCMM]]." }
 sources = ["A.R1.2.R1"]
 
 [[advice]]
@@ -184,7 +184,7 @@ sources = ["K2.3.2a", "K2.3.2c"]
 id = "popis.SR.L1.9"
 lens = "SR"
 level = "L1"
-text = { cs = "Metadatové profily můžete spravovat v nástroji Dataspecer (verze, export SHACL a JSON Schema, mapování); k dispozici je i lokální obraz Docker.", en = "You can manage metadata profiles in Dataspecer (versions, SHACL and JSON Schema export, mappings); a local Docker image is also available." }
+text = { cs = "Metadatové profily můžete spravovat v nástroji [[dataspecer|Dataspecer]] (verze, export SHACL a JSON Schema, mapování); k dispozici je i lokální obraz Docker.", en = "You can manage metadata profiles in [[dataspecer|Dataspecer]] (versions, SHACL and JSON Schema export, mappings); a local Docker image is also available." }
 sources = ["K2.2.1", "E.DATASPECER"]
 
 [[advice]]
@@ -212,7 +212,7 @@ sources = ["A.I1.X1", "A.I2.X1"]
 id = "popis.K.L0"
 lens = "K"
 level = "L0"
-text = { cs = "FIP určuje oborový metadatový profil a slovníky nad rámec CCMM. Zapište je jako FER, aby je mohly využít repozitáře i DMP.", en = "The FIP sets the domain metadata profile and vocabularies beyond CCMM. Record them as FERs so that repositories and DMPs can use them." }
+text = { cs = "FIP určuje oborový metadatový profil a slovníky nad rámec [[ccmm|CCMM]]. Zapište je jako FER, aby je mohly využít repozitáře i DMP.", en = "The FIP sets the domain metadata profile and vocabularies beyond [[ccmm|CCMM]]. Record them as FERs so that repositories and DMPs can use them." }
 action = { label = { cs = "Metadatová schémata ve FIP Dashboardu", en = "Metadata schemas in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources?principles=F2" }
 sources = ["S.REC3", "K4.1", "A.F2.F1", "A.I2.F1", "E.FIP-DASHBOARD"]
 
@@ -255,21 +255,21 @@ sources = ["A.R1.2.F1", "A.R1.2.F2"]
 id = "popis.K.L1.6"
 lens = "K"
 level = "L1"
-text = { cs = "Registrujte komunitní standardy ve FAIRsharing; záznam s DOI pak může posloužit jako FER.", en = "Register community standards in FAIRsharing; a record with a DOI can then serve as a FER." }
+text = { cs = "Registrujte komunitní standardy ve [[fairsharing|FAIRsharing]]; záznam s DOI pak může posloužit jako FER.", en = "Register community standards in [[fairsharing|FAIRsharing]]; a record with a DOI can then serve as a FER." }
 sources = ["E.FIP-TEMPLATES"]
 
 [[advice]]
 id = "popis.K.L1.7"
 lens = "K"
 level = "L1"
-text = { cs = "V oborech bez ustálených standardů je vyvíjejte ve spolupráci s projektem Open Science II a oborovými pracovními skupinami.", en = "In domains without established standards, develop them with the Open Science II project and the domain working groups." }
+text = { cs = "V oborech bez ustálených standardů je vyvíjejte ve spolupráci s projektem [[os2|Open Science II]] a oborovými pracovními skupinami.", en = "In domains without established standards, develop them with the [[os2|Open Science II]] project and the domain working groups." }
 sources = ["A.R1.3.N3", "E.OS2"]
 
 [[advice]]
 id = "popis.K.L1.8"
 lens = "K"
 level = "L1"
-text = { cs = "Pro mezioborovou výměnu využijte profily CDIF 1.1 a doporučení EOSC Task Force pro sémantickou interoperabilitu.", en = "For cross-domain exchange, use the CDIF 1.1 profiles and the EOSC Task Force recommendations on semantic interoperability." }
+text = { cs = "Pro mezioborovou výměnu využijte profily [[cdif|CDIF 1.1]] a doporučení EOSC Task Force pro sémantickou interoperabilitu.", en = "For cross-domain exchange, use the [[cdif|CDIF 1.1]] profiles and the EOSC Task Force recommendations on semantic interoperability." }
 sources = ["A.F2.X4", "E.CDIF", "E.TF-SEMANTIC"]
 
 [[advice]]
