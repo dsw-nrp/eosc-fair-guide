@@ -652,6 +652,16 @@ sections.push(["page", async () => {
     if (!gathered.all || gathered.shown !== gathered.all || gathered.prompts !== gathered.all || gathered.tagged !== gathered.forOne) fail("ai page: the stations' AI tips are not all gathered with their prompts, or a tip for one view lacks its icon: " + JSON.stringify(gathered));
     const chat = view.locator('[id="cerit"] .section-action a');
     if (!(await chat.count()) || !(await chat.getAttribute("href")).startsWith("https://chat.ai.e-infra.cz") || (await chat.getAttribute("target")) !== "_blank") fail("ai page: the CERIT section does not lead to the e-INFRA CZ AI chat");
+    // Parts of the knowledge base load only when a view needs them: none at the start, the pages' text for a page.
+    const fresh = await context.newPage();
+    await fresh.goto(pageUrl);
+    await rendered(fresh);
+    const atStart = await fresh.locator('script[src*="data/kb-"]').count();
+    await fresh.evaluate(() => { window.location.hash = "#/cs/V/page/about"; });
+    await fresh.waitForSelector('[id="why"]');
+    const forPage = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
+    if (atStart || forPage.join() !== "assets/data/kb-pages.js") fail(`parts: the start loads ${atStart} part(s), a page loads ${forPage.join(", ")}`);
+    await fresh.close();
     // The About page links the analysis the guide is built on, where it first names it.
     await view.goto(pageUrl + "#/cs/V/page/about");
     await view.waitForSelector("#main h1");

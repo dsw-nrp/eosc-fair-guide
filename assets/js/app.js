@@ -28,8 +28,21 @@
     FG.render();
   };
 
+  /* The parts of the knowledge base a view needs beyond the start: requirement guidance and the FIP profiles for
+     the catalogue and the checks, the pages' text for a page. */
+  const VIEW_PARTS = { catalogue: ["guidance", "fips"], check: ["guidance", "fips"], selfcheck: ["guidance", "fips"], page: ["pages"] };
+
   FG.render = function () {
     const route = FG.parseHash(window.location.hash);
+    /* A view whose parts have not arrived yet renders once they have; the previous view stays until then. */
+    const missing = (VIEW_PARTS[route.view] || []).filter((name) => !FG.partsLoaded.has(name));
+    if (missing.length) {
+      Promise.allSettled(missing.map(FG.loadPart)).then((results) => {
+        for (const result of results) if (result.status === "rejected") console.error(result.reason.message);
+        FG.render();
+      });
+      return;
+    }
     FG.state.lang = route.lang;
     FG.state.lens = route.lens;
     FG.saveState();

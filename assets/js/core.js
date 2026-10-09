@@ -22,6 +22,36 @@
     FG.DASHBOARD = FG.config.links.fipDashboard;
   };
 
+  /* Parts of the knowledge base that only some views need (assets/data/kb-<part>.js, named in FG.config.parts),
+     each loaded once, when a view first needs it, and merged into the graph: whole entities, or properties of
+     entities already there. A part that fails to load is not tried again. */
+  FG.partsLoaded = new Set();
+  const partLoads = {};
+  FG.loadPart = function (name) {
+    if (!partLoads[name]) {
+      partLoads[name] = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = FG.config.parts[name];
+        script.onload = () => {
+          const part = (window.FairGuideData.parts || {})[name] || {};
+          for (const entity of part.entities || []) {
+            FG.graph.push(entity);
+            FG.byId.set(entity["@id"], entity);
+          }
+          for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
+          FG.partsLoaded.add(name);
+          resolve();
+        };
+        script.onerror = () => {
+          FG.partsLoaded.add(name);
+          reject(new Error("The guide could not load part " + name + " of its data."));
+        };
+        document.head.append(script);
+      });
+    }
+    return partLoads[name];
+  };
+
   FG.list = (value) => (value == null ? [] : Array.isArray(value) ? value : [value]);
   FG.id = (value) => (typeof value === "string" ? value : value && value["@id"]);
   FG.get = (value) => FG.byId.get(FG.id(value));

@@ -165,7 +165,7 @@
       case "nanopub":
         return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.selfcheck.startWithNanopub(found.value) }, FG.t("search.fipNanopub"), "check", true)])];
       case "fipProfile":
-        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.selfcheck.startWithFip(found.value) || FG.navigate(FG.href("check", "fip")) }, FG.t("search.fipProfile"), "check", true), resultLink({ url: found.url }, FG.t("search.open.fipProfile"), "external")])];
+        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.loadPart("fips").then(() => FG.selfcheck.startWithFip(found.value) || FG.navigate(FG.href("check", "fip"))) }, FG.t("search.fipProfile"), "check", true), resultLink({ url: found.url }, FG.t("search.open.fipProfile"), "external")])];
       case "nkr":
         return [basis("form", { type: idName(found.type) }), list([resultLink({ href: FG.href("check", "maturity") }, FG.t("search.maturity"), "check", true), resultLink({ url: found.value }, FG.t("search.open.nkr"), "external")])];
       case "orcid":

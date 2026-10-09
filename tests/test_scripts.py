@@ -157,7 +157,27 @@ class GeneratorTests(FixtureCase):
         self.assertTrue(summary["distribution"]["contentUrl"].endswith(build_crate.CRATE_FILE))
         prefix = "window.FairGuideData.kb = "
         line = next(row for row in generated[build_crate.KB_SCRIPT].splitlines() if row.startswith(prefix))
-        self.assertEqual(json.loads(line[len(prefix) : -1]), json.loads(generated[build_crate.CRATE_FILE]))
+        core = json.loads(line[len(prefix) : -1])
+        # The page starts with the core; the parts views load on demand are not in it, and core and parts together
+        # are the crate.
+        self.assertNotIn(f'src="{build_crate.PART_SCRIPTS["guidance"]}"', page)
+        self.assertFalse(any("guidance" in entity for entity in core["@graph"]))
+        graph = {entity["@id"]: dict(entity) for entity in core["@graph"]}
+        for name, path in build_crate.PART_SCRIPTS.items():
+            start = f"window.FairGuideData.parts[{json.dumps(name)}] = "
+            row = next(row for row in generated[path].splitlines() if row.startswith(start))
+            part = json.loads(row[len(start) : -1])
+            for entity in part["entities"]:
+                self.assertNotIn(entity["@id"], graph)
+                graph[entity["@id"]] = entity
+            for entity_id, properties in part["properties"].items():
+                graph[entity_id] |= properties
+        crate = json.loads(generated[build_crate.CRATE_FILE])
+        self.assertEqual(graph, {entity["@id"]: entity for entity in crate["@graph"]})
+        self.assertEqual(
+            {key: value for key, value in core.items() if key != "@graph"},
+            {key: value for key, value in crate.items() if key != "@graph"},
+        )
 
     def test_page_payload_follows_the_page_and_warns_over_budget(self) -> None:
         generated = build_crate.outputs(self.root)
@@ -708,6 +728,9 @@ class SiteTests(unittest.TestCase):
                 "ro-crate-metadata.json",
                 "linkset.json",
                 "assets/data/kb.js",
+                "assets/data/kb-guidance.js",
+                "assets/data/kb-fips.js",
+                "assets/data/kb-pages.js",
                 "assets/data/ui.js",
                 "assets/css/app.css",
                 "assets/js/app.js",
