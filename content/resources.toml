@@ -668,7 +668,10 @@ type = "standard"
 title = "Cross-Domain Interoperability Framework (CDIF), version 1.1"
 inLanguage = "en"
 publisher = "CODATA"
-dateAccessed = 2026-10-08
+version = "1.1"
+datePublished = 2026-06-02
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
 
 [[resource]]
 id = "tf-semantic"

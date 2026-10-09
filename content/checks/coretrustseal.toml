@@ -27,7 +27,7 @@ name = { cs = "Informační technologie a bezpečnost", en = "Information Techno
 [[item]]
 id = "C01"
 requirement = "CTS.R01"
-tier = "required"
+tier = "standard"
 block = "organisational"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -35,7 +35,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C02"
 requirement = "CTS.R02"
-tier = "required"
+tier = "standard"
 block = "organisational"
 fixAt = "licence"
 owner = ["repository-admin"]
@@ -43,7 +43,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C03"
 requirement = "CTS.R03"
-tier = "required"
+tier = "standard"
 block = "organisational"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -51,7 +51,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C04"
 requirement = "CTS.R04"
-tier = "required"
+tier = "standard"
 block = "organisational"
 fixAt = "licence"
 owner = ["repository-admin"]
@@ -59,7 +59,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C05"
 requirement = "CTS.R05"
-tier = "required"
+tier = "standard"
 block = "organisational"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -67,7 +67,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C06"
 requirement = "CTS.R06"
-tier = "required"
+tier = "standard"
 block = "organisational"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -75,7 +75,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C07"
 requirement = "CTS.R07"
-tier = "required"
+tier = "standard"
 block = "objects"
 fixAt = "popis"
 owner = ["repository-admin"]
@@ -83,7 +83,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C08"
 requirement = "CTS.R08"
-tier = "required"
+tier = "standard"
 block = "objects"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -91,7 +91,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C09"
 requirement = "CTS.R09"
-tier = "required"
+tier = "standard"
 block = "objects"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -99,7 +99,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C10"
 requirement = "CTS.R10"
-tier = "required"
+tier = "standard"
 block = "objects"
 fixAt = "popis"
 owner = ["repository-admin"]
@@ -107,7 +107,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C11"
 requirement = "CTS.R11"
-tier = "required"
+tier = "standard"
 block = "objects"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -115,7 +115,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C12"
 requirement = "CTS.R12"
-tier = "required"
+tier = "standard"
 block = "objects"
 fixAt = "dohledatelnost"
 owner = ["repository-admin"]
@@ -123,7 +123,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C13"
 requirement = "CTS.R13"
-tier = "required"
+tier = "standard"
 block = "objects"
 fixAt = "popis"
 owner = ["repository-admin"]
@@ -131,7 +131,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C14"
 requirement = "CTS.R14"
-tier = "required"
+tier = "standard"
 block = "technology"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -139,7 +139,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C15"
 requirement = "CTS.R15"
-tier = "required"
+tier = "standard"
 block = "technology"
 fixAt = "repozitar"
 owner = ["repository-admin"]
@@ -147,7 +147,7 @@ owner = ["repository-admin"]
 [[item]]
 id = "C16"
 requirement = "CTS.R16"
-tier = "required"
+tier = "standard"
 block = "technology"
 fixAt = "repozitar"
 owner = ["repository-admin"]

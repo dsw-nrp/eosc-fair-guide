@@ -53,9 +53,12 @@ CHECK_PREFIXES = {
     "fip": ("K",),
     "institution": ("I",),
     "coretrustseal": ("C",),
+    "cdif": ("M",),
 }
 GATE_TIERS = ("required", "recommended")
 MATURITY_TIERS = ("minimum", "recommended", "advanced")
+# Checks built on a standard's requirements start with what the standard requires.
+TIERS = {"gate": GATE_TIERS, "coretrustseal": ("standard",), "cdif": ("standard", "recommended", "advanced")}
 FORBIDDEN_KEYS = ("score", "percentage", "points")
 NOT_RENDERED = ("live.nanopub.query",)
 
@@ -113,7 +116,7 @@ FIP_QUESTIONS = (
 PRINCIPLE = r"(?:F[1-4]|A1(?:\.[12])?|A2|I[1-3]|R1(?:\.[1-3])?)"
 ANALYSIS_CLAUSE = re.compile(rf"^A\.(?P<principle>{PRINCIPLE})\.(?P<kind>[NRFX])(?P<number>\d+)$")
 CLAUSE_ID = re.compile(
-    r"^(A\.[A-Z0-9.]+|K\d[\w.]*|P\d+|S\.(?:MIN|REC)\d+|C\.[A-Z][\w.]*|CTS\.R\d+|DOC\.[\w.-]+|E\.[\w.-]+|G)$"
+    r"^(A\.[A-Z0-9.]+|K\d[\w.]*|P\d+|S\.(?:MIN|REC)\d+|C\.[A-Z][\w.]*|CTS\.R\d+|CDIF\.[\w.-]+|DOC\.[\w.-]+|E\.[\w.-]+|G)$"
 )
 ADVICE_ID = re.compile(r"^(?P<station>[a-z0-9-]+)\.(?P<lens>[A-Z]+|all)\.(?P<level>L[0-2])(?:\.\d+)?$")
 RAW_HTML = re.compile(r"<\s*[a-zA-Z/!]")
@@ -408,7 +411,7 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
         if check.get("defaultProfile") is not None and check["defaultProfile"] not in profiles:
             report.error(where, f"defaultProfile must be one of {', '.join(sorted(profiles)) or 'its profiles'}")
         modes = set(check.get("modes", []))
-        tiers = GATE_TIERS if check["id"] in ("gate", "coretrustseal") else MATURITY_TIERS
+        tiers = TIERS.get(check["id"], MATURITY_TIERS)
         # A check either has no blocks, or every item belongs to one of its blocks.
         blocks = [block.get("id", "") for block in data.get("block", [])]
         unique(report, where, blocks, "block")
@@ -1073,6 +1076,9 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
                 report.error(
                     f"principle:{principle['id']}", f"cts names no CoreTrustSeal requirement clause 'CTS.{code}'"
                 )
+        for profile in principle.get("cdif", []):
+            if f"CDIF.{profile}" not in clause_ids:
+                report.error(f"principle:{principle['id']}", f"cdif names no CDIF profile clause 'CDIF.{profile}'")
     check_stations(report, content, vocab, clause_ids)
     check_checks(report, content, vocab, clause_ids)
     check_resources(report, content, vocab, today or date.today())

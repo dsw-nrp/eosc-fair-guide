@@ -296,6 +296,11 @@ id = "required"
 name = { cs = "Povinné", en = "Required" }
 description = { cs = "podmínky, které NRP vyžaduje pro zapojení repozitáře.", en = "the conditions NRP requires for a repository to join." }
 
+[[tier]]
+id = "standard"
+name = { cs = "Povinné podle standardu", en = "Required by the standard" }
+description = { cs = "co standard vyžaduje, u podmíněných prvků tam, kde se zdroje týkají.", en = "what the standard requires, conditional elements where they apply to the resource." }
+
 [[resourceType]]
 id = "service"
 name = { cs = "služba", en = "service" }

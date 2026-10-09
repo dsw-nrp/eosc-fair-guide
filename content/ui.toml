@@ -219,6 +219,7 @@ choose = { cs = "Vyberte princip", en = "Choose a principle" }
 cts = { cs = "Požadavky CoreTrustSeal", en = "CoreTrustSeal requirements" }
 ctsNote = { cs = "Požadavky vydání 2026–2028. Analýza FAIR je čísluje převážně podle vydání 2020–2022; průvodce je propojuje podle toho, čeho se podle analýzy týkají.", en = "Requirements of the 2026–2028 edition. The FAIR analysis numbers them mostly by the 2020–2022 edition; the guide links them by what the analysis says they are about." }
 cdif = { cs = "Profily CDIF", en = "CDIF profiles" }
+cdifNote = { cs = "Profily CDIF 1.1. Analýza FAIR jmenuje doporučení CDIF z roku 2023; průvodce je propojuje s profily podle toho, čeho se týkají.", en = "Profiles of CDIF 1.1. The FAIR analysis names the 2023 CDIF recommendations; the guide links them to the profiles by what they are about." }
 dashboard = { cs = "Zdroje pro {p} ve FIP Dashboardu", en = "Resources for {p} in the FIP Dashboard" }
 refresh = { cs = "Aktualizace", en = "Update" }
 superseded = { cs = "Nahrazeno", en = "Superseded" }

@@ -160,7 +160,7 @@ class GeneratorTests(FixtureCase):
         core = json.loads(line[len(prefix) : -1])
         # The page starts with the core; the parts views load on demand are not in it, and core and parts together
         # are the crate.
-        self.assertNotIn(f'src="{build_crate.PART_SCRIPTS["guidance"]}"', page)
+        self.assertNotIn(f'src="{build_crate.PART_SCRIPTS["standards"]}"', page)
         self.assertFalse(any("guidance" in entity for entity in core["@graph"]))
         graph = {entity["@id"]: dict(entity) for entity in core["@graph"]}
         for name, path in build_crate.PART_SCRIPTS.items():
@@ -297,6 +297,28 @@ class ContentCheckTests(FixtureCase):
     def test_a_principle_links_only_existing_requirements(self) -> None:
         self.edit("principles.toml", 'cts = ["R12"]', 'cts = ["R99"]')
         self.assertError("cts names no CoreTrustSeal requirement clause 'CTS.R99'")
+
+    def test_a_principle_links_cdif_profiles_and_items_take_its_principles(self) -> None:
+        self.edit("principles.toml", 'cts = ["R12"]', 'cts = ["R12"]\ncdif = ["Core"]')
+        self.assertError("cdif names no CDIF profile clause 'CDIF.Core'")
+        self.append(
+            "ledger.toml",
+            '\n[[clause]]\nid = "CDIF.Core"\nsource = "report"\nprinciples = []\nactor = "repository"\n'
+            'kind = "recommendation"\ntitle = { cs = "Core", en = "Core" }\n'
+            'text = { cs = "Základní vlastnosti záznamu.", en = "Base properties of a record." }\n',
+        )
+        self.append(
+            "checks/gate.toml",
+            '\n[[item]]\nid = "G02"\nrequirement = "CDIF.Core"\ntier = "required"\nowner = ["repository-admin"]\n',
+        )
+        content = build_crate.load_content(self.root / "content")
+        item = next(item for item in content["checks"][0]["item"] if item["id"] == "G02")
+        self.assertEqual((item["sources"], item["principles"]), (["CDIF.Core"], ["F1"]))
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        principle = next(
+            entity for entity in crate["@graph"] if entity.get("termCode") == "F1" and "relatedTo" in entity
+        )
+        self.assertIn({"@id": "#clause-CDIF.Core"}, build_crate.as_list(principle["relatedTo"]))
 
     def test_an_item_takes_its_question_from_the_requirement(self) -> None:
         self.append(
@@ -728,7 +750,7 @@ class SiteTests(unittest.TestCase):
                 "ro-crate-metadata.json",
                 "linkset.json",
                 "assets/data/kb.js",
-                "assets/data/kb-guidance.js",
+                "assets/data/kb-standards.js",
                 "assets/data/kb-fips.js",
                 "assets/data/kb-pages.js",
                 "assets/data/ui.js",

@@ -454,6 +454,28 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-10-standard-tier"
+type = "update"
+name = "A tier for what a standard requires"
+description = "The questions of the CoreTrustSeal check, and the CDIF check's required and conditional elements, carry a tier named for what the standard requires, in place of the tiers that describe NRP's conditions and the FAIR analysis's minimum."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["cts-2026", "cdif"]
+results = ["C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12", "C13", "C14", "C15", "C16", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09"]
+endTime = 2026-10-10T00:34:00+02:00
+
+[[action]]
+id = "2026-10-10-cdif"
+type = "create"
+name = "CDIF 1.1 requirements and profiles, and a readiness check"
+description = "The content requirements of the CDIF 1.1 basic discovery metadata content model and the nine profiles of version 1.1 become records, read from the CDIF book's source at a fixed commit and the profiles' 1.1.1 releases, each with its title and short definition in English as published and in Czech, and its full text as published. The analysis clauses link the CDIF recommendations they name by meaning, as the principles do. A readiness check asks one question per requirement and per profile."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["cdif", "analyza-fair-1.2", "cdif-core-1.1.1", "cdif-discovery-1.1.1", "cdif-datadescription-1.1.1", "cdif-codelist-1.1.1", "cdif-datastructure-1.1.1", "cdif-conceptscheme-1.1.1", "cdif-manifest-1.1.1"]
+results = ["CDIF.REQ1", "CDIF.REQ2", "CDIF.REQ3", "CDIF.REQ4", "CDIF.REQ5", "CDIF.REQ6", "CDIF.CON1", "CDIF.CON2", "CDIF.CON3", "CDIF.REC1", "CDIF.REC2", "CDIF.REC3", "CDIF.REC4", "CDIF.REC5", "CDIF.REC6", "CDIF.REC7", "CDIF.REC8", "CDIF.REC9", "CDIF.REC10", "CDIF.REC11", "CDIF.REC12", "CDIF.REC13", "CDIF.REC14", "CDIF.MET1", "CDIF.MET2", "CDIF.MET3", "CDIF.Core", "CDIF.Discovery", "CDIF.DataDescription", "CDIF.Codelist", "CDIF.DataStructure", "CDIF.ConceptScheme", "CDIF.Manifest", "CDIF.Access", "CDIF.Universals", "A.F2.X4", "A.I1.X2", "A.R1.1.X3", "A.R1.2.X2", "cdif", "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11", "M12", "M13", "M14", "M15", "M16", "M17", "M18", "M19", "M20", "M21", "M22", "M23", "M24", "M25", "M26", "M27", "M28", "M29", "M30", "M31", "M32", "M33", "M34", "M35"]
+endTime = 2026-10-10T00:31:00+02:00
+
+[[action]]
 id = "2026-10-09-coretrustseal"
 type = "create"
 name = "CoreTrustSeal requirements in full, and a readiness check"

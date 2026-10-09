@@ -114,7 +114,7 @@
 
   /** Matches in the knowledge base, grouped by kind; every word of the query must occur. */
   S.find = function (query) {
-    const current = FG.state.lang + "/" + FG.state.lens;
+    const current = FG.state.lang + "/" + FG.state.lens + "/" + FG.partsLoaded.size;
     if (!index || indexFor !== current) {
       index = buildIndex();
       indexFor = current;
@@ -326,6 +326,13 @@
       show(true);
     };
     input.addEventListener("input", typed);
+    /* The standards' requirements are searched too: their part loads when the field is first used. */
+    input.addEventListener("focus", () =>
+      FG.loadPart("standards").then(
+        () => input.value.trim() && show(false),
+        () => null
+      )
+    );
     return h(
       "form",
       { class: "search", role: "search", onsubmit: run },

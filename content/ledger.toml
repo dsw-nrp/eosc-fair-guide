@@ -201,7 +201,7 @@ locator = "kap. 3, F2, Doporučení CDIF / Požadavky CTS"
 principles = ["F2"]
 actor = "other"
 kind = "statement"
-text = { cs = "CDIF: Discovery (Schema.org) a řízené slovníky (SKOS, OWL).", en = "CDIF: Discovery (Schema.org) and controlled vocabularies (SKOS, OWL)." }
+text = { cs = "CDIF: [[clause:CDIF.Core|Discovery]] (Schema.org) a [[clause:CDIF.ConceptScheme|řízené slovníky]] (SKOS, OWL).", en = "CDIF: [[clause:CDIF.Core|Discovery]] (Schema.org) and [[clause:CDIF.ConceptScheme|controlled vocabularies]] (SKOS, OWL)." }
 status = "refresh"
 note = { cs = "CDIF 1.1 pojmenovává profily Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure a Manifest.", en = "CDIF 1.1 names the profiles Core, Discovery, Concept Scheme, Codelist, Data Description, Data Structure and Manifest." }
 noteSources = ["E.CDIF"]
@@ -626,7 +626,7 @@ locator = "kap. 3, I1, Doporučení CDIF / Požadavky CTS"
 principles = ["I1"]
 actor = "other"
 kind = "statement"
-text = { cs = "CDIF: řízené slovníky a univerzální veličiny (čas, geografie, jednotky); CoreTrustSeal [[clause:CTS.R13|R14]] a [[clause:CTS.R15|R15]].", en = "CDIF: controlled vocabularies and universals (time, geography, units); CoreTrustSeal [[clause:CTS.R13|R14]] and [[clause:CTS.R15|R15]]." }
+text = { cs = "CDIF: [[clause:CDIF.ConceptScheme|řízené slovníky]] a [[clause:CDIF.Universals|univerzální veličiny]] (čas, geografie, jednotky); CoreTrustSeal [[clause:CTS.R13|R14]] a [[clause:CTS.R15|R15]].", en = "CDIF: [[clause:CDIF.ConceptScheme|controlled vocabularies]] and [[clause:CDIF.Universals|universals]] (time, geography, units); CoreTrustSeal [[clause:CTS.R13|R14]] and [[clause:CTS.R15|R15]]." }
 status = "refresh"
 note = { cs = "CDIF 1.1 to pokrývá profily Concept Scheme a Codelist a doporučeními k univerzálním veličinám.", en = "CDIF 1.1 covers this with the Concept Scheme and Codelist profiles and with guidance on universals." }
 noteSources = ["E.CDIF"]
@@ -931,7 +931,7 @@ locator = "kap. 3, R1.1, Doporučení CDIF / Požadavky CTS"
 principles = ["R1.1"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R02|R2]]; CDIF Data Access (ODRL).", en = "CoreTrustSeal [[clause:CTS.R02|R2]]; CDIF Data Access (ODRL)." }
+text = { cs = "CoreTrustSeal [[clause:CTS.R02|R2]]; CDIF [[clause:CDIF.Access|Data Access]] (ODRL).", en = "CoreTrustSeal [[clause:CTS.R02|R2]]; CDIF [[clause:CDIF.Access|Data Access]] (ODRL)." }
 status = "refresh"
 note = { cs = "CDIF 1.1 obsahuje doporučení k ODRL.", en = "CDIF 1.1 includes guidance on ODRL." }
 noteSources = ["E.CDIF"]
@@ -1021,7 +1021,7 @@ locator = "kap. 3, R1.2, Doporučení CDIF / Požadavky CTS"
 principles = ["R1.2"]
 actor = "other"
 kind = "statement"
-text = { cs = "CoreTrustSeal [[clause:CTS.R07|R7]] a [[clause:CTS.R13|R14]]; CDIF Data Integration (DDI-CDI).", en = "CoreTrustSeal [[clause:CTS.R07|R7]] and [[clause:CTS.R13|R14]]; CDIF Data Integration (DDI-CDI)." }
+text = { cs = "CoreTrustSeal [[clause:CTS.R07|R7]] a [[clause:CTS.R13|R14]]; CDIF [[clause:CDIF.DataStructure|Data Integration]] (DDI-CDI).", en = "CoreTrustSeal [[clause:CTS.R07|R7]] and [[clause:CTS.R13|R14]]; CDIF [[clause:CDIF.DataStructure|Data Integration]] (DDI-CDI)." }
 status = "refresh"
 note = { cs = "Viz CDIF 1.1.", en = "See CDIF 1.1." }
 noteSources = ["E.CDIF"]
@@ -2900,4 +2900,471 @@ The response statement and evidence should include references to the following i
 - Any authentication and authorization procedures employed to securely manage access to systems in use.
 
 Responses should not cover Storage and Integrity (R14) measures or the wider Technical Infrastructure (R15).
+'''
+
+# CDIF 1.1 (CC BY 4.0): the content requirements of the basic discovery metadata content model, numbered in the
+# book's order by section (REQ required, CON conditional, REC recommended, MET metadata management), and the
+# profiles of version 1.1. Title and short definition in English as published and in the guide's Czech; the
+# full text in English as published, as guidance.
+
+[[clause]]
+id = "CDIF.REQ1"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Required"
+title = { cs = "Identifikátor zdroje", en = "Resource identifier" }
+text = { cs = "Globálně jedinečný a rozřešitelný identifikátor zdroje, který metadatový záznam popisuje.", en = "A globally unique, resolvable identifier for the resource described by the metadata record." }
+guidance = '''
+Resource identifier (1 entry): A globally unique, resolvable identifier for the resource described by the metadata record.
+'''
+
+[[clause]]
+id = "CDIF.REQ2"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Required"
+title = { cs = "Název", en = "Title" }
+text = { cs = "Stručný název zdroje (nejlépe do 250 znaků), podle kterého ho člověk jednoznačně pozná.", en = "Succinct (preferably <250 characters) name of the resource; should be sufficient to uniquely identify the resource for a human user." }
+guidance = '''
+Title (1 entry): Succinct (preferably <250 characters) name of the resource; should be sufficient to uniquely identify the resource for a human user.
+'''
+
+[[clause]]
+id = "CDIF.REQ3"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Required"
+title = { cs = "Distribuce", en = "Distribution" }
+text = { cs = "Je-li zdroj digitální objekt dostupný online, uveďte URL, odkud jej lze získat.", en = "If the resource is a digital object accessible online, provide a URL that will retrieve the resource." }
+guidance = '''
+Distribution: URL, Distribution object, or Access Instructions (1 entry): If the resource is a digital object accessible online, provide a URL that will retrieve the resource. If the resource has multiple representations, provide a Distribution Object documenting the various options with a URL and representation profile for each. Metadata for distributions through an API that allows query, filter, or processing as part of a data access request are described in the Queryable Distribution Interfaces (API) section, below. If the resource is not accessible online, provide a URL to a landing page used to access the resource, or minimally, provide a text description explaining how to access the resource in the metadata (Access Instructions).
+'''
+
+[[clause]]
+id = "CDIF.REQ4"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Required"
+title = { cs = "Práva", en = "Rights" }
+text = { cs = "Informace o potřebných přístupových oprávněních, licencích, smluvních požadavcích, omezeních použití a bezpečnostních omezeních.", en = "Information about required access permissions, licences, contractual requirements, use constraints, and security constraints." }
+guidance = '''
+Rights (1 to many entry): Information about required access permissions, licences, contractual requirements, use constraints, and security constraints. Might be described in text or through links to external documents. (See 6.4. Data Access for providing machine-actionable rights descriptions.)
+'''
+
+[[clause]]
+id = "CDIF.REQ5"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Required"
+title = { cs = "Identifikátor metadatového profilu", en = "Metadata profile identifier" }
+text = { cs = "Identifikátor specifikace metadat (profilu), podle které záznam vznikl.", en = "Identifier for metadata specification (profile) used to create this metadata record." }
+guidance = '''
+Metadata profile identifier (1 to many): Identifier for metadata specification (profile) used to create this metadata record. Generally this will be populated automatically if the metadata is created using CDIF aware tools.
+'''
+
+[[clause]]
+id = "CDIF.REQ6"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Required"
+title = { cs = "Typ zdroje", en = "Resource type" }
+text = { cs = "Označení s uvedeným klasifikačním schématem, které určuje, jaký druh zdroje metadata popisují.", en = "A scoped name (label with classification scheme) that specifies the kind of resource described by the metadata." }
+guidance = '''
+Resource type (1 to many): A scoped name (label with classification scheme) that specifies the kind of resource described by the metadata. The resource type might be used to determine validation requirements specific to descriptions for that kind of resource.
+'''
+
+[[clause]]
+id = "CDIF.CON1"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Conditional elements"
+title = { cs = "Proměnné", en = "Variable" }
+text = { cs = "Povinné u datových sad: metadata datové sady mají uvádět seznam proměnných, které obsahuje.", en = "Required for datasets. The metadata about a dataset should include a list of variables that the dataset contains." }
+guidance = '''
+Variable (0 to many entries): Required for datasets. The metadata about a dataset should include a list of variables that the dataset contains. Variable metadata should minimally specify the name of the variable as it appears in the dataset. That name should be, ideally, qualified by a controlled vocabulary or other semantic resource (e.g. represented by a resolvable URI), or minimally some descriptive text. Variable metadata should include as much content as needed for users to understand the type of the variable (e.g. measured, statistically derived, or simulated), its units, and any relevant reference systems for its values (see Universals ). Details of data structure and schema more closely related to interoperability, data integration, and usage than to data discovery are discussed in Data Description for Integration.
+'''
+
+[[clause]]
+id = "CDIF.CON2"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Conditional elements"
+title = { cs = "Časové pokrytí", en = "Temporal Coverage" }
+text = { cs = "Povinné, pokud se obsah zdroje týká určitého časového intervalu: interval, který zdroj zachycuje nebo o kterém pojednává.", en = "Required if resource content is specific to some time interval. The time interval represented by or the subject of the described resource." }
+guidance = '''
+Temporal Coverage (0..1 entry) Required if resource content is specific to some time interval. The time interval represented by or the subject of the described resource. This could be the time interval when data were collected, or an archaeological or geological time interval that is the subject of the resource. Need to account for clock time, calendar time (Gregorian, Julian, Hebrew, Islamic, Chinese, Mayan...), cyclical time (summer, first quarter, mating season, new moon, pay day) and for named time ordinal eras (Jurassic, Younger Dryas, Early Minoan I, Late Stone Age). See OWL Time (https://www.w3.org/TR/owl-time/).
+'''
+
+[[clause]]
+id = "CDIF.CON3"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "requirement"
+locator = "Basic discovery metadata content model, Conditional elements"
+title = { cs = "Geografický rozsah", en = "Geographic Extent" }
+text = { cs = "Povinné, má-li předmět zdroje geografický rozsah: pojmenované místo, ohraničující obdélník, liniová trasa nebo bod.", en = "Required if resource has a geographic extent for its subject, either a named location, bounding rectangle, linear trace, or point." }
+guidance = '''
+Geographic Extent - (0..many)  Required if resource has a geographic extent for its subject, either a named location, bounding rectangle, linear trace, or point. To support cross-domain searches based on geospatial location, location coordinates must be given in decimal degrees using the WGS 8486 datum. There are various other systems for describing location (see Space ); these can be provided as alternate location descriptions, recognizing that they might be meaningful to some metadata harvesting agents. Some resources may not be usefully described by a WGS 84 extent, in which case indicate nil:notapplicable; this would include extraterrestrial resources.
+
+- Bounding Rectangle: North Bounding Latitude, South Bounding Latitude, East Bounding Longitude, West Bounding Longitude. The minimum rectangle that completely contains the coverage extent for the resource content. Coordinate order and syntax are determined by the serialisation profile.
+- Linear trace: a linear trace e.g. of a ship's track, aircraft flight path, or surface traverse, represented as a series of points. Coordinate order and syntax are determined by the serialisation profile.
+- Point: Latitude, Longitude. A centroid point for the coverage extent of the resource, or the location of the resource content if a point location is appropriate. Coordinate order and syntax are determined by the serialisation profile.
+- Named location: Place name referenced to some gazetteer. Use scoped name pattern {label, authority, optional identifier}.
+'''
+
+[[clause]]
+id = "CDIF.REC1"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Popis", en = "Description" }
+text = { cs = "Informuje čtenáře o obsahu, kontextu a původu zdroje a o všem dalším, co se může hodit pro budoucí mezioborové použití.", en = "Inform the reader about the resource's content, context, provenance, and any other information deemed useful for future cross-domain usage." }
+guidance = '''
+Description (0..1 entry): Inform the reader about the resource's content, context, provenance, and any other information deemed useful for future cross-domain usage. SHACL validation will throw warning if not present.
+'''
+
+[[clause]]
+id = "CDIF.REC2"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Původci", en = "Originators" }
+text = { cs = "Jedna či více stran (osoba nebo organizace), které mají roli spojenou se vznikem zdroje, například autor nebo editor.", en = "One or more parties (person or organisation) that have a role related to the origin of the resource, e.g., author or editor." }
+guidance = '''
+Originators (0 to many entries): One or more parties (person or organisation) that have a role related to the origin of the resource, e.g., author or editor. Each party has a name (label), identifier, and optional contact information. SHACL validation will throw warning if not present.
+'''
+
+[[clause]]
+id = "CDIF.REC3"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Datum změny", en = "Modified Date" }
+text = { cs = "Datum (nikoli časový rozsah), kdy byly dokončeny poslední změny zdroje.", en = "Date (not temporal extent) when the most recent changes to the resource were completed." }
+guidance = '''
+Modified Date (0..1 entry): Date (not temporal extent) when the most recent changes to the resource were completed. Use a "year" or ISO 8601 date and time (https://en.wikipedia.org/wiki/ISO_8601) format. Alternative date formatting must be machine-readable and consistent across all datasets. SHACL validation will throw warning if not present.
+'''
+
+[[clause]]
+id = "CDIF.REC4"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Kontakt pro přístup", en = "Distribution Agent" }
+text = { cs = "Strana (osoba nebo organizace), na kterou se obrátit kvůli přístupu ke zdroji.", en = "The party (person or organisation) to contact about accessing the resource." }
+guidance = '''
+Distribution Agent (0..1 entry):The party (person or organisation) to contact about accessing the resource. Each party has a name (label), identifier, and optional contact information. If there are multiple distribution options with different contact points, the Distribution Agent should be specified as part of the Distribution Object.
+'''
+
+[[clause]]
+id = "CDIF.REC5"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Kontrolní součet", en = "Checksum" }
+text = { cs = "Řetězec vypočtený z obsahu digitálního objektu, podle kterého lze ověřit, že se obsah nezměnil.", en = "A string value calculated from the content of a digital object that allows verification that the content of the object has not been modified." }
+guidance = '''
+Checksum. (0 or 1): A string value calculated from the content of a digital object that allows verification that the content of the object has not been modified. Even insignificant changes to the content of the file will change its checksum. The algorithm used to calculate the checksum must be documented. See also RFC-6920 'Naming things with hashes' (https://www.rfc-editor.org/rfc/rfc6920.html) that establishes ways to identify checksum algorithms and to represent checksum values as a URI. Note that checksums apply to specific digital objects, typically a unique resource representation. Non-digital resources do not have checksums; their representations can have checksums. See implementation notes in Appendix 1.
+'''
+
+[[clause]]
+id = "CDIF.REC6"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Financování", en = "Funding" }
+text = { cs = "Uveďte zdroje financování (granty, smlouvy…).", en = "Cite funding sources (Grants, contracts...)." }
+guidance = '''
+Funding. (0 to many entries): Cite funding sources (Grants, contracts...). Each source has a grant or contract identifier, source organisation, and label.
+'''
+
+[[clause]]
+id = "CDIF.REC7"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Klíčová slova", en = "Keyword" }
+text = { cs = "Rozlišujte volné štítky a termíny z řízených slovníků.", en = "Distinguish 'tags' and 'controlled terms'." }
+guidance = '''
+Keyword (0 to many entries): Distinguish 'tags' and 'controlled terms'. Tags are simply words that a metadata creator thinks will be useful for users to identify resources of interest. Controlled terms are words defined in a vocabulary that minimally include the word (a fixed string to identify the term for humans) and a definition. Each term represents some concept. More semantically rich vocabularies would include resolvable identifiers, source information, and links to related terms (see Cox et al., 2021 (https://doi.org/10.1371/journal.pcbi.1009041) ). One common set of relationships in a vocabulary is a kind-of hierarchy linking broader to narrower concepts. Controlled terms should minimally be represented with a label and scheme name that identifies the source vocabulary; ideally a term URI and scheme URI could be included for more accurate identification and data integration.
+'''
+
+[[clause]]
+id = "CDIF.REC8"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Zásady", en = "Policies" }
+text = { cs = "Zásady správy popsaného zdroje: zda se obsah smí měnit, plánované aktualizace, očekávaná doba dostupnosti, plán údržby, verzování a dokumentace změn a žádostí o změny.", en = "Policies used in management of the described resource, including whether the content may be changed (mutable or immutable), any scheduled updates, what is the expected lifetime for resource availability, what (if any) is the maintenance schedule, versioning, documentation for changes and change requests." }
+guidance = '''
+Policies (0 to many entries): Policies used in management of the described resource, including whether the content may be changed (mutable or immutable), any scheduled updates, what is the expected lifetime for resource availability, what (if any) is the maintenance schedule, versioning, documentation for changes and change requests. Explicit support for specific policy frameworks can be included (e.g., CARE).
+'''
+
+[[clause]]
+id = "CDIF.REC9"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Datum zveřejnění", en = "Publication Date" }
+text = { cs = "Datum (nikoli časový rozsah), kdy byl zdroj zpřístupněn.", en = "Date (not temporal extent) when the resource was made accessible." }
+guidance = '''
+Publication Date (0 or 1): Date (not temporal extent) when the resource was made accessible. Use a ‘year’ or ISO 8601 date and time format. Alternative date formatting must be machine-readable and consistent across all datasets. If no publication date is known, estimate the publication date range, enter the oldest year as the publication date, and include the estimated date range in the Description field.
+'''
+
+[[clause]]
+id = "CDIF.REC10"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Další zúčastněné strany", en = "Other related agents" }
+text = { cs = "Uznání pro ty, kdo přispěli ke vzniku zdroje, ale nejsou uvedeni jako autoři či tvůrci.", en = "Recognition for others who have contributed to the production of the resource but are not recognized as authors/creators." }
+guidance = '''
+Other related agents (0 to many entries): Recognition for others who have contributed to the production of the resource but are not recognized as authors/creators. Includes a variety of roles like maintainer, publisher, point of contact, copyright holder, contributor (see e.g. DataCite contributor types (https://datacite-metadata-schema.readthedocs.io/en/4.5_draft/properties/recommended_optional/property_contributor.html#a-contributortype), ISO19115-1 role code (https://wiki.esipfed.org/ISO_19115_and_19115-2_CodeList_Dictionaries#CI_RoleCode) )
+'''
+
+[[clause]]
+id = "CDIF.REC11"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Související zdroje", en = "Related resources" }
+text = { cs = "Odkazy na související data, publikace, anotace, zdroje dat, použitý software apod.", en = "Links to related data, publications, annotation, data sources, software used, etc." }
+guidance = '''
+Related resources (0 to many entries): Links to related data, publications, annotation, data sources, software used, etc. Links have at least a label, relationship type, and resolvable target resource identifier.
+'''
+
+[[clause]]
+id = "CDIF.REC12"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Verze", en = "Version" }
+text = { cs = "Má-li zdroj verze, uveďte označení této verze.", en = "If the resource is versioned, specify the label for this version." }
+guidance = '''
+Version (0 or 1): If the resource is versioned, specify the label for this version. Version labels should follow a scheme that allows alphanumeric sorting reflecting the order of version release.
+'''
+
+[[clause]]
+id = "CDIF.REC13"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Původ", en = "Provenance" }
+text = { cs = "Pro vyhledávání uveďte datové sady, z nichž zdroj vznikl, a senzory, platformy, software, algoritmy apod., kterými byly získány informace v něm obsažené.", en = "For discovery, provide information about datasets that were used in the creation of the described resource and specify sensors, platforms, software, algorithms etc. used to aquire information contained in the resource." }
+guidance = '''
+Provenance (0..many): For discovery, provide information about datasets that were used in the creation of the described resource and specify sensors, platforms, software, algorithms etc. used to aquire information contained in the resource.  Details about workflows, activity sequences, association of sensors etc. with specific variables, individuals associate with particular activities in workflow etc. require used of cdif prov extension (TBD).
+'''
+
+[[clause]]
+id = "CDIF.REC14"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Recommended"
+title = { cs = "Kvalita", en = "Quality" }
+text = { cs = "Uveďte údaje o kvalitě informací ve zdroji, o zásadách kvality či certifikátech, které se na něj vztahují, a výsledky měření kvality i s postupem, jak se měřilo.", en = "Provide statements about the quality of information in the described resource, information about quality policies or certificates that apply to the resource, and results of quality measures with information about the measurement protocol/procedure used." }
+guidance = '''
+Quality (0..many) Provide statements about the quality of information in the described resource,  information about quality policies or certificates that apply to the resource, and results of quality measures with information about the measurement protocol/procedure used. In all cases the focus should be on information useful for initial assessment by potential users.
+'''
+
+[[clause]]
+id = "CDIF.MET1"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Properties for metadata management"
+title = { cs = "Datum metadat", en = "Metadata Date" }
+text = { cs = "Datum a čas posledního vytvoření nebo aktualizace metadat ve formátu ISO 8601.", en = "Last metadata update/creation date-time stamp in ISO 8601 date and time format." }
+guidance = '''
+Metadata Date (0..1 entry): Last metadata update/creation date-time stamp in ISO 8601 date and time format. This may be automatically updated on metadata import if a metadata format conversion is necessary.
+'''
+
+[[clause]]
+id = "CDIF.MET2"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Properties for metadata management"
+title = { cs = "Kontakt pro metadata", en = "Metadata Contact Agent" }
+text = { cs = "Strana odpovědná za obsah a správnost metadat, se jménem, identifikátorem a případně kontaktem.", en = "The party responsible for metadata content and accuracy; Agent object includes a name (label), identifier, and optional contact information" }
+guidance = '''
+Metadata Contact Agent (0..1 entry): The party responsible for metadata content and accuracy; Agent object includes a name (label), identifier, and optional contact information
+'''
+
+[[clause]]
+id = "CDIF.MET3"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Basic discovery metadata content model, Properties for metadata management"
+title = { cs = "Identifikátor metadat", en = "Metadata Identifier" }
+text = { cs = "Identifikátor digitálního objektu, který metadata obsahuje.", en = "The identifier for the Digital object that contains the metadata." }
+guidance = '''
+Metadata Identifier (0..1 entry): The identifier for the Digital object that contains the metadata.
+'''
+
+[[clause]]
+id = "CDIF.Core"
+source = "cdif-core-1.1.1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Core"
+title = { cs = "Core", en = "Core" }
+text = { cs = "Profil CDIF Core stanoví povinné a volitelné základní vlastnosti každého metadatového záznamu CDIF, vyjádřené jako JSON-LD se slovníkem schema.org.", en = "The CDIF Core profile defines the mandatory and optional base properties for any CDIF metadata record, implemented as JSON-LD using the schema.org vocabulary." }
+guidance = '''
+The CDIF Core profile defines the mandatory and optional base properties for any CDIF metadata record, implemented as JSON-LD using the schema.org vocabulary. The Core profile release repository is here: https://github.com/Cross-Domain-Interoperability-Framework/profile-core (https://github.com/Cross-Domain-Interoperability-Framework/profile-core/blob/v1.1.1/README.md)
+'''
+
+[[clause]]
+id = "CDIF.Discovery"
+source = "cdif-discovery-1.1.1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Data Discovery"
+title = { cs = "Vyhledávání dat", en = "Data Discovery" }
+text = { cs = "Profil Discovery stanoví volitelné vlastnosti pro popis prostorového nebo časového rozsahu a jednoduchý popis proměnných zdroje.", en = "The Discovery profile defines optional properties for documenting spatial or temporal extent, and simple documentation of variables specified in a resource." }
+guidance = '''
+The Discovery profile defines optional properties for documenting spatial or temporal extent, and simple documentation of variables specified in a resource. This recognizes that there are a variety of resources of interest that might not have relevant spatial or temporal extent, and might not explicitly define variables with values. The Discovery release repository is here: https://github.com/Cross-Domain-Interoperability-Framework/profile-discovery (https://github.com/Cross-Domain-Interoperability-Framework/profile-discovery/blob/v1.1.1/README.md)
+'''
+
+[[clause]]
+id = "CDIF.DataDescription"
+source = "cdif-datadescription-1.1.1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Data Description"
+title = { cs = "Popis dat", en = "Data Description" }
+text = { cs = "Profil Data Description stanoví metadatové prvky pro popis oborů hodnot proměnných, souhrnných statistik jejich hodnot, fyzického uspořádání datových souborů a rolí proměnných v datové sadě (např. identifikátor, měření, atribut).", en = "The CDIF Data Description profile defines metadata elements for documentation of variable value domains, statistics aggregating variable values, physical data file layout, and roles of variables in a dataset (e.g. identifier, measure, attribute)." }
+guidance = '''
+The CDIF Data Description profile defines metadata elements for documentation of variable value domains, statistics aggregating variable values, physical data file layout, and roles of variables in a dataset (e.g. identifier, measure, attribute). The Data Description release repository is here: https://github.com/Cross-Domain-Interoperability-Framework/profile-datadescription (https://github.com/Cross-Domain-Interoperability-Framework/profile-datadescription/blob/v1.1.1/README.md)
+'''
+
+[[clause]]
+id = "CDIF.Codelist"
+source = "cdif-codelist-1.1.1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Codelist"
+title = { cs = "Číselníky", en = "Codelist" }
+text = { cs = "Profil Codelist stanoví, jak se řízené slovníky a klasifikační schémata vyjadřují jako SKOS ConceptScheme v JSON-LD.", en = "The CDIF Codelist profile defines how controlled vocabularies and classification schemes are represented as SKOS ConceptSchemes in JSON-LD." }
+guidance = '''
+The CDIF Codelist profile defines how controlled vocabularies and classification schemes are represented as SKOS ConceptSchemes in JSON-LD. The profile composes skos:ConceptScheme and skos:Concept with CDIF-specific requirements inherited from cdifCore. Concept properties include a preferred label, bidirectional hierarchy, notation. CDIF core metadata properties are included on the ConceptScheme. The key feature of the codelist is specification of the 'notation' for a concept -- the strings that actually appear in data, along with a human-readable lable conveying the meaning of the code.
+
+The implementation uses the SKOS (Simple Knowledge Organization System) vocabulary with JSON-LD serialization. This profile aligns with the approach described in 'Modelling of Eurostat's Statistical Classifications in ShowVoc' (https://cros.ec.europa.eu/book-page/modeling-eurostats-statistical-classifications-showvoc), but in alignment with cdifCore, the required properties from cdifCore are implemented using schema.org elements. The Codelist release repository is here: https://github.com/Cross-Domain-Interoperability-Framework/profile-codelist (https://github.com/Cross-Domain-Interoperability-Framework/profile-codelist/blob/v1.1.1/README.md)
+'''
+
+[[clause]]
+id = "CDIF.DataStructure"
+source = "cdif-datastructure-1.1.1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Data Structure"
+title = { cs = "Struktura dat", en = "Data Structure" }
+text = { cs = "Profil podporuje popis opakovaně použitelných datových struktur a jejich proměnných.", en = "This profile supports the description of reusable data structures and/or their component variables." }
+guidance = '''
+This profile supports the description of reusable data structures and/or their component variables. Enumerated values for variables are described using the Codelist profile. This profile primarily uses the DDI-CDI standard.
+'''
+
+[[clause]]
+id = "CDIF.ConceptScheme"
+source = "cdif-conceptscheme-1.1.1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Concept Scheme"
+title = { cs = "Pojmová schémata", en = "Concept Scheme" }
+text = { cs = "Profil popisuje pomocí SKOS pojmové systémy, které mají význam i mimo vyjádření hodnot proměnných.", en = "This profile uses SKOS to describe concept systems which are meaningful for purposes other than the representation of variable values." }
+guidance = '''
+This profile uses SKOS to describe concept systems which are meaningful for purposes other than the representation of variable values. Domain ontologies may need to be expressed for FAIR use: this profile is intended as a supplement to ontologies described in OWL as it can be rendered using tools such as SKOSify from them, so that they are more widely accessible.
+'''
+
+[[clause]]
+id = "CDIF.Manifest"
+source = "cdif-manifest-1.1.1"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Manifest"
+title = { cs = "Manifest", en = "Manifest" }
+text = { cs = "Profil slouží k zabalení metadat a FAIR zdrojů do balíčků pro šíření, archivaci apod.", en = "This profile is used to package metadata and FAIR resources, to form bundles for dissemination, archiving, etc." }
+guidance = '''
+This profile is used to package metadata and FAIR resources, to form bundles for dissemination, archiving, etc. It can be used to render "webby" FDOs. The recommended implementation uses RO Crate (https://www.researchobject.org/ro-crate/).
+'''
+
+[[clause]]
+id = "CDIF.Access"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Access"
+title = { cs = "Přístup", en = "Access" }
+text = { cs = "Obecné doporučení, jak jazykem ODRL (Open Digital Rights Language) popsat zásady přístupu k FAIR zdrojům a jejich použití.", en = "This is a general guideline for the use of the Open Digital Rights Language (ODRL) to describe the policies for the access conditions and use of FAIR resources." }
+guidance = '''
+This is a general guideline for the use of the Open Digital Rights Language (ODRL) (https://www.w3.org/TR/odrl-model/) to describe the policies for the access conditions and use of FAIR resources. This profile gives some general guidance on these important topics.
+'''
+
+[[clause]]
+id = "CDIF.Universals"
+source = "cdif"
+principles = []
+actor = "repository"
+kind = "recommendation"
+locator = "Overview of Profiles in Version 1.1, Universals"
+title = { cs = "Univerzální veličiny", en = "Universals" }
+text = { cs = "Čas, geografie a jednotky se v datech a metadatech objevují všude a jsou důležité pro propojování a použití dat.", en = "Time, geography, and units of measure are used ubiquitously in data and metadata, and are important for the integration and use of data." }
+guidance = '''
+Time, geography, and units of measure are used ubiquitously in data and metadata, and are important for the integration and use of data. This profile gives some general guidance on these important topics.
 '''

@@ -2,6 +2,8 @@
 # CoreTrustSeal links name the 2026-2028 requirements (ledger clauses CTS.R01-CTS.R16). The analysis numbers them
 # mostly by the 2020-2022 edition (R10 preservation plan, R11 data quality, R13 discovery, R14 reuse), F1's R12 by
 # the 2023 one; each link follows what the analysis says the requirement is about, not its number.
+# CDIF links name the profiles of CDIF 1.1 (ledger clauses CDIF.<profile>), from the analysis's CDIF recommendations,
+# which use the names of the 2023 CDIF; each follows what the recommendation is about.
 # Czech statements and CoreTrustSeal links follow the FAIR analysis v1.2, chapter 3 (source analyza-fair-1.2);
 # the Czech I3 statement adds "kvalifikované" to match the original principle.
 
@@ -16,6 +18,7 @@ id = "F2"
 label = { cs = "Bohatá metadata", en = "Rich metadata" }
 statement = { cs = "Data jsou popsána bohatými metadaty.", en = "Data are described with rich metadata." }
 cts = ["R08", "R10", "R12", "R13"]
+cdif = ["Core", "ConceptScheme"]
 
 [[principle]]
 id = "F3"
@@ -58,6 +61,7 @@ id = "I1"
 label = { cs = "Formální jazyk", en = "Formal language" }
 statement = { cs = "(Meta)data používají pro reprezentaci znalostí jazyk, který je formální, dostupný, sdílený a široce aplikovatelný.", en = "(Meta)data use a formal, accessible, shared, and broadly applicable language for knowledge representation." }
 cts = ["R13", "R15"]
+cdif = ["ConceptScheme", "Universals"]
 
 [[principle]]
 id = "I2"
@@ -82,12 +86,14 @@ id = "R1.1"
 label = { cs = "Licence", en = "Licence" }
 statement = { cs = "(Meta)data jsou zveřejněna s jasnou a přístupnou licencí na používání dat.", en = "(Meta)data are released with a clear and accessible data usage licence." }
 cts = ["R02"]
+cdif = ["Access"]
 
 [[principle]]
 id = "R1.2"
 label = { cs = "Provenience", en = "Provenance" }
 statement = { cs = "(Meta)data jsou spjata s podrobnou proveniencí.", en = "(Meta)data are associated with detailed provenance." }
 cts = ["R07", "R13"]
+cdif = ["DataStructure"]
 
 [[principle]]
 id = "R1.3"

@@ -687,6 +687,21 @@ sections.push(["page", async () => {
     const ctsLinks = await view.locator('#main a[href*="catalogue/clauses/CTS."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href"))]));
     if (!ctsLinks.some(([text, href]) => text.startsWith("R13") && href.endsWith("/CTS.R13"))) fail("explorer: F2 does not link its CoreTrustSeal requirements: " + JSON.stringify(ctsLinks));
     if (!ctsLinks.some(([text, href]) => text === "R14" && href.endsWith("/CTS.R13"))) fail("explorer: the analysis's R14 (reuse) does not lead to requirement R13: " + JSON.stringify(ctsLinks));
+    // CDIF: the principle links its profiles, and the analysis's 2023 name "Discovery" leads to the Core profile.
+    const cdifLinks = await view.locator('#main a[href*="catalogue/clauses/CDIF."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href")).split("/").pop()]));
+    if (!cdifLinks.some(([text, id]) => text === "Core" && id === "CDIF.Core") || !cdifLinks.some(([text, id]) => text === "Discovery" && id === "CDIF.Core")) fail("explorer: F2 does not link its CDIF profiles by meaning: " + JSON.stringify(cdifLinks));
+    // The CDIF check: what the standard requires first, then the recommended elements, metadata management and the
+    // profiles; the first tier is named for the standard, not for NRP or the analysis.
+    await view.goto(pageUrl + "#/cs/SR/check/cdif");
+    await view.waitForSelector("#main h1");
+    const cdifQuestions = () => view.evaluate(() => [...document.querySelectorAll("#main fieldset legend")].filter((legend) => /^M\d\d\b/.test(legend.textContent.trim())).length);
+    const basicCount = await cdifQuestions();
+    const tierSentence = await view.locator("#main .tier-info").innerText();
+    await view.locator('label[for="extended-toggle"]').click();
+    await view.waitForFunction(() => [...document.querySelectorAll("#main fieldset legend")].filter((legend) => /^M\d\d\b/.test(legend.textContent.trim())).length > 9);
+    const extendedCount = await cdifQuestions();
+    if (basicCount !== 9 || extendedCount !== 35 || !tierSentence.startsWith("Povinné podle standardu (9")) fail(`cdif: ${basicCount} basic and ${extendedCount} extended questions, tier sentence "${tierSentence.slice(0, 60)}"`);
+    await view.locator('label[for="extended-toggle"]').click();
     await view.close();
   }
 

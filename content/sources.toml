@@ -327,3 +327,80 @@ publisher = "CoreTrustSeal Standards and Certification Board"
 version = "01.00"
 datePublished = 2025-11-20
 license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "cdif-core-1.1.1"
+type = "standard"
+title = "CDIF Core profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-core/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+id = "cdif-discovery-1.1.1"
+type = "standard"
+title = "CDIF Data Discovery profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-discovery/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+id = "cdif-datadescription-1.1.1"
+type = "standard"
+title = "CDIF Data Description profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-datadescription/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+id = "cdif-codelist-1.1.1"
+type = "standard"
+title = "CDIF Codelist profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-codelist/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+id = "cdif-datastructure-1.1.1"
+type = "standard"
+title = "CDIF Data Structure profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-datastructure/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+id = "cdif-conceptscheme-1.1.1"
+type = "standard"
+title = "CDIF Concept Scheme profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-conceptscheme/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+id = "cdif-manifest-1.1.1"
+type = "standard"
+title = "CDIF Manifest profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-manifest/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10

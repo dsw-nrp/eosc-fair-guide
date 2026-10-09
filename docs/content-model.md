@@ -197,7 +197,9 @@ publisher named like a curated organisation.
 `[[principle]]`: `id` (`F1` … `R1.3`), `statement` (text: the principle), `label` (text: a short label),
 `cts` (list of CoreTrustSeal requirement numbers of the 2026–2028 edition, such as `R12`, each naming the ledger
 clause `CTS.<number>`; the FAIR analysis numbers them mostly by the 2020–2022 edition, so each link follows what
-the analysis says the requirement is about), `cdif` (list of CDIF profile names). The IRI is
+the analysis says the requirement is about), `cdif` (list of CDIF 1.1 profiles, such as `Core`, each naming the
+ledger clause `CDIF.<profile>`; the analysis names the 2023 CDIF recommendations, so each link follows what the
+recommendation is about). The IRI is
 `https://w3id.org/fair/principles/terms/<id>`.
 
 ### `sources.toml`
@@ -219,7 +221,11 @@ published), `noteSources` (clause or source IDs that support the note), `superse
 `title` (text: a requirement's own title, when its source gives one) and `guidance` (a string: the guidance its
 source publishes with it, quoted in English as published; paragraphs and `- ` lists as in page text). The
 CoreTrustSeal Requirements 2026–2028 are clauses `CTS.R0` (the context an application gives) and `CTS.R01` to
-`CTS.R16`, with the statement in English as published and in the guide's Czech translation.
+`CTS.R16`, with the statement in English as published and in the guide's Czech translation. CDIF 1.1 is clauses
+`CDIF.REQ1`–`REQ6`, `CON1`–`CON3`, `REC1`–`REC14` and `MET1`–`MET3` (the content requirements of the basic
+discovery metadata content model, numbered by the guide in the book's order) and `CDIF.<profile>` for its nine
+profiles, each with a title and short definition in English as published and in Czech, and its full text as
+guidance.
 
 ### `stations/NN-<id>.toml`
 
@@ -258,7 +264,7 @@ block instead of by principle or path step.
 | --- | --- | --- |
 | `id` | string | `D01`, `P01`, `O01` (dataset check: a funded output), `G01`, `S01`, `K01`, `I01`, `C01` (CoreTrustSeal), … |
 | `requirement` | string | A ledger clause the item asks about; it supplies the statement, the first source and the principles the item does not state |
-| `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended`, the CoreTrustSeal check `required` |
+| `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended`; the checks built on a standard start with `standard` (the CoreTrustSeal check has only that tier, the CDIF check adds `recommended` and `advanced`) |
 | `principles` | list | Principle IDs; empty for gate items and for institution items that serve no single principle |
 | `statement` | text | The statement the user answers |
 | `help` | text | A short explanation |

@@ -28,9 +28,9 @@
     FG.render();
   };
 
-  /* The parts of the knowledge base a view needs beyond the start: requirement guidance and the FIP profiles for
-     the catalogue and the checks, the pages' text for a page. */
-  const VIEW_PARTS = { catalogue: ["guidance", "fips"], check: ["guidance", "fips"], selfcheck: ["guidance", "fips"], page: ["pages"] };
+  /* The parts of the knowledge base a view needs beyond the start: the standards' requirements and the FIP
+     profiles for the catalogue and the checks, the standards for the explorer, the pages' text for a page. */
+  const VIEW_PARTS = { catalogue: ["standards", "fips"], check: ["standards", "fips"], selfcheck: ["standards", "fips"], explorer: ["standards"], page: ["pages"] };
 
   FG.render = function () {
     const route = FG.parseHash(window.location.hash);

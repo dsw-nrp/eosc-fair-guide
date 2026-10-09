@@ -10,8 +10,8 @@
   const SC = (FG.selfcheck = FG.selfcheck || {});
   const ANSWERS = ["yes", "partly", "no", "unknown", "na"];
   const SHARE_CODE = { yes: "y", partly: "p", no: "n", unknown: "k", na: "x" };
-  const FIRST_TIERS = ["#tier-required", "#tier-minimum"];
-  const TIER_ORDER = ["#tier-required", "#tier-minimum", "#tier-recommended", "#tier-advanced"];
+  const FIRST_TIERS = ["#tier-required", "#tier-standard", "#tier-minimum"];
+  const TIER_ORDER = ["#tier-required", "#tier-standard", "#tier-minimum", "#tier-recommended", "#tier-advanced"];
   const ANSWER_STATE = { yes: "met", partly: "partly", no: "gap", unknown: "unknown" };
   const STATE_ICON = { met: "✓", partly: "◐", gap: "✗", unknown: "?", open: "–", provided: "↗" };
   const FTR_VALUE = { yes: "pass", partly: "indeterminate", no: "fail", unknown: "indeterminate" };
@@ -1276,14 +1276,16 @@
   /** What a gap rests on: the requirements its question cites, as identifiers leading to the catalogue, and their
       sources. */
   function basisLine(item) {
-    const clauses = FG.refs(item, "citation").filter((clause) => String(clause["@id"]).startsWith("#clause-"));
-    if (!clauses.length) return null;
+    /* By identifier, so that a gap shown where a standard's requirements have not loaded (a station) still names them. */
+    const ids = FG.refIds(item, "citation").filter((id) => id.startsWith("#clause-"));
+    if (!ids.length) return null;
+    const clauses = ids.map(FG.get).filter(Boolean);
     const sources = [...new Set(clauses.map((clause) => FG.get(clause.isPartOf)).filter(Boolean))];
     return h(
       "p",
       { class: "action-basis small" },
       h("span", { class: "action-label" }, FG.t("selfcheck.result.basedOn") + ": "),
-      clauses.map((clause, index) => [index ? " " : "", FG.idChip("clauses", clause.identifier)]),
+      ids.map((id, index) => [index ? " " : "", FG.idChip("clauses", id.slice("#clause-".length))]),
       sources.length ? [" · ", sources.map((source, index) => [index ? ", " : "", FG.nameNodes(source)])] : null
     );
   }

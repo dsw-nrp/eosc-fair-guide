@@ -39,11 +39,12 @@ PREVIEW_FILE = "ro-crate-preview.html"
 KB_SCRIPT = "assets/data/kb.js"
 UI_SCRIPT = "assets/data/ui.js"
 # Parts of the knowledge base the page loads only when a view first needs them, so that what every view needs stays
-# a small first download: the guidance standards publish with their requirements, the FIP profiles of the FIP
-# Dashboard snapshot, and the text of the guide's pages. Each is a classic script like kb.js; kb.js and the parts
-# together are the crate.
+# a small first download: the requirements of the standards the guide ingests (CoreTrustSeal, CDIF) with their
+# guidance, the FIP profiles of the FIP Dashboard snapshot, and the text of the guide's pages. Each is a classic
+# script like kb.js; kb.js and the parts together are the crate.
+STANDARD_CLAUSES = ("#clause-CTS.", "#clause-CDIF.")
 PART_SCRIPTS = {
-    "guidance": "assets/data/kb-guidance.js",
+    "standards": "assets/data/kb-standards.js",
     "fips": "assets/data/kb-fips.js",
     "pages": "assets/data/kb-pages.js",
 }
@@ -210,6 +211,8 @@ def resolve_requirements(content: dict[str, Any]) -> None:
     for principle in content["principles"]:
         for code in principle.get("cts", []):
             linked.setdefault(f"CTS.{code}", []).append(principle["id"])
+        for profile in principle.get("cdif", []):
+            linked.setdefault(f"CDIF.{profile}", []).append(principle["id"])
     for data in content["checks"]:
         for item in data.get("item", []):
             clause = clauses.get(item.get("requirement"))
@@ -526,17 +529,7 @@ def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
     for principle in principles:
         # CoreTrustSeal requirements are ledger clauses (CTS.R01 ...), with their statement and guidance.
         related = [f"#clause-CTS.{requirement}" for requirement in principle.get("cts", [])]
-        related += [f"#cdif-{slug(profile)}" for profile in principle.get("cdif", [])]
-        for profile in principle.get("cdif", []):
-            graph.add(
-                {
-                    "@id": f"#cdif-{slug(profile)}",
-                    "@type": "DefinedTerm",
-                    "termCode": profile,
-                    "name": f"CDIF {profile}",
-                    "inDefinedTermSet": ref("#cdif"),
-                }
-            )
+        related += [f"#clause-CDIF.{profile}" for profile in principle.get("cdif", [])]
         graph.add(
             {
                 "@id": principle_iri(principle["id"]),
@@ -548,15 +541,6 @@ def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
                 "relatedTo": refs(related),
             },
             principle["id"],
-        )
-    if any(principle.get("cdif") for principle in principles):
-        graph.add(
-            {
-                "@id": "#cdif",
-                "@type": "DefinedTermSet",
-                "name": "Cross-Domain Interoperability Framework (CDIF)",
-                "url": "https://book.cdif.org/",
-            }
         )
 
 
@@ -1809,8 +1793,8 @@ def data_script(key: str, value: Any, about: str) -> str:
 
 def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     """The crate as the page loads it: the core every view needs, and the parts (PART_SCRIPTS) that views load when
-    they first need them. A part holds whole entities, or properties of core entities (the guidance); the core and
-    the parts together are the crate."""
+    they first need them. A part holds whole entities, or properties of core entities (the guidance of a clause that
+    is not a standard's); the core and the parts together are the crate."""
     graph = crate["@graph"]
     pages = [entity for entity in graph if str(entity["@id"]).startswith("#page-") and "isPartOf" not in entity]
     sections = {ref["@id"] for page in pages for ref in as_list(page.get("hasPart"))}
@@ -1822,10 +1806,12 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
     for entity in graph:
         if str(entity["@id"]).startswith("#fip-"):
             parts["fips"]["entities"].append(entity)
+        elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
+            parts["standards"]["entities"].append(entity)
         elif entity["@id"] in sections:
             parts["pages"]["entities"].append(entity)
         elif "guidance" in entity:
-            parts["guidance"]["properties"][entity["@id"]] = {"guidance": entity["guidance"]}
+            parts["standards"]["properties"][entity["@id"]] = {"guidance": entity["guidance"]}
             core.append({key: value for key, value in entity.items() if key != "guidance"})
         else:
             core.append(entity)
