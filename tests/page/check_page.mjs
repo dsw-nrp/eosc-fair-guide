@@ -636,6 +636,10 @@ function collisions() {
     await view.waitForSelector("#main h1");
     const agentPractice = view.locator("#main section", { hasText: "When an AI agent does the work" }).locator("ul.text-list");
     if ((await agentPractice.locator("li").count()) < 8 || (await agentPractice.innerText()).includes("- ") || !(await agentPractice.locator("a.text-ref").count())) fail("ai page: the practice for agents is not a list of items with its link");
+    // Each practice opens with its lead in bold, and the practice follows the rules directly.
+    if ((await agentPractice.locator("li > strong:first-child").count()) !== (await agentPractice.locator("li").count())) fail("ai page: a practice for agents lacks its bold lead");
+    const headings = await view.locator("#main article > section > h2").allTextContents();
+    if (headings.indexOf("When an AI agent does the work") !== headings.indexOf("Three rules") + 1) fail("ai page: the practice for agents does not follow the rules: " + headings.join(" | "));
     const gathered = await view.evaluate(() => {
       const FG = window.FairGuide;
       const all = FG.stations().flatMap((station) => FG.refs(station, "itemListElement").filter((item) => item.adviceKind === "ai"));

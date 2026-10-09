@@ -207,11 +207,21 @@
     return FG.h("span", { lang: lang || null }, ...linkedNodes(entity, text, lang || FG.state.lang, new Set()));
   };
 
+  /* A list item that opens with a short lead and a colon, "Git: commit each verified step", shows the lead in bold. */
+  const LEAD_LENGTH = 40;
+  function listItem(line, nodesOf) {
+    const at = line.indexOf(": ");
+    if (at > 0 && at <= LEAD_LENGTH && !/[.;!?]/.test(line.slice(0, at))) {
+      return FG.h("li", null, FG.h("strong", null, ...nodesOf(line.slice(0, at))), ...nodesOf(line.slice(at)));
+    }
+    return FG.h("li", null, ...nodesOf(line));
+  }
+
   /* A block of text: a list when every line starts with "- ", a paragraph otherwise. */
   function textBlock(block, lang, nodesOf) {
     const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
     if (lines.length && lines.every((line) => line.startsWith("- "))) {
-      return FG.h("ul", { class: "text-list", lang: lang || null }, ...lines.map((line) => FG.h("li", null, ...nodesOf(line.slice(2)))));
+      return FG.h("ul", { class: "text-list", lang: lang || null }, ...lines.map((line) => listItem(line.slice(2), nodesOf)));
     }
     return FG.h("p", { lang: lang || null }, ...nodesOf(block));
   }

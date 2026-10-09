@@ -345,7 +345,7 @@ button with the page's title and icon beside the language switch, marked while t
 page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `helper` (true
 for a page that holds an interactive helper; until the page script provides it, the page says it is still being
 built), `[[page.section]]` with `heading`, `body` (text; paragraphs are separated by a blank line, and a block
-whose lines all start with `- ` is shown as a list), an optional `id` and an optional `action` (a `label` and an
+whose lines all start with `- ` is shown as a list, an item's short lead before a colon in bold), an optional `id` and an optional `action` (a `label` and an
 `href`, as on an L0 advice item, shown as a button below the text); the section
 `credits` on the about page carries the roles table, generated from the guide's metadata, and on the page for
 machines `tasks`, `practice` and `endpoints` carry the table of what a reader wants and where it is, the guide's
