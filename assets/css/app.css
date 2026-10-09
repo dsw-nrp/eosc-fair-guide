@@ -2199,22 +2199,6 @@ a.id-chip:focus-visible {
   transform: translateX(1.25rem);
 }
 
-.switch-state {
-  white-space: nowrap;
-  padding: 0 var(--space-2);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text-muted);
-  font-size: var(--size-small);
-  font-weight: 400;
-}
-
-.switch input:checked ~ .switch-state {
-  border-color: var(--tint-teal);
-  color: var(--tint-teal);
-  font-weight: 600;
-}
-
 .switch input:focus-visible + .switch-track {
   outline: 3px solid var(--focus);
   outline-offset: 2px;

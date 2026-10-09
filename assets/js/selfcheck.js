@@ -1182,8 +1182,7 @@
         },
       }),
       h("span", { class: "switch-track", "aria-hidden": "true" }),
-      h("span", { title: compact ? FG.t("selfcheck.extendedSwitch", { n: more }) : null }, FG.t(compact ? "selfcheck.extendedShort" : "selfcheck.extendedSwitch", { n: more })),
-      h("span", { class: "switch-state", "aria-hidden": "true" }, FG.t(st.extended ? "common.on" : "common.off"))
+      h("span", { title: compact ? FG.t("selfcheck.extendedSwitch", { n: more }) : null }, FG.t(compact ? "selfcheck.extendedShort" : "selfcheck.extendedSwitch", { n: more }))
     );
   }
 

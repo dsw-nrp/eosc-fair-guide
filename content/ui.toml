@@ -611,8 +611,6 @@ coming = { cs = "připravuje se", en = "in preparation" }
 helperComing = { cs = "Pomocník se teprve připravuje a v této testovací verzi ještě není; zatím postupujte podle popisu výše.", en = "The helper is still being built and is not in this test version yet; for now, follow the description above." }
 
 [common]
-on = { cs = "zapnuto", en = "on" }
-off = { cs = "vypnuto", en = "off" }
 newWindow = { cs = "otevře se v nové kartě", en = "opens in a new tab" }
 back = { cs = "Zpět na cestu", en = "Back to the path" }
 copy = { cs = "Kopírovat", en = "Copy" }
