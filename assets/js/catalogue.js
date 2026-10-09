@@ -19,14 +19,6 @@
   /* ---------------------------------------------------------------- shared helpers */
 
   /** The link to an entity's JSON record in the guide's API; nothing until the API is published. */
-  /** A link to an entity's record in the guide's API, where it has one. */
-  FG.apiLink = function (entity) {
-    const api = FG.config.api;
-    const record = api && api.records[FG.id(entity)];
-    if (!record) return null;
-    return h("a", { class: "json-link", href: api.files.record.replace("{record}", record), type: "application/json", title: FG.t("api.recordTitle") }, FG.t("api.record"));
-  };
-
   /** The address of the catalogue showing one kind, or one entry of it. */
   FG.catalogueHref = (kind, item) => FG.href("catalogue", kind) + (item ? "/" + encodeURIComponent(item) : "");
 
@@ -144,6 +136,7 @@
       entries.push({
         kind: "resources",
         anchor: resource.identifier,
+        entity: resource,
         name: FG.text(resource.name),
         export: { url: resource.url, text: FG.text(resource.description) },
         checked: resource.statusAsOf ? String(resource.statusAsOf).slice(0, 10) : "",
@@ -174,6 +167,7 @@
       entries.push({
         kind: "resources",
         anchor: source.identifier,
+        entity: source,
         name: FG.text(source.name),
         export: { url },
         text: [FG.text(source.name), source.creditText, FG.text((FG.get(source.publisher) || {}).name)].join(" "),
@@ -195,6 +189,7 @@
       entries.push({
         kind: "resources",
         anchor: "fer-" + fer.identifier,
+        entity: fer,
         name: FG.text(fer.name),
         export: { url: fer.url, text: FG.text(fer.description) },
         text: [FG.text(fer.name), FG.bothLanguages(fer.description)].join(" "),
@@ -214,6 +209,7 @@
       return {
         kind: "repositories",
         anchor,
+        entity: repository,
         name: FG.text(repository.name),
         export: { url: repository.url },
         text: [FG.text(repository.name), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
@@ -243,6 +239,7 @@
       return {
         kind: "clauses",
         anchor: clause.identifier,
+        entity: clause,
         name: clause.identifier,
         export: { text: FG.text(clause.text) },
         text: [clause.identifier, FG.bothLanguages(clause.text)].join(" "),
@@ -283,6 +280,7 @@
           return {
             kind: "questions",
             anchor: item.identifier,
+            entity: item,
             name: item.identifier,
             export: { text: FG.text(item.text) },
             text: [item.identifier, FG.bothLanguages(item.text)].join(" "),
@@ -316,6 +314,7 @@
       return {
         kind: "terms",
         anchor: String(term.termCode),
+        entity: term,
         name: cs.replace(/^[[(]+/, ""),
         export: { name: FG.text(term.name), url: term.url },
         nameEn: en.replace(/^[[(]+/, ""),
@@ -343,6 +342,7 @@
       return {
         kind: "fips",
         anchor: fip.identifier,
+        entity: fip,
         name: FG.text(fip.name),
         export: { url },
         text: [FG.bothLanguages(fip.name), fip.alternateName, FG.bothLanguages(fip.abstract)].join(" "),
@@ -371,6 +371,7 @@
         return {
           kind: "tests",
           anchor: test.identifier,
+          entity: test,
           name: FG.text(test.name),
           export: { url: FG.refIds(test, "sameAs")[0] || test.url },
           text: [FG.bothLanguages(test.name), test.identifier].join(" "),
@@ -432,6 +433,7 @@
         return {
           kind: "actions",
           anchor: id,
+          entity: action,
           name: FG.text(action.name),
           export: { text: FG.text(action.description) },
           date: String(action.endTime || ""),
@@ -484,6 +486,8 @@
     row.stations = entry.stations.map((id) => FG.text((FG.get("#station-" + id) || {}).name));
     row.principles = entry.principles;
     row.entry = FG.pageAddress() + FG.catalogueHref(entry.kind, entry.anchor);
+    const record = FG.recordHref(entry.entity);
+    if (record) row.record = FG.siteAddress() + record;
     return row;
   }
 
@@ -491,24 +495,34 @@
   function exportColumns(kind, rows) {
     const facets = (KIND_FACETS[kind] || []).map((facet) => facet.key);
     const filled = ["id", "name", "text", "url", "date"].filter((key) => rows.some((row) => row[key]));
-    return filled.concat(facets, ["stations", "principles", "entry"]).map((key) => ({ key, label: facets.includes(key) ? FG.t("catalogue.facet." + key) : FG.t("export.column." + key) }));
+    return filled.concat(facets, ["stations", "principles", "entry"], rows.some((row) => row.record) ? ["record"] : []).map((key) => ({ key, label: facets.includes(key) ? FG.t("catalogue.facet." + key) : FG.t("export.column." + key) }));
   }
 
-  /** The list the catalogue shows, as CSV and JSON, in the order shown and with the filters that made it. */
+  /** The list the catalogue shows, in the order shown and with the filters that made it: as CSV, and as data in the
+      shape of the API's lists, each entry with its record at the address the page is served from. */
   function offerListExports(kind, groups) {
-    const rows = [...new Set(groups.flatMap((group) => group.entries))].map(exportRow);
+    const entries = [...new Set(groups.flatMap((group) => group.entries))];
+    const rows = entries.map(exportRow);
     const parts = ["catalogue", kind];
     const columns = exportColumns(kind, rows);
+    const site = FG.siteAddress();
+    const summary = (entry) => {
+      const entity = entry.entity || {};
+      const record = FG.recordHref(entity);
+      const label = entity.text !== undefined && entity.name === entity.identifier ? "text" : "name";
+      return { "@id": record ? site + record : FG.pageAddress() + FG.catalogueHref(entry.kind, entry.anchor), "@type": entity["@type"], identifier: entry.anchor, [label]: FG.languageMap(entity[label]) || entry.name };
+    };
     const payload = () => ({
-      title: FG.t("app.title") + " · " + FG.t("catalogue.tab." + kind),
-      url: FG.pageAddress() + window.location.hash,
-      exported: FG.today(),
-      language: FG.state.lang,
+      "@context": site + FG.config.api.files.context,
+      "@id": FG.pageAddress() + window.location.hash,
+      "@type": "ItemList",
+      name: FG.t("app.title") + " · " + FG.t("catalogue.tab." + kind),
+      dateCreated: FG.today(),
       version: FG.root.version,
       license: FG.id(FG.root.license),
-      columns: Object.fromEntries(columns.map((column) => [column.key, column.label])),
-      count: rows.length,
-      items: rows,
+      isBasedOn: site + "ro-crate-metadata.json",
+      numberOfItems: entries.length,
+      itemListElement: entries.map(summary),
     });
     FG.offerExport({ id: "csv", label: FG.t("export.csv", { n: rows.length }), run: () => FG.download(FG.exportName(parts, "csv"), FG.csv(columns, rows), "text/csv") });
     FG.offerExport({ id: "json", label: FG.t("export.json", { n: rows.length }), run: () => FG.download(FG.exportName(parts, "json"), JSON.stringify(payload(), null, 2) + "\n", "application/json") });
@@ -569,6 +583,9 @@
   }
 
   const encodePart = (value) => encodeURIComponent(value).replace(/[~!_]/g, (char) => "%" + char.charCodeAt(0).toString(16).toUpperCase());
+
+  /** The catalogue showing one kind narrowed to some stations, such as the changes to a station. */
+  FG.catalogueFilterHref = (kind, stations) => writeState({ kinds: [kind], stations, principles: [], q: "", order: "", f: {} });
 
   function writeState(state) {
     const fields = ["k!" + state.kinds.map(encodePart).join("_")];
@@ -784,7 +801,7 @@
     return h(
       "div",
       { class: "kind-intro" },
-      h("p", { class: "small" }, intro, kind === "actions" ? [" ", h("a", { href: FG.href("page", "machines") }, FG.t("catalogue.machinesLink"))] : null),
+      h("p", { class: "small" }, intro),
       kind === "fips" || kind === "resources" ? FG.dashboardNotice() : null
     );
   }

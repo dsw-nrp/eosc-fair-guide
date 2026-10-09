@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import posixpath
+import re
 import shutil
 import subprocess
 import sys
@@ -73,6 +74,20 @@ class GeneratorTests(FixtureCase):
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
         self.assertEqual(graph["#clause-A.F1.R1"]["supersededBy"], {"@id": "#clause-A.F1.X1"})
+
+    def test_the_guide_signposts_itself(self) -> None:
+        self.edit("guide.toml", 'profileVersion = "0.1"\n', 'profileVersion = "0.1"\ndoi = "10.1234/guide"\n')
+        outputs = build_crate.outputs(self.root)
+        links = json.loads(outputs[build_crate.LINKSET_FILE])["linkset"][0]
+        self.assertEqual(links["anchor"], "./")
+        self.assertEqual(links["describedby"][0]["href"], build_crate.CRATE_FILE)
+        self.assertEqual(links["cite-as"], [{"href": "https://doi.org/10.1234/guide"}])
+        self.assertNotIn("linkset", links, "the linkset does not list itself")
+        head = outputs[build_crate.PAGE_FILE]
+        for rel, targets in links.items():
+            for target in targets if rel != "anchor" else []:
+                self.assertRegex(head, f'<link rel="{rel}"[^>]* href="{re.escape(target["href"])}">')
+        self.assertIn('<link rel="linkset" type="application/linkset+json" href="linkset.json">', head)
 
     def test_crate_structure(self) -> None:
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])

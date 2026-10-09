@@ -1986,7 +1986,9 @@
         "div",
         { class: "export-more" },
         h("button", { type: "button", class: "button-small", id: "share-create", onclick: () => showShare(check, st) }, FG.icon("link"), FG.t("selfcheck.export.share")),
-        h("button", { type: "button", class: "button-small", onclick: () => window.print() }, FG.icon("print"), FG.t("selfcheck.export.print"))
+        h("button", { type: "button", class: "button-small", onclick: () => window.print() }, FG.icon("print"), FG.t("selfcheck.export.print")),
+        /* The check itself as data: its benchmark in the guide's API, with each question as a metric and its test. */
+        FG.recordHref(check) ? h("a", { class: "button-small", id: "export-data", href: FG.recordHref(check), type: "application/json" }, FG.icon("code"), FG.t("selfcheck.export.data")) : null
       ),
       h("div", { id: "share-output", class: "share-output" }),
       h("p", null, h("button", { type: "button", class: "button-link", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset")))
@@ -2236,6 +2238,7 @@
   /** The self-check overview: what it does in three steps, the checks for the current lens and the others, and a
       place to load a saved result. */
   function overview(route) {
+    FG.offerExport({ id: "data", icon: "code", label: FG.t("export.data"), href: FG.config.api.files.record.replace("{record}", "checks") });
     const checks = SC.checks();
     const mine = checks.filter((check) => FG.hasRef(check, "audience", "#lens-" + route.lens));
     const others = checks.filter((check) => !mine.includes(check));

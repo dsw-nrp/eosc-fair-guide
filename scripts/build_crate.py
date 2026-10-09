@@ -1514,6 +1514,51 @@ def api_paths(records: dict[str, list[tuple[str, str]]]) -> dict[str, str]:
     return {entity_id: f"{name}/{record}" for name, members in records.items() for record, entity_id in members}
 
 
+LINKSET_FILE = "linkset.json"
+SCHEMA_ORG_TYPES = ("https://schema.org/AboutPage", "https://schema.org/Dataset")
+
+
+def signposts(content: dict[str, Any], crate: dict[str, Any]) -> list[dict[str, str]]:
+    """The guide's FAIR Signposting links: what the page head carries and the linkset lists, each relative to the
+    site except identifiers outside it. The page presents the knowledge base, a dataset, and is its landing page."""
+    guide = content["guide"]["guide"]
+    root = next(entity for entity in crate["@graph"] if entity["@id"] == "./")
+    links = [
+        {"rel": "describedby", "href": CRATE_FILE, "type": "application/ld+json", "profile": RO_CRATE},
+        {
+            "rel": "service-desc",
+            "href": API_FILES["description"],
+            "type": "application/vnd.oai.openapi+json;version=3.1",
+        },
+        {"rel": "service-doc", "href": API_FILES["docs"], "type": "text/html"},
+        {"rel": "license", "href": root["license"]["@id"]},
+        *({"rel": "type", "href": iri} for iri in SCHEMA_ORG_TYPES),
+        *({"rel": "author", "href": editor["@id"]} for editor in as_list(root.get("editor")) if "://" in editor["@id"]),
+    ]
+    if guide.get("doi"):
+        links.append({"rel": "cite-as", "href": f"https://doi.org/{guide['doi']}"})
+    return links + [{"rel": "linkset", "href": LINKSET_FILE, "type": "application/linkset+json"}]
+
+
+def linkset(links: list[dict[str, str]]) -> dict[str, Any]:
+    """The signposts as a linkset (RFC 9264) anchored at the site, which it names relatively, so the guide can move."""
+    targets: dict[str, list[dict[str, str]]] = {}
+    for link in links:
+        if link["rel"] != "linkset":
+            targets.setdefault(link["rel"], []).append({key: value for key, value in link.items() if key != "rel"})
+    return {"linkset": [{"anchor": "./", **targets}]}
+
+
+def link_elements(links: list[dict[str, str]]) -> str:
+    """The signposts as link elements for the page head; HTML has no profile attribute, the linkset carries it."""
+
+    def element(link: dict[str, str]) -> str:
+        attributes = " ".join(f'{key}="{link[key]}"' for key in ("rel", "type", "href") if key in link)
+        return f"\n    <link {attributes}>"
+
+    return "".join(element(link) for link in links) + "\n    "
+
+
 def script_json(value: Any) -> str:
     """Serialise JSON safely for embedding in an HTML <script> element."""
     serialised = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
@@ -1594,6 +1639,7 @@ def page_config(
     content: dict[str, Any],
     text_links: dict[str, list[dict[str, str]]] | None = None,
     api: dict[str, str] | None = None,
+    links: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     guide = content["guide"]["guide"]
     live = content["live"]
@@ -1609,6 +1655,7 @@ def page_config(
             "pageUrl": guide.get("pageUrl"),
             "textLinks": text_links or {},
             "api": {"files": API_FILES, "collections": list(API_COLLECTIONS), "records": api or {}},
+            "signposts": links or [],
             "connectors": live.get("connector", []),
             "links": live.get("links", {}),
             "champion": champion,
@@ -1735,11 +1782,8 @@ def render_page(page: str, content: dict[str, Any], crate: dict[str, Any], sprit
         f'\n    <script src="{KB_SCRIPT}" defer></script>\n    ',
         "ui": f'\n    <script src="{UI_SCRIPT}" defer></script>\n    ',
         "icons": sprite,
-        # Typed links that tell harvesters where the knowledge base, the API description and its documentation are.
-        "links": f'\n    <link rel="describedby" type="application/ld+json" href="{CRATE_FILE}">'
-        f'\n    <link rel="service-desc" type="application/vnd.oai.openapi+json;version=3.1"'
-        f' href="{API_FILES["description"]}">'
-        f'\n    <link rel="service-doc" type="text/html" href="{API_FILES["docs"]}">\n    ',
+        # FAIR Signposting: where harvesters find the knowledge base, the API, the licence and the linkset.
+        "links": link_elements(signposts(content, crate)),
     }
     required = {"csp", "kb", "ui", "links"}
     found = {match.group("name") for match in BLOCK.finditer(page)}
@@ -1757,6 +1801,7 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     content = load_content(root / "content")
     graph = Graph()
     crate = build_crate(content, graph)
+    links = signposts(content, crate)
     page = render_page(
         (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
     )
@@ -1765,11 +1810,12 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
         KB_SCRIPT: data_script("kb", crate, "The knowledge base, the same RO-Crate as ro-crate-metadata.json."),
         UI_SCRIPT: data_script(
             "ui",
-            page_config(content, graph.text_links, api_paths(api_records(graph.entities, content))),
+            page_config(content, graph.text_links, api_paths(api_records(graph.entities, content)), links),
             "Interface strings and configuration.",
         ),
         PAGE_FILE: page,
         PREVIEW_FILE: page,
+        LINKSET_FILE: json.dumps(linkset(links), ensure_ascii=False, indent=2) + "\n",
     } | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
 
 

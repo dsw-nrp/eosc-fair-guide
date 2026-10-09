@@ -35,7 +35,7 @@ SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "MIT AND CC-BY-4.0"
 
 [[annotations]]
-path = ["ro-crate-metadata.json", "assets/data/*.js", "content/snapshots/**", "content/glossary.toml"]
+path = ["ro-crate-metadata.json", "linkset.json", "assets/data/*.js", "content/snapshots/**", "content/glossary.toml"]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"

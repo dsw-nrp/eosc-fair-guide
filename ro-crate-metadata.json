@@ -45917,61 +45917,42 @@
     {
       "@id": "#page-machines-1",
       "@type": "CreativeWork",
-      "headline": [
-        {
-          "@value": "Znalostní báze",
-          "@language": "cs"
-        },
-        {
-          "@value": "Knowledge base",
-          "@language": "en"
-        }
-      ],
       "text": [
         {
-          "@value": "Celý obsah průvodce je jedna znalostní báze ve formátu RO-Crate 1.2: principy a požadavky Analýzy FAIR, zastávky a rady, kontroly, zdroje, repozitáře, citované podklady, pojmy a paradata o tom, jak obsah vznikal. Stránka průvodce je zároveň jejím náhledem pro lidi.",
+          "@value": "Všechno, co průvodce obsahuje, jsou zároveň data, která čtou stroje: jedna znalostní báze a API sestavené z ní. Tato stránka ukazuje, jak je najít a použít, a předvádí na průvodci samém, co doporučuje repozitářům a datovým sadám. Chcete-li vidět, jak strojově čitelný obsah vypadá v praxi, vyzkoušejte si to právě tady.",
           "@language": "cs"
         },
         {
-          "@value": "All of the guide's content is one knowledge base in RO-Crate 1.2: the principles and requirements of the FAIR analysis, the stations and their advice, the checks, resources, repositories, cited sources, glossary terms and the paradata on how the content came about. The guide's page is also its preview for people.",
+          "@value": "Everything the guide holds is also data that machines read: one knowledge base and an API built from it. This page shows how to find and use them, and demonstrates on the guide itself what it recommends to repositories and datasets. If you want to see what machine-readable content looks like in practice, try it out right here.",
           "@language": "en"
         }
       ],
       "position": 1,
       "isPartOf": {
         "@id": "#page-machines"
-      },
-      "name": [
-        {
-          "@value": "Znalostní báze",
-          "@language": "cs"
-        },
-        {
-          "@value": "Knowledge base",
-          "@language": "en"
-        }
-      ]
+      }
     },
     {
       "@id": "#page-machines-2",
       "@type": "CreativeWork",
+      "identifier": "tasks",
       "headline": [
         {
-          "@value": "Profil a ověření",
+          "@value": "Co hledáte",
           "@language": "cs"
         },
         {
-          "@value": "Profile and validation",
+          "@value": "What you are looking for",
           "@language": "en"
         }
       ],
       "text": [
         {
-          "@value": "Báze odpovídá profilu průvodce, který popisuje typy záznamů a jejich vlastnosti, a profilu Process Run Crate pro paradata. Validátor RO-Crate ji proti nim ověřuje při každé změně.",
+          "@value": "Vyberte podle toho, co chcete udělat; každý odkaz vede na skutečná data průvodce.",
           "@language": "cs"
         },
         {
-          "@value": "The knowledge base conforms to the guide's profile, which describes the record types and their properties, and to the Process Run Crate profile for the paradata. The RO-Crate validator checks it against them on every change.",
+          "@value": "Choose by what you want to do; every link leads to the guide's real data.",
           "@language": "en"
         }
       ],
@@ -45979,38 +45960,29 @@
       "isPartOf": {
         "@id": "#page-machines"
       },
-      "name": [
-        {
-          "@value": "Profil a ověření",
-          "@language": "cs"
-        },
-        {
-          "@value": "Profile and validation",
-          "@language": "en"
-        }
-      ]
+      "name": "tasks"
     },
     {
       "@id": "#page-machines-3",
       "@type": "CreativeWork",
-      "identifier": "api",
+      "identifier": "practice",
       "headline": [
         {
-          "@value": "API",
+          "@value": "Jak průvodce uplatňuje vlastní doporučení",
           "@language": "cs"
         },
         {
-          "@value": "API",
+          "@value": "How the guide applies its own advice",
           "@language": "en"
         }
       ],
       "text": [
         {
-          "@value": "Kdo potřebuje jen část obsahu, může číst API průvodce, které běží bez serveru: soubor JSON pro každý princip, zastávku, kontrolu, otázku, zdroj, repozitář, požadavek, citované dílo, pojem, organizaci, profil FIP a změnu obsahu, s texty v obou jazycích a kontextem JSON-LD. Kontroly jsou benchmarky FTR a jejich otázky metriky s ručními testy, takže uložený výsledek kontroly odkazuje na test, ze kterého vzešel. Cesty odpovídají API FIP Dashboardu tam, kde obě popisují totéž, a záznamy na sebe odkazují relativními cestami, takže fungují na kterékoli adrese průvodce.",
+          "@value": "Strojově čitelný obsah se dá najít, přečíst a ověřit bez člověka. Průvodce k tomu používá tytéž prostředky, které doporučuje.\n\nFAIR Signposting: hlavička každé stránky nese typované odkazy na metadata, API, licenci a editora a linkset je vypisuje v jednom souboru, takže je stroj najde, aniž by znal adresy. Které to jsou, ukazuje tabulka níže.\n\nMetadata v komunitním standardu: znalostní báze je RO-Crate 1.2, odpovídá profilu průvodce a profilu Process Run Crate a validátor ji ověřuje při každé změně. Licence CC BY 4.0 je v ní uvedena strojově čitelně.\n\nProvenience: každá změna obsahu je zaznamenaná jako akce s autorem, použitým nástrojem včetně modelu AI a zdroji, z nichž vychází; v katalogu ji najdete mezi změnami obsahu.\n\nVýsledky testů: uložený výsledek kontroly je sada výsledků testů FTR a každý výsledek odkazuje na svůj test v API průvodce.\n\nAdresy: záznamy na sebe odkazují relativně, takže obsah bude fungovat i na trvalé adrese, která se teprve stanoví.",
           "@language": "cs"
         },
         {
-          "@value": "Whoever needs only part of the content can read the guide's API, which runs without a server: a JSON file for each principle, station, check, question, resource, repository, requirement, cited work, glossary term, organisation, FIP profile and content change, with texts in both languages and a JSON-LD context. Checks are FTR benchmarks and their questions metrics with manual tests, so a saved check result points to the test it came from. Paths follow the FIP Dashboard API where both describe the same thing, and records link each other by relative paths, so they work at any address of the guide.",
+          "@value": "Machine-readable content can be found, read and verified without a person. The guide does this with the same means it recommends.\n\nFAIR Signposting: the head of every page carries typed links to the metadata, the API, the licence and the editor, and a linkset lists them in one file, so a machine finds them without knowing their addresses. The table below shows which they are.\n\nMetadata in a community standard: the knowledge base is an RO-Crate 1.2, conforms to the guide's profile and to the Process Run Crate profile, and a validator checks it at every change. The CC BY 4.0 licence is stated in it in machine-readable form.\n\nProvenance: every content change is recorded as an action with its author, the tool used, including any AI model, and the sources it draws on; you find it in the catalogue among the content changes.\n\nTest results: a saved check result is an FTR test result set, and each result names its test in the guide's API.\n\nAddresses: records link each other relatively, so the content will work at the permanent address that is still to be settled.",
           "@language": "en"
         }
       ],
@@ -46018,33 +45990,34 @@
       "isPartOf": {
         "@id": "#page-machines"
       },
-      "name": "api",
+      "name": "practice",
       "mentions": [
         {
-          "@id": "#resource-fip-dashboard"
+          "@id": "#resource-fair-signposting"
         }
       ]
     },
     {
       "@id": "#page-machines-4",
       "@type": "CreativeWork",
+      "identifier": "endpoints",
       "headline": [
         {
-          "@value": "Jak ji stroje najdou",
+          "@value": "Koncové body API",
           "@language": "cs"
         },
         {
-          "@value": "How machines find it",
+          "@value": "API endpoints",
           "@language": "en"
         }
       ],
       "text": [
         {
-          "@value": "Hlavička každé stránky průvodce nese typované odkazy: describedby na znalostní bázi, service-desc na popis API a service-doc na jeho dokumentaci, takže je harvestery a validátory najdou bez znalosti adres. Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.",
+          "@value": "Tytéž koncové body, které ukazuje interaktivní dokumentace API, jako přístupná tabulka. Každá kolekce má seznam a záznam pro každou položku; kontext JSON-LD říká, co která vlastnost znamená.",
           "@language": "cs"
         },
         {
-          "@value": "The head of every page of the guide carries typed links: describedby to the knowledge base, service-desc to the API description and service-doc to its documentation, so harvesters and validators find them without knowing their addresses. The content is licensed under CC BY 4.0, the code under MIT.",
+          "@value": "The same endpoints the interactive API documentation shows, as an accessible table. Each collection has a list and a record for each entry; the JSON-LD context says what each property means.",
           "@language": "en"
         }
       ],
@@ -46052,16 +46025,7 @@
       "isPartOf": {
         "@id": "#page-machines"
       },
-      "name": [
-        {
-          "@value": "Jak ji stroje najdou",
-          "@language": "cs"
-        },
-        {
-          "@value": "How machines find it",
-          "@language": "en"
-        }
-      ]
+      "name": "endpoints"
     },
     {
       "@id": "#page-machines",

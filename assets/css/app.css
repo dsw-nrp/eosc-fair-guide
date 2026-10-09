@@ -804,7 +804,8 @@ details > summary .icon {
   font-size: inherit;
 }
 
-.credits {
+.credits,
+.data-table {
   width: 100%;
   border-collapse: collapse;
   margin: var(--space-3) 0;
@@ -812,14 +813,17 @@ details > summary .icon {
 }
 
 .credits th,
-.credits td {
+.credits td,
+.data-table th,
+.data-table td {
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: top;
 }
 
-.credits tbody th {
+.credits tbody th,
+.data-table tbody th {
   font-weight: 600;
   width: 40%;
 }
@@ -2537,13 +2541,81 @@ a.id-chip:focus-visible {
   border-color: var(--tint-teal);
 }
 
+/* An entry's record in the API: the same small link in the corner of every card that has one, outside its badges. */
+.card:has(.json-link) {
+  position: relative;
+}
+
+.card:has(.json-link) > :first-child {
+  padding-right: 4.5rem;
+}
+
 .json-link {
-  align-self: center;
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-4);
+  font-family: ui-monospace, monospace;
   font-size: var(--size-small);
 }
 
-.machine-links li {
-  margin-bottom: var(--space-2);
+.json-link::before {
+  content: "{ }";
+  display: inline-block;
+  margin-right: 0.4em;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+/* The page for machines: what a reader wants and where it is, the guide's own signposts, the endpoints. */
+.data-table code {
+  overflow-wrap: anywhere;
+}
+
+.machine-tasks tbody th,
+.endpoints tbody th {
+  width: 32%;
+}
+
+.signposts tbody th {
+  width: 18%;
+}
+
+.endpoint-description {
+  display: block;
+  font-weight: 400;
+}
+
+.data-table caption {
+  text-align: left;
+  font-weight: 600;
+  padding-bottom: var(--space-2);
+}
+
+/* On a phone each row of these tables is a block: what is wanted, then where it is; the header stays for screen
+   readers. */
+@media (max-width: 40rem) {
+  .data-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .data-table tr {
+    display: block;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table tbody th,
+  .data-table tbody td {
+    display: block;
+    width: auto;
+    padding: var(--space-1) 0;
+    border-bottom: 0;
+  }
 }
 
 /* The tools view: one card per tool, its icon beside the name and what it does. */

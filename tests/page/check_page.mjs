@@ -285,17 +285,34 @@ async function axe(page, label) {
       if (!(await view.locator(".catalogue-results .card h3", { hasText: name }).count())) fail("repositories: " + name + " is not listed");
     }
 
-    // Exports: every view but a single check offers printing and the whole crate under it; the catalogue saves the
-    // filtered list it shows as CSV and JSON, a station saves itself as Markdown, and printing opens closed sections.
+    // Exports: every view but a single check offers printing under it, and its content as data where it has a record
+    // in the API; the whole crate is on the page for machines. The catalogue saves the filtered list it shows as CSV
+    // and as data, a station saves itself as Markdown, and printing opens closed sections.
     const exportIds = async () => view.evaluate(() => [...document.querySelectorAll(".export-bar .export-actions > *")].map((node) => node.id).join(","));
-    for (const hash of ["#/cs/V/path/start", "#/cs/V/explorer", "#/cs/V/page/about", "#/cs/V/tools", "#/cs/V/check"]) {
+    const exportData = async () => view.evaluate(() => (document.getElementById("export-data") || {}).getAttribute?.("href") || "");
+    for (const [hash, expected, record] of [
+      ["#/cs/V/path/start", "export-print"],
+      ["#/cs/V/explorer", "export-print"],
+      ["#/cs/V/page/about", "export-print"],
+      ["#/cs/V/tools", "export-print"],
+      ["#/cs/V/check", "export-data,export-print", "api/checks.json"],
+      ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/principles/R1.1.json"],
+      ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/stations/licence.json"],
+    ]) {
       await view.goto(pageUrl + hash);
       await view.waitForSelector("#main h1");
-      if ((await exportIds()) !== "export-print,export-crate") fail(`exports: ${hash} does not offer printing and the crate: ${await exportIds()}`);
+      if ((await exportIds()) !== expected) fail(`exports: ${hash} offers ${await exportIds()} instead of ${expected}`);
+      if (record && ((await exportData()) !== record || !existsSync(resolve(root, "_site", record)))) fail(`exports: ${hash} does not offer its record ${record} as data, or it is not built`);
     }
+    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await view.waitForSelector("#main h1");
+    if (!(await view.locator('a[href="#/cs/V/catalogue/k!actions~s!licence"]').count())) fail("paradata: the station does not lead to its changes in the catalogue");
     await view.goto(pageUrl + "#/cs/V/check/dataset");
     await view.waitForSelector("#main h1");
     if (await view.locator(".export-bar").count()) fail("exports: a single check shows the shared export bar beside its own exports");
+    await view.goto(pageUrl + "#/cs/DS/check/institution");
+    await view.waitForSelector("#export-data");
+    if ((await view.locator("#export-data").getAttribute("href")) !== "api/checks/institution.json") fail("exports: a single check does not offer its benchmark record as data");
     const saved = async (id) => {
       const [download] = await Promise.all([view.waitForEvent("download"), view.locator("#export-" + id).click()]);
       return { name: download.suggestedFilename(), text: readFileSync(await download.path(), "utf8") };
@@ -304,10 +321,16 @@ async function axe(page, label) {
     const listed = await found();
     const csv = await saved("csv");
     const csvRows = csv.text.replace(/^\ufeff/, "").trim().split("\r\n");
+    if (!csvRows[0].includes("Record in the API")) fail("exports: the CSV does not carry each entry's record");
     if (!/^fair-guide-catalogue-resources-\d{4}-\d{2}-\d{2}\.csv$/.test(csv.name) || !csvRows[0].startsWith("Identifier,Name,") || !csvRows[0].includes("Address") || !csvRows[0].includes("Status")) fail("exports: the CSV is not named or headed as expected: " + csv.name + " " + csvRows[0]);
     if (csvRows.length - 1 !== listed || !csvRows.slice(1).every((row) => row.includes("https://"))) fail(`exports: the CSV does not hold exactly the ${listed} filtered entries with their addresses (${csvRows.length - 1} rows)`);
     const json = JSON.parse((await saved("json")).text);
-    if (json.count !== listed || json.items.length !== listed || !json.url.includes("s!licence") || !json.items.every((item) => item.entry.includes("/catalogue/resources/"))) fail("exports: the JSON list does not match the filtered list or name its filters");
+    // The list as data has the shape of the API's lists; each entry names its record at the page's address, which for a
+    // local file is the configured one and maps onto the built site.
+    const configured = await view.evaluate(() => window.FairGuide.config.pageUrl);
+    const inBuilt = (id) => String(id).startsWith(configured) && existsSync(resolve(root, "_site", String(id).slice(configured.length)));
+    if (json["@type"] !== "ItemList" || json.numberOfItems !== listed || json.itemListElement.length !== listed || !String(json["@id"]).includes("s!licence") || !String(json["@context"]).endsWith("api/context.jsonld")) fail("exports: the list as data is not an ItemList of the filtered entries naming its filters");
+    if (!json.itemListElement.every((item) => item.identifier && item.name && inBuilt(item["@id"]))) fail("exports: an entry of the list as data does not name its record in the API");
     await view.goto(pageUrl + "#/en/DS/path/licence");
     await view.waitForSelector("#main h1");
     const markdown = await saved("markdown");
@@ -337,7 +360,20 @@ async function axe(page, label) {
     await view.goto(pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
     if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");
-    if (!(await view.locator('.machine-links a[href="ro-crate-metadata.json"]').count())) fail("machines: the page does not link the knowledge base");
+    if (!(await view.locator('.machine-tasks a[href="ro-crate-metadata.json"]').count())) fail("machines: the page does not offer the knowledge base");
+    // A data steward who wants one record finds its address pattern and a working example, and how the guide itself
+    // uses the same means: its signposts, read from the same list as the head and the linkset.
+    const example = await view.locator(".machine-tasks a[href$='principles/R1.1.json']").getAttribute("href");
+    if (!example || !existsSync(resolve(root, "_site", example)) || !(await view.locator(".machine-tasks code", { hasText: "<id>.json" }).count())) fail("machines: the task table does not show a record's pattern and a working example");
+    const shown = await view.locator(".signposts tbody tr").evaluateAll((rows) => rows.map((row) => row.querySelector("code").textContent + " " + row.querySelector("td a").getAttribute("href")).sort());
+    const head = await view.locator("head link[rel]").evaluateAll((links) => links.filter((link) => !["stylesheet", "icon", "apple-touch-icon"].includes(link.rel)).map((link) => link.getAttribute("rel") + " " + link.getAttribute("href")).sort());
+    if (shown.join("|") !== head.join("|")) fail("machines: the signposts the page shows differ from the head's: " + shown.join(", ") + " vs " + head.join(", "));
+    const linkset = JSON.parse(readFileSync(resolve(root, "linkset.json"), "utf8")).linkset[0];
+    const listed2 = Object.entries(linkset).filter(([rel]) => rel !== "anchor").flatMap(([rel, targets]) => targets.map((target) => rel + " " + target.href));
+    if (linkset.anchor !== "./" || listed2.sort().join("|") !== head.filter((link) => !link.startsWith("linkset ")).join("|")) fail("signposting: the linkset does not list the head's links, anchored at the site");
+    for (const rel of ["describedby", "service-desc", "service-doc", "license", "type", "author", "linkset"]) {
+      if (!head.some((link) => link.startsWith(rel + " "))) fail("signposting: the head has no " + rel + " link");
+    }
     if (!(await view.locator('head link[rel="describedby"][href="ro-crate-metadata.json"]').count())) fail("machines: the head does not carry the describedby link");
     // The API (built into _site/ by scripts/build_api.py): typed links in the head lead to its description and its
     // documentation, and the page lists every collection as an accessible counterpart of the documentation.
@@ -347,9 +383,9 @@ async function axe(page, label) {
       const href = await view.locator(`head link[rel="${rel}"]`).getAttribute("href");
       if (!inSite(href)) fail(`machines: the ${rel} link does not lead to the built API: ${href}`);
     }
-    const endpoints = await view.locator(".api-endpoints li a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     const collections = await view.evaluate(() => window.FairGuide.config.api.collections.length);
-    if (endpoints.length !== collections || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
+    if (endpoints.length !== collections + 2 || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
     // Every catalogue entry links to its record in the API; the NKR samples are illustrations, not entries.
     for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
       await view.goto(pageUrl + "#/cs/V/catalogue/" + kind);
@@ -357,6 +393,12 @@ async function axe(page, label) {
       const unlinked = await view.locator(".catalogue .card:not(.nkr-sample)").evaluateAll((cards) => cards.filter((card) => !card.querySelector(".json-link")).map((card) => card.id || card.textContent.trim().slice(0, 40)));
       const records = await view.locator(".catalogue .card .json-link").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
       if (unlinked.length || !records.every(inSite)) fail(`catalogue: ${kind} entries without a record in the API, or a link that leads nowhere: ${unlinked.join(", ")}`);
+      const corner = await view.locator(".catalogue .card .json-link").first().evaluate((link) => {
+        const box = link.getBoundingClientRect();
+        const card = link.closest(".card").getBoundingClientRect();
+        return box.top - card.top < 40 && card.right - box.right < 40;
+      });
+      if (!corner) fail(`catalogue: the ${kind} record link does not sit in the card's top right corner`);
     }
     // The accessibility statement names the API documentation as exempt and points to the accessible list.
     await view.goto(pageUrl + "#/cs/V/page/accessibility");

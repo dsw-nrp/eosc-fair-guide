@@ -96,13 +96,41 @@
     return "\ufeff" + lines.map((line) => line.join(",")).join("\r\n") + "\r\n";
   };
 
-  /** What the view being rendered offers to save, besides printing and the whole crate; views add to it. */
+  /** What the view being rendered offers to save, besides printing; views add to it. */
   FG.exports = [];
   FG.offerExport = (entry) => FG.exports.push(entry);
 
-  /** The view's exports, printing and the whole knowledge base, under the view. */
+  /** An entity's record in the guide's API, as a path under the page; null where it has none. */
+  FG.recordHref = function (entity) {
+    const api = FG.config.api;
+    const record = api && api.records[FG.id(entity)];
+    return record ? api.files.record.replace("{record}", record) : null;
+  };
+
+  /** A link to an entity's record, the same small link in the corner of every card that has one. */
+  FG.apiLink = function (entity) {
+    const href = FG.recordHref(entity);
+    return href ? FG.h("a", { class: "json-link", href, type: "application/json", title: FG.t("api.recordTitle") }, FG.t("api.record")) : null;
+  };
+
+  /** The view as data: the record of the entity it shows, offered under the view. */
+  FG.offerRecord = function (entity) {
+    const href = FG.recordHref(entity);
+    if (href) FG.offerExport({ id: "data", icon: "code", label: FG.t("export.data"), href });
+  };
+
+  /** Language-tagged values as a language map, as the API writes them: one text per language. */
+  FG.languageMap = (value) =>
+    FG.list(value).some((item) => item && item["@language"])
+      ? Object.fromEntries(FG.list(value).filter((item) => item && item["@language"]).map((item) => [item["@language"], item["@value"]]))
+      : FG.text(value);
+
+  /** The view's exports and printing, under the view; the whole knowledge base is on the page for machines. */
   FG.exportBar = function () {
-    const button = (entry) => FG.h("button", { type: "button", class: "button-small", id: "export-" + entry.id, onclick: entry.run }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label));
+    const button = (entry) =>
+      entry.href
+        ? FG.h("a", { class: "button-small", id: "export-" + entry.id, href: entry.href, type: "application/json" }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label))
+        : FG.h("button", { type: "button", class: "button-small", id: "export-" + entry.id, onclick: entry.run }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label));
     return FG.h(
       "section",
       { class: "export-bar wrap no-print", "aria-labelledby": "export-bar-title" },
@@ -114,8 +142,7 @@
           "div",
           { class: "export-actions" },
           FG.exports.map(button),
-          button({ id: "print", icon: "print", label: FG.t("export.print"), run: () => window.print() }),
-          FG.h("a", { class: "button-small", id: "export-crate", href: "ro-crate-metadata.json", download: "ro-crate-metadata.json" }, FG.icon("download"), FG.h("span", null, FG.t("export.crate")))
+          button({ id: "print", icon: "print", label: FG.t("export.print"), run: () => window.print() })
         )
       )
     );

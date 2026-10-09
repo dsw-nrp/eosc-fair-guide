@@ -633,7 +633,7 @@
     );
   }
 
-  function madeContent(items) {
+  function madeContent(items, station) {
     const sources = sourcesOf(items);
     const actions = actionsOf(items);
     return [
@@ -641,7 +641,7 @@
       h("ul", null, sources.map((source) => h("li", null, source.url ? FG.external(source.url, FG.nameNodes(source)) : FG.nameNodes(source)))),
       h("h3", null, FG.t("station.madeBy")),
       h("ul", { class: "change-history" }, changeHistory(actions).map((entry) => h("li", null, FG.t(entry.created ? "station.changeCreate" : "station.changeUpdate", { date: FG.formatDate(entry.date) })))),
-      h("p", { class: "small muted" }, FG.t("station.paradata") + " ", h("a", { href: "ro-crate-metadata.json" }, FG.t("footer.crate"))),
+      h("p", { class: "small muted" }, FG.t("station.paradata") + " ", h("a", { href: FG.catalogueFilterHref("actions", [station.identifier]) }, FG.t("station.changes"))),
     ];
   }
 
@@ -776,6 +776,7 @@
       label: FG.t("export.markdown"),
       run: () => FG.download(FG.exportName(["station", entity.identifier, route.lens, FG.state.lang], "md"), stationMarkdown(entity, route, parts), "text/markdown"),
     });
+    FG.offerRecord(entity);
     return h(
       "article",
       { class: "station" },
@@ -808,7 +809,7 @@
       ai.length
         ? details([FG.icon("ai"), h("span", null, FG.t("station.ai"))], "ai", ai.map((item) => h("p", { class: "tip" }, FG.linkedSpan(item))), h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline))))
         : null,
-      details(levelTitle("L3"), "L3", madeContent(items)),
+      details(levelTitle("L3"), "L3", madeContent(items, entity)),
       provenanceLine(items),
       terms.length
         ? h(
@@ -859,6 +860,7 @@
   FG.views.explorer = function (route) {
     const principles = FG.principles();
     const selected = principles.find((principle) => principle.termCode === route.arg);
+    if (selected) FG.offerRecord(selected);
     const clauses = selected
       ? FG.graph.filter((entity) => entity.clauseKind && FG.hasRef(entity, "about", selected["@id"]))
       : [];
@@ -1138,64 +1140,85 @@
             section.headline ? h("h2", null, FG.span(section.headline)) : null,
             FG.linkedParagraphs(section),
             section.identifier === "credits" ? creditsTable() : null,
+            page.identifier === "machines" && section.identifier === "tasks" ? machineTasks() : null,
+            page.identifier === "machines" && section.identifier === "practice" ? signpostTable() : null,
+            page.identifier === "machines" && section.identifier === "endpoints" ? endpointTable() : null,
             section.identifier === "privacy" && FG.selfcheck && FG.selfcheck.localDataNote ? FG.selfcheck.localDataNote() : null
           )
         ),
-        page.identifier === "machines" ? machineLinks() : null,
         FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier]() : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
       )
     );
   };
 
-  /** What the knowledge base offers machines, read from the crate's own root: the crate, its profiles, the licence and
-      the source; then the API's description, documentation and context, and every endpoint as a list, which is the
-      accessible counterpart of the interactive documentation. */
-  function machineLinks() {
-    const root = FG.root;
+  /** What a reader may want from the knowledge base and where it is: each row leads to the guide's own data. */
+  function machineTasks() {
     const files = FG.config.api.files;
-    const row = (label, link, note) => h("li", null, h("strong", null, label + ": "), link, note ? h("span", { class: "muted" }, " · " + note) : null);
-    const file = (path, type) => h("a", { href: path, type }, path);
-    const crateFile = "ro-crate-metadata.json";
-    return [
-      h(
-        "section",
-        { "aria-labelledby": "machine-links" },
-        h("h2", { id: "machine-links" }, FG.t("machines.links")),
-        h(
-          "ul",
-          { class: "machine-links" },
-          row(FG.t("machines.crate"), file(crateFile, "application/ld+json"), "RO-Crate 1.2, JSON-LD"),
-          FG.refs(root, "conformsTo").map((profile) => row(FG.t("machines.profile"), FG.external(FG.id(profile), FG.text(profile.name) || FG.id(profile)))),
-          root.license ? row(FG.t("machines.licence"), FG.external(FG.id(root.license), FG.id(root.license).split("/").pop())) : null,
-          row(FG.t("machines.source"), FG.external(root.url, root.url)),
-          row(FG.t("api.openapi"), file(files.description, "application/vnd.oai.openapi+json")),
-          row(FG.t("api.docs"), file(files.docs, "text/html"), "Swagger UI"),
-          row(FG.t("api.context"), file(files.context, "application/ld+json"), "JSON-LD"),
-          row(FG.t("api.meta"), file(files.meta, "application/json"))
-        )
-      ),
-      h(
-        "section",
-        { "aria-labelledby": "api-endpoints" },
-        h("h2", { id: "api-endpoints" }, FG.t("api.endpoints")),
-        h(
-          "ul",
-          { class: "machine-links api-endpoints" },
-          FG.config.api.collections.map((name) =>
-            h(
-              "li",
-              null,
-              h("strong", null, FG.t("api.collection." + name + ".name") + ": "),
-              file(files.record.replace("{record}", name), "application/json"),
-              " · ",
-              h("code", null, files.record.replace("{record}", name + "/{id}")),
-              h("br"),
-              h("span", { class: "small muted" }, FG.t("api.collection." + name + ".description"))
-            )
-          )
-        )
-      ),
+    const link = (href, label, type) => h("a", { href, type: type || null }, label || href);
+    const example = "principles/R1.1";
+    const rows = [
+      ["crate", [link("ro-crate-metadata.json", null, "application/ld+json")]],
+      ["record", [h("code", null, files.record.replace("{record}", "<kolekce>/<id>")), " · ", FG.t("machines.example") + ": ", link(files.record.replace("{record}", example), null, "application/json")]],
+      ["service", [link(files.description, null, "application/vnd.oai.openapi+json"), " · ", link(files.docs, FG.t("api.docs"), "text/html")]],
+      ["harvest", [link("linkset.json", null, "application/linkset+json"), " · ", h("a", { href: "#signposts" }, FG.t("machines.headLinks"))]],
+      ["result", [link(FG.href("selfcheck"), FG.t("nav.selfcheck"))]],
+      ["list", [link(FG.href("catalogue"), FG.t("nav.catalogue"))]],
     ];
+    return h(
+      "table",
+      { class: "data-table machine-tasks" },
+      h("caption", { class: "visually-hidden" }, FG.t("machines.tasksCaption")),
+      h("thead", null, h("tr", null, ["want", "use", "what"].map((key) => h("th", { scope: "col" }, FG.t("machines.column." + key))))),
+      h(
+        "tbody",
+        null,
+        rows.map(([key, use]) => h("tr", null, h("th", { scope: "row" }, FG.t("machines.task." + key + ".want")), h("td", null, use), h("td", null, FG.t("machines.task." + key + ".what"))))
+      )
+    );
+  }
+
+  /** The guide's own signposts, read from the same list as the page head and the linkset. */
+  function signpostTable() {
+    const target = (href) => (/^[a-z]+:/i.test(href) ? FG.external(href, href) : h("a", { href }, href));
+    return h(
+      "table",
+      { class: "data-table signposts", id: "signposts" },
+      h("caption", null, FG.t("machines.signpostsCaption")),
+      h("thead", null, h("tr", null, ["rel", "target", "meaning"].map((key) => h("th", { scope: "col" }, FG.t("machines.column." + key))))),
+      h(
+        "tbody",
+        null,
+        FG.list(FG.config.signposts).map((link) => h("tr", null, h("th", { scope: "row" }, h("code", null, link.rel)), h("td", null, target(link.href)), h("td", null, FG.t("machines.rel." + (link.rel === "type" ? "type_" + link.href.split("/").pop() : link.rel.replace("-", "_"))))))
+      )
+    );
+  }
+
+  /** Every endpoint of the API, the accessible counterpart of its interactive documentation. */
+  function endpointTable() {
+    const files = FG.config.api.files;
+    const file = (path, type) => h("a", { href: path, type }, path);
+    return h(
+      "table",
+      { class: "data-table endpoints" },
+      h("caption", { class: "visually-hidden" }, FG.t("api.endpoints")),
+      h("thead", null, h("tr", null, ["collection", "list", "record"].map((key) => h("th", { scope: "col" }, FG.t("machines.column." + key))))),
+      h(
+        "tbody",
+        null,
+        FG.config.api.collections.map((name) =>
+          h(
+            "tr",
+            null,
+            h("th", { scope: "row" }, FG.t("api.collection." + name + ".name"), h("span", { class: "small muted endpoint-description" }, FG.t("api.collection." + name + ".description"))),
+            h("td", null, file(files.record.replace("{record}", name), "application/json")),
+            h("td", null, h("code", null, files.record.replace("{record}", name + "/<id>")))
+          )
+        ),
+        [["meta", files.meta, "application/json"], ["context", files.context, "application/ld+json"]].map(([key, path, type]) =>
+          h("tr", null, h("th", { scope: "row" }, FG.t("api." + key)), h("td", null, file(path, type)), h("td", null, ""))
+        )
+      )
+    );
   }
 
   /** Whether a page holds a helper that the page script does not provide yet. */

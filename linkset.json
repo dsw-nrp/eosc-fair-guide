@@ -1,0 +1,44 @@
+{
+  "linkset": [
+    {
+      "anchor": "./",
+      "describedby": [
+        {
+          "href": "ro-crate-metadata.json",
+          "type": "application/ld+json",
+          "profile": "https://w3id.org/ro/crate/1.2"
+        }
+      ],
+      "service-desc": [
+        {
+          "href": "openapi.json",
+          "type": "application/vnd.oai.openapi+json;version=3.1"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "api/",
+          "type": "text/html"
+        }
+      ],
+      "license": [
+        {
+          "href": "https://spdx.org/licenses/CC-BY-4.0"
+        }
+      ],
+      "type": [
+        {
+          "href": "https://schema.org/AboutPage"
+        },
+        {
+          "href": "https://schema.org/Dataset"
+        }
+      ],
+      "author": [
+        {
+          "href": "https://orcid.org/0000-0001-6592-6291"
+        }
+      ]
+    }
+  ]
+}

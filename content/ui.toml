@@ -141,6 +141,7 @@ madeBy = { cs = "Historie změn", en = "Change history" }
 changeCreate = { cs = "{date} · obsah vytvořen", en = "{date} · content created" }
 changeUpdate = { cs = "{date} · obsah upraven", en = "{date} · content updated" }
 paradata = { cs = "Kdo obsah připravil, jakými nástroji a z jakých zdrojů, zaznamenávají paradata:", en = "Who prepared the content, with which tools and from which sources is recorded in the paradata:" }
+changes = { cs = "změny tohoto kroku v katalogu", en = "the changes to this step in the catalogue" }
 empty = { cs = "Pro tento pohled zde nic dalšího není.", en = "Nothing more here for this view." }
 current = { cs = "aktuální krok", en = "current step" }
 
@@ -422,6 +423,7 @@ tooLarge = { cs = "Soubor je na výsledek z průvodce příliš velký.", en = "
 
 [selfcheck.export]
 title = { cs = "Uložit a sdílet", en = "Save and share" }
+data = { cs = "Kontrola jako data (JSON)", en = "The check as data (JSON)" }
 format = { cs = "Formát", en = "Format" }
 formatMd = { cs = "Shrnutí ke čtení (Markdown)", en = "Summary to read (Markdown)" }
 formatJsonld = { cs = "Výsledek pro další služby (JSON-LD)", en = "Result for other services (JSON-LD)" }
@@ -446,9 +448,9 @@ title = { cs = "Kdo vám poradí", en = "Who can help" }
 [export]
 title = { cs = "Uložit a sdílet", en = "Save and share" }
 print = { cs = "Vytisknout nebo uložit jako PDF", en = "Print or save as PDF" }
-crate = { cs = "Celá znalostní báze (RO-Crate)", en = "The whole knowledge base (RO-Crate)" }
+data = { cs = "Jako data (JSON)", en = "As data (JSON)" }
 csv = { cs = "Seznam jako CSV ({n})", en = "List as CSV ({n})" }
-json = { cs = "Seznam jako JSON ({n})", en = "List as JSON ({n})" }
+json = { cs = "Seznam jako data (JSON, {n})", en = "List as data (JSON, {n})" }
 markdown = { cs = "Tento krok jako Markdown", en = "This step as Markdown" }
 mdLens = { cs = "Pohled: {lens}.", en = "Lens: {lens}." }
 mdFooter = { cs = "Z Průvodce FAIR daty, verze {version}, staženo {date}. Obsah je pod licencí CC BY 4.0:", en = "From the FAIR Data Guide, version {version}, exported {date}. The content is licensed under CC BY 4.0:" }
@@ -462,6 +464,7 @@ date = { cs = "Datum", en = "Date" }
 stations = { cs = "Kroky cesty", en = "Steps of the path" }
 principles = { cs = "Principy", en = "Principles" }
 entry = { cs = "Položka v katalogu", en = "Catalogue entry" }
+record = { cs = "Záznam v API", en = "Record in the API" }
 
 [footer]
 version = { cs = "Verze {version} ze dne {date}", en = "Version {version} of {date}" }
@@ -595,11 +598,56 @@ degraded = { cs = "funguje omezeně", en = "degraded" }
 unavailable = { cs = "nefunguje", en = "unavailable" }
 
 [machines]
-links = { cs = "Odkazy pro stroje", en = "Links for machines" }
-crate = { cs = "Znalostní báze", en = "Knowledge base" }
-profile = { cs = "Profil", en = "Profile" }
-licence = { cs = "Licence obsahu", en = "Content licence" }
-source = { cs = "Zdrojový kód a data", en = "Source code and data" }
+example = { cs = "například", en = "for example" }
+headLinks = { cs = "odkazy v hlavičce stránky", en = "links in the page head" }
+tasksCaption = { cs = "Co hledáte a kde to najdete", en = "What you are looking for and where it is" }
+signpostsCaption = { cs = "Odkazy v hlavičce každé stránky průvodce a v linksetu", en = "Links in the head of every page of the guide and in the linkset" }
+
+[machines.column]
+want = { cs = "Chci", en = "I want" }
+use = { cs = "Použijte", en = "Use" }
+what = { cs = "Co to je", en = "What it is" }
+rel = { cs = "Vztah", en = "Relation" }
+target = { cs = "Kam vede", en = "Target" }
+meaning = { cs = "Co říká", en = "What it says" }
+collection = { cs = "Kolekce", en = "Collection" }
+list = { cs = "Seznam", en = "List" }
+record = { cs = "Záznam", en = "Record" }
+
+[machines.task.crate]
+want = { cs = "celou znalostní bázi i s paradaty", en = "the whole knowledge base with its paradata" }
+what = { cs = "Jeden soubor JSON-LD ve formátu RO-Crate 1.2, ověřený proti profilu průvodce.", en = "One JSON-LD file in RO-Crate 1.2, validated against the guide's profile." }
+
+[machines.task.record]
+want = { cs = "údaje o jednom principu, kroku, požadavku nebo pojmu", en = "the data on one principle, step, requirement or term" }
+what = { cs = "Záznam API v JSON s kontextem JSON-LD; texty česky i anglicky a odkazy na související záznamy.", en = "An API record in JSON with a JSON-LD context; texts in Czech and English and links to related records." }
+
+[machines.task.service]
+want = { cs = "napojit vlastní službu nebo nástroj", en = "to connect my own service or tool" }
+what = { cs = "Popis API ve formátu OpenAPI 3.1 a jeho interaktivní dokumentace.", en = "The API's description in OpenAPI 3.1 and its interactive documentation." }
+
+[machines.task.harvest]
+want = { cs = "aby průvodce harvester našel sám", en = "a harvester to find the guide on its own" }
+what = { cs = "FAIR Signposting: typované odkazy v hlavičce každé stránky a linkset, který je vypisuje v jednom souboru.", en = "FAIR Signposting: typed links in the head of every page and a linkset that lists them in one file." }
+
+[machines.task.result]
+want = { cs = "uložit a sdílet výsledek kontroly", en = "to save and share a check result" }
+what = { cs = "Výsledek jako sada výsledků testů FTR v RO-Crate; každý výsledek odkazuje na svůj test v API.", en = "The result as an FTR test result set in an RO-Crate; each result names its test in the API." }
+
+[machines.task.list]
+want = { cs = "seznam z katalogu, jak jsem si ho vyfiltroval", en = "a catalogue list as I filtered it" }
+what = { cs = "Pod seznamem jako CSV, nebo jako data ve tvaru seznamů API s odkazem na záznam každé položky.", en = "Under the list as CSV, or as data in the shape of the API's lists with a link to each entry's record." }
+
+[machines.rel]
+describedby = { cs = "metadata: znalostní báze v RO-Crate", en = "metadata: the knowledge base in RO-Crate" }
+service_desc = { cs = "strojově čitelný popis API", en = "the machine-readable description of the API" }
+service_doc = { cs = "dokumentace API pro lidi", en = "the API's documentation for people" }
+license = { cs = "licence obsahu", en = "the content's licence" }
+type_AboutPage = { cs = "stránka je úvodní stránkou (landing page) toho, co popisuje", en = "the page is the landing page of what it describes" }
+type_Dataset = { cs = "to, co popisuje, je datová sada", en = "what it describes is a dataset" }
+author = { cs = "editor průvodce (ORCID)", en = "the guide's editor (ORCID)" }
+cite_as = { cs = "trvalý identifikátor k citaci", en = "the persistent identifier to cite" }
+linkset = { cs = "všechny tyto odkazy v jednom souboru (RFC 9264)", en = "all these links in one file (RFC 9264)" }
 
 [tools]
 title = { cs = "Nástroje", en = "Tools" }

@@ -167,6 +167,7 @@ publisher named like a curated organisation.
 | | `url` | URL | Home of the guide |
 | | `baseUrl` | URL | The one address the guide is published at. The build derives from it the page's address (named by exports and shared links from a local file), the namespace of the guide's own terms (`<baseUrl>terms#`, see *Crate mapping*) and the IRI of its RO-Crate profile (`<baseUrl>profile/<profileVersion>`), and writes it into the profile's shapes in `profile/fair-guide/`. `FAIR_GUIDE_BASE_URL` gives a build another address |
 | | `profileVersion` | string | Version of the guide's RO-Crate profile; it ends the profile's IRI |
+| | `doi` | string | The guide's DOI once it has one; the page head and the linkset then name it as `cite-as` |
 | | `freshnessDays` | integer | Age after which a status is reported as stale |
 | | `editors` | list of IDs | People who compile and develop the guide; the guide's citation names them as editors (at least one) |
 | | `reviewers`, `contributors` | list of IDs | People who review the texts, and other contributors |
@@ -339,7 +340,9 @@ check reports an icon that is named but not vendored.
 page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `helper` (true
 for a page that holds an interactive helper; until the page script provides it, the page says it is still being
 built), `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section
-`credits` on the about page carries the roles table, generated from the guide's metadata. `ui.toml` holds interface strings
+`credits` on the about page carries the roles table, generated from the guide's metadata, and on the page for
+machines `tasks`, `practice` and `endpoints` carry the table of what a reader wants and where it is, the guide's
+own signposts and the API's endpoints. `ui.toml` holds interface strings
 as nested tables of texts, for example `[nav] stations = { cs = "Zastávky", en = "Stations" }`. A text with a
 count gives its plural forms separated by `|`: Czech one, few (2 to 4) and many, English one and other, for
 example `{ cs = "{n} otázka|{n} otázky|{n} otázek", en = "{n} question|{n} questions" }`.
@@ -420,3 +423,11 @@ is static, and path parameters are named like the dashboard's (`resource_id`). A
 each answer's test by the question's manual test record, at the address the page is served from. The `[api]` strings
 in `ui.toml` title and describe the API, its collections and the manual tests: the OpenAPI description reads the
 English, the machines page lists every collection in the reader's language.
+
+The guide signposts itself (FAIR Signposting): `signposts` in `build_crate.py` is the one list of its links
+(`describedby` the crate, `service-desc` and `service-doc` the API, `license`, `type`, `author` the editors,
+`cite-as` the DOI once set, and `linkset`), written as link elements into the page head, as `linkset.json`
+(RFC 9264, anchored at `./`) and into `ui.js` for the page for machines. Every view offers its content as data
+under it where it has a record (a station, a principle, a check, the list of checks); a catalogue list saves as
+CSV with each entry's record and as data in the shape of the API's lists (`ItemList` with the context, each
+entry's record at the page's address). The whole crate is offered on the page for machines.
