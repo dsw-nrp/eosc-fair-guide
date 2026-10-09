@@ -5,6 +5,7 @@
       "disclosureLevel": "https://motyc.github.io/eosc-fair-guide/terms#disclosureLevel",
       "adviceKind": "https://motyc.github.io/eosc-fair-guide/terms#adviceKind",
       "block": "https://motyc.github.io/eosc-fair-guide/terms#block",
+      "defaultProfile": "https://motyc.github.io/eosc-fair-guide/terms#defaultProfile",
       "startsAt": "https://motyc.github.io/eosc-fair-guide/terms#startsAt",
       "tier": "https://motyc.github.io/eosc-fair-guide/terms#tier",
       "fixAt": "https://motyc.github.io/eosc-fair-guide/terms#fixAt",
@@ -259,6 +260,9 @@
           "@id": "#action-2026-10-09-institution-basic"
         },
         {
+          "@id": "#action-2026-10-09-funded-output"
+        },
+        {
           "@id": "#ledger"
         },
         {
@@ -475,6 +479,21 @@
       }
     },
     {
+      "@id": "https://ror.org/024d6js02",
+      "@type": "Organization",
+      "name": [
+        {
+          "@value": "Univerzita Karlova",
+          "@language": "cs"
+        },
+        {
+          "@value": "Charles University",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.cuni.cz/"
+    },
+    {
       "@id": "#org-nrp",
       "@type": "Organization",
       "name": [
@@ -569,6 +588,12 @@
       "@type": "rdf:Property",
       "rdfs:label": "block",
       "rdfs:comment": "Block of a self-check that a question belongs to; a check's blocks are a defined term set in order."
+    },
+    {
+      "@id": "https://motyc.github.io/eosc-fair-guide/terms#defaultProfile",
+      "@type": "rdf:Property",
+      "rdfs:label": "defaultProfile",
+      "rdfs:comment": "Profile a self-check starts with, such as no funding programme for the dataset check."
     },
     {
       "@id": "https://motyc.github.io/eosc-fair-guide/terms#startsAt",
@@ -1637,6 +1662,50 @@
       "url": "https://e-sbirka.gov.cz/sb/2025/328",
       "inLanguage": "cs",
       "datePublished": "2025-09-09",
+      "sdDatePublished": "2026-10-09"
+    },
+    {
+      "@id": "#source-os3-faq",
+      "@type": "WebPage",
+      "identifier": "os3-faq",
+      "name": [
+        {
+          "@value": "Open Science III: časté dotazy",
+          "@language": "cs"
+        },
+        {
+          "@value": "Open Science III: frequently asked questions",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/projekty/open-science-iii/faq",
+      "inLanguage": "cs",
+      "publisher": {
+        "@id": "#org-eosc-cz"
+      },
+      "sdDatePublished": "2026-10-09"
+    },
+    {
+      "@id": "#source-minizamer-catalogue",
+      "@type": "DigitalDocument",
+      "identifier": "minizamer-catalogue",
+      "name": [
+        {
+          "@value": "Minizáměry Open Science II, výzva č. 2: Katalog výstupů",
+          "@language": "cs"
+        },
+        {
+          "@value": "Open Science II mini-projects, call no. 2: catalogue of outputs",
+          "@language": "en"
+        }
+      ],
+      "url": "https://www.eosc.cz/media/4219027/priloha_c_2_katalog_vystupu.pdf",
+      "inLanguage": "cs",
+      "publisher": {
+        "@id": "https://ror.org/024d6js02"
+      },
+      "version": "1.0",
+      "datePublished": "2026-09-01",
       "sdDatePublished": "2026-10-09"
     },
     {
@@ -11275,6 +11344,12 @@
           "@id": "#source-law-328-2025"
         },
         {
+          "@id": "#source-os3-faq"
+        },
+        {
+          "@id": "#source-minizamer-catalogue"
+        },
+        {
           "@id": "#resource-dmp-eosc"
         },
         {
@@ -12141,6 +12216,42 @@
         },
         {
           "@id": "#clause-E.LAW-328.83.5"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-NONTRIVIAL"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-METADATA"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-PID"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-LICENCE"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-REPOSITORY"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-STEWARD"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-NMA"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-PARAMS"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REDEPOSIT"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REPOSITORY"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.NMA"
+        },
+        {
+          "@id": "#clause-E.MINIZAMER.DATASET"
         }
       ]
     },
@@ -19055,6 +19166,331 @@
       "clauseKind": "requirement",
       "creativeWorkStatus": "current",
       "name": "E.LAW-328.83.5"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-NONTRIVIAL",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-NONTRIVIAL",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí vzniknout netriviálním procesem vyžadujícím expertizu ve správě FAIR výzkumných dat; aktivitu nelze využít pro samotnou akvizici dat, jen pro jejich FAIRifikaci.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must result from a non-trivial process that needs expertise in FAIR research data management; the activity cannot pay for acquiring data, only for making them FAIR.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-NONTRIVIAL"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-METADATA",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-METADATA",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí být opatřen strojově zpracovatelnými a veřejně dostupnými metadaty podle FAIR principů.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must have machine-readable, publicly available metadata that follow the FAIR principles.",
+          "@language": "en"
+        }
+      ],
+      "about": [
+        {
+          "@id": "https://w3id.org/fair/principles/terms/F2"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/R1"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-METADATA"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-PID",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-PID",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí mít přiřazen jednoznačný, strojově čitelný perzistentní digitální identifikátor, například DOI nebo handle.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must have a unique, machine-readable persistent identifier, such as a DOI or a Handle.",
+          "@language": "en"
+        }
+      ],
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/F1"
+      },
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-PID"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-LICENCE",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-LICENCE",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí mít přiřazenu licenci nebo podmínky dalšího užití a distribuce.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must have a licence or terms of further use and distribution.",
+          "@language": "en"
+        }
+      ],
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/R1.1"
+      },
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-LICENCE"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-REPOSITORY",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-REPOSITORY",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí být uložen včetně metadat ve veřejně dostupném důvěryhodném nebo oborově certifikovaném digitálním repozitáři, vybraném podle oborových zvyklostí.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must be deposited with its metadata in a publicly available, trustworthy or domain-certified digital repository, chosen by the domain's practice.",
+          "@language": "en"
+        }
+      ],
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/A1"
+      },
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-REPOSITORY"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-STEWARD",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-STEWARD",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí mít jako autora nebo přispěvatele data stewarda, který se na výstupu podílel, bez ohledu na roli, kterou mu metadata přiřazují; dokládá se i jeho pracovní smlouva.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must name the data steward who worked on it as a creator or contributor, whatever role the metadata give them; their employment contract is part of the evidence.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-STEWARD"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-NMA",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-NMA",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí mít metadatový záznam v Národním metadatovém adresáři (dokládá se odkazem do NMA).",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must have a metadata record in the National Metadata Directory (evidenced by a link into NMA).",
+          "@language": "en"
+        }
+      ],
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/F4"
+      },
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-NMA"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.D-PARAMS",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.D-PARAMS",
+      "text": [
+        {
+          "@value": "Dataset jako výstup Open Science III musí splňovat klíčové parametry, které projekt popsal ve studii proveditelnosti a které se přenášejí do právního aktu.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of Open Science III must meet the key parameters the project set out in its feasibility study, which carry over into the legal act.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.D-PARAMS"
+    },
+    {
+      "@id": "#clause-E.OS3-FAQ.REDEPOSIT",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-FAQ.REDEPOSIT",
+      "text": [
+        {
+          "@value": "Samotné přeuložení už publikované datové sady do jiného repozitáře nestačí; netriviální FAIRifikací je například zlepšení metadat, dokumentace, převod do standardních formátů nebo překlad do angličtiny.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Merely depositing an already published dataset in another repository is not enough; non-trivial FAIRification is, for example, better metadata, documentation, conversion to standard formats or translation into English.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-faq"
+      },
+      "clauseKind": "statement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-FAQ.REDEPOSIT"
+    },
+    {
+      "@id": "#clause-E.OS3-FAQ.REPOSITORY",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-FAQ.REPOSITORY",
+      "text": [
+        {
+          "@value": "Nejprve ověřte, zda pro daný typ dat existuje oborový repozitář v re3data, který splňuje požadavky důvěryhodnosti, například CoreTrustSeal; jinak lze použít obecný repozitář, například Zenodo nebo Datový catch-all repozitář NRP, jehož metadata se do NMA přenášejí automaticky.",
+          "@language": "cs"
+        },
+        {
+          "@value": "First check whether re3data lists a domain repository for the data that meets the trustworthiness requirements, such as CoreTrustSeal; otherwise a general repository such as Zenodo or the NRP Data Catch-all Repository, whose metadata flow into NMA automatically, can be used.",
+          "@language": "en"
+        }
+      ],
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/A1"
+      },
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-faq"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-FAQ.REPOSITORY"
+    },
+    {
+      "@id": "#clause-E.OS3-FAQ.NMA",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-FAQ.NMA",
+      "text": [
+        {
+          "@value": "Záznam v NMA založíte zadáním DOI nebo Handle; metadata dostupná v DataCite se načtou automaticky, ostatní pole doplníte ručně. Jakmile NMA datovou sadu sklidí z repozitáře, ruční záznam nahradí.",
+          "@language": "cs"
+        },
+        {
+          "@value": "You create the NMA record by entering the DOI or Handle; metadata available in DataCite load automatically, and you fill in the other fields by hand. Once NMA harvests the dataset from a repository, that replaces the manual record.",
+          "@language": "en"
+        }
+      ],
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/F4"
+      },
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-faq"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-FAQ.NMA"
+    },
+    {
+      "@id": "#clause-E.MINIZAMER.DATASET",
+      "@type": "CreativeWork",
+      "identifier": "E.MINIZAMER.DATASET",
+      "text": [
+        {
+          "@value": "Dataset jako výstup minizáměru musí mít volně dostupná metadata a splňovat FAIR principy, mít mezinárodně uznávaný perzistentní identifikátor (například DOI) a kompletní záznam v NMA; dokládá se funkčním odkazem na dataset v repozitáři s přiděleným PID.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A dataset output of a mini-project must have freely available metadata and meet the FAIR principles, have an internationally recognised persistent identifier (such as a DOI) and a complete NMA record; it is evidenced by a working link to the dataset in a repository with its PID.",
+          "@language": "en"
+        }
+      ],
+      "about": [
+        {
+          "@id": "https://w3id.org/fair/principles/terms/F1"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/F4"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/R1"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-minizamer-catalogue"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.MINIZAMER.DATASET"
     },
     {
       "@id": "#advice-plan.V.L0",
@@ -30094,6 +30530,76 @@
       ]
     },
     {
+      "@id": "#profiles-dataset",
+      "@type": "DefinedTermSet",
+      "name": "Repository profiles (dataset)",
+      "hasDefinedTerm": [
+        {
+          "@id": "#profile-none"
+        },
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#profile-minizamer"
+        }
+      ]
+    },
+    {
+      "@id": "#profile-none",
+      "@type": "DefinedTerm",
+      "termCode": "none",
+      "name": [
+        {
+          "@value": "Bez programu",
+          "@language": "cs"
+        },
+        {
+          "@value": "No programme",
+          "@language": "en"
+        }
+      ],
+      "inDefinedTermSet": {
+        "@id": "#profiles-dataset"
+      }
+    },
+    {
+      "@id": "#profile-os3",
+      "@type": "DefinedTerm",
+      "termCode": "os3",
+      "name": [
+        {
+          "@value": "Open Science III: FAIR dataset",
+          "@language": "cs"
+        },
+        {
+          "@value": "Open Science III: FAIR dataset",
+          "@language": "en"
+        }
+      ],
+      "inDefinedTermSet": {
+        "@id": "#profiles-dataset"
+      }
+    },
+    {
+      "@id": "#profile-minizamer",
+      "@type": "DefinedTerm",
+      "termCode": "minizamer",
+      "name": [
+        {
+          "@value": "Open Science II: minizáměr",
+          "@language": "cs"
+        },
+        {
+          "@value": "Open Science II: mini-project",
+          "@language": "en"
+        }
+      ],
+      "inDefinedTermSet": {
+        "@id": "#profiles-dataset"
+      }
+    },
+    {
       "@id": "#modes-dataset",
       "@type": "DefinedTermSet",
       "name": "Check modes (dataset)",
@@ -31229,6 +31735,562 @@
       "name": "D14"
     },
     {
+      "@id": "#item-O01-prefill-datacite",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:datacite",
+      "value": [
+        "descriptions",
+        "subjects"
+      ],
+      "name": "prefill:datacite"
+    },
+    {
+      "@id": "#item-O01",
+      "@type": "Question",
+      "identifier": "O01",
+      "text": [
+        {
+          "@value": "Metadata datové sady jsou volně dostupná, strojově zpracovatelná a odpovídají FAIR principům.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The dataset's metadata are freely available, machine-readable and follow the FAIR principles.",
+          "@language": "en"
+        }
+      ],
+      "position": 20,
+      "about": [
+        {
+          "@id": "https://w3id.org/fair/principles/terms/F2"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/R1"
+        }
+      ],
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.D-METADATA"
+        },
+        {
+          "@id": "#clause-E.MINIZAMER.DATASET"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-popis"
+      },
+      "fixedBy": [
+        {
+          "@id": "#actor-user"
+        },
+        {
+          "@id": "#actor-data-steward"
+        }
+      ],
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#profile-minizamer"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "additionalProperty": {
+        "@id": "#item-O01-prefill-datacite"
+      },
+      "prefillLevel": "partly",
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O01"
+    },
+    {
+      "@id": "#item-O02-prefill-resolver",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:resolver",
+      "value": true,
+      "name": "prefill:resolver"
+    },
+    {
+      "@id": "#item-O02-prefill-datacite",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:datacite",
+      "value": "doi",
+      "name": "prefill:datacite"
+    },
+    {
+      "@id": "#item-O02",
+      "@type": "Question",
+      "identifier": "O02",
+      "text": [
+        {
+          "@value": "Datová sada má mezinárodně uznávaný perzistentní identifikátor, například DOI.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The dataset has an internationally recognised persistent identifier, such as a DOI.",
+          "@language": "en"
+        }
+      ],
+      "position": 21,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/F1"
+      },
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.D-PID"
+        },
+        {
+          "@id": "#clause-E.MINIZAMER.DATASET"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-publikace"
+      },
+      "fixedBy": {
+        "@id": "#actor-user"
+      },
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#profile-minizamer"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "additionalProperty": [
+        {
+          "@id": "#item-O02-prefill-resolver"
+        },
+        {
+          "@id": "#item-O02-prefill-datacite"
+        }
+      ],
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O02"
+    },
+    {
+      "@id": "#item-O03-prefill-resolver",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:resolver",
+      "value": true,
+      "name": "prefill:resolver"
+    },
+    {
+      "@id": "#item-O03",
+      "@type": "Question",
+      "identifier": "O03",
+      "text": [
+        {
+          "@value": "Datová sada je uložená v repozitáři a odkaz na ni funguje.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The dataset is deposited in a repository, and the link to it works.",
+          "@language": "en"
+        }
+      ],
+      "position": 22,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/A1"
+      },
+      "citation": [
+        {
+          "@id": "#clause-E.MINIZAMER.DATASET"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-REPOSITORY"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-repozitar"
+      },
+      "fixedBy": {
+        "@id": "#actor-user"
+      },
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#profile-minizamer"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "additionalProperty": {
+        "@id": "#item-O03-prefill-resolver"
+      },
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O03"
+    },
+    {
+      "@id": "#item-O04",
+      "@type": "Question",
+      "identifier": "O04",
+      "text": [
+        {
+          "@value": "Datová sada má kompletní záznam v Národním metadatovém adresáři.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The dataset has a complete record in the National Metadata Directory.",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Záznam založíte v NMA zadáním DOI nebo Handle; metadata z DataCite se načtou sama.",
+          "@language": "cs"
+        },
+        {
+          "@value": "You create the record in NMA by entering the DOI or Handle; the metadata from DataCite load by themselves.",
+          "@language": "en"
+        }
+      ],
+      "position": 23,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/F4"
+      },
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.D-NMA"
+        },
+        {
+          "@id": "#clause-E.MINIZAMER.DATASET"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.NMA"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-dohledatelnost"
+      },
+      "fixedBy": [
+        {
+          "@id": "#actor-user"
+        },
+        {
+          "@id": "#actor-data-steward"
+        }
+      ],
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#profile-minizamer"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "lookup": {
+        "@id": "https://nma.eosc.cz/datasets/"
+      },
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O04",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
+    },
+    {
+      "@id": "#item-O05",
+      "@type": "Question",
+      "identifier": "O05",
+      "text": [
+        {
+          "@value": "Datová sada vznikla netriviální FAIRifikací, například lepšími metadaty, dokumentací nebo převodem do standardních formátů, ne jen přeuložením už zveřejněných dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The dataset results from non-trivial FAIRification, such as better metadata, documentation or conversion to standard formats, not just from re-depositing data already published.",
+          "@language": "en"
+        }
+      ],
+      "position": 24,
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.D-NONTRIVIAL"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REDEPOSIT"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-popis"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O05"
+    },
+    {
+      "@id": "#item-O06-prefill-datacite",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:datacite",
+      "value": "rightsList[].rightsUri",
+      "name": "prefill:datacite"
+    },
+    {
+      "@id": "#item-O06",
+      "@type": "Question",
+      "identifier": "O06",
+      "text": [
+        {
+          "@value": "Datová sada má licenci nebo podmínky dalšího užití.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The dataset has a licence or terms of further use.",
+          "@language": "en"
+        }
+      ],
+      "position": 25,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/R1.1"
+      },
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.D-LICENCE"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-licence"
+      },
+      "fixedBy": {
+        "@id": "#actor-user"
+      },
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "additionalProperty": {
+        "@id": "#item-O06-prefill-datacite"
+      },
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O06"
+    },
+    {
+      "@id": "#item-O07",
+      "@type": "Question",
+      "identifier": "O07",
+      "text": [
+        {
+          "@value": "Repozitář je veřejně dostupný a důvěryhodný nebo oborově certifikovaný, vybraný podle zvyklostí oboru.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The repository is publicly available and trustworthy or domain-certified, chosen by the domain's practice.",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Nejdřív oborový repozitář v re3data s certifikací, například CoreTrustSeal; jinak Zenodo nebo Datový catch-all repozitář NRP.",
+          "@language": "cs"
+        },
+        {
+          "@value": "First a domain repository in re3data with a certification such as CoreTrustSeal; otherwise Zenodo or the NRP Data Catch-all Repository.",
+          "@language": "en"
+        }
+      ],
+      "position": 26,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/A1"
+      },
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.D-REPOSITORY"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REPOSITORY"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-repozitar"
+      },
+      "fixedBy": [
+        {
+          "@id": "#actor-user"
+        },
+        {
+          "@id": "#actor-data-steward"
+        }
+      ],
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O07"
+    },
+    {
+      "@id": "#item-O08-prefill-datacite",
+      "@type": "PropertyValue",
+      "propertyID": "prefill:datacite",
+      "value": "@steward",
+      "name": "prefill:datacite"
+    },
+    {
+      "@id": "#item-O08",
+      "@type": "Question",
+      "identifier": "O08",
+      "text": [
+        {
+          "@value": "Data steward, který se na datové sadě podílel, je v metadatech uveden jako autor nebo přispěvatel.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The data steward who worked on the dataset is named in the metadata as a creator or contributor.",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Zadejte jeho ORCID iD u předvyplnění a průvodce ho v metadatech DataCite vyhledá.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Enter their ORCID iD with the pre-fill, and the guide looks for it in the DataCite metadata.",
+          "@language": "en"
+        }
+      ],
+      "position": 27,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.D-STEWARD"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-citace"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "additionalProperty": {
+        "@id": "#item-O08-prefill-datacite"
+      },
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O08"
+    },
+    {
+      "@id": "#item-O09",
+      "@type": "Question",
+      "identifier": "O09",
+      "text": [
+        {
+          "@value": "Datová sada splňuje klíčové parametry, ke kterým se projekt zavázal.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The dataset meets the key parameters the project committed to.",
+          "@language": "en"
+        }
+      ],
+      "position": 28,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.D-PARAMS"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "appliesTo": [
+        {
+          "@id": "#profile-os3"
+        },
+        {
+          "@id": "#mode-after"
+        }
+      ],
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-dataset"
+      },
+      "name": "O09"
+    },
+    {
       "@id": "#check-dataset",
       "@type": "Quiz",
       "identifier": "dataset",
@@ -31261,6 +32323,9 @@
         }
       ],
       "timeRequired": "PT5M",
+      "defaultProfile": {
+        "@id": "#profile-none"
+      },
       "hasPart": [
         {
           "@id": "#item-P01"
@@ -31318,6 +32383,33 @@
         },
         {
           "@id": "#item-D14"
+        },
+        {
+          "@id": "#item-O01"
+        },
+        {
+          "@id": "#item-O02"
+        },
+        {
+          "@id": "#item-O03"
+        },
+        {
+          "@id": "#item-O04"
+        },
+        {
+          "@id": "#item-O05"
+        },
+        {
+          "@id": "#item-O06"
+        },
+        {
+          "@id": "#item-O07"
+        },
+        {
+          "@id": "#item-O08"
+        },
+        {
+          "@id": "#item-O09"
         }
       ]
     },
@@ -45532,6 +46624,42 @@
         },
         {
           "@id": "#clause-E.LAW-328.83.5"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-NONTRIVIAL"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-METADATA"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-PID"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-LICENCE"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-REPOSITORY"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-STEWARD"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-NMA"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-PARAMS"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REDEPOSIT"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REPOSITORY"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.NMA"
+        },
+        {
+          "@id": "#clause-E.MINIZAMER.DATASET"
         }
       ],
       "endTime": "2026-10-08T03:20:40+02:00",
@@ -47957,6 +49085,103 @@
         }
       ],
       "endTime": "2026-10-09T10:39:16+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-09-funded-output",
+      "@type": "CreateAction",
+      "name": "Funded-output profile of the dataset check",
+      "description": "The dataset check gains a programme picker for funded outputs: the Open Science III FAIR dataset and the Open Science II mini-project dataset, with the requirements both programmes share and those only Open Science III sets, taken from the call's specific rules, its FAQ and the minizáměr catalogue of outputs.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "object": [
+        {
+          "@id": "#source-os3-rules"
+        },
+        {
+          "@id": "#source-os3-faq"
+        },
+        {
+          "@id": "#source-minizamer-catalogue"
+        }
+      ],
+      "result": [
+        {
+          "@id": "#clause-E.MINIZAMER.DATASET"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.NMA"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REDEPOSIT"
+        },
+        {
+          "@id": "#clause-E.OS3-FAQ.REPOSITORY"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-LICENCE"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-METADATA"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-NMA"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-NONTRIVIAL"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-PARAMS"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-PID"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-REPOSITORY"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.D-STEWARD"
+        },
+        {
+          "@id": "#item-O01"
+        },
+        {
+          "@id": "#item-O02"
+        },
+        {
+          "@id": "#item-O03"
+        },
+        {
+          "@id": "#item-O04"
+        },
+        {
+          "@id": "#item-O05"
+        },
+        {
+          "@id": "#item-O06"
+        },
+        {
+          "@id": "#item-O07"
+        },
+        {
+          "@id": "#item-O08"
+        },
+        {
+          "@id": "#item-O09"
+        }
+      ],
+      "endTime": "2026-10-09T10:55:15+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }

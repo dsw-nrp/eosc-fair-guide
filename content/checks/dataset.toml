@@ -9,6 +9,21 @@ description = { cs = "Jak FAIR je vaše datová sada? Před zveřejněním projd
 lenses = ["V", "DS"]
 minutes = 5
 modes = ["before", "after"]
+defaultProfile = "none"
+
+# A dataset funded as a programme output: its requirements show when the programme is picked.
+
+[[check.profile]]
+id = "none"
+label = { cs = "Bez programu", en = "No programme" }
+
+[[check.profile]]
+id = "os3"
+label = { cs = "Open Science III: FAIR dataset", en = "Open Science III: FAIR dataset" }
+
+[[check.profile]]
+id = "minizamer"
+label = { cs = "Open Science II: minizáměr", en = "Open Science II: mini-project" }
 
 [[item]]
 id = "P01"
@@ -220,3 +235,114 @@ fixAt = "popis"
 owner = ["user", "community"]
 modes = ["after"]
 allowNotApplicable = true
+
+# Funded output: requirements both programmes share, then those only Open Science III sets.
+
+[[item]]
+id = "O01"
+tier = "minimum"
+principles = ["F2", "R1"]
+statement = { cs = "Metadata datové sady jsou volně dostupná, strojově zpracovatelná a odpovídají FAIR principům.", en = "The dataset's metadata are freely available, machine-readable and follow the FAIR principles." }
+sources = ["E.OS3-RULES.D-METADATA", "E.MINIZAMER.DATASET"]
+fixAt = "popis"
+owner = ["user", "data-steward"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+prefill = { datacite = ["descriptions", "subjects"] }
+prefillLevel = "partly"
+
+[[item]]
+id = "O02"
+tier = "minimum"
+principles = ["F1"]
+statement = { cs = "Datová sada má mezinárodně uznávaný perzistentní identifikátor, například DOI.", en = "The dataset has an internationally recognised persistent identifier, such as a DOI." }
+sources = ["E.OS3-RULES.D-PID", "E.MINIZAMER.DATASET"]
+fixAt = "publikace"
+owner = ["user"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+prefill = { resolver = true, datacite = ["doi"] }
+
+[[item]]
+id = "O03"
+tier = "minimum"
+principles = ["A1"]
+statement = { cs = "Datová sada je uložená v repozitáři a odkaz na ni funguje.", en = "The dataset is deposited in a repository, and the link to it works." }
+sources = ["E.MINIZAMER.DATASET", "E.OS3-RULES.D-REPOSITORY"]
+fixAt = "repozitar"
+owner = ["user"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+prefill = { resolver = true }
+
+[[item]]
+id = "O04"
+tier = "minimum"
+principles = ["F4"]
+statement = { cs = "Datová sada má kompletní záznam v [[nma|Národním metadatovém adresáři]].", en = "The dataset has a complete record in the [[nma|National Metadata Directory]]." }
+help = { cs = "Záznam založíte v NMA zadáním DOI nebo Handle; metadata z DataCite se načtou sama.", en = "You create the record in NMA by entering the DOI or Handle; the metadata from DataCite load by themselves." }
+sources = ["E.OS3-RULES.D-NMA", "E.MINIZAMER.DATASET", "E.OS3-FAQ.NMA"]
+fixAt = "dohledatelnost"
+owner = ["user", "data-steward"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+lookup = "nmaSearch"
+
+[[item]]
+id = "O05"
+tier = "minimum"
+principles = []
+statement = { cs = "Datová sada vznikla netriviální FAIRifikací, například lepšími metadaty, dokumentací nebo převodem do standardních formátů, ne jen přeuložením už zveřejněných dat.", en = "The dataset results from non-trivial FAIRification, such as better metadata, documentation or conversion to standard formats, not just from re-depositing data already published." }
+sources = ["E.OS3-RULES.D-NONTRIVIAL", "E.OS3-FAQ.REDEPOSIT"]
+fixAt = "popis"
+owner = ["data-steward"]
+modes = ["after"]
+profiles = ["os3"]
+
+[[item]]
+id = "O06"
+tier = "minimum"
+principles = ["R1.1"]
+statement = { cs = "Datová sada má licenci nebo podmínky dalšího užití.", en = "The dataset has a licence or terms of further use." }
+sources = ["E.OS3-RULES.D-LICENCE"]
+fixAt = "licence"
+owner = ["user"]
+modes = ["after"]
+profiles = ["os3"]
+prefill = { datacite = ["rightsList[].rightsUri"] }
+
+[[item]]
+id = "O07"
+tier = "minimum"
+principles = ["A1"]
+statement = { cs = "Repozitář je veřejně dostupný a důvěryhodný nebo oborově certifikovaný, vybraný podle zvyklostí oboru.", en = "The repository is publicly available and trustworthy or domain-certified, chosen by the domain's practice." }
+help = { cs = "Nejdřív oborový repozitář v re3data s certifikací, například CoreTrustSeal; jinak Zenodo nebo Datový catch-all repozitář NRP.", en = "First a domain repository in re3data with a certification such as CoreTrustSeal; otherwise Zenodo or the NRP Data Catch-all Repository." }
+sources = ["E.OS3-RULES.D-REPOSITORY", "E.OS3-FAQ.REPOSITORY"]
+fixAt = "repozitar"
+owner = ["user", "data-steward"]
+modes = ["after"]
+profiles = ["os3"]
+
+[[item]]
+id = "O08"
+tier = "minimum"
+principles = []
+statement = { cs = "Data steward, který se na datové sadě podílel, je v metadatech uveden jako autor nebo přispěvatel.", en = "The data steward who worked on the dataset is named in the metadata as a creator or contributor." }
+help = { cs = "Zadejte jeho ORCID iD u předvyplnění a průvodce ho v metadatech DataCite vyhledá.", en = "Enter their ORCID iD with the pre-fill, and the guide looks for it in the DataCite metadata." }
+sources = ["E.OS3-RULES.D-STEWARD"]
+fixAt = "citace"
+owner = ["data-steward"]
+modes = ["after"]
+profiles = ["os3"]
+prefill = { datacite = ["@steward"] }
+
+[[item]]
+id = "O09"
+tier = "minimum"
+principles = []
+statement = { cs = "Datová sada splňuje klíčové parametry, ke kterým se projekt zavázal.", en = "The dataset meets the key parameters the project committed to." }
+sources = ["E.OS3-RULES.D-PARAMS"]
+fixAt = "plan"
+owner = ["data-steward"]
+modes = ["after"]
+profiles = ["os3"]

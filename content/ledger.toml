@@ -2206,3 +2206,102 @@ principles = []
 actor = "other"
 kind = "requirement"
 text = { cs = "Příjemce může poskytnutí údajů z výzkumu odmítnout, pokud by zasáhlo do ochrany soukromí včetně osobních údajů, duševního vlastnictví, obchodního tajemství, bezpečnosti nebo obrany státu, kybernetické bezpečnosti nebo jiných oprávněných zájmů příjemce, zejména transferu znalostí (§ 83 odst. 5).", en = "The recipient may refuse to provide research data where doing so would interfere with privacy, including personal data, intellectual property, trade secrets, state security or defence, cybersecurity or other legitimate interests of the recipient, in particular knowledge transfer (section 83(5))." }
+
+# The programmes' requirements for a funded dataset output: the Open Science III specific rules (chapter 5.7.1,
+# activity 1), the Open Science III FAQ, and the catalogue of outputs of the second minizáměr call.
+
+[[clause]]
+id = "E.OS3-RULES.D-NONTRIVIAL"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí vzniknout netriviálním procesem vyžadujícím expertizu ve správě FAIR výzkumných dat; aktivitu nelze využít pro samotnou akvizici dat, jen pro jejich FAIRifikaci.", en = "A dataset output of Open Science III must result from a non-trivial process that needs expertise in FAIR research data management; the activity cannot pay for acquiring data, only for making them FAIR." }
+
+[[clause]]
+id = "E.OS3-RULES.D-METADATA"
+source = "os3-rules"
+principles = ["F2", "R1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí být opatřen strojově zpracovatelnými a veřejně dostupnými metadaty podle FAIR principů.", en = "A dataset output of Open Science III must have machine-readable, publicly available metadata that follow the FAIR principles." }
+
+[[clause]]
+id = "E.OS3-RULES.D-PID"
+source = "os3-rules"
+principles = ["F1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí mít přiřazen jednoznačný, strojově čitelný perzistentní digitální identifikátor, například DOI nebo handle.", en = "A dataset output of Open Science III must have a unique, machine-readable persistent identifier, such as a DOI or a Handle." }
+
+[[clause]]
+id = "E.OS3-RULES.D-LICENCE"
+source = "os3-rules"
+principles = ["R1.1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí mít přiřazenu licenci nebo podmínky dalšího užití a distribuce.", en = "A dataset output of Open Science III must have a licence or terms of further use and distribution." }
+
+[[clause]]
+id = "E.OS3-RULES.D-REPOSITORY"
+source = "os3-rules"
+principles = ["A1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí být uložen včetně metadat ve veřejně dostupném důvěryhodném nebo oborově certifikovaném digitálním repozitáři, vybraném podle oborových zvyklostí.", en = "A dataset output of Open Science III must be deposited with its metadata in a publicly available, trustworthy or domain-certified digital repository, chosen by the domain's practice." }
+
+[[clause]]
+id = "E.OS3-RULES.D-STEWARD"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí mít jako autora nebo přispěvatele data stewarda, který se na výstupu podílel, bez ohledu na roli, kterou mu metadata přiřazují; dokládá se i jeho pracovní smlouva.", en = "A dataset output of Open Science III must name the data steward who worked on it as a creator or contributor, whatever role the metadata give them; their employment contract is part of the evidence." }
+
+[[clause]]
+id = "E.OS3-RULES.D-NMA"
+source = "os3-rules"
+principles = ["F4"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí mít metadatový záznam v Národním metadatovém adresáři (dokládá se odkazem do NMA).", en = "A dataset output of Open Science III must have a metadata record in the National Metadata Directory (evidenced by a link into NMA)." }
+
+[[clause]]
+id = "E.OS3-RULES.D-PARAMS"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup Open Science III musí splňovat klíčové parametry, které projekt popsal ve studii proveditelnosti a které se přenášejí do právního aktu.", en = "A dataset output of Open Science III must meet the key parameters the project set out in its feasibility study, which carry over into the legal act." }
+
+[[clause]]
+id = "E.OS3-FAQ.REDEPOSIT"
+source = "os3-faq"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Samotné přeuložení už publikované datové sady do jiného repozitáře nestačí; netriviální FAIRifikací je například zlepšení metadat, dokumentace, převod do standardních formátů nebo překlad do angličtiny.", en = "Merely depositing an already published dataset in another repository is not enough; non-trivial FAIRification is, for example, better metadata, documentation, conversion to standard formats or translation into English." }
+
+[[clause]]
+id = "E.OS3-FAQ.REPOSITORY"
+source = "os3-faq"
+principles = ["A1"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Nejprve ověřte, zda pro daný typ dat existuje oborový repozitář v re3data, který splňuje požadavky důvěryhodnosti, například CoreTrustSeal; jinak lze použít obecný repozitář, například Zenodo nebo Datový catch-all repozitář NRP, jehož metadata se do NMA přenášejí automaticky.", en = "First check whether re3data lists a domain repository for the data that meets the trustworthiness requirements, such as CoreTrustSeal; otherwise a general repository such as Zenodo or the NRP Data Catch-all Repository, whose metadata flow into NMA automatically, can be used." }
+
+[[clause]]
+id = "E.OS3-FAQ.NMA"
+source = "os3-faq"
+principles = ["F4"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Záznam v NMA založíte zadáním DOI nebo Handle; metadata dostupná v DataCite se načtou automaticky, ostatní pole doplníte ručně. Jakmile NMA datovou sadu sklidí z repozitáře, ruční záznam nahradí.", en = "You create the NMA record by entering the DOI or Handle; metadata available in DataCite load automatically, and you fill in the other fields by hand. Once NMA harvests the dataset from a repository, that replaces the manual record." }
+
+[[clause]]
+id = "E.MINIZAMER.DATASET"
+source = "minizamer-catalogue"
+principles = ["F1", "F4", "R1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Dataset jako výstup minizáměru musí mít volně dostupná metadata a splňovat FAIR principy, mít mezinárodně uznávaný perzistentní identifikátor (například DOI) a kompletní záznam v NMA; dokládá se funkčním odkazem na dataset v repozitáři s přiděleným PID.", en = "A dataset output of a mini-project must have freely available metadata and meet the FAIR principles, have an internationally recognised persistent identifier (such as a DOI) and a complete NMA record; it is evidenced by a working link to the dataset in a repository with its PID." }

@@ -233,7 +233,9 @@ published), `noteSources` (clause or source IDs that support the note), `superse
 
 `[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`), `name`, `icon` (shown on its card in the
 self-check overview), `description`, `lenses`, `minutes`, `modes` (dataset check: `before`, `after`),
-`[[check.profile]]` (gate check: `id`, `label`). `[[block]]` (`id`, `name`): the blocks a check is organised in,
+`[[check.profile]]` (`id`, `label`; gate check: the deployment profiles; dataset check: the programme that funded the
+output), `defaultProfile` (the profile a check starts with; dataset check: `none`, no programme; the profile question
+then shows only in a mode where some item names profiles). `[[block]]` (`id`, `name`): the blocks a check is organised in,
 in order; when a check declares blocks, every item names its `block`, and the list, summary and result group by
 block instead of by principle or path step.
 
@@ -241,7 +243,7 @@ block instead of by principle or path step.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `id` | string | `D01`, `P01`, `G01`, `S01`, `K01`, `I01`, … |
+| `id` | string | `D01`, `P01`, `O01` (dataset check: a funded output), `G01`, `S01`, `K01`, `I01`, … |
 | `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended` |
 | `principles` | list | Principle IDs; empty for gate items and for institution items that serve no single principle |
 | `statement` | text | The statement the user answers |
@@ -250,11 +252,11 @@ block instead of by principle or path step.
 | `fixAt` | string | Station ID where a gap is addressed |
 | `owner` | list | Actor IDs (`role = "owner"`) who can fix a gap |
 | `modes` | list | Dataset check: modes the item appears in |
-| `profiles` | list | Gate check: profiles the item applies to |
+| `profiles` | list | Gate and dataset check: profiles the item applies to |
 | `providedByNrp` | list | Gate check: profiles for which NRP provides the item |
 | `allowNotApplicable` | boolean | Whether "not applicable" is an allowed answer |
 | `note` | text | An extra remark shown with the item |
-| `prefill` | table | Sources that can answer the item: `datacite`, `nkr`, `re3data` (the re3data snapshot), `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean). A field is `name`, `list[].name`, `list[key=value]`, `list[key=value].name`, or `name=value` for a list that contains a value (case-insensitive) |
+| `prefill` | table | Sources that can answer the item: `datacite`, `nkr`, `re3data` (the re3data snapshot), `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean). A field is `name`, `list[].name`, `list[key=value]`, `list[key=value].name`, or `name=value` for a list that contains a value (case-insensitive). `@steward` in `datacite` looks for the data steward the user names by ORCID iD among the record's creators and contributors: found answers yes, not found no; without an ORCID iD a data curator or data manager contributor answers partly |
 | `prefillLevel` | string | `partly` when the evidence can only partly prove the statement; a pre-filled answer then never exceeds "partly" |
 | `lookup` | string | Key of a link in `[links]` of `live.toml` where the user can find out the answer; shown with a "don't know" task |
 

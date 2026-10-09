@@ -233,7 +233,6 @@ progress = { cs = "Zodpovězeno {n} z {total}", en = "Answered {n} of {total}" }
 items = { cs = "{n} otázka|{n} otázky|{n} otázek", en = "{n} question|{n} questions" }
 itemsRange = { cs = "{low}–{high} otázek", en = "{low}–{high} questions" }
 modeQuestion = { cs = "Je datová sada už zveřejněná?", en = "Has the dataset been published?" }
-profileQuestion = { cs = "Který profil repozitáře platí?", en = "Which repository profile applies?" }
 chooseFirst = { cs = "Nejdřív odpovězte na otázku nahoře; podle ní se ukážou otázky, které se vás týkají.", en = "Answer the question above first; it decides which questions apply to you." }
 providedByNrp = { cs = "Zajišťuje NRP", en = "Provided by NRP" }
 providedByNrpText = { cs = "U instancí základních systémů NRP tuto podmínku zajišťuje samo NRP.", en = "For instances of core NRP systems, NRP itself provides this." }
@@ -276,6 +275,9 @@ fromFileText = { cs = "Výsledek uložený z průvodce se otevře jako náhled; 
 privacy = { cs = "Průvodce pošle službě jen identifikátor, který zadáte. Vaše odpovědi zůstávají v prohlížeči. Vyplněné odpovědi zkontrolujte; můžete je změnit.", en = "The guide sends the service only the identifier you enter. Your answers stay in your browser. Check the answers it fills in; you can change them." }
 pid = { cs = "DOI nebo Handle datové sady", en = "DOI or Handle of the dataset" }
 pidButton = { cs = "Načíst záznam a vyplnit", en = "Look up and fill in" }
+steward = { cs = "ORCID iD data stewarda (nepovinné)", en = "The data steward's ORCID iD (optional)" }
+stewardHint = { cs = "Při vyhledání podle DOI ho průvodce najde mezi autory a přispěvateli v DataCite.", en = "When looking up the DOI, the guide finds it among the creators and contributors in DataCite." }
+stewardInvalid = { cs = "Toto není platný zápis ORCID iD.", en = "This is not a valid ORCID iD." }
 pidInvalid = { cs = "Zadejte DOI (například 10.5281/zenodo.21726258) nebo Handle (například 11234/1-5787).", en = "Enter a DOI (for example 10.5281/zenodo.21726258) or a Handle (for example 11234/1-5787)." }
 nkrChoose = { cs = "Repozitář v NKR", en = "Repository in NKR" }
 nkrButton = { cs = "Vyplnit podle NKR", en = "Fill in from NKR" }
@@ -318,6 +320,10 @@ suggestion = { cs = "Zdroj {source} ({date}) odpověď nenavrhl.", en = "{source
 shared = { cs = "Převzato ze sdíleného výsledku", en = "Taken from a shared result" }
 
 [selfcheck.note]
+stewardFound = { cs = "Metadata uvádějí data stewarda: {name}.", en = "The metadata name the data steward: {name}." }
+stewardMissing = { cs = "Data steward s ORCID iD {orcid} není v metadatech mezi autory ani přispěvateli.", en = "The data steward with ORCID iD {orcid} is neither a creator nor a contributor in the metadata." }
+stewardRole = { cs = "Metadata uvádějí správce dat ({names}); ověřte, že jde o data stewarda projektu, nebo zadejte jeho ORCID iD.", en = "The metadata name a data curator or manager ({names}); check that this is the project's data steward, or enter their ORCID iD." }
+stewardOrcid = { cs = "Metadata neuvádějí správce dat; zadejte ORCID iD data stewarda a průvodce ho mezi autory a přispěvateli vyhledá.", en = "The metadata name no data curator or manager; enter the data steward's ORCID iD and the guide looks for it among the creators and contributors." }
 notInSource = { cs = "Záznam tuto informaci neuvádí; odpovězte podle toho, co víte.", en = "The record does not state this; answer from what you know." }
 partlyOnly = { cs = "Záznam to dokládá jen zčásti, proto nejvýš „částečně“.", en = "The record shows this only in part, so the answer is at most “partly”." }
 resolves = { cs = "Identifikátor vede na {url}", en = "The identifier leads to {url}" }
@@ -349,6 +355,7 @@ tasks = { cs = "Co zjistit", en = "What to find out" }
 whereFix = { cs = "Kde to vyřešit", en = "Where to fix it" }
 whoFix = { cs = "Kdo to udělá", en = "Who does it" }
 basedOn = { cs = "Vychází z", en = "Based on" }
+programmeGap = { cs = "Datová sada by tak nesplnila požadavek programu na výstup ({programme}).", en = "The dataset would therefore not meet the programme's output requirement ({programme})." }
 ask = { cs = "Zeptejte se: {whom}", en = "Ask: {whom}" }
 lookup = { cs = "Vyhledat", en = "Look it up" }
 answers = { cs = "Všechny odpovědi", en = "All answers" }
@@ -659,3 +666,7 @@ type = { cs = "podle typu", en = "by type" }
 status = { cs = "podle stavu", en = "by status" }
 checked = { cs = "podle data ověření, nejstarší první", en = "by date checked, oldest first" }
 rsource = { cs = "podle zdroje údajů", en = "by data source" }
+
+[selfcheck.profileQuestion]
+gate = { cs = "Který profil repozitáře platí?", en = "Which repository profile applies?" }
+dataset = { cs = "Je datová sada výstupem programu?", en = "Is the dataset the output of a programme?" }

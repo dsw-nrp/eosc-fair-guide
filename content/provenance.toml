@@ -452,3 +452,36 @@ results = [
   "I27",
 ]
 endTime = 2026-10-09T10:39:16+02:00
+
+[[action]]
+id = "2026-10-09-funded-output"
+type = "create"
+name = "Funded-output profile of the dataset check"
+description = "The dataset check gains a programme picker for funded outputs: the Open Science III FAIR dataset and the Open Science II mini-project dataset, with the requirements both programmes share and those only Open Science III sets, taken from the call's specific rules, its FAQ and the minizáměr catalogue of outputs."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["os3-rules", "os3-faq", "minizamer-catalogue"]
+results = [
+  "E.MINIZAMER.DATASET",
+  "E.OS3-FAQ.NMA",
+  "E.OS3-FAQ.REDEPOSIT",
+  "E.OS3-FAQ.REPOSITORY",
+  "E.OS3-RULES.D-LICENCE",
+  "E.OS3-RULES.D-METADATA",
+  "E.OS3-RULES.D-NMA",
+  "E.OS3-RULES.D-NONTRIVIAL",
+  "E.OS3-RULES.D-PARAMS",
+  "E.OS3-RULES.D-PID",
+  "E.OS3-RULES.D-REPOSITORY",
+  "E.OS3-RULES.D-STEWARD",
+  "O01",
+  "O02",
+  "O03",
+  "O04",
+  "O05",
+  "O06",
+  "O07",
+  "O08",
+  "O09",
+]
+endTime = 2026-10-09T10:55:15+02:00

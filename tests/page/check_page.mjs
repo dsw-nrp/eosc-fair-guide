@@ -933,7 +933,7 @@ async function axe(page, label) {
   await go("#/cs/V/check/dataset");
   await page.locator("#share-create").click();
   const shared = await page.locator("#share-url").inputValue();
-  if (!shared.includes("/check/dataset/a1.after._.") || !shared.includes("D04n") || !shared.includes("D05k")) fail("share link: unexpected payload " + shared);
+  if (!shared.includes("/check/dataset/a1.after.none.") || !shared.includes("D04n") || !shared.includes("D05k")) fail("share link: unexpected payload " + shared);
   if (shared.startsWith("file:")) fail("share link: names a local file instead of the published page");
   {
     const other = await browser.newContext();
@@ -1188,6 +1188,44 @@ async function axe(page, label) {
   if (external.length) fail("self-check: requests without a lookup: " + external.join(", "));
   for (const problem of problems) fail("self-check: " + problem);
   console.log("checked the self-check flows");
+  await context.close();
+}
+
+// 6. Funded output in the dataset check: the programme question appears after publication with no programme
+//    picked; the minizáměr shows the requirements both programmes share and Open Science III adds its own; a
+//    DataCite record without the data steward's ORCID iD gives a gap that says the dataset would not meet the
+//    programme's requirement. Its own context, so the pre-filled answers stay out of the other self-check flows.
+{
+  const { context, page, external, problems } = await openPage();
+  const checked = (id) => page.locator("#" + id).isChecked();
+  await page.goto(pageUrl + "#/cs/V/check/dataset");
+  await rendered(page);
+  await page.waitForSelector("#mode-after");
+  const outputItems = async () => page.locator("fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-", "")).filter((id) => id.startsWith("O")).sort().join(","));
+  await page.locator("#mode-before").check();
+  if (await page.locator('input[name="profile"]').count()) fail("dataset check: the programme question shows before publication");
+  await page.locator("#mode-after").check();
+  if ((await page.locator('input[name="profile"]:checked').getAttribute("value")) !== "none" || (await outputItems())) fail("dataset check: the check does not start without a programme and without programme items");
+  await page.locator('input[name="profile"][value="minizamer"]').check();
+  if ((await outputItems()) !== "O01,O02,O03,O04") fail("dataset check: the minizáměr programme does not show just the shared requirements: " + (await outputItems()));
+  await page.locator('input[name="profile"][value="os3"]').check();
+  if ((await outputItems()) !== "O01,O02,O03,O04,O05,O06,O07,O08,O09") fail("dataset check: Open Science III does not add its own requirements");
+  await page.evaluate(() => {
+    const live = window.FairGuide.live;
+    live.resolvePid = async () => ({ found: true, url: "https://zenodo.org/records/1", title: "Test" });
+    live.datacite = async () => ({ doi: "10.5281/zenodo.1", titles: [{ title: "Test" }], creators: [{ name: "Nováková, Jana", nameIdentifiers: [{ nameIdentifier: "https://orcid.org/0000-0002-1825-0097", nameIdentifierScheme: "ORCID" }] }], contributors: [] });
+  });
+  await page.fill("#prefill-steward", "0000-0001-5109-3700");
+  await page.locator("#prefill-steward").dispatchEvent("change");
+  await page.fill("#prefill-pid", "10.5281/zenodo.1");
+  await page.locator("#prefill-pid-run").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status") && document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if (!(await checked("answer-O08-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
+  const stewardGap = page.locator(".gaps .action-card", { hasText: "O08" }).first();
+  if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/E.OS3-RULES.D-STEWARD"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
+  if (external.length) fail("funded output: requests without a lookup: " + external.join(", "));
+  for (const problem of problems) fail("funded output: " + problem);
+  console.log("checked the funded-output profile");
   await context.close();
 }
 

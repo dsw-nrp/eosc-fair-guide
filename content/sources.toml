@@ -169,3 +169,23 @@ inLanguage = "cs"
 url = "https://e-sbirka.gov.cz/sb/2025/328"
 datePublished = 2025-09-09
 dateAccessed = 2026-10-09
+
+[[source]]
+id = "os3-faq"
+type = "webpage"
+title = { cs = "Open Science III: časté dotazy", en = "Open Science III: frequently asked questions" }
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/open-science-iii/faq"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "minizamer-catalogue"
+type = "document"
+title = { cs = "Minizáměry Open Science II, výzva č. 2: Katalog výstupů", en = "Open Science II mini-projects, call no. 2: catalogue of outputs" }
+inLanguage = "cs"
+version = "1.0"
+url = "https://www.eosc.cz/media/4219027/priloha_c_2_katalog_vystupu.pdf"
+publisher = "cuni"
+datePublished = 2026-09-01
+dateAccessed = 2026-10-09

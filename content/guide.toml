@@ -107,6 +107,12 @@ url = "https://archiv.soc.cas.cz/"
 ror = "https://ror.org/01snj4592"
 
 [[organization]]
+id = "cuni"
+name = { cs = "Univerzita Karlova", en = "Charles University" }
+url = "https://www.cuni.cz/"
+ror = "https://ror.org/024d6js02"
+
+[[organization]]
 id = "nrp"
 name = { cs = "Národní repozitářová platforma pro výzkumná data", en = "National Repository Platform for Research Data" }
 url = "https://www.eosc.cz/projekty/narodni-repozitarova-platforma-pro-vyzkumna-data-nrp"
@@ -390,7 +396,7 @@ icon = "list-check"
 
 [[task]]
 lens = "V"
-label = { cs = "Výstup pro Open Science III nebo minizáměr", en = "Output for Open Science III or a minizáměr" }
+label = { cs = "Výstup pro Open Science III nebo minizáměr", en = "Output for Open Science III or a mini-project" }
 href = "#check-dataset"
 icon = "route"
 
@@ -408,7 +414,7 @@ icon = "list-check"
 
 [[task]]
 lens = "DS"
-label = { cs = "Výstup pro Open Science III nebo minizáměr", en = "Output for Open Science III or a minizáměr" }
+label = { cs = "Výstup pro Open Science III nebo minizáměr", en = "Output for Open Science III or a mini-project" }
 href = "#check-dataset"
 icon = "route"
 

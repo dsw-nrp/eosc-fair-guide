@@ -28,7 +28,8 @@
   const MAX_FILE = 2 * 1024 * 1024;
   const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared"];
   const R3D = /r3d\d{9}/i;
-  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed"];
+  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid"];
+  const ORCID_ID = /^(?:https?:\/\/orcid\.org\/)?(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i;
   const LENS_ACTOR = { V: "#actor-user", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
   const status = { check: null, text: "", busy: false };
 
@@ -64,6 +65,8 @@
     if (!entry.items || typeof entry.items !== "object" || Array.isArray(entry.items)) entry.items = {};
     if (entry.mode && !modesOf(check).some((term) => term.termCode === entry.mode)) delete entry.mode;
     if (entry.profile && !profilesOf(check).some((term) => term.termCode === entry.profile)) delete entry.profile;
+    /* A check with a default profile, such as no funding programme, starts with it. */
+    if (!entry.profile && check.defaultProfile) entry.profile = (FG.get(check.defaultProfile) || {}).termCode;
     return entry;
   }
 
@@ -442,7 +445,10 @@
           count += applyEvidence(
             check,
             "datacite",
-            (item, fields) => Object.assign(fieldEvidence(fields.map((field) => pathState(attributes, field))), { fields: fieldsOf(attributes, fields) }),
+            (item, fields) =>
+              fields.includes("@steward")
+                ? stewardEvidence(attributes, stateOf(check).steward)
+                : Object.assign(fieldEvidence(fields.map((field) => pathState(attributes, field))), { fields: fieldsOf(attributes, fields) }),
             date,
             recordUrl
           );
@@ -759,6 +765,33 @@
     );
   }
 
+  /** Whether the profile changes anything in the chosen mode: some item that names profiles applies to the mode. */
+  function profilesMatter(check, st) {
+    if (!check.defaultProfile) return true;
+    return itemsOf(check).some((item) => {
+      const refs = FG.refIds(item, "appliesTo");
+      const modes = refs.filter((id) => id.startsWith("#mode-"));
+      return refs.some((id) => id.startsWith("#profile-")) && (!modes.length || modes.includes("#mode-" + st.mode));
+    });
+  }
+
+  /** Whether the data steward named for a funded output appears among the creators or contributors of a DataCite
+      record: by their ORCID iD when given, otherwise only as a data curator or manager, which still needs checking. */
+  function stewardEvidence(attributes, orcid) {
+    const people = FG.list(attributes.creators).concat(FG.list(attributes.contributors));
+    const idOf = (identifier) => (String((identifier && identifier.nameIdentifier) || "").match(/\d{4}-\d{4}-\d{4}-\d{3}[\dX]/i) || [""])[0].toUpperCase();
+    const names = (list) => list.map((person) => person.name || [person.givenName, person.familyName].filter(Boolean).join(" ")).join(", ");
+    if (orcid) {
+      const found = people.filter((person) => FG.list(person.nameIdentifiers).some((identifier) => idOf(identifier) === orcid));
+      return found.length
+        ? { value: "yes", notes: [{ key: "selfcheck.note.stewardFound", params: { name: names(found) } }] }
+        : { value: "no", notes: [{ key: "selfcheck.note.stewardMissing", params: { orcid } }] };
+    }
+    const curators = FG.list(attributes.contributors).filter((person) => ["DataCurator", "DataManager"].includes(person.contributorType));
+    if (curators.length) return { value: "partly", notes: [{ key: "selfcheck.note.stewardRole", params: { names: names(curators) } }] };
+    return { value: null, notes: [{ key: "selfcheck.note.stewardOrcid" }] };
+  }
+
   function settings(check, st) {
     const modes = modesOf(check);
     const profiles = profilesOf(check);
@@ -771,7 +804,9 @@
       modes.length
         ? radios("mode", FG.t("selfcheck.modeQuestion"), modes.map((term) => [term.termCode, FG.t("selfcheck.mode." + term.termCode)]), st.mode, change("mode"))
         : null,
-      profiles.length ? radios("profile", FG.t("selfcheck.profileQuestion"), profiles.map((term) => [term.termCode, FG.text(term.name)]), st.profile, change("profile")) : null,
+      profiles.length && profilesMatter(check, st)
+        ? radios("profile", FG.t("selfcheck.profileQuestion." + check.identifier), profiles.map((term) => [term.termCode, FG.text(term.name)]), st.profile, change("profile"))
+        : null,
     ];
   }
 
@@ -779,6 +814,28 @@
     const sources = new Set();
     for (const item of answerable(check, st)) for (const entry of FG.refs(item, "additionalProperty")) sources.add(String(entry.propertyID).replace("prefill:", ""));
     return sources;
+  }
+
+  /** Whether a question the check shows is answered by looking for the output's data steward. */
+  const needsSteward = (check, st) =>
+    answerable(check, st).some((item) => FG.refs(item, "additionalProperty").some((entry) => entry.propertyID === "prefill:datacite" && FG.list(entry.value).includes("@steward")));
+
+  /** The data steward of a funded output, by ORCID iD, for the DataCite lookup to find among creators and contributors. */
+  function stewardControl(check, st) {
+    const input = h("input", { id: "prefill-steward", type: "text", autocomplete: "off", spellcheck: "false", value: st.steward || "", placeholder: "0000-0000-0000-0000" });
+    input.addEventListener("change", () => {
+      const match = input.value.trim().match(ORCID_ID);
+      st.steward = match ? match[1].toUpperCase() : "";
+      save();
+      setStatus(check, match || !input.value.trim() ? "" : FG.t("selfcheck.prefill.stewardInvalid"));
+    });
+    return h(
+      "div",
+      { class: "prefill-row" },
+      h("label", { for: "prefill-steward" }, FG.t("selfcheck.prefill.steward")),
+      input,
+      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.stewardHint"))
+    );
   }
 
   function pidControl(check, st) {
@@ -917,6 +974,7 @@
     const sources = ready ? sourcesOf(check, st) : new Set();
     const controls = [];
     if (sources.has("datacite") || sources.has("resolver")) controls.push(pidControl(check, st));
+    if (ready && needsSteward(check, st)) controls.push(stewardControl(check, st));
     if (sources.has("nkr")) controls.push(nkrControl(check, st));
     if (sources.has("re3data")) controls.push(re3dataControl(check, st));
     if (sources.has("fip")) controls.push(fipControl(check, st));
@@ -1198,8 +1256,17 @@
         station ? [h("span", { class: "action-label" }, FG.t("selfcheck.result.whereFix") + ": "), stepLink(station)] : null,
         who.length ? [station ? h("span", { class: "action-sep" }, " · ") : null, h("span", { class: "action-label" }, FG.t("selfcheck.result.whoFix") + ": "), who.join(", ")] : null
       ),
+      programmeLine(st, item),
       basisLine(item)
     );
+  }
+
+  /** For a funded output: that the dataset would not meet the picked programme's output requirement. */
+  function programmeLine(st, item) {
+    const programmes = FG.refIds(item, "appliesTo").filter((id) => id.startsWith("#profile-"));
+    const picked = st && st.profile ? "#profile-" + st.profile : null;
+    if (!picked || !programmes.includes(picked)) return null;
+    return h("p", { class: "action-programme small" }, FG.t("selfcheck.result.programmeGap", { programme: FG.text(FG.get(picked).name) }));
   }
 
   /** What a gap rests on: the requirements its question cites, as identifiers leading to the catalogue, and their
@@ -1561,6 +1628,7 @@
       targetInfo: st.targetInfo || null,
       pid: st.pid || null,
       nkr: st.nkr || null,
+      steward: st.steward || null,
       re3data: st.re3data || null,
       fip: st.fip || null,
       items,
@@ -1633,6 +1701,7 @@
     const state = { mode: data.mode, profile: data.profile, extended: true, target: webUrl(data.target), items };
     if (isText(data.pid, 300)) state.pid = data.pid;
     if (isText(data.nkr, 100) && /^[\w.:-]+$/.test(data.nkr)) state.nkr = data.nkr;
+    if (isText(data.steward, 40) && ORCID_ID.test(data.steward)) state.steward = data.steward.match(ORCID_ID)[1].toUpperCase();
     if (isText(data.re3data, 20) && /^r3d\d{9}$/.test(data.re3data)) state.re3data = data.re3data;
     if (isText(data.fip, 100) && /^[\w.-]+$/.test(data.fip)) state.fip = data.fip;
     if (data.targetInfo && typeof data.targetInfo === "object") {
@@ -2114,8 +2183,10 @@
 
   /** How many questions a check asks: a range when its mode or profile decides, one number otherwise. */
   function questionCount(check) {
-    const choices = modesOf(check).map((term) => ({ mode: term.termCode })).concat(profilesOf(check).map((term) => ({ profile: term.termCode })));
-    const counts = (choices.length ? choices : [{}]).map((choice) => itemsOf(check).filter((item) => applies(item, Object.assign({ mode: null, profile: null }, choice))).length);
+    const modes = modesOf(check).map((term) => term.termCode);
+    const profiles = profilesOf(check).map((term) => term.termCode);
+    const choices = (modes.length ? modes : [null]).flatMap((mode) => (profiles.length ? profiles : [null]).map((profile) => ({ mode, profile })));
+    const counts = choices.map((choice) => itemsOf(check).filter((item) => applies(item, choice)).length);
     const low = Math.min(...counts);
     const high = Math.max(...counts);
     return low === high ? FG.t("selfcheck.items", { n: low }) : FG.t("selfcheck.itemsRange", { low, high });

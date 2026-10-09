@@ -35,7 +35,7 @@ HEALTH = ("available", "degraded", "unavailable")
 PREFILL_SOURCES = ("datacite", "nkr", "champion", "fip", "resolver", "re3data")
 ACTION_TYPES = ("create", "update")
 RELEASE_STATUSES = ("testing", "released")
-CHECK_PREFIXES = {"dataset": ("D", "P"), "gate": ("G",), "maturity": ("S",), "fip": ("K",), "institution": ("I",)}
+CHECK_PREFIXES = {"dataset": ("D", "P", "O"), "gate": ("G",), "maturity": ("S",), "fip": ("K",), "institution": ("I",)}
 GATE_TIERS = ("required", "recommended")
 MATURITY_TIERS = ("minimum", "recommended", "advanced")
 FORBIDDEN_KEYS = ("score", "percentage", "points")
@@ -375,6 +375,8 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
             if lens not in vocab["lenses"]:
                 report.error(where, f"unknown lens '{lens}'")
         profiles = {profile["id"] for profile in check.get("profile", [])}
+        if check.get("defaultProfile") is not None and check["defaultProfile"] not in profiles:
+            report.error(where, f"defaultProfile must be one of {', '.join(sorted(profiles)) or 'its profiles'}")
         modes = set(check.get("modes", []))
         tiers = GATE_TIERS if check["id"] == "gate" else MATURITY_TIERS
         # A check either has no blocks, or every item belongs to one of its blocks.
