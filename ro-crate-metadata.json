@@ -4,6 +4,7 @@
     {
       "disclosureLevel": "https://motyc.github.io/eosc-fair-guide/terms#disclosureLevel",
       "adviceKind": "https://motyc.github.io/eosc-fair-guide/terms#adviceKind",
+      "block": "https://motyc.github.io/eosc-fair-guide/terms#block",
       "startsAt": "https://motyc.github.io/eosc-fair-guide/terms#startsAt",
       "tier": "https://motyc.github.io/eosc-fair-guide/terms#tier",
       "fixAt": "https://motyc.github.io/eosc-fair-guide/terms#fixAt",
@@ -250,6 +251,9 @@
         },
         {
           "@id": "#action-2026-10-09-eosc-inventory-resources"
+        },
+        {
+          "@id": "#action-2026-10-09-institution-check"
         },
         {
           "@id": "#ledger"
@@ -556,6 +560,12 @@
       "@type": "rdf:Property",
       "rdfs:label": "adviceKind",
       "rdfs:comment": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay."
+    },
+    {
+      "@id": "https://motyc.github.io/eosc-fair-guide/terms#block",
+      "@type": "rdf:Property",
+      "rdfs:label": "block",
+      "rdfs:comment": "Block of a self-check that a question belongs to; a check's blocks are a defined term set in order."
     },
     {
       "@id": "https://motyc.github.io/eosc-fair-guide/terms#startsAt",
@@ -1584,6 +1594,47 @@
         "@id": "https://ror.org/01snj4592"
       },
       "sdDatePublished": "2026-10-08"
+    },
+    {
+      "@id": "#source-os3-rules",
+      "@type": "DigitalDocument",
+      "identifier": "os3-rules",
+      "name": [
+        {
+          "@value": "Pravidla pro žadatele a příjemce – specifická část pro výzvu Open Science III",
+          "@language": "cs"
+        },
+        {
+          "@value": "Rules for applicants and beneficiaries – specific part for the Open Science III call",
+          "@language": "en"
+        }
+      ],
+      "url": "https://opjak.cz/wp-content/uploads/2026/06/PpZP_specificka_cast_vyzva_Open_Science_III_web.pdf",
+      "inLanguage": "cs",
+      "publisher": {
+        "@id": "https://ror.org/037n8p820"
+      },
+      "version": "1",
+      "sdDatePublished": "2026-10-09"
+    },
+    {
+      "@id": "#source-law-328-2025",
+      "@type": "DigitalDocument",
+      "identifier": "law-328-2025",
+      "name": [
+        {
+          "@value": "Zákon č. 328/2025 Sb., o výzkumu, vývoji, inovacích a transferu znalostí",
+          "@language": "cs"
+        },
+        {
+          "@value": "Act No. 328/2025 Coll., on research, development, innovation and knowledge transfer",
+          "@language": "en"
+        }
+      ],
+      "url": "https://e-sbirka.gov.cz/sb/2025/328",
+      "inLanguage": "cs",
+      "datePublished": "2025-09-09",
+      "sdDatePublished": "2026-10-09"
     },
     {
       "@id": "#lens-V",
@@ -7277,7 +7328,7 @@
           "@language": "cs"
         },
         {
-          "@value": "Manual for preparing an institutional data policy",
+          "@value": "Manual for creating an institutional data policy",
           "@language": "en"
         }
       ],
@@ -11215,6 +11266,12 @@
           "@id": "https://doi.org/10.14473/CSDA/OJTMJF"
         },
         {
+          "@id": "#source-os3-rules"
+        },
+        {
+          "@id": "#source-law-328-2025"
+        },
+        {
           "@id": "#resource-dmp-eosc"
         },
         {
@@ -11997,6 +12054,81 @@
         },
         {
           "@id": "#clause-E.FAIR-PRINCIPLES"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.STRATEGY"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP5"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.APPROVAL"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.DS"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.NDI"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.TRAINING"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SCOPE"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.DMP"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.RETENTION"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SHARING"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SUPPORT"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.REVISION"
+        },
+        {
+          "@id": "#clause-E.LAW-328.83"
         }
       ]
     },
@@ -18217,6 +18349,617 @@
       "clauseKind": "statement",
       "creativeWorkStatus": "current",
       "name": "E.FAIR-PRINCIPLES"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.STRATEGY",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.STRATEGY",
+      "text": [
+        {
+          "@value": "Výzva Open Science III podmiňuje akceptaci výstupů formálně přijatou strategií pro nakládání s výzkumnými daty na celoinstitucionální úrovni, schválenou statutárním orgánem a splňující minimální požadavky výzvy.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The Open Science III call makes the acceptance of outputs conditional on a formally adopted, institution-wide strategy for research data, approved by the statutory body and meeting the call's minimum requirements.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.STRATEGY"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.S1",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.S1",
+      "text": [
+        {
+          "@value": "Strategie musí pokrývat vizi a cíle správy výzkumných dat: hlavní cíle instituce ve správě a sdílení dat, například FAIR principy, otevřenost dat a etické principy.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The strategy must cover the vision and goals of research data management: the institution's main goals in managing and sharing data, such as the FAIR principles, open data and ethical principles.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.S1"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.S2",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.S2",
+      "text": [
+        {
+          "@value": "Strategie musí vymezit svůj rozsah a působnost: na jaké typy výzkumných dat, projekty, pracoviště a výzkumné pracovníky se vztahuje.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The strategy must set out its scope: the kinds of research data, projects, departments and researchers it covers.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.S2"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.S3",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.S3",
+      "text": [
+        {
+          "@value": "Strategie musí pokrývat lidské zdroje pro správu výzkumných dat: odpovědnosti jednotlivých aktérů (výzkumníci, datoví správci, IT podpora, vedení), vizi dlouhodobého rozvoje lidských zdrojů a kompetencí pro FAIR data a využívání NDI a ukotvení pracovních pozic pro správu FAIR dat v organizační struktuře.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The strategy must cover human resources for research data management: the responsibilities of each actor (researchers, data stewards, IT support, management), a vision for developing people and competences for FAIR data and the use of the NDI over the long term, and the anchoring of FAIR data positions in the organisational structure.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.S3"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.S4",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.S4",
+      "text": [
+        {
+          "@value": "Strategie musí pokrývat infrastrukturu a institucionální podporu: rámcový popis potřebných služeb, nástrojů, podpory a využití NDI, například školení, poradenství a IT infrastruktury.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The strategy must cover infrastructure and institutional support: an outline of the services, tools and support needed and of the use of the NDI, such as training, advice and IT infrastructure.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.S4"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.AP1",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.AP1",
+      "text": [
+        {
+          "@value": "Akční plán musí obsahovat opatření pro implementaci strategie: konkrétní aktivity, například zavedení podpůrného týmu, infrastrukturu pro dlouhodobé uchovávání dat, školení a šíření povědomí.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan must contain measures for implementing the strategy: specific activities, such as setting up a support team, infrastructure for long-term retention, training and raising awareness.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.AP1"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.AP2",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.AP2",
+      "text": [
+        {
+          "@value": "Akční plán musí obsahovat harmonogram realizace: časový plán jednotlivých opatření nebo jejich etapizaci.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan must contain a schedule: a timeline for each measure or its stages.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.AP2"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.AP3",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.AP3",
+      "text": [
+        {
+          "@value": "Akční plán musí určit odpovědné osoby nebo útvary za realizaci konkrétních opatření.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan must name the people or units responsible for each measure.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.AP3"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.AP4",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.AP4",
+      "text": [
+        {
+          "@value": "Akční plán musí rámcově vymezit personální, finanční a technické zdroje potřebné k realizaci strategie a formálně ukotvit způsob realizace akčního plánu.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan must outline the staff, financial and technical resources needed to implement the strategy and anchor formally how the plan is carried out.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.AP4"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.AP5",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.AP5",
+      "text": [
+        {
+          "@value": "Akční plán musí stanovit monitoring a vyhodnocování: indikátory plnění, pravidelné vyhodnocování (jak často a kdo) a aktualizaci plánu.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan must set out monitoring and evaluation: indicators, regular evaluation (how often and by whom) and updates to the plan.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.AP5"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.APPROVAL",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.APPROVAL",
+      "text": [
+        {
+          "@value": "Akční plán a politika musí být formálně schváleny statutárním orgánem; dokumenty nižších organizačních celků vysoké školy děkanem.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan and the policy must be formally approved by the statutory body, or by the dean for the documents of a faculty.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.APPROVAL"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.P1",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.P1",
+      "text": [
+        {
+          "@value": "Politika musí definovat svou působnost: na koho se vztahuje (například zaměstnanci, studenti, externí partneři), co instituce považuje za výzkumná data, na která se politika vztahuje, a základní zasazení do právního rámce.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy must define its scope: whom it applies to (such as staff, students, external partners), what the institution counts as the research data it covers, and how it fits the legal framework.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.P1"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.P2",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.P2",
+      "text": [
+        {
+          "@value": "Politika musí stanovit, jakým způsobem instituce řeší plánování a správu dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy must set out how the institution handles data planning and management.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.P2"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.P3",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.P3",
+      "text": [
+        {
+          "@value": "Politika musí určit minimální dobu, po kterou musí být data uchována, a pravidla pro výběr míst dlouhodobého uchovávání.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy must set the minimum period for which data must be kept and the rules for choosing where they are kept long-term.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.P3"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.P4",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.P4",
+      "text": [
+        {
+          "@value": "Politika musí vysvětlit role a odpovědnosti výzkumníků za správu dat i instituce za poskytování podpory, včetně kontaktů na podporu.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy must explain the roles and responsibilities of researchers for managing data and of the institution for providing support, including support contacts.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.P4"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.DS",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.DS",
+      "text": [
+        {
+          "@value": "Aktivity výzvy Open Science III se realizují prostřednictvím povinné pracovní pozice Specialista v oblasti správy výzkumných dat (data steward).",
+          "@language": "cs"
+        },
+        {
+          "@value": "The Open Science III activities are carried out through the mandatory position of a research data management specialist (data steward).",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.DS"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.NDI",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.NDI",
+      "text": [
+        {
+          "@value": "Podmínkou všech aktivit výzvy Open Science III je využití Národní datové infrastruktury (NDI); vytvořené datové sady se evidují v Národním metadatovém adresáři.",
+          "@language": "cs"
+        },
+        {
+          "@value": "All Open Science III activities require the use of the national data infrastructure (NDI); the datasets created are recorded in the National Metadata Directory.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.NDI"
+    },
+    {
+      "@id": "#clause-E.OS3-RULES.TRAINING",
+      "@type": "CreativeWork",
+      "identifier": "E.OS3-RULES.TRAINING",
+      "text": [
+        {
+          "@value": "Volitelná aktivita Vzdělávání výzvy Open Science III umožňuje proškolit zaměstnance ve správě výzkumných dat, v FAIRifikaci a ve využívání NDI.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The optional Education activity of the Open Science III call lets institutions train staff in research data management, FAIRification and the use of the NDI.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-os3-rules"
+      },
+      "clauseKind": "statement",
+      "creativeWorkStatus": "current",
+      "name": "E.OS3-RULES.TRAINING"
+    },
+    {
+      "@id": "#clause-E.POLICY-MANUAL.SCOPE",
+      "@type": "CreativeWork",
+      "identifier": "E.POLICY-MANUAL.SCOPE",
+      "text": [
+        {
+          "@value": "Politika uvádí, na která výzkumná data se vztahuje, a zda jen na digitální, nebo i na fyzická. Má-li odrážet zákon o výzkumu, vztahuje se nejméně na data v elektronické podobě potřebná pro publikaci výsledků výzkumu podpořeného z veřejných prostředků.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy states which research data it covers, and whether only digital or also physical data. To reflect the research act, it covers at least the electronic data needed to publish the results of publicly funded research.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#resource-policy-manual"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.POLICY-MANUAL.SCOPE"
+    },
+    {
+      "@id": "#clause-E.POLICY-MANUAL.DMP",
+      "@type": "CreativeWork",
+      "identifier": "E.POLICY-MANUAL.DMP",
+      "text": [
+        {
+          "@value": "Výzkumníkům se doporučuje připravovat ke svým projektům DMP a průběžně ho aktualizovat; instituce schválí nástroj pro plánování, například Data Stewardship Wizard, dostupný všem relevantním osobám.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Researchers are advised to prepare a DMP for their projects and keep it up to date; the institution approves a planning tool, such as the Data Stewardship Wizard, open to everyone concerned.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#resource-policy-manual"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.POLICY-MANUAL.DMP"
+    },
+    {
+      "@id": "#clause-E.POLICY-MANUAL.RETENTION",
+      "@type": "CreativeWork",
+      "identifier": "E.POLICY-MANUAL.RETENTION",
+      "text": [
+        {
+          "@value": "Politika stanoví, jak dlouho se nejméně uchovávají data, která jsou podkladem publikací nebo samostatným výsledkem, a od kdy se doba počítá; běžné jsou 3–10 let od publikace nebo od konce projektu. Zákon o výzkumu minimální dobu nestanovuje.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy sets how long the data behind publications, or published as results in their own right, are kept at least, and from when the period runs; 3 to 10 years from publication or from the end of the project are common. The research act sets no minimum period.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#resource-policy-manual"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.POLICY-MANUAL.RETENTION"
+    },
+    {
+      "@id": "#clause-E.POLICY-MANUAL.SHARING",
+      "@type": "CreativeWork",
+      "identifier": "E.POLICY-MANUAL.SHARING",
+      "text": [
+        {
+          "@value": "Data mají být co nejotevřenější a uzavřená jen podle potřeby; politika určí, zda je sdílení povinné, nebo doporučené, doporučuje veřejné licence, například CC BY 4.0, a eviduje výjimky podle § 83 odst. 5 zákona o výzkumu.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Data should be as open as possible and as closed as necessary; the policy says whether sharing is required or recommended, recommends public licences such as CC BY 4.0, and records exceptions under section 83(5) of the research act.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#resource-policy-manual"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.POLICY-MANUAL.SHARING"
+    },
+    {
+      "@id": "#clause-E.POLICY-MANUAL.SUPPORT",
+      "@type": "CreativeWork",
+      "identifier": "E.POLICY-MANUAL.SUPPORT",
+      "text": [
+        {
+          "@value": "Politika uvádí kontakty na podporu správy dat (IT, open science, duševní vlastnictví, ochrana osobních údajů, etika, data stewardi) a koho výzkumníci osloví, když jejich data překročí úložnou kapacitu instituce.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy lists the contacts for data management support (IT, open science, intellectual property, data protection, ethics, data stewards) and whom researchers turn to when their data exceed the institution's storage capacity.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#resource-policy-manual"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.POLICY-MANUAL.SUPPORT"
+    },
+    {
+      "@id": "#clause-E.POLICY-MANUAL.REVISION",
+      "@type": "CreativeWork",
+      "identifier": "E.POLICY-MANUAL.REVISION",
+      "text": [
+        {
+          "@value": "Politiku pravidelně vyhodnocuje a aktualizuje určený tým, jehož součástí jsou zaměstnanci podpory správy výzkumných dat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A named team, including the institution's research data support staff, reviews and updates the policy regularly.",
+          "@language": "en"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#resource-policy-manual"
+      },
+      "clauseKind": "recommendation",
+      "creativeWorkStatus": "current",
+      "name": "E.POLICY-MANUAL.REVISION"
+    },
+    {
+      "@id": "#clause-E.LAW-328.83",
+      "@type": "CreativeWork",
+      "identifier": "E.LAW-328.83",
+      "text": [
+        {
+          "@value": "Příjemce zajistí správu údajů z výzkumu podpořeného z veřejných prostředků tak, aby byly dohledatelné, přístupné a opakovaně využitelné; údaje zveřejněné v repozitáři poskytuje bezplatně v otevřeném a strojově čitelném formátu a odmítnout je může jen z důvodů, které zákon uvádí (§ 83, účinnost od 1. ledna 2027).",
+          "@language": "cs"
+        },
+        {
+          "@value": "The recipient manages the data from publicly funded research so that they are findable, accessible and reusable; it provides data published in a repository free of charge in an open, machine-readable format, and may refuse only on the grounds the act lists (section 83, in force from 1 January 2027).",
+          "@language": "en"
+        }
+      ],
+      "about": [
+        {
+          "@id": "https://w3id.org/fair/principles/terms/F1"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/A1"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/R1"
+        }
+      ],
+      "audience": {
+        "@id": "#actor-other"
+      },
+      "isPartOf": {
+        "@id": "#source-law-328-2025"
+      },
+      "clauseKind": "requirement",
+      "creativeWorkStatus": "current",
+      "name": "E.LAW-328.83"
     },
     {
       "@id": "#advice-plan.V.L0",
@@ -32452,33 +33195,129 @@
       ]
     },
     {
+      "@id": "#blocks-institution",
+      "@type": "DefinedTermSet",
+      "name": "Blocks of the institution check",
+      "hasDefinedTerm": [
+        {
+          "@id": "#block-institution-strategy"
+        },
+        {
+          "@id": "#block-institution-action-plan"
+        },
+        {
+          "@id": "#block-institution-policy"
+        },
+        {
+          "@id": "#block-institution-infrastructure"
+        }
+      ]
+    },
+    {
+      "@id": "#block-institution-strategy",
+      "@type": "DefinedTerm",
+      "termCode": "institution-strategy",
+      "name": [
+        {
+          "@value": "Strategie pro nakládání s výzkumnými daty",
+          "@language": "cs"
+        },
+        {
+          "@value": "Research data strategy",
+          "@language": "en"
+        }
+      ],
+      "inDefinedTermSet": {
+        "@id": "#blocks-institution"
+      }
+    },
+    {
+      "@id": "#block-institution-action-plan",
+      "@type": "DefinedTerm",
+      "termCode": "institution-action-plan",
+      "name": [
+        {
+          "@value": "Akční plán",
+          "@language": "cs"
+        },
+        {
+          "@value": "Action plan",
+          "@language": "en"
+        }
+      ],
+      "inDefinedTermSet": {
+        "@id": "#blocks-institution"
+      }
+    },
+    {
+      "@id": "#block-institution-policy",
+      "@type": "DefinedTerm",
+      "termCode": "institution-policy",
+      "name": [
+        {
+          "@value": "Politika správy výzkumných dat",
+          "@language": "cs"
+        },
+        {
+          "@value": "Research data policy",
+          "@language": "en"
+        }
+      ],
+      "inDefinedTermSet": {
+        "@id": "#blocks-institution"
+      }
+    },
+    {
+      "@id": "#block-institution-infrastructure",
+      "@type": "DefinedTerm",
+      "termCode": "institution-infrastructure",
+      "name": [
+        {
+          "@value": "Národní datová infrastruktura a lidé",
+          "@language": "cs"
+        },
+        {
+          "@value": "National data infrastructure and people",
+          "@language": "en"
+        }
+      ],
+      "inDefinedTermSet": {
+        "@id": "#blocks-institution"
+      }
+    },
+    {
       "@id": "#item-I01",
       "@type": "Question",
       "identifier": "I01",
       "text": [
         {
-          "@value": "Instituce má zveřejněnou datovou politiku.",
+          "@value": "Instituce má strategii pro nakládání s výzkumnými daty, formálně přijatou statutárním orgánem pro celou instituci.",
           "@language": "cs"
         },
         {
-          "@value": "The institution has a published data policy.",
+          "@value": "The institution has a research data strategy, formally adopted by the statutory body for the whole institution.",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Bez ní výzva Open Science III neakceptuje výstupy; stačí i strategický dokument jiného názvu se stejným obsahem.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Without it the Open Science III call accepts no outputs; a strategic document under another name with the same content counts.",
           "@language": "en"
         }
       ],
       "position": 1,
-      "about": [
-        {
-          "@id": "https://w3id.org/fair/principles/terms/R1.1"
-        },
-        {
-          "@id": "https://w3id.org/fair/principles/terms/A1.2"
-        }
-      ],
       "citation": {
-        "@id": "#clause-E.POLICY-MANUAL"
+        "@id": "#clause-E.OS3-RULES.STRATEGY"
       },
       "tier": {
-        "@id": "#tier-recommended"
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-strategy"
       },
       "fixAt": {
         "@id": "#station-plan"
@@ -32498,28 +33337,23 @@
       "identifier": "I02",
       "text": [
         {
-          "@value": "Výzkumníci mají podporu s plány správy dat (data steward, DMP.eosc.cz).",
+          "@value": "Strategie stanoví vizi a cíle správy výzkumných dat, například FAIR principy, otevřenost a etiku.",
           "@language": "cs"
         },
         {
-          "@value": "Researchers get support with data management plans (a data steward, DMP.eosc.cz).",
+          "@value": "The strategy sets the vision and goals of research data management, such as the FAIR principles, openness and ethics.",
           "@language": "en"
         }
       ],
       "position": 2,
-      "about": {
-        "@id": "https://w3id.org/fair/principles/terms/R1"
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.S1"
       },
-      "citation": [
-        {
-          "@id": "#clause-E.DATA-STEWARDS"
-        },
-        {
-          "@id": "#clause-E.DMP"
-        }
-      ],
       "tier": {
-        "@id": "#tier-recommended"
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-strategy"
       },
       "fixAt": {
         "@id": "#station-plan"
@@ -32531,12 +33365,7 @@
       "isPartOf": {
         "@id": "#check-institution"
       },
-      "name": "I02",
-      "mentions": [
-        {
-          "@id": "#resource-dmp-eosc"
-        }
-      ]
+      "name": "I02"
     },
     {
       "@id": "#item-I03",
@@ -32544,26 +33373,26 @@
       "identifier": "I03",
       "text": [
         {
-          "@value": "Výzkumníci mají k dispozici spravované a zálohované úložiště, i pro citlivá data.",
+          "@value": "Strategie vymezuje, na jaká data, projekty, pracoviště a pracovníky se vztahuje.",
           "@language": "cs"
         },
         {
-          "@value": "Researchers have managed, backed-up storage, also for sensitive data.",
+          "@value": "The strategy sets out which data, projects, departments and staff it covers.",
           "@language": "en"
         }
       ],
       "position": 3,
-      "about": {
-        "@id": "https://w3id.org/fair/principles/terms/A1.2"
-      },
       "citation": {
-        "@id": "#clause-E.EINFRA"
+        "@id": "#clause-E.OS3-RULES.S2"
       },
       "tier": {
-        "@id": "#tier-recommended"
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-strategy"
       },
       "fixAt": {
-        "@id": "#station-prace"
+        "@id": "#station-plan"
       },
       "fixedBy": {
         "@id": "#actor-data-steward"
@@ -32580,20 +33409,28 @@
       "identifier": "I04",
       "text": [
         {
-          "@value": "Instituce má strategii správy výzkumných dat; výzva Open Science III ji vyžaduje.",
+          "@value": "Strategie řeší lidské zdroje: odpovědnosti aktérů, rozvoj kompetencí pro FAIR data a NDI a pozice data stewardů v organizační struktuře.",
           "@language": "cs"
         },
         {
-          "@value": "The institution has a research data management strategy; the Open Science III call requires one.",
+          "@value": "The strategy covers people: the actors' responsibilities, developing competences for FAIR data and the NDI, and data steward positions in the organisational structure.",
           "@language": "en"
         }
       ],
       "position": 4,
-      "citation": {
-        "@id": "#clause-E.OS3"
-      },
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.S3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.DS"
+        }
+      ],
       "tier": {
-        "@id": "#tier-recommended"
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-strategy"
       },
       "fixAt": {
         "@id": "#station-plan"
@@ -32605,12 +33442,817 @@
       "isPartOf": {
         "@id": "#check-institution"
       },
-      "name": "I04",
+      "name": "I04"
+    },
+    {
+      "@id": "#item-I05",
+      "@type": "Question",
+      "identifier": "I05",
+      "text": [
+        {
+          "@value": "Strategie popisuje potřebné služby, nástroje a podporu včetně využití národní datové infrastruktury (NDI).",
+          "@language": "cs"
+        },
+        {
+          "@value": "The strategy describes the services, tools and support needed, including the use of the national data infrastructure (NDI).",
+          "@language": "en"
+        }
+      ],
+      "position": 5,
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.S4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.NDI"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-strategy"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I05"
+    },
+    {
+      "@id": "#item-I06",
+      "@type": "Question",
+      "identifier": "I06",
+      "text": [
+        {
+          "@value": "Akční plán obsahuje konkrétní opatření k naplnění strategie, například podpůrný tým, úložiště pro dlouhodobé uchování a školení.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan contains specific measures that implement the strategy, such as a support team, storage for long-term retention and training.",
+          "@language": "en"
+        }
+      ],
+      "position": 6,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.AP1"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-action-plan"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I06"
+    },
+    {
+      "@id": "#item-I07",
+      "@type": "Question",
+      "identifier": "I07",
+      "text": [
+        {
+          "@value": "Akční plán má harmonogram jednotlivých opatření.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan has a schedule for each measure.",
+          "@language": "en"
+        }
+      ],
+      "position": 7,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.AP2"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-action-plan"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I07"
+    },
+    {
+      "@id": "#item-I08",
+      "@type": "Question",
+      "identifier": "I08",
+      "text": [
+        {
+          "@value": "U každého opatření je určena odpovědná osoba nebo útvar.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Each measure has a responsible person or unit.",
+          "@language": "en"
+        }
+      ],
+      "position": 8,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.AP3"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-action-plan"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I08"
+    },
+    {
+      "@id": "#item-I09",
+      "@type": "Question",
+      "identifier": "I09",
+      "text": [
+        {
+          "@value": "Akční plán vymezuje personální, finanční a technické zdroje a formálně ukotvuje, jak se bude plnit.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan sets out the staff, financial and technical resources and anchors formally how it is carried out.",
+          "@language": "en"
+        }
+      ],
+      "position": 9,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.AP4"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-action-plan"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I09"
+    },
+    {
+      "@id": "#item-I10",
+      "@type": "Question",
+      "identifier": "I10",
+      "text": [
+        {
+          "@value": "Akční plán stanoví indikátory, kdo a jak často jeho plnění vyhodnocuje a jak se aktualizuje.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The action plan sets indicators, who reviews progress and how often, and how the plan is updated.",
+          "@language": "en"
+        }
+      ],
+      "position": 10,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.AP5"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-action-plan"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I10"
+    },
+    {
+      "@id": "#item-I11",
+      "@type": "Question",
+      "identifier": "I11",
+      "text": [
+        {
+          "@value": "Akční plán i politiku formálně schválil statutární orgán, u fakultních dokumentů děkan.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The statutory body, or the dean for a faculty's documents, has formally approved the action plan and the policy.",
+          "@language": "en"
+        }
+      ],
+      "position": 11,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.APPROVAL"
+      },
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-action-plan"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I11"
+    },
+    {
+      "@id": "#item-I12",
+      "@type": "Question",
+      "identifier": "I12",
+      "text": [
+        {
+          "@value": "Politika vymezuje, na koho se vztahuje, která výzkumná data pokrývá a jak zapadá do právního rámce.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy sets out whom it applies to, which research data it covers and how it fits the legal framework.",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Má-li odrážet zákon o výzkumu, pokrývá nejméně data v elektronické podobě potřebná pro publikaci výsledků výzkumu z veřejných prostředků.",
+          "@language": "cs"
+        },
+        {
+          "@value": "To reflect the research act, it covers at least the electronic data needed to publish the results of publicly funded research.",
+          "@language": "en"
+        }
+      ],
+      "position": 12,
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.P1"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SCOPE"
+        },
+        {
+          "@id": "#clause-E.LAW-328.83"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-policy"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I12"
+    },
+    {
+      "@id": "#item-I13",
+      "@type": "Question",
+      "identifier": "I13",
+      "text": [
+        {
+          "@value": "Politika stanoví, jak se plánuje a spravuje data, včetně DMP ve schváleném nástroji dostupném všem výzkumníkům.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy sets out how data are planned and managed, including DMPs in an approved tool open to every researcher.",
+          "@language": "en"
+        }
+      ],
+      "position": 13,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/R1"
+      },
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.P2"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.DMP"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-policy"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I13"
+    },
+    {
+      "@id": "#item-I14",
+      "@type": "Question",
+      "identifier": "I14",
+      "text": [
+        {
+          "@value": "Politika stanoví minimální dobu uchování dat a pravidla pro výběr míst dlouhodobého uchovávání.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy sets a minimum retention period and the rules for choosing where data are kept long-term.",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Běžné jsou 3–10 let od publikace nebo od konce projektu; zákon o výzkumu minimální dobu nestanovuje.",
+          "@language": "cs"
+        },
+        {
+          "@value": "3 to 10 years from publication or from the end of the project are common; the research act sets no minimum period.",
+          "@language": "en"
+        }
+      ],
+      "position": 14,
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.P3"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.RETENTION"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-policy"
+      },
+      "fixAt": {
+        "@id": "#station-repozitar"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I14"
+    },
+    {
+      "@id": "#item-I15",
+      "@type": "Question",
+      "identifier": "I15",
+      "text": [
+        {
+          "@value": "Politika vysvětluje odpovědnosti výzkumníků a instituce a uvádí kontakty na podporu.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy explains the responsibilities of researchers and of the institution and lists support contacts.",
+          "@language": "en"
+        }
+      ],
+      "position": 15,
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.P4"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SUPPORT"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-policy"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I15"
+    },
+    {
+      "@id": "#item-I16",
+      "@type": "Question",
+      "identifier": "I16",
+      "text": [
+        {
+          "@value": "Politika stanoví, jak instituce zpřístupňuje údaje z výzkumu podpořeného z veřejných prostředků, za jakých licencí a kdy smí poskytnutí odmítnout.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The policy sets out how the institution makes the data from publicly funded research available, under which licences, and when it may refuse.",
+          "@language": "en"
+        }
+      ],
+      "description": [
+        {
+          "@value": "Zákon o výzkumu to vyžaduje od 1. ledna 2027.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The research act requires this from 1 January 2027.",
+          "@language": "en"
+        }
+      ],
+      "position": 16,
+      "about": [
+        {
+          "@id": "https://w3id.org/fair/principles/terms/A1"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/R1.1"
+        }
+      ],
+      "citation": [
+        {
+          "@id": "#clause-E.LAW-328.83"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SHARING"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-minimum"
+      },
+      "block": {
+        "@id": "#block-institution-policy"
+      },
+      "fixAt": {
+        "@id": "#station-licence"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I16"
+    },
+    {
+      "@id": "#item-I17",
+      "@type": "Question",
+      "identifier": "I17",
+      "text": [
+        {
+          "@value": "Je určen tým, který politiku pravidelně vyhodnocuje a aktualizuje.",
+          "@language": "cs"
+        },
+        {
+          "@value": "A named team reviews and updates the policy regularly.",
+          "@language": "en"
+        }
+      ],
+      "position": 17,
+      "citation": {
+        "@id": "#clause-E.POLICY-MANUAL.REVISION"
+      },
+      "tier": {
+        "@id": "#tier-recommended"
+      },
+      "block": {
+        "@id": "#block-institution-policy"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I17"
+    },
+    {
+      "@id": "#item-I18",
+      "@type": "Question",
+      "identifier": "I18",
+      "text": [
+        {
+          "@value": "Instituce má data stewardy a výzkumníci vědí, jak je kontaktovat.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The institution has data stewards, and researchers know how to reach them.",
+          "@language": "en"
+        }
+      ],
+      "position": 18,
+      "citation": [
+        {
+          "@id": "#clause-E.OS3-RULES.DS"
+        },
+        {
+          "@id": "#clause-E.DATA-STEWARDS"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-recommended"
+      },
+      "block": {
+        "@id": "#block-institution-infrastructure"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I18"
+    },
+    {
+      "@id": "#item-I19",
+      "@type": "Question",
+      "identifier": "I19",
+      "text": [
+        {
+          "@value": "Výzkumníci mají podporu s plány správy dat (DMP.eosc.cz nebo institucionální nástroj).",
+          "@language": "cs"
+        },
+        {
+          "@value": "Researchers get support with data management plans (DMP.eosc.cz or an institutional tool).",
+          "@language": "en"
+        }
+      ],
+      "position": 19,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/R1"
+      },
+      "citation": [
+        {
+          "@id": "#clause-E.DMP"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.DMP"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-recommended"
+      },
+      "block": {
+        "@id": "#block-institution-infrastructure"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I19",
       "mentions": [
         {
-          "@id": "#resource-os3"
+          "@id": "#resource-dmp-eosc"
         }
       ]
+    },
+    {
+      "@id": "#item-I20",
+      "@type": "Question",
+      "identifier": "I20",
+      "text": [
+        {
+          "@value": "Výzkumníci mají spravované a zálohované úložiště, i pro citlivá data.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Researchers have managed, backed-up storage, also for sensitive data.",
+          "@language": "en"
+        }
+      ],
+      "position": 20,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/A1.2"
+      },
+      "citation": {
+        "@id": "#clause-E.EINFRA"
+      },
+      "tier": {
+        "@id": "#tier-recommended"
+      },
+      "block": {
+        "@id": "#block-institution-infrastructure"
+      },
+      "fixAt": {
+        "@id": "#station-prace"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I20"
+    },
+    {
+      "@id": "#item-I21",
+      "@type": "Question",
+      "identifier": "I21",
+      "text": [
+        {
+          "@value": "Data bez vhodného oborového repozitáře mohou výzkumníci uložit do repozitáře NRP, institucionálního nebo Datového catch-all repozitáře NRP.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Researchers can deposit data that have no suitable domain repository in an NRP repository, an institutional one or the NRP Data Catch-all Repository.",
+          "@language": "en"
+        }
+      ],
+      "position": 21,
+      "about": [
+        {
+          "@id": "https://w3id.org/fair/principles/terms/F1"
+        },
+        {
+          "@id": "https://w3id.org/fair/principles/terms/A1"
+        }
+      ],
+      "citation": [
+        {
+          "@id": "#clause-E.DATAREPO"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.NDI"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-recommended"
+      },
+      "block": {
+        "@id": "#block-institution-infrastructure"
+      },
+      "fixAt": {
+        "@id": "#station-repozitar"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I21",
+      "mentions": [
+        {
+          "@id": "#resource-datarepo"
+        }
+      ]
+    },
+    {
+      "@id": "#item-I22",
+      "@type": "Question",
+      "identifier": "I22",
+      "text": [
+        {
+          "@value": "Datové sady instituce mají záznam v Národním metadatovém adresáři.",
+          "@language": "cs"
+        },
+        {
+          "@value": "The institution's datasets have a record in the National Metadata Directory.",
+          "@language": "en"
+        }
+      ],
+      "position": 22,
+      "about": {
+        "@id": "https://w3id.org/fair/principles/terms/F4"
+      },
+      "citation": [
+        {
+          "@id": "#clause-E.NMA"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.NDI"
+        }
+      ],
+      "tier": {
+        "@id": "#tier-recommended"
+      },
+      "block": {
+        "@id": "#block-institution-infrastructure"
+      },
+      "fixAt": {
+        "@id": "#station-dohledatelnost"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I22",
+      "mentions": [
+        {
+          "@id": "#resource-nma"
+        }
+      ]
+    },
+    {
+      "@id": "#item-I23",
+      "@type": "Question",
+      "identifier": "I23",
+      "text": [
+        {
+          "@value": "Zaměstnanci mají přístup ke školení ve správě výzkumných dat, například ke kurzům EOSC CZ.",
+          "@language": "cs"
+        },
+        {
+          "@value": "Staff have access to training in research data management, such as the EOSC CZ courses.",
+          "@language": "en"
+        }
+      ],
+      "position": 23,
+      "citation": {
+        "@id": "#clause-E.OS3-RULES.TRAINING"
+      },
+      "tier": {
+        "@id": "#tier-recommended"
+      },
+      "block": {
+        "@id": "#block-institution-infrastructure"
+      },
+      "fixAt": {
+        "@id": "#station-plan"
+      },
+      "fixedBy": {
+        "@id": "#actor-data-steward"
+      },
+      "allowsNotApplicable": false,
+      "isPartOf": {
+        "@id": "#check-institution"
+      },
+      "name": "I23"
     },
     {
       "@id": "#check-institution",
@@ -32628,18 +34270,18 @@
       ],
       "description": [
         {
-          "@value": "Volitelná krátká kontrola pro data stewardy: má instituce to, co výzkumníci ke správě dat potřebují?",
+          "@value": "Kontrola pro data stewardy: splňují strategie, akční plán a politika vaší instituce minimální obsah, který stanoví výzva Open Science III, a využívá instituce národní datovou infrastrukturu?",
           "@language": "cs"
         },
         {
-          "@value": "An optional short check for data stewards: does the institution have what researchers need for data management?",
+          "@value": "A check for data stewards: do your institution's strategy, action plan and policy have the minimum content the Open Science III call sets, and does the institution use the national data infrastructure?",
           "@language": "en"
         }
       ],
       "audience": {
         "@id": "#lens-DS"
       },
-      "timeRequired": "PT5M",
+      "timeRequired": "PT10M",
       "hasPart": [
         {
           "@id": "#item-I01"
@@ -32652,6 +34294,63 @@
         },
         {
           "@id": "#item-I04"
+        },
+        {
+          "@id": "#item-I05"
+        },
+        {
+          "@id": "#item-I06"
+        },
+        {
+          "@id": "#item-I07"
+        },
+        {
+          "@id": "#item-I08"
+        },
+        {
+          "@id": "#item-I09"
+        },
+        {
+          "@id": "#item-I10"
+        },
+        {
+          "@id": "#item-I11"
+        },
+        {
+          "@id": "#item-I12"
+        },
+        {
+          "@id": "#item-I13"
+        },
+        {
+          "@id": "#item-I14"
+        },
+        {
+          "@id": "#item-I15"
+        },
+        {
+          "@id": "#item-I16"
+        },
+        {
+          "@id": "#item-I17"
+        },
+        {
+          "@id": "#item-I18"
+        },
+        {
+          "@id": "#item-I19"
+        },
+        {
+          "@id": "#item-I20"
+        },
+        {
+          "@id": "#item-I21"
+        },
+        {
+          "@id": "#item-I22"
+        },
+        {
+          "@id": "#item-I23"
         }
       ]
     },
@@ -43413,6 +45112,81 @@
         },
         {
           "@id": "#clause-E.FAIR-PRINCIPLES"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.STRATEGY"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP5"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.APPROVAL"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.DS"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.NDI"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.TRAINING"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SCOPE"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.DMP"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.RETENTION"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SHARING"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SUPPORT"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.REVISION"
+        },
+        {
+          "@id": "#clause-E.LAW-328.83"
         }
       ],
       "endTime": "2026-10-08T03:20:40+02:00",
@@ -44353,6 +46127,21 @@
         },
         {
           "@id": "#item-I04"
+        },
+        {
+          "@id": "#item-I05"
+        },
+        {
+          "@id": "#item-I06"
+        },
+        {
+          "@id": "#item-I07"
+        },
+        {
+          "@id": "#item-I08"
+        },
+        {
+          "@id": "#item-I09"
         },
         {
           "@id": "#resource-dmp-eosc"
@@ -45518,6 +47307,187 @@
         }
       ],
       "endTime": "2026-10-09T09:51:51+02:00",
+      "actionStatus": {
+        "@id": "http://schema.org/CompletedActionStatus"
+      }
+    },
+    {
+      "@id": "#action-2026-10-09-institution-check",
+      "@type": "UpdateAction",
+      "name": "Institution check on the Open Science III minimums",
+      "description": "The institution check follows the minimum content the Open Science III call sets for the research data strategy, the action plan and the policy, with the policy detailed by the EOSC CZ manual and the obligation from section 83 of the research act, and adds a block on the national data infrastructure and the people it needs. The policy manual takes its published English title.",
+      "agent": {
+        "@id": "https://orcid.org/0000-0001-6592-6291"
+      },
+      "instrument": [
+        {
+          "@id": "#instrument-claude-opus-5-5"
+        },
+        {
+          "@id": "#instrument-claude-code"
+        }
+      ],
+      "object": [
+        {
+          "@id": "#source-os3-rules"
+        },
+        {
+          "@id": "#source-law-328-2025"
+        },
+        {
+          "@id": "#resource-policy-manual"
+        }
+      ],
+      "result": [
+        {
+          "@id": "#clause-E.LAW-328.83"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.AP5"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.APPROVAL"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.DS"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.NDI"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.P4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S1"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S2"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S3"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.S4"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.STRATEGY"
+        },
+        {
+          "@id": "#clause-E.OS3-RULES.TRAINING"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.DMP"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.RETENTION"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.REVISION"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SCOPE"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SHARING"
+        },
+        {
+          "@id": "#clause-E.POLICY-MANUAL.SUPPORT"
+        },
+        {
+          "@id": "#item-I01"
+        },
+        {
+          "@id": "#item-I02"
+        },
+        {
+          "@id": "#item-I03"
+        },
+        {
+          "@id": "#item-I04"
+        },
+        {
+          "@id": "#item-I05"
+        },
+        {
+          "@id": "#item-I06"
+        },
+        {
+          "@id": "#item-I07"
+        },
+        {
+          "@id": "#item-I08"
+        },
+        {
+          "@id": "#item-I09"
+        },
+        {
+          "@id": "#item-I10"
+        },
+        {
+          "@id": "#item-I11"
+        },
+        {
+          "@id": "#item-I12"
+        },
+        {
+          "@id": "#item-I13"
+        },
+        {
+          "@id": "#item-I14"
+        },
+        {
+          "@id": "#item-I15"
+        },
+        {
+          "@id": "#item-I16"
+        },
+        {
+          "@id": "#item-I17"
+        },
+        {
+          "@id": "#item-I18"
+        },
+        {
+          "@id": "#item-I19"
+        },
+        {
+          "@id": "#item-I20"
+        },
+        {
+          "@id": "#item-I21"
+        },
+        {
+          "@id": "#item-I22"
+        },
+        {
+          "@id": "#item-I23"
+        },
+        {
+          "@id": "#resource-policy-manual"
+        }
+      ],
+      "endTime": "2026-10-09T10:17:44+02:00",
       "actionStatus": {
         "@id": "http://schema.org/CompletedActionStatus"
       }

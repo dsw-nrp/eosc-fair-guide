@@ -349,6 +349,7 @@ noGaps = { cs = "Podle dosavadních odpovědí nic nechybí.", en = "Nothing is 
 tasks = { cs = "Co zjistit", en = "What to find out" }
 whereFix = { cs = "Kde to vyřešit", en = "Where to fix it" }
 whoFix = { cs = "Kdo to udělá", en = "Who does it" }
+basedOn = { cs = "Vychází z", en = "Based on" }
 ask = { cs = "Zeptejte se: {whom}", en = "Ask: {whom}" }
 lookup = { cs = "Vyhledat", en = "Look it up" }
 answers = { cs = "Všechny odpovědi", en = "All answers" }

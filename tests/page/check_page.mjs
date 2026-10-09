@@ -1009,6 +1009,17 @@ async function axe(page, label) {
   if (!(await page.locator("#item-I01").count())) fail("institution check: no item shows in the first view");
   await page.locator("#answer-I01-unknown").check();
   if (!(await page.locator(".gaps").first().textContent()).includes("I01")) fail("institution check: the don't-know task is missing");
+  // The institution check follows the Open Science III minimums in blocks, without the grouping switch; a gap cites
+  // the call's minimum (and for the policy the EOSC CZ manual) and links to the step where it is fixed.
+  const blocks = await page.locator(".item-group > h2").allTextContents();
+  if (blocks.length < 3 || !blocks[0].includes("Strategie") || !blocks[2].includes("Politika") || (await page.locator(".grouping").count())) fail("institution check: the strategy, action plan and policy blocks do not lead, or the grouping switch shows: " + blocks.join(" | "));
+  await page.locator("#answer-I04-no").check();
+  const peopleGap = page.locator(".gaps .action-card", { hasText: "I04" }).first();
+  if (!(await peopleGap.locator('.id-chip[href$="/catalogue/clauses/E.OS3-RULES.S3"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
+  await page.locator("#answer-I14-no").check();
+  const retentionGap = page.locator(".gaps .action-card", { hasText: "I14" }).first();
+  const cites = async (id) => retentionGap.locator(`.id-chip[href$="/catalogue/clauses/${id}"]`).count();
+  if (!(await cites("E.OS3-RULES.P3")) || !(await cites("E.POLICY-MANUAL.RETENTION")) || !(await retentionGap.locator('a[href$="/path/repozitar"]').count())) fail("institution check: the retention gap does not cite the call and the manual or link to the repository step");
 
   // FIP check: the dashboard snapshot pre-fills answers with their source; a principle without a declaration stays
   // open with a note; a change by the user stays marked.

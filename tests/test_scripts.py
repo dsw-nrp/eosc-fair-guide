@@ -377,6 +377,21 @@ class ContentCheckTests(FixtureCase):
         self.edit("sources.toml", 'publisher = "org"', 'publisher = "Testovací vydavatel"')
         self.assertError("sources:report: publisher 'Testovací vydavatel' is a Czech name with no English form")
 
+    def test_check_blocks_group_every_item(self) -> None:
+        self.edit("checks/gate.toml", 'tier = "required"', 'block = "basics"\ntier = "required"')
+        self.assertError("item:G01: the check declares no blocks")
+        self.edit(
+            "checks/gate.toml",
+            "[[item]]",
+            '[[block]]\nid = "other"\nname = { cs = "Ostatní", en = "Other" }\n\n[[item]]',
+        )
+        self.assertError("item:G01: block must be one of other")
+        self.edit("checks/gate.toml", 'block = "basics"', 'block = "other"')
+        self.assertFalse(any("block" in error for error in self.errors()))
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-G01")
+        self.assertEqual(item["block"], {"@id": "#block-gate-other"})
+
     def test_unused_resource_is_reported(self) -> None:
         self.edit("resources.toml", 'stations = ["one"]', "")
         content = build_crate.load_content(self.root / "content")

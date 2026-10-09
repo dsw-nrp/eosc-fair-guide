@@ -348,3 +348,64 @@ results = [
   "ds-personas",
 ]
 endTime = 2026-10-09T09:51:51+02:00
+
+[[action]]
+id = "2026-10-09-institution-check"
+type = "update"
+name = "Institution check on the Open Science III minimums"
+description = "The institution check follows the minimum content the Open Science III call sets for the research data strategy, the action plan and the policy, with the policy detailed by the EOSC CZ manual and the obligation from section 83 of the research act, and adds a block on the national data infrastructure and the people it needs. The policy manual takes its published English title."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["os3-rules", "law-328-2025", "policy-manual"]
+results = [
+  "E.LAW-328.83",
+  "E.OS3-RULES.AP1",
+  "E.OS3-RULES.AP2",
+  "E.OS3-RULES.AP3",
+  "E.OS3-RULES.AP4",
+  "E.OS3-RULES.AP5",
+  "E.OS3-RULES.APPROVAL",
+  "E.OS3-RULES.DS",
+  "E.OS3-RULES.NDI",
+  "E.OS3-RULES.P1",
+  "E.OS3-RULES.P2",
+  "E.OS3-RULES.P3",
+  "E.OS3-RULES.P4",
+  "E.OS3-RULES.S1",
+  "E.OS3-RULES.S2",
+  "E.OS3-RULES.S3",
+  "E.OS3-RULES.S4",
+  "E.OS3-RULES.STRATEGY",
+  "E.OS3-RULES.TRAINING",
+  "E.POLICY-MANUAL.DMP",
+  "E.POLICY-MANUAL.RETENTION",
+  "E.POLICY-MANUAL.REVISION",
+  "E.POLICY-MANUAL.SCOPE",
+  "E.POLICY-MANUAL.SHARING",
+  "E.POLICY-MANUAL.SUPPORT",
+  "I01",
+  "I02",
+  "I03",
+  "I04",
+  "I05",
+  "I06",
+  "I07",
+  "I08",
+  "I09",
+  "I10",
+  "I11",
+  "I12",
+  "I13",
+  "I14",
+  "I15",
+  "I16",
+  "I17",
+  "I18",
+  "I19",
+  "I20",
+  "I21",
+  "I22",
+  "I23",
+  "policy-manual",
+]
+endTime = 2026-10-09T10:17:44+02:00

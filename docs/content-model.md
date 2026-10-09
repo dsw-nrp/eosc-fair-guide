@@ -233,7 +233,9 @@ published), `noteSources` (clause or source IDs that support the note), `superse
 
 `[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`), `name`, `icon` (shown on its card in the
 self-check overview), `description`, `lenses`, `minutes`, `modes` (dataset check: `before`, `after`),
-`[[check.profile]]` (gate check: `id`, `label`).
+`[[check.profile]]` (gate check: `id`, `label`). `[[block]]` (`id`, `name`): the blocks a check is organised in,
+in order; when a check declares blocks, every item names its `block`, and the list, summary and result group by
+block instead of by principle or path step.
 
 `[[item]]`:
 
@@ -241,7 +243,7 @@ self-check overview), `description`, `lenses`, `minutes`, `modes` (dataset check
 | --- | --- | --- |
 | `id` | string | `D01`, `P01`, `G01`, `S01`, `K01`, `I01`, … |
 | `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended` |
-| `principles` | list | Principle IDs; empty only for gate items |
+| `principles` | list | Principle IDs; empty for gate items and for institution items that serve no single principle |
 | `statement` | text | The statement the user answers |
 | `help` | text | A short explanation |
 | `sources` | list | Clause IDs; at least one |

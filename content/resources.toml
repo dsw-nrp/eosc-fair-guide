@@ -55,7 +55,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "policy-manual"
-name = { cs = "Manuál k přípravě institucionální datové politiky", en = "Manual for preparing an institutional data policy" }
+name = { cs = "Manuál k přípravě institucionální datové politiky", en = "Manual for creating an institutional data policy" }
 description = { cs = "Rámec a vzor institucionální datové politiky.", en = "A framework and template for an institutional data policy." }
 url = "https://doi.org/10.71495/scvx-yn57"
 type = "guide"

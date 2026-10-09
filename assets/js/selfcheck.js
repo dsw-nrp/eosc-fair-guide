@@ -1034,12 +1034,23 @@
     );
   }
 
-  /** The groups shared by the list, the summary and the result: by FAIR principle (F, A, I, R) by default, or by
-      the path step that addresses each question. Questions outside every group come last, ungrouped. */
+  /** A check's blocks in their order, when it has any. */
+  const blocksOf = (items) => {
+    const block = items.map((item) => FG.get(item.block)).find(Boolean);
+    return block ? FG.refs(FG.get(block.inDefinedTermSet), "hasDefinedTerm") : [];
+  };
+
+  /** The groups shared by the list, the summary and the result: a check with blocks groups by block; otherwise by
+      FAIR principle (F, A, I, R) by default, or by the path step that addresses each question. Questions outside
+      every group come last, ungrouped. */
   function groupsOf(items) {
     let groups;
     let loose;
-    if (FG.state.checkGrouping === "steps") {
+    const blocks = blocksOf(items);
+    if (blocks.length) {
+      groups = blocks.map((block, index) => ({ block, position: index + 1, items: items.filter((item) => FG.id(item.block) === block["@id"]) }));
+      loose = items.filter((item) => !FG.get(item.block));
+    } else if (FG.state.checkGrouping === "steps") {
       groups = FG.stations().map((station) => ({ station, items: items.filter((item) => FG.id(item.fixAt) === station["@id"]) }));
       loose = items.filter((item) => !FG.get(item.fixAt));
     } else {
@@ -1052,6 +1063,7 @@
 
   /** A group's mark: the principle letter in its colour, or the path step's icon as on the path. */
   function groupMark(group) {
+    if (group.block) return h("span", { class: "group-block" }, String(group.position));
     if (group.letter) return h("span", { class: "principle-letter", "data-letter": group.letter }, group.letter);
     if (group.station) {
       const icon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[group.station.identifier];
@@ -1060,7 +1072,8 @@
     return h("span", { class: "group-other", "aria-hidden": "true" }, "…");
   }
 
-  const groupName = (group) => (group.letter ? FG.t("explorer.group." + group.letter) : group.station ? FG.text(group.station.name) : FG.t("selfcheck.groupOther"));
+  const groupName = (group) =>
+    group.block ? FG.text(group.block.name) : group.letter ? FG.t("explorer.group." + group.letter) : group.station ? FG.text(group.station.name) : FG.t("selfcheck.groupOther");
   const groupTitle = (group) => [groupMark(group), " ", groupName(group)];
 
   /* On a wide screen with the summary open, the check's controls sit in the summary, at hand while scrolling; on a
@@ -1074,7 +1087,8 @@
     const all = applicable(check, st);
     const first = all.filter(isFirstTier);
     const more = first.length ? all.length - first.length : 0;
-    return [more ? extendedSwitch(st, more, compact) : null, groupingControl(true)];
+    /* A check organised in blocks keeps them; the grouping switch serves the checks without blocks. */
+    return [more ? extendedSwitch(st, more, compact) : null, blocksOf(itemsOf(check)).length ? null : groupingControl(true)];
   }
 
   /** One sentence on what the first view's tier means and how many further items exist, with the control to add them. */
@@ -1174,7 +1188,23 @@
         { class: "action-meta" },
         station ? [h("span", { class: "action-label" }, FG.t("selfcheck.result.whereFix") + ": "), stepLink(station)] : null,
         who.length ? [station ? h("span", { class: "action-sep" }, " · ") : null, h("span", { class: "action-label" }, FG.t("selfcheck.result.whoFix") + ": "), who.join(", ")] : null
-      )
+      ),
+      basisLine(item)
+    );
+  }
+
+  /** What a gap rests on: the requirements its question cites, as identifiers leading to the catalogue, and their
+      sources. */
+  function basisLine(item) {
+    const clauses = FG.refs(item, "citation").filter((clause) => String(clause["@id"]).startsWith("#clause-"));
+    if (!clauses.length) return null;
+    const sources = [...new Set(clauses.map((clause) => FG.get(clause.isPartOf)).filter(Boolean))];
+    return h(
+      "p",
+      { class: "action-basis small" },
+      h("span", { class: "action-label" }, FG.t("selfcheck.result.basedOn") + ": "),
+      clauses.map((clause, index) => [index ? " " : "", FG.idChip("clauses", clause.identifier)]),
+      sources.length ? [" · ", sources.map((source, index) => [index ? ", " : "", FG.nameNodes(source)])] : null
     );
   }
 

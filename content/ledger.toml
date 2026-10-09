@@ -1975,3 +1975,210 @@ principles = []
 actor = "other"
 kind = "statement"
 text = { cs = "FAIR principy (Wilkinson et al., 2016) formulují patnáct zásad, aby data byla dohledatelná, přístupná, interoperabilní a opakovaně použitelná.", en = "The FAIR principles (Wilkinson et al., 2016) set out fifteen principles that make data findable, accessible, interoperable and reusable." }
+
+# Open Science III, rules for applicants and beneficiaries (specific part, version 1), chapter 5.7: the minimum
+# content of the research data strategy, the action plan and the policy.
+
+[[clause]]
+id = "E.OS3-RULES.STRATEGY"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Výzva Open Science III podmiňuje akceptaci výstupů formálně přijatou strategií pro nakládání s výzkumnými daty na celoinstitucionální úrovni, schválenou statutárním orgánem a splňující minimální požadavky výzvy.", en = "The Open Science III call makes the acceptance of outputs conditional on a formally adopted, institution-wide strategy for research data, approved by the statutory body and meeting the call's minimum requirements." }
+
+[[clause]]
+id = "E.OS3-RULES.S1"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Strategie musí pokrývat vizi a cíle správy výzkumných dat: hlavní cíle instituce ve správě a sdílení dat, například FAIR principy, otevřenost dat a etické principy.", en = "The strategy must cover the vision and goals of research data management: the institution's main goals in managing and sharing data, such as the FAIR principles, open data and ethical principles." }
+
+[[clause]]
+id = "E.OS3-RULES.S2"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Strategie musí vymezit svůj rozsah a působnost: na jaké typy výzkumných dat, projekty, pracoviště a výzkumné pracovníky se vztahuje.", en = "The strategy must set out its scope: the kinds of research data, projects, departments and researchers it covers." }
+
+[[clause]]
+id = "E.OS3-RULES.S3"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Strategie musí pokrývat lidské zdroje pro správu výzkumných dat: odpovědnosti jednotlivých aktérů (výzkumníci, datoví správci, IT podpora, vedení), vizi dlouhodobého rozvoje lidských zdrojů a kompetencí pro FAIR data a využívání NDI a ukotvení pracovních pozic pro správu FAIR dat v organizační struktuře.", en = "The strategy must cover human resources for research data management: the responsibilities of each actor (researchers, data stewards, IT support, management), a vision for developing people and competences for FAIR data and the use of the NDI over the long term, and the anchoring of FAIR data positions in the organisational structure." }
+
+[[clause]]
+id = "E.OS3-RULES.S4"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Strategie musí pokrývat infrastrukturu a institucionální podporu: rámcový popis potřebných služeb, nástrojů, podpory a využití NDI, například školení, poradenství a IT infrastruktury.", en = "The strategy must cover infrastructure and institutional support: an outline of the services, tools and support needed and of the use of the NDI, such as training, advice and IT infrastructure." }
+
+[[clause]]
+id = "E.OS3-RULES.AP1"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Akční plán musí obsahovat opatření pro implementaci strategie: konkrétní aktivity, například zavedení podpůrného týmu, infrastrukturu pro dlouhodobé uchovávání dat, školení a šíření povědomí.", en = "The action plan must contain measures for implementing the strategy: specific activities, such as setting up a support team, infrastructure for long-term retention, training and raising awareness." }
+
+[[clause]]
+id = "E.OS3-RULES.AP2"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Akční plán musí obsahovat harmonogram realizace: časový plán jednotlivých opatření nebo jejich etapizaci.", en = "The action plan must contain a schedule: a timeline for each measure or its stages." }
+
+[[clause]]
+id = "E.OS3-RULES.AP3"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Akční plán musí určit odpovědné osoby nebo útvary za realizaci konkrétních opatření.", en = "The action plan must name the people or units responsible for each measure." }
+
+[[clause]]
+id = "E.OS3-RULES.AP4"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Akční plán musí rámcově vymezit personální, finanční a technické zdroje potřebné k realizaci strategie a formálně ukotvit způsob realizace akčního plánu.", en = "The action plan must outline the staff, financial and technical resources needed to implement the strategy and anchor formally how the plan is carried out." }
+
+[[clause]]
+id = "E.OS3-RULES.AP5"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Akční plán musí stanovit monitoring a vyhodnocování: indikátory plnění, pravidelné vyhodnocování (jak často a kdo) a aktualizaci plánu.", en = "The action plan must set out monitoring and evaluation: indicators, regular evaluation (how often and by whom) and updates to the plan." }
+
+[[clause]]
+id = "E.OS3-RULES.APPROVAL"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Akční plán a politika musí být formálně schváleny statutárním orgánem; dokumenty nižších organizačních celků vysoké školy děkanem.", en = "The action plan and the policy must be formally approved by the statutory body, or by the dean for the documents of a faculty." }
+
+[[clause]]
+id = "E.OS3-RULES.P1"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Politika musí definovat svou působnost: na koho se vztahuje (například zaměstnanci, studenti, externí partneři), co instituce považuje za výzkumná data, na která se politika vztahuje, a základní zasazení do právního rámce.", en = "The policy must define its scope: whom it applies to (such as staff, students, external partners), what the institution counts as the research data it covers, and how it fits the legal framework." }
+
+[[clause]]
+id = "E.OS3-RULES.P2"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Politika musí stanovit, jakým způsobem instituce řeší plánování a správu dat.", en = "The policy must set out how the institution handles data planning and management." }
+
+[[clause]]
+id = "E.OS3-RULES.P3"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Politika musí určit minimální dobu, po kterou musí být data uchována, a pravidla pro výběr míst dlouhodobého uchovávání.", en = "The policy must set the minimum period for which data must be kept and the rules for choosing where they are kept long-term." }
+
+[[clause]]
+id = "E.OS3-RULES.P4"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Politika musí vysvětlit role a odpovědnosti výzkumníků za správu dat i instituce za poskytování podpory, včetně kontaktů na podporu.", en = "The policy must explain the roles and responsibilities of researchers for managing data and of the institution for providing support, including support contacts." }
+
+[[clause]]
+id = "E.OS3-RULES.DS"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Aktivity výzvy Open Science III se realizují prostřednictvím povinné pracovní pozice Specialista v oblasti správy výzkumných dat (data steward).", en = "The Open Science III activities are carried out through the mandatory position of a research data management specialist (data steward)." }
+
+[[clause]]
+id = "E.OS3-RULES.NDI"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "requirement"
+text = { cs = "Podmínkou všech aktivit výzvy Open Science III je využití Národní datové infrastruktury (NDI); vytvořené datové sady se evidují v Národním metadatovém adresáři.", en = "All Open Science III activities require the use of the national data infrastructure (NDI); the datasets created are recorded in the National Metadata Directory." }
+
+[[clause]]
+id = "E.OS3-RULES.TRAINING"
+source = "os3-rules"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Volitelná aktivita Vzdělávání výzvy Open Science III umožňuje proškolit zaměstnance ve správě výzkumných dat, v FAIRifikaci a ve využívání NDI.", en = "The optional Education activity of the Open Science III call lets institutions train staff in research data management, FAIRification and the use of the NDI." }
+
+# The EOSC CZ manual for creating an institutional data policy: its recommendations for the articles of a policy.
+
+[[clause]]
+id = "E.POLICY-MANUAL.SCOPE"
+source = "policy-manual"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Politika uvádí, na která výzkumná data se vztahuje, a zda jen na digitální, nebo i na fyzická. Má-li odrážet zákon o výzkumu, vztahuje se nejméně na data v elektronické podobě potřebná pro publikaci výsledků výzkumu podpořeného z veřejných prostředků.", en = "The policy states which research data it covers, and whether only digital or also physical data. To reflect the research act, it covers at least the electronic data needed to publish the results of publicly funded research." }
+
+[[clause]]
+id = "E.POLICY-MANUAL.DMP"
+source = "policy-manual"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Výzkumníkům se doporučuje připravovat ke svým projektům DMP a průběžně ho aktualizovat; instituce schválí nástroj pro plánování, například Data Stewardship Wizard, dostupný všem relevantním osobám.", en = "Researchers are advised to prepare a DMP for their projects and keep it up to date; the institution approves a planning tool, such as the Data Stewardship Wizard, open to everyone concerned." }
+
+[[clause]]
+id = "E.POLICY-MANUAL.RETENTION"
+source = "policy-manual"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Politika stanoví, jak dlouho se nejméně uchovávají data, která jsou podkladem publikací nebo samostatným výsledkem, a od kdy se doba počítá; běžné jsou 3–10 let od publikace nebo od konce projektu. Zákon o výzkumu minimální dobu nestanovuje.", en = "The policy sets how long the data behind publications, or published as results in their own right, are kept at least, and from when the period runs; 3 to 10 years from publication or from the end of the project are common. The research act sets no minimum period." }
+
+[[clause]]
+id = "E.POLICY-MANUAL.SHARING"
+source = "policy-manual"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Data mají být co nejotevřenější a uzavřená jen podle potřeby; politika určí, zda je sdílení povinné, nebo doporučené, doporučuje veřejné licence, například CC BY 4.0, a eviduje výjimky podle § 83 odst. 5 zákona o výzkumu.", en = "Data should be as open as possible and as closed as necessary; the policy says whether sharing is required or recommended, recommends public licences such as CC BY 4.0, and records exceptions under section 83(5) of the research act." }
+
+[[clause]]
+id = "E.POLICY-MANUAL.SUPPORT"
+source = "policy-manual"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Politika uvádí kontakty na podporu správy dat (IT, open science, duševní vlastnictví, ochrana osobních údajů, etika, data stewardi) a koho výzkumníci osloví, když jejich data překročí úložnou kapacitu instituce.", en = "The policy lists the contacts for data management support (IT, open science, intellectual property, data protection, ethics, data stewards) and whom researchers turn to when their data exceed the institution's storage capacity." }
+
+[[clause]]
+id = "E.POLICY-MANUAL.REVISION"
+source = "policy-manual"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Politiku pravidelně vyhodnocuje a aktualizuje určený tým, jehož součástí jsou zaměstnanci podpory správy výzkumných dat.", en = "A named team, including the institution's research data support staff, reviews and updates the policy regularly." }
+
+# Zákon č. 328/2025 Sb., § 83 (effective 1 January 2027).
+
+[[clause]]
+id = "E.LAW-328.83"
+source = "law-328-2025"
+principles = ["F1", "A1", "R1"]
+actor = "other"
+kind = "requirement"
+text = { cs = "Příjemce zajistí správu údajů z výzkumu podpořeného z veřejných prostředků tak, aby byly dohledatelné, přístupné a opakovaně využitelné; údaje zveřejněné v repozitáři poskytuje bezplatně v otevřeném a strojově čitelném formátu a odmítnout je může jen z důvodů, které zákon uvádí (§ 83, účinnost od 1. ledna 2027).", en = "The recipient manages the data from publicly funded research so that they are findable, accessible and reusable; it provides data published in a repository free of charge in an open, machine-readable format, and may refuse only on the grounds the act lists (section 83, in force from 1 January 2027)." }

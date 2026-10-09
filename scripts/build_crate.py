@@ -69,6 +69,7 @@ LICENSES = {
 TERMS = {
     "disclosureLevel": "Disclosure level (L0 to L3) at which an advice item is shown.",
     "adviceKind": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay.",
+    "block": "Block of a self-check that a question belongs to; a check's blocks are a defined term set in order.",
     "startsAt": "Station at which the path opens for an answer to the entry question.",
     "tier": "Self-check tier of an item.",
     "fixAt": "Station where a gap found by a self-check item is addressed.",
@@ -699,6 +700,15 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                 "mode",
                 [{"id": mode, "name": mode} for mode in modes],
             )
+        blocks = data.get("block", [])
+        if blocks:
+            defined_terms(
+                graph,
+                f"blocks-{check['id']}",
+                f"Blocks of the {check['id']} check",
+                "block",
+                [{"id": f"{check['id']}-{block['id']}", "name": block["name"]} for block in blocks],
+            )
         item_ids: list[str] = []
         for order, item in enumerate(data.get("item", []), start=1):
             item_id = f"#item-{item['id']}"
@@ -717,6 +727,7 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                     "about": refs([principle_iri(principle) for principle in item.get("principles", [])]),
                     "citation": refs(graph.resolve(item.get("sources", []))),
                     "tier": ref(f"#tier-{item['tier']}"),
+                    "block": ref(f"#block-{check['id']}-{item['block']}") if item.get("block") else None,
                     "fixAt": ref(f"#station-{item['fixAt']}") if item.get("fixAt") else None,
                     "fixedBy": refs([f"#actor-{owner}" for owner in item.get("owner", [])]),
                     "appliesTo": refs(applies),

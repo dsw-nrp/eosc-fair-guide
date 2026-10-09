@@ -150,3 +150,22 @@ doi = "10.14473/CSDA/OJTMJF"
 url = "https://doi.org/10.14473/CSDA/OJTMJF"
 publisher = "csda"
 dateAccessed = 2026-10-08
+
+[[source]]
+id = "os3-rules"
+type = "document"
+title = { cs = "Pravidla pro žadatele a příjemce – specifická část pro výzvu Open Science III", en = "Rules for applicants and beneficiaries – specific part for the Open Science III call" }
+inLanguage = "cs"
+version = "1"
+url = "https://opjak.cz/wp-content/uploads/2026/06/PpZP_specificka_cast_vyzva_Open_Science_III_web.pdf"
+publisher = "msmt"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "law-328-2025"
+type = "document"
+title = { cs = "Zákon č. 328/2025 Sb., o výzkumu, vývoji, inovacích a transferu znalostí", en = "Act No. 328/2025 Coll., on research, development, innovation and knowledge transfer" }
+inLanguage = "cs"
+url = "https://e-sbirka.gov.cz/sb/2025/328"
+datePublished = 2025-09-09
+dateAccessed = 2026-10-09

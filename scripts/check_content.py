@@ -377,10 +377,19 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
         profiles = {profile["id"] for profile in check.get("profile", [])}
         modes = set(check.get("modes", []))
         tiers = GATE_TIERS if check["id"] == "gate" else MATURITY_TIERS
+        # A check either has no blocks, or every item belongs to one of its blocks.
+        blocks = [block.get("id", "") for block in data.get("block", [])]
+        unique(report, where, blocks, "block")
+        for block in data.get("block", []):
+            require_text(report, f"{where}.block:{block.get('id')}", block.get("name"), "name")
         for item in data.get("item", []):
             item_id = item.get("id", "")
             item_ids.append(item_id)
             here = f"item:{item_id}"
+            if blocks and item.get("block") not in blocks:
+                report.error(here, f"block must be one of {', '.join(blocks)}")
+            if not blocks and item.get("block") is not None:
+                report.error(here, "the check declares no blocks")
             if not item_id.startswith(CHECK_PREFIXES[check["id"]]):
                 report.error(
                     here, f"items of the {check['id']} check start with {' or '.join(CHECK_PREFIXES[check['id']])}"
