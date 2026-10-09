@@ -9,7 +9,7 @@
 
 import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -78,6 +78,11 @@ async function axe(page, label) {
   for (const problem of problems) fail("load: " + problem);
   const heading = await page.textContent("#main h1");
   if (!heading.includes("Průvodce FAIR daty")) fail("first visit does not open the landing: " + heading);
+  // The page icon is the EOSC CZ symbol, as the FIP Dashboard uses it, served from the page's own files.
+  for (const rel of ["icon", "apple-touch-icon"]) {
+    const href = await page.locator(`head link[rel="${rel}"]`).getAttribute("href");
+    if (!href || /^[a-z]+:/i.test(href) || !existsSync(resolve(root, href))) fail(`page icon: the ${rel} link is missing or not a file of the page: ${href}`);
+  }
   if (!(await page.locator("#search-input").count())) fail("landing: no search box");
   if (!(await page.locator("#stage-question").textContent()).includes("Kde se právě nacházíte")) fail("landing: no stage question");
   if ((await page.locator(".stage-card").count()) !== 4) fail("landing: the four stage cards are missing");
