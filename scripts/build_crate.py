@@ -38,6 +38,8 @@ PAGE_FILE = "index.html"
 PREVIEW_FILE = "ro-crate-preview.html"
 KB_SCRIPT = "assets/data/kb.js"
 UI_SCRIPT = "assets/data/ui.js"
+PROFILE_DIR = "profile/fair-guide"
+BASE_URL_ENV = "FAIR_GUIDE_BASE_URL"
 # What the page may download before any user action, gzip-compressed: the page, its scripts and its stylesheets.
 # Above it the build warns, so that loading parts on demand is decided on a measurement.
 PAGE_BUDGET_KB = 300
@@ -143,6 +145,15 @@ def load_toml(path: Path) -> dict[str, Any]:
         raise ContentError(f"{path.relative_to(ROOT)}: {error}") from error
 
 
+def apply_base_url(guide: dict[str, Any]) -> None:
+    """Derive every address of the guide from the one it is published at: the page, the vocabulary of its own terms
+    and its RO-Crate profile. `FAIR_GUIDE_BASE_URL` gives a build another address than the content's `baseUrl`."""
+    base = (os.environ.get(BASE_URL_ENV) or guide.get("baseUrl") or "").rstrip("/") + "/"
+    guide["pageUrl"] = base
+    guide["vocabularyBase"] = base + "terms#"
+    guide["profile"] = f"{base}profile/{guide.get('profileVersion', '')}"
+
+
 def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
     """Read every content file into one dictionary."""
 
@@ -154,8 +165,10 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
     stations.sort(key=lambda data: data["station"]["position"])
     checks = [load_toml(path) for path in sorted((content_dir / "checks").glob("*.toml"))]
     snapshots = [load_toml(path) for path in sorted((content_dir / "snapshots").glob("*.toml"))]
+    guide = load_toml(content_dir / "guide.toml")
+    apply_base_url(guide["guide"])
     return {
-        "guide": load_toml(content_dir / "guide.toml"),
+        "guide": guide,
         "principles": optional("principles.toml").get("principle", []),
         "sources": optional("sources.toml").get("source", []),
         "ledger": optional("ledger.toml").get("clause", []),
@@ -1757,7 +1770,21 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
         ),
         PAGE_FILE: page,
         PREVIEW_FILE: page,
+    } | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
+
+
+def profile_shapes(root: Path, base: str) -> dict[str, str]:
+    """The profile's shapes at the guide's address: the address they were written with, read from their `fg:`
+    prefix, is replaced by the configured one, so the address is set in one place."""
+    shapes = {
+        path.relative_to(root).as_posix(): path.read_text(encoding="utf-8")
+        for path in sorted((root / PROFILE_DIR).rglob("*.ttl"))
     }
+    written = next(
+        (match.group(1) for text in shapes.values() for match in re.finditer(r"@prefix fg: <([^>]*)terms#>", text)),
+        None,
+    )
+    return {path: text.replace(written, base) if written else text for path, text in shapes.items()}
 
 
 def page_payload(generated: dict[str, str], root: Path = ROOT) -> dict[str, int]:

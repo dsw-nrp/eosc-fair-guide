@@ -72,6 +72,13 @@ python scripts/build_crate.py
 python scripts/check_content.py
 ```
 
+To see the guide with its API as it will be published, serve it on your computer (the API documentation needs
+`npm ci` once), then open <http://127.0.0.1:8000/> and <http://127.0.0.1:8000/api/>:
+
+```bash
+python scripts/serve.py --build
+```
+
 Agents and maintainers who edit with an AI assistant use the `fair-guide-editor` skill
 (`.agents/skills/fair-guide-editor/SKILL.md`); the agent guide is [AGENTS.md](AGENTS.md).
 

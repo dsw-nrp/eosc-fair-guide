@@ -30,8 +30,9 @@ if (!existsSync(join(site, "openapi.json"))) {
 const openapi = read(join(site, "openapi.json"));
 const crate = read(join(root, "ro-crate-metadata.json"));
 const crateIds = new Set(crate["@graph"].map((entity) => entity["@id"]));
-// The address the guide is published at today, which no file of the API may name.
-const sitePrefix = (readFileSync(join(root, "content", "guide.toml"), "utf8").match(/^pageUrl = "([^"]+)"/m) || [])[1];
+// The address the API was built for, read from the crate's own vocabulary (<address>terms#), which no file of the
+// API may name.
+const sitePrefix = Object.values(crate["@context"][1]).find((iri) => String(iri).includes("terms#")).split("terms#")[0];
 const files = [];
 (function walk(dir) {
   for (const name of readdirSync(dir)) {

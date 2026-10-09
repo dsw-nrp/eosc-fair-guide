@@ -15,9 +15,11 @@ keywords = [
   { cs = "EOSC CZ", en = "EOSC CZ" },
 ]
 url = "https://github.com/motyc/eosc-fair-guide"
-pageUrl = "https://motyc.github.io/eosc-fair-guide/"
-vocabularyBase = "https://motyc.github.io/eosc-fair-guide/terms#"
-profile = "https://motyc.github.io/eosc-fair-guide/profile/0.1"
+# The address the guide is published at. The page, the vocabulary of the guide's own terms (<baseUrl>terms#) and its
+# RO-Crate profile (<baseUrl>profile/<profileVersion>) derive from it, and the build writes it into the profile's
+# shapes. The final stable address is still open; a build can use another one with FAIR_GUIDE_BASE_URL.
+baseUrl = "https://motyc.github.io/eosc-fair-guide/"
+profileVersion = "0.1"
 freshnessDays = 180
 # The guide is compiled and developed by its editors; the authors of its content basis are credited on the
 # sources it is based on (isBasedOn).

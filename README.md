@@ -54,6 +54,13 @@ python scripts/build_crate.py
 python scripts/check_content.py
 ```
 
+Průvodce i s jeho API, jak bude zveřejněn, si spustíte na svém počítači (dokumentace API potřebuje jednou
+`npm ci`) a otevřete <http://127.0.0.1:8000/> a <http://127.0.0.1:8000/api/>:
+
+```bash
+python scripts/serve.py --build
+```
+
 Změny přicházejí jako pull request a před sloučením je zkontroluje CI i člověk. Podrobný postup je
 v [CONTRIBUTING.md](CONTRIBUTING.md) a v [README_en.md](README_en.md).
 

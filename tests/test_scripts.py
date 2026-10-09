@@ -7,6 +7,7 @@ directory, changes it, and asserts that the scripts accept or reject it.
 from __future__ import annotations
 
 import json
+import os
 import posixpath
 import shutil
 import subprocess
@@ -15,6 +16,7 @@ import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest import mock
 
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
@@ -443,9 +445,9 @@ class ContentCheckTests(FixtureCase):
         pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + described + title, encoding="utf-8")
         self.assertFalse(any(error.startswith("page:") for error in self.errors()), self.errors())
 
-    def test_page_url_must_use_https(self) -> None:
-        self.edit("guide.toml", 'pageUrl = "https://example.org/guide/"', 'pageUrl = "http://example.org/guide/"')
-        self.assertError("the page URL must use HTTPS")
+    def test_base_url_must_use_https(self) -> None:
+        self.edit("guide.toml", 'baseUrl = "https://example.org/guide/"', 'baseUrl = "http://example.org/guide/"')
+        self.assertError("the guide's address must use HTTPS")
 
     def test_stale_status_is_a_warning(self) -> None:
         content = build_crate.load_content(self.root / "content")
@@ -688,6 +690,18 @@ class ApiTests(unittest.TestCase):
     def test_output_is_deterministic(self) -> None:
         content = build_crate.load_content()
         self.assertEqual(build_api.Api(build_crate.build_crate(content), content).files(), self.files)
+
+    def test_one_setting_moves_the_guide(self) -> None:
+        # The guide's address is set once; a build at another address names the configured one nowhere.
+        moved = "https://guide.example.org/fair/"
+        with mock.patch.dict(os.environ, {build_crate.BASE_URL_ENV: moved}):
+            outputs = build_crate.outputs()
+            content = build_crate.load_content()
+            api = build_api.Api(build_crate.build_crate(content), content).files()
+        for path, text in {**outputs, **api}.items():
+            self.assertNotIn(self.page_url, text, path)
+        self.assertIn(moved + "terms#", outputs[build_crate.CRATE_FILE])
+        self.assertIn(f"<{moved}profile/", outputs[build_crate.PROFILE_DIR + "/profile.ttl"])
 
 
 if __name__ == "__main__":

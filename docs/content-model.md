@@ -165,9 +165,8 @@ publisher named like a curated organisation.
 | | `name`, `description` | text | Name and description of the guide |
 | | `keywords` | list of text | Keywords |
 | | `url` | URL | Home of the guide |
-| | `pageUrl` | URL | Published address of the page; exports and shared links name it instead of a local file path |
-| | `vocabularyBase` | URL | Namespace of the guide's own terms (see *Crate mapping*) |
-| | `profile` | URL | IRI of the guide's RO-Crate profile in `profile/fair-guide/`; its version ends the IRI |
+| | `baseUrl` | URL | The one address the guide is published at. The build derives from it the page's address (named by exports and shared links from a local file), the namespace of the guide's own terms (`<baseUrl>terms#`, see *Crate mapping*) and the IRI of its RO-Crate profile (`<baseUrl>profile/<profileVersion>`), and writes it into the profile's shapes in `profile/fair-guide/`. `FAIR_GUIDE_BASE_URL` gives a build another address |
+| | `profileVersion` | string | Version of the guide's RO-Crate profile; it ends the profile's IRI |
 | | `freshnessDays` | integer | Age after which a status is reported as stale |
 | | `editors` | list of IDs | People who compile and develop the guide; the guide's citation names them as editors (at least one) |
 | | `reviewers`, `contributors` | list of IDs | People who review the texts, and other contributors |
@@ -349,7 +348,7 @@ example `{ cs = "{n} otázka|{n} otázky|{n} otázek", en = "{n} question|{n} qu
 
 The generator writes a flattened JSON-LD graph that conforms to RO-Crate 1.2 and to the Process Run Crate
 profile 0.5. Schema.org types and properties are used wherever they fit; the guide's own terms live under
-`vocabularyBase` and are defined in the graph as `rdf:Property` entities with a label and a comment.
+`<baseUrl>terms#` and are defined in the graph as `rdf:Property` entities with a label and a comment.
 
 | Content | `@type` | `@id` | Main properties |
 | --- | --- | --- | --- |

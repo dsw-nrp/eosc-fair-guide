@@ -77,6 +77,7 @@ python -m unittest discover -s tests    # tests of the generator, the checks and
 python scripts/refresh_snapshots.py     # refresh the re3data, Heslář and FIP Dashboard snapshots (scheduled job)
 python scripts/vendor_icons.py          # copy the icons the content names from node_modules (after npm ci); --check fails on drift
 python scripts/build_api.py            # build the static API and its Swagger UI page into _site/ (after npm ci)
+python scripts/serve.py --build        # rebuild, then serve the guide and its API at http://127.0.0.1:8000/ (this computer only)
 ```
 
 Structure checks use `requirements-dev.txt`:

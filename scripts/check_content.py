@@ -908,7 +908,7 @@ def check_self_check_inputs(report: Report, content: dict[str, Any]) -> None:
         if not nanopub.get("fipIri") or any("{code}" not in iri for iri in nanopub["fipIri"]):
             report.error("nanopub", "fipIri must list IRI forms that contain {code}")
     if not str(content["guide"]["guide"].get("pageUrl", "")).startswith("https://"):
-        report.error("guide.pageUrl", "the page URL must use HTTPS")
+        report.error("guide.baseUrl", "the guide's address must use HTTPS")
 
 
 def check_icons_and_tasks(report: Report, content: dict[str, Any], root: Path, vocab: dict[str, set[str]]) -> None:
