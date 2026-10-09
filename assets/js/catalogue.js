@@ -800,18 +800,25 @@
       return null;
     };
 
+    const draft = FG.catalogueDraft;
     const search = h(
       "div",
       { class: "facet-search" },
       h("label", { for: "catalogue-search" }, FG.t("catalogue.search")),
+      /* The list follows the trimmed query; the field keeps what was typed, spaces included, and the caret where
+         it was, since every change renders the view again. */
       h("input", {
         type: "search",
         id: "catalogue-search",
-        value: state.q,
+        value: draft && draft.value.trim() === state.q ? draft.value : state.q,
+        "data-caret": draft && draft.value.trim() === state.q ? draft.start + "," + draft.end : null,
         oninput: (event) => {
           clearTimeout(FG.catalogueTyping);
-          const value = event.target.value;
-          FG.catalogueTyping = setTimeout(() => go(Object.assign({}, state, { q: value.trim() }), "#catalogue-search"), 300);
+          const input = event.target;
+          FG.catalogueTyping = setTimeout(() => {
+            FG.catalogueDraft = { value: input.value, start: input.selectionStart, end: input.selectionEnd };
+            go(Object.assign({}, state, { q: input.value.trim() }), "#catalogue-search");
+          }, 300);
         },
       })
     );

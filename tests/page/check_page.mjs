@@ -162,6 +162,23 @@ async function axe(page, label) {
     if (!((await found()) > 0 && (await found()) < count)) fail("catalogue: the search does not narrow the list");
     await view.locator(".active-filters .button-link").click();
     await view.waitForFunction(() => !location.hash.includes("s!licence") && !location.hash.includes("q!"));
+    // Typing with pauses renders the list again after each pause; the field keeps the text in order, its spaces, and
+    // the caret where it was, also when editing in the middle.
+    const typed = async (keys) => {
+      for (const key of keys) {
+        await view.keyboard.press(key);
+        await view.waitForTimeout(400);
+      }
+      return view.evaluate(() => ({ id: document.activeElement.id, value: document.activeElement.value, caret: document.activeElement.selectionStart }));
+    };
+    await view.locator("#catalogue-search").fill("");
+    await view.locator("#catalogue-search").focus();
+    let field = await typed([..."open sci"].map((char) => (char === " " ? "Space" : char)));
+    if (field.id !== "catalogue-search" || field.value !== "open sci" || field.caret !== 8) fail("catalogue: typing with pauses does not keep the text, its space and the caret: " + JSON.stringify(field));
+    field = await typed(["ArrowLeft", "ArrowLeft", "ArrowLeft", "x"]);
+    if (field.value !== "open xsci" || field.caret !== 6) fail("catalogue: editing the search in the middle loses the caret: " + JSON.stringify(field));
+    await view.locator("#catalogue-search").fill("");
+    await view.waitForFunction(() => !location.hash.includes("q!"));
 
     // In English, titles and badges carry no Czech outside an original title marked as Czech, and a work the guide
     // only cites shows its original title with the translation in brackets; in Czech the original stands alone.

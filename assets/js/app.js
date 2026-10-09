@@ -58,6 +58,12 @@
       FG.keepScroll = null;
       const control = FG.focusSelector ? document.querySelector(FG.focusSelector) : null;
       if (control) control.focus({ preventScroll: true });
+      /* A text field rendered again keeps its caret: where it was, or at the end of the text. */
+      if (control && typeof control.setSelectionRange === "function" && /^(search|text)$/.test(control.type)) {
+        const [start, end] = (control.dataset.caret || "").split(",").map(Number);
+        const length = control.value.length;
+        control.setSelectionRange(Number.isFinite(start) ? Math.min(start, length) : length, Number.isFinite(end) ? Math.min(end, length) : length);
+      }
       FG.focusSelector = null;
     } else {
       const entry = route.extra ? main.querySelector("#item-" + CSS.escape(route.extra)) : null;
