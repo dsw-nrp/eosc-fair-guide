@@ -140,6 +140,7 @@
         kind: "resources",
         anchor: resource.identifier,
         name: FG.text(resource.name),
+        export: { url: resource.url, text: FG.text(resource.description) },
         text: [FG.bothLanguages(resource.name), FG.bothLanguages(resource.description), resource.alternateName].join(" "),
         stations: [...new Set(stationsOf(recommended).concat(stationsOf(citedBy)))],
         principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
@@ -168,6 +169,7 @@
         kind: "resources",
         anchor: source.identifier,
         name: FG.text(source.name),
+        export: { url },
         text: [FG.text(source.name), source.creditText, FG.text((FG.get(source.publisher) || {}).name)].join(" "),
         stations: stationsOf(citedBy),
         principles: [],
@@ -188,6 +190,7 @@
         kind: "resources",
         anchor: "fer-" + fer.identifier,
         name: FG.text(fer.name),
+        export: { url: fer.url, text: FG.text(fer.description) },
         text: [FG.text(fer.name), FG.bothLanguages(fer.description)].join(" "),
         stations: [],
         principles: FG.refs(fer, "about").map(code),
@@ -206,6 +209,7 @@
         kind: "repositories",
         anchor,
         name: FG.text(repository.name),
+        export: { url: repository.url },
         text: [FG.text(repository.name), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
         stations: ["repozitar"],
         principles: [],
@@ -234,6 +238,7 @@
         kind: "clauses",
         anchor: clause.identifier,
         name: clause.identifier,
+        export: { text: FG.text(clause.text) },
         text: [clause.identifier, FG.bothLanguages(clause.text)].join(" "),
         stations: stationsOf(holders),
         principles: FG.principlesOf(clause).map((principle) => principle.termCode),
@@ -273,6 +278,7 @@
             kind: "questions",
             anchor: item.identifier,
             name: item.identifier,
+            export: { text: FG.text(item.text) },
             text: [item.identifier, FG.bothLanguages(item.text)].join(" "),
             stations: station ? [station] : [],
             principles: FG.principlesOf(item).map((principle) => principle.termCode),
@@ -305,6 +311,7 @@
         kind: "terms",
         anchor: String(term.termCode),
         name: cs.replace(/^[[(]+/, ""),
+        export: { name: FG.text(term.name), url: term.url },
         nameEn: en.replace(/^[[(]+/, ""),
         text: cs + " " + en,
         stations: stationsOf(at),
@@ -330,6 +337,7 @@
         kind: "fips",
         anchor: fip.identifier,
         name: FG.text(fip.name),
+        export: { url },
         text: [FG.bothLanguages(fip.name), fip.alternateName, FG.bothLanguages(fip.abstract)].join(" "),
         stations: [],
         principles: [],
@@ -357,6 +365,7 @@
           kind: "tests",
           anchor: test.identifier,
           name: FG.text(test.name),
+          export: { url: FG.refIds(test, "sameAs")[0] || test.url },
           text: [FG.bothLanguages(test.name), test.identifier].join(" "),
           stations: [],
           principles: principle ? [principle.termCode] : [],
@@ -393,6 +402,7 @@
           kind: "actions",
           anchor: id,
           name: FG.text(action.name),
+          export: { text: FG.text(action.description) },
           date: String(action.endTime || ""),
           text: [FG.text(action.name), FG.text(action.description)].join(" "),
           stations: [],
@@ -430,6 +440,46 @@
       tests: testEntries(),
       actions: actionEntries(),
     };
+  }
+
+  /* ---------------------------------------------------------------- exports */
+
+  /** One entry as a row of an exported list, in the reader's language. */
+  function exportRow(entry) {
+    const out = entry.export || {};
+    const row = { id: entry.anchor, name: out.name || entry.name, text: out.text || "", url: out.url || "", date: String(entry.date || "").slice(0, 10) };
+    for (const facet of KIND_FACETS[entry.kind] || []) row[facet.key] = (entry.facets[facet.key] || []).map(facet.label);
+    row.stations = entry.stations.map((id) => FG.text((FG.get("#station-" + id) || {}).name));
+    row.principles = entry.principles;
+    row.entry = (FG.config.pageUrl || "") + FG.catalogueHref(entry.kind, entry.anchor);
+    return row;
+  }
+
+  /** The columns of a kind's list: the fields its entries fill, its facets, where the guide uses them, the link. */
+  function exportColumns(kind, rows) {
+    const facets = (KIND_FACETS[kind] || []).map((facet) => facet.key);
+    const filled = ["id", "name", "text", "url", "date"].filter((key) => rows.some((row) => row[key]));
+    return filled.concat(facets, ["stations", "principles", "entry"]).map((key) => ({ key, label: facets.includes(key) ? FG.t("catalogue.facet." + key) : FG.t("export.column." + key) }));
+  }
+
+  /** The list the catalogue shows, as CSV and JSON, in the order shown and with the filters that made it. */
+  function offerListExports(kind, groups) {
+    const rows = [...new Set(groups.flatMap((group) => group.entries))].map(exportRow);
+    const parts = ["catalogue", kind];
+    const columns = exportColumns(kind, rows);
+    const payload = () => ({
+      title: FG.t("app.title") + " · " + FG.t("catalogue.tab." + kind),
+      url: (FG.config.pageUrl || "") + window.location.hash,
+      exported: FG.today(),
+      language: FG.state.lang,
+      version: FG.root.version,
+      license: FG.id(FG.root.license),
+      columns: Object.fromEntries(columns.map((column) => [column.key, column.label])),
+      count: rows.length,
+      items: rows,
+    });
+    FG.offerExport({ id: "csv", label: FG.t("export.csv", { n: rows.length }), run: () => FG.download(FG.exportName(parts, "csv"), FG.csv(columns, rows), "text/csv") });
+    FG.offerExport({ id: "json", label: FG.t("export.json", { n: rows.length }), run: () => FG.download(FG.exportName(parts, "json"), JSON.stringify(payload(), null, 2) + "\n", "application/json") });
   }
 
   /* ---------------------------------------------------------------- facets of one kind */
@@ -787,6 +837,7 @@
     }
 
     const groups = groupsFor(order, visible);
+    offerListExports(kind, groups);
     const used = new Set();
     const results = groups.map((group) => {
       /* A link to one entry shows the whole group it is in, so the entry is there to land on. */

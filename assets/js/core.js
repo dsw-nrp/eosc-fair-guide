@@ -64,6 +64,63 @@
     return [FG.span(entity.name)];
   };
 
+  /** An entity's name as plain text, in the same form FG.nameNodes shows. */
+  FG.nameText = (entity) => FG.nameNodes(entity).map((node) => (typeof node === "string" ? node : node.textContent)).join("");
+
+  /* ---------------------------------------------------------------- exports */
+
+  /** Save text the page made as a file. */
+  FG.download = function (name, text, type) {
+    const blob = new Blob([text], { type: type + ";charset=utf-8" });
+    /* A blob link made here from content the page produced; FG.h would refuse its scheme, so the element is built
+       directly. */
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = name;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  };
+
+  /** A file name for an export: the guide, what it holds, and today's date. */
+  FG.exportName = (parts, extension) => ["fair-guide"].concat(parts).concat(FG.today()).join("-") + "." + extension;
+
+  /** Rows as CSV with a header of column labels; a byte order mark lets spreadsheets read the Czech letters. */
+  FG.csv = function (columns, rows) {
+    const cell = (value) => {
+      const text = Array.isArray(value) ? value.join("; ") : String(value == null ? "" : value);
+      return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    };
+    const lines = [columns.map((column) => cell(column.label))].concat(rows.map((row) => columns.map((column) => cell(row[column.key]))));
+    return "\ufeff" + lines.map((line) => line.join(",")).join("\r\n") + "\r\n";
+  };
+
+  /** What the view being rendered offers to save, besides printing and the whole crate; views add to it. */
+  FG.exports = [];
+  FG.offerExport = (entry) => FG.exports.push(entry);
+
+  /** The view's exports, printing and the whole knowledge base, under the view. */
+  FG.exportBar = function () {
+    const button = (entry) => FG.h("button", { type: "button", class: "button-small", id: "export-" + entry.id, onclick: entry.run }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label));
+    return FG.h(
+      "section",
+      { class: "export-bar wrap no-print", "aria-labelledby": "export-bar-title" },
+      FG.h(
+        "div",
+        { class: "export-bar-inner" },
+        FG.h("h2", { id: "export-bar-title", class: "export-bar-title" }, FG.t("export.title")),
+        FG.h(
+          "div",
+          { class: "export-actions" },
+          FG.exports.map(button),
+          button({ id: "print", icon: "print", label: FG.t("export.print"), run: () => window.print() }),
+          FG.h("a", { class: "button-small", id: "export-crate", href: "ro-crate-metadata.json", download: "ro-crate-metadata.json" }, FG.icon("download"), FG.h("span", null, FG.t("export.crate")))
+        )
+      )
+    );
+  };
+
   /** Paragraphs of a text whose paragraphs are separated by a blank line. */
   FG.paragraphs = function (value) {
     const { text, lang } = FG.textOf(value, FG.state.lang);

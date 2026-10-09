@@ -682,6 +682,56 @@
       );
   }
 
+  /* Markdown for a station export: text that would start formatting is escaped, list items stay on one line. */
+  const mdText = (value) =>
+    String(value || "")
+      .replace(/([\\`*_[\]<>])/g, "\\$1")
+      .replace(/^(#+|[-+]) /gm, "\\$1 ")
+      .replace(/^(\d+)\. /gm, "$1\\. ");
+  const mdLine = (value) => mdText(FG.text(value).replace(/\s*\n\s*\n\s*/g, " "));
+  const mdLink = (text, url) => (url ? "[" + mdText(text) + "](" + String(url).replace(/[ ()]/g, encodeURIComponent) + ")" : mdText(text));
+  const guideUrl = (hash) => (FG.config.pageUrl || "") + hash;
+
+  /** A station as Markdown: what it shows for the reader's lens, in their language, with where it came from. */
+  function stationMarkdown(entity, route, parts) {
+    const { items, now, steps, ai, action, resources, terms, helps } = parts;
+    const levelName = (code) => FG.termName("#level-" + code);
+    const lines = ["# " + mdText(FG.text(entity.name) + " · " + FG.text(entity.headline)), ""];
+    lines.push(mdText(FG.t("export.mdLens", { lens: FG.text((FG.get("#lens-" + route.lens) || {}).name) })), "");
+    const principles = FG.principlesOf(entity);
+    if (principles.length) lines.push(mdText(FG.t("station.principles")) + ": " + principles.map((principle) => mdText(principle.termCode + " " + FG.text(principle.name))).join(", "), "");
+    const section = (title, body) => {
+      if (body.length) lines.push("## " + mdText(title), "", ...body, "");
+    };
+    const actionUrl = action ? (FG.id(action.target).startsWith("#") ? guideUrl(FG.actionHref(FG.id(action.target))) : FG.id(action.target)) : null;
+    section(levelName("L0"), now ? [mdText(FG.text(now.text))].concat(action ? ["", mdLink(FG.text(action.name), actionUrl)] : []) : []);
+    section(
+      levelName("L1"),
+      steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
+    );
+    const notes = items.filter((item) => FG.id(item.disclosureLevel) === "#level-L2" && item.adviceKind !== "ai").sort(FG.byPosition);
+    const clauses = [...new Set(items.flatMap((item) => FG.refs(item, "citation")))];
+    const clauseLine = (clause) => {
+      const source = FG.get(clause.isPartOf);
+      return "- " + mdLine(clause.text) + " (" + mdText(clause.identifier) + (source ? ", " + mdLink(FG.nameText(source), source.url) : "") + ")";
+    };
+    const basis = clauses.length ? ["### " + mdText(FG.t("station.whyClauses")), "", ...clauses.map(clauseLine)] : [];
+    section(levelName("L2"), notes.map((note) => "- " + mdLine(note.text)).concat(notes.length && basis.length ? [""] : [], basis));
+    section(FG.t("station.ai"), ai.map((item) => "- " + mdLine(item.text)));
+    for (const callout of FG.refs(entity, "hasPart").filter((part) => part["@id"].startsWith("#callout-"))) {
+      section(
+        FG.text(callout.headline),
+        (callout.text ? [mdText(FG.text(callout.text)), ""] : []).concat(orderedCalloutItems(callout, route.lens).map((item, index) => index + 1 + ". " + (item.url ? mdLink(FG.text(item.text), item.url) : mdLine(item.text))))
+      );
+    }
+    section(FG.t("station.glossary"), terms.map((term) => "- " + mdLink(FG.text(term.name), term.url)));
+    section(FG.t("station.resources"), resources.map((resource) => "- " + mdLink(FG.text(resource.name), resource.url) + (resource.description ? " — " + mdLine(resource.description) : "")));
+    section(FG.t("station.help"), helps.map((help) => "- " + mdLink(FG.text(help.name), help.url)));
+    section(FG.t("station.sources"), sourcesOf(items).map((source) => "- " + mdLink(FG.nameText(source), source.url)));
+    lines.push("---", "", mdText(FG.t("export.mdFooter", { version: FG.root.version, date: FG.formatDate(FG.today()) })) + " " + guideUrl(FG.href("path", entity.identifier)), "");
+    return lines.join("\n");
+  }
+
   function station(route) {
     const entity = FG.get("#station-" + route.arg) || FG.stations()[0];
     const stations = FG.stations();
@@ -700,6 +750,12 @@
     const levelTitle = (code) => [levelIcon(code), h("span", null, levelName(code))];
     const stationIcon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[entity.identifier];
     const stepLine = FG.t("station.step", { n: entity.position, total: stations.length }) + (minutes ? " · " + FG.t("station.minutes", { n: minutes }) : "");
+    const parts = { items, now, steps, ai, action, resources, terms, helps };
+    FG.offerExport({
+      id: "markdown",
+      label: FG.t("export.markdown"),
+      run: () => FG.download(FG.exportName(["station", entity.identifier, route.lens, FG.state.lang], "md"), stationMarkdown(entity, route, parts), "text/markdown"),
+    });
     return h(
       "article",
       { class: "station" },

@@ -1726,18 +1726,6 @@
     );
   }
 
-  function download(name, text, type) {
-    const blob = new Blob([text], { type: type + ";charset=utf-8" });
-    /* A blob link made here from the user's own result; FG.h would refuse its scheme, so the element is built directly. */
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = name;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-  }
-
   const fileName = (check, extension) => "fair-self-check-" + check.identifier + "-" + today() + "." + extension;
 
   SC.sharePayload = function (check, st) {
@@ -1870,7 +1858,7 @@
             type: "button",
             class: "button-small button-primary",
             id: "export-download",
-            onclick: () => download(fileName(check, exportFormat === "jsonld" ? "jsonld" : "md"), exportText(check, st), exportFormat === "jsonld" ? "application/ld+json" : "text/markdown"),
+            onclick: () => FG.download(fileName(check, exportFormat === "jsonld" ? "jsonld" : "md"), exportText(check, st), exportFormat === "jsonld" ? "application/ld+json" : "text/markdown"),
           },
           FG.icon("download"),
           FG.t("selfcheck.export.download")

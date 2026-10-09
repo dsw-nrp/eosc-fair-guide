@@ -36,9 +36,13 @@
     document.documentElement.lang = route.lang;
     document.title = FG.t("app.title") + " | EOSC CZ";
 
-    const view = (route.view === "check" || route.view === "selfcheck") && FG.views.selfcheck ? FG.views.selfcheck : FG.views[route.view] || FG.views.path;
+    const isCheck = (route.view === "check" || route.view === "selfcheck") && FG.views.selfcheck;
+    const view = isCheck ? FG.views.selfcheck : FG.views[route.view] || FG.views.path;
     const app = document.getElementById("app");
+    FG.exports = [];
     const main = FG.h("main", { id: "main", tabindex: "-1" }, view(route));
+    /* A single check saves its result in its own export area; every other view gets the shared one. */
+    if (!(isCheck && route.arg)) main.append(FG.exportBar());
     const parts = [
       FG.h("a", { class: "skip-link", href: "#main", onclick: skipToMain }, FG.t("app.skip")),
       FG.views.header(route),
@@ -122,6 +126,16 @@
     FG.focusAfterRender = false;
     FG.firstRender = true;
     window.addEventListener("hashchange", FG.render);
+    /* Printing shows the closed sections too, and closes them again afterwards. */
+    let opened = [];
+    window.addEventListener("beforeprint", () => {
+      opened = [...document.querySelectorAll("#main details:not([open])")];
+      for (const section of opened) section.open = true;
+    });
+    window.addEventListener("afterprint", () => {
+      for (const section of opened) section.open = false;
+      opened = [];
+    });
     FG.render();
   }
 

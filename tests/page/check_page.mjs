@@ -187,6 +187,40 @@ async function axe(page, label) {
     await openAll("#/cs/V/catalogue/resources");
     if ((await surveyTitle()).includes("[")) fail("catalogue: in Czech a Czech work shows a translation: " + (await surveyTitle()));
 
+    // Exports: every view but a single check offers printing and the whole crate under it; the catalogue saves the
+    // filtered list it shows as CSV and JSON, a station saves itself as Markdown, and printing opens closed sections.
+    const exportIds = async () => view.evaluate(() => [...document.querySelectorAll(".export-bar .export-actions > *")].map((node) => node.id).join(","));
+    for (const hash of ["#/cs/V/path/start", "#/cs/V/explorer", "#/cs/V/page/about", "#/cs/V/tools", "#/cs/V/check"]) {
+      await view.goto(pageUrl + hash);
+      await view.waitForSelector("#main h1");
+      if ((await exportIds()) !== "export-print,export-crate") fail(`exports: ${hash} does not offer printing and the crate: ${await exportIds()}`);
+    }
+    await view.goto(pageUrl + "#/cs/V/check/dataset");
+    await view.waitForSelector("#main h1");
+    if (await view.locator(".export-bar").count()) fail("exports: a single check shows the shared export bar beside its own exports");
+    const saved = async (id) => {
+      const [download] = await Promise.all([view.waitForEvent("download"), view.locator("#export-" + id).click()]);
+      return { name: download.suggestedFilename(), text: readFileSync(await download.path(), "utf8") };
+    };
+    await open("#/en/V/catalogue/k!resources~s!licence");
+    const listed = await found();
+    const csv = await saved("csv");
+    const csvRows = csv.text.replace(/^\ufeff/, "").trim().split("\r\n");
+    if (!/^fair-guide-catalogue-resources-\d{4}-\d{2}-\d{2}\.csv$/.test(csv.name) || !csvRows[0].startsWith("Identifier,Name,") || !csvRows[0].includes("Address") || !csvRows[0].includes("Status")) fail("exports: the CSV is not named or headed as expected: " + csv.name + " " + csvRows[0]);
+    if (csvRows.length - 1 !== listed || !csvRows.slice(1).every((row) => row.includes("https://"))) fail(`exports: the CSV does not hold exactly the ${listed} filtered entries with their addresses (${csvRows.length - 1} rows)`);
+    const json = JSON.parse((await saved("json")).text);
+    if (json.count !== listed || json.items.length !== listed || !json.url.includes("s!licence") || !json.items.every((item) => item.entry.includes("/catalogue/resources/"))) fail("exports: the JSON list does not match the filtered list or name its filters");
+    await view.goto(pageUrl + "#/en/DS/path/licence");
+    await view.waitForSelector("#main h1");
+    const markdown = await saved("markdown");
+    if (!markdown.name.startsWith("fair-guide-station-licence-DS-en-") || !markdown.text.startsWith("# Licence and access") || !markdown.text.includes("\n## How to do it\n") || !markdown.text.includes("#/en/DS/path/licence")) fail("exports: the station's Markdown lacks its title, levels or address: " + markdown.name);
+    if (/\n\n\n/.test(markdown.text)) fail("exports: the station's Markdown has empty runs of lines");
+    const closed = await view.locator("#main details:not([open])").count();
+    await view.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+    if (!closed || (await view.locator("#main details:not([open])").count())) fail("exports: printing does not open the closed sections");
+    await view.evaluate(() => window.dispatchEvent(new Event("afterprint")));
+    if ((await view.locator("#main details:not([open])").count()) !== closed) fail("exports: the sections opened for printing do not close again");
+
     await view.goto(pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
     if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");

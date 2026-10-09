@@ -58,7 +58,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | `ro-crate-metadata.json` | Generated RO-Crate 1.2 |
 | `assets/data/` | Generated classic scripts, so the page also works from a local file: `kb.js` (the crate) and `ui.js` (interface strings and configuration) |
 | `assets/css/` | `tokens.css` (palette, type, spacing) and `app.css` (layout, components) |
-| `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing), `views.js`, `live.js` (connectors), `selfcheck.js` (checks, pre-fill, results, exports), `search.js` (universal search), `app.js` (start-up) |
+| `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing, exports), `views.js`, `live.js` (connectors), `selfcheck.js` (checks, pre-fill, results, exports), `search.js` (universal search), `app.js` (start-up) |
 | `assets/img/` | Official EOSC CZ logos (own licence in `LICENSES/LicenseRef-EOSC-CZ-Logo.txt`) |
 | `assets/icons/` | Vendored Font Awesome Free icons (CC BY 4.0); written by `scripts/vendor_icons.py`, never by hand |
 | `assets/diagrams/` | Rendered SVG diagrams |

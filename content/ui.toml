@@ -414,6 +414,26 @@ licenseText = { cs = "Výsledek vytvořil ten, kdo ho z průvodce uložil; o pod
 [help]
 title = { cs = "Kdo vám poradí", en = "Who can help" }
 
+[export]
+title = { cs = "Uložit a sdílet", en = "Save and share" }
+print = { cs = "Vytisknout nebo uložit jako PDF", en = "Print or save as PDF" }
+crate = { cs = "Celá znalostní báze (RO-Crate)", en = "The whole knowledge base (RO-Crate)" }
+csv = { cs = "Seznam jako CSV ({n})", en = "List as CSV ({n})" }
+json = { cs = "Seznam jako JSON ({n})", en = "List as JSON ({n})" }
+markdown = { cs = "Tento krok jako Markdown", en = "This step as Markdown" }
+mdLens = { cs = "Pohled: {lens}.", en = "Lens: {lens}." }
+mdFooter = { cs = "Z Průvodce FAIR daty, verze {version}, staženo {date}. Obsah je pod licencí CC BY 4.0:", en = "From the FAIR Data Guide, version {version}, exported {date}. The content is licensed under CC BY 4.0:" }
+
+[export.column]
+id = { cs = "Identifikátor", en = "Identifier" }
+name = { cs = "Název", en = "Name" }
+text = { cs = "Popis", en = "Description" }
+url = { cs = "Adresa", en = "Address" }
+date = { cs = "Datum", en = "Date" }
+stations = { cs = "Kroky cesty", en = "Steps of the path" }
+principles = { cs = "Principy", en = "Principles" }
+entry = { cs = "Položka v katalogu", en = "Catalogue entry" }
+
 [footer]
 version = { cs = "Verze {version} ze dne {date}", en = "Version {version} of {date}" }
 cite = { cs = "Jak citovat průvodce", en = "How to cite the guide" }
