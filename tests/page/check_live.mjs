@@ -7,7 +7,7 @@
 // - the landing's search finds out what a DOI is from its registration agency and DataCite;
 // - every request goes to an allowlisted connector, and only after a click.
 // These checks need the network and depend on outside services, so they are not part of the pull-request gate.
-// Usage: npm run check:live   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
+// Usage: python scripts/build_site.py && npm run check:live   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
 
 import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
@@ -15,8 +15,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const pageUrl = pathToFileURL(resolve(root, "index.html")).href;
-const config = JSON.parse(readFileSync(resolve(root, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config;
+const site = resolve(root, "_site"); // the built site (python scripts/build_site.py)
+const pageUrl = pathToFileURL(resolve(site, "index.html")).href;
+const config = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config;
 const origins = config.connectors.map((connector) => connector.origin);
 const SAMPLE = {
   doi: "10.5281/zenodo.21726258",

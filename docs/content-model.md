@@ -1,8 +1,9 @@
 # Content model
 
 The guide's content is authored in small TOML files under `content/`. A generator,
-`scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and
-writes the same crate as the script `assets/data/kb.js` that `index.html` loads. This document defines the entities and the rules every content file
+`scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and the same
+crate as the script `assets/data/kb.js` that the page loads; `scripts/build_site.py` writes them with the page and the
+API into the site directory `_site/`, which is not committed. This document defines the entities and the rules every content file
 follows. The design behind it is in [design.md](design.md).
 
 ## Entities
@@ -388,7 +389,7 @@ generated copy of `index.html`, so the page is the crate's HTML preview.
 
 ## Static API
 
-`scripts/build_api.py` builds a read-only API from the crate into the site directory (`_site/`, not committed): a
+`scripts/build_api.py`, part of the site build, makes a read-only API from the crate in the site directory: a
 list per collection (`api/<collection>.json`), a record per entity (`api/<collection>/<id>.json`), the JSON-LD
 context `api/context.jsonld`, `api/meta.json`, the OpenAPI 3.1 description `openapi.json`, and its documentation
 `api/index.html`, which is the authored files in `api/` with the pinned Swagger UI package. In `build_crate.py`,

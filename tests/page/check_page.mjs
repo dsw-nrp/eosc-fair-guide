@@ -5,7 +5,7 @@
 // - the keyboard reaches the main controls, the page reflows at 320 px, and it works inside an iframe;
 // - the self-check runs without network: modes, profiles, tiers, gaps on the path, snapshot pre-fill, a shared
 //   link and the exports, with no score anywhere.
-// Usage: npm run check:page   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
+// Usage: python scripts/build_site.py && npm run check:page   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
 
 import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
@@ -14,8 +14,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const pageUrl = pathToFileURL(resolve(root, "index.html")).href;
-const crate = JSON.parse(readFileSync(resolve(root, "ro-crate-metadata.json"), "utf8"));
+// The built site (python scripts/build_site.py): the page, its data and the API, as they are published.
+const site = resolve(root, "_site");
+const pageUrl = pathToFileURL(resolve(site, "index.html")).href;
+const crate = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"));
 const graph = crate["@graph"];
 const stations = graph.filter((e) => e["@type"] === "HowToSection").map((e) => e.identifier);
 const lenses = graph.filter((e) => e["@type"] === "Audience" && e["@id"].startsWith("#lens-")).map((e) => e.audienceType);
@@ -557,16 +559,15 @@ function collisions() {
     const shown = await view.locator(".signposts tbody tr").evaluateAll((rows) => rows.map((row) => row.querySelector("code").textContent + " " + row.querySelector("td a").getAttribute("href")).sort());
     const head = await view.locator("head link[rel]").evaluateAll((links) => links.filter((link) => !["stylesheet", "icon", "apple-touch-icon"].includes(link.rel)).map((link) => link.getAttribute("rel") + " " + link.getAttribute("href")).sort());
     if (shown.join("|") !== head.join("|")) fail("machines: the signposts the page shows differ from the head's: " + shown.join(", ") + " vs " + head.join(", "));
-    const linkset = JSON.parse(readFileSync(resolve(root, "linkset.json"), "utf8")).linkset[0];
+    const linkset = JSON.parse(readFileSync(resolve(site, "linkset.json"), "utf8")).linkset[0];
     const listed2 = Object.entries(linkset).filter(([rel]) => rel !== "anchor").flatMap(([rel, targets]) => targets.map((target) => rel + " " + target.href));
     if (linkset.anchor !== "./" || listed2.sort().join("|") !== head.filter((link) => !link.startsWith("linkset ")).join("|")) fail("signposting: the linkset does not list the head's links, anchored at the site");
     for (const rel of ["describedby", "service-desc", "service-doc", "license", "type", "author", "linkset"]) {
       if (!head.some((link) => link.startsWith(rel + " "))) fail("signposting: the head has no " + rel + " link");
     }
     if (!(await view.locator('head link[rel="describedby"][href="ro-crate-metadata.json"]').count())) fail("machines: the head does not carry the describedby link");
-    // The API (built into _site/ by scripts/build_api.py): typed links in the head lead to its description and its
+    // The API (built into _site/ by scripts/build_site.py): typed links in the head lead to its description and its
     // documentation, and the page lists every collection as an accessible counterpart of the documentation.
-    const site = resolve(root, "_site");
     const inSite = (href) => Boolean(href) && !/^[a-z]+:/i.test(href) && existsSync(resolve(site, href.endsWith("/") ? href + "index.html" : href));
     for (const rel of ["service-desc", "service-doc"]) {
       const href = await view.locator(`head link[rel="${rel}"]`).getAttribute("href");
@@ -1355,7 +1356,7 @@ function collisions() {
   const testRef = String((k01["ftr:outputFromTest"] || {})["@id"] || "");
   const testFile = testRef.startsWith(configured) ? resolve(root, "_site", testRef.slice(configured.length)) : null;
   const testRecord = testFile && existsSync(testFile) ? JSON.parse(readFileSync(testFile, "utf8")) : null;
-  if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../metrics/K01.json") fail("export: the K01 result does not name its test in the guide's API (build it with scripts/build_api.py): " + testRef);
+  if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../metrics/K01.json") fail("export: the K01 result does not name its test in the guide's API: " + testRef);
 
   // Local data: each check says where the answers are kept, and how it works.
   const note = await page.locator(".local-data").textContent();

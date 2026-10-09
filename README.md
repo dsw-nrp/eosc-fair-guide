@@ -34,23 +34,21 @@ kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) neb
 | `scripts/` | Generátor znalostní báze, sestavení API a kontroly obsahu (Python, jen standardní knihovna) |
 | `tests/` | Testy skriptů s minimální ukázkou obsahu |
 | `profile/` | Profil RO-Crate (SHACL) pro kontrolu struktury znalostní báze |
-| `index.html` | Stránka průvodce; znalostní bázi a texty rozhraní načítá ze složky `assets/data/` |
-| `assets/data/` | Znalostní báze a texty rozhraní jako generované skripty (`kb.js`, `ui.js`) |
-| `ro-crate-preview.html` | Generovaná kopie stránky: náhled RO-Crate |
-| `ro-crate-metadata.json` | Znalostní báze jako RO-Crate 1.2 (generovaná) |
+| `index.html` | Stránka průvodce s prázdnými bloky, které doplní sestavení |
+| `_site/` | Sestavený web, který se necommituje: stránka s datovými skripty, znalostní báze jako RO-Crate 1.2 s náhledem a API |
 | `assets/` | Styly, skripty, obrázky a vykreslené diagramy |
-| `api/` | Stránka dokumentace API; samotné API sestaví `scripts/build_api.py` do složky `_site/`, která se necommituje |
+| `api/` | Stránka dokumentace API; samotné API vytvoří sestavení |
 | `diagrams/` | Zdroje diagramů v Mermaid |
 | `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
 
 ## Jak upravovat obsah
 
-Obsah se píše v souborech TOML ve složce `content/`, nikdy přímo v `index.html` ani
-v `ro-crate-metadata.json`. Každý text je česky i anglicky, cituje publikovaný zdroj z registru požadavků
-a každá změna zaznamená, kdo ji provedl a s jakým nástrojem. Po úpravě spusťte:
+Obsah se píše v souborech TOML ve složce `content/`, nikdy v tom, co vytvoří sestavení. Každý text je česky
+i anglicky, cituje publikovaný zdroj z registru požadavků a každá změna zaznamená, kdo ji provedl a s jakým
+nástrojem. Po úpravě sestavte web a zkontrolujte jej; pak otevřete `_site/index.html`:
 
 ```bash
-python scripts/build_crate.py
+python scripts/build_site.py
 python scripts/check_content.py
 ```
 

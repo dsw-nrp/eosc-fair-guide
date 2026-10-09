@@ -1,25 +1,23 @@
 #!/usr/bin/env python3
 """Generate the FAIR guide's knowledge base from the TOML sources.
 
-Reads ``content/**/*.toml`` and writes:
+Reads ``content/**/*.toml`` and generates, for ``build_site.py`` to write into the site directory:
 
 - ``ro-crate-metadata.json``: the knowledge base as an RO-Crate 1.2 (Process Run Crate 0.5);
 - ``assets/data/kb.js`` and ``assets/data/ui.js``: the crate and the interface strings and configuration as
   classic scripts, which load from a local file as well as from a web host;
-- the generated blocks in ``index.html``: the Content Security Policy, a short schema.org description of the
-  guide for search engines, the data scripts and the icon sprite;
-- ``ro-crate-preview.html``: a copy of the page, which is the crate's HTML preview.
+- the page with its generated blocks filled: the Content Security Policy, the guide's signposts, a short schema.org
+  description of the guide for search engines, the data scripts and the icon sprite;
+- ``ro-crate-preview.html``: a copy of the page, which is the crate's HTML preview;
+- ``linkset.json`` and the profile's shapes at the guide's address.
 
-With ``--check`` nothing is written; the script exits with status 1 and shows a diff when the committed output
-differs from the regenerated output. Either way it warns when what the page downloads, compressed, exceeds the page
-budget; ``--sizes`` prints what the page downloads. Uses only the Python standard library. The content model is
-documented in ``docs/content-model.md``.
+None of it is committed: ``GENERATED`` names what the content checks refuse to find in the repository, and the
+committed page keeps its generated blocks empty. Running this script builds the whole site (``build_site.py``).
+Uses only the Python standard library. The content model is documented in ``docs/content-model.md``.
 """
 
 from __future__ import annotations
 
-import argparse
-import difflib
 import gzip
 import json
 import os
@@ -1515,6 +1513,15 @@ def api_paths(records: dict[str, list[tuple[str, str]]]) -> dict[str, str]:
 
 
 LINKSET_FILE = "linkset.json"
+# What the build generates and the repository must not hold; the API's records and its description as well.
+GENERATED = (CRATE_FILE, PREVIEW_FILE, KB_SCRIPT, UI_SCRIPT, LINKSET_FILE, API_FILES["description"])
+
+
+def is_generated(path: str) -> bool:
+    """Whether a repository path is build output: a generated file, or a JSON file of the API."""
+    return path in GENERATED or (path.startswith("api/") and path.endswith((".json", ".jsonld")))
+
+
 SCHEMA_ORG_TYPES = ("https://schema.org/AboutPage", "https://schema.org/Dataset")
 
 
@@ -1855,53 +1862,7 @@ def payload_warning(sizes: dict[str, int], budget_kb: int) -> str | None:
     return f"the page downloads {total / 1024:.0f} KB compressed, over its budget of {budget_kb} KB; largest: {parts}"
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--check", action="store_true", help="compare instead of writing; exit 1 on differences")
-    parser.add_argument("--sizes", action="store_true", help="print what the page downloads, compressed")
-    args = parser.parse_args(argv)
-    try:
-        generated = outputs()
-    except (ContentError, KeyError) as error:
-        print(f"build_crate: {error}", file=sys.stderr)
-        return 2
-
-    stale = []
-    for name, value in generated.items():
-        path = ROOT / name
-        current = path.read_text(encoding="utf-8") if path.exists() else ""
-        if current == value:
-            continue
-        if args.check:
-            stale.append(name)
-            diff = difflib.unified_diff(
-                current.splitlines(),
-                value.splitlines(),
-                f"{name} (committed)",
-                f"{name} (regenerated)",
-                lineterm="",
-                n=1,
-            )
-            print("\n".join(list(diff)[:60]))
-        else:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(value, encoding="utf-8", newline="\n")
-            print(f"wrote {name}")
-    sizes = page_payload(generated)
-    if args.sizes:
-        for name, size in sorted(sizes.items(), key=lambda item: -item[1]):
-            print(f"{size / 1024:8.1f} KB  {name}")
-        print(f"{sum(sizes.values()) / 1024:8.1f} KB  total compressed (budget {PAGE_BUDGET_KB} KB)")
-    warning = payload_warning(sizes, PAGE_BUDGET_KB)
-    if warning:
-        print(f"warning: {warning}", file=sys.stderr)
-        if os.environ.get("GITHUB_ACTIONS") == "true":
-            print(f"::warning title=Page size::{warning}")
-    if stale:
-        print(f"build_crate: out of date: {', '.join(stale)}; run python scripts/build_crate.py", file=sys.stderr)
-        return 1
-    return 0
-
-
 if __name__ == "__main__":
-    sys.exit(main())
+    import build_site
+
+    sys.exit(build_site.main())

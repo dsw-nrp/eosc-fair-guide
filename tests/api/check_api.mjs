@@ -1,4 +1,4 @@
-// API checks for the FAIR Data Guide, on the site that scripts/build_api.py writes into _site/:
+// API checks for the FAIR Data Guide, on the site that scripts/build_site.py writes into _site/:
 // - the OpenAPI description is valid OpenAPI 3.1, with a relative server address;
 // - every API file matches the schema of the path it is served at, and every file is documented;
 // - every link in a record leads to a file of the API (and a fragment to a part given in that file), and every
@@ -7,7 +7,7 @@
 //   the description, "Try it out" on the principles list returns the list, and no request leaves the site.
 // The documentation page is a third-party tool exempt from the accessibility check (the accessibility statement
 // names it), so axe does not run here.
-// Usage: python scripts/build_api.py && npm run check:api
+// Usage: python scripts/build_site.py && npm run check:api
 import { createServer } from "node:http";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join, relative, resolve, sep } from "node:path";
@@ -24,11 +24,11 @@ const read = (path) => JSON.parse(readFileSync(path, "utf8"));
 const posix = (path) => path.split(sep).join("/");
 
 if (!existsSync(join(site, "openapi.json"))) {
-  console.error("FAIL no API in _site/; run python scripts/build_api.py first");
+  console.error("FAIL no API in _site/; run python scripts/build_site.py first");
   process.exit(1);
 }
 const openapi = read(join(site, "openapi.json"));
-const crate = read(join(root, "ro-crate-metadata.json"));
+const crate = read(join(site, "ro-crate-metadata.json"));
 const crateIds = new Set(crate["@graph"].map((entity) => entity["@id"]));
 // The address the API was built for, read from the crate's own vocabulary (<address>terms#), which no file of the
 // API may name.
@@ -131,11 +131,8 @@ if (/<script(?![^>]*\bsrc=)[^>]*>/.test(docsPage)) fail("api/index.html: an inli
 const types = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".jsonld": "application/ld+json", ".svg": "image/svg+xml", ".png": "image/png" };
 const server = createServer((request, response) => {
   const path = decodeURIComponent(new URL(request.url, "http://localhost").pathname).replace(/\/$/, "/index.html");
-  // The site first, then the repository for what the API build does not write yet (the guide's page and assets).
-  const file = [site, root]
-    .map((base) => [base, join(base, path)])
-    .filter(([base, candidate]) => candidate.startsWith(base + sep) && existsSync(candidate) && statSync(candidate).isFile())
-    .map(([, candidate]) => candidate)[0];
+  const candidate = join(site, path);
+  const file = candidate.startsWith(site + sep) && existsSync(candidate) && statSync(candidate).isFile() ? candidate : null;
   if (!file) {
     response.writeHead(404).end();
     return;

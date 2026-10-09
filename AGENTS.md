@@ -22,8 +22,10 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 2. **No external request on load.** External calls start only from a user action and go only to the connectors
    listed in `content/live.toml`; the Content Security Policy is generated from the same list, and the page
    scripts contain no URLs of their own.
-3. **Sources, not output.** Content is authored in `content/*.toml`. Never hand-edit `ro-crate-metadata.json`
-   or the generated data scripts in `assets/data/`; run `scripts/build_crate.py`.
+3. **Sources, not output.** Content is authored in `content/*.toml`. The build (`scripts/build_site.py`) writes
+   the crate, the page's data scripts and generated blocks, the preview, the linkset and the API into `_site/`, which
+   is never committed; the committed `index.html` keeps its generated blocks empty. The content checks refuse a
+   generated file in the repository.
 4. **Published sources only.** Every advice item and check cites ledger clauses, and every clause points to a
    published source. Unpublished working material is never cited or referenced.
 5. **Both languages.** Every user-facing string has Czech and English values.
@@ -51,12 +53,11 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | Path | Content |
 | --- | --- |
 | `content/` | TOML sources |
-| `scripts/` | `build_crate.py` (generator), `check_content.py` (content contract), `vendor_icons.py` (copies the named icons), `refresh_snapshots.py` (scheduled snapshots) |
+| `scripts/` | `build_site.py` (builds the site), `build_crate.py` (knowledge base, page and data scripts), `build_api.py` (API), `check_content.py` (content contract), `serve.py` (local server), `vendor_icons.py` (copies the named icons), `refresh_snapshots.py` (scheduled snapshots) |
 | `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | SHACL profile for the crate |
-| `index.html` | The page and the crate's HTML preview; it loads the crate and the interface strings from `assets/data/` |
-| `ro-crate-metadata.json` | Generated RO-Crate 1.2 |
-| `assets/data/` | Generated classic scripts, so the page also works from a local file: `kb.js` (the crate) and `ui.js` (interface strings and configuration) |
+| `index.html` | The page, with empty blocks the build fills (Content Security Policy, signposts, data scripts, icons) |
+| `_site/` | The built site, not committed: the page and its copy as the crate's preview, `ro-crate-metadata.json`, the data scripts `assets/data/kb.js` (the crate) and `ui.js` (interface strings and configuration) that let the page work from a local file, `linkset.json`, the profile and the API |
 | `assets/css/` | `tokens.css` (palette, type, spacing) and `app.css` (layout, components) |
 | `assets/js/` | Classic scripts sharing one namespace, so the page also works from a local file: `core.js` (crate index, strings, safe DOM, storage, routing, exports), `views.js`, `live.js` (connectors), `selfcheck.js` (checks, pre-fill, results, exports), `search.js` (universal search), `app.js` (start-up) |
 | `assets/img/` | Official EOSC CZ logos (own licence in `LICENSES/LicenseRef-EOSC-CZ-Logo.txt`) |
@@ -69,31 +70,29 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 ## Commands
 
 ```bash
-python scripts/build_crate.py           # regenerate the crate, the page blocks and the preview copy
-python scripts/build_crate.py --check   # fail if committed output differs from regenerated output
-python scripts/build_crate.py --sizes   # what the page downloads, compressed; every build warns above the page budget
-python scripts/check_content.py         # content contract (--base <ref> also checks paradata freshness)
+python scripts/build_site.py            # build the site into _site/ (after npm ci); open _site/index.html
+python scripts/build_site.py --sizes    # also print what the page downloads, compressed; every build warns above the budget
+python scripts/check_content.py         # content contract and no build output in the repository (--base <ref> also checks paradata freshness)
 python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script
 python scripts/refresh_snapshots.py     # refresh the re3data, Heslář and FIP Dashboard snapshots (scheduled job)
 python scripts/vendor_icons.py          # copy the icons the content names from node_modules (after npm ci); --check fails on drift
-python scripts/build_api.py            # build the static API and its Swagger UI page into _site/ (after npm ci)
-python scripts/serve.py --build        # rebuild, then serve the guide and its API at http://127.0.0.1:8000/ (this computer only)
+python scripts/serve.py --build         # build, then serve the site with its API at http://127.0.0.1:8000/ (this computer only)
 ```
 
-Structure checks use `requirements-dev.txt`:
+Structure checks use `requirements-dev.txt` and validate the built crate, against the profile at the guide's address:
 
 ```bash
-rocrate-validator validate -p ro-crate-1.2 --skip-availability-check .
-rocrate-validator validate -p process-run-crate-0.5 -nh --skip-availability-check .
-rocrate-validator validate --extra-profiles-path profile -p fair-guide-0.1 -nh --skip-availability-check .
+rocrate-validator validate -p ro-crate-1.2 --skip-availability-check _site
+rocrate-validator validate -p process-run-crate-0.5 -nh --skip-availability-check _site
+rocrate-validator validate --extra-profiles-path _site/profile -p fair-guide-0.1 -nh --skip-availability-check _site
 ```
 
-Page checks need Node.js and Chromium (installed into the gitignored `.cache/`):
+Page checks need Node.js and Chromium (installed into the gitignored `.cache/`) and run on the built site:
 
 ```bash
 npm ci
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run browsers
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check (build the API first)
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:api    # OpenAPI 3.1, every API file against its schema, links, the documentation page
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:live   # real lookups (DataCite, resolvers, nanopublication); needs network
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:diagrams   # every Mermaid diagram renders and has accTitle and accDescr

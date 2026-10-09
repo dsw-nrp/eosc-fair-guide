@@ -26,16 +26,17 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"
 
-# The page and its preview copy carry code and generated content. Generated files are not scanned for
-# copyright notices, because their content contains arbitrary text.
+# The page carries code and its title and description. Generated files (the crate, its preview, the data scripts, the
+# linkset and the API) are built into _site/ and not committed; the content they come from is licensed above.
 [[annotations]]
-path = ["index.html", "ro-crate-preview.html"]
+path = "index.html"
 precedence = "override"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "MIT AND CC-BY-4.0"
 
+# Snapshots and the glossary are data, not scanned for copyright notices, because their content contains arbitrary text.
 [[annotations]]
-path = ["ro-crate-metadata.json", "linkset.json", "assets/data/*.js", "content/snapshots/**", "content/glossary.toml"]
+path = ["content/snapshots/**", "content/glossary.toml"]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"

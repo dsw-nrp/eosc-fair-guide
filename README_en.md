@@ -43,19 +43,17 @@ python -m http.server 8000
 | `scripts/` | Crate generator, API build and content checks (Python standard library only) |
 | `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | The guide's RO-Crate profile (SHACL) for the crate's structure |
-| `index.html` | The guide page; it loads the knowledge base and the interface strings from `assets/data/` |
-| `assets/data/` | The knowledge base and the interface strings as generated scripts (`kb.js`, `ui.js`) |
-| `ro-crate-preview.html` | Generated copy of the page: the crate's HTML preview |
-| `ro-crate-metadata.json` | The knowledge base as an RO-Crate 1.2 (generated) |
+| `index.html` | The guide page, with empty blocks the build fills |
+| `_site/` | The built site, not committed: the page with its data scripts, the knowledge base as an RO-Crate 1.2 and its preview, and the API |
 | `assets/` | Styles, scripts, images and rendered diagrams |
-| `api/` | The API's documentation page; `scripts/build_api.py` builds the API itself into `_site/`, which is not committed |
+| `api/` | The API's documentation page; the build makes the API itself |
 | `diagrams/` | Mermaid diagram sources |
 | `docs/` | Design and decisions (`design.md`), content model (`content-model.md`) |
 | `.github/` | CI workflows, templates and code owners |
 
 ## Editing content
 
-Content is authored in `content/*.toml`, never directly in `index.html` or `ro-crate-metadata.json`. The rules
+Content is authored in `content/*.toml`, never in what the build makes. The rules
 are in [docs/content-model.md](docs/content-model.md); in short:
 
 - every user-facing text exists in Czech and English;
@@ -65,10 +63,10 @@ are in [docs/content-model.md](docs/content-model.md); in short:
   sources;
 - statuses use the five-level vocabulary and carry an as-of date.
 
-After editing, regenerate and check:
+After editing, build the site and check it; then open `_site/index.html`:
 
 ```bash
-python scripts/build_crate.py
+python scripts/build_site.py
 python scripts/check_content.py
 ```
 

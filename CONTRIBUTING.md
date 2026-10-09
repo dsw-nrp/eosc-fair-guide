@@ -31,7 +31,7 @@ rules are in [docs/content-model.md](docs/content-model.md); design decisions ar
 ## Checking locally
 
 ```bash
-python scripts/build_crate.py      # regenerate ro-crate-metadata.json, assets/data/ and the blocks in index.html
+python scripts/build_site.py       # build the site into _site/: the crate, the page with its data, the API
 python scripts/check_content.py    # content contract: languages, sources, paradata, links, statuses
 ```
 

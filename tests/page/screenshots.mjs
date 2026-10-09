@@ -7,7 +7,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const pageUrl = pathToFileURL(resolve(root, "index.html")).href;
+const pageUrl = pathToFileURL(resolve(root, "_site", "index.html")).href; // the built site
 const [outDir = resolve(root, ".cache", "screenshots"), ...hashes] = process.argv.slice(2);
 const views = hashes.length ? hashes : ["", "#/cs/V/path/repozitar", "#/en/SR/path/publikace", "#/cs/V/resources"];
 const widths = { desktop: { width: 1366, height: 1000 }, mobile: { width: 390, height: 1200 } };

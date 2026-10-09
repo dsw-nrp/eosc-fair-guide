@@ -12,8 +12,8 @@ apply to everything below. Field-level rules are in [docs/content-model.md](../.
 
 - Texts and data live in `content/*.toml`. Each entity has a stable `id` (for example a station `repozitar`,
   an advice item `repozitar.SR.L1.2`, a check `S04`, a clause `A.F1.R2`).
-- Search by `id` or by a phrase from the page. Never edit `ro-crate-metadata.json` or the crate block in
-  `index.html`; they are generated.
+- Search by `id` or by a phrase from the page. Never edit what the build makes: the crate, the data scripts and
+  the API in `_site/`, and the generated blocks of `index.html`, which stay empty in the repository.
 - Page behaviour lives in `assets/js/app.js` (rendering, routing, state) and `assets/js/live.js` (connectors).
 
 ## 2. Change content
@@ -73,14 +73,14 @@ Add one provenance action per change batch to `content/provenance.toml`:
 
 The content check fails when a changed item has no action newer than the last release.
 
-## 7. Regenerate and check
+## 7. Build and check
 
 ```bash
-python scripts/build_crate.py
+python scripts/build_site.py
 python scripts/check_content.py
 ```
 
-Then open `index.html` and look at the changed station in each affected lens and in both languages. For
+Then open `_site/index.html` (or `python scripts/serve.py` to use the API) and look at the changed station in each affected lens and in both languages. For
 page changes, also run the page checks listed in `package.json`.
 
 ## 8. Pull request
@@ -92,5 +92,5 @@ the template, and wait for CI and a code owner. Do not merge your own pull reque
 
 1. Move the `Unreleased` entries in `CHANGELOG.md` under the new version and date.
 2. Set the same version and date in `CITATION.cff` and in the crate's publication metadata
-   (`content/guide.toml`), then regenerate.
+   (`content/guide.toml`), then build.
 3. Open the release pull request; after merge, tag `vX.Y.Z` and publish the release notes.

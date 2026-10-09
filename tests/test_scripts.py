@@ -24,6 +24,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import build_api  # noqa: E402
 import build_crate  # noqa: E402
+import build_site  # noqa: E402
 import check_content  # noqa: E402
 import refresh_snapshots  # noqa: E402
 
@@ -617,6 +618,63 @@ class FreshnessTests(FixtureCase):
         report = check_content.Report()
         check_content.check_freshness(report, content, self.root, "HEAD")
         self.assertEqual(report.errors, [])
+
+
+class BuildOutputTests(FixtureCase):
+    def test_the_repository_holds_no_build_output(self) -> None:
+        def git(*args: str) -> None:
+            subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True)
+
+        git("init", "-q")
+        (self.root / "ro-crate-metadata.json").write_text("{}", encoding="utf-8")
+        (self.root / "api").mkdir()
+        (self.root / "api" / "principles.json").write_text("{}", encoding="utf-8")
+        (self.root / "api" / "index.html").write_text("<!doctype html>", encoding="utf-8")
+        page = self.root / "index.html"
+        page.write_text(
+            page.read_text(encoding="utf-8").replace("<!-- /generated:ui -->", "x<!-- /generated:ui -->"),
+            encoding="utf-8",
+        )
+        git("add", "-A")
+        report = check_content.Report()
+        check_content.check_no_build_output(report, self.root)
+        named = " ".join(report.errors)
+        for expected in ("ro-crate-metadata.json", "api/principles.json", "generated block 'ui'"):
+            self.assertIn(expected, named)
+        self.assertNotIn("api/index.html", named, "the API's authored page is not build output")
+
+
+class SiteTests(unittest.TestCase):
+    def test_one_command_builds_the_whole_site(self) -> None:
+        out = build_crate.ROOT / ".cache" / "test-site"
+        try:
+            build_site.build(out)
+            for path in (
+                "index.html",
+                "ro-crate-preview.html",
+                "ro-crate-metadata.json",
+                "linkset.json",
+                "assets/data/kb.js",
+                "assets/data/ui.js",
+                "assets/css/app.css",
+                "assets/js/app.js",
+                "profile/fair-guide/profile.ttl",
+                "openapi.json",
+                "api/principles/R1.1.json",
+                "api/index.html",
+                "api/swagger-ui/swagger-ui-bundle.js",
+            ):
+                self.assertTrue((out / path).is_file(), path)
+            page = (out / "index.html").read_text(encoding="utf-8")
+            self.assertTrue(
+                all(match.group("body").strip() for match in build_crate.BLOCK.finditer(page)), "every block is filled"
+            )
+        finally:
+            shutil.rmtree(out, ignore_errors=True)
+
+    def test_the_build_never_replaces_the_repository(self) -> None:
+        with self.assertRaises(build_crate.ContentError):
+            build_site.build(build_crate.ROOT)
 
 
 class ApiTests(unittest.TestCase):

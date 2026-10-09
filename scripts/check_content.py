@@ -25,7 +25,18 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from build_crate import REFERENCE, ROOT, SOURCE_TYPES, ContentError, Graph, build_crate, load_content  # noqa: E402
+from build_crate import (  # noqa: E402
+    BLOCK,
+    PAGE_FILE,
+    REFERENCE,
+    ROOT,
+    SOURCE_TYPES,
+    ContentError,
+    Graph,
+    build_crate,
+    is_generated,
+    load_content,
+)
 
 LANGS = ("cs", "en")
 LEVELS = ("L0", "L1", "L2")
@@ -965,12 +976,31 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
     shapes = root / "profile" / "fair-guide"
     if shapes.exists():
         profile = (shapes / "profile.ttl").read_text(encoding="utf-8")
-        if f"<{guide['profile']}>" not in profile:
-            report.error("profile/fair-guide/profile.ttl", f"does not declare the profile IRI {guide['profile']}")
+        # The build writes the guide's address into the shapes; here the form is checked, whatever address they hold.
+        version = f"profile/{guide.get('profileVersion', '')}>"
+        if not re.search(r"<https://[^>]+/" + re.escape(version), profile):
+            report.error("profile/fair-guide/profile.ttl", f"does not declare the profile IRI <…/{version}")
         for shape in sorted(shapes.rglob("*.ttl")):
             for prefix in re.findall(r"@prefix fg: <([^>]+)>", shape.read_text(encoding="utf-8")):
-                if prefix != guide["vocabularyBase"]:
-                    report.error(str(shape.relative_to(root)), f"fg: prefix {prefix} differs from vocabularyBase")
+                if not prefix.endswith("/terms#"):
+                    report.error(str(shape.relative_to(root)), f"fg: prefix {prefix} is not <address>terms#")
+
+
+def check_no_build_output(report: Report, root: Path) -> None:
+    """The repository holds authored files only: no generated file, no JSON file of the API, and the page with its
+    generated blocks empty. Read from the files git tracks that are still on disk, so a removal already made counts."""
+    try:
+        listed = subprocess.run(["git", "ls-files", "-z"], cwd=root, capture_output=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return  # not a git working tree, such as a copied fixture
+    tracked = (name for name in listed.stdout.decode("utf-8").split("\0") if name and (root / name).exists())
+    for path in sorted(name for name in tracked if is_generated(name)):
+        report.error(path, "is build output, which the repository does not hold; remove it, the build makes it")
+    page = root / PAGE_FILE
+    if page.exists():
+        for match in BLOCK.finditer(page.read_text(encoding="utf-8")):
+            if match.group("body").strip():
+                report.error(PAGE_FILE, f"the generated block '{match.group('name')}' is filled; the build fills it")
 
 
 def vocabularies(content: dict[str, Any]) -> dict[str, Any]:
@@ -1024,6 +1054,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_references(report, content)
     check_pages_and_ui(report, content)
     check_guide(report, content, vocab, root)
+    check_no_build_output(report, root)
     return report
 
 
