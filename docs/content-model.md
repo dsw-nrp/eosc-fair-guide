@@ -2,9 +2,9 @@
 
 The guide's content is authored in small TOML files under `content/`. A generator,
 `scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and the same
-crate as scripts the page loads: `assets/data/kb.js` with what every view needs, and `kb-guidance.js`, `kb-fips.js` and
-`kb-pages.js` with the requirement guidance, the FIP profiles and the pages' text, loaded when a view first needs
-them; `scripts/build_site.py` writes them with the page and the
+crate as scripts the page loads: `assets/data/kb.js` with what every view needs, and `kb-standards.js`, `kb-fips.js`
+and `kb-pages.js` with the standards' requirements and guidance, the FIP Dashboard snapshot (profiles and resource
+records) and the pages' text, loaded when a view first needs them; `scripts/build_site.py` writes them with the page and the
 API into the site directory `_site/`, which is not committed. This document defines the entities and the rules every content file
 follows. The design behind it is in [design.md](design.md).
 

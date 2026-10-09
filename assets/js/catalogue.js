@@ -64,12 +64,33 @@
   const code = (iri) => String(FG.id(iri) || iri || "").split("/").pop();
   const slug = (value) => FG.fold(value).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-  /** A station or a check, as a short link with its icon, as in the path menu. */
-  function holderLink(holder) {
+  /** A station or a check, as a short link with its icon, as in the path menu; `short`, a station by its icon and
+      number alone, named in its title and for screen readers. */
+  function holderLink(holder, short) {
     const icons = (FG.config && FG.config.icons) || {};
+    if (holder.position && short) {
+      const name = holder.position + " · " + FG.text(holder.name);
+      return h("a", { class: "holder-link holder-short", href: FG.href("path", holder.identifier), title: name, "aria-label": name }, FG.icon((icons.station || {})[holder.identifier]), String(holder.position));
+    }
     return holder.position
       ? h("a", { class: "holder-link", href: FG.href("path", holder.identifier) }, FG.icon((icons.station || {})[holder.identifier]), holder.position + " · ", FG.span(holder.name))
       : h("a", { class: "holder-link", href: FG.href("check", holder.identifier) }, FG.icon((icons.check || {})[holder.identifier]), FG.span(holder.name));
+  }
+
+  /* More stations than this in one line are shown by icon and number, as in the path rail. */
+  const NAMED_STATIONS = 3;
+
+  /** Where the guide uses an entry, in one line: the stations in path order, then the checks. */
+  function usedLine(label, holders) {
+    const unique = [...new Set(holders)];
+    if (!unique.length) return null;
+    const stations = unique.filter((holder) => holder.position).sort((a, b) => Number(a.position) - Number(b.position));
+    const short = stations.length > NAMED_STATIONS;
+    const checks = unique.filter((holder) => !holder.position).map((holder) => holderLink(holder));
+    const path = stations.map((station) => holderLink(station, short));
+    /* Numbered stations read as a row, like the path rail; named ones as a list. */
+    const stationNodes = short ? path.flatMap((link, index) => (index ? [" ", link] : [link])) : joined(path);
+    return h("p", { class: "small cited-by" }, label + ": ", stationNodes, path.length && checks.length ? (short ? " · " : ", ") : null, joined(checks));
   }
 
   /** Where each clause and each source is cited: the stations and checks whose items cite the clause. */
@@ -109,19 +130,15 @@
     return String(FG.list(source["@type"])[0]);
   }
 
-  /** How a cited work is cited: publisher, version and date, as badges. */
-  function citationBadges(entity) {
+  /** How a cited work is cited, for the card's line of details: publisher, language, version and date. */
+  function citationDetails(entity, language) {
     const publisher = FG.get(entity.publisher);
     const date = entity.datePublished
       ? FG.t("catalogue.published", { date: String(entity.datePublished).length === 10 ? FG.formatDate(entity.datePublished) : String(entity.datePublished) })
       : entity.sdDatePublished
         ? FG.t("catalogue.accessed", { date: FG.formatDate(entity.sdDatePublished) })
         : null;
-    return [
-      publisher ? h("span", { class: "badge" }, FG.text(publisher.alternateName || publisher.name)) : null,
-      entity.version ? h("span", { class: "badge" }, FG.t("catalogue.version", { version: entity.version })) : null,
-      date ? h("span", { class: "badge" }, date) : null,
-    ];
+    return [publisher ? FG.text(publisher.alternateName || publisher.name) : null, language, entity.version ? FG.t("catalogue.version", { version: entity.version }) : null, date].filter(Boolean);
   }
 
   const useMark = (use) => h("span", { class: "badge use-mark", "data-use": use }, FG.t("catalogue.use." + use));
@@ -160,12 +177,9 @@
         },
         render: () =>
           FG.resourceCard(resource, {
-            badges: [uses.map(useMark), citationBadges(resource), FG.apiLink(resource)],
-            after: [
-              FG.pidLine(resource),
-              recommended.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.recommendedAt") + ": ", joined(recommended.map(holderLink))) : null,
-              citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null,
-            ],
+            details: citationDetails(resource, FG.list(resource.inLanguage).length ? FG.t("resource.languages", { languages: FG.list(resource.inLanguage).join(", ") }) : null),
+            badges: [uses.map(useMark), FG.apiLink(resource)],
+            after: [FG.pidLine(resource), usedLine(FG.t("catalogue.inGuide"), recommended.concat(citedBy))],
           }),
       });
     }
@@ -189,9 +203,10 @@
             { class: "card", id: "item-" + source.identifier, tabindex: "-1" },
             h("h3", null, url ? FG.external(url, name) : name),
             source.creditText ? h("p", { class: "small" }, source.creditText) : null,
-            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.sourceType." + sourceForm(source))), useMark("cited"), citationBadges(source), FG.apiLink(source)),
+            FG.detailsLine([FG.t("catalogue.sourceType." + sourceForm(source))].concat(citationDetails(source))),
+            h("div", { class: "badges" }, useMark("cited"), FG.apiLink(source)),
             FG.pidLine(source),
-            citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null
+            usedLine(FG.t("catalogue.inGuide"), citedBy)
           ),
       });
     }
@@ -263,7 +278,7 @@
             "li",
             { class: "card clause-card", id: "item-" + clause.identifier, tabindex: "-1" },
             h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, clause.identifier), clause.clauseKind ? h("span", { class: "badge" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null),
-            clause.name ? h("h3", { class: "clause-title" }, FG.span(clause.name)) : null,
+            clause.name && FG.text(clause.name) !== clause.identifier ? h("h3", { class: "clause-title" }, FG.span(clause.name)) : null,
             h("p", null, FG.linkedSpan(clause)),
             FG.guidance(clause),
             h(
@@ -276,7 +291,7 @@
             ),
             status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
             sourceLine(clause),
-            holders.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.usedIn") + ": ", joined(holders.map(holderLink))) : null
+            usedLine(FG.t("catalogue.usedIn"), holders)
           ),
       };
     });
@@ -341,8 +356,8 @@
             h("h3", { lang: "cs" }, FG.external(term.url, cs)),
             h("p", { class: "small", lang: "en" }, en),
             FG.pidLine(term),
-            at.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.onPath") + ": ", joined(at.map(holderLink))) : null,
-            h("p", { class: "small" }, FG.apiLink(term))
+            usedLine(FG.t("catalogue.onPath"), at),
+            FG.apiLink(term)
           ),
       };
     });
@@ -376,7 +391,21 @@
     });
   }
 
+  /** The questions each FAIR Champion test pre-fills, by test identifier. */
+  function testQuestions() {
+    const byTest = new Map();
+    for (const check of FG.ofType("Quiz")) {
+      for (const item of FG.refs(check, "hasPart").sort(FG.byPosition)) {
+        for (const entry of FG.refs(item, "additionalProperty").filter((property) => property.propertyID === "prefill:champion")) {
+          for (const test of FG.list(entry.value).map(String)) byTest.set(test, (byTest.get(test) || []).concat(item));
+        }
+      }
+    }
+    return byTest;
+  }
+
   function testEntries() {
+    const questions = testQuestions();
     return FG.graph
       .filter((entity) => String(entity["@id"]).startsWith("#test-"))
       .map((test) => {
@@ -405,7 +434,10 @@
                 h("span", { class: "badge code" }, test.identifier),
                 FG.apiLink(test)
               ),
-              FG.pidLine(test)
+              FG.pidLine(test),
+              (questions.get(test.identifier) || []).length
+                ? h("p", { class: "small cited-by" }, FG.t("catalogue.prefills") + ": ", joined(questions.get(test.identifier).map((item) => FG.idChip("questions", item.identifier))))
+                : null
             ),
         };
       });
@@ -833,7 +865,10 @@
     const kind = state.kinds[0];
     const selected = [kind];
     const inKinds = entries[kind];
-    const visible = inKinds.filter((entry) => passesShared(entry, state) && passesKind(entry, state, route));
+    /* A link to one entry shows that entry alone, with the way to the whole kind; an anchor no entry has shows the
+       kind with a note. */
+    const single = route.extra ? inKinds.filter((entry) => entry.anchor === route.extra) : [];
+    const visible = single.length ? single : inKinds.filter((entry) => passesShared(entry, state) && passesKind(entry, state, route));
     /* A shared dimension the chosen kind has no values for shows no facet and no order, unless a filter on it is
        active, so that it can be cleared where it was set. */
     const carries = (dimension) => entries[kind].some((entry) => entry[dimension].length);
@@ -915,7 +950,10 @@
           h("p", { class: "facet-kind-name" }, FG.t("catalogue.tab." + own)),
           ownFacets.map((facet) => {
             const counts = kindFacetCounts(own, facet.key);
-            const values = facet.values ? facet.values() : [...counts.keys()].sort((a, b) => FG.fold(facet.label(a)).localeCompare(FG.fold(facet.label(b)), "cs"));
+            /* By number of records, most first; equal counts keep the facet's own order (alphabetical where it has
+               none). Kind, station and principle keep the guide's order. */
+            const natural = facet.values ? facet.values() : [...counts.keys()].sort((a, b) => FG.fold(facet.label(a)).localeCompare(FG.fold(facet.label(b)), "cs"));
+            const values = natural.slice().sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
             const chosen = chosenValues(state, route, facet.key);
             return facetGroup(own + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
               go(Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: toggle(chosen, value) }) }), focus)
@@ -943,8 +981,7 @@
     offerListExports(kind, groups);
     const used = new Set();
     const results = groups.map((group) => {
-      /* A link to one entry shows the whole group it is in, so the entry is there to land on. */
-      const all = expanded.has(group.key) || group.entries.length <= PAGE || (route.extra && group.entries.some((entry) => entry.anchor === route.extra));
+      const all = expanded.has(group.key) || group.entries.length <= PAGE;
       const cards = (all ? group.entries : group.entries.slice(0, PAGE)).map((entry) => {
         const node = entry.render();
         if (node.id && used.has(node.id)) node.removeAttribute("id");
@@ -954,7 +991,7 @@
       return h(
         "section",
         { class: "catalogue-group" },
-        group.label ? h("h2", null, group.label, h("span", { class: "muted group-count" }, " · " + FG.t("catalogue.entries", { n: group.entries.length }))) : null,
+        group.label && !single.length ? h("h2", null, group.label, h("span", { class: "muted group-count" }, " · " + FG.t("catalogue.entries", { n: group.entries.length }))) : null,
         h("ul", { class: "cards" }, cards),
         all
           ? null
@@ -972,7 +1009,13 @@
             )
       );
     });
-    results.unshift(kindIntro(kind));
+    if (route.extra) {
+      const whole = h("a", { href: FG.catalogueHref(kind), class: "single-all" }, FG.t("catalogue.showAll", { kind: FG.t("catalogue.tab." + kind), n: entries[kind].length }));
+      const note = h("p", { class: "single-entry small" }, FG.t(single.length ? "catalogue.single" : "catalogue.singleMissing", { id: route.extra }), " ", whole);
+      /* One entry keeps only the notice its record needs: the FIP Dashboard disclaimer for a dashboard record. */
+      const dashboard = single.length && (kind === "fips" || FG.list(single[0].facets.use).includes("dashboard"));
+      results.unshift(note, single.length ? (dashboard ? FG.dashboardNotice() : null) : kindIntro(kind));
+    } else results.unshift(kindIntro(kind));
 
     return h(
       "div",

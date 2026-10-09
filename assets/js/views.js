@@ -87,22 +87,27 @@
     );
   }
 
-  /** A resource as a card; the catalogue adds its usage marks and where the guide uses it. */
+  /** An entry's details as one quiet line under its name: what it is, by whom, in which language, which version
+      and when; badges stay for the marks that call for attention. */
+  FG.detailsLine = (parts) => {
+    const shown = FG.list(parts).filter(Boolean);
+    return shown.length ? h("p", { class: "small muted card-details" }, shown.join(" · ")) : null;
+  };
+
+  /** A resource as a card; the catalogue adds its citation details, its usage marks and where the guide uses it. */
   function resourceCard(resource, extras) {
     const record = dashboardRecord(resource);
-    const languages = FG.list(resource.inLanguage);
     return h(
       "li",
       { class: "card", id: "item-" + resource.identifier, tabindex: "-1" },
       h("h3", null, FG.external(resource.url, FG.nameNodes(resource))),
+      FG.detailsLine([FG.termName(FG.id(resource.resourceType))].concat((extras && extras.details) || [])),
       resource.description ? h("p", null, FG.span(resource.description)) : null,
       orientationTags(record && record.fer ? FG.principlesOf(record.fer) : [], FG.refIds(resource, "audience")),
       h(
         "div",
         { class: "badges" },
-        h("span", { class: "badge" }, FG.termName(FG.id(resource.resourceType))),
         statusBadge(resource),
-        languages.length ? h("span", { class: "badge" }, FG.t("resource.languages", { languages: languages.join(", ") })) : null,
         record ? verificationBadges(record.fer) : null,
         extras ? extras.badges : null,
         record ? FG.external(record.url, FG.t("resource.dashboard"), { class: "small" }) : null

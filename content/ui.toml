@@ -550,7 +550,11 @@ aboutLink = { cs = "Jak průvodce ukládá vaše odpovědi a jak je smazat", en 
 [catalogue]
 title = { cs = "Katalog", en = "Catalogue" }
 search = { cs = "Hledat", en = "Search" }
-citedBy = { cs = "Cituje", en = "Cited by" }
+inGuide = { cs = "V průvodci", en = "In the guide" }
+prefills = { cs = "Předvyplňuje otázky", en = "Pre-fills the questions" }
+single = { cs = "Zobrazena jen položka, na kterou vede odkaz.", en = "Showing only the entry the link leads to." }
+singleMissing = { cs = "Položka {id} v katalogu není.", en = "The catalogue has no entry {id}." }
+showAll = { cs = "Zobrazit vše: {kind} ({n})", en = "Show all: {kind} ({n})" }
 published = { cs = "vydáno {date}", en = "published {date}" }
 accessed = { cs = "navštíveno {date}", en = "accessed {date}" }
 version = { cs = "verze {version}", en = "version {version}" }
@@ -580,7 +584,6 @@ withoutPrinciple = { cs = "Bez principu", en = "Without a principle" }
 withoutStatus = { cs = "Bez stavu", en = "No status" }
 checkedOn = { cs = "Ověřeno {date}", en = "Checked {date}" }
 notChecked = { cs = "Bez data ověření", en = "No date checked" }
-recommendedAt = { cs = "Doporučuje", en = "Recommended at" }
 source = { cs = "Podklad", en = "Source" }
 inCheck = { cs = "Kontrola", en = "Check" }
 

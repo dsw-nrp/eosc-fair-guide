@@ -323,8 +323,15 @@ sections.push(["page", async () => {
 
     // Resources and cited sources as one kind, marked by how the guide uses them.
     await open("#/cs/V/catalogue/resources");
-    const analysis = await view.locator(".card", { hasText: "Analýza a návrh postupů" }).first().textContent();
-    if (!analysis.includes("podklad obsahu") || !analysis.includes("1 · Plán") || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis is not marked as a basis with the stations and checks that cite it");
+    // An entry the guide uses at many stations names them by icon and number in one line, each named for screen
+    // readers; its details (type, publisher, version, date) are one quiet line, not badges.
+    const analysisCard = view.locator(".card", { hasText: "Analýza a návrh postupů" }).first();
+    const analysis = await analysisCard.textContent();
+    if (!analysis.includes("podklad obsahu") || !(await analysisCard.locator('.cited-by a.holder-short[aria-label="1 · Plán"]').count()) || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis is not marked as a basis with the stations and checks that cite it");
+    if ((await analysisCard.locator(".cited-by").count()) !== 1 || !(await analysisCard.locator(".card-details").textContent()).includes("verze 1.2") || (await analysisCard.locator(".badge", { hasText: "verze" }).count())) fail("catalogue: the analysis card does not keep where it is used in one line and its details out of the badges");
+    // A kind's own facets list their values by number of records, most first.
+    const counts = await view.locator('[data-facet="resources-use"] .facet-count').allTextContents();
+    if (counts.join(",") !== counts.map(Number).sort((a, b) => b - a).join(",")) fail("catalogue: a kind's facet is not ordered by number of records: " + counts.join(","));
     const both = await view.locator(".card", { hasText: "AI jako služba (CERIT)" }).first().textContent();
     if (!both.includes("doporučuje průvodce") || !both.includes("podklad obsahu")) fail("catalogue: a resource that is also cited is not marked with both uses");
 
@@ -729,6 +736,10 @@ sections.push(["page", async () => {
     await view.waitForSelector('[id="item-A.F1.N1"]');
     const box = await view.locator('[id="item-A.F1.N1"]').boundingBox();
     if (!box || box.y < 0 || box.y > 900) fail("ids: a directly opened link to a requirement does not bring it into view");
+    // A link to one entry shows that entry alone, says so, and leads to the whole kind.
+    if ((await view.locator(".clause-card").count()) !== 1 || !(await view.locator(".single-entry").count())) fail("ids: a link to one requirement does not show it alone with a notice");
+    await view.locator(".single-entry a").click();
+    await view.waitForFunction(() => document.querySelectorAll(".clause-card").length > 1);
     const all = await view.locator(".clause-card").count();
     await view.locator("#facet-clauses-ckind-recommendation").check();
     await view.waitForFunction(() => location.hash.includes("f.ckind!recommendation"));

@@ -1804,7 +1804,8 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
     parts: dict[str, dict[str, Any]] = {name: {"entities": [], "properties": {}} for name in PART_SCRIPTS}
     core = []
     for entity in graph:
-        if str(entity["@id"]).startswith("#fip-"):
+        # The FIP Dashboard snapshot: the profiles and the resource records they declare.
+        if str(entity["@id"]).startswith(("#fip-", "#fer-")):
             parts["fips"]["entities"].append(entity)
         elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
             parts["standards"]["entities"].append(entity)

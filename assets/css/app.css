@@ -2640,6 +2640,28 @@ a.id-chip:focus-visible {
   border-color: var(--tint-teal);
 }
 
+/* An entry's details under its name, one quiet line. */
+.card-details {
+  margin: 0 0 var(--space-2);
+}
+
+/* Stations by icon and number in a line that names many. */
+.holder-short {
+  white-space: nowrap;
+}
+
+/* A link to one catalogue entry: what is shown, and the way to the whole kind. */
+.single-entry {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--tint-teal);
+  background: var(--surface);
+}
+
+.single-all {
+  font-weight: 700;
+}
+
 /* An entry's record in the API: the same small link in the corner of every card that has one, outside its badges. */
 .card:has(.json-link) {
   position: relative;
