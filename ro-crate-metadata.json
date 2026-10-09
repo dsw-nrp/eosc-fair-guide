@@ -43591,6 +43591,7 @@
     {
       "@id": "#page-about-5",
       "@type": "CreativeWork",
+      "identifier": "privacy",
       "headline": [
         {
           "@value": "Ochrana soukromí",
@@ -43615,16 +43616,7 @@
       "isPartOf": {
         "@id": "#page-about"
       },
-      "name": [
-        {
-          "@value": "Ochrana soukromí",
-          "@language": "cs"
-        },
-        {
-          "@value": "Privacy",
-          "@language": "en"
-        }
-      ],
+      "name": "privacy",
       "mentions": [
         {
           "@id": "#resource-datacite"

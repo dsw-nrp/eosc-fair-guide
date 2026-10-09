@@ -24,6 +24,7 @@ heading = { cs = "Využití umělé inteligence", en = "Use of artificial intell
 body = { cs = "Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). U každé zastávky průvodce ukazuje, z jakých zdrojů vychází a kdy se obsah měnil (úroveň „Zdroje a vznik obsahu“); kdo a s jakým nástrojem obsah připravil, zaznamenávají paradata ve znalostní bázi. Texty kontrolují lidé.", en = "An AI assistant (Claude, Anthropic) contributed to the content and code. For each station, the guide shows which sources it draws on and when the content changed (the “Sources and how this was made” level); who prepared the content and with which tool is recorded in the paradata of the knowledge base. People review the texts." }
 
 [[page.section]]
+id = "privacy"
 heading = { cs = "Ochrana soukromí", en = "Privacy" }
 body = { cs = "Odpovědi v sebehodnocení zůstávají jen ve vašem prohlížeči. Průvodce kontaktuje externí služby (například [[datacite|DataCite]] nebo [[fair-champion|FAIR Champion]]) jen tehdy, když kontrolu sami spustíte, a jen ty uvedené v nastavení stránky.", en = "Your self-check answers stay in your browser. The guide contacts external services (such as [[datacite|DataCite]] or [[fair-champion|FAIR Champion]]) only when you start a check yourself, and only those listed in the page's settings." }
 

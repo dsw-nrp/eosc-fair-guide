@@ -1756,6 +1756,9 @@
     );
   }
 
+  /* The About page shows the same note in its privacy section. */
+  SC.localDataNote = localDataNote;
+
   const fileName = (check, extension) => "fair-self-check-" + check.identifier + "-" + today() + "." + extension;
 
   SC.sharePayload = function (check, st) {
@@ -2180,7 +2183,7 @@
           h("h2", { id: "saved-title" }, FG.t("selfcheck.savedTitle")),
           h("p", null, FG.t("selfcheck.savedText")),
           loadControl("load-file-overview"),
-          localDataNote()
+          h("p", { class: "small" }, h("a", { href: FG.href("page", "about") + "/privacy" }, FG.t("localData.aboutLink")))
         )
       )
     );

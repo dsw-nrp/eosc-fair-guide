@@ -1161,8 +1161,13 @@ async function axe(page, label) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   if (overflow > 1) fail(`FIP check: horizontal scroll of ${overflow}px at 320 px`);
 
-  // Deleting everything leaves nothing the guide stored, and the checks start empty.
+  // Deleting everything lives on the About page, which the footer links to, and on each check; the self-check
+  // overview links there. It leaves nothing the guide stored, and the checks start empty.
   await go("#/cs/K/selfcheck");
+  if ((await page.locator(".local-data").count()) || !(await page.locator('a[href$="/page/about/privacy"]', { hasText: "smazat" }).count())) fail("local data: the self-check overview does not link to the About page in place of the note");
+  if (!(await page.locator('footer a[href$="/page/about/privacy"]').count())) fail("local data: the footer does not link to the data in this browser");
+  await go("#/cs/K/page/about/privacy");
+  if (!(await page.locator("#privacy .local-data").count())) fail("local data: the About page's privacy section does not show the note");
   if (!(await page.locator("#local-data-delete").isVisible())) fail("local data: the delete control is not visible without opening anything");
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#local-data-delete").click();

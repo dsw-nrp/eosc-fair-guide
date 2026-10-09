@@ -299,6 +299,7 @@
           "ul",
           null,
           h("li", null, h("a", { href: FG.href("page", "accessibility") }, FG.t("footer.accessibility"))),
+          h("li", null, h("a", { href: FG.href("page", "about") + "/privacy" }, FG.t("footer.localData"))),
           h("li", null, h("a", { href: FG.href("page", "about") }, FG.t("footer.ai"))),
           h("li", null, FG.external(root.url, FG.t("footer.repository"))),
           h("li", null, h("a", { href: FG.href("page", "machines") }, FG.t("footer.crate")))
@@ -1135,7 +1136,8 @@
             section.identifier ? { id: section.identifier, tabindex: "-1" } : null,
             section.headline ? h("h2", null, FG.span(section.headline)) : null,
             FG.linkedParagraphs(section),
-            section.identifier === "credits" ? creditsTable() : null
+            section.identifier === "credits" ? creditsTable() : null,
+            section.identifier === "privacy" && FG.selfcheck && FG.selfcheck.localDataNote ? FG.selfcheck.localDataNote() : null
           )
         ),
         page.identifier === "machines" ? machineLinks() : null,

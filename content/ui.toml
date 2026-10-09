@@ -464,6 +464,7 @@ basis = { cs = "Obsah vychází z", en = "The content builds on" }
 credits = { cs = "Kdo se podílel", en = "Who contributed" }
 licence = { cs = "Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.", en = "Content is licensed under CC BY 4.0, code under MIT." }
 accessibility = { cs = "Prohlášení o přístupnosti", en = "Accessibility statement" }
+localData = { cs = "Vaše data v prohlížeči", en = "Your data in this browser" }
 ai = { cs = "Využití AI", en = "Use of AI" }
 repository = { cs = "Zdrojový kód a data", en = "Source code and data" }
 crate = { cs = "Data pro stroje", en = "Data for machines" }
@@ -507,6 +508,7 @@ delete = { cs = "tlačítkem „Smazat vše, co průvodce uložil“ vedle tohot
 deleteAll = { cs = "Smazat vše, co průvodce uložil", en = "Delete everything the guide stored" }
 confirm = { cs = "Smazat všechny odpovědi a nastavení, které průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the guide stored in this browser? This cannot be undone." }
 deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the guide stored in this browser is deleted." }
+aboutLink = { cs = "Jak průvodce ukládá vaše odpovědi a jak je smazat", en = "How the guide keeps your answers and how to delete them" }
 
 [catalogue]
 title = { cs = "Katalog", en = "Catalogue" }
