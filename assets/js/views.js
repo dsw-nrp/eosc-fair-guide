@@ -74,6 +74,19 @@
     return badges;
   }
 
+  /** Orientation tags: the principles an entry serves, as tiles, and the lenses it is for, as icons. */
+  function orientationTags(principles, lensIds) {
+    const icons = (FG.config.icons && FG.config.icons.lens) || {};
+    const lenses = lensIds.map(FG.get).filter(Boolean);
+    if (!principles.length && !lenses.length) return null;
+    return h(
+      "div",
+      { class: "orientation" },
+      principles.map((principle) => FG.principleTile(principle)),
+      lenses.map((lens) => h("span", { class: "lens-tag", title: FG.text(lens.name) }, FG.icon(icons[lens.audienceType]), h("span", { class: "visually-hidden" }, FG.text(lens.name))))
+    );
+  }
+
   /** A resource as a card; the catalogue adds its usage marks and where the guide uses it. */
   function resourceCard(resource, extras) {
     const record = dashboardRecord(resource);
@@ -83,6 +96,7 @@
       { class: "card", id: "item-" + resource.identifier, tabindex: "-1" },
       h("h3", null, FG.external(resource.url, FG.nameNodes(resource))),
       resource.description ? h("p", null, FG.span(resource.description)) : null,
+      orientationTags(record && record.fer ? FG.principlesOf(record.fer) : [], FG.refIds(resource, "audience")),
       h(
         "div",
         { class: "badges" },
@@ -938,6 +952,7 @@
       { class: "card", id: "item-fer-" + fer.identifier, tabindex: "-1" },
       h("h3", null, FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name)),
       fer.description ? h("p", null, FG.span(fer.description)) : null,
+      orientationTags(FG.principlesOf(fer), []),
       h("div", { class: "badges" }, h("span", { class: "badge" }, FG.termName(FG.id(fer.catalogueType))), verificationBadges(fer), extras ? extras.badges : null)
     );
   };
@@ -952,8 +967,8 @@
           (record.re3data && FG.list(repository.identifier).includes(record.re3data)) ||
           (record.url && repository.url && repository.url.replace(/\/$/, "").toLowerCase() === record.url.replace(/\/$/, "").toLowerCase())
       );
-      if (match) match.nkr = true;
-      else merged.push({ name: record.name, url: record.url, identifier: record.re3data ? [record.re3data] : [], repositoryKind: record.kind, keywords: record.keywords, nkr: true, isBasedOn: [] });
+      if (match) match.nkr = record;
+      else merged.push({ name: record.name, url: record.url, identifier: record.re3data ? [record.re3data] : [], repositoryKind: record.kind, keywords: record.keywords, nkr: record, isBasedOn: [] });
     }
     return merged;
   }
@@ -979,8 +994,20 @@
   }
 
   /** A repository as a card, with its kind, status, the sources of its facts and its FAIRsharing record. */
+  /** The records a repository's facts came from, each linked where the record has an address of its own: re3data
+      and FIP Dashboard snapshots, NKR and FAIRsharing; the guide's own selection is named. */
+  function repositorySources(repository) {
+    const r3d = FG.refIds(repository, "sameAs").find((id) => /re3data\.org/.test(id));
+    const sources = FG.refIds(repository, "isBasedOn").map((id) => {
+      const name = FG.repositorySource(id);
+      return id === "#snapshot-re3data" && r3d ? FG.external(r3d, name) : name;
+    });
+    if (repository.nkr) sources.push(repository.nkr.id ? FG.external(FG.config.links.nkr + "objects/" + repository.nkr.id, "NKR") : "NKR");
+    if (repository.fairsharing) sources.push(FG.external(FG.live.pidUrl({ type: "doi", value: repository.fairsharing.doi }), "FAIRsharing", { class: "fairsharing-record" }));
+    return sources.flatMap((source, index) => (index ? [", ", source] : [source]));
+  }
+
   FG.repositoryCard = function (repository, id) {
-    const sources = FG.refIds(repository, "isBasedOn").map(FG.repositorySource).concat(repository.nkr ? ["NKR"] : [], repository.fairsharing ? ["FAIRsharing"] : []);
     return h(
       "li",
       { class: "card", id: id || null, tabindex: id ? "-1" : null },
@@ -991,8 +1018,55 @@
         { class: "badges" },
         repository.repositoryKind ? h("span", { class: "badge" }, FG.termName(FG.id(repository.repositoryKind))) : null,
         statusBadge(repository),
-        h("span", { class: "badge" }, FG.t("repositories.sources", { sources: sources.join(", ") })),
-        repository.fairsharing ? FG.external(FG.live.pidUrl({ type: "doi", value: repository.fairsharing.doi }), FG.t("repositories.fairsharingRecord"), { class: "fairsharing-record" }) : null
+        h("span", { class: "badge badge-sources" }, FG.t("repositories.sourcesLabel") + ": ", repositorySources(repository))
+      )
+    );
+  };
+
+  /* re3data facts a sample NKR record shows, in the order of a record. */
+  const SAMPLE_FIELDS = ["pidTypes", "apis", "dataLicenses", "metadataStandards", "certificates", "policies", "versioning", "qualityManagement"];
+
+  /** Sample NKR records: a few real Czech repositories with only the values their public re3data records state,
+      the richest records first, labelled as samples and not NKR records. */
+  FG.nkrSamples = function () {
+    const facts = (FG.config && FG.config.re3data) || {};
+    const stated = (value) => (Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null);
+    const chosen = Object.entries(facts)
+      .map(([r3d, record]) => ({ r3d, record, repository: FG.get("#repository-" + r3d) }))
+      .filter((entry) => entry.repository)
+      .sort((a, b) => SAMPLE_FIELDS.filter((key) => stated(b.record[key])).length - SAMPLE_FIELDS.filter((key) => stated(a.record[key])).length || a.r3d.localeCompare(b.r3d))
+      .slice(0, 3);
+    if (!chosen.length) return null;
+    const value = (key, fact) => {
+      if (!stated(fact)) return h("span", { class: "muted" }, FG.t("repositories.sample.none"));
+      if (typeof fact === "boolean") return FG.t(fact ? "repositories.sample.yes" : "repositories.sample.no");
+      return FG.list(fact).join(", ");
+    };
+    const field = (key, content) => [h("dt", null, FG.t("repositories.sample." + key)), h("dd", null, content)];
+    return h(
+      "section",
+      { class: "nkr-samples", "aria-labelledby": "nkr-samples-title" },
+      h("h3", { id: "nkr-samples-title" }, FG.t("repositories.nkrSamplesTitle")),
+      h("p", { class: "notice small" }, FG.t("repositories.nkrSamplesNote", { date: FG.formatDate(chosen[0].record.date) })),
+      h(
+        "ul",
+        { class: "cards" },
+        chosen.map(({ r3d, record, repository }) =>
+          h(
+            "li",
+            { class: "card nkr-sample" },
+            h("p", { class: "badge sample-label" }, FG.t("repositories.sample.label")),
+            h("h4", null, FG.external(repository.url, record.name)),
+            h(
+              "dl",
+              { class: "sample-fields" },
+              field("kind", repository.repositoryKind ? FG.termName(FG.id(repository.repositoryKind)) : value("kind")),
+              field("subjects", subjectsOf(repository).join(", ") || value("subjects")),
+              SAMPLE_FIELDS.map((key) => field(key, value(key, record[key]))),
+              field("registry", FG.external(FG.config.links.re3dataRecord + r3d, FG.t("repositories.sample.record")))
+            )
+          )
+        )
       )
     );
   };

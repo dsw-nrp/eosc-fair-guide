@@ -187,6 +187,44 @@ async function axe(page, label) {
     await openAll("#/cs/V/catalogue/resources");
     if ((await surveyTitle()).includes("[")) fail("catalogue: in Czech a Czech work shows a translation: " + (await surveyTitle()));
 
+    // Finders: resources order by type, status or the date their status was checked, oldest first, and keep their
+    // orientation tags; repositories order by data source and link each source to its record; while NKR lists no
+    // repository, sample records built from re3data facts show on request, labelled as samples.
+    await open("#/cs/V/catalogue/resources");
+    const groupNames = async () => (await view.locator(".catalogue-group > h2").allTextContents()).map((name) => name.split(" · ")[0]);
+    const orderBy = async (order) => {
+      await view.locator("#catalogue-order").selectOption(order);
+      await view.waitForFunction((value) => location.hash.includes("o!" + value), order);
+      return groupNames();
+    };
+    const checkedGroups = await orderBy("checked");
+    const checkedDates = checkedGroups.filter((name) => name.startsWith("Ověřeno")).map((name) => name.replace("Ověřeno ", "").split(". ").reverse().map((part) => part.padStart(2, "0")).join(""));
+    if (!checkedDates.length || checkedDates.some((date, index) => index && date < checkedDates[index - 1]) || checkedGroups[checkedGroups.length - 1] !== "Bez data ověření") fail("finders: ordering by the date checked does not put the oldest first: " + checkedGroups.join(" | "));
+    if (!(await view.locator(".catalogue-results .card .orientation .lens-tag").count()) || !(await view.locator(".catalogue-results .card .orientation .principle-tile").count())) fail("finders: resource cards lack orientation tags (lens icons and principle tiles)");
+    const typeGroups = await orderBy("type");
+    if (new Set(typeGroups).size !== typeGroups.length) fail("finders: a type shows as two groups: " + typeGroups.join(" | "));
+    const moreTypes = view.locator('[data-facet="resources-type"] button');
+    if (await moreTypes.count()) await moreTypes.first().click();
+    const typeValues = await view.locator('[data-facet="resources-type"] .facet-label').allTextContents();
+    if (new Set(typeValues).size !== typeValues.length) fail("finders: the type facet offers one type twice: " + typeValues.join(" | "));
+    const statusGroups = await orderBy("status");
+    if (statusGroups[0] !== "provozní" || statusGroups[statusGroups.length - 1] !== "Bez stavu") fail("finders: statuses are not in their own order: " + statusGroups.join(" | "));
+    await open("#/cs/V/catalogue/repositories");
+    if ((await orderBy("rsource"))[0] !== "výběr průvodce") fail("finders: ordering repositories by data source does not start with the guide's selection");
+    if (!(await view.locator('.badge-sources a[href^="https://www.re3data.org/repository/r3d"]').count())) fail("finders: a repository's re3data source does not link to its record");
+    await view.evaluate(() => { window.FairGuide.live.fetchJson = async () => ({ results: [] }); });
+    if (await view.locator("#nkr-samples").count()) fail("finders: sample NKR records are offered before NKR was asked");
+    await view.locator("#nkr-load").click();
+    await view.waitForSelector("#nkr-samples");
+    if (await view.locator(".nkr-sample").count()) fail("finders: sample NKR records show without being asked for");
+    await view.locator("#nkr-samples").click();
+    await view.waitForSelector(".nkr-sample");
+    if ((await view.locator(".nkr-sample").count()) !== 3 || (await view.locator(".nkr-sample .sample-label").count()) !== 3) fail("finders: three sample records are not each labelled as samples");
+    if (!(await view.locator(".nkr-samples .notice").textContent()).includes("ne záznamy NKR")) fail("finders: the samples do not say they are not NKR records");
+    const lindat = await view.locator(".nkr-sample", { hasText: "LINDAT" }).textContent();
+    if (!lindat.includes("OAI-PMH") || !lindat.includes("neuvedeno")) fail("finders: a sample record does not show re3data's values and what re3data does not state");
+    if ((await view.evaluate(() => document.activeElement && document.activeElement.id)) !== "nkr-samples") fail("finders: showing the samples moves focus away from the control");
+
     // Exports: every view but a single check offers printing and the whole crate under it; the catalogue saves the
     // filtered list it shows as CSV and JSON, a station saves itself as Markdown, and printing opens closed sections.
     const exportIds = async () => view.evaluate(() => [...document.querySelectorAll(".export-bar .export-actions > *")].map((node) => node.id).join(","));

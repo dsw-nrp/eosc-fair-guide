@@ -279,7 +279,7 @@
 
   /* ---------------------------------------------------------------- NKR */
 
-  live.nkr = { state: "idle", records: [] };
+  live.nkr = { state: "idle", records: [], samples: false };
 
   function nkrRecord(result) {
     const content = (result && result.content) || {};
@@ -319,9 +319,19 @@
       done: live.nkr.records.length ? null : FG.t("repositories.nkrEmpty"),
       failed: FG.t("repositories.nkrFailed", { url: FG.config.links.nkr }),
     }[live.nkr.state];
+    /* While NKR lists no repository, testers can see how its records will look, from public re3data facts. */
+    const empty = live.nkr.state === "done" && !live.nkr.records.length;
+    const toggle = () => {
+      live.nkr.samples = !live.nkr.samples;
+      FG.rerender("nkr-samples");
+    };
+    const samples = empty
+      ? FG.h("button", { type: "button", id: "nkr-samples", class: "button-link", "aria-expanded": String(live.nkr.samples), onclick: toggle }, FG.t(live.nkr.samples ? "repositories.nkrSamplesHide" : "repositories.nkrSamples"))
+      : null;
     return {
       button: FG.h("button", { type: "button", id: "nkr-load", onclick: live.loadNkr, disabled: live.nkr.state === "loading" }, FG.t("repositories.nkrLoad")),
-      status: status ? FG.h("p", { id: "nkr-status", role: "status", class: "small" }, status) : null,
+      status: status ? FG.h("p", { id: "nkr-status", role: "status", class: "small" }, status, samples ? [" ", samples] : null) : null,
+      samples: empty && live.nkr.samples,
     };
   };
 

@@ -162,18 +162,39 @@ disclaimer = { cs = "Upozornění FIP Dashboardu", en = "FIP Dashboard notice" }
 
 [repositories]
 intro = { cs = "Přednostně ukládejte do oborového repozitáře, jinak do institucionálního; obecné repozitáře jsou poslední možností. Seznam spojuje výběr průvodce, snímek registru re3data a na vyžádání záznamy z Národního katalogu repozitářů (NKR) a z FAIRsharing.", en = "Deposit preferably in a domain repository, otherwise in an institutional one; general-purpose repositories are the last option. The list combines the guide's selection, a snapshot of the re3data registry and, on request, records from the National Repository Catalogue (NKR) and from FAIRsharing." }
-sources = { cs = "Zdroj údajů: {sources}", en = "Data from: {sources}" }
+sourcesLabel = { cs = "Zdroj údajů", en = "Data from" }
 curated = { cs = "výběr průvodce", en = "the guide's selection" }
 nkrLoad = { cs = "Načíst záznamy z NKR", en = "Load records from NKR" }
 nkrLoading = { cs = "Načítám záznamy z NKR…", en = "Loading records from NKR…" }
 nkrEmpty = { cs = "NKR zatím žádný repozitář neobsahuje.", en = "NKR does not list any repository yet." }
 nkrFailed = { cs = "NKR se nepodařilo načíst. Otevřete ho přímo: {url}", en = "NKR could not be loaded. Open it directly: {url}" }
+nkrSamples = { cs = "Ukázat ukázkové záznamy", en = "Show sample records" }
+nkrSamplesHide = { cs = "Skrýt ukázkové záznamy", en = "Hide sample records" }
+nkrSamplesTitle = { cs = "Ukázkové záznamy NKR", en = "Sample NKR records" }
+nkrSamplesNote = { cs = "Ukázka, ne záznamy NKR: hodnoty pocházejí jen z veřejných záznamů skutečných repozitářů v re3data (snímek ze dne {date}). Co re3data neuvádí, ukázka nedoplňuje.", en = "Samples, not NKR records: the values come only from the public re3data records of real repositories (snapshot of {date}). What re3data does not state, the samples do not fill in." }
 fairsharingLoad = { cs = "Načíst záznamy z FAIRsharing", en = "Load records from FAIRsharing" }
 fairsharingLoading = { cs = "Hledám záznamy ve FAIRsharing…", en = "Looking for records in FAIRsharing…" }
 fairsharingFound = { cs = "Záznam ve FAIRsharing má {n} z {total} repozitářů v seznamu (vyhledáno přes DataCite). Ostatní tam zapsané být mohou, jen je průvodce podle adresy nenašel.", en = "{n} of the {total} repositories listed have a FAIRsharing record (found through DataCite). Others may be registered too; the guide did not find them by their address." }
 fairsharingFailed = { cs = "FAIRsharing se nepodařilo prohledat. Zkuste to znovu, nebo hledejte přímo: {url}", en = "FAIRsharing could not be searched. Try again, or search it directly: {url}" }
-fairsharingRecord = { cs = "Záznam ve FAIRsharing", en = "Record in FAIRsharing" }
 
+
+[repositories.sample]
+label = { cs = "Ukázka", en = "Sample" }
+record = { cs = "Záznam v re3data", en = "Record in re3data" }
+none = { cs = "neuvedeno", en = "not stated" }
+yes = { cs = "ano", en = "yes" }
+no = { cs = "ne", en = "no" }
+kind = { cs = "Druh repozitáře", en = "Kind of repository" }
+subjects = { cs = "Obory", en = "Subjects" }
+pidTypes = { cs = "Perzistentní identifikátory", en = "Persistent identifiers" }
+apis = { cs = "Rozhraní", en = "Interfaces" }
+dataLicenses = { cs = "Licence dat", en = "Data licences" }
+metadataStandards = { cs = "Metadatové standardy", en = "Metadata standards" }
+certificates = { cs = "Certifikace", en = "Certification" }
+policies = { cs = "Zásady", en = "Policies" }
+versioning = { cs = "Verzování dat", en = "Data versioning" }
+qualityManagement = { cs = "Řízení kvality", en = "Quality management" }
+registry = { cs = "Registr", en = "Registry" }
 [explorer]
 title = { cs = "FAIR principy", en = "FAIR principles" }
 intro = { cs = "Všechny požadavky Analýzy FAIR pro NRP/NDI podle principů, rozdělené podle toho, komu jsou určeny. Cesta průvodce z nich vybírá; zde najdete všechny.", en = "Every requirement of the FAIR analysis for NRP/NDI by principle, grouped by whom it addresses. The path picks from them; here you find them all." }
@@ -515,6 +536,9 @@ noStation = { cs = "nemají zastávku", en = "have no station" }
 noPrinciple = { cs = "nemají princip", en = "have no principle" }
 withoutStation = { cs = "Bez zastávky", en = "Without a station" }
 withoutPrinciple = { cs = "Bez principu", en = "Without a principle" }
+withoutStatus = { cs = "Bez stavu", en = "No status" }
+checkedOn = { cs = "Ověřeno {date}", en = "Checked {date}" }
+notChecked = { cs = "Bez data ověření", en = "No date checked" }
 recommendedAt = { cs = "Doporučuje", en = "Recommended at" }
 source = { cs = "Podklad", en = "Source" }
 inCheck = { cs = "Kontrola", en = "Check" }
@@ -628,3 +652,7 @@ check = { cs = "podle kontroly", en = "by check" }
 newest = { cs = "od nejnovějších", en = "newest first" }
 oldest = { cs = "od nejstarších", en = "oldest first" }
 nameEn = { cs = "podle anglického názvu", en = "by English name" }
+type = { cs = "podle typu", en = "by type" }
+status = { cs = "podle stavu", en = "by status" }
+checked = { cs = "podle data ověření, nejstarší první", en = "by date checked, oldest first" }
+rsource = { cs = "podle zdroje údajů", en = "by data source" }

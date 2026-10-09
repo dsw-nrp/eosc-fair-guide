@@ -3123,6 +3123,52 @@ a.id-chip:focus-visible {
   }
 }
 
+/* Sample NKR records: plainly marked as samples. */
+.nkr-samples {
+  margin-top: var(--space-4);
+}
+
+.nkr-samples h4 {
+  margin: var(--space-2) 0;
+}
+
+.sample-label {
+  display: inline-block;
+  margin: 0;
+  background: var(--notice);
+  border-color: var(--notice-border);
+}
+
+.sample-fields {
+  display: grid;
+  grid-template-columns: minmax(8rem, max-content) 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+}
+
+.sample-fields dt {
+  color: var(--text-muted);
+}
+
+.sample-fields dd {
+  margin: 0;
+}
+
+/* Orientation tags on a card: principle tiles and lens icons. */
+.orientation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.lens-tag {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
 /* A phrase the text names an entry by: a link that does not interrupt reading. */
 .text-ref {
   color: inherit;

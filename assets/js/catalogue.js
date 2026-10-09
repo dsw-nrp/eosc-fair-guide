@@ -97,6 +97,9 @@
 
   /* ---------------------------------------------------------------- entries of each kind */
 
+  /* Citation forms that are also resource types read as one type: a cited document is a document. */
+  const FORM_AS_TYPE = { DigitalDocument: "#rtype-document", CreativeWork: "#rtype-standard" };
+
   function sourceForm(source) {
     const extra = FG.list(source.additionalType).map(String);
     if (extra.some((type) => /Dataset$/.test(type))) return "Dataset";
@@ -141,6 +144,7 @@
         anchor: resource.identifier,
         name: FG.text(resource.name),
         export: { url: resource.url, text: FG.text(resource.description) },
+        checked: resource.statusAsOf ? String(resource.statusAsOf).slice(0, 10) : "",
         text: [FG.bothLanguages(resource.name), FG.bothLanguages(resource.description), resource.alternateName].join(" "),
         stations: [...new Set(stationsOf(recommended).concat(stationsOf(citedBy)))],
         principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
@@ -173,7 +177,7 @@
         text: [FG.text(source.name), source.creditText, FG.text((FG.get(source.publisher) || {}).name)].join(" "),
         stations: stationsOf(citedBy),
         principles: [],
-        facets: { use: ["cited"], type: ["form:" + sourceForm(source)], status: [], language: FG.list(source.inLanguage).map(String), lens: [] },
+        facets: { use: ["cited"], type: [FORM_AS_TYPE[sourceForm(source)] || "form:" + sourceForm(source)], status: [], language: FG.list(source.inLanguage).map(String), lens: [] },
         render: () =>
           h(
             "li",
@@ -573,8 +577,8 @@
   /* ---------------------------------------------------------------- ordering and groups */
 
   const ORDERS_FOR = {
-    resources: ["name"],
-    repositories: ["guided", "name"],
+    resources: ["name", "type", "status", "checked"],
+    repositories: ["guided", "name", "rsource"],
     clauses: ["source", "principle", "station"],
     questions: ["check", "principle", "station"],
     terms: ["name", "nameEn"],
@@ -628,6 +632,28 @@
       const names = new Map(entries.map((entry) => [entry.group.source, FG.text((FG.get(entry.group.source) || {}).name)]));
       const ranked = [...names.keys()].sort((a, b) => (a === analysis ? -1 : b === analysis ? 1 : FG.fold(names.get(a)).localeCompare(FG.fold(names.get(b)), "cs")));
       return grouped((entry) => entry.group.source, (key) => names.get(key) || key, rankIn(ranked));
+    }
+    /* A facet's values as groups in their own order (statuses, data sources); entries without a value come last. */
+    const byFacet = (key, ranked, emptyLabel) => {
+      const facet = (KIND_FACETS[entries.length ? entries[0].kind : ""] || []).find((item) => item.key === key);
+      return grouped((entry) => (entry.facets[key] || [])[0] || "", (value) => (value ? facet.label(value) : emptyLabel), rankIn(ranked));
+    };
+    if (order === "type") {
+      /* Types group by their name: a cited document and a resource of the type document read as one group. */
+      const facet = KIND_FACETS.resources.find((item) => item.key === "type");
+      const labelOf = (entry) => ((entry.facets.type || [])[0] ? facet.label(entry.facets.type[0]) : "");
+      const labels = [...new Set(entries.map(labelOf))].sort((a, b) => FG.fold(a).localeCompare(FG.fold(b), "cs"));
+      return grouped(labelOf, (label) => label, rankIn(labels));
+    }
+    if (order === "status") return byFacet("status", FG.refIds(FG.get("#statuses"), "hasDefinedTerm"), FG.t("catalogue.withoutStatus"));
+    if (order === "rsource") return byFacet("rsource", ["#repositories-curated", "#snapshot-re3data", "nkr", "fairsharing"], "");
+    if (order === "checked") {
+      /* The status checked longest ago first, so stale entries surface. */
+      return grouped(
+        (entry) => entry.checked || "",
+        (key) => (key ? FG.t("catalogue.checkedOn", { date: FG.formatDate(key) }) : FG.t("catalogue.notChecked")),
+        (key) => (key ? Number(key.replace(/-/g, "")) : Infinity)
+      );
     }
     if (order === "check") {
       const checks = FG.ofType("Quiz").map((check) => check.identifier);
@@ -723,7 +749,8 @@
         { class: "kind-intro" },
         h("p", { class: "small" }, intro),
         h("div", { class: "filter-actions" }, nkr.button, fairsharing.button),
-        nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null
+        nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null,
+        nkr.samples ? FG.nkrSamples() : null
       );
     }
     return h(
