@@ -72,11 +72,12 @@ contains a phrase in another language marks it, so the page can set the right `l
 ### References in text
 
 A text that names a resource, a source or a glossary term marks the name as a reference: `[[id|phrase]]`, where
-`id` is the resource's or source's ID, or `term:<id>` for a glossary term, and `phrase` is the words that name it
+`id` is the resource's or source's ID, `term:<id>` for a glossary term or `page:<id>` for a page of the guide, and
+`phrase` is the words that name it
 in that language, inflected as the sentence needs (`v [[nma|Národním metadatovém adresáři]]`). Mark the first
 time a text names the entry; a button label is already a link and carries no reference. The Czech and the English
 text of one item refer to the same entries. The generator writes the text without the markup and records each
-entry as mentioned by the item; the page links the phrase quietly to the entry in the catalogue. The content
+entry as mentioned by the item; the page links the phrase quietly to the entry in the catalogue, or to the page. The content
 checks refuse a reference that is not well formed, one to an unknown entry, and texts whose languages refer to
 different entries.
 
@@ -376,5 +377,47 @@ profile 0.5. Schema.org types and properties are used wherever they fit; the gui
 Language-dependent values are JSON-LD value objects with `@language`. A property with one value holds it
 directly; with several, a list. The page reads the graph directly; it does not need a JSON-LD processor.
 
+`#ledger`, `#sources`, `#resources` and `#repositories` list their entries in `hasPart`. Every reference to one of
+the crate's own entities names an entity the crate has; the content checks report one that does not.
+
 The root declares conformance to Process Run Crate 0.5 and to the guide's own profile. `ro-crate-preview.html` is a
 generated copy of `index.html`, so the page is the crate's HTML preview.
+
+## Static API
+
+`scripts/build_api.py` builds a read-only API from the crate into the site directory (`_site/`, not committed): a
+list per collection (`api/<collection>.json`), a record per entity (`api/<collection>/<id>.json`), the JSON-LD
+context `api/context.jsonld`, `api/meta.json`, the OpenAPI 3.1 description `openapi.json`, and its documentation
+`api/index.html`, which is the authored files in `api/` with the pinned Swagger UI package. In `build_crate.py`,
+`api_records` decides what is published and under which ID, and `API_FILES` names the API's files; the page reads
+both from `ui.js` for its links.
+
+| Collection | Records | Record ID |
+| --- | --- | --- |
+| `principles` | FAIR principles | code (`R1.1`) |
+| `stations` | stations, with their advice and its steps | station ID |
+| `checks` | checks as FTR benchmarks (`Benchmark`, `hasAssociatedMetric`) | check ID |
+| `metrics` | check questions as FTR metrics (`Metric`, `inDimension`, `hasBenchmark`, `hasImplementation`) | question ID |
+| `tests` | each question's manual test (`Test`, `isImplementationOf`, `landingPage`) and the curated FAIR Champion tests | question or test ID |
+| `resources` | curated resources, and the FIP Dashboard resources no curated resource stands for | resource ID |
+| `sources` | cited works that are not also resources | source ID |
+| `repositories` | the guide's repositories | repository ID |
+| `clauses` | requirements and findings | clause ID |
+| `terms` | glossary terms | term ID |
+| `organizations` | curated organisations | organisation ID |
+| `fips` | FIP profiles from the dashboard snapshot, with their declarations | profile ID |
+| `changes` | provenance actions | action ID |
+
+A record is its crate entity with language maps (`{"cs": …, "en": …}`) in place of value lists. Links to other
+records are paths relative to the record. A part without a record of its own (advice and its steps, callouts, FIP
+declarations) is given in full in the record of its whole, under its fragment (`plan.json#advice-plan.V.L0`). Small
+terms (tiers, lenses, levels, actors, modes, profiles, organisations named in citations) are given in full; anything
+else of the guide is named by its place in the crate, relative to the record (`../../ro-crate-metadata.json#tiers`),
+and `sameAs` names the entity's own identifier the same way. No file of the API names the site's address, so the
+site can move; only the context's vocabulary terms are absolute, as JSON-LD requires. A principle's record also lists
+what is about it: `clauses`, the `advice` that cites them, `stations` and `metrics`, reverse properties in the
+context. Paths follow the FIP Dashboard API's names where both describe the same thing, with `.json` because the site
+is static, and path parameters are named like the dashboard's (`resource_id`). An exported self-check result names
+each answer's test by the question's manual test record, at the address the page is served from. The `[api]` strings
+in `ui.toml` title and describe the API, its collections and the manual tests: the OpenAPI description reads the
+English, the machines page lists every collection in the reader's language.

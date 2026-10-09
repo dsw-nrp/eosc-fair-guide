@@ -19,10 +19,12 @@
   /* ---------------------------------------------------------------- shared helpers */
 
   /** The link to an entity's JSON record in the guide's API; nothing until the API is published. */
-  FG.apiLink = function (collection, id) {
+  /** A link to an entity's record in the guide's API, where it has one. */
+  FG.apiLink = function (entity) {
     const api = FG.config.api;
-    if (!api || !api.base || !id) return null;
-    return h("a", { class: "json-link", href: api.base + collection + "/" + encodeURIComponent(id) + ".json", type: "application/json" }, "JSON");
+    const record = api && api.records[FG.id(entity)];
+    if (!record) return null;
+    return h("a", { class: "json-link", href: api.files.record.replace("{record}", record), type: "application/json", title: FG.t("api.recordTitle") }, FG.t("api.record"));
   };
 
   /** The address of the catalogue showing one kind, or one entry of it. */
@@ -157,7 +159,7 @@
         },
         render: () =>
           FG.resourceCard(resource, {
-            badges: [uses.map(useMark), citationBadges(resource), FG.apiLink("resources", resource.identifier)],
+            badges: [uses.map(useMark), citationBadges(resource), FG.apiLink(resource)],
             after: [
               recommended.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.recommendedAt") + ": ", joined(recommended.map(holderLink))) : null,
               citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null,
@@ -184,7 +186,7 @@
             { class: "card", id: "item-" + source.identifier, tabindex: "-1" },
             h("h3", null, url ? FG.external(url, name) : name),
             source.creditText ? h("p", { class: "small" }, source.creditText) : null,
-            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.sourceType." + sourceForm(source))), useMark("cited"), citationBadges(source), FG.apiLink("resources", source.identifier)),
+            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.sourceType." + sourceForm(source))), useMark("cited"), citationBadges(source), FG.apiLink(source)),
             citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null
           ),
       });
@@ -199,7 +201,7 @@
         stations: [],
         principles: FG.refs(fer, "about").map(code),
         facets: { use: ["dashboard"], type: ["fer:" + FG.id(fer.catalogueType)], status: [], language: [], lens: [] },
-        render: () => FG.ferCard(fer, { badges: [useMark("dashboard"), FG.apiLink("fers", fer.identifier)] }),
+        render: () => FG.ferCard(fer, { badges: [useMark("dashboard"), FG.apiLink(fer)] }),
       });
     }
     return entries;
@@ -261,7 +263,7 @@
               FG.principlesOf(clause).map((principle) => FG.principleTile(principle)),
               audience ? h("span", { class: "badge" }, FG.termName(audience)) : null,
               status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null,
-              FG.apiLink("clauses", clause.identifier)
+              FG.apiLink(clause)
             ),
             status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
             sourceLine(clause),
@@ -295,7 +297,7 @@
                 { class: "card", id: "item-" + item.identifier, tabindex: "-1" },
                 h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, item.identifier), item.tier ? h("span", { class: "badge" }, FG.termName(FG.id(item.tier))) : null),
                 h("p", null, FG.linkedSpan(item)),
-                h("div", { class: "badges" }, FG.principlesOf(item).map((principle) => FG.principleTile(principle)), FG.apiLink("questions", item.identifier)),
+                h("div", { class: "badges" }, FG.principlesOf(item).map((principle) => FG.principleTile(principle)), FG.apiLink(item)),
                 h("p", { class: "small cited-by" }, FG.t("catalogue.inCheck") + ": ", h("a", { href: FG.href("check", check.identifier) }, FG.span(check.name))),
                 clauses.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.basedOn") + ": ", joined(clauses.map((clause) => FG.idChip("clauses", clause.identifier)))) : null
               ),
@@ -327,7 +329,8 @@
             { class: "card term-card", id: "item-" + term.termCode, tabindex: "-1" },
             h("h3", { lang: "cs" }, FG.external(term.url, cs)),
             h("p", { class: "small", lang: "en" }, en),
-            at.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.onPath") + ": ", joined(at.map(holderLink))) : null
+            at.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.onPath") + ": ", joined(at.map(holderLink))) : null,
+            h("p", { class: "small" }, FG.apiLink(term))
           ),
       };
     });
@@ -353,7 +356,7 @@
             h("h3", null, url ? FG.external(url, FG.text(fip.name)) : FG.span(fip.name)),
             details.length ? h("p", { class: "small muted" }, details.join(" · ")) : null,
             fip.abstract ? h("p", null, FG.span(fip.abstract)) : null,
-            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length })), FG.verificationBadges(fip), FG.apiLink("fips", fip.identifier))
+            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length })), FG.verificationBadges(fip), FG.apiLink(fip))
           ),
       };
     });
@@ -385,7 +388,7 @@
                 principle ? FG.principleTile(principle) : null,
                 health ? h("span", { class: "badge", "data-health": String(health) }, FG.t("catalogue.health." + health), test.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(test.statusAsOf) })) : null) : null,
                 h("span", { class: "badge code" }, test.identifier),
-                FG.apiLink("tests", test.identifier)
+                FG.apiLink(test)
               )
             ),
         };
@@ -449,7 +452,7 @@
                 FG.t("catalogue.changedItems", { n: FG.refIds(action, "result").length }),
                 sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", null, FG.nameNodes(source))))] : null,
                 " ",
-                FG.apiLink("actions", id)
+                FG.apiLink(action)
               )
             ),
         };
@@ -480,7 +483,7 @@
     for (const facet of KIND_FACETS[entry.kind] || []) row[facet.key] = (entry.facets[facet.key] || []).map(facet.label);
     row.stations = entry.stations.map((id) => FG.text((FG.get("#station-" + id) || {}).name));
     row.principles = entry.principles;
-    row.entry = (FG.config.pageUrl || "") + FG.catalogueHref(entry.kind, entry.anchor);
+    row.entry = FG.pageAddress() + FG.catalogueHref(entry.kind, entry.anchor);
     return row;
   }
 
@@ -498,7 +501,7 @@
     const columns = exportColumns(kind, rows);
     const payload = () => ({
       title: FG.t("app.title") + " · " + FG.t("catalogue.tab." + kind),
-      url: (FG.config.pageUrl || "") + window.location.hash,
+      url: FG.pageAddress() + window.location.hash,
       exported: FG.today(),
       language: FG.state.lang,
       version: FG.root.version,

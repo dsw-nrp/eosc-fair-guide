@@ -8,12 +8,16 @@
     "browsers": "playwright install chromium",
     "check:page": "node tests/page/check_page.mjs",
     "check:live": "node tests/page/check_live.mjs",
-    "check:diagrams": "node tests/page/check_diagrams.mjs"
+    "check:diagrams": "node tests/page/check_diagrams.mjs",
+    "check:api": "node tests/api/check_api.mjs"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "13.1.0",
     "@axe-core/playwright": "4.13.0",
     "@fortawesome/fontawesome-free": "7.3.1",
+    "ajv": "8.20.0",
     "mermaid": "11.16.1",
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "swagger-ui-dist": "5.33.0"
   }
 }

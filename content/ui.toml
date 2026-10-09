@@ -600,7 +600,6 @@ crate = { cs = "Znalostní báze", en = "Knowledge base" }
 profile = { cs = "Profil", en = "Profile" }
 licence = { cs = "Licence obsahu", en = "Content licence" }
 source = { cs = "Zdrojový kód a data", en = "Source code and data" }
-api = { cs = "Popis API", en = "API description" }
 
 [tools]
 title = { cs = "Nástroje", en = "Tools" }
@@ -668,3 +667,100 @@ rsource = { cs = "podle zdroje údajů", en = "by data source" }
 [selfcheck.profileQuestion]
 gate = { cs = "Který profil repozitáře platí?", en = "Which repository profile applies?" }
 dataset = { cs = "Je datová sada výstupem programu?", en = "Is the dataset the output of a programme?" }
+
+# The guide's API: its OpenAPI description (in English), the machines page's endpoint list and the catalogue's links.
+[api]
+title = { cs = "API průvodce FAIR daty", en = "FAIR Data Guide API" }
+description = { cs = "Znalostní báze průvodce pro čtení strojem: záznam JSON pro každý princip, zastávku, kontrolu, otázku, zdroj, repozitář, požadavek, citované dílo, pojem, organizaci, profil FIP a změnu obsahu, s texty v obou jazycích a kontextem JSON-LD. Kontroly jsou benchmarky FTR, jejich otázky metriky s ručními testy. Cesty odpovídají API FIP Dashboardu tam, kde obě popisují totéž; soubory končí na .json, protože API je statický web.", en = "The guide's knowledge base for machines to read: a JSON record for each principle, station, check, question, resource, repository, requirement, cited work, glossary term, organisation, FIP profile and content change, with texts in both languages and a JSON-LD context. Checks are FTR benchmarks, their questions metrics with manual tests. Paths follow the FIP Dashboard API where both describe the same thing; files end in .json because the API is a static site." }
+guide = { cs = "Průvodce FAIR daty", en = "The FAIR Data Guide" }
+server = { cs = "Web, který tento popis poskytuje", en = "The site that serves this description" }
+meta = { cs = "Z čeho je API sestaveno", en = "What the API is built from" }
+metaTag = { cs = "Popis API a jeho kontext JSON-LD", en = "The API's provenance and its JSON-LD context" }
+context = { cs = "Kontext JSON-LD", en = "The JSON-LD context" }
+openapi = { cs = "Popis API (OpenAPI 3.1)", en = "API description (OpenAPI 3.1)" }
+docs = { cs = "Interaktivní dokumentace API", en = "Interactive API documentation" }
+endpoints = { cs = "Koncové body API", en = "API endpoints" }
+record = { cs = "JSON", en = "JSON" }
+recordTitle = { cs = "Záznam v API průvodce", en = "Record in the guide's API" }
+
+[api.test]
+name = { cs = "Ruční test otázky {id}", en = "Manual test of question {id}" }
+description = { cs = "Test provádí člověk v sebehodnocení průvodce: odpověď ano je pass, ne je fail, částečně a nevím jsou indeterminate.", en = "A person runs the test in the guide's self-check: yes is pass, no is fail, partly and don't know are indeterminate." }
+
+[api.collection.principles]
+name = { cs = "Principy FAIR", en = "FAIR principles" }
+description = { cs = "Principy FAIR, každý s požadavky, radami, zastávkami a otázkami kontrol, které se ho týkají.", en = "The FAIR principles, each with the requirements, advice, stations and check questions about it." }
+record = { cs = "Jeden princip", en = "One principle" }
+parameter = { cs = "Kód principu, například R1.1", en = "The principle's code, such as R1.1" }
+
+[api.collection.stations]
+name = { cs = "Zastávky cesty", en = "Path stations" }
+description = { cs = "Zastávky cesty k FAIR datům, každá se svými radami pro jednotlivé pohledy.", en = "The stations of the path to FAIR data, each with its advice for each lens." }
+record = { cs = "Jedna zastávka s radami", en = "One station with its advice" }
+parameter = { cs = "Identifikátor zastávky", en = "The station's identifier" }
+
+[api.collection.checks]
+name = { cs = "Kontroly", en = "Checks" }
+description = { cs = "Kontroly sebehodnocení jako benchmarky FTR; jejich otázky jsou metriky.", en = "The self-checks as FTR benchmarks; their questions are the metrics." }
+record = { cs = "Jedna kontrola", en = "One check" }
+parameter = { cs = "Identifikátor kontroly", en = "The check's identifier" }
+
+[api.collection.metrics]
+name = { cs = "Otázky kontrol", en = "Check questions" }
+description = { cs = "Otázky kontrol jako metriky FTR, s požadavky, o které se opírají, a s ručním testem.", en = "The check questions as FTR metrics, with the requirements they rest on and their manual test." }
+record = { cs = "Jedna otázka", en = "One question" }
+parameter = { cs = "Identifikátor otázky, například D02", en = "The question's identifier, such as D02" }
+
+[api.collection.tests]
+name = { cs = "Testy FAIR", en = "FAIR tests" }
+description = { cs = "Ruční test každé otázky kontrol, na který odkazuje uložený výsledek, a vybrané automatické testy FAIR Champion.", en = "The manual test of each check question, which a saved result names, and the curated automated FAIR Champion tests." }
+record = { cs = "Jeden test", en = "One test" }
+parameter = { cs = "Identifikátor testu: otázky kontroly nebo testu FAIR Champion", en = "The test's identifier: a check question's or a FAIR Champion test's" }
+
+[api.collection.resources]
+name = { cs = "Zdroje", en = "Resources" }
+description = { cs = "Nástroje, služby, standardy a dokumenty, které průvodce doporučuje, a zdroje z FIP Dashboardu.", en = "The tools, services, standards and documents the guide recommends, and the resources from the FIP Dashboard." }
+record = { cs = "Jeden zdroj", en = "One resource" }
+parameter = { cs = "Identifikátor zdroje", en = "The resource's identifier" }
+
+[api.collection.sources]
+name = { cs = "Citovaná díla", en = "Cited works" }
+description = { cs = "Publikace a stránky, z nichž obsah průvodce vychází a které zároveň nedoporučuje jako zdroj.", en = "The publications and pages the guide's content rests on that it does not also recommend as resources." }
+record = { cs = "Jedno citované dílo", en = "One cited work" }
+parameter = { cs = "Identifikátor díla", en = "The work's identifier" }
+
+[api.collection.repositories]
+name = { cs = "Repozitáře", en = "Repositories" }
+description = { cs = "Repozitáře, které průvodce uvádí, s druhem a stavem.", en = "The repositories the guide lists, with their kind and status." }
+record = { cs = "Jeden repozitář", en = "One repository" }
+parameter = { cs = "Identifikátor repozitáře", en = "The repository's identifier" }
+
+[api.collection.clauses]
+name = { cs = "Požadavky a zjištění", en = "Requirements and findings" }
+description = { cs = "Požadavky, doporučení a zjištění ze zdrojů, na nichž průvodce stojí.", en = "The requirements, recommendations and findings from the sources the guide rests on." }
+record = { cs = "Jeden požadavek", en = "One requirement" }
+parameter = { cs = "Identifikátor požadavku, například A.F1.N1", en = "The requirement's identifier, such as A.F1.N1" }
+
+[api.collection.terms]
+name = { cs = "Pojmy", en = "Glossary terms" }
+description = { cs = "Pojmy z Heslaře otevřené vědy, které průvodce používá.", en = "The terms from the open science glossary that the guide uses." }
+record = { cs = "Jeden pojem", en = "One term" }
+parameter = { cs = "Identifikátor pojmu", en = "The term's identifier" }
+
+[api.collection.organizations]
+name = { cs = "Organizace", en = "Organisations" }
+description = { cs = "Organizace, které průvodce popisuje: vydavatelé, poskytovatelé a projekty.", en = "The organisations the guide describes: publishers, providers and projects." }
+record = { cs = "Jedna organizace", en = "One organisation" }
+parameter = { cs = "Identifikátor organizace", en = "The organisation's identifier" }
+
+[api.collection.fips]
+name = { cs = "Profily FIP", en = "FIP profiles" }
+description = { cs = "Profily FAIR implementace ze snímku FIP Dashboardu, s deklaracemi.", en = "The FAIR Implementation Profiles from the FIP Dashboard snapshot, with their declarations." }
+record = { cs = "Jeden profil", en = "One profile" }
+parameter = { cs = "Identifikátor profilu", en = "The profile's identifier" }
+
+[api.collection.changes]
+name = { cs = "Změny obsahu", en = "Content changes" }
+description = { cs = "Změny obsahu průvodce s tím, co změnily a z čeho vycházejí.", en = "The changes to the guide's content, with what they changed and what they rest on." }
+record = { cs = "Jedna změna", en = "One change" }
+parameter = { cs = "Identifikátor změny", en = "The change's identifier" }

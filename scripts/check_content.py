@@ -692,6 +692,24 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
         if len(set(entity_ids)) > 1:
             report.error(f"id:{content_id}", "names several entities: " + ", ".join(sorted(set(entity_ids))))
 
+    # Every reference to one of the crate's own entities names an entity the crate has.
+    def targets(value: Any) -> Iterator[str]:
+        if isinstance(value, list):
+            for item in value:
+                yield from targets(item)
+        elif isinstance(value, dict):
+            if set(value) == {"@id"}:
+                yield value["@id"]
+            else:
+                for item in value.values():
+                    yield from targets(item)
+
+    for entity_id, entity in graph.entities.items():
+        for key, value in entity.items():
+            missing = sorted({target for target in targets(value) if target.startswith("#")} - graph.entities.keys())
+            if key != "@id" and missing:
+                report.error(f"crate:{entity_id}", f"{key} names {', '.join(missing)}, which the crate does not have")
+
     # R2, curated entries keyed by address and DOI
     entries: list[tuple[str, str, str]] = []
     for resource in content["resources"]:
@@ -781,10 +799,11 @@ def referenced(content: dict[str, Any]) -> set[str]:
 
 
 def check_references(report: Report, content: dict[str, Any]) -> None:
-    """A reference in text, [[id|phrase]], is well formed and names a known resource, source or glossary term
-    (term:<id>), and a bilingual text refers to the same entries in both languages."""
+    """A reference in text, [[id|phrase]], is well formed and names a known resource, source, glossary term
+    (term:<id>) or page of the guide (page:<id>), and a bilingual text refers to the same entries in both languages."""
     known = {item["id"] for item in content["resources"] + content["sources"]}
     known |= {"term:" + term["id"] for term in content["glossary"].get("term", [])}
+    known |= {"page:" + page["id"] for page in content["pages"]}
 
     def entries(where: str, text: str) -> set[str]:
         if "[[" in REFERENCE.sub("", text) or "]]" in REFERENCE.sub("", text):

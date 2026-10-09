@@ -1,4 +1,4 @@
-"""Tests for the crate generator and the content checks.
+"""Tests for the crate generator, the content checks and the API build.
 
 Run with ``python -m unittest discover -s tests``. Each test copies the minimal fixture into a temporary
 directory, changes it, and asserts that the scripts accept or reject it.
@@ -7,6 +7,7 @@ directory, changes it, and asserts that the scripts accept or reject it.
 from __future__ import annotations
 
 import json
+import posixpath
 import shutil
 import subprocess
 import sys
@@ -18,6 +19,7 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
+import build_api  # noqa: E402
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
 import refresh_snapshots  # noqa: E402
@@ -59,6 +61,16 @@ class GeneratorTests(FixtureCase):
         first = build_crate.outputs(self.root)
         second = build_crate.outputs(self.root)
         self.assertEqual(first, second)
+
+    def test_a_clause_can_be_superseded_by_a_later_one(self) -> None:
+        self.edit(
+            "ledger.toml",
+            'actor = "repository"\n',
+            'actor = "repository"\nstatus = "superseded"\nsupersededBy = "A.F1.X1"\n',
+        )
+        crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        self.assertEqual(graph["#clause-A.F1.R1"]["supersededBy"], {"@id": "#clause-A.F1.X1"})
 
     def test_crate_structure(self) -> None:
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
@@ -455,6 +467,10 @@ url = "https://dashboard.example.org/"
 retrieved = 2026-01-01
 disclaimer = { cs = "Ukázková data.", en = "Sample data." }
 
+[[resourceType]]
+id = "identifier-service"
+label = { cs = "Služba identifikátorů", en = "Identifier service" }
+
 [[organization]]
 id = "org1"
 name = { cs = "Organizace", en = "Organisation" }
@@ -497,6 +513,15 @@ class SnapshotTests(FixtureCase):
         self.assertEqual(graph["#fer-r1-verification-1"]["reviewAspect"], "verified")
         self.assertEqual(graph["#fip-fip1-F1-r1"]["creativeWorkStatus"], "in-use")
         self.assertIn({"@value": "Sample data.", "@language": "en"}, graph["#snapshot-fip-dashboard"]["disclaimer"])
+
+    def test_a_reference_to_an_entity_the_crate_lacks_is_an_error(self) -> None:
+        self.write_dashboard(
+            DASHBOARD_SNAPSHOT.split("[[organization]]", 1)[0].split("[[resourceType]]", 1)[0]
+            + "[[organization]]"
+            + DASHBOARD_SNAPSHOT.split("[[organization]]", 1)[1]
+        )
+        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
+        self.assertError("catalogueType names #fd-type-identifier-service, which the crate does not have")
 
     def test_declaration_of_unknown_resource(self) -> None:
         self.write_dashboard(DASHBOARD_SNAPSHOT.replace('resource = "r1", status', 'resource = "r9", status'))
@@ -575,6 +600,94 @@ class FreshnessTests(FixtureCase):
         report = check_content.Report()
         check_content.check_freshness(report, content, self.root, "HEAD")
         self.assertEqual(report.errors, [])
+
+
+class ApiTests(unittest.TestCase):
+    """The static API, built from the guide's own content, so the spec's scenarios hold on the real knowledge base."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        content = build_crate.load_content()
+        cls.page_url = content["guide"]["guide"]["pageUrl"]
+        cls.files = build_api.Api(build_crate.build_crate(content), content).files()
+        cls.docs = {path: json.loads(text) for path, text in cls.files.items()}
+
+    @staticmethod
+    def target(here: str, link: str) -> str:
+        return posixpath.normpath(posixpath.join(posixpath.dirname(here), link))
+
+    def test_a_principle_carries_what_is_about_it(self) -> None:
+        here = "api/principles/R1.1.json"
+        principle = self.docs[here]
+        self.assertEqual(principle["@context"], "../context.jsonld")
+        self.assertEqual(set(principle["name"]), {"cs", "en"})
+        self.assertTrue(principle["clauses"] and principle["stations"] and principle["metrics"])
+        lenses = {
+            audience["audienceType"]
+            for advice in principle["advice"]
+            for audience in build_crate.as_list(advice.get("audience"))
+            if isinstance(audience, dict)
+        }
+        self.assertGreater(len(lenses), 1, "advice for more than one lens")
+        metric = self.docs[self.target(here, principle["metrics"][0])]
+        self.assertIn("../principles/R1.1.json", build_crate.as_list(metric["inDimension"]))
+
+    def test_checks_are_benchmarks_whose_questions_have_manual_tests(self) -> None:
+        checks = [path for path in self.docs if path.startswith("api/checks/")]
+        self.assertTrue(checks)
+        for path in checks:
+            self.assertIn("Benchmark", self.docs[path]["@type"])
+            for link in build_crate.as_list(self.docs[path]["hasAssociatedMetric"]):
+                metric_path = self.target(path, link)
+                metric = self.docs[metric_path]
+                self.assertIn("Metric", metric["@type"])
+                test_path = self.target(metric_path, metric["hasImplementation"])
+                # The path an exported result names for the question's test.
+                self.assertEqual(test_path, build_crate.API_FILES["test"].format(id=metric["identifier"]))
+                test = self.docs[test_path]
+                self.assertEqual(test["@type"], ["Test"])
+                self.assertEqual(self.target(test_path, test["isImplementationOf"]), metric_path)
+
+    def test_nothing_names_the_site_by_its_address(self) -> None:
+        # The context's vocabulary terms are absolute by necessity; every link between files is relative.
+        for path, text in self.files.items():
+            if path != build_api.CONTEXT_FILE:
+                self.assertNotIn(self.page_url, text, path)
+
+    def test_the_description_documents_every_file(self) -> None:
+        openapi = self.docs[build_api.OPENAPI_FILE]
+        self.assertEqual(openapi["openapi"], "3.1.0")
+        self.assertTrue(all("://" not in server["url"] for server in openapi["servers"]))
+
+        def documented(path: str) -> bool:
+            for template in openapi["paths"]:
+                prefix, _, rest = template[1:].partition("{")
+                suffix = rest.partition("}")[2]
+                middle = path[len(prefix) : len(path) - len(suffix)]
+                if path == template[1:] or (
+                    rest and path.startswith(prefix) and path.endswith(suffix) and middle and "/" not in middle
+                ):
+                    return True
+            return False
+
+        for path in self.files:
+            if path.startswith("api/"):
+                self.assertTrue(documented(path), path)
+
+    def test_record_ids_are_unique_and_safe_as_file_names(self) -> None:
+        content: dict = {"guide": {}}
+        with self.assertRaises(build_crate.ContentError):
+            build_crate.api_records({"#clause-a": {"@id": "#clause-a", "identifier": "a b"}}, content)
+        twice = {
+            "#clause-a": {"@id": "#clause-a", "identifier": "x"},
+            "#clause-b": {"@id": "#clause-b", "identifier": "x"},
+        }
+        with self.assertRaises(build_crate.ContentError):
+            build_crate.api_records(twice, content)
+
+    def test_output_is_deterministic(self) -> None:
+        content = build_crate.load_content()
+        self.assertEqual(build_api.Api(build_crate.build_crate(content), content).files(), self.files)
 
 
 if __name__ == "__main__":

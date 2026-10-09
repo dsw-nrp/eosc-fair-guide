@@ -123,10 +123,11 @@
 
   /* ---------------------------------------------------------------- references in text */
 
-  /** Where a reference in text leads: the catalogue entry of the resource, source or glossary term. */
+  /** Where a reference in text leads: the catalogue entry of the resource, source or glossary term, or the page. */
   FG.referenceHref = function (id) {
     const entity = FG.get(id);
     if (!entity) return null;
+    if (String(id).startsWith("#page-")) return FG.href("page", entity.identifier);
     return String(id).startsWith("#term-") ? FG.catalogueHref("terms", entity.termCode) : FG.catalogueHref("resources", entity.identifier);
   };
 
@@ -387,6 +388,19 @@
 
   /** A language map's Czech and English text together, for matching in either language. */
   FG.bothLanguages = (value) => FG.textOf(value, "cs").text + " " + FG.textOf(value, "en").text;
+
+  /** Where the guide is, for links that leave the page (exports, shared links): the address the page is served from,
+      or the configured address when it is opened as a local file. Nothing else names the site's address, so the
+      guide can move. */
+  FG.pageAddress = function () {
+    return /^https?:$/.test(window.location.protocol) ? window.location.href.split("#")[0] : FG.config.pageUrl || "";
+  };
+
+  /** The directory of the page's files (the crate, the API) at that address. */
+  FG.siteAddress = function () {
+    const page = FG.pageAddress();
+    return page ? new URL(".", page).href : "";
+  };
 
   FG.href = function (view, arg, overrides) {
     const lang = (overrides && overrides.lang) || FG.state.lang;

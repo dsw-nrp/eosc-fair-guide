@@ -1437,7 +1437,6 @@
 
   /* ---------------------------------------------------------------- exports */
 
-  const pageBase = () => FG.config.pageUrl;
   const escapeMarkdown = (value) => String(value).replace(/([\\|[\]<>*_`#])/g, "\\$1");
 
   function markdown(check, st) {
@@ -1461,7 +1460,7 @@
     if (!gaps.length) lines.push(escapeMarkdown(FG.t("selfcheck.result.noGaps")));
     for (const item of gaps) {
       const station = FG.get(item.fixAt);
-      const where = station ? `${FG.t("selfcheck.result.whereFix")}: [${escapeMarkdown(FG.text(station.name))}](${pageBase()}${FG.href("path", station.identifier)})` : "";
+      const where = station ? `${FG.t("selfcheck.result.whereFix")}: [${escapeMarkdown(FG.text(station.name))}](${FG.pageAddress()}${FG.href("path", station.identifier)})` : "";
       const who = FG.refs(item, "fixedBy").map((actor) => FG.text(actor.name)).join(", ");
       lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))} (${FG.termName(FG.id(item.tier))}, ${FG.t("selfcheck.answer." + answerOf(st, item))}). ${where}${who ? "; " + FG.t("selfcheck.result.whoFix") + ": " + who : ""}`);
     }
@@ -1478,7 +1477,7 @@
       const details = [sourceText(st, item), evidenceText(st, item)].filter(Boolean).join("; ");
       lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}: **${escapeMarkdown(answerText(st, item))}**${details ? " (" + escapeMarkdown(details) + ")" : ""}`);
     }
-    lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${pageBase()}`, "");
+    lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${FG.pageAddress()}`, "");
     /* Hidden from readers: the answers as in a shared link, with the format and guide versions, and the whole state
        the JSON-LD carries (identifiers, what they are, evidence), so the summary loads back completely. */
     lines.push(`<!-- fair-guide-result v${FORMAT_VERSION} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`);
@@ -1503,7 +1502,7 @@
   /** The result as an FTR test result set in a small RO-Crate. Self-check answers and live test verdicts share it. */
   SC.ftrCrate = function (check, st) {
     const vocab = FG.config.vocab;
-    const guideCrate = pageBase() + "ro-crate-metadata.json";
+    const guideCrate = FG.siteAddress() + "ro-crate-metadata.json";
     const now = new Date().toISOString();
     const target = st.target ? { "@id": st.target } : undefined;
     const members = [];
@@ -1511,7 +1510,8 @@
     for (const item of answerable(check, st)) {
       const value = answerOf(st, item);
       if (!value || value === "na") continue;
-      const testId = guideCrate + "#item-" + item.identifier;
+      /* The manual test of the question in the guide's API, which an exported result can be followed to. */
+      const testId = FG.siteAddress() + FG.config.api.files.test.replace("{id}", item.identifier);
       members.push({
         "@id": "#result-" + item.identifier,
         "@type": ["CreativeWork", "TestResult"],
@@ -1565,7 +1565,7 @@
         "@type": "CreativeWork",
         name: FG.text(FG.root.name),
         version: FG.config.version,
-        url: pageBase(),
+        url: FG.pageAddress(),
       },
       {
         "@id": "#result-set",
@@ -1876,7 +1876,7 @@
   };
 
   function shareUrl(check, st) {
-    const base = /^https?:$/.test(window.location.protocol) ? window.location.href.split("#")[0] : pageBase();
+    const base = FG.pageAddress();
     return base + FG.href("check", check.identifier) + "/" + SC.sharePayload(check, st);
   }
 

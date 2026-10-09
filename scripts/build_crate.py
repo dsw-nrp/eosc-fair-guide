@@ -289,7 +289,8 @@ class Graph:
 
 
 def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
-    """What a reference in text may name: a resource or source by its ID, a glossary term as term:<id>."""
+    """What a reference in text may name: a resource or source by its ID, a glossary term as term:<id>, a page of
+    the guide as page:<id>."""
     targets = {
         item["id"]: graph.index[item["id"]][0]
         for item in content["resources"] + content["sources"]
@@ -300,6 +301,7 @@ def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
         for entity_id in graph.entities
         if entity_id.startswith("#term-")
     }
+    targets |= {"page:" + page["id"]: f"#page-{page['id']}" for page in content["pages"]}
     return targets
 
 
@@ -590,12 +592,15 @@ def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
                 "clauseKind": clause.get("kind"),
                 "creativeWorkStatus": clause.get("status", "current"),
                 "note": text(clause.get("note")),
-                "supersededBy": refs(graph.resolve([clause["supersededBy"]])) if clause.get("supersededBy") else None,
             },
             clause["id"],
         )
     for clause in clauses:
-        # A note may cite clauses later in the ledger, so citations are added once every clause exists.
+        # A clause may name clauses later in the ledger (its replacement, its note's sources), so those links are
+        # added once every clause exists.
+        if clause.get("supersededBy"):
+            entity = graph.entities[f"#clause-{clause['id']}"]
+            entity["supersededBy"] = ref(graph.resolve([clause["supersededBy"]])[0])
         if clause.get("noteSources"):
             entity = graph.entities[f"#clause-{clause['id']}"]
             entity["citation"] = refs(graph.resolve(clause["noteSources"]))
@@ -813,6 +818,15 @@ def build_resources(
         # The guide's own list of a resource's languages wins over the cited work's language.
         entity["inLanguage"] = resource.get("languages") or entity.get("inLanguage")
         graph.add(entity, resource["id"])
+    # The guide's list of resources, which advice can point to as a whole.
+    graph.add(
+        {
+            "@id": "#resources",
+            "@type": "CreativeWork",
+            "name": "Resources",
+            "hasPart": refs([f"#resource-{resource['id']}" for resource in resources]),
+        }
+    )
     return cited
 
 
@@ -1369,7 +1383,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         "hasPart": refs([PAGE_FILE]),
         "mentions": refs(
             action_ids
-            + ["#ledger", "#sources", "#repositories"]
+            + ["#ledger", "#sources", "#resources", "#repositories"]
             + catalogue_ids
             + snapshot_ids
             + check_ids
@@ -1387,6 +1401,104 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
 
 # ---------------------------------------------------------------------------
 # Page blocks
+
+
+API_COLLECTIONS = (
+    "principles",
+    "stations",
+    "checks",
+    "metrics",
+    "tests",
+    "resources",
+    "sources",
+    "repositories",
+    "clauses",
+    "terms",
+    "organizations",
+    "fips",
+    "changes",
+)
+API_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+# Where the API's own files sit in the site; records are `api/<collection>/<record ID>.json`.
+API_FILES = {
+    "description": "openapi.json",
+    "docs": "api/",
+    "context": "api/context.jsonld",
+    "meta": "api/meta.json",
+    "record": "api/{record}.json",  # a list (`principles`) or a record (`principles/R1.1`)
+}
+API_FILES["test"] = API_FILES["record"].replace(
+    "{record}", "tests/{id}"
+)  # a question's manual test, which results name
+API_PREFIXES = {
+    "#station-": "stations",
+    "#check-": "checks",
+    "#test-": "tests",
+    "#repository-": "repositories",
+    "#clause-": "clauses",
+    "#action-": "changes",
+}
+
+
+def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, list[tuple[str, str]]]:
+    """What the static API publishes: per collection, each record's ID and the entity it describes, in the crate's
+    order. A record ID names a file, so it is unique within its collection and safe as a path segment. A FIP
+    Dashboard resource that a curated resource stands for is published as that resource; the manual tests of the
+    check questions are added by the API build."""
+
+    def part_ids(whole: str) -> set[str]:
+        return {part["@id"] for part in as_list(entities.get(whole, {}).get("hasPart"))}
+
+    organizations = {
+        organization.get("ror") or f"#org-{organization['id']}": organization["id"]
+        for organization in content["guide"].get("organization", [])
+    }
+    linked_fers = {
+        "#fer-" + target["@id"].rsplit("/", 1)[1]
+        for entity_id, entity in entities.items()
+        if entity_id.startswith("#resource-")
+        for target in as_list(entity.get("sameAs"))
+        if isinstance(target, dict) and target["@id"].startswith(FIP_DASHBOARD)
+    }
+    fers = part_ids("#fers") - linked_fers
+    sources = part_ids("#sources")
+    records: dict[str, list[tuple[str, str]]] = {name: [] for name in API_COLLECTIONS}
+    for entity_id, entity in entities.items():
+        collection = next((name for prefix, name in API_PREFIXES.items() if entity_id.startswith(prefix)), None)
+        record = entity.get("identifier")
+        if collection == "repositories" and entity.get("@type") != "DataCatalog":
+            continue  # the repository kinds, a term set
+        if collection in ("repositories", "changes"):
+            record = entity_id.split("-", 1)[1]
+        elif collection is not None:
+            pass
+        elif entity_id.startswith(FAIR_PRINCIPLES) and entity.get("termCode"):
+            collection, record = "principles", entity["termCode"]
+        elif entity_id.startswith("#item-") and entity.get("@type") == "Question":
+            collection = "metrics"
+        elif (entity_id.startswith("#resource-") and entity.get("resourceType")) or entity_id in fers:
+            collection = "resources"
+        elif entity_id in sources:
+            collection = "sources"
+        elif entity_id.startswith("#term-") and entity.get("inDefinedTermSet") == ref("#glossary"):
+            collection, record = "terms", entity_id.removeprefix("#term-")
+        elif entity_id in organizations:
+            collection, record = "organizations", organizations[entity_id]
+        elif FIP_TERMS + "FAIR-Implementation-Profile" in as_list(entity.get("additionalType")):
+            collection = "fips"
+        if collection is None:
+            continue
+        if not isinstance(record, str) or not API_ID.match(record):
+            raise ContentError(f"{entity_id}: no record ID the API can publish under {collection}/ ({record!r})")
+        if any(existing == record for existing, _ in records[collection]):
+            raise ContentError(f"{entity_id}: two entities share the API record {collection}/{record}")
+        records[collection].append((record, entity_id))
+    return records
+
+
+def api_paths(records: dict[str, list[tuple[str, str]]]) -> dict[str, str]:
+    """Each published entity's record, as `<collection>/<record ID>` under the API's directory."""
+    return {entity_id: f"{name}/{record}" for name, members in records.items() for record, entity_id in members}
 
 
 def script_json(value: Any) -> str:
@@ -1465,7 +1577,11 @@ def re3data_facts(content: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def page_config(content: dict[str, Any], text_links: dict[str, list[dict[str, str]]] | None = None) -> dict[str, Any]:
+def page_config(
+    content: dict[str, Any],
+    text_links: dict[str, list[dict[str, str]]] | None = None,
+    api: dict[str, str] | None = None,
+) -> dict[str, Any]:
     guide = content["guide"]["guide"]
     live = content["live"]
     champion = {key: value for key, value in live.get("champion", {}).items() if key != "test"}
@@ -1479,6 +1595,7 @@ def page_config(content: dict[str, Any], text_links: dict[str, list[dict[str, st
             "freshnessDays": guide.get("freshnessDays", 180),
             "pageUrl": guide.get("pageUrl"),
             "textLinks": text_links or {},
+            "api": {"files": API_FILES, "collections": list(API_COLLECTIONS), "records": api or {}},
             "connectors": live.get("connector", []),
             "links": live.get("links", {}),
             "champion": champion,
@@ -1605,8 +1722,13 @@ def render_page(page: str, content: dict[str, Any], crate: dict[str, Any], sprit
         f'\n    <script src="{KB_SCRIPT}" defer></script>\n    ',
         "ui": f'\n    <script src="{UI_SCRIPT}" defer></script>\n    ',
         "icons": sprite,
+        # Typed links that tell harvesters where the knowledge base, the API description and its documentation are.
+        "links": f'\n    <link rel="describedby" type="application/ld+json" href="{CRATE_FILE}">'
+        f'\n    <link rel="service-desc" type="application/vnd.oai.openapi+json;version=3.1"'
+        f' href="{API_FILES["description"]}">'
+        f'\n    <link rel="service-doc" type="text/html" href="{API_FILES["docs"]}">\n    ',
     }
-    required = {"csp", "kb", "ui"}
+    required = {"csp", "kb", "ui", "links"}
     found = {match.group("name") for match in BLOCK.finditer(page)}
     missing = sorted(required - found)
     if missing:
@@ -1628,7 +1750,11 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     return {
         CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
         KB_SCRIPT: data_script("kb", crate, "The knowledge base, the same RO-Crate as ro-crate-metadata.json."),
-        UI_SCRIPT: data_script("ui", page_config(content, graph.text_links), "Interface strings and configuration."),
+        UI_SCRIPT: data_script(
+            "ui",
+            page_config(content, graph.text_links, api_paths(api_records(graph.entities, content))),
+            "Interface strings and configuration.",
+        ),
         PAGE_FILE: page,
         PREVIEW_FILE: page,
     }

@@ -4,6 +4,9 @@ node_modules/
 __pycache__/
 *.pyc
 
+# The built site (scripts/build_api.py writes the API into it)
+_site/
+
 # Local caches and check output
 .cache/
 previews/

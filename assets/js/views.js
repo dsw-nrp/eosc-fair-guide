@@ -705,7 +705,7 @@
       .replace(/^(\d+)\. /gm, "$1\\. ");
   const mdLine = (value) => mdText(FG.text(value).replace(/\s*\n\s*\n\s*/g, " "));
   const mdLink = (text, url) => (url ? "[" + mdText(text) + "](" + String(url).replace(/[ ()]/g, encodeURIComponent) + ")" : mdText(text));
-  const guideUrl = (hash) => (FG.config.pageUrl || "") + hash;
+  const guideUrl = (hash) => FG.pageAddress() + hash;
 
   /** A station as Markdown: what it shows for the reader's lens, in their language, with where it came from. */
   function stationMarkdown(entity, route, parts) {
@@ -1031,7 +1031,8 @@
         { class: "badges" },
         repository.repositoryKind ? h("span", { class: "badge" }, FG.termName(FG.id(repository.repositoryKind))) : null,
         statusBadge(repository),
-        h("span", { class: "badge badge-sources" }, FG.t("repositories.sourcesLabel") + ": ", repositorySources(repository))
+        h("span", { class: "badge badge-sources" }, FG.t("repositories.sourcesLabel") + ": ", repositorySources(repository)),
+        FG.apiLink ? FG.apiLink(repository) : null
       )
     );
   };
@@ -1147,25 +1148,54 @@
   };
 
   /** What the knowledge base offers machines, read from the crate's own root: the crate, its profiles, the licence and
-      the source; the API joins them once it is published. */
+      the source; then the API's description, documentation and context, and every endpoint as a list, which is the
+      accessible counterpart of the interactive documentation. */
   function machineLinks() {
     const root = FG.root;
+    const files = FG.config.api.files;
     const row = (label, link, note) => h("li", null, h("strong", null, label + ": "), link, note ? h("span", { class: "muted" }, " · " + note) : null);
+    const file = (path, type) => h("a", { href: path, type }, path);
     const crateFile = "ro-crate-metadata.json";
-    return h(
-      "section",
-      { "aria-labelledby": "machine-links" },
-      h("h2", { id: "machine-links" }, FG.t("machines.links")),
+    return [
       h(
-        "ul",
-        { class: "machine-links" },
-        row(FG.t("machines.crate"), h("a", { href: crateFile, type: "application/ld+json" }, crateFile), "RO-Crate 1.2, JSON-LD"),
-        FG.refs(root, "conformsTo").map((profile) => row(FG.t("machines.profile"), FG.external(FG.id(profile), FG.text(profile.name) || FG.id(profile)))),
-        root.license ? row(FG.t("machines.licence"), FG.external(FG.id(root.license), FG.id(root.license).split("/").pop())) : null,
-        row(FG.t("machines.source"), FG.external(root.url, root.url)),
-        FG.config.api ? row(FG.t("machines.api"), h("a", { href: FG.config.api.description }, FG.config.api.description)) : null
-      )
-    );
+        "section",
+        { "aria-labelledby": "machine-links" },
+        h("h2", { id: "machine-links" }, FG.t("machines.links")),
+        h(
+          "ul",
+          { class: "machine-links" },
+          row(FG.t("machines.crate"), file(crateFile, "application/ld+json"), "RO-Crate 1.2, JSON-LD"),
+          FG.refs(root, "conformsTo").map((profile) => row(FG.t("machines.profile"), FG.external(FG.id(profile), FG.text(profile.name) || FG.id(profile)))),
+          root.license ? row(FG.t("machines.licence"), FG.external(FG.id(root.license), FG.id(root.license).split("/").pop())) : null,
+          row(FG.t("machines.source"), FG.external(root.url, root.url)),
+          row(FG.t("api.openapi"), file(files.description, "application/vnd.oai.openapi+json")),
+          row(FG.t("api.docs"), file(files.docs, "text/html"), "Swagger UI"),
+          row(FG.t("api.context"), file(files.context, "application/ld+json"), "JSON-LD"),
+          row(FG.t("api.meta"), file(files.meta, "application/json"))
+        )
+      ),
+      h(
+        "section",
+        { "aria-labelledby": "api-endpoints" },
+        h("h2", { id: "api-endpoints" }, FG.t("api.endpoints")),
+        h(
+          "ul",
+          { class: "machine-links api-endpoints" },
+          FG.config.api.collections.map((name) =>
+            h(
+              "li",
+              null,
+              h("strong", null, FG.t("api.collection." + name + ".name") + ": "),
+              file(files.record.replace("{record}", name), "application/json"),
+              " · ",
+              h("code", null, files.record.replace("{record}", name + "/{id}")),
+              h("br"),
+              h("span", { class: "small muted" }, FG.t("api.collection." + name + ".description"))
+            )
+          )
+        )
+      ),
+    ];
   }
 
   /** Whether a page holds a helper that the page script does not provide yet. */

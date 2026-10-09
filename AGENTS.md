@@ -76,6 +76,7 @@ python scripts/check_content.py         # content contract (--base <ref> also ch
 python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script
 python scripts/refresh_snapshots.py     # refresh the re3data, Heslář and FIP Dashboard snapshots (scheduled job)
 python scripts/vendor_icons.py          # copy the icons the content names from node_modules (after npm ci); --check fails on drift
+python scripts/build_api.py            # build the static API and its Swagger UI page into _site/ (after npm ci)
 ```
 
 Structure checks use `requirements-dev.txt`:
@@ -91,7 +92,8 @@ Page checks need Node.js and Chromium (installed into the gitignored `.cache/`):
 ```bash
 npm ci
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run browsers
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check (build the API first)
+PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:api    # OpenAPI 3.1, every API file against its schema, links, the documentation page
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:live   # real lookups (DataCite, resolvers, nanopublication); needs network
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:diagrams   # every Mermaid diagram renders and has accTitle and accDescr
 PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .cache/screenshots

@@ -339,6 +339,30 @@ async function axe(page, label) {
     if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");
     if (!(await view.locator('.machine-links a[href="ro-crate-metadata.json"]').count())) fail("machines: the page does not link the knowledge base");
     if (!(await view.locator('head link[rel="describedby"][href="ro-crate-metadata.json"]').count())) fail("machines: the head does not carry the describedby link");
+    // The API (built into _site/ by scripts/build_api.py): typed links in the head lead to its description and its
+    // documentation, and the page lists every collection as an accessible counterpart of the documentation.
+    const site = resolve(root, "_site");
+    const inSite = (href) => Boolean(href) && !/^[a-z]+:/i.test(href) && existsSync(resolve(site, href.endsWith("/") ? href + "index.html" : href));
+    for (const rel of ["service-desc", "service-doc"]) {
+      const href = await view.locator(`head link[rel="${rel}"]`).getAttribute("href");
+      if (!inSite(href)) fail(`machines: the ${rel} link does not lead to the built API: ${href}`);
+    }
+    const endpoints = await view.locator(".api-endpoints li a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    const collections = await view.evaluate(() => window.FairGuide.config.api.collections.length);
+    if (endpoints.length !== collections || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
+    // Every catalogue entry links to its record in the API; the NKR samples are illustrations, not entries.
+    for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
+      await view.goto(pageUrl + "#/cs/V/catalogue/" + kind);
+      await view.waitForFunction((id) => { const radio = document.getElementById(id); return radio && radio.checked && document.querySelector(".catalogue .card"); }, "facet-kind-" + kind);
+      const unlinked = await view.locator(".catalogue .card:not(.nkr-sample)").evaluateAll((cards) => cards.filter((card) => !card.querySelector(".json-link")).map((card) => card.id || card.textContent.trim().slice(0, 40)));
+      const records = await view.locator(".catalogue .card .json-link").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+      if (unlinked.length || !records.every(inSite)) fail(`catalogue: ${kind} entries without a record in the API, or a link that leads nowhere: ${unlinked.join(", ")}`);
+    }
+    // The accessibility statement names the API documentation as exempt and points to the accessible list.
+    await view.goto(pageUrl + "#/cs/V/page/accessibility");
+    await view.waitForSelector("#main h1");
+    const exemption = view.locator("#main section", { hasText: "Swagger UI" });
+    if (!(await exemption.count()) || !(await exemption.locator('a[href="#/cs/V/page/machines"]').count())) fail("accessibility: the statement does not name the API documentation and point to the endpoint list");
     await view.close();
   }
 
@@ -1083,6 +1107,13 @@ async function axe(page, label) {
   if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the K01 result does not record its evidence: " + JSON.stringify(k01));
   if (!md.includes("Deklarované")) fail("export: the Markdown summary does not carry the evidence behind the answers");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
+  // A result names the test it came from: the question's manual test in the guide's API, which implements the
+  // question's metric. From a local file the page names the configured address, which maps onto the built site.
+  const configured = await page.evaluate(() => window.FairGuide.config.pageUrl);
+  const testRef = String((k01["ftr:outputFromTest"] || {})["@id"] || "");
+  const testFile = testRef.startsWith(configured) ? resolve(root, "_site", testRef.slice(configured.length)) : null;
+  const testRecord = testFile && existsSync(testFile) ? JSON.parse(readFileSync(testFile, "utf8")) : null;
+  if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../metrics/K01.json") fail("export: the K01 result does not name its test in the guide's API (build it with scripts/build_api.py): " + testRef);
 
   // Local data: each check says where the answers are kept, and how it works.
   const note = await page.locator(".local-data").textContent();

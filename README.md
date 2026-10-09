@@ -31,7 +31,7 @@ kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) neb
 | Cesta | Obsah |
 | --- | --- |
 | `content/` | Zdrojové texty a data průvodce v souborech TOML |
-| `scripts/` | Generátor znalostní báze a kontroly obsahu (Python, jen standardní knihovna) |
+| `scripts/` | Generátor znalostní báze, sestavení API a kontroly obsahu (Python, jen standardní knihovna) |
 | `tests/` | Testy skriptů s minimální ukázkou obsahu |
 | `profile/` | Profil RO-Crate (SHACL) pro kontrolu struktury znalostní báze |
 | `index.html` | Stránka průvodce; znalostní bázi a texty rozhraní načítá ze složky `assets/data/` |
@@ -39,6 +39,7 @@ kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) neb
 | `ro-crate-preview.html` | Generovaná kopie stránky: náhled RO-Crate |
 | `ro-crate-metadata.json` | Znalostní báze jako RO-Crate 1.2 (generovaná) |
 | `assets/` | Styly, skripty, obrázky a vykreslené diagramy |
+| `api/` | Stránka dokumentace API; samotné API sestaví `scripts/build_api.py` do složky `_site/`, která se necommituje |
 | `diagrams/` | Zdroje diagramů v Mermaid |
 | `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
 
