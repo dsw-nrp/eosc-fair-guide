@@ -663,8 +663,14 @@ class SiteTests(unittest.TestCase):
                 "api/principles/R1.1.json",
                 "api/index.html",
                 "api/swagger-ui/swagger-ui-bundle.js",
+                "profile/0.1/index.html",
             ):
                 self.assertTrue((out / path).is_file(), path)
+            # The profile's identifier resolves to a page whose links to its files lead somewhere.
+            landing = out / "profile" / "0.1" / "index.html"
+            for href in re.findall(r'href="(\.\./[^"]+)"', landing.read_text(encoding="utf-8")):
+                target = (landing.parent / href).resolve()
+                self.assertTrue(target.is_file() or (target / "index.html").is_file(), href)
             page = (out / "index.html").read_text(encoding="utf-8")
             self.assertTrue(
                 all(match.group("body").strip() for match in build_crate.BLOCK.finditer(page)), "every block is filled"

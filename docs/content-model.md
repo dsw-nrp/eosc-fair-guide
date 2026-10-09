@@ -73,7 +73,8 @@ contains a phrase in another language marks it, so the page can set the right `l
 ### References in text
 
 A text that names a resource, a source or a glossary term marks the name as a reference: `[[id|phrase]]`, where
-`id` is the resource's or source's ID, `term:<id>` for a glossary term or `page:<id>` for a page of the guide, and
+`id` is the resource's or source's ID, `term:<id>` for a glossary term, `page:<id>` for a page of the guide or
+`profile` for the guide's profile, and
 `phrase` is the words that name it
 in that language, inflected as the sentence needs (`v [[nma|Národním metadatovém adresáři]]`). Mark the first
 time a text names the entry; a button label is already a link and carries no reference. The Czech and the English
@@ -384,7 +385,9 @@ directly; with several, a list. The page reads the graph directly; it does not n
 `#ledger`, `#sources`, `#resources` and `#repositories` list their entries in `hasPart`. Every reference to one of
 the crate's own entities names an entity the crate has; the content checks report one that does not.
 
-The root declares conformance to Process Run Crate 0.5 and to the guide's own profile. `ro-crate-preview.html` is a
+The root declares conformance to Process Run Crate 0.5 and to the guide's own profile, whose identifier
+(`<baseUrl>profile/<profileVersion>`) resolves: the build writes a landing page there that links the profile's
+description, its shapes and its specification. `ro-crate-preview.html` is a
 generated copy of `index.html`, so the page is the crate's HTML preview.
 
 ## Static API

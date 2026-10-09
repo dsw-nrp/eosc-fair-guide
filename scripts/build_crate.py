@@ -19,6 +19,7 @@ Uses only the Python standard library. The content model is documented in ``docs
 from __future__ import annotations
 
 import gzip
+import html
 import json
 import os
 import re
@@ -301,7 +302,7 @@ class Graph:
 
 def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
     """What a reference in text may name: a resource or source by its ID, a glossary term as term:<id>, a page of
-    the guide as page:<id>."""
+    the guide as page:<id>, and the guide's profile as profile."""
     targets = {
         item["id"]: graph.index[item["id"]][0]
         for item in content["resources"] + content["sources"]
@@ -313,6 +314,7 @@ def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
         if entity_id.startswith("#term-")
     }
     targets |= {"page:" + page["id"]: f"#page-{page['id']}" for page in content["pages"]}
+    targets["profile"] = content["guide"]["guide"]["profile"]
     return targets
 
 
@@ -1519,7 +1521,11 @@ GENERATED = (CRATE_FILE, PREVIEW_FILE, KB_SCRIPT, UI_SCRIPT, LINKSET_FILE, API_F
 
 def is_generated(path: str) -> bool:
     """Whether a repository path is build output: a generated file, or a JSON file of the API."""
-    return path in GENERATED or (path.startswith("api/") and path.endswith((".json", ".jsonld")))
+    return (
+        path in GENERATED
+        or (path.startswith("api/") and path.endswith((".json", ".jsonld")))
+        or bool(PROFILE_PAGE.match(path))
+    )
 
 
 SCHEMA_ORG_TYPES = ("https://schema.org/AboutPage", "https://schema.org/Dataset")
@@ -1812,18 +1818,70 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     page = render_page(
         (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
     )
-    return {
-        CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
-        KB_SCRIPT: data_script("kb", crate, "The knowledge base, the same RO-Crate as ro-crate-metadata.json."),
-        UI_SCRIPT: data_script(
-            "ui",
-            page_config(content, graph.text_links, api_paths(api_records(graph.entities, content)), links),
-            "Interface strings and configuration.",
-        ),
-        PAGE_FILE: page,
-        PREVIEW_FILE: page,
-        LINKSET_FILE: json.dumps(linkset(links), ensure_ascii=False, indent=2) + "\n",
-    } | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
+    return (
+        {
+            CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
+            KB_SCRIPT: data_script("kb", crate, "The knowledge base, the same RO-Crate as ro-crate-metadata.json."),
+            UI_SCRIPT: data_script(
+                "ui",
+                page_config(content, graph.text_links, api_paths(api_records(graph.entities, content)), links),
+                "Interface strings and configuration.",
+            ),
+            PAGE_FILE: page,
+            PREVIEW_FILE: page,
+            LINKSET_FILE: json.dumps(linkset(links), ensure_ascii=False, indent=2) + "\n",
+        }
+        | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
+        | profile_page(root, content["guide"]["guide"])
+    )
+
+
+PROFILE_PAGE = re.compile(r"^profile/[^/]+/index\.html$")
+
+
+def profile_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
+    """The landing page of the guide's profile at the profile's own IRI (`<address>profile/<version>/`), so the
+    identifier resolves: what the profile is, read from its description, and links to its description, its shapes,
+    its specification and the guide. In English, like the profile."""
+    shapes = root / PROFILE_DIR
+    description = (shapes / "profile.ttl").read_text(encoding="utf-8") if (shapes / "profile.ttl").exists() else ""
+    label = (re.search(r'rdfs:label "([^"]+)"', description) or [None, "EOSC CZ FAIR guide profile"])[1]
+    comment = (re.search(r'rdfs:comment "([^"]+)"', description) or [None, ""])[1]
+    specification = (re.search(r"prof:hasArtifact <([^>]+)>", description) or [None, ""])[1]
+    up = "../../"
+    files = sorted(path.relative_to(root).as_posix() for path in shapes.rglob("*.ttl"))
+    items = "".join(
+        f'\n      <li><a href="{up}{name}" type="text/turtle">{name.removeprefix("profile/")}</a></li>'
+        for name in files
+    )
+    escape = html.escape
+    specification_link = f'<a href="{escape(specification)}">Specification</a> · ' if specification else ""
+    page = f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'">
+    <title>{escape(label)}</title>
+    <link rel="describedby" type="text/turtle" href="{up}{PROFILE_DIR}/profile.ttl">
+    <link rel="stylesheet" href="{up}assets/css/tokens.css">
+    <link rel="stylesheet" href="{up}assets/css/app.css">
+  </head>
+  <body>
+    <main class="wrap profile-page">
+      <h1>{escape(label)}</h1>
+      <p>{escape(comment)}</p>
+      <p>It is a profile of <a href="{RO_CRATE}">RO-Crate 1.2</a>. Rules that its shapes cannot express are
+      checked by the guide's content checks.</p>
+      <h2>Files</h2>
+      <ul>{items}
+      </ul>
+      <p>{specification_link}<a href="{up}">The FAIR Data Guide</a></p>
+    </main>
+  </body>
+</html>
+"""
+    return {f"profile/{guide.get('profileVersion', '')}/index.html": page}
 
 
 def profile_shapes(root: Path, base: str) -> dict[str, str]:

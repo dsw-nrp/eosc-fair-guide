@@ -831,6 +831,48 @@ publisher = "Signposting"
 dateAccessed = 2026-10-08
 
 [[resource]]
+id = "ro-crate"
+name = "RO-Crate"
+description = { cs = "Způsob, jak zabalit výzkumná data s jejich metadaty do balíčku, který čtou lidé i stroje: soubor ro-crate-metadata.json v JSON-LD se slovníkem schema.org.", en = "A way to package research data with their metadata so that people and machines can read them: a ro-crate-metadata.json file in JSON-LD with the schema.org vocabulary." }
+url = "https://w3id.org/ro/crate/1.2"
+type = "standard"
+fipDashboard = "ro-crate"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["DS", "SR"]
+stations = ["popis"]
+languages = ["en"]
+
+[resource.citation]
+type = "standard"
+title = "RO-Crate Metadata Specification 1.2"
+version = "1.2.0"
+doi = "10.5281/zenodo.13751027"
+inLanguage = "en"
+publisher = "researchobject.org"
+datePublished = 2025-06-04
+dateAccessed = 2026-10-09
+
+[[resource]]
+id = "process-run-crate"
+name = "Process Run Crate"
+description = { cs = "Profil RO-Crate pro záznam o tom, jak proces data vytvořil: kdo ho spustil, jakým nástrojem, z čeho vycházel a co vzniklo.", en = "An RO-Crate profile for recording how a process made data: who ran it, with which tool, what it drew on and what resulted." }
+url = "https://w3id.org/ro/wfrun/process/0.5"
+type = "standard"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["DS", "SR"]
+languages = ["en"]
+
+[resource.citation]
+type = "standard"
+title = "Process Run Crate"
+version = "0.5"
+inLanguage = "en"
+publisher = "researchobject.org"
+dateAccessed = 2026-10-09
+
+[[resource]]
 id = "ftr"
 name = "FAIR Testing Resources (FTR)"
 description = { cs = "Slovník projektu OSTrails pro popis testování FAIR: benchmarky komunit, metriky, testy, které je provádějí, a jejich výsledky, aby si nástroje mohly výsledky předávat a porovnávat.", en = "The OSTrails vocabulary for describing FAIR testing: community benchmarks, metrics, the tests that implement them and their results, so that tools can exchange and compare results." }

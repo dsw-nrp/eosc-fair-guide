@@ -748,8 +748,10 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
     # R3 and R4, curated entries against the snapshot records they match
     dashboard = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), {})
     fers = {bare_url(fer.get("url")): fer["id"] for fer in dashboard.get("resource", []) if fer.get("url")}
+    fer_ids = {fer["id"] for fer in dashboard.get("resource", [])}
     for resource in content["resources"]:
-        match = fers.get(bare_url(resource.get("url")))
+        # A record matches by its address, or by sharing the curated entry's ID, as the same name usually is.
+        match = fers.get(bare_url(resource.get("url"))) or (resource["id"] if resource["id"] in fer_ids else None)
         if match and resource.get("fipDashboard") != match:
             report.error(
                 f"resource:{resource['id']}", f"matches FIP Dashboard resource '{match}'; link it with fipDashboard"
@@ -815,6 +817,7 @@ def check_references(report: Report, content: dict[str, Any]) -> None:
     known = {item["id"] for item in content["resources"] + content["sources"]}
     known |= {"term:" + term["id"] for term in content["glossary"].get("term", [])}
     known |= {"page:" + page["id"] for page in content["pages"]}
+    known.add("profile")
 
     def entries(where: str, text: str) -> set[str]:
         if "[[" in REFERENCE.sub("", text) or "]]" in REFERENCE.sub("", text):

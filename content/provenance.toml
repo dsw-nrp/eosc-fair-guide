@@ -454,6 +454,17 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-09-crate-standards"
+type = "create"
+name = "RO-Crate and Process Run Crate as resources"
+description = "RO-Crate and Process Run Crate, the standards the guide's knowledge base follows, become resources that the page for machines links, read from their published specifications."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["ro-crate", "process-run-crate"]
+results = ["ro-crate", "process-run-crate"]
+endTime = 2026-10-09T21:00:00+02:00
+
+[[action]]
 id = "2026-10-09-machine-data"
 type = "create"
 name = "FAIR Testing Resources as a resource"

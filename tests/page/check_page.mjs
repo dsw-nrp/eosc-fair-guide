@@ -562,6 +562,14 @@ function collisions() {
     const linkset = JSON.parse(readFileSync(resolve(site, "linkset.json"), "utf8")).linkset[0];
     const listed2 = Object.entries(linkset).filter(([rel]) => rel !== "anchor").flatMap(([rel, targets]) => targets.map((target) => rel + " " + target.href));
     if (linkset.anchor !== "./" || listed2.sort().join("|") !== head.filter((link) => !link.startsWith("linkset ")).join("|")) fail("signposting: the linkset does not list the head's links, anchored at the site");
+    // The standards the knowledge base follows are linked: RO-Crate and Process Run Crate to their catalogue entries,
+    // the guide's profile to its landing page at its own address, which the build writes so the identifier resolves.
+    const practice = view.locator("#practice");
+    for (const id of ["ro-crate", "process-run-crate"]) {
+      if (!(await practice.locator(`a.text-ref[href$="/catalogue/resources/${id}"]`).count())) fail(`machines: the practice section does not link ${id} to its catalogue entry`);
+    }
+    const profileHref = await practice.locator('a.text-ref[href^="profile/"]').getAttribute("href");
+    if (!profileHref || !existsSync(resolve(site, profileHref, "index.html"))) fail("machines: the guide's profile is not linked to its landing page: " + profileHref);
     for (const rel of ["describedby", "service-desc", "service-doc", "license", "type", "author", "linkset"]) {
       if (!head.some((link) => link.startsWith(rel + " "))) fail("signposting: the head has no " + rel + " link");
     }
