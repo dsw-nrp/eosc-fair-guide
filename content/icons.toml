@@ -3,6 +3,7 @@
 # assets/icons/, and the generator inlines them as a sprite. Field reference: docs/content-model.md.
 
 [ui]
+repository = "github"
 search = "magnifying-glass"
 external = "arrow-up-right-from-square"
 resume = "rotate-right"

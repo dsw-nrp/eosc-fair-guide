@@ -129,7 +129,7 @@
   FG.exportBar = function () {
     const button = (entry) =>
       entry.href
-        ? FG.h("a", { class: "button-small", id: "export-" + entry.id, href: entry.href, type: "application/json" }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label))
+        ? FG.h("a", { class: "button button-small", id: "export-" + entry.id, href: entry.href, type: "application/json" }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label))
         : FG.h("button", { type: "button", class: "button-small", id: "export-" + entry.id, onclick: entry.run }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label));
     return FG.h(
       "section",

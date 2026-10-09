@@ -336,7 +336,8 @@ check reports an icon that is named but not vendored.
 
 ### `pages.toml` and `ui.toml`
 
-`[[page]]`: `id`, `title`, `menu` (`catalogue`, `tools` or `about`: the main-menu item the page sits under; required, so every
+`[[page]]`: `id`, `title`, `menu` (`catalogue`, `tools` or `about`: the main-menu item the page sits under, or `header`: a
+button with the page's title and icon beside the language switch, marked while the page is open; required, so every
 page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `helper` (true
 for a page that holds an interactive helper; until the page script provides it, the page says it is still being
 built), `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section

@@ -3,8 +3,9 @@
 Usage: python scripts/vendor_icons.py [--check]
 
 Icon names come from `content/icons.toml` and from every `icon` field in the content files. Each named icon is
-copied unchanged from `svgs/solid/` of the pinned `@fortawesome/fontawesome-free` package in `node_modules`
-(install it with `npm ci`), and icons that are no longer named are removed. With `--check` the script changes
+copied unchanged from `svgs/solid/` of the pinned `@fortawesome/fontawesome-free` package in `node_modules`, or from
+`svgs/brands/` for a brand mark such as `github` (install it with `npm ci`), and icons that are no longer named are
+removed. With `--check` the script changes
 nothing and exits 1 when the vendored icons differ from what the content names. Uses only the standard library.
 """
 
@@ -18,7 +19,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
-PACKAGE = Path("node_modules") / "@fortawesome" / "fontawesome-free" / "svgs" / "solid"
+PACKAGE = Path("node_modules") / "@fortawesome" / "fontawesome-free" / "svgs"
+STYLES = ("solid", "brands")  # a name is looked up in this order
 TARGET = Path("assets") / "icons"
 
 
@@ -54,8 +56,10 @@ def plan(root: Path = ROOT) -> tuple[dict[str, bytes], list[str], list[str]]:
     write: dict[str, bytes] = {}
     missing = []
     for name in sorted(wanted):
-        svg = source / f"{name}.svg"
-        if not svg.is_file():
+        svg = next(
+            (source / style / f"{name}.svg" for style in STYLES if (source / style / f"{name}.svg").is_file()), None
+        )
+        if svg is None:
             missing.append(name)
             continue
         data = svg.read_bytes()
@@ -75,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     write, stale, missing = plan()
     for name in missing:
-        print(f"vendor_icons: '{name}' is not a Font Awesome Free solid icon", file=sys.stderr)
+        print(f"vendor_icons: '{name}' is not a Font Awesome Free solid or brand icon", file=sys.stderr)
     if args.check:
         for name in write:
             print(f"vendor_icons: assets/icons/{name}.svg is missing or differs from the package", file=sys.stderr)

@@ -831,6 +831,26 @@ publisher = "Signposting"
 dateAccessed = 2026-10-08
 
 [[resource]]
+id = "ftr"
+name = "FAIR Testing Resources (FTR)"
+description = { cs = "Slovník projektu OSTrails pro popis testování FAIR: benchmarky komunit, metriky, testy, které je provádějí, a jejich výsledky, aby si nástroje mohly výsledky předávat a porovnávat.", en = "The OSTrails vocabulary for describing FAIR testing: community benchmarks, metrics, the tests that implement them and their results, so that tools can exchange and compare results." }
+url = "https://w3id.org/ftr"
+type = "standard"
+status = "operational"
+asOf = 2026-10-09
+lenses = ["DS", "SR"]
+stations = ["kontrola"]
+languages = ["en"]
+
+[resource.citation]
+type = "standard"
+title = "FAIR Testing Resources Vocabulary"
+version = "1.3.0"
+inLanguage = "en"
+publisher = "OSTrails"
+dateAccessed = 2026-10-09
+
+[[resource]]
 id = "schema-dataset"
 name = "Schema.org Dataset"
 description = { cs = "Popis datových sad pro vyhledávače.", en = "Describing datasets for search engines." }

@@ -11,6 +11,7 @@ error = { cs = "Průvodce se nepodařilo načíst. Zkuste stránku obnovit.", en
 home = { cs = "EOSC CZ, domovská stránka", en = "EOSC CZ home page" }
 
 [nav]
+repository = { cs = "Zdrojový kód průvodce na GitHubu", en = "The guide's source code on GitHub" }
 label = { cs = "Hlavní navigace", en = "Main navigation" }
 home = { cs = "Úvod", en = "Home" }
 path = { cs = "Cesta k FAIR", en = "Path to FAIR" }
@@ -429,7 +430,7 @@ formatMd = { cs = "Shrnutí ke čtení (Markdown)", en = "Summary to read (Markd
 formatJsonld = { cs = "Výsledek pro další služby (JSON-LD)", en = "Result for other services (JSON-LD)" }
 download = { cs = "Stáhnout soubor", en = "Download the file" }
 preview = { cs = "Náhled souboru", en = "Preview the file" }
-formats = { cs = "Shrnutí se dobře čte a posílá dál. JSON-LD je výsledek jako RO-Crate (FTR), který přečtou i jiné služby, včetně podkladů k odpovědím. Oba soubory nesou verzi průvodce a lze je do průvodce znovu načíst.", en = "The summary is easy to read and pass on. JSON-LD is the result as an RO-Crate (FTR) that other services can read, with the evidence behind the answers. Both files carry the guide's version and can be loaded back into the guide." }
+formats = { cs = "Shrnutí se dobře čte a posílá dál. JSON-LD je výsledek jako RO-Crate ve slovníku FAIR Testing Resources (FTR), který přečtou i jiné služby, včetně podkladů k odpovědím. Oba soubory nesou verzi průvodce a lze je do průvodce znovu načíst.", en = "The summary is easy to read and pass on. JSON-LD is the result as an RO-Crate in the FAIR Testing Resources (FTR) vocabulary that other services can read, with the evidence behind the answers. Both files carry the guide's version and can be loaded back into the guide." }
 print = { cs = "Vytisknout", en = "Print" }
 share = { cs = "Vytvořit odkaz", en = "Create a link" }
 shareLabel = { cs = "Odkaz s odpověďmi", en = "Link with your answers" }
@@ -522,7 +523,6 @@ aboutLink = { cs = "Jak průvodce ukládá vaše odpovědi a jak je smazat", en 
 [catalogue]
 title = { cs = "Katalog", en = "Catalogue" }
 search = { cs = "Hledat", en = "Search" }
-machinesLink = { cs = "Data pro stroje", en = "Data for machines" }
 citedBy = { cs = "Cituje", en = "Cited by" }
 published = { cs = "vydáno {date}", en = "published {date}" }
 accessed = { cs = "navštíveno {date}", en = "accessed {date}" }
@@ -632,7 +632,7 @@ what = { cs = "FAIR Signposting: typované odkazy v hlavičce každé stránky a
 
 [machines.task.result]
 want = { cs = "uložit a sdílet výsledek kontroly", en = "to save and share a check result" }
-what = { cs = "Výsledek jako sada výsledků testů FTR v RO-Crate; každý výsledek odkazuje na svůj test v API.", en = "The result as an FTR test result set in an RO-Crate; each result names its test in the API." }
+what = { cs = "Výsledek jako sada výsledků testů ve slovníku FAIR Testing Resources (FTR) v RO-Crate; každý výsledek odkazuje na svůj test v API.", en = "The result as a test result set in the FAIR Testing Resources (FTR) vocabulary in an RO-Crate; each result names its test in the API." }
 
 [machines.task.list]
 want = { cs = "seznam z katalogu, jak jsem si ho vyfiltroval", en = "a catalogue list as I filtered it" }
@@ -719,7 +719,7 @@ dataset = { cs = "Je datová sada výstupem programu?", en = "Is the dataset the
 # The guide's API: its OpenAPI description (in English), the machines page's endpoint list and the catalogue's links.
 [api]
 title = { cs = "API průvodce FAIR daty", en = "FAIR Data Guide API" }
-description = { cs = "Znalostní báze průvodce pro čtení strojem: záznam JSON pro každý princip, zastávku, kontrolu, otázku, zdroj, repozitář, požadavek, citované dílo, pojem, organizaci, profil FIP a změnu obsahu, s texty v obou jazycích a kontextem JSON-LD. Kontroly jsou benchmarky FTR, jejich otázky metriky s ručními testy. Cesty odpovídají API FIP Dashboardu tam, kde obě popisují totéž; soubory končí na .json, protože API je statický web.", en = "The guide's knowledge base for machines to read: a JSON record for each principle, station, check, question, resource, repository, requirement, cited work, glossary term, organisation, FIP profile and content change, with texts in both languages and a JSON-LD context. Checks are FTR benchmarks, their questions metrics with manual tests. Paths follow the FIP Dashboard API where both describe the same thing; files end in .json because the API is a static site." }
+description = { cs = "Znalostní báze průvodce pro čtení strojem: záznam JSON pro každý princip, zastávku, kontrolu, otázku, zdroj, repozitář, požadavek, citované dílo, pojem, organizaci, profil FIP a změnu obsahu, s texty v obou jazycích a kontextem JSON-LD. Kontroly jsou benchmarky ve slovníku FAIR Testing Resources (FTR), jejich otázky metriky s ručními testy. Cesty odpovídají API FIP Dashboardu tam, kde obě popisují totéž; soubory končí na .json, protože API je statický web.", en = "The guide's knowledge base for machines to read: a JSON record for each principle, station, check, question, resource, repository, requirement, cited work, glossary term, organisation, FIP profile and content change, with texts in both languages and a JSON-LD context. Checks are benchmarks in the FAIR Testing Resources (FTR) vocabulary, their questions metrics with manual tests. Paths follow the FIP Dashboard API where both describe the same thing; files end in .json because the API is a static site." }
 guide = { cs = "Průvodce FAIR daty", en = "The FAIR Data Guide" }
 server = { cs = "Web, který tento popis poskytuje", en = "The site that serves this description" }
 meta = { cs = "Z čeho je API sestaveno", en = "What the API is built from" }
@@ -749,7 +749,7 @@ parameter = { cs = "Identifikátor zastávky", en = "The station's identifier" }
 
 [api.collection.checks]
 name = { cs = "Kontroly", en = "Checks" }
-description = { cs = "Kontroly sebehodnocení jako benchmarky FTR; jejich otázky jsou metriky.", en = "The self-checks as FTR benchmarks; their questions are the metrics." }
+description = { cs = "Kontroly sebehodnocení jako benchmarky ve slovníku FAIR Testing Resources (FTR); jejich otázky jsou metriky.", en = "The self-checks as benchmarks in the FAIR Testing Resources (FTR) vocabulary; their questions are the metrics." }
 record = { cs = "Jedna kontrola", en = "One check" }
 parameter = { cs = "Identifikátor kontroly", en = "The check's identifier" }
 

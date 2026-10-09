@@ -963,7 +963,7 @@
       "div",
       { class: "wrap catalogue" },
       FG.heading(1, null, FG.t("catalogue.title")),
-      h("p", { class: "lead" }, FG.t("catalogue.intro.all"), " ", h("a", { href: FG.href("page", "machines") }, FG.t("catalogue.machinesLink"))),
+      h("p", { class: "lead" }, FG.t("catalogue.intro.all")),
       h(
         "div",
         { class: "catalogue-layout" },

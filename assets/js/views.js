@@ -161,7 +161,23 @@
         h(
           "div",
           { class: "controls" },
-          h("a", { class: "button", href: FG.href(route.view, route.arg, { lang: otherLang }), lang: otherLang, hreflang: otherLang }, FG.t("nav.switchTo"))
+          /* The guide's data and its source sit beside the language, so they are found from every view. */
+          h(
+            "div",
+            { class: "header-links" },
+            Object.entries(FG.config.pageMenu || {})
+              .filter(([, menu]) => menu === "header")
+              .map(([id]) =>
+                h(
+                  "a",
+                  { class: "button header-page", href: FG.href("page", id), "aria-current": route.view === "page" && route.arg === id ? "page" : null },
+                  FG.icon(((FG.config.icons && FG.config.icons.page) || {})[id]),
+                  h("span", null, FG.text((FG.get("#page-" + id) || {}).headline))
+                )
+              ),
+            FG.external(FG.root.url, [FG.icon("repository"), h("span", { class: "visually-hidden" }, FG.t("nav.repository"))], { class: "button button-icon header-repository", title: FG.t("nav.repository") })
+          ),
+          h("a", { class: "button header-lang", href: FG.href(route.view, route.arg, { lang: otherLang }), lang: otherLang, hreflang: otherLang }, FG.t("nav.switchTo"))
         )
       )
     );
@@ -711,7 +727,7 @@
   function stationMarkdown(entity, route, parts) {
     const { items, now, steps, ai, action, resources, terms, helps, courses } = parts;
     const levelName = (code) => FG.termName("#level-" + code);
-    const lines = ["# " + mdText(FG.text(entity.name) + " · " + FG.text(entity.headline)), ""];
+    const lines = ["# " + mdText(FG.text(entity.headline)), ""];
     lines.push(mdText(FG.t("export.mdLens", { lens: FG.text((FG.get("#lens-" + route.lens) || {}).name) })), "");
     const principles = FG.principlesOf(entity);
     if (principles.length) lines.push(mdText(FG.t("station.principles")) + ": " + principles.map((principle) => mdText(principle.termCode + " " + FG.text(principle.name))).join(", "), "");
@@ -788,7 +804,8 @@
           "div",
           null,
           h("p", { class: "muted" }, stepLine),
-          heading(1, null, FG.span(entity.name), " · ", FG.span(entity.headline)),
+          /* The step's short name is in the path beside it; the heading is its title alone. */
+          heading(1, null, FG.span(entity.headline)),
           principleTiles(FG.principlesOf(entity), FG.t("station.principles"))
         )
       ),

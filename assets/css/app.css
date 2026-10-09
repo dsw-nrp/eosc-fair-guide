@@ -130,7 +130,8 @@ ol {
   }
 }
 
-/* On phones the logo and the language switch share the first row, and the title takes the second. */
+/* On phones the logo and the language switch share the first row, the title takes the second, and the guide's data
+   and source the third. */
 @media (max-width: 39.99rem) {
   .site-header .wrap {
     display: grid;
@@ -148,8 +149,17 @@ ol {
   }
 
   .site-header .controls {
+    display: contents;
+  }
+
+  .site-header .header-lang {
     grid-column: 2;
     grid-row: 1;
+  }
+
+  .site-header .header-links {
+    grid-column: 1 / -1;
+    grid-row: 3;
   }
 
   .brand-title {
@@ -171,7 +181,8 @@ ol {
   text-decoration: underline;
 }
 
-.controls {
+.controls,
+.header-links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -232,6 +243,23 @@ button:hover,
   background: none;
   text-decoration: underline;
   font-weight: 400;
+}
+
+/* An icon-only button, such as the GitHub link in the header; its name is in visually hidden text. */
+.button-icon {
+  justify-content: center;
+  min-width: 2.75rem;
+  padding: var(--space-2);
+}
+
+.button-icon .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.header-page[aria-current="page"] {
+  background: var(--tint-teal);
+  color: #ffffff;
 }
 
 /* Testing notice */

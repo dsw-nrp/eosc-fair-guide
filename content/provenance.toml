@@ -454,6 +454,17 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-09-machine-data"
+type = "create"
+name = "FAIR Testing Resources as a resource"
+description = "The FAIR Testing Resources vocabulary, which the guide's check results and API use, becomes a resource that the page for machines explains and links, read from its published release."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["ftr"]
+results = ["ftr"]
+endTime = 2026-10-09T18:30:00+02:00
+
+[[action]]
 id = "2026-10-09-funded-output"
 type = "create"
 name = "Funded-output profile of the dataset check"

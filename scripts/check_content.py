@@ -869,7 +869,7 @@ def check_names(report: Report, content: dict[str, Any]) -> None:
                 report.error(where, f"publisher '{publisher}' is the organisation '{match}'; cite it by that ID")
 
 
-PAGE_MENUS = ("catalogue", "tools", "about")
+PAGE_MENUS = ("catalogue", "tools", "about", "header")  # header: a button beside the language
 
 
 def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
@@ -881,7 +881,9 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
             report.error(where, "helper must be true or false")
         if page.get("menu") not in PAGE_MENUS:
             menus = ", ".join(PAGE_MENUS)
-            report.error(where, f"menu must be one of {menus}, so the page can be reached from the main menu")
+            report.error(
+                where, f"menu must be one of {menus}, so the page can be reached from the main menu or the header"
+            )
         elif page["menu"] == "tools":
             require_text(report, where, page.get("description"), "description")
         for number, section in enumerate(page.get("section", []), start=1):

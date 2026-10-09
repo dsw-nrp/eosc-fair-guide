@@ -1988,7 +1988,7 @@
         h("button", { type: "button", class: "button-small", id: "share-create", onclick: () => showShare(check, st) }, FG.icon("link"), FG.t("selfcheck.export.share")),
         h("button", { type: "button", class: "button-small", onclick: () => window.print() }, FG.icon("print"), FG.t("selfcheck.export.print")),
         /* The check itself as data: its benchmark in the guide's API, with each question as a metric and its test. */
-        FG.recordHref(check) ? h("a", { class: "button-small", id: "export-data", href: FG.recordHref(check), type: "application/json" }, FG.icon("code"), FG.t("selfcheck.export.data")) : null
+        FG.recordHref(check) ? h("a", { class: "button button-small", id: "export-data", href: FG.recordHref(check), type: "application/json" }, FG.icon("code"), FG.t("selfcheck.export.data")) : null
       ),
       h("div", { id: "share-output", class: "share-output" }),
       h("p", null, h("button", { type: "button", class: "button-link", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset")))

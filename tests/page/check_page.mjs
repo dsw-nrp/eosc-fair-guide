@@ -359,7 +359,11 @@ async function axe(page, label) {
 
     await view.goto(pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
-    if ((await current()) !== "Katalog") fail("machines: the page does not sit under the catalogue");
+    // The page sits in the header: its button is marked while it is open, no main-menu item is, and the header also
+    // links the source repository.
+    if (await view.locator('.main-nav [aria-current="page"]').count()) fail("machines: a main-menu item is marked although the page sits in the header");
+    if ((await view.locator('.site-header a.header-page[aria-current="page"]').textContent()).trim() !== "Data pro stroje") fail("machines: the header's button is not marked while the page is open");
+    if (!(await view.locator('.site-header a.header-repository[href^="https://github.com/"]').count())) fail("header: the source repository is not linked");
     if (!(await view.locator('.machine-tasks a[href="ro-crate-metadata.json"]').count())) fail("machines: the page does not offer the knowledge base");
     // A data steward who wants one record finds its address pattern and a working example, and how the guide itself
     // uses the same means: its signposts, read from the same list as the head and the linkset.
@@ -516,7 +520,7 @@ async function axe(page, label) {
     await view.goto(pageUrl + "#/cs/V/page/about");
     await view.waitForSelector("#main h1");
     const logo = await view.locator(".brand > a").first().boundingBox();
-    const language = await view.locator(".site-header .controls .button").boundingBox();
+    const language = await view.locator(".site-header .header-lang").boundingBox();
     if (language.y > logo.y + logo.height) fail("header: on a phone the language switch takes a row of its own");
     await view.close();
   }
@@ -688,7 +692,7 @@ async function axe(page, label) {
   const frame = page.frameLocator("iframe");
   await frame.locator("#main h1").waitFor();
   const heading = await frame.locator("#main h1").textContent();
-  if (!heading.includes("Repozitář")) fail("iframe: unexpected heading " + heading);
+  if (!heading.includes("Výběr repozitáře")) fail("iframe: unexpected heading " + heading);
   await frame.getByRole("link", { name: /Další krok/ }).click();
   try {
     await frame.locator("#main h1", { hasText: "Popis" }).waitFor({ timeout: 5000 });
