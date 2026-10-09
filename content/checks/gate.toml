@@ -81,7 +81,7 @@ id = "G06"
 tier = "required"
 principles = ["A1.2"]
 statement = { cs = "Repozitář je napojen na AAI e-INFRA CZ včetně rolí a skupin.", en = "The repository is connected to the e-INFRA CZ AAI, including roles and groups." }
-sources = ["C.M6", "C.EXT"]
+sources = ["C.M6", "C.EXT", "E.AAI-NRP-INTEGRATION", "E.NRP-AAI-SETUP"]
 fixAt = "licence"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
@@ -116,7 +116,7 @@ id = "G09"
 tier = "required"
 principles = []
 statement = { cs = "Repozitář je zapojen do monitoringu kybernetické bezpečnosti a prochází penetračními testy.", en = "The repository takes part in cyber-security monitoring and undergoes penetration tests." }
-sources = ["C.M9", "C.EXT"]
+sources = ["C.M9", "C.EXT", "E.KB1-MONITORING", "E.AAI-NRP-INCIDENT", "E.KB1-INFRA"]
 fixAt = "repozitar"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
@@ -127,7 +127,7 @@ id = "G10"
 tier = "required"
 principles = []
 statement = { cs = "Systém loguje do centrálního logování.", en = "The system logs to central logging." }
-sources = ["C.M10", "C.EXT"]
+sources = ["C.M10", "C.EXT", "E.KB1-LOGGING"]
 fixAt = "repozitar"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
@@ -203,7 +203,7 @@ id = "G17"
 tier = "required"
 principles = []
 statement = { cs = "Je zajištěna podpora uživatelů první úrovně.", en = "First-line user support is provided." }
-sources = ["C.CS"]
+sources = ["C.CS", "E.NRP-SUPPORT"]
 fixAt = "plan"
 owner = ["community", "repository-admin"]
 profiles = ["a", "b"]

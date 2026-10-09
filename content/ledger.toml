@@ -2363,3 +2363,61 @@ principles = []
 actor = "other"
 kind = "recommendation"
 text = { cs = "Výzkumné organizace mají tam, kde je to možné, zavádět nástroje generativní AI hostované lokálně nebo spravované důvěryhodnou stranou, aby do nich zaměstnanci mohli vkládat vědecká data se zajištěnou ochranou dat a důvěrností.", en = "Where possible, research organisations implement generative AI tools hosted locally or governed by trusted parties, so that staff can feed scientific data into a tool that ensures data protection and confidentiality." }
+
+# Sources behind the gate's infrastructure questions (AAI, security, logging, support).
+
+[[clause]]
+id = "E.AAI-NRP-INTEGRATION"
+source = "aai-nrp"
+principles = ["A1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Repozitáře a služby NRP se k AAI EOSC CZ připojují dvojmo: k ProxyIdP protokolem OIDC kvůli jednotnému přihlášení a atributům pro řízení přístupu a ke správě identit konektorem JSON kvůli zakládání a rušení účtů. Role přiřazené v AAI dostává repozitář při přihlášení a při jejich změnách a musí podle nich aktualizovat účty a jejich role.", en = "NRP repositories and services connect to the EOSC CZ AAI twice: to the ProxyIdP over OIDC for single sign-on and the attributes used in access control, and to identity management through a JSON connector for creating and removing accounts. A repository receives the roles assigned in the AAI at login and when they change, and must update the accounts and their roles accordingly." }
+
+[[clause]]
+id = "E.NRP-AAI-SETUP"
+source = "nrp-aai-integration"
+principles = ["A1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Repozitář musí přijímat identity z AAI EOSC; pro každý repozitář vzniká virtuální organizace, která eviduje jeho osoby a služby, se skupinami podle jmenných konvencí. Napojení se nastavuje po konzultaci se specialisty na repozitářové systémy a před ostrým provozem se testuje.", en = "A repository must accept identities from the EOSC AAI; each repository gets a virtual organisation that records its people and service identities, with groups following the naming conventions. The connection is set up after a consultation with repository-system specialists and tested before production." }
+
+[[clause]]
+id = "E.KB1-INFRA"
+source = "os2-kb1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Repozitáře NRP běží na společné infrastruktuře, v prostředí Kubernetes s úložištěm CEPH, každý ve vlastním jmenném prostoru. Sdružení CESNET ji provozuje v několika lokalitách, nyní ve dvou, a počítá až s pěti.", en = "NRP repositories run on shared infrastructure, a Kubernetes environment with CEPH storage, each in its own namespace. CESNET operates it at several sites, two at present, with up to five foreseen." }
+
+[[clause]]
+id = "E.KB1-MONITORING"
+source = "os2-kb1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Technická zpráva projektu Open Science II navrhuje bezpečnostní monitoring NRP zaměřený na síťový provoz infrastruktury; zjištěné události se mají hlásit systémy Warden a Mentat a incidenty řešit tým CESNET-CERTS, případně se správci repozitářů. Aplikace repozitářů procházejí penetračními testy (alespoň Invenio).", en = "A technical report of the Open Science II project designs NRP's security monitoring around the infrastructure's network traffic; detected events are to be reported through Warden and Mentat, and incidents handled by CESNET-CERTS, with the repository administrators where needed. The repository applications undergo penetration tests (at least Invenio)." }
+
+[[clause]]
+id = "E.KB1-LOGGING"
+source = "os2-kb1"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "NRP buduje systém pro centrální sběr a uložení aplikačních logů, do kterého mají své záznamy posílat všechny komponenty infrastruktury NRP a pravděpodobně i aplikace repozitářů.", en = "NRP is building a system for the central collection and storage of application logs, to which every component of the NRP infrastructure, and probably every repository application, is to send its records." }
+
+[[clause]]
+id = "E.AAI-NRP-INCIDENT"
+source = "aai-nrp"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Při bezpečnostním incidentu nebo podezření na něj postupují správci repozitářů a služeb NRP podle návodu týmu CESNET-CERTS a bez prodlení pošlou hlášení na certs@cesnet.cz.", en = "In a security incident, or when one is suspected, the administrators of NRP repositories and services follow the CESNET-CERTS procedure and report it without delay to certs@cesnet.cz." }
+
+[[clause]]
+id = "E.NRP-SUPPORT"
+source = "nrp-support"
+principles = []
+actor = "other"
+kind = "statement"
+text = { cs = "Podporu první úrovně (L1) v NRP poskytují provozovatelé repozitářů a specializovaných služeb; service desk požadavky jen předává. Provozovatel repozitáře zveřejňuje uživatelskou dokumentaci, uvádí kontakt na podporu a běžné dotazy řeší sám; doporučuje se systém požadavků RT.", en = "First-line (L1) support in NRP is provided by the operators of repositories and specialised services; the service desk only routes requests. A repository's operator publishes its user documentation, gives a support contact and handles routine questions itself; the RT request tracker is recommended." }

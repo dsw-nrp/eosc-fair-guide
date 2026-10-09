@@ -250,3 +250,68 @@ inLanguage = "en"
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/ai-data-privacy"
 publisher = "CERIT-SC"
 dateAccessed = 2026-10-09
+
+[[source]]
+id = "os2-kb1"
+type = "report"
+title = { cs = "Technická zpráva: Sběr požadavků a návrh architektury systému bezpečnostního monitoringu", en = "Technical report: requirements and architecture design of the security monitoring system" }
+inLanguage = "cs"
+url = "https://www.eosc.cz/media/4204147/kb_1-poz-adavky-a-na-vrh-architektury-syste-mu-bezpec-nostni-ho-monitoringu-v20.pdf"
+publisher = "cesnet"
+authors = ["V. Bartoš", "L. Huták"]
+version = "2"
+datePublished = 2026-07-24
+license = "https://creativecommons.org/licenses/by-sa/4.0/"
+
+[[source]]
+id = "nrp-aai-integration"
+type = "webpage"
+title = "Integrating a repository system with AAI (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/user_management_system/integrating-repo-systems"
+publisher = "nrp"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "eosc-cz-vision"
+type = "article"
+title = "EOSC CZ: Towards the development of Czech national ecosystem for FAIR research data"
+inLanguage = "en"
+doi = "10.48550/arXiv.2402.13343"
+url = "https://doi.org/10.48550/arXiv.2402.13343"
+publisher = "arXiv"
+authors = ["M. Antol", "J. Marek", "M. Capandova", "J. Juracek", "L. Matyska"]
+datePublished = 2024-02-20
+
+[[source]]
+id = "ercim-community"
+type = "article"
+title = "Shaping the Czech National Infrastructure for Research Data through Community Consensus"
+inLanguage = "en"
+doi = "10.71495/a7hs-fs41"
+url = "https://doi.org/10.71495/a7hs-fs41"
+publisher = "ERCIM News"
+authors = ["M. Dvořák", "P. Špringerová", "M. Antol"]
+datePublished = "2026"
+
+[[source]]
+id = "ndi-architecture"
+type = "document"
+title = { cs = "Architektura implementace iniciativy EOSC v ČR", en = "Architecture of the implementation of the EOSC initiative in the Czech Republic" }
+inLanguage = "cs"
+url = "https://www.eosc.cz/media/3517655/eosc_architektura-implementace.pdf"
+publisher = "EOSC CZ"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "nrp-roadmap-2025"
+type = "report"
+title = { cs = "Roadmapa služeb NRP pro 2025", en = "NRP service roadmap for 2025" }
+inLanguage = "cs"
+doi = "10.71495/h2rx-bd32"
+url = "https://doi.org/10.71495/h2rx-bd32"
+publisher = "nrp"
+authors = ["M. Růžička"]
+version = "1.0.1"
+datePublished = 2025-03-27
+license = "https://creativecommons.org/licenses/by/4.0/"

@@ -1440,6 +1440,15 @@ lenses = ["SR"]
 stations = ["licence"]
 languages = ["cs"]
 
+[resource.citation]
+type = "document"
+title = "Iniciální architektura AAI pro NRP"
+inLanguage = "cs"
+publisher = "nrp"
+authors = ["P. Lényi", "P. Vyskočil", "L. Vojáček"]
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-09
+
 [[resource]]
 id = "nrp-support"
 name = { cs = "Zásady podpory v NRP", en = "General support principles in NRP" }
@@ -1451,6 +1460,13 @@ asOf = 2026-10-09
 lenses = ["SR"]
 stations = ["repozitar"]
 languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "General Support Principles in the NRP (NRP documentation)"
+inLanguage = "en"
+publisher = "nrp"
+dateAccessed = 2026-10-09
 
 [[resource]]
 id = "nrp-admin-docs"

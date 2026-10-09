@@ -454,6 +454,17 @@ results = [
 endTime = 2026-10-09T10:39:16+02:00
 
 [[action]]
+id = "2026-10-09-gate-about-sources"
+type = "update"
+name = "Sources behind the gate's infrastructure questions and the About page"
+description = "The gate's questions on the AAI, security monitoring, central logging and first-line support cite what NRP's AAI architecture, its documentation and the Open Science II security monitoring report say about them; the About page says why the guide exists, citing the EOSC CZ vision paper, the NDI architecture, the ERCIM News article, the national survey of research data management and the NRP service roadmaps."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["aai-nrp", "nrp-aai-integration", "os2-kb1", "nrp-support", "eosc-cz-vision", "ndi-architecture", "ercim-community", "survey-2025-data", "nrp-roadmap-2025"]
+results = ["E.AAI-NRP-INTEGRATION", "E.NRP-AAI-SETUP", "E.KB1-INFRA", "E.KB1-MONITORING", "E.KB1-LOGGING", "E.AAI-NRP-INCIDENT", "E.NRP-SUPPORT", "G06", "G09", "G10", "G17", "aai-nrp", "nrp-support"]
+endTime = 2026-10-09T21:50:00+02:00
+
+[[action]]
 id = "2026-10-09-cerit-ai"
 type = "update"
 name = "AI in e-INFRA CZ, read from its documentation"
@@ -462,7 +473,7 @@ agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["cerit-aiaas", "cerit-chat-ai", "cerit-ai-api", "cerit-ai-coding", "cerit-ai-privacy"]
 results = ["cerit-aiaas"]
-endTime = 2026-10-10T00:30:00+02:00
+endTime = 2026-10-09T21:05:00+02:00
 
 [[action]]
 id = "2026-10-09-steward-community"
@@ -473,7 +484,7 @@ agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["cdsc-readme", "cdsc-eln", "iap-cas-readme"]
 results = ["cdsc-readme", "cdsc-eln", "E.CDSC-README", "E.CDSC-ELN", "prace.V.L1.3", "prace.V.L1.4", "prace.DS.L1.2", "popis.V.L1.5"]
-endTime = 2026-10-09T23:30:00+02:00
+endTime = 2026-10-09T20:16:00+02:00
 
 [[action]]
 id = "2026-10-09-ai-part"
@@ -484,7 +495,7 @@ agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["ec-genai-guidelines", "E.CERIT-AI"]
 results = ["plan.all.L1.1", "publikace.all.L1.1", "plan.DS.L1.5", "prace.all.L1.1", "repozitar.all.L1.1", "popis.all.L1.1", "popis.SR.L1.12", "licence.all.L1.1", "publikace.SR.L1.8", "dohledatelnost.all.L1.1", "citace.all.L1.1", "kontrola.all.L1.1", "kontrola.K.L1.4", "E.GENAI.R1", "E.GENAI.CITATIONS", "E.GENAI.R2", "E.GENAI.R3", "E.GENAI.ORG4"]
-endTime = 2026-10-09T22:30:00+02:00
+endTime = 2026-10-09T20:09:00+02:00
 
 [[action]]
 id = "2026-10-09-crate-standards"
