@@ -57,11 +57,12 @@
   const code = (iri) => String(FG.id(iri) || iri || "").split("/").pop();
   const slug = (value) => FG.fold(value).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-  /** A station or a check, as a short link. */
+  /** A station or a check, as a short link with its icon, as in the path menu. */
   function holderLink(holder) {
+    const icons = (FG.config && FG.config.icons) || {};
     return holder.position
-      ? h("a", { href: FG.href("path", holder.identifier) }, holder.position + " · ", FG.span(holder.name))
-      : h("a", { href: FG.href("check", holder.identifier) }, FG.span(holder.name));
+      ? h("a", { class: "holder-link", href: FG.href("path", holder.identifier) }, FG.icon((icons.station || {})[holder.identifier]), holder.position + " · ", FG.span(holder.name))
+      : h("a", { class: "holder-link", href: FG.href("check", holder.identifier) }, FG.icon((icons.check || {})[holder.identifier]), FG.span(holder.name));
   }
 
   /** Where each clause and each source is cited: the stations and checks whose items cite the clause. */
@@ -154,6 +155,7 @@
           FG.resourceCard(resource, {
             badges: [uses.map(useMark), citationBadges(resource), FG.apiLink(resource)],
             after: [
+              FG.pidLine(resource),
               recommended.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.recommendedAt") + ": ", joined(recommended.map(holderLink))) : null,
               citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null,
             ],
@@ -181,6 +183,7 @@
             h("h3", null, url ? FG.external(url, name) : name),
             source.creditText ? h("p", { class: "small" }, source.creditText) : null,
             h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.sourceType." + sourceForm(source))), useMark("cited"), citationBadges(source), FG.apiLink(source)),
+            FG.pidLine(source),
             citedBy.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.citedBy") + ": ", joined(citedBy.map(holderLink))) : null
           ),
       });
@@ -196,7 +199,7 @@
         stations: [],
         principles: FG.refs(fer, "about").map(code),
         facets: { use: ["dashboard"], type: ["fer:" + FG.id(fer.catalogueType)], status: [], language: [], lens: [] },
-        render: () => FG.ferCard(fer, { badges: [useMark("dashboard"), FG.apiLink(fer)] }),
+        render: () => FG.ferCard(fer, { badges: [useMark("dashboard"), FG.apiLink(fer)], after: FG.pidLine(fer) }),
       });
     }
     return entries;
@@ -328,6 +331,7 @@
             { class: "card term-card", id: "item-" + term.termCode, tabindex: "-1" },
             h("h3", { lang: "cs" }, FG.external(term.url, cs)),
             h("p", { class: "small", lang: "en" }, en),
+            FG.pidLine(term),
             at.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.onPath") + ": ", joined(at.map(holderLink))) : null,
             h("p", { class: "small" }, FG.apiLink(term))
           ),
@@ -356,7 +360,8 @@
             h("h3", null, url ? FG.external(url, FG.text(fip.name)) : FG.span(fip.name)),
             details.length ? h("p", { class: "small muted" }, details.join(" · ")) : null,
             fip.abstract ? h("p", null, FG.span(fip.abstract)) : null,
-            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length })), FG.verificationBadges(fip), FG.apiLink(fip))
+            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length })), FG.verificationBadges(fip), FG.apiLink(fip)),
+            FG.pidLine(fip)
           ),
       };
     });
@@ -390,7 +395,8 @@
                 health ? h("span", { class: "badge", "data-health": String(health) }, FG.t("catalogue.health." + health), test.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(test.statusAsOf) })) : null) : null,
                 h("span", { class: "badge code" }, test.identifier),
                 FG.apiLink(test)
-              )
+              ),
+              FG.pidLine(test)
             ),
         };
       });

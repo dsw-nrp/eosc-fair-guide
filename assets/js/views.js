@@ -112,6 +112,48 @@
   }
 
   FG.resourceCard = resourceCard;
+
+  /* Persistent identifier schemes, recognised by address, each with the label shown before it. */
+  const PID_SCHEMES = [
+    [/^https?:\/\/(dx\.)?doi\.org\//, "doi"],
+    [/^https?:\/\/hdl\.handle\.net\//, "handle"],
+    [/^https?:\/\/(purl\.org|w3id\.org)\/np\//, "nanopub"],
+    [/^https?:\/\/ror\.org\//, "ror"],
+    [/^https?:\/\/orcid\.org\//, "orcid"],
+    [/^https?:\/\/www\.re3data\.org\/repository\//, "re3data"],
+    [/^https?:\/\/(n2t\.net\/)?ark:|\/ark:\//, "ark"],
+    [/^https?:\/\/(w3id\.org|purl\.org|identifiers\.org)\//, "iri"],
+  ];
+
+  /** An entity's persistent identifiers: its own identifier, those it is the same as and its address, when they
+      follow a persistent identifier scheme. */
+  FG.pids = function (entity) {
+    const seen = new Set();
+    return [entity["@id"]]
+      .concat(FG.refIds(entity, "sameAs"), [entity.url])
+      .filter(Boolean)
+      .map(String)
+      .flatMap((iri) => {
+        const scheme = PID_SCHEMES.find(([pattern]) => pattern.test(iri));
+        if (!scheme || seen.has(iri)) return [];
+        seen.add(iri);
+        return [{ iri, scheme: scheme[1] }];
+      });
+  };
+
+  /* An address that may wrap after each slash, so a narrow screen breaks it between its parts. */
+  const breakable = (iri) => iri.split(/(?<=\/)/).flatMap((part, index) => (index ? [h("wbr"), part] : [part]));
+
+  /** A line with an entity's persistent identifiers, each named by its scheme and linked; nothing when it has none. */
+  FG.pidLine = function (entity) {
+    const pids = FG.pids(entity);
+    if (!pids.length) return null;
+    return h(
+      "p",
+      { class: "small pid-line" },
+      pids.flatMap((pid, index) => (index ? [" · "] : []).concat([h("span", { class: "pid-scheme" }, FG.t("pid." + pid.scheme)), " ", FG.external(pid.iri, breakable(pid.iri))]))
+    );
+  };
   FG.statusBadge = statusBadge;
   FG.dashboardRecord = dashboardRecord;
 
@@ -1026,7 +1068,8 @@
       h("h3", null, FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name)),
       fer.description ? h("p", null, FG.span(fer.description)) : null,
       orientationTags(FG.principlesOf(fer), []),
-      h("div", { class: "badges" }, h("span", { class: "badge" }, FG.termName(FG.id(fer.catalogueType))), verificationBadges(fer), extras ? extras.badges : null)
+      h("div", { class: "badges" }, h("span", { class: "badge" }, FG.termName(FG.id(fer.catalogueType))), verificationBadges(fer), extras ? extras.badges : null),
+      extras ? extras.after : null
     );
   };
 
@@ -1093,7 +1136,8 @@
         statusBadge(repository),
         h("span", { class: "badge badge-sources" }, FG.t("repositories.sourcesLabel") + ": ", repositorySources(repository)),
         FG.apiLink ? FG.apiLink(repository) : null
-      )
+      ),
+      FG.pidLine(repository)
     );
   };
 

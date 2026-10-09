@@ -606,6 +606,24 @@ function collisions() {
       });
       if (!corner) fail(`catalogue: the ${kind} record link does not sit in the card's top right corner`);
     }
+    // An entry shows the persistent identifiers it has, named by scheme, and none it lacks; the stations and checks
+    // an entry names carry their icons.
+    const pidsOf = async (hash, anchor) => {
+      await view.goto(pageUrl + hash);
+      await view.waitForSelector(`[id="item-${anchor}"]`);
+      return view.locator(`[id="item-${anchor}"]`).evaluate((card) => ({
+        pids: [...card.querySelectorAll(".pid-line a")].map((link) => [link.previousElementSibling.textContent, link.getAttribute("href"), link.textContent.replace(/\s*\(.*\)$/, "")]),
+        plainIcons: [...card.querySelectorAll(".cited-by a.holder-link")].filter((link) => !link.querySelector("svg.icon")).length,
+        holders: card.querySelectorAll(".cited-by a.holder-link").length,
+      }));
+    };
+    const roCrate = await pidsOf("#/cs/DS/catalogue/k!resources~q!crate", "ro-crate");
+    if (!roCrate.pids.some(([scheme, href, text]) => scheme === "DOI" && href === "https://doi.org/10.5281/zenodo.13751027" && text === href)) fail("catalogue: RO-Crate does not show its DOI in full: " + JSON.stringify(roCrate.pids));
+    if (!roCrate.holders || roCrate.plainIcons) fail("catalogue: a station an entry names lacks its icon");
+    const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "zenodo");
+    if (!zenodo.pids.some(([scheme, href]) => scheme === "re3data" && href.endsWith("/r3d100010468"))) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
+    const clause = await pidsOf("#/cs/V/catalogue/k!clauses~q!A.F1.N1", "A.F1.N1");
+    if (clause.pids.length) fail("catalogue: a requirement shows a persistent identifier it does not have");
     // The accessibility statement names the API documentation as exempt and points to the accessible list.
     await view.goto(pageUrl + "#/cs/V/page/accessibility");
     await view.waitForSelector("#main h1");

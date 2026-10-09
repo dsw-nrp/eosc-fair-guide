@@ -124,6 +124,16 @@ term = { cs = "Pojmy z Hesláře", en = "Glossary terms" }
 page = { cs = "Stránky", en = "Pages" }
 clause = { cs = "Požadavky analýzy", en = "Requirements of the analysis" }
 
+[pid]
+doi = { cs = "DOI", en = "DOI" }
+handle = { cs = "Handle", en = "Handle" }
+nanopub = { cs = "Nanopublikace", en = "Nanopublication" }
+ror = { cs = "ROR", en = "ROR" }
+orcid = { cs = "ORCID", en = "ORCID" }
+re3data = { cs = "re3data", en = "re3data" }
+ark = { cs = "ARK", en = "ARK" }
+iri = { cs = "Trvalé IRI", en = "Persistent IRI" }
+
 [station]
 step = { cs = "Krok {n} z {total}", en = "Step {n} of {total}" }
 minutes = { cs = "asi {n} min", en = "about {n} min" }
