@@ -344,7 +344,8 @@ check reports an icon that is named but not vendored.
 button with the page's title and icon beside the language switch, marked while the page is open; required, so every
 page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `helper` (true
 for a page that holds an interactive helper; until the page script provides it, the page says it is still being
-built), `[[page.section]]` with `heading`, `body` (text) and an optional `id`; the section
+built), `[[page.section]]` with `heading`, `body` (text; paragraphs are separated by a blank line, and a block
+whose lines all start with `- ` is shown as a list) and an optional `id`; the section
 `credits` on the about page carries the roles table, generated from the guide's metadata, and on the page for
 machines `tasks`, `practice` and `endpoints` carry the table of what a reader wants and where it is, the guide's
 own signposts and the API's endpoints. `ui.toml` holds interface strings

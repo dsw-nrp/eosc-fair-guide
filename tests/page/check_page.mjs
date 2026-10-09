@@ -611,6 +611,11 @@ function collisions() {
     await view.waitForSelector("#main h1");
     const exemption = view.locator("#main section", { hasText: "Swagger UI" });
     if (!(await exemption.count()) || !(await exemption.locator('a[href="#/cs/V/page/machines"]').count())) fail("accessibility: the statement does not name the API documentation and point to the endpoint list");
+    // A block of "- " lines in page text is a list: the AI page's practice for agents, with its link kept.
+    await view.goto(pageUrl + "#/en/V/page/ai");
+    await view.waitForSelector("#main h1");
+    const agentPractice = view.locator("#main section", { hasText: "When an AI agent does the work" }).locator("ul.text-list");
+    if ((await agentPractice.locator("li").count()) < 8 || (await agentPractice.innerText()).includes("- ") || !(await agentPractice.locator("a.text-ref").count())) fail("ai page: the practice for agents is not a list of items with its link");
     await view.close();
   }
 

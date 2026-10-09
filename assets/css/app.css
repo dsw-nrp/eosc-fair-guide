@@ -898,6 +898,11 @@ details > .content {
   padding-left: var(--space-4);
 }
 
+/* A list in authored text: its items spaced like short paragraphs. */
+.text-list > li {
+  margin-bottom: var(--space-2);
+}
+
 /* An AI tip: the tip, what to check, and its prompt to copy, kept together by the tip's line. */
 .ai-tip {
   margin-bottom: var(--space-4);

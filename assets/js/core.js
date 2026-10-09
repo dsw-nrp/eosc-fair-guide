@@ -207,6 +207,15 @@
     return FG.h("span", { lang: lang || null }, ...linkedNodes(entity, text, lang || FG.state.lang, new Set()));
   };
 
+  /* A block of text: a list when every line starts with "- ", a paragraph otherwise. */
+  function textBlock(block, lang, nodesOf) {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    if (lines.length && lines.every((line) => line.startsWith("- "))) {
+      return FG.h("ul", { class: "text-list", lang: lang || null }, ...lines.map((line) => FG.h("li", null, ...nodesOf(line.slice(2)))));
+    }
+    return FG.h("p", { lang: lang || null }, ...nodesOf(block));
+  }
+
   /** An entity's text as paragraphs with the entries it names linked, as FG.paragraphs shows it otherwise. */
   FG.linkedParagraphs = function (entity, prop) {
     const { text, lang } = FG.textOf(entity[prop || "text"], FG.state.lang);
@@ -214,16 +223,16 @@
     return text
       .split(/\n\s*\n/)
       .filter(Boolean)
-      .map((paragraph) => FG.h("p", { lang: lang || null }, ...linkedNodes(entity, paragraph, lang || FG.state.lang, used)));
+      .map((block) => textBlock(block, lang, (part) => linkedNodes(entity, part, lang || FG.state.lang, used)));
   };
 
-  /** Paragraphs of a text whose paragraphs are separated by a blank line. */
+  /** Paragraphs of a text whose paragraphs are separated by a blank line; a block of "- " lines is a list. */
   FG.paragraphs = function (value) {
     const { text, lang } = FG.textOf(value, FG.state.lang);
     return text
       .split(/\n\s*\n/)
       .filter(Boolean)
-      .map((paragraph) => FG.h("p", { lang: lang || null }, paragraph));
+      .map((block) => textBlock(block, lang, (part) => [part]));
   };
 
   /* ---------------------------------------------------------------- interface strings */
