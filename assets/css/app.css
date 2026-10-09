@@ -3202,6 +3202,12 @@ a.id-chip:focus-visible {
   margin-bottom: var(--space-1);
 }
 
+.prefill-row textarea {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
 .inline,
 .buttons {
   display: flex;

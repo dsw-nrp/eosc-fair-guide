@@ -1399,6 +1399,23 @@ sections.push(["self-check", async () => {
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("není ve snímku"));
   await page.locator("#prefill-re3data-clear").click();
+  // FAIR Champion over a sample of records (replaced here): one record passes, one fails and one gives no result, so
+  // a question resting on one test is partly met by the two records with a result; the missing result is said.
+  await page.evaluate(() => {
+    window.FairGuide.live.championTest = async (test, record) => {
+      if (record.endsWith("/none")) throw new Error("no verdict");
+      return { value: record.endsWith("/bad") ? "fail" : "pass", log: "" };
+    };
+  });
+  await page.fill("#prefill-champion", "10.1234/good\n10.1234/bad\n10.1234/none");
+  await page.locator("#prefill-champion-run").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  const championOrigin = await page.locator("#origin-S02").textContent();
+  if (!(await checked("answer-S02-partly")) || !championOrigin.includes("FAIR Champion") || !championOrigin.includes("1 z 2")) fail("maturity check: a sample with one passing and one failing record does not partly meet S02 from FAIR Champion: " + championOrigin);
+  if (!(await page.locator("#prefill-status").textContent()).includes("nevrátilo výsledek")) fail("maturity check: tests without a result are not reported");
+  await page.fill("#prefill-champion", "a b c d e f");
+  await page.locator("#prefill-champion-run").click();
+  if (!(await page.locator("#prefill-status").textContent()).includes("jeden až 5")) fail("maturity check: a sample over five records is accepted");
   await page.locator("#answer-S02-no").check();
   if (!(await page.locator(".gaps").first().textContent()).includes("S02")) fail("maturity check: the S02 gap is missing");
   await go("#/cs/DS/check/institution");

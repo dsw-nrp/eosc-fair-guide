@@ -863,6 +863,88 @@
   }
 
   /** The re3data field: a re3data DOI (resolved through doi.org), an r3d identifier or the record's address. */
+  /* A sample of a repository's records for the FAIR Champion tests the check's questions name: a few, of different
+     types, since the platform's configuration rather than the record mostly decides the result. */
+  const SAMPLE_MAX = 5;
+  const sampleOf = (text) => [...new Set(String(text || "").split(/[\s,;]+/).map((value) => value.trim()).filter(Boolean))];
+
+  /** Run tasks, at most `limit` at a time. */
+  async function inBatches(tasks, limit) {
+    const queue = tasks.slice();
+    await Promise.all(Array.from({ length: Math.min(limit, queue.length) }, async () => { while (queue.length) await queue.shift()(); }));
+  }
+
+  /** Run the FAIR Champion tests the check's questions name over a sample of records, a few at a time, and answer
+      each question from the verdicts across the sample: every record with a result passes (yes), some do (partly),
+      none do (no). A test that gives no result is not a failure, and a record without a result does not count. */
+  function prefillFromChampion(check, sample) {
+    const st = stateOf(check);
+    const tests = [...new Set(answerable(check, st).flatMap((item) => FG.list((prefillOf(item, "champion") || {}).value).map(String)))];
+    return runPrefill(check, "champion", "prefill-champion-run", async (messages) => {
+      const verdicts = {};
+      const key = (test, record) => test + " " + record;
+      const tasks = tests.flatMap((test) =>
+        sample.map((record) => async () => {
+          try {
+            verdicts[key(test, record)] = (await FG.live.championTest(test, record)).value;
+          } catch (error) {
+            verdicts[key(test, record)] = null;
+          }
+        })
+      );
+      await inBatches(tasks, (FG.config.champion && FG.config.champion.maxParallel) || 4);
+      const missing = Object.values(verdicts).filter((value) => value !== "pass" && value !== "fail").length;
+      if (missing) messages.push(FG.t("selfcheck.prefill.championMissing", { n: missing, total: tasks.length }));
+      return applyEvidence(
+        check,
+        "champion",
+        (item, itemTests) => {
+          const states = sample.map((record) => {
+            const values = itemTests.map((test) => verdicts[key(test, record)]);
+            if (values.includes("fail")) return "fail";
+            return values.every((value) => value === "pass") ? "pass" : null;
+          });
+          const known = states.filter(Boolean).length;
+          const passed = states.filter((state) => state === "pass").length;
+          return {
+            value: !known ? null : passed === known ? "yes" : passed ? "partly" : "no",
+            notes: [{ key: "selfcheck.note.championSample", params: { passed, n: known, total: sample.length } }],
+            fields: sample.map((record, index) => ({ path: record, values: [FG.t("selfcheck.champion." + (states[index] || "none"))] })),
+          };
+        },
+        today(),
+        null
+      );
+    });
+  }
+
+  /** The sample of records to test, and the button that runs the tests. */
+  function championControl(check, st) {
+    const field = h("textarea", { id: "prefill-champion", rows: "3", spellcheck: "false", autocomplete: "off" }, st.sample || "");
+    field.addEventListener("change", () => {
+      st.sample = field.value;
+      save();
+    });
+    const run = () => {
+      const sample = sampleOf(field.value);
+      if (!sample.length || sample.length > SAMPLE_MAX) {
+        setStatus(check, FG.t("selfcheck.prefill.championInvalid", { n: SAMPLE_MAX }));
+        return;
+      }
+      st.sample = field.value;
+      save();
+      prefillFromChampion(check, sample);
+    };
+    return h(
+      "div",
+      { class: "prefill-row" },
+      h("label", { for: "prefill-champion" }, FG.t("selfcheck.prefill.champion", { n: SAMPLE_MAX })),
+      field,
+      h("div", { class: "inline" }, h("button", { type: "button", id: "prefill-champion-run", onclick: run }, FG.t("selfcheck.prefill.championButton"))),
+      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.championHint"))
+    );
+  }
+
   function re3dataControl(check, st) {
     const input = h("input", { id: "prefill-re3data", type: "text", autocomplete: "off", spellcheck: "false", value: st.re3data || "" });
     const run = async () => {
@@ -977,6 +1059,9 @@
     if (ready && needsSteward(check, st)) controls.push(stewardControl(check, st));
     if (sources.has("nkr")) controls.push(nkrControl(check, st));
     if (sources.has("re3data")) controls.push(re3dataControl(check, st));
+    /* A check about a repository tests a sample of its records; a check about one object tests that object (live
+       checks), so the sample is offered only where no identifier of a single object is asked for. */
+    if (sources.has("champion") && !sources.has("datacite") && !sources.has("resolver")) controls.push(championControl(check, st));
     if (sources.has("fip")) controls.push(fipControl(check, st));
     if (!controls.length) {
       return h(

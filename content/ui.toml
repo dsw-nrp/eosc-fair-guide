@@ -286,6 +286,11 @@ unknown = { cs = "Nevím", en = "Don't know" }
 na = { cs = "Netýká se", en = "Not applicable" }
 
 [selfcheck.prefill]
+champion = { cs = "Vzorek záznamů repozitáře: DOI nebo adresy, nejvýš {n}", en = "A sample of the repository's records: DOIs or addresses, at most {n}" }
+championButton = { cs = "Otestovat vzorek", en = "Test the sample" }
+championHint = { cs = "Průvodce spustí pro každý záznam testy FAIR Champion, na které otázky odkazují, nejvýš čtyři najednou; test bez výsledku se nepočítá jako nesplněný. Může to trvat i několik minut. Testy běží na serveru FAIR Champion, který uvidí adresy záznamů.", en = "The guide runs the FAIR Champion tests the questions refer to for each record, at most four at a time; a test without a result does not count as failed. It can take several minutes. The tests run on the FAIR Champion server, which sees the records' addresses." }
+championInvalid = { cs = "Zadejte jeden až {n} identifikátorů záznamů.", en = "Give one to {n} record identifiers." }
+championMissing = { cs = "{n} z {total} testů nevrátilo výsledek; nepočítají se.", en = "{n} of {total} tests gave no result; they do not count." }
 title = { cs = "Předvyplnit odpovědi", en = "Pre-fill the answers" }
 fromRecords = { cs = "Z veřejných záznamů", en = "From public records" }
 fromFile = { cs = "Z uloženého výsledku", en = "From a saved result" }
@@ -318,6 +323,11 @@ clearLabel = { cs = "Smazat identifikátor a jím předvyplněné odpovědi", en
 clearHint = { cs = "Křížkem smažete identifikátor i odpovědi, které předvyplnil; vaše vlastní odpovědi zůstanou.", en = "The cross clears the identifier and the answers it pre-filled; your own answers stay." }
 cleared = { cs = "Identifikátor a jím předvyplněné odpovědi jsou smazané; vaše vlastní odpovědi zůstaly.", en = "The identifier and the answers it pre-filled are cleared; your own answers stay." }
 
+[selfcheck.champion]
+pass = { cs = "splněno", en = "passed" }
+fail = { cs = "nesplněno", en = "failed" }
+none = { cs = "bez výsledku", en = "no result" }
+
 [selfcheck.source]
 datacite = { cs = "DataCite", en = "DataCite" }
 resolver = { cs = "resolver identifikátorů", en = "the identifier resolver" }
@@ -338,6 +348,7 @@ suggestion = { cs = "Zdroj {source} ({date}) odpověď nenavrhl.", en = "{source
 shared = { cs = "Převzato ze sdíleného výsledku", en = "Taken from a shared result" }
 
 [selfcheck.note]
+championSample = { cs = "Testy splnilo {passed} z {n} záznamů s výsledkem; vzorek měl {total}.", en = "{passed} of the {n} records with a result passed the tests; the sample had {total}." }
 stewardFound = { cs = "Metadata uvádějí data stewarda: {name}.", en = "The metadata name the data steward: {name}." }
 stewardMissing = { cs = "Data steward s ORCID iD {orcid} není v metadatech mezi autory ani přispěvateli.", en = "The data steward with ORCID iD {orcid} is neither a creator nor a contributor in the metadata." }
 stewardRole = { cs = "Metadata uvádějí správce dat ({names}); ověřte, že jde o data stewarda projektu, nebo zadejte jeho ORCID iD.", en = "The metadata name a data curator or manager ({names}); check that this is the project's data steward, or enter their ORCID iD." }
