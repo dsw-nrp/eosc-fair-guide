@@ -80,8 +80,9 @@ python scripts/build_site.py
 python scripts/check_content.py
 ```
 
-Then open `_site/index.html` (or `python scripts/serve.py` to use the API) and look at the changed station in each affected lens and in both languages. For
-page changes, also run the page checks listed in `package.json`.
+Then open `_site/index.html` (or `python scripts/serve.py` to use the API) and look at the changed station in each affected lens and in both languages. Before
+the pull request, run every check at once with `python scripts/check_all.py` (after `npm ci` and installing
+`requirements-dev.txt`).
 
 ## 8. Pull request
 

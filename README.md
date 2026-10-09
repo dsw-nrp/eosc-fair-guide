@@ -52,6 +52,9 @@ python scripts/build_site.py
 python scripts/check_content.py
 ```
 
+Všechny kontroly najednou spustí `python scripts/check_all.py` (po `npm ci` a instalaci
+nástrojů z `requirements-dev.txt`).
+
 Průvodce i s jeho API, jak bude zveřejněn, si spustíte na svém počítači (dokumentace API potřebuje jednou
 `npm ci`) a otevřete <http://127.0.0.1:8000/> a <http://127.0.0.1:8000/api/>:
 

@@ -33,7 +33,10 @@ rules are in [docs/content-model.md](docs/content-model.md); design decisions ar
 ```bash
 python scripts/build_site.py       # build the site into _site/: the crate, the page with its data, the API
 python scripts/check_content.py    # content contract: languages, sources, paradata, links, statuses
+python scripts/check_all.py        # before a pull request: build, then every check at once (--live adds the network checks)
 ```
+
+`check_all.py` needs `npm ci` and the tools from `requirements-dev.txt`, and reports each check's result and time.
 
 Repository hygiene needs two tools from `requirements-dev.txt`:
 

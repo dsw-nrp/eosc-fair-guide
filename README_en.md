@@ -70,6 +70,9 @@ python scripts/build_site.py
 python scripts/check_content.py
 ```
 
+To run every check at once, use `python scripts/check_all.py` (after `npm ci` and installing the tools
+from `requirements-dev.txt`).
+
 To see the guide with its API as it will be published, serve it on your computer (the API documentation needs
 `npm ci` once), then open <http://127.0.0.1:8000/> and <http://127.0.0.1:8000/api/>:
 

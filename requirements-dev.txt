@@ -2,3 +2,4 @@
 reuse[charset-normalizer]==6.2.0
 cffconvert==2.0.0
 roc-validator==0.12.2
+ruff==0.16.6

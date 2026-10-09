@@ -70,6 +70,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 ## Commands
 
 ```bash
+python scripts/check_all.py             # build, then every check below at once, each with its result and time (--live adds the network checks)
 python scripts/build_site.py            # build the site into _site/ (after npm ci); open _site/index.html
 python scripts/build_site.py --sizes    # also print what the page downloads, compressed; every build warns above the budget
 python scripts/check_content.py         # content contract and no build output in the repository (--base <ref> also checks paradata freshness)
@@ -87,7 +88,8 @@ rocrate-validator validate -p process-run-crate-0.5 -nh --skip-availability-chec
 rocrate-validator validate --extra-profiles-path _site/profile -p fair-guide-0.1 -nh --skip-availability-check _site
 ```
 
-Page checks need Node.js and Chromium (installed into the gitignored `.cache/`) and run on the built site:
+Page checks need Node.js and Chromium (installed into the gitignored `.cache/`) and run on the built site; their
+independent sections, and the sweep of every view in several pages, run at once:
 
 ```bash
 npm ci

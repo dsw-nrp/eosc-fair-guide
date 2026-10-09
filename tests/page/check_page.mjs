@@ -38,6 +38,8 @@ const failures = [];
 const fail = (message) => failures.push(message);
 
 const browser = await chromium.launch();
+/** The independent sections of the checks, run at once; each opens its own browser context. */
+const sections = [];
 
 async function openPage(viewport) {
   const context = await browser.newContext({ viewport: viewport || { width: 1280, height: 900 } });
@@ -257,7 +259,7 @@ function collisions() {
 }
 
 // 1. Load from a local file: no external request, no error.
-{
+sections.push(["page", async () => {
   const { context, page, external, problems } = await openPage();
   await page.goto(pageUrl);
   await rendered(page);
@@ -869,13 +871,10 @@ function collisions() {
   await lensShown(page, "SR");
   if (!(await page.locator(".tasks").textContent()).includes("Podmínky NRP")) fail("landing: the repository administrator's tasks are missing");
   await context.close();
-}
+}]);
 
 // 2. Every station in every lens and language, then the other views.
-{
-  const { context, page, external, problems } = await openPage();
-  await page.goto(pageUrl);
-  await rendered(page);
+sections.push(["views", async () => {
   const views = [];
   for (const lang of ["cs", "en"]) {
     for (const lens of lenses) for (const station of stations) views.push(`#/${lang}/${lens}/path/${station}`);
@@ -885,6 +884,17 @@ function collisions() {
     for (const principle of principles.slice(0, 3)) views.push(`#/${lang}/K/explorer/${principle}`);
     for (const id of pages) views.push(`#/${lang}/V/page/${id}`);
   }
+  // Several pages at once, each taking every fourth view in order.
+  const PAGES = 4;
+  await Promise.all(Array.from({ length: PAGES }, (_, part) => checkViews(views.filter((_, index) => index % PAGES === part))));
+  console.log(`checked ${views.length} views`);
+}]);
+
+/** Open the guide in one page and check each view in turn. */
+async function checkViews(views) {
+  const { context, page, external, problems } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
   for (const hash of views) {
     await page.evaluate((value) => { window.location.hash = value; }, hash);
     await page.waitForFunction((value) => window.location.hash === value && document.querySelector("#main h1"), hash);
@@ -895,8 +905,8 @@ function collisions() {
     if (hash.includes("/path/")) {
       const now = await page.locator(".now").count();
       if (!now) fail(`${hash}: no L0 block`);
-      // Every station offers AI tips, each with what to check, a prompt and its copy button. Opened once, the block
-      // stays open in the views that follow, so the alignment and spacing checks below measure it.
+      // Every station offers AI tips, each with what to check, a prompt and its copy button. Opened once in a page, the
+      // block stays open in the views that follow, so the alignment and spacing checks below measure it.
       const tips = await page.evaluate(() => {
         const block = document.querySelector('#main details[data-key="ai"]');
         if (!block) return null;
@@ -924,12 +934,11 @@ function collisions() {
   }
   if (external.length) fail("requests while navigating: " + external.join(", "));
   for (const problem of problems) fail("navigation: " + problem);
-  console.log(`checked ${views.length} views`);
   await context.close();
 }
 
 // 3. Reflow at 320 CSS pixels: no horizontal scrolling, and the main views keep their alignment and spacing.
-{
+sections.push(["reflow", async () => {
   const { context, page } = await openPage({ width: 320, height: 800 });
   const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publikace", "#/en/DS/resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/en/V/page/about"];
   for (const hash of narrow) {
@@ -945,10 +954,10 @@ function collisions() {
     if (collided.length) fail(`${hash} at 320 px: collisions: ${[...new Set(collided)].slice(0, 4).join("; ")}`);
   }
   await context.close();
-}
+}]);
 
 // 4. Embedded in an iframe.
-{
+sections.push(["iframe", async () => {
   const host = resolve(root, ".cache", "iframe-host.html");
   mkdirSync(dirname(host), { recursive: true });
   writeFileSync(host, `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Host</title></head><body><iframe title="FAIR guide" src="${pageUrl}#/cs/V/path/repozitar" style="width:100%;height:800px"></iframe></body></html>`);
@@ -965,11 +974,11 @@ function collisions() {
     fail("iframe: navigation inside the frame failed: " + (await frame.locator("#main h1").textContent()));
   }
   await context.close();
-}
+}]);
 
 // 5. Self-check without network: modes and profiles, answers, tiers, gaps on the path, the FIP Dashboard
 //    snapshot pre-fill, a shared link and the exports. Nothing may leave the browser.
-{
+sections.push(["self-check", async () => {
   const { context, page, external, problems } = await openPage();
   const go = async (hash) => {
     await page.evaluate((value) => { window.location.hash = value; }, hash);
@@ -1532,13 +1541,13 @@ function collisions() {
   for (const problem of problems) fail("self-check: " + problem);
   console.log("checked the self-check flows");
   await context.close();
-}
+}]);
 
 // 6. Funded output in the dataset check: the programme question appears after publication with no programme
 //    picked; the minizáměr shows the requirements both programmes share and Open Science III adds its own; a
 //    DataCite record without the data steward's ORCID iD gives a gap that says the dataset would not meet the
 //    programme's requirement. Its own context, so the pre-filled answers stay out of the other self-check flows.
-{
+sections.push(["funded output", async () => {
   const { context, page, external, problems } = await openPage();
   const checked = (id) => page.locator("#" + id).isChecked();
   await page.goto(pageUrl + "#/cs/V/check/dataset");
@@ -1570,7 +1579,22 @@ function collisions() {
   for (const problem of problems) fail("funded output: " + problem);
   console.log("checked the funded-output profile");
   await context.close();
-}
+}]);
+
+// Every section at once; one that throws fails on its own and the others still report.
+const timings = [];
+await Promise.all(
+  sections.map(async ([name, run]) => {
+    const start = Date.now();
+    try {
+      await run();
+    } catch (error) {
+      fail(`${name}: stopped: ${String(error.message).split("\n")[0]}`);
+    }
+    timings.push(`${name} ${((Date.now() - start) / 1000).toFixed(1)}s`);
+  })
+);
+console.log("sections: " + timings.join(", "));
 
 await browser.close();
 if (failures.length) {

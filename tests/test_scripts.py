@@ -25,6 +25,7 @@ sys.path.insert(0, str(SCRIPTS))
 import build_api  # noqa: E402
 import build_crate  # noqa: E402
 import build_site  # noqa: E402
+import check_all  # noqa: E402
 import check_content  # noqa: E402
 import refresh_snapshots  # noqa: E402
 
@@ -691,6 +692,34 @@ class SiteTests(unittest.TestCase):
     def test_the_build_never_replaces_the_repository(self) -> None:
         with self.assertRaises(build_crate.ContentError):
             build_site.build(build_crate.ROOT)
+
+
+class CheckAllTests(unittest.TestCase):
+    def test_checks_run_at_once_and_a_failure_keeps_its_output(self) -> None:
+        python = sys.executable
+        jobs = [
+            check_all.Job("passes", [python, "-c", "print('fine')"]),
+            check_all.Job("fails", [python, "-c", "import sys; print('broken'); sys.exit(3)"]),
+        ]
+        lines: list[str] = []
+        results = check_all.run_all(jobs, 2, dict(os.environ), report=lines.append)
+        self.assertEqual([result.job.name for result in results], ["passes", "fails"])
+        self.assertEqual([result.ok for result in results], [True, False])
+        self.assertIn("broken", results[1].output)
+        self.assertEqual(len(lines), 2)
+
+    def test_a_missing_tool_fails_its_check_without_stopping_the_run(self) -> None:
+        result = check_all.run(check_all.Job("missing", ["no-such-tool-for-the-guide"]), dict(os.environ))
+        self.assertFalse(result.ok)
+        self.assertIn("no-such-tool-for-the-guide", result.output)
+
+    def test_live_checks_run_only_on_request(self) -> None:
+        self.assertNotIn("live", [job.name for job in check_all.jobs("HEAD", live=False)])
+        self.assertIn("live", [job.name for job in check_all.jobs("HEAD", live=True)])
+
+    def test_an_unknown_check_is_refused(self) -> None:
+        with mock.patch("sys.stderr"), self.assertRaises(SystemExit):
+            check_all.main(["--only", "no-such-check"])
 
 
 class ApiTests(unittest.TestCase):
