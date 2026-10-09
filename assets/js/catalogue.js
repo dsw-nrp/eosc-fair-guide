@@ -805,7 +805,7 @@
 
   /** The kind as a single choice, each with its count under the other filters and, where it shows none because it
       lacks a chosen dimension, the reason. */
-  function kindPicker(selected, counts, noteOf, onPick) {
+  function kindPicker(selected, counts, noteOf, onPick, footnote) {
     return h(
       "fieldset",
       { class: "facet facet-kinds", "data-facet": "kind" },
@@ -825,7 +825,8 @@
             note ? h("span", { class: "facet-note small muted" }, note) : null
           );
         })
-      )
+      ),
+      footnote ? h("p", { class: "facet-note small muted" }, footnote) : null
     );
   }
 
@@ -877,8 +878,13 @@
     const orders = ordersFor(kind).filter((name) => (name !== "station" || carries("stations")) && (name !== "principle" || carries("principles")));
     const order = orders.includes(state.order) ? state.order : orders[0];
 
-    /* Counts: kinds under every filter; a shared facet under every other filter; a kind's facet within that kind. */
-    const kindCounts = new Map(KINDS.map((kind) => [kind, entries[kind].filter((entry) => passesShared(entry, state) && passesKind(entry, state, route)).length]));
+    /* Counts: kinds under every filter; a shared facet under every other filter; a kind's facet within that kind.
+       The chosen kind's own filters cannot hold for another kind, so another kind counts none while one is chosen,
+       as it does for a station or principle it lacks; choosing it drops them. The lens, kept across kinds, is not one. */
+    const ownFilters = (KIND_FACETS[kind] || []).filter((facet) => !facet.passThrough && chosenValues(state, route, facet.key).length);
+    const kindCounts = new Map(
+      KINDS.map((other) => [other, other !== kind && ownFilters.length ? 0 : entries[other].filter((entry) => passesShared(entry, state) && passesKind(entry, state, route)).length])
+    );
     const lacks = (kind, dimension) => !entries[kind].some((entry) => entry[dimension].length);
     const sharedCounts = (dimension, skip) => {
       const counts = new Map();
@@ -895,6 +901,7 @@
       return counts;
     };
     const kindNote = (other, count) => {
+      if (other !== kind && ownFilters.length) return null;
       if (!count && state.stations.length && lacks(other, "stations")) return FG.t("catalogue.noStation");
       if (!count && state.principles.length && lacks(other, "principles")) return FG.t("catalogue.noPrinciple");
       return null;
@@ -930,7 +937,13 @@
     const facets = [
       search,
       /* Changing the kind keeps search, station, principle and lens, and drops the previous kind's own facets. */
-      kindPicker(kind, kindCounts, kindNote, (other, focus) => go(Object.assign({}, state, { kinds: [other], order: "", f: state.f.lens ? { lens: state.f.lens } : {} }), focus)),
+      kindPicker(
+        kind,
+        kindCounts,
+        kindNote,
+        (other, focus) => go(Object.assign({}, state, { kinds: [other], order: "", f: state.f.lens ? { lens: state.f.lens } : {} }), focus),
+        ownFilters.length ? FG.t("catalogue.noKindFilter", { facets: ownFilters.map((facet) => FG.t("catalogue.facet." + facet.key).toLowerCase()).join(", "), kind: FG.t("catalogue.tab." + kind) }) : null
+      ),
       showStations
         ? facetGroup("station", FG.t("catalogue.facet.station"), FG.stations().map((station) => station.identifier), state.stations, sharedCounts("stations", "station"), stationLabel, (id, focus) =>
             go(Object.assign({}, state, { stations: toggle(state.stations, id) }), focus)

@@ -345,6 +345,13 @@ sections.push(["page", async () => {
     await view.waitForFunction(() => location.hash.includes("s!licence"));
     if (!((await found()) > 0 && (await found()) < before)) fail("catalogue: the station facet does not narrow the list");
     if (!(await view.locator('[data-facet="kind"] li', { hasText: "Profily FIP" }).textContent()).includes("nemají zastávku")) fail("catalogue: a kind without stations does not say why it shows none");
+    // The chosen kind's own filter holds for no other kind: the others count none and say why.
+    await view.locator("#facet-clauses-ckind-recommendation").check();
+    await view.waitForFunction(() => location.hash.includes("f.ckind!recommendation"));
+    const otherKind = view.locator('[data-facet="kind"] li', { hasText: "Zdroje" });
+    if ((await otherKind.locator(".facet-count").textContent()) !== "0" || !(await view.locator('[data-facet="kind"] > .facet-note').textContent()).includes("platí jen pro druh Požadavky")) fail("catalogue: another kind is counted under a filter of the chosen kind, or the picker does not say why");
+    await view.locator("#facet-clauses-ckind-recommendation").uncheck();
+    await view.waitForFunction(() => !location.hash.includes("f.ckind!recommendation"));
     await view.locator("#catalogue-order").selectOption("principle");
     await view.waitForFunction(() => location.hash.includes("o!principle"));
     if (!(await view.locator(".catalogue-group > h2").count())) fail("catalogue: ordering by principle does not group the list");

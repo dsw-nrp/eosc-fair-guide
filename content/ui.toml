@@ -592,6 +592,7 @@ moreValues = { cs = "Další hodnoty ({n})", en = "More values ({n})" }
 fewerValues = { cs = "Méně hodnot", en = "Fewer values" }
 noStation = { cs = "nemají zastávku", en = "have no station" }
 noPrinciple = { cs = "nemají princip", en = "have no principle" }
+noKindFilter = { cs = "Filtr {facets} platí jen pro druh {kind}; jiný druh ho zruší.", en = "The {facets} filter applies only to {kind}; another kind clears it." }
 withoutStation = { cs = "Bez zastávky", en = "Without a station" }
 withoutPrinciple = { cs = "Bez principu", en = "Without a principle" }
 withoutStatus = { cs = "Bez stavu", en = "No status" }
