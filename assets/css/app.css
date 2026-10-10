@@ -1291,7 +1291,12 @@ main p > button {
   margin: 0;
 }
 
+/* A requirement's identifier, source and status, spaced so they stay apart when the line wraps. */
 .clause .clause-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
   margin-top: var(--space-1);
   color: var(--text-muted);
 }
@@ -3491,7 +3496,13 @@ a.id-chip:focus-visible {
 .lens-tag {
   display: inline-flex;
   align-items: center;
+  gap: 0.3em;
   color: var(--text-muted);
+}
+
+/* A relation's note, under its links. */
+.relation-note {
+  flex-basis: 100%;
 }
 
 /* A phrase the text names an entry by: a link that does not interrupt reading. */

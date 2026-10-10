@@ -6,6 +6,7 @@
 id = "analyza-fair-1.2"
 type = "report"
 title = { cs = "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI", en = "Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI" }
+short = { cs = "Analýza FAIR pro NRP/NDI", en = "FAIR analysis for NRP/NDI" }
 inLanguage = "cs"
 doi = "10.71495/5dv6-v116"
 url = "https://doi.org/10.71495/5dv6-v116"
@@ -155,6 +156,7 @@ dateAccessed = 2026-10-08
 id = "os3-rules"
 type = "document"
 title = { cs = "Pravidla pro žadatele a příjemce – specifická část pro výzvu Open Science III", en = "Rules for applicants and beneficiaries – specific part for the Open Science III call" }
+short = { cs = "Pravidla výzvy Open Science III", en = "Open Science III call rules" }
 inLanguage = "cs"
 version = "1"
 url = "https://opjak.cz/wp-content/uploads/2026/06/PpZP_specificka_cast_vyzva_Open_Science_III_web.pdf"
@@ -165,6 +167,7 @@ dateAccessed = 2026-10-09
 id = "law-328-2025"
 type = "document"
 title = { cs = "Zákon č. 328/2025 Sb., o výzkumu, vývoji, inovacích a transferu znalostí", en = "Act No. 328/2025 Coll., on research, development, innovation and knowledge transfer" }
+short = { cs = "Zákon č. 328/2025 Sb.", en = "Act No. 328/2025 Coll." }
 inLanguage = "cs"
 url = "https://e-sbirka.gov.cz/sb/2025/328"
 datePublished = 2025-09-09
@@ -194,6 +197,7 @@ dateAccessed = 2026-10-09
 id = "ec-genai-guidelines"
 type = "report"
 title = "Living guidelines on the responsible use of generative AI in research"
+short = { cs = "Pokyny EK k generativní AI ve výzkumu", en = "EC guidelines on generative AI in research" }
 inLanguage = "en"
 url = "https://research-and-innovation.ec.europa.eu/document/download/2b6cf7e5-36ac-41cb-aab5-0d32050143dc_en"
 publisher = "European Commission, Directorate-General for Research and Innovation"
@@ -255,6 +259,7 @@ dateAccessed = 2026-10-09
 id = "os2-kb1"
 type = "report"
 title = { cs = "Technická zpráva: Sběr požadavků a návrh architektury systému bezpečnostního monitoringu", en = "Technical report: requirements and architecture design of the security monitoring system" }
+short = { cs = "Zpráva o bezpečnostním monitoringu (Open Science II)", en = "Security monitoring report (Open Science II)" }
 inLanguage = "cs"
 url = "https://www.eosc.cz/media/4204147/kb_1-poz-adavky-a-na-vrh-architektury-syste-mu-bezpec-nostni-ho-monitoringu-v20.pdf"
 publisher = "cesnet"
@@ -320,6 +325,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 id = "cts-2026"
 type = "standard"
 title = "CoreTrustSeal Trustworthy Digital Repositories Requirements 2026-2028"
+short = "CoreTrustSeal 2026–2028"
 inLanguage = "en"
 doi = "10.5281/zenodo.17660462"
 url = "https://doi.org/10.5281/zenodo.17660462"

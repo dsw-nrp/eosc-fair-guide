@@ -739,6 +739,32 @@ sections.push(["page", async () => {
     const chips = await view.locator('details[data-key="L2"] ul.clauses > li a.id-chip').count();
     if (!entries || chips < entries - 1) fail(`ids: the cited requirements do not carry linked identifiers (${chips} of ${entries})`);
     if (await view.locator('details[data-key="L2"] ul.clauses > li > .clause-text .id-chip').count()) fail("ids: an identifier leads the requirement's text instead of following it");
+    // A requirement shows one way wherever it is cited: its identifier once, its source by short name leading to the
+    // source's catalogue entry. The station's terms lead to their catalogue entries, as terms in its text do.
+    const cited = await view.locator('details[data-key="L2"] ul.clauses > li').evaluateAll((items) =>
+      items.map((item) => ({ id: (item.querySelector(".id-chip") || {}).textContent, bold: (item.querySelector(".clause-text strong") || {}).textContent, source: item.querySelector("a.source-link") }))
+    );
+    if (cited.some((item) => item.id && item.bold === item.id)) fail("ids: a requirement shows its identifier twice under Proč");
+    const analysisLink = view.locator('details[data-key="L2"] a.source-link', { hasText: "Analýza FAIR pro NRP/NDI" }).first();
+    if (!(await analysisLink.count()) || !(await analysisLink.getAttribute("href")).endsWith("/catalogue/resources/analyza-fair-1.2")) fail("ids: a requirement's source is not named by its short name, leading to its catalogue entry");
+    const termHrefs = await view.locator(".station-terms a.chip").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/terms/"))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
+    // The explorer names a principle's relations in the catalogue's rows, and its requirements without doubled
+    // identifiers.
+    await view.goto(pageUrl + "#/cs/V/explorer/R1.1");
+    await view.waitForSelector(".principle-relations");
+    const relationLabels = await view.locator(".principle-relations dt").allTextContents();
+    if (relationLabels.join("|") !== "FIP Dashboard|CoreTrustSeal|CDIF") fail("explorer: R1.1's relations are not the FIP Dashboard, CoreTrustSeal and CDIF rows: " + relationLabels.join("|"));
+    if (await view.locator("ul.clauses > li").evaluateAll((items) => items.some((item) => (item.querySelector(".clause-text strong") || {}).textContent === (item.querySelector(".id-chip") || {}).textContent))) fail("explorer: a requirement shows its identifier twice");
+    // An audience shows by icon and name.
+    await view.goto(pageUrl + "#/cs/V/page/ai");
+    await view.waitForSelector("#main h1");
+    const audienceNames = await view.locator(".orientation .lens-tag").allInnerTexts();
+    if (!audienceNames.length || audienceNames.some((name) => !name.trim())) fail("ai page: an audience shows by icon alone");
+    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await view.waitForSelector(".station");
+    /* The station remembers that Proč was open; a click would close it. */
+    if (!(await view.locator('details[data-key="L2"]').evaluate((details) => details.open))) await view.locator('details[data-key="L2"] summary').click();
     const chip = view.locator('details[data-key="L2"] ul.clauses a.id-chip').first();
     const id = (await chip.textContent()).trim();
     await chip.click();
@@ -1700,6 +1726,10 @@ sections.push(["funded output", async () => {
   if (!(await checked("answer-O08-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
   const stewardGap = page.locator(".gaps .action-card", { hasText: "O08" }).first();
   if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/E.OS3-RULES.D-STEWARD"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
+  // A gap's basis names its source the way every citation does: by short name, leading to the catalogue; a
+  // question's basis opens under the same label.
+  if (!(await stewardGap.locator('a.source-link[href$="/catalogue/resources/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
+  if (!(await page.locator("#item-O08 details.item-basis summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
   // FAIR Champion on the dataset, as a second action after the lookup: each question shows its tests and runs them
   // alone, the lookup result runs them all, and no test runs on an identifier that does not resolve. Four outcomes:
   // a pass answers yes, a fail no, an indeterminate verdict or no result leaves the answer to the quick check; the

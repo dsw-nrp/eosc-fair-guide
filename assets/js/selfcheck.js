@@ -1360,7 +1360,7 @@
       ? h(
           "details",
           { class: "item-basis" },
-          h("summary", null, FG.t("selfcheck.basedOn")),
+          h("summary", null, FG.t("catalogue.relation.basedOn") + " (" + clauses.length + ")"),
           h("ul", { class: "content clauses" }, clauses.map(FG.clauseEntry))
         )
       : null;
@@ -1628,7 +1628,7 @@
       { class: "action-basis small" },
       h("span", { class: "action-label" }, FG.t("selfcheck.result.basedOn") + ": "),
       ids.map((id, index) => [index ? " " : "", FG.idChip("clauses", id.slice("#clause-".length))]),
-      sources.length ? [" · ", sources.map((source, index) => [index ? ", " : "", FG.nameNodes(source)])] : null
+      sources.length ? [" · ", sources.map((source, index) => [index ? ", " : "", FG.sourceLink(source)])] : null
     );
   }
 

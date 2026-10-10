@@ -83,7 +83,7 @@
       "div",
       { class: "orientation" },
       principles.map((principle) => FG.principleTile(principle)),
-      lenses.map((lens) => h("span", { class: "lens-tag", title: FG.text(lens.name) }, FG.icon(icons[lens.audienceType]), h("span", { class: "visually-hidden" }, FG.text(lens.name))))
+      lenses.map((lens) => h("span", { class: "lens-tag" }, FG.icon(icons[lens.audienceType]), h("span", null, FG.text(lens.name))))
     );
   }
 
@@ -912,7 +912,7 @@
             "section",
             { class: "station-terms" },
             h("h2", null, FG.t("station.glossary")),
-            h("ul", { class: "chips" }, terms.map((term) => h("li", null, FG.external(term.url, FG.text(term.name), { class: "chip" }))))
+            h("ul", { class: "chips" }, terms.map((term) => h("li", null, h("a", { class: "chip", href: FG.catalogueHref("terms", term.termCode) }, FG.text(term.name)))))
           )
         : null,
       callouts(entity, route.lens),
@@ -994,7 +994,6 @@
               { "aria-labelledby": "principle-heading" },
               heading(2, { id: "principle-heading" }, h("span", { class: "principle-letter", "data-letter": String(selected.termCode).charAt(0) }, String(selected.termCode).charAt(0)), String(selected.termCode).slice(1) + " · ", FG.span(selected.name)),
               h("p", { class: "lead" }, FG.span(selected.description)),
-              h("p", null, FG.external(FG.DASHBOARD + "resources?principles=" + encodeURIComponent(selected.termCode), FG.t("explorer.dashboard", { p: selected.termCode }))),
               relatedTerms(selected),
               h("p", { class: "muted" }, FG.t("explorer.count", { n: clauses.length })),
               actors.map((actor) => {
@@ -1048,21 +1047,16 @@
     const cdif = related.filter((entity) => String(entity["@id"]).startsWith("#clause-CDIF."));
     /* A CoreTrustSeal requirement by its number and title, leading to its record in the catalogue. */
     const requirement = (clause) => h("a", { href: FG.catalogueHref("clauses", clause.identifier) }, clause.identifier.replace(/^CTS\./, "") + " ", FG.span(clause.name));
+    const profile = (clause) => h("a", { href: FG.catalogueHref("clauses", clause.identifier) }, FG.span(clause.name));
+    const row = (label, items, note) => [h("dt", null, label), h("dd", null, items, note ? h("span", { class: "relation-note small muted" }, note) : null)];
+    /* The principle's relations in the rows the catalogue uses: what the FIP Dashboard records for it and the
+       standards' requirements it links. */
     return h(
-      "div",
-      null,
-      cts.length
-        ? [
-            h("p", null, h("strong", null, FG.t("explorer.cts") + ": "), cts.flatMap((clause, index) => (index ? [", ", requirement(clause)] : [requirement(clause)]))),
-            h("p", { class: "small muted" }, FG.t("explorer.ctsNote")),
-          ]
-        : null,
-      cdif.length
-        ? [
-            h("p", null, h("strong", null, FG.t("explorer.cdif") + ": "), cdif.flatMap((clause, index) => [index ? ", " : null, h("a", { href: FG.catalogueHref("clauses", clause.identifier) }, FG.span(clause.name))])),
-            h("p", { class: "small muted" }, FG.t("explorer.cdifNote")),
-          ]
-        : null
+      "dl",
+      { class: "relations principle-relations" },
+      row(FG.t("explorer.dashboardLabel"), FG.external(FG.DASHBOARD + "resources?principles=" + encodeURIComponent(principle.termCode), FG.t("explorer.dashboard", { p: principle.termCode }))),
+      cts.length ? row(FG.t("explorer.cts"), cts.map(requirement), FG.t("explorer.ctsNote")) : null,
+      cdif.length ? row(FG.t("explorer.cdif"), cdif.map(profile), FG.t("explorer.cdifNote")) : null
     );
   }
 

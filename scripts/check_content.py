@@ -323,6 +323,8 @@ def check_sources(report: Report, content: dict[str, Any]) -> None:
     unique(report, "sources", [source.get("id", "") for source in content["sources"]], "source")
     for source in content["sources"]:
         check_citation(report, f"sources:{source.get('id')}", source, own_url=False)
+        if "short" in source:
+            require_text(report, f"sources:{source.get('id')}", source["short"], "short", proper_name_allowed=True)
 
 
 def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], clause_ids: set[str]) -> None:

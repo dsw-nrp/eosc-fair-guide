@@ -206,7 +206,8 @@ recommendation is about). The IRI is
 
 Published works the guide cites but does not recommend as a resource (a cited resource carries its citation in
 `resources.toml`). `[[source]]`: `id`, `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
-`presentation`), `title` (a string, or a table whose `inLanguage` value is the original title), `version`,
+`presentation`), `title` (a string, or a table whose `inLanguage` value is the original title), `short` (optional:
+the short name shown where the source is named often, as next to each requirement it holds), `version`,
 `inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),
 `authors`, `datePublished` or `dateAccessed`, `dateModified` (when the publisher records an update), `license`
 (URL). An author is a person ID from `guide.toml`, which

@@ -118,7 +118,7 @@ action = { label = { cs = "Otevřít chat AI e-INFRA CZ", en = "Open the e-INFRA
 [[page.section]]
 id = "station-tips"
 heading = { cs = "Tipy u jednotlivých kroků", en = "Tips at each step" }
-body = { cs = "Všechny tipy z cesty na jednom místě. Tip určený jen pro jeden pohled nese jeho ikonu.", en = "All the tips from the path in one place. A tip meant for one view carries its icon." }
+body = { cs = "Všechny tipy z cesty na jednom místě. Tip určený jen pro jeden pohled nese jeho ikonu a název.", en = "All the tips from the path in one place. A tip meant for one view carries its icon and name." }
 
 [[page]]
 id = "machines"

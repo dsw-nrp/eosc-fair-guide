@@ -31,8 +31,16 @@
     return h("a", { class: "id-chip", href: FG.catalogueHref(kind, id), title: FG.t("catalogue.openEntry", { id }) }, id);
   };
 
-  /** A requirement or finding as the guide shows it wherever it cites one: the text first, then its identifier,
-      leading to the catalogue, and its source; a note when the statement needs refreshing or was superseded. */
+  /** A source's short name: a cited resource's own name, or a source's short name when it has one. */
+  FG.shortName = (source) => FG.span(String(source["@id"]).startsWith("#resource-") ? source.name : source.alternateName || source.name);
+
+  /** A work an entry rests on, by its short name, leading to its own entry in the catalogue. */
+  FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.catalogueHref("resources", source.identifier) }, FG.shortName(source));
+
+  /** That a statement needs refreshing or was superseded, as a badge. */
+  FG.clauseStatus = (status) =>
+    status && status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null;
+
   /** A requirement's guidance, as its source publishes it, behind a disclosure. */
   FG.guidance = (clause) =>
     clause.guidance
@@ -42,24 +50,27 @@
   /** A requirement's title, when it has one besides its identifier. */
   FG.clauseTitle = (clause) => (clause.name && FG.text(clause.name) !== clause.identifier ? clause.name : null);
 
+  /** A requirement or finding as the guide shows it wherever it cites one, the same in a station, the explorer and a
+      question: its title when it has one besides its identifier, its text, then its identifier leading to the
+      catalogue, its source by short name, and once that it needs refreshing or was superseded, with the note. */
   FG.clauseEntry = function (clause) {
     const source = FG.get(clause.isPartOf);
     const status = clause.creativeWorkStatus;
     const isClause = String(clause["@id"]).startsWith("#clause-");
+    const title = FG.clauseTitle(clause);
     return h(
       "li",
       { class: "clause" },
-      h("p", { class: "clause-text" }, clause.name && clause.text ? [h("strong", null, FG.span(clause.name)), " "] : null, FG.linkedSpan(clause, clause.text ? "text" : "name")),
+      h("p", { class: "clause-text" }, title && clause.text ? [h("strong", null, FG.span(title)), " "] : null, FG.linkedSpan(clause, clause.text ? "text" : "name")),
       FG.guidance(clause),
       h(
         "p",
         { class: "clause-meta small" },
         isClause ? FG.idChip("clauses", clause.identifier) : null,
-        source ? [isClause ? " · " : null, source.url ? FG.external(source.url, FG.nameNodes(source)) : FG.nameNodes(source)] : null
+        source ? [isClause ? " · " : null, FG.sourceLink(source)] : null,
+        FG.clauseStatus(status) ? [" ", FG.clauseStatus(status)] : null
       ),
-      status && status !== "current" && clause.note
-        ? h("p", { class: "small clause-note" }, h("strong", null, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh") + ": "), FG.span(clause.note))
-        : null
+      status && status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null
     );
   };
 
@@ -149,8 +160,7 @@
       .map(FG.get)
       .filter(Boolean)
       .map((lens) => h("span", { class: "audience" }, FG.icon((icons().lens || {})[lens.audienceType]), FG.text(lens.name)));
-  /** A work an entry rests on, as a link to its own entry. */
-  const sourceLink = (source) => h("a", { class: "source-link", href: FG.catalogueHref("resources", source.identifier) }, FG.nameNodes(source));
+  const sourceLink = (source) => FG.sourceLink(source);
 
   /* ---------------------------------------------------------------- entries of each kind */
 
@@ -362,7 +372,7 @@
             what: clause.clauseKind ? FG.t("catalogue.clauseKind." + clause.clauseKind) : null,
             title: FG.clauseTitle(clause) ? FG.span(FG.clauseTitle(clause)) : null,
             body: [h("p", null, FG.linkedSpan(clause)), FG.guidance(clause)],
-            states: status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null,
+            states: FG.clauseStatus(status),
             notes: status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
             relations: {
               principles: tiles(FG.principlesOf(clause)),

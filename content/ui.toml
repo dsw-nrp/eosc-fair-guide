@@ -215,9 +215,10 @@ registry = { cs = "Registr", en = "Registry" }
 title = { cs = "FAIR principy", en = "FAIR principles" }
 intro = { cs = "Všechny požadavky Analýzy FAIR pro NRP/NDI podle principů, rozdělené podle toho, komu jsou určeny. Cesta průvodce z nich vybírá; zde najdete všechny.", en = "Every requirement of the FAIR analysis for NRP/NDI by principle, grouped by whom it addresses. The path picks from them; here you find them all." }
 choose = { cs = "Vyberte princip", en = "Choose a principle" }
-cts = { cs = "Požadavky CoreTrustSeal", en = "CoreTrustSeal requirements" }
+cts = { cs = "CoreTrustSeal", en = "CoreTrustSeal" }
 ctsNote = { cs = "Požadavky vydání 2026–2028. Analýza FAIR je čísluje převážně podle vydání 2020–2022; průvodce je propojuje podle toho, čeho se podle analýzy týkají.", en = "Requirements of the 2026–2028 edition. The FAIR analysis numbers them mostly by the 2020–2022 edition; the guide links them by what the analysis says they are about." }
-cdif = { cs = "Profily CDIF", en = "CDIF profiles" }
+cdif = { cs = "CDIF", en = "CDIF" }
+dashboardLabel = { cs = "FIP Dashboard", en = "FIP Dashboard" }
 cdifNote = { cs = "Profily CDIF 1.1. Analýza FAIR jmenuje doporučení CDIF z roku 2023; průvodce je propojuje s profily podle toho, čeho se týkají.", en = "Profiles of CDIF 1.1. The FAIR analysis names the 2023 CDIF recommendations; the guide links them to the profiles by what they are about." }
 dashboard = { cs = "Zdroje pro {p} ve FIP Dashboardu", en = "Resources for {p} in the FIP Dashboard" }
 refresh = { cs = "Aktualizace", en = "Update" }
@@ -256,7 +257,6 @@ providedByNrpText = { cs = "U instancí základních systémů NRP tuto podmínk
 extendedSwitch = { cs = "Rozšířená kontrola: doporučené a pokročilé otázky ({n})", en = "Extended check: recommended and advanced questions ({n})" }
 extendedShort = { cs = "Rozšířená (+{n})", en = "Extended (+{n})" }
 extendedExplain = { cs = "Rozšířená kontrola přidá doporučené a pokročilé otázky; vaše odpovědi zůstanou.", en = "The extended check adds the recommended and advanced questions; your answers stay." }
-basedOn = { cs = "Z čeho otázka vychází", en = "What this question is based on" }
 grouping = { cs = "Seskupit podle", en = "Group by" }
 groupOther = { cs = "Ostatní", en = "Other" }
 tierCount = { cs = "{tier} ({n} otázka):|{tier} ({n} otázky):|{tier} ({n} otázek):", en = "{tier} ({n} question):|{tier} ({n} questions):" }

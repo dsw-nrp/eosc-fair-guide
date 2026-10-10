@@ -563,6 +563,8 @@ def build_sources(
                 "additionalType": SOURCE_ADDITIONAL_TYPES.get(source["type"]),
                 "identifier": source["id"],
                 "name": text(source["title"]),
+                # The short name shown where the source is named often, as next to each requirement it holds.
+                "alternateName": text(source.get("short")),
                 "url": source.get("url"),
             }
             | citation_properties(graph, source, organizations, people, names),
