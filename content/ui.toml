@@ -623,16 +623,6 @@ questions = { cs = "Otázky všech kontrol sebehodnocení, s principy, které ov
 actions = { cs = "Kdy a jak se obsah průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
 resources = { cs = "Služby, nástroje, standardy, příručky i publikace: co průvodce doporučuje, z čeho vychází a co eviduje FIP Dashboard. Značky říkají, jak je průvodce používá.", en = "Services, tools, standards, guides and publications: what the guide recommends, what it builds on and what the FIP Dashboard lists. The marks say how the guide uses each." }
 
-[catalogue.sourceType]
-Report = { cs = "zpráva", en = "report" }
-ScholarlyArticle = { cs = "článek", en = "article" }
-Dataset = { cs = "data", en = "dataset" }
-WebPage = { cs = "webová stránka", en = "web page" }
-DigitalDocument = { cs = "dokument", en = "document" }
-CreativeWork = { cs = "standard", en = "standard" }
-SoftwareSourceCode = { cs = "software", en = "software" }
-PresentationDigitalDocument = { cs = "prezentace", en = "presentation" }
-
 [catalogue.relation]
 principles = { cs = "Principy", en = "Principles" }
 audience = { cs = "Pro koho", en = "For whom" }

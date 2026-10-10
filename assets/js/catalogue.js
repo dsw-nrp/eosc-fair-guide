@@ -34,6 +34,15 @@
   /** A source's short name: a cited resource's own name, or a source's short name when it has one. */
   FG.shortName = (source) => FG.span(String(source["@id"]).startsWith("#resource-") ? source.name : source.alternateName || source.name);
 
+  /** A source's short name as plain text, for lists and filters. */
+  FG.shortText = (source) => FG.text(String(source["@id"]).startsWith("#resource-") ? source.name : source.alternateName || source.name);
+
+  /** A category's name as the catalogue lists categories: in lower case, unless it starts with an acronym. */
+  FG.category = (name) => {
+    const text = String(name || "");
+    return /^\p{Lu}{2,}/u.test(text) ? text : text.charAt(0).toLocaleLowerCase(FG.state.lang) + text.slice(1);
+  };
+
   /** A work an entry rests on, by its short name, leading to its own entry in the catalogue. */
   FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.catalogueHref("resources", source.identifier) }, FG.shortName(source));
 
@@ -164,15 +173,9 @@
 
   /* ---------------------------------------------------------------- entries of each kind */
 
-  /* Citation forms that are also resource types read as one type: a cited document is a document. */
-  const FORM_AS_TYPE = { DigitalDocument: "#rtype-document", CreativeWork: "#rtype-standard" };
-
-  function sourceForm(source) {
-    const extra = FG.list(source.additionalType).map(String);
-    if (extra.some((type) => /Dataset$/.test(type))) return "Dataset";
-    if (extra.some((type) => /SoftwareSourceCode$/.test(type))) return "SoftwareSourceCode";
-    return String(FG.list(source["@type"])[0]);
-  }
+  /* Resources, cited sources and FIP Dashboard records share the guide's resource types: a source's or a record's
+     type comes from the crosswalk in the content. */
+  const typeOf = (entity) => FG.id(entity.resourceType || entity.guideType) || null;
 
   /** How a cited work is cited, for the card's line of details: publisher, language, version and date. */
   function citationDetails(entity) {
@@ -275,12 +278,12 @@
         text: [FG.text(source.name), source.creditText, FG.text((FG.get(source.publisher) || {}).name)].join(" "),
         stations: stationsOf(citedBy),
         principles: [],
-        facets: { use: ["cited"], type: [FORM_AS_TYPE[sourceForm(source)] || "form:" + sourceForm(source)], status: [], language: FG.list(source.inLanguage).map(String), lens: [] },
+        facets: { use: ["cited"], type: [typeOf(source)].filter(Boolean), status: [], language: FG.list(source.inLanguage).map(String), lens: [] },
         render: () =>
           entryCard({
             id: source.identifier,
             entity: source,
-            what: [FG.t("catalogue.sourceType." + sourceForm(source))].concat(uses(["cited"])),
+            what: [FG.termName(typeOf(source))].concat(uses(["cited"])),
             title: url ? FG.external(url, FG.nameNodes(source)) : FG.nameNodes(source),
             byline: source.creditText || null,
             details: citationDetails(source),
@@ -298,12 +301,12 @@
         text: [FG.text(fer.name), FG.bothLanguages(fer.description)].join(" "),
         stations: [],
         principles: FG.refs(fer, "about").map(code),
-        facets: { use: ["dashboard"], type: ["fer:" + FG.id(fer.catalogueType)], status: [], language: [], lens: [] },
+        facets: { use: ["dashboard"], type: [typeOf(fer)].filter(Boolean), status: [], language: [], lens: [] },
         render: () =>
           entryCard({
             id: "fer-" + fer.identifier,
             entity: fer,
-            what: [FG.termName(FG.id(fer.catalogueType))].concat(uses(["dashboard"])),
+            what: [FG.termName(typeOf(fer))].concat(uses(["dashboard"])),
             title: FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name),
             body: fer.description ? h("p", null, FG.span(fer.description)) : null,
             states: FG.verificationBadges(fer),
@@ -376,7 +379,7 @@
             notes: status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
             relations: {
               principles: tiles(FG.principlesOf(clause)),
-              audience: audience ? h("span", { class: "audience" }, FG.termName(audience)) : null,
+              audience: audience ? h("span", { class: "audience" }, FG.category(FG.termName(audience))) : null,
               basedOn: source ? sourceLink(source) : null,
               inGuide: inGuide(holders),
             },
@@ -408,7 +411,7 @@
               entryCard({
                 id: item.identifier,
                 entity: item,
-                what: FG.id(item.tier) ? FG.termName(FG.id(item.tier)) : null,
+                what: FG.id(item.tier) ? FG.category(FG.termName(FG.id(item.tier))) : null,
                 body: h("p", null, FG.linkedSpan(item)),
                 relations: {
                   principles: tiles(FG.principlesOf(item)),
@@ -669,28 +672,30 @@
   /* ---------------------------------------------------------------- facets of one kind */
 
   const termLabel = (id) => FG.termName(id) || id;
+  /* Every kind's categories read the same: in lower case, unless a name starts with an acronym. */
+  const categoryLabel = (id) => FG.category(termLabel(id));
   const KIND_FACETS = {
     resources: [
       { key: "use", values: () => ["recommended", "cited", "dashboard"], label: (value) => FG.t("catalogue.use." + value) },
-      { key: "type", label: (value) => (value.startsWith("form:") ? FG.t("catalogue.sourceType." + value.slice(5)) : value.startsWith("fer:") ? termLabel(value.slice(4)) : termLabel(value)) },
-      { key: "status", label: termLabel },
+      { key: "type", label: categoryLabel },
+      { key: "status", label: categoryLabel },
       { key: "language", values: () => ["cs", "en"], label: (value) => FG.t("catalogue.language." + value) },
       /* The lens narrows what the guide recommends; a cited work or a dashboard record has no audience and stays. */
-      { key: "lens", values: () => FG.lenses().map((lens) => lens.audienceType), label: (value) => FG.text((FG.lenses().find((lens) => lens.audienceType === value) || {}).name), passThrough: true },
+      { key: "lens", values: () => FG.lenses().map((lens) => lens.audienceType), label: (value) => FG.category(FG.text((FG.lenses().find((lens) => lens.audienceType === value) || {}).name)), passThrough: true },
     ],
     repositories: [
-      { key: "rkind", values: () => FG.repositoryKindOrder, label: termLabel },
+      { key: "rkind", values: () => FG.repositoryKindOrder, label: categoryLabel },
       { key: "rsource", label: (value) => (value === "nkr" ? "NKR" : value === "fairsharing" ? "FAIRsharing" : FG.repositorySource(value)) },
     ],
     clauses: [
       { key: "ckind", values: () => ["requirement", "recommendation", "fulfilment", "statement"], label: (value) => FG.t("catalogue.clauseKind." + value) },
-      { key: "csource", label: (value) => FG.text((FG.get(value) || {}).name) || value },
-      { key: "actor", label: termLabel },
+      { key: "csource", label: (value) => (FG.get(value) ? FG.shortText(FG.get(value)) : value) },
+      { key: "actor", label: categoryLabel },
       { key: "cstatus", values: () => ["current", "refresh", "superseded"], label: (value) => FG.t("catalogue.clauseStatus." + value) },
     ],
     questions: [
       { key: "check", values: () => FG.ofType("Quiz").map((check) => check.identifier), label: (value) => FG.text((FG.get("#check-" + value) || {}).name) },
-      { key: "tier", label: termLabel },
+      { key: "tier", label: categoryLabel },
     ],
     actions: [{ key: "change", values: () => ["created", "updated"], label: (value) => FG.t("catalogue." + value) }],
   };

@@ -606,3 +606,14 @@ instruments = ["claude-opus-5-5", "claude-code"]
 objects = []
 results = ["citace.all.L1.key", "dohledatelnost.all.L1.key", "kontrola.all.L1.key", "licence.all.L1.key", "plan.all.L1.key", "popis.all.L1.key", "prace.all.L1.key", "publikace.all.L1.key", "repozitar.all.L1.key"]
 endTime = 2026-10-10T08:53:00+02:00
+
+[[action]]
+id = "2026-10-10-resource-types"
+type = "update"
+name = "One vocabulary of resource types"
+description = "The guide's resource types became the one vocabulary the catalogue lists resources, cited sources and FIP Dashboard records by: each type names the FIP Dashboard types and citation forms it covers, repositories and registries are one type, and publications, licences, policies and data joined; the NRP catch-all repository is a repository or registry."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = []
+results = ["datarepo"]
+endTime = 2026-10-10T09:01:00+02:00

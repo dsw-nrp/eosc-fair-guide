@@ -29,6 +29,7 @@ from build_crate import (  # noqa: E402
     BLOCK,
     PAGE_FILE,
     REFERENCE,
+    RESOURCE_TYPES,
     ROOT,
     SOURCE_TYPES,
     ContentError,
@@ -320,6 +321,38 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
         report.error(where, "a source needs datePublished or dateAccessed")
 
 
+def check_type_crosswalk(report: Report, content: dict[str, Any]) -> None:
+    """Every FIP Dashboard type and every citation form belongs to exactly one of the guide's resource types, and
+    every guide type has a schema.org type."""
+    types = content["guide"].get("resourceType", [])
+    for prefix, key, known in (
+        (
+            "fd",
+            "fipDashboard",
+            {item["id"] for snapshot in content["snapshots"] for item in snapshot.get("resourceType", [])},
+        ),
+        ("form", "citation", set(SOURCE_TYPES)),
+    ):
+        claimed: dict[str, list[str]] = {}
+        for item in types:
+            for value in item.get(key, []):
+                claimed.setdefault(value, []).append(item["id"])
+        for value in sorted(known | set(claimed)):
+            owners = claimed.get(value, [])
+            if value not in known:
+                # A snapshot need not hold every FIP Dashboard type at once; a citation form must exist.
+                if prefix == "form":
+                    report.error(f"guide:resourceType.{key}", f"'{value}' is not a known {key} type")
+            elif len(owners) != 1:
+                report.error(
+                    f"guide:resourceType.{key}",
+                    f"'{value}' belongs to {len(owners)} resource types; it must belong to one",
+                )
+    for item in types:
+        if item["id"] not in RESOURCE_TYPES:
+            report.error(f"guide:resourceType.{item['id']}", "no schema.org type for this resource type")
+
+
 def check_sources(report: Report, content: dict[str, Any]) -> None:
     unique(report, "sources", [source.get("id", "") for source in content["sources"]], "source")
     for source in content["sources"]:
@@ -541,8 +574,11 @@ def check_resources(report: Report, content: dict[str, Any], vocab: dict[str, se
                 report.error(f"{where}:citation", "a citation takes its ID and address from the resource")
             check_citation(report, f"{where}:citation", resource["citation"], own_url=True)
         if resource.get("repository") is not None:
-            if resource.get("type") != "repository":
-                report.error(f"{where}:repository", "only a resource of type 'repository' carries repository facts")
+            if resource.get("type") != "registry":
+                report.error(
+                    f"{where}:repository",
+                    "only a resource of type 'registry' (repository or registry) carries repository facts",
+                )
             if resource["repository"].get("kind") not in vocab["repository_kinds"]:
                 report.error(f"{where}:repository", f"unknown kind '{resource['repository'].get('kind')}'")
 
@@ -1098,6 +1134,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_texts(report, content)
     check_links(report, content, in_page_targets(content))
     check_sources(report, content)
+    check_type_crosswalk(report, content)
     clause_ids = check_ledger(report, content, vocab)
     for principle in content["principles"]:
         for code in principle.get("cts", []):

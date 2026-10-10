@@ -543,12 +543,13 @@ class ContentCheckTests(FixtureCase):
         self.append(
             "guide.toml",
             '\n[[repositoryKind]]\nid = "general"\nname = { cs = "obecný", en = "general" }\n'
-            '\n[[resourceType]]\nid = "repository"\nname = { cs = "repozitář", en = "repository" }\n',
+            '\n[[resourceType]]\nid = "registry"\n'
+            'name = { cs = "repozitář nebo registr", en = "repository or registry" }\n',
         )
         self.append(
             "resources.toml",
             '\n[[resource]]\nid = "repo"\nname = "Test repository"\nurl = "https://example.org/repo"\n'
-            'type = "repository"\nstatus = "pilot"\nasOf = 2026-01-01\nstations = ["one"]\n'
+            'type = "registry"\nstatus = "pilot"\nasOf = 2026-01-01\nstations = ["one"]\n'
             '\n[resource.repository]\nkind = "general"\n',
         )
         self.edit("provenance.toml", '"service", "A.*"', '"service", "repo", "A.*"')

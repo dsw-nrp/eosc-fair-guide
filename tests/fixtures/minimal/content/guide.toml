@@ -77,6 +77,13 @@ name = { cs = "Povinné", en = "Required" }
 [[resourceType]]
 id = "service"
 name = { cs = "služba", en = "service" }
+fipDashboard = ["identifier-service"]
+
+# Every citation form belongs to one resource type; the fixture needs only one to cover them.
+[[resourceType]]
+id = "document"
+name = { cs = "dokument", en = "document" }
+citation = ["report", "article", "dataset", "webpage", "document", "standard", "software", "presentation"]
 
 [[repositoryKind]]
 id = "general"

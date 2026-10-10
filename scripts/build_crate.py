@@ -96,6 +96,10 @@ TERMS = {
     "statusAsOf": "Date on which a status was last verified.",
     "healthStatus": "Availability of a live test as last observed.",
     "resourceType": "Type of a resource, used to filter the resource finder.",
+    "guideType": (
+        "The guide's resource type of a cited source or a FIP Dashboard resource, from the crosswalk in "
+        "content/guide.toml."
+    ),
     "catalogueType": "Type of a FAIR-enabling resource in the FIP Dashboard.",
     "repositoryKind": "Kind of a repository: domain, institutional or general-purpose.",
     "clauseKind": "Kind of a ledger clause: requirement, fulfilment in NRP, or statement.",
@@ -131,15 +135,36 @@ RESOURCE_TYPES = {
     "service": ["CreativeWork", "Service"],
     "tool": "CreativeWork",
     "registry": "DataCatalog",
-    "repository": "DataCatalog",
     "guide": "DigitalDocument",
     "document": "DigitalDocument",
+    "publication": "CreativeWork",
     "standard": "CreativeWork",
     "vocabulary": "DefinedTermSet",
+    "licence": "CreativeWork",
+    "policy": "DigitalDocument",
+    "data": "CreativeWork",
     "community": "WebPage",
     "project": ["CreativeWork", "Project"],
     "course": "Course",
 }
+
+
+def type_crosswalk(guide: dict[str, Any]) -> dict[str, str]:
+    """The guide's resource type of each FIP Dashboard type ('fd:<type>') and citation form ('form:<type>'), so the
+    catalogue lists resources, cited sources and FIP Dashboard records by one vocabulary."""
+    crosswalk: dict[str, str] = {}
+    for item in guide.get("resourceType", []):
+        for fd_type in item.get("fipDashboard", []):
+            crosswalk[f"fd:{fd_type}"] = item["id"]
+        for form in item.get("citation", []):
+            crosswalk[f"form:{form}"] = item["id"]
+    return crosswalk
+
+
+def guide_type(crosswalk: dict[str, str], prefix: str, value: str | None) -> dict[str, str] | None:
+    """The guide's resource type of a FIP Dashboard type ('fd') or citation form ('form'), as a reference."""
+    key = f"{prefix}:{value}"
+    return ref(f"#rtype-{crosswalk[key]}") if key in crosswalk else None
 
 
 class ContentError(Exception):
@@ -550,6 +575,8 @@ def build_sources(
     organizations: dict[str, str],
     people: dict[str, str],
     names: dict[str, str],
+    *,
+    crosswalk: dict[str, str],
 ) -> None:
     """Sources the guide cites but does not recommend as resources; returns their entity IDs."""
     source_ids = []
@@ -565,6 +592,7 @@ def build_sources(
                 "name": text(source["title"]),
                 # The short name shown where the source is named often, as next to each requirement it holds.
                 "alternateName": text(source.get("short")),
+                "guideType": guide_type(crosswalk, "form", source.get("type")),
                 "url": source.get("url"),
             }
             | citation_properties(graph, source, organizations, people, names),
@@ -1016,7 +1044,7 @@ def build_reviews(graph: Graph, item_id: str, verifications: list[dict[str, Any]
     return review_ids
 
 
-def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
+def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk: dict[str, str]) -> list[str]:
     """Add the FIP Dashboard snapshot: organisations, FAIR-enabling resources with their verification, and FIPs."""
     snapshot = next((item for item in snapshots if item.get("fip") or item.get("resource")), None)
     if snapshot is None:
@@ -1059,6 +1087,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]]) -> list[s
                 "url": resource.get("url"),
                 "additionalType": FIP_TERMS + fip_class if fip_class else None,
                 "catalogueType": ref(f"#fd-type-{resource['type']}") if resource.get("type") else None,
+                "guideType": guide_type(crosswalk, "fd", resource.get("type")),
                 "spatialCoverage": resource.get("scope"),
                 "about": refs([principle_iri(principle) for principle in resource.get("principles", [])]),
                 "provider": ref(f"#fd-org-{resource['provider']}") if resource.get("provider") else None,
@@ -1335,7 +1364,8 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     build_terms(graph, vocabulary_base)
     build_principles(graph, content["principles"])
     names = {person["id"]: person["name"] for person in guide_file.get("person", [])}
-    source_ids = build_sources(graph, content["sources"], organizations, people, names)
+    crosswalk = type_crosswalk(guide_file)
+    source_ids = build_sources(graph, content["sources"], organizations, people, names, crosswalk=crosswalk)
     build_vocabularies(graph, guide_file)
     build_glossary(graph, content["glossary"])
     # Resources exist before the ledger, because a clause may cite a resource; the stations they are recommended at
@@ -1357,7 +1387,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     check_ids = build_checks(graph, content["checks"], content["live"].get("links", {}))
     snapshot_ids = build_snapshots(graph, content["snapshots"])
     build_repositories(graph, content["repositories"], content["snapshots"], content["resources"])
-    catalogue_ids = build_fip_dashboard(graph, content["snapshots"])
+    catalogue_ids = build_fip_dashboard(graph, content["snapshots"], crosswalk)
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
     page_ids = build_pages(graph, content["pages"])

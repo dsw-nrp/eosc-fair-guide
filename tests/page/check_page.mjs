@@ -450,6 +450,8 @@ sections.push(["page", async () => {
     if (await moreTypes.count()) await moreTypes.first().click();
     const typeValues = await view.locator('[data-facet="resources-type"] .facet-label').allTextContents();
     if (new Set(typeValues).size !== typeValues.length) fail("finders: the type facet offers one type twice: " + typeValues.join(" | "));
+    // One vocabulary of types for resources, cited sources and FIP Dashboard records, written as categories are.
+    if (typeValues.some((value) => /^\p{Lu}/u.test(value) && !/^\p{Lu}{2,}/u.test(value)) || typeValues.length > 15) fail("finders: the types are not one vocabulary in lower case: " + typeValues.join(" | "));
     const statusGroups = await orderBy("status");
     if (statusGroups[0] !== "provozní" || statusGroups[statusGroups.length - 1] !== "Bez stavu") fail("finders: statuses are not in their own order: " + statusGroups.join(" | "));
     await open("#/cs/V/catalogue/repositories");

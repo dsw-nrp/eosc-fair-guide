@@ -187,7 +187,7 @@ publisher named like a curated organisation.
 | `[[actor]]` | `id`, `name`, `role` | | Who a clause addresses (`role = "clause"`) or who fixes a gap (`role = "owner"`) |
 | `[[status]]` | `id`, `name` | | The five-level status vocabulary |
 | `[[tier]]` | `id`, `name`, `description` | | Self-check tiers; the description completes the first view's sentence on what its tier means |
-| `[[resourceType]]` | `id`, `name` | | Resource types used by the finder |
+| `[[resourceType]]` | `id`, `name`, `fipDashboard`, `citation` | | Resource types, one vocabulary for the catalogue: `fipDashboard` lists the FIP Dashboard types and `citation` the citation forms (`type` of a `[[source]]` or a citation) that the type covers; each of them belongs to exactly one type, and a cited source or FIP Dashboard record carries it as `guideType` |
 | `[[repositoryKind]]` | `id`, `name` | | Repository kinds: domain, institutional, general-purpose |
 | `[[help]]` | `id`, `name`, `url`, `lenses` | | Routes to human help shown on every station; `url` may be `mailto:` |
 | `[[task]]` | `lens`, `label`, `href`, `icon` | | A shortcut on the landing view for one lens; `href` is an in-page target (`#station-<id>`, `#check-<id>`, `#page-<id>`, `#repositories`, `#resources`) or an HTTPS link. Tasks are listed in path order |
@@ -283,16 +283,16 @@ block instead of by principle or path step.
 
 ### `resources.toml`
 
-`[[resource]]`: `id`, `name` (text, or a string for a proper name), `description`, `url`, `type` (`service`,
-`tool`, `registry`, `repository`, `guide`, `document`, `standard`, `vocabulary`, `community`, `project`,
-`course`), `fipClass` (FAIR-enabling resource classes of the FIP ontology, such as `Identifier-service` or
+`[[resource]]`: `id`, `name` (text, or a string for a proper name), `description`, `url`, `type` (a
+`[[resourceType]]` of `guide.toml`: `service`, `tool`, `registry` (repository or registry), `guide`, `document`,
+`publication`, `standard`, `vocabulary`, `licence`, `policy`, `data`, `community`, `project`, `course`), `fipClass` (FAIR-enabling resource classes of the FIP ontology, such as `Identifier-service` or
 `Metadata-schema`), `fipDashboard` (the resource's ID in the FIP Dashboard), `status`, `asOf`, `lenses`,
 `stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs). A `course` at a station is that
 step's training: the station lists it among the help routes as "Školení k tomuto kroku", not as a resource card.
 
 `[resource.citation]` (when the guide also cites the resource): the fields of a `[[source]]` except `id` and `url`,
 which come from the resource; `title` is the work's title as published and becomes the entity's `alternateName` when
-it differs from the guide's name. `[resource.repository]` (for a resource of type `repository`): `kind`, `subjects`,
+it differs from the guide's name. `[resource.repository]` (for a resource of type `registry`): `kind`, `subjects`,
 `re3data`, `nkr`, `fairsharing` and `pidTypes`, as in `[[repository]]`; the resource is then the repository the
 finder lists.
 

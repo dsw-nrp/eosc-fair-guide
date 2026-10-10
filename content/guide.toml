@@ -304,18 +304,18 @@ description = { cs = "co standard vyžaduje, u podmíněných prvků tam, kde se
 [[resourceType]]
 id = "service"
 name = { cs = "služba", en = "service" }
+fipDashboard = ["identifier-service", "authentication-service"]
 
 [[resourceType]]
 id = "tool"
 name = { cs = "nástroj", en = "tool" }
+fipDashboard = ["tool"]
+citation = ["software"]
 
 [[resourceType]]
 id = "registry"
-name = { cs = "registr", en = "registry" }
-
-[[resourceType]]
-id = "repository"
-name = { cs = "repozitář", en = "repository" }
+name = { cs = "repozitář nebo registr", en = "repository or registry" }
+fipDashboard = ["repository"]
 
 [[resourceType]]
 id = "guide"
@@ -324,14 +324,38 @@ name = { cs = "příručka", en = "guide" }
 [[resourceType]]
 id = "document"
 name = { cs = "dokument", en = "document" }
+citation = ["document", "webpage", "presentation"]
+
+[[resourceType]]
+id = "publication"
+name = { cs = "publikace", en = "publication" }
+citation = ["report", "article"]
 
 [[resourceType]]
 id = "standard"
 name = { cs = "standard", en = "standard" }
+fipDashboard = ["metadata-schema", "access-protocol", "provenance-model"]
+citation = ["standard"]
 
 [[resourceType]]
 id = "vocabulary"
-name = { cs = "slovník", en = "vocabulary" }
+name = { cs = "slovník nebo ontologie", en = "vocabulary or ontology" }
+fipDashboard = ["vocabulary"]
+
+[[resourceType]]
+id = "licence"
+name = { cs = "licence", en = "licence" }
+fipDashboard = ["license"]
+
+[[resourceType]]
+id = "policy"
+name = { cs = "politika", en = "policy" }
+fipDashboard = ["policy", "longevity-plan"]
+
+[[resourceType]]
+id = "data"
+name = { cs = "data", en = "data" }
+citation = ["dataset"]
 
 [[resourceType]]
 id = "community"
