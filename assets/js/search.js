@@ -65,12 +65,12 @@
   /** What the query is: an identifier for a tool, or text for the knowledge base. */
   const bare = (url) => String(url || "").toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/\/+$/, "");
 
-  /** An identifier of the guide's own: a requirement (A.F1.N1) or a check question (S18). */
+  /** An identifier of the guide's own: a requirement (A.F1.N1) or a check question (maturity.18). */
   function guideEntry(value) {
     if (!/^[A-Za-z][\w.-]{1,40}$/.test(value)) return null;
     const clause = FG.get("#clause-" + value) || FG.get("#clause-" + value.toUpperCase());
     if (clause) return { type: "guide", kind: "clauses", value: clause.identifier };
-    const item = FG.get("#item-" + value.toUpperCase());
+    const item = FG.get("#item-" + value.toLowerCase());
     if (item && item.identifier) return { type: "guide", kind: "questions", value: item.identifier };
     return null;
   }

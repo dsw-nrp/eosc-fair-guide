@@ -124,7 +124,7 @@ type = "community"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["plan", "prace"]
+stations = ["plan", "work"]
 languages = ["cs"]
 
 [resource.citation]
@@ -155,7 +155,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["prace", "popis"]
+stations = ["work", "metadata"]
 languages = ["en"]
 
 [resource.citation]
@@ -176,7 +176,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["en"]
 
 [resource.citation]
@@ -196,7 +196,7 @@ fipClass = ["FAIR-Training-Material"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["en"]
 
 [resource.citation]
@@ -215,7 +215,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["en"]
 
 [[resource]]
@@ -227,7 +227,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["en"]
 
 [[resource]]
@@ -239,7 +239,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR"]
-stations = ["prace", "licence"]
+stations = ["work", "licence"]
 languages = ["en"]
 
 [[resource]]
@@ -251,7 +251,7 @@ type = "tool"
 status = "pilot"
 asOf = 2026-10-08
 lenses = ["V", "SR"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["cs", "en"]
 
 [resource.citation]
@@ -270,7 +270,7 @@ type = "document"
 status = "pilot"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["en"]
 
 [resource.citation]
@@ -290,7 +290,7 @@ fipClass = ["FAIR-Training-Material"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["cs"]
 
 [resource.citation]
@@ -309,7 +309,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = "*"
-stations = ["plan", "prace", "popis", "kontrola"]
+stations = ["plan", "work", "metadata", "assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -329,7 +329,7 @@ fipClass = ["Registry"]
 status = "pilot"
 asOf = 2026-10-08
 lenses = "*"
-stations = ["plan", "repozitar"]
+stations = ["plan", "repository"]
 languages = ["cs", "en"]
 
 [[resource]]
@@ -342,7 +342,7 @@ fipClass = ["Registry"]
 status = "pilot"
 asOf = 2026-10-08
 lenses = ["DS", "SR", "K"]
-stations = ["plan", "popis", "licence", "publikace", "dohledatelnost"]
+stations = ["plan", "metadata", "licence", "publication", "findability"]
 languages = ["cs", "en"]
 
 [resource.citation]
@@ -362,7 +362,7 @@ fipClass = ["Generalist-Registry"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS", "SR"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RAGv90JSxsBhhVhdJq_6CtOrHCLBbAuMLdkhES3dkog8o#r3data"]
 
@@ -377,7 +377,7 @@ fipDashboard = "fairsharing"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR", "K"]
-stations = ["repozitar", "popis"]
+stations = ["repository", "metadata"]
 languages = ["en"]
 sameAs = ["https://w3id.org/np/RAVCg1Kvj3fePeJfmO1hLQ6HavxTL_9audWkERmodE2no#FAIRsharing"]
 
@@ -397,7 +397,7 @@ type = "registry"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["cs", "en"]
 
 [resource.citation]
@@ -422,7 +422,7 @@ fipClass = ["FAIR-Assessment-Specification"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR"]
-stations = ["repozitar", "kontrola"]
+stations = ["repository", "assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -434,6 +434,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "nrp-conditions"
+code = "NRP"
 name = { cs = "Podmínky NRP pro zakládání repozitářů", en = "NRP conditions for creating repositories" }
 description = { cs = "Povinné a doporučené podmínky pro repozitáře v NRP.", en = "Mandatory and recommended conditions for repositories in NRP." }
 url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/operating-repositories-in-the-nrp/conditions-for-creating-repositories"
@@ -442,7 +443,7 @@ fipClass = ["FAIR-Data-Policy"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["en"]
 
 [resource.citation]
@@ -461,7 +462,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR", "K"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["cs"]
 
 [resource.citation]
@@ -480,7 +481,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR", "K"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["cs"]
 
 [resource.citation]
@@ -500,7 +501,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["cs"]
 
 [resource.citation]
@@ -519,7 +520,7 @@ type = "project"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["K"]
-stations = ["repozitar", "popis"]
+stations = ["repository", "metadata"]
 languages = ["cs"]
 
 [resource.citation]
@@ -538,7 +539,7 @@ type = "community"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR", "K"]
-stations = ["plan", "repozitar"]
+stations = ["plan", "repository"]
 languages = ["cs"]
 
 [resource.citation]
@@ -558,7 +559,7 @@ fipClass = ["Metadata-schema"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR", "K"]
-stations = ["popis", "dohledatelnost"]
+stations = ["metadata", "findability"]
 languages = ["cs", "en"]
 
 [[resource]]
@@ -570,7 +571,7 @@ type = "vocabulary"
 status = "operational"
 asOf = 2026-10-08
 lenses = "*"
-stations = ["popis"]
+stations = ["metadata"]
 languages = ["cs", "en"]
 
 [resource.citation]
@@ -590,7 +591,7 @@ fipClass = ["Identifier-service"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS", "SR"]
-stations = ["popis", "publikace", "citace"]
+stations = ["metadata", "publication", "citation"]
 languages = ["cs", "en"]
 
 [resource.citation]
@@ -611,7 +612,7 @@ fipDashboard = "orcid"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["popis", "citace"]
+stations = ["metadata", "citation"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RA1MzU1MPio-mtLzm1P7zfTBSMnTNc2I8HLNARhPjpif8#ORCID"]
 
@@ -626,7 +627,7 @@ fipDashboard = "ror"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS", "SR"]
-stations = ["popis"]
+stations = ["metadata"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RAFP-uWPTN5u2kPR8pYeIgdbwyP1_KYZgoogYIv0Wp-fQ#ROR"]
 
@@ -640,7 +641,7 @@ fipClass = ["FAIR-Supporting-Software"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR", "K"]
-stations = ["popis"]
+stations = ["metadata"]
 languages = ["en"]
 
 [resource.citation]
@@ -652,6 +653,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "cdif"
+code = "CDIF"
 name = "CDIF 1.1"
 description = { cs = "Rámec pro mezioborovou interoperabilitu metadat.", en = "A framework for cross-domain metadata interoperability." }
 url = "https://book.cdif.org/"
@@ -660,7 +662,7 @@ fipClass = ["Metadata-schema"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["K"]
-stations = ["popis"]
+stations = ["metadata"]
 languages = ["en"]
 
 [resource.citation]
@@ -682,7 +684,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["K"]
-stations = ["popis"]
+stations = ["metadata"]
 languages = ["en"]
 
 [resource.citation]
@@ -705,7 +707,7 @@ fipDashboard = "datacite-schema"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["popis", "citace"]
+stations = ["metadata", "citation"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RABtwdGxVZoYNbhMoN-xeEmB5ctXCsgSCOc8G-5QQR7fA#datacite_metadata_scheme"]
 
@@ -744,7 +746,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR"]
-stations = ["licence", "repozitar"]
+stations = ["licence", "repository"]
 languages = ["cs", "en"]
 
 [resource.citation]
@@ -832,7 +834,7 @@ fipDashboard = "doi-datacite"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["publikace"]
+stations = ["publication"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RANGw57Qlx5BklwMWCP1srqv4KG1o1I8cvA2IRaHq_HDg#DataCite"]
 
@@ -847,7 +849,7 @@ fipDashboard = "handle"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["publikace"]
+stations = ["publication"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RAvSpggcYeB-tEfjF6SwIkM3R6LmxuOvK4FqJqIDIkxt0#Handle_System"]
 
@@ -862,7 +864,7 @@ fipDashboard = "signposting"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["publikace"]
+stations = ["publication"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RA6roi86ztkS2GF7WbbFpLvhmJCCEA7AByx6M9fJfZVZs#fsp"]
 
@@ -883,7 +885,7 @@ fipDashboard = "ro-crate"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["DS", "SR"]
-stations = ["popis"]
+stations = ["metadata"]
 languages = ["en"]
 
 [resource.citation]
@@ -924,7 +926,7 @@ type = "standard"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["DS", "SR"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -945,7 +947,7 @@ fipClass = ["Metadata-schema"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["publikace", "dohledatelnost"]
+stations = ["publication", "findability"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RALwYq_U0Sk5nogz0XMvH9wFPe37fid3gVXxloIakNJX8#schema.org-dataset"]
 
@@ -967,7 +969,7 @@ fipDashboard = "oai-pmh"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RAhRzHY30rI0MoohlPbosSSgE-tu_bcKtTyE3JhTIyA3c#OAI-PMH"]
 
@@ -982,7 +984,7 @@ fipDashboard = "nma"
 status = "operational"
 asOf = 2026-10-08
 lenses = "*"
-stations = ["dohledatelnost", "citace"]
+stations = ["findability", "citation"]
 languages = ["cs", "en"]
 sameAs = ["https://doi.org/10.25504/FAIRsharing.dbab97"]
 
@@ -1002,7 +1004,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["dohledatelnost", "citace"]
+stations = ["findability", "citation"]
 languages = ["en"]
 
 [resource.citation]
@@ -1021,7 +1023,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["en"]
 
 [resource.citation]
@@ -1040,7 +1042,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["en"]
 
 [[resource]]
@@ -1052,7 +1054,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "SR"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["en"]
 
 [[resource]]
@@ -1064,7 +1066,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "SR"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["en"]
 
 [[resource]]
@@ -1076,7 +1078,7 @@ type = "standard"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "K"]
-stations = ["citace"]
+stations = ["citation"]
 languages = ["en"]
 
 [resource.citation]
@@ -1095,7 +1097,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["citace"]
+stations = ["citation"]
 languages = ["en"]
 
 [resource.citation]
@@ -1114,7 +1116,7 @@ type = "project"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["citace"]
+stations = ["citation"]
 languages = ["cs"]
 
 [resource.citation]
@@ -1133,7 +1135,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V"]
-stations = ["citace"]
+stations = ["citation"]
 languages = ["cs"]
 
 [resource.citation]
@@ -1153,7 +1155,7 @@ fipClass = ["FAIR-Assessment-Specification"]
 status = "operational"
 asOf = 2026-10-08
 lenses = "*"
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -1172,7 +1174,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [[resource]]
@@ -1184,7 +1186,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [[resource]]
@@ -1196,7 +1198,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [[resource]]
@@ -1208,7 +1210,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [[resource]]
@@ -1221,7 +1223,7 @@ fipClass = ["FAIR-Assessment-Specification"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [[resource]]
@@ -1233,7 +1235,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["SR"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -1253,7 +1255,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -1274,7 +1276,7 @@ type = "registry"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "K"]
-stations = ["kontrola"]
+stations = ["assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -1332,7 +1334,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["cs"]
 
 [[resource]]
@@ -1344,7 +1346,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["cs"]
 
 [[resource]]
@@ -1356,7 +1358,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["cs", "en"]
 
 [[resource]]
@@ -1368,7 +1370,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["cs", "en"]
 
 [[resource]]
@@ -1380,7 +1382,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["dohledatelnost"]
+stations = ["findability"]
 languages = ["cs"]
 
 [[resource]]
@@ -1392,7 +1394,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V"]
-stations = ["citace"]
+stations = ["citation"]
 languages = ["en"]
 
 [[resource]]
@@ -1461,7 +1463,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["SR"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["en"]
 
 [resource.citation]
@@ -1480,7 +1482,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["SR"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["en"]
 
 [[resource]]
@@ -1492,7 +1494,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["SR"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["cs", "en"]
 
 [[resource]]
@@ -1504,7 +1506,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["SR"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["cs"]
 
 [[resource]]
@@ -1516,7 +1518,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["DS", "SR"]
-stations = ["plan", "repozitar"]
+stations = ["plan", "repository"]
 languages = ["cs"]
 
 # EOSC CZ training by life-cycle phase: the training link of each step.
@@ -1542,7 +1544,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["cs"]
 
 [[resource]]
@@ -1554,7 +1556,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["cs"]
 
 [[resource]]
@@ -1566,7 +1568,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["prace"]
+stations = ["work"]
 languages = ["cs"]
 
 [[resource]]
@@ -1578,7 +1580,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["repozitar"]
+stations = ["repository"]
 languages = ["cs"]
 
 [[resource]]
@@ -1590,7 +1592,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["publikace"]
+stations = ["publication"]
 languages = ["cs"]
 
 [[resource]]
@@ -1602,7 +1604,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["citace"]
+stations = ["citation"]
 languages = ["cs"]
 
 [[resource]]

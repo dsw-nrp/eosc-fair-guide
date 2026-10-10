@@ -193,21 +193,21 @@ icon = "clipboard-list"
 [[stage]]
 id = "work"
 label = { cs = "Sbírám a zpracovávám data", en = "I am collecting and processing data" }
-station = "prace"
+station = "work"
 description = { cs = "Ukládání, dokumentace a formáty během výzkumu", en = "Storage, documentation and formats during research" }
 icon = "flask"
 
 [[stage]]
 id = "publish"
 label = { cs = "Chci data zveřejnit", en = "I want to publish my data" }
-station = "repozitar"
+station = "repository"
 description = { cs = "Repozitář, popis, licence a zveřejnění", en = "Repository, description, licence and publication" }
 icon = "box-archive"
 
 [[stage]]
 id = "published"
 label = { cs = "Data už jsou zveřejněná", en = "My data are already published" }
-station = "dohledatelnost"
+station = "findability"
 description = { cs = "Dohledatelnost, citace a kontrola", en = "Findability, citation and checking" }
 icon = "magnifying-glass"
 
@@ -482,7 +482,7 @@ icon = "door-open"
 [[task]]
 lens = "SR"
 label = { cs = "Napojení na NMA a zápis do NKR", en = "Connect to NMA and register in NKR" }
-href = "#station-dohledatelnost"
+href = "#station-findability"
 icon = "plug"
 
 [[task]]

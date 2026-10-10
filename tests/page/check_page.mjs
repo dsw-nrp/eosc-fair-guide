@@ -35,6 +35,8 @@ const pages = graph.filter((e) => String(e["@id"]).startsWith("#page-") && e.ide
 const principles = graph.filter((e) => String(e["@id"]).startsWith("https://w3id.org/fair/principles/terms/") && e.termCode).map((e) => e.termCode);
 const checks = graph.filter((e) => e["@type"] === "Quiz").map((e) => ({ id: e.identifier, lens: [].concat(e.audience)[0]["@id"].replace("#lens-", "") }));
 const failures = [];
+// The question numbers a list of gaps or tasks shows: a question shows by its number inside its check.
+const numbersIn = (list) => list.locator(".item-id").allTextContents();
 const fail = (message) => failures.push(message);
 
 const browser = await chromium.launch();
@@ -473,12 +475,12 @@ sections.push(["page", async () => {
     // Content from the EOSC CZ website: each step's training is a line among the help routes, not a resource card;
     // the identifier callout leads with scripted verification; the About page links the introductory courses; the
     // repository finder lists the added general-purpose and domain repositories.
-    await view.goto(pageUrl + "#/cs/V/path/prace");
+    await view.goto(pageUrl + "#/cs/V/path/work");
     await view.waitForSelector("#main h1");
     const training = view.locator("li.training");
     if ((await training.locator("a").count()) !== 3 || !(await training.textContent()).startsWith("Školení k tomuto kroku")) fail("training: the Práce step does not list its three trainings in one line");
     if (await view.locator('.cards .card a[href*="eosc.cz/skoleni/"]').count()) fail("training: a training shows as a resource card as well");
-    await view.goto(pageUrl + "#/cs/V/path/popis");
+    await view.goto(pageUrl + "#/cs/V/path/metadata");
     await view.waitForSelector("#main h1");
     await view.locator(".callout-verify-identifiers summary").click();
     const steps = await view.locator(".callout-verify-identifiers ol li").allTextContents();
@@ -558,14 +560,14 @@ sections.push(["page", async () => {
 
     // Links from text: a step that names DataCite links the name to its catalogue entry, quietly, and the crate
     // records DataCite as mentioned by the step, with no markup in the text.
-    await view.goto(pageUrl + "#/cs/V/path/dohledatelnost");
+    await view.goto(pageUrl + "#/cs/V/path/findability");
     await view.waitForSelector("#main h1");
     await view.locator('details[data-key="L1"] > summary').click();
     const named = view.locator('details[data-key="L1"] a.text-ref', { hasText: "DataCite" }).first();
     if (!(await named.count()) || !(await named.getAttribute("href")).endsWith("/catalogue/resources/datacite")) fail("text links: DataCite in a step does not link to its catalogue entry");
     const quiet = await named.evaluate((link) => getComputedStyle(link).color === getComputedStyle(link.parentElement).color && getComputedStyle(link).textDecorationStyle === "dotted");
     if (!quiet) fail("text links: a link in text does not keep the text's colour with a dotted underline");
-    const step = crate["@graph"].find((entity) => entity["@id"] === "#advice-dohledatelnost.V.L1.2-step-3");
+    const step = crate["@graph"].find((entity) => entity["@id"] === "#advice-findability.04-step-3");
     if (!step || JSON.stringify(step.text).includes("[[") || !JSON.stringify(step.mentions).includes("#resource-datacite")) fail("text links: the crate does not record DataCite as mentioned by the step with clean text");
     if (JSON.stringify(crate).includes("[[")) fail("text links: reference markup reached the crate");
     await named.click();
@@ -646,7 +648,7 @@ sections.push(["page", async () => {
     const roCrate = await pidsOf("#/cs/DS/catalogue/k!resources~q!crate", "ro-crate");
     if (!roCrate.pids.some(([scheme, href, text]) => scheme === "DOI" && href === "https://doi.org/10.5281/zenodo.13751027" && text === href)) fail("catalogue: RO-Crate does not show its DOI in full: " + JSON.stringify(roCrate.pids));
     if (!roCrate.holders || roCrate.plainIcons) fail("catalogue: a station an entry names lacks its icon");
-    const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "zenodo");
+    const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "r3d100010468");
     if (!zenodo.pids.some(([scheme, href]) => scheme === "re3data" && href.endsWith("/r3d100010468"))) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
     const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
     if (!datacite.pids.some(([scheme, href, text]) => scheme === "Nanopublikace" && href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
@@ -696,9 +698,9 @@ sections.push(["page", async () => {
     await view.goto(pageUrl + "#/cs/SR/check/coretrustseal");
     await view.waitForSelector("#main h1");
     const cts = await view.evaluate(() => {
-      const items = [...document.querySelectorAll("#main fieldset")].filter((field) => /^C\d\d\b/.test(field.querySelector("legend")?.textContent.trim() || ""));
+      const items = [...document.querySelectorAll("#main fieldset")].filter((field) => /^\d\d\b/.test(field.querySelector("legend")?.textContent.trim() || ""));
       const guidance = [...document.querySelectorAll("#main details.item-basis details.clause-guidance .content")];
-      const first = items.find((field) => field.querySelector("legend").textContent.trim().startsWith("C01"));
+      const first = items.find((field) => field.querySelector("legend").textContent.trim().startsWith("01"));
       return { items: items.length, guidance: guidance.length, english: guidance.every((node) => node.lang === "en"), emptyTags: first ? first.querySelectorAll(".badges").length : -1 };
     });
     const ctsBlocks = await view.locator("#main .check-block > h2, #main section h2").allTextContents();
@@ -718,11 +720,11 @@ sections.push(["page", async () => {
     // profiles; the first tier is named for the standard, not for NRP or the analysis.
     await view.goto(pageUrl + "#/cs/SR/check/cdif");
     await view.waitForSelector("#main h1");
-    const cdifQuestions = () => view.evaluate(() => [...document.querySelectorAll("#main fieldset legend")].filter((legend) => /^M\d\d\b/.test(legend.textContent.trim())).length);
+    const cdifQuestions = () => view.evaluate(() => [...document.querySelectorAll("#main fieldset legend")].filter((legend) => /^\d\d\b/.test(legend.textContent.trim())).length);
     const basicCount = await cdifQuestions();
     const tierSentence = await view.locator("#main .tier-info").innerText();
     await view.locator('label[for="extended-toggle"]').click();
-    await view.waitForFunction(() => [...document.querySelectorAll("#main fieldset legend")].filter((legend) => /^M\d\d\b/.test(legend.textContent.trim())).length > 9);
+    await view.waitForFunction(() => [...document.querySelectorAll("#main fieldset legend")].filter((legend) => /^\d\d\b/.test(legend.textContent.trim())).length > 9);
     const extendedCount = await cdifQuestions();
     if (basicCount !== 9 || extendedCount !== 35 || !tierSentence.startsWith("Povinné podle standardu (9")) fail(`cdif: ${basicCount} basic and ${extendedCount} extended questions, tier sentence "${tierSentence.slice(0, 60)}"`);
     await view.locator('label[for="extended-toggle"]').click();
@@ -795,9 +797,9 @@ sections.push(["page", async () => {
     await view.waitForFunction(() => location.hash.includes("f.ckind!recommendation"));
     const recommendations = await view.locator(".clause-card").count();
     if (!(recommendations > 0 && recommendations < all)) fail("ids: the kind filter does not narrow the requirements");
-    await view.goto(pageUrl + "#/cs/V/catalogue/questions/S18");
-    await view.waitForSelector("#item-S18");
-    if (!(await view.locator("#item-S18 a.id-chip").count())) fail("ids: a check question does not link the requirements it rests on");
+    await view.goto(pageUrl + "#/cs/V/catalogue/questions/maturity.18");
+    await view.waitForSelector('[id="item-maturity.18"]');
+    if (!(await view.locator('[id="item-maturity.18"] a.id-chip').count())) fail("ids: a check question does not link the requirements it rests on");
     await view.close();
   }
 
@@ -1051,7 +1053,7 @@ async function checkViews(views) {
 // 3. Reflow at 320 CSS pixels: no horizontal scrolling, and the main views keep their alignment and spacing.
 sections.push(["reflow", async () => {
   const { context, page } = await openPage({ width: 320, height: 800 });
-  const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publikace", "#/en/DS/resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/en/V/page/about"];
+  const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publication", "#/en/DS/resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/en/V/page/about"];
   for (const hash of narrow) {
     await page.goto(pageUrl + hash);
     await rendered(page);
@@ -1071,7 +1073,7 @@ sections.push(["reflow", async () => {
 sections.push(["iframe", async () => {
   const host = resolve(root, ".cache", "iframe-host.html");
   mkdirSync(dirname(host), { recursive: true });
-  writeFileSync(host, `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Host</title></head><body><iframe title="FAIR guide" src="${pageUrl}#/cs/V/path/repozitar" style="width:100%;height:800px"></iframe></body></html>`);
+  writeFileSync(host, `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Host</title></head><body><iframe title="FAIR guide" src="${pageUrl}#/cs/V/path/repository" style="width:100%;height:800px"></iframe></body></html>`);
   const { context, page } = await openPage();
   await page.goto(pathToFileURL(host).href);
   const frame = page.frameLocator("iframe");
@@ -1103,28 +1105,28 @@ sections.push(["self-check", async () => {
   await go("#/cs/V/check/dataset");
   if (!(await page.locator(".notice", { hasText: "Nejdřív odpovězte" }).count())) fail("dataset check: no prompt to choose the mode first");
   await page.locator("#mode-after").check();
-  if (await page.locator("#item-D06").count()) fail("dataset check: a Recommended item shows in the first view");
+  if (await page.locator("#item-dataset-06").count()) fail("dataset check: a Recommended item shows in the first view");
   if (/Krok \d/.test(await page.locator(".item-group h2").first().textContent())) fail("dataset check: group headings imitate the path's step numbering");
-  if (!(await page.locator("#item-D04").count())) fail("dataset check: Minimum item D04 is missing after publication");
-  if (await page.locator("#item-P01").count()) fail("dataset check: a before-publication item shows after publication");
-  await page.locator("#answer-D04-no").check();
-  await page.locator("#answer-D05-unknown").check();
-  await page.locator("#answer-D01-yes").check();
+  if (!(await page.locator("#item-dataset-04").count())) fail("dataset check: Minimum item dataset.04 is missing after publication");
+  if (await page.locator("#item-dataset-15").count()) fail("dataset check: a before-publication item shows after publication");
+  await page.locator("#answer-dataset-04-no").check();
+  await page.locator("#answer-dataset-05-unknown").check();
+  await page.locator("#answer-dataset-01-yes").check();
   const gaps = await page.locator(".gaps").first().textContent();
-  if (!gaps.includes("D04") || !gaps.includes("Licence") || !gaps.includes("správce repozitáře")) fail("dataset check: the D04 gap lacks where to fix it or who fixes it: " + gaps);
+  if (!(await numbersIn(page.locator(".gaps").first())).includes("04") || !gaps.includes("Licence") || !gaps.includes("správce repozitáře")) fail("dataset check: the dataset.04 gap lacks where to fix it or who fixes it: " + gaps);
   const gapLink = await page.locator(".gaps a", { hasText: "Licence" }).first().getAttribute("href");
   if (gapLink !== "#/cs/V/path/licence") fail("dataset check: the gap links to " + gapLink);
   const tasks = await page.locator(".gaps").nth(1).textContent();
-  if (!tasks.includes("D05") || !tasks.includes("data steward")) fail("dataset check: the don't-know task does not say whom to ask: " + tasks);
+  if (!(await numbersIn(page.locator(".gaps").nth(1))).includes("05") || !tasks.includes("data steward")) fail("dataset check: the don't-know task does not say whom to ask: " + tasks);
   if (!(await page.locator(".gaps").nth(1).locator('a[href^="https://nma.eosc.cz"]').count())) fail("dataset check: the don't-know task has no NMA search link");
   const resultText = await page.locator("#results").textContent();
   if (/%|skóre|score/i.test(resultText)) fail("dataset check: the result shows a score or percentage");
   await axe(page, "dataset check answered");
   await page.locator('label[for="extended-toggle"]').click();
-  if (!(await page.locator("#item-D06").count())) fail("dataset check: the extended check does not show Recommended items");
+  if (!(await page.locator("#item-dataset-06").count())) fail("dataset check: the extended check does not show Recommended items");
   if (!(await page.locator("#extended-toggle").isChecked()) || (await page.locator("#extended-toggle").getAttribute("role")) !== "switch") fail("dataset check: the extended check is not an on/off switch that shows its state");
   if (!(await panelFits(page))) fail("dataset check: the result so far scrolls or is too tall in the extended check");
-  if (!(await checked("answer-D04-no"))) fail("dataset check: opening the extended check lost an answer");
+  if (!(await checked("answer-dataset-04-no"))) fail("dataset check: opening the extended check lost an answer");
   await page.locator('label[for="extended-toggle"]').click();
 
   // The first view says what its tier means; items are grouped by FAIR principle, can be grouped by path step, and
@@ -1134,11 +1136,11 @@ sections.push(["self-check", async () => {
   const minimumCount = (tierInfo.match(/Minimum \((\d+) /) || [])[1];
   if (!(await page.locator("#results p").first().textContent()).endsWith("z " + minimumCount)) fail("dataset check: the result counts items the first view does not show");
   if (!(await page.locator(".item-group h2").first().textContent()).includes("Dohledatelnost")) fail("dataset check: items are not grouped by FAIR principle by default");
-  if (!(await page.locator('#item-D04 .fix-at a.step-link[href$="/path/licence"]').count())) fail("dataset check: an item names its step without a link to it");
-  if (!(await page.locator("#item-D04 .fix-at").textContent()).includes("Licence")) fail("dataset check: an item does not name the step where it is addressed");
+  if (!(await page.locator('#item-dataset-04 .fix-at a.step-link[href$="/path/licence"]').count())) fail("dataset check: an item names its step without a link to it");
+  if (!(await page.locator("#item-dataset-04 .fix-at").textContent()).includes("Licence")) fail("dataset check: an item does not name the step where it is addressed");
   // The summary mirrors the questions: one chip per question in view, in the list's groups.
-  const listed = await page.locator(".items fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-", "")));
-  const chips = await page.locator(".summary-chip").evaluateAll((buttons) => buttons.map((button) => button.textContent.match(/[A-Z]\d{2}/)[0]));
+  const listed = await page.locator(".items fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-dataset-", "")));
+  const chips = await page.locator(".summary-chip").evaluateAll((buttons) => buttons.map((button) => button.textContent.match(/\d{2}/)[0]));
   if (listed.join(" ") !== chips.join(" ")) fail(`dataset check: the summary does not mirror the questions (${chips.join(" ")} vs ${listed.join(" ")})`);
   await page.locator("#grouping-steps").check();
   const stepHeading = page.locator(".item-group h2").first();
@@ -1162,26 +1164,26 @@ sections.push(["self-check", async () => {
   const mainBox = await page.locator(".check-main").boundingBox();
   const resultBox = await page.locator(".check-summary").boundingBox();
   if (!(resultBox.x > mainBox.x + mainBox.width / 2)) fail("dataset check: the result is not beside the questions");
-  await page.locator("#item-D04").scrollIntoViewIfNeeded();
-  const gapCell = page.locator('.summary-chip[data-state="gap"]', { hasText: "D04" });
+  await page.locator("#item-dataset-04").scrollIntoViewIfNeeded();
+  const gapCell = page.locator('.summary-chip[data-state="gap"]', { hasText: /(^|\s)04(\s|$)/ });
   const gapBox = await gapCell.boundingBox();
   if (!gapBox || gapBox.y < 0 || gapBox.y + gapBox.height > (await page.evaluate(() => window.innerHeight))) fail("dataset check: the R1.1 gap is not in view beside the item");
   // On a wide screen the check's controls sit in the summary, at hand while scrolling.
   if (!(await page.locator(".check-summary #extended-toggle").count()) || !(await page.locator(".check-summary #grouping-steps").count())) fail("dataset check: the extended switch and the grouping are not in the summary on a wide screen");
   // The chips and counts of the result so far lead to the items and to the full result.
   await gapCell.click();
-  if (!(await page.evaluate(() => document.activeElement.closest("#item-D04")))) fail("dataset check: a principle chip does not lead to its item");
+  if (!(await page.evaluate(() => document.activeElement.closest("#item-dataset-04")))) fail("dataset check: a principle chip does not lead to its item");
   await page.locator('.summary-count[data-kind="gaps"]').click();
   if (!(await page.evaluate(() => document.activeElement.id === "results-gaps"))) fail("dataset check: the gap count does not lead to the gaps in the full result");
   // A chip whose item the short view hides opens the extended view and lands on the item.
   await page.locator('label[for="extended-toggle"]').click();
-  await page.locator("#answer-D08-no").check();
+  await page.locator("#answer-dataset-08-no").check();
   await page.locator('label[for="extended-toggle"]').click();
-  await page.locator(".summary-chip", { hasText: "D08" }).click();
-  if (!(await page.locator("#extended-toggle").isChecked()) || !(await page.evaluate(() => document.activeElement.closest("#item-D08")))) fail("dataset check: a chip for a hidden item does not open the extended view at the item");
+  await page.locator(".summary-chip", { hasText: /(^|\s)08(\s|$)/ }).click();
+  if (!(await page.locator("#extended-toggle").isChecked()) || !(await page.evaluate(() => document.activeElement.closest("#item-dataset-08")))) fail("dataset check: a chip for a hidden item does not open the extended view at the item");
   await page.locator('label[for="extended-toggle"]').click();
   // The collapse control stays exactly where it was.
-  await page.locator("#item-D04").scrollIntoViewIfNeeded();
+  await page.locator("#item-dataset-04").scrollIntoViewIfNeeded();
   const toggleBefore = await page.locator("#result-toggle").boundingBox();
   await page.locator("#result-toggle").click();
   if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the result panel does not collapse");
@@ -1204,7 +1206,7 @@ sections.push(["self-check", async () => {
     st.pid = "10.5281/zenodo.1";
     st.target = "https://doi.org/10.5281/zenodo.1";
     st.targetInfo = { name: "Sample dataset", creators: "Novak, D. a kol.", publisher: "Zenodo", year: "2026", kind: "Dataset" };
-    st.items.D02 = {
+    st.items["dataset.02"] = {
       value: "yes",
       origin: "prefill",
       prefill: { source: "resolver", date: "2026-10-08", value: "yes", notes: [], list: [], fields: [{ path: "url", values: ["https://repo.example/record/1"], more: 0 }], record: "https://repo.example/record/1" },
@@ -1216,9 +1218,9 @@ sections.push(["self-check", async () => {
   const card = await page.locator(".target-card").textContent();
   if (!card.includes("Sample dataset") || !card.includes("Zenodo") || !card.includes("2026")) fail("dataset check: the resolved identifier does not say what it is: " + card);
   if (!(await page.locator(".result-headline").textContent()).includes("Kontrolujete: Sample dataset")) fail("dataset check: the result does not name what is checked");
-  const evidence = await page.locator("#origin-D02").textContent();
-  if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside D02 is incomplete: " + evidence);
-  if ((await page.locator("#origin-D02 a").getAttribute("href")) !== "https://repo.example/record/1") fail("dataset check: the evidence does not link to its record");
+  const evidence = await page.locator("#origin-dataset-02").textContent();
+  if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside dataset.02 is incomplete: " + evidence);
+  if ((await page.locator("#origin-dataset-02 a").getAttribute("href")) !== "https://repo.example/record/1") fail("dataset check: the evidence does not link to its record");
   await page.locator("#export-format-md").check();
   await page.locator(".export-preview summary").click();
   await page.waitForFunction(() => document.getElementById("export-preview-text").value.length > 0);
@@ -1229,7 +1231,7 @@ sections.push(["self-check", async () => {
   await page.locator(".export-preview summary").click();
   await page.locator("#export-format-md").check();
   // Your answers read as a list: the answer beside each question, and the evidence under it.
-  const answerRow = await page.locator(".answers-list .answer-row").filter({ hasText: "D02" }).textContent();
+  const answerRow = await page.locator(".answers-list .answer-row").filter({ has: page.locator(".item-id", { hasText: /^02$/ }) }).textContent();
   if (!answerRow.includes("Ano") || !answerRow.includes("url = https://repo.example/record/1") || !answerRow.includes("záznam")) fail("dataset check: the answers list lacks the answer or its evidence: " + answerRow);
   // The summary loads back with the DOI in its field, what it is, and the evidence.
   {
@@ -1247,11 +1249,11 @@ sections.push(["self-check", async () => {
     if ((await page.locator("#prefill-pid").inputValue()) !== "10.5281/zenodo.1") fail("load: the DOI is not back in its field after loading the summary");
     const restoredCard = page.locator(".target-card");
     if (!(await restoredCard.count()) || !(await restoredCard.textContent()).includes("Sample dataset")) fail("load: what the DOI is does not show after loading the summary");
-    if (!(await page.locator("#origin-D02").textContent()).includes("https://repo.example/record/1")) fail("load: the evidence behind D02 is lost after loading the summary");
+    if (!(await page.locator("#origin-dataset-02").textContent()).includes("https://repo.example/record/1")) fail("load: the evidence behind dataset.02 is lost after loading the summary");
   }
   await page.locator("#prefill-pid-clear").click();
-  if (await page.locator('input[name="answer-D02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
-  if (!(await checked("answer-D01-yes")) || !(await checked("answer-D04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
+  if (await page.locator('input[name="answer-dataset-02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
+  if (!(await checked("answer-dataset-01-yes")) || !(await checked("answer-dataset-04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
   if (await page.locator("#prefill-pid").inputValue()) fail("dataset check: clearing did not empty the identifier field");
   if (await page.locator(".target-card").count()) fail("dataset check: clearing the identifier kept its description");
 
@@ -1273,7 +1275,7 @@ sections.push(["self-check", async () => {
   await page.locator(".stage-switch summary").click();
   await page.locator(".stage-switch button", { hasText: "Chci data zveřejnit" }).click();
   try {
-    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/repozitar" && document.querySelector(".stage-switch summary").textContent.includes("Chci data zveřejnit"), null, { timeout: 5000 });
+    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/repository" && document.querySelector(".stage-switch summary").textContent.includes("Chci data zveřejnit"), null, { timeout: 5000 });
   } catch (error) {
     fail("path: choosing a stage does not open its first station and show the choice");
   }
@@ -1389,18 +1391,18 @@ sections.push(["self-check", async () => {
   await go("#/cs/V/check/dataset");
   await page.locator("#share-create").click();
   const shared = await page.locator("#share-url").inputValue();
-  if (!shared.includes("/check/dataset/a1.after.none.") || !shared.includes("D04n") || !shared.includes("D05k")) fail("share link: unexpected payload " + shared);
+  if (!shared.includes("/check/dataset/a2.after.none.") || !shared.includes(".04n") || !shared.includes(".05k")) fail("share link: unexpected payload " + shared);
   if (shared.startsWith("file:")) fail("share link: names a local file instead of the published page");
   {
     const other = await browser.newContext();
     const view = await other.newPage();
     await view.goto(pageUrl + shared.slice(shared.indexOf("#")));
     await view.waitForSelector(".notice.shared");
-    if (!(await view.locator(".gaps").first().textContent()).includes("D04")) fail("share link: the preview does not show the D04 gap");
+    if (!(await numbersIn(view.locator(".gaps").first())).includes("04")) fail("share link: the preview does not show the dataset.04 gap");
     await view.getByRole("button", { name: "Použít odpovědi z odkazu" }).click();
-    await view.waitForSelector("#answer-D04-no");
-    if (!(await view.locator("#answer-D04-no").isChecked())) fail("share link: adopting the answers did not store them");
-    await view.goto(pageUrl + "#/cs/V/check/dataset/a1.after._.Z99q");
+    await view.waitForSelector("#answer-dataset-04-no");
+    if (!(await view.locator("#answer-dataset-04-no").isChecked())) fail("share link: adopting the answers did not store them");
+    await view.goto(pageUrl + "#/cs/V/check/dataset/a2.after._.99q");
     await view.waitForSelector(".notice");
     if (!(await view.locator(".notice", { hasText: "nepodařilo přečíst" }).count())) fail("share link: an invalid link is not reported");
     await other.close();
@@ -1409,11 +1411,11 @@ sections.push(["self-check", async () => {
   // Gate check: the core-system profile marks monitoring and central logging as provided by NRP.
   await go("#/cs/SR/check/gate");
   await page.locator("#profile-a").check();
-  for (const id of ["G09", "G10"]) {
+  for (const id of ["gate-09", "gate-10"]) {
     if (await page.locator(`#answer-${id}-yes`).count()) fail(`gate check: ${id} asks for an answer although NRP provides it`);
     if (!/zajišťuje NRP/i.test(await page.locator(`#item-${id}`).textContent())) fail(`gate check: ${id} is not marked as provided by NRP`);
   }
-  if (await page.locator("#item-G18").count()) fail("gate check: G18 shows for the core-system profile");
+  if (await page.locator("#item-gate-18").count()) fail("gate check: gate.18 shows for the core-system profile");
   // NKR lists no repository yet, so a record is put in place of the loaded list to test the mapping.
   await page.evaluate(() => {
     window.FairGuide.live.nkr = { state: "done", records: [{ id: "test/1", name: "Test repository", content: { pidType: ["DOI"], oaipmhEndpoint: ["https://repo.example/oai"] } }] };
@@ -1421,12 +1423,12 @@ sections.push(["self-check", async () => {
   });
   await page.locator("#prefill-nkr-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  for (const id of ["G01", "G07"]) {
+  for (const id of ["gate-01", "gate-07"]) {
     if (!(await checked(`answer-${id}-yes`))) fail(`gate check: ${id} is not pre-filled yes from an NKR record listing DOI`);
     if (!(await page.locator(`#origin-${id}`).textContent()).includes("NKR")) fail(`gate check: ${id} does not name NKR as its source`);
   }
-  if (!(await checked("answer-G08-partly"))) fail("gate check: G08 exceeds its pre-fill level");
-  if (await page.locator('input[name="answer-G06"]:checked').count()) fail("gate check: G06 is pre-filled although the record does not state it");
+  if (!(await checked("answer-gate-08-partly"))) fail("gate check: gate.08 exceeds its pre-fill level");
+  if (await page.locator('input[name="answer-gate-06"]:checked').count()) fail("gate check: gate.06 is pre-filled although the record does not state it");
   await axe(page, "gate check");
 
   // Maturity and institution checks run end to end; the institution check has no Minimum items and shows them all.
@@ -1439,23 +1441,23 @@ sections.push(["self-check", async () => {
   await page.fill("#prefill-re3data", "https://www.re3data.org/repository/r3d100010386");
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  if (!(await checked("answer-S18-partly")) || !(await page.locator("#origin-S18").textContent()).includes("re3data")) fail("maturity check: S18 is not partly met from re3data alone");
-  if (!(await checked("answer-S01-yes")) || !(await checked("answer-S19-yes"))) fail("maturity check: re3data facts do not fill in S01 and S19");
+  if (!(await checked("answer-maturity-18-partly")) || !(await page.locator("#origin-maturity-18").textContent()).includes("re3data")) fail("maturity check: maturity.18 is not partly met from re3data alone");
+  if (!(await checked("answer-maturity-01-yes")) || !(await checked("answer-maturity-19-yes"))) fail("maturity check: re3data facts do not fill in maturity.01 and maturity.19");
   if (!(await page.locator(".target-card").textContent()).includes("LINDAT")) fail("maturity check: the re3data record does not say which repository it is");
-  if (!(await page.locator("#origin-S05").textContent()).includes("OAI-PMH")) fail("maturity check: S05 does not show the OAI-PMH evidence from re3data");
-  // A failed FAIRsharing lookup leaves S18 open with a note; a record found answers it and links to the record.
+  if (!(await page.locator("#origin-maturity-05").textContent()).includes("OAI-PMH")) fail("maturity check: maturity.05 does not show the OAI-PMH evidence from re3data");
+  // A failed FAIRsharing lookup leaves maturity.18 open with a note; a record found answers it and links to the record.
   await page.locator("#prefill-re3data-clear").click();
   await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => { throw new Error("offline"); }; });
   await page.fill("#prefill-re3data", "r3d100010386");
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  if ((await page.locator('input[name="answer-S18"]:checked').count()) || !(await page.locator("#origin-S18").textContent()).includes("nepodařilo ověřit")) fail("maturity check: a failed FAIRsharing lookup does not leave S18 open with a note");
-  if (!(await checked("answer-S01-yes"))) fail("maturity check: a failed FAIRsharing lookup stopped the re3data answers");
+  if ((await page.locator('input[name="answer-maturity-18"]:checked').count()) || !(await page.locator("#origin-maturity-18").textContent()).includes("nepodařilo ověřit")) fail("maturity check: a failed FAIRsharing lookup does not leave maturity.18 open with a note");
+  if (!(await checked("answer-maturity-01-yes"))) fail("maturity check: a failed FAIRsharing lookup stopped the re3data answers");
   await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => [{ doi: "10.25504/FAIRsharing.test", name: "LINDAT", re3data: "r3d100010386", addresses: [] }]; });
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  if (!(await checked("answer-S18-yes"))) fail("maturity check: a FAIRsharing record does not complete S18");
-  if (!(await page.locator('#origin-S18 a[href="https://doi.org/10.25504/FAIRsharing.test"]').count())) fail("maturity check: S18 does not link to the FAIRsharing record");
+  if (!(await checked("answer-maturity-18-yes"))) fail("maturity check: a FAIRsharing record does not complete maturity.18");
+  if (!(await page.locator('#origin-maturity-18 a[href="https://doi.org/10.25504/FAIRsharing.test"]').count())) fail("maturity check: maturity.18 does not link to the FAIRsharing record");
   await page.fill("#prefill-re3data", "r3d999999999");
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("není ve snímku"));
@@ -1471,7 +1473,7 @@ sections.push(["self-check", async () => {
   // them alone; an identifier that does not resolve is not tested. One record passes, one fails and one gives no
   // result, so a question resting on one test is partly met by the two records with a result. Running all tests
   // shows a bar, the coverage is stated, and a retry runs only the tests without a result.
-  const line = page.locator("#tests-S02");
+  const line = page.locator("#tests-maturity-02");
   if (!(await line.locator('a[href$="/catalogue/tests/fc_metadata_identifier_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
@@ -1485,16 +1487,16 @@ sections.push(["self-check", async () => {
     };
   });
   await page.fill("#prefill-champion", "10.1234/good\n10.1234/bad\n10.1234/none\n10.1234/gone");
-  await page.locator("#test-run-S02").click();
+  await page.locator("#test-run-maturity-02").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   const oneQuestion = await page.evaluate(() => window.championCalls);
   if (oneQuestion.length !== 3 || oneQuestion.some((call) => !call.startsWith("fc_metadata_identifier_persistence https://doi.org/") || call.includes("gone"))) fail("maturity check: one question's run did not test only its test on the resolved records, as resolver addresses: " + oneQuestion.join(", "));
-  if (!(await checked("answer-S02-partly")) || !(await line.textContent()).includes("1 z 2") || !(await page.locator("#origin-S02").textContent()).includes("FAIR Champion")) fail("maturity check: a sample with one passing and one failing record does not partly meet S02, with the count on its test line");
+  if (!(await checked("answer-maturity-02-partly")) || !(await line.textContent()).includes("1 z 2") || !(await page.locator("#origin-maturity-02").textContent()).includes("FAIR Champion")) fail("maturity check: a sample with one passing and one failing record does not partly meet maturity.02, with the count on its test line");
   if (!(await page.locator("#prefill-status").textContent()).includes("10.1234/gone")) fail("maturity check: the record that does not resolve is not reported");
   await page.evaluate(() => { window.championCalls = []; window.championGate = new Promise((resolve) => { window.openChampion = resolve; }); });
   await page.locator("#prefill-champion-run").click();
   await page.waitForSelector("#prefill-progress:not([hidden])");
-  if (!(await page.locator("#prefill-progress").textContent()).includes("z 19 testů") || !(await page.locator("#tests-S06 .test-state").textContent()).includes("běží")) fail("maturity check: running all tests does not show the progress of the remaining tests and S02's retry, or a question's line does not say its test is running");
+  if (!(await page.locator("#prefill-progress").textContent()).includes("z 19 testů") || !(await page.locator("#tests-maturity-06 .test-state").textContent()).includes("běží")) fail("maturity check: running all tests does not show the progress of the remaining tests and maturity.02's retry, or a question's line does not say its test is running");
   await page.evaluate(() => window.openChampion());
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   if (await page.locator("#prefill-progress:not([hidden])").count()) fail("maturity check: the progress bar stays after the tests");
@@ -1505,16 +1507,16 @@ sections.push(["self-check", async () => {
   await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("21 z 21"));
   if (await page.evaluate(() => window.championCalls.length !== 7 || window.championCalls.some((record) => !record.endsWith("/none")))) fail("maturity check: the retry ran tests that had a result");
-  if (!(await page.locator("#tests-S02").textContent()).includes("2 z 3") || (await page.locator("#prefill-champion-run").count())) fail("maturity check: the retried results are not counted, or a run stays offered");
+  if (!(await page.locator("#tests-maturity-02").textContent()).includes("2 z 3") || (await page.locator("#prefill-champion-run").count())) fail("maturity check: the retried results are not counted, or a run stays offered");
   await page.fill("#prefill-champion", "a b c d e f");
   await page.locator("#prefill-champion-run").click();
   if (!(await page.locator("#prefill-status").textContent()).includes("jeden až 5")) fail("maturity check: a sample over five records is accepted");
-  await page.locator("#answer-S02-no").check();
-  if (!(await page.locator(".gaps").first().textContent()).includes("S02")) fail("maturity check: the S02 gap is missing");
+  await page.locator("#answer-maturity-02-no").check();
+  if (!(await numbersIn(page.locator(".gaps").first())).includes("02")) fail("maturity check: the maturity.02 gap is missing");
   await go("#/cs/DS/check/institution");
-  if (!(await page.locator("#item-I01").count())) fail("institution check: no item shows in the first view");
-  await page.locator("#answer-I01-unknown").check();
-  if (!(await page.locator(".gaps").first().textContent()).includes("I01")) fail("institution check: the don't-know task is missing");
+  if (!(await page.locator("#item-institution-01").count())) fail("institution check: no item shows in the first view");
+  await page.locator("#answer-institution-01-unknown").check();
+  if (!(await numbersIn(page.locator(".gaps").first())).includes("01")) fail("institution check: the don't-know task is missing");
   // The basic institution check is the strategy, which the Open Science III call requires, and the research act's
   // obligations; the extended check adds the action plan, the policy and the national infrastructure. Blocks replace
   // the grouping switch; a gap cites the call's minimum (and for the policy the EOSC CZ manual) and links to the
@@ -1523,16 +1525,16 @@ sections.push(["self-check", async () => {
   if (basicBlocks.length !== 2 || !basicBlocks[0].includes("zákona o výzkumu") || !basicBlocks[1].includes("Strategie") || (await page.locator(".grouping").count())) fail("institution check: the basic check is not the research act's obligations and the strategy, or the grouping switch shows: " + basicBlocks.join(" | "));
   if ((await page.locator(".item-group > h2 svg.group-icon").count()) !== 2 || (await page.locator(".check-summary svg.group-icon").count()) < 2) fail("institution check: blocks are not marked by their icons in the list and the summary");
   if (!(await page.locator(".item-group .group-description", { hasText: "§ 83" }).count())) fail("institution check: the obligations block does not say where they come from");
-  await page.locator("#answer-I08-no").check();
-  const peopleGap = page.locator(".gaps .action-card", { hasText: "I08" }).first();
-  if (!(await peopleGap.locator('.id-chip[href$="/catalogue/clauses/E.OS3-RULES.S3"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
+  await page.locator("#answer-institution-08-no").check();
+  const peopleGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^08$/ }) }).first();
+  if (!(await peopleGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.04"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
   await page.locator('label[for="extended-toggle"]').click();
   const allBlocks = await page.locator(".item-group > h2").allTextContents();
   if (allBlocks.length !== 5 || !allBlocks[3].includes("Politika")) fail("institution check: the extended check does not add the action plan, policy and infrastructure blocks: " + allBlocks.join(" | "));
-  await page.locator("#answer-I18-no").check();
-  const retentionGap = page.locator(".gaps .action-card", { hasText: "I18" }).first();
+  await page.locator("#answer-institution-18-no").check();
+  const retentionGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^18$/ }) }).first();
   const cites = async (id) => retentionGap.locator(`.id-chip[href$="/catalogue/clauses/${id}"]`).count();
-  if (!(await cites("E.OS3-RULES.P3")) || !(await cites("E.POLICY-MANUAL.RETENTION")) || !(await retentionGap.locator('a[href$="/path/repozitar"]').count())) fail("institution check: the retention gap does not cite the call and the manual or link to the repository step");
+  if (!(await cites("OS3-RULES.14")) || !(await cites("POLICY-MANUAL.04")) || !(await retentionGap.locator('a[href$="/path/repository"]').count())) fail("institution check: the retention gap does not cite the call and the manual or link to the repository step");
 
   // FIP check: the dashboard snapshot pre-fills answers with their source; a principle without a declaration stays
   // open with a note; a change by the user stays marked.
@@ -1546,11 +1548,11 @@ sections.push(["self-check", async () => {
   await page.locator("#prefill-fip").selectOption("ndi-baseline");
   await page.locator("#prefill-fip-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  if (!(await checked("answer-K01-yes"))) fail("FIP check: K01 is not pre-filled from the snapshot");
+  if (!(await checked("answer-fip-01-yes"))) fail("FIP check: fip.01 is not pre-filled from the snapshot");
   if (!(await panelFits(page))) fail("FIP check: the result so far scrolls or is too tall after pre-fill");
-  if (!(await page.locator("#origin-K01").textContent()).includes("FIP Dashboard (snímek)")) fail("FIP check: K01 does not name its source");
-  await page.locator("#answer-K01-partly").check();
-  if ((await page.locator("#origin-K01 .source-chip").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
+  if (!(await page.locator("#origin-fip-01").textContent()).includes("FIP Dashboard (snímek)")) fail("FIP check: fip.01 does not name its source");
+  await page.locator("#answer-fip-01-partly").check();
+  if ((await page.locator("#origin-fip-01 .source-chip").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
   await axe(page, "FIP check pre-filled");
 
   // Loading a saved result is a way to start: offered at the top of every check, also before the mode is chosen,
@@ -1579,8 +1581,8 @@ sections.push(["self-check", async () => {
   if (!set || set["prov:hadMember"].length !== results.length || !results.length) fail("export: the result set does not hold the results");
   if (!set || !String((set["ftr:assessmentTarget"] || {})["@id"]).includes("/profiles/ndi-baseline")) fail("export: the assessment target is not the chosen profile");
   if (results.some((result) => !["pass", "fail", "indeterminate"].includes(result["prov:value"]))) fail("export: a result has an unexpected value");
-  const k01 = results.find((result) => result["@id"] === "#result-K01") || {};
-  if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the K01 result does not record its evidence: " + JSON.stringify(k01));
+  const k01 = results.find((result) => result["@id"] === "#result-fip.01") || {};
+  if (!String(k01["ftr:log"]).includes("Doklad") || !k01["prov:used"]) fail("export: the fip.01 result does not record its evidence: " + JSON.stringify(k01));
   if (!md.includes("Deklarované")) fail("export: the Markdown summary does not carry the evidence behind the answers");
   if (JSON.stringify(exported).includes("file:")) fail("export: the JSON-LD names a local file");
   // A result names the test it came from: the question's manual test in the guide's API, which implements the
@@ -1589,12 +1591,12 @@ sections.push(["self-check", async () => {
   const testRef = String((k01["ftr:outputFromTest"] || {})["@id"] || "");
   const testFile = testRef.startsWith(configured) ? resolve(root, "_site", testRef.slice(configured.length)) : null;
   const testRecord = testFile && existsSync(testFile) ? JSON.parse(readFileSync(testFile, "utf8")) : null;
-  if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../metrics/K01.json") fail("export: the K01 result does not name its test in the guide's API: " + testRef);
+  if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../metrics/fip.01.json") fail("export: the fip.01 result does not name its test in the guide's API: " + testRef);
 
   // Local data: each check says where the answers are kept, and how it works.
   const note = await page.locator(".local-data").textContent();
   if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
-  if (!/<!-- fair-guide-result v1 guide=\S+: fip a1\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
+  if (!/<!-- fair-guide-result v1 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
   if (!/<!-- fair-guide-state\n[A-Za-z0-9+/=\n]+\n-->/.test(md)) fail("export: the Markdown summary does not carry the state for loading back");
   const state = JSON.parse(exportedGraph.find((entity) => entity.guideState).guideState);
   if (state.format !== "eosc-fair-guide-result" || state.v !== 1 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
@@ -1630,9 +1632,9 @@ sections.push(["self-check", async () => {
         fail(message + ": " + (await view.locator("#load-file-overview-status").textContent()));
       }
     };
-    await tryLoad(variant("damaged.jsonld", (data) => { data.items.K01.value = "maybe"; }), "poškozený", "load: a damaged file is not reported as damaged");
+    await tryLoad(variant("damaged.jsonld", (data) => { data.items["fip.01"].value = "maybe"; }), "poškozený", "load: a damaged file is not reported as damaged");
     await tryLoad(variant("newer.jsonld", (data) => { data.v = 2; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
-    await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items.K99 = { value: "yes", origin: "user", prefill: null }; }));
+    await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items["fip.99"] = { value: "yes", origin: "user", prefill: null }; }));
     await view.waitForSelector(".notice.shared");
     if (!(await view.locator(".notice.shared").textContent()).includes("vynechali: 1")) fail("load: a question this version does not know is not skipped with a note");
     await view.goto(pageUrl + "#/cs/K/selfcheck");
@@ -1642,10 +1644,10 @@ sections.push(["self-check", async () => {
     if (!(await view.locator(".notice.shared").textContent()).includes("ze souboru")) fail("load: a JSON-LD file does not open as a preview");
     if (await view.evaluate(() => Object.keys(window.FairGuide.state.answers).length)) fail("load: the preview changed the stored answers");
     await view.getByRole("button", { name: "Použít odpovědi ze souboru" }).click();
-    await view.waitForSelector("#answer-K01-partly");
-    if (!(await view.locator("#answer-K01-partly").isChecked())) fail("load: the adopted answers are not the file's answers");
-    const loaded = await view.locator("#origin-K01").textContent();
-    if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("liší se od návrhu")) fail("load: the adopted K01 lost its evidence or is mislabelled: " + loaded);
+    await view.waitForSelector("#answer-fip-01-partly");
+    if (!(await view.locator("#answer-fip-01-partly").isChecked())) fail("load: the adopted answers are not the file's answers");
+    const loaded = await view.locator("#origin-fip-01").textContent();
+    if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("liší se od návrhu")) fail("load: the adopted fip.01 lost its evidence or is mislabelled: " + loaded);
     const restored = async (format) => {
       if ((await view.locator("#prefill-fip").inputValue()) !== "ndi-baseline") fail(`load (${format}): the profile chosen for pre-fill is not restored`);
       if (!(await view.locator(".target-card").count())) fail(`load (${format}): what the identifier is does not show after loading`);
@@ -1657,9 +1659,9 @@ sections.push(["self-check", async () => {
     await view.waitForSelector(".notice.shared");
     if (!(await view.locator(".notice.shared").textContent()).includes("ze souboru")) fail("load: a Markdown summary does not open as a preview");
     await view.getByRole("button", { name: "Použít odpovědi ze souboru" }).click();
-    await view.waitForSelector("#answer-K01-partly");
-    const fromMarkdown = await view.locator("#origin-K01").textContent();
-    if (!fromMarkdown.includes("liší se od návrhu")) fail("load (Markdown): the adopted K01 lost its evidence: " + fromMarkdown);
+    await view.waitForSelector("#answer-fip-01-partly");
+    const fromMarkdown = await view.locator("#origin-fip-01").textContent();
+    if (!fromMarkdown.includes("liší se od návrhu")) fail("load (Markdown): the adopted fip.01 lost its evidence: " + fromMarkdown);
     await restored("Markdown");
     // A summary from before the state was carried still loads its answers.
     const older = resolve(root, ".cache", "older-summary.md");
@@ -1713,15 +1715,16 @@ sections.push(["funded output", async () => {
   await page.goto(pageUrl + "#/cs/V/check/dataset");
   await rendered(page);
   await page.waitForSelector("#mode-after");
-  const outputItems = async () => page.locator("fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-", "")).filter((id) => id.startsWith("O")).sort().join(","));
+  const programmeItems = graph.filter((e) => e["@type"] === "Question" && [].concat(e.appliesTo || []).some((ref) => String(ref["@id"]).startsWith("#profile-"))).map((e) => e.identifier.replace(".", "-"));
+  const outputItems = async () => (await page.locator("fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-", "")))).filter((id) => programmeItems.includes(id)).sort().join(",");
   await page.locator("#mode-before").check();
   if (await page.locator('input[name="profile"]').count()) fail("dataset check: the programme question shows before publication");
   await page.locator("#mode-after").check();
   if ((await page.locator('input[name="profile"]:checked').getAttribute("value")) !== "none" || (await outputItems())) fail("dataset check: the check does not start without a programme and without programme items");
   await page.locator('input[name="profile"][value="minizamer"]').check();
-  if ((await outputItems()) !== "O01,O02,O03,O04") fail("dataset check: the minizáměr programme does not show just the shared requirements: " + (await outputItems()));
+  if ((await outputItems()) !== "dataset-20,dataset-21,dataset-22,dataset-23") fail("dataset check: the minizáměr programme does not show just the shared requirements: " + (await outputItems()));
   await page.locator('input[name="profile"][value="os3"]').check();
-  if ((await outputItems()) !== "O01,O02,O03,O04,O05,O06,O07,O08,O09") fail("dataset check: Open Science III does not add its own requirements");
+  if ((await outputItems()) !== "dataset-20,dataset-21,dataset-22,dataset-23,dataset-24,dataset-25,dataset-26,dataset-27,dataset-28") fail("dataset check: Open Science III does not add its own requirements");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     live.resolvePid = async () => ({ found: true, url: "https://zenodo.org/records/1", title: "Test" });
@@ -1732,20 +1735,20 @@ sections.push(["funded output", async () => {
   await page.fill("#prefill-pid", "10.5281/zenodo.1");
   await page.locator("#prefill-pid-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status") && document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  if (!(await checked("answer-O08-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
-  const stewardGap = page.locator(".gaps .action-card", { hasText: "O08" }).first();
-  if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/E.OS3-RULES.D-STEWARD"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
+  if (!(await checked("answer-dataset-27-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
+  const stewardGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^27$/ }) }).first();
+  if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.24"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
   // A gap's basis names its source the way every citation does: by short name, leading to the catalogue; a
   // question's basis opens under the same label.
   if (!(await stewardGap.locator('a.source-link[href$="/catalogue/resources/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
-  if (!(await page.locator("#item-O08 details.item-basis summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
+  if (!(await page.locator("#item-dataset-27 details.item-basis summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
   // FAIR Champion on the dataset, as a second action after the lookup: each question shows its tests and runs them
   // alone, the lookup result runs them all, and no test runs on an identifier that does not resolve. Four outcomes:
   // a pass answers yes, a fail no, an indeterminate verdict or no result leaves the answer to the quick check; the
   // coverage is stated and a retry runs only the tests without a result. The extended view shows every question.
   await page.locator('label[for="extended-toggle"]').click();
-  await page.waitForSelector("#tests-D07");
-  if (!(await page.locator(".champion-all").textContent()).includes("5 otázek") || !(await page.locator('#tests-D07 [data-health="degraded"]').count())) fail("dataset check: the lookup result does not offer the tests of five questions, or a degraded test is not marked at its question");
+  await page.waitForSelector("#tests-dataset-07");
+  if (!(await page.locator(".champion-all").textContent()).includes("5 otázek") || !(await page.locator('#tests-dataset-07 [data-health="degraded"]').count())) fail("dataset check: the lookup result does not offer the tests of five questions, or a degraded test is not marked at its question");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     window.championCalls = [];
@@ -1757,20 +1760,20 @@ sections.push(["funded output", async () => {
       return { value: verdicts[test], log: "log of " + test };
     };
   });
-  await page.locator("#test-run-D03").click();
+  await page.locator("#test-run-dataset-03").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("nepodařilo přeložit"));
   if (await page.evaluate(() => window.championCalls.length)) fail("dataset check: FAIR Champion was called for an identifier that does not resolve");
   await page.evaluate(() => { window.FairGuide.live.resolvePid = async () => ({ found: true, url: "https://zenodo.org/records/1", title: "Test" }); });
-  await page.locator("#test-run-D03").click();
+  await page.locator("#test-run-dataset-03").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   if ((await page.evaluate(() => window.championCalls.join(","))) !== "fc_data_identifier_in_metadata https://doi.org/10.5281/zenodo.1") fail("dataset check: one question's run did not test only its test, on the DOI as its resolver address");
-  if (!(await checked("answer-D03-yes")) || !(await page.locator("#tests-D03").textContent()).includes("splněno")) fail("dataset check: a passed test does not answer D03 yes and show on its line");
+  if (!(await checked("answer-dataset-03-yes")) || !(await page.locator("#tests-dataset-03").textContent()).includes("splněno")) fail("dataset check: a passed test does not answer dataset.03 yes and show on its line");
   await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("3 z 5 testů"));
   if ((await page.evaluate(() => window.championCalls.filter((call) => call.startsWith("fc_data_identifier_in_metadata")).length)) !== 1 || (await page.evaluate(() => window.championCalls.length)) !== 5) fail("dataset check: running all tests ran again a test that had a result");
-  if (!(await checked("answer-D04-no")) || !(await page.locator("#tests-D04").textContent()).includes("nesplněno")) fail("dataset check: a failed test does not answer D04 no");
-  if (!(await checked("answer-D02-yes")) || !(await page.locator("#origin-D02").textContent()).includes("resolver")) fail("dataset check: an indeterminate test replaced the quick check's answer to D02");
-  if (!(await page.locator("#prefill-champion-run").textContent()).includes("(2)") || !(await page.locator("#test-run-D09").textContent()).includes("Zopakovat")) fail("dataset check: no retry of the two tests without a result, overall or at their questions");
+  if (!(await checked("answer-dataset-04-no")) || !(await page.locator("#tests-dataset-04").textContent()).includes("nesplněno")) fail("dataset check: a failed test does not answer dataset.04 no");
+  if (!(await checked("answer-dataset-02-yes")) || !(await page.locator("#origin-dataset-02").textContent()).includes("resolver")) fail("dataset check: an indeterminate test replaced the quick check's answer to dataset.02");
+  if (!(await page.locator("#prefill-champion-run").textContent()).includes("(2)") || !(await page.locator("#test-run-dataset-09").textContent()).includes("Zopakovat")) fail("dataset check: no retry of the two tests without a result, overall or at their questions");
   await page.evaluate(() => { window.championCalls = []; window.FairGuide.live.championTest = async (test, record) => (window.championCalls.push(test), { value: "pass", log: "" }); });
   await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("5 z 5 testů"));

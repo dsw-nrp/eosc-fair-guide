@@ -47,15 +47,10 @@ HEALTH = ("available", "degraded", "unavailable")
 PREFILL_SOURCES = ("datacite", "nkr", "champion", "fip", "resolver", "re3data")
 ACTION_TYPES = ("create", "update")
 RELEASE_STATUSES = ("testing", "released")
-CHECK_PREFIXES = {
-    "dataset": ("D", "P", "O"),
-    "gate": ("G",),
-    "maturity": ("S",),
-    "fip": ("K",),
-    "institution": ("I",),
-    "coretrustseal": ("C",),
-    "cdif": ("M",),
-}
+# The checks the guide knows; a question's ID is its check's ID and a serial number (docs/content-model.md,
+# Identifiers).
+CHECKS = ("dataset", "gate", "maturity", "fip", "institution", "coretrustseal", "cdif")
+QUESTION_NUMBER = re.compile(r"^\d{2}$")
 GATE_TIERS = ("required", "recommended")
 MATURITY_TIERS = ("minimum", "recommended", "advanced")
 # Checks built on a standard's requirements start with what the standard requires.
@@ -116,11 +111,13 @@ FIP_QUESTIONS = (
 
 PRINCIPLE = r"(?:F[1-4]|A1(?:\.[12])?|A2|I[1-3]|R1(?:\.[1-3])?)"
 ANALYSIS_CLAUSE = re.compile(rf"^A\.(?P<principle>{PRINCIPLE})\.(?P<kind>[NRFX])(?P<number>\d+)$")
-CLAUSE_ID = re.compile(
-    r"^(A\.[A-Z0-9.]+|K\d[\w.]*|P\d+|S\.(?:MIN|REC)\d+|C\.[A-Z][\w.]*|CTS\.R\d+|CDIF\.[\w.-]+|DOC\.[\w.-]+|E\.[\w.-]+|G)$"
-)
-# A key point is the station's one core idea, so its ID ends in "key" rather than a number.
-ADVICE_ID = re.compile(r"^(?P<station>[a-z0-9-]+)\.(?P<lens>[A-Z]+|all)\.(?P<level>L[0-2])(?:\.\d+|\.(?P<key>key))?$")
+# A requirement's ID is its source's code and a local part: the source's own label where it labels its items
+# consistently, a serial number otherwise.
+CLAUSE_ID = re.compile(r"^(?P<code>[A-Z][A-Z0-9-]*)\.(?P<local>[A-Za-z0-9][A-Za-z0-9.-]*)$")
+# An advice item's ID is its station's ID and a serial number; what it is for (audience, level) is in its fields.
+ADVICE_ID = re.compile(r"^(?P<station>[a-z0-9-]+)\.(?P<number>\d{2})$")
+# Stations, checks, pages, resources and sources carry lower-case kebab-case IDs.
+SLUG = re.compile(r"^[a-z0-9]+(?:[-.][a-z0-9]+)*$")
 RAW_HTML = re.compile(r"<\s*[a-zA-Z/!]")
 # Letters that mark a name as Czech; a plain name with one of them has no English form.
 CZECH_LETTERS = re.compile(r"[ěščřžůťďňáéíóúý]", re.IGNORECASE)
@@ -254,11 +251,15 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
     ids = [clause.get("id", "") for clause in clauses]
     unique(report, "ledger", ids, "clause")
     source_ids = cited_ids(content)
+    codes = source_codes(content)
     clause_ids = set(ids)
     for clause in clauses:
         where = f"ledger:{clause.get('id')}"
-        if not CLAUSE_ID.match(clause.get("id", "")):
-            report.error(where, "ID does not follow the ledger prefixes")
+        id_match = CLAUSE_ID.match(clause.get("id", ""))
+        if not id_match:
+            report.error(where, "ID must be <source code>.<local part>")
+        elif clause.get("source") in codes and id_match["code"] != codes[clause["source"]]:
+            report.error(where, f"ID must start with its source's code '{codes[clause['source']]}'")
         if clause.get("source") not in source_ids:
             report.error(where, f"unknown source '{clause.get('source')}'")
         for principle in clause.get("principles", []):
@@ -300,6 +301,18 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                     where, "'X' clauses state fulfilment in NRP or a CoreTrustSeal/CDIF link, not a requirement"
                 )
     return clause_ids
+
+
+def source_code(source: dict[str, Any]) -> str:
+    """A source's code: its declared `code`, or its ID in capitals without a version suffix."""
+    return source.get("code") or re.sub(r"-\d+(?:\.\d+)+$", "", source["id"]).replace(".", "-").upper()
+
+
+def source_codes(content: dict[str, Any]) -> dict[str, str]:
+    """The code of every source and every cited resource, by ID."""
+    return {source["id"]: source_code(source) for source in content["sources"]} | {
+        resource["id"]: source_code(resource) for resource in content["resources"] if resource.get("citation")
+    }
 
 
 def cited_ids(content: dict[str, Any]) -> set[str]:
@@ -386,15 +399,9 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
             match = ADVICE_ID.match(advice_id)
             lenses = sorted(vocab["lenses"]) if advice.get("lens") == "*" else as_list(advice.get("lens"))
             if not match:
-                report.error(item, "ID must be <station>.<lens|all>.<level>[.<n>]")
-            else:
-                if match["station"] != station["id"]:
-                    report.error(item, f"ID names station '{match['station']}' but the item is in '{station['id']}'")
-                if match["level"] != advice.get("level"):
-                    report.error(item, f"ID names level {match['level']} but the item has level {advice.get('level')}")
-                expected_lens = "all" if len(lenses) != 1 else lenses[0]
-                if match["lens"] != expected_lens:
-                    report.error(item, f"ID names lens '{match['lens']}' but the item is for {', '.join(lenses)}")
+                report.error(item, "ID must be <station>.<nn>")
+            elif match["station"] != station["id"]:
+                report.error(item, f"ID names station '{match['station']}' but the item is in '{station['id']}'")
             for lens in lenses:
                 if lens not in vocab["lenses"]:
                     report.error(item, f"unknown lens '{lens}'")
@@ -410,13 +417,11 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
                 report.error(item, "kind must be 'ai', 'key' or omitted")
             if advice.get("kind") == "key":
                 # The station's core idea, shown at the top of its how-to.
-                if advice.get("level") != "L1" or advice.get("steps") or (match and not match["key"]):
-                    report.error(item, "a key point is an L1 item without steps whose ID ends in 'key'")
+                if advice.get("level") != "L1" or advice.get("steps"):
+                    report.error(item, "a key point is an L1 item without steps")
                 for lens in lenses:
                     if lens in keys_by_lens:
                         keys_by_lens[lens] += 1
-            elif match and match["key"]:
-                report.error(item, "only a key point has an ID that ends in 'key'")
             if advice.get("kind") == "ai":
                 # An AI tip says what to check afterwards and gives a prompt to copy.
                 require_text(report, item, advice.get("check"), "check")
@@ -462,8 +467,8 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
     for data in content["checks"]:
         check = data["check"]
         where = f"check:{check['id']}"
-        if check["id"] not in CHECK_PREFIXES:
-            report.error(where, f"check ID must be one of {', '.join(CHECK_PREFIXES)}")
+        if check["id"] not in CHECKS:
+            report.error(where, f"check ID must be one of {', '.join(CHECKS)}")
             continue
         require_text(report, where, check.get("name"), "name")
         for lens in check.get("lenses", []):
@@ -487,10 +492,9 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                 report.error(here, f"block must be one of {', '.join(blocks)}")
             if not blocks and item.get("block") is not None:
                 report.error(here, "the check declares no blocks")
-            if not item_id.startswith(CHECK_PREFIXES[check["id"]]):
-                report.error(
-                    here, f"items of the {check['id']} check start with {' or '.join(CHECK_PREFIXES[check['id']])}"
-                )
+            parent, _, number = item_id.rpartition(".")
+            if parent != check["id"] or not QUESTION_NUMBER.match(number):
+                report.error(here, f"a question of the {check['id']} check has the ID {check['id']}.<nn>")
             if item.get("prefillLevel") not in (None, "partly"):
                 report.error(here, "prefillLevel can only be 'partly'")
             if item.get("tier") not in tiers:
@@ -739,6 +743,48 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
 
 def covered(pattern: str, item_id: str) -> bool:
     return item_id.startswith(pattern[:-1]) if pattern.endswith("*") else item_id == pattern
+
+
+def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
+    """Every identifier the guide issues, by kind, in content order. Terms, FIPs, FIP Dashboard records and tests carry
+    the identifiers of the registries they come from, which keep them (docs/content-model.md, Identifiers)."""
+    return {
+        "lenses": [lens["id"] for lens in content["guide"].get("lens", [])],
+        "stations": [data["station"]["id"] for data in content["stations"]],
+        "checks": [data["check"]["id"] for data in content["checks"]],
+        "pages": [page["id"] for page in content["pages"]],
+        "advice": [advice["id"] for data in content["stations"] for advice in data.get("advice", [])],
+        "questions": [item["id"] for data in content["checks"] for item in data.get("item", [])],
+        "requirements": [clause["id"] for clause in content["ledger"]],
+        "sources": [source["id"] for source in content["sources"]],
+        "resources": [resource["id"] for resource in content["resources"]],
+        "repositories": [repository["id"] for repository in content["repositories"]],
+        "actions": [action["id"] for action in content["provenance"]],
+    }
+
+
+def check_identifiers(report: Report, content: dict[str, Any]) -> None:
+    """A registered identifier names its entry for good: it is never renamed or reused, and an entry that goes away
+    leaves its identifier retired. scripts/register_ids.py registers the identifiers of new entries."""
+    register = content["identifiers"]
+    if not register:
+        return
+    issued, retired = register.get("issued", {}), register.get("retired", {})
+    current = issued_ids(content)
+    for kind in sorted((set(issued) | set(retired)) - set(current)):
+        report.error(f"identifiers:{kind}", f"unknown kind; the register knows {', '.join(current)}")
+    for kind, ids in current.items():
+        where = f"identifiers:{kind}"
+        known, gone = set(issued.get(kind, [])), set(retired.get(kind, []))
+        for value in ids:
+            if value in gone:
+                report.error(where, f"'{value}' is retired and cannot name another entry")
+            elif value not in known:
+                report.error(where, f"'{value}' is not registered (scripts/register_ids.py registers new entries)")
+        for value in sorted(known - set(ids) - gone):
+            report.error(where, f"'{value}' is registered but no entry has it: keep the identifier or retire it")
+        for value in sorted(gone - known):
+            report.error(where, f"'{value}' is retired but was never registered")
 
 
 def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, set[str]]) -> None:
@@ -1156,6 +1202,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_self_check_inputs(report, content)
     check_icons_and_tasks(report, content, root, vocab)
     check_provenance(report, content, vocab)
+    check_identifiers(report, content)
     check_coherence(report, content)
     check_names(report, content)
     check_references(report, content)

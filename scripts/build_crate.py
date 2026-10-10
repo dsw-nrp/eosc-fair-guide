@@ -222,6 +222,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "pages": optional("pages.toml").get("page", []),
         "ui": optional("ui.toml"),
         "icons": optional("icons.toml"),
+        "identifiers": optional("identifiers.toml"),
     }
     resolve_requirements(content)
     return content
@@ -1183,7 +1184,7 @@ def build_glossary(graph: Graph, glossary: dict[str, Any]) -> None:
             {
                 "@id": f"#term-{term['id']}",
                 "@type": "DefinedTerm",
-                "termCode": str(term.get("heslarId", term["id"])),
+                "termCode": str(term["id"]),
                 "name": text(term["label"]),
                 "description": text(term.get("definition")),
                 "url": term.get("url"),

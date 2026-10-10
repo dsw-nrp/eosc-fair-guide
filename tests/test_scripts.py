@@ -28,6 +28,7 @@ import build_site  # noqa: E402
 import check_all  # noqa: E402
 import check_content  # noqa: E402
 import refresh_snapshots  # noqa: E402
+import register_ids  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "minimal"
 TODAY = date(2026, 3, 1)
@@ -98,12 +99,12 @@ class GeneratorTests(FixtureCase):
         root = graph["./"]
         self.assertEqual(root["mainEntity"], {"@id": "#path"})
         self.assertIn({"@id": build_crate.PROCESS_RUN_CRATE}, root["conformsTo"])
-        advice = graph["#advice-one.all.L0"]
+        advice = graph["#advice-one.01"]
         self.assertEqual(advice["citation"], {"@id": "#clause-A.F1.R1"})
         self.assertEqual(len(advice["audience"]), 2)
         action = graph["#action-create"]
         self.assertEqual(action["@type"], "CreateAction")
-        self.assertIn({"@id": "#advice-one.V.L1.1"}, action["result"])
+        self.assertIn({"@id": "#advice-one.03"}, action["result"])
         resource = graph["#resource-service"]
         self.assertEqual(resource["additionalType"], "https://w3id.org/fair/fip/terms/Registry")
 
@@ -242,7 +243,7 @@ class ContentCheckTests(FixtureCase):
 
     def test_missing_translation(self) -> None:
         self.edit("stations/01-one.toml", ', en = "Steps."', "")
-        self.assertError("one.V.L1.1")
+        self.assertError("one.03")
         self.assertError("missing English text")
 
     def test_advice_without_source(self) -> None:
@@ -273,7 +274,7 @@ class ContentCheckTests(FixtureCase):
     def test_ai_item_says_what_to_check_and_gives_a_prompt(self) -> None:
         self.append(
             "stations/01-one.toml",
-            '\n[[advice]]\nid = "one.V.L1.2"\nlens = "V"\nlevel = "L1"\nkind = "ai"\n'
+            '\n[[advice]]\nid = "one.04"\nlens = "V"\nlevel = "L1"\nkind = "ai"\n'
             'text = { cs = "Tip.", en = "Tip." }\nprompt = { cs = "Zadání.", en = "Prompt." }\nsources = ["A.F1.X1"]\n',
         )
         self.assertError("missing check")
@@ -309,10 +310,10 @@ class ContentCheckTests(FixtureCase):
         )
         self.append(
             "checks/gate.toml",
-            '\n[[item]]\nid = "G02"\nrequirement = "CDIF.Core"\ntier = "required"\nowner = ["repository-admin"]\n',
+            '\n[[item]]\nid = "gate.02"\nrequirement = "CDIF.Core"\ntier = "required"\nowner = ["repository-admin"]\n',
         )
         content = build_crate.load_content(self.root / "content")
-        item = next(item for item in content["checks"][0]["item"] if item["id"] == "G02")
+        item = next(item for item in content["checks"][0]["item"] if item["id"] == "gate.02")
         self.assertEqual((item["sources"], item["principles"]), (["CDIF.Core"], ["F1"]))
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         principle = next(
@@ -323,10 +324,10 @@ class ContentCheckTests(FixtureCase):
     def test_an_item_takes_its_question_from_the_requirement(self) -> None:
         self.append(
             "checks/gate.toml",
-            '\n[[item]]\nid = "G02"\nrequirement = "CTS.R12"\ntier = "required"\nowner = ["repository-admin"]\n',
+            '\n[[item]]\nid = "gate.02"\nrequirement = "CTS.R12"\ntier = "required"\nowner = ["repository-admin"]\n',
         )
         content = build_crate.load_content(self.root / "content")
-        item = next(item for item in content["checks"][0]["item"] if item["id"] == "G02")
+        item = next(item for item in content["checks"][0]["item"] if item["id"] == "gate.02")
         self.assertEqual(item["statement"]["en"], "The repository enables discovery and citation.")
         self.assertEqual(item["sources"], ["CTS.R12"])
         self.assertEqual(item["principles"], ["F1"])
@@ -358,19 +359,19 @@ class ContentCheckTests(FixtureCase):
         self.assertError("at most 2 actions")
 
     def test_every_station_has_one_key_point_per_lens(self) -> None:
-        self.edit("stations/01-one.toml", 'id = "one.all.L1.key"\nlens = "*"', 'id = "one.V.L1.key"\nlens = "V"')
+        self.edit("stations/01-one.toml", 'id = "one.02"\nlens = "*"', 'id = "one.02"\nlens = "V"')
         self.assertError("lens SR needs exactly one key point (found 0)")
-        self.edit("stations/01-one.toml", 'id = "one.V.L1.key"\nlens = "V"', 'id = "one.all.L1.key"\nlens = "*"')
-        self.edit("stations/01-one.toml", 'kind = "key"\n', "")
-        self.assertError("only a key point has an ID that ends in 'key'")
+        self.edit("stations/01-one.toml", 'id = "one.02"\nlens = "V"', 'id = "one.02"\nlens = "*"')
+        self.edit("stations/01-one.toml", 'kind = "key"\n', 'kind = "key"\nsteps = [{ cs = "Krok.", en = "Step." }]\n')
+        self.assertError("a key point is an L1 item without steps")
 
     def test_in_page_target_must_exist(self) -> None:
         self.edit("stations/01-one.toml", 'href = "#check-gate"', 'href = "#nowhere"')
         self.assertError("in-page target '#nowhere' does not exist")
 
     def test_item_without_provenance(self) -> None:
-        self.edit("provenance.toml", '"G01", ', "")
-        self.assertError("item:G01: no provenance action covers this item")
+        self.edit("provenance.toml", '"gate.01", ', "")
+        self.assertError("item:gate.01: no provenance action covers this item")
 
     def test_scores_are_forbidden(self) -> None:
         self.append("checks/gate.toml", "\n[check.score]\nmax = 10\n")
@@ -392,7 +393,7 @@ class ContentCheckTests(FixtureCase):
         self.edit("checks/gate.toml", 'champion = ["test_one"] }', 'champion = ["test_one"] }\nlookup = "search"')
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-G01")
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-gate.01")
         self.assertEqual(item["lookup"], {"@id": "https://example.org/search"})
 
     def test_nanopub_query_needs_the_fip_placeholder(self) -> None:
@@ -460,6 +461,8 @@ class ContentCheckTests(FixtureCase):
 
     def test_cited_resource_is_one_entity(self) -> None:
         self.append("resources.toml", self.CITATION)
+        # The cited resource takes over the analysis's code with its requirements.
+        self.edit("resources.toml", 'id = "service"\n', 'id = "service"\ncode = "A"\n')
         self.edit("ledger.toml", 'source = "report"', 'source = "service"')
         self.assertEqual(self.errors(), [])
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
@@ -518,17 +521,17 @@ class ContentCheckTests(FixtureCase):
 
     def test_check_blocks_group_every_item(self) -> None:
         self.edit("checks/gate.toml", 'tier = "required"', 'block = "basics"\ntier = "required"')
-        self.assertError("item:G01: the check declares no blocks")
+        self.assertError("item:gate.01: the check declares no blocks")
         self.edit(
             "checks/gate.toml",
             "[[item]]",
             '[[block]]\nid = "other"\nname = { cs = "Ostatní", en = "Other" }\n\n[[item]]',
         )
-        self.assertError("item:G01: block must be one of other")
+        self.assertError("item:gate.01: block must be one of other")
         self.edit("checks/gate.toml", 'block = "basics"', 'block = "other"')
         self.assertFalse(any("block" in error for error in self.errors()))
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
-        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-G01")
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-gate.01")
         self.assertEqual(item["block"], {"@id": "#block-gate-other"})
 
     def test_unused_resource_is_reported(self) -> None:
@@ -717,17 +720,49 @@ class FreshnessTests(FixtureCase):
         content = build_crate.load_content(self.root / "content")
         report = check_content.Report()
         check_content.check_freshness(report, content, self.root, "HEAD")
-        self.assertTrue(any("one.V.L1.1" in error for error in report.errors), report.errors)
+        self.assertTrue(any("one.03" in error for error in report.errors), report.errors)
 
         self.append(
             "provenance.toml",
             '\n[[action]]\nid = "edit"\ntype = "update"\nname = "Edit"\nagent = "tester"\ninstruments = ["model"]\n'
-            'results = ["one.V.L1.1"]\nendTime = 2099-01-01T00:00:00+00:00\n',
+            'results = ["one.03"]\nendTime = 2099-01-01T00:00:00+00:00\n',
         )
         content = build_crate.load_content(self.root / "content")
         report = check_content.Report()
         check_content.check_freshness(report, content, self.root, "HEAD")
         self.assertEqual(report.errors, [])
+
+
+class IdentifierRegisterTests(FixtureCase):
+    def register(self) -> list[str]:
+        return register_ids.register(self.root / "content")
+
+    def test_registered_identifiers_are_kept(self) -> None:
+        added = self.register()
+        self.assertIn("advice:one.03", added)
+        self.assertIn("questions:gate.01", added)
+        self.assertEqual(self.errors(), [])
+        self.assertEqual(self.register(), [])
+        # A renamed entry leaves its registered identifier without an entry, and its new one unregistered.
+        self.edit("stations/01-one.toml", 'id = "one.03"', 'id = "one.04"')
+        self.assertError("'one.03' is registered but no entry has it")
+        self.assertError("'one.04' is not registered")
+        # Registering the new identifier keeps the old one, which stays until it is retired.
+        self.assertEqual(self.register(), ["advice:one.04"])
+        self.assertError("'one.03' is registered but no entry has it")
+        self.edit("identifiers.toml", "[retired]\n", '[retired]\nadvice = ["one.03"]\n')
+        self.assertEqual(self.errors(), [])
+        self.assertEqual(self.register(), [])
+        self.assertIn('advice = [\n  "one.03",\n]', (self.root / "content" / "identifiers.toml").read_text("utf-8"))
+
+    def test_retired_identifier_is_not_reused(self) -> None:
+        self.register()
+        self.edit("identifiers.toml", "[retired]\n", '[retired]\nadvice = ["one.03"]\n')
+        self.assertError("'one.03' is retired and cannot name another entry")
+        self.edit("identifiers.toml", '[retired]\nadvice = ["one.03"]\n', '[retired]\nadvice = ["one.99"]\n')
+        self.assertError("'one.99' is retired but was never registered")
+        self.edit("identifiers.toml", "[retired]\n", '[retired]\nterms = ["1"]\n')
+        self.assertError("identifiers:terms: unknown kind")
 
 
 class BuildOutputTests(FixtureCase):

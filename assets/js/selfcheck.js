@@ -37,6 +37,11 @@
 
   SC.checks = () => FG.ofType("Quiz");
   const itemsOf = (check) => FG.refs(check, "hasPart").sort(FG.byPosition);
+  /* A question's ID is its check's ID and its number (dataset.04): inside its check it shows by its number, and the
+     page's elements are keyed by the ID with a hyphen for the dot, so selectors need no escaping. */
+  const numberOf = (item) => String(item.identifier).split(".").pop();
+  const keyOf = (item) => String(item.identifier).replace(/\./g, "-");
+
   const modesOf = (check) => FG.refs(FG.get("#modes-" + check.identifier), "hasDefinedTerm");
   const profilesOf = (check) => FG.refs(FG.get("#profiles-" + check.identifier), "hasDefinedTerm");
   const today = () => new Date().toISOString().slice(0, 10);
@@ -166,7 +171,7 @@
     const st = stateOf(check);
     st.items[item.identifier] = Object.assign({}, record(st, item) || {}, { value, origin: "user" });
     save();
-    FG.renderList("origin-" + item.identifier, () => fragment(origin(st, item)));
+    FG.renderList("origin-" + keyOf(item), () => fragment(origin(st, item)));
     FG.renderList("results", () => fragment(results(check, st)));
     FG.renderList("summary-body", () => fragment(summary(check, st)));
     refreshPreview(check, st);
@@ -1110,13 +1115,13 @@
     const action = ready ? runLabel(check, st, tests, { run: "selfcheck.champion.run", retry: "selfcheck.champion.retry" }) : null;
     return h(
       "div",
-      { class: "test-line", id: "tests-" + item.identifier, tabindex: "-1" },
+      { class: "test-line", id: "tests-" + keyOf(item), tabindex: "-1" },
       h(
         "p",
         { class: "test-head" },
         h("span", { class: "test-label" }, FG.t("selfcheck.champion.label", { n: tests.length })),
         action
-          ? h("button", { type: "button", class: "button-small test-run", id: "test-run-" + item.identifier, disabled: status.busy || null, onclick: () => runChampion(check, tests, "tests-" + item.identifier) }, action)
+          ? h("button", { type: "button", class: "button-small test-run", id: "test-run-" + keyOf(item), disabled: status.busy || null, onclick: () => runChampion(check, tests, "tests-" + keyOf(item)) }, action)
           : ready
             ? null
             : h("span", { class: "muted" }, FG.t(onDataset(check, st) ? "selfcheck.champion.needPid" : "selfcheck.champion.needSample"))
@@ -1186,7 +1191,7 @@
       st.sample = field.value;
       save();
       for (const item of answerable(check, st)) {
-        const line = document.getElementById("tests-" + item.identifier);
+        const line = document.getElementById("tests-" + keyOf(item));
         if (line) line.replaceWith(testLine(check, st, item));
       }
       const all = document.querySelector(".champion-all");
@@ -1342,7 +1347,7 @@
   }
 
   function itemField(check, st, item) {
-    const id = item.identifier;
+    const id = keyOf(item);
     /* The item's tier and principles; a first-tier item with no principle has none, and no empty row. */
     const principles = FG.principlesOf(item);
     const meta =
@@ -1354,7 +1359,7 @@
             isFirstTier(item) ? null : h("span", { class: "badge" }, FG.termName(FG.id(item.tier))),
             principles.map((principle) => FG.principleTile(principle))
           );
-    const statement = [h("span", { class: "item-id" }, id), " ", FG.linkedSpan(item)];
+    const statement = [h("span", { class: "item-id" }, numberOf(item)), " ", FG.linkedSpan(item)];
     const clauses = FG.refs(item, "citation");
     const basedOn = clauses.length
       ? h(
@@ -1591,7 +1596,7 @@
         { class: "action-title" },
         stateLabel(state),
         " ",
-        h("span", { class: "item-id" }, item.identifier),
+        h("span", { class: "item-id" }, numberOf(item)),
         " ",
         FG.span(item.text),
         isFirstTier(item) ? null : [" ", h("span", { class: "badge" }, FG.termName(FG.id(item.tier)))]
@@ -1638,7 +1643,7 @@
     return h(
       "li",
       { class: "action-card", "data-state": "unknown" },
-      h("p", { class: "action-title" }, stateLabel("unknown"), " ", h("span", { class: "item-id" }, item.identifier), " ", FG.span(item.text)),
+      h("p", { class: "action-title" }, stateLabel("unknown"), " ", h("span", { class: "item-id" }, numberOf(item)), " ", FG.span(item.text)),
       h(
         "p",
         { class: "action-meta" },
@@ -1701,7 +1706,7 @@
           h("span", { "aria-hidden": "true" }, STATE_ICON[itemState(st, item)] + " "),
           providedByNrp(item, st) ? FG.t("selfcheck.state.provided") : value ? FG.t("selfcheck.answer." + value) : FG.t("selfcheck.result.unanswered")
         ),
-        h("span", { class: "answer-question" }, h("span", { class: "item-id" }, item.identifier), " ", FG.span(item.text))
+        h("span", { class: "answer-question" }, h("span", { class: "item-id" }, numberOf(item)), " ", FG.span(item.text))
       ),
       meta.length ? h("p", { class: "answer-meta" }, meta.map((part, index) => [index ? " · " : "", part])) : null
     );
@@ -2188,10 +2193,11 @@
   const fileName = (check, extension) => "fair-self-check-" + check.identifier + "-" + today() + "." + extension;
 
   SC.sharePayload = function (check, st) {
-    const parts = ["a1", st.mode || "_", st.profile || "_"];
+    /* Version a2: a question by its number, since the link names its check. */
+    const parts = ["a2", st.mode || "_", st.profile || "_"];
     for (const item of itemsOf(check)) {
       const value = answerOf(st, item);
-      if (value) parts.push(item.identifier + SHARE_CODE[value]);
+      if (value) parts.push(numberOf(item) + SHARE_CODE[value]);
     }
     return parts.join(".");
   };
@@ -2200,9 +2206,9 @@
       else unexpected makes the whole link invalid. */
   SC.parseShare = function (check, payload) {
     const parts = String(payload || "").split(".");
-    if (parts[0] !== "a1" || parts.length < 3) return null;
+    if (parts[0] !== "a2" || parts.length < 3) return null;
     const codes = Object.fromEntries(Object.entries(SHARE_CODE).map(([value, letter]) => [letter, value]));
-    const ids = new Set(itemsOf(check).map((item) => item.identifier));
+    const byNumber = new Map(itemsOf(check).map((item) => [numberOf(item), item.identifier]));
     const shared = { mode: null, profile: null, extended: true, items: {}, skipped: 0 };
     if (parts[1] !== "_") {
       if (!modesOf(check).some((term) => term.termCode === parts[1])) return null;
@@ -2213,13 +2219,13 @@
       shared.profile = parts[2];
     }
     for (const part of parts.slice(3)) {
-      const match = part.match(/^([A-Z]\d{2})([a-z])$/);
+      const match = part.match(/^(\d{2})([a-z])$/);
       if (!match || !codes[match[2]]) return null;
-      if (!ids.has(match[1])) {
+      if (!byNumber.has(match[1])) {
         shared.skipped += 1;
         continue;
       }
-      shared.items[match[1]] = { value: codes[match[2]], origin: "shared" };
+      shared.items[byNumber.get(match[1])] = { value: codes[match[2]], origin: "shared" };
     }
     return shared;
   };
@@ -2376,12 +2382,12 @@
   /** Jump to an item; an item the short view hides opens the extended view first. */
   function jumpToItem(check, item) {
     const st = stateOf(check);
-    if (!document.getElementById("item-" + item.identifier) && !st.extended) {
+    if (!document.getElementById("item-" + keyOf(item)) && !st.extended) {
       st.extended = true;
       save();
       FG.rerender();
     }
-    jumpTo(document.getElementById("item-" + item.identifier));
+    jumpTo(document.getElementById("item-" + keyOf(item)));
   }
 
   /** The questions in the same groups as the list, with a short label for each group. */
@@ -2423,7 +2429,7 @@
                   "button",
                   { type: "button", class: "summary-chip", "data-state": state, title: name + " (" + FG.t("selfcheck.state." + state) + ")", onclick: () => jumpToItem(check, item) },
                   state === "open" ? null : h("span", { "aria-hidden": "true" }, STATE_ICON[state] + " "),
-                  item.identifier,
+                  numberOf(item),
                   h("span", { class: "visually-hidden" }, " " + name + ": " + FG.t("selfcheck.state." + state))
                 )
               );

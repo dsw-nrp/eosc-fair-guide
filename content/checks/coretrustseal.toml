@@ -25,15 +25,15 @@ icon = "shield-halved"
 name = { cs = "Informační technologie a bezpečnost", en = "Information Technology & Security" }
 
 [[item]]
-id = "C01"
+id = "coretrustseal.01"
 requirement = "CTS.R01"
 tier = "standard"
 block = "organisational"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C02"
+id = "coretrustseal.02"
 requirement = "CTS.R02"
 tier = "standard"
 block = "organisational"
@@ -41,15 +41,15 @@ fixAt = "licence"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C03"
+id = "coretrustseal.03"
 requirement = "CTS.R03"
 tier = "standard"
 block = "organisational"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C04"
+id = "coretrustseal.04"
 requirement = "CTS.R04"
 tier = "standard"
 block = "organisational"
@@ -57,97 +57,97 @@ fixAt = "licence"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C05"
+id = "coretrustseal.05"
 requirement = "CTS.R05"
 tier = "standard"
 block = "organisational"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C06"
+id = "coretrustseal.06"
 requirement = "CTS.R06"
 tier = "standard"
 block = "organisational"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C07"
+id = "coretrustseal.07"
 requirement = "CTS.R07"
 tier = "standard"
 block = "objects"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C08"
+id = "coretrustseal.08"
 requirement = "CTS.R08"
 tier = "standard"
 block = "objects"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C09"
+id = "coretrustseal.09"
 requirement = "CTS.R09"
 tier = "standard"
 block = "objects"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C10"
+id = "coretrustseal.10"
 requirement = "CTS.R10"
 tier = "standard"
 block = "objects"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C11"
+id = "coretrustseal.11"
 requirement = "CTS.R11"
 tier = "standard"
 block = "objects"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C12"
+id = "coretrustseal.12"
 requirement = "CTS.R12"
 tier = "standard"
 block = "objects"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C13"
+id = "coretrustseal.13"
 requirement = "CTS.R13"
 tier = "standard"
 block = "objects"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C14"
+id = "coretrustseal.14"
 requirement = "CTS.R14"
 tier = "standard"
 block = "technology"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C15"
+id = "coretrustseal.15"
 requirement = "CTS.R15"
 tier = "standard"
 block = "technology"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "C16"
+id = "coretrustseal.16"
 requirement = "CTS.R16"
 tier = "standard"
 block = "technology"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]

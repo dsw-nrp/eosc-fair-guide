@@ -2,7 +2,7 @@
 # several sources appears once, crediting each. Field reference: docs/content-model.md.
 
 [[repository]]
-id = "zenodo"
+id = "r3d100010468"
 name = "Zenodo"
 url = "https://zenodo.org/"
 kind = "general"
@@ -22,7 +22,7 @@ status = "operational"
 asOf = 2026-10-09
 
 [[repository]]
-id = "dryad"
+id = "r3d100000044"
 name = "Dryad"
 url = "https://datadryad.org/stash"
 kind = "general"
@@ -33,7 +33,7 @@ status = "operational"
 asOf = 2026-10-09
 
 [[repository]]
-id = "harvard-dataverse"
+id = "r3d100010051"
 name = "Harvard Dataverse"
 url = "https://dataverse.harvard.edu/"
 kind = "general"

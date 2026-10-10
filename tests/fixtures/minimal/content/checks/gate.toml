@@ -8,7 +8,7 @@ id = "a"
 label = { cs = "Profil A", en = "Profile A" }
 
 [[item]]
-id = "G01"
+id = "gate.01"
 tier = "required"
 principles = ["F1"]
 statement = { cs = "Repozitář přiděluje PID.", en = "The repository assigns PIDs." }

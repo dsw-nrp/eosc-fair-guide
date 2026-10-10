@@ -5,7 +5,7 @@
 id = "sensitive-data"
 title = { cs = "Pracujete s osobními nebo jinak citlivými daty?", en = "Working with personal or otherwise sensitive data?" }
 intro = { cs = "FAIR neznamená otevřená. Popis dat může být veřejný, i když data samotná zpřístupníte jen oprávněným lidem.", en = "FAIR does not mean open. The description of the data can be public even when the data themselves are available only to authorised people." }
-stations = ["plan", "prace", "repozitar", "licence"]
+stations = ["plan", "work", "repository", "licence"]
 order = { SR = ["aai", "cloud", "steward", "principles", "community"], K = ["community", "steward", "principles", "cloud", "aai"] }
 
 [[callout.item]]
@@ -38,7 +38,7 @@ lenses = ["SR", "DS"]
 id = "verify-identifiers"
 title = { cs = "AI pomůže s texty, identifikátory si ale ověřte", en = "AI helps with texts, but verify the identifiers" }
 intro = { cs = "Jazykové modely umějí vytvořit ORCID, DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému. Neposuzujte je odhadem: nechte je rozřešit strojem a výsledek porovnejte.", en = "Language models can produce an ORCID, a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else. Do not judge them by eye: have a machine resolve them and compare the result." }
-stations = ["popis", "citace"]
+stations = ["metadata", "citation"]
 
 [[callout.item]]
 id = "helper"

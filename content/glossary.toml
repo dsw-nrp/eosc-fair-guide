@@ -7,1189 +7,991 @@ retrieved = 2026-10-08
 # Heslář publishes no licence for its definitions, so only labels and links are kept.
 
 [[term]]
-id = "poplatek-za-zpracovani-clanku"
+id = "30"
 label = { cs = "poplatek za zpracování článku", en = "Article Processing Charge" }
 url = "https://heslar.openscience.cz/heslo.php?id=30"
-heslarId = 30
 
 [[term]]
-id = "otevreny-pristup"
+id = "31"
 label = { cs = "otevřený přístup", en = "Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=31"
-heslarId = 31
 
 [[term]]
-id = "okamzity-otevreny-pristup"
+id = "32"
 label = { cs = "okamžitý otevřený přístup", en = "Immediate Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=32"
-heslarId = 32
 
 [[term]]
-id = "zpozdeny-odlozeny-otevreny-pristup"
+id = "34"
 label = { cs = "zpožděný [odložený] otevřený přístup", en = "Delayed Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=34"
-heslarId = 34
 
 [[term]]
-id = "zlata-cesta-otevreneho-pristupu"
+id = "35"
 label = { cs = "Zlatá cesta otevřeného přístupu", en = "Gold Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=35"
-heslarId = 35
 
 [[term]]
-id = "zelena-cesta-otevreneho-pristupu"
+id = "36"
 label = { cs = "Zelená cesta otevřeného přístupu", en = "Green Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=36"
-heslarId = 36
 
 [[term]]
-id = "diamantova-cesta-otevreneho-pristupu-platinova-cesta-otevreneho-pristupu"
+id = "37"
 label = { cs = "Diamantová cesta otevřeného přístupu / Platinová cesta otevřeného přístupu", en = "Diamond Open Access / Platinum Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=37"
-heslarId = 37
 
 [[term]]
-id = "bronzova-cesta-otevreneho-pristupu"
+id = "39"
 label = { cs = "Bronzová cesta otevřeného přístupu", en = "Bronze Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=39"
-heslarId = 39
 
 [[term]]
-id = "verejny-pristup"
+id = "40"
 label = { cs = "veřejný přístup", en = "Public Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=40"
-heslarId = 40
 
 [[term]]
-id = "transformacni-smlouva"
+id = "41"
 label = { cs = "transformační smlouva", en = "Transformative Agreement" }
 url = "https://heslar.openscience.cz/heslo.php?id=41"
-heslarId = 41
 
 [[term]]
-id = "token"
+id = "42"
 label = { cs = "token", en = "Token" }
 url = "https://heslar.openscience.cz/heslo.php?id=42"
-heslarId = 42
 
 [[term]]
-id = "poplatek-za-zpracovani-knihy"
+id = "43"
 label = { cs = "poplatek za zpracování knihy", en = "Book Processing Charge" }
 url = "https://heslar.openscience.cz/heslo.php?id=43"
-heslarId = 43
 
 [[term]]
-id = "subscribe-to-open"
+id = "44"
 label = { cs = "Subscribe To Open", en = "Subscribe To Open" }
 url = "https://heslar.openscience.cz/heslo.php?id=44"
-heslarId = 44
 
 [[term]]
-id = "korespondujici-korespondencni-autor"
+id = "45"
 label = { cs = "korespondující [korespondenční] autor", en = "Corresponding Author" }
 url = "https://heslar.openscience.cz/heslo.php?id=45"
-heslarId = 45
 
 [[term]]
-id = "hybridni-casopis"
+id = "46"
 label = { cs = "hybridní časopis", en = "Hybrid Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=46"
-heslarId = 46
 
 [[term]]
-id = "casopis-pouze-v-rezimu-predplatneho"
+id = "47"
 label = { cs = "časopis [pouze] v režimu předplatného", en = "Subscription [only] Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=47"
-heslarId = 47
 
 [[term]]
-id = "ciste-open-access-casopis"
+id = "48"
 label = { cs = "[čistě] Open Access časopis", en = "[Pure] Open Access Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=48"
-heslarId = 48
 
 [[term]]
-id = "licence-creative-commons"
+id = "50"
 label = { cs = "licence Creative Commons", en = "Creative Commons License" }
 url = "https://heslar.openscience.cz/heslo.php?id=50"
-heslarId = 50
 
 [[term]]
-id = "directory-of-open-access-journals"
+id = "51"
 label = { cs = "Directory of Open Access Journals", en = "Directory of Open Access Journals" }
 url = "https://heslar.openscience.cz/heslo.php?id=51"
-heslarId = 51
 
 [[term]]
-id = "directory-of-open-access-books"
+id = "52"
 label = { cs = "Directory of Open Access Books", en = "Directory of Open Access Books" }
 url = "https://heslar.openscience.cz/heslo.php?id=52"
-heslarId = 52
 
 [[term]]
-id = "double-dipping"
+id = "53"
 label = { cs = "Double-dipping", en = "Double-dipping" }
 url = "https://heslar.openscience.cz/heslo.php?id=53"
-heslarId = 53
 
 [[term]]
-id = "elektronicke-informacni-zdroje"
+id = "54"
 label = { cs = "elektronické informační zdroje", en = "Electronic Information Resources" }
 url = "https://heslar.openscience.cz/heslo.php?id=54"
-heslarId = 54
 
 [[term]]
-id = "efficiency-and-standards-for-article-charges-initiative"
+id = "55"
 label = { cs = "Efficiency and Standards for Article Charges Initiative", en = "Efficiency and Standards for Article Charges Initiative" }
 url = "https://heslar.openscience.cz/heslo.php?id=55"
-heslarId = 55
 
 [[term]]
-id = "majetkova-prava"
+id = "56"
 label = { cs = "majetková práva", en = "Property Rights" }
 url = "https://heslar.openscience.cz/heslo.php?id=56"
-heslarId = 56
 
 [[term]]
-id = "sponsoring-consortium-for-open-access-publishing-in-particle-physics"
+id = "57"
 label = { cs = "Sponsoring Consortium for Open Access Publishing in Particle Physics", en = "Sponsoring Consortium for Open Access Publishing in Particle Physics" }
 url = "https://heslar.openscience.cz/heslo.php?id=57"
-heslarId = 57
 
 [[term]]
-id = "foster-portal"
+id = "60"
 label = { cs = "FOSTER portál", en = "FOSTER Portal" }
 url = "https://heslar.openscience.cz/heslo.php?id=60"
-heslarId = 60
 
 [[term]]
-id = "otevrene-vzdelavaci-zdroje"
+id = "61"
 label = { cs = "otevřené vzdělávací zdroje", en = "Open Educational Resources" }
 url = "https://heslar.openscience.cz/heslo.php?id=61"
-heslarId = 61
 
 [[term]]
-id = "open-research-europe"
+id = "62"
 label = { cs = "Open Research Europe", en = "Open Research Europe" }
 url = "https://heslar.openscience.cz/heslo.php?id=62"
-heslarId = 62
 
 [[term]]
-id = "preprintovy-server"
+id = "63"
 label = { cs = "preprintový server", en = "preprint server" }
 url = "https://heslar.openscience.cz/heslo.php?id=63"
-heslarId = 63
 
 [[term]]
-id = "embargo-casove"
+id = "64"
 label = { cs = "embargo [časové]", en = "Embargo [period]" }
 url = "https://heslar.openscience.cz/heslo.php?id=64"
-heslarId = 64
 
 [[term]]
-id = "tyden-otevreneho-pristupu"
+id = "65"
 label = { cs = "Týden otevřeného přístupu", en = "Open Access Week" }
 url = "https://heslar.openscience.cz/heslo.php?id=65"
-heslarId = 65
 
 [[term]]
-id = "otevrene-recenzni-rizeni"
+id = "66"
 label = { cs = "otevřené recenzní řízení", en = "Open Peer Review" }
 url = "https://heslar.openscience.cz/heslo.php?id=66"
-heslarId = 66
 
 [[term]]
-id = "reprodukovatelnost"
+id = "67"
 label = { cs = "reprodukovatelnost", en = "Reproducibility" }
 url = "https://heslar.openscience.cz/heslo.php?id=67"
-heslarId = 67
 
 [[term]]
-id = "sprava-dat"
+id = "68"
 label = { cs = "správa dat", en = "Data Management" }
 url = "https://heslar.openscience.cz/heslo.php?id=68"
-heslarId = 68
 
 [[term]]
-id = "data-steward"
+id = "69"
 label = { cs = "Data Steward", en = "Data Steward" }
 url = "https://heslar.openscience.cz/heslo.php?id=69"
-heslarId = 69
 
 [[term]]
-id = "obcanska-veda"
+id = "70"
 label = { cs = "občanská věda", en = "Citizen Science" }
 url = "https://heslar.openscience.cz/heslo.php?id=70"
-heslarId = 70
 
 [[term]]
-id = "elektronicky-laboratorni-denik"
+id = "71"
 label = { cs = "elektronický laboratorní deník", en = "Electronic Laboratory Notebook" }
 url = "https://heslar.openscience.cz/heslo.php?id=71"
-heslarId = 71
 
 [[term]]
-id = "plan-spravy-dat"
+id = "72"
 label = { cs = "plán správy dat", en = "Data Management Plan" }
 url = "https://heslar.openscience.cz/heslo.php?id=72"
-heslarId = 72
 
 [[term]]
-id = "planovani-spravy-dat"
+id = "73"
 label = { cs = "plánování správy dat", en = "Data Management Planning" }
 url = "https://heslar.openscience.cz/heslo.php?id=73"
-heslarId = 73
 
 [[term]]
-id = "fair-principy"
+id = "77"
 label = { cs = "FAIR principy", en = "FAIR principles" }
 url = "https://heslar.openscience.cz/heslo.php?id=77"
-heslarId = 77
 
 [[term]]
-id = "fair-self-assesment-tool"
+id = "78"
 label = { cs = "FAIR self-assesment tool", en = "FAIR self-assesment tool" }
 url = "https://heslar.openscience.cz/heslo.php?id=78"
-heslarId = 78
 
 [[term]]
-id = "velka-vyzkumna-infrastruktura"
+id = "79"
 label = { cs = "velká výzkumná infrastruktura", en = "Research Infrastructure" }
 url = "https://heslar.openscience.cz/heslo.php?id=79"
-heslarId = 79
 
 [[term]]
-id = "vyzkumna-infrastruktura"
+id = "80"
 label = { cs = "výzkumná infrastruktura", en = "Research Infrastructure" }
 url = "https://heslar.openscience.cz/heslo.php?id=80"
-heslarId = 80
 
 [[term]]
-id = "vyzkum-vyvoj-a-inovace"
+id = "83"
 label = { cs = "výzkum, vývoj a inovace", en = "Research, Developement and Innovation" }
 url = "https://heslar.openscience.cz/heslo.php?id=83"
-heslarId = 83
 
 [[term]]
-id = "triple-helix"
+id = "84"
 label = { cs = "Triple Helix", en = "Triple Helix" }
 url = "https://heslar.openscience.cz/heslo.php?id=84"
-heslarId = 84
 
 [[term]]
-id = "quadruple-helix"
+id = "85"
 label = { cs = "Quadruple Helix", en = "Quadruple Helix" }
 url = "https://heslar.openscience.cz/heslo.php?id=85"
-heslarId = 85
 
 [[term]]
-id = "vyzkumna-politika"
+id = "86"
 label = { cs = "výzkumná politika", en = "Research Policy" }
 url = "https://heslar.openscience.cz/heslo.php?id=86"
-heslarId = 86
 
 [[term]]
-id = "amnesia"
+id = "87"
 label = { cs = "Amnesia", en = "Amnesia" }
 url = "https://heslar.openscience.cz/heslo.php?id=87"
-heslarId = 87
 
 [[term]]
-id = "anonymizace-vyzkumnych-dat"
+id = "90"
 label = { cs = "anonymizace výzkumných dat", en = "Anonymisation of Research Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=90"
-heslarId = 90
 
 [[term]]
-id = "committee-on-data-for-science-and-technology"
+id = "91"
 label = { cs = "Committee on Data for Science and Technology", en = "Committee on Data for Science and Technology" }
 url = "https://heslar.openscience.cz/heslo.php?id=91"
-heslarId = 91
 
 [[term]]
-id = "datova-sada-soubor-dat"
+id = "92"
 label = { cs = "datová sada / soubor dat", en = "Dataset / Data set" }
 url = "https://heslar.openscience.cz/heslo.php?id=92"
-heslarId = 92
 
 [[term]]
-id = "dlouhodobe-uchovavani-dat"
+id = "93"
 label = { cs = "dlouhodobé uchovávání dat", en = "Long Term Preservation" }
 url = "https://heslar.openscience.cz/heslo.php?id=93"
-heslarId = 93
 
 [[term]]
-id = "dmponline"
+id = "94"
 label = { cs = "DMPonline", en = "DMPonline" }
 url = "https://heslar.openscience.cz/heslo.php?id=94"
-heslarId = 94
 
 [[term]]
-id = "data-stewardship-wizard"
+id = "95"
 label = { cs = "Data Stewardship Wizard", en = "Data Stewardship Wizard" }
 url = "https://heslar.openscience.cz/heslo.php?id=95"
-heslarId = 95
 
 [[term]]
-id = "fair-data"
+id = "96"
 label = { cs = "FAIR data", en = "FAIR Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=96"
-heslarId = 96
 
 [[term]]
-id = "fair-datova-sada-soubor-fair-dat"
+id = "97"
 label = { cs = "FAIR datová sada / soubor FAIR dat", en = "FAIR dataset / FAIR data set" }
 url = "https://heslar.openscience.cz/heslo.php?id=97"
-heslarId = 97
 
 [[term]]
-id = "fairifikace"
+id = "99"
 label = { cs = "FAIRifikace", en = "FAIRification" }
 url = "https://heslar.openscience.cz/heslo.php?id=99"
-heslarId = 99
 
 [[term]]
-id = "svobodny-software-software-s-otevrenym-zdrojovym-kodem"
+id = "100"
 label = { cs = "svobodný software / software s otevřeným zdrojovým kódem", en = "Free [Libre] Open-Source Software" }
 url = "https://heslar.openscience.cz/heslo.php?id=100"
-heslarId = 100
 
 [[term]]
-id = "svobodny-software-software-s-otevrenym-zdrojovym-kodem-101"
+id = "101"
 label = { cs = "svobodný software / software s otevřeným zdrojovým kódem", en = "Free and Open Source Software" }
 url = "https://heslar.openscience.cz/heslo.php?id=101"
-heslarId = 101
 
 [[term]]
-id = "go-fair-foundation"
+id = "102"
 label = { cs = "Go FAIR Foundation", en = "Go FAIR Foundation" }
 url = "https://heslar.openscience.cz/heslo.php?id=102"
-heslarId = 102
 
 [[term]]
-id = "open-access-infrastructure-for-research-in-europe"
+id = "103"
 label = { cs = "Open Access Infrastructure for Research in Europe", en = "Open Access Infrastructure for Research in Europe" }
 url = "https://heslar.openscience.cz/heslo.php?id=103"
-heslarId = 103
 
 [[term]]
-id = "otevrena-vyzkumna-data"
+id = "104"
 label = { cs = "otevřená výzkumná data", en = "Open Research Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=104"
-heslarId = 104
 
 [[term]]
-id = "podkladova-podpurna-doprovodna-data"
+id = "105"
 label = { cs = "podkladová [podpůrná, doprovodná] data", en = "Underlying Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=105"
-heslarId = 105
 
 [[term]]
-id = "proprietarni-software-software-s-uzavrenym-kodem"
+id = "106"
 label = { cs = "proprietární software / software s uzavřeným kódem", en = "Proprietary-Software / Closed-Source Software" }
 url = "https://heslar.openscience.cz/heslo.php?id=106"
-heslarId = 106
 
 [[term]]
-id = "sprava-management-vyzkumnych-dat"
+id = "107"
 label = { cs = "správa / management výzkumných dat", en = "Research Data Management" }
 url = "https://heslar.openscience.cz/heslo.php?id=107"
-heslarId = 107
 
 [[term]]
-id = "re3data"
+id = "108"
 label = { cs = "re3data", en = "re3data" }
 url = "https://heslar.openscience.cz/heslo.php?id=108"
-heslarId = 108
 
 [[term]]
-id = "samostatne-vyzkumne-datove-sady"
+id = "109"
 label = { cs = "samostatné [výzkumné] datové sady", en = "Standalone [Research] Datasets" }
 url = "https://heslar.openscience.cz/heslo.php?id=109"
-heslarId = 109
 
 [[term]]
-id = "vyzkumna-data"
+id = "110"
 label = { cs = "výzkumná data", en = "Research Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=110"
-heslarId = 110
 
 [[term]]
-id = "rozhodovaci-organy-evropske-unie"
+id = "118"
 label = { cs = "rozhodovací orgány Evropské Unie", en = "Decision-making Institutions of European Union" }
 url = "https://heslar.openscience.cz/heslo.php?id=118"
-heslarId = 118
 
 [[term]]
-id = "pravni-predpisy-eu"
+id = "119"
 label = { cs = "právní předpisy EU", en = "Types of EU Legislation" }
 url = "https://heslar.openscience.cz/heslo.php?id=119"
-heslarId = 119
 
 [[term]]
-id = "autentizace"
+id = "131"
 label = { cs = "autentizace", en = "Authentication" }
 url = "https://heslar.openscience.cz/heslo.php?id=131"
-heslarId = 131
 
 [[term]]
-id = "autorizace"
+id = "132"
 label = { cs = "autorizace", en = "Authorization" }
 url = "https://heslar.openscience.cz/heslo.php?id=132"
-heslarId = 132
 
 [[term]]
-id = "metadatovy-aplikacni-profil"
+id = "134"
 label = { cs = "metadatový aplikační profil", en = "Metadata Application Profile" }
 url = "https://heslar.openscience.cz/heslo.php?id=134"
-heslarId = 134
 
 [[term]]
-id = "budapestska-iniciativa-pro-otevreny-pristup"
+id = "135"
 label = { cs = "Budapešťská iniciativa pro otevřený přístup", en = "Budapest Open Access Initiative" }
 url = "https://heslar.openscience.cz/heslo.php?id=135"
-heslarId = 135
 
 [[term]]
-id = "center-for-open-science"
+id = "136"
 label = { cs = "Center for Open Science", en = "Center for Open Science" }
 url = "https://heslar.openscience.cz/heslo.php?id=136"
-heslarId = 136
 
 [[term]]
-id = "coalition-s"
+id = "137"
 label = { cs = "cOAlition S", en = "cOAlition S" }
 url = "https://heslar.openscience.cz/heslo.php?id=137"
-heslarId = 137
 
 [[term]]
-id = "vybor-pro-publikacni-etiku"
+id = "141"
 label = { cs = "Výbor pro publikační etiku", en = "Commitee on Publication Ethics" }
 url = "https://heslar.openscience.cz/heslo.php?id=141"
-heslarId = 141
 
 [[term]]
-id = "confederation-of-open-access-repositories"
+id = "142"
 label = { cs = "Confederation of Open Access Repositories", en = "Confederation of Open Access Repositories" }
 url = "https://heslar.openscience.cz/heslo.php?id=142"
-heslarId = 142
 
 [[term]]
-id = "copyleft"
+id = "143"
 label = { cs = "copyleft", en = "Copyleft" }
 url = "https://heslar.openscience.cz/heslo.php?id=143"
-heslarId = 143
 
 [[term]]
-id = "coretrustseal"
+id = "144"
 label = { cs = "CoreTrustSeal", en = "CoreTrustSeal" }
 url = "https://heslar.openscience.cz/heslo.php?id=144"
-heslarId = 144
 
 [[term]]
-id = "vybor-pro-koordinaci-narodni-otevrene-vedy"
+id = "145"
 label = { cs = "Výbor pro koordinaci národní otevřené vědy", en = "Council for National Open Science Coordination" }
 url = "https://heslar.openscience.cz/heslo.php?id=145"
-heslarId = 145
 
 [[term]]
-id = "crossref"
+id = "146"
 label = { cs = "Crossref", en = "Crossref" }
 url = "https://heslar.openscience.cz/heslo.php?id=146"
-heslarId = 146
 
 [[term]]
-id = "smlouva-dohoda-o-predavani-dat"
+id = "147"
 label = { cs = "smlouva / dohoda o předávání dat", en = "Data Transfer Agreement" }
 url = "https://heslar.openscience.cz/heslo.php?id=147"
-heslarId = 147
 
 [[term]]
-id = "datacite"
+id = "148"
 label = { cs = "DataCite", en = "DataCite" }
 url = "https://heslar.openscience.cz/heslo.php?id=148"
-heslarId = 148
 
 [[term]]
-id = "digitalni-identifikator-objektu"
+id = "149"
 label = { cs = "digitální identifikátor objektu", en = "Digital Object Identifier" }
 url = "https://heslar.openscience.cz/heslo.php?id=149"
-heslarId = 149
 
 [[term]]
-id = "digitalni-materialy"
+id = "150"
 label = { cs = "digitální materiály", en = "Digital Materials" }
 url = "https://heslar.openscience.cz/heslo.php?id=150"
-heslarId = 150
 
 [[term]]
-id = "directory-of-open-access-repositories"
+id = "151"
 label = { cs = "Directory of Open Access Repositories", en = "Directory of Open Access Repositories" }
 url = "https://heslar.openscience.cz/heslo.php?id=151"
-heslarId = 151
 
 [[term]]
-id = "e-print-eprint"
+id = "155"
 label = { cs = "e-print / eprint", en = "E-print / Eprint" }
 url = "https://heslar.openscience.cz/heslo.php?id=155"
-heslarId = 155
 
 [[term]]
-id = "eurocris"
+id = "156"
 label = { cs = "euroCRIS", en = "euroCRIS" }
 url = "https://heslar.openscience.cz/heslo.php?id=156"
-heslarId = 156
 
 [[term]]
-id = "evropska-asociace-obcanske-vedy"
+id = "157"
 label = { cs = "Evropská asociace občanské vědy", en = "European Citizen Science Association" }
 url = "https://heslar.openscience.cz/heslo.php?id=157"
-heslarId = 157
 
 [[term]]
-id = "evropsky-cloud-pro-otevrenou-vedu"
+id = "158"
 label = { cs = "Evropský cloud pro otevřenou vědu", en = "European Open Science Cloud" }
 url = "https://heslar.openscience.cz/heslo.php?id=158"
-heslarId = 158
 
 [[term]]
-id = "evropsky-vyzkumny-prostor"
+id = "159"
 label = { cs = "Evropský výzkumný prostor", en = "European Research Area" }
 url = "https://heslar.openscience.cz/heslo.php?id=159"
-heslarId = 159
 
 [[term]]
-id = "vybor-pro-evropsky-vyzkumny-prostor-a-inovace"
+id = "160"
 label = { cs = "Výbor pro Evropský výzkumný prostor a inovace", en = "European Research Area and Innovation Committee" }
 url = "https://heslar.openscience.cz/heslo.php?id=160"
-heslarId = 160
 
 [[term]]
-id = "evropske-strategicke-forum-pro-vyzkumne-infrastruktury"
+id = "161"
 label = { cs = "Evropské strategické fórum pro výzkumné infrastruktury", en = "European Strategy Forum on Research Infrastructures" }
 url = "https://heslar.openscience.cz/heslo.php?id=161"
-heslarId = 161
 
 [[term]]
-id = "fairsharing"
+id = "162"
 label = { cs = "FAIRsharing", en = "FAIRsharing" }
 url = "https://heslar.openscience.cz/heslo.php?id=162"
-heslarId = 162
 
 [[term]]
-id = "narodni-poskytovatel-podpory-vavai"
+id = "163"
 label = { cs = "národní poskytovatel podpory VaVaI", en = "National Funder for R&amp;D&amp;I" }
 url = "https://heslar.openscience.cz/heslo.php?id=163"
-heslarId = 163
 
 [[term]]
-id = "handle"
+id = "165"
 label = { cs = "Handle", en = "Handle" }
 url = "https://heslar.openscience.cz/heslo.php?id=165"
-heslarId = 165
 
 [[term]]
-id = "harvestovani-sklizeni"
+id = "166"
 label = { cs = "harvestování / sklízení", en = "Harvesting" }
 url = "https://heslar.openscience.cz/heslo.php?id=166"
-heslarId = 166
 
 [[term]]
-id = "strojove-citelny-dokument-format"
+id = "167"
 label = { cs = "strojově čitelný dokument [formát]", en = "Machine-readable Document [Format]" }
 url = "https://heslar.openscience.cz/heslo.php?id=167"
-heslarId = 167
 
 [[term]]
-id = "hybridni-cesta-otevreneho-pristupu"
+id = "168"
 label = { cs = "hybridní cesta otevřeného přístupu", en = "Hybrid Open Access" }
 url = "https://heslar.openscience.cz/heslo.php?id=168"
-heslarId = 168
 
 [[term]]
-id = "international-network-of-open-science-amp-scholarship-communities"
+id = "169"
 label = { cs = "International Network of Open Science &amp; Scholarship Communities", en = "International Network of Open Science &amp; Scholarship Communities" }
 url = "https://heslar.openscience.cz/heslo.php?id=169"
-heslarId = 169
 
 [[term]]
-id = "mezinarodni-standardni-cislo-knihy"
+id = "170"
 label = { cs = "Mezinárodní standardní číslo knihy", en = "International Standard Book Number" }
 url = "https://heslar.openscience.cz/heslo.php?id=170"
-heslarId = 170
 
 [[term]]
-id = "mezinarodni-standardni-cislo-hudebniny"
+id = "171"
 label = { cs = "Mezinárodní standardní číslo hudebniny", en = "International Standard Music Number" }
 url = "https://heslar.openscience.cz/heslo.php?id=171"
-heslarId = 171
 
 [[term]]
-id = "mezinarodni-standardni-identifikator-jmena"
+id = "172"
 label = { cs = "Mezinárodní standardní identifikátor jména", en = "International Standard Name Identifier" }
 url = "https://heslar.openscience.cz/heslo.php?id=172"
-heslarId = 172
 
 [[term]]
-id = "mezinarodni-standardni-cislo-serialovych-publikaci"
+id = "173"
 label = { cs = "Mezinárodní standardní číslo seriálových publikací", en = "International Standard Serial Number" }
 url = "https://heslar.openscience.cz/heslo.php?id=173"
-heslarId = 173
 
 [[term]]
-id = "javascript-object-notation"
+id = "175"
 label = { cs = "JavaScript Object Notation", en = "JavaScript Object Notation" }
 url = "https://heslar.openscience.cz/heslo.php?id=175"
-heslarId = 175
 
 [[term]]
-id = "knowledge-research-education-conference"
+id = "177"
 label = { cs = "Knowledge Research Education Conference", en = "Knowledge Research Education Conference" }
 url = "https://heslar.openscience.cz/heslo.php?id=177"
-heslarId = 177
 
 [[term]]
-id = "laboratorni-informacni-system"
+id = "178"
 label = { cs = "laboratorní informační systém", en = "Laboratory Information Management System" }
 url = "https://heslar.openscience.cz/heslo.php?id=178"
-heslarId = 178
 
 [[term]]
-id = "propojena-otevrena-data"
+id = "180"
 label = { cs = "propojená [otevřená] data", en = "Linked [Open] Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=180"
-heslarId = 180
 
 [[term]]
-id = "clovekem-citelny-dokument-format"
+id = "181"
 label = { cs = "člověkem čitelný dokument / formát", en = "human-readable document / format" }
 url = "https://heslar.openscience.cz/heslo.php?id=181"
-heslarId = 181
 
 [[term]]
-id = "metadata-metadatovy-zaznam"
+id = "182"
 label = { cs = "metadata / metadatový záznam", en = "Metadata / Metadata record" }
 url = "https://heslar.openscience.cz/heslo.php?id=182"
-heslarId = 182
 
 [[term]]
-id = "ontologie"
+id = "183"
 label = { cs = "ontologie", en = "Ontology" }
 url = "https://heslar.openscience.cz/heslo.php?id=183"
-heslarId = 183
 
 [[term]]
-id = "open-access-scholarly-publishers-association"
+id = "185"
 label = { cs = "Open Access Scholarly Publishers Association", en = "Open Access Scholarly Publishers Association" }
 url = "https://heslar.openscience.cz/heslo.php?id=185"
-heslarId = 185
 
 [[term]]
-id = "open-archives-initiative-protocol-for-metadata-harvesting"
+id = "186"
 label = { cs = "Open Archives Initiative Protocol for Metadata Harvesting", en = "Open Archives Initiative Protocol for Metadata Harvesting" }
 url = "https://heslar.openscience.cz/heslo.php?id=186"
-heslarId = 186
 
 [[term]]
-id = "otevreny-zdrojovy-kod"
+id = "187"
 label = { cs = "otevřený [zdrojový] kód", en = "Open Code / Open Source" }
 url = "https://heslar.openscience.cz/heslo.php?id=187"
-heslarId = 187
 
 [[term]]
-id = "open-data-commons"
+id = "188"
 label = { cs = "Open Data Commons", en = "Open Data Commons" }
 url = "https://heslar.openscience.cz/heslo.php?id=188"
-heslarId = 188
 
 [[term]]
-id = "otevrena-licence-otevrene-licencovani"
+id = "190"
 label = { cs = "otevřená licence / otevřené licencování", en = "Open Licence / Open Licencing" }
 url = "https://heslar.openscience.cz/heslo.php?id=190"
-heslarId = 190
 
 [[term]]
-id = "open-researcher-and-contributor-identifier"
+id = "192"
 label = { cs = "Open Researcher and Contributor Identifier", en = "Open Researcher and Contributor Identifier" }
 url = "https://heslar.openscience.cz/heslo.php?id=192"
-heslarId = 192
 
 [[term]]
-id = "otevrena-veda"
+id = "193"
 label = { cs = "otevřená věda", en = "Open Science" }
 url = "https://heslar.openscience.cz/heslo.php?id=193"
-heslarId = 193
 
 [[term]]
-id = "software-s-otevrenym-pristupnym-zdrojovym-kodem"
+id = "197"
 label = { cs = "software s otevřeným [přístupným] zdrojovým kódem", en = "Open Source Software" }
 url = "https://heslar.openscience.cz/heslo.php?id=197"
-heslarId = 197
 
 [[term]]
-id = "perzistentni-trvaly-identifikator"
+id = "200"
 label = { cs = "perzistentní [trvalý] identifikátor", en = "Persistent Identifier" }
 url = "https://heslar.openscience.cz/heslo.php?id=200"
-heslarId = 200
 
 [[term]]
-id = "postprint-akceptovana-verze-akceptovany-rukopis-po-recenznim-rizeni"
+id = "201"
 label = { cs = "postprint / akceptovaná verze / akceptovaný rukopis po recenzním řízení", en = "Postprint / Accepted Version / Author Accepted Manuscript" }
 url = "https://heslar.openscience.cz/heslo.php?id=201"
-heslarId = 201
 
 [[term]]
-id = "predatorsky-casopis"
+id = "202"
 label = { cs = "predátorský časopis", en = "Predatory Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=202"
-heslarId = 202
 
 [[term]]
-id = "preprint-originalni-verze-autora-autorsky-rukopis-pred-recenznim-rizenim"
+id = "203"
 label = { cs = "preprint / originální verze autora / autorský rukopis před recenzním řízením", en = "Preprint / Author’s Original Manuscript" }
 url = "https://heslar.openscience.cz/heslo.php?id=203"
-heslarId = 203
 
 [[term]]
-id = "predregistrace-predbezna-registrace"
+id = "204"
 label = { cs = "předregistrace / předběžná registrace", en = "Pre-registration" }
 url = "https://heslar.openscience.cz/heslo.php?id=204"
-heslarId = 204
 
 [[term]]
-id = "volne-dilo"
+id = "205"
 label = { cs = "volné dílo", en = "Public Domain Work" }
 url = "https://heslar.openscience.cz/heslo.php?id=205"
-heslarId = 205
 
 [[term]]
-id = "publikace"
+id = "206"
 label = { cs = "publikace", en = "Publication" }
 url = "https://heslar.openscience.cz/heslo.php?id=206"
-heslarId = 206
 
 [[term]]
-id = "vydavatelska-verze-clanku-publikovana-verze"
+id = "207"
 label = { cs = "vydavatelská verze článku / publikovaná verze", en = "Published Version / Publisher´s Final Version / [Final] Published Version / Version of Record" }
 url = "https://heslar.openscience.cz/heslo.php?id=207"
-heslarId = 207
 
 [[term]]
-id = "registrovane-reporty-zpravy"
+id = "209"
 label = { cs = "registrované reporty [zprávy]", en = "Registered Reports" }
 url = "https://heslar.openscience.cz/heslo.php?id=209"
-heslarId = 209
 
 [[term]]
-id = "registr-otevrenych-repozitaru-registr-oa-repozitaru"
+id = "210"
 label = { cs = "Registr otevřených repozitářů / Registr OA repozitářů", en = "Registry of Open Access Repositories" }
 url = "https://heslar.openscience.cz/heslo.php?id=210"
-heslarId = 210
 
 [[term]]
-id = "repozitar"
+id = "211"
 label = { cs = "repozitář", en = "Repository" }
 url = "https://heslar.openscience.cz/heslo.php?id=211"
-heslarId = 211
 
 [[term]]
-id = "research-activity-identifier"
+id = "212"
 label = { cs = "Research Activity Identifier", en = "Research Activity Identifier" }
 url = "https://heslar.openscience.cz/heslo.php?id=212"
-heslarId = 212
 
 [[term]]
-id = "research-data-alliance"
+id = "213"
 label = { cs = "Research Data Alliance", en = "Research Data Alliance" }
 url = "https://heslar.openscience.cz/heslo.php?id=213"
-heslarId = 213
 
 [[term]]
-id = "integrita-vyzkumu-vedecka-vyzkumna-integrita"
+id = "215"
 label = { cs = "integrita výzkumu, vědecká / výzkumná integrita", en = "Research Integrity" }
 url = "https://heslar.openscience.cz/heslo.php?id=215"
-heslarId = 215
 
 [[term]]
-id = "registr-vyzkumnych-organizaci"
+id = "216"
 label = { cs = "Registr výzkumných organizací", en = "Research Organization Registry" }
 url = "https://heslar.openscience.cz/heslo.php?id=216"
-heslarId = 216
 
 [[term]]
-id = "vyzkumny-pracovnik"
+id = "217"
 label = { cs = "výzkumný pracovník", en = "Researcher" }
 url = "https://heslar.openscience.cz/heslo.php?id=217"
-heslarId = 217
 
 [[term]]
-id = "resource-description-framework"
+id = "220"
 label = { cs = "Resource Description Framework", en = "Resource Description Framework" }
 url = "https://heslar.openscience.cz/heslo.php?id=220"
-heslarId = 220
 
 [[term]]
-id = "autoarchivace"
+id = "221"
 label = { cs = "autoarchivace", en = "Self-archiving" }
 url = "https://heslar.openscience.cz/heslo.php?id=221"
-heslarId = 221
 
 [[term]]
-id = "open-policy-finder-drive-sherpa-services"
+id = "222"
 label = { cs = "Open Policy Finder [dříve Sherpa Services]", en = "Open Policy Finder [dříve Sherpa Services]" }
 url = "https://heslar.openscience.cz/heslo.php?id=222"
-heslarId = 222
 
 [[term]]
-id = "verejna-licence-verejne-licencovani"
+id = "250"
 label = { cs = "veřejná licence / veřejné licencování", en = "Public Licence / Public Licencing" }
 url = "https://heslar.openscience.cz/heslo.php?id=250"
-heslarId = 250
 
 [[term]]
-id = "zachovani-prav-dusevniho-vlastnictvi"
+id = "255"
 label = { cs = "zachování práv duševního vlastnictví", en = "Retention of Intellectual Property Rights" }
 url = "https://heslar.openscience.cz/heslo.php?id=255"
-heslarId = 255
 
 [[term]]
-id = "zrcadlovy-casopis"
+id = "256"
 label = { cs = "zrcadlový časopis", en = "Mirror Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=256"
-heslarId = 256
 
 [[term]]
-id = "publikacni-platforma"
+id = "377"
 label = { cs = "publikační platforma", en = "Publishing Platform" }
 url = "https://heslar.openscience.cz/heslo.php?id=377"
-heslarId = 377
 
 [[term]]
-id = "scholarly-publishing-and-academic-resources-coalition-europe"
+id = "379"
 label = { cs = "Scholarly Publishing and Academic Resources Coalition Europe", en = "Scholarly Publishing and Academic Resources Coalition Europe" }
 url = "https://heslar.openscience.cz/heslo.php?id=379"
-heslarId = 379
 
 [[term]]
-id = "embargovany-pozdrzeny-odlozeny-pristup"
+id = "380"
 label = { cs = "embargovaný [pozdržený, odložený] přístup", en = "embargoed access" }
 url = "https://heslar.openscience.cz/heslo.php?id=380"
-heslarId = 380
 
 [[term]]
-id = "bbb-definice-bbb-iniciativy-bbb-deklarace"
+id = "381"
 label = { cs = "BBB definice / BBB iniciativy / BBB deklarace", en = "BBB Definitions / BBB Iniciatives / BBB Declarations" }
 url = "https://heslar.openscience.cz/heslo.php?id=381"
-heslarId = 381
 
 [[term]]
-id = "vytezovani-dat-textu"
+id = "383"
 label = { cs = "vytěžování dat / textů", en = "Data / Text mining" }
 url = "https://heslar.openscience.cz/heslo.php?id=383"
-heslarId = 383
 
 [[term]]
-id = "digitalni-objekt"
+id = "384"
 label = { cs = "digitální objekt", en = "Digital Object" }
 url = "https://heslar.openscience.cz/heslo.php?id=384"
-heslarId = 384
 
 [[term]]
-id = "doplnena-rozsirena-vydavatelska-verze-clanku"
+id = "385"
 label = { cs = "doplněná [rozšířená] vydavatelská verze článku", en = "Enhanced Version of Record" }
 url = "https://heslar.openscience.cz/heslo.php?id=385"
-heslarId = 385
 
 [[term]]
-id = "opravena-vydavatelska-verze-clanku-erratum"
+id = "386"
 label = { cs = "opravená vydavatelská verze článku / erratum", en = "Corrected Version of Record" }
 url = "https://heslar.openscience.cz/heslo.php?id=386"
-heslarId = 386
 
 [[term]]
-id = "identifikator-autora"
+id = "388"
 label = { cs = "identifikátor autora", en = "Author Identifier / Author ID" }
 url = "https://heslar.openscience.cz/heslo.php?id=388"
-heslarId = 388
 
 [[term]]
-id = "metadatovy-standard"
+id = "389"
 label = { cs = "metadatový standard", en = "Metadata Standard" }
 url = "https://heslar.openscience.cz/heslo.php?id=389"
-heslarId = 389
 
 [[term]]
-id = "unpaywall"
+id = "390"
 label = { cs = "Unpaywall", en = "Unpaywall" }
 url = "https://heslar.openscience.cz/heslo.php?id=390"
-heslarId = 390
 
 [[term]]
-id = "zenodo"
+id = "391"
 label = { cs = "Zenodo", en = "Zenodo" }
 url = "https://heslar.openscience.cz/heslo.php?id=391"
-heslarId = 391
 
 [[term]]
-id = "data"
+id = "393"
 label = { cs = "data", en = "Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=393"
-heslarId = 393
 
 [[term]]
-id = "narodni-datova-infrastruktura"
+id = "394"
 label = { cs = "Národní datová infrastruktura", en = "National Data Infrastructure" }
 url = "https://heslar.openscience.cz/heslo.php?id=394"
-heslarId = 394
 
 [[term]]
-id = "narodni-katalog-otevrenych-dat"
+id = "395"
 label = { cs = "Národní katalog otevřených dat", en = "National Open Data Catalog [of the Czech Republic]" }
 url = "https://heslar.openscience.cz/heslo.php?id=395"
-heslarId = 395
 
 [[term]]
-id = "narodni-katalog-repozitaru"
+id = "396"
 label = { cs = "Národní katalog repozitářů", en = "National Repository Catalogue" }
 url = "https://heslar.openscience.cz/heslo.php?id=396"
-heslarId = 396
 
 [[term]]
-id = "narodni-metadatovy-adresar"
+id = "397"
 label = { cs = "Národní metadatový adresář", en = "National Metadata Directory" }
 url = "https://heslar.openscience.cz/heslo.php?id=397"
-heslarId = 397
 
 [[term]]
-id = "narodni-repozitarova-platforma"
+id = "398"
 label = { cs = "Národní repozitářová platforma", en = "National Repository Platform" }
 url = "https://heslar.openscience.cz/heslo.php?id=398"
-heslarId = 398
 
 [[term]]
-id = "e-infra-cz"
+id = "399"
 label = { cs = "e-INFRA CZ", en = "e-INFRA CZ" }
 url = "https://heslar.openscience.cz/heslo.php?id=399"
-heslarId = 399
 
 [[term]]
-id = "registr-repozitaru-vyzkumnych-dat"
+id = "400"
 label = { cs = "registr repozitářů výzkumných dat", en = "Registry of Research Data Repositories" }
 url = "https://heslar.openscience.cz/heslo.php?id=400"
-heslarId = 400
 
 [[term]]
-id = "publikacni-poplatek"
+id = "401"
 label = { cs = "publikační poplatek", en = "Publication charge(s)" }
 url = "https://heslar.openscience.cz/heslo.php?id=401"
-heslarId = 401
 
 [[term]]
-id = "sekundarni-publikacni-prava"
+id = "403"
 label = { cs = "sekundární publikační práva", en = "Secondary Publishing Rights" }
 url = "https://heslar.openscience.cz/heslo.php?id=403"
-heslarId = 403
 
 [[term]]
-id = "replikovatelnost"
+id = "404"
 label = { cs = "replikovatelnost", en = "Replicability" }
 url = "https://heslar.openscience.cz/heslo.php?id=404"
-heslarId = 404
 
 [[term]]
-id = "sestersky-doprovodny-casopis"
+id = "406"
 label = { cs = "sesterský [doprovodný] časopis", en = "Sister [Companion] Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=406"
-heslarId = 406
 
 [[term]]
-id = "svobodna-licence-svobodne-licencovani"
+id = "407"
 label = { cs = "svobodná licence / svobodné licencování", en = "Free [Libre] Licence / Free [Libre] Licencing" }
 url = "https://heslar.openscience.cz/heslo.php?id=407"
-heslarId = 407
 
 [[term]]
-id = "zakladni-metadatovy-model-pro-popis-vyzkumnych-dat"
+id = "408"
 label = { cs = "[základní metadatový model pro popis výzkumných dat]", en = "Czech Core Metadata Model for Research Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=408"
-heslarId = 408
 
 [[term]]
-id = "rizeny-slovnik"
+id = "409"
 label = { cs = "řízený slovník", en = "Controlled Vocabulary" }
 url = "https://heslar.openscience.cz/heslo.php?id=409"
-heslarId = 409
 
 [[term]]
-id = "javascript-object-notation-for-linked-data"
+id = "410"
 label = { cs = "JavaScript Object Notation for Linked Data", en = "JavaScript Object Notation for Linked Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=410"
-heslarId = 410
 
 [[term]]
-id = "international-generic-sample-number"
+id = "411"
 label = { cs = "International Generic Sample Number", en = "International Generic Sample Number" }
 url = "https://heslar.openscience.cz/heslo.php?id=411"
-heslarId = 411
 
 [[term]]
-id = "publish-review-curate"
+id = "414"
 label = { cs = "Publish, Review, Curate", en = "Publish, Review, Curate" }
 url = "https://heslar.openscience.cz/heslo.php?id=414"
-heslarId = 414
 
 [[term]]
-id = "overlay-journal"
+id = "415"
 label = { cs = "Overlay Journal", en = "Overlay Journal" }
 url = "https://heslar.openscience.cz/heslo.php?id=415"
-heslarId = 415
 
 [[term]]
-id = "citliva-data-udaje"
+id = "421"
 label = { cs = "citlivá data / údaje", en = "Sensitive Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=421"
-heslarId = 421
 
 [[term]]
-id = "otevrena-data"
+id = "422"
 label = { cs = "otevřená data", en = "Open Data" }
 url = "https://heslar.openscience.cz/heslo.php?id=422"
-heslarId = 422
 
 [[term]]
-id = "crowdfunding"
+id = "423"
 label = { cs = "crowdfunding", en = "Crowdfunding" }
 url = "https://heslar.openscience.cz/heslo.php?id=423"
-heslarId = 423
 
 [[term]]
-id = "crowdsourcing"
+id = "424"
 label = { cs = "crowdsourcing", en = "Crowdsourcing" }
 url = "https://heslar.openscience.cz/heslo.php?id=424"
-heslarId = 424
 
 [[term]]
-id = "otevrene-hodnoceni"
+id = "425"
 label = { cs = "otevřené hodnocení", en = "Open Evaluation" }
 url = "https://heslar.openscience.cz/heslo.php?id=425"
-heslarId = 425
 
 [[term]]
-id = "otevreny-hardware"
+id = "426"
 label = { cs = "otevřený hardware", en = "Open Hardware / Open Source Hardware" }
 url = "https://heslar.openscience.cz/heslo.php?id=426"
-heslarId = 426
 
 [[term]]
-id = "otevrene-inovace"
+id = "427"
 label = { cs = "otevřené inovace", en = "Open Innovations" }
 url = "https://heslar.openscience.cz/heslo.php?id=427"
-heslarId = 427
 
 [[term]]
-id = "otevrene-metody-metodika"
+id = "428"
 label = { cs = "otevřené metody / metodika", en = "Open Methods / Methodology" }
 url = "https://heslar.openscience.cz/heslo.php?id=428"
-heslarId = 428
 
 [[term]]
-id = "otevrene-sluzby"
+id = "429"
 label = { cs = "otevřené služby", en = "Open Services" }
 url = "https://heslar.openscience.cz/heslo.php?id=429"
-heslarId = 429
 
 [[term]]
-id = "otevrene-infrastruktury"
+id = "430"
 label = { cs = "otevřené infrastruktury", en = "Open Infrastructures / Open Science Infrastructures" }
 url = "https://heslar.openscience.cz/heslo.php?id=430"
-heslarId = 430
 
 [[term]]
-id = "datovy-kurator"
+id = "433"
 label = { cs = "datový kurátor", en = "Data Curator" }
 url = "https://heslar.openscience.cz/heslo.php?id=433"
-heslarId = 433
 
 [[term]]
-id = "digitalni-uchovavani-archivace"
+id = "434"
 label = { cs = "digitální uchovávání / archivace", en = "Digital Preservation / Archiving" }
 url = "https://heslar.openscience.cz/heslo.php?id=434"
-heslarId = 434
 
 [[term]]
-id = "distribuce-datove-sady"
+id = "436"
 label = { cs = "distribuce datové sady", en = "Distribution of Dataset" }
 url = "https://heslar.openscience.cz/heslo.php?id=436"
-heslarId = 436
 
 [[term]]
-id = "duveryhodny-digitalni-repozitar"
+id = "437"
 label = { cs = "důvěryhodný digitální repozitář", en = "Trusted Digital Repository" }
 url = "https://heslar.openscience.cz/heslo.php?id=437"
-heslarId = 437
 
 [[term]]
-id = "integrita-digitalnich-objektu"
+id = "438"
 label = { cs = "integrita digitálních objektů", en = "Integrity of Digital Objects" }
 url = "https://heslar.openscience.cz/heslo.php?id=438"
-heslarId = 438
 
 [[term]]
-id = "kuratorstvi"
+id = "439"
 label = { cs = "kurátorství", en = "Curation" }
 url = "https://heslar.openscience.cz/heslo.php?id=439"
-heslarId = 439
 
 [[term]]
-id = "instance-repozitare"
+id = "440"
 label = { cs = "instance repozitáře", en = "Repository Instance" }
 url = "https://heslar.openscience.cz/heslo.php?id=440"
-heslarId = 440
 
 [[term]]
-id = "migrace-digitalniho-objektu"
+id = "441"
 label = { cs = "migrace digitálního objektu", en = "Migration of Digital Object" }
 url = "https://heslar.openscience.cz/heslo.php?id=441"
-heslarId = 441
 
 [[term]]
-id = "obecny-genericky-sirotci-repozitar"
+id = "442"
 label = { cs = "obecný / generický / sirotčí repozitář", en = "Generalist Repository" }
 url = "https://heslar.openscience.cz/heslo.php?id=442"
-heslarId = 442
 
 [[term]]
-id = "oborovy-tematicky-repozitar"
+id = "443"
 label = { cs = "oborový / tematický repozitář", en = "Specialist / Domain Repository" }
 url = "https://heslar.openscience.cz/heslo.php?id=443"
-heslarId = 443
 
 [[term]]
-id = "opakovane-pouziti-znovupouzitelnost"
+id = "444"
 label = { cs = "opakované použití / znovupoužitelnost", en = "Reuse" }
 url = "https://heslar.openscience.cz/heslo.php?id=444"
-heslarId = 444
 
 [[term]]
-id = "otevreny-archivacni-informacni-system"
+id = "445"
 label = { cs = "otevřený archivační informační systém", en = "Open Archival Information System" }
 url = "https://heslar.openscience.cz/heslo.php?id=445"
-heslarId = 445
 
 [[term]]
-id = "nalezitelnost-dohledatelnost"
+id = "468"
 label = { cs = "nalezitelnost / dohledatelnost", en = "Findability" }
 url = "https://heslar.openscience.cz/heslo.php?id=468"
-heslarId = 468
 
 [[term]]
-id = "pristupnost"
+id = "469"
 label = { cs = "přístupnost", en = "Accessibility" }
 url = "https://heslar.openscience.cz/heslo.php?id=469"
-heslarId = 469
 
 [[term]]
-id = "propojitelnost"
+id = "470"
 label = { cs = "propojitelnost", en = "Interoperability" }
 url = "https://heslar.openscience.cz/heslo.php?id=470"
-heslarId = 470

@@ -4,6 +4,7 @@
 
 [[source]]
 id = "analyza-fair-1.2"
+code = "A"
 type = "report"
 title = { cs = "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI", en = "Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI" }
 short = { cs = "Analýza FAIR pro NRP/NDI", en = "FAIR analysis for NRP/NDI" }
@@ -323,6 +324,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
 id = "cts-2026"
+code = "CTS"
 type = "standard"
 title = "CoreTrustSeal Trustworthy Digital Repositories Requirements 2026-2028"
 short = "CoreTrustSeal 2026–2028"
@@ -336,6 +338,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
 id = "cdif-core-1.1.1"
+code = "CDIF"
 type = "standard"
 title = "CDIF Core profile, release 1.1.1"
 inLanguage = "en"
@@ -347,6 +350,7 @@ dateAccessed = 2026-10-10
 
 [[source]]
 id = "cdif-discovery-1.1.1"
+code = "CDIF"
 type = "standard"
 title = "CDIF Data Discovery profile, release 1.1.1"
 inLanguage = "en"
@@ -358,6 +362,7 @@ dateAccessed = 2026-10-10
 
 [[source]]
 id = "cdif-datadescription-1.1.1"
+code = "CDIF"
 type = "standard"
 title = "CDIF Data Description profile, release 1.1.1"
 inLanguage = "en"
@@ -369,6 +374,7 @@ dateAccessed = 2026-10-10
 
 [[source]]
 id = "cdif-codelist-1.1.1"
+code = "CDIF"
 type = "standard"
 title = "CDIF Codelist profile, release 1.1.1"
 inLanguage = "en"
@@ -380,6 +386,7 @@ dateAccessed = 2026-10-10
 
 [[source]]
 id = "cdif-datastructure-1.1.1"
+code = "CDIF"
 type = "standard"
 title = "CDIF Data Structure profile, release 1.1.1"
 inLanguage = "en"
@@ -391,6 +398,7 @@ dateAccessed = 2026-10-10
 
 [[source]]
 id = "cdif-conceptscheme-1.1.1"
+code = "CDIF"
 type = "standard"
 title = "CDIF Concept Scheme profile, release 1.1.1"
 inLanguage = "en"
@@ -402,6 +410,7 @@ dateAccessed = 2026-10-10
 
 [[source]]
 id = "cdif-manifest-1.1.1"
+code = "CDIF"
 type = "standard"
 title = "CDIF Manifest profile, release 1.1.1"
 inLanguage = "en"

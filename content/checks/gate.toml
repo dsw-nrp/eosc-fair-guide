@@ -22,210 +22,210 @@ id = "c"
 label = { cs = "Samostatně provozovaný existující repozitář", en = "Independently operated existing repository" }
 
 [[item]]
-id = "G01"
+id = "gate.01"
 tier = "required"
 principles = ["F1"]
 statement = { cs = "Záznamy jsou citovatelné, mají PID a repozitář popisuje záruku jejich neměnnosti.", en = "Records are citable and have PIDs, and the repository describes how their immutability is guaranteed." }
-sources = ["C.M1"]
-fixAt = "publikace"
+sources = ["NRP.M1"]
+fixAt = "publication"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["pidType"] }
 
 [[item]]
-id = "G02"
+id = "gate.02"
 tier = "required"
 principles = ["A1"]
 statement = { cs = "Repozitář má webové rozhraní i API pro strojový přístup.", en = "The repository has a web interface and an API for machine access." }
-sources = ["C.M2", "C.EXT"]
-fixAt = "prace"
+sources = ["NRP.M2", "NRP.EXT"]
+fixAt = "work"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["restApi"] }
 
 [[item]]
-id = "G03"
+id = "gate.03"
 tier = "required"
 principles = ["R1"]
 statement = { cs = "Repozitář má politiku změn (verzování nebo „patch“ balíčky).", en = "The repository has a change policy (versioning or patch packages)." }
-sources = ["C.M3"]
-fixAt = "publikace"
+sources = ["NRP.M3"]
+fixAt = "publication"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["versioning"] }
 
 [[item]]
-id = "G04"
+id = "gate.04"
 tier = "required"
 principles = ["R1.1"]
 statement = { cs = "Metadata mají permisivní licenci (odpovídající CC0), která umožňuje sklizeň.", en = "Metadata have a permissive licence (equivalent to CC0) that allows harvesting." }
-sources = ["C.M4"]
+sources = ["NRP.M4"]
 fixAt = "licence"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 
 [[item]]
-id = "G05"
+id = "gate.05"
 tier = "required"
 principles = ["F4"]
 statement = { cs = "Repozitář je registrován v [[nkr|NKR]] a záznam je aktuální.", en = "The repository is registered in [[nkr|NKR]] and its record is up to date." }
 help = { cs = "NKR je národní katalog repozitářů; záznam v něm hledají výzkumníci i NRP.", en = "NKR is the national repository catalogue; researchers and NRP look for repositories there." }
-sources = ["C.M5", "C.EXT"]
-fixAt = "repozitar"
+sources = ["NRP.M5", "NRP.EXT"]
+fixAt = "repository"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["@record"] }
 
 [[item]]
-id = "G06"
+id = "gate.06"
 tier = "required"
 principles = ["A1.2"]
 statement = { cs = "Repozitář je napojen na AAI e-INFRA CZ včetně rolí a skupin.", en = "The repository is connected to the e-INFRA CZ AAI, including roles and groups." }
-sources = ["C.M6", "C.EXT", "E.AAI-NRP-INTEGRATION", "E.NRP-AAI-SETUP"]
+sources = ["NRP.M6", "NRP.EXT", "AAI-NRP.01", "NRP-AAI-INTEGRATION.01"]
 fixAt = "licence"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["aaiIntegration"] }
 
 [[item]]
-id = "G07"
+id = "gate.07"
 tier = "required"
 principles = ["F1"]
 statement = { cs = "Repozitář přiděluje trvalé identifikátory (DOI nebo jiné) a ví, kde hledat metodickou podporu.", en = "The repository assigns persistent identifiers (DOI or others) and knows where to find methodological support." }
 help = { cs = "DOI je doporučený identifikátor; přijatelné jsou i jiné trvalé, resolvovatelné a spravované identifikátory.", en = "DOI is the recommended identifier; other persistent, resolvable and managed identifiers are acceptable." }
-sources = ["C.M7", "C.EXT", "A.F1.N2"]
-fixAt = "publikace"
+sources = ["NRP.M7", "NRP.EXT", "A.F1.N2"]
+fixAt = "publication"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["pidType"] }
 
 [[item]]
-id = "G08"
+id = "gate.08"
 tier = "required"
 principles = ["F4"]
 statement = { cs = "Metadata se sklízejí do [[nma|NMA]] podle [[ccmm|CCMM]].", en = "Metadata are harvested into [[nma|NMA]] according to [[ccmm|CCMM]]." }
-sources = ["C.M8", "DOC.NMA.EXPORT"]
-fixAt = "dohledatelnost"
+sources = ["NRP.M8", "NMA-EXPORT-DOCS.01"]
+fixAt = "findability"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["oaipmhEndpoint"] }
 prefillLevel = "partly"
 
 [[item]]
-id = "G09"
+id = "gate.09"
 tier = "required"
 principles = []
 statement = { cs = "Repozitář je zapojen do monitoringu kybernetické bezpečnosti a prochází penetračními testy.", en = "The repository takes part in cyber-security monitoring and undergoes penetration tests." }
-sources = ["C.M9", "C.EXT", "E.KB1-MONITORING", "E.AAI-NRP-INCIDENT", "E.KB1-INFRA"]
-fixAt = "repozitar"
+sources = ["NRP.M9", "NRP.EXT", "OS2-KB1.02", "AAI-NRP.02", "OS2-KB1.01"]
+fixAt = "repository"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 providedByNrp = ["a"]
 
 [[item]]
-id = "G10"
+id = "gate.10"
 tier = "required"
 principles = []
 statement = { cs = "Systém loguje do centrálního logování.", en = "The system logs to central logging." }
-sources = ["C.M10", "C.EXT", "E.KB1-LOGGING"]
-fixAt = "repozitar"
+sources = ["NRP.M10", "NRP.EXT", "OS2-KB1.03"]
+fixAt = "repository"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 providedByNrp = ["a"]
 
 [[item]]
-id = "G11"
+id = "gate.11"
 tier = "required"
 principles = ["A1.2"]
 statement = { cs = "Je definován workflow ukládání (schvalování) i přístupu.", en = "Deposit (approval) and access workflows are defined." }
-sources = ["C.M11"]
+sources = ["NRP.M11"]
 fixAt = "licence"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 
 [[item]]
-id = "G12"
+id = "gate.12"
 tier = "required"
 principles = ["R1.3"]
 statement = { cs = "Jsou nasazeny metadatové profily a metadata se harmonizují.", en = "Metadata profiles are deployed, and metadata are harmonised." }
-sources = ["C.M12"]
-fixAt = "popis"
+sources = ["NRP.M12"]
+fixAt = "metadata"
 owner = ["repository-admin", "curator"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["metadataSchema"] }
 prefillLevel = "partly"
 
 [[item]]
-id = "G13"
+id = "gate.13"
 tier = "required"
 principles = []
 statement = { cs = "Role správce repozitáře je obsazena.", en = "The repository administrator role is filled." }
-sources = ["C.ROLE.admin"]
-fixAt = "repozitar"
+sources = ["NRP.ROLE.admin"]
+fixAt = "repository"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["mainContact"] }
 
 [[item]]
-id = "G14"
+id = "gate.14"
 tier = "required"
 principles = []
 statement = { cs = "Role datového kurátora je obsazena.", en = "The data curator role is filled." }
-sources = ["C.ROLE.curator"]
-fixAt = "popis"
+sources = ["NRP.ROLE.curator"]
+fixAt = "metadata"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 
 [[item]]
-id = "G15"
+id = "gate.15"
 tier = "required"
 principles = ["R1.1"]
 statement = { cs = "Seznam licencí a podporovaných formátů je zveřejněn.", en = "The list of licences and supported formats is published." }
-sources = ["C.CS"]
+sources = ["NRP.CS"]
 fixAt = "licence"
 owner = ["community", "repository-admin"]
 profiles = ["a", "b"]
 prefill = { nkr = ["license"] }
 
 [[item]]
-id = "G16"
+id = "gate.16"
 tier = "required"
 principles = ["R1"]
 statement = { cs = "Existuje uživatelská dokumentace a popis politiky repozitáře, zejména kritéria pro dokončení záznamu.", en = "There is user documentation and a description of the repository's policy, especially the criteria for finalising a record." }
-sources = ["C.CS"]
-fixAt = "repozitar"
+sources = ["NRP.CS"]
+fixAt = "repository"
 owner = ["community", "repository-admin"]
 profiles = ["a", "b"]
 prefill = { nkr = ["documentationUser", "policy"] }
 
 [[item]]
-id = "G17"
+id = "gate.17"
 tier = "required"
 principles = []
 statement = { cs = "Je zajištěna podpora uživatelů první úrovně.", en = "First-line user support is provided." }
-sources = ["C.CS", "E.NRP-SUPPORT"]
+sources = ["NRP.CS", "NRP-SUPPORT.01"]
 fixAt = "plan"
 owner = ["community", "repository-admin"]
 profiles = ["a", "b"]
 prefill = { nkr = ["serviceQueue"] }
 
 [[item]]
-id = "G18"
+id = "gate.18"
 tier = "required"
 principles = []
 statement = { cs = "Je zajištěn provozní monitoring a sběr statistik.", en = "Operational monitoring and usage statistics are in place." }
-sources = ["C.EXT"]
-fixAt = "repozitar"
+sources = ["NRP.EXT"]
+fixAt = "repository"
 owner = ["repository-admin"]
 profiles = ["b", "c"]
 
 [[item]]
-id = "G19"
+id = "gate.19"
 tier = "recommended"
 principles = []
 statement = { cs = "Klíčové role jsou pokryty více osobami a repozitář konzultuje oborovou pracovní skupinu EOSC CZ.", en = "Key roles are covered by more than one person, and the repository consults the EOSC CZ domain working group." }
-sources = ["C.R1", "C.R2"]
-fixAt = "repozitar"
+sources = ["NRP.R1", "NRP.R2"]
+fixAt = "repository"
 owner = ["repository-admin"]
 profiles = ["a", "b", "c"]
 prefill = { nkr = ["workingGroup"] }

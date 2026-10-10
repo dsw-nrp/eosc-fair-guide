@@ -64,19 +64,19 @@ await page.locator('label[for="extended-toggle"]').click();
 await page.locator("#prefill-pid").fill("https://doi.org/" + SAMPLE.doi);
 let status = await prefill("#prefill-pid-run");
 console.log("DOI:", status);
-if ((await answer("D01")) !== "yes") fail("DOI: D01 is not pre-filled yes");
-if ((await answer("D02")) !== "yes") fail("DOI: D02 is not pre-filled yes");
-if (!(await page.locator("#origin-D02").textContent()).includes("zenodo.org")) fail("DOI: D02 does not show where the DOI leads");
+if ((await answer("dataset-01")) !== "yes") fail("DOI: dataset.01 is not pre-filled yes");
+if ((await answer("dataset-02")) !== "yes") fail("DOI: dataset.02 is not pre-filled yes");
+if (!(await page.locator("#origin-dataset-02").textContent()).includes("zenodo.org")) fail("DOI: dataset.02 does not show where the DOI leads");
 if (!(await page.locator(".target-card").textContent()).includes("FAIR assessment")) fail("DOI: the resolved DOI does not show its title");
-if ((await answer("D04")) !== "yes") fail("DOI: D04 (licence URI) is not pre-filled yes");
-if (!(await page.locator("#origin-D04").textContent()).includes("DataCite")) fail("DOI: D04 does not name DataCite");
-if ((await answer("D11")) === "yes") fail("DOI: D11 exceeds its pre-fill level");
+if ((await answer("dataset-04")) !== "yes") fail("DOI: dataset.04 (licence URI) is not pre-filled yes");
+if (!(await page.locator("#origin-dataset-04").textContent()).includes("DataCite")) fail("DOI: dataset.04 does not name DataCite");
+if ((await answer("dataset-11")) === "yes") fail("DOI: dataset.11 exceeds its pre-fill level");
 
 // Dataset check from a Handle: only the resolver answers.
 await page.locator("#prefill-pid").fill(SAMPLE.handle);
 status = await prefill("#prefill-pid-run");
 console.log("Handle:", status);
-if (!(await page.locator("#origin-D02").textContent()).includes("lindat")) fail("Handle: D02 does not show where the Handle leads");
+if (!(await page.locator("#origin-dataset-02").textContent()).includes("lindat")) fail("Handle: dataset.02 does not show where the Handle leads");
 
 // An identifier that does not exist.
 await page.evaluate(() => { localStorage.clear(); });
@@ -86,8 +86,8 @@ await page.locator("#mode-after").check();
 await page.locator("#prefill-pid").fill(SAMPLE.missing);
 status = await prefill("#prefill-pid-run");
 console.log("Missing:", status);
-if (await answer("D01")) fail("missing identifier: D01 was pre-filled");
-if (!(await page.locator("#origin-D01").textContent()).includes("nepodařilo")) fail("missing identifier: D01 has no note");
+if (await answer("dataset-01")) fail("missing identifier: dataset.01 was pre-filled");
+if (!(await page.locator("#origin-dataset-01").textContent()).includes("nepodařilo")) fail("missing identifier: dataset.01 has no note");
 if (!status.includes("nezná")) fail("missing identifier: DataCite not reported as not knowing it");
 
 // FIP check from a published nanopublication.
@@ -118,7 +118,7 @@ await page.locator('label[for="extended-toggle"]').click();
 await page.locator("#prefill-re3data").fill("r3d100010484");
 status = await prefill("#prefill-re3data-run");
 console.log("re3data and FAIRsharing:", status);
-if ((await answer("S18")) !== "yes") fail("FAIRsharing: S18 is not answered yes for ČSDA");
+if ((await answer("maturity-18")) !== "yes") fail("FAIRsharing: maturity.18 is not answered yes for ČSDA");
 
 // What a DOI is: a Zenodo DOI is a DataCite output, a journal article's DOI a Crossref publication.
 async function findOut(pid) {

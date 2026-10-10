@@ -34,34 +34,34 @@ name = { cs = "Profily CDIF", en = "CDIF profiles" }
 description = { cs = "Pro funkce nad rámec vyhledávání: popis a struktura dat, slovníky, balíčky, přístup a univerzální veličiny.", en = "For functions beyond discovery: data description and structure, vocabularies, packages, access and universals." }
 
 [[item]]
-id = "M01"
+id = "cdif.01"
 requirement = "CDIF.REQ1"
 statement = { cs = "Metadata uvádějí globálně jedinečný a rozřešitelný identifikátor zdroje.", en = "The metadata give a globally unique, resolvable identifier for the resource." }
 tier = "standard"
 block = "required"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M02"
+id = "cdif.02"
 requirement = "CDIF.REQ2"
 statement = { cs = "Metadata uvádějí stručný název, podle kterého člověk zdroj jednoznačně pozná.", en = "The metadata give a succinct title that lets a person identify the resource uniquely." }
 tier = "standard"
 block = "required"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M03"
+id = "cdif.03"
 requirement = "CDIF.REQ3"
 statement = { cs = "Metadata uvádějí, jak zdroj získat: URL, popis distribucí, nebo návod k přístupu.", en = "The metadata say how to obtain the resource: a URL, a description of its distributions, or access instructions." }
 tier = "standard"
 block = "required"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M04"
+id = "cdif.04"
 requirement = "CDIF.REQ4"
 statement = { cs = "Metadata uvádějí práva: licence, přístupová oprávnění, smluvní a bezpečnostní omezení a omezení použití.", en = "The metadata state the rights: licences, access permissions, contractual and security constraints and use constraints." }
 tier = "standard"
@@ -70,268 +70,268 @@ fixAt = "licence"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M05"
+id = "cdif.05"
 requirement = "CDIF.REQ5"
 statement = { cs = "Metadata uvádějí identifikátor profilu, podle kterého záznam vznikl.", en = "The metadata give the identifier of the profile the record was created with." }
 tier = "standard"
 block = "required"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M06"
+id = "cdif.06"
 requirement = "CDIF.REQ6"
 statement = { cs = "Metadata uvádějí typ zdroje jako označení s uvedeným klasifikačním schématem.", en = "The metadata give the resource type as a label with its classification scheme." }
 tier = "standard"
 block = "required"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M07"
+id = "cdif.07"
 requirement = "CDIF.CON1"
 statement = { cs = "U datových sad metadata uvádějí seznam proměnných, ideálně s odkazem na řízený slovník.", en = "For datasets, the metadata list the variables, ideally linked to a controlled vocabulary." }
 tier = "standard"
 block = "required"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M08"
+id = "cdif.08"
 requirement = "CDIF.CON2"
 statement = { cs = "Týká-li se zdroj určitého časového intervalu, metadata ho uvádějí.", en = "If the resource concerns a time interval, the metadata give it." }
 tier = "standard"
 block = "required"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M09"
+id = "cdif.09"
 requirement = "CDIF.CON3"
 statement = { cs = "Má-li zdroj geografický rozsah, metadata ho uvádějí, souřadnice v desetinných stupních WGS 84.", en = "If the resource has a geographic extent, the metadata give it, with coordinates in WGS 84 decimal degrees." }
 tier = "standard"
 block = "required"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M10"
+id = "cdif.10"
 requirement = "CDIF.REC1"
 statement = { cs = "Metadata obsahují popis obsahu, kontextu a původu zdroje.", en = "The metadata describe the resource's content, context and provenance." }
 tier = "recommended"
 block = "recommended"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M11"
+id = "cdif.11"
 requirement = "CDIF.REC2"
 statement = { cs = "Metadata uvádějí původce (osoby či organizace) se jménem a identifikátorem.", en = "The metadata name the originators (people or organisations) with a name and an identifier." }
 tier = "recommended"
 block = "recommended"
-fixAt = "citace"
+fixAt = "citation"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M12"
+id = "cdif.12"
 requirement = "CDIF.REC3"
 statement = { cs = "Metadata uvádějí datum poslední změny zdroje ve strojově čitelném formátu.", en = "The metadata give the date of the resource's last change in a machine-readable format." }
 tier = "recommended"
 block = "recommended"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M13"
+id = "cdif.13"
 requirement = "CDIF.REC4"
 statement = { cs = "Metadata uvádějí kontakt pro přístup ke zdroji.", en = "The metadata give a contact for access to the resource." }
 tier = "recommended"
 block = "recommended"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M14"
+id = "cdif.14"
 requirement = "CDIF.REC5"
 statement = { cs = "Metadata uvádějí kontrolní součty souborů i použitý algoritmus.", en = "The metadata give the files' checksums and the algorithm used." }
 tier = "recommended"
 block = "recommended"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M15"
+id = "cdif.15"
 requirement = "CDIF.REC6"
 statement = { cs = "Metadata uvádějí financování s identifikátorem grantu či smlouvy a poskytovatelem.", en = "The metadata cite the funding, with the grant or contract identifier and the funder." }
 tier = "recommended"
 block = "recommended"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M16"
+id = "cdif.16"
 requirement = "CDIF.REC7"
 statement = { cs = "Metadata uvádějí klíčová slova a termíny z řízených slovníků rozlišují od volných štítků.", en = "The metadata give keywords, distinguishing terms from controlled vocabularies from free tags." }
 tier = "recommended"
 block = "recommended"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M17"
+id = "cdif.17"
 requirement = "CDIF.REC8"
 statement = { cs = "Metadata uvádějí zásady správy zdroje: změny, aktualizace, dobu dostupnosti, údržbu a verzování.", en = "The metadata state the resource's management policies: changes, updates, availability lifetime, maintenance and versioning." }
 tier = "recommended"
 block = "recommended"
-fixAt = "repozitar"
+fixAt = "repository"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M18"
+id = "cdif.18"
 requirement = "CDIF.REC9"
 statement = { cs = "Metadata uvádějí datum zveřejnění zdroje.", en = "The metadata give the resource's publication date." }
 tier = "recommended"
 block = "recommended"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M19"
+id = "cdif.19"
 requirement = "CDIF.REC10"
 statement = { cs = "Metadata uvádějí další strany, které se na vzniku zdroje podílely, s jejich rolí.", en = "The metadata name other parties who contributed to the resource, with their roles." }
 tier = "recommended"
 block = "recommended"
-fixAt = "citace"
+fixAt = "citation"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M20"
+id = "cdif.20"
 requirement = "CDIF.REC11"
 statement = { cs = "Metadata odkazují na související zdroje s typem vztahu a rozřešitelným identifikátorem.", en = "The metadata link related resources, with the type of relationship and a resolvable identifier." }
 tier = "recommended"
 block = "recommended"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M21"
+id = "cdif.21"
 requirement = "CDIF.REC12"
 statement = { cs = "U verzovaných zdrojů metadata uvádějí označení verze, které se řadí podle pořadí vydání.", en = "For versioned resources, the metadata give a version label that sorts in release order." }
 tier = "recommended"
 block = "recommended"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M22"
+id = "cdif.22"
 requirement = "CDIF.REC13"
 statement = { cs = "Metadata uvádějí, z jakých dat a jakými přístroji, softwarem či postupy zdroj vznikl.", en = "The metadata say which data, and which instruments, software or procedures, the resource was created from." }
 tier = "recommended"
 block = "recommended"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M23"
+id = "cdif.23"
 requirement = "CDIF.REC14"
 statement = { cs = "Metadata uvádějí údaje o kvalitě zdroje a o tom, jak se kvalita měřila.", en = "The metadata give information on the resource's quality and how it was measured." }
 tier = "recommended"
 block = "recommended"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M24"
+id = "cdif.24"
 requirement = "CDIF.MET1"
 statement = { cs = "Metadata uvádějí datum svého vytvoření nebo poslední aktualizace (ISO 8601).", en = "The metadata give the date of their creation or last update (ISO 8601)." }
 tier = "recommended"
 block = "management"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M25"
+id = "cdif.25"
 requirement = "CDIF.MET2"
 statement = { cs = "Metadata uvádějí, kdo odpovídá za jejich obsah a správnost.", en = "The metadata name who is responsible for their content and accuracy." }
 tier = "recommended"
 block = "management"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M26"
+id = "cdif.26"
 requirement = "CDIF.MET3"
 statement = { cs = "Metadata mají vlastní identifikátor.", en = "The metadata have an identifier of their own." }
 tier = "recommended"
 block = "management"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin"]
 
 [[item]]
-id = "M27"
+id = "cdif.27"
 requirement = "CDIF.Core"
 statement = { cs = "Metadata jsou vyjádřena jako JSON-LD podle profilu CDIF Core.", en = "The metadata are expressed as JSON-LD following the CDIF Core profile." }
 tier = "advanced"
 block = "profiles"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M28"
+id = "cdif.28"
 requirement = "CDIF.Discovery"
 statement = { cs = "Metadata popisují prostorový a časový rozsah a proměnné podle profilu CDIF Discovery.", en = "The metadata describe spatial and temporal extent and variables following the CDIF Discovery profile." }
 tier = "advanced"
 block = "profiles"
-fixAt = "dohledatelnost"
+fixAt = "findability"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M29"
+id = "cdif.29"
 requirement = "CDIF.DataDescription"
 statement = { cs = "Metadata popisují obory hodnot, statistiky, uspořádání souborů a role proměnných podle profilu CDIF Data Description.", en = "The metadata describe value domains, statistics, file layout and the roles of variables following the CDIF Data Description profile." }
 tier = "advanced"
 block = "profiles"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M30"
+id = "cdif.30"
 requirement = "CDIF.Codelist"
 statement = { cs = "Číselníky a klasifikace, jejichž kódy jsou v datech, se zveřejňují jako SKOS podle profilu CDIF Codelist.", en = "Codelists and classifications whose codes appear in the data are published as SKOS following the CDIF Codelist profile." }
 tier = "advanced"
 block = "profiles"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M31"
+id = "cdif.31"
 requirement = "CDIF.DataStructure"
 statement = { cs = "Opakovaně použitelné datové struktury a jejich proměnné se popisují podle profilu CDIF Data Structure (DDI-CDI).", en = "Reusable data structures and their variables are described following the CDIF Data Structure profile (DDI-CDI)." }
 tier = "advanced"
 block = "profiles"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M32"
+id = "cdif.32"
 requirement = "CDIF.ConceptScheme"
 statement = { cs = "Pojmové systémy oboru se zveřejňují jako SKOS podle profilu CDIF Concept Scheme.", en = "The domain's concept systems are published as SKOS following the CDIF Concept Scheme profile." }
 tier = "advanced"
 block = "profiles"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M33"
+id = "cdif.33"
 requirement = "CDIF.Manifest"
 statement = { cs = "Balíčky dat a metadat se popisují podle profilu CDIF Manifest (RO-Crate).", en = "Packages of data and metadata are described following the CDIF Manifest profile (RO-Crate)." }
 tier = "advanced"
 block = "profiles"
-fixAt = "publikace"
+fixAt = "publication"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M34"
+id = "cdif.34"
 requirement = "CDIF.Access"
 statement = { cs = "Podmínky přístupu a použití se popisují strojově jazykem ODRL podle doporučení CDIF.", en = "Access and use conditions are described machine-actionably in ODRL following the CDIF guidance." }
 tier = "advanced"
@@ -340,10 +340,10 @@ fixAt = "licence"
 owner = ["repository-admin", "community"]
 
 [[item]]
-id = "M35"
+id = "cdif.35"
 requirement = "CDIF.Universals"
 statement = { cs = "Čas, místo a jednotky se uvádějí podle doporučení CDIF pro univerzální veličiny.", en = "Time, place and units are given following the CDIF guidance on universals." }
 tier = "advanced"
 block = "profiles"
-fixAt = "popis"
+fixAt = "metadata"
 owner = ["repository-admin", "community"]

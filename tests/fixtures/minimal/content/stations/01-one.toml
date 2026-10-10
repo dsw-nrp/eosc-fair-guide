@@ -7,7 +7,7 @@ principles = ["F1"]
 minutes = 5
 
 [[advice]]
-id = "one.all.L0"
+id = "one.01"
 lens = "*"
 level = "L0"
 text = { cs = "Udělejte první krok.", en = "Take the first step." }
@@ -15,7 +15,7 @@ action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }
 sources = ["A.F1.R1"]
 
 [[advice]]
-id = "one.all.L1.key"
+id = "one.02"
 lens = "*"
 level = "L1"
 kind = "key"
@@ -23,7 +23,7 @@ text = { cs = "Hlavní myšlenka.", en = "The key point." }
 sources = ["A.F1.R1"]
 
 [[advice]]
-id = "one.V.L1.1"
+id = "one.03"
 lens = "V"
 level = "L1"
 text = { cs = "Postup.", en = "Steps." }

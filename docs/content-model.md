@@ -57,8 +57,36 @@ erDiagram
 
 ### Identifiers
 
-Every entity has a stable `id`. IDs are never reused or renumbered; an entity that is no longer valid is
-marked as superseded instead of deleted.
+The guide's identifiers were set on 10 October 2026 and are kept from then on. An identifier names the same entry
+for good: it is never renamed, renumbered or reused, whatever later happens to the entry's name, place or wording. An
+entry that is no longer valid is marked as superseded instead of deleted; an entry that does go away leaves its
+identifier retired.
+
+`content/identifiers.toml` registers every identifier the guide has issued, by kind: lenses, stations, checks, pages,
+advice, questions, requirements, sources, resources, repositories and provenance actions. The content checks report
+an entry whose identifier is not registered, a registered identifier no entry has (an entry renamed or removed
+without retiring it) and a retired identifier in use again. `python scripts/register_ids.py` registers the
+identifiers of new entries and never removes one; retiring is a deliberate edit of the register's `[retired]` table.
+
+An identifier says where an entry belongs, not what it says:
+
+- **Nested, with a serial.** Advice is `<station>.<nn>` and a check question `<check>.<nn>`: its station's or check's
+  ID and a two-digit serial in order of creation. What an item is for (lens, level, kind, tier, block) lives in its
+  fields, which can change without touching its identifier. A question shows by its number inside its check (`04` in
+  the dataset check); the page keys its elements by the identifier with a hyphen for the dot (`item-dataset-04`).
+- **Adopted where the source is consistent.** A requirement is `<source code>.<local part>`. The local part is the
+  source's own label where the source labels its items consistently (`A.F1.N1` in the FAIR analysis, `CTS.R06`,
+  `NRP.M5`, `CDIF.REQ1`, a section of a law `LAW-328-2025.83.2`), and a two-digit serial otherwise
+  (`OS3-RULES.24`). A source's code is its declared `code` (the FAIR analysis `A`, `NRP`, `CTS`, `CDIF`) or else its
+  ID in capitals without a version suffix (`os3-rules` gives `OS3-RULES`). Terms take their ID in Heslář, and a
+  repository its re3data ID where it has one (`r3d100010468`); FIPs, FIP Dashboard records and FAIR Champion tests
+  keep the identifiers of the registries they come from, which keep them in turn, and so are not in the register. A
+  FIP Dashboard record listed on its own nests under the dashboard in the catalogue (`fip-dashboard.<id>`). Where a
+  source falls short (no labels, or labels it does not keep), the guide's own serial takes over.
+- **Plain names for the guide's own structure.** Stations, checks, pages, resources and sources have short
+  lower-case English names in kebab case (`repository`, `dataset`, `live-check`); lenses and levels short codes
+  (`SR`, `L1`); provenance actions `<date>-<topic>`.
+- **No reuse.** A new entry takes the next free serial; a serial left by a retired entry stays unused.
 
 One real-world thing has one curated entry, which carries every role it plays: a service the guide recommends and
 also cites is one `[[resource]]` with a `[resource.citation]` table, and a repository it recommends is one
@@ -148,6 +176,7 @@ A service or resource status uses the five-level vocabulary and always carries a
 | `content/pages.toml` | About page, accessibility statement and the AI overview |
 | `content/ui.toml` | Interface strings |
 | `content/icons.toml` | Interface icons |
+| `content/identifiers.toml` | The register of the identifiers the guide has issued |
 
 A bilingual text is written as an inline table: `text = { cs = "…", en = "…" }`. Paragraphs inside one text
 are separated by a blank line (`\n\n`). Names and titles of external works are proper names, given in their
@@ -205,7 +234,7 @@ recommendation is about). The IRI is
 ### `sources.toml`
 
 Published works the guide cites but does not recommend as a resource (a cited resource carries its citation in
-`resources.toml`). `[[source]]`: `id`, `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
+`resources.toml`). `[[source]]`: `id`, `code` (optional: the code its requirements' identifiers start with, where it is not the ID in capitals without a version suffix; see Identifiers), `type` (`report`, `article`, `dataset`, `webpage`, `document`, `standard`, `software`,
 `presentation`), `title` (a string, or a table whose `inLanguage` value is the original title), `short` (optional:
 the short name shown where the source is named often, as next to each requirement it holds), `version`,
 `inLanguage`, `url`, `doi` (without the resolver), `publisher` (an organisation ID, or a language-neutral name),
@@ -215,7 +244,7 @@ puts the person (with their ORCID iD) into the crate, or a plain name.
 
 ### `ledger.toml`
 
-`[[clause]]`: `id`, `source` (source ID), `locator` (chapter, table row or section), `principles` (list),
+`[[clause]]`: `id` (`<source code>.<local part>`; see Identifiers), `source` (source ID), `locator` (chapter, table row or section), `principles` (list),
 `actor` (actor ID with `role = "clause"`), `kind` (`requirement`, `recommendation`, `fulfilment`, `statement`),
 `text`, `status` (`current`, `refresh`, `superseded`), `note` (text: what has changed since the source was
 published), `noteSources` (clause or source IDs that support the note), `supersededBy` (clause or source ID),
@@ -237,21 +266,21 @@ guidance.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `id` | string | `<station>.<lens>.<level>[.<n>]`; `<lens>` is `all` for items shared by every lens |
+| `id` | string | `<station>.<nn>`: the station's ID and a serial (see Identifiers) |
 | `lens` | string or list | One lens, a list of lenses, or `"*"` for all |
 | `level` | string | `L0`, `L1` or `L2`; L3 is generated |
 | `position` | integer | Order within the station, lens and level |
 | `text` | text | The advice |
 | `steps` | list of text | Sub-steps shown as a list under the item |
 | `action` | table | L0 only: `label` (text) and `href`: an HTTPS URL, or an in-page target naming a crate entity (`#repositories`, `#ledger`, `#resources`, `#check-<id>`, `#station-<id>`, `#page-<id>`, `#resource-<id>`) |
-| `kind` | string | `ai` for the AI-in-FAIRification overlay; `key` for the station's key point, its one core idea shown at the top of the how-to (an L1 item without steps whose ID ends in `key`, exactly one per station and lens); omitted otherwise |
+| `kind` | string | `ai` for the AI-in-FAIRification overlay; `key` for the station's key point, its one core idea shown at the top of the how-to (an L1 item without steps, exactly one per station and lens); omitted otherwise |
 | `check` | text | AI items only, required: what to check after following the tip |
 | `prompt` | text | AI items only, required: a short prompt to copy; parts the reader fills in are written `[…]` |
 | `sources` | list | Clause IDs; at least one |
 
 ### `checks/<id>.toml`
 
-`[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`), `name`, `icon` (shown on its card in the
+`[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`, `coretrustseal`, `cdif`), `name`, `icon` (shown on its card in the
 self-check overview), `description`, `lenses`, `minutes`, `modes` (dataset check: `before`, `after`),
 `[[check.profile]]` (`id`, `label`; gate check: the deployment profiles; dataset check: the programme that funded the
 output), `defaultProfile` (the profile a check starts with; dataset check: `none`, no programme; the profile question
@@ -263,7 +292,7 @@ block instead of by principle or path step.
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `id` | string | `D01`, `P01`, `O01` (dataset check: a funded output), `G01`, `S01`, `K01`, `I01`, `C01` (CoreTrustSeal), … |
+| `id` | string | `<check>.<nn>`: the check's ID and a serial (`dataset.04`, `coretrustseal.01`; see Identifiers) |
 | `requirement` | string | A ledger clause the item asks about; it supplies the statement, the first source and the principles the item does not state |
 | `tier` | string | `minimum`, `recommended`, `advanced`; the gate uses `required` and `recommended`; the checks built on a standard start with `standard` (the CoreTrustSeal check has only that tier, the CDIF check adds `recommended` and `advanced`) |
 | `principles` | list | Principle IDs; empty for gate items and for institution items that serve no single principle |
@@ -290,8 +319,8 @@ block instead of by principle or path step.
 `stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs). A `course` at a station is that
 step's training: the station lists it among the help routes as "Školení k tomuto kroku", not as a resource card.
 
-`[resource.citation]` (when the guide also cites the resource): the fields of a `[[source]]` except `id` and `url`,
-which come from the resource; `title` is the work's title as published and becomes the entity's `alternateName` when
+`[resource.citation]` (when the guide also cites the resource): the fields of a `[[source]]` except `id`, `code` and
+`url`, which come from the resource (a cited resource's `code` is a field of the `[[resource]]`); `title` is the work's title as published and becomes the entity's `alternateName` when
 it differs from the guide's name. `[resource.repository]` (for a resource of type `registry`): `kind`, `subjects`,
 `re3data`, `nkr`, `fairsharing` and `pidTypes`, as in `[[repository]]`; the resource is then the repository the
 finder lists.
@@ -318,7 +347,7 @@ with `source`, `url` and `retrieved` (and `license` where the source states one)
 
 ### `glossary.toml`
 
-`[glossary]`: `source`, `url`, `retrieved`, `license`. `[[term]]`: `id`, `label` (text), `url`, `heslarId`, and
+`[glossary]`: `source`, `url`, `retrieved`, `license`. `[[term]]`: `id` (the term's ID in Heslář), `label` (text), `url`, and
 `definition` (text) only where the source's licence permits copying.
 
 ### `callouts.toml`
@@ -437,7 +466,7 @@ both from `ui.js` for its links.
 
 A record is its crate entity with language maps (`{"cs": …, "en": …}`) in place of value lists. Links to other
 records are paths relative to the record. A part without a record of its own (advice and its steps, callouts, FIP
-declarations) is given in full in the record of its whole, under its fragment (`plan.json#advice-plan.V.L0`). Small
+declarations) is given in full in the record of its whole, under its fragment (`plan.json#advice-plan.01`). Small
 terms (tiers, lenses, levels, actors, modes, profiles, organisations named in citations) are given in full; anything
 else of the guide is named by its place in the crate, relative to the record (`../../ro-crate-metadata.json#tiers`),
 and `sameAs` names the entity's own identifier the same way. No file of the API names the site's address, so the

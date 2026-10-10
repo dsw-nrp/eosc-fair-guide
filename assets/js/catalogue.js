@@ -294,7 +294,7 @@
     for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((entity) => !linkedFers.has(entity["@id"]))) {
       entries.push({
         kind: "resources",
-        anchor: "fer-" + fer.identifier,
+        anchor: "fip-dashboard." + fer.identifier,
         entity: fer,
         name: FG.text(fer.name),
         export: { url: fer.url, text: FG.text(fer.description) },
@@ -304,7 +304,7 @@
         facets: { use: ["dashboard"], type: [typeOf(fer)].filter(Boolean), status: [], language: [], lens: [] },
         render: () =>
           entryCard({
-            id: "fer-" + fer.identifier,
+            id: "fip-dashboard." + fer.identifier,
             entity: fer,
             what: [FG.termName(typeOf(fer))].concat(uses(["dashboard"])),
             title: FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name),
@@ -328,7 +328,7 @@
         name: FG.text(repository.name),
         export: { url: repository.url },
         text: [FG.text(repository.name), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
-        stations: ["repozitar"],
+        stations: ["repository"],
         principles: [],
         order: (kindIndex < 0 ? FG.repositoryKindOrder.length : kindIndex) + ":" + FG.fold(FG.text(repository.name)),
         facets: {
