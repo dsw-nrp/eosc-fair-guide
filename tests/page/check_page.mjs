@@ -1432,42 +1432,45 @@ sections.push(["self-check", async () => {
     window.FairGuide.rerender();
   });
   if (!(await page.locator("#nkr-status").textContent()).includes("re3data níže") || (await page.locator("#nkr-samples").count())) fail("maturity check: an empty NKR does not point to the re3data record, or offers sample records the check cannot use");
-  // FAIR Champion over a sample of records (replaced here): the questions' tests are listed with the questions they
-  // answer; an identifier that does not resolve is not tested; one record passes, one fails and one gives no result,
-  // so a question resting on one test is partly met by the two records with a result. A bar shows the progress, the
-  // coverage is stated, and a retry runs only the tests without a result.
-  const pairing = page.locator(".champion-tests");
-  if (!(await pairing.locator("summary").textContent()).includes("(7)") || !(await pairing.locator("li", { hasText: "S12" }).locator('a[href$="/catalogue/tests/fc_structured_metadata"]').count())) fail("maturity check: the FAIR Champion tests are not listed with the questions they answer");
+  // FAIR Champion over a sample of records (replaced here). Each question shows the tests that can answer it and runs
+  // them alone; an identifier that does not resolve is not tested. One record passes, one fails and one gives no
+  // result, so a question resting on one test is partly met by the two records with a result. Running all tests
+  // shows a bar, the coverage is stated, and a retry runs only the tests without a result.
+  const line = page.locator("#tests-S02");
+  if (!(await line.locator('a[href$="/catalogue/tests/fc_metadata_identifier_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     window.championCalls = [];
-    window.championGate = new Promise((resolve) => { window.openChampion = resolve; });
     live.resolvePid = async (pid) => ({ found: !pid.value.endsWith("/gone"), url: "https://repo.example/" + pid.value });
     live.championTest = async (test, record) => {
-      window.championCalls.push(record);
-      await window.championGate;
+      window.championCalls.push(test + " " + record);
+      if (window.championGate) await window.championGate;
       if (record.endsWith("/none")) throw new Error("no verdict");
       return { value: record.endsWith("/bad") ? "fail" : "pass", log: "" };
     };
   });
   await page.fill("#prefill-champion", "10.1234/good\n10.1234/bad\n10.1234/none\n10.1234/gone");
+  await page.locator("#test-run-S02").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  const oneQuestion = await page.evaluate(() => window.championCalls);
+  if (oneQuestion.length !== 3 || oneQuestion.some((call) => !call.startsWith("fc_metadata_identifier_persistence https://doi.org/") || call.includes("gone"))) fail("maturity check: one question's run did not test only its test on the resolved records, as resolver addresses: " + oneQuestion.join(", "));
+  if (!(await checked("answer-S02-partly")) || !(await line.textContent()).includes("1 z 2") || !(await page.locator("#origin-S02").textContent()).includes("FAIR Champion")) fail("maturity check: a sample with one passing and one failing record does not partly meet S02, with the count on its test line");
+  if (!(await page.locator("#prefill-status").textContent()).includes("10.1234/gone")) fail("maturity check: the record that does not resolve is not reported");
+  await page.evaluate(() => { window.championCalls = []; window.championGate = new Promise((resolve) => { window.openChampion = resolve; }); });
   await page.locator("#prefill-champion-run").click();
   await page.waitForSelector("#prefill-progress:not([hidden])");
-  if (!(await page.locator("#prefill-progress").textContent()).includes("z 21 testů")) fail("maturity check: the progress of the sample's tests is not shown");
+  if (!(await page.locator("#prefill-progress").textContent()).includes("z 19 testů") || !(await page.locator("#tests-S06 .test-state").textContent()).includes("běží")) fail("maturity check: running all tests does not show the progress of the remaining tests and S02's retry, or a question's line does not say its test is running");
   await page.evaluate(() => window.openChampion());
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   if (await page.locator("#prefill-progress:not([hidden])").count()) fail("maturity check: the progress bar stays after the tests");
-  if (await page.evaluate(() => window.championCalls.some((record) => record.includes("gone") || !record.startsWith("https://doi.org/")))) fail("maturity check: an unresolved record was tested, or a DOI was not given as its resolver address");
-  const championOrigin = await page.locator("#origin-S02").textContent();
-  if (!(await checked("answer-S02-partly")) || !championOrigin.includes("FAIR Champion") || !championOrigin.includes("1 z 2") || !championOrigin.includes("Identifikátor metadat je trvalý")) fail("maturity check: a sample with one passing and one failing record does not partly meet S02 from FAIR Champion, naming its tests: " + championOrigin);
   const championStatus = await page.locator("#prefill-status").textContent();
-  if (!championStatus.includes("14 z 21 testů") || !championStatus.includes("10.1234/gone")) fail("maturity check: the coverage or the unresolved record is not reported: " + championStatus);
-  if (!(await page.locator("#prefill-champion-retry").textContent()).includes("(7)")) fail("maturity check: no retry of the seven tests without a result");
-  await page.evaluate(() => { window.championCalls = []; window.FairGuide.live.championTest = async (test, record) => (window.championCalls.push(record), { value: "pass", log: "" }); });
-  await page.locator("#prefill-champion-retry").click();
+  if (!championStatus.includes("14 z 21 testů")) fail("maturity check: the coverage is not reported: " + championStatus);
+  if (!(await page.locator("#prefill-champion-run").textContent()).includes("(7)")) fail("maturity check: no retry of the seven tests without a result");
+  await page.evaluate(() => { window.championGate = null; window.championCalls = []; window.FairGuide.live.championTest = async (test, record) => (window.championCalls.push(record), { value: "pass", log: "" }); });
+  await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("21 z 21"));
   if (await page.evaluate(() => window.championCalls.length !== 7 || window.championCalls.some((record) => !record.endsWith("/none")))) fail("maturity check: the retry ran tests that had a result");
-  if (!(await page.locator("#origin-S02").textContent()).includes("2 z 3") || (await page.locator("#prefill-champion-retry").count())) fail("maturity check: the retried results are not counted, or the retry stays offered");
+  if (!(await page.locator("#tests-S02").textContent()).includes("2 z 3") || (await page.locator("#prefill-champion-run").count())) fail("maturity check: the retried results are not counted, or a run stays offered");
   await page.fill("#prefill-champion", "a b c d e f");
   await page.locator("#prefill-champion-run").click();
   if (!(await page.locator("#prefill-status").textContent()).includes("jeden až 5")) fail("maturity check: a sample over five records is accepted");
@@ -1697,10 +1700,13 @@ sections.push(["funded output", async () => {
   if (!(await checked("answer-O08-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
   const stewardGap = page.locator(".gaps .action-card", { hasText: "O08" }).first();
   if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/E.OS3-RULES.D-STEWARD"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
-  // The deep check runs the FAIR Champion tests on the dataset as a second action, never on an identifier that does
-  // not resolve. Four outcomes: a pass answers yes, a fail no, an indeterminate verdict or no result leaves the
-  // answer to the quick check; the coverage is stated and a retry runs only the tests without a result.
-  if (!(await page.locator(".champion-tests summary").textContent()).includes("(5)") || !(await page.locator('.champion-tests [data-health="degraded"]').count())) fail("dataset check: the deep check does not list its five tests, or a degraded test is not marked");
+  // FAIR Champion on the dataset, as a second action after the lookup: each question shows its tests and runs them
+  // alone, the lookup result runs them all, and no test runs on an identifier that does not resolve. Four outcomes:
+  // a pass answers yes, a fail no, an indeterminate verdict or no result leaves the answer to the quick check; the
+  // coverage is stated and a retry runs only the tests without a result. The extended view shows every question.
+  await page.locator('label[for="extended-toggle"]').click();
+  await page.waitForSelector("#tests-D07");
+  if (!(await page.locator(".champion-all").textContent()).includes("5 otázek") || !(await page.locator('#tests-D07 [data-health="degraded"]').count())) fail("dataset check: the lookup result does not offer the tests of five questions, or a degraded test is not marked at its question");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     window.championCalls = [];
@@ -1712,19 +1718,22 @@ sections.push(["funded output", async () => {
       return { value: verdicts[test], log: "log of " + test };
     };
   });
-  await page.locator("#prefill-champion-run").click();
+  await page.locator("#test-run-D03").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("nepodařilo přeložit"));
   if (await page.evaluate(() => window.championCalls.length)) fail("dataset check: FAIR Champion was called for an identifier that does not resolve");
   await page.evaluate(() => { window.FairGuide.live.resolvePid = async () => ({ found: true, url: "https://zenodo.org/records/1", title: "Test" }); });
+  await page.locator("#test-run-D03").click();
+  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if ((await page.evaluate(() => window.championCalls.join(","))) !== "fc_data_identifier_in_metadata https://doi.org/10.5281/zenodo.1") fail("dataset check: one question's run did not test only its test, on the DOI as its resolver address");
+  if (!(await checked("answer-D03-yes")) || !(await page.locator("#tests-D03").textContent()).includes("splněno")) fail("dataset check: a passed test does not answer D03 yes and show on its line");
   await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("3 z 5 testů"));
-  if (await page.evaluate(() => window.championCalls.some((call) => !call.endsWith(" https://doi.org/10.5281/zenodo.1")))) fail("dataset check: the tests did not get the DOI as its resolver address");
-  if (!(await checked("answer-D03-yes")) || !(await page.locator("#origin-D03").textContent()).includes("fc_data_identifier_in_metadata")) fail("dataset check: a passed test does not answer D03 yes with the test as evidence");
-  if (!(await checked("answer-D04-no")) || !(await page.locator("#origin-D04").textContent()).includes("nesplněno")) fail("dataset check: a failed test does not answer D04 no");
+  if ((await page.evaluate(() => window.championCalls.filter((call) => call.startsWith("fc_data_identifier_in_metadata")).length)) !== 1 || (await page.evaluate(() => window.championCalls.length)) !== 5) fail("dataset check: running all tests ran again a test that had a result");
+  if (!(await checked("answer-D04-no")) || !(await page.locator("#tests-D04").textContent()).includes("nesplněno")) fail("dataset check: a failed test does not answer D04 no");
   if (!(await checked("answer-D02-yes")) || !(await page.locator("#origin-D02").textContent()).includes("resolver")) fail("dataset check: an indeterminate test replaced the quick check's answer to D02");
-  if (!(await page.locator("#prefill-champion-retry").textContent()).includes("(2)")) fail("dataset check: no retry of the two tests without a result");
+  if (!(await page.locator("#prefill-champion-run").textContent()).includes("(2)") || !(await page.locator("#test-run-D09").textContent()).includes("Zopakovat")) fail("dataset check: no retry of the two tests without a result, overall or at their questions");
   await page.evaluate(() => { window.championCalls = []; window.FairGuide.live.championTest = async (test, record) => (window.championCalls.push(test), { value: "pass", log: "" }); });
-  await page.locator("#prefill-champion-retry").click();
+  await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("5 z 5 testů"));
   if (await page.evaluate(() => window.championCalls.sort().join(",") !== "community_metadata_includes_author_affiliation,fc_metadata_outward_links")) fail("dataset check: the retry ran tests that had a result");
   if (external.length) fail("funded output: requests without a lookup: " + external.join(", "));

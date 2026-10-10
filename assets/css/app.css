@@ -3289,13 +3289,73 @@ a.id-chip:focus-visible {
   accent-color: var(--tint-teal);
 }
 
-.champion-tests ul {
+/* A question's FAIR Champion tests where it is asked: each test, its state, and a run of this question alone. */
+.test-line {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border);
+  background: var(--surface);
+  font-size: var(--size-small);
+}
+
+.test-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-1);
+}
+
+.test-label {
+  font-weight: 700;
+}
+
+.test-list {
   margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.test-row + .test-row {
+  margin-top: var(--space-1);
+}
+
+.test-state {
+  display: inline;
+}
+
+.test-state[data-state="pass"] {
+  color: var(--tint-teal);
+}
+
+.test-state[data-state="fail"] {
+  color: var(--tint-pink);
+}
+
+/* A sample's verdicts record by record: a plain disclosure inside the line, not a boxed one. */
+.test-records {
+  display: block;
+  margin: var(--space-1) 0 0;
+  border: 0;
+  background: none;
+}
+
+.test-records > summary {
+  padding: 0;
+  font-weight: 400;
+}
+
+.test-records[open] > summary {
+  border-bottom: 0;
+}
+
+.test-records ul {
+  margin: var(--space-1) 0 0;
   padding-left: var(--space-4);
 }
 
-.champion-tests li + li {
-  margin-top: var(--space-1);
+.champion-all {
+  margin: var(--space-3) 0;
 }
 
 .inline,

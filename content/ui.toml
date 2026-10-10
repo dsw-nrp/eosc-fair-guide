@@ -286,15 +286,11 @@ na = { cs = "Netýká se", en = "Not applicable" }
 
 [selfcheck.prefill]
 champion = { cs = "Vzorek záznamů repozitáře: DOI nebo adresy, nejvýš {n}", en = "A sample of the repository's records: DOIs or addresses, at most {n}" }
-championButton = { cs = "Otestovat vzorek", en = "Test the sample" }
 championHint = { cs = "Průvodce spustí pro každý záznam testy FAIR Champion, na které otázky odkazují, nejvýš čtyři najednou; test bez výsledku se nepočítá jako nesplněný. Může to trvat i několik minut. Testy běží na serveru FAIR Champion, který uvidí adresy záznamů.", en = "The guide runs the FAIR Champion tests the questions refer to for each record, at most four at a time; a test without a result does not count as failed. It can take several minutes. The tests run on the FAIR Champion server, which sees the records' addresses." }
 championInvalid = { cs = "Zadejte jeden až {n} identifikátorů záznamů.", en = "Give one to {n} record identifiers." }
 championCoverage = { cs = "Výsledek dalo {n} z {total} testů; testy bez výsledku se nepočítají jako nesplněné.", en = "{n} of {total} tests gave a result; tests without one do not count as failed." }
-championTests = { cs = "Které testy se spustí a na které otázky odpovídají ({n})", en = "Which tests run and which questions they answer ({n})" }
 championRetry = { cs = "Zopakovat testy bez výsledku ({n})", en = "Retry the tests without a result ({n})" }
 championUnresolved = { cs = "Nepřeložené identifikátory se netestují: {records}.", en = "Identifiers that do not resolve are not tested: {records}." }
-championDeep = { cs = "Hloubková kontrola: testy FAIR Champion", en = "Deep check: FAIR Champion tests" }
-championDeepButton = { cs = "Spustit testy FAIR Champion", en = "Run the FAIR Champion tests" }
 championDeepHint = { cs = "Průvodce nejdřív ověří, že se identifikátor výše přeloží, a pak pro něj spustí testy FAIR Champion, na které otázky odkazují, nejvýš čtyři najednou; test bez výsledku se nepočítá jako nesplněný. Může to trvat i několik minut. Testy běží na serveru FAIR Champion, který uvidí identifikátor.", en = "The guide first checks that the identifier above resolves, then runs the FAIR Champion tests the questions refer to, at most four at a time; a test without a result does not count as failed. It can take several minutes. The tests run on the FAIR Champion server, which sees the identifier." }
 championNeedsPid = { cs = "Nejdřív výše zadejte DOI nebo Handle datové sady a načtěte záznam.", en = "First enter the dataset's DOI or Handle above and look it up." }
 championNotResolved = { cs = "Identifikátor se nepodařilo přeložit na adresu, proto se testy FAIR Champion nespustily.", en = "The identifier did not resolve to an address, so the FAIR Champion tests did not run." }
@@ -338,6 +334,17 @@ pass = { cs = "splněno", en = "passed" }
 fail = { cs = "nesplněno", en = "failed" }
 indeterminate = { cs = "neurčeno", en = "indeterminate" }
 none = { cs = "bez výsledku", en = "no result" }
+running = { cs = "běží…", en = "running…" }
+sample = { cs = "splnilo {passed} z {n} záznamů s výsledkem, vzorek {total}", en = "{passed} of {n} records with a result passed, sample of {total}" }
+byRecord = { cs = "po záznamech", en = "by record" }
+label = { cs = "Automatický test|Automatické testy|Automatické testy", en = "Automated test|Automated tests" }
+run = { cs = "Otestovat", en = "Run the test|Run the tests" }
+retry = { cs = "Zopakovat bez výsledku ({n})", en = "Retry without a result ({n})" }
+needPid = { cs = "Otestujete po načtení záznamu výše.", en = "You can run it once the record above is looked up." }
+needSample = { cs = "Otestujete po zadání vzorku záznamů výše.", en = "You can run it once a sample of records is given above." }
+all = { cs = "Otestovat vše ({n})", en = "Run all tests ({n})" }
+allDone = { cs = "Všechny testy proběhly.", en = "All tests have run." }
+intro = { cs = "Automatické testy FAIR Champion umí ověřit {n} otázku.|Automatické testy FAIR Champion umí ověřit {n} otázky.|Automatické testy FAIR Champion umí ověřit {n} otázek.", en = "FAIR Champion tests can check {n} question.|FAIR Champion tests can check {n} questions." }
 
 [selfcheck.source]
 datacite = { cs = "DataCite", en = "DataCite" }
@@ -359,8 +366,6 @@ suggestion = { cs = "Zdroj {source} ({date}) odpověď nenavrhl.", en = "{source
 shared = { cs = "Převzato ze sdíleného výsledku", en = "Taken from a shared result" }
 
 [selfcheck.note]
-championSample = { cs = "Testy splnilo {passed} z {n} záznamů s výsledkem; vzorek měl {total}.", en = "{passed} of the {n} records with a result passed the tests; the sample had {total}." }
-championTests = { cs = "Testy FAIR Champion: {tests}.", en = "FAIR Champion tests: {tests}." }
 stewardFound = { cs = "Metadata uvádějí data stewarda: {name}.", en = "The metadata name the data steward: {name}." }
 stewardMissing = { cs = "Data steward s ORCID iD {orcid} není v metadatech mezi autory ani přispěvateli.", en = "The data steward with ORCID iD {orcid} is neither a creator nor a contributor in the metadata." }
 stewardRole = { cs = "Metadata uvádějí správce dat ({names}); ověřte, že jde o data stewarda projektu, nebo zadejte jeho ORCID iD.", en = "The metadata name a data curator or manager ({names}); check that this is the project's data steward, or enter their ORCID iD." }
