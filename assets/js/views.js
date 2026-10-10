@@ -605,8 +605,8 @@
     }
     return [
       notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.linkedSpan(note)))) : null,
-      /* The station's principles show in its header; the reasons go straight to what the advice rests on. */
-      h("h3", null, FG.t("station.whyClauses")),
+      /* The station's principles show in its header; the reasons go straight to what the advice rests on, which the
+         section's title already names. */
       h("ul", { class: "clauses" }, clauses.map(FG.clauseEntry)),
     ];
   }

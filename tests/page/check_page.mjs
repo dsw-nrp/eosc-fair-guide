@@ -743,7 +743,7 @@ sections.push(["page", async () => {
     await view.locator('details[data-key="L1"] summary').click();
     if (!(await view.locator('details[data-key="L1"] .content > .key-point:first-child').textContent()).includes("Hlavní myšlenka")) fail("station: the how-to does not open with the station's key point");
     await view.locator('details[data-key="L2"] summary').click();
-    if (await view.locator('details[data-key="L2"] h3', { hasText: "Principy" }).count()) fail("station: Proč repeats the principles the header shows");
+    if (await view.locator('details[data-key="L2"] h3').count()) fail("station: Proč carries headings of its own (the principles, or what the advice rests on)");
     const entries = await view.locator('details[data-key="L2"] ul.clauses > li').count();
     const chips = await view.locator('details[data-key="L2"] ul.clauses > li a.id-chip').count();
     if (!entries || chips < entries - 1) fail(`ids: the cited requirements do not carry linked identifiers (${chips} of ${entries})`);
