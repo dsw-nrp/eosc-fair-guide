@@ -32,6 +32,18 @@ checks = [
   "institution",
   "maturity",
 ]
+modes = [
+  "dataset.before",
+  "dataset.after",
+]
+profiles = [
+  "dataset.none",
+  "dataset.os3",
+  "dataset.minizamer",
+  "gate.core-system",
+  "gate.nrp-infrastructure",
+  "gate.independent",
+]
 pages = [
   "about",
   "accessibility",
@@ -900,10 +912,10 @@ resources = [
   "training-overview",
 ]
 repositories = [
-  "r3d100010468",
+  "zenodo",
   "mbdb",
-  "r3d100000044",
-  "r3d100010051",
+  "dryad",
+  "harvard-dataverse",
 ]
 actions = [
   "2026-10-08-content-model-sample",
@@ -933,6 +945,7 @@ actions = [
   "2026-10-10-key-points",
   "2026-10-10-resource-types",
   "2026-10-10-identifiers",
+  "2026-10-10-gate-profiles",
 ]
 
 [retired]

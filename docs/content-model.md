@@ -62,8 +62,9 @@ for good: it is never renamed, renumbered or reused, whatever later happens to t
 entry that is no longer valid is marked as superseded instead of deleted; an entry that does go away leaves its
 identifier retired.
 
-`content/identifiers.toml` registers every identifier the guide has issued, by kind: lenses, stations, checks, pages,
-advice, questions, requirements, sources, resources, repositories and provenance actions. The content checks report
+`content/identifiers.toml` registers every identifier the guide has issued, by kind: lenses, stations, checks, check modes
+and profiles (`<check>.<id>`, as share links carry them), pages, advice, questions, requirements, sources,
+resources, repositories and provenance actions. The content checks report
 an entry whose identifier is not registered, a registered identifier no entry has (an entry renamed or removed
 without retiring it) and a retired identifier in use again. `python scripts/register_ids.py` registers the
 identifiers of new entries and never removes one; retiring is a deliberate edit of the register's `[retired]` table.
@@ -78,14 +79,17 @@ An identifier says where an entry belongs, not what it says:
   source's own label where the source labels its items consistently (`A.F1.N1` in the FAIR analysis, `CTS.R06`,
   `NRP.M5`, `CDIF.REQ1`, a section of a law `LAW-328-2025.83.2`), and a two-digit serial otherwise
   (`OS3-RULES.24`). A source's code is its declared `code` (the FAIR analysis `A`, `NRP`, `CTS`, `CDIF`) or else its
-  ID in capitals without a version suffix (`os3-rules` gives `OS3-RULES`). Terms take their ID in Heslář, and a
-  repository its re3data ID where it has one (`r3d100010468`); FIPs, FIP Dashboard records and FAIR Champion tests
-  keep the identifiers of the registries they come from, which keep them in turn, and so are not in the register. A
-  FIP Dashboard record listed on its own nests under the dashboard in the catalogue (`fip-dashboard.<id>`). Where a
+  ID in capitals without a version suffix (`os3-rules` gives `OS3-RULES`). Terms, all taken from Heslář, take
+  their ID there; FIPs, FIP Dashboard records, re3data snapshot records and FAIR Champion tests keep the identifiers
+  of the registries they come from, which keep them in turn, and so are not in the register. A FIP Dashboard record
+  listed on its own nests under the dashboard in the catalogue (`fip-dashboard.<id>`). A curated repository is not
+  one of these: not every repository the guide lists is in re3data (the NRP catch-all repository, MBDB), so
+  repositories have the guide's own names like resources, and a re3data ID is one of their identifiers (`re3data`). Where a
   source falls short (no labels, or labels it does not keep), the guide's own serial takes over.
-- **Plain names for the guide's own structure.** Stations, checks, pages, resources and sources have short
-  lower-case English names in kebab case (`repository`, `dataset`, `live-check`); lenses and levels short codes
-  (`SR`, `L1`); provenance actions `<date>-<topic>`.
+- **Plain names for the guide's own structure.** Stations, checks, check modes and profiles, pages, resources,
+  repositories and sources have short lower-case English names in kebab case (`repository`, `dataset`,
+  `core-system`, `live-check`, `zenodo`); lenses and levels short codes (`SR`, `L1`); provenance actions
+  `<date>-<topic>`.
 - **No reuse.** A new entry takes the next free serial; a serial left by a retired entry stays unused.
 
 One real-world thing has one curated entry, which carries every role it plays: a service the guide recommends and
@@ -282,7 +286,7 @@ guidance.
 
 `[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`, `coretrustseal`, `cdif`), `name`, `icon` (shown on its card in the
 self-check overview), `description`, `lenses`, `minutes`, `modes` (dataset check: `before`, `after`),
-`[[check.profile]]` (`id`, `label`; gate check: the deployment profiles; dataset check: the programme that funded the
+`[[check.profile]]` (`id`, `label`; gate check: the deployment profiles `core-system`, `nrp-infrastructure` and `independent`; dataset check: the programme that funded the
 output), `defaultProfile` (the profile a check starts with; dataset check: `none`, no programme; the profile question
 then shows only in a mode where some item names profiles). `[[block]]` (`id`, `name`): the blocks a check is organised in,
 in order; when a check declares blocks, every item names its `block`, and the list, summary and result group by

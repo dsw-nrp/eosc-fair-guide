@@ -10,15 +10,15 @@ lenses = ["SR"]
 minutes = 10
 
 [[check.profile]]
-id = "a"
+id = "core-system"
 label = { cs = "Instance základního systému NRP (InvenioRDM/OARepo, CLARIN-DSpace, ASEP/ARL)", en = "Instance of a core NRP system (InvenioRDM/OARepo, CLARIN-DSpace, ASEP/ARL)" }
 
 [[check.profile]]
-id = "b"
+id = "nrp-infrastructure"
 label = { cs = "Alternativní systém na infrastruktuře NRP", en = "Alternative system on NRP infrastructure" }
 
 [[check.profile]]
-id = "c"
+id = "independent"
 label = { cs = "Samostatně provozovaný existující repozitář", en = "Independently operated existing repository" }
 
 [[item]]
@@ -29,7 +29,7 @@ statement = { cs = "Záznamy jsou citovatelné, mají PID a repozitář popisuje
 sources = ["NRP.M1"]
 fixAt = "publication"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["pidType"] }
 
 [[item]]
@@ -40,7 +40,7 @@ statement = { cs = "Repozitář má webové rozhraní i API pro strojový přís
 sources = ["NRP.M2", "NRP.EXT"]
 fixAt = "work"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["restApi"] }
 
 [[item]]
@@ -51,7 +51,7 @@ statement = { cs = "Repozitář má politiku změn (verzování nebo „patch“
 sources = ["NRP.M3"]
 fixAt = "publication"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["versioning"] }
 
 [[item]]
@@ -62,7 +62,7 @@ statement = { cs = "Metadata mají permisivní licenci (odpovídající CC0), kt
 sources = ["NRP.M4"]
 fixAt = "licence"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 
 [[item]]
 id = "gate.05"
@@ -73,7 +73,7 @@ help = { cs = "NKR je národní katalog repozitářů; záznam v něm hledají v
 sources = ["NRP.M5", "NRP.EXT"]
 fixAt = "repository"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["@record"] }
 
 [[item]]
@@ -84,7 +84,7 @@ statement = { cs = "Repozitář je napojen na AAI e-INFRA CZ včetně rolí a sk
 sources = ["NRP.M6", "NRP.EXT", "AAI-NRP.01", "NRP-AAI-INTEGRATION.01"]
 fixAt = "licence"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["aaiIntegration"] }
 
 [[item]]
@@ -96,7 +96,7 @@ help = { cs = "DOI je doporučený identifikátor; přijatelné jsou i jiné trv
 sources = ["NRP.M7", "NRP.EXT", "A.F1.N2"]
 fixAt = "publication"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["pidType"] }
 
 [[item]]
@@ -107,7 +107,7 @@ statement = { cs = "Metadata se sklízejí do [[nma|NMA]] podle [[ccmm|CCMM]].",
 sources = ["NRP.M8", "NMA-EXPORT-DOCS.01"]
 fixAt = "findability"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["oaipmhEndpoint"] }
 prefillLevel = "partly"
 
@@ -119,8 +119,8 @@ statement = { cs = "Repozitář je zapojen do monitoringu kybernetické bezpečn
 sources = ["NRP.M9", "NRP.EXT", "OS2-KB1.02", "AAI-NRP.02", "OS2-KB1.01"]
 fixAt = "repository"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
-providedByNrp = ["a"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
+providedByNrp = ["core-system"]
 
 [[item]]
 id = "gate.10"
@@ -130,8 +130,8 @@ statement = { cs = "Systém loguje do centrálního logování.", en = "The syst
 sources = ["NRP.M10", "NRP.EXT", "OS2-KB1.03"]
 fixAt = "repository"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
-providedByNrp = ["a"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
+providedByNrp = ["core-system"]
 
 [[item]]
 id = "gate.11"
@@ -141,7 +141,7 @@ statement = { cs = "Je definován workflow ukládání (schvalování) i příst
 sources = ["NRP.M11"]
 fixAt = "licence"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 
 [[item]]
 id = "gate.12"
@@ -151,7 +151,7 @@ statement = { cs = "Jsou nasazeny metadatové profily a metadata se harmonizují
 sources = ["NRP.M12"]
 fixAt = "metadata"
 owner = ["repository-admin", "curator"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["metadataSchema"] }
 prefillLevel = "partly"
 
@@ -163,7 +163,7 @@ statement = { cs = "Role správce repozitáře je obsazena.", en = "The reposito
 sources = ["NRP.ROLE.admin"]
 fixAt = "repository"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["mainContact"] }
 
 [[item]]
@@ -174,7 +174,7 @@ statement = { cs = "Role datového kurátora je obsazena.", en = "The data curat
 sources = ["NRP.ROLE.curator"]
 fixAt = "metadata"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 
 [[item]]
 id = "gate.15"
@@ -184,7 +184,7 @@ statement = { cs = "Seznam licencí a podporovaných formátů je zveřejněn.",
 sources = ["NRP.CS"]
 fixAt = "licence"
 owner = ["community", "repository-admin"]
-profiles = ["a", "b"]
+profiles = ["core-system", "nrp-infrastructure"]
 prefill = { nkr = ["license"] }
 
 [[item]]
@@ -195,7 +195,7 @@ statement = { cs = "Existuje uživatelská dokumentace a popis politiky repozit�
 sources = ["NRP.CS"]
 fixAt = "repository"
 owner = ["community", "repository-admin"]
-profiles = ["a", "b"]
+profiles = ["core-system", "nrp-infrastructure"]
 prefill = { nkr = ["documentationUser", "policy"] }
 
 [[item]]
@@ -206,7 +206,7 @@ statement = { cs = "Je zajištěna podpora uživatelů první úrovně.", en = "
 sources = ["NRP.CS", "NRP-SUPPORT.01"]
 fixAt = "plan"
 owner = ["community", "repository-admin"]
-profiles = ["a", "b"]
+profiles = ["core-system", "nrp-infrastructure"]
 prefill = { nkr = ["serviceQueue"] }
 
 [[item]]
@@ -217,7 +217,7 @@ statement = { cs = "Je zajištěn provozní monitoring a sběr statistik.", en =
 sources = ["NRP.EXT"]
 fixAt = "repository"
 owner = ["repository-admin"]
-profiles = ["b", "c"]
+profiles = ["nrp-infrastructure", "independent"]
 
 [[item]]
 id = "gate.19"
@@ -227,6 +227,6 @@ statement = { cs = "Klíčové role jsou pokryty více osobami a repozitář kon
 sources = ["NRP.R1", "NRP.R2"]
 fixAt = "repository"
 owner = ["repository-admin"]
-profiles = ["a", "b", "c"]
+profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["workingGroup"] }
 prefillLevel = "partly"

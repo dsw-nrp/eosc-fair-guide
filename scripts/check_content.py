@@ -752,6 +752,15 @@ def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
         "lenses": [lens["id"] for lens in content["guide"].get("lens", [])],
         "stations": [data["station"]["id"] for data in content["stations"]],
         "checks": [data["check"]["id"] for data in content["checks"]],
+        # A check's modes and profiles are named within their check, and share links carry them.
+        "modes": [
+            f"{data['check']['id']}.{mode}" for data in content["checks"] for mode in data["check"].get("modes", [])
+        ],
+        "profiles": [
+            f"{data['check']['id']}.{profile['id']}"
+            for data in content["checks"]
+            for profile in data["check"].get("profile", [])
+        ],
         "pages": [page["id"] for page in content["pages"]],
         "advice": [advice["id"] for data in content["stations"] for advice in data.get("advice", [])],
         "questions": [item["id"] for data in content["checks"] for item in data.get("item", [])],

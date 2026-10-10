@@ -1304,7 +1304,7 @@ endTime = 2026-10-10T09:01:00+02:00
 id = "2026-10-10-identifiers"
 type = "update"
 name = "Identifiers set and frozen"
-description = "Every entry of the guide took its identifier by one rule, set on 10 October 2026 and kept from then on: stations by short English names, advice and check questions nested under their station or check with a serial number, requirements under their source's code with the source's own label where it labels its items consistently, terms by their Heslář ID and repositories by their re3data ID. Resources follow the stations' new identifiers."
+description = "Every entry of the guide took its identifier by one rule, set on 10 October 2026 and kept from then on: stations by short English names, advice and check questions nested under their station or check with a serial number, requirements under their source's code with the source's own label where it labels its items consistently, terms by their Heslář ID. Resources follow the stations' new identifiers."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = []
@@ -1513,3 +1513,14 @@ results = [
   "training-reuse",
 ]
 endTime = 2026-10-10T09:41:00+02:00
+
+[[action]]
+id = "2026-10-10-gate-profiles"
+type = "update"
+name = "The gate's repository profiles are named"
+description = "The NRP conditions check names its three repository profiles instead of lettering them: an instance of a core NRP system (core-system), an alternative system on NRP infrastructure (nrp-infrastructure) and an independently operated repository (independent)."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = []
+results = ["gate.*"]
+endTime = 2026-10-10T09:57:00+02:00

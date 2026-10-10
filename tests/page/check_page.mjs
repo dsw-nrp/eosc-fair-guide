@@ -648,7 +648,7 @@ sections.push(["page", async () => {
     const roCrate = await pidsOf("#/cs/DS/catalogue/k!resources~q!crate", "ro-crate");
     if (!roCrate.pids.some(([scheme, href, text]) => scheme === "DOI" && href === "https://doi.org/10.5281/zenodo.13751027" && text === href)) fail("catalogue: RO-Crate does not show its DOI in full: " + JSON.stringify(roCrate.pids));
     if (!roCrate.holders || roCrate.plainIcons) fail("catalogue: a station an entry names lacks its icon");
-    const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "r3d100010468");
+    const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "zenodo");
     if (!zenodo.pids.some(([scheme, href]) => scheme === "re3data" && href.endsWith("/r3d100010468"))) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
     const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
     if (!datacite.pids.some(([scheme, href, text]) => scheme === "Nanopublikace" && href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
@@ -1410,7 +1410,7 @@ sections.push(["self-check", async () => {
 
   // Gate check: the core-system profile marks monitoring and central logging as provided by NRP.
   await go("#/cs/SR/check/gate");
-  await page.locator("#profile-a").check();
+  await page.locator("#profile-core-system").check();
   for (const id of ["gate-09", "gate-10"]) {
     if (await page.locator(`#answer-${id}-yes`).count()) fail(`gate check: ${id} asks for an answer although NRP provides it`);
     if (!/zajišťuje NRP/i.test(await page.locator(`#item-${id}`).textContent())) fail(`gate check: ${id} is not marked as provided by NRP`);
