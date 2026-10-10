@@ -244,7 +244,7 @@ guidance.
 | `text` | text | The advice |
 | `steps` | list of text | Sub-steps shown as a list under the item |
 | `action` | table | L0 only: `label` (text) and `href`: an HTTPS URL, or an in-page target naming a crate entity (`#repositories`, `#ledger`, `#resources`, `#check-<id>`, `#station-<id>`, `#page-<id>`, `#resource-<id>`) |
-| `kind` | string | `ai` for the AI-in-FAIRification overlay; omitted otherwise |
+| `kind` | string | `ai` for the AI-in-FAIRification overlay; `key` for the station's key point, its one core idea shown at the top of the how-to (an L1 item without steps whose ID ends in `key`, exactly one per station and lens); omitted otherwise |
 | `check` | text | AI items only, required: what to check after following the tip |
 | `prompt` | text | AI items only, required: a short prompt to copy; parts the reader fills in are written `[…]` |
 | `sources` | list | Clause IDs; at least one |

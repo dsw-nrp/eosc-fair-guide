@@ -11,6 +11,14 @@ minutes = 5
 glossary = ["plan-spravy-dat", "data-steward", "fair-principy", "perzistentni-trvaly-identifikator", "data-stewardship-wizard"]
 
 [[advice]]
+id = "plan.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Plán správy dat odpovídá na tytéž otázky, kterými vás provede tato cesta: jaká data vzniknou, jak je popíšete, kam je uložíte a za jakých podmínek je zpřístupníte. Píše se podle šablony poskytovatele.", en = "A data management plan answers the same questions this path takes you through: what data will be produced, how you will describe them, where you will deposit them and on what terms you will share them. It follows the funder's template." }
+sources = ["E.DMP", "K2.3.1"]
+
+[[advice]]
 id = "plan.V.L0"
 lens = "V"
 level = "L0"

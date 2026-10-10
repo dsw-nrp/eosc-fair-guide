@@ -150,7 +150,7 @@ resources = { cs = "Užitečné zdroje", en = "Useful resources" }
 glossary = { cs = "Pojmy z Hesláře", en = "Terms from the glossary" }
 help = { cs = "Potřebujete poradit?", en = "Need advice?" }
 training = { cs = "Školení k tomuto kroku", en = "Training for this step" }
-whyPrinciples = { cs = "Principy, kterých se zastávka týká", en = "Principles this station covers" }
+keyPoint = { cs = "Hlavní myšlenka", en = "Key point" }
 whyClauses = { cs = "Na čem rady stojí", en = "What the advice is based on" }
 sources = { cs = "Citované zdroje", en = "Cited sources" }
 madeBy = { cs = "Historie změn", en = "Change history" }

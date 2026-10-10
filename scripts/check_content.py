@@ -118,7 +118,8 @@ ANALYSIS_CLAUSE = re.compile(rf"^A\.(?P<principle>{PRINCIPLE})\.(?P<kind>[NRFX])
 CLAUSE_ID = re.compile(
     r"^(A\.[A-Z0-9.]+|K\d[\w.]*|P\d+|S\.(?:MIN|REC)\d+|C\.[A-Z][\w.]*|CTS\.R\d+|CDIF\.[\w.-]+|DOC\.[\w.-]+|E\.[\w.-]+|G)$"
 )
-ADVICE_ID = re.compile(r"^(?P<station>[a-z0-9-]+)\.(?P<lens>[A-Z]+|all)\.(?P<level>L[0-2])(?:\.\d+)?$")
+# A key point is the station's one core idea, so its ID ends in "key" rather than a number.
+ADVICE_ID = re.compile(r"^(?P<station>[a-z0-9-]+)\.(?P<lens>[A-Z]+|all)\.(?P<level>L[0-2])(?:\.\d+|\.(?P<key>key))?$")
 RAW_HTML = re.compile(r"<\s*[a-zA-Z/!]")
 # Letters that mark a name as Czech; a plain name with one of them has no English form.
 CZECH_LETTERS = re.compile(r"[ěščřžůťďňáéíóúý]", re.IGNORECASE)
@@ -344,6 +345,7 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
             if term not in vocab["terms"]:
                 report.error(where, f"unknown glossary term '{term}'")
         l0_by_lens: dict[str, int] = {lens: 0 for lens in vocab["lenses"]}
+        keys_by_lens: dict[str, int] = {lens: 0 for lens in vocab["lenses"]}
         for advice in data.get("advice", []):
             advice_id = advice.get("id", "")
             advice_ids.append(advice_id)
@@ -371,8 +373,17 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
             for source in advice.get("sources", []):
                 if source not in clause_ids:
                     report.error(item, f"cites unknown clause '{source}'")
-            if advice.get("kind") not in (None, "ai"):
-                report.error(item, "kind must be 'ai' or omitted")
+            if advice.get("kind") not in (None, "ai", "key"):
+                report.error(item, "kind must be 'ai', 'key' or omitted")
+            if advice.get("kind") == "key":
+                # The station's core idea, shown at the top of its how-to.
+                if advice.get("level") != "L1" or advice.get("steps") or (match and not match["key"]):
+                    report.error(item, "a key point is an L1 item without steps whose ID ends in 'key'")
+                for lens in lenses:
+                    if lens in keys_by_lens:
+                        keys_by_lens[lens] += 1
+            elif match and match["key"]:
+                report.error(item, "only a key point has an ID that ends in 'key'")
             if advice.get("kind") == "ai":
                 # An AI tip says what to check afterwards and gives a prompt to copy.
                 require_text(report, item, advice.get("check"), "check")
@@ -402,6 +413,9 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
         for lens, count in l0_by_lens.items():
             if count != 1:
                 report.error(where, f"lens {lens} needs exactly one L0 item with its next action (found {count})")
+        for lens, count in keys_by_lens.items():
+            if count != 1:
+                report.error(where, f"lens {lens} needs exactly one key point (found {count})")
     unique(report, "advice", advice_ids, "advice")
 
 

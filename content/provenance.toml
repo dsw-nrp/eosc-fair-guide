@@ -282,7 +282,7 @@ results = [
   "popis.V.L0",
   "popis.V.L1.1",
   "popis.V.L1.2",
-  "popis.all.L2.1",
+  "popis.all.L1.key",
   "prace.DS.L1.1",
   "prace.DS.L1.4",
   "prace.SR.L1.3",
@@ -595,3 +595,14 @@ instruments = ["claude-opus-5-5", "claude-code"]
 objects = []
 results = ["citace.DS.L0", "citace.K.L0", "citace.SR.L0", "citace.V.L0", "dohledatelnost.DS.L0", "dohledatelnost.K.L0", "dohledatelnost.SR.L0", "dohledatelnost.V.L0", "kontrola.DS.L0", "kontrola.K.L0", "kontrola.SR.L0", "kontrola.V.L0", "licence.DS.L0", "licence.K.L0", "licence.SR.L0", "licence.V.L0", "plan.DS.L0", "plan.K.L0", "plan.SR.L0", "plan.V.L0", "popis.DS.L0", "popis.K.L0", "popis.SR.L0", "popis.V.L0", "prace.DS.L0", "prace.K.L0", "prace.SR.L0", "prace.V.L0", "publikace.DS.L0", "publikace.K.L0", "publikace.SR.L0", "publikace.V.L0", "repozitar.DS.L0", "repozitar.K.L0", "repozitar.SR.L0", "repozitar.V.L0"]
 endTime = 2026-10-10T08:47:00+02:00
+
+[[action]]
+id = "2026-10-10-key-points"
+type = "create"
+name = "A key point for every station"
+description = "Every station states its core idea once, for every audience, at the top of its how-to: the two ideas the repository and metadata stations stated among their reasons became key points, and the other stations gained one each, taken from the requirements they cite."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = []
+results = ["citace.all.L1.key", "dohledatelnost.all.L1.key", "kontrola.all.L1.key", "licence.all.L1.key", "plan.all.L1.key", "popis.all.L1.key", "prace.all.L1.key", "publikace.all.L1.key", "repozitar.all.L1.key"]
+endTime = 2026-10-10T08:53:00+02:00

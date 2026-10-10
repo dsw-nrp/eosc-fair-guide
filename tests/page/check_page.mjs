@@ -737,7 +737,11 @@ sections.push(["page", async () => {
     // The next step and one related tool, the second a quieter button.
     const nowActions = await view.locator(".now .now-actions a").evaluateAll((links) => links.map((link) => link.className));
     if (nowActions.length !== 2 || !nowActions[0].includes("button-primary") || !nowActions[1].includes("button-related")) fail("station: the next step is not followed by one quieter related tool: " + nowActions.join(" | "));
+    // The how-to opens with the station's key point; the reasons go straight to what the advice rests on.
+    await view.locator('details[data-key="L1"] summary').click();
+    if (!(await view.locator('details[data-key="L1"] .content > .key-point:first-child').textContent()).includes("Hlavní myšlenka")) fail("station: the how-to does not open with the station's key point");
     await view.locator('details[data-key="L2"] summary').click();
+    if (await view.locator('details[data-key="L2"] h3', { hasText: "Principy" }).count()) fail("station: Proč repeats the principles the header shows");
     const entries = await view.locator('details[data-key="L2"] ul.clauses > li').count();
     const chips = await view.locator('details[data-key="L2"] ul.clauses > li a.id-chip').count();
     if (!entries || chips < entries - 1) fail(`ids: the cited requirements do not carry linked identifiers (${chips} of ${entries})`);

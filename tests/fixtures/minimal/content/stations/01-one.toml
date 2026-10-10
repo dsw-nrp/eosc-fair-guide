@@ -15,6 +15,14 @@ action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }
 sources = ["A.F1.R1"]
 
 [[advice]]
+id = "one.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Hlavní myšlenka.", en = "The key point." }
+sources = ["A.F1.R1"]
+
+[[advice]]
 id = "one.V.L1.1"
 lens = "V"
 level = "L1"

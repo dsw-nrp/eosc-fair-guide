@@ -357,6 +357,13 @@ class ContentCheckTests(FixtureCase):
         self.edit("stations/01-one.toml", "action = [", "action = [" + one[len("action = ") :] + ", ")
         self.assertError("at most 2 actions")
 
+    def test_every_station_has_one_key_point_per_lens(self) -> None:
+        self.edit("stations/01-one.toml", 'id = "one.all.L1.key"\nlens = "*"', 'id = "one.V.L1.key"\nlens = "V"')
+        self.assertError("lens SR needs exactly one key point (found 0)")
+        self.edit("stations/01-one.toml", 'id = "one.V.L1.key"\nlens = "V"', 'id = "one.all.L1.key"\nlens = "*"')
+        self.edit("stations/01-one.toml", 'kind = "key"\n', "")
+        self.assertError("only a key point has an ID that ends in 'key'")
+
     def test_in_page_target_must_exist(self) -> None:
         self.edit("stations/01-one.toml", 'href = "#check-gate"', 'href = "#nowhere"')
         self.assertError("in-page target '#nowhere' does not exist")

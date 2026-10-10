@@ -11,6 +11,14 @@ minutes = 5
 glossary = ["metadata-metadatovy-zaznam", "podkladova-podpurna-doprovodna-data", "strojove-citelny-dokument-format"]
 
 [[advice]]
+id = "prace.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Dokumentaci je nejsnazší psát průběžně: názvy souborů, verze, README a záznam postupu, které vzniknou během výzkumu, jsou podkladem pro popis dat při zveřejnění.", en = "Documentation is easiest written as you go: the file names, versions, README and record of methods made during the research are what the data's description is built from when you publish." }
+sources = ["E.CESSDA-DMEG", "A.R1.2.X1"]
+
+[[advice]]
 id = "prace.V.L0"
 lens = "V"
 level = "L0"

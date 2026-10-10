@@ -11,6 +11,14 @@ minutes = 10
 glossary = ["otevrena-licence-otevrene-licencovani", "verejna-licence-verejne-licencovani", "licence-creative-commons", "embargovany-pozdrzeny-odlozeny-pristup", "open-data-commons"]
 
 [[advice]]
+id = "licence.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Licence říká, co s daty smějí ostatní dělat, podmínky přístupu, kdo k nim smí. Popis dat může být veřejný, i když data veřejná nejsou.", en = "A licence says what others may do with the data; access conditions say who may reach them. The description can be public even when the data are not." }
+sources = ["A.R1.1.R1", "A.A1.2.R2"]
+
+[[advice]]
 id = "licence.V.L0"
 lens = "V"
 level = "L0"

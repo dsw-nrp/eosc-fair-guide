@@ -12,6 +12,14 @@ minutes = 5
 glossary = ["perzistentni-trvaly-identifikator", "digitalni-identifikator-objektu"]
 
 [[advice]]
+id = "citace.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Data jsou výsledek výzkumu a citují se stejně jako články; díky PID je citace jednoznačná.", en = "Data are research outputs and are cited like articles; a PID makes the citation unambiguous." }
+sources = ["E.FORCE11", "A.F1.X2"]
+
+[[advice]]
 id = "citace.V.L0"
 lens = "V"
 level = "L0"

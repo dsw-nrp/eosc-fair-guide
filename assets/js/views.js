@@ -573,6 +573,11 @@
     );
   }
 
+  /** A station's core idea, set apart at the top of its how-to. */
+  function keyPoint(item) {
+    return item ? h("aside", { class: "key-point" }, h("p", { class: "key-point-label" }, FG.t("station.keyPoint")), h("p", null, FG.linkedSpan(item))) : null;
+  }
+
   function adviceItem(item) {
     const steps = FG.refs(item, "hasPart").sort(FG.byPosition);
     return h("li", null, FG.linkedSpan(item), steps.length ? h("ul", null, steps.map((step) => h("li", null, FG.linkedSpan(step)))) : null);
@@ -594,15 +599,13 @@
 
   function whyContent(station, items) {
     const notes = items.filter((item) => FG.id(item.disclosureLevel) === "#level-L2" && item.adviceKind !== "ai").sort(FG.byPosition);
-    const principles = FG.principlesOf(station);
     const clauses = [];
     for (const item of items) {
       for (const clause of FG.refs(item, "citation")) if (!clauses.includes(clause)) clauses.push(clause);
     }
     return [
       notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.linkedSpan(note)))) : null,
-      h("h3", null, FG.t("station.whyPrinciples")),
-      principleTiles(principles),
+      /* The station's principles show in its header; the reasons go straight to what the advice rests on. */
       h("h3", null, FG.t("station.whyClauses")),
       h("ul", { class: "clauses" }, clauses.map(FG.clauseEntry)),
     ];
@@ -737,7 +740,7 @@
 
   /** A station as Markdown: what it shows for the reader's lens, in their language, with where it came from. */
   function stationMarkdown(entity, route, parts) {
-    const { items, now, steps, ai, actions, resources, terms, helps, courses } = parts;
+    const { items, now, key, steps, ai, actions, resources, terms, helps, courses } = parts;
     const levelName = (code) => FG.termName("#level-" + code);
     const lines = ["# " + mdText(FG.text(entity.headline)), ""];
     lines.push(mdText(FG.t("export.mdLens", { lens: FG.text((FG.get("#lens-" + route.lens) || {}).name) })), "");
@@ -750,7 +753,9 @@
     section(levelName("L0"), now ? [mdText(FG.text(now.text))].concat(actions.length ? [""].concat(actions.map((action) => "- " + mdLink(FG.text(action.name), actionUrl(action)))) : []) : []);
     section(
       levelName("L1"),
-      steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
+      (key ? ["> **" + mdText(FG.t("station.keyPoint")) + ":** " + mdLine(key.text), ""] : []).concat(
+        steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
+      )
     );
     const notes = items.filter((item) => FG.id(item.disclosureLevel) === "#level-L2" && item.adviceKind !== "ai").sort(FG.byPosition);
     const clauses = [...new Set(items.flatMap((item) => FG.refs(item, "citation")))];
@@ -852,7 +857,9 @@
     const items = FG.refs(entity, "itemListElement").filter((item) => lensOf(item, route.lens));
     const level = (code) => items.filter((item) => FG.id(item.disclosureLevel) === "#level-" + code && item.adviceKind !== "ai").sort(FG.byPosition);
     const now = level("L0")[0];
-    const steps = level("L1");
+    /* The station's core idea opens its how-to, above the steps. */
+    const key = level("L1").find((item) => item.adviceKind === "key");
+    const steps = level("L1").filter((item) => item !== key);
     const ai = items.filter((item) => item.adviceKind === "ai").sort(FG.byPosition);
     const mentioned = FG.refs(entity, "mentions").filter((item) => item.resourceType && lensOf(item, route.lens));
     const courses = mentioned.filter((item) => FG.id(item.resourceType) === "#rtype-course");
@@ -866,7 +873,7 @@
     const levelTitle = (code) => [levelIcon(code), h("span", null, levelName(code))];
     const stationIcon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[entity.identifier];
     const stepLine = FG.t("station.step", { n: entity.position, total: stations.length }) + (minutes ? " · " + FG.t("station.minutes", { n: minutes }) : "");
-    const parts = { items, now, steps, ai, actions, resources, terms, helps, courses };
+    const parts = { items, now, key, steps, ai, actions, resources, terms, helps, courses };
     FG.offerExport({
       id: "markdown",
       label: FG.t("export.markdown"),
@@ -897,7 +904,7 @@
             actions.length ? h("div", { class: "now-actions" }, actions.map((action, index) => actionButton(action, index > 0))) : null
           )
         : h("p", null, FG.t("station.empty")),
-      steps.length ? details(levelTitle("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
+      steps.length || key ? details(levelTitle("L1"), "L1", keyPoint(key), steps.length ? h("ol", { class: "steps" }, steps.map(adviceItem)) : null) : null,
       details(levelTitle("L2"), "L2", whyContent(entity, items)),
       ai.length
         ? details(

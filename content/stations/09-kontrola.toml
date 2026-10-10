@@ -12,6 +12,14 @@ minutes = 5
 glossary = ["fair-principy", "fairifikace", "fair-datova-sada-soubor-fair-dat"]
 
 [[advice]]
+id = "kontrola.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Automatické testy FAIR hodnotí hlavně nastavení repozitáře, ne práci autora, a malá změna může skóre výrazně posunout. Berte je jako zpětnou vazbu, ne jako známku.", en = "Automated FAIR tests mostly assess how the repository is set up, not the author's work, and a small change can move the score a lot. Treat them as feedback, not as a grade." }
+sources = ["K5.2.1", "K6"]
+
+[[advice]]
 id = "kontrola.V.L0"
 lens = "V"
 level = "L0"

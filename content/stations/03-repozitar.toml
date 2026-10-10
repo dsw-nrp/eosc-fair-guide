@@ -60,9 +60,10 @@ text = { cs = "Pokud se nic nehodí, použijte datový catch-all repozitář NRP
 sources = ["E.DATAREPO"]
 
 [[advice]]
-id = "repozitar.all.L2.1"
+id = "repozitar.all.L1.key"
 lens = "*"
-level = "L2"
+level = "L1"
+kind = "key"
 text = { cs = "Většinu vlastností, které hodnotí automatické testy FAIR, určuje nastavení repozitáře. Výběr repozitáře je proto jedno z nejdůležitějších rozhodnutí.", en = "Most properties that automated FAIR tests assess are set by the repository. Choosing the repository is therefore one of the most important decisions." }
 sources = ["K5.2.1"]
 

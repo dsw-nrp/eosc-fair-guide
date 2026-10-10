@@ -61,9 +61,10 @@ text = { cs = "Má-li váš obor metadatový standard (například DDI, Darwin C
 sources = ["A.R1.3.X2"]
 
 [[advice]]
-id = "popis.all.L2.1"
-lens = ["V", "DS"]
-level = "L2"
+id = "popis.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
 text = { cs = "Metadata mají dvě úrovně. Jádro ([[ccmm|CCMM]]) se sklízí do [[nma|NMA]] a slouží k vyhledání; bohatý oborový popis zůstává v repozitáři a slouží k opakovanému použití.", en = "Metadata have two levels. The core ([[ccmm|CCMM]]) is harvested into [[nma|NMA]] and serves discovery; the rich domain description stays in the repository and serves reuse." }
 sources = ["A.F2.X1", "A.R1.X1"]
 

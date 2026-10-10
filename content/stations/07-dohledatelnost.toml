@@ -11,6 +11,14 @@ minutes = 5
 glossary = ["narodni-metadatovy-adresar", "harvestovani-sklizeni", "open-archives-initiative-protocol-for-metadata-harvesting", "narodni-datova-infrastruktura"]
 
 [[advice]]
+id = "dohledatelnost.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Data se hledají podle metadat: [[nma|NMA]] i vyhledávače najdou datovou sadu, jen když jim repozitář zpřístupní její metadata. Samotná data zůstávají v repozitáři.", en = "Data are found through their metadata: [[nma|NMA]] and search engines find a dataset only when the repository makes its metadata available to them. The data themselves stay in the repository." }
+sources = ["C.M8", "A.F4.R2", "DOC.NMA.INTRO"]
+
+[[advice]]
 id = "dohledatelnost.V.L0"
 lens = "V"
 level = "L0"

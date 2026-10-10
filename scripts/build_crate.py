@@ -644,7 +644,7 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
             advice_id = f"#advice-{advice['id']}"
             advice_ids.append(advice_id)
             level = advice["level"]
-            is_tip = level == "L2" or advice.get("kind") == "ai"
+            is_tip = level == "L2" or advice.get("kind") in ("ai", "key")
             step_ids = [f"{advice_id}-step-{number}" for number in range(1, len(advice.get("steps", [])) + 1)]
             # The next step first, then at most one related tool.
             actions = as_list(advice.get("action"))

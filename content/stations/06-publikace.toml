@@ -11,6 +11,14 @@ minutes = 5
 glossary = ["perzistentni-trvaly-identifikator", "digitalni-identifikator-objektu", "handle"]
 
 [[advice]]
+id = "publikace.all.L1.key"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Trvalý identifikátor (PID) je adresa, která přežije změny: vede na stránku s popisem dat (landing page), je identifikátorem záznamu v [[nma|NMA]] a dělá data citovatelnými.", en = "A persistent identifier (PID) is an address that outlives changes: it leads to the page describing the data (the landing page), identifies the record in [[nma|NMA]] and makes the data citable." }
+sources = ["A.F1.N4", "A.F1.R1", "A.F1.X2"]
+
+[[advice]]
 id = "publikace.V.L0"
 lens = "V"
 level = "L0"

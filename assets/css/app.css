@@ -801,6 +801,26 @@ a.chip:hover {
   margin: 0;
 }
 
+/* A station's key point at the top of its how-to. */
+.key-point {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--brand-pink);
+  background: var(--surface);
+}
+
+.key-point p {
+  margin: 0;
+}
+
+.key-point-label {
+  font-size: var(--size-small);
+  font-weight: 700;
+  color: var(--tint-pink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* The next step, and a related tool under it as a quieter button. */
 .now-actions {
   display: flex;
