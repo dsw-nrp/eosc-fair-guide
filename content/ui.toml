@@ -133,6 +133,7 @@ orcid = { cs = "ORCID", en = "ORCID" }
 re3data = { cs = "re3data", en = "re3data" }
 ark = { cs = "ARK", en = "ARK" }
 iri = { cs = "Trvalé IRI", en = "Persistent IRI" }
+dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
 
 [station]
 step = { cs = "Krok {n} z {total}", en = "Step {n} of {total}" }
@@ -166,7 +167,6 @@ stale = { cs = "údaj může být zastaralý", en = "this may be out of date" }
 
 [resource]
 open = { cs = "Otevřít {name}", en = "Open {name}" }
-dashboard = { cs = "Záznam ve FIP Dashboardu", en = "Record in the FIP Dashboard" }
 verified = { cs = "Ověřeno: {verifiers}", en = "Verified by: {verifiers}" }
 selfDeclared = { cs = "Vlastní deklarace", en = "Self-declared" }
 underReview = { cs = "V posuzování", en = "Under review" }
@@ -179,7 +179,6 @@ disclaimer = { cs = "Upozornění FIP Dashboardu", en = "FIP Dashboard notice" }
 
 [repositories]
 intro = { cs = "Přednostně ukládejte do oborového repozitáře, jinak do institucionálního; obecné repozitáře jsou poslední možností. Seznam spojuje výběr průvodce, snímek registru re3data a na vyžádání záznamy z Národního katalogu repozitářů (NKR) a z FAIRsharing.", en = "Deposit preferably in a domain repository, otherwise in an institutional one; general-purpose repositories are the last option. The list combines the guide's selection, a snapshot of the re3data registry and, on request, records from the National Repository Catalogue (NKR) and from FAIRsharing." }
-sourcesLabel = { cs = "Zdroj údajů", en = "Data from" }
 curated = { cs = "výběr průvodce", en = "the guide's selection" }
 nkrLoad = { cs = "Načíst záznamy z NKR", en = "Load records from NKR" }
 nkrLoading = { cs = "Načítám záznamy z NKR…", en = "Loading records from NKR…" }
@@ -563,24 +562,18 @@ aboutLink = { cs = "Jak průvodce ukládá vaše odpovědi a jak je smazat", en 
 [catalogue]
 title = { cs = "Katalog", en = "Catalogue" }
 search = { cs = "Hledat", en = "Search" }
-inGuide = { cs = "V průvodci", en = "In the guide" }
-prefills = { cs = "Předvyplňuje otázky", en = "Pre-fills the questions" }
 single = { cs = "Zobrazena jen položka, na kterou vede odkaz.", en = "Showing only the entry the link leads to." }
 singleMissing = { cs = "Položka {id} v katalogu není.", en = "The catalogue has no entry {id}." }
 showAll = { cs = "Zobrazit vše: {kind} ({n})", en = "Show all: {kind} ({n})" }
 published = { cs = "vydáno {date}", en = "published {date}" }
 accessed = { cs = "navštíveno {date}", en = "accessed {date}" }
 version = { cs = "verze {version}", en = "version {version}" }
-onPath = { cs = "Na cestě", en = "On the path" }
 declarations = { cs = "{n} deklarace|{n} deklarace|{n} deklarací", en = "{n} declaration|{n} declarations" }
 created = { cs = "obsah vytvořen", en = "content created" }
 updated = { cs = "obsah upraven", en = "content updated" }
 changedItems = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{n} items" }
-drewOn = { cs = "Podklady", en = "Drew on" }
 openEntry = { cs = "{id} v katalogu", en = "{id} in the catalogue" }
-usedIn = { cs = "Používá se", en = "Used in" }
 guidance = { cs = "Pokyny k požadavku (anglicky, jak je zdroj zveřejňuje)", en = "Guidance on the requirement (as the source publishes it)" }
-basedOn = { cs = "Vychází z", en = "Based on" }
 entries = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} entry|{n} entries" }
 filters = { cs = "Filtry", en = "Filters" }
 active = { cs = "Zvolené filtry", en = "Chosen filters" }
@@ -598,8 +591,6 @@ withoutPrinciple = { cs = "Bez principu", en = "Without a principle" }
 withoutStatus = { cs = "Bez stavu", en = "No status" }
 checkedOn = { cs = "Ověřeno {date}", en = "Checked {date}" }
 notChecked = { cs = "Bez data ověření", en = "No date checked" }
-source = { cs = "Podklad", en = "Source" }
-inCheck = { cs = "Kontrola", en = "Check" }
 
 [catalogue.clauseKind]
 requirement = { cs = "požadavek", en = "requirement" }
@@ -636,6 +627,18 @@ DigitalDocument = { cs = "dokument", en = "document" }
 CreativeWork = { cs = "standard", en = "standard" }
 SoftwareSourceCode = { cs = "software", en = "software" }
 PresentationDigitalDocument = { cs = "prezentace", en = "presentation" }
+
+[catalogue.relation]
+principles = { cs = "Principy", en = "Principles" }
+audience = { cs = "Pro koho", en = "For whom" }
+basedOn = { cs = "Vychází z", en = "Based on" }
+inGuide = { cs = "V průvodci", en = "In the guide" }
+identifiers = { cs = "Identifikátory", en = "Identifiers" }
+
+[catalogue.what]
+term = { cs = "pojem Hesláře", en = "Heslář term" }
+fip = { cs = "profil FIP", en = "FIP profile" }
+test = { cs = "test FAIR Champion", en = "FAIR Champion test" }
 
 [catalogue.health]
 available = { cs = "funguje", en = "available" }

@@ -87,37 +87,6 @@
     );
   }
 
-  /** An entry's details as one quiet line under its name: what it is, by whom, in which language, which version
-      and when; badges stay for the marks that call for attention. */
-  FG.detailsLine = (parts) => {
-    const shown = FG.list(parts).filter(Boolean);
-    return shown.length ? h("p", { class: "small muted card-details" }, shown.join(" · ")) : null;
-  };
-
-  /** A resource as a card; the catalogue adds its citation details, its usage marks and where the guide uses it. */
-  function resourceCard(resource, extras) {
-    const record = dashboardRecord(resource);
-    return h(
-      "li",
-      { class: "card", id: "item-" + resource.identifier, tabindex: "-1" },
-      h("h3", null, FG.external(resource.url, FG.nameNodes(resource))),
-      FG.detailsLine([FG.termName(FG.id(resource.resourceType))].concat((extras && extras.details) || [])),
-      resource.description ? h("p", null, FG.span(resource.description)) : null,
-      orientationTags(record && record.fer ? FG.principlesOf(record.fer) : [], FG.refIds(resource, "audience")),
-      h(
-        "div",
-        { class: "badges" },
-        statusBadge(resource),
-        record ? verificationBadges(record.fer) : null,
-        extras ? extras.badges : null,
-        record ? FG.external(record.url, FG.t("resource.dashboard"), { class: "small" }) : null
-      ),
-      extras ? extras.after : null
-    );
-  }
-
-  FG.resourceCard = resourceCard;
-
   /* Persistent identifier schemes, recognised by address, each with the label shown before it. */
   const PID_SCHEMES = [
     [/^https?:\/\/(dx\.)?doi\.org\//, "doi"],
@@ -149,16 +118,11 @@
   /* An address that may wrap after each slash, so a narrow screen breaks it between its parts. */
   const breakable = (iri) => iri.split(/(?<=\/)/).flatMap((part, index) => (index ? [h("wbr"), part] : [part]));
 
-  /** A line with an entity's persistent identifiers, each named by its scheme and linked; nothing when it has none. */
-  FG.pidLine = function (entity) {
-    const pids = FG.pids(entity);
-    if (!pids.length) return null;
-    return h(
-      "p",
-      { class: "small pid-line" },
-      pids.flatMap((pid, index) => (index ? [" · "] : []).concat([h("span", { class: "pid-scheme" }, FG.t("pid." + pid.scheme)), " ", FG.external(pid.iri, breakable(pid.iri))]))
-    );
-  };
+  /** An entity's persistent identifiers, each named by its scheme and linked in full; none when it has none. */
+  FG.pidItems = (entity) => FG.pids(entity).map((pid) => FG.pidItem(pid.scheme, pid.iri));
+
+  /** One identifier or record address, named by its scheme and shown in full. */
+  FG.pidItem = (scheme, iri) => h("span", { class: "pid" }, h("span", { class: "pid-scheme" }, FG.t("pid." + scheme)), " ", FG.external(iri, breakable(iri)));
   FG.statusBadge = statusBadge;
   FG.dashboardRecord = dashboardRecord;
 
@@ -952,7 +916,7 @@
           )
         : null,
       callouts(entity, route.lens),
-      resources.length ? h("section", null, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards" }, resources.map(resourceCard))) : null,
+      resources.length ? h("section", null, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards" }, resources.map((resource) => FG.resourceCard(resource, entity.identifier)))) : null,
       h(
         "section",
         null,
@@ -1104,18 +1068,6 @@
 
   /* ---------------------------------------------------------------- the finders' building blocks */
 
-  /** A FAIR-enabling resource of the FIP Dashboard snapshot as a card; the catalogue adds its marks. */
-  FG.ferCard = function (fer, extras) {
-    return h(
-      "li",
-      { class: "card", id: "item-fer-" + fer.identifier, tabindex: "-1" },
-      h("h3", null, FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name)),
-      fer.description ? h("p", null, FG.span(fer.description)) : null,
-      orientationTags(FG.principlesOf(fer), []),
-      h("div", { class: "badges" }, h("span", { class: "badge" }, FG.termName(FG.id(fer.catalogueType))), verificationBadges(fer), extras ? extras.badges : null),
-      extras ? extras.after : null
-    );
-  };
 
   /** Add live NKR records: a repository already listed gains NKR as a source; a new one is appended. */
   function withNkr(repositories) {
@@ -1153,7 +1105,6 @@
     return (mine.length ? mine : words).map((word) => (typeof word === "string" ? word : word["@value"])).filter((value, index, all) => all.indexOf(value) === index);
   }
 
-  /** A repository as a card, with its kind, status, the sources of its facts and its FAIRsharing record. */
   /** The records a repository's facts came from, each linked where the record has an address of its own: re3data
       and FIP Dashboard snapshots, NKR and FAIRsharing; the guide's own selection is named. */
   function repositorySources(repository) {
@@ -1164,26 +1115,11 @@
     });
     if (repository.nkr) sources.push(repository.nkr.id ? FG.external(FG.config.links.nkr + "objects/" + repository.nkr.id, "NKR") : "NKR");
     if (repository.fairsharing) sources.push(FG.external(FG.live.pidUrl({ type: "doi", value: repository.fairsharing.doi }), "FAIRsharing", { class: "fairsharing-record" }));
-    return sources.flatMap((source, index) => (index ? [", ", source] : [source]));
+    return sources.map((source) => (typeof source === "string" ? h("span", null, source) : source));
   }
 
-  FG.repositoryCard = function (repository, id) {
-    return h(
-      "li",
-      { class: "card", id: id || null, tabindex: id ? "-1" : null },
-      h("h3", null, FG.external(repository.url, FG.text(repository.name))),
-      repository.keywords ? h("p", { class: "small" }, subjectsOf(repository).join(", ")) : null,
-      h(
-        "div",
-        { class: "badges" },
-        repository.repositoryKind ? h("span", { class: "badge" }, FG.termName(FG.id(repository.repositoryKind))) : null,
-        statusBadge(repository),
-        h("span", { class: "badge badge-sources" }, FG.t("repositories.sourcesLabel") + ": ", repositorySources(repository)),
-        FG.apiLink ? FG.apiLink(repository) : null
-      ),
-      FG.pidLine(repository)
-    );
-  };
+  FG.repositorySourceLinks = repositorySources;
+  FG.subjectsOf = subjectsOf;
 
   /* re3data facts a sample NKR record shows, in the order of a record. */
   const SAMPLE_FIELDS = ["pidTypes", "apis", "dataLicenses", "metadataStandards", "certificates", "policies", "versioning", "qualityManagement"];

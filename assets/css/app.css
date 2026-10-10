@@ -913,12 +913,7 @@ details > .content {
   color: var(--tint-teal);
 }
 
-/* A requirement's title on its catalogue card, and its guidance as published, behind a disclosure. */
-.clause-title {
-  margin: 0 0 var(--space-1);
-  font-size: 1rem;
-}
-
+/* A requirement's guidance as published, behind a disclosure. */
 .clause-guidance {
   margin: var(--space-2) 0;
 }
@@ -1328,14 +1323,6 @@ a.id-chip:focus-visible {
 
 .id-chip-static {
   color: var(--text);
-}
-
-.clause-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-2);
 }
 
 .catalogue-group > h3 {
@@ -2627,27 +2614,80 @@ a.id-chip:focus-visible {
   margin-top: var(--space-3);
 }
 
-.cited-by {
-  margin: var(--space-2) 0 0;
+/* One card for every catalogue entry: its identifier with what it is, its title, a quiet line of details, its
+   text, badges for its state, then its relations, one row each. */
+.entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-small);
 }
 
-.change-head {
-  margin: 0 0 var(--space-1);
+.entry-what {
   color: var(--text-muted);
 }
 
-.use-mark {
-  border-color: var(--tint-teal);
+.entry-title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-base);
 }
 
-/* An entry's details under its name, one quiet line. */
+.entry-byline,
 .card-details {
   margin: 0 0 var(--space-2);
 }
 
-/* Stations by icon and number in a line that names many. */
-.holder-short {
-  white-space: nowrap;
+.entry-card .badges {
+  margin-top: var(--space-2);
+}
+
+/* One label width on every card, so the rows of cards in a list line up; each row on its text's baseline. */
+.relations {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  font-size: var(--size-small);
+}
+
+.relations dt {
+  color: var(--text-muted);
+}
+
+.relations dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  min-width: 0;
+}
+
+.relations .audience {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.relations .audience .icon {
+  color: var(--tint-teal);
+}
+
+/* On a phone each relation's label sits above it. */
+@media (max-width: 39.99rem) {
+  .relations {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .relations dd {
+    margin-bottom: var(--space-2);
+  }
 }
 
 /* A link to one catalogue entry: what is shown, and the way to the whole kind. */

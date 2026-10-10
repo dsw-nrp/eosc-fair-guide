@@ -39,6 +39,9 @@
       ? h("details", { class: "clause-guidance" }, h("summary", null, FG.t("catalogue.guidance")), h("div", { class: "content", lang: "en" }, FG.paragraphs(clause.guidance)))
       : null;
 
+  /** A requirement's title, when it has one besides its identifier. */
+  FG.clauseTitle = (clause) => (clause.name && FG.text(clause.name) !== clause.identifier ? clause.name : null);
+
   FG.clauseEntry = function (clause) {
     const source = FG.get(clause.isPartOf);
     const status = clause.creativeWorkStatus;
@@ -60,37 +63,25 @@
     );
   };
 
-  const joined = (links) => links.flatMap((link, index) => (index ? [", ", link] : [link]));
   const code = (iri) => String(FG.id(iri) || iri || "").split("/").pop();
   const slug = (value) => FG.fold(value).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const icons = () => (FG.config && FG.config.icons) || {};
 
-  /** A station or a check, as a short link with its icon, as in the path menu; `short`, a station by its icon and
-      number alone, named in its title and for screen readers. */
-  function holderLink(holder, short) {
-    const icons = (FG.config && FG.config.icons) || {};
-    if (holder.position && short) {
-      const name = holder.position + " · " + FG.text(holder.name);
-      return h("a", { class: "holder-link holder-short", href: FG.href("path", holder.identifier), title: name, "aria-label": name }, FG.icon((icons.station || {})[holder.identifier]), String(holder.position));
-    }
+  /** A station or a check, as a link with its icon and name, as the path menu and the checks show them. */
+  function holderLink(holder) {
     return holder.position
-      ? h("a", { class: "holder-link", href: FG.href("path", holder.identifier) }, FG.icon((icons.station || {})[holder.identifier]), holder.position + " · ", FG.span(holder.name))
-      : h("a", { class: "holder-link", href: FG.href("check", holder.identifier) }, FG.icon((icons.check || {})[holder.identifier]), FG.span(holder.name));
+      ? h("a", { class: "holder-link", href: FG.href("path", holder.identifier) }, FG.icon((icons().station || {})[holder.identifier]), FG.span(holder.name))
+      : h("a", { class: "holder-link", href: FG.href("check", holder.identifier) }, FG.icon((icons().check || {})[holder.identifier]), FG.span(holder.name));
   }
 
-  /* More stations than this in one line are shown by icon and number, as in the path rail. */
-  const NAMED_STATIONS = 3;
-
-  /** Where the guide uses an entry, in one line: the stations in path order, then the checks. */
-  function usedLine(label, holders) {
-    const unique = [...new Set(holders)];
-    if (!unique.length) return null;
-    const stations = unique.filter((holder) => holder.position).sort((a, b) => Number(a.position) - Number(b.position));
-    const short = stations.length > NAMED_STATIONS;
-    const checks = unique.filter((holder) => !holder.position).map((holder) => holderLink(holder));
-    const path = stations.map((station) => holderLink(station, short));
-    /* Numbered stations read as a row, like the path rail; named ones as a list. */
-    const stationNodes = short ? path.flatMap((link, index) => (index ? [" ", link] : [link])) : joined(path);
-    return h("p", { class: "small cited-by" }, label + ": ", stationNodes, path.length && checks.length ? (short ? " · " : ", ") : null, joined(checks));
+  /** Where the guide uses an entry: its stations in path order, then its checks, each once. */
+  function inGuide(holders) {
+    const unique = [...new Set(holders.filter(Boolean))];
+    return unique
+      .filter((holder) => holder.position)
+      .sort((a, b) => Number(a.position) - Number(b.position))
+      .concat(unique.filter((holder) => !holder.position))
+      .map(holderLink);
   }
 
   /** Where each clause and each source is cited: the stations and checks whose items cite the clause. */
@@ -118,6 +109,49 @@
 
   const stationsOf = (holders) => holders.filter((holder) => holder.position).map((station) => station.identifier);
 
+  /* ---------------------------------------------------------------- one card for every kind */
+
+  /* The relations a card may show, in this order, each under one label wherever it appears. */
+  const RELATIONS = ["principles", "audience", "basedOn", "inGuide", "identifiers"];
+
+  /** An entry as a card, the same for every kind: its own identifier with what it is and how the guide uses it;
+      its title; one quiet line of details; its text; badges for its state only; then its relations, one row each,
+      in a fixed order, each drawn one way everywhere. */
+  function entryCard(spec) {
+    const what = FG.list(spec.what).filter(Boolean);
+    const details = FG.list(spec.details).filter(Boolean);
+    const states = [spec.states].flat(Infinity).filter(Boolean);
+    const rows = RELATIONS.map((key) => [key, [spec.relations && spec.relations[key]].flat(Infinity).filter(Boolean)]).filter(([, items]) => items.length);
+    return h(
+      "li",
+      { class: ["card", "entry-card"].concat(spec.class || []).join(" "), id: "item-" + spec.id, tabindex: "-1" },
+      h("p", { class: "entry-head" }, h("span", { class: "id-chip id-chip-static" }, spec.id), what.length ? h("span", { class: "entry-what" }, what.join(" · ")) : null, FG.apiLink(spec.entity)),
+      spec.title ? h("h3", { class: "entry-title", lang: spec.titleLang || null }, spec.title) : null,
+      spec.byline ? h("p", { class: "small entry-byline" }, spec.byline) : null,
+      details.length ? h("p", { class: "small muted card-details", lang: spec.detailsLang || null }, details.join(" · ")) : null,
+      spec.body,
+      states.length ? h("div", { class: "badges" }, states) : null,
+      spec.notes,
+      rows.length
+        ? h(
+            "dl",
+            { class: "relations" },
+            rows.map(([key, items]) => [h("dt", null, FG.t("catalogue.relation." + key)), h("dd", { class: key === "identifiers" ? "pid-line" : null }, items)])
+          )
+        : null
+    );
+  }
+
+  const tiles = (principles) => principles.map((principle) => FG.principleTile(principle));
+  /** The audiences an entry is for, by icon and name. */
+  const audiences = (lensIds) =>
+    lensIds
+      .map(FG.get)
+      .filter(Boolean)
+      .map((lens) => h("span", { class: "audience" }, FG.icon((icons().lens || {})[lens.audienceType]), FG.text(lens.name)));
+  /** A work an entry rests on, as a link to its own entry. */
+  const sourceLink = (source) => h("a", { class: "source-link", href: FG.catalogueHref("resources", source.identifier) }, FG.nameNodes(source));
+
   /* ---------------------------------------------------------------- entries of each kind */
 
   /* Citation forms that are also resource types read as one type: a cited document is a document. */
@@ -131,17 +165,58 @@
   }
 
   /** How a cited work is cited, for the card's line of details: publisher, language, version and date. */
-  function citationDetails(entity, language) {
+  function citationDetails(entity) {
     const publisher = FG.get(entity.publisher);
+    const languages = FG.list(entity.inLanguage).map(String);
     const date = entity.datePublished
       ? FG.t("catalogue.published", { date: String(entity.datePublished).length === 10 ? FG.formatDate(entity.datePublished) : String(entity.datePublished) })
       : entity.sdDatePublished
         ? FG.t("catalogue.accessed", { date: FG.formatDate(entity.sdDatePublished) })
         : null;
-    return [publisher ? FG.text(publisher.alternateName || publisher.name) : null, language, entity.version ? FG.t("catalogue.version", { version: entity.version }) : null, date].filter(Boolean);
+    return [
+      publisher ? FG.text(publisher.alternateName || publisher.name) : null,
+      languages.length ? FG.t("resource.languages", { languages: languages.join(", ") }) : null,
+      entity.version ? FG.t("catalogue.version", { version: entity.version }) : null,
+      date,
+    ];
   }
 
-  const useMark = (use) => h("span", { class: "badge use-mark", "data-use": use }, FG.t("catalogue.use." + use));
+  const uses = (list) => list.map((use) => FG.t("catalogue.use." + use));
+
+  function resourceCard(resource, record, used, holders) {
+    return entryCard({
+      id: resource.identifier,
+      entity: resource,
+      what: [FG.termName(FG.id(resource.resourceType))].concat(uses(used)),
+      title: FG.external(resource.url, FG.nameNodes(resource)),
+      details: citationDetails(resource),
+      body: resource.description ? h("p", null, FG.span(resource.description)) : null,
+      states: [FG.statusBadge(resource), record ? FG.verificationBadges(record.fer) : null],
+      relations: {
+        principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
+        audience: audiences(FG.refIds(resource, "audience")),
+        inGuide: inGuide(holders),
+        identifiers: FG.pidItems(resource).concat(record ? [FG.pidItem("dashboard", record.url)] : []),
+      },
+    });
+  }
+
+  /* Where sources are cited, worked out once for the parts of the knowledge base loaded so far. */
+  let citedCache = null;
+  const citedSources = () => {
+    if (!citedCache || citedCache.parts !== FG.partsLoaded.size) citedCache = { parts: FG.partsLoaded.size, bySource: citations().bySource };
+    return citedCache.bySource;
+  };
+
+  /** A resource's card wherever the guide shows it; at a station, without that station among where it is used. */
+  FG.resourceCard = function (resource, except) {
+    const record = FG.dashboardRecord(resource);
+    const recommended = FG.stations().filter((station) => FG.refIds(station, "mentions").includes(resource["@id"]));
+    const holders = recommended.concat(citedSources().get(resource["@id"]) || []).filter((holder) => holder.identifier !== except);
+    const cited = FG.refIds(FG.get("#sources"), "hasPart").includes(resource["@id"]);
+    const used = [recommended.length ? "recommended" : null, cited ? "cited" : null, record ? "dashboard" : null].filter(Boolean);
+    return resourceCard(resource, record, used, holders);
+  };
 
   /** Resources and cited sources as one kind, each marked by how the guide uses it, with the FIP Dashboard's
       resources folded in. */
@@ -157,7 +232,7 @@
       if (record && record.fer) linkedFers.add(record.fer["@id"]);
       const recommended = recommendedAt.get(resource["@id"]) || [];
       const citedBy = cited.get(resource["@id"]) || [];
-      const uses = [recommended.length ? "recommended" : null, citedSet.has(resource["@id"]) ? "cited" : null, record ? "dashboard" : null].filter(Boolean);
+      const used = [recommended.length ? "recommended" : null, citedSet.has(resource["@id"]) ? "cited" : null, record ? "dashboard" : null].filter(Boolean);
       entries.push({
         kind: "resources",
         anchor: resource.identifier,
@@ -169,24 +244,18 @@
         stations: [...new Set(stationsOf(recommended).concat(stationsOf(citedBy)))],
         principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
         facets: {
-          use: uses,
+          use: used,
           type: [FG.id(resource.resourceType)],
           status: FG.id(resource.serviceStatus) ? [FG.id(resource.serviceStatus)] : [],
           language: FG.list(resource.inLanguage).map(String),
           lens: FG.refIds(resource, "audience").map((id) => id.replace("#lens-", "")),
         },
-        render: () =>
-          FG.resourceCard(resource, {
-            details: citationDetails(resource, FG.list(resource.inLanguage).length ? FG.t("resource.languages", { languages: FG.list(resource.inLanguage).join(", ") }) : null),
-            badges: [uses.map(useMark), FG.apiLink(resource)],
-            after: [FG.pidLine(resource), usedLine(FG.t("catalogue.inGuide"), recommended.concat(citedBy))],
-          }),
+        render: () => resourceCard(resource, record, used, recommended.concat(citedBy)),
       });
     }
     for (const source of FG.refs(FG.get("#sources"), "hasPart").filter((entity) => !entity.resourceType)) {
       const citedBy = cited.get(source["@id"]) || [];
       const url = source.url || (String(source["@id"]).startsWith("https://") ? source["@id"] : null);
-      const name = FG.nameNodes(source);
       entries.push({
         kind: "resources",
         anchor: source.identifier,
@@ -198,16 +267,15 @@
         principles: [],
         facets: { use: ["cited"], type: [FORM_AS_TYPE[sourceForm(source)] || "form:" + sourceForm(source)], status: [], language: FG.list(source.inLanguage).map(String), lens: [] },
         render: () =>
-          h(
-            "li",
-            { class: "card", id: "item-" + source.identifier, tabindex: "-1" },
-            h("h3", null, url ? FG.external(url, name) : name),
-            source.creditText ? h("p", { class: "small" }, source.creditText) : null,
-            FG.detailsLine([FG.t("catalogue.sourceType." + sourceForm(source))].concat(citationDetails(source))),
-            h("div", { class: "badges" }, useMark("cited"), FG.apiLink(source)),
-            FG.pidLine(source),
-            usedLine(FG.t("catalogue.inGuide"), citedBy)
-          ),
+          entryCard({
+            id: source.identifier,
+            entity: source,
+            what: [FG.t("catalogue.sourceType." + sourceForm(source))].concat(uses(["cited"])),
+            title: url ? FG.external(url, FG.nameNodes(source)) : FG.nameNodes(source),
+            byline: source.creditText || null,
+            details: citationDetails(source),
+            relations: { inGuide: inGuide(citedBy), identifiers: FG.pidItems(source) },
+          }),
       });
     }
     for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((entity) => !linkedFers.has(entity["@id"]))) {
@@ -221,7 +289,16 @@
         stations: [],
         principles: FG.refs(fer, "about").map(code),
         facets: { use: ["dashboard"], type: ["fer:" + FG.id(fer.catalogueType)], status: [], language: [], lens: [] },
-        render: () => FG.ferCard(fer, { badges: [useMark("dashboard"), FG.apiLink(fer)], after: FG.pidLine(fer) }),
+        render: () =>
+          entryCard({
+            id: "fer-" + fer.identifier,
+            entity: fer,
+            what: [FG.termName(FG.id(fer.catalogueType))].concat(uses(["dashboard"])),
+            title: FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name),
+            body: fer.description ? h("p", null, FG.span(fer.description)) : null,
+            states: FG.verificationBadges(fer),
+            relations: { principles: tiles(FG.principlesOf(fer)), identifiers: FG.pidItems(fer) },
+          }),
       });
     }
     return entries;
@@ -245,15 +322,18 @@
           rkind: FG.id(repository.repositoryKind) ? [FG.id(repository.repositoryKind)] : [],
           rsource: FG.refIds(repository, "isBasedOn").concat(repository.nkr ? ["nkr"] : [], repository.fairsharing ? ["fairsharing"] : []),
         },
-        render: () => FG.repositoryCard(repository, "item-" + anchor),
+        render: () =>
+          entryCard({
+            id: anchor,
+            entity: repository,
+            what: FG.id(repository.repositoryKind) ? FG.termName(FG.id(repository.repositoryKind)) : null,
+            title: FG.external(repository.url, FG.text(repository.name)),
+            details: FG.subjectsOf(repository).join(", "),
+            states: FG.statusBadge(repository),
+            relations: { basedOn: FG.repositorySourceLinks(repository), identifiers: FG.pidItems(repository) },
+          }),
       };
     });
-  }
-
-  function sourceLine(clause) {
-    const source = FG.get(clause.isPartOf);
-    if (!source) return null;
-    return h("p", { class: "small cited-by" }, FG.t("catalogue.source") + ": ", h("a", { href: FG.catalogueHref("resources", source.identifier) }, FG.nameNodes(source)));
   }
 
   function clauseEntries(used) {
@@ -261,6 +341,7 @@
       const holders = used.get(clause["@id"]) || [];
       const status = clause.creativeWorkStatus || "current";
       const audience = FG.id(clause.audience);
+      const source = FG.get(clause.isPartOf);
       return {
         kind: "clauses",
         anchor: clause.identifier,
@@ -274,25 +355,22 @@
         group: { source: FG.id(clause.isPartOf) },
         facets: { ckind: clause.clauseKind ? [clause.clauseKind] : [], csource: [FG.id(clause.isPartOf)], actor: audience ? [audience] : [], cstatus: [status] },
         render: () =>
-          h(
-            "li",
-            { class: "card clause-card", id: "item-" + clause.identifier, tabindex: "-1" },
-            h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, clause.identifier), clause.clauseKind ? h("span", { class: "badge" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null),
-            clause.name && FG.text(clause.name) !== clause.identifier ? h("h3", { class: "clause-title" }, FG.span(clause.name)) : null,
-            h("p", null, FG.linkedSpan(clause)),
-            FG.guidance(clause),
-            h(
-              "div",
-              { class: "badges" },
-              FG.principlesOf(clause).map((principle) => FG.principleTile(principle)),
-              audience ? h("span", { class: "badge" }, FG.termName(audience)) : null,
-              status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null,
-              FG.apiLink(clause)
-            ),
-            status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
-            sourceLine(clause),
-            usedLine(FG.t("catalogue.usedIn"), holders)
-          ),
+          entryCard({
+            id: clause.identifier,
+            entity: clause,
+            class: "clause-card",
+            what: clause.clauseKind ? FG.t("catalogue.clauseKind." + clause.clauseKind) : null,
+            title: FG.clauseTitle(clause) ? FG.span(FG.clauseTitle(clause)) : null,
+            body: [h("p", null, FG.linkedSpan(clause)), FG.guidance(clause)],
+            states: status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null,
+            notes: status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
+            relations: {
+              principles: tiles(FG.principlesOf(clause)),
+              audience: audience ? h("span", { class: "audience" }, FG.termName(audience)) : null,
+              basedOn: source ? sourceLink(source) : null,
+              inGuide: inGuide(holders),
+            },
+          }),
       };
     });
   }
@@ -317,15 +395,18 @@
             group: { check: check.identifier },
             facets: { check: [check.identifier], tier: FG.id(item.tier) ? [FG.id(item.tier)] : [] },
             render: () =>
-              h(
-                "li",
-                { class: "card", id: "item-" + item.identifier, tabindex: "-1" },
-                h("p", { class: "clause-head" }, h("span", { class: "id-chip id-chip-static" }, item.identifier), item.tier ? h("span", { class: "badge" }, FG.termName(FG.id(item.tier))) : null),
-                h("p", null, FG.linkedSpan(item)),
-                h("div", { class: "badges" }, FG.principlesOf(item).map((principle) => FG.principleTile(principle)), FG.apiLink(item)),
-                h("p", { class: "small cited-by" }, FG.t("catalogue.inCheck") + ": ", h("a", { href: FG.href("check", check.identifier) }, FG.span(check.name))),
-                clauses.length ? h("p", { class: "small cited-by" }, FG.t("catalogue.basedOn") + ": ", joined(clauses.map((clause) => FG.idChip("clauses", clause.identifier)))) : null
-              ),
+              entryCard({
+                id: item.identifier,
+                entity: item,
+                what: FG.id(item.tier) ? FG.termName(FG.id(item.tier)) : null,
+                body: h("p", null, FG.linkedSpan(item)),
+                relations: {
+                  principles: tiles(FG.principlesOf(item)),
+                  basedOn: clauses.map((clause) => FG.idChip("clauses", clause.identifier)),
+                  /* A question is asked in its check and listed at the station where it is put right. */
+                  inGuide: inGuide([check, FG.get(item.fixAt)]),
+                },
+              }),
           };
         })
     );
@@ -350,15 +431,17 @@
         principles: [],
         facets: {},
         render: () =>
-          h(
-            "li",
-            { class: "card term-card", id: "item-" + term.termCode, tabindex: "-1" },
-            h("h3", { lang: "cs" }, FG.external(term.url, cs)),
-            h("p", { class: "small", lang: "en" }, en),
-            FG.pidLine(term),
-            usedLine(FG.t("catalogue.onPath"), at),
-            FG.apiLink(term)
-          ),
+          entryCard({
+            id: String(term.termCode),
+            entity: term,
+            class: "term-card",
+            what: FG.t("catalogue.what.term"),
+            title: FG.external(term.url, cs),
+            titleLang: "cs",
+            details: en,
+            detailsLang: "en",
+            relations: { inGuide: inGuide(at), identifiers: FG.pidItems(term) },
+          }),
       };
     });
   }
@@ -366,7 +449,6 @@
   function fipEntries() {
     return FG.refs(FG.get("#fips"), "hasPart").map((fip) => {
       const url = FG.refIds(fip, "sameAs")[0] || fip.url;
-      const details = [fip.alternateName, fip.version ? FG.t("catalogue.version", { version: fip.version }) : null, fip.dateModified ? FG.formatDate(String(fip.dateModified).slice(0, 10)) : null].filter(Boolean);
       return {
         kind: "fips",
         anchor: fip.identifier,
@@ -378,15 +460,21 @@
         principles: [...new Set(FG.refs(fip, "hasPart").flatMap((declaration) => FG.principlesOf(declaration).map((principle) => principle.termCode)))],
         facets: {},
         render: () =>
-          h(
-            "li",
-            { class: "card", id: "item-" + fip.identifier, tabindex: "-1" },
-            h("h3", null, url ? FG.external(url, FG.text(fip.name)) : FG.span(fip.name)),
-            details.length ? h("p", { class: "small muted" }, details.join(" · ")) : null,
-            fip.abstract ? h("p", null, FG.span(fip.abstract)) : null,
-            h("div", { class: "badges" }, h("span", { class: "badge" }, FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length })), FG.verificationBadges(fip), FG.apiLink(fip)),
-            FG.pidLine(fip)
-          ),
+          entryCard({
+            id: fip.identifier,
+            entity: fip,
+            what: FG.t("catalogue.what.fip"),
+            title: url ? FG.external(url, FG.text(fip.name)) : FG.span(fip.name),
+            details: [
+              fip.alternateName,
+              fip.version ? FG.t("catalogue.version", { version: fip.version }) : null,
+              fip.dateModified ? FG.formatDate(String(fip.dateModified).slice(0, 10)) : null,
+              FG.t("catalogue.declarations", { n: FG.refs(fip, "hasPart").length }),
+            ],
+            body: fip.abstract ? h("p", null, FG.span(fip.abstract)) : null,
+            states: FG.verificationBadges(fip),
+            relations: { identifiers: FG.pidItems(fip) },
+          }),
       };
     });
   }
@@ -422,29 +510,24 @@
           principles: principle ? [principle.termCode] : [],
           facets: {},
           render: () =>
-            h(
-              "li",
-              { class: "card", id: "item-" + test.identifier, tabindex: "-1" },
-              h("h3", null, FG.external(test.url, FG.text(test.name))),
-              h(
-                "div",
-                { class: "badges" },
-                principle ? FG.principleTile(principle) : null,
-                health ? h("span", { class: "badge", "data-health": String(health) }, FG.t("catalogue.health." + health), test.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(test.statusAsOf) })) : null) : null,
-                h("span", { class: "badge code" }, test.identifier),
-                FG.apiLink(test)
-              ),
-              FG.pidLine(test),
-              (questions.get(test.identifier) || []).length
-                ? h("p", { class: "small cited-by" }, FG.t("catalogue.prefills") + ": ", joined(questions.get(test.identifier).map((item) => FG.idChip("questions", item.identifier))))
-                : null
-            ),
+            entryCard({
+              id: test.identifier,
+              entity: test,
+              what: FG.t("catalogue.what.test"),
+              title: FG.external(test.url, FG.text(test.name)),
+              states: health
+                ? h("span", { class: "badge", "data-health": String(health) }, FG.t("catalogue.health." + health), test.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(test.statusAsOf) })) : null)
+                : null,
+              relations: {
+                principles: principle ? tiles([principle]) : [],
+                inGuide: (questions.get(test.identifier) || []).map((item) => FG.idChip("questions", item.identifier)),
+                identifiers: FG.pidItems(test),
+              },
+            }),
         };
       });
   }
 
-  /** A content change: when, what kind, what was done and on what it drew; who and with which tool stays in the
-      paradata, so the catalogue repeats no names. */
   /** Where each entity a content change can produce sits: its stations and principles, from the advice of each
       station and from the entries of the other kinds. */
   function reachOf(kinds) {
@@ -467,6 +550,8 @@
     return reach;
   }
 
+  /** A content change: when, what kind, what was done and on what it drew; who and with which tool stays in the
+      paradata, so the catalogue repeats no names. */
   function actionEntries(reach) {
     const cited = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
     return FG.graph
@@ -489,21 +574,17 @@
           principles: [...new Set(reached.flatMap((place) => [...place.principles]))],
           facets: { change: [created ? "created" : "updated"] },
           render: () =>
-            h(
-              "li",
-              { class: "card change", id: "item-" + id, tabindex: "-1" },
-              h("p", { class: "change-head small" }, h("time", { datetime: String(action.endTime || "") }, FG.formatDate(String(action.endTime || "").slice(0, 10))), " · ", FG.t(created ? "catalogue.created" : "catalogue.updated")),
-              h("h3", { lang: "en" }, FG.text(action.name)),
-              action.description ? h("p", { class: "small", lang: "en" }, FG.text(action.description)) : null,
-              h(
-                "p",
-                { class: "small muted" },
-                FG.t("catalogue.changedItems", { n: FG.refIds(action, "result").length }),
-                sources.length ? [" · ", FG.t("catalogue.drewOn") + ": ", joined(sources.map((source) => h("span", null, FG.nameNodes(source))))] : null,
-                " ",
-                FG.apiLink(action)
-              )
-            ),
+            entryCard({
+              id,
+              entity: action,
+              class: "change",
+              what: FG.t(created ? "catalogue.created" : "catalogue.updated"),
+              title: FG.text(action.name),
+              titleLang: "en",
+              details: [FG.formatDate(String(action.endTime || "").slice(0, 10)), FG.t("catalogue.changedItems", { n: FG.refIds(action, "result").length })],
+              body: action.description ? h("p", { class: "small", lang: "en" }, FG.text(action.description)) : null,
+              relations: { basedOn: sources.map(sourceLink) },
+            }),
         };
       });
   }

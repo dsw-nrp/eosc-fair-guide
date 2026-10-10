@@ -323,12 +323,13 @@ sections.push(["page", async () => {
 
     // Resources and cited sources as one kind, marked by how the guide uses them.
     await open("#/cs/V/catalogue/resources");
-    // An entry the guide uses at many stations names them by icon and number in one line, each named for screen
-    // readers; its details (type, publisher, version, date) are one quiet line, not badges.
+    // Where the guide uses an entry is one row, stations by icon and name, then checks; its details (publisher,
+    // language, version, date) are one quiet line, not badges.
     const analysisCard = view.locator(".card", { hasText: "Analýza a návrh postupů" }).first();
     const analysis = await analysisCard.textContent();
-    if (!analysis.includes("podklad obsahu") || !(await analysisCard.locator('.cited-by a.holder-short[aria-label="1 · Plán"]').count()) || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis is not marked as a basis with the stations and checks that cite it");
-    if ((await analysisCard.locator(".cited-by").count()) !== 1 || !(await analysisCard.locator(".card-details").textContent()).includes("verze 1.2") || (await analysisCard.locator(".badge", { hasText: "verze" }).count())) fail("catalogue: the analysis card does not keep where it is used in one line and its details out of the badges");
+    const used = analysisCard.locator(".relations dd").nth(0);
+    if (!(await analysisCard.locator(".entry-head").textContent()).includes("podklad obsahu") || !(await used.locator("a.holder-link", { hasText: "Plán" }).count()) || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis is not marked as a basis with the stations and checks that cite it");
+    if ((await analysisCard.locator(".relations dt", { hasText: "V průvodci" }).count()) !== 1 || !(await analysisCard.locator(".card-details").textContent()).includes("verze 1.2") || (await analysisCard.locator(".badge", { hasText: "verze" }).count())) fail("catalogue: the analysis card does not keep where it is used in one row and its details out of the badges");
     // A kind's own facets list their values by number of records, most first.
     const counts = await view.locator('[data-facet="resources-use"] .facet-count').allTextContents();
     if (counts.join(",") !== counts.map(Number).sort((a, b) => b - a).join(",")) fail("catalogue: a kind's facet is not ordered by number of records: " + counts.join(","));
@@ -442,7 +443,7 @@ sections.push(["page", async () => {
     const checkedGroups = await orderBy("checked");
     const checkedDates = checkedGroups.filter((name) => name.startsWith("Ověřeno")).map((name) => name.replace("Ověřeno ", "").split(". ").reverse().map((part) => part.padStart(2, "0")).join(""));
     if (!checkedDates.length || checkedDates.some((date, index) => index && date < checkedDates[index - 1]) || checkedGroups[checkedGroups.length - 1] !== "Bez data ověření") fail("finders: ordering by the date checked does not put the oldest first: " + checkedGroups.join(" | "));
-    if (!(await view.locator(".catalogue-results .card .orientation .lens-tag").count()) || !(await view.locator(".catalogue-results .card .orientation .principle-tile").count())) fail("finders: resource cards lack orientation tags (lens icons and principle tiles)");
+    if (!(await view.locator(".catalogue-results .card .relations .audience svg.icon").count()) || !(await view.locator(".catalogue-results .card .relations .principle-tile").count())) fail("finders: resource cards lack their audiences (icon and name) and principle tiles");
     const typeGroups = await orderBy("type");
     if (new Set(typeGroups).size !== typeGroups.length) fail("finders: a type shows as two groups: " + typeGroups.join(" | "));
     const moreTypes = view.locator('[data-facet="resources-type"] button');
@@ -453,7 +454,7 @@ sections.push(["page", async () => {
     if (statusGroups[0] !== "provozní" || statusGroups[statusGroups.length - 1] !== "Bez stavu") fail("finders: statuses are not in their own order: " + statusGroups.join(" | "));
     await open("#/cs/V/catalogue/repositories");
     if ((await orderBy("rsource"))[0] !== "výběr průvodce") fail("finders: ordering repositories by data source does not start with the guide's selection");
-    if (!(await view.locator('.badge-sources a[href^="https://www.re3data.org/repository/r3d"]').count())) fail("finders: a repository's re3data source does not link to its record");
+    if (!(await view.locator('.relations a[href^="https://www.re3data.org/repository/r3d"]').count())) fail("finders: a repository's re3data source does not link to its record");
     await view.evaluate(() => { window.FairGuide.live.fetchJson = async () => ({ results: [] }); });
     if (await view.locator("#nkr-samples").count()) fail("finders: sample NKR records are offered before NKR was asked");
     await view.locator("#nkr-load").click();
@@ -621,6 +622,13 @@ sections.push(["page", async () => {
         return box.top - card.top < 40 && card.right - box.right < 40;
       });
       if (!corner) fail(`catalogue: the ${kind} record link does not sit in the card's top right corner`);
+      // One card for every kind: its own identifier in the head, and its relations under fixed labels in one order.
+      const order = ["Principy", "Pro koho", "Vychází z", "V průvodci", "Identifikátory"];
+      const cards = await view.locator(".catalogue .card:not(.nkr-sample)").evaluateAll((all) =>
+        all.map((card) => ({ id: card.id, chip: (card.querySelector(".entry-head .id-chip-static") || {}).textContent, labels: [...card.querySelectorAll(".relations dt")].map((dt) => dt.textContent) }))
+      );
+      const wrong = cards.filter((card) => "item-" + card.chip !== card.id || card.labels.some((label, index) => !order.includes(label) || (index && order.indexOf(label) <= order.indexOf(card.labels[index - 1]))));
+      if (wrong.length) fail(`catalogue: ${kind} cards without their own identifier in the head, or with relations out of order: ` + wrong.slice(0, 3).map((card) => card.id + " " + card.labels.join("/")).join("; "));
     }
     // An entry shows the persistent identifiers it has, named by scheme, and none it lacks; the stations and checks
     // an entry names carry their icons.
@@ -629,8 +637,8 @@ sections.push(["page", async () => {
       await view.waitForSelector(`[id="item-${anchor}"]`);
       return view.locator(`[id="item-${anchor}"]`).evaluate((card) => ({
         pids: [...card.querySelectorAll(".pid-line a")].map((link) => [link.previousElementSibling.textContent, link.getAttribute("href"), link.textContent.replace(/\s*\(.*\)$/, "")]),
-        plainIcons: [...card.querySelectorAll(".cited-by a.holder-link")].filter((link) => !link.querySelector("svg.icon")).length,
-        holders: card.querySelectorAll(".cited-by a.holder-link").length,
+        plainIcons: [...card.querySelectorAll(".relations a.holder-link")].filter((link) => !link.querySelector("svg.icon")).length,
+        holders: card.querySelectorAll(".relations a.holder-link").length,
       }));
     };
     const roCrate = await pidsOf("#/cs/DS/catalogue/k!resources~q!crate", "ro-crate");
