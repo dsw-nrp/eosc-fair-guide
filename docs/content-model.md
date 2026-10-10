@@ -79,13 +79,17 @@ An identifier says where an entry belongs, not what it says:
   source's own label where the source labels its items consistently (`A.F1.N1` in the FAIR analysis, `CTS.R06`,
   `NRP.M5`, `CDIF.REQ1`, a section of a law `LAW-328-2025.83.2`), and a two-digit serial otherwise
   (`OS3-RULES.24`). A source's code is its declared `code` (the FAIR analysis `A`, `NRP`, `CTS`, `CDIF`) or else its
-  ID in capitals without a version suffix (`os3-rules` gives `OS3-RULES`). Terms, all taken from Heslář, take
-  their ID there; FIPs, FIP Dashboard records, re3data snapshot records and FAIR Champion tests keep the identifiers
-  of the registries they come from, which keep them in turn, and so are not in the register. A FIP Dashboard record
-  listed on its own nests under the dashboard in the catalogue (`fip-dashboard.<id>`). A curated repository is not
-  one of these: not every repository the guide lists is in re3data (the NRP catch-all repository, MBDB), so
-  repositories have the guide's own names like resources, and a re3data ID is one of their identifiers (`re3data`). Where a
-  source falls short (no labels, or labels it does not keep), the guide's own serial takes over.
+  ID in capitals without a version suffix (`os3-rules` gives `OS3-RULES`). Where a source falls short (no labels, or
+  labels it does not keep), the guide's own serial takes over.
+- **Borrowed records nest under their registry.** A record the guide takes from another registry keeps that
+  registry's identifier, nested under the registry's own catalogue entry so that it always says whose it is, however
+  many registries the guide draws on: a Heslář term `heslar.87`, a re3data record `re3data.r3d100013576`, a FIP or a
+  FIP Dashboard record `fip-dashboard.ndi-baseline`, a FAIR Champion test `fair-champion.fc_searchable`, a record
+  found live in NKR `nkr.<its NKR ID>`. The content files and snapshots hold the registry's identifier as it is (a
+  glossary term's `id` is `87`); the catalogue, its links and its exports show the nested form. The registries keep
+  these identifiers, so they are not in the register. A curated repository is the guide's own entry, not a borrowed
+  record: not every repository the guide lists is in re3data (the NRP catch-all repository, MBDB), so repositories
+  have the guide's own names like resources, and a re3data ID is one of their identifiers (`re3data`).
 - **Plain names for the guide's own structure.** Stations, checks, check modes and profiles, pages, resources,
   repositories and sources have short lower-case English names in kebab case (`repository`, `dataset`,
   `core-system`, `live-check`, `zenodo`); lenses and levels short codes (`SR`, `L1`); provenance actions

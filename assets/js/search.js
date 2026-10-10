@@ -51,8 +51,8 @@
     for (const entity of FG.graph) {
       const id = String(entity["@id"]);
       if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description), { href: FG.catalogueHref("resources", entity.identifier) });
-      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.list(entity.keywords).map((word) => bothLanguages(word)).join(" "), { href: FG.catalogueHref("repositories", id.replace(/^#repository-/, "")) });
-      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, "", { href: FG.catalogueHref("terms", entity.termCode) });
+      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.list(entity.keywords).map((word) => bothLanguages(word)).join(" "), { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) });
+      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, "", { href: FG.catalogueHref("terms", FG.termAnchor(entity)) });
       else if (id.startsWith("#page-") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
       else if (id.startsWith("#clause-") && entity.text) {
         const principle = FG.principlesOf(entity)[0];
@@ -83,7 +83,7 @@
     const repository = FG.refs(FG.get("#repositories"), "hasPart").find((entity) => bare(entity.url) === address);
     if (repository) {
       const r3d = FG.refIds(repository, "sameAs").concat(FG.list(repository.identifier)).map((id) => (String(id).match(/r3d\d{9}/i) || [])[0]).find(Boolean);
-      return { type: "known", value, kind: "repositories", anchor: String(repository["@id"]).replace(/^#(repository|resource)-/, ""), name: FG.text(repository.name), r3d };
+      return { type: "known", value, kind: "repositories", anchor: FG.repositoryAnchor(repository), name: FG.text(repository.name), r3d };
     }
     return null;
   }

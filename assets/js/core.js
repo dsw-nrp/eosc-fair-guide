@@ -205,7 +205,7 @@
     /* Something of the guide's own site, such as its profile: its page at the same place, wherever the site is. */
     const base = FG.config.pageUrl || "";
     if (base && String(id).startsWith(base)) return String(id).slice(base.length).replace(/\/?$/, "/");
-    return String(id).startsWith("#term-") ? FG.catalogueHref("terms", entity.termCode) : FG.catalogueHref("resources", entity.identifier);
+    return String(id).startsWith("#term-") ? FG.catalogueHref("terms", FG.termAnchor(entity)) : FG.catalogueHref("resources", entity.identifier);
   };
 
   /** A text as nodes, with the first occurrence of each phrase its entity names by reference linked; a link already

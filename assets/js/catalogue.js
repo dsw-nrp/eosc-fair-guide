@@ -22,6 +22,18 @@
   /** The address of the catalogue showing one kind, or one entry of it. */
   FG.catalogueHref = (kind, item) => FG.href("catalogue", kind) + (item ? "/" + encodeURIComponent(item) : "");
 
+  /* A record the guide takes from another registry is identified by that registry's own catalogue entry and the
+     registry's identifier for it (heslar.87, re3data.r3d100013576, fip-dashboard.ndi-baseline), so a borrowed
+     identifier always says whose it is; the guide's own entries keep their own (docs/content-model.md, Identifiers). */
+  FG.borrowedId = (registry, id) => registry + "." + id;
+  FG.termAnchor = (term) => FG.borrowedId("heslar", term.termCode);
+  FG.repositoryAnchor = (repository) => {
+    const own = String(repository["@id"] || "").replace(/^#(repository|resource)-/, "");
+    if (FG.refIds(repository, "isBasedOn").includes("#snapshot-re3data")) return FG.borrowedId("re3data", own);
+    if (own) return own;
+    return FG.borrowedId("nkr", repository.nkr && repository.nkr.id ? repository.nkr.id : slug(FG.text(repository.name)));
+  };
+
   /** The catalogue searched for a query within one kind, as the landing's search links to it. */
   FG.catalogueSearchHref = (query, kind) => writeState({ kinds: [kind || "resources"], stations: [], principles: [], q: query, order: "", f: {} });
 
@@ -294,7 +306,7 @@
     for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((entity) => !linkedFers.has(entity["@id"]))) {
       entries.push({
         kind: "resources",
-        anchor: "fip-dashboard." + fer.identifier,
+        anchor: FG.borrowedId("fip-dashboard", fer.identifier),
         entity: fer,
         name: FG.text(fer.name),
         export: { url: fer.url, text: FG.text(fer.description) },
@@ -304,7 +316,7 @@
         facets: { use: ["dashboard"], type: [typeOf(fer)].filter(Boolean), status: [], language: [], lens: [] },
         render: () =>
           entryCard({
-            id: "fip-dashboard." + fer.identifier,
+            id: FG.borrowedId("fip-dashboard", fer.identifier),
             entity: fer,
             what: [FG.termName(typeOf(fer))].concat(uses(["dashboard"])),
             title: FG.external(FG.refIds(fer, "sameAs")[0] || fer.url, fer.name),
@@ -319,7 +331,7 @@
 
   function repositoryEntries() {
     return FG.repositoryEntries().map((repository) => {
-      const anchor = repository["@id"] ? String(repository["@id"]).replace(/^#(repository|resource)-/, "") : "nkr-" + slug(FG.text(repository.name));
+      const anchor = FG.repositoryAnchor(repository);
       const kindIndex = FG.repositoryKindOrder.indexOf(FG.id(repository.repositoryKind));
       return {
         kind: "repositories",
@@ -434,7 +446,7 @@
       const en = FG.textOf(term.name, "en").text;
       return {
         kind: "terms",
-        anchor: String(term.termCode),
+        anchor: FG.termAnchor(term),
         entity: term,
         name: cs.replace(/^[[(]+/, ""),
         export: { name: FG.text(term.name), url: term.url },
@@ -445,7 +457,7 @@
         facets: {},
         render: () =>
           entryCard({
-            id: String(term.termCode),
+            id: FG.termAnchor(term),
             entity: term,
             class: "term-card",
             what: FG.t("catalogue.what.term"),
@@ -464,7 +476,7 @@
       const url = FG.refIds(fip, "sameAs")[0] || fip.url;
       return {
         kind: "fips",
-        anchor: fip.identifier,
+        anchor: FG.borrowedId("fip-dashboard", fip.identifier),
         entity: fip,
         name: FG.text(fip.name),
         export: { url },
@@ -474,7 +486,7 @@
         facets: {},
         render: () =>
           entryCard({
-            id: fip.identifier,
+            id: FG.borrowedId("fip-dashboard", fip.identifier),
             entity: fip,
             what: FG.t("catalogue.what.fip"),
             title: url ? FG.external(url, FG.text(fip.name)) : FG.span(fip.name),
@@ -514,7 +526,7 @@
         const health = FG.id(test.healthStatus) || test.healthStatus;
         return {
           kind: "tests",
-          anchor: test.identifier,
+          anchor: FG.borrowedId("fair-champion", test.identifier),
           entity: test,
           name: FG.text(test.name),
           export: { url: FG.refIds(test, "sameAs")[0] || test.url },
@@ -524,7 +536,7 @@
           facets: {},
           render: () =>
             entryCard({
-              id: test.identifier,
+              id: FG.borrowedId("fair-champion", test.identifier),
               entity: test,
               what: FG.t("catalogue.what.test"),
               title: FG.external(test.url, FG.text(test.name)),

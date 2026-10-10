@@ -322,6 +322,19 @@ sections.push(["page", async () => {
     if ((drewOn.match(/FAIRsharing/g) || []).length > 4) fail("catalogue: a change lists one source more than once: " + drewOn);
     await open("#/cs/V/catalogue/terms");
     if (!(await view.locator(".term-card h3").first().textContent()).match(/^[^[(]/)) fail("catalogue: the glossary does not sort past leading brackets");
+    // A record taken from another registry says whose it is: its identifier nests under that registry's entry.
+    const borrowed = async (hash, prefix) => {
+      await open(hash);
+      const chips = await view.locator(".catalogue-results .card .entry-head .id-chip").allTextContents();
+      return chips.length && chips.every((chip) => chip.startsWith(prefix));
+    };
+    for (const [hash, prefix] of [["#/cs/V/catalogue/terms", "heslar."], ["#/cs/V/catalogue/fips", "fip-dashboard."], ["#/cs/V/catalogue/tests", "fair-champion."]]) {
+      if (!(await borrowed(hash, prefix))) fail(`catalogue: an entry at ${hash} does not nest its identifier under ${prefix}`);
+    }
+    // Repositories: the guide's own entries keep their names, records from the re3data snapshot nest under re3data.
+    await open("#/cs/V/catalogue/repositories");
+    const repositoryChips = await view.locator(".catalogue-results .card .entry-head .id-chip").allTextContents();
+    if (!repositoryChips.includes("zenodo") || !repositoryChips.some((chip) => chip.startsWith("re3data.r3d")) || repositoryChips.some((chip) => /^r3d/.test(chip))) fail("catalogue: repositories do not keep the guide's names with re3data records nested under re3data: " + repositoryChips.join(" "));
 
     // Resources and cited sources as one kind, marked by how the guide uses them.
     await open("#/cs/V/catalogue/resources");
@@ -759,7 +772,7 @@ sections.push(["page", async () => {
     const analysisLink = view.locator('details[data-key="L2"] a.source-link', { hasText: "Analýza FAIR pro NRP/NDI" }).first();
     if (!(await analysisLink.count()) || !(await analysisLink.getAttribute("href")).endsWith("/catalogue/resources/analyza-fair-1.2")) fail("ids: a requirement's source is not named by its short name, leading to its catalogue entry");
     const termHrefs = await view.locator(".station-terms a.chip").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/terms/"))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
+    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/terms/heslar."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
     // The explorer names a principle's relations in the catalogue's rows, and its requirements without doubled
     // identifiers.
     await view.goto(pageUrl + "#/cs/V/explorer/R1.1");
@@ -1474,7 +1487,7 @@ sections.push(["self-check", async () => {
   // result, so a question resting on one test is partly met by the two records with a result. Running all tests
   // shows a bar, the coverage is stated, and a retry runs only the tests without a result.
   const line = page.locator("#tests-maturity-02");
-  if (!(await line.locator('a[href$="/catalogue/tests/fc_metadata_identifier_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
+  if (!(await line.locator('a[href$="/catalogue/tests/fair-champion.fc_metadata_identifier_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     window.championCalls = [];

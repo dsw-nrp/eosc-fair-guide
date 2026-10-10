@@ -922,7 +922,7 @@
             "section",
             { class: "station-terms" },
             h("h2", null, FG.t("station.glossary")),
-            h("ul", { class: "chips" }, terms.map((term) => h("li", null, h("a", { class: "chip", href: FG.catalogueHref("terms", term.termCode) }, FG.text(term.name)))))
+            h("ul", { class: "chips" }, terms.map((term) => h("li", null, h("a", { class: "chip", href: FG.catalogueHref("terms", FG.termAnchor(term)) }, FG.text(term.name)))))
           )
         : null,
       callouts(entity, route.lens),

@@ -1134,7 +1134,7 @@
           return h(
             "li",
             { class: "test-row", "data-test": id },
-            test ? h("a", { href: FG.catalogueHref("tests", id) }, FG.text(test.name)) : h("code", null, id),
+            test ? h("a", { href: FG.catalogueHref("tests", FG.borrowedId("fair-champion", id)) }, FG.text(test.name)) : h("code", null, id),
             healthOf(test) === "degraded" ? [" ", h("span", { class: "badge", "data-health": "degraded" }, FG.t("catalogue.health.degraded"))] : null,
             " ",
             testState(currentRun(check, st), id)
