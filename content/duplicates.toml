@@ -1,0 +1,11 @@
+# Entries that share an address, an identifier, a name or a text but are kept apart, each with its reason
+# (docs/content-model.md, One entry per thing). The duplicates check accepts exactly these groups and reports any
+# other one, and an accepted group that no longer occurs.
+
+[[accepted]]
+entries = ["term:79", "term:80"]
+reason = "Heslář gives two concepts, a large research infrastructure and a research infrastructure, the same English label."
+
+[[accepted]]
+entries = ["term:100", "term:101"]
+reason = "Heslář lists free and open-source software twice under one Czech label, as FLOSS and as FOSS."

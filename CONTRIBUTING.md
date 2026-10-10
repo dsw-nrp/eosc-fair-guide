@@ -32,7 +32,9 @@ rules are in [docs/content-model.md](docs/content-model.md); design decisions ar
 
 ```bash
 python scripts/build_site.py       # build the site into _site/: the crate, the page with its data, the API
-python scripts/check_content.py    # content contract: languages, sources, paradata, links, statuses
+python scripts/check_content.py    # content contract: languages, sources, paradata, links, statuses, identifiers
+python scripts/check_duplicates.py # one entry per thing: nothing listed or said twice
+python scripts/register_ids.py     # after adding entries: register their identifiers
 python scripts/check_all.py        # before a pull request: build, then every check at once (--live adds the network checks)
 ```
 

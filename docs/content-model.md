@@ -102,12 +102,22 @@ An identifier says where an entry belongs, not what it says:
   `<date>-<topic>`.
 - **No reuse.** A new entry takes the next free serial; a serial left by a retired entry stays unused.
 
-One real-world thing has one curated entry, which carries every role it plays: a service the guide recommends and
-also cites is one `[[resource]]` with a `[resource.citation]` table, and a repository it recommends is one
-`[[resource]]` with a `[resource.repository]` table. A curated entry that matches a snapshot record links it
-(`fipDashboard`, `re3data`) instead of repeating it. The content checks enforce this: one ID names one entity, no two
-curated entries share an address or a DOI, a curated resource, repository or organisation that matches a FIP Dashboard
-record or a re3data record links it, and entries nothing uses are reported as warnings.
+### One entry per thing
+
+One real-world thing has one entry, which carries every role it plays: a service the guide recommends and also cites
+is one `[[resource]]` with a `[resource.citation]` table, and a repository it recommends is one `[[resource]]` with a
+`[resource.repository]` table. A curated entry that matches a registry's record links it (`fipDashboard`, `re3data`)
+instead of repeating it, and no two curated entries link one record. The guide says each thing once, too: no two
+advice items, requirements or questions of one check share their words, and no check asks about one requirement twice.
+
+`scripts/check_duplicates.py` enforces this as a check of its own, which every pull request must pass. It compares
+every entry with the others of its kind (curated resources, repositories and sources with the FIP Dashboard's and
+re3data's records; organisations with the dashboard's; terms; FIPs; tests; advice; each check's questions;
+requirements) by address, DOI, re3data, ROR and FIP Dashboard ID, identifier, name and text, and names what to do
+about each match: link the record, merge the entries or say it once. A group that only looks alike, or that a
+registry itself lists twice, is accepted in `content/duplicates.toml` with its reason; the check reports any other
+group, and an accepted group that no longer occurs. The content checks add that one ID names one entity and report
+entries nothing uses as warnings.
 
 ### Languages
 
@@ -191,6 +201,7 @@ A service or resource status uses the five-level vocabulary and always carries a
 | `content/ui.toml` | Interface strings |
 | `content/icons.toml` | Interface icons |
 | `content/identifiers.toml` | The register of the identifiers the guide has issued |
+| `content/duplicates.toml` | Entries that look alike but are kept apart, each with its reason |
 
 A bilingual text is written as an inline table: `text = { cs = "…", en = "…" }`. Paragraphs inside one text
 are separated by a blank line (`\n\n`). Names and titles of external works are proper names, given in their

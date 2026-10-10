@@ -834,9 +834,9 @@ def bare_url(url: Any) -> str:
 
 
 def check_coherence(report: Report, content: dict[str, Any]) -> None:
-    """One curated entry per real-world thing: one content ID names one entity (R1), no two curated entries share an
-    address or DOI (R2), a curated entry that matches a snapshot record links it (R3), references to snapshot records
-    resolve (R4), and entries nothing uses are reported (R5)."""
+    """The crate's identifiers hold together: one content ID names one entity (R1), references to snapshot records
+    resolve (R4), and entries nothing uses are reported (R5). That no two entries describe one thing (R2, R3) is
+    checked by scripts/check_duplicates.py."""
     # R1, read from the generator's own index of what each content ID names
     graph = Graph()
     try:
@@ -866,68 +866,15 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
             if key != "@id" and missing:
                 report.error(f"crate:{entity_id}", f"{key} names {', '.join(missing)}, which the crate does not have")
 
-    # R2, curated entries keyed by address and DOI
-    entries: list[tuple[str, str, str]] = []
-    for resource in content["resources"]:
-        entries.append((f"resource:{resource['id']}", "url", bare_url(resource.get("url"))))
-        if resource.get("citation", {}).get("doi"):
-            entries.append((f"resource:{resource['id']}", "doi", resource["citation"]["doi"].lower()))
-    for source in content["sources"]:
-        entries.append((f"sources:{source['id']}", "url", bare_url(source.get("url"))))
-        if source.get("doi"):
-            entries.append((f"sources:{source['id']}", "doi", source["doi"].lower()))
-            entries.append((f"sources:{source['id']}", "url", bare_url("https://doi.org/" + source["doi"])))
-    for repository in content["repositories"]:
-        entries.append((f"repository:{repository['id']}", "url", bare_url(repository.get("url"))))
-    for organization in content["guide"].get("organization", []):
-        entries.append((f"organization:{organization['id']}", "url", bare_url(organization.get("url"))))
-    seen: dict[tuple[str, str], str] = {}
-    for where, key, value in entries:
-        if not value:
-            continue
-        other = seen.setdefault((key, value), where)
-        if other != where:
-            what = "address" if key == "url" else "DOI"
-            report.error(where, f"describes the same thing as {other} (same {what}); merge them into one entry")
-
-    # R3 and R4, curated entries against the snapshot records they match
+    # R4, references to snapshot records resolve (one entry per thing is scripts/check_duplicates.py)
     dashboard = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), {})
-    fers = {bare_url(fer.get("url")): fer["id"] for fer in dashboard.get("resource", []) if fer.get("url")}
-    fer_ids = {fer["id"] for fer in dashboard.get("resource", [])}
-    for kind, plural in (("resource", "resources"), ("repository", "repositories")):
-        for entry in content[plural]:
-            # A record matches by its address, or by sharing the curated entry's ID, as the same name usually is.
-            match = fers.get(bare_url(entry.get("url"))) or (entry["id"] if entry["id"] in fer_ids else None)
-            if match and entry.get("fipDashboard") != match:
-                report.error(
-                    f"{kind}:{entry['id']}", f"matches FIP Dashboard resource '{match}'; link it with fipDashboard"
-                )
-    organizations = dashboard.get("organization", [])
-    org_by_url = {bare_url(org.get("url")): org["id"] for org in organizations if org.get("url")}
-    org_by_ror = {org["ror"]: org["id"] for org in organizations if org.get("ror")}
-    org_ids = {org["id"] for org in organizations}
+    org_ids = {org["id"] for org in dashboard.get("organization", [])}
     for organization in content["guide"].get("organization", []):
-        where = f"organization:{organization['id']}"
-        match = org_by_url.get(bare_url(organization.get("url"))) or org_by_ror.get(organization.get("ror"))
-        if match and organization.get("fipDashboard") != match:
-            report.error(where, f"matches FIP Dashboard organisation '{match}'; link it with fipDashboard")
         if organization.get("fipDashboard") and organization["fipDashboard"] not in org_ids:
-            report.error(where, f"FIP Dashboard has no organisation '{organization['fipDashboard']}'")
-    snapshot_repositories = [
-        repository for snapshot in content["snapshots"] for repository in snapshot.get("repository", [])
-    ]
-    by_address = {
-        bare_url(repository.get("url")): repository for repository in snapshot_repositories if repository.get("url")
-    }
-    curated = [(f"repository:{r['id']}", r) for r in content["repositories"]] + [
-        (f"resource:{r['id']}", {"url": r.get("url"), **r["repository"]})
-        for r in content["resources"]
-        if r.get("repository")
-    ]
-    for where, repository in curated:
-        match = by_address.get(bare_url(repository.get("url")))
-        if match and match.get("re3data") and repository.get("re3data") != match["re3data"]:
-            report.error(where, f"matches the re3data record {match['re3data']}; state it as re3data")
+            report.error(
+                f"organization:{organization['id']}",
+                f"FIP Dashboard has no organisation '{organization['fipDashboard']}'",
+            )
 
     # R5, entries nothing uses
     cited = {clause.get("source") for clause in content["ledger"]} | set(content["guide"]["guide"].get("isBasedOn", []))

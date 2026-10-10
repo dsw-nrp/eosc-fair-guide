@@ -3,11 +3,12 @@
 
     python scripts/check_all.py [--base REF] [--live] [--jobs N] [--only NAME ...]
 
-Builds the site into ``_site/``, then runs the content contract, the unit tests, Ruff, the icon and licence checks,
-the three crate validations and the page, API and diagram checks, each in its own process and as many at a time as
-the computer has cores. Prints each check's result and time as it finishes, the output of the checks that failed,
-and exits with 1 if any did. ``--live`` adds the live checks, which need the network; ``--only`` runs the named
-checks alone; ``--base`` passes a git reference to the content checks for paradata freshness (``HEAD`` by default).
+Builds the site into ``_site/``, then runs the content contract, the duplicates check, the unit tests, Ruff, the
+icon and licence checks, the three crate validations and the page, API and diagram checks, each in its own process
+and as many at a time as the computer has cores. Prints each check's result and time as it finishes, the output of
+the checks that failed, and exits with 1 if any did. ``--live`` adds the live checks, which need the network;
+``--only`` runs the named checks alone; ``--base`` passes a git reference to the content checks for paradata
+freshness (``HEAD`` by default).
 
 Run it with the interpreter of the environment that has ``requirements-dev.txt`` installed, after ``npm ci``. When
 ``PLAYWRIGHT_BROWSERS_PATH`` is not set and ``.cache/ms-playwright`` exists, the browser checks use it.
@@ -63,6 +64,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
     crate = ["--skip-availability-check", "_site"]
     found = [
         Job("content", [python, "scripts/check_content.py", *(["--base", base] if base else [])]),
+        Job("duplicates", [python, "scripts/check_duplicates.py"]),
         Job("unit", [python, "-m", "unittest", "discover", "-s", "tests", "-q"]),
         Job("ruff", [python, "-m", "ruff", "check", "scripts", "tests"]),
         Job("format", [python, "-m", "ruff", "format", "--check", "scripts", "tests"]),

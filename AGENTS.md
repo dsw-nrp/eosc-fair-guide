@@ -53,7 +53,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | Path | Content |
 | --- | --- |
 | `content/` | TOML sources |
-| `scripts/` | `build_site.py` (builds the site), `build_crate.py` (knowledge base, page and data scripts), `build_api.py` (API), `check_content.py` (content contract), `serve.py` (local server), `vendor_icons.py` (copies the named icons), `refresh_snapshots.py` (scheduled snapshots) |
+| `scripts/` | `build_site.py` (builds the site), `build_crate.py` (knowledge base, page and data scripts), `build_api.py` (API), `check_content.py` (content contract), `check_duplicates.py` (one entry per thing), `register_ids.py` (registers new entries' identifiers), `serve.py` (local server), `vendor_icons.py` (copies the named icons), `refresh_snapshots.py` (scheduled snapshots) |
 | `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | SHACL profile for the crate |
 | `index.html` | The page, with empty blocks the build fills (Content Security Policy, signposts, data scripts, icons) |
@@ -74,6 +74,8 @@ python scripts/check_all.py             # build, then every check below at once,
 python scripts/build_site.py            # build the site into _site/ (after npm ci); open _site/index.html
 python scripts/build_site.py --sizes    # also print what the page downloads, compressed; every build warns above the budget
 python scripts/check_content.py         # content contract and no build output in the repository (--base <ref> also checks paradata freshness)
+python scripts/check_duplicates.py      # one entry per thing: no two entries share an address, an identifier, a name or a text
+python scripts/register_ids.py          # register the identifiers of new entries in content/identifiers.toml
 python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script
 python scripts/refresh_snapshots.py     # refresh the re3data, Heslář and FIP Dashboard snapshots (scheduled job)
 python scripts/vendor_icons.py          # copy the icons the content names from node_modules (after npm ci); --check fails on drift

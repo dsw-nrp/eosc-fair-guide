@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from datetime import date
 from pathlib import Path
@@ -27,6 +28,7 @@ import build_crate  # noqa: E402
 import build_site  # noqa: E402
 import check_all  # noqa: E402
 import check_content  # noqa: E402
+import check_duplicates  # noqa: E402
 import refresh_snapshots  # noqa: E402
 import register_ids  # noqa: E402
 
@@ -476,14 +478,6 @@ class ContentCheckTests(FixtureCase):
         self.edit("ledger.toml", 'source = "report"', 'source = "service"')
         self.assertError("unknown source 'service'")
 
-    def test_same_address_in_two_entries(self) -> None:
-        self.append(
-            "sources.toml",
-            '\n[[source]]\nid = "copy"\ntype = "webpage"\ntitle = "Copy"\n'
-            'url = "http://www.example.org/service/"\ndateAccessed = 2026-01-01\n',
-        )
-        self.assertError("describes the same thing as resource:service (same address)")
-
     def test_one_identifier_names_one_entity(self) -> None:
         self.append(
             "sources.toml",
@@ -491,17 +485,6 @@ class ContentCheckTests(FixtureCase):
             'url = "https://example.org/other"\ndateAccessed = 2026-01-01\n',
         )
         self.assertError("id:service: names several entities")
-
-    def test_snapshot_match_needs_a_link(self) -> None:
-        snapshots = self.root / "content" / "snapshots"
-        snapshots.mkdir(exist_ok=True)
-        dashboard = DASHBOARD_SNAPSHOT.replace(
-            'name = "Resource one"', 'name = "Resource one"\nurl = "https://example.org/service"'
-        )
-        (snapshots / "fip-dashboard.toml").write_text(dashboard, encoding="utf-8")
-        self.assertError("matches FIP Dashboard resource 'r1'; link it with fipDashboard")
-        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
-        self.assertFalse(any("matches FIP Dashboard" in error for error in self.errors()))
 
     def test_czech_name_needs_an_english_form(self) -> None:
         self.edit("guide.toml", 'name = "Test Organisation"', 'name = "Testovací organizace"')
@@ -764,6 +747,90 @@ class IdentifierRegisterTests(FixtureCase):
         self.assertError("'one.99' is retired but was never registered")
         self.edit("identifiers.toml", "[retired]\n", '[retired]\nterms = ["1"]\n')
         self.assertError("identifiers:terms: unknown kind")
+
+
+class DuplicateTests(FixtureCase):
+    ADVICE_COPY = (
+        '\n[[advice]]\nid = "one.04"\nlens = "V"\nlevel = "L1"\ntext = { cs = "Postup.", en = "Steps." }\n'
+        'sources = ["A.F1.X1"]\n'
+    )
+
+    def duplicates(self) -> list[str]:
+        content = build_crate.load_content(self.root / "content")
+        path = self.root / "content" / check_duplicates.ACCEPTED_FILE
+        accepted = tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
+        return check_duplicates.check(content, accepted).errors
+
+    def assertDuplicate(self, fragment: str) -> None:  # noqa: N802 - unittest naming
+        errors = self.duplicates()
+        self.assertTrue(any(fragment in error for error in errors), errors)
+
+    def dashboard(self, record: str = "") -> None:
+        snapshots = self.root / "content" / "snapshots"
+        snapshots.mkdir(exist_ok=True)
+        text = DASHBOARD_SNAPSHOT.replace('name = "Resource one"', 'name = "Resource one"' + record)
+        (snapshots / "fip-dashboard.toml").write_text(text, encoding="utf-8")
+
+    def test_fixture_has_no_duplicates(self) -> None:
+        self.assertEqual(self.duplicates(), [])
+
+    def test_same_address_in_two_entries(self) -> None:
+        self.append(
+            "sources.toml",
+            '\n[[source]]\nid = "copy"\ntype = "webpage"\ntitle = "Copy"\n'
+            'url = "http://www.example.org/service/"\ndateAccessed = 2026-01-01\n',
+        )
+        self.assertDuplicate(
+            "resource:service: describes one thing with source:copy (address 'example.org/service'); merge them"
+        )
+
+    def test_registry_record_needs_a_link(self) -> None:
+        self.dashboard('\nurl = "https://example.org/service"')
+        self.assertDuplicate(
+            "fip-dashboard:r1: describes one thing with resource:service (address 'example.org/service'"
+        )
+        self.assertDuplicate("link the record with fipDashboard")
+        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
+        self.assertEqual(self.duplicates(), [])
+
+    def test_two_entries_cannot_link_one_record(self) -> None:
+        self.dashboard()
+        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
+        (self.root / "content" / "repositories.toml").write_text(
+            '[[repository]]\nid = "repo"\nname = "Repo"\nurl = "https://repo.example.org/"\nkind = "general"\n'
+            'fipDashboard = "r1"\n',
+            encoding="utf-8",
+        )
+        self.assertDuplicate("repository:repo: links the same record as resource:service (FIP Dashboard ID 'r1')")
+
+    def test_the_guide_says_each_thing_once(self) -> None:
+        self.append("stations/01-one.toml", self.ADVICE_COPY)
+        self.assertDuplicate(
+            "advice:one.03: describes one thing with advice:one.04 (text 'postup'; text 'steps'); say it once"
+        )
+        self.append(
+            "checks/gate.toml",
+            '\n[[item]]\nid = "gate.02"\ntier = "required"\nprinciples = ["F1"]\n'
+            'statement = { cs = "Repozitář přiděluje PID.", en = "The repository assigns PIDs." }\n'
+            'sources = ["A.F1.R1"]\n',
+        )
+        self.assertDuplicate("item:gate.01: describes one thing with item:gate.02")
+
+    def test_an_accepted_group_states_why_and_still_occurs(self) -> None:
+        self.append("stations/01-one.toml", self.ADVICE_COPY)
+        accepted = self.root / "content" / check_duplicates.ACCEPTED_FILE
+        accepted.write_text(
+            '[[accepted]]\nentries = ["advice:one.03", "advice:one.04"]\nreason = "Two audiences."\n', encoding="utf-8"
+        )
+        self.assertEqual(self.duplicates(), [])
+        accepted.write_text(
+            '[[accepted]]\nentries = ["advice:one.03", "advice:one.04"]\nreason = ""\n\n'
+            '[[accepted]]\nentries = ["advice:one.01", "advice:one.99"]\nreason = "Gone."\n',
+            encoding="utf-8",
+        )
+        self.assertDuplicate("duplicates:1: an accepted group states no reason")
+        self.assertDuplicate("duplicates:2: names no entry: advice:one.99")
+        self.assertDuplicate("duplicates:2: the accepted group no longer occurs; remove it")
 
 
 class BuildOutputTests(FixtureCase):
