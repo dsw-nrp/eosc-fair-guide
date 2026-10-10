@@ -1,8 +1,9 @@
-# Curated repositories for the finder, next to live NKR records and the re3data snapshot. A repository listed in
+# Curated repositories and reviewed annotations of imported records. A repository listed in
 # several sources appears once, crediting each. Field reference: docs/content-model.md.
 
 [[repository]]
 id = "zenodo"
+functions = ["deposit-data", "deposit-publications"]
 name = "Zenodo"
 url = "https://zenodo.org/"
 kind = "general"
@@ -15,6 +16,7 @@ asOf = 2026-10-08
 
 [[repository]]
 id = "mbdb"
+functions = ["deposit-data"]
 name = "Molecular Biophysics Database (MBDB)"
 url = "https://mbdb-data.org"
 kind = "domain"
@@ -24,6 +26,7 @@ asOf = 2026-10-09
 
 [[repository]]
 id = "dryad"
+functions = ["deposit-data"]
 name = "Dryad"
 url = "https://datadryad.org/stash"
 kind = "general"
@@ -35,6 +38,7 @@ asOf = 2026-10-09
 
 [[repository]]
 id = "harvard-dataverse"
+functions = ["deposit-data"]
 name = "Harvard Dataverse"
 url = "https://dataverse.harvard.edu/"
 kind = "general"
@@ -43,3 +47,26 @@ subjects = { cs = "všechny obory", en = "all fields" }
 pidTypes = ["DOI"]
 status = "operational"
 asOf = 2026-10-09
+
+# Annotations of records, not extra entries or changes to the source snapshots.
+[[record]]
+re3data = "r3d100014032"
+fipDashboard = "asep-arl"
+functions = ["deposit-data", "deposit-publications"]
+evidence = ["https://www.re3data.org/repository/r3d100014032", "https://lib.cas.cz/en/vav-support/asep-system/"]
+
+[[record]]
+re3data = "r3d100010386"
+fipDashboard = "clarin-dspace"
+functions = ["deposit-data"]
+evidence = ["https://www.re3data.org/repository/r3d100010386", "https://fip-dashboard.dmp.eosc.cz/resources/clarin-dspace"]
+
+[[record]]
+fipDashboard = "nrp-invenio"
+functions = ["deposit-data"]
+evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/nrp-invenio"]
+
+[[record]]
+fipDashboard = "nusl"
+functions = ["deposit-publications"]
+evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/nusl"]

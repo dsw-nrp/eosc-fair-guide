@@ -858,6 +858,53 @@ class BuildOutputTests(FixtureCase):
 
 
 class SiteTests(unittest.TestCase):
+    def test_repository_family_uses_meaning_and_reviewed_identity(self) -> None:
+        content = build_crate.load_content()
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
+        members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
+        self.assertTrue({"#resource-nma", "#resource-fairsharing", "#fer-nusl", "#fer-nrp-invenio"} <= members)
+        self.assertNotIn("#fer-asep-arl", members)
+        self.assertNotIn("#fer-clarin-dspace", members)
+        self.assertNotIn("#fer-zenodo", members)
+        self.assertEqual(graph.index["fip-dashboard.asep-arl"], graph.index["re3data.r3d100014032"])
+        self.assertEqual(graph.index["fip-dashboard.clarin-dspace"], graph.index["re3data.r3d100010386"])
+        nma = graph.entities["#resource-nma"]
+        self.assertEqual(nma["serviceStatus"], {"@id": "#status-operational"})
+        self.assertEqual(nma["repositoryFunction"], {"@id": "#rfunction-find-metadata"})
+        self.assertEqual(
+            build_crate.as_list(graph.entities["#fer-nusl"]["repositoryFunction"]),
+            [{"@id": "#rfunction-deposit-publications"}],
+        )
+        as_ep = graph.entities[graph.index["re3data.r3d100014032"][0]]
+        self.assertIn({"@id": "#rfunction-deposit-data"}, as_ep["repositoryFunction"])
+        self.assertIn({"@id": "#rfunction-deposit-publications"}, as_ep["repositoryFunction"])
+        self.assertIn({"@id": "#snapshot-fip-dashboard"}, as_ep["isBasedOn"])
+
+    def test_record_annotations_are_validated_and_do_not_guess_identity(self) -> None:
+        content = build_crate.load_content()
+        report = check_content.Report()
+        content["repository_records"][0]["fipDashboard"] = "nonexistent"
+        content["repository_records"][0]["evidence"] = []
+        content["repository_records"][0]["functions"] = ["not-a-function"]
+        check_content.check_repositories(report, content, check_content.vocabularies(content), TODAY)
+        self.assertTrue(any("unknown FIP Dashboard" in error for error in report.errors))
+        self.assertTrue(any("need published evidence" in error for error in report.errors))
+        self.assertTrue(any("unknown repository function" in error for error in report.errors))
+        content = build_crate.load_content()
+        content["repository_records"] = []
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
+        members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
+        self.assertIn("#fer-asep-arl", members)
+        self.assertIn("#fer-clarin-dspace", members)
+
+    def test_duplicate_check_follows_reviewed_cross_registry_links(self) -> None:
+        content = build_crate.load_content()
+        entries = {item.name: item for item in check_duplicates.entries(content)}
+        self.assertIn("fd:asep-arl", entries["re3data:r3d100014032"].keys)
+        self.assertIn("fd:clarin-dspace", entries["re3data:r3d100010386"].keys)
+
     def test_one_command_builds_the_whole_site(self) -> None:
         out = build_crate.ROOT / ".cache" / "test-site"
         try:

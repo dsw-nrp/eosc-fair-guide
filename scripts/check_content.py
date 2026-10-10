@@ -608,6 +608,33 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         if repository.get("kind") not in vocab["repository_kinds"]:
             report.error(where, f"unknown kind '{repository.get('kind')}'")
         check_status(report, where, repository, vocab, today)
+    for entry in content["repositories"] + content["resources"]:
+        for value in entry.get("functions", []):
+            if value not in vocab["repository_functions"]:
+                report.error(entry["id"], f"unknown repository function '{value}'")
+        if entry.get("functions") and entry in content["resources"] and entry.get("type") != "registry":
+            report.error(entry["id"], "repository functions belong to repositories or registries")
+    repositories = {item["re3data"] for snapshot in content["snapshots"] for item in snapshot.get("repository", [])}
+    dashboard = {item["id"]: item for snapshot in content["snapshots"] for item in snapshot.get("resource", [])}
+    annotations = content.get("repository_records", [])
+    for key in ("re3data", "fipDashboard"):
+        unique(report, f"repository records:{key}", [item[key] for item in annotations if item.get(key)], "record")
+    for record in annotations:
+        where = f"repository record:{record.get('re3data') or record.get('fipDashboard')}"
+        if not record.get("re3data") and not record.get("fipDashboard"):
+            report.error(where, "an annotation must identify an imported record")
+        if record.get("re3data") and record["re3data"] not in repositories:
+            report.error(where, "unknown re3data record")
+        if record.get("fipDashboard") and dashboard.get(record["fipDashboard"], {}).get("type") != "repository":
+            report.error(where, "unknown FIP Dashboard repository or registry record")
+        if not record.get("evidence"):
+            report.error(where, "reviewed record annotations need published evidence")
+        for url in record.get("evidence", []):
+            if not isinstance(url, str) or not url.startswith("https://"):
+                report.error(where, "annotation evidence must be an HTTPS address")
+        for value in record.get("functions", []):
+            if value not in vocab["repository_functions"]:
+                report.error(where, f"unknown repository function '{value}'")
     for snapshot in content["snapshots"]:
         info = snapshot.get("snapshot", {})
         where = f"snapshot:{info.get('source')}"
@@ -739,6 +766,10 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
         index.setdefault(resource["id"], "resource")
     for repository in content["repositories"]:
         index.setdefault(repository["id"], "repository")
+    for record in content.get("repository_records", []):
+        for key, prefix in (("re3data", "re3data"), ("fipDashboard", "fip-dashboard")):
+            if record.get(key):
+                index.setdefault(f"{prefix}.{record[key]}", "repository record")
     return index
 
 
@@ -1114,6 +1145,7 @@ def vocabularies(content: dict[str, Any]) -> dict[str, Any]:
         "statuses": {status["id"] for status in guide_file.get("status", [])},
         "resource_types": {item["id"] for item in guide_file.get("resourceType", [])},
         "repository_kinds": {item["id"] for item in guide_file.get("repositoryKind", [])},
+        "repository_functions": {item["id"] for item in guide_file.get("repositoryFunction", [])},
         "stations": {data["station"]["id"] for data in content["stations"]},
         "terms": {term["id"] for term in content["glossary"].get("term", [])},
         "tests": {test["id"] for test in content["live"].get("champion", {}).get("test", [])},

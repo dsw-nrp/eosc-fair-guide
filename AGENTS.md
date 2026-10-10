@@ -105,6 +105,11 @@ PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .c
 
 ## GUI and UX principles
 
+Start from what the reader wants to do and what an entry means. Navigation, labels, grouping and defaults must
+make sense without knowing the data files, registries or implementation. Source, recommendation and verification
+are separate facts shown where they help a decision. Apply this lens to every view and review (D-137 in
+`docs/design.md`).
+
 Alignment, spacing and consistency are part of correctness here, not polish. The page checks enforce what can be
 measured (`misalignedControls` and `collisions` in `tests/page/check_page.mjs`); the visual pass covers the rest.
 

@@ -78,6 +78,11 @@ def thing(label: str, curated: bool, /, **keys: Any) -> Entry:
 
 def entries(content: dict[str, Any]) -> list[Entry]:
     out: list[Entry] = []
+    record_links = {
+        item["re3data"]: item.get("fipDashboard")
+        for item in content.get("repository_records", [])
+        if item.get("re3data")
+    }
     for resource in content["resources"]:
         citation = resource.get("citation", {})
         repository = resource.get("repository", {})
@@ -136,6 +141,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                     False,
                     url=bare_url(record.get("url")),
                     r3d=record["re3data"],
+                    fd=record_links.get(record["re3data"]),
                     name=words(record.get("name")),
                 )
             )

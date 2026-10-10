@@ -1524,3 +1524,14 @@ instruments = ["claude-opus-5-5", "claude-code"]
 objects = []
 results = ["gate.*"]
 endTime = 2026-10-10T09:57:00+02:00
+
+[[action]]
+id = "2026-10-10-catalogue-meaning"
+type = "update"
+name = "Repositories and registries follow the reader's task"
+description = "Repositories and registries from every source share one catalogue family and can be filtered by function. Reviewed ASEP and LINDAT record links join their representations without changing source claims or entry addresses. Source, recommendation and verification remain distinct. The editing rules now apply the reader's meaning and task to every view. AI assistance used GPT-6.1 Sol via OpenAI Codex, as confirmed by the user; the runtime does not expose the exact backend model ID."
+agent = "david-novak"
+instruments = ["openai-codex"]
+objects = ["re3data", "fip-dashboard"]
+results = ["zenodo", "mbdb", "dryad", "harvard-dataverse", "nkr", "fip-dashboard", "re3data", "fairsharing", "datarepo", "nma", "fair-impact", "re3data.r3d100014032", "re3data.r3d100010386", "fip-dashboard.nrp-invenio", "fip-dashboard.nusl"]
+endTime = 2026-10-10T13:11:26Z

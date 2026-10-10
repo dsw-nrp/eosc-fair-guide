@@ -452,7 +452,7 @@
     if ((match = id.match(/^check-(.+)$/))) return { view: "check", arg: match[1] };
     if ((match = id.match(/^page-(.+)$/))) return { view: "page", arg: match[1] };
     if ((match = id.match(/^resource-(.+)$/))) return { view: "catalogue", arg: "resources", extra: match[1] };
-    if (id === "repositories") return { view: "catalogue", arg: "repositories" };
+    if (id === "repositories") return FG.repositoryFinderHref ? FG.parseHash(FG.repositoryFinderHref()) : { view: "catalogue", arg: "repositories" };
     if (id === "resources") return { view: "catalogue", arg: "resources" };
     if (id === "tests") return { view: "catalogue", arg: "tests" };
     if (id === "ledger") return { view: "explorer" };

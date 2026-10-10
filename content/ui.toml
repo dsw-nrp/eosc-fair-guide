@@ -170,6 +170,8 @@ open = { cs = "Otevřít {name}", en = "Open {name}" }
 verified = { cs = "Ověřeno: {verifiers}", en = "Verified by: {verifiers}" }
 selfDeclared = { cs = "Vlastní deklarace", en = "Self-declared" }
 underReview = { cs = "V posuzování", en = "Under review" }
+selfDeclaredBy = { cs = "Vlastní deklarace: {verifiers}", en = "Self-declared by: {verifiers}" }
+underReviewBy = { cs = "V posuzování: {verifiers}", en = "Under review by: {verifiers}" }
 languages = { cs = "Jazyk: {languages}", en = "Language: {languages}" }
 
 [finder]
@@ -178,7 +180,7 @@ snapshot = { cs = "Snímek ze dne {date}", en = "Snapshot of {date}" }
 disclaimer = { cs = "Upozornění FIP Dashboardu", en = "FIP Dashboard notice" }
 
 [repositories]
-intro = { cs = "Přednostně ukládejte do oborového repozitáře, jinak do institucionálního; obecné repozitáře jsou poslední možností. Seznam spojuje výběr průvodce, snímek registru re3data a na vyžádání záznamy z Národního katalogu repozitářů (NKR) a z FAIRsharing.", en = "Deposit preferably in a domain repository, otherwise in an institutional one; general-purpose repositories are the last option. The list combines the guide's selection, a snapshot of the re3data registry and, on request, records from the National Repository Catalogue (NKR) and from FAIRsharing." }
+intro = { cs = "Vyberte podle toho, co potřebujete: uložit data nebo publikace, hledat metadata, standardy, repozitáře či nástroje. Pro uložení dat dejte přednost oborovému repozitáři, potom institucionálnímu a nakonec obecnému. Zařazení v katalogu samo o sobě neznamená doporučení ani kvalifikaci NRP nebo EOSC CZ; ověření uvádí, kdo je provedl.", en = "Choose by what you need: deposit data or publications, find metadata, standards, repositories or tools. For data deposit, prefer a domain repository, then an institutional one and finally a general-purpose one. Listing alone does not imply a recommendation or NRP or EOSC CZ qualification; verification names who performed it." }
 curated = { cs = "výběr průvodce", en = "the guide's selection" }
 nkrLoad = { cs = "Načíst záznamy z NKR", en = "Load records from NKR" }
 nkrLoading = { cs = "Načítám záznamy z NKR…", en = "Loading records from NKR…" }
@@ -605,7 +607,7 @@ statement = { cs = "zjištění", en = "finding" }
 
 [catalogue.tab]
 resources = { cs = "Zdroje", en = "Resources" }
-repositories = { cs = "Repozitáře", en = "Repositories" }
+repositories = { cs = "Repozitáře a registry", en = "Repositories and registries" }
 clauses = { cs = "Požadavky", en = "Requirements" }
 terms = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
@@ -722,6 +724,7 @@ status = { cs = "Stav", en = "Status" }
 language = { cs = "Jazyk", en = "Language" }
 lens = { cs = "Pohled", en = "View as" }
 rkind = { cs = "Druh repozitáře", en = "Repository kind" }
+rfunction = { cs = "Chci", en = "I want to" }
 rsource = { cs = "Zdroj údajů", en = "Data from" }
 ckind = { cs = "Druh požadavku", en = "Kind of requirement" }
 csource = { cs = "Podklad", en = "Source" }

@@ -136,6 +136,37 @@ version = "2.1.246"
 url = "https://claude.com/claude-code"
 kind = "software"
 
+[[instrument]]
+id = "openai-codex"
+name = "OpenAI Codex / GPT-6.1 Sol"
+version = "GPT-6.1 Sol (user-confirmed)"
+url = "https://openai.com/codex/"
+kind = "ai-model"
+
+[[repositoryFunction]]
+id = "deposit-data"
+name = { cs = "Uložit výzkumná data", en = "Deposit research data" }
+
+[[repositoryFunction]]
+id = "deposit-publications"
+name = { cs = "Uložit publikace", en = "Deposit publications" }
+
+[[repositoryFunction]]
+id = "find-metadata"
+name = { cs = "Hledat data a metadata", en = "Find data and metadata" }
+
+[[repositoryFunction]]
+id = "find-standards"
+name = { cs = "Hledat standardy", en = "Find standards" }
+
+[[repositoryFunction]]
+id = "find-repositories"
+name = { cs = "Hledat repozitáře", en = "Find repositories" }
+
+[[repositoryFunction]]
+id = "find-support"
+name = { cs = "Hledat nástroje a postupy", en = "Find tools and guidance" }
+
 [[lens]]
 id = "V"
 name = { cs = "Výzkumník", en = "Researcher" }

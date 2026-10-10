@@ -321,6 +321,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "nkr"
+functions = ["find-repositories"]
 name = { cs = "Národní katalog repozitářů (NKR)", en = "National Repository Catalogue (NKR)" }
 description = { cs = "Katalog repozitářů zapojených do národní datové infrastruktury, s otevřeným API.", en = "Catalogue of repositories in the national data infrastructure, with an open API." }
 url = "https://repo.cz"
@@ -334,6 +335,7 @@ languages = ["cs", "en"]
 
 [[resource]]
 id = "fip-dashboard"
+functions = ["find-repositories", "find-standards", "find-support"]
 name = "FIP Dashboard"
 description = { cs = "Katalog zdrojů umožňujících FAIR (FER) a profilů FIP komunit, s ověřením NRP a EOSC CZ.", en = "The catalogue of FAIR-enabling resources (FERs) and community FIPs, with verification by NRP and EOSC CZ." }
 url = "https://fip-dashboard.dmp.eosc.cz/"
@@ -354,6 +356,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "re3data"
+functions = ["find-repositories"]
 name = "re3data.org"
 description = { cs = "Mezinárodní registr výzkumných repozitářů.", en = "International registry of research data repositories." }
 url = "https://www.re3data.org/"
@@ -366,8 +369,15 @@ stations = ["repository"]
 languages = ["en"]
 sameAs = ["http://purl.org/np/RAGv90JSxsBhhVhdJq_6CtOrHCLBbAuMLdkhES3dkog8o#r3data"]
 
+[resource.citation]
+type = "webpage"
+title = "re3data: Registry of Research Data Repositories"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
 [[resource]]
 id = "fairsharing"
+functions = ["find-standards", "find-repositories"]
 name = "FAIRsharing"
 description = { cs = "Registr standardů, databází a politik.", en = "Registry of standards, databases and policies." }
 url = "https://fairsharing.org/"
@@ -390,6 +400,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "datarepo"
+functions = ["deposit-data"]
 name = { cs = "Datový catch-all repozitář NRP", en = "NRP Data Catch-all Repository" }
 description = { cs = "Repozitář pro data, pro která se nehodí oborový ani institucionální repozitář; přiděluje DOI.", en = "A repository for data that fit no domain or institutional repository; it assigns DOIs." }
 url = "https://datarepo.eosc.cz/"
@@ -975,10 +986,11 @@ sameAs = ["http://purl.org/np/RAhRzHY30rI0MoohlPbosSSgE-tu_bcKtTyE3JhTIyA3c#OAI-
 
 [[resource]]
 id = "nma"
+functions = ["find-metadata"]
 name = { cs = "Národní metadatový adresář (NMA)", en = "National Metadata Directory (NMA)" }
 description = { cs = "Národní vyhledávání metadat výzkumných dat; odkaz pro RIV.", en = "National search of research data metadata; the RIV link." }
 url = "https://nma.eosc.cz/"
-type = "service"
+type = "registry"
 fipClass = ["Registry"]
 fipDashboard = "nma"
 status = "operational"
@@ -1269,6 +1281,7 @@ datePublished = "2026-07"
 
 [[resource]]
 id = "fair-impact"
+functions = ["find-support"]
 name = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }
 description = { cs = "Zdroje pro zavádění FAIR včetně metrik a hodnocení.", en = "Resources for implementing FAIR, including metrics and assessment." }
 url = "https://catalogue.fair-impact.eu/resources"

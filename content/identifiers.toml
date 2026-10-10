@@ -946,6 +946,7 @@ actions = [
   "2026-10-10-resource-types",
   "2026-10-10-identifiers",
   "2026-10-10-gate-profiles",
+  "2026-10-10-catalogue-meaning",
 ]
 
 [retired]

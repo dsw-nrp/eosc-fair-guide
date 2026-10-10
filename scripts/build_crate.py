@@ -102,6 +102,7 @@ TERMS = {
     ),
     "catalogueType": "Type of a FAIR-enabling resource in the FIP Dashboard.",
     "repositoryKind": "Kind of a repository: domain, institutional or general-purpose.",
+    "repositoryFunction": "What a reader can use a repository or registry for.",
     "clauseKind": "Kind of a ledger clause: requirement, fulfilment in NRP, or statement.",
     "supersededBy": "Clause or source that replaces a superseded clause.",
     "lensOrder": "Order of a callout's items for one lens, written as '<lens>: <item>, <item>, ...'.",
@@ -214,6 +215,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "checks": checks,
         "resources": optional("resources.toml").get("resource", []),
         "repositories": optional("repositories.toml").get("repository", []),
+        "repository_records": optional("repositories.toml").get("record", []),
         "snapshots": snapshots,
         "glossary": optional("glossary.toml"),
         "callouts": optional("callouts.toml").get("callout", []),
@@ -520,6 +522,13 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
     defined_terms(graph, "actors", "Actors", "actor", guide.get("actor", []))
     defined_terms(graph, "resource-types", "Resource types", "rtype", guide.get("resourceType", []))
     defined_terms(graph, "repository-kinds", "Repository kinds", "rkind", guide.get("repositoryKind", []))
+    defined_terms(
+        graph,
+        "repository-functions",
+        "Repository and registry functions",
+        "rfunction",
+        guide.get("repositoryFunction", []),
+    )
     stage_ids = defined_terms(graph, "stages", "Entry stages", "stage", guide.get("stage", []))
     for stage, stage_id in zip(guide.get("stage", []), stage_ids, strict=True):
         graph.entities[stage_id]["startsAt"] = ref(f"#station-{stage['station']}")
@@ -855,6 +864,7 @@ def build_resources(
                 else []
             ),
             "resourceType": ref(f"#rtype-{resource['type']}"),
+            "repositoryFunction": refs([f"#rfunction-{value}" for value in resource.get("functions", [])]),
             "serviceStatus": ref(f"#status-{resource['status']}") if resource.get("status") else None,
             "statusAsOf": iso(resource["asOf"]) if resource.get("asOf") else None,
             "sameAs": refs(
@@ -907,6 +917,7 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         "name": text(repository["name"]),
         "url": repository.get("url"),
         "repositoryKind": ref(f"#rkind-{repository['kind']}") if repository.get("kind") else None,
+        "repositoryFunction": refs([f"#rfunction-{value}" for value in repository.get("functions", ["deposit-data"])]),
         "keywords": text(repository.get("subjects"))
         or [{"@value": subject, "@language": "en"} for subject in repository.get("subjectsEn", [])],
         "identifier": identifiers,
@@ -953,10 +964,17 @@ def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
 
 
 def build_repositories(
-    graph: Graph, curated: list[dict[str, Any]], snapshots: list[dict[str, Any]], resources: list[dict[str, Any]]
+    graph: Graph,
+    curated: list[dict[str, Any]],
+    snapshots: list[dict[str, Any]],
+    resources: list[dict[str, Any]],
+    records: list[dict[str, Any]] | None = None,
 ) -> list[str]:
-    """Merge the curated list, the repository-type resources and the snapshots: one entity per repository, crediting
-    every source. A repository the guide recommends as a resource is that resource's entity."""
+    """List repositories and registries by meaning, regardless of source. Reviewed record annotations join
+    registry identities without changing a snapshot's facts or inferring identity from a similar host or name.
+    Source records remain available as evidence; the catalogue lists the described thing once."""
+    records = records or []
+    annotations = {item["re3data"]: item for item in records if item.get("re3data")}
     merged: dict[str, dict[str, Any]] = {}
     order: list[str] = []
     graph.add({"@id": "#repositories-curated", "@type": "CreativeWork", "name": "Curated repository list"})
@@ -971,14 +989,21 @@ def build_repositories(
     for snapshot in snapshots:
         sources.append((snapshot_id(snapshot), snapshot.get("repository", [])))
     for based_on, repositories in sources:
-        for repository in repositories:
+        for source_record in repositories:
+            repository = source_record | annotations.get(source_record.get("re3data"), {})
             key = repository_key(repository)
             entity = repository_entity(repository, based_on)
+            if repository.get("fipDashboard"):
+                entity["isBasedOn"].append(ref("#snapshot-fip-dashboard"))
             if key in merged:
                 existing = merged[key]
                 for prop, value in entity.items():
                     if prop == "isBasedOn":
                         existing["isBasedOn"] += [item for item in value if item not in existing["isBasedOn"]]
+                    elif prop in ("identifier", "sameAs"):
+                        existing[prop] = as_list(existing.get(prop)) + [
+                            item for item in as_list(value) if item not in as_list(existing.get(prop))
+                        ]
                     elif prop not in existing or existing[prop] in (None, [], ""):
                         existing[prop] = value
             else:
@@ -994,7 +1019,7 @@ def build_repositories(
         if entity.pop("_resource"):
             # The resource's entity takes the repository facts it does not state itself.
             resource = graph.entities[entity["@id"]]
-            for prop in ("repositoryKind", "keywords", "isBasedOn"):
+            for prop in ("repositoryKind", "repositoryFunction", "keywords", "isBasedOn"):
                 if entity.get(prop) and not resource.get(prop):
                     resource[prop] = entity[prop]
             resource["sameAs"] = as_list(resource.get("sameAs")) + [
@@ -1005,8 +1030,49 @@ def build_repositories(
             repository_ids.append(entity["@id"])
             continue
         repository_ids.append(graph.add({"@id": entity.pop("@id"), **entity}, content_id))
+
+    # Registry resources belong here too, even when the guide recommends or cites them elsewhere.
+    for resource in resources:
+        if resource.get("type") == "registry":
+            entity_id = f"#resource-{resource['id']}"
+            entity = graph.entities[entity_id]
+            append_ref(entity, "isBasedOn", "#repositories-curated")
+            if resource.get("fipDashboard"):
+                append_ref(entity, "isBasedOn", "#snapshot-fip-dashboard")
+            if entity_id not in repository_ids:
+                repository_ids.append(entity_id)
+    linked = {
+        item["@id"].removeprefix(FIP_DASHBOARD)
+        for entity_id in repository_ids
+        for item in as_list(graph.entities[entity_id].get("sameAs"))
+        if isinstance(item, dict) and item.get("@id", "").startswith(FIP_DASHBOARD)
+    }
+    dashboard_annotations = {item["fipDashboard"]: item for item in records if item.get("fipDashboard")}
+    for snapshot in snapshots:
+        for record in snapshot.get("resource", []):
+            if record.get("type") != "repository" or record["id"] in linked:
+                continue
+            entity_id = f"#fer-{record['id']}"
+            entity = graph.entities[entity_id]
+            functions = dashboard_annotations.get(record["id"], {}).get("functions", [])
+            if functions:
+                entity["repositoryFunction"] = refs([f"#rfunction-{value}" for value in functions])
+            repository_ids.append(entity_id)
+    for entity_id in repository_ids:
+        entity = graph.entities[entity_id]
+        for record in as_list(entity.get("sameAs")):
+            url = record.get("@id", "") if isinstance(record, dict) else str(record)
+            if url.startswith(FIP_DASHBOARD):
+                graph.index["fip-dashboard." + url.removeprefix(FIP_DASHBOARD)] = [entity_id]
+            elif url.startswith("https://www.re3data.org/repository/"):
+                graph.index["re3data." + url.rsplit("/", 1)[-1]] = [entity_id]
     graph.add(
-        {"@id": "#repositories", "@type": "CreativeWork", "name": "Repositories", "hasPart": refs(repository_ids)}
+        {
+            "@id": "#repositories",
+            "@type": "CreativeWork",
+            "name": "Repositories and registries",
+            "hasPart": refs(repository_ids),
+        }
     )
     return repository_ids
 
@@ -1389,8 +1455,10 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     link_resources(graph, content["resources"])
     check_ids = build_checks(graph, content["checks"], content["live"].get("links", {}))
     snapshot_ids = build_snapshots(graph, content["snapshots"])
-    build_repositories(graph, content["repositories"], content["snapshots"], content["resources"])
     catalogue_ids = build_fip_dashboard(graph, content["snapshots"], crosswalk)
+    build_repositories(
+        graph, content["repositories"], content["snapshots"], content["resources"], content.get("repository_records")
+    )
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
     page_ids = build_pages(graph, content["pages"])

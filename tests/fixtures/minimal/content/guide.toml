@@ -85,6 +85,10 @@ id = "document"
 name = { cs = "dokument", en = "document" }
 citation = ["report", "article", "dataset", "webpage", "document", "standard", "software", "presentation"]
 
+[[repositoryFunction]]
+id = "deposit-data"
+name = { cs = "Uložit data", en = "Deposit data" }
+
 [[repositoryKind]]
 id = "general"
 name = { cs = "obecný", en = "general" }

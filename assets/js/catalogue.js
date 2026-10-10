@@ -29,6 +29,7 @@
   FG.borrowedId = (registry, id) => registry + "." + id;
   FG.termAnchor = (term) => FG.borrowedId("t.ntk", term.termCode);
   FG.repositoryAnchor = (repository) => {
+    if (String(repository["@id"] || "").startsWith("#fer-")) return FG.borrowedId("fip-dashboard", repository.identifier);
     const own = String(repository["@id"] || "").replace(/^#(repository|resource)-/, "");
     if (FG.refIds(repository, "isBasedOn").includes("#snapshot-re3data")) return FG.borrowedId("re3data", own);
     if (own) return own;
@@ -260,6 +261,7 @@
     for (const station of FG.stations()) for (const id of FG.refIds(station, "mentions")) recommendedAt.set(id, (recommendedAt.get(id) || []).concat(station));
     const citedSet = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
     const linkedFers = new Set();
+    const repositoryIds = new Set(FG.refIds(FG.get("#repositories"), "hasPart"));
     for (const repository of FG.refs(FG.get("#repositories"), "hasPart")) {
       const record = FG.dashboardRecord(repository);
       if (record && record.fer) linkedFers.add(record.fer["@id"]);
@@ -268,6 +270,7 @@
     for (const resource of resources) {
       const record = FG.dashboardRecord(resource);
       if (record && record.fer) linkedFers.add(record.fer["@id"]);
+      if (repositoryIds.has(resource["@id"])) continue;
       const recommended = recommendedAt.get(resource["@id"]) || [];
       const citedBy = cited.get(resource["@id"]) || [];
       const used = [recommended.length ? "recommended" : null, citedSet.has(resource["@id"]) ? "cited" : null, record ? "dashboard" : null].filter(Boolean);
@@ -317,7 +320,7 @@
           }),
       });
     }
-    for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((entity) => !linkedFers.has(entity["@id"]))) {
+    for (const fer of FG.refs(FG.get("#fers"), "hasPart").filter((entity) => !linkedFers.has(entity["@id"]) && !repositoryIds.has(entity["@id"]))) {
       entries.push({
         kind: "resources",
         anchor: FG.borrowedId("fip-dashboard", fer.identifier),
@@ -343,38 +346,52 @@
     return entries;
   }
 
-  function repositoryEntries() {
+  function repositoryEntries(cited) {
+    const citedSet = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
     return FG.repositoryEntries().map((repository) => {
       const anchor = FG.repositoryAnchor(repository);
       const kindIndex = FG.repositoryKindOrder.indexOf(FG.id(repository.repositoryKind));
       const record = FG.dashboardRecord(repository);
       const r3d = FG.refIds(repository, "sameAs").map((id) => (String(id).match(/r3d\d{9}/) || [])[0]).find(Boolean);
+      const recommended = FG.stations().filter((station) => FG.refIds(station, "mentions").includes(repository["@id"]));
+      const citedBy = cited.get(repository["@id"]) || [];
+      const holders = recommended.concat(citedBy);
+      const functions = FG.refIds(repository, "repositoryFunction");
+      const used = [recommended.length ? "recommended" : null, citedSet.has(repository["@id"]) ? "cited" : null, record ? "dashboard" : null].filter(Boolean);
       return {
         kind: "repositories",
         anchor,
         aliases: borrowedAliases(anchor, r3d, record),
         entity: repository,
         name: FG.text(repository.name),
-        export: { url: repository.url },
-        text: [FG.text(repository.name), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
-        stations: ["repository"],
+        export: { url: repository.url, text: FG.text(repository.description) },
+        text: [FG.bothLanguages(repository.name), FG.bothLanguages(repository.description), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
+        stations: [...new Set(stationsOf(holders).concat(functions.includes("#rfunction-deposit-data") ? ["repository"] : []))],
         principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
         order: (kindIndex < 0 ? FG.repositoryKindOrder.length : kindIndex) + ":" + FG.fold(FG.text(repository.name)),
         facets: {
+          rfunction: functions,
           rkind: FG.id(repository.repositoryKind) ? [FG.id(repository.repositoryKind)] : [],
           rsource: FG.refIds(repository, "isBasedOn").concat(repository.nkr ? ["nkr"] : [], repository.fairsharing ? ["fairsharing"] : []),
+          use: used,
+          status: FG.id(repository.serviceStatus) ? [FG.id(repository.serviceStatus)] : [],
+          language: FG.list(repository.inLanguage).map(String),
+          lens: FG.refIds(repository, "audience").map((id) => id.replace("#lens-", "")),
         },
         render: () =>
           entryCard({
             id: anchor,
             entity: repository,
-            what: FG.id(repository.repositoryKind) ? FG.termName(FG.id(repository.repositoryKind)) : null,
+            what: functions.map(FG.termName).concat(FG.id(repository.repositoryKind) ? [FG.termName(FG.id(repository.repositoryKind))] : [], uses(used)),
             title: FG.external(repository.url, FG.text(repository.name)),
             details: FG.subjectsOf(repository).join(", "),
+            body: repository.description ? h("p", null, FG.span(repository.description)) : null,
             states: [FG.statusBadge(repository), record ? FG.verificationBadges(record.fer) : null],
             relations: {
               principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
               basedOn: FG.repositorySourceLinks(repository),
+              audience: audiences(FG.refIds(repository, "audience")),
+              inGuide: inGuide(holders),
               identifiers: FG.pidItems(repository).concat(record ? [FG.pidItem("dashboard", record.url)] : []),
             },
           }),
@@ -639,7 +656,7 @@
     const { bySource, byClause } = citations();
     const kinds = {
       resources: resourceEntries(bySource),
-      repositories: repositoryEntries(),
+      repositories: repositoryEntries(bySource),
       clauses: clauseEntries(byClause),
       questions: questionEntries(),
       terms: termEntries(),
@@ -717,8 +734,13 @@
       { key: "lens", values: () => FG.lenses().map((lens) => lens.audienceType), label: (value) => FG.category(FG.text((FG.lenses().find((lens) => lens.audienceType === value) || {}).name)), passThrough: true },
     ],
     repositories: [
+      { key: "rfunction", values: () => FG.refIds(FG.get("#repository-functions"), "hasDefinedTerm"), label: categoryLabel },
       { key: "rkind", values: () => FG.repositoryKindOrder, label: categoryLabel },
       { key: "rsource", label: (value) => (value === "nkr" ? "NKR" : value === "fairsharing" ? "FAIRsharing" : FG.repositorySource(value)) },
+      { key: "use", values: () => ["recommended", "cited", "dashboard"], label: (value) => FG.t("catalogue.use." + value) },
+      { key: "status", label: categoryLabel },
+      { key: "language", values: () => ["cs", "en"], label: (value) => FG.t("catalogue.language." + value) },
+      { key: "lens", values: () => FG.lenses().map((lens) => lens.audienceType), label: (value) => FG.category(FG.text((FG.lenses().find((lens) => lens.audienceType === value) || {}).name)), passThrough: true },
     ],
     clauses: [
       { key: "ckind", values: () => ["requirement", "recommendation", "fulfilment", "statement"], label: (value) => FG.t("catalogue.clauseKind." + value) },
@@ -762,6 +784,7 @@
 
   /** The catalogue showing one kind narrowed to some stations, such as the changes to a station. */
   FG.catalogueFilterHref = (kind, stations) => writeState({ kinds: [kind], stations, principles: [], q: "", order: "", f: {} });
+  FG.repositoryFinderHref = () => writeState({ kinds: ["repositories"], stations: [], principles: [], q: "", order: "", f: { rfunction: ["#rfunction-deposit-data"] } });
 
   function writeState(state) {
     const fields = ["k!" + state.kinds.map(encodePart).join("_")];
@@ -970,6 +993,7 @@
         "div",
         { class: "kind-intro" },
         h("p", { class: "small" }, intro),
+        FG.dashboardNotice(),
         h("div", { class: "filter-actions" }, nkr.button, fairsharing.button),
         nkr.status || fairsharing.status ? h("div", { class: "filter-status" }, nkr.status, fairsharing.status) : null,
         nkr.samples ? FG.nkrSamples() : null
@@ -979,7 +1003,7 @@
       "div",
       { class: "kind-intro" },
       h("p", { class: "small" }, intro),
-      kind === "fips" || kind === "resources" ? FG.dashboardNotice() : null
+      kind === "fips" || kind === "resources" || kind === "repositories" ? FG.dashboardNotice() : null
     );
   }
 
@@ -995,11 +1019,11 @@
     const kind = state.kinds[0];
     const selected = [kind];
     const inKinds = entries[kind];
-    /* A borrowed identifier the guide's own entry carries leads to that entry, in whichever kind it is listed. */
+    /* An entry keeps its address when its family changes, and every borrowed record address leads to it too. */
     if (route.extra && !inKinds.some((entry) => entry.anchor === route.extra)) {
       const target = Object.values(entries)
         .flat()
-        .find((entry) => (entry.aliases || []).includes(route.extra));
+        .find((entry) => entry.anchor === route.extra || (entry.aliases || []).includes(route.extra));
       if (target) {
         window.history.replaceState(null, "", FG.catalogueHref(target.kind, target.anchor));
         setTimeout(FG.render);
@@ -1074,8 +1098,19 @@
       return station ? station.position + " · " + FG.text(station.name) : id;
     };
     const principleLabel = (value) => value + " " + FG.text((FG.principles().find((entry) => entry.termCode === value) || {}).name);
+    const kindFacet = (own, facet) => {
+      const counts = kindFacetCounts(own, facet.key);
+      const natural = facet.values ? facet.values() : [...counts.keys()].sort((a, b) => FG.fold(facet.label(a)).localeCompare(FG.fold(facet.label(b)), "cs"));
+      const values = natural.slice().sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
+      const chosen = chosenValues(state, route, facet.key);
+      return facetGroup(own + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
+        go(Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: toggle(chosen, value) }) }), focus)
+      );
+    };
+    const purpose = (KIND_FACETS[kind] || []).find((facet) => facet.key === "rfunction");
     const facets = [
       search,
+      purpose ? kindFacet(kind, purpose) : null,
       /* Changing the kind keeps search, station, principle and lens, and drops the previous kind's own facets. */
       kindPicker(
         kind,
@@ -1095,23 +1130,13 @@
           )
         : null,
       selected.map((own) => {
-        const ownFacets = KIND_FACETS[own] || [];
+        const ownFacets = (KIND_FACETS[own] || []).filter((facet) => facet !== purpose);
         if (!ownFacets.length) return null;
         return h(
           "div",
           { class: "facet-kind" },
           h("p", { class: "facet-kind-name" }, FG.t("catalogue.tab." + own)),
-          ownFacets.map((facet) => {
-            const counts = kindFacetCounts(own, facet.key);
-            /* By number of records, most first; equal counts keep the facet's own order (alphabetical where it has
-               none). Kind, station and principle keep the guide's order. */
-            const natural = facet.values ? facet.values() : [...counts.keys()].sort((a, b) => FG.fold(facet.label(a)).localeCompare(FG.fold(facet.label(b)), "cs"));
-            const values = natural.slice().sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
-            const chosen = chosenValues(state, route, facet.key);
-            return facetGroup(own + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
-              go(Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: toggle(chosen, value) }) }), focus)
-            );
-          })
+          ownFacets.map((facet) => kindFacet(own, facet))
         );
       }),
     ];

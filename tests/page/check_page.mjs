@@ -674,6 +674,46 @@ sections.push(["page", async () => {
       await view.waitForSelector('[id="item-zenodo"]');
       if (!(await view.evaluate(() => location.hash.endsWith("/catalogue/repositories/zenodo"))) || (await view.locator(".catalogue-results .card").count()) !== 1) fail(`catalogue: ${borrowedAddress} does not lead to Zenodo's entry alone`);
     }
+    // Meaning determines the family; source records enrich it, and existing addresses still find the thing.
+    for (const lang of ["cs", "en"]) {
+      await view.goto(pageUrl + `#/${lang}/V/catalogue/repositories`);
+      await view.waitForSelector(".catalogue-results");
+      const purposeFirst = await view.locator('[data-facet="repositories-rfunction"]').evaluate((facet) => {
+        const kind = document.querySelector('[data-facet="kind"]');
+        return kind && !!(facet.compareDocumentPosition(kind) & Node.DOCUMENT_POSITION_FOLLOWING) && facet.getBoundingClientRect().bottom <= window.innerHeight;
+      });
+      if (!purposeFirst) fail("repositories and registries: task choices are hidden below general filters or the fold");
+      for (const id of ["nma", "fairsharing", "fip-dashboard.nusl", "fip-dashboard.nrp-invenio", "re3data.r3d100014032", "re3data.r3d100010386"]) {
+        if ((await view.locator(`[id="item-${id}"]`).count()) !== 1) fail(`catalogue: ${id} is not listed once among repositories and registries (${lang})`);
+      }
+      for (const id of ["asep-arl", "clarin-dspace"]) {
+        if (await view.locator(`[id="item-fip-dashboard.${id}"]`).count()) fail(`catalogue: ${id} is listed apart from its reviewed re3data match`);
+      }
+      for (const [old, target] of [["resources/nma", "nma"], ["resources/fairsharing", "fairsharing"], ["resources/fip-dashboard.asep-arl", "re3data.r3d100014032"], ["resources/fip-dashboard.clarin-dspace", "re3data.r3d100010386"]]) {
+        await view.goto(pageUrl + `#/${lang}/V/catalogue/${old}`);
+        await view.waitForSelector(`[id="item-${target}"]`);
+        if ((await view.locator(".catalogue-results .card").count()) !== 1 || !(await view.evaluate(() => location.hash.includes("/catalogue/repositories/")))) fail(`catalogue: old address ${old} does not open the single joined entry`);
+      }
+      await view.goto(pageUrl + `#/${lang}/V/path/repository`);
+      await view.waitForSelector(".now-actions");
+      const chooser = view.locator('.now-actions a[href*="f.rfunction"]');
+      if (!(await chooser.count())) fail("repository chooser: no function filter on the action");
+      else await chooser.first().click();
+      await view.waitForSelector(".catalogue-results");
+      for (const id of ["zenodo", "mbdb", "re3data.r3d100014032"]) {
+        if (!(await view.locator(`[id="item-${id}"]`).count())) fail(`repository chooser: data destination ${id} is missing`);
+      }
+      for (const id of ["nma", "fairsharing", "fip-dashboard.nusl"]) {
+        if (await view.locator(`[id="item-${id}"]`).count()) fail(`repository chooser: ${id} is presented as a data deposit destination`);
+      }
+      await view.goto(pageUrl + `#/${lang}/V/catalogue/k!repositories~f.rfunction!%23rfunction-deposit-publications`);
+      await view.waitForSelector(".catalogue-results");
+      for (const id of ["zenodo", "re3data.r3d100014032", "fip-dashboard.nusl"]) {
+        if (!(await view.locator(`[id="item-${id}"]`).count())) fail(`publication filter: ${id} is missing`);
+      }
+      if (await view.locator('[id="item-mbdb"]').count()) fail("publication filter: a data-only repository is included");
+      if (!(await view.locator(".kind-intro .notice").count())) fail("repositories and registries: the dashboard's demo disclaimer is missing");
+    }
     const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
     if (!datacite.pids.some(([scheme, href, text]) => scheme === "Nanopublikace" && href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
     const clause = await pidsOf("#/cs/V/catalogue/k!clauses~q!A.F1.N1", "A.F1.N1");

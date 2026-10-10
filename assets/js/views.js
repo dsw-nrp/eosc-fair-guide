@@ -61,17 +61,15 @@
 
   function verificationBadges(fer) {
     if (!fer) return [];
-    const reviews = FG.refs(fer, "review");
-    const byLevel = (level) => reviews.filter((review) => review.reviewAspect === level);
-    const badges = [];
-    const verified = byLevel("verified");
-    if (verified.length) {
-      const names = verified.map((review) => FG.text((FG.get(review.author) || {}).alternateName || (FG.get(review.author) || {}).name));
-      badges.push(h("span", { class: "badge", "data-verification": "verified" }, h("span", { "aria-hidden": "true" }, "✓"), FG.t("resource.verified", { verifiers: names.join(", ") })));
-    }
-    if (byLevel("self-declared").length) badges.push(h("span", { class: "badge" }, FG.t("resource.selfDeclared")));
-    if (byLevel("under-review").length) badges.push(h("span", { class: "badge" }, FG.t("resource.underReview")));
-    return badges;
+    const levels = { verified: "verified", "self-declared": "selfDeclaredBy", "under-review": "underReviewBy" };
+    return FG.refs(fer, "review").filter((review) => levels[review.reviewAspect]).map((review) => {
+      const author = FG.get(review.author) || {};
+      const name = FG.text(author.alternateName || author.name);
+      return h("span", { class: "badge", "data-verification": review.reviewAspect },
+        review.reviewAspect === "verified" ? h("span", { "aria-hidden": "true" }, "✓") : null,
+        FG.t("resource." + levels[review.reviewAspect], { verifiers: name }),
+        review.dateCreated ? h("span", { class: "muted" }, " · " + FG.formatDate(review.dateCreated)) : null);
+    });
   }
 
   /** Orientation tags: the principles an entry serves, as tiles, and the lenses it is for, as icons. */
@@ -1084,7 +1082,7 @@
           (record.url && repository.url && repository.url.replace(/\/$/, "").toLowerCase() === record.url.replace(/\/$/, "").toLowerCase())
       );
       if (match) match.nkr = record;
-      else merged.push({ name: record.name, url: record.url, identifier: record.re3data ? [record.re3data] : [], repositoryKind: record.kind, keywords: record.keywords, nkr: record, isBasedOn: [] });
+      else merged.push({ name: record.name, url: record.url, identifier: record.re3data ? [record.re3data] : [], repositoryKind: record.kind, repositoryFunction: [{ "@id": "#rfunction-deposit-data" }], keywords: record.keywords, nkr: record, isBasedOn: [] });
     }
     return merged;
   }
@@ -1113,8 +1111,10 @@
       and FIP Dashboard snapshots, NKR and FAIRsharing; the guide's own selection is named. */
   function repositorySources(repository) {
     const r3d = FG.refIds(repository, "sameAs").find((id) => /re3data\.org/.test(id));
+    const dashboard = FG.dashboardRecord(repository);
     const sources = FG.refIds(repository, "isBasedOn").map((id) => {
       const name = FG.repositorySource(id);
+      if (id === "#snapshot-fip-dashboard" && dashboard) return FG.external(dashboard.url, name);
       return id === "#snapshot-re3data" && r3d ? FG.external(r3d, name) : name;
     });
     if (repository.nkr) sources.push(repository.nkr.id ? FG.external(FG.config.links.nkr + "objects/" + repository.nkr.id, "NKR") : "NKR");
