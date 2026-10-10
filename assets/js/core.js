@@ -196,11 +196,12 @@
 
   /* ---------------------------------------------------------------- references in text */
 
-  /** Where a reference in text leads: the catalogue entry of the resource, source or glossary term, or the page. */
+  /** Where a reference in text leads: its catalogue entry, page or lifecycle station. */
   FG.referenceHref = function (id) {
     const entity = FG.get(id);
     if (!entity) return null;
     if (String(id).startsWith("#page-")) return FG.href("page", entity.identifier);
+    if (String(id).startsWith("#station-")) return FG.href("path", entity.identifier);
     if (String(id).startsWith("#clause-")) return FG.catalogueHref("clauses", entity.identifier);
     /* Something of the guide's own site, such as its profile: its page at the same place, wherever the site is. */
     const base = FG.config.pageUrl || "";

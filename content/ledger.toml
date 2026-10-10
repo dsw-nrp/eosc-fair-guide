@@ -3368,3 +3368,580 @@ text = { cs = "Čas, geografie a jednotky se v datech a metadatech objevují vš
 guidance = '''
 Time, geography, and units of measure are used ubiquitously in data and metadata, and are important for the integration and use of data. This profile gives some general guidance on these important topics.
 '''
+
+[[clause]]
+id = "FAIR4RS.01"
+source = "fair4rs"
+locator = "FAIR4RS, 2022"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Software má vlastní principy FAIR4RS, včetně samostatné identifikace verzí a komponent a popisu závislostí.", en = "Software has its own FAIR4RS principles, including distinct version/component identifiers and dependency descriptions." }
+
+[[clause]]
+id = "CODE.01"
+source = "code-principles"
+locator = "CODE principles, 2026"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Zlepšujte sdílení, dokumentaci, spouštění a spolupráci postupně, podle potřeb projektu.", en = "Improve sharing, documentation, execution and collaboration gradually, according to project needs." }
+
+[[clause]]
+id = "SWH.01"
+source = "software-heritage"
+locator = "Software Heritage archive"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Archiv zdrojového kódu doplňuje vývojový repozitář; archivovaný obsah lze přesně identifikovat pomocí SWHID.", en = "A source-code archive complements a development repository; archived content can be precisely identified with an SWHID." }
+
+[[clause]]
+id = "SWH-GUIDE.01"
+source = "software-heritage-guide"
+locator = "Archive and reference code"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Pro archivaci připravte veřejný repozitář, licenci a autorství; odkaz na archivovanou verzi získáte až po uložení.", en = "Prepare a public repository, licensing and authorship for archival; obtain an archived-version reference after preservation." }
+
+[[clause]]
+id = "OPENSSF.01"
+source = "openssf-best-practices"
+locator = "About the badge"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "OpenSSF Best Practices je dobrovolná sebecertifikace praktik FLOSS, nikoli nezávislé posouzení FAIR.", en = "OpenSSF Best Practices is voluntary FLOSS practice self-certification, not an independent FAIR assessment." }
+
+[[clause]]
+id = "OSII-STUDY.01"
+source = "osii-study"
+locator = "10.9.4, pp. 91–96, ELN_1–ELN_5"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Projekt OS II připravuje podporu laboratorních i terénních deníků, integrace Kadi4Mat a eLabFTW, národní instance a metodiku nasazení.", en = "The OS II project is developing support for laboratory and field notebooks, Kadi4Mat and eLabFTW integrations, national instances and deployment guidance." }
+
+[[clause]]
+id = "OSII-STUDY.02"
+source = "osii-study"
+locator = "10.9.4, pp. 91–96"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Deník spravuje živá data, metadata a historii práce. Napojení na repozitáře má omezit opakované zadávání metadat; deník nenahrazuje dlouhodobé uložení.", en = "A notebook manages active data, metadata and work history. Repository integration aims to reduce repeated metadata entry; notebooks do not replace long-term preservation." }
+
+[[clause]]
+id = "OSII-STUDY.03"
+source = "osii-study"
+locator = "10.9.5, pp. 97–98, P_1–P_3"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Projekt OS II připravuje sledování původu dat z repozitářů a deníků pomocí W3C PROV a CPM, podpůrné nástroje a metodiku integrace.", en = "The OS II project is developing provenance tracking from repositories and notebooks using W3C PROV and CPM, supporting tools and integration guidance." }
+
+[[clause]]
+id = "EOSC-ELN.01"
+source = "eosc-notebooks"
+locator = "EOSC CZ training, 2024-09-05"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Školení EOSC CZ vysvětluje laboratorní a terénní deníky a jejich vztah k poznámkovým nástrojům a repozitářům.", en = "EOSC CZ training explains laboratory and field notebooks and their relationship to note-taking tools and repositories." }
+
+[[clause]]
+id = "LONDON.4.6"
+source = "london-charter"
+locator = "Documentation, principle 4.6"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Dokumentujte rozhodnutí, důvody a nejistotu interpretace; Londýnská charta tuto praxi rozvíjí pro vizualizaci kulturního dědictví.", en = "Document decisions, reasoning and interpretation uncertainty; the London Charter develops this practice for cultural heritage visualisation." }
+
+[[clause]]
+id = "FDO-INTRO.01"
+source = "fdo-overview"
+locator = "What is an FDO?"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "FDO spojuje trvalý identifikátor, typ a profil s definovanými atributy a strojově použitelnými vazbami. Samotný DOI nebo balíček RO-Crate soulad neprokazuje.", en = "An FDO connects a persistent identifier, type and profile with defined attributes and machine-actionable links. A DOI or RO-Crate alone does not establish conformance." }
+
+[[clause]]
+id = "FRSM.FRSM-01"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-01"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Software má trvalý a jednoznačný identifikátor.", en = "The software has a persistent, unambiguous identifier." }
+
+[[clause]]
+id = "FRSM.FRSM-02"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-02"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Samostatně používané komponenty mají rozlišitelné identifikátory a popsané vztahy.", en = "Independently used components have distinct identifiers and described relationships." }
+
+[[clause]]
+id = "FRSM.FRSM-03"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-03"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Použitá verze má vlastní identifikátor, odlišný od jiných verzí.", en = "The version used has its own identifier, distinct from other versions." }
+
+[[clause]]
+id = "FRSM.FRSM-04"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-04"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Metadata vysvětlují, co software dělá a k čemu slouží.", en = "Metadata explain what the software does and its purpose." }
+
+[[clause]]
+id = "FRSM.FRSM-05"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-05"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Metadata uvádějí stav vývoje a údržby.", en = "Metadata state development and maintenance status." }
+
+[[clause]]
+id = "FRSM.FRSM-06"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-06"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Metadata uvádějí přispěvatele a jejich role.", en = "Metadata name contributors and their roles." }
+
+[[clause]]
+id = "FRSM.FRSM-07"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-07"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Metadata obsahují identifikátor popisovaného softwaru.", en = "Metadata include the identifier of the software described." }
+
+[[clause]]
+id = "FRSM.FRSM-08"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-08"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Záznam metadat je veřejně dostupný a zůstane zachován i bez softwaru.", en = "The metadata record is publicly accessible and survives loss of the software." }
+
+[[clause]]
+id = "FRSM.FRSM-09"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-09"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Kód lze získat standardním komunikačním protokolem.", en = "Code can be retrieved through a standard communications protocol." }
+
+[[clause]]
+id = "FRSM.FRSM-10"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-10"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Otevřené formáty vstupů a výstupů jsou popsané a mají odkaz na specifikaci.", en = "Open input/output formats are described and reference their specifications." }
+
+[[clause]]
+id = "FRSM.FRSM-11"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-11"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Má-li software API, jeho otevřené rozhraní má strojově čitelný popis.", en = "Where software provides an API, its open interface has a machine-readable description." }
+
+[[clause]]
+id = "FRSM.FRSM-12"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-12"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Dokumentace odkazuje na související data a další objekty potřebné k použití.", en = "Documentation references related data and other objects needed for use." }
+
+[[clause]]
+id = "FRSM.FRSM-13"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-13"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Jsou popsané závislosti, sestavení a nastavení potřebné ke spuštění.", en = "Dependencies, build and configuration needed to run are described." }
+
+[[clause]]
+id = "FRSM.FRSM-14"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-14"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Software má testovací příklady, které dokládají jeho fungování.", en = "The software has test cases demonstrating its behaviour." }
+
+[[clause]]
+id = "FRSM.FRSM-15"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-15"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Licence kódu a přibalených součástí jsou dohledatelné.", en = "Licences for code and bundled components can be found." }
+
+[[clause]]
+id = "FRSM.FRSM-16"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-16"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Záznam metadat uvádí licenci softwaru.", en = "The metadata record states the software licence." }
+
+[[clause]]
+id = "FRSM.FRSM-17"
+source = "frsm"
+locator = "Generic metrics v1.0, FRSM-17"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Je doložen původ a vývoj softwaru.", en = "The software origin and development history are documented." }
+
+[[clause]]
+id = "FDO.FDOR-GR1"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDOR-GR1"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Každý posuzovaný objekt má celosvětově jednoznačný a trvalý identifikátor (PID), pomocí kterého lze objekt dohledat.", en = "Each assessed object has a globally unique, persistent identifier (PID) that can be resolved to locate the object." }
+
+[[clause]]
+id = "FDO.FDOR-GR2"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDOR-GR2"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Pomocí PID lze získat strukturovaný záznam podle určeného profilu, z něhož program dohledá objekt.", en = "Resolving the PID returns a structured record following a specified profile, from which a program can locate the object." }
+
+[[clause]]
+id = "FDO.FDOR-GR3"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDOR-GR3"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Má-li objekt datový obsah, záznam uvádí odkaz na tento obsah a definici jeho typu.", en = "If the object has data content, the record provides its access location and type definition." }
+
+[[clause]]
+id = "FDO.FDO-GR4"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR4"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Záznam obsahuje atributy požadované profilem; profil rozlišuje vložené hodnoty a odkazy.", en = "The record contains profile-required attributes; the profile distinguishes embedded values from references." }
+
+[[clause]]
+id = "FDO.FDO-GR5"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR5"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Rozhraní umožňuje zpřístupnit objekt nebo s ním provést operaci. Operace se vybírá pomocí jejího PID a je registrována jako podporovaná.", en = "The interface lets a client access or operate on the object by specifying the PID of a registered supported operation." }
+
+[[clause]]
+id = "FDO.FDO-GR6"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR6"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Rozhraní podporuje vytvoření, čtení, změnu a smazání objektu a rozšíření o oborové operace.", en = "The interface supports creating, reading, updating and deleting objects and extending domain operations." }
+
+[[clause]]
+id = "FDO.FDO-GR7"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR7"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Vztahy mezi typy objektů a podporovanými operacemi jsou v registru.", en = "Relationships between object types and supported operations are registered." }
+
+[[clause]]
+id = "FDO.FDO-GR8"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR8"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Metadata tvořená jako FDO používají registrované schéma a registrované metadatové kategorie.", en = "Metadata represented as FDOs use a registered schema and registered metadata categories." }
+
+[[clause]]
+id = "FDO.FDO-GR9"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR9"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Příslušné druhy metadat, například původ či přístupová práva, jsou rozlišeny.", en = "Relevant metadata kinds, such as provenance or access permissions, are distinguished." }
+
+[[clause]]
+id = "FDO.FDO-GR10"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR10"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Komunita spravuje metadatová schémata jako FAIR digitální objekty.", en = "The community maintains metadata schemas as FAIR digital objects." }
+
+[[clause]]
+id = "FDO.FDO-GR11"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR11"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Kolekce FDO má formálně popsanou skladbu a vztahy členů.", en = "An FDO collection has a formally described composition and member relationships." }
+
+[[clause]]
+id = "FDO.FDO-GR12"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR12"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Po smazání objektu zůstává PID a strojově rozpoznatelný záznam o smazání.", en = "After object deletion, its PID and a machine-recognisable deletion record remain." }
+
+[[clause]]
+id = "FDO.FDO-GR13"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR13"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Záznam získaný pomocí PID a údaje o objektu umožňují programu s objektem pracovat podle popsaných typů a operací.", en = "The resolved PID record and object information allow a program to work with the object using described types and operations." }
+
+[[clause]]
+id = "FDO.FDO-GR14"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR14"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Je doloženo, jak zvolená konfigurace naplňuje určenou specifikaci FDO.", en = "There is evidence of how the selected configuration meets the specified FDO specification." }
+
+[[clause]]
+id = "FDO.FDO-GR15"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-GR15"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Komunita stanovila účelnou podrobnost, s jakou objekty samostatně identifikuje.", en = "The community has chosen useful granularity for independently identifying objects." }
+
+[[clause]]
+id = "FDO.FDO-PIDR1"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-PIDR1"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Protokol pro získání záznamu pomocí PID je standardizovaný, bezplatný a veřejně dostupný.", en = "The protocol for resolving a PID is standardised, free and publicly accessible." }
+
+[[clause]]
+id = "FDO.FDO-PIDR2"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-PIDR2"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Profil určuje, jaké údaje program získá při dotazu na PID a jak je má interpretovat.", en = "The profile specifies which information a program receives when resolving the PID and how to interpret it." }
+
+[[clause]]
+id = "FDO.FDO-PIDR3"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-PIDR3"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Atributy v záznamu PID mají definice zveřejněné v otevřených registrech.", en = "PID-record attributes have definitions published in open registries." }
+
+[[clause]]
+id = "FDO.FDO-PIDR4"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-PIDR4"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Poskytovatel doložil, že systém PID zvládne růst provozu, odolává výpadkům a bude dlouhodobě dostupný celosvětově.", en = "The provider has evidence that the PID system can scale, withstand failures and remain globally available over the long term." }
+
+[[clause]]
+id = "FDO.FDO-PIDR5"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-PIDR5"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Změny záznamu a jeho zpřístupnění či šifrování řídí vlastník nebo pověřený zástupce.", en = "Record changes and access or encryption are controlled by the owner or delegated agent." }
+
+[[clause]]
+id = "FDO.FDO-PIDR6"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-PIDR6"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Správa PID systému je zabezpečena infrastrukturou veřejných klíčů a případně standardními certifikáty.", en = "PID-system management is secured by public-key infrastructure and, where needed, standard certificates." }
+
+[[clause]]
+id = "FDO.FDO-FDOR1"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR1"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Schéma použitého profilu FDO je zveřejněno v uznávaném registru.", en = "The schema of the FDO profile in use is published in a recognised registry." }
+
+[[clause]]
+id = "FDO.FDO-FDOR2"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR2"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Atributy záznamu odpovídají profilu a odkazují na registrované definice ve schématu typů.", en = "Record attributes follow the profile and refer to registered definitions in the type schema." }
+
+[[clause]]
+id = "FDO.FDO-FDOR3"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR3"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Záznam obsahuje všechny povinné základní atributy profilu včetně typu objektu.", en = "The record contains all mandatory profile kernel attributes, including the object type." }
+
+[[clause]]
+id = "FDO.FDO-FDOR4"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR4"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Použité volitelné a komunitní atributy mají registrované definice, podle kterých je program umí interpretovat.", en = "Optional and community attributes in use have registered definitions that a program can interpret." }
+
+[[clause]]
+id = "FDO.FDO-FDOR5"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR5"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "U datového obsahu záznam odkazuje na obsah i bohatý metadatový popis.", en = "For data content, the record references both the content and a rich metadata description." }
+
+[[clause]]
+id = "FDO.FDO-FDOR6"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR6"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Objekt má typ umožňující automatickou validaci a zpracování.", en = "The object has a type enabling automated validation and processing." }
+
+[[clause]]
+id = "FDO.FDO-FDOR7"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR7"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Každá zahrnutá datová, metadatová či softwarová část má určený typ.", en = "Each included data, metadata or software content part has a specified type." }
+
+[[clause]]
+id = "FDO.FDO-FDOR8"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDOR8"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Volba existujícího, odvozeného nebo nového typu je zdokumentována.", en = "The choice of an existing, derived or new type is documented." }
+
+[[clause]]
+id = "FDO.FDO-FDO9"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDO9"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Definice typu používá dohodnutý formální zápis a sama je FAIR digitálním objektem.", en = "The type definition uses agreed syntax and is itself a FAIR digital object." }
+
+[[clause]]
+id = "FDO.FDO-FDO10"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDO10"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "PID typu vede na objekt s jeho definicí.", en = "The type PID resolves to the object containing its definition." }
+
+[[clause]]
+id = "FDO.FDO-FDO11"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-FDO11"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Používaný rámec určuje, jak typy definovat a přiřazovat objektům.", en = "The framework in use specifies how types are defined and attached to objects." }
+
+[[clause]]
+id = "FDO.FDO-RESR1"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-RESR1"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "U odkazovaných zdrojů je doloženo naplnění příslušných principů FAIR.", en = "Referenced resources have evidence of meeting the applicable FAIR principles." }
+
+[[clause]]
+id = "FDO.FDO-RESR2"
+source = "fdo-specification"
+locator = "Proposed Recommendation 3.0, FDO-RESR2"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Poskytovatelé pravidelně posuzují důvěryhodnost postupů, například podle CoreTrustSeal.", en = "Providers regularly assess the trustworthiness of procedures, for example under CoreTrustSeal." }
+
+[[clause]]
+id = "CAMBRIDGE-ERN.01"
+source = "cambridge-notebooks"
+locator = "Notebook selection guidance"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Při výběru výzkumného deníku ověřte historii změn, export, přístupová práva a zálohy; nároky se liší podle způsobu práce.", en = "When choosing a research notebook, check change history, export, permissions and backups; needs vary with the work." }
+
+
+[[clause]]
+id = "ZENODO-SW.01"
+source = "zenodo-software-guide"
+locator = "Create a software deposit"
+principles = []
+actor = "other"
+kind = "recommendation"
+text = { cs = "Vydání softwaru lze uložit v repozitáři s popisem a zdrojovým kódem; Zenodo nabízí ruční nahrání i propojení s vydáním na GitHubu. Archivaci kódu je třeba ověřit na zveřejněném záznamu.", en = "A software release can be deposited with descriptive metadata and source code; Zenodo offers manual upload and integration with GitHub releases. Code archival needs verification on the published record." }

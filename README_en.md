@@ -26,13 +26,19 @@ human-facing overview.
 
 ## Running the guide
 
-Open `index.html` in a browser. Nothing is installed, and the page works offline; only the live checks need
-the internet. The page can be embedded in another site (iframe) or hosted on its own.
+Build from a fresh clone with Python 3.11 or later, then open `_site/index.html`:
+
+```bash
+python scripts/build_site.py
+```
+
+The build uses the Python standard library. The built page works offline; only the live checks need the
+internet. It can be embedded in another site (iframe) or hosted on its own.
 
 For a local server, which some browsers need for clipboard features:
 
 ```bash
-python -m http.server 8000
+python scripts/serve.py --build
 ```
 
 ## Repository layout
@@ -50,6 +56,9 @@ python -m http.server 8000
 | `diagrams/` | Mermaid diagram sources |
 | `docs/` | Design and decisions (`design.md`), content model (`content-model.md`) |
 | `.github/` | CI workflows, templates and code owners |
+
+The [software practice example](docs/software-practice.md) maps the app's evidence and remaining release
+steps to its software guidance.
 
 ## Editing content
 

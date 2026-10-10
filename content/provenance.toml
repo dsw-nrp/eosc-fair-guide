@@ -1535,3 +1535,25 @@ instruments = ["openai-codex"]
 objects = ["re3data", "fip-dashboard"]
 results = ["zenodo", "mbdb", "dryad", "harvard-dataverse", "nkr", "fip-dashboard", "re3data", "fairsharing", "datarepo", "nma", "fair-impact", "re3data.r3d100014032", "re3data.r3d100010386", "fip-dashboard.nrp-invenio", "fip-dashboard.nusl"]
 endTime = 2026-10-10T13:11:26Z
+
+[[action]]
+id = "2026-10-10-research-practice"
+type = "update"
+name = "Research practice connects software, notebooks, provenance and FDOs"
+description = "Readers need research practice by meaning, without knowing the underlying source organisation. Dedicated pages and advisory checks distinguish software assessment, preservation and voluntary self-certification; OS II guidance explains notebook support, repository connections and provenance tracking without administrative section numbers. Planned national integration is distinguished from available notebook software. Provenance is paired with the reasons for consequential decisions. FDO readiness retains version 3.0 requirement labels and separates provider responsibilities. Continuous review called for advice in the context of each role and whole station, archive alternatives, readable pages and removal of temporary preparation commentary. Expanded content uses the established padding, and station references open the lifecycle path in the current language and role. Continuous review also found that the repository function facet displaced the shared kind picker; task choices now stay under the repositories-and-registries heading and the kind picker keeps its shared position across families. The tools menu now names both tools and practical guidance. AI assistance used user-confirmed GPT-6.1 Sol via OpenAI Codex; the runtime does not expose the exact backend model ID."
+agent = "david-novak"
+instruments = ["openai-codex"]
+objects = ["zenodo-software-guide", "cambridge-notebooks", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification"]
+results = ["cambridge-notebooks", "CAMBRIDGE-ERN.01", "page:software", "page:notebooks", "page:provenance", "page:fdo", "page:about", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification", "FAIR4RS.01", "CODE.01", "SWH.01", "SWH-GUIDE.01", "OPENSSF.01", "OSII-STUDY.01", "OSII-STUDY.02", "OSII-STUDY.03", "EOSC-ELN.01", "LONDON.4.6", "FDO-INTRO.01", "FRSM.FRSM-01", "FRSM.FRSM-02", "FRSM.FRSM-03", "FRSM.FRSM-04", "FRSM.FRSM-05", "FRSM.FRSM-06", "FRSM.FRSM-07", "FRSM.FRSM-08", "FRSM.FRSM-09", "FRSM.FRSM-10", "FRSM.FRSM-11", "FRSM.FRSM-12", "FRSM.FRSM-13", "FRSM.FRSM-14", "FRSM.FRSM-15", "FRSM.FRSM-16", "FRSM.FRSM-17", "FDO.FDOR-GR1", "FDO.FDOR-GR2", "FDO.FDOR-GR3", "FDO.FDO-GR4", "FDO.FDO-GR5", "FDO.FDO-GR6", "FDO.FDO-GR7", "FDO.FDO-GR8", "FDO.FDO-GR9", "FDO.FDO-GR10", "FDO.FDO-GR11", "FDO.FDO-GR12", "FDO.FDO-GR13", "FDO.FDO-GR14", "FDO.FDO-GR15", "FDO.FDO-PIDR1", "FDO.FDO-PIDR2", "FDO.FDO-PIDR3", "FDO.FDO-PIDR4", "FDO.FDO-PIDR5", "FDO.FDO-PIDR6", "FDO.FDO-FDOR1", "FDO.FDO-FDOR2", "FDO.FDO-FDOR3", "FDO.FDO-FDOR4", "FDO.FDO-FDOR5", "FDO.FDO-FDOR6", "FDO.FDO-FDOR7", "FDO.FDO-FDOR8", "FDO.FDO-FDO9", "FDO.FDO-FDO10", "FDO.FDO-FDO11", "FDO.FDO-RESR1", "FDO.FDO-RESR2", "work.23", "work.25", "metadata.40", "publication.27", "publication.28", "licence.26", "citation.19", "work.02", "work.06", "metadata.04", "metadata.13", "metadata.22", "metadata.33", "ZENODO-SW.01", "zenodo-software-guide", "software.01", "software.02", "software.03", "software.04", "software.05", "software.06", "software.07", "software.08", "software.09", "software.10", "software.11", "software.12", "software.13", "software.14", "software.15", "software.16", "software.17", "software.18", "software.19", "software.20", "fdo.01", "fdo.02", "fdo.03", "fdo.04", "fdo.05", "fdo.06", "fdo.07", "fdo.08", "fdo.09", "fdo.10", "fdo.11", "fdo.12", "fdo.13", "fdo.14", "fdo.15", "fdo.16", "fdo.17", "fdo.18", "fdo.19", "fdo.20", "fdo.21", "fdo.22", "fdo.23", "fdo.24", "fdo.25", "fdo.26", "fdo.27", "fdo.28", "fdo.29", "fdo.30", "fdo.31", "fdo.32", "fdo.33", "fdo.34"]
+endTime = 2026-10-10T17:34:29Z
+
+[[action]]
+id = "2026-10-11-manual-review"
+type = "update"
+name = "Manual corrections to metadata and rights guidance"
+description = "The maintainer manually corrected the metadata and rights advice. OpenAI Codex recorded these human edits in provenance and checked the standing change set before committing it; the corrected wording was supplied by the maintainer."
+agent = "david-novak"
+instruments = ["openai-codex"]
+objects = ["A.I1.X1", "A.I2.X1", "A.R1.1.X2", "A.R1.1.X3"]
+results = ["metadata.27", "licence.21"]
+endTime = 2026-10-10T22:42:22Z

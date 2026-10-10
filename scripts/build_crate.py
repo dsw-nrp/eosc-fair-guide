@@ -42,11 +42,12 @@ UI_SCRIPT = "assets/data/ui.js"
 # a small first download: the requirements of the standards the guide ingests (CoreTrustSeal, CDIF) with their
 # guidance, the FIP profiles of the FIP Dashboard snapshot, and the text of the guide's pages. Each is a classic
 # script like kb.js; kb.js and the parts together are the crate.
-STANDARD_CLAUSES = ("#clause-CTS.", "#clause-CDIF.")
+STANDARD_CLAUSES = ("#clause-CTS.", "#clause-CDIF.", "#clause-FDO.", "#clause-FRSM.")
 PART_SCRIPTS = {
     "standards": "assets/data/kb-standards.js",
     "fips": "assets/data/kb-fips.js",
     "pages": "assets/data/kb-pages.js",
+    "questions": "assets/data/kb-questions.js",
 }
 PROFILE_DIR = "profile/fair-guide"
 BASE_URL_ENV = "FAIR_GUIDE_BASE_URL"
@@ -379,6 +380,7 @@ def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
         if entity_id.startswith("#term-")
     }
     targets |= {"page:" + page["id"]: f"#page-{page['id']}" for page in content["pages"]}
+    targets |= {"station:" + data["station"]["id"]: f"#station-{data['station']['id']}" for data in content["stations"]}
     targets |= {"clause:" + clause["id"]: f"#clause-{clause['id']}" for clause in content["ledger"]}
     targets["profile"] = content["guide"]["guide"]["profile"]
     return targets
@@ -1490,6 +1492,45 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         }
     )
 
+    software_id = "#guide-software"
+    graph.add(
+        {
+            "@id": "#guide-source",
+            "@type": "CreativeWork",
+            "additionalType": "http://schema.org/SoftwareSourceCode",
+            "name": "FAIR Data Guide source code",
+            "codeRepository": guide.get("url"),
+            "version": guide["version"],
+            "programmingLanguage": ["JavaScript", "Python", "HTML", "CSS"],
+            "softwareRequirements": [
+                guide.get("url", "").rstrip("/") + "/blob/HEAD/pyproject.toml",
+                guide.get("url", "").rstrip("/") + "/blob/HEAD/package-lock.json",
+                guide.get("url", "").rstrip("/") + "/blob/HEAD/requirements-dev.txt",
+            ],
+            "citation": guide.get("url", "").rstrip("/") + "/blob/HEAD/CITATION.cff",
+            "license": ref(LICENSES["MIT"][0]),
+            "author": refs([people[person] for person in guide.get("editors", [])]),
+            "isPartOf": ref(software_id),
+        }
+    )
+    graph.add(
+        {
+            "@id": software_id,
+            "@type": "SoftwareApplication",
+            "name": text(guide["name"]),
+            "description": "The guide software; its content knowledge base is a separately described dataset.",
+            "softwareVersion": guide["version"],
+            "version": guide["version"],
+            "creativeWorkStatus": guide.get("releaseStatus"),
+            "url": guide.get("url"),
+            "license": ref(LICENSES["MIT"][0]),
+            "author": refs([people[person] for person in guide.get("editors", [])]),
+            "runtimePlatform": "Web browser; Python 3.11 or later for the build; Node.js for development checks",
+            "softwareHelp": guide.get("url", "").rstrip("/") + "/blob/HEAD/README_en.md",
+            "hasPart": refs(["#guide-source", "./"]),
+            "subjectOf": ref("./"),
+        }
+    )
     root = {
         "@id": "./",
         "@type": "Dataset",
@@ -1514,6 +1555,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         "isBasedOn": refs(graph.resolve(guide.get("isBasedOn", []))),
         "conformsTo": refs([PROCESS_RUN_CRATE, guide["profile"]]),
         "mainEntity": ref("#path"),
+        "isPartOf": ref(software_id),
         "about": refs([principle_iri(principle["id"]) for principle in content["principles"]]),
         "hasPart": refs([PAGE_FILE]),
         "mentions": refs(
@@ -1797,6 +1839,12 @@ def page_config(
             "freshnessDays": guide.get("freshnessDays", 180),
             "pageUrl": guide.get("pageUrl"),
             "textLinks": text_links or {},
+            "foldedSections": [
+                f"#page-{page['id']}-{number}"
+                for page in content["pages"]
+                for number, section in enumerate(page.get("section", []), start=1)
+                if section.get("details")
+            ],
             "api": {"files": API_FILES, "collections": list(API_COLLECTIONS), "records": api or {}},
             "signposts": links or [],
             "connectors": live.get("connector", []),
@@ -1913,7 +1961,9 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
     core = []
     for entity in graph:
         # The FIP Dashboard snapshot: the profiles and the resource records they declare.
-        if str(entity["@id"]).startswith(("#fip-", "#fer-")):
+        if str(entity["@id"]).startswith("#item-"):
+            parts["questions"]["entities"].append(entity)
+        elif str(entity["@id"]).startswith(("#fip-", "#fer-")):
             parts["fips"]["entities"].append(entity)
         elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
             parts["standards"]["entities"].append(entity)

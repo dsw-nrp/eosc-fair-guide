@@ -524,3 +524,22 @@ The guide signposts itself (FAIR Signposting): `signposts` in `build_crate.py` i
 under it where it has a record (a station, a principle, a check, the list of checks); a catalogue list saves as
 CSV with each entry's record and as data in the shape of the API's lists (`ItemList` with the context, each
 entry's record at the page's address). The whole crate is offered on the page for machines.
+
+## Research practice additions
+
+The software and FDO checks use the `basic` tier (Start here) and `advanced`. These are advisory
+priorities, distinct from the analysis' NDI minimum and NRP conditions. Their block groups retain
+software-specific metric identities and FDO layer responsibilities; they do not relabel data FAIR
+principles. Source labels in FRSM 1.0 and FDO Proposed Recommendation 3.0 remain in clause identifiers.
+All questions use the existing answer, uncertainty, result and portable export/import contracts.
+
+A page section with `details = true` renders as native details/summary and remains closed initially.
+Text references can name a lifecycle station as `[[station:<id>|phrase]]`, with the same target in both
+languages. Pages can be named in provenance results as `page:<id>`.
+
+The initial knowledge base keeps check descriptions and structural links. Question entities load from
+`kb-questions.js` for checks, the catalogue, the explorer, a station or a search; returning visitors with
+answers also load them before the landing renders its gaps. Full reconstruction still yields the crate.
+
+The crate describes the app as `#guide-software`, its source as `#guide-source` and the content dataset
+as `./`, with separate identities and licences. docs/software-practice.md maps release evidence.

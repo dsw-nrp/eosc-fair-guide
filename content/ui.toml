@@ -19,7 +19,7 @@ selfcheck = { cs = "Sebehodnocení", en = "Self-check" }
 explorer = { cs = "Principy", en = "Principles" }
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře", en = "Repositories" }
-tools = { cs = "Nástroje", en = "Tools" }
+tools = { cs = "Nástroje a postupy", en = "Tools and guidance" }
 catalogue = { cs = "Katalog", en = "Catalogue" }
 about = { cs = "O průvodci", en = "About" }
 stations = { cs = "Zastávky na cestě", en = "Stations on the path" }
@@ -695,8 +695,8 @@ cite_as = { cs = "trvalý identifikátor k citaci", en = "the persistent identif
 linkset = { cs = "všechny tyto odkazy v jednom souboru (RFC 9264)", en = "all these links in one file (RFC 9264)" }
 
 [tools]
-title = { cs = "Nástroje", en = "Tools" }
-intro = { cs = "Pomocníci pro konkrétní úkoly na cestě a rady, jak při FAIRifikaci využít AI.", en = "Helpers for specific tasks on the path, and advice on using AI in FAIRification." }
+title = { cs = "Nástroje a postupy", en = "Tools and guidance" }
+intro = { cs = "Praktické postupy a pomocníci pro dokumentaci, zveřejnění a opakované použití výsledků výzkumu.", en = "Practical guidance and helpers for documenting, publishing and reusing research outputs." }
 coming = { cs = "připravuje se", en = "in preparation" }
 
 [page]

@@ -110,6 +110,12 @@ make sense without knowing the data files, registries or implementation. Source,
 are separate facts shown where they help a decision. Apply this lens to every view and review (D-137 in
 `docs/design.md`).
 
+Read the whole station through each affected role before adding advice. Integrate with existing steps,
+use the responsibility of that role, and omit an addition when it offers no useful action there.
+Named tools and services are examples unless a cited requirement actually prescribes them.
+Public guide pages explain stable practices. Keep development plans, future assessment baselines and
+temporary source-verification commentary in maintainer documentation.
+
 Alignment, spacing and consistency are part of correctness here, not polish. The page checks enforce what can be
 measured (`misalignedControls` and `collisions` in `tests/page/check_page.mjs`); the visual pass covers the rest.
 
@@ -145,6 +151,7 @@ repeat the pass on pages already closed when shared components change.
 
 - Work on a branch named `agents/<agent>/<topic>` and open a pull request into `main`. Do not push to `main`.
 - Keep commits focused, and mention AI assistance in the commit body.
+- Write `CHANGELOG.md` from the complete, settled pull-request scope; do not append entries for intermediate batches.
 - Scheduled jobs and agents never merge their own pull requests without a code owner's approval.
 
 ## Out of scope

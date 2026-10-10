@@ -23,8 +23,17 @@ English version: [README_en.md](README_en.md).
 
 ## Jak průvodce spustit
 
-Otevřete soubor `index.html` v prohlížeči. Nic se neinstaluje a stránka funguje i bez připojení; jen živé
+S Pythonem 3.11 nebo novějším sestavte web a otevřete `_site/index.html`:
+
+```bash
+python scripts/build_site.py
+```
+
+Sestavení používá jen standardní knihovnu Pythonu. Hotová stránka funguje i bez připojení; jen živé
 kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) nebo zveřejnit samostatně.
+
+Průvodce ukazuje vlastní praxi pro výzkumný software. Výchozím bodem bude první oficiální předběžné
+vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zatím čekají na provedení.
 
 ## Struktura repozitáře
 
@@ -40,6 +49,9 @@ kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) neb
 | `api/` | Stránka dokumentace API; samotné API vytvoří sestavení |
 | `diagrams/` | Zdroje diagramů v Mermaid |
 | `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
+
+[Příklad softwarové praxe](docs/software-practice.md) přiřazuje podklady aplikace a zbývající kroky k vydání
+k příslušným softwarovým pokynům.
 
 ## Jak upravovat obsah
 

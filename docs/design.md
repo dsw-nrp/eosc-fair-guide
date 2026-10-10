@@ -617,7 +617,7 @@ the self-check. The decisions below record the maintainer's answers; the decisio
   repositories page loads them on request and links each to its repository; the maturity check answers "registered
   in re3data and FAIRsharing" from the re3data snapshot and the record found, and leaves it open when the lookup
   fails. A repository the search does not find may still be registered, and the page says so.
-- Every page sits under a main-menu item, declared in its content (`menu`): "Nástroje" (tools) lists the helpers and
+- Every page sits under a main-menu item, declared in its content (`menu`): "Nástroje a postupy" (Tools and guidance) lists the helpers and
   the AI advice as cards and stays current on each of them; "O průvodci" covers the about page and the accessibility
   statement. The content checks refuse a page without a menu item.
 - The catalogue ("Katalog") replaces the separate resource and repository menu items with one list narrowed by
@@ -813,3 +813,57 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-135 | 2026-10-10 | **The guide's identifiers are set and kept for good** (maintainer's review; task 8.47): one rule for every kind, applied once before publication and kept from then on, with the register `content/identifiers.toml` and a content check that refuses a renamed, removed or reused identifier and an unregistered one. Identifiers nest and carry little meaning: advice is `<station>.<nn>`, a check question `<check>.<nn>` (shown by its number inside its check; letters such as D, P, O were dropped as too fragile), and lens, level, kind and tier live in fields. They adopt other registries' identifiers where those are consistent: a requirement is `<source code>.<local part>` with the source's own label where it labels its items consistently (`A.F1.N1`, `CTS.R06`, `NRP.M5`) and a serial otherwise; a record taken from another registry keeps that registry's identifier, nested under the registry's own catalogue entry so that it says whose it is however many vocabularies the guide adds (`re3data.r3d100013576`, `fip-dashboard.<id>`, `fair-champion.<test>`, `nkr.<id>`); the registries keep those identifiers, so they are not registered. A vocabulary's terms also say they are terms: `t.<keeper>.<ID>` (`t.ntk.87` for Heslář, which NTK keeps), since `heslar` named no keeper and said nothing about the kind. A curated entry links the registry records it matches (Zenodo carries its re3data record and its FIP Dashboard record, shown once), and those records' borrowed identifiers lead to it, so an address keeps working when a repository gains a re3data ID later (as MBDB may) or a registry record is taken into the guide's own list. Repositories have the guide's own names like resources, since not every repository the guide lists is in re3data (the NRP catch-all repository, MBDB); a re3data ID is one of their identifiers. Stations have English names, and the gate check's repository profiles are named (`core-system`, `nrp-infrastructure`, `independent`) instead of lettered; check modes and profiles are registered too, since share links carry them. Earlier decisions name questions by their former IDs: a check's letter and number became the check's ID and the same number (G09 is `gate.09`, S18 `maturity.18`), and the dataset check's P01–P05 and O01–O09 continue its series as `dataset.15`–`dataset.19` and `dataset.20`–`dataset.28`. | U |
 | D-136 | 2026-10-10 | **No two entries describe one thing, as a check of its own** (maintainer's request; task 8.48): `scripts/check_duplicates.py` is a separate, blocking job of the check suite and of the pull-request workflow. It compares every entry with the others of its kind (curated resources, repositories and sources with the FIP Dashboard's and re3data's records; organisations with the dashboard's; terms; FIPs; tests; advice; each check's questions; requirements) by address, DOI, re3data, ROR and FIP Dashboard ID, identifier, name and text; a link (`fipDashboard`, `re3data`) makes a curated entry and a registry record one thing, and no two curated entries may link one record. A group kept apart on purpose, or listed twice by a registry itself, is accepted with its reason in `content/duplicates.toml`, and an accepted group that no longer occurs is an error. The content check's address and snapshot-match rules moved into it. Near-duplicate matching was tried and left out: on the content it found only false matches (OS2 and OS3, two training pages). It found the NRP organisation unlinked from the dashboard's, and two Heslář pairs with one label (accepted). | U |
 | D-137 | 2026-10-10 | **Navigation follows the reader's task and the meaning of each entry** (maintainer's review; task 8.49): every view must make sense without knowing its source files, registries or implementation. Repositories and registries from all sources form one catalogue family with a function facet: depositing data or publications, finding metadata, standards, repositories or support. The data-repository chooser opens data deposit. Source, recommendation and verification are separate facts, and inclusion implies no NRP or EOSC CZ qualification. Reviewed ASEP and LINDAT links join their re3data and FIP Dashboard records; both borrowed addresses keep working, source claims stay attributable and name or host similarity alone never establishes identity. | U |
+
+## Research practice decisions (2026-10-10)
+
+D-138: Publishing research software receives a page and advisory check linked from work, publication,
+licensing and citation. FAIR4RS/FRSM, CODE, Software Heritage and OpenSSF have different purposes; archival
+references and voluntary self-certification are not independent FAIR certification.
+
+D-139: Laboratory and field notebooks are one research-recording task. The OSII feasibility study,
+sections 10.9.4-10.9.5, and EOSC CZ training anchor the national route. National integration plans are
+distinguished from the availability of the underlying Kadi4Mat and eLabFTW software. Recommendations
+start with EOSC CZ, then European EOSC, then other initiatives; original standard owners remain credited.
+
+D-140: Provenance and paradata are a visible paired topic at work and metadata. The example connects
+lineage with consequential reasoning and uncertainty. The teaching distinction allows disciplinary
+overlap, and the guide's Process Run Crate makes no CPM/ISO conformance claim.
+
+D-141: FDO guidance includes a separate readiness check against the version 3.0 Proposed Recommendation,
+retaining all 34 requirement labels. Object, PID, FDO and resource/provider responsibilities remain
+distinct; a DOI or RO-Crate alone is not conformance evidence.
+
+D-142: The first official prerelease is the app's software-practice baseline. Development evidence
+prepares that release, with public preservation and any OpenSSF self-certification pending. Software and
+content have separate linked metadata. Human review has been continuous.
+
+D-143: Repository task choices stay under the repositories-and-registries facet heading. The shared kind
+picker keeps its position when readers switch families.
+
+D-144: Advice is edited in the context of the whole station and the responsibility of each role. Shared
+topic bullets are not a default: integrate existing steps, make additions conditional where appropriate,
+and omit duplication. Software preservation accepts suitable repositories and code archives; Software
+Heritage is an example, and an SWHID is relevant when that archive is used. Pages explain practical tasks
+in readable Czech and equivalent English, with infrastructure detail disclosed on request.
+
+D-145: The changelog is written from the complete, settled pull-request scope. Intermediate implementation
+batches do not add their own changelog entries.
+
+D-146: The public guide explains stable practices and relevant project information. Development plans,
+first-prerelease assessment preparation and temporary source-verification commentary stay in maintainer
+documentation. Inline station references open the lifecycle station and retain the language and lens.
+
+D-147: The tools menu and overview are labelled "Nástroje a postupy" / "Tools and guidance" to cover
+practical guidance alongside interactive helpers.
+
+D-148: Public OS II guidance names the project and explains its contribution: research notebooks,
+repository connections and provenance tracking. Administrative section and deliverable numbers belong
+in source-tracing records, rather than explanatory pages or catalogue descriptions.
+
+Verification for D-138–D-148: the complete 14-check suite passed, including live checks, 92 unit tests
+and browser coverage of 138 views. Content and browser checks passed again after the tools introduction
+was aligned with the new scope. The initial compressed download is 292.1 KB against the 300 KB budget.
+Expanded pages, self-check answer/result states and affected station roles were captured in both
+languages at desktop and phone widths; representative states were inspected visually. Deliberately
+restoring each reported facet, padding and station-link defect made the browser checks fail, and the
+generated files were restored byte for byte after those probes.

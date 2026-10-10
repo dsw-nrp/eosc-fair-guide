@@ -48,6 +48,13 @@ text = { cs = "Licence se v metadatech uvádí odkazem (URI), ne jen názvem.", 
 sources = ["A.R1.1.X1", "A.MIN3"]
 
 [[advice]]
+id = "licence.26"
+lens = "V"
+level = "L1"
+text = { cs = "Přikládáte-li k datům vlastní [[page:software|skripty nebo jiný software]], uveďte licenci kódu zvlášť. Licence dat se na něj automaticky nevztahuje. U převzatého kódu a knihoven zachovejte jejich licenční údaje.", en = "If you include your own [[page:software|scripts or other software]] with the data, state the code licence separately. The data licence does not automatically cover it. Retain licence information for reused code and libraries." }
+sources = ["FRSM.FRSM-15"]
+
+[[advice]]
 id = "licence.06"
 lens = "V"
 level = "L1"
@@ -157,7 +164,7 @@ sources = ["A.A1.2.X1", "AAI-SENSITIVE.01"]
 [[advice]]
 id = "licence.21"
 lens = "SR"
-level = "L2"
+level = "L1"
 text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v [[cdif|CDIF 1.1]]), CC REL a SPDX.", en = "For advanced rights expression there are ODRL (with guidance in [[cdif|CDIF 1.1]]), CC REL and SPDX." }
 sources = ["A.R1.1.X2", "A.R1.1.X3"]
 

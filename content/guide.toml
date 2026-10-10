@@ -30,7 +30,7 @@ publisher = "cesnet"
 funder = "nrp"
 isBasedOn = ["analyza-fair-1.2"]
 acknowledgement = { cs = "Tento výstup byl vytvořen s finanční podporou iniciativy EOSC CZ prostřednictvím projektu Národní repozitářová platforma pro výzkumná data (CZ.02.01.01/00/23_014/0008787), financovaného z Operačního programu Jan Amos Komenský (OP JAK) Ministerstva školství, mládeže a tělovýchovy České republiky (MŠMT).", en = "This output was developed with financial contributions from the EOSC CZ initiative through the National Repository Platform for Research Data project (CZ.02.01.01/00/23_014/0008787), funded by the Programme Johannes Amos Comenius (P JAC) of the Ministry of Education, Youth and Sports of the Czech Republic (MEYS)." }
-aiStatement = { cs = "Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). Každá změna obsahu je zaznamenána v paradatech, včetně použitého nástroje, a texty kontrolují lidé.", en = "An AI assistant (Claude, Anthropic) contributed to the content and code. Every content change is recorded in the paradata, including the tool used, and people review the texts." }
+aiStatement = { cs = "Na přípravě obsahu a kódu se podíleli AI asistenti (Claude od Anthropic a Codex od OpenAI). Každá změna obsahu je zaznamenána v paradatech, včetně použitého nástroje, a texty kontrolují lidé.", en = "AI assistants (Claude by Anthropic and Codex by OpenAI) contributed to the content and code. Every content change is recorded in the paradata, including the tool used, and people review the texts." }
 
 [[person]]
 id = "david-novak"
@@ -558,3 +558,12 @@ lens = "K"
 label = { cs = "Pracovní skupiny EOSC CZ", en = "EOSC CZ working groups" }
 href = "#resource-eosc-working-groups"
 icon = "people-group"
+
+[[tier]]
+id = "basic"
+name = { cs = "Začněte zde", en = "Start here" }
+description = { cs = "úvodní otázky pro vlastní posouzení.", en = "introductory self-assessment questions." }
+
+[[repositoryFunction]]
+id = "preserve-software"
+name = { cs = "Zachovat zdrojový kód", en = "Preserve source code" }

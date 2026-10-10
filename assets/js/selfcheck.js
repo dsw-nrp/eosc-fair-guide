@@ -10,8 +10,8 @@
   const SC = (FG.selfcheck = FG.selfcheck || {});
   const ANSWERS = ["yes", "partly", "no", "unknown", "na"];
   const SHARE_CODE = { yes: "y", partly: "p", no: "n", unknown: "k", na: "x" };
-  const FIRST_TIERS = ["#tier-required", "#tier-standard", "#tier-minimum"];
-  const TIER_ORDER = ["#tier-required", "#tier-standard", "#tier-minimum", "#tier-recommended", "#tier-advanced"];
+  const FIRST_TIERS = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum"];
+  const TIER_ORDER = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum", "#tier-recommended", "#tier-advanced"];
   const ANSWER_STATE = { yes: "met", partly: "partly", no: "gap", unknown: "unknown" };
   const STATE_ICON = { met: "✓", partly: "◐", gap: "✗", unknown: "?", open: "–", provided: "↗" };
   const FTR_VALUE = { yes: "pass", partly: "indeterminate", no: "fail", unknown: "indeterminate" };

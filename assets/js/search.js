@@ -328,7 +328,7 @@
     input.addEventListener("input", typed);
     /* The standards' requirements are searched too: their part loads when the field is first used. */
     input.addEventListener("focus", () =>
-      FG.loadPart("standards").then(
+      Promise.all([FG.loadPart("standards"), FG.loadPart("questions")]).then(
         () => input.value.trim() && show(false),
         () => null
       )

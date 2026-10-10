@@ -1219,11 +1219,9 @@
         "article",
         null,
         heading(1, null, FG.span(page.headline)),
-        sections.map((section) =>
-          h(
-            "section",
-            section.identifier ? { id: section.identifier, tabindex: "-1" } : null,
-            section.headline ? h("h2", null, FG.span(section.headline)) : null,
+        sections.map((section) => {
+          const folded = (FG.config.foldedSections || []).includes(section["@id"]);
+          const content = [
             FG.linkedParagraphs(section),
             section.potentialAction ? h("p", { class: "section-action" }, actionButton(FG.get(section.potentialAction))) : null,
             page.identifier === "ai" && section.identifier === "station-tips" ? aiStationTips() : null,
@@ -1231,9 +1229,15 @@
             page.identifier === "machines" && section.identifier === "tasks" ? machineTasks() : null,
             page.identifier === "machines" && section.identifier === "practice" ? signpostTable() : null,
             page.identifier === "machines" && section.identifier === "endpoints" ? endpointTable() : null,
-            section.identifier === "privacy" && FG.selfcheck && FG.selfcheck.localDataNote ? FG.selfcheck.localDataNote() : null
-          )
-        ),
+            section.identifier === "privacy" && FG.selfcheck && FG.selfcheck.localDataNote ? FG.selfcheck.localDataNote() : null,
+          ];
+          return h(
+            folded ? "details" : "section",
+            section.identifier ? { id: section.identifier, tabindex: "-1" } : null,
+            section.headline ? h(folded ? "summary" : "h2", null, FG.span(section.headline)) : null,
+            folded ? h("div", { class: "content" }, content) : content
+          );
+        }),
         FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier]() : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
       )
     );

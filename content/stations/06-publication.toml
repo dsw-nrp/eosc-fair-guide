@@ -55,6 +55,13 @@ text = { cs = "PID uvádějte všude: v článku (v prohlášení o dostupnosti 
 sources = ["A.R1.2.N3"]
 
 [[advice]]
+id = "publication.27"
+lens = "V"
+level = "L1"
+text = { cs = "Zveřejňujete-li s daty také [[page:software|software]], uložte konkrétní vydání zdrojového kódu s popisem a návodem do repozitáře, který software přijímá. Propojte záznamy dat a softwaru, aby bylo zřejmé, kterou verzí data vznikla.", en = "If you publish [[page:software|software]] alongside the data, deposit a specific source-code release, its description and execution instructions in a repository that accepts software. Link the data and software records so readers can identify the version used to produce the data." }
+sources = ["FRSM.FRSM-03", "FRSM.FRSM-12", "ZENODO-SW.01"]
+
+[[advice]]
 id = "publication.07"
 lens = "V"
 level = "L1"
@@ -157,6 +164,13 @@ lens = "SR"
 level = "L2"
 text = { cs = "Strojově čitelná landing page obvykle kombinuje JSON-LD ([[schema-dataset|Schema.org Dataset]]), typované hlavičky Link (cite-as, describedby, item, license, type) a sitemap, která povoluje indexaci stránek záznamů.", en = "A machine-readable landing page usually combines JSON-LD ([[schema-dataset|Schema.org Dataset]]), typed Link headers (cite-as, describedby, item, license, type) and a sitemap that allows record pages to be indexed." }
 sources = ["SCHEMA-DATASET.01", "FAIR-SIGNPOSTING.01", "OSTRAILS-CZ-PILOT.01"]
+
+[[advice]]
+id = "publication.28"
+lens = "SR"
+level = "L1"
+text = { cs = "Má-li repozitář zveřejňovat [[page:fdo|FAIR Digital Objects]], ověřte celý řetězec: záznam PID, profil a typ objektu i odkazy na metadata a obsah. [[fdo-specification|Specifikace FDO 3.0]] a samostatná kontrola připravenosti pomohou rozdělit ověření mezi repozitář, komunitu a poskytovatele PID.", en = "If the repository is to publish [[page:fdo|FAIR Digital Objects]], verify the full chain: the PID record, object profile and type, and links to metadata and content. The [[fdo-specification|FDO 3.0 specification]] and separate readiness check help allocate verification among the repository, community and PID provider." }
+sources = ["FDO.FDOR-GR2", "FDO.FDO-FDOR5"]
 
 [[advice]]
 id = "publication.21"

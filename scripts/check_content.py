@@ -49,12 +49,18 @@ ACTION_TYPES = ("create", "update")
 RELEASE_STATUSES = ("testing", "released")
 # The checks the guide knows; a question's ID is its check's ID and a serial number (docs/content-model.md,
 # Identifiers).
-CHECKS = ("dataset", "gate", "maturity", "fip", "institution", "coretrustseal", "cdif")
+CHECKS = ("dataset", "gate", "maturity", "fip", "institution", "coretrustseal", "cdif", "software", "fdo")
 QUESTION_NUMBER = re.compile(r"^\d{2}$")
 GATE_TIERS = ("required", "recommended")
 MATURITY_TIERS = ("minimum", "recommended", "advanced")
 # Checks built on a standard's requirements start with what the standard requires.
-TIERS = {"gate": GATE_TIERS, "coretrustseal": ("standard",), "cdif": ("standard", "recommended", "advanced")}
+TIERS = {
+    "gate": GATE_TIERS,
+    "coretrustseal": ("standard",),
+    "cdif": ("standard", "recommended", "advanced"),
+    "software": ("basic", "advanced"),
+    "fdo": ("basic", "advanced"),
+}
 FORBIDDEN_KEYS = ("score", "percentage", "points")
 NOT_RENDERED = ("live.nanopub.query",)
 
@@ -762,6 +768,8 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
     for data in content["checks"]:
         for item in data.get("item", []):
             index[item["id"]] = "item"
+    for page in content["pages"]:
+        index[f"page:{page['id']}"] = "page"
     for resource in content["resources"]:
         index.setdefault(resource["id"], "resource")
     for repository in content["repositories"]:
@@ -941,6 +949,7 @@ def check_references(report: Report, content: dict[str, Any]) -> None:
     known = {item["id"] for item in content["resources"] + content["sources"]}
     known |= {"term:" + term["id"] for term in content["glossary"].get("term", [])}
     known |= {"page:" + page["id"] for page in content["pages"]}
+    known |= {"station:" + data["station"]["id"] for data in content["stations"]}
     known |= {"clause:" + clause["id"] for clause in content["ledger"]}
     known.add("profile")
 
@@ -1027,6 +1036,8 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
             require_text(report, where, page.get("description"), "description")
         for number, section in enumerate(page.get("section", []), start=1):
             require_text(report, f"{where}[{number}]", section.get("body"), "body")
+            if not isinstance(section.get("details", False), bool):
+                report.error(f"{where}[{number}]", "details must be true or false")
             if "action" in section:
                 require_text(report, f"{where}[{number}].action", section["action"].get("label"), "label")
                 if not section["action"].get("href"):

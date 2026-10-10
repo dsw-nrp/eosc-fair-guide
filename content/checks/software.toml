@@ -1,0 +1,220 @@
+[check]
+id = "software"
+name = { cs = "Kontrola výzkumného softwaru", en = "Research software check" }
+icon = "list-check"
+description = { cs = "Skripty, výpočetní notebooky i aplikace: praktické otázky podle FAIR4RS a FRSM 1.0, doplněné o spuštění příkladu a zachování kódu. Začněte osmi otázkami; rozšířená kontrola přidá další praxi. Jde o vlastní posouzení bez skóre a certifikace.", en = "Scripts, computational notebooks and applications: practical questions based on FAIR4RS and FRSM 1.0, with an execution example and code preservation. Start with eight questions; the extended check adds further practice. This is self-assessment without a score or certification." }
+lenses = ["V", "DS", "SR", "K"]
+minutes = 15
+
+[[block]]
+id = "identity"
+name = { cs = "Identifikace a zachování", en = "Identification and preservation" }
+
+[[block]]
+id = "description"
+name = { cs = "Popis, autorství a licence", en = "Description, credit and licensing" }
+
+[[block]]
+id = "execution"
+name = { cs = "Spuštění a propojení", en = "Execution and integration" }
+
+[[item]]
+id = "software.01"
+requirement = "FRSM.FRSM-01"
+statement = { cs = "Software má trvalý a jednoznačný identifikátor.", en = "The software has a persistent, unambiguous identifier." }
+tier = "basic"
+block = "identity"
+fixAt = "publication"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.02"
+requirement = "FRSM.FRSM-02"
+statement = { cs = "Samostatně používané komponenty mají rozlišitelné identifikátory a popsané vztahy.", en = "Independently used components have distinct identifiers and described relationships." }
+tier = "advanced"
+block = "identity"
+fixAt = "metadata"
+owner = ["user"]
+allowNotApplicable = true
+
+[[item]]
+id = "software.03"
+requirement = "FRSM.FRSM-03"
+statement = { cs = "Použitá verze má vlastní identifikátor, odlišný od jiných verzí.", en = "The version used has its own identifier, distinct from other versions." }
+tier = "basic"
+block = "identity"
+fixAt = "publication"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.04"
+requirement = "FRSM.FRSM-04"
+statement = { cs = "Metadata vysvětlují, co software dělá a k čemu slouží.", en = "Metadata explain what the software does and its purpose." }
+tier = "basic"
+block = "description"
+fixAt = "metadata"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.05"
+requirement = "FRSM.FRSM-05"
+statement = { cs = "Metadata uvádějí stav vývoje a údržby.", en = "Metadata state development and maintenance status." }
+tier = "advanced"
+block = "description"
+fixAt = "metadata"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.06"
+requirement = "FRSM.FRSM-06"
+statement = { cs = "Metadata uvádějí přispěvatele a jejich role.", en = "Metadata name contributors and their roles." }
+tier = "basic"
+block = "description"
+fixAt = "citation"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.07"
+requirement = "FRSM.FRSM-07"
+statement = { cs = "Metadata obsahují identifikátor popisovaného softwaru.", en = "Metadata include the identifier of the software described." }
+tier = "advanced"
+block = "identity"
+fixAt = "metadata"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.08"
+requirement = "FRSM.FRSM-08"
+statement = { cs = "Záznam metadat je veřejně dostupný a zůstane zachován i bez softwaru.", en = "The metadata record is publicly accessible and survives loss of the software." }
+tier = "advanced"
+block = "identity"
+fixAt = "publication"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.09"
+requirement = "FRSM.FRSM-09"
+statement = { cs = "Kód lze získat standardním komunikačním protokolem.", en = "Code can be retrieved through a standard communications protocol." }
+tier = "advanced"
+block = "identity"
+fixAt = "repository"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.10"
+requirement = "FRSM.FRSM-10"
+statement = { cs = "Otevřené formáty vstupů a výstupů jsou popsané a mají odkaz na specifikaci.", en = "Open input/output formats are described and reference their specifications." }
+tier = "advanced"
+block = "execution"
+fixAt = "work"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.11"
+requirement = "FRSM.FRSM-11"
+statement = { cs = "Má-li software API, jeho otevřené rozhraní má strojově čitelný popis.", en = "Where software provides an API, its open interface has a machine-readable description." }
+tier = "advanced"
+block = "execution"
+fixAt = "metadata"
+owner = ["user"]
+allowNotApplicable = true
+
+[[item]]
+id = "software.12"
+requirement = "FRSM.FRSM-12"
+statement = { cs = "Dokumentace odkazuje na související data a další objekty potřebné k použití.", en = "Documentation references related data and other objects needed for use." }
+tier = "advanced"
+block = "description"
+fixAt = "metadata"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.13"
+requirement = "FRSM.FRSM-13"
+statement = { cs = "Jsou popsané závislosti, sestavení a nastavení potřebné ke spuštění.", en = "Dependencies, build and configuration needed to run are described." }
+tier = "basic"
+block = "execution"
+fixAt = "work"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.14"
+requirement = "FRSM.FRSM-14"
+statement = { cs = "Software má testovací příklady, které dokládají jeho fungování.", en = "The software has test cases demonstrating its behaviour." }
+tier = "basic"
+block = "execution"
+fixAt = "work"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.15"
+requirement = "FRSM.FRSM-15"
+statement = { cs = "Licence kódu a přibalených součástí jsou dohledatelné.", en = "Licences for code and bundled components can be found." }
+tier = "basic"
+block = "description"
+fixAt = "licence"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.16"
+requirement = "FRSM.FRSM-16"
+statement = { cs = "Záznam metadat uvádí licenci softwaru.", en = "The metadata record states the software licence." }
+tier = "advanced"
+block = "description"
+fixAt = "licence"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.17"
+requirement = "FRSM.FRSM-17"
+statement = { cs = "Je doložen původ a vývoj softwaru.", en = "The software origin and development history are documented." }
+tier = "advanced"
+block = "description"
+fixAt = "work"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.18"
+requirement = "CODE.01"
+statement = { cs = "Kolega dokáže spustit malý příklad podle návodu, včetně vstupů a očekávaného výstupu.", en = "A colleague can run a small documented example, including inputs and expected output." }
+tier = "basic"
+block = "execution"
+fixAt = "work"
+owner = ["user"]
+allowNotApplicable = false
+
+[[item]]
+id = "software.19"
+requirement = "ZENODO-SW.01"
+statement = { cs = "Zdrojový kód vydané verze je dlouhodobě uložen a ověřený odkaz umožňuje dohledat právě tuto verzi.", en = "The released source code is preserved, and a verified reference identifies that specific version." }
+tier = "advanced"
+block = "identity"
+fixAt = "publication"
+owner = ["user"]
+allowNotApplicable = false
+sources = ["FRSM.FRSM-03", "SWH-GUIDE.01"]
+
+[[item]]
+id = "software.20"
+requirement = "OPENSSF.01"
+statement = { cs = "Pokud tým usiluje o odznak OpenSSF Best Practices, prošel jeho kritéria a u každého zaznamenal doklady nebo zbývající práci.", en = "If the team is seeking an OpenSSF Best Practices badge, it has reviewed the criteria and recorded evidence or remaining work for each." }
+tier = "advanced"
+block = "description"
+fixAt = "work"
+owner = ["user"]
+allowNotApplicable = true

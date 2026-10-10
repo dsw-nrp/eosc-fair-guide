@@ -491,7 +491,7 @@ sections.push(["page", async () => {
     await view.goto(pageUrl + "#/cs/V/path/work");
     await view.waitForSelector("#main h1");
     const training = view.locator("li.training");
-    if ((await training.locator("a").count()) !== 3 || !(await training.textContent()).startsWith("Školení k tomuto kroku")) fail("training: the Práce step does not list its three trainings in one line");
+    if ((await training.locator("a").count()) !== 4 || !(await training.textContent()).startsWith("Školení k tomuto kroku")) fail("training: the Práce step does not list its four trainings, including notebooks, in one line");
     if (await view.locator('.cards .card a[href*="eosc.cz/skoleni/"]').count()) fail("training: a training shows as a resource card as well");
     await view.goto(pageUrl + "#/cs/V/path/metadata");
     await view.waitForSelector("#main h1");
@@ -676,13 +676,19 @@ sections.push(["page", async () => {
     }
     // Meaning determines the family; source records enrich it, and existing addresses still find the thing.
     for (const lang of ["cs", "en"]) {
-      await view.goto(pageUrl + `#/${lang}/V/catalogue/repositories`);
+      await view.goto(pageUrl + `#/${lang}/V/catalogue/k!resources`);
       await view.waitForSelector(".catalogue-results");
-      const purposeFirst = await view.locator('[data-facet="repositories-rfunction"]').evaluate((facet) => {
+      const kindPosition = await view.locator('[data-facet="kind"]').evaluate((facet) => [...facet.parentElement.children].indexOf(facet));
+      await view.locator("#facet-kind-repositories").check();
+      await view.waitForFunction(() => location.hash.includes("k!repositories"));
+      await view.waitForSelector(".catalogue-results");
+      if ((await view.locator('[data-facet="kind"]').evaluate((facet) => [...facet.parentElement.children].indexOf(facet))) !== kindPosition) fail(`catalogue: switching to repositories changes the kind picker's position (${lang})`);
+      const purposeInSection = await view.locator('[data-facet="repositories-rfunction"]').evaluate((facet) => {
         const kind = document.querySelector('[data-facet="kind"]');
-        return kind && !!(facet.compareDocumentPosition(kind) & Node.DOCUMENT_POSITION_FOLLOWING) && facet.getBoundingClientRect().bottom <= window.innerHeight;
+        const section = facet.closest(".facet-kind");
+        return kind && section && section.querySelector(".facet-kind-name") && !!(kind.compareDocumentPosition(facet) & Node.DOCUMENT_POSITION_FOLLOWING) && section.querySelector("fieldset") === facet;
       });
-      if (!purposeFirst) fail("repositories and registries: task choices are hidden below general filters or the fold");
+      if (!purposeInSection) fail("repositories and registries: task choices are outside the family section or reorder the kind picker");
       for (const id of ["nma", "fairsharing", "fip-dashboard.nusl", "fip-dashboard.nrp-invenio", "re3data.r3d100014032", "re3data.r3d100010386"]) {
         if ((await view.locator(`[id="item-${id}"]`).count()) !== 1) fail(`catalogue: ${id} is not listed once among repositories and registries (${lang})`);
       }
@@ -874,11 +880,11 @@ sections.push(["page", async () => {
     const current = async () => (await view.locator('.main-nav [aria-current="page"]').textContent()).trim();
     await view.goto(pageUrl + "#/cs/V/tools");
     await view.waitForSelector(".tool-cards");
-    if ((await current()) !== "Nástroje") fail("tools: the menu does not mark the tools item on the tools view");
+    if ((await current()) !== "Nástroje a postupy") fail("tools: the menu does not mark the tools item on the tools view");
     const tools = await view.locator(".tool-card h2 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
-    if (tools.join(",") !== "live-check,identifiers,citation,ai") fail("tools: the tools view does not list the tool pages in order: " + tools.join(","));
+    if (tools.join(",") !== "live-check,identifiers,citation,ai,software,notebooks,provenance,fdo") fail("tools: the tools view does not list the tool pages in order: " + tools.join(","));
     if ((await view.locator(".tool-coming").count()) !== 3) fail("tools: the helpers in preparation are not marked as such");
-    for (const [id, item] of [["identifiers", "Nástroje"], ["ai", "Nástroje"], ["live-check", "Nástroje"], ["citation", "Nástroje"], ["about", "O průvodci"], ["accessibility", "O průvodci"]]) {
+    for (const [id, item] of [["identifiers", "Nástroje a postupy"], ["ai", "Nástroje a postupy"], ["live-check", "Nástroje a postupy"], ["citation", "Nástroje a postupy"], ["about", "O průvodci"], ["accessibility", "O průvodci"]]) {
       await view.goto(pageUrl + "#/cs/V/page/" + id);
       await view.waitForSelector("#main h1");
       if ((await current()) !== item) fail(`page ${id}: the menu does not mark ${item}`);
@@ -1845,6 +1851,100 @@ sections.push(["funded output", async () => {
   if (external.length) fail("funded output: requests without a lookup: " + external.join(", "));
   for (const problem of problems) fail("funded output: " + problem);
   console.log("checked the funded-output profile");
+  await context.close();
+}]);
+
+sections.push(["research practice", async () => {
+  const { context, page, external, problems } = await openPage();
+  for (const lang of ["cs", "en"]) {
+    for (const [id, basic, total] of [["software", 8, 20], ["fdo", 6, 34]]) {
+      await page.evaluate(() => {
+        if (window.FairGuide && window.FairGuide.state) {
+          window.FairGuide.state.answers = {};
+          window.FairGuide.saveState();
+        }
+      });
+      await page.goto(pageUrl + `#/${lang}/V/check/${id}`);
+      await page.waitForSelector(`#item-${id}-01`);
+      const count = () => page.locator(`fieldset[id^="item-${id}-"]`).count();
+      if ((await count()) !== basic) fail(`${id} (${lang}): the first view does not have ${basic} advisory questions`);
+      if ((await page.locator(".tier-info").textContent()).includes("Minimum")) fail(`${id}: uses the NDI minimum tier`);
+      await page.locator(`#answer-${id}-01-unknown`).check();
+      if (!(await page.locator("#results .gaps").textContent()).trim()) fail(`${id}: uncertainty has no follow-up`);
+      await page.locator('label[for="extended-toggle"]').click();
+      if ((await count()) !== total) fail(`${id} (${lang}): the extended check does not have ${total} questions`);
+      if (!(await page.locator(`#answer-${id}-01-unknown`).isChecked())) fail(`${id}: disclosure loses an answer`);
+      const roundTrip = await page.evaluate((id) => {
+        const fg = window.FairGuide;
+        const check = fg.get("#check-" + id);
+        const state = fg.state.answers[id];
+        const saved = fg.selfcheck.portableState(check, state);
+        const read = fg.selfcheck.readPortable(saved);
+        const crate = fg.selfcheck.ftrCrate(check, state);
+        return { read: Boolean(read.check && read.state), saved: saved.check, results: crate["@graph"].filter((node) => [].concat(node["@type"]).includes("TestResult")).length };
+      }, id);
+      if (!roundTrip.read || roundTrip.saved !== id || !roundTrip.results) fail(`${id}: export/import contract failed: ${JSON.stringify(roundTrip)}`);
+      if (/%|skóre|score/i.test(await page.locator("#results").textContent())) fail(`${id}: result shows an overall score`);
+    }
+    for (const id of ["software", "notebooks", "provenance", "fdo"]) {
+      await page.goto(pageUrl + `#/${lang}/V/page/${id}`);
+      await page.waitForSelector("#main #start");
+      const details = page.locator("#main article > details");
+      if (!(await details.count()) || await details.first().getAttribute("open")) fail(`${id}: deeper guidance is not disclosed on request`);
+      await details.first().locator("summary").click();
+      if ((await details.first().getAttribute("open")) === null) fail(`${id}: deeper guidance does not open`);
+      for (const width of [390, 1280]) {
+        await page.setViewportSize({ width, height: 900 });
+        const padding = await details.first().evaluate((box) => {
+          const frame = box.getBoundingClientRect();
+          const summary = box.querySelector("summary").getBoundingClientRect();
+          const content = box.querySelector(".content");
+          const first = content && content.firstElementChild;
+          if (!first) return false;
+          const text = first.getBoundingClientRect();
+          return text.left - frame.left >= 8 && frame.right - text.right >= 8 && text.top - summary.bottom >= 8;
+        });
+        if (!padding) fail(`${id} (${lang}, ${width}px): expanded guidance touches its frame or summary`);
+      }
+    }
+  }
+  await page.goto(pageUrl + "#/en/V/check/software");
+  await page.waitForSelector("#item-software-01");
+  await page.locator("#answer-software-01-no").check();
+  await page.goto(pageUrl + "#/en/V/path/publication");
+  await page.waitForFunction(() => window.FairGuide.partsLoaded.has("questions"));
+  if (!(await page.locator('#main a[href*="check/software"]').count())) fail("software: saved gap is lost after reloading the path");
+  if (external.length) fail("research practice: external requests without a lookup: " + external.join(", "));
+  for (const problem of problems) fail("research practice: " + problem);
+  await context.close();
+}]);
+
+sections.push(["research station links", async () => {
+  const { context, page, problems } = await openPage();
+  for (const lang of ["cs", "en"]) {
+    for (const lens of ["V", "DS", "SR", "K"]) {
+      for (const id of ["software", "notebooks", "provenance", "fdo"]) {
+        await page.goto(pageUrl + `#/${lang}/${lens}/page/${id}`);
+        await page.waitForSelector("#main #start");
+        const missing = await page.evaluate(({ id, lang, lens }) => {
+          const fg = window.FairGuide;
+          const targets = fg.refs(fg.get("#page-" + id), "hasPart")
+            .flatMap((section) => fg.config.textLinks[section["@id"]] || [])
+            .filter((link) => link.ref.startsWith("#station-"))
+            .map((link) => `#/${lang}/${lens}/path/${fg.get(link.ref).identifier}`);
+          const actual = [...document.querySelectorAll("#main a.text-ref")].map((link) => link.getAttribute("href"));
+          return targets.filter((target) => !actual.includes(target));
+        }, { id, lang, lens });
+        if (missing.length) fail(`${id} (${lang}, ${lens}): station references do not open the path: ${missing.join(", ")}`);
+        if (id === "software" && await page.locator(`#main a[href="#/${lang}/${lens}/path/licence"]`).count()) {
+          await page.locator(`#main a[href="#/${lang}/${lens}/path/licence"]`).click();
+          await page.waitForSelector(".now-actions");
+          if (await page.evaluate(() => !location.hash.includes("/path/licence"))) fail(`software (${lang}, ${lens}): licence link did not open the station`);
+        }
+      }
+    }
+  }
+  for (const problem of problems) fail("research station links: " + problem);
   await context.close();
 }]);
 

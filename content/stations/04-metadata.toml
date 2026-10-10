@@ -36,8 +36,8 @@ sources = ["A.I2.R1", "CCMM-RELEASES.01"]
 id = "metadata.04"
 lens = "V"
 level = "L1"
-text = { cs = "Popište, jak data vznikla: metodu, přístroje, software a zpracování.", en = "Describe how the data were made: method, instruments, software and processing." }
-sources = ["A.R1.2.X1"]
+text = { cs = "Popište, jak data vznikla: metodu, přístroje, software a jeho verzi i kroky zpracování. Odkazem připojte deník nebo jiný záznam [[page:provenance|původu dat a důvodů jejich úprav]], aby šlo postup dohledat.", en = "Describe how the data were produced: the method, instruments, software and version, and processing steps. Link the notebook or other record of [[page:provenance|data provenance and reasons for changes]] so the procedure can be traced." }
+sources = ["A.R1.2.X1", "LONDON.4.6"]
 
 [[advice]]
 id = "metadata.05"
@@ -101,8 +101,8 @@ sources = ["A.I2.R2", "PID-CENTRE.01"]
 id = "metadata.13"
 lens = "DS"
 level = "L1"
-text = { cs = "Provenience patří do metadat alespoň v rozsahu [[ccmm|CCMM]]: tvůrci, metodika a verze.", en = "Provenance belongs in the metadata at least to the extent of [[ccmm|CCMM]]: creators, methodology and versions." }
-sources = ["A.R1.2.N1"]
+text = { cs = "Pomozte týmu převést záznamy o [[page:provenance|původu dat]] do metadat: tvůrce, metodiku a verze alespoň v rozsahu [[ccmm|CCMM]]. Podrobné postupy a zdůvodnění úprav mohou zůstat v připojené dokumentaci; domluvte, jak na ni záznam odkáže.", en = "Help the team turn records of [[page:provenance|data provenance]] into metadata: creators, methods and versions, at least to the extent covered by [[ccmm|CCMM]]. Detailed procedures and reasons for changes can remain in attached documentation; agree how the record will link to it." }
+sources = ["A.R1.2.N1", "LONDON.4.6"]
 
 [[advice]]
 id = "metadata.14"
@@ -171,8 +171,8 @@ sources = ["A.I1.R1", "A.I1.R2", "A.I1.N2"]
 id = "metadata.22"
 lens = "SR"
 level = "L1"
-text = { cs = "Vyžadujte základní provenienční informace (původ, verze, historie změn), alespoň v rozsahu [[ccmm|CCMM]].", en = "Require basic provenance information (origin, version, change history), at least to the extent of [[ccmm|CCMM]]." }
-sources = ["A.R1.2.R1"]
+text = { cs = "V metadatovém profilu vymezte údaje o [[page:provenance|původu dat]]: tvůrce, zpracování a historii verzí alespoň v rozsahu [[ccmm|CCMM]]. Umožněte připojit podrobnější dokumentaci a zachovat její vazbu na příslušnou verzi dat.", en = "Define [[page:provenance|data provenance]] fields in the metadata profile: creators, processing and version history, at least to the extent covered by [[ccmm|CCMM]]. Allow detailed documentation to be attached and keep its relationship to the relevant data version." }
+sources = ["A.R1.2.R1", "A.R1.2.N3"]
 
 [[advice]]
 id = "metadata.23"
@@ -205,9 +205,16 @@ sources = ["OSTRAILS-CZ-PILOT.01"]
 [[advice]]
 id = "metadata.27"
 lens = "SR"
-level = "L2"
+level = "L1"
 text = { cs = "Princip I1 nevyžaduje jen sémantický web; přípustné jsou i zavedené oborové formáty, například XML. Rozsah povinných metadat má odpovídat přínosu pro vyhledání a opakované použití.", en = "Principle I1 does not demand only the semantic web; established domain formats such as XML are acceptable too. The extent of mandatory metadata should match its benefit for discovery and reuse." }
 sources = ["A.I1.X1", "A.I2.X1"]
+
+[[advice]]
+id = "metadata.40"
+lens = "SR"
+level = "L1"
+text = { cs = "Připravujete-li podporu [[page:fdo|FAIR Digital Objects]], dohodněte s komunitou profil objektů a způsob popisu jejich typů. S poskytovatelem PID ověřte, jak z identifikátoru program získá odkazy na obsah a metadata.", en = "If you are preparing support for [[page:fdo|FAIR Digital Objects]], agree object profiles and type descriptions with the community. Check with the PID provider how a program can obtain content and metadata links from the identifier." }
+sources = ["FDO-INTRO.01", "FDO.FDOR-GR2", "FDO.FDO-FDOR1"]
 
 [[advice]]
 id = "metadata.28"
@@ -249,8 +256,8 @@ sources = ["A.I3.F1", "A.I3.F2"]
 id = "metadata.33"
 lens = "K"
 level = "L1"
-text = { cs = "Určete minimální rozsah provenience v oboru.", en = "Set the minimum provenance for your domain." }
-sources = ["A.R1.2.F1", "A.R1.2.F2"]
+text = { cs = "Dohodněte minimální záznam [[page:provenance|původu dat]] pro váš obor: které kroky, nástroje a verze má popis obsahovat a které zásahy potřebují zdůvodnění. Přidejte vzorový záznam, podle kterého mohou postupovat výzkumníci i repozitáře.", en = "Agree the minimum [[page:provenance|data provenance]] record for your discipline: which steps, tools and versions to describe, and which interventions need an explanation. Provide an example that researchers and repositories can follow." }
+sources = ["A.R1.2.F1", "A.R1.2.F2", "LONDON.4.6"]
 
 [[advice]]
 id = "metadata.34"

@@ -1630,3 +1630,295 @@ status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
 languages = ["cs"]
+
+[[resource]]
+id = "fair4rs"
+code = "FAIR4RS"
+name = "FAIR4RS"
+description = { cs = "Principy FAIR pro výzkumný software, zveřejněné v roce 2022.", en = "FAIR principles for research software, published in 2022." }
+url = "https://doi.org/10.1038/s41597-022-01710-x"
+type = "standard"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "licence", "publication", "citation"]
+languages = ["en"]
+[resource.citation]
+type = "article"
+title = "Introducing the FAIR Principles for research software"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+version = "2022"
+
+doi = "10.1038/s41597-022-01710-x"
+datePublished = 2022-10-14
+authors = ["Michelle Barker", "Neil P. Chue Hong", "Daniel S. Katz", "Anna-Lena Lamprecht", "Carlos Martinez-Ortiz", "Fotis Psomopoulos", "Jennifer Harrow", "Leyla Jael Castro", "Morane Gruenpeter", "Paula Andrea Martinez", "Tom Honeyman"]
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[resource]]
+id = "frsm"
+code = "FRSM"
+name = "FAIR-IMPACT FRSM"
+description = { cs = "Sedmnáct obecných metrik pro software, verze 1.0; navazují na FAIR4RS.", en = "Seventeen generic software metrics, version 1.0, following FAIR4RS." }
+url = "https://fair-impact.eu/metrics-software"
+type = "standard"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "licence", "publication", "citation"]
+languages = ["en"]
+[resource.citation]
+type = "standard"
+title = "FAIR-IMPACT FRSM"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+version = "1.0"
+
+[[resource]]
+id = "code-principles"
+code = "CODE"
+name = "CODE"
+description = { cs = "Postupné zlepšování výzkumného softwaru: sdílení, dokumentace, spouštění a spolupráce.", en = "Gradual improvement of research software: sharing, documentation, execution and collaboration." }
+url = "https://doi.org/10.1038/s41597-026-06705-6"
+type = "publication"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "licence", "publication", "citation"]
+languages = ["en"]
+[resource.citation]
+type = "article"
+title = "CODE beyond FAIR: a roadmap for reusable research software"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+version = "2026"
+
+doi = "10.1038/s41597-026-06705-6"
+datePublished = 2026-03-12
+authors = ["Roberto Di Cosmo", "Sabrina Granger", "Konrad Hinsen", "Nicolas Jullien", "Daniel Le Berre", "Violaine Louvet", "Camille Maumet", "Clémentine Maurice", "Raphaël Monat", "Nicolas P. Rougier"]
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[resource]]
+id = "software-heritage"
+code = "SWH"
+name = "Software Heritage"
+description = { cs = "Archiv zdrojového kódu; SWHID odkazuje na přesný archivovaný obsah.", en = "A source-code archive; an SWHID references precise archived content." }
+url = "https://www.softwareheritage.org/"
+type = "registry"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "licence", "publication", "citation"]
+languages = ["en"]
+functions = ["preserve-software", "find-support"]
+[resource.citation]
+type = "webpage"
+title = "Software Heritage"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "software-heritage-guide"
+code = "SWH-GUIDE"
+name = "Software Heritage: archive and reference code"
+description = { cs = "Návod k archivaci veřejného repozitáře a získání odkazu na verzi, soubor nebo úsek kódu.", en = "How to archive a public repository and reference a version, file or code fragment." }
+url = "https://www.softwareheritage.org/how-to-archive-reference-code/"
+type = "guide"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "licence", "publication", "citation"]
+languages = ["en"]
+[resource.citation]
+type = "webpage"
+title = "Software Heritage: archive and reference code"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "openssf-best-practices"
+code = "OPENSSF"
+name = "OpenSSF Best Practices"
+description = { cs = "Dobrovolná sebecertifikace vývoje a zabezpečení FLOSS; nejde o certifikaci FAIR.", en = "Voluntary FLOSS development and security self-certification; it is not FAIR certification." }
+url = "https://www.bestpractices.dev/en"
+type = "tool"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "licence", "publication", "citation"]
+languages = ["en"]
+[resource.citation]
+type = "webpage"
+title = "OpenSSF Best Practices"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "osii-study"
+code = "OSII-STUDY"
+name = { cs = "OS II: výzkumné deníky a původ dat", en = "OS II: research notebooks and provenance" }
+description = { cs = "Projekt OS II připravuje podporu laboratorních a terénních deníků, jejich propojení s repozitáři a sledování původu dat. Studie proveditelnosti popisuje plánované výstupy.", en = "The OS II project is developing support for laboratory and field notebooks, their connection to repositories and data provenance tracking. The feasibility study describes the planned outputs." }
+url = "https://www.eosc.cz/media/4083536/priloha-c-7-vyzvy_vynatek-ze-studie-proveditelnosti.pdf"
+type = "document"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "metadata", "publication"]
+languages = ["cs"]
+[resource.citation]
+type = "document"
+title = "OSII: výňatek ze studie proveditelnosti"
+inLanguage = "cs"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "eosc-notebooks"
+code = "EOSC-ELN"
+name = { cs = "EOSC CZ: elektronické laboratorní a terénní deníky", en = "EOSC CZ: electronic laboratory and field notebooks" }
+description = { cs = "Školení EOSC CZ z 5. září 2024, se záznamem a prezentací.", en = "EOSC CZ training of 5 September 2024, with a recording and presentation." }
+url = "https://www.eosc.cz/novinky-a-akce/kalendar-akci/elektronicke-laboratorni-terenni-deniky-eln"
+type = "course"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "metadata", "publication"]
+languages = ["cs"]
+[resource.citation]
+type = "webpage"
+title = "Elektronické laboratorní/terénní deníky (ELN)"
+inLanguage = "cs"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "kadi4mat"
+code = "KADI4MAT"
+name = "Kadi4Mat"
+description = { cs = "Výzkumný deník a správa dat a pracovních postupů; národní integraci připravuje projekt OS II.", en = "A research notebook and data/workflow management tool; the OS II project is developing its national integration." }
+url = "https://kadi.iam.kit.edu/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "metadata", "publication"]
+languages = ["en"]
+[resource.citation]
+type = "webpage"
+title = "Kadi4Mat"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "elabftw"
+code = "ELABFTW"
+name = "eLabFTW"
+description = { cs = "Elektronický laboratorní deník; národní integraci připravuje projekt OS II.", en = "An electronic laboratory notebook; the OS II project is developing its national integration." }
+url = "https://www.elabftw.net/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "metadata", "publication"]
+languages = ["en"]
+[resource.citation]
+type = "webpage"
+title = "eLabFTW"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "london-charter"
+code = "LONDON"
+name = "London Charter"
+description = { cs = "Dokumentování rozhodnutí, odůvodnění a nejistoty při vizualizaci kulturního dědictví.", en = "Documenting decisions, reasoning and uncertainty in cultural heritage visualisation." }
+url = "https://londoncharter.org/principles/documentation.html"
+type = "document"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "metadata", "publication"]
+languages = ["en"]
+[resource.citation]
+type = "webpage"
+title = "London Charter"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "fdo-overview"
+code = "FDO-INTRO"
+name = "FAIR Digital Object Forum"
+description = { cs = "Úvod do digitálních objektů s PID, typem, profilem a strojově použitelnými vazbami.", en = "An introduction to digital objects with PIDs, types, profiles and machine-actionable links." }
+url = "https://fairdo.org/about/what_is_an_fdo/"
+type = "guide"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "metadata", "publication"]
+languages = ["en"]
+[resource.citation]
+type = "webpage"
+title = "FAIR Digital Object Forum"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+
+[[resource]]
+id = "fdo-specification"
+code = "FDO"
+name = "FDO Requirement Specifications 3.0"
+description = { cs = "Navrhované doporučení z 12. ledna 2023; obecné požadavky a vrstvy PID, FDO a zdrojů.", en = "Proposed Recommendation of 12 January 2023; general requirements and PID, FDO and resource layers." }
+url = "https://zenodo.org/records/7782262"
+type = "standard"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS", "SR", "K"]
+stations = ["work", "metadata", "publication"]
+languages = ["en"]
+[resource.citation]
+type = "standard"
+title = "FDO Requirement Specifications 3.0"
+inLanguage = "en"
+dateAccessed = 2026-10-10
+version = "3.0"
+doi = "10.5281/zenodo.7782262"
+datePublished = 2023-01-12
+
+[[resource]]
+id = "cambridge-notebooks"
+code = "CAMBRIDGE-ERN"
+name = "Cambridge: Electronic Research Notebooks"
+description = { cs = "Doplňující praktické otázky pro výběr deníku: historie, export, zálohy a přístup.", en = "Supplementary practical notebook-selection questions: history, export, backups and access." }
+url = "https://www.data.cam.ac.uk/organising-storing/electronic-research-notebooks"
+type = "guide"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS"]
+stations = ["work"]
+languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "Electronic Research Notebooks"
+inLanguage = "en"
+publisher = "University of Cambridge"
+dateAccessed = 2026-10-10
+
+
+[[resource]]
+id = "zenodo-software-guide"
+code = "ZENODO-SW"
+name = { cs = "Zenodo: uložit vydání softwaru", en = "Zenodo: deposit a software release" }
+description = { cs = "Návod k ručnímu uložení zdrojového kódu s metadaty; jedna z možností archivace vydání softwaru.", en = "Instructions for depositing source code with metadata; one option for archiving a software release." }
+url = "https://help.zenodo.org/docs/github/archive-software/manual-upload/"
+type = "guide"
+status = "operational"
+asOf = 2026-10-10
+lenses = ["V", "DS"]
+stations = ["publication", "citation"]
+languages = ["en"]
+
+[resource.citation]
+type = "webpage"
+title = "Upload software manually"
+inLanguage = "en"
+publisher = "CERN"
+dateAccessed = 2026-10-10

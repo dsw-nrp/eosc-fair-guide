@@ -1107,10 +1107,8 @@
         go(Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: toggle(chosen, value) }) }), focus)
       );
     };
-    const purpose = (KIND_FACETS[kind] || []).find((facet) => facet.key === "rfunction");
     const facets = [
       search,
-      purpose ? kindFacet(kind, purpose) : null,
       /* Changing the kind keeps search, station, principle and lens, and drops the previous kind's own facets. */
       kindPicker(
         kind,
@@ -1130,7 +1128,7 @@
           )
         : null,
       selected.map((own) => {
-        const ownFacets = (KIND_FACETS[own] || []).filter((facet) => facet !== purpose);
+        const ownFacets = KIND_FACETS[own] || [];
         if (!ownFacets.length) return null;
         return h(
           "div",

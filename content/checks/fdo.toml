@@ -1,0 +1,363 @@
+[check]
+id = "fdo"
+name = { cs = "Připravenost na FAIR Digital Objects", en = "FAIR Digital Object readiness" }
+icon = "list-check"
+description = { cs = "Vlastní posouzení objektu a infrastruktury podle FDO Requirement Specifications 3.0 (2023), navrhovaného doporučení. Šest úvodních otázek, v rozšířené kontrole všech 34 požadavků čtyř vrstev. U poskytovatele si vyžádejte doklady k jeho části. DOI ani RO-Crate samy soulad neprokazují; kontrola nevydává certifikát.", en = "Self-assessment of an object and its infrastructure against FDO Requirement Specifications 3.0 (2023), a Proposed Recommendation. Six introductory questions; the extended check covers all 34 requirements across four layers. Ask providers for evidence of their part. A DOI or RO-Crate alone does not establish conformance; this check issues no certificate." }
+lenses = ["V", "DS", "SR", "K"]
+minutes = 15
+
+[[block]]
+id = "general"
+name = { cs = "Objekt a jeho vztahy", en = "Object and relationships" }
+
+[[block]]
+id = "pid"
+name = { cs = "Služba PID — doloží poskytovatel", en = "PID service — provider evidence" }
+
+[[block]]
+id = "object"
+name = { cs = "Profil, atributy a typy", en = "Profile, attributes and types" }
+
+[[block]]
+id = "resources"
+name = { cs = "Odkazované zdroje a důvěryhodnost", en = "Referenced resources and trustworthiness" }
+
+[[item]]
+id = "fdo.01"
+requirement = "FDO.FDOR-GR1"
+statement = { cs = "Každý posuzovaný objekt má celosvětově jednoznačný a trvalý identifikátor (PID), pomocí kterého lze objekt dohledat.", en = "Each assessed object has a globally unique, persistent identifier (PID) that can be resolved to locate the object." }
+tier = "basic"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.02"
+requirement = "FDO.FDOR-GR2"
+statement = { cs = "Pomocí PID lze získat strukturovaný záznam podle určeného profilu, z něhož program dohledá objekt.", en = "Resolving the PID returns a structured record following a specified profile, from which a program can locate the object." }
+tier = "basic"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.03"
+requirement = "FDO.FDOR-GR3"
+statement = { cs = "Má-li objekt datový obsah, záznam uvádí odkaz na tento obsah a definici jeho typu.", en = "If the object has data content, the record provides its access location and type definition." }
+tier = "basic"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = true
+
+[[item]]
+id = "fdo.04"
+requirement = "FDO.FDO-GR4"
+statement = { cs = "Záznam obsahuje atributy požadované profilem; profil rozlišuje vložené hodnoty a odkazy.", en = "The record contains profile-required attributes; the profile distinguishes embedded values from references." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.05"
+requirement = "FDO.FDO-GR5"
+statement = { cs = "Rozhraní umožňuje zpřístupnit objekt nebo s ním provést operaci. Operace se vybírá pomocí jejího PID a je registrována jako podporovaná.", en = "The interface lets a client access or operate on the object by specifying the PID of a registered supported operation." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.06"
+requirement = "FDO.FDO-GR6"
+statement = { cs = "Rozhraní podporuje vytvoření, čtení, změnu a smazání objektu a rozšíření o oborové operace.", en = "The interface supports creating, reading, updating and deleting objects and extending domain operations." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.07"
+requirement = "FDO.FDO-GR7"
+statement = { cs = "Vztahy mezi typy objektů a podporovanými operacemi jsou v registru.", en = "Relationships between object types and supported operations are registered." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["community"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.08"
+requirement = "FDO.FDO-GR8"
+statement = { cs = "Metadata tvořená jako FDO používají registrované schéma a registrované metadatové kategorie.", en = "Metadata represented as FDOs use a registered schema and registered metadata categories." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = true
+
+[[item]]
+id = "fdo.09"
+requirement = "FDO.FDO-GR9"
+statement = { cs = "Příslušné druhy metadat, například původ či přístupová práva, jsou rozlišeny.", en = "Relevant metadata kinds, such as provenance or access permissions, are distinguished." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.10"
+requirement = "FDO.FDO-GR10"
+statement = { cs = "Komunita spravuje metadatová schémata jako FAIR digitální objekty.", en = "The community maintains metadata schemas as FAIR digital objects." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["community"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.11"
+requirement = "FDO.FDO-GR11"
+statement = { cs = "Kolekce FDO má formálně popsanou skladbu a vztahy členů.", en = "An FDO collection has a formally described composition and member relationships." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = true
+
+[[item]]
+id = "fdo.12"
+requirement = "FDO.FDO-GR12"
+statement = { cs = "Po smazání objektu zůstává PID a strojově rozpoznatelný záznam o smazání.", en = "After object deletion, its PID and a machine-recognisable deletion record remain." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.13"
+requirement = "FDO.FDO-GR13"
+statement = { cs = "Záznam získaný pomocí PID a údaje o objektu umožňují programu s objektem pracovat podle popsaných typů a operací.", en = "The resolved PID record and object information allow a program to work with the object using described types and operations." }
+tier = "basic"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.14"
+requirement = "FDO.FDO-GR14"
+statement = { cs = "Je doloženo, jak zvolená konfigurace naplňuje určenou specifikaci FDO.", en = "There is evidence of how the selected configuration meets the specified FDO specification." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.15"
+requirement = "FDO.FDO-GR15"
+statement = { cs = "Komunita stanovila účelnou podrobnost, s jakou objekty samostatně identifikuje.", en = "The community has chosen useful granularity for independently identifying objects." }
+tier = "advanced"
+block = "general"
+fixAt = "metadata"
+owner = ["community"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.16"
+requirement = "FDO.FDO-PIDR1"
+statement = { cs = "Protokol pro získání záznamu pomocí PID je standardizovaný, bezplatný a veřejně dostupný.", en = "The protocol for resolving a PID is standardised, free and publicly accessible." }
+tier = "advanced"
+block = "pid"
+fixAt = "metadata"
+owner = ["repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.17"
+requirement = "FDO.FDO-PIDR2"
+statement = { cs = "Profil určuje, jaké údaje program získá při dotazu na PID a jak je má interpretovat.", en = "The profile specifies which information a program receives when resolving the PID and how to interpret it." }
+tier = "advanced"
+block = "pid"
+fixAt = "metadata"
+owner = ["repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.18"
+requirement = "FDO.FDO-PIDR3"
+statement = { cs = "Atributy v záznamu PID mají definice zveřejněné v otevřených registrech.", en = "PID-record attributes have definitions published in open registries." }
+tier = "advanced"
+block = "pid"
+fixAt = "metadata"
+owner = ["repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.19"
+requirement = "FDO.FDO-PIDR4"
+statement = { cs = "Poskytovatel doložil, že systém PID zvládne růst provozu, odolává výpadkům a bude dlouhodobě dostupný celosvětově.", en = "The provider has evidence that the PID system can scale, withstand failures and remain globally available over the long term." }
+tier = "advanced"
+block = "pid"
+fixAt = "metadata"
+owner = ["repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.20"
+requirement = "FDO.FDO-PIDR5"
+statement = { cs = "Změny záznamu a jeho zpřístupnění či šifrování řídí vlastník nebo pověřený zástupce.", en = "Record changes and access or encryption are controlled by the owner or delegated agent." }
+tier = "advanced"
+block = "pid"
+fixAt = "metadata"
+owner = ["repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.21"
+requirement = "FDO.FDO-PIDR6"
+statement = { cs = "Správa PID systému je zabezpečena infrastrukturou veřejných klíčů a případně standardními certifikáty.", en = "PID-system management is secured by public-key infrastructure and, where needed, standard certificates." }
+tier = "advanced"
+block = "pid"
+fixAt = "metadata"
+owner = ["repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.22"
+requirement = "FDO.FDO-FDOR1"
+statement = { cs = "Schéma použitého profilu FDO je zveřejněno v uznávaném registru.", en = "The schema of the FDO profile in use is published in a recognised registry." }
+tier = "basic"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.23"
+requirement = "FDO.FDO-FDOR2"
+statement = { cs = "Atributy záznamu odpovídají profilu a odkazují na registrované definice ve schématu typů.", en = "Record attributes follow the profile and refer to registered definitions in the type schema." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.24"
+requirement = "FDO.FDO-FDOR3"
+statement = { cs = "Záznam obsahuje všechny povinné základní atributy profilu včetně typu objektu.", en = "The record contains all mandatory profile kernel attributes, including the object type." }
+tier = "basic"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.25"
+requirement = "FDO.FDO-FDOR4"
+statement = { cs = "Použité volitelné a komunitní atributy mají registrované definice, podle kterých je program umí interpretovat.", en = "Optional and community attributes in use have registered definitions that a program can interpret." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = true
+
+[[item]]
+id = "fdo.26"
+requirement = "FDO.FDO-FDOR5"
+statement = { cs = "U datového obsahu záznam odkazuje na obsah i bohatý metadatový popis.", en = "For data content, the record references both the content and a rich metadata description." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = true
+
+[[item]]
+id = "fdo.27"
+requirement = "FDO.FDO-FDOR6"
+statement = { cs = "Objekt má typ umožňující automatickou validaci a zpracování.", en = "The object has a type enabling automated validation and processing." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.28"
+requirement = "FDO.FDO-FDOR7"
+statement = { cs = "Každá zahrnutá datová, metadatová či softwarová část má určený typ.", en = "Each included data, metadata or software content part has a specified type." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = true
+
+[[item]]
+id = "fdo.29"
+requirement = "FDO.FDO-FDOR8"
+statement = { cs = "Volba existujícího, odvozeného nebo nového typu je zdokumentována.", en = "The choice of an existing, derived or new type is documented." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.30"
+requirement = "FDO.FDO-FDO9"
+statement = { cs = "Definice typu používá dohodnutý formální zápis a sama je FAIR digitálním objektem.", en = "The type definition uses agreed syntax and is itself a FAIR digital object." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.31"
+requirement = "FDO.FDO-FDO10"
+statement = { cs = "PID typu vede na objekt s jeho definicí.", en = "The type PID resolves to the object containing its definition." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.32"
+requirement = "FDO.FDO-FDO11"
+statement = { cs = "Používaný rámec určuje, jak typy definovat a přiřazovat objektům.", en = "The framework in use specifies how types are defined and attached to objects." }
+tier = "advanced"
+block = "object"
+fixAt = "metadata"
+owner = ["community"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.33"
+requirement = "FDO.FDO-RESR1"
+statement = { cs = "U odkazovaných zdrojů je doloženo naplnění příslušných principů FAIR.", en = "Referenced resources have evidence of meeting the applicable FAIR principles." }
+tier = "advanced"
+block = "resources"
+fixAt = "publication"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false
+
+[[item]]
+id = "fdo.34"
+requirement = "FDO.FDO-RESR2"
+statement = { cs = "Poskytovatelé pravidelně posuzují důvěryhodnost postupů, například podle CoreTrustSeal.", en = "Providers regularly assess the trustworthiness of procedures, for example under CoreTrustSeal." }
+tier = "advanced"
+block = "resources"
+fixAt = "publication"
+owner = ["curator", "repository-admin"]
+allowNotApplicable = false

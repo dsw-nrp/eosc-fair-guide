@@ -35,6 +35,13 @@ text = { cs = "Cizí data citujte v seznamu literatury: autor, rok, název, repo
 sources = ["FORCE11-CITATION.01", "A.F1.X2"]
 
 [[advice]]
+id = "citation.19"
+lens = "V"
+level = "L1"
+text = { cs = "Citujte také [[page:software|software použitý při zpracování dat]]: autory, název, použitou verzi a její trvalý identifikátor, pokud jej má. Řiďte se citačními pokyny projektu; samotný odkaz na vývojový repozitář nemusí určit použitou verzi.", en = "Also cite the [[page:software|software used to process the data]]: authors, title, the version used and its persistent identifier if available. Follow the project’s citation instructions; a link to the development repository alone may not identify the version used." }
+sources = ["FRSM.FRSM-03", "FRSM.FRSM-06"]
+
+[[advice]]
 id = "citation.04"
 lens = "V"
 level = "L1"

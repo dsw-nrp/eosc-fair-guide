@@ -30,12 +30,14 @@
 
   /* The parts of the knowledge base a view needs beyond the start: the standards' requirements and the FIP
      profiles for the catalogue and the checks, the standards for the explorer, the pages' text for a page. */
-  const VIEW_PARTS = { catalogue: ["standards", "fips"], check: ["standards", "fips"], selfcheck: ["standards", "fips"], explorer: ["standards"], page: ["pages"] };
+  const VIEW_PARTS = { catalogue: ["standards", "fips", "questions"], check: ["standards", "fips", "questions"], selfcheck: ["standards", "fips", "questions"], explorer: ["standards", "questions"], page: ["pages"] };
 
   FG.render = function () {
     const route = FG.parseHash(window.location.hash);
     /* A view whose parts have not arrived yet renders once they have; the previous view stays until then. */
-    const missing = (VIEW_PARTS[route.view] || []).filter((name) => !FG.partsLoaded.has(name));
+    const needed = [...(VIEW_PARTS[route.view] || [])];
+    if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
+    const missing = needed.filter((name) => !FG.partsLoaded.has(name));
     if (missing.length) {
       Promise.allSettled(missing.map(FG.loadPart)).then((results) => {
         for (const result of results) if (result.status === "rejected") console.error(result.reason.message);

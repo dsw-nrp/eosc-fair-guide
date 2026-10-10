@@ -65,6 +65,14 @@ class FixtureCase(unittest.TestCase):
 
 
 class GeneratorTests(FixtureCase):
+    def test_station_references_resolve_and_unknown_stations_fail(self) -> None:
+        self.edit("stations/01-one.toml", "Take the first step.", "Read [[station:one|the station]].")
+        graph = build_crate.Graph()
+        build_crate.build_crate(build_crate.load_content(self.root / "content"), graph)
+        self.assertTrue(any(link["ref"] == "#station-one" for links in graph.text_links.values() for link in links))
+        self.edit("stations/01-one.toml", "station:one", "station:missing")
+        self.assertError("unknown entry 'station:missing'")
+
     def test_output_is_deterministic(self) -> None:
         first = build_crate.outputs(self.root)
         second = build_crate.outputs(self.root)

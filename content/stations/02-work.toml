@@ -23,7 +23,7 @@ id = "work.02"
 lens = "V"
 level = "L0"
 text = { cs = "Už během výzkumu data průběžně organizujte a dokumentujte: jednotné názvy souborů, verze, README a záznam postupu. Při zveřejnění vám to ušetří spoustu práce.", en = "Organise and document your data as you go: consistent file names, versions, a README and a record of how the data were made. It will save you a lot of work when you publish." }
-action = [{ label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }, { label = { cs = "Jupyter jako laboratorní deník", en = "Jupyter as a lab notebook" }, href = "https://github.com/Czech-Data-Steward-Community/jupyter-ELN-example" }]
+action = [{ label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }, { label = { cs = "Laboratorní a terénní deníky", en = "Laboratory and field notebooks" }, href = "#page-notebooks" }]
 sources = ["CESSDA-DMEG.01", "A.R1.2.X1"]
 
 [[advice]]
@@ -51,8 +51,15 @@ sources = ["CESSDA-DMEG.01", "CDSC-README.01"]
 id = "work.06"
 lens = "V"
 level = "L1"
-text = { cs = "Zaznamenávejte, jak data vznikla: přístroje, software a jeho verze, kroky zpracování. Jako elektronický laboratorní deník poslouží i Jupyter Notebook; jak na to, ukazuje [[cdsc-eln|příklad komunity data stewardů]].", en = "Record how the data were made: instruments, software and its versions, processing steps. A Jupyter notebook can serve as an electronic lab notebook; [[cdsc-eln|an example from the data steward community]] shows how." }
-sources = ["A.R1.2.X1", "CDSC-ELN.01"]
+text = { cs = "Průběžně zaznamenávejte, jak data vznikají a jak je zpracováváte: použitý přístroj, software a jeho verzi i jednotlivé úpravy. Do [[page:notebooks|laboratorního nebo terénního deníku]] zapisujte také [[page:provenance|důvody rozhodnutí]], například proč jste některá měření vyřadili.", en = "Record how data are produced and processed as you work: the instrument, software and version, and individual changes. In your [[page:notebooks|laboratory or field notebook]], also record [[page:provenance|reasons for decisions]], such as why you excluded particular measurements." }
+sources = ["A.R1.2.N2", "CDSC-ELN.01", "LONDON.4.6", "EOSC-ELN.01"]
+
+[[advice]]
+id = "work.25"
+lens = "V"
+level = "L1"
+text = { cs = "Píšete-li [[page:software|skript nebo výpočetní notebook]] pro zpracování dat, uložte použitou verzi spolu s návodem ke spuštění a seznamem závislostí. Přidejte malý příklad se vstupy a očekávaným výsledkem, na kterém lze postup ověřit.", en = "If you write a [[page:software|script or computational notebook]] to process data, retain the version used, execution instructions and dependencies. Include a small example with inputs and expected results so the procedure can be checked." }
+sources = ["FRSM.FRSM-13", "CODE.01"]
 
 [[advice]]
 id = "work.07"
@@ -89,6 +96,13 @@ lens = "DS"
 level = "L1"
 text = { cs = "Připravte pro týmy šablony README a datového slovníku. Vyjít můžete ze [[cdsc-readme|šablon komunity data stewardů]] ve formátech TXT, Markdown a JSON.", en = "Prepare README and data dictionary templates for research teams. You can build on the [[cdsc-readme|Czech data steward community's templates]] in TXT, Markdown and JSON." }
 sources = ["CESSDA-DMEG.01", "CDSC-README.01"]
+
+[[advice]]
+id = "work.23"
+lens = "DS"
+level = "L1"
+text = { cs = "Potřebuje tým [[page:notebooks|laboratorní nebo terénní deník]]? Pomozte vybrat řešení podle způsobu práce: kdo do něj zapisuje, co potřebuje exportovat a zda pracuje bez sítě. S institucionální IT podporou ověřte přístupová práva a zálohování.", en = "Does the team need a [[page:notebooks|laboratory or field notebook]]? Help select a solution for its way of working: who contributes, what needs exporting and whether work takes place offline. Check permissions and backups with institutional IT support." }
+sources = ["OSII-STUDY.01", "CAMBRIDGE-ERN.01"]
 
 [[advice]]
 id = "work.12"
