@@ -584,3 +584,14 @@ results = [
   "O09",
 ]
 endTime = 2026-10-09T10:55:15+02:00
+
+[[action]]
+id = "2026-10-10-station-actions"
+type = "update"
+name = "Next steps per station and audience"
+description = "Each station offers each audience its next step and, where it helps, one related tool, drawn from what the guide has grown to offer: its checks and helpers, the data-steward community's templates, NRP and e-INFRA CZ documentation, NMA and the standards the steps rely on; no audience is sent to the same place at every station."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = []
+results = ["citace.DS.L0", "citace.K.L0", "citace.SR.L0", "citace.V.L0", "dohledatelnost.DS.L0", "dohledatelnost.K.L0", "dohledatelnost.SR.L0", "dohledatelnost.V.L0", "kontrola.DS.L0", "kontrola.K.L0", "kontrola.SR.L0", "kontrola.V.L0", "licence.DS.L0", "licence.K.L0", "licence.SR.L0", "licence.V.L0", "plan.DS.L0", "plan.K.L0", "plan.SR.L0", "plan.V.L0", "popis.DS.L0", "popis.K.L0", "popis.SR.L0", "popis.V.L0", "prace.DS.L0", "prace.K.L0", "prace.SR.L0", "prace.V.L0", "publikace.DS.L0", "publikace.K.L0", "publikace.SR.L0", "publikace.V.L0", "repozitar.DS.L0", "repozitar.K.L0", "repozitar.SR.L0", "repozitar.V.L0"]
+endTime = 2026-10-10T08:47:00+02:00

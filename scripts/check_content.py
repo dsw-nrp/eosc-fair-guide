@@ -380,8 +380,18 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
             elif "check" in advice or "prompt" in advice:
                 report.error(item, "only an AI item carries check and prompt")
             if advice.get("level") == "L0" and advice.get("kind") != "ai":
-                if not advice.get("action"):
+                # The next step, and at most one related tool beside it.
+                actions = as_list(advice.get("action"))
+                if not actions:
                     report.error(item, "an L0 item needs one concrete action")
+                elif len(actions) > MAX_ACTIONS:
+                    report.error(
+                        item, f"an L0 item offers at most {MAX_ACTIONS} actions: the next step and one related tool"
+                    )
+                for action in actions:
+                    require_text(report, f"{item}.action", action.get("label"), "label")
+                    if not action.get("href"):
+                        report.error(f"{item}.action", "an action needs an href")
                 for lens in lenses:
                     if lens in l0_by_lens:
                         l0_by_lens[lens] += 1
@@ -393,6 +403,9 @@ def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set
             if count != 1:
                 report.error(where, f"lens {lens} needs exactly one L0 item with its next action (found {count})")
     unique(report, "advice", advice_ids, "advice")
+
+
+MAX_ACTIONS = 2
 
 
 def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], clause_ids: set[str]) -> None:
@@ -1057,7 +1070,7 @@ def vocabularies(content: dict[str, Any]) -> dict[str, Any]:
 
 
 def in_page_targets(content: dict[str, Any]) -> set[str]:
-    targets = {"#path", "#ledger", "#repositories", "#resources"}
+    targets = {"#path", "#ledger", "#repositories", "#resources", "#tests"}
     targets |= {f"#station-{data['station']['id']}" for data in content["stations"]}
     targets |= {f"#check-{data['check']['id']}" for data in content["checks"]}
     targets |= {f"#page-{page['id']}" for page in content["pages"]}

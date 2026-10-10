@@ -15,7 +15,7 @@ id = "repozitar.V.L0"
 lens = "V"
 level = "L0"
 text = { cs = "Uložte data tam, kde je najde váš obor: přednostně do oborového repozitáře, jinak do institucionálního. Když se nic nehodí, nabízí NRP datový catch-all repozitář.", en = "Deposit your data where your field will find them: preferably in a domain repository, otherwise in an institutional one. If nothing fits, NRP offers a catch-all data repository." }
-action = { label = { cs = "Najít repozitář", en = "Find a repository" }, href = "#repositories" }
+action = [{ label = { cs = "Najít repozitář", en = "Find a repository" }, href = "#repositories" }, { label = { cs = "Datový catch-all repozitář NRP", en = "NRP catch-all data repository" }, href = "https://datarepo.eosc.cz/" }]
 sources = ["A.R1.3.X1", "E.DATAREPO"]
 
 [[advice]]
@@ -71,7 +71,7 @@ id = "repozitar.DS.L0"
 lens = "DS"
 level = "L0"
 text = { cs = "Pomozte vybrat repozitář podle oboru, typu dat a podmínek přístupu. Vyhledávač průvodce filtruje podle údajů z [[nkr|NKR]] a [[re3data|re3data]].", en = "Help choose a repository by field, data type and access conditions. The guide's finder filters by information from [[nkr|NKR]] and [[re3data|re3data]]." }
-action = { label = { cs = "Vyhledávač repozitářů", en = "Repository finder" }, href = "#repositories" }
+action = [{ label = { cs = "Vyhledávač repozitářů", en = "Repository finder" }, href = "#repositories" }, { label = { cs = "Zralost FAIR repozitáře", en = "FAIR maturity of a repository" }, href = "#check-maturity" }]
 sources = ["A.R1.3.X1", "E.NKR-SCHEMA"]
 
 [[advice]]
@@ -100,7 +100,7 @@ id = "repozitar.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Aby vás výzkumníci našli, zaregistrujte repozitář v Národním katalogu repozitářů ([[nkr|NKR]]) a záznam udržujte aktuální. Podmínky NRP to vyžadují.", en = "So that researchers can find you, register the repository in the [[nkr|National Repository Catalogue (NKR)]] and keep the record up to date. The NRP conditions require this." }
-action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
+action = [{ label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }, { label = { cs = "Připravenost na CoreTrustSeal", en = "CoreTrustSeal readiness" }, href = "#check-coretrustseal" }]
 sources = ["C.M5"]
 
 [[advice]]
@@ -157,7 +157,7 @@ id = "repozitar.K.L0"
 lens = "K"
 level = "L0"
 text = { cs = "Uveďte ve FIP, které repozitáře váš obor doporučuje. Pokud oborový repozitář chybí, podporuje projekt [[os2|Open Science II]] vznik nových.", en = "State in the FIP which repositories your domain recommends. If a domain repository is missing, the [[os2|Open Science II]] project supports creating new ones." }
-action = { label = { cs = "Open Science II", en = "Open Science II" }, href = "https://www.eosc.cz/projekty/open-science-ii" }
+action = [{ label = { cs = "Open Science II", en = "Open Science II" }, href = "https://www.eosc.cz/projekty/open-science-ii" }, { label = { cs = "Vyhledávač repozitářů", en = "Repository finder" }, href = "#repositories" }]
 sources = ["K4.1", "E.OS2"]
 
 [[advice]]

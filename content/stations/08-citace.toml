@@ -16,7 +16,7 @@ id = "citace.V.L0"
 lens = "V"
 level = "L0"
 text = { cs = "Data, která používáte, citujte stejně jako články. Vaše datová sada je díky PID citovatelná; uveďte ji v článku i v profilu [[orcid|ORCID]].", en = "Cite the data you use just as you cite articles. Thanks to its PID, your dataset is citable; list it in your article and in your [[orcid|ORCID]] profile." }
-action = { label = { cs = "Vytvořit citaci z DOI", en = "Create a citation from a DOI" }, href = "#page-citation" }
+action = [{ label = { cs = "Vytvořit citaci z DOI", en = "Create a citation from a DOI" }, href = "#page-citation" }, { label = { cs = "Zásady citování dat", en = "Data citation principles" }, href = "https://force11.org/info/joint-declaration-of-data-citation-principles-final/" }]
 sources = ["E.FORCE11", "A.F1.X2", "A.R1.2.N3"]
 
 [[advice]]
@@ -59,7 +59,7 @@ id = "citace.DS.L0"
 lens = "DS"
 level = "L0"
 text = { cs = "Podporujte citační praxi: data citovat, zpřístupňovat je citovatelně a vykazovat je tam, kde to pravidla umožňují.", en = "Support citation practice: cite data, make them citable, and report them where the rules allow." }
-action = { label = { cs = "Zásady citování dat", en = "Data citation principles" }, href = "https://force11.org/info/joint-declaration-of-data-citation-principles-final/" }
+action = [{ label = { cs = "Zásady citování dat", en = "Data citation principles" }, href = "https://force11.org/info/joint-declaration-of-data-citation-principles-final/" }, { label = { cs = "Poděkování a citace EOSC CZ", en = "EOSC CZ acknowledgement and citation" }, href = "https://www.eosc.cz/o-nas/acknowledgement" }]
 sources = ["E.FORCE11", "DOC.NMA.RIV"]
 
 [[advice]]
@@ -88,7 +88,7 @@ id = "citace.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Usnadněte citování: nabídněte na landing page doporučenou citaci a její export (BibTeX, RIS) a v metadatech uvádějte autory s [[orcid|ORCID]].", en = "Make citing easy: offer a recommended citation and its export (BibTeX, RIS) on the landing page, and give authors with [[orcid|ORCID]] in the metadata." }
-action = { label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }
+action = [{ label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }, { label = { cs = "FAIR Signposting", en = "FAIR Signposting" }, href = "https://signposting.org/FAIR/" }]
 sources = ["A.F1.X2", "A.I2.R2"]
 
 [[advice]]

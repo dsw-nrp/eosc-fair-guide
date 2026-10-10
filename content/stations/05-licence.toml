@@ -15,7 +15,7 @@ id = "licence.V.L0"
 lens = "V"
 level = "L0"
 text = { cs = "Zvolte licenci, aby ostatní věděli, co s daty smějí dělat. Pro otevřená data se nejčastěji používá CC BY 4.0 nebo CC0. Pokud data otevřít nelze, nastavte omezený přístup nebo embargo; popis dat může být veřejný i tak.", en = "Choose a licence so that others know what they may do with the data. Open data most often use CC BY 4.0 or CC0. If the data cannot be open, set restricted access or an embargo; the description of the data can still be public." }
-action = { label = { cs = "Průvodce licencemi v DMP.eosc.cz", en = "Licence selector in DMP.eosc.cz" }, href = "https://dmp.eosc.cz/" }
+action = [{ label = { cs = "Průvodce licencemi v DMP.eosc.cz", en = "Licence selector in DMP.eosc.cz" }, href = "https://dmp.eosc.cz/" }, { label = { cs = "Autorská práva a licence", en = "Copyright and licences" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng" }]
 sources = ["A.R1.1.R1", "A.A1.2.R2", "E.DMP", "E.COPYRIGHT"]
 
 [[advice]]
@@ -58,7 +58,7 @@ id = "licence.DS.L0"
 lens = "DS"
 level = "L0"
 text = { cs = "Licence a podmínky přístupu bývají nejčastějším zdrojem nejistoty. Pomozte je rozhodnout včas, ideálně už v DMP.", en = "Licences and access conditions are the most common source of uncertainty. Help decide them early, ideally in the DMP." }
-action = { label = { cs = "Autorská práva a licence", en = "Copyright and licences" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng" }
+action = [{ label = { cs = "Autorská práva a licence", en = "Copyright and licences" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng" }, { label = { cs = "Vzor depoziční licence", en = "Deposit licence template" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence" }]
 sources = ["E.COPYRIGHT", "E.DMP"]
 
 [[advice]]
@@ -94,7 +94,7 @@ id = "licence.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Nabídněte výběr z doporučených licencí, zajistěte u každé datové sady licenci uvedenou jako URI a nastavte pravidla přístupu.", en = "Offer a choice of recommended licences, make sure every dataset has a licence given as a URI, and set the access rules." }
-action = { label = { cs = "Podmínky NRP: přístup a AAI", en = "NRP conditions: access and AAI" }, href = "#check-gate" }
+action = [{ label = { cs = "Vzor depoziční licence", en = "Deposit licence template" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence" }, { label = { cs = "Podmínky NRP: přístup a AAI", en = "NRP conditions: access and AAI" }, href = "#check-gate" }]
 sources = ["A.R1.1.R1", "S.MIN3", "C.M11"]
 
 [[advice]]

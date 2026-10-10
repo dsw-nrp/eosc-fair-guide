@@ -15,7 +15,7 @@ id = "dohledatelnost.V.L0"
 lens = "V"
 level = "L0"
 text = { cs = "Je-li váš repozitář napojený na [[nma|Národní metadatový adresář (NMA)]], objeví se tam záznam sám. Pokud ne, můžete ho tam vytvořit sami; stačí, když má datová sada trvalý identifikátor.", en = "If your repository is connected to the [[nma|National Metadata Directory (NMA)]], the record appears there by itself. If not, you can create it yourself; the dataset only needs a persistent identifier." }
-action = { label = { cs = "Vyhledat datovou sadu v NMA", en = "Search for your dataset in NMA" }, href = "https://nma.eosc.cz/" }
+action = [{ label = { cs = "Vyhledat datovou sadu v NMA", en = "Search for your dataset in NMA" }, href = "https://nma.eosc.cz/" }, { label = { cs = "NMA: ověření pro RIV", en = "NMA: verification for RIV" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-verifying-datasets-for-RIV" }]
 sources = ["A.F4.N1", "DOC.NMA.RIV", "DOC.NMA.ACCESS"]
 
 [[advice]]
@@ -69,7 +69,7 @@ id = "dohledatelnost.DS.L0"
 lens = "DS"
 level = "L0"
 text = { cs = "Dohledatelnost zajišťuje hlavně repozitář: sklizeň do [[nma|NMA]], strojově čitelná metadata pro vyhledávače a registrace v agregátorech.", en = "Findability is mainly the repository's job: harvesting into [[nma|NMA]], machine-readable metadata for search engines and registration with aggregators." }
-action = { label = { cs = "Jak funguje NMA", en = "How NMA works" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-introduction" }
+action = [{ label = { cs = "Jak funguje NMA", en = "How NMA works" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-introduction" }, { label = { cs = "Výsledek typu T a NMA", en = "Result type T and NMA" }, href = "https://openscience.lib.cas.cz/en/funders-en/new-type-t-research-output-and-the-national-metadata-directory/" }]
 sources = ["C.M8", "A.F4.R2", "A.F4.N3", "DOC.NMA.INTRO"]
 
 [[advice]]
@@ -105,7 +105,7 @@ id = "dohledatelnost.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Zpřístupněte metadata pro sklizeň do [[nma|NMA]] ([[oai-pmh|OAI-PMH]], CCMM-XML), což vyžadují podmínky NRP, a nabídněte strojově čitelná metadata i vyhledávačům. Autoři pak nemusejí zakládat záznamy ručně.", en = "Make metadata available for harvesting into [[nma|NMA]] ([[oai-pmh|OAI-PMH]], CCMM-XML), which the NRP conditions require, and offer machine-readable metadata to search engines too. Authors then need not create records by hand." }
-action = { label = { cs = "Export do NMA (dokumentace NRP)", en = "Export to NMA (NRP documentation)" }, href = "https://docs.nrp.eosc.cz/en/docs/repo_admins/national-metadata-directory/exports-to-nma" }
+action = [{ label = { cs = "Export do NMA (dokumentace NRP)", en = "Export to NMA (NRP documentation)" }, href = "https://docs.nrp.eosc.cz/en/docs/repo_admins/national-metadata-directory/exports-to-nma" }, { label = { cs = "Schema.org Dataset", en = "Schema.org Dataset" }, href = "https://schema.org/Dataset" }]
 sources = ["C.M8", "DOC.NMA.EXPORT", "A.F4.R2"]
 
 [[advice]]

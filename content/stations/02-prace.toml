@@ -15,7 +15,7 @@ id = "prace.V.L0"
 lens = "V"
 level = "L0"
 text = { cs = "Už během výzkumu data průběžně organizujte a dokumentujte: jednotné názvy souborů, verze, README a záznam postupu. Při zveřejnění vám to ušetří spoustu práce.", en = "Organise and document your data as you go: consistent file names, versions, a README and a record of how the data were made. It will save you a lot of work when you publish." }
-action = { label = { cs = "Zkontrolovat připravenost dat", en = "Check how ready your data are" }, href = "#check-dataset" }
+action = [{ label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }, { label = { cs = "Jupyter jako laboratorní deník", en = "Jupyter as a lab notebook" }, href = "https://github.com/Czech-Data-Steward-Community/jupyter-ELN-example" }]
 sources = ["E.CESSDA-DMEG", "A.R1.2.X1"]
 
 [[advice]]
@@ -65,7 +65,7 @@ id = "prace.DS.L0"
 lens = "DS"
 level = "L0"
 text = { cs = "Pomozte nastavit postupy dřív, než data vzniknou: úložiště, pojmenování, verzování a dokumentaci.", en = "Help set up practices before the data exist: storage, naming, versioning and documentation." }
-action = { label = { cs = "Úložiště a výpočty v e-INFRA CZ", en = "Storage and computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }
+action = [{ label = { cs = "Úložiště a výpočty v e-INFRA CZ", en = "Storage and computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }, { label = { cs = "AI v e-INFRA CZ", en = "AI in e-INFRA CZ" }, href = "#page-ai" }]
 sources = ["E.EINFRA", "E.CESSDA-DMEG"]
 
 [[advice]]
@@ -108,7 +108,7 @@ id = "prace.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Pokud repozitář přijímá data z přístrojů nebo z výpočetních prostředí, nabídněte zdokumentované API. Webové rozhraní i API vyžadují podmínky NRP.", en = "If the repository receives data from instruments or computing environments, offer a documented API. The NRP conditions require both a web interface and an API." }
-action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
+action = [{ label = { cs = "Výpočty s daty z NRP", en = "Computing with NRP data" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing" }, { label = { cs = "Integrace repozitáře do NRP", en = "Integrating a repository into NRP" }, href = "https://www.eosc.cz/sluzby/ukladani/repozitare-v-nrp/integrece-repo-nrp" }]
 sources = ["C.M2"]
 
 [[advice]]
@@ -137,7 +137,7 @@ id = "prace.K.L0"
 lens = "K"
 level = "L0"
 text = { cs = "Doporučené formáty a minimální popis dat pro váš obor patří do FIP; výzkumníci je pak mohou dodržovat od začátku.", en = "Your domain's recommended formats and minimum data description belong in the FIP, so researchers can follow them from the start." }
-action = { label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }
+action = [{ label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }, { label = { cs = "Dataspecer", en = "Dataspecer" }, href = "https://dataspecer.com/" }]
 sources = ["A.R1.3.F1", "A.R1.F1", "E.FIP-DASHBOARD"]
 
 [[advice]]

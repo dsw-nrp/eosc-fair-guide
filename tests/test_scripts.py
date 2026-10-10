@@ -350,6 +350,13 @@ class ContentCheckTests(FixtureCase):
         )
         self.assertError("needs one concrete action")
 
+    def test_station_offers_at_most_two_actions(self) -> None:
+        one = 'action = { label = { cs = "Začít", en = "Start" }, href = "#check-gate" }'
+        self.edit("stations/01-one.toml", one + "\n", "action = [" + ", ".join([one[len("action = ") :]] * 2) + "]\n")
+        self.assertEqual(self.errors(), [])
+        self.edit("stations/01-one.toml", "action = [", "action = [" + one[len("action = ") :] + ", ")
+        self.assertError("at most 2 actions")
+
     def test_in_page_target_must_exist(self) -> None:
         self.edit("stations/01-one.toml", 'href = "#check-gate"', 'href = "#nowhere"')
         self.assertError("in-page target '#nowhere' does not exist")

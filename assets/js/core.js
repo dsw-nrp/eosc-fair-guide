@@ -454,6 +454,7 @@
     if ((match = id.match(/^resource-(.+)$/))) return { view: "catalogue", arg: "resources", extra: match[1] };
     if (id === "repositories") return { view: "catalogue", arg: "repositories" };
     if (id === "resources") return { view: "catalogue", arg: "resources" };
+    if (id === "tests") return { view: "catalogue", arg: "tests" };
     if (id === "ledger") return { view: "explorer" };
     if (id === "path") return { view: "path" };
     return null;

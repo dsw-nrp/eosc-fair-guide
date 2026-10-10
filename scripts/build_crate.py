@@ -646,7 +646,11 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
             level = advice["level"]
             is_tip = level == "L2" or advice.get("kind") == "ai"
             step_ids = [f"{advice_id}-step-{number}" for number in range(1, len(advice.get("steps", [])) + 1)]
-            action_id = f"{advice_id}-action" if advice.get("action") else None
+            # The next step first, then at most one related tool.
+            actions = as_list(advice.get("action"))
+            action_ids = [
+                f"{advice_id}-action" + (f"-{number}" if number > 1 else "") for number in range(1, len(actions) + 1)
+            ]
             graph.add(
                 {
                     "@id": advice_id,
@@ -662,7 +666,7 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
                     "citation": refs(graph.resolve(advice.get("sources", []))),
                     "isPartOf": ref(station_id),
                     "hasPart": refs(step_ids),
-                    "potentialAction": ref(action_id) if action_id else None,
+                    "potentialAction": refs(action_ids),
                 },
                 advice["id"],
             )
@@ -676,8 +680,7 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
                         "isPartOf": ref(advice_id),
                     }
                 )
-            if action_id:
-                action = advice["action"]
+            for action_id, action in zip(action_ids, actions, strict=True):
                 graph.add(
                     {"@id": action_id, "@type": "Action", "name": text(action["label"]), "target": ref(action["href"])}
                 )
@@ -1222,6 +1225,8 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
             },
             f"test:{test['id']}",
         )
+    # The curated tests as a whole, which a station's action can point to.
+    graph.add({"@id": "#tests", "@type": "CreativeWork", "name": "FAIR Champion tests", "hasPart": refs(test_ids)})
     return test_ids
 
 

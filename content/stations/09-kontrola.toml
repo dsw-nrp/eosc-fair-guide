@@ -16,7 +16,7 @@ id = "kontrola.V.L0"
 lens = "V"
 level = "L0"
 text = { cs = "Zveřejněnou datovou sadu si můžete nechat automaticky zkontrolovat; stačí vložit její PID. Výsledek berte jako zpětnou vazbu: vypovídá hodně o nastavení repozitáře a méně o vaší práci.", en = "You can have a published dataset checked automatically; just enter its PID. Take the result as feedback: it says a lot about the repository's setup and less about your work." }
-action = { label = { cs = "Zkontrolovat datovou sadu", en = "Check a dataset" }, href = "#page-live-check" }
+action = { label = { cs = "Zkontrolovat datovou sadu", en = "Check your dataset" }, href = "#check-dataset" }
 sources = ["K5.2.1", "E.FAIR-CHAMPION"]
 
 [[advice]]
@@ -52,7 +52,7 @@ id = "kontrola.DS.L0"
 lens = "DS"
 level = "L0"
 text = { cs = "Automatická hodnocení používejte jako podklad k rozhovoru s repozitářem, ne jako známku pro výzkumníka.", en = "Use automated assessments as a basis for a conversation with the repository, not as a grade for the researcher." }
-action = { label = { cs = "Přehled hodnoticích nástrojů", en = "Overview of assessment tools" }, href = "#resources" }
+action = [{ label = { cs = "Přehled hodnoticích nástrojů", en = "Overview of assessment tools" }, href = "#resources" }, { label = { cs = "Testy FAIR Champion v katalogu", en = "FAIR Champion tests in the catalogue" }, href = "#tests" }]
 sources = ["K5.2.1", "K6"]
 
 [[advice]]
@@ -114,7 +114,7 @@ id = "kontrola.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Pravidelně testujte vzorek záznamů svého repozitáře (například ve [[fair-champion|FAIR Champion]]) a výsledky použijte ke zlepšení konfigurace; skóre odráží hlavně repozitář.", en = "Regularly test a sample of your repository's records (for example in [[fair-champion|FAIR Champion]]) and use the results to improve the configuration; the score mainly reflects the repository." }
-action = { label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }
+action = [{ label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }, { label = { cs = "Připravenost na CoreTrustSeal", en = "CoreTrustSeal readiness" }, href = "#check-coretrustseal" }]
 sources = ["K5.2.1", "E.OSTRAILS-CZ"]
 
 [[advice]]
@@ -180,7 +180,7 @@ id = "kontrola.K.L0"
 lens = "K"
 level = "L0"
 text = { cs = "FIP a komunitní standardy umožňují hodnotit data i podle oborových kritérií; zvažte vlastní testy nebo benchmarky.", en = "FIPs and community standards make it possible to assess data against domain criteria as well; consider your own tests or benchmarks." }
-action = { label = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }, href = "https://catalogue.fair-impact.eu/resources" }
+action = [{ label = { cs = "Zkontrolovat úplnost FIP", en = "Check a FIP's completeness" }, href = "#check-fip" }, { label = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }, href = "https://catalogue.fair-impact.eu/resources" }]
 sources = ["K2.3.1", "E.FAIR-IMPACT"]
 
 [[advice]]

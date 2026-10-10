@@ -734,6 +734,9 @@ sections.push(["page", async () => {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await view.goto(pageUrl + "#/cs/V/path/licence");
     await view.waitForSelector(".station");
+    // The next step and one related tool, the second a quieter button.
+    const nowActions = await view.locator(".now .now-actions a").evaluateAll((links) => links.map((link) => link.className));
+    if (nowActions.length !== 2 || !nowActions[0].includes("button-primary") || !nowActions[1].includes("button-related")) fail("station: the next step is not followed by one quieter related tool: " + nowActions.join(" | "));
     await view.locator('details[data-key="L2"] summary').click();
     const entries = await view.locator('details[data-key="L2"] ul.clauses > li').count();
     const chips = await view.locator('details[data-key="L2"] ul.clauses > li a.id-chip').count();

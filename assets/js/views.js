@@ -737,7 +737,7 @@
 
   /** A station as Markdown: what it shows for the reader's lens, in their language, with where it came from. */
   function stationMarkdown(entity, route, parts) {
-    const { items, now, steps, ai, action, resources, terms, helps, courses } = parts;
+    const { items, now, steps, ai, actions, resources, terms, helps, courses } = parts;
     const levelName = (code) => FG.termName("#level-" + code);
     const lines = ["# " + mdText(FG.text(entity.headline)), ""];
     lines.push(mdText(FG.t("export.mdLens", { lens: FG.text((FG.get("#lens-" + route.lens) || {}).name) })), "");
@@ -746,8 +746,8 @@
     const section = (title, body) => {
       if (body.length) lines.push("## " + mdText(title), "", ...body, "");
     };
-    const actionUrl = action ? (FG.id(action.target).startsWith("#") ? guideUrl(FG.actionHref(FG.id(action.target))) : FG.id(action.target)) : null;
-    section(levelName("L0"), now ? [mdText(FG.text(now.text))].concat(action ? ["", mdLink(FG.text(action.name), actionUrl)] : []) : []);
+    const actionUrl = (action) => (FG.id(action.target).startsWith("#") ? guideUrl(FG.actionHref(FG.id(action.target))) : FG.id(action.target));
+    section(levelName("L0"), now ? [mdText(FG.text(now.text))].concat(actions.length ? [""].concat(actions.map((action) => "- " + mdLink(FG.text(action.name), actionUrl(action)))) : []) : []);
     section(
       levelName("L1"),
       steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
@@ -783,12 +783,14 @@
     return lines.join("\n");
   }
 
-  /** An action as a button: a place in the guide, or an address outside it that opens in a new tab. */
-  function actionButton(action) {
+  /** An action as a button: a place in the guide, or an address outside it that opens in a new tab; a related tool
+      beside the next step is a quieter button. */
+  function actionButton(action, related) {
     const target = FG.id(action.target);
+    const classes = "button button-small" + (related ? " button-related" : " button-primary");
     return target.startsWith("#")
-      ? h("a", { class: "button button-primary button-small", href: FG.actionHref(target) }, FG.span(action.name))
-      : FG.external(target, [FG.text(action.name), FG.icon("external")], { class: "button button-primary button-small" });
+      ? h("a", { class: classes, href: FG.actionHref(target) }, FG.span(action.name))
+      : FG.external(target, [FG.text(action.name), FG.icon("external")], { class: classes });
   }
 
   /** An AI tip: the tip, what to check afterwards, and a short prompt to copy; where tips of every view are shown
@@ -857,13 +859,14 @@
     const resources = mentioned.filter((item) => !courses.includes(item));
     const terms = FG.refs(entity, "mentions").filter((item) => item["@id"].startsWith("#term-"));
     const helps = FG.graph.filter((item) => item["@id"].startsWith("#help-") && lensOf(item, route.lens));
-    const action = now ? FG.get(now.potentialAction) : null;
+    /* The next step, and at most one related tool beside it. */
+    const actions = now ? FG.refs(now, "potentialAction") : [];
     const minutes = String(entity.timeRequired || "").replace(/\D/g, "");
     const levelName = (code) => FG.termName("#level-" + code);
     const levelTitle = (code) => [levelIcon(code), h("span", null, levelName(code))];
     const stationIcon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[entity.identifier];
     const stepLine = FG.t("station.step", { n: entity.position, total: stations.length }) + (minutes ? " · " + FG.t("station.minutes", { n: minutes }) : "");
-    const parts = { items, now, steps, ai, action, resources, terms, helps, courses };
+    const parts = { items, now, steps, ai, actions, resources, terms, helps, courses };
     FG.offerExport({
       id: "markdown",
       label: FG.t("export.markdown"),
@@ -891,7 +894,7 @@
             "section",
             { class: "now", "aria-label": levelName("L0") },
             h("div", null, h("p", { class: "level" }, levelTitle("L0")), h("p", { class: "now-text" }, FG.linkedSpan(now))),
-            action ? actionButton(action) : null
+            actions.length ? h("div", { class: "now-actions" }, actions.map((action, index) => actionButton(action, index > 0))) : null
           )
         : h("p", null, FG.t("station.empty")),
       steps.length ? details(levelTitle("L1"), "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,

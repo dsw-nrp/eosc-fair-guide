@@ -15,7 +15,7 @@ id = "publikace.V.L0"
 lens = "V"
 level = "L0"
 text = { cs = "Při zveřejnění repozitář datové sadě přidělí trvalý identifikátor (PID), nejčastěji DOI, jinde třeba Handle. Odkaz pak funguje i po letech a data lze citovat.", en = "At publication, the repository assigns the dataset a persistent identifier (PID), most often a DOI, elsewhere for example a Handle. The link then works for years, and the data can be cited." }
-action = { label = { cs = "Co zkontrolovat před zveřejněním", en = "What to check before publishing" }, href = "#check-dataset" }
+action = [{ label = { cs = "Co zkontrolovat před zveřejněním", en = "What to check before publishing" }, href = "#check-dataset" }, { label = { cs = "Centrum PID", en = "PID Centre" }, href = "https://identifikatory.cz/cs/" }]
 sources = ["A.F1.R1", "A.F1.N2"]
 
 [[advice]]
@@ -58,7 +58,7 @@ id = "publikace.DS.L0"
 lens = "DS"
 level = "L0"
 text = { cs = "Ohlídejte, aby zveřejněná data měla PID a landing page a byla propojená s článkem i s autory ([[orcid|ORCID]]).", en = "Make sure published data have a PID and a landing page and are linked to the article and to the authors ([[orcid|ORCID]])." }
-action = { label = { cs = "Centrum PID (identifikatory.cz)", en = "PID Centre (identifikatory.cz)" }, href = "https://identifikatory.cz/cs/" }
+action = [{ label = { cs = "Centrum PID (identifikatory.cz)", en = "PID Centre (identifikatory.cz)" }, href = "https://identifikatory.cz/cs/" }, { label = { cs = "DataCite Metadata Schema", en = "DataCite Metadata Schema" }, href = "https://schema.datacite.org/" }]
 sources = ["S.MIN1", "A.R1.2.N3", "E.PID-CENTRE"]
 
 [[advice]]
@@ -87,7 +87,7 @@ id = "publikace.SR.L0"
 lens = "SR"
 level = "L0"
 text = { cs = "Zajistěte přidělování PID při publikaci a landing page se strojově čitelnými metadaty a odkazy na distribuce. Přidělování PID vyžadují podmínky NRP.", en = "Make sure PIDs are assigned at publication and that landing pages carry machine-readable metadata and links to distributions. The NRP conditions require PID assignment." }
-action = { label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "#check-gate" }
+action = [{ label = { cs = "Doporučení pro repozitáře", en = "Repository recommendations" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#doporuceni_repozitare" }, { label = { cs = "FAIR Signposting", en = "FAIR Signposting" }, href = "https://signposting.org/FAIR/" }]
 sources = ["C.M7", "C.M1", "A.F3.N1"]
 
 [[advice]]
