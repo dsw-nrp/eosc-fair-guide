@@ -23,10 +23,11 @@
   FG.catalogueHref = (kind, item) => FG.href("catalogue", kind) + (item ? "/" + encodeURIComponent(item) : "");
 
   /* A record the guide takes from another registry is identified by that registry's own catalogue entry and the
-     registry's identifier for it (heslar.87, re3data.r3d100013576, fip-dashboard.ndi-baseline), so a borrowed
-     identifier always says whose it is; the guide's own entries keep their own (docs/content-model.md, Identifiers). */
+     registry's identifier for it (re3data.r3d100013576, fip-dashboard.ndi-baseline), so a borrowed identifier always
+     says whose it is; a vocabulary's term also says it is a term: t.<keeper>.<ID> (t.ntk.87 for Heslář, which NTK
+     keeps). The guide's own entries keep their own identifiers (docs/content-model.md, Identifiers). */
   FG.borrowedId = (registry, id) => registry + "." + id;
-  FG.termAnchor = (term) => FG.borrowedId("heslar", term.termCode);
+  FG.termAnchor = (term) => FG.borrowedId("t.ntk", term.termCode);
   FG.repositoryAnchor = (repository) => {
     const own = String(repository["@id"] || "").replace(/^#(repository|resource)-/, "");
     if (FG.refIds(repository, "isBasedOn").includes("#snapshot-re3data")) return FG.borrowedId("re3data", own);
@@ -243,6 +244,14 @@
     return resourceCard(resource, record, used, holders);
   };
 
+  /** The borrowed identifiers that lead to an entry of the guide's own: the re3data and FIP Dashboard records it
+      carries, which would be listed under those identifiers if the guide did not (re3data.r3d100010468 leads to
+      Zenodo). An identifier stays an address when the guide takes a registry's record into its own list. */
+  function borrowedAliases(anchor, r3d, record) {
+    const aliases = [r3d ? FG.borrowedId("re3data", r3d) : null, record ? FG.borrowedId("fip-dashboard", record.url.split("/").pop()) : null];
+    return aliases.filter((alias) => alias && alias !== anchor);
+  }
+
   /** Resources and cited sources as one kind, each marked by how the guide uses it, with the FIP Dashboard's
       resources folded in. */
   function resourceEntries(cited) {
@@ -251,6 +260,10 @@
     for (const station of FG.stations()) for (const id of FG.refIds(station, "mentions")) recommendedAt.set(id, (recommendedAt.get(id) || []).concat(station));
     const citedSet = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
     const linkedFers = new Set();
+    for (const repository of FG.refs(FG.get("#repositories"), "hasPart")) {
+      const record = FG.dashboardRecord(repository);
+      if (record && record.fer) linkedFers.add(record.fer["@id"]);
+    }
     const resources = FG.graph.filter((entity) => entity.resourceType && String(entity["@id"]).startsWith("#resource-"));
     for (const resource of resources) {
       const record = FG.dashboardRecord(resource);
@@ -261,6 +274,7 @@
       entries.push({
         kind: "resources",
         anchor: resource.identifier,
+        aliases: borrowedAliases(resource.identifier, null, record),
         entity: resource,
         name: FG.text(resource.name),
         export: { url: resource.url, text: FG.text(resource.description) },
@@ -333,15 +347,18 @@
     return FG.repositoryEntries().map((repository) => {
       const anchor = FG.repositoryAnchor(repository);
       const kindIndex = FG.repositoryKindOrder.indexOf(FG.id(repository.repositoryKind));
+      const record = FG.dashboardRecord(repository);
+      const r3d = FG.refIds(repository, "sameAs").map((id) => (String(id).match(/r3d\d{9}/) || [])[0]).find(Boolean);
       return {
         kind: "repositories",
         anchor,
+        aliases: borrowedAliases(anchor, r3d, record),
         entity: repository,
         name: FG.text(repository.name),
         export: { url: repository.url },
         text: [FG.text(repository.name), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
         stations: ["repository"],
-        principles: [],
+        principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
         order: (kindIndex < 0 ? FG.repositoryKindOrder.length : kindIndex) + ":" + FG.fold(FG.text(repository.name)),
         facets: {
           rkind: FG.id(repository.repositoryKind) ? [FG.id(repository.repositoryKind)] : [],
@@ -354,8 +371,12 @@
             what: FG.id(repository.repositoryKind) ? FG.termName(FG.id(repository.repositoryKind)) : null,
             title: FG.external(repository.url, FG.text(repository.name)),
             details: FG.subjectsOf(repository).join(", "),
-            states: FG.statusBadge(repository),
-            relations: { basedOn: FG.repositorySourceLinks(repository), identifiers: FG.pidItems(repository) },
+            states: [FG.statusBadge(repository), record ? FG.verificationBadges(record.fer) : null],
+            relations: {
+              principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
+              basedOn: FG.repositorySourceLinks(repository),
+              identifiers: FG.pidItems(repository).concat(record ? [FG.pidItem("dashboard", record.url)] : []),
+            },
           }),
       };
     });
@@ -974,6 +995,17 @@
     const kind = state.kinds[0];
     const selected = [kind];
     const inKinds = entries[kind];
+    /* A borrowed identifier the guide's own entry carries leads to that entry, in whichever kind it is listed. */
+    if (route.extra && !inKinds.some((entry) => entry.anchor === route.extra)) {
+      const target = Object.values(entries)
+        .flat()
+        .find((entry) => (entry.aliases || []).includes(route.extra));
+      if (target) {
+        window.history.replaceState(null, "", FG.catalogueHref(target.kind, target.anchor));
+        setTimeout(FG.render);
+        return h("div", { class: "catalogue-layout" });
+      }
+    }
     /* A link to one entry shows that entry alone, with the way to the whole kind; an anchor no entry has shows the
        kind with a note. */
     const single = route.extra ? inKinds.filter((entry) => entry.anchor === route.extra) : [];

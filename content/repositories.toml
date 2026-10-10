@@ -7,6 +7,7 @@ name = "Zenodo"
 url = "https://zenodo.org/"
 kind = "general"
 re3data = "r3d100010468"
+fipDashboard = "zenodo"
 subjects = { cs = "všechny obory", en = "all fields" }
 pidTypes = ["DOI"]
 status = "operational"

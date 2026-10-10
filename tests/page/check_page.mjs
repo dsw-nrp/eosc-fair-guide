@@ -328,7 +328,7 @@ sections.push(["page", async () => {
       const chips = await view.locator(".catalogue-results .card .entry-head .id-chip").allTextContents();
       return chips.length && chips.every((chip) => chip.startsWith(prefix));
     };
-    for (const [hash, prefix] of [["#/cs/V/catalogue/terms", "heslar."], ["#/cs/V/catalogue/fips", "fip-dashboard."], ["#/cs/V/catalogue/tests", "fair-champion."]]) {
+    for (const [hash, prefix] of [["#/cs/V/catalogue/terms", "t.ntk."], ["#/cs/V/catalogue/fips", "fip-dashboard."], ["#/cs/V/catalogue/tests", "fair-champion."]]) {
       if (!(await borrowed(hash, prefix))) fail(`catalogue: an entry at ${hash} does not nest its identifier under ${prefix}`);
     }
     // Repositories: the guide's own entries keep their names, records from the re3data snapshot nest under re3data.
@@ -663,6 +663,17 @@ sections.push(["page", async () => {
     if (!roCrate.holders || roCrate.plainIcons) fail("catalogue: a station an entry names lacks its icon");
     const zenodo = await pidsOf("#/cs/V/catalogue/k!repositories~q!zenodo", "zenodo");
     if (!zenodo.pids.some(([scheme, href]) => scheme === "re3data" && href.endsWith("/r3d100010468"))) fail("catalogue: Zenodo does not show its re3data identifier: " + JSON.stringify(zenodo.pids));
+    // One real-world thing is one entry: Zenodo's FIP Dashboard record is shown with the curated repository, not on
+    // its own, and the borrowed identifiers of its records lead to it from either kind.
+    if (!zenodo.pids.some(([, href]) => href.endsWith("/resources/zenodo"))) fail("catalogue: Zenodo does not show its FIP Dashboard record: " + JSON.stringify(zenodo.pids));
+    await view.goto(pageUrl + "#/cs/V/catalogue/k!resources~q!zenodo");
+    await view.waitForSelector(".catalogue-results");
+    if (await view.locator('[id="item-fip-dashboard.zenodo"]').count()) fail("catalogue: Zenodo's FIP Dashboard record is listed apart from the repository");
+    for (const borrowedAddress of ["#/cs/V/catalogue/repositories/re3data.r3d100010468", "#/cs/V/catalogue/resources/fip-dashboard.zenodo"]) {
+      await view.goto(pageUrl + borrowedAddress);
+      await view.waitForSelector('[id="item-zenodo"]');
+      if (!(await view.evaluate(() => location.hash.endsWith("/catalogue/repositories/zenodo"))) || (await view.locator(".catalogue-results .card").count()) !== 1) fail(`catalogue: ${borrowedAddress} does not lead to Zenodo's entry alone`);
+    }
     const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
     if (!datacite.pids.some(([scheme, href, text]) => scheme === "Nanopublikace" && href.startsWith("https://purl.org/np/") && text.startsWith("http://purl.org/np/"))) fail("catalogue: a nanopublication IRI is not shown as it is and linked over HTTPS: " + JSON.stringify(datacite.pids));
     const clause = await pidsOf("#/cs/V/catalogue/k!clauses~q!A.F1.N1", "A.F1.N1");
@@ -772,7 +783,7 @@ sections.push(["page", async () => {
     const analysisLink = view.locator('details[data-key="L2"] a.source-link', { hasText: "Analýza FAIR pro NRP/NDI" }).first();
     if (!(await analysisLink.count()) || !(await analysisLink.getAttribute("href")).endsWith("/catalogue/resources/analyza-fair-1.2")) fail("ids: a requirement's source is not named by its short name, leading to its catalogue entry");
     const termHrefs = await view.locator(".station-terms a.chip").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/terms/heslar."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
+    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/terms/t.ntk."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
     // The explorer names a principle's relations in the catalogue's rows, and its requirements without doubled
     // identifiers.
     await view.goto(pageUrl + "#/cs/V/explorer/R1.1");

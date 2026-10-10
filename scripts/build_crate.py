@@ -900,6 +900,8 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         same_as.append(f"https://www.re3data.org/repository/{repository['re3data']}")
     if repository.get("fairsharing"):
         same_as.append(f"https://doi.org/{repository['fairsharing']}")
+    if repository.get("fipDashboard"):
+        same_as.append(FIP_DASHBOARD + repository["fipDashboard"])
     return {
         "@type": "DataCatalog",
         "name": text(repository["name"]),

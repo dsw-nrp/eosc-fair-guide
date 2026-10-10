@@ -645,9 +645,10 @@ def check_fip_dashboard(report: Report, content: dict[str, Any], vocab: dict[str
                 report.error(where, f"declares unknown resource '{declaration.get('resource')}'")
             if declaration.get("status") not in DECLARATION_STATUSES:
                 report.error(where, f"unknown declaration status '{declaration.get('status')}'")
-    for resource in content["resources"]:
-        if resource.get("fipDashboard") and resource["fipDashboard"] not in fers:
-            report.error(f"resource:{resource['id']}", f"FIP Dashboard has no resource '{resource['fipDashboard']}'")
+    for kind, plural in (("resource", "resources"), ("repository", "repositories")):
+        for entry in content[plural]:
+            if entry.get("fipDashboard") and entry["fipDashboard"] not in fers:
+                report.error(f"{kind}:{entry['id']}", f"FIP Dashboard has no resource '{entry['fipDashboard']}'")
 
 
 def check_glossary(report: Report, content: dict[str, Any]) -> None:
@@ -893,13 +894,14 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
     dashboard = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), {})
     fers = {bare_url(fer.get("url")): fer["id"] for fer in dashboard.get("resource", []) if fer.get("url")}
     fer_ids = {fer["id"] for fer in dashboard.get("resource", [])}
-    for resource in content["resources"]:
-        # A record matches by its address, or by sharing the curated entry's ID, as the same name usually is.
-        match = fers.get(bare_url(resource.get("url"))) or (resource["id"] if resource["id"] in fer_ids else None)
-        if match and resource.get("fipDashboard") != match:
-            report.error(
-                f"resource:{resource['id']}", f"matches FIP Dashboard resource '{match}'; link it with fipDashboard"
-            )
+    for kind, plural in (("resource", "resources"), ("repository", "repositories")):
+        for entry in content[plural]:
+            # A record matches by its address, or by sharing the curated entry's ID, as the same name usually is.
+            match = fers.get(bare_url(entry.get("url"))) or (entry["id"] if entry["id"] in fer_ids else None)
+            if match and entry.get("fipDashboard") != match:
+                report.error(
+                    f"{kind}:{entry['id']}", f"matches FIP Dashboard resource '{match}'; link it with fipDashboard"
+                )
     organizations = dashboard.get("organization", [])
     org_by_url = {bare_url(org.get("url")): org["id"] for org in organizations if org.get("url")}
     org_by_ror = {org["ror"]: org["id"] for org in organizations if org.get("ror")}
