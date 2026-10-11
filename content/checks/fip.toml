@@ -22,6 +22,8 @@ prefill = { fip = ["F1-D", "F1-MD"] }
 
 [[item]]
 id = "fip.02"
+prefillLevel = "partly"
+help = { cs = "FIP uvádí vybrané metadatové profily. Povinné a doporučené atributy ověřte v jejich schématech a popisech; samotná deklarace zdroje neukazuje, zda jsou všechny tyto požadavky určeny.", en = "A FIP lists selected metadata profiles. Check their schemas and descriptions for mandatory and recommended attributes; a resource declaration alone does not show whether all these requirements are defined." }
 tier = "minimum"
 principles = ["F2", "R1"]
 statement = { cs = "FIP vašeho oboru určuje povinné a doporučené metadatové profily a atributy.", en = "Your domain's FIP sets the mandatory and recommended metadata profiles and attributes." }

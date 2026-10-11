@@ -26,8 +26,10 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
    the crate, the page's data scripts and generated blocks, the preview, the linkset and the API into `_site/`, which
    is never committed; the committed `index.html` keeps its generated blocks empty. The content checks refuse a
    generated file in the repository.
-4. **Published sources only.** Every advice item and check cites ledger clauses, and every clause points to a
-   published source. Unpublished working material is never cited or referenced.
+4. **Published requirement sources.** Every advice item and check cites ledger clauses, and every clause points to a
+   published source. The explicitly approved Layers-and-Seams manuscript may be cited as **in preparation**
+   for the conceptual model and scoped implementation examples only. It supplies no ledger requirements;
+   do not invent its DOI, publication date, publisher or licence. Other unpublished working material is not cited.
 5. **Both languages.** Every user-facing string has Czech and English values.
 6. **Paradata.** Every content change adds a provenance action (Process Run Crate): agent, instrument (name the
    AI model when one was used), sources consulted, items produced, end time.
@@ -45,8 +47,9 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
     as-of date.
 12. **Snapshots by pull request.** Sources a browser cannot reach enter as dated snapshots; scheduled jobs open
     pull requests or issues and never commit to `main`.
-13. **Diagrams.** Mermaid sources in `diagrams/`, rendered to SVG in `assets/diagrams/`, each with an accessible
-    title and description and paired with prose that states the same meaning.
+13. **Diagrams.** Mermaid sources in `diagrams/`, rendered to SVG in `assets/diagrams/`, or explicitly approved
+    source SVG adaptations. Each has an accessible title and description and equivalent adjacent prose.
+    The three approved manuscript figures retain their structure, terminology and scoped status/arrow meanings.
 
 ## Layout
 

@@ -26,7 +26,7 @@ freshnessDays = 180
 editors = ["david-novak"]
 reviewers = ["david-novak"]
 contributors = []
-publisher = "cesnet"
+publisher = "eosc-cz"
 funder = "nrp"
 isBasedOn = ["analyza-fair-1.2"]
 acknowledgement = { cs = "Tento výstup byl vytvořen s finanční podporou iniciativy EOSC CZ prostřednictvím projektu Národní repozitářová platforma pro výzkumná data (CZ.02.01.01/00/23_014/0008787), financovaného z Operačního programu Jan Amos Komenský (OP JAK) Ministerstva školství, mládeže a tělovýchovy České republiky (MŠMT).", en = "This output was developed with financial contributions from the EOSC CZ initiative through the National Repository Platform for Research Data project (CZ.02.01.01/00/23_014/0008787), funded by the Programme Johannes Amos Comenius (P JAC) of the Ministry of Education, Youth and Sports of the Czech Republic (MEYS)." }
@@ -67,6 +67,12 @@ orcid = "https://orcid.org/0000-0003-2980-4400"
 id = "tomas-cizek"
 name = "Tomáš Čížek"
 orcid = "https://orcid.org/0000-0001-7734-2947"
+
+[[organization]]
+id = "eosc-cz"
+fipDashboard = "eosc-cz"
+name = { cs = "EOSC CZ", en = "EOSC CZ" }
+url = "https://www.eosc.cz/"
 
 [[organization]]
 id = "knav"

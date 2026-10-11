@@ -35,7 +35,7 @@ try {
     await page.goto(file + `#/${initial}/K/check/software`);
     await rendered(page, initial, "#item-software-04");
     assert.equal(languageFiles(observed.requests, other).length, 0, "the other display language is not downloaded initially");
-    assert.equal(languageFiles(observed.requests, initial).length, 4, "one core and three required part translations");
+    assert.equal(languageFiles(observed.requests, initial).length, 5, "one core and four required part translations, including model relations");
     assert.equal(await page.evaluate((lang) => window.FairGuide.ui.app.title[lang], other), "", "unloaded UI values stay absent");
     assert(await page.evaluate((lang) => window.FairGuide.get("#station-plan").name.some((value) => value["@language"] === lang && !value["@value"]), other));
     if (initial === "cs") assert(await page.evaluate(() => window.FairGuide.bothLanguages(window.FairGuide.get("#station-findability").name).includes("findability")), "folded aliases preserve a genuinely unloaded English title");
@@ -47,10 +47,10 @@ try {
     assert(await page.locator("#answer-software-04-no").isChecked(), "language switching keeps the authored answer");
     assert.equal(await page.evaluate(() => JSON.stringify(window.FairGuide.state.answers.software)), saved);
     assert.deepEqual(await page.evaluate(() => [...window.FairGuide.byId.keys()].sort()), originalIds, "switching adds no duplicate entities");
-    assert.equal(languageFiles(observed.requests, other).length, 4);
+    assert.equal(languageFiles(observed.requests, other).length, 5);
     await page.getByRole("link", { name: initial === "en" ? "English" : "Česky", exact: true }).click();
     await rendered(page, initial, "#item-software-04");
-    assert.equal(languageFiles(observed.requests, initial).length, 4, "switching back uses the existing values");
+    assert.equal(languageFiles(observed.requests, initial).length, 5, "switching back uses the existing values");
     assert.deepEqual(observed.errors, []);
     assert(observed.requests.every((url) => /^(?:file|data):/.test(url)), "local-file navigation sends no external request");
 

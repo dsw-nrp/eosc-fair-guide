@@ -58,6 +58,7 @@ pages = [
   "notebooks",
   "provenance",
   "fdo",
+  "model",
 ]
 advice = [
   "plan.01",
@@ -946,6 +947,7 @@ sources = [
   "orcid-identifier-pattern",
   "ror-identifier-pattern",
   "crossref-rest-api",
+  "layers-and-seams-manuscript",
 ]
 resources = [
   "dmp-eosc",
@@ -1104,6 +1106,7 @@ actions = [
   "2026-10-11-test-definitions-and-health",
   "2026-10-11-original-passages-and-health-links",
   "2026-10-11-identifier-helper",
+  "2026-10-11-layers-and-seams",
 ]
 tests = [
   "guide-dataset-01",
@@ -1148,6 +1151,48 @@ tests = [
   "guide-software-14",
   "guide-software-15",
   "guide-software-16",
+]
+model = [
+  "model:layers-and-seams",
+  "model:worked-example",
+  "layer.policy",
+  "layer.community",
+  "layer.infrastructure",
+  "layer.planning",
+  "layer.support",
+  "layer.evaluation",
+  "seam.repository-nma",
+  "seam.nma-research-register",
+  "seam.institution-nma",
+  "seam.repository-authentication",
+  "seam.repository-pid-registry",
+  "seam.community-repository",
+  "seam.working-groups-services",
+  "seam.repository-catalogue-planning",
+  "seam.community-planning",
+  "seam.plan-repository",
+  "seam.repository-support",
+  "seam.assessment-remediation",
+  "example.nkr-catalogue",
+  "example.nkr-planning",
+  "example.assessment-feedback",
+  "context:plan:V",
+  "context:plan:DS",
+  "context:plan:K",
+  "context:work:K",
+  "context:metadata:V",
+  "context:metadata:DS",
+  "context:metadata:SR",
+  "context:metadata:K",
+  "context:publication:SR",
+  "context:findability:V",
+  "context:findability:DS",
+  "context:findability:SR",
+  "context:citation:SR",
+  "context:assessment:V",
+  "context:assessment:DS",
+  "context:assessment:SR",
+  "context:assessment:K",
 ]
 
 [retired]

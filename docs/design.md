@@ -367,7 +367,8 @@ flowchart LR
    *Alternatives:* principle-first navigation (abstract for researchers); separate tools per role (duplicated
    content); a questionnaire first (no orientation before judgement).
 6. **A clause ledger with a published-sources rule.** Every statement cites ledger IDs that point to published
-   sources. Unpublished working material is never cited; its facts are traced to the published sources it relies on.
+   sources. D-163 permits only the approved conceptual-model manuscript as in preparation; other unpublished
+   material is not cited, and requirements remain traceable to their published sources.
    *Alternatives:* free-form references (not checkable); citing unpublished working material.
 7. **Paradata through Process Run Crate actions.** Who produced or verified content, with which tool
    (including AI), and from which sources is recorded per content batch and shown at level L3.
@@ -715,7 +716,7 @@ Source: **U** = decision of the maintainer, **S** = proposal from analysis, agre
 | D-37 | 2026-10-08 | NKR Repository fields map onto FAIR principles, so the repository-admin lens can **pre-fill a self-check from the repository's NKR record** and show what is missing in that record. | S |
 | D-38 | 2026-10-08 | The guide is an official **NRP KA 5.1** output, so the mandatory NRP acknowledgement (CZ/EN, CZ.02.01.01/00/23_014/0008787) goes in the footer and the "O průvodci" page. | U |
 | D-39 | 2026-10-08 | Inventory method: a clause ledger (`content/ledger.toml`). The principle explorer (F2) is the lossless home for every report clause; path stations cite clause IDs; L2 is generated from the ledger. Report chapter IDs use a `K` prefix so they cannot be mistaken for principle names. | S |
-| D-40 | 2026-10-08 | **Published sources only.** Unpublished working material is never cited or referenced; every fact taken from it is traced to the published source it relies on (ledger section `E.*`). | U |
+| D-40 | 2026-10-08 | **Published requirement sources.** Every normative requirement is traced to its published source. D-163 introduces the sole, explicitly approved exception for the conceptual Layers-and-Seams manuscript, cited as in preparation without supplying ledger requirements. | U |
 | D-41 | 2026-10-08 | Outstanding open questions become **issues in this repository**, filed as one of the last steps, so they can be resolved there. | U |
 | D-42 | 2026-10-08 | The AI warning is made helpful through a shared "Ověřte identifikátory" callout plus a light on-demand helper. The helper resolves ORCID, ROR, DOI and Handle in the browser and shows the name or title. Kept light; drop it if it grows. | U+S |
 | D-43 | 2026-10-08 | NMA: the public REST API has no CORS, so "is my dataset in NMA?" is a pre-filled deep link into NMA search. The station explains the "Získat odkaz pro RIV" flow and states that **the RIV link never replaces the PID** (NRP docs). Anyone can create a manual NMA record. | U+S |
@@ -1018,3 +1019,39 @@ The shared lookup queue admits at most four simultaneous identifiers. Limits and
 live in `content/live.toml`; bilingual interface strings live in `content/ui.toml`. The dataset-check
 page opens the existing dataset self-check, where quick inspection and the separately requested FAIR
 Champion tests share answers and evidence.
+
+## Layers-and-Seams integration
+
+D-163 (approved 11 October 2026): The updated manuscript may be cited as **in preparation** for its
+conceptual model and scoped implementation examples. It creates no ledger requirements and receives
+no invented DOI, publication date, publisher or licence. This is the sole exception to D-40.
+
+The maintainer subsequently approved adapting the manuscript's Figures 1–3. Their geometry, labels,
+layer colours and status/arrow distinctions remain consistent with the paper. Bilingual local SVG assets
+add web fonts, accessible descriptions and equivalent adjacent prose. The maintainer confirmed October
+2026 for the guide diagrams; source-scoped catalogue observations retain their documented dates.
+This is an explicit exception to the Mermaid-only diagram convention.
+
+`content/model.toml` maintains the six functional layers, the registered information hand-offs,
+reviewed item associations and role-specific station explanations. A seam crosses a responsibility
+boundary, including distinct functions within a layer. The layer order expresses a functional rationale;
+planning, support and evaluation feed back throughout. Actors may work across several layers.
+Reader lenses, disclosure levels and existing FAIR principles keep their separate purposes.
+
+The catalogue reuses its card presentation and shared facets for model layers and connections. Tags
+are linked to their definitions and shown on records as well as in filters. An explicit seam association
+reuses its endpoint layers; associations are never propagated through broad citations or automatically
+from questions to tests. A test is mapped according to its own observable scope. Definitions and full
+associations load on demand and remain available in the complete crate, exports and static model API.
+
+Station explanations appear in **Proč**, alongside the existing source requirements. Practical actions
+remain in their current steps. Detailed schema requirements stay in profiles and schemas; a FIP records
+selected FAIR-enabling resources and can refer to those profiles. Original source wording and issued
+question identifiers remain intact.
+
+Implementation examples carry their own precise scope, evidence and observation date. A component's
+status does not establish the status of a connection or a later reuse step. Month-only observations
+retain that precision. Maintaining actors are not silently presented as formally assigned interface
+owners. An unavailable live response limits the inspection and does not prove a broken connection.
+Assessment hand-over reuses the existing target, criterion, evidence, invocation, date and actor;
+the guide's source-to-question-to-test-to-revision example demonstrates these transfers in practice.

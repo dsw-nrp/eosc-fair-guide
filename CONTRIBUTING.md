@@ -17,8 +17,9 @@ rules are in [docs/content-model.md](docs/content-model.md); design decisions ar
 1. **Both languages.** Every user-facing text has a Czech and an English value.
 2. **Published sources.** Every advice item and check cites at least one clause of the ledger
    (`content/ledger.toml`), and every clause points to a published source: the FAIR analysis, the NRP
-   conditions, the NRP documentation, or a published paper, dataset or web page. Unpublished working material
-   is never cited.
+   conditions, the NRP documentation, or a published paper, dataset or web page. The approved Layers-and-Seams
+   manuscript may be cited as in preparation for the conceptual model and scoped examples only; it supplies
+   no assessment requirements. Other unpublished working material is not cited.
 3. **Paradata.** Add a provenance action that names who made the change, which tool was used (including any AI
    model), which sources were consulted and which items changed.
 4. **Advisory tone.** Recommend; say "must" only where an NRP condition requires something, and name the

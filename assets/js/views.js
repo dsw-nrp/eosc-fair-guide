@@ -24,7 +24,7 @@
     return days > (FG.config.freshnessDays || 180);
   }
 
-  function statusBadge(entity) {
+  function statusBadge(entity, asOfKey = "status.asOf") {
     const statusId = FG.id(entity.serviceStatus);
     if (!statusId) return null;
     const code = statusId.replace("#status-", "");
@@ -34,7 +34,7 @@
       { class: "badge", "data-status": code },
       h("span", { "aria-hidden": "true" }, STATUS_ICON[code] || "•"),
       FG.termName(statusId),
-      asOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(asOf) })) : null,
+      asOf ? h("span", { class: "muted" }, " · " + FG.t(asOfKey, { date: FG.formatDate(asOf) })) : null,
       isStale(asOf) ? h("span", null, " · " + FG.t("status.stale")) : null
     );
   }
@@ -603,6 +603,8 @@
       for (const clause of FG.refs(item, "citation")) if (!clauses.includes(clause)) clauses.push(clause);
     }
     return [
+      FG.modelContexts(station, FG.state.lens).map((context) => h("div", { class: "model-context" }, FG.paragraphs(context.text),
+        h("dl", { class: "relations small" }, FG.modelRows(context)))),
       notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.linkedSpan(note)))) : null,
       /* The station's principles show in its header; the reasons go straight to what the advice rests on, which the
          section's title already names. */
@@ -763,7 +765,9 @@
       return "- " + mdLine(clause.text) + " (" + mdText(clause.identifier) + (source ? ", " + mdLink(FG.nameText(source), source.url) : "") + ")";
     };
     const basis = clauses.length ? ["### " + mdText(FG.t("station.whyClauses")), "", ...clauses.map(clauseLine)] : [];
-    section(levelName("L2"), notes.map((note) => "- " + mdLine(note.text)).concat(notes.length && basis.length ? [""] : [], basis));
+    const modelContext = FG.modelContexts(entity, route.lens).flatMap((context) => [mdLine(context.text), "",
+      ...["implementationLayers", "implementationSeams"].flatMap((property) => FG.refs(context, property).map((term) => "- " + mdLink(FG.text(term.name), guideUrl(FG.catalogueHref("model", term.identifier))))), ""]);
+    section(levelName("L2"), modelContext.concat(notes.map((note) => "- " + mdLine(note.text)), notes.length && basis.length ? [""] : [], basis));
     /* An AI tip, what to check after it, and its prompt as a code block under the same list item. */
     const aiLines = (item) =>
       ["- " + mdLine(item.text)]
@@ -1215,11 +1219,12 @@
     const sections = FG.refs(page, "hasPart").sort(FG.byPosition);
     return h(
       "div",
-      { class: "layout wrap" },
+      { class: "layout wrap" + (page.identifier === "model" ? " page-model" : "") },
       h(
         "article",
         null,
         heading(1, null, FG.span(page.headline)),
+        page.identifier === "model" ? modelOverview() : null,
         sections.map((section) => {
           const folded = (FG.config.foldedSections || []).includes(section["@id"]);
           const content = [
@@ -1230,6 +1235,9 @@
             page.identifier === "machines" && section.identifier === "tasks" ? machineTasks() : null,
             page.identifier === "machines" && section.identifier === "practice" ? signpostTable() : null,
             page.identifier === "machines" && section.identifier === "endpoints" ? endpointTable() : null,
+            page.identifier === "machines" && section.identifier === "model-example" ? modelWorkedExample() : null,
+            page.identifier === "model" && section.identifier === "national-mapping" ? modelFigure("czech-ndi-layers", FG.text(section.headline)) : null,
+            page.identifier === "model" && section.identifier === "metadata-architecture" ? modelFigure("metadata-architecture", FG.text(section.headline)) : null,
             section.identifier === "privacy" && FG.selfcheck && FG.selfcheck.localDataNote ? FG.selfcheck.localDataNote() : null,
           ];
           return h(
@@ -1239,10 +1247,72 @@
             folded ? h("div", { class: "content" }, content) : content
           );
         }),
+        page.identifier === "about" ? h("p", { class: "small" }, h("a", { href: FG.href("page", "model") }, FG.t("model.overview"))) : null,
         FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier](route) : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
       )
     );
   };
+
+  /** A connection's carrier and actors describe its function; dated implementation evidence stays scoped. */
+  FG.modelDetail = function (term) {
+    const fields = ["transfer", "sender", "recipient", "carrier", "maintainers"].filter((key) => term[key]);
+    const examples = FG.refs(term, "hasPart").filter((entry) => entry.modelKind === "example");
+    return [fields.length ? h("dl", { class: "relations model-detail" }, fields.map((key) => [h("dt", null, FG.t("model.field." + key)), h("dd", null, FG.span(term[key]))])) : null,
+      examples.length ? h("details", { class: "model-examples" }, h("summary", null, FG.t("model.examples")), h("div", { class: "content" }, examples.map((example) => h("section", { class: "model-example" },
+        h("h4", null, FG.span(example.name)), example.scope ? h("p", { class: "small" }, FG.span(example.scope)) : null,
+        FG.paragraphs(example.description), statusBadge(example, "model.statusAsOf"),
+        h("p", { class: "small" }, FG.refs(example, "citation").map((source, index) => [index ? ", " : "", FG.sourceLink(source)])), FG.apiLink(example))))) : null];
+  };
+
+  function modelOverview() {
+    const model = FG.get("#implementation-model");
+    if (!model) return null;
+    const layers = FG.modelTerms("layer");
+    const seams = FG.modelTerms("seam");
+    const selected = seams.find((term) => term.identifier === FG.modelSelected) || seams[0];
+    const panel = (term) => h("div", { id: "model-connection", class: "model-connection", role: "region", "aria-label": FG.t("model.kind.seam") },
+      h("h3", null, FG.span(term.name)), FG.paragraphs(term.description), FG.modelDetail(term),
+      h("dl", { class: "relations small" }, FG.modelRows(term)),
+      h("p", { class: "small" }, h("a", { href: FG.catalogueHref("model", term.identifier) }, FG.t("model.openRecord")), " · ",
+        h("a", { href: FG.modelFilterHref("resources", term) }, FG.t("model.related"))));
+    return h("div", { class: "implementation-model" },
+      model.description ? FG.paragraphs(model.description) : null,
+      model.introduction ? FG.paragraphs(model.introduction) : null,
+      model.ordering ? h("p", null, FG.span(model.ordering)) : null,
+      modelFigure("layers-and-seams", FG.t("model.diagramAlt"), FG.t("model.diagramCaption")),
+      h("h2", null, FG.t("model.functions")),
+      h("ul", { class: "cards model-layers" }, layers.map((layer) => h("li", { class: "card" }, h("h3", null, FG.modelLink(layer)), FG.paragraphs(layer.description)))),
+      model.feedback ? h("p", null, FG.span(model.feedback)) : null,
+      h("h2", null, FG.t("model.connections")),
+      h("label", { for: "model-seam" }, FG.t("model.choose")),
+      h("select", { id: "model-seam", "aria-controls": "model-connection", onchange: (event) => {
+        FG.modelSelected = event.target.value;
+        document.getElementById("model-connection").replaceWith(panel(seams.find((term) => term.identifier === event.target.value)));
+      } }, seams.map((term) => h("option", { value: term.identifier, selected: term === selected }, FG.text(term.name)))),
+      selected ? panel(selected) : null,
+      modelWorkedExample(),
+      h("p", { class: "small" }, h("a", { href: FG.catalogueHref("model") }, FG.t("model.allRecords")))
+    );
+  }
+
+  /** Reuse the manuscript's figures without changing their geometry or scoped arrow/status meanings. */
+  function modelFigure(stem, alternative, caption) {
+    const url = "assets/diagrams/" + stem + "-" + FG.state.lang + ".svg";
+    return h("figure", { class: "model-diagram" },
+      h("div", { class: "diagram-scroll", tabindex: "0", role: "region", "aria-label": alternative },
+        h("img", { src: url, alt: alternative, loading: "lazy" })),
+      h("figcaption", { class: "small muted" }, caption ? [caption, " · "] : null, FG.external(url, FG.t("model.openFigure"))));
+  }
+
+  function modelWorkedExample() {
+    const example = FG.get(FG.get("#implementation-model")?.workExample);
+    if (!example) return null;
+    return h("section", { class: "model-worked-example" }, h("h2", null, FG.span(example.name)), FG.paragraphs(example.description),
+      h("ol", null, FG.refs(example, "hasPart").map((entity) => h("li", null,
+        h("a", { href: FG.referenceHref(entity["@id"]) }, entity.identifier || FG.span(entity.name)),
+        entity.text ? [" · ", FG.span(entity.text)] : entity.identifier && entity.name ? [" · ", FG.span(entity.name)] : null))),
+      FG.apiLink(example));
+  }
 
   /** What a reader may want from the knowledge base and where it is: each row leads to the guide's own data. */
   function machineTasks() {

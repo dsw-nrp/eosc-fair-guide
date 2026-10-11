@@ -23,16 +23,21 @@ human-facing overview.
 - **Self-check:** the NRP conditions and FAIR maturity kept apart, with no overall score.
 - **Live identifier check:** a quick check, and an opt-in deep check with FAIR Champion.
 - **Resource and repository finder** with service status and an as-of date.
+- **Layers and seams of FAIR implementation:** a model overview and catalogue associations connect guidance
+  to responsibilities and information transfers, including hand-offs within a layer.
 
 ## Running the guide
 
-Build from a fresh clone with Python 3.11 or later, then open `_site/index.html`:
+On first use, install the pinned Node.js dependencies for the bundled API documentation.
+Build with Python 3.11 or later, then open `_site/index.html`:
 
 ```bash
+npm ci
 python scripts/build_site.py
 ```
 
-The build uses the Python standard library. The built page works offline; only the live checks need the
+The generator uses the Python standard library; adapted SVG figures are local assets.
+The built page works offline; only the live checks need the
 internet. It can be embedded in another site (iframe) or hosted on its own.
 
 For a local server, which some browsers need for clipboard features:
@@ -56,12 +61,16 @@ the baseline; archiving the public code and any OpenSSF self-certification remai
 | `_site/` | The built site, not committed: the page with its data scripts, the knowledge base as an RO-Crate 1.2 and its preview, and the API |
 | `assets/` | Styles, scripts, images and rendered diagrams |
 | `api/` | The API's documentation page; the build makes the API itself |
-| `diagrams/` | Mermaid diagram sources |
+| `assets/diagrams/` | Bilingual adaptations of the approved manuscript figures |
 | `docs/` | Design and decisions (`design.md`), content model (`content-model.md`) |
 | `.github/` | CI workflows, templates and code owners |
 
 The [software practice example](docs/software-practice.md) maps the app's evidence and remaining release
 steps to its software guidance.
+
+The [model practice example](docs/model-practice.md) follows an actual requirement, question, test and
+recorded revision. The conceptual model cites its manuscript as in preparation; assessment requirements
+retain their published sources.
 
 ## Editing content
 

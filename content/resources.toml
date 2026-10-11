@@ -19,7 +19,7 @@ languages = ["cs", "en"]
 type = "webpage"
 title = "DMP.eosc.cz"
 inLanguage = "en"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -72,7 +72,7 @@ title = "Manuál k přípravě institucionální datové politiky"
 inLanguage = "cs"
 version = "0.1"
 doi = "10.71495/scvx-yn57"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 datePublished = 2026-09-08
 license = "https://creativecommons.org/licenses/by/"
 
@@ -95,7 +95,7 @@ type = "document"
 title = "FAIR příručka pro data steward komunitu v ČR"
 inLanguage = "cs"
 doi = "10.71495/hxfc-6f57"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 authors = ["Karolina Podloucká", "Adéla Jílková", "Jan Skůpa", "Jindřich Fejfar", "Eliška Pospíchalová", "Eliška Blažková", "Matyáš Hiřman", "Martin Schätz"]
 license = "https://creativecommons.org/licenses/by/4.0/"
@@ -117,7 +117,7 @@ languages = ["cs"]
 type = "document"
 title = "Persony a use casy data stewardů v České republice"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 datePublished = 2026-06-18
 dateModified = 2026-08-27
 
@@ -137,7 +137,7 @@ languages = ["cs"]
 type = "webpage"
 title = "Data stewardi (EOSC CZ)"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -304,7 +304,7 @@ languages = ["cs"]
 type = "webpage"
 title = "Školení EOSC CZ"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -491,7 +491,7 @@ languages = ["cs"]
 type = "document"
 title = "Doporučení pro zakládání repozitářů v prostředí NRP"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -511,7 +511,7 @@ type = "document"
 title = "Zjišťování uživatelských potřeb pro repozitáře: praktický průvodce"
 inLanguage = "cs"
 doi = "10.71495/x3e9-mf73"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 datePublished = 2026-03-13
 
 [[resource]]
@@ -530,7 +530,7 @@ languages = ["cs"]
 type = "webpage"
 title = "Integrace existujícího repozitáře do NRP"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -549,7 +549,7 @@ languages = ["cs"]
 type = "webpage"
 title = "Open Science II"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -568,7 +568,7 @@ languages = ["cs"]
 type = "webpage"
 title = "Pracovní skupiny EOSC CZ"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -758,7 +758,7 @@ languages = ["cs", "en"]
 type = "document"
 title = "Autorská práva a licence"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 version = "1.0"
 authors = ["D. Stará", "kolektiv NRP projektu"]
@@ -782,7 +782,7 @@ languages = ["cs", "en"]
 type = "document"
 title = "Vzor depoziční licence"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -816,7 +816,7 @@ languages = ["cs", "en"]
 type = "document"
 title = "Etické sedmero pro práci s výzkumnými daty"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 authors = ["Věra Franková"]
 license = "https://creativecommons.org/licenses/by/4.0/"
@@ -852,7 +852,7 @@ languages = ["en"]
 type = "document"
 title = "Initial AAI architecture for sensitive data in NRP"
 inLanguage = "en"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 datePublished = 2026-03-31
 
 [[resource]]
@@ -1157,7 +1157,7 @@ languages = ["cs"]
 type = "webpage"
 title = "Open Science III"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]
@@ -1176,7 +1176,7 @@ languages = ["cs"]
 type = "webpage"
 title = "Poděkování a citace (EOSC CZ)"
 inLanguage = "cs"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-08
 
 [[resource]]

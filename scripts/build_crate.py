@@ -49,6 +49,7 @@ PART_SCRIPTS = {
     "fips": "assets/data/kb-fips.js",
     "pages": "assets/data/kb-pages.js",
     "questions": "assets/data/kb-questions.js",
+    "model": "assets/data/kb-model.js",
 }
 PART_LANGUAGE_SCRIPTS = {
     name: {lang: path.removesuffix(".js") + f"-{lang}.js" for lang in LANGUAGE_SCRIPTS}
@@ -84,7 +85,26 @@ LICENSES = {
 }
 
 # The guide's own vocabulary: term -> definition. Each term is defined in the graph as an rdf:Property.
-TERMS = {
+MODEL_TERMS = {
+    "preparationStatus": "Preparation status of the approved conceptual-model manuscript, not a published requirement.",
+    "modelKind": "Kind of a Layers-and-Seams model record: layer, seam, or implementation example.",
+    "implementationLayers": (
+        "Functional implementation layers explicitly addressed by an item; independent of FAIR principles and lenses."
+    ),
+    "implementationSeams": (
+        "Information transfers across responsibility boundaries addressed by an item; association is not fulfilment."
+    ),
+    "introduction": "Introduction to the conceptual implementation model.",
+    "ordering": "Functional rationale for the order of model layers, not a temporal sequence or maturity scale.",
+    "feedback": "How planning, support and evaluation inform the implementation model throughout.",
+    "transfer": "Information that crosses a responsibility boundary in a model seam.",
+    "sender": "Actor or system supplying the information in a model seam.",
+    "recipient": "Actor or system receiving and acting on the information in a model seam.",
+    "carrier": "Standard, service or procedure carrying the information in a model seam.",
+    "maintainers": "Actors implementing or maintaining a connection; not necessarily its formally assigned owner.",
+    "scope": "Precisely scoped component or connection observed in an implementation example.",
+}
+TERMS = MODEL_TERMS | {
     "disclosureLevel": "Disclosure level (L0 to L3) at which an advice item is shown.",
     "adviceKind": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay.",
     "checkAfter": "What to check after following an AI tip, so that its output is verified before it is used.",
@@ -232,6 +252,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "ui": optional("ui.toml"),
         "icons": optional("icons.toml"),
         "identifiers": optional("identifiers.toml"),
+        "model": optional("model.toml"),
     }
     resolve_requirements(content)
     return content
@@ -389,6 +410,11 @@ def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
     targets |= {"station:" + data["station"]["id"]: f"#station-{data['station']['id']}" for data in content["stations"]}
     targets |= {"clause:" + clause["id"]: f"#clause-{clause['id']}" for clause in content["ledger"]}
     targets["profile"] = content["guide"]["guide"]["profile"]
+    targets |= {
+        key: entity_ids[0]
+        for key, entity_ids in graph.index.items()
+        if key.startswith(("model:", "layer.", "seam.", "example."))
+    }
     return targets
 
 
@@ -635,6 +661,7 @@ def citation_properties(
         "dateModified": iso(citation["dateModified"]) if citation.get("dateModified") else None,
         "sdDatePublished": iso(citation["dateAccessed"]) if citation.get("dateAccessed") else None,
         "license": citation.get("license"),
+        "preparationStatus": citation.get("preparationStatus"),
     }
 
 
@@ -1481,6 +1508,140 @@ def build_actions(graph: Graph, actions: list[dict[str, Any]], people: dict[str,
     return action_ids
 
 
+def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
+    """Build the shared conceptual model and only the explicitly authored associations.
+
+    Definitions never carry implementation status. Dated observations are separate example records, so a
+    connection tag cannot silently turn a manuscript observation into a current service claim.
+    """
+    if not data:
+        return []
+    model = data["model"]
+    seam_layers = {item["id"]: item["layers"] for item in data.get("seam", [])}
+    model_id = "#implementation-model"
+    source = refs(graph.resolve([model["source"]]))
+    parts = []
+    for kind in ("layer", "seam"):
+        for position, item in enumerate(data.get(kind, []), 1):
+            entity_id = f"#{kind}-{item['id']}"
+            parts.append(entity_id)
+            entity = {
+                "@id": entity_id,
+                "@type": "DefinedTerm",
+                "identifier": f"{kind}.{item['id']}",
+                "termCode": f"{kind}.{item['id']}",
+                "modelKind": kind,
+                "position": position,
+                "name": text(item["name"]),
+                "description": text(item["description"]),
+                "inDefinedTermSet": ref(model_id),
+                "citation": refs(graph.resolve([item.get("source", model["source"])])),
+            }
+            if kind == "seam":
+                entity |= {
+                    key: text(item[key]) for key in ("transfer", "sender", "recipient", "carrier", "maintainers")
+                }
+                entity["implementationLayers"] = refs([f"#layer-{key}" for key in item["layers"]])
+            graph.add(entity, f"{kind}.{item['id']}")
+    terms = list(parts)
+    for item in data.get("example", []):
+        entity_id = f"#model-example-{item['id']}"
+        parts.append(entity_id)
+        seam_id = f"#seam-{item['seam']}"
+        graph.add(
+            {
+                "@id": entity_id,
+                "@type": "CreativeWork",
+                "identifier": f"example.{item['id']}",
+                "modelKind": "example",
+                "name": text(item["name"]),
+                "description": text(item["description"]),
+                "scope": text(item["scope"]),
+                "isPartOf": ref(seam_id),
+                "implementationSeams": ref(seam_id),
+                "serviceStatus": ref(f"#status-{item['status']}"),
+                "statusAsOf": iso(item["asOf"]),
+                "citation": refs(graph.resolve(item["evidence"])),
+            },
+            f"example.{item['id']}",
+        )
+        append_ref(graph.entities[seam_id], "hasPart", entity_id)
+    for item in data.get("context", []):
+        entity_id = f"#model-context-{item['station']}-{item['lens']}"
+        parts.append(entity_id)
+        graph.add(
+            {
+                "@id": entity_id,
+                "@type": "CreativeWork",
+                "identifier": f"context.{item['station']}.{item['lens']}",
+                "text": text(item["text"]),
+                "isPartOf": ref(f"#station-{item['station']}"),
+                "audience": ref(f"#lens-{item['lens']}"),
+                "implementationSeams": refs([f"#seam-{key}" for key in item["seams"]]),
+                "implementationLayers": refs(
+                    [
+                        f"#layer-{key}"
+                        for key in dict.fromkeys(layer for seam in item["seams"] for layer in seam_layers[seam])
+                    ]
+                ),
+                "citation": source,
+            },
+            f"context:{item['station']}:{item['lens']}",
+        )
+        append_ref(graph.entities[f"#station-{item['station']}"], "hasPart", entity_id)
+    if model.get("workedExample"):
+        worked = model["workedExample"]
+        parts.append("#model-worked-example")
+        graph.add(
+            {
+                "@id": "#model-worked-example",
+                "@type": "CreativeWork",
+                "identifier": "model-worked-example",
+                "name": text(worked["name"]),
+                "description": text(worked["description"]),
+                # Finalised after provenance actions exist: the last step may be a recorded revision.
+                "isPartOf": ref(model_id),
+                "exampleOfWork": ref(model_id),
+            },
+            "model:worked-example",
+        )
+    graph.add(
+        {
+            "@id": model_id,
+            "@type": "DefinedTermSet",
+            "identifier": model["id"],
+            "name": text(model["name"]),
+            "description": text(model["description"]),
+            **{key: text(model[key]) for key in ("introduction", "ordering", "feedback")},
+            "citation": source,
+            "hasPart": refs(parts),
+            "hasDefinedTerm": refs(terms),
+            "workExample": ref("#model-worked-example") if model.get("workedExample") else None,
+        },
+        f"model:{model['id']}",
+    )
+    for association in data.get("association", []):
+        target = association["target"]
+        entity_ids = graph.index.get(target)
+        if not entity_ids:
+            raise ContentError(f"model association names an unknown content ID '{target}'")
+        for entity_id in entity_ids:
+            for field, prefix, output in (
+                ("layers", "layer", "implementationLayers"),
+                ("seams", "seam", "implementationSeams"),
+            ):
+                keys = association.get(field, [])
+                if field == "layers":
+                    keys = list(
+                        dict.fromkeys(
+                            keys + [layer for seam in association.get("seams", []) for layer in seam_layers[seam]]
+                        )
+                    )
+                for key in keys:
+                    append_ref(graph.entities[entity_id], output, f"#{prefix}-{key}")
+    return [model_id]
+
+
 def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str, Any]:
     """The crate for the content; a caller that passes a graph can inspect it afterwards (the content checks read
     which entities each content ID names)."""
@@ -1547,7 +1708,11 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
     page_ids = build_pages(graph, content["pages"])
+    model_ids = build_model(graph, content.get("model", {}))
     action_ids = build_actions(graph, content["provenance"], people)
+    if content.get("model", {}).get("model", {}).get("workedExample"):
+        worked = content["model"]["model"]["workedExample"]
+        graph.entities["#model-worked-example"]["hasPart"] = refs(graph.resolve(worked["steps"]))
 
     licenses = []
     for spdx in ("CC-BY-4.0", "MIT"):
@@ -1614,6 +1779,9 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             "subjectOf": ref("./"),
         }
     )
+    for field in ("publisher", "funder"):
+        if guide.get(field) and guide[field] not in organizations:
+            raise ContentError(f"guide: unknown {field} organisation '{guide[field]}'")
     root = {
         "@id": "./",
         "@type": "Dataset",
@@ -1652,6 +1820,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             + callout_ids
             + test_ids
             + page_ids
+            + model_ids
         ),
     }
     graph.entities["./"] = prune(root)
@@ -1680,6 +1849,7 @@ API_COLLECTIONS = (
     "organizations",
     "fips",
     "changes",
+    "model",
 )
 API_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 # Where the API's own files sit in the site; records are `api/<collection>/<record ID>.json`.
@@ -1701,6 +1871,9 @@ API_PREFIXES = {
     "#repository-": "repositories",
     "#clause-": "clauses",
     "#action-": "changes",
+    "#layer-": "model",
+    "#seam-": "model",
+    "#model-example-": "model",
 }
 
 
@@ -1750,6 +1923,8 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             collection, record = "organizations", organizations[entity_id]
         elif FIP_TERMS + "FAIR-Implementation-Profile" in as_list(entity.get("additionalType")):
             collection = "fips"
+        if entity_id == "#implementation-model":
+            collection, record = "model", entity["identifier"]
         if collection is None:
             continue
         if not isinstance(record, str) or not API_ID.match(record):
@@ -2059,8 +2234,15 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
     parts: dict[str, dict[str, Any]] = {name: {"entities": [], "properties": {}} for name in PART_SCRIPTS}
     core = []
     for entity in graph:
+        if entity["@id"] == "#implementation-model" or str(entity["@id"]).startswith(
+            ("#layer-", "#seam-", "#model-context-", "#model-example-", "#model-worked-")
+        ):
+            parts["model"]["entities"].append(entity)
+        elif entity.get("@type") == "rdf:Property" and entity.get("rdfs:label") in MODEL_TERMS:
+            # Full definitions are needed only with the model; its property IRIs remain in the core context.
+            parts["model"]["entities"].append(entity)
         # The FIP Dashboard snapshot: the profiles and the resource records they declare.
-        if str(entity["@id"]).startswith("#item-"):
+        elif str(entity["@id"]).startswith("#item-"):
             parts["questions"]["entities"].append(entity)
         elif str(entity["@id"]).startswith(("#fip-", "#fer-")):
             parts["fips"]["entities"].append(entity)
@@ -2077,6 +2259,15 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
             core.append({key: value for key, value in entity.items() if key != "creditText"})
         else:
             core.append(entity)
+    # Only core targets become property patches. Questions and standards keep their explicit associations
+    # with their own deferred entities, so concurrent part loading cannot drop a patch for a missing target.
+    for index, entity in enumerate(core):
+        deferred = {
+            key: value for key, value in entity.items() if key in ("implementationLayers", "implementationSeams")
+        }
+        if deferred:
+            parts["model"]["properties"].setdefault(entity["@id"], {}).update(deferred)
+            core[index] = {key: value for key, value in entity.items() if key not in deferred}
     return crate | {"@graph": core}, parts
 
 

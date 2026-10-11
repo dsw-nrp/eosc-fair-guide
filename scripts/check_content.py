@@ -339,6 +339,20 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
         report.error(where, "missing title")
     if citation.get("type") not in SOURCE_TYPES:
         report.error(where, f"type must be one of {', '.join(SOURCE_TYPES)}")
+    if citation.get("preparationStatus") is not None:
+        if citation.get("id") != "layers-and-seams-manuscript" or citation["preparationStatus"] != "in-preparation":
+            report.error(where, "only the approved Layers-and-Seams manuscript may be cited as in preparation")
+        if citation.get("type") != "article" or not citation.get("authors") or citation.get("inLanguage") != "en":
+            report.error(
+                where, "the in-preparation manuscript needs its authentic article title, authors and English language"
+            )
+        if any(citation.get(field) for field in ("doi", "datePublished", "publisher", "license", "journal", "year")):
+            report.error(
+                where,
+                "an in-preparation manuscript cannot claim a DOI, publication date, "
+                "publisher, journal, year or licence",
+            )
+        return
     if not (own_url or citation.get("url") or citation.get("doi")):
         report.error(where, "a source needs a URL or a DOI")
     if not (citation.get("datePublished") or citation.get("dateAccessed")):
@@ -383,6 +397,115 @@ def check_sources(report: Report, content: dict[str, Any]) -> None:
         check_citation(report, f"sources:{source.get('id')}", source, own_url=False)
         if "short" in source:
             require_text(report, f"sources:{source.get('id')}", source["short"], "short", proper_name_allowed=True)
+
+
+def model_items(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Stable identifiers for the model definitions, observations and role-specific explanations."""
+    data = content.get("model", {})
+    result = {}
+    if data.get("model"):
+        result[f"model:{data['model']['id']}"] = data["model"]
+        if data["model"].get("workedExample"):
+            result["model:worked-example"] = data["model"]["workedExample"]
+    for kind in ("layer", "seam", "example"):
+        result |= {f"{kind}.{item['id']}": item for item in data.get(kind, [])}
+    result |= {f"context:{item['station']}:{item['lens']}": item for item in data.get("context", [])}
+    return result
+
+
+def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], today: date) -> None:
+    """Keep conceptual definitions, explicit topic associations and scoped dated observations distinct."""
+    data = content.get("model", {})
+    manuscript = "layers-and-seams-manuscript"
+    for clause in content["ledger"]:
+        if clause.get("source") == manuscript:
+            report.error(
+                f"clause:{clause['id']}", "the in-preparation model manuscript cannot supply ledger requirements"
+            )
+    if not data:
+        return
+    model = data.get("model", {})
+    if any(field in model for field in ("status", "asOf", "evidence", "owner")):
+        report.error("model", "generic model definitions cannot carry implementation status or an assigned owner")
+    if model.get("id") != "layers-and-seams":
+        report.error("model", "model ID must be layers-and-seams")
+    if model.get("source") != manuscript:
+        report.error("model", "the conceptual model must cite the approved manuscript")
+    source = next((item for item in content["sources"] if item["id"] == manuscript), {})
+    if source.get("preparationStatus") != "in-preparation":
+        report.error("model", "the approved manuscript source must be marked in-preparation")
+    for field in ("name", "description", "introduction", "ordering", "feedback"):
+        require_text(report, "model", model.get(field), field)
+    if model.get("workedExample"):
+        worked = model["workedExample"]
+        for field in ("name", "description"):
+            require_text(report, "model:worked-example", worked.get(field), field)
+        if not worked.get("steps") or set(worked["steps"]) - set(content_index(content)):
+            report.error("model:worked-example", "worked example must link existing content identities in order")
+    for kind in ("layer", "seam", "example"):
+        unique(report, f"model:{kind}", [item.get("id", "") for item in data.get(kind, [])], kind)
+        for item in data.get(kind, []):
+            where = f"model:{kind}.{item.get('id')}"
+            if not SLUG.fullmatch(item.get("id", "")):
+                report.error(where, "ID must be lower-case kebab-case")
+            for field in ("name", "description"):
+                require_text(report, where, item.get(field), field)
+            if kind != "example" and any(field in item for field in ("status", "asOf", "evidence", "owner")):
+                report.error(where, "generic model definitions cannot carry implementation status or an assigned owner")
+    layers = {item["id"] for item in data.get("layer", [])}
+    if layers != {"policy", "community", "infrastructure", "planning", "support", "evaluation"}:
+        report.error("model:layers", "the model must retain its six functional layers")
+    seams = {item["id"] for item in data.get("seam", [])}
+    for item in data.get("seam", []):
+        where = f"model:seam.{item['id']}"
+        for field in ("transfer", "sender", "recipient", "carrier", "maintainers"):
+            require_text(report, where, item.get(field), field)
+        if not item.get("layers") or set(item["layers"]) - layers:
+            report.error(where, "seam must reference known functional layers")
+        if item.get("source", manuscript) != manuscript:
+            report.error(where, "seam definition must retain its manuscript source")
+    for item in data.get("example", []):
+        where = f"model:example.{item['id']}"
+        require_text(report, where, item.get("scope"), "scope")
+        if item.get("seam") not in seams:
+            report.error(where, "example names an unknown seam")
+        if item.get("status") not in vocab["statuses"]:
+            report.error(where, "example needs a known implementation status")
+        observed = str(item.get("asOf", ""))
+        try:
+            parsed = date.fromisoformat(observed + "-01" if re.fullmatch(r"\d{4}-\d{2}", observed) else observed)
+            if parsed > today:
+                raise ValueError
+        except ValueError:
+            report.error(where, "example needs an actual YYYY-MM or ISO date observation, not in the future")
+        if not item.get("evidence") or set(item["evidence"]) - cited_ids(content):
+            report.error(where, "example must cite identifiable evidence for its scope, status and date")
+    targets = content_index(content)
+    seen = set()
+    for item in data.get("association", []):
+        where = f"model:association.{item.get('target')}"
+        target = item.get("target")
+        if target not in targets:
+            report.error(where, "association names an unknown content target")
+        if target in seen:
+            report.error(where, "one explicit association per content target; merge its layer and seam references")
+        seen.add(target)
+        if not item.get("layers") and not item.get("seams"):
+            report.error(where, "association must name at least one layer or seam")
+        if set(item.get("layers", [])) - layers or set(item.get("seams", [])) - seams:
+            report.error(where, "association references an unknown layer or seam")
+    seen_contexts = set()
+    for item in data.get("context", []):
+        key = (item.get("station"), item.get("lens"))
+        where = f"model:context.{key[0]}.{key[1]}"
+        if key in seen_contexts:
+            report.error(where, "one explanation per station and lens")
+        seen_contexts.add(key)
+        if key[0] not in vocab["stations"] or key[1] not in vocab["lenses"]:
+            report.error(where, "context must address an existing station and reader lens")
+        require_text(report, where, item.get("text"), "text")
+        if not item.get("seams") or set(item["seams"]) - seams:
+            report.error(where, "context must reference known seams")
 
 
 def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], clause_ids: set[str]) -> None:
@@ -817,10 +940,15 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
         index.setdefault(resource["id"], "resource")
     for repository in content["repositories"]:
         index.setdefault(repository["id"], "repository")
+    for organization in content["guide"].get("organization", []):
+        index.setdefault(organization["id"], "organization")
+    for action in content["provenance"]:
+        index.setdefault(f"action:{action['id']}", "action")
     for record in content.get("repository_records", []):
         for key, prefix in (("re3data", "re3data"), ("fipDashboard", "fip-dashboard")):
             if record.get(key):
                 index.setdefault(f"{prefix}.{record[key]}", "repository record")
+    index |= {key: "model" for key in model_items(content)}
     return index
 
 
@@ -853,6 +981,7 @@ def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
         "resources": [resource["id"] for resource in content["resources"]],
         "repositories": [repository["id"] for repository in content["repositories"]],
         "actions": [action["id"] for action in content["provenance"]],
+        "model": list(model_items(content)),
     }
 
 
@@ -907,7 +1036,9 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             report.error(where, "endTime must be a date-time with a time zone")
     patterns = [pattern for action in actions for pattern in action.get("results", [])]
     for item_id, kind in index.items():
-        if kind in ("advice", "item", "resource", "clause", "test") and not any(covered(p, item_id) for p in patterns):
+        if kind in ("advice", "item", "resource", "clause", "test", "model") and not any(
+            covered(p, item_id) for p in patterns
+        ):
             report.error(f"{kind}:{item_id}", "no provenance action covers this item")
 
 
@@ -961,6 +1092,11 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
 
     # R5, entries nothing uses
     cited = {clause.get("source") for clause in content["ledger"]} | set(content["guide"]["guide"].get("isBasedOn", []))
+    if content.get("model", {}).get("model"):
+        cited.add(content["model"]["model"]["source"])
+    cited |= {
+        source for example in content.get("model", {}).get("example", []) for source in example.get("evidence", [])
+    }
     cited |= {obj for action in content["provenance"] for obj in action.get("objects", [])}
     cited |= referenced(content)
     for resource in content["resources"]:
@@ -996,6 +1132,7 @@ def check_references(report: Report, content: dict[str, Any]) -> None:
     known |= {"station:" + data["station"]["id"] for data in content["stations"]}
     known |= {"clause:" + clause["id"] for clause in content["ledger"]}
     known.add("profile")
+    known |= set(model_items(content))
 
     def entries(where: str, text: str) -> set[str]:
         if "[[" in REFERENCE.sub("", text) or "]]" in REFERENCE.sub("", text):
@@ -1156,6 +1293,9 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
             if " " not in author and author not in vocab["people"]:
                 report.error(f"source:{source.get('id')}", f"unknown person '{author}'")
     organization_ids = {organization["id"] for organization in guide_file.get("organization", [])}
+    for field in ("publisher", "funder"):
+        if guide.get(field) and guide[field] not in organization_ids:
+            report.error("guide", f"unknown {field} organisation '{guide[field]}'")
     for person in guide_file.get("person", []):
         for organization in person.get("affiliation", []):
             if organization not in organization_ids:
@@ -1225,6 +1365,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_texts(report, content)
     check_links(report, content, in_page_targets(content))
     check_sources(report, content)
+    check_model(report, content, vocab, today or date.today())
     check_type_crosswalk(report, content)
     clause_ids = check_ledger(report, content, vocab)
     for principle in content["principles"]:
@@ -1281,6 +1422,16 @@ def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:
         items[resource["id"]] = resource
     for test in content["live"].get("test", []):
         items[f"test:{test['id']}"] = test
+    for organization in content["guide"].get("organization", []):
+        items[organization["id"]] = organization
+    items |= model_items(content)
+    # Association changes alter the meaning of the mapped item and need that item's fresh paradata too.
+    for association in content.get("model", {}).get("association", []):
+        target = association["target"]
+        base = items.get(target)
+        if base is None:
+            base = next((item for item in content["sources"] if item["id"] == target), None)
+        items[target] = {"item": base, "modelAssociation": association}
     return {key: json.dumps(value, sort_keys=True, default=str) for key, value in items.items()}
 
 

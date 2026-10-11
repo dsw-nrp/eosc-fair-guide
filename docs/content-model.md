@@ -2,9 +2,10 @@
 
 The guide's content is authored in small TOML files under `content/`. A generator,
 `scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and the same
-crate as scripts the page loads: `assets/data/kb.js` with what every view needs, and `kb-standards.js`, `kb-fips.js`
-and `kb-pages.js` with the standards' requirements and guidance, the FIP Dashboard snapshot (profiles and resource
-records) and the pages' text, loaded when a view first needs them; `scripts/build_site.py` writes them with the page and the
+crate as scripts the page loads: `assets/data/kb.js` with what every view needs, and `kb-standards.js`, `kb-fips.js`,
+`kb-pages.js`, `kb-questions.js` and `kb-model.js` with the standards' requirements and guidance,
+the FIP Dashboard snapshot (profiles and resource records), page texts, check questions and the conceptual
+implementation model, loaded when a view first needs them; `scripts/build_site.py` writes them with the page and the
 API into the site directory `_site/`, which is not committed. This document defines the entities and the rules every content file
 follows. The design behind it is in [design.md](design.md).
 
@@ -45,13 +46,16 @@ erDiagram
 | Level | `L0` one sentence and one action; `L1` steps; `L2` why (principles, requirements); `L3` sources and paradata |
 | Advice item | A piece of advice for one station, lens and level |
 | Clause | One requirement or statement from a published source, with a stable ID |
-| Source | A published document, dataset or web page that clauses come from |
+| Source | A published document, dataset or web page that clauses come from; the approved model manuscript is a narrowly scoped exception |
 | Principle | A FAIR principle, identified by `https://w3id.org/fair/principles/terms/<ID>` |
 | Check | A self-check item with a tier, a principle, a fix location and an owner |
 | Resource | A service, tool, standard, guide or repository the guide recommends |
 | Glossary term | A term from Heslář, with its label and link |
 | Callout | A shared note (sensitive data, identifier verification), defined once and ordered by lens |
 | Provenance action | A record of who changed which items, with which tool and from which sources |
+| Implementation layer | One of the model's six functional groups, independent of reader lenses and FAIR principles |
+| Implementation seam | An information transfer across a responsibility boundary, within or across layers |
+| Implementation example | An evidenced, dated observation about a precisely scoped component or connection |
 
 ## Rules for every content file
 
@@ -140,8 +144,57 @@ different entries.
 ### Sources
 
 Every advice item and every check cites at least one clause ID in `sources`. Every clause names a published
-source: an entry of `sources.toml`, or a resource that carries its citation. Unpublished working material is never
-cited.
+source: an entry of `sources.toml`, or a resource that carries its citation. The sole approved exception is
+`layers-and-seams-manuscript`, an article source with `preparationStatus = "in-preparation"`, its authentic
+title and authors and `inLanguage = "en"`. It may support the conceptual model and scoped observations;
+it cannot supply a ledger clause. It has no invented DOI, publication date, publisher, journal, year or licence.
+Other unpublished working material is not cited.
+
+### Layers-and-Seams model
+
+`content/model.toml` is the single authoring home. These associations add functional context without
+renaming original requirements, replacing their published sources or implying that they are fulfilled.
+
+| Table | Fields |
+| --- | --- |
+| `[model]` | `id = "layers-and-seams"`, manuscript `source`, bilingual `name`, `description`, `introduction`, `ordering`, `feedback` |
+| `[model.workedExample]` | Bilingual `name`, `description`, ordered `steps` of existing content IDs; recorded revisions use `action:<id>` |
+| `[[layer]]` | Stable `id`, bilingual `name`, `description`; the six IDs are `policy`, `community`, `infrastructure`, `planning`, `support`, `evaluation` |
+| `[[seam]]` | Stable `id`, bilingual `name`, `description`, `transfer`, `sender`, `recipient`, `carrier`, `maintainers`; `layers` references layer IDs |
+| `[[example]]` | Stable `id`, `seam`, bilingual `name`, `description`, `scope`, `status`, `asOf`, and `evidence` source IDs |
+| `[[association]]` | One existing content `target` and reviewed `layers` and/or `seams` IDs; tests use `test:<id>` |
+| `[[context]]` | Existing `station` and `lens`, bilingual `text`, and relevant `seams`; one explanation per station and lens |
+
+Definitions are `DefinedTerm` records in `#implementation-model` (`DefinedTermSet`); their issued
+identifiers are `layer.<id>` and `seam.<id>`. An example is a `CreativeWork` with `example.<id>`, linked
+to its seam through `isPartOf`; the seam lists examples in `hasPart`. Role-specific contexts are
+`CreativeWork` records with station/lens references and `context.<station>.<lens>` identifiers.
+The optional worked example uses `#model-worked-example`, linked by the model's `workExample` and its
+inverse `exampleOfWork`. Its ordered parts resolve existing requirements, questions, test definitions
+and revision actions after those actions exist; it creates no fabricated live test run.
+The ID register and provenance use `model:layers-and-seams`, `layer.<id>`, `seam.<id>`, `example.<id>`
+and `context:<station>:<lens>`. New definitions, examples, contexts and association changes require paradata.
+
+The crate's `implementationLayers` and `implementationSeams` properties decorate only explicitly
+reviewed targets. Selecting a seam reuses its endpoint layers as layer associations. No association is
+inferred from all cited sources, neighbouring questions or the
+fact that an artifact is a test. Changing an association enters the target's provenance fingerprint.
+Each seam's `maintainers` describes actors implementing or maintaining the connection, without claiming
+formal interface ownership. The model's ordering is functional, not a time sequence or maturity scale.
+
+Only examples carry `serviceStatus` and `statusAsOf`; generic definitions carry neither. Examples retain
+`YYYY-MM` observation precision when the manuscript supplies only a month. This narrow allowance does
+not relax the full-date requirements for existing resource and service statuses. `evidence` must resolve
+to cited sources. Statuses describe the named scope; a catalogue component and reuse of it in planning
+are separate observations even when they concern the same seam.
+
+The static API exposes model, layer, seam and example records at `api/model/<identifier>.json`, with
+language maps and links to source evidence. Contexts are embedded in the station records. The deferred
+`model` data part contains definitions and observations plus association patches for core entities;
+questions and standards retain their reviewed associations with their own deferred entities. Loading
+parts in parallel therefore cannot lose a mapping. The complete crate, API and exports retain all fields.
+Offline health checks inventory model records and associations; passing integrity checks does not
+establish live operation of a connection.
 
 Clause ID prefixes:
 

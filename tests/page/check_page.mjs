@@ -322,7 +322,7 @@ sections.push(["page", async () => {
       if ((await kinds()) !== kind) fail(`catalogue: the address for ${old} does not select ${kind}`);
       if (!(await view.locator(".catalogue-results .card").count())) fail(`catalogue: ${kind} list nothing`);
     }
-    if ((await view.locator('[data-facet="kind"] input[type="radio"]').count()) !== 8) fail("catalogue: the kind is not a single choice among eight");
+    if ((await view.locator('[data-facet="kind"] input[type="radio"]').count()) !== 9) fail("catalogue: the kind is not a single choice among nine");
     const toolbarGap = await view.evaluate(() => {
       const bar = document.querySelector(".catalogue-toolbar");
       return bar.nextElementSibling.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
@@ -663,7 +663,7 @@ sections.push(["page", async () => {
       });
       if (!corner) fail(`catalogue: the ${kind} record link does not sit in the card's top right corner`);
       // One card for every kind: its own identifier in the head, and its relations under fixed labels in one order.
-      const order = ["Principy", "Pro koho", "Vychází z", "V průvodci", "Identifikátory"];
+      const order = ["Principy", "Pro koho", "Vychází z", "V průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
       const cards = await view.locator(".catalogue .card:not(.nkr-sample)").evaluateAll((all) =>
         all.map((card) => ({ id: card.id, chip: (card.querySelector(".entry-head .id-chip-static") || {}).textContent, labels: [...card.querySelectorAll(".relations dt")].map((dt) => dt.textContent) }))
       );
@@ -771,7 +771,7 @@ sections.push(["page", async () => {
     if (!gathered.all || gathered.shown !== gathered.all || gathered.prompts !== gathered.all || gathered.tagged !== gathered.forOne) fail("ai page: the stations' AI tips are not all gathered with their prompts, or a tip for one view lacks its icon: " + JSON.stringify(gathered));
     const chat = view.locator('[id="cerit"] .section-action a');
     if (!(await chat.count()) || !(await chat.getAttribute("href")).startsWith("https://chat.ai.e-infra.cz") || (await chat.getAttribute("target")) !== "_blank") fail("ai page: the CERIT section does not lead to the e-INFRA CZ AI chat");
-    // The start loads only its selected core language; a page adds its neutral part and selected translation.
+    // The start loads only its selected core language; About adds pages and its linked model records.
     const fresh = await context.newPage();
     await fresh.goto(pageUrl);
     await rendered(fresh);
@@ -781,7 +781,7 @@ sections.push(["page", async () => {
     await fresh.waitForSelector('[id="why"]');
     const forPage = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
     if (atStart.join() !== `assets/data/kb-${startLanguage}.js` ||
-        forPage.join() !== `assets/data/kb-${startLanguage}.js,assets/data/kb-pages.js,assets/data/kb-pages-${startLanguage}.js`) {
+        forPage.slice().sort().join() !== [`assets/data/kb-${startLanguage}.js`, "assets/data/kb-pages.js", `assets/data/kb-pages-${startLanguage}.js`, "assets/data/kb-model.js", `assets/data/kb-model-${startLanguage}.js`].sort().join()) {
       fail(`parts: the start loads ${atStart.join(", ")}; a page loads ${forPage.join(", ")}`);
     }
     await fresh.close();
@@ -909,7 +909,7 @@ sections.push(["page", async () => {
     await view.waitForSelector(".tool-cards");
     if ((await current()) !== "Nástroje a postupy") fail("tools: the menu does not mark the tools item on the tools view");
     const tools = await view.locator(".tool-card h2 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
-    if (tools.join(",") !== "live-check,identifiers,citation,ai,software,notebooks,provenance,fdo") fail("tools: the tools view does not list the tool pages in order: " + tools.join(","));
+    if (tools.join(",") !== "model,live-check,identifiers,citation,ai,software,notebooks,provenance,fdo") fail("tools: the tools view does not list the tool pages in order: " + tools.join(","));
     if ((await view.locator(".tool-coming").count()) !== 1) fail("tools: the helpers in preparation are not marked as such");
     for (const [id, item] of [["identifiers", "Nástroje a postupy"], ["ai", "Nástroje a postupy"], ["live-check", "Nástroje a postupy"], ["citation", "Nástroje a postupy"], ["about", "O průvodci"], ["accessibility", "O průvodci"]]) {
       await view.goto(pageUrl + "#/cs/V/page/" + id);

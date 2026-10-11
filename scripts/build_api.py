@@ -335,7 +335,12 @@ class Api:
             "license": self.iri(ids(root["license"])[0], META_FILE),
             "url": self.site_root(META_FILE),
             "isBasedOn": self.site_root(META_FILE) + kb.CRATE_FILE,
-            "hasPart": [f"{collection}.json" for collection in kb.API_COLLECTIONS] + [posixpath.basename(HEALTH_FILE)],
+            "hasPart": [
+                f"{collection}.json"
+                for collection in kb.API_COLLECTIONS
+                if collection != "model" or self.records[collection]
+            ]
+            + [posixpath.basename(HEALTH_FILE)],
         }
 
     def health(self, report: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -383,10 +388,28 @@ class Api:
             "FAIR principles": ("principles",),
             "remote automated tests": ("tests",),
             "guide automated tests": ("tests",),
+            "implementation model": ("model",),
+            "model associations": tuple(kb.API_COLLECTIONS),
         }
         for group in result["integrity"]:
             collections = ("resources",) if group["type"].startswith("resources:") else groups.get(group["type"], ())
             for item in group["items"]:
+                if group["type"] == "implementation model" and item["id"].startswith("context:"):
+                    context_id = "#model-context-" + item["id"].removeprefix("context:").replace(":", "-")
+                    if self.paths.get(context_id):
+                        item["api_record"] = self.relative(HEALTH_FILE, self.paths[context_id])
+                    continue
+                if group["type"] == "implementation model" and item["id"] == "model:worked-example":
+                    item["api_record"] = self.relative(HEALTH_FILE, self.paths["#model-worked-example"])
+                    continue
+                if group["type"] == "model associations" and item["id"].startswith("test:"):
+                    item["api_record"] = self.relative(
+                        HEALTH_FILE, self.paths.get("#test-" + item["id"][5:], HEALTH_FILE)
+                    )
+                    continue
+                if group["type"] == "model associations" and "#advice-" + item["id"] in self.paths:
+                    link(item, (), "#advice-")
+                    continue
                 link(item, collections, "#advice-" if group["type"] == "station advice" else "")
         coverage = result["original_coverage"]
         for kind, collections, prefix in (
@@ -428,6 +451,8 @@ class Api:
         for record, entity_id in self.records["metrics"]:
             docs[self.tests[entity_id]] = self.manual_test(record, entity_id)
         for collection in kb.API_COLLECTIONS:
+            if collection == "model" and not self.records[collection]:
+                continue
             docs[f"api/{collection}.json"] = self.collection(collection, docs)
         docs[META_FILE] = self.meta()
         docs[HEALTH_FILE] = self.health()
@@ -453,6 +478,8 @@ class Api:
         paths["/" + HEALTH_FILE]["get"]["description"] = english["healthDescription"]
         tags = [{"name": "meta", "description": english["metaTag"]}]
         for collection in kb.API_COLLECTIONS:
+            if not self.records[collection] and collection == "model":
+                continue  # Older/minimal content has no model; no empty record-ID parameter is published.
             strings = {key: value[kb.LANGS[1]] for key, value in self.strings["collection"][collection].items()}
             schema = SCHEMAS[collection]
             records = [Path(path).stem for path in docs if path.startswith(f"api/{collection}/")]
@@ -500,6 +527,7 @@ PARAMETERS = {
     "organizations": "organization_id",
     "fips": "fip_id",
     "changes": "change_id",
+    "model": "model_id",
 }
 SCHEMAS = {
     "principles": "Principle",
@@ -515,6 +543,7 @@ SCHEMAS = {
     "organizations": "Organization",
     "fips": "Fip",
     "changes": "Change",
+    "model": "Model",
 }
 # What every record of a collection carries; a record may carry more.
 REQUIRED = {
@@ -531,6 +560,7 @@ REQUIRED = {
     "Organization": ["name"],
     "Fip": ["identifier", "name", "hasPart"],
     "Change": ["name"],
+    "Model": ["identifier", "name", "citation"],
     "Meta": ["name", "description", "version", "url", "isBasedOn", "hasPart"],
 }
 

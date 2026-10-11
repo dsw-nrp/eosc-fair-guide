@@ -26,6 +26,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 import build_crate
+import check_content
 
 ROOT = Path(__file__).resolve().parent.parent
 FORMAT_VERSION = 1
@@ -206,18 +207,27 @@ def integrity(content: dict[str, Any], root: Path, today: date) -> list[dict[str
         return checks, notes
 
     for item in sources.values():
+        preparation = (
+            item.get("id") == "layers-and-seams-manuscript" and item.get("preparationStatus") == "in-preparation"
+        )
+        citation_check = check_content.Report()
+        check_content.check_citation(citation_check, "source", item, own_url=False)
         add(
             "cited sources",
             item,
             [
-                ("published title exists", bool(text(item.get("title")))),
-                ("HTTPS source link", https(item.get("url"))),
+                ("source title exists", bool(text(item.get("title")))),
+                ("HTTPS source link or approved conceptual manuscript", preparation or https(item.get("url"))),
                 ("source language is declared", item.get("inLanguage") in ("cs", "en")),
+                ("source publication or preparation scope is valid", not citation_check.errors),
             ],
         )
     for item in content["ledger"]:
         checks = [
-            ("published source resolves", item.get("source") in sources),
+            (
+                "published source resolves",
+                item.get("source") in sources and not sources[item["source"]].get("preparationStatus"),
+            ),
             ("bilingual guide wording", bilingual(item.get("text"))),
         ]
         if item.get("guidance"):
@@ -226,6 +236,36 @@ def integrity(content: dict[str, Any], root: Path, today: date) -> list[dict[str
                 ("original is non-empty", bool(item["guidance"].strip())),
             ]
         add("ledger clauses", item, checks)
+    model = content.get("model", {})
+    if model:
+        validation = check_content.Report()
+        check_content.check_model(validation, content, check_content.vocabularies(content), today)
+        for identifier, item in check_content.model_items(content).items():
+            if identifier == "model:layers-and-seams":
+                related = validation.errors
+            elif identifier == "model:worked-example":
+                related = [error for error in validation.errors if error.startswith("model:worked-example:")]
+            elif identifier.startswith("context:"):
+                where = "model:" + identifier.replace(":", ".")
+                related = [error for error in validation.errors if error.startswith(where + ":")]
+            else:
+                where = "model:" + identifier
+                related = [error for error in validation.errors if error.startswith(where + ":")]
+            add(
+                "implementation model",
+                item | {"id": item.get("id", identifier) if identifier.startswith("model:") else identifier},
+                [("model scope, bilingual descriptions, references and dated evidence are valid", not related)],
+                related,
+            )
+        for item in model.get("association", []):
+            where = f"model:association.{item.get('target')}"
+            related = [error for error in validation.errors if error.startswith(where + ":")]
+            add(
+                "model associations",
+                {"id": item.get("target")},
+                [("explicit target and model references resolve", not related)],
+                related,
+            )
     for parent in content["stations"]:
         item = parent["station"]
         add(

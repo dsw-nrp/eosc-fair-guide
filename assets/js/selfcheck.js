@@ -1240,7 +1240,8 @@
     const actors = FG.refs(item, "fixedBy").map((actor) => FG.text(actor.name));
     return h("dl", { class: "relations question-relations fix-at small" },
       actors.length ? [h("dt", null, FG.t("selfcheck.question.responsible")), h("dd", null, actors.join(", "))] : null,
-      station ? [h("dt", null, FG.t("selfcheck.result.whereFix")), h("dd", null, stepLink(station))] : null);
+      station ? [h("dt", null, FG.t("selfcheck.result.whereFix")), h("dd", null, stepLink(station))] : null,
+      FG.modelRows(item));
   }
 
   const letterOf = (item) => String((FG.principlesOf(item)[0] || {}).termCode || "").charAt(0);
@@ -1438,7 +1439,8 @@
         who.length ? [station ? h("span", { class: "action-sep" }, " · ") : null, h("span", { class: "action-label" }, FG.t("selfcheck.result.whoFix") + ": "), who.join(", ")] : null
       ),
       programmeLine(st, item),
-      basisLine(item)
+      basisLine(item),
+      handover(st, item)
     );
   }
 
@@ -1467,7 +1469,7 @@
     );
   }
 
-  function taskItem(item) {
+  function taskItem(item, st) {
     const ask = whom(item);
     const lookup = FG.id(item.lookup);
     return h(
@@ -1480,8 +1482,29 @@
         ask.names.length ? [h("span", { class: "action-label" }, FG.t("selfcheck.result.askLabel") + ": "), ask.names.join(", ")] : null,
         lookup ? [ask.names.length ? h("span", { class: "action-sep" }, " · ") : null, FG.external(lookup, FG.t("selfcheck.result.lookup"))] : null,
         ask.helps.map((help) => [h("span", { class: "action-sep" }, " · "), helpLink(help)])
-      )
+      ),
+      st ? handover(st, item) : null
     );
+  }
+
+  /** Reuse retained observations for a hand-over; unavailable evidence remains unavailable. */
+  function handover(st, item) {
+    if (!FG.refIds(item, "implementationSeams").length) return null;
+    const ask = whom(item);
+    const check = FG.get(item.isPartOf) || SC.checks().find((candidate) => FG.hasRef(candidate, "hasPart", item["@id"]));
+    const pid = st.target && FG.live.parsePid(st.target);
+    const targetUrl = webUrl(st.target) || (pid ? FG.live.pidUrl(pid) : null);
+    const targetName = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);
+    return h("details", { class: "result-handover" }, h("summary", null, FG.t("model.handover")), h("div", { class: "content" },
+      h("dl", { class: "relations small" }, FG.modelRows(item),
+        h("dt", null, FG.t("model.criterion")), h("dd", null, h("a", { href: FG.catalogueHref("questions", item.identifier) }, item.identifier), " · ", FG.span(item.text)),
+        ask.names.length ? [h("dt", null, FG.t("selfcheck.result.askLabel")), h("dd", null, ask.names.join(", "))] : null,
+        st.target ? [h("dt", null, FG.t("selfcheck.targetLabel")), h("dd", null, targetUrl ? FG.external(targetUrl, targetName || st.target) : st.target,
+          targetName ? [" · ", st.target] : null)] : null),
+      h("p", { class: "small" }, FG.t("model.handoverHint")),
+      check ? testLine(check, st, item) : null,
+      observationsOf(record(st, item)).length ? observationsOf(record(st, item)).map(observationBody) : h("p", { class: "small muted" }, FG.t("model.noObservation")),
+      basisLine(item)));
   }
 
   function answerText(st, item) {
@@ -1570,7 +1593,7 @@
       ),
       h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.result.gaps")),
       gaps.length ? h("ul", { class: "gaps" }, gaps.map((item) => gapItem(st, item))) : h("p", { class: "muted" }, FG.t("selfcheck.result.noGaps")),
-      tasks.length ? [h("h3", { id: "results-tasks", tabindex: "-1" }, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map(taskItem))] : null,
+      tasks.length ? [h("h3", { id: "results-tasks", tabindex: "-1" }, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map((item) => taskItem(item, st)))] : null,
       h("h3", { class: "result-all" }, FG.t("selfcheck.result.answers")),
       resultGroups(check, st, items),
     ];
@@ -1659,6 +1682,10 @@
     for (const item of items) {
       const details = [sourceText(st, item), evidenceText(st, item)].filter(Boolean).join("; ");
       lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}: **${escapeMarkdown(answerText(st, item))}**`, "");
+      for (const property of ["implementationLayers", "implementationSeams"]) {
+        const terms = FG.refs(item, property);
+        if (terms.length) lines.push(FG.t("catalogue.relation." + property) + ": " + terms.map((term) => `[${escapeMarkdown(FG.text(term.name))}](${FG.pageAddress()}${FG.catalogueHref("model", term.identifier)})`).join(", "), "");
+      }
       if (details) lines.push(...details.split("\n").map((line) => "> " + escapeMarkdown(line)), "");
     }
     const context = applicable(check, st).filter((item) => item.assessmentContext);
@@ -1723,6 +1750,8 @@
         "ftr:log": logLine(st, item),
         "prov:used": recordOf(st, item) ? { "@id": recordOf(st, item) } : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
+        implementationLayers: FG.refIds(item, "implementationLayers").map((id) => ({ "@id": guideCrate + id })),
+        implementationSeams: FG.refIds(item, "implementationSeams").map((id) => ({ "@id": guideCrate + id })),
       });
       tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: item.identifier + ": " + FG.text(item.text) });
     }
@@ -1742,6 +1771,8 @@
         "ftr:assessmentTarget": verdict.target ? { "@id": verdict.target } : target,
         "ftr:log": verdict.log ? String(verdict.log) : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
+        implementationLayers: FG.refIds(test, "implementationLayers").map((id) => ({ "@id": guideCrate + id })),
+        implementationSeams: FG.refIds(test, "implementationSeams").map((id) => ({ "@id": guideCrate + id })),
       });
       tests.push({ "@id": test.url, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: FG.text(test.name) });
     }
@@ -1803,6 +1834,8 @@
           TestResult: vocab.ftr + "TestResult",
           TestExecutionActivity: vocab.ftr + "TestExecutionActivity",
           guideState: vocab.guide + "guideState",
+          implementationLayers: { "@id": vocab.guide + "implementationLayers", "@type": "@id" },
+          implementationSeams: { "@id": vocab.guide + "implementationSeams", "@type": "@id" },
         },
       ],
       "@graph": graph,

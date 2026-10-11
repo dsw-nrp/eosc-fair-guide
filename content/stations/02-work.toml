@@ -158,7 +158,7 @@ sources = ["A.K2.2.4", "DDRAPP.01"]
 id = "work.19"
 lens = "K"
 level = "L0"
-text = { cs = "Doporučené formáty a minimální popis dat pro váš obor patří do FIP; výzkumníci je pak mohou dodržovat od začátku.", en = "Your domain's recommended formats and minimum data description belong in the FIP, so researchers can follow them from the start." }
+text = { cs = "Ve FIP zaznamenejte doporučené datové formáty a oborové profily, aby je výzkumníci mohli využít od začátku.", en = "Record recommended data formats and domain profiles in the FIP so researchers can use them from the start." }
 action = [{ label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }, { label = { cs = "Dataspecer", en = "Dataspecer" }, href = "https://dataspecer.com/" }]
 sources = ["A.R1.3.F1", "A.R1.F1", "FIP-DASHBOARD.01"]
 
@@ -166,7 +166,7 @@ sources = ["A.R1.3.F1", "A.R1.F1", "FIP-DASHBOARD.01"]
 id = "work.20"
 lens = "K"
 level = "L1"
-text = { cs = "Uveďte ve FIP doporučené datové formáty a minimální popis dat, například povinné parametry experimentu.", en = "State the recommended data formats and the minimum data description in the FIP, for example the mandatory parameters of an experiment." }
+text = { cs = "Vymezte minimální popis dat v oborovém profilu nebo schématu, například potřebné parametry experimentu. Ve FIP odkažte na vybrané profily a datové formáty.", en = "Define the minimum data description in a domain profile or schema, for example the necessary experimental parameters. Reference the selected profiles and data formats in the FIP." }
 sources = ["A.R1.3.F1", "A.R1.F1"]
 
 [[advice]]

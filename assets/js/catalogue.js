@@ -7,7 +7,7 @@
 
   const FG = window.FairGuide;
   const h = (...args) => FG.h(...args);
-  const KINDS = ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"];
+  const KINDS = ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "model", "actions"];
   /* Older addresses named the kinds as tabs; cited sources are now part of the resources. */
   const ALIASES = { sources: "resources" };
   const PAGE = 50;
@@ -167,18 +167,19 @@
     return h(
       "li",
       { class: ["card", "entry-card"].concat(spec.class || []).join(" "), id: "item-" + spec.id, tabindex: "-1" },
-      h("p", { class: "entry-head" }, h("span", { class: "id-chip id-chip-static" }, spec.id), what.length ? h("span", { class: "entry-what" }, what.join(" · ")) : null, FG.apiLink(spec.entity)),
+      h("p", { class: "entry-head" }, h("span", { class: "id-chip id-chip-static" }, spec.id), spec.icon ? FG.icon(spec.icon) : null, what.length ? h("span", { class: "entry-what" }, what.join(" · ")) : null, FG.apiLink(spec.entity)),
       spec.title ? h("h3", { class: "entry-title", lang: spec.titleLang || null }, spec.title) : null,
       spec.byline ? h("p", { class: "small entry-byline" }, spec.byline) : null,
       details.length ? h("p", { class: "small muted card-details", lang: spec.detailsLang || null }, details.join(" · ")) : null,
       spec.body,
       states.length ? h("div", { class: "badges" }, states) : null,
       spec.notes,
-      rows.length
+      rows.length || FG.modelRows(spec.entity).length
         ? h(
             "dl",
             { class: "relations" },
-            rows.map(([key, items]) => [h("dt", null, FG.t("catalogue.relation." + key)), h("dd", { class: key === "identifiers" ? "pid-line" : null }, items)])
+            rows.map(([key, items]) => [h("dt", null, FG.t("catalogue.relation." + key)), h("dd", { class: key === "identifiers" ? "pid-line" : null }, items)]),
+            FG.modelRows(spec.entity)
           )
         : null
     );
@@ -212,6 +213,7 @@
       publisher ? FG.text(publisher.alternateName || publisher.name) : null,
       languages.length ? FG.t("resource.languages", { languages: languages.join(", ") }) : null,
       entity.version ? FG.t("catalogue.version", { version: entity.version }) : null,
+      entity.preparationStatus === "in-preparation" ? FG.t("model.inPreparation") : null,
       date,
     ];
   }
@@ -690,9 +692,30 @@
       terms: termEntries(),
       fips: fipEntries(),
       tests: testEntries(),
+      model: modelEntries(),
     };
     kinds.actions = actionEntries(reachOf(kinds));
+    for (const entry of Object.values(kinds).flat()) {
+      entry.text = [entry.text, entry.anchor, entry.entity["@id"], ...FG.list(entry.entity.identifier), ...(entry.aliases || [])].join(" ");
+      entry.layers = FG.refIds(entry.entity, "implementationLayers");
+      entry.seams = FG.refIds(entry.entity, "implementationSeams");
+    }
     return kinds;
+  }
+
+  function modelEntries() {
+    return FG.modelTerms().map((term) => ({
+      kind: "model", anchor: term.identifier, entity: term, name: FG.text(term.name),
+      text: [term.identifier, FG.bothLanguages(term.name), FG.bothLanguages(term.description)].join(" "),
+      export: { text: FG.text(term.description) }, stations: [], principles: [],
+      order: String(term.position || 0).padStart(3, "0"), facets: { modelKind: [term.modelKind] },
+      render: () => entryCard({ id: term.identifier, entity: term, icon: icons().ui.model, what: FG.t("model.kind." + term.modelKind),
+        title: FG.span(term.name), body: [FG.paragraphs(term.description), FG.modelDetail(term),
+          h("p", { class: "small" }, h("a", { href: FG.modelFilterHref("resources", term) }, FG.t("model.related")), " · ",
+            h("a", { href: FG.href("page", "model") }, FG.t("model.overview")))],
+        relations: { basedOn: FG.refs(term, "citation").map(FG.sourceLink) }
+      })
+    }));
   }
 
   /* ---------------------------------------------------------------- exports */
@@ -704,6 +727,8 @@
     for (const facet of KIND_FACETS[entry.kind] || []) row[facet.key] = (entry.facets[facet.key] || []).map(facet.label);
     row.stations = entry.stations.map((id) => FG.text((FG.get("#station-" + id) || {}).name));
     row.principles = entry.principles;
+    row.implementationLayers = entry.layers;
+    row.implementationSeams = entry.seams;
     row.entry = FG.pageAddress() + FG.catalogueHref(entry.kind, entry.anchor);
     const record = FG.recordHref(entry.entity);
     if (record) row.record = FG.siteAddress() + record;
@@ -714,7 +739,7 @@
   function exportColumns(kind, rows) {
     const facets = (KIND_FACETS[kind] || []).map((facet) => facet.key);
     const filled = ["id", "name", "text", "url", "date"].filter((key) => rows.some((row) => row[key]));
-    return filled.concat(facets, ["stations", "principles", "entry"], rows.some((row) => row.record) ? ["record"] : []).map((key) => ({ key, label: facets.includes(key) ? FG.t("catalogue.facet." + key) : FG.t("export.column." + key) }));
+    return filled.concat(facets, ["stations", "principles", "implementationLayers", "implementationSeams", "entry"], rows.some((row) => row.record) ? ["record"] : []).map((key) => ({ key, label: facets.includes(key) ? FG.t("catalogue.facet." + key) : FG.t("export.column." + key) }));
   }
 
   /** The list the catalogue shows, in the order shown and with the filters that made it: as CSV, and as data in the
@@ -729,7 +754,9 @@
       const entity = entry.entity || {};
       const record = FG.recordHref(entity);
       const label = entity.text !== undefined && entity.name === entity.identifier ? "text" : "name";
-      return { "@id": record ? site + record : FG.pageAddress() + FG.catalogueHref(entry.kind, entry.anchor), "@type": entity["@type"], identifier: entry.anchor, [label]: FG.languageMap(entity[label]) || entry.name };
+      return { "@id": record ? site + record : FG.pageAddress() + FG.catalogueHref(entry.kind, entry.anchor), "@type": entity["@type"], identifier: entry.anchor, [label]: FG.languageMap(entity[label]) || entry.name,
+        implementationLayers: entry.layers.map((id) => ({ "@id": site + "ro-crate-metadata.json" + id })),
+        implementationSeams: entry.seams.map((id) => ({ "@id": site + "ro-crate-metadata.json" + id })) };
     };
     const payload = () => ({
       "@context": site + FG.config.api.files.context,
@@ -791,6 +818,7 @@
       { key: "check", values: () => FG.ofType("Quiz").map((check) => check.identifier), label: (value) => FG.text((FG.get("#check-" + value) || {}).name) },
       { key: "thealth", label: (value) => FG.t("catalogue.health." + value), note: "catalogue.testHealthNote" },
     ],
+    model: [{ key: "modelKind", values: () => ["layer", "seam"], label: (value) => FG.t("model.kind." + value) }],
     actions: [{ key: "change", values: () => ["created", "updated"], label: (value) => FG.t("catalogue." + value) }],
   };
 
@@ -799,7 +827,7 @@
   /** `k!resources_clauses~s!licence~p!R1.1~q!licence~o!name~f.use!cited`; a bare kind (an older tab address) selects
       that kind alone. */
   function readState(route) {
-    const state = { kinds: [], stations: [], principles: [], q: "", order: "", f: {} };
+    const state = { kinds: [], stations: [], principles: [], layers: [], seams: [], q: "", order: "", f: {} };
     const arg = String(route.arg || "");
     if (KINDS.includes(arg) || ALIASES[arg]) {
       state.kinds = [ALIASES[arg] || arg];
@@ -811,6 +839,8 @@
       if (key === "k") state.kinds = list.filter((kind) => KINDS.includes(kind));
       else if (key === "s") state.stations = list;
       else if (key === "p") state.principles = list;
+      else if (key === "l") state.layers = list;
+      else if (key === "n") state.seams = list;
       else if (key === "q") state.q = decodeURIComponent(value);
       else if (key === "o") state.order = value;
       else if (key.startsWith("f.")) state.f[key.slice(2)] = list;
@@ -824,11 +854,14 @@
   /** The catalogue showing one kind narrowed to some stations, such as the changes to a station. */
   FG.catalogueFilterHref = (kind, stations) => writeState({ kinds: [kind], stations, principles: [], q: "", order: "", f: {} });
   FG.repositoryFinderHref = () => writeState({ kinds: ["repositories"], stations: [], principles: [], q: "", order: "", f: { rfunction: ["#rfunction-deposit-data"] } });
+  FG.modelFilterHref = (kind, term) => writeState({ kinds: [kind], stations: [], principles: [], layers: term.modelKind === "layer" ? [term["@id"]] : [], seams: term.modelKind === "seam" ? [term["@id"]] : [], q: "", order: "", f: {} });
 
   function writeState(state) {
     const fields = ["k!" + state.kinds.map(encodePart).join("_")];
     if (state.stations.length) fields.push("s!" + state.stations.map(encodePart).join("_"));
     if (state.principles.length) fields.push("p!" + state.principles.map(encodePart).join("_"));
+    if (state.layers?.length) fields.push("l!" + state.layers.map(encodePart).join("_"));
+    if (state.seams?.length) fields.push("n!" + state.seams.map(encodePart).join("_"));
     if (state.q) fields.push("q!" + encodePart(state.q));
     if (state.order) fields.push("o!" + state.order);
     for (const [key, list] of Object.entries(state.f)) fields.push("f." + key + "!" + list.map(encodePart).join("_"));
@@ -838,10 +871,18 @@
   /** The values chosen for a facet; the lens facet, like every other, starts with none. */
   const chosenValues = (state, route, key) => state.f[key] || [];
 
+  /** A model definition belongs in its own facet without asserting a self-association in the knowledge base. */
+  function sharedValues(entry, dimension) {
+    const ownKind = dimension === "layers" ? "layer" : dimension === "seams" ? "seam" : "";
+    return entry.kind === "model" && entry.entity.modelKind === ownKind
+      ? [...entry[dimension], entry.entity["@id"]] : entry[dimension];
+  }
+
   function passesShared(entry, state, skip) {
     if (state.q && !FG.fold(state.q).split(/\s+/).every((word) => FG.fold(entry.text).includes(word))) return false;
     if (skip !== "station" && state.stations.length && !entry.stations.some((station) => state.stations.includes(station))) return false;
     if (skip !== "principle" && state.principles.length && !entry.principles.some((principle) => state.principles.includes(principle))) return false;
+    for (const key of ["layers", "seams"]) if (skip !== key && state[key]?.length && !sharedValues(entry, key).some((id) => state[key].includes(id))) return false;
     return true;
   }
 
@@ -867,6 +908,7 @@
     terms: ["name", "nameEn"],
     fips: ["name"],
     tests: ["check", "principle", "name"],
+    model: ["guided", "name"],
     actions: ["newest", "oldest"],
   };
 
@@ -1053,7 +1095,7 @@
     const toggle = (list, value) => (list.includes(value) ? list.filter((item) => item !== value) : list.concat(value));
 
     /* A link to one entry shows its kind unfiltered, so the entry is there. */
-    if (route.extra) Object.assign(state, { stations: [], principles: [], q: "", f: { lens: [] } });
+    if (route.extra) Object.assign(state, { stations: [], principles: [], layers: [], seams: [], q: "", f: { lens: [] } });
 
     const kind = state.kinds[0];
     const selected = [kind];
@@ -1075,7 +1117,7 @@
     const visible = single.length ? single : inKinds.filter((entry) => passesShared(entry, state) && passesKind(entry, state, route));
     /* A shared dimension the chosen kind has no values for shows no facet and no order, unless a filter on it is
        active, so that it can be cleared where it was set. */
-    const carries = (dimension) => entries[kind].some((entry) => entry[dimension].length);
+    const carries = (dimension) => entries[kind].some((entry) => sharedValues(entry, dimension).length);
     const showStations = carries("stations") || state.stations.length > 0;
     const showPrinciples = carries("principles") || state.principles.length > 0;
     const orders = ordersFor(kind).filter((name) => (name !== "station" || carries("stations")) && (name !== "principle" || carries("principles")));
@@ -1088,11 +1130,11 @@
     const kindCounts = new Map(
       KINDS.map((other) => [other, other !== kind && ownFilters.length ? 0 : entries[other].filter((entry) => passesShared(entry, state) && passesKind(entry, state, route)).length])
     );
-    const lacks = (kind, dimension) => !entries[kind].some((entry) => entry[dimension].length);
+    const lacks = (kind, dimension) => !entries[kind].some((entry) => sharedValues(entry, dimension).length);
     const sharedCounts = (dimension, skip) => {
       const counts = new Map();
       for (const entry of inKinds.filter((item) => passesShared(item, state, skip) && passesKind(item, state, route))) {
-        for (const value of new Set(entry[dimension])) counts.set(value, (counts.get(value) || 0) + 1);
+        for (const value of new Set(sharedValues(entry, dimension))) counts.set(value, (counts.get(value) || 0) + 1);
       }
       return counts;
     };
@@ -1167,6 +1209,9 @@
             go(Object.assign({}, state, { principles: toggle(state.principles, value) }), focus)
           )
         : null,
+      ["layers", "seams"].map((dimension) => carries(dimension) || state[dimension].length ? facetGroup(dimension, FG.t("catalogue.facet." + dimension),
+        FG.modelTerms(dimension === "layers" ? "layer" : "seam").map((term) => term["@id"]), state[dimension], sharedCounts(dimension, dimension),
+        (id) => FG.text(FG.get(id)?.name) || id, (id, focus) => go(Object.assign({}, state, { [dimension]: toggle(state[dimension], id) }), focus)) : null),
       selected.map((own) => {
         const ownFacets = KIND_FACETS[own] || [];
         if (!ownFacets.length) return null;
@@ -1188,6 +1233,7 @@
     if (state.q) chip("„" + state.q + "“", Object.assign({}, state, { q: "" }));
     for (const id of state.stations) chip(stationLabel(id), Object.assign({}, state, { stations: state.stations.filter((item) => item !== id) }));
     for (const value of state.principles) chip(principleLabel(value), Object.assign({}, state, { principles: state.principles.filter((item) => item !== value) }));
+    for (const dimension of ["layers", "seams"]) for (const id of state[dimension]) chip(FG.text(FG.get(id)?.name) || id, Object.assign({}, state, { [dimension]: state[dimension].filter((value) => value !== id) }));
     for (const facet of KIND_FACETS[kind] || []) {
       const chosen = chosenValues(state, route, facet.key);
       for (const value of chosen) chip(FG.t("catalogue.facet." + facet.key) + ": " + facet.label(value), Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: chosen.filter((item) => item !== value) }) }));
@@ -1271,7 +1317,7 @@
                 "div",
                 { class: "active-filters" },
                 h("ul", { "aria-label": FG.t("catalogue.active") }, chips),
-                h("button", { type: "button", class: "button-link small", onclick: () => go({ kinds: selected, stations: [], principles: [], q: "", order: state.order, f: { lens: [] } }, "#catalogue-search") }, FG.t("catalogue.clear"))
+                h("button", { type: "button", class: "button-link small", onclick: () => go({ kinds: selected, stations: [], principles: [], layers: [], seams: [], q: "", order: state.order, f: { lens: [] } }, "#catalogue-search") }, FG.t("catalogue.clear"))
               )
             : null,
           results

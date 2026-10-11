@@ -191,7 +191,7 @@ sources = ["FIP-DASHBOARD.01"]
 id = "plan.24"
 lens = "K"
 level = "L1"
-text = { cs = "Propojením FIP s DMP se oborová doporučení dostanou přímo do plánů výzkumníků.", en = "Connecting the FIP with DMPs brings your domain's recommendations straight into researchers' plans." }
+text = { cs = "Propojení FIP s DMP může přenést komunitní výběr standardů a služeb do plánů výzkumníků. V plánu odkažte také na podrobné požadavky vybraných profilů.", en = "Connecting FIPs with DMPs can bring community selections of standards and services into researchers’ plans. The plan should also reference the detailed requirements of the selected profiles." }
 sources = ["A.K4.3"]
 
 [[advice]]

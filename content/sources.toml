@@ -1,6 +1,17 @@
 # Published sources that the guide cites but does not recommend as a resource; a cited resource carries its
-# citation in resources.toml. Every ledger clause names one of the two; unpublished working material is never listed.
+# citation in resources.toml. Assessment clauses use published sources. The approved in-preparation manuscript
+# supplies the conceptual model only; it introduces no assessment requirement.
 # Field reference: docs/content-model.md.
+
+[[source]]
+id = "layers-and-seams-manuscript"
+type = "article"
+title = "Layers and seams of FAIR implementation in the Czech national research data infrastructure"
+short = { cs = "Vrstvy a návaznosti FAIR implementace", en = "Layers and seams of FAIR implementation" }
+inLanguage = "en"
+preparationStatus = "in-preparation"
+authors = ["Lada Biedermannová", "David Novák", "Lukáš Najdekr", "Karel Berka", "Robert Pergl", "Marek Suchánek", "Michal Růžička", "Jindřich Fejfar", "Ilona Trtíková"]
+dateAccessed = 2026-10-11
 
 [[source]]
 id = "orcid-identifier-pattern"
@@ -95,7 +106,7 @@ type = "presentation"
 title = { cs = "Stav správy výzkumných dat v České republice 2025", en = "State of research data management in the Czech Republic 2025" }
 inLanguage = "cs"
 url = "https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 authors = ["M. Vávra", "T. Čížek", "J. Klusáček"]
 datePublished = 2026-04-01
 license = "https://creativecommons.org/licenses/by/"
@@ -129,7 +140,7 @@ type = "document"
 title = { cs = "Výstupy a provazby projektů Open Science, verze 1.1", en = "Outputs and linkages of Open Science projects, version 1.1" }
 inLanguage = "cs"
 url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 authors = ["Michaela Capandová", "et al."]
 datePublished = 2024-09-26
 
@@ -230,7 +241,7 @@ type = "webpage"
 title = { cs = "Open Science III: časté dotazy", en = "Open Science III: frequently asked questions" }
 inLanguage = "cs"
 url = "https://www.eosc.cz/projekty/open-science-iii/faq"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-09
 
 [[source]]
@@ -356,7 +367,7 @@ type = "document"
 title = { cs = "Architektura implementace iniciativy EOSC v ČR", en = "Architecture of the implementation of the EOSC initiative in the Czech Republic" }
 inLanguage = "cs"
 url = "https://www.eosc.cz/media/3517655/eosc_architektura-implementace.pdf"
-publisher = "EOSC CZ"
+publisher = "eosc-cz"
 dateAccessed = 2026-10-09
 
 [[source]]

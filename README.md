@@ -20,16 +20,21 @@ English version: [README_en.md](README_en.md).
 - **Sebehodnocení:** podmínky NRP a zralost FAIR zvlášť, bez celkového skóre.
 - **Živá kontrola identifikátoru:** rychlá kontrola a na vyžádání hloubková kontrola nástrojem FAIR Champion.
 - **Katalog zdrojů a repozitářů** se stavem služby a datem ověření.
+- **Vrstvy a návaznosti FAIR implementace:** přehled modelu a souvislosti v katalogu propojují pokyny
+  s odpovědnostmi a předáváním informací, včetně předání uvnitř jedné vrstvy.
 
 ## Jak průvodce spustit
 
-S Pythonem 3.11 nebo novějším sestavte web a otevřete `_site/index.html`:
+Při prvním spuštění nainstalujte připnuté závislosti Node.js pro přibalenou dokumentaci API.
+S Pythonem 3.11 nebo novějším pak sestavte web a otevřete `_site/index.html`:
 
 ```bash
+npm ci
 python scripts/build_site.py
 ```
 
-Sestavení používá jen standardní knihovnu Pythonu. Hotová stránka funguje i bez připojení; jen živé
+Generátor používá standardní knihovnu Pythonu; upravené obrázky SVG jsou místní soubory.
+Hotová stránka funguje i bez připojení; jen živé
 kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) nebo zveřejnit samostatně.
 
 Pro místní server, který některé prohlížeče potřebují pro práci se schránkou:
@@ -53,12 +58,15 @@ vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zat�
 | `_site/` | Sestavený web, který se necommituje: stránka s datovými skripty, znalostní báze jako RO-Crate 1.2 s náhledem a API |
 | `assets/` | Styly, skripty, obrázky a vykreslené diagramy |
 | `api/` | Stránka dokumentace API; samotné API vytvoří sestavení |
-| `diagrams/` | Zdroje diagramů v Mermaid |
+| `assets/diagrams/` | Dvojjazyčné úpravy schválených obrázků rukopisu |
 | `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
 | `.github/` | CI, šablony a odpovědní recenzenti |
 
 [Příklad softwarové praxe](docs/software-practice.md) přiřazuje podklady aplikace a zbývající kroky k vydání
 k příslušným softwarovým pokynům.
+
+[Příklad použití modelu](docs/model-practice.md) sleduje skutečný požadavek, otázku, test a záznam revize.
+Koncepční model odkazuje na rukopis v přípravě; požadavky kontrol si zachovávají své publikované zdroje.
 
 ## Jak upravovat obsah
 

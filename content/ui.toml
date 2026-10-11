@@ -577,6 +577,8 @@ date = { cs = "Datum", en = "Date" }
 stations = { cs = "Kroky cesty", en = "Steps of the path" }
 principles = { cs = "Principy", en = "Principles" }
 entry = { cs = "Položka v katalogu", en = "Catalogue entry" }
+implementationLayers = { cs = "Vrstvy implementace", en = "Implementation layers" }
+implementationSeams = { cs = "Návaznosti", en = "Connections" }
 record = { cs = "Záznam v API", en = "Record in the API" }
 
 [footer]
@@ -683,8 +685,10 @@ fips = { cs = "Profily FIP", en = "FIP profiles" }
 tests = { cs = "Testy FAIR", en = "FAIR tests" }
 questions = { cs = "Otázky kontrol", en = "Check questions" }
 actions = { cs = "Změny obsahu", en = "Content changes" }
+model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
 
 [catalogue.intro]
+model = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the guide." }
 all = { cs = "Vše, z čeho průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the guide builds on and recommends, in one catalogue." }
 terms = { cs = "Pojmy otevřené vědy, na které průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the guide links to, taken from Heslář." }
 fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
@@ -700,6 +704,8 @@ audience = { cs = "Pro koho", en = "For whom" }
 basedOn = { cs = "Vychází z", en = "Based on" }
 inGuide = { cs = "V průvodci", en = "In the guide" }
 identifiers = { cs = "Identifikátory", en = "Identifiers" }
+implementationLayers = { cs = "Vrstvy implementace", en = "Implementation layers" }
+implementationSeams = { cs = "Návaznosti", en = "Connections" }
 
 [catalogue.what]
 term = { cs = "pojem Hesláře", en = "Heslář term" }
@@ -800,6 +806,9 @@ cited = { cs = "podklad obsahu", en = "basis of the content" }
 dashboard = { cs = "ve FIP Dashboardu", en = "in the FIP Dashboard" }
 
 [catalogue.facet]
+layers = { cs = "Vrstvy implementace", en = "Implementation layers" }
+seams = { cs = "Návaznosti", en = "Connections" }
+modelKind = { cs = "Část modelu", en = "Part of the model" }
 execution = { cs = "Kde test běží", en = "Where the test runs" }
 thealth = { cs = "Zaznamenaný stav služby", en = "Recorded service status" }
 kind = { cs = "Druh", en = "Kind" }
@@ -1004,3 +1013,39 @@ unavailable = { cs = "Záznam se nepodařilo načíst. Příčinou může být s
 titleMissing = { cs = "Jméno nebo název není v načtené odpovědi dostupný. Otevřete záznam a porovnejte jej s očekávaným výsledkem.", en = "No name or title is available in the retrieved response. Open the record and compare it with the expected result." }
 metadataUnavailable = { cs = "Identifikátor byl rozlišen, ale metadata pro načtení názvu nejsou dostupná.", en = "The identifier resolved, but metadata for retrieving its title are unavailable." }
 openRecord = { cs = "Otevřít nalezený záznam", en = "Open the found record" }
+
+[model]
+inPreparation = { cs = "v přípravě", en = "in preparation" }
+statusAsOf = { cs = "stav v mapování k {date}", en = "mapping status as of {date}" }
+overview = { cs = "Jak spolupráce vytváří FAIR data", en = "How collaboration enables FAIR data" }
+functions = { cs = "Šest funkcí implementace", en = "Six implementation functions" }
+connections = { cs = "Co předat a komu", en = "What to hand over and to whom" }
+choose = { cs = "Vyberte návaznost", en = "Choose a connection" }
+related = { cs = "Související obsah v katalogu", en = "Related catalogue content" }
+openRecord = { cs = "Podrobnosti v katalogu", en = "Details in the catalogue" }
+allRecords = { cs = "Všechny části modelu v katalogu", en = "All parts of the model in the catalogue" }
+examples = { cs = "Doložené příklady implementace", en = "Documented implementation examples" }
+diagramAlt = { cs = "Šest vrstev propojených předáním informací; provozní podpora a hodnocení vracejí zpětnou vazbu do celého modelu.", en = "Six layers connected by information hand-offs; operational support and evaluation return feedback throughout the model." }
+diagramCaption = { cs = "Vrstvy označují funkce. Návaznosti mohou spojovat různé vrstvy i různé funkce uvnitř jedné vrstvy.", en = "Layers identify functions. Connections can join different layers or different functions within one layer." }
+openFigure = { cs = "Otevřít celý obrázek", en = "Open the full figure" }
+handover = { cs = "Podklad pro řešení", en = "Information for follow-up" }
+handoverHint = { cs = "Při řešení použijte označenou otázku a uchovaný podklad. Souhrn můžete uložit jako Markdown nebo JSON-LD v nabídce výsledku.", en = "Use the identified question and retained evidence when following up. You can save the summary as Markdown or JSON-LD from the result menu." }
+noObservation = { cs = "K této odpovědi není uložen automaticky načtený podklad.", en = "No automatically retrieved evidence is saved for this answer." }
+criterion = { cs = "Otázka", en = "Question" }
+
+[model.kind]
+layer = { cs = "vrstva implementace", en = "implementation layer" }
+seam = { cs = "návaznost", en = "connection" }
+
+[model.field]
+transfer = { cs = "Co se předává", en = "What is transferred" }
+sender = { cs = "Kdo předává", en = "Who provides it" }
+recipient = { cs = "Kdo přijímá", en = "Who receives it" }
+carrier = { cs = "Jak se předává", en = "How it is transferred" }
+maintainers = { cs = "Kdo návaznost zajišťuje", en = "Who implements and maintains it" }
+
+[api.collection.model]
+name = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+description = { cs = "Vrstvy, předání informací a doložené příklady modelu Layers and Seams; návaznosti na konkrétní obsah průvodce.", en = "Layers, information hand-offs and documented examples in the Layers-and-Seams Model, with associations to specific guide content." }
+record = { cs = "Jedna část modelu nebo doložený příklad", en = "One model term or documented example" }
+parameter = { cs = "Identifikátor části modelu nebo příkladu", en = "The model term or example identifier" }

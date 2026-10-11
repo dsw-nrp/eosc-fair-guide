@@ -65,7 +65,7 @@ id = "metadata.08"
 lens = "*"
 level = "L1"
 kind = "key"
-text = { cs = "Metadata mají dvě úrovně. Jádro ([[ccmm|CCMM]]) se sklízí do [[nma|NMA]] a slouží k vyhledání; bohatý oborový popis zůstává v repozitáři a slouží k opakovanému použití.", en = "Metadata have two levels. The core ([[ccmm|CCMM]]) is harvested into [[nma|NMA]] and serves discovery; the rich domain description stays in the repository and serves reuse." }
+text = { cs = "Společný záznam ([[ccmm|CCMM]]) slouží k vyhledávání v [[nma|NMA]]. Oborový popis v repozitáři zachovává podrobnosti potřebné pro další použití dat; mapování propojuje význam údajů v obou popisech.", en = "The common record ([[ccmm|CCMM]]) supports discovery in [[nma|NMA]]. The domain description in the repository retains the detail needed for further reuse; mappings connect the meaning of information in the two descriptions." }
 sources = ["A.F2.X1", "A.R1.X1"]
 
 [[advice]]
@@ -220,7 +220,7 @@ sources = ["FDO-INTRO.01", "FDO.FDOR-GR2", "FDO.FDO-FDOR1"]
 id = "metadata.28"
 lens = "K"
 level = "L0"
-text = { cs = "FIP určuje oborový metadatový profil a slovníky nad rámec [[ccmm|CCMM]]. Zapište je jako FER, aby je mohly využít repozitáře i DMP.", en = "The FIP sets the domain metadata profile and vocabularies beyond [[ccmm|CCMM]]. Record them as FERs so that repositories and DMPs can use them." }
+text = { cs = "Ve FIP zaznamenejte výběr oborového metadatového profilu a slovníků, aby je mohly využít repozitáře i plánování.", en = "Record the selected domain metadata profile and vocabularies in the FIP so repositories and planning can use them." }
 action = [{ label = { cs = "Metadatová schémata ve FIP Dashboardu", en = "Metadata schemas in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources?principles=F2" }, { label = { cs = "Heslář Open Science", en = "Heslář Open Science" }, href = "https://heslar.openscience.cz/" }]
 sources = ["A.REC3", "A.K4.1", "A.F2.F1", "A.I2.F1", "FIP-DASHBOARD.01"]
 

@@ -39,9 +39,20 @@ exists. Links use HTTPS.
 
 - Every clause in the ledger points to a published source: the FAIR analysis (`A.*`, `K*`), the NRP
   conditions (`C.*`), the NRP documentation (`DOC.*`) or a published paper, dataset or page (`E.*`).
-- Unpublished working material is never cited. When a fact comes from such material, find the published
-  source it relies on and cite that.
+- The approved Layers-and-Seams manuscript is the sole exception: cite it as **in preparation** only for
+  the conceptual model and scoped implementation examples in `content/model.toml`. It cannot supply
+  ledger requirements, and no DOI, publication date, publisher or licence may be invented. For other
+  unpublished working material, find the published source it relies on and cite that.
+- The maintainer approved adapting manuscript Figures 1–3 for the guide. Preserve their geometry,
+  terminology and scoped status/arrow meanings; provide both languages, accessible alternatives and attribution.
 - Clause IDs are stable. Do not renumber; retire a clause by marking it superseded.
+
+For **model associations**, reference the shared layer and seam IDs in `content/model.toml` for each
+reviewed target. Associate what a question or test actually addresses; do not infer links from all its
+citations. Generic layer and seam definitions carry no implementation status. A separate example names
+its precise scope, evidence and observation date, retaining month precision when that is all the source
+provides. Context explanations address an existing station and lens and belong in **Proč**; they do not
+change a source requirement, a check grouping, the FAIR principles or the four reader lenses.
 
 ## 4. Tone
 

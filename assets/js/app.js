@@ -42,7 +42,7 @@
 
   /* The parts of the knowledge base a view needs beyond the start: the standards' requirements and the FIP
      profiles for the catalogue and the checks, the standards for the explorer, the pages' text for a page. */
-  const VIEW_PARTS = { catalogue: ["standards", "fips", "questions"], check: ["standards", "fips", "questions"], selfcheck: ["standards", "fips", "questions"], explorer: ["standards", "questions"], page: ["pages"] };
+  const VIEW_PARTS = { catalogue: ["standards", "fips", "questions", "model"], check: ["standards", "fips", "questions", "model"], selfcheck: ["standards", "fips", "questions", "model"], explorer: ["standards", "questions"], page: ["pages"] };
   let waitingFor = "";
 
   FG.render = function () {
@@ -50,7 +50,9 @@
     /* A view whose parts have not arrived yet renders once they have; the previous view stays until then. */
     const needed = [...(VIEW_PARTS[route.view] || [])];
     if (route.lang !== FG.state.lang) needed.push(...FG.partsLoaded);
-    if (route.view === "path" && !FG.landingShown(route)) needed.push("standards");
+    if (route.view === "path" && !FG.landingShown(route)) needed.push("standards", "model");
+    if (route.view === "page" && ["model", "machines", "about"].includes(route.arg)) needed.push("model");
+    if (route.view === "page" && ["model", "machines"].includes(route.arg)) needed.push("standards", "questions");
     if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
     const missing = [...new Set(needed)].filter((name) => !FG.partHasLanguage(name, route.lang));
     const helperNeeded = route.view === "page" && FG.list(FG.config.helpers?.pages).includes(route.arg) && !(FG.helpers && FG.helpers[route.arg]);

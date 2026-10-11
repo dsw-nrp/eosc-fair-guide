@@ -122,6 +122,17 @@
   FG.ofType = (type) => FG.graph.filter((entity) => FG.list(entity["@type"]).includes(type));
   FG.byPosition = (a, b) => (a.position || 0) - (b.position || 0);
 
+  /** The implementation model is an independent organising vocabulary, with explicit editorial associations. */
+  FG.modelTerms = (kind) => FG.refs(FG.get("#implementation-model"), "hasDefinedTerm").filter((term) => !kind || term.modelKind === kind).sort(FG.byPosition);
+  FG.modelLink = (term) => FG.h("a", { class: "model-tag", href: FG.catalogueHref("model", term.identifier) }, FG.span(term.name));
+  FG.modelRows = function (entity) {
+    return ["implementationLayers", "implementationSeams"].flatMap((property) => {
+      const terms = FG.refs(entity, property);
+      return terms.length ? [FG.h("dt", null, FG.t("catalogue.relation." + property)), FG.h("dd", { class: "model-tags" }, terms.map(FG.modelLink))] : [];
+    });
+  };
+  FG.modelContexts = (station, lens) => FG.graph.filter((entity) => String(entity["@id"]).startsWith("#model-context-") && FG.hasRef(entity, "isPartOf", station["@id"]) && FG.hasRef(entity, "audience", "#lens-" + lens));
+
   /** Pick the value in the requested language; fall back to another language and report it. */
   FG.textOf = function (value, lang) {
     let fallback = null;
@@ -264,6 +275,12 @@
     if (String(id).startsWith("#page-")) return FG.href("page", entity.identifier);
     if (String(id).startsWith("#station-")) return FG.href("path", entity.identifier);
     if (String(id).startsWith("#clause-")) return FG.catalogueHref("clauses", entity.identifier);
+    if (String(id).startsWith("#item-")) return FG.catalogueHref("questions", entity.identifier);
+    if (String(id).startsWith("#test-")) return FG.catalogueHref("tests", entity.identifier.startsWith("guide-") ? entity.identifier : "fair-champion." + entity.identifier);
+    if (String(id).startsWith("#action-")) return FG.catalogueHref("actions", entity.identifier || String(id).slice(8));
+    if (id === "#implementation-model") return FG.href("page", "model");
+    if (String(id).startsWith("#layer-") || String(id).startsWith("#seam-")) return FG.catalogueHref("model", entity.identifier);
+    if (String(id).startsWith("#model-example-")) return FG.catalogueHref("model", FG.get(entity.isPartOf)?.identifier);
     /* Something of the guide's own site, such as its profile: its page at the same place, wherever the site is. */
     const base = FG.config.pageUrl || "";
     if (base && String(id).startsWith(base)) return String(id).slice(base.length).replace(/\/?$/, "/");

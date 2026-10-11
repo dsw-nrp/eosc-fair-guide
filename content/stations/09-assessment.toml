@@ -187,7 +187,7 @@ sources = ["OSTRAILS-CZ-PILOT.01"]
 id = "assessment.23"
 lens = "K"
 level = "L0"
-text = { cs = "FIP a komunitní standardy umožňují hodnotit data i podle oborových kritérií; zvažte vlastní testy nebo benchmarky.", en = "FIPs and community standards make it possible to assess data against domain criteria as well; consider your own tests or benchmarks." }
+text = { cs = "Pro oborové posouzení dat zvažte testy nebo benchmarky konkrétních požadavků komunitních profilů vybraných ve FIP.", en = "For domain assessment of data, consider tests or benchmarks for specific requirements of community profiles selected in the FIP." }
 action = [{ label = { cs = "Zkontrolovat úplnost FIP", en = "Check a FIP's completeness" }, href = "#check-fip" }, { label = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }, href = "https://catalogue.fair-impact.eu/resources" }]
 sources = ["A.K2.3.1", "FAIR-IMPACT.01"]
 
@@ -202,7 +202,7 @@ sources = ["FAIR-CHAMPION.01"]
 id = "assessment.25"
 lens = "K"
 level = "L1"
-text = { cs = "Automatizované hodnocení může kombinovat obecné požadavky NRP s požadavky FIP.", en = "Automated assessment can combine the general NRP requirements with the FIP's requirements." }
+text = { cs = "Automatizované hodnocení může kombinovat obecné požadavky NRP s ověřitelnými požadavky komunitních profilů vybraných ve FIP. Každý test má vlastní rozsah; deklarace výběru zdroje jeho požadavky neověřuje.", en = "Automated assessment can combine general NRP requirements with verifiable requirements of community profiles selected in a FIP. Each test has its own scope; a resource-selection declaration does not verify its requirements." }
 sources = ["A.K2.3.1"]
 
 [[advice]]

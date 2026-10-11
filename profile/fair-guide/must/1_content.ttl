@@ -3,6 +3,59 @@
 @prefix schema: <http://schema.org/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
+# The conceptual model is independent of FAIR principles, reader lenses and source-issued requirements.
+
+fair-guide:ImplementationModelItem a sh:NodeShape ;
+    sh:name "Implementation model item" ;
+    sh:description "Layers, seams and examples have bilingual descriptions and retain their source" ;
+    sh:targetSubjectsOf fg:modelKind ;
+    sh:property [ sh:path fg:modelKind ; sh:in ( "layer" "seam" "example" ) ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path schema:identifier ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path schema:name ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
+    sh:property [ sh:path schema:description ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
+    sh:property [ sh:path schema:citation ; sh:minCount 1 ] ;
+    sh:or (
+        [ sh:property [ sh:path fg:modelKind ; sh:hasValue "example" ] ]
+        [ sh:property [ sh:path fg:serviceStatus ; sh:maxCount 0 ] ;
+          sh:property [ sh:path fg:statusAsOf ; sh:maxCount 0 ] ]
+    ) .
+
+fair-guide:ImplementationSeam a sh:NodeShape ;
+    sh:name "Implementation seam" ;
+    sh:description "A seam names the transferred information, actors, carrier and maintaining actors" ;
+    sh:targetSubjectsOf fg:transfer ;
+    sh:class schema:DefinedTerm ;
+    sh:property [ sh:path schema:inDefinedTermSet ; sh:class schema:DefinedTermSet ; sh:minCount 1 ] ;
+    sh:property [ sh:path fg:implementationLayers ; sh:class schema:DefinedTerm ; sh:minCount 1 ] ;
+    sh:property [ sh:path fg:transfer ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
+    sh:property [ sh:path fg:sender ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
+    sh:property [ sh:path fg:recipient ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
+    sh:property [ sh:path fg:carrier ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
+    sh:property [ sh:path fg:maintainers ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] .
+
+fair-guide:ImplementationExample a sh:NodeShape ;
+    sh:name "Scoped implementation example" ;
+    sh:description "Only a precise, evidenced example carries an observed implementation status" ;
+    sh:targetSubjectsOf fg:scope ;
+    sh:class schema:CreativeWork ;
+    sh:property [ sh:path fg:modelKind ; sh:hasValue "example" ] ;
+    sh:property [ sh:path schema:isPartOf ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:scope ; sh:languageIn ( "cs" "en" ) ; sh:uniqueLang true ; sh:minCount 2 ] ;
+    sh:property [ sh:path fg:serviceStatus ; sh:class schema:DefinedTerm ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path fg:statusAsOf ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:pattern "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$" ] .
+
+fair-guide:ApprovedModelManuscript a sh:NodeShape ;
+    sh:name "Approved model manuscript" ;
+    sh:description "The in-preparation exception is restricted to one conceptual source, with no publication claims" ;
+    sh:targetSubjectsOf fg:preparationStatus ;
+    sh:class schema:ScholarlyArticle ;
+    sh:property [ sh:path schema:identifier ; sh:hasValue "layers-and-seams-manuscript" ] ;
+    sh:property [ sh:path fg:preparationStatus ; sh:hasValue "in-preparation" ; sh:maxCount 1 ] ;
+    sh:property [ sh:path schema:datePublished ; sh:maxCount 0 ] ;
+    sh:property [ sh:path schema:publisher ; sh:maxCount 0 ] ;
+    sh:property [ sh:path schema:license ; sh:maxCount 0 ] .
+
 # Bilingual text: one Czech and one English value.
 
 fair-guide:Station a sh:NodeShape ;

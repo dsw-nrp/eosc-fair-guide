@@ -84,6 +84,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("discovery", [npm, "run", "-s", "check:discovery"]),
         Job("helpers", [npm, "run", "-s", "check:helpers"]),
         Job("assessment", [npm, "run", "-s", "check:assessment"]),
+        Job("model", [npm, "run", "-s", "check:model"]),
         Job("api", [npm, "run", "-s", "check:api"]),
         Job("diagrams", [npm, "run", "-s", "check:diagrams"]),
     ]

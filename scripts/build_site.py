@@ -105,6 +105,8 @@ def build(out: Path = SITE, root: Path = kb.ROOT) -> dict[str, str]:
         shutil.rmtree(out)
     for name in STATIC:
         shutil.copytree(root / name, out / name)
+    if (root / "assets/diagrams").is_dir():
+        shutil.copytree(root / "assets/diagrams", out / "assets/diagrams")
     for name, text in generated.items():
         target = out / name
         target.parent.mkdir(parents=True, exist_ok=True)

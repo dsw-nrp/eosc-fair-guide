@@ -2,6 +2,29 @@
 # the text around an interactive tool that the page script adds. Field reference: docs/content-model.md.
 
 [[page]]
+id = "model"
+menu = "tools"
+icon = "object-group"
+title = { cs = "Jak spolupráce vytváří FAIR data", en = "How collaboration enables FAIR data" }
+description = { cs = "Kdo zajišťuje jednotlivé části správy dat a co si lidé a služby potřebují předat.", en = "Who provides each part of data management and what people and services need to pass on." }
+
+[[page.section]]
+id = "national-mapping"
+heading = { cs = "Funkce a nástroje české NDI", en = "Functions and instruments in the Czech NDI" }
+body = { cs = "Národní datová infrastruktura (NDI) propojuje politiku, komunitní rozhodování, technické služby, plánování, podporu a hodnocení. Každá část přijímá podklady a předává informace dalším aktérům.\n\nSchéma zachycuje stav k říjnu 2026.", en = "The national data infrastructure (NDI) connects policy, community decisions, technical services, planning, support and evaluation. Each part receives inputs and passes information to other actors.\n\nThe diagram shows the state as of October 2026." }
+details = true
+
+[[page.section]]
+id = "metadata-architecture"
+heading = { cs = "Oborový popis, společná metadata a jejich přenos", en = "Domain description, shared metadata and their transfer" }
+body = { cs = "Soubory a úplný oborový popis zůstávají ve správě repozitáře a komunity. Společná metadata se mapují do Českého základního metadatového modelu (CCMM) a přenášejí do Národního metadatového adresáře (NMA) pro vyhledávání a vykazování. NMA výzkumná data neukládá.\n\nNárodní katalog repozitářů (NKR) popisuje služby, jejich zaměření, podmínky, schémata a slovníky. Využití těchto popisů v plánování a validaci je v mapování plánované. Identifikátory podporují dohledání, citování a vykazování.\n\nPlné šipky označují výměnu zavedenou alespoň pro jeden repozitář; přerušované šipky plánovanou výměnu. Schéma zachycuje stav k říjnu 2026.", en = "Files and full domain descriptions remain under repository and community control. Shared metadata map to the Czech Core Metadata Model (CCMM) and flow to the National Metadata Directory (NMA) for discovery and reporting. NMA does not store research data.\n\nThe National Catalogue of Repositories (NKR) describes services, their scope, conditions, schemas and vocabularies. Reuse of these descriptions in planning and validation is planned in the mapping. Identifiers support resolution, citation and reporting.\n\nSolid arrows mark exchanges implemented for at least one repository; dashed arrows mark planned exchanges. The diagram shows the state as of October 2026." }
+details = true
+
+[[page.section]]
+heading = { cs = "Teoretický základ", en = "Theoretical basis" }
+body = { cs = "Model vychází z rukopisu [[layers-and-seams-manuscript|Layers and seams of FAIR implementation in the Czech national research data infrastructure]] (v přípravě). Model rozlišuje funkce a předávání informací v národní infrastruktuře. Pomáhá vysvětlit návaznosti praktických kroků průvodce; požadavky kontrol vycházejí z jejich uvedených publikovaných zdrojů.", en = "The model draws on [[layers-and-seams-manuscript|Layers and seams of FAIR implementation in the Czech national research data infrastructure]] (in preparation). The model distinguishes functions and information transfers in the national infrastructure. It helps explain how the guide's practical steps connect; assessment requirements come from their cited published sources." }
+
+[[page]]
 id = "about"
 menu = "about"
 title = { cs = "O průvodci", en = "About the guide" }
@@ -131,6 +154,11 @@ id = "machines"
 menu = "header"
 icon = "code"
 title = { cs = "Data pro stroje", en = "Data for machines" }
+
+[[page.section]]
+id = "model-example"
+heading = { cs = "Od požadavku k použitelnému zjištění", en = "From a requirement to a usable finding" }
+body = { cs = "Průvodce sám předává informace mezi zdrojem, kontrolou a zaznamenanou revizí. Následující příklad propojuje skutečné záznamy a ukazuje, kde najdete jejich význam a rozsah. Širší souvislosti vysvětluje [[page:model|model vrstev a návazností]].", en = "The guide itself carries information between a source, a check and a recorded revision. This example connects actual records and shows where to find their meaning and scope. The [[page:model|layers-and-seams model]] explains the wider context." }
 
 [[page.section]]
 body = { cs = "Všechno, co průvodce obsahuje, jsou zároveň data, která čtou stroje: jedna znalostní báze a API sestavené z ní. Tato stránka ukazuje, jak je najít a použít, a předvádí na průvodci samém, co doporučuje repozitářům a datovým sadám. Chcete-li vidět, jak strojově čitelný obsah vypadá v praxi, vyzkoušejte si to právě tady.", en = "Everything the guide holds is also data that machines read: one knowledge base and an API built from it. This page shows how to find and use them, and demonstrates on the guide itself what it recommends to repositories and datasets. If you want to see what machine-readable content looks like in practice, try it out right here." }
