@@ -38,6 +38,7 @@ PAGE_FILE = "index.html"
 PREVIEW_FILE = "ro-crate-preview.html"
 KB_SCRIPT = "assets/data/kb.js"
 UI_SCRIPT = "assets/data/ui.js"
+LANGUAGE_SCRIPTS = {lang: f"assets/data/kb-{lang}.js" for lang in ("cs", "en")}
 # Parts of the knowledge base the page loads only when a view first needs them, so that what every view needs stays
 # a small first download: the requirements of the standards the guide ingests (CoreTrustSeal, CDIF) with their
 # guidance, the FIP profiles of the FIP Dashboard snapshot, and the text of the guide's pages. Each is a classic
@@ -48,6 +49,10 @@ PART_SCRIPTS = {
     "fips": "assets/data/kb-fips.js",
     "pages": "assets/data/kb-pages.js",
     "questions": "assets/data/kb-questions.js",
+}
+PART_LANGUAGE_SCRIPTS = {
+    name: {lang: path.removesuffix(".js") + f"-{lang}.js" for lang in LANGUAGE_SCRIPTS}
+    for name, path in PART_SCRIPTS.items()
 }
 PROFILE_DIR = "profile/fair-guide"
 BASE_URL_ENV = "FAIR_GUIDE_BASE_URL"
@@ -109,7 +114,8 @@ TERMS = {
     "lensOrder": "Order of a callout's items for one lens, written as '<lens>: <item>, <item>, ...'.",
     "relatedTo": "CoreTrustSeal requirement or CDIF profile related to a FAIR principle.",
     "note": "Additional remark shown with a clause or a self-check item.",
-    "guidance": "Guidance a standard publishes with a requirement, quoted in English as published.",
+    "guidance": "Original description or guidance from the cited published source, in its original language.",
+    "assessmentContext": "Source context that explains an assessment without creating a separate answerable criterion.",
     "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
     "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
     "lookup": "Service where a user can find out the answer to a self-check item.",
@@ -643,7 +649,10 @@ def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
                 "identifier": clause["id"],
                 "name": text(clause.get("title")),
                 "text": text(clause.get("text")),
-                "guidance": {"@value": clause["guidance"].strip(), "@language": "en"}
+                "guidance": {
+                    "@value": clause["guidance"].strip(),
+                    "@language": clause.get("guidanceLanguage", "en"),
+                }
                 if isinstance(clause.get("guidance"), str)
                 else None,
                 "about": refs([principle_iri(principle) for principle in clause.get("principles", [])]),
@@ -811,6 +820,7 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                     "appliesTo": refs(applies),
                     "providedByNrpFor": refs([f"#profile-{profile}" for profile in item.get("providedByNrp", [])]),
                     "allowsNotApplicable": item.get("allowNotApplicable", False),
+                    "assessmentContext": True if item.get("context") else None,
                     "note": text(item.get("note")),
                     "additionalProperty": refs(prefill_ids),
                     "prefillLevel": item.get("prefillLevel"),
@@ -1318,15 +1328,88 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                 "additionalType": FTR_TEST,
                 "identifier": test["id"],
                 "name": text(test.get("label")) or test["id"],
-                "url": champion["endpoint"].rstrip("/") + "/" + test["id"],
+                "url": test.get("endpoint") or champion["endpoint"].rstrip("/") + "/" + test["id"],
+                "description": text(test.get("description")),
+                "subjectOf": refs(
+                    [test.get("record") or champion["testRecord"].format(id=test["id"]), champion["documentation"]]
+                    if champion.get("testRecord") and champion.get("documentation")
+                    else []
+                ),
                 "about": ref(principle_iri(test["principle"])) if test.get("principle") else None,
                 "healthStatus": test.get("health"),
                 "statusAsOf": iso(test["asOf"]) if test.get("asOf") else None,
             },
             f"test:{test['id']}",
         )
+    # Executable local definitions are real crate files, shared by related criteria. A criterion has its own
+    # named function and record; attaching the shared source keeps the algorithm inspectable without copying it.
+    attached: set[str] = set()
+    for test in live.get("test", []):
+        question_id = "#item-" + test["question"]
+        question = graph.entities.get(question_id)
+        if question is None:
+            raise ContentError(f"test:{test['id']}: unknown question {test['question']}")
+        files = ["assets/js/assess.js", test["script"]]
+        doc_path, _, fragment = test["documentation"].partition("#")
+        for path in files + [doc_path]:
+            if path in attached:
+                continue
+            attached.add(path)
+            code = path.endswith(".js")
+            graph.add(
+                {
+                    "@id": path,
+                    "@type": ["File", "SoftwareSourceCode"] if code else ["File", "DigitalDocument"],
+                    "name": Path(path).name,
+                    "encodingFormat": "application/javascript" if code else "text/html",
+                    "programmingLanguage": "JavaScript" if code else None,
+                    "license": ref(LICENSES["MIT" if code else "CC-BY-4.0"][0]),
+                    "isPartOf": ref("./"),
+                }
+            )
+        doc_id = "#local-test-documentation-" + test["id"]
+        if doc_id not in graph.entities:
+            graph.add(
+                {
+                    "@id": doc_id,
+                    "@type": "CreativeWork",
+                    "name": text(test["label"]),
+                    "url": doc_path + ("#" + fragment if fragment else ""),
+                    "isPartOf": ref(doc_path),
+                    "license": ref(LICENSES["CC-BY-4.0"][0]),
+                }
+            )
+        entry_id = "#entry-localtest-" + test["id"]
+        graph.add({"@id": entry_id, "@type": "PropertyValue", "propertyID": "entryPoint", "value": test["entryPoint"]})
+        test_id = "#test-" + test["id"]
+        test_ids.append(test_id)
+        graph.add(
+            {
+                "@id": test_id,
+                "@type": "CreativeWork",
+                "additionalType": FTR_TEST,
+                "identifier": test["id"],
+                "name": text(test["label"]),
+                "description": text(test["description"]),
+                "url": test["script"],
+                "isImplementationOf": ref(question_id),
+                "about": question.get("about"),
+                "citation": question.get("citation"),
+                "hasPart": refs(files),
+                "subjectOf": ref(doc_id),
+                "additionalProperty": refs([entry_id]),
+            },
+            f"test:{test['id']}",
+        )
     # The curated tests as a whole, which a station's action can point to.
-    graph.add({"@id": "#tests", "@type": "CreativeWork", "name": "FAIR Champion tests", "hasPart": refs(test_ids)})
+    graph.add(
+        {
+            "@id": "#tests",
+            "@type": "CreativeWork",
+            "name": text({"cs": "Automatizované testy", "en": "Automated tests"}),
+            "hasPart": refs(test_ids),
+        }
+    )
     return test_ids
 
 
@@ -1557,7 +1640,9 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         "mainEntity": ref("#path"),
         "isPartOf": ref(software_id),
         "about": refs([principle_iri(principle["id"]) for principle in content["principles"]]),
-        "hasPart": refs([PAGE_FILE]),
+        "hasPart": refs(
+            [entity_id for entity_id, entity in graph.entities.items() if "File" in as_list(entity.get("@type"))]
+        ),
         "mentions": refs(
             action_ids
             + ["#ledger", "#sources", "#resources", "#repositories"]
@@ -1573,6 +1658,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     link_texts(graph, reference_targets(content, graph))
 
     context: dict[str, Any] = {term: vocabulary_base + term for term in TERMS}
+    context["isImplementationOf"] = "https://semanticscience.org/resource/SIO_000233"
     return {"@context": [f"{RO_CRATE}/context", context], "@graph": list(graph.entities.values())}
 
 
@@ -1598,6 +1684,7 @@ API_COLLECTIONS = (
 API_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 # Where the API's own files sit in the site; records are `api/<collection>/<record ID>.json`.
 API_FILES = {
+    "health": "api/health.json",
     "description": "openapi.json",
     "docs": "api/",
     "context": "api/context.jsonld",
@@ -1686,6 +1773,8 @@ GENERATED = (
     KB_SCRIPT,
     UI_SCRIPT,
     *PART_SCRIPTS.values(),
+    *LANGUAGE_SCRIPTS.values(),
+    *(path for paths in PART_LANGUAGE_SCRIPTS.values() for path in paths.values()),
     LINKSET_FILE,
     API_FILES["description"],
 )
@@ -1853,6 +1942,8 @@ def page_config(
             "nanopub": live.get("nanopub"),
             "dmpStatus": live.get("dmpStatus"),
             "fairsharing": live.get("fairsharing"),
+            "discovery": live.get("discovery"),
+            "software": live.get("software"),
             "vocab": {
                 "roCrate": RO_CRATE,
                 "ftr": FTR,
@@ -1949,9 +2040,16 @@ def data_script(key: str, value: Any, about: str) -> str:
 
 def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
     """The crate as the page loads it: the core every view needs, and the parts (PART_SCRIPTS) that views load when
-    they first need them. A part holds whole entities, or properties of core entities (the guidance of a clause that
-    is not a standard's); the core and the parts together are the crate."""
+    they first need them. A part holds whole entities, or properties of core entities (original passages and source
+    bylines); the core and the parts together are the crate."""
     graph = crate["@graph"]
+    guidance_sources = {
+        reference["@id"] for entity in graph if entity.get("guidance") for reference in as_list(entity.get("isPartOf"))
+    }
+    initial_sources = {
+        reference["@id"] for entity in graph if entity["@id"] == "./" for reference in as_list(entity.get("isBasedOn"))
+    }
+    guidance_sources -= initial_sources
     pages = [entity for entity in graph if str(entity["@id"]).startswith("#page-") and "isPartOf" not in entity]
     sections = {ref["@id"] for page in pages for ref in as_list(page.get("hasPart"))}
     sections |= {
@@ -1972,6 +2070,10 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
         elif "guidance" in entity:
             parts["standards"]["properties"][entity["@id"]] = {"guidance": entity["guidance"]}
             core.append({key: value for key, value in entity.items() if key != "guidance"})
+        elif entity["@id"] in guidance_sources and entity.get("creditText"):
+            # Originals and their bylines load together; the homepage's foundation citation stays complete.
+            parts["standards"]["properties"][entity["@id"]] = {"creditText": entity["creditText"]}
+            core.append({key: value for key, value in entity.items() if key != "creditText"})
         else:
             core.append(entity)
     return crate | {"@graph": core}, parts
@@ -1985,6 +2087,90 @@ def part_script(name: str, part: dict[str, Any]) -> str:
         "window.FairGuideData = window.FairGuideData || {};\n"
         "window.FairGuideData.parts = window.FairGuideData.parts || {};\n"
         f"window.FairGuideData.parts[{json.dumps(name)}] = {script_json(part)};\n"
+    )
+
+
+def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any]]]:
+    """Separate bilingual display values from neutral data without changing the complete crate.
+
+    Patches follow the original tree; null array positions mean no change. Language tags and other structure stay
+    in the common tree, so applying both patches reproduces every value in its original order. Original source
+    passages are monolingual and stay together. A cited work also keeps its original title for translated citations.
+    Compact folded word indexes preserve search in both languages without loading the other display translation.
+    """
+    search = []
+
+    def visit(node: Any, path: list[str | int], original: str | None = None):
+        if path in (["config", "languages"], ["config", "partLanguages"]):
+            # These language keys select local file paths; they are bootstrap configuration, not display text.
+            return node, {}
+        if isinstance(node, list):
+            languages = {item.get("@language") for item in node if isinstance(item, dict)}
+            if set(LANGS) <= languages:
+                common, patches = [], {lang: [] for lang in LANGS}
+                for item in node:
+                    language = item.get("@language") if isinstance(item, dict) else None
+                    localized = language in LANGS and language != original and "@value" in item
+                    common.append({key: value for key, value in item.items() if key != "@value"} if localized else item)
+                    for lang in LANGS:
+                        patches[lang].append({"@value": item["@value"]} if localized and language == lang else None)
+                if path and path[-1] in {"name", "headline", "text", "description", "abstract", "keywords"}:
+                    words = {}
+                    for lang in LANGS:
+                        other = " ".join(str(item.get("@value", "")) for item in node if item.get("@language") != lang)
+                        folded = unicodedata.normalize("NFD", other)
+                        folded = "".join(char for char in folded if not unicodedata.combining(char)).lower()
+                        words[lang] = " ".join(dict.fromkeys(re.findall(r"[\w-]+", folded)))
+                    search.append({"path": path, "words": words})
+                return common, {lang: patch for lang, patch in patches.items() if any(patch)}
+            common, patches = [], {lang: [] for lang in LANGS}
+            for index, item in enumerate(node):
+                shared, localized = visit(item, path + [index])
+                common.append(shared)
+                for lang in LANGS:
+                    patches[lang].append(localized.get(lang))
+            return common, {lang: patch for lang, patch in patches.items() if any(item is not None for item in patch)}
+        if isinstance(node, dict):
+            common, patches = {}, {lang: {} for lang in LANGS}
+            bilingual = all(lang in node for lang in LANGS)
+            source_language = node.get("inLanguage") if not node.get("resourceType") else None
+            glossary = str(node.get("@id", "")).startswith("#term-") and node.get("termCode")
+            for key, item in node.items():
+                if bilingual and key in LANGS:
+                    common[key] = ""
+                    patches[key][key] = item
+                    continue
+                if glossary and key == "name":
+                    # The published vocabulary is deliberately shown as Czech/English pairs in its catalogue.
+                    common[key] = item
+                    continue
+                shared, localized = visit(item, path + [key], source_language if key == "name" else None)
+                common[key] = shared
+                for lang, patch in localized.items():
+                    patches[lang][key] = patch
+            return common, {lang: patch for lang, patch in patches.items() if patch}
+        return node, {}
+
+    common, patches = visit(value, [])
+    return common, {lang: patches.get(lang, {}) for lang in LANGS}, search
+
+
+def language_script(lang: str, value: dict[str, Any], part: str | None = None) -> str:
+    """A local classic script with one language's values; loaded on selection, including from file://."""
+    assignment = (
+        "window.FairGuideData.partLanguages = window.FairGuideData.partLanguages || {};\n"
+        f"window.FairGuideData.partLanguages[{json.dumps(part)}] = "
+        f"window.FairGuideData.partLanguages[{json.dumps(part)}] || {{}};\n"
+        f"window.FairGuideData.partLanguages[{json.dumps(part)}][{json.dumps(lang)}]"
+        if part
+        else "window.FairGuideData.languages = window.FairGuideData.languages || {};\n"
+        f"window.FairGuideData.languages[{json.dumps(lang)}]"
+    )
+    return (
+        f"/* {lang} display values, loaded on language selection. "
+        "Generated by scripts/build_crate.py; do not edit. */\n"
+        "window.FairGuideData = window.FairGuideData || {};\n"
+        f"{assignment} = {script_json(value)};\n"
     )
 
 
@@ -2040,20 +2226,50 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     core, parts = split_crate(crate)
     ui = page_config(content, graph.text_links, api_paths(api_records(graph.entities, content)), links)
     ui["config"]["parts"] = dict(PART_SCRIPTS)
+    ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
+    ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)
+    localized_core, core_languages, core_search = split_languages(core)
+    localized_ui, ui_languages, _ = split_languages(ui)
+    localized_parts = {name: split_languages(part) for name, part in parts.items()}
     return (
         {
             CRATE_FILE: json.dumps(crate, ensure_ascii=False, indent=2) + "\n",
             KB_SCRIPT: data_script(
                 "kb",
-                core,
-                "The knowledge base the page starts with; with the parts in kb-*.js it is ro-crate-metadata.json.",
+                localized_core,
+                "Neutral knowledge-base structure; with selected language values and deferred parts it is the crate.",
             ),
-            UI_SCRIPT: data_script("ui", ui, "Interface strings and configuration."),
+            UI_SCRIPT: data_script("ui", localized_ui, "Interface structure and configuration."),
             PAGE_FILE: page,
             PREVIEW_FILE: page,
             LINKSET_FILE: json.dumps(linkset(links), ensure_ascii=False, indent=2) + "\n",
         }
-        | {path: part_script(name, parts[name]) for name, path in PART_SCRIPTS.items()}
+        | {path: part_script(name, localized_parts[name][0]) for name, path in PART_SCRIPTS.items()}
+        | {
+            path: language_script(
+                lang,
+                {
+                    "kb": core_languages[lang],
+                    "ui": ui_languages[lang],
+                    "search": [{"path": entry["path"], "words": entry["words"][lang]} for entry in core_search],
+                },
+            )
+            for lang, path in LANGUAGE_SCRIPTS.items()
+        }
+        | {
+            path: language_script(
+                lang,
+                {
+                    "values": localized_parts[name][1][lang],
+                    "search": [
+                        {"path": entry["path"], "words": entry["words"][lang]} for entry in localized_parts[name][2]
+                    ],
+                },
+                name,
+            )
+            for name, paths in PART_LANGUAGE_SCRIPTS.items()
+            for lang, path in paths.items()
+        }
         | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
         | profile_page(root, content["guide"]["guide"])
     )
@@ -2121,11 +2337,12 @@ def profile_shapes(root: Path, base: str) -> dict[str, str]:
     return {path: text.replace(written, base) if written else text for path, text in shapes.items()}
 
 
-def page_payload(generated: dict[str, str], root: Path = ROOT) -> dict[str, int]:
+def page_payload(generated: dict[str, str], root: Path = ROOT, lang: str = "cs") -> dict[str, int]:
     """Compressed bytes of each file the page loads, read from the page's own script and stylesheet tags; a file the
     build generates is measured as generated."""
     page = generated[PAGE_FILE]
     files = [PAGE_FILE] + [match.group("script") or match.group("style") for match in PAGE_ASSET.finditer(page)]
+    files.append(LANGUAGE_SCRIPTS[lang])
     sizes = {}
     for name in files:
         text = generated[name] if name in generated else (root / name).read_text(encoding="utf-8")

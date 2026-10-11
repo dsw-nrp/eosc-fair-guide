@@ -51,7 +51,7 @@
     for (const entity of FG.graph) {
       const id = String(entity["@id"]);
       if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description), { href: FG.catalogueHref("resources", entity.identifier) });
-      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.list(entity.keywords).map((word) => bothLanguages(word)).join(" "), { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) });
+      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, bothLanguages(entity.keywords), { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) });
       else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, "", { href: FG.catalogueHref("terms", FG.termAnchor(entity)) });
       else if (id.startsWith("#page-") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
       else if (id.startsWith("#clause-") && entity.text) {

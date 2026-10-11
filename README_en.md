@@ -41,6 +41,9 @@ For a local server, which some browsers need for clipboard features:
 python scripts/serve.py --build
 ```
 
+The guide documents its own research software practice. The first official prerelease will establish
+the baseline; archiving the public code and any OpenSSF self-certification remain release steps.
+
 ## Repository layout
 
 | Path | Content |
@@ -81,6 +84,15 @@ python scripts/check_content.py
 
 To run every check at once, use `python scripts/check_all.py` (after `npm ci` and installing the tools
 from `requirements-dev.txt`).
+The run writes a health dashboard (`index.html`), JSON inventory and Markdown summary to
+`.cache/health/`, including check outcomes and original-source coverage for questions, station advice
+and clauses. CI publishes these as a run artifact and step summary. `--live` adds external service
+checks; an offline run explicitly leaves live availability unchecked. To compare two saved reports,
+use `--previous-report path/to/health.json`.
+The built API also exposes the report at `api/health.json`, documented in `openapi.json`. A build alone
+reports no completed check run; the check runner publishes its actual results at that endpoint.
+The site also publishes the English dashboard at `health/index.html`, linked
+from the footer and Data for machines. The JSON and dashboard receive the same check-run results.
 
 To see the guide with its API as it will be published, serve it on your computer (the API documentation needs
 `npm ci` once), then open <http://127.0.0.1:8000/> and <http://127.0.0.1:8000/api/>:
@@ -111,7 +123,8 @@ and Tomáš Čížek. How to cite the guide: [CITATION.cff](CITATION.cff).
 
 ## Use of artificial intelligence
 
-An AI assistant (Claude, Anthropic) contributed to the content and code. Every content change is recorded in
+AI assistants Claude (Anthropic) and Codex (OpenAI) contributed to the content and code.
+Every content change is recorded in
 the knowledge base's paradata, including the tool used, and the guide shows it for each item. People review
 the texts.
 

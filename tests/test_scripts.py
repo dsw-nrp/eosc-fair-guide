@@ -153,7 +153,7 @@ class GeneratorTests(FixtureCase):
         page = generated[build_crate.PAGE_FILE]
         self.assertEqual(page, generated[build_crate.PREVIEW_FILE])
         self.assertIn("connect-src https://api.example.org", page)
-        kb = generated[build_crate.KB_SCRIPT]
+        kb = generated[build_crate.KB_SCRIPT] + generated[build_crate.LANGUAGE_SCRIPTS["en"]]
         self.assertNotIn("</script>", kb)
         self.assertIn("Take the \\u003c/script\\u003e step.", kb)
 
@@ -169,6 +169,20 @@ class GeneratorTests(FixtureCase):
         prefix = "window.FairGuideData.kb = "
         line = next(row for row in generated[build_crate.KB_SCRIPT].splitlines() if row.startswith(prefix))
         core = json.loads(line[len(prefix) : -1])
+
+        def merge(target, patch):
+            for key, value in enumerate(patch) if isinstance(patch, list) else patch.items():
+                if value is None:
+                    continue
+                if isinstance(value, (list, dict)):
+                    merge(target[key], value)
+                else:
+                    target[key] = value
+
+        for lang, path in build_crate.LANGUAGE_SCRIPTS.items():
+            start = f"window.FairGuideData.languages[{json.dumps(lang)}] = "
+            row = next(row for row in generated[path].splitlines() if row.startswith(start))
+            merge(core, json.loads(row[len(start) : -1])["kb"])
         # The page starts with the core; the parts views load on demand are not in it, and core and parts together
         # are the crate.
         self.assertNotIn(f'src="{build_crate.PART_SCRIPTS["standards"]}"', page)
@@ -178,6 +192,10 @@ class GeneratorTests(FixtureCase):
             start = f"window.FairGuideData.parts[{json.dumps(name)}] = "
             row = next(row for row in generated[path].splitlines() if row.startswith(start))
             part = json.loads(row[len(start) : -1])
+            for lang, language_path in build_crate.PART_LANGUAGE_SCRIPTS[name].items():
+                start = f"window.FairGuideData.partLanguages[{json.dumps(name)}][{json.dumps(lang)}] = "
+                row = next(row for row in generated[language_path].splitlines() if row.startswith(start))
+                merge(part, json.loads(row[len(start) : -1])["values"])
             for entity in part["entities"]:
                 self.assertNotIn(entity["@id"], graph)
                 graph[entity["@id"]] = entity
@@ -1021,12 +1039,20 @@ class ApiTests(unittest.TestCase):
                 metric_path = self.target(path, link)
                 metric = self.docs[metric_path]
                 self.assertIn("Metric", metric["@type"])
-                test_path = self.target(metric_path, metric["hasImplementation"])
+                implementations = [
+                    self.target(metric_path, implementation)
+                    for implementation in build_crate.as_list(metric["hasImplementation"])
+                ]
+                test_path = build_crate.API_FILES["test"].format(id=metric["identifier"])
                 # The path an exported result names for the question's test.
-                self.assertEqual(test_path, build_crate.API_FILES["test"].format(id=metric["identifier"]))
+                self.assertIn(test_path, implementations)
                 test = self.docs[test_path]
                 self.assertEqual(test["@type"], ["Test"])
                 self.assertEqual(self.target(test_path, test["isImplementationOf"]), metric_path)
+                for automatic_path in set(implementations) - {test_path}:
+                    automatic = self.docs[automatic_path]
+                    self.assertIn("Test", automatic["@type"])
+                    self.assertEqual(self.target(automatic_path, automatic["isImplementationOf"]), metric_path)
 
     def test_nothing_names_the_site_by_its_address(self) -> None:
         # The context's vocabulary terms are absolute by necessity; every link between files is relative.

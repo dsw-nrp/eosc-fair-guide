@@ -15,7 +15,7 @@ English version: [README_en.md](README_en.md).
   Dohledatelnost → Citace a uznání → Kontrola. Začíná tam, kde se právě nacházíte.
 - **Čtyři pohledy na stejnou cestu:** výzkumník, data steward, správce repozitáře či kurátor, komunita a FIP.
 - **Podrobnosti na vyžádání:** nejdřív jedna věta a jeden konkrétní krok, postup, zdůvodnění a zdroje až
-  po rozbalení.
+  po rozbalení (úrovně L0–L3).
 - **Průzkumník principů:** každý požadavek analýzy pod svým FAIR principem.
 - **Sebehodnocení:** podmínky NRP a zralost FAIR zvlášť, bez celkového skóre.
 - **Živá kontrola identifikátoru:** rychlá kontrola a na vyžádání hloubková kontrola nástrojem FAIR Champion.
@@ -32,6 +32,12 @@ python scripts/build_site.py
 Sestavení používá jen standardní knihovnu Pythonu. Hotová stránka funguje i bez připojení; jen živé
 kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) nebo zveřejnit samostatně.
 
+Pro místní server, který některé prohlížeče potřebují pro práci se schránkou:
+
+```bash
+python scripts/serve.py --build
+```
+
 Průvodce ukazuje vlastní praxi pro výzkumný software. Výchozím bodem bude první oficiální předběžné
 vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zatím čekají na provedení.
 
@@ -39,7 +45,7 @@ vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zat�
 
 | Cesta | Obsah |
 | --- | --- |
-| `content/` | Zdrojové texty a data průvodce v souborech TOML |
+| `content/` | Obsah v TOML: zastávky, rady, kontroly, zdroje, registr požadavků, slovníček, upozornění a provenience |
 | `scripts/` | Generátor znalostní báze, sestavení API a kontroly obsahu (Python, jen standardní knihovna) |
 | `tests/` | Testy skriptů s minimální ukázkou obsahu |
 | `profile/` | Profil RO-Crate (SHACL) pro kontrolu struktury znalostní báze |
@@ -49,15 +55,23 @@ vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zat�
 | `api/` | Stránka dokumentace API; samotné API vytvoří sestavení |
 | `diagrams/` | Zdroje diagramů v Mermaid |
 | `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
+| `.github/` | CI, šablony a odpovědní recenzenti |
 
 [Příklad softwarové praxe](docs/software-practice.md) přiřazuje podklady aplikace a zbývající kroky k vydání
 k příslušným softwarovým pokynům.
 
 ## Jak upravovat obsah
 
-Obsah se píše v souborech TOML ve složce `content/`, nikdy v tom, co vytvoří sestavení. Každý text je česky
-i anglicky, cituje publikovaný zdroj z registru požadavků a každá změna zaznamená, kdo ji provedl a s jakým
-nástrojem. Po úpravě sestavte web a zkontrolujte jej; pak otevřete `_site/index.html`:
+Obsah se píše v souborech TOML ve složce `content/`, nikdy v tom, co vytvoří sestavení. Pravidla popisuje
+[docs/content-model.md](docs/content-model.md):
+
+- každý text pro uživatele existuje česky i anglicky;
+- každá rada a otázka kontroly cituje alespoň jeden požadavek z registru a každý požadavek odkazuje na
+  publikovaný zdroj;
+- každá změna obsahu zaznamená autora, použitý nástroj (včetně modelu AI) a zdroje;
+- stavy používají pětistupňový slovník a uvádějí datum ověření.
+
+Po úpravě sestavte web a zkontrolujte jej; pak otevřete `_site/index.html`:
 
 ```bash
 python scripts/build_site.py
@@ -66,6 +80,15 @@ python scripts/check_content.py
 
 Všechny kontroly najednou spustí `python scripts/check_all.py` (po `npm ci` a instalaci
 nástrojů z `requirements-dev.txt`).
+Po spuštění najdete v `.cache/health/` přehled výsledků, JSON a shrnutí: stav kontrol a pokrytí otázek,
+rad a požadavků původními texty. CI je připojí k běhu jako artefakt a shrnutí. Přepínač `--live`
+přidá kontroly externích služeb; bez něj se jejich dostupnost neposuzuje.
+Pro porovnání dvou uložených přehledů použijte `--previous-report path/to/health.json`.
+Stejný přehled poskytuje API na `api/health.json`, zdokumentované v `api/openapi.json`;
+samotné sestavení uvádí, že kontroly dosud neproběhly,
+a jejich spouštěč poté zveřejní skutečný výsledek běhu.
+Web zveřejňuje také přehled `health/index.html` v angličtině, dostupný z patičky
+a ze stránky Data pro stroje. JSON i přehled se aktualizují stejným výsledkem běhu.
 
 Průvodce i s jeho API, jak bude zveřejněn, si spustíte na svém počítači (dokumentace API potřebuje jednou
 `npm ci`) a otevřete <http://127.0.0.1:8000/> a <http://127.0.0.1:8000/api/>:
@@ -74,8 +97,15 @@ Průvodce i s jeho API, jak bude zveřejněn, si spustíte na svém počítači 
 python scripts/serve.py --build
 ```
 
-Změny přicházejí jako pull request a před sloučením je zkontroluje CI i člověk. Podrobný postup je
-v [CONTRIBUTING.md](CONTRIBUTING.md) a v [README_en.md](README_en.md).
+Pravidla pro editaci s AI jsou v dovednosti `fair-guide-editor`
+(`.agents/skills/fair-guide-editor/SKILL.md`) a v [AGENTS.md](AGENTS.md); provozní pokyny pro agenty
+jsou v [README_en.md](README_en.md).
+
+## Jak přispívat
+
+Změny přicházejí jako pull request do `main`. CI kontroluje strukturu, obsah, funkčnost a přístupnost
+stránek, odkazy, diagramy a čistotu repozitáře. Odpovědný recenzent kontroluje správnost a styl.
+Podrobný postup je v [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
@@ -90,7 +120,8 @@ Tomáš Čížek. Jak průvodce citovat, uvádí [CITATION.cff](CITATION.cff).
 
 ## Využití umělé inteligence
 
-Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). Každá změna obsahu je zaznamenána
+Na přípravě obsahu a kódu se podíleli AI asistenti Claude (Anthropic) a Codex (OpenAI).
+Každá změna obsahu je zaznamenána
 v paradatech znalostní báze, včetně použitého nástroje, a průvodce ji ukazuje u každé položky. Texty
 kontrolují lidé.
 

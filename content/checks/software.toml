@@ -2,204 +2,244 @@
 id = "software"
 name = { cs = "Kontrola výzkumného softwaru", en = "Research software check" }
 icon = "list-check"
-description = { cs = "Skripty, výpočetní notebooky i aplikace: praktické otázky podle FAIR4RS a FRSM 1.0, doplněné o spuštění příkladu a zachování kódu. Začněte osmi otázkami; rozšířená kontrola přidá další praxi. Jde o vlastní posouzení bez skóre a certifikace.", en = "Scripts, computational notebooks and applications: practical questions based on FAIR4RS and FRSM 1.0, with an execution example and code preservation. Start with eight questions; the extended check adds further practice. This is self-assessment without a score or certification." }
+description = { cs = "Skripty, výpočetní notebooky i aplikace: praktické otázky podle FAIR4RS a metrik FRSM 1.0. Originální popisy pocházejí ze zprávy D5.2, verze 1.1 (2025); verze zprávy a sady metrik jsou odlišné. Začněte osmi otázkami, rozšířená kontrola přidá další praxi. Jde o vlastní posouzení bez skóre a certifikace.", en = "Scripts, computational notebooks and applications: practical questions based on FAIR4RS and FRSM 1.0 metrics. Original descriptions come from the D5.2 report, version 1.1 (2025); report and metric-set versions differ. Start with eight questions; the extended check adds further practice. This is self-assessment without a score or certification." }
 lenses = ["V", "DS", "SR", "K"]
 minutes = 15
 
 [[block]]
 id = "identity"
 name = { cs = "Identifikace a zachování", en = "Identification and preservation" }
+icon = "fingerprint"
 
 [[block]]
 id = "description"
 name = { cs = "Popis, autorství a licence", en = "Description, credit and licensing" }
+icon = "book"
 
 [[block]]
 id = "execution"
 name = { cs = "Spuštění a propojení", en = "Execution and integration" }
+icon = "gears"
 
 [[item]]
 id = "software.01"
+principles = ["F1"]
 requirement = "FRSM.FRSM-01"
-statement = { cs = "Software má trvalý a jednoznačný identifikátor.", en = "The software has a persistent, unambiguous identifier." }
+statement = { cs = "Software má celosvětově jednoznačný a trvalý identifikátor.", en = "The software has a globally unique, persistent identifier." }
 tier = "basic"
 block = "identity"
 fixAt = "publication"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Ověřte, co identifikátor označuje a zda funguje jeho odkaz. Dlouhodobou platnost posuzujte podle pravidel služby PID; samotná adresa vývojového repozitáře ji nezaručuje.", en = "Check what the identifier identifies and whether its reference resolves. Assess persistence from the PID service’s policy; a development-repository URL alone does not guarantee it." }
 
 [[item]]
 id = "software.02"
+principles = ["F1", "I3"]
 requirement = "FRSM.FRSM-02"
-statement = { cs = "Samostatně používané komponenty mají rozlišitelné identifikátory a popsané vztahy.", en = "Independently used components have distinct identifiers and described relationships." }
+statement = { cs = "Pokud software tvoří více odlišných komponent, mají vlastní identifikátory a vztahy mezi nimi jsou zachyceny v metadatech identifikátorů.", en = "If the software consists of distinct components, they have their own identifiers and their relationships are represented in identifier metadata." }
 tier = "advanced"
 block = "identity"
 fixAt = "metadata"
 owner = ["user"]
 allowNotApplicable = true
+help = { cs = "Rozlište projekt, jeho komponenty a externí závislosti. Ověřte, že identifikátor každé komponenty vede na správnou součást; závislosti, které nejsou součástí projektu, řeší otázka o požadavcích ke spuštění.", en = "Distinguish the project, its components and external dependencies. Check that each component identifier leads to the right component; dependencies outside the project are covered by the question on requirements for use." }
 
 [[item]]
 id = "software.03"
+principles = ["F1"]
 requirement = "FRSM.FRSM-03"
-statement = { cs = "Použitá verze má vlastní identifikátor, odlišný od jiných verzí.", en = "The version used has its own identifier, distinct from other versions." }
+statement = { cs = "Každá verze softwaru má vlastní identifikátor, odlišný od jiných verzí.", en = "Each version of the software has its own identifier, distinct from other versions." }
 tier = "basic"
 block = "identity"
 fixAt = "publication"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Porovnejte identifikátory vydaných verzí. Identifikátor celého projektu nebo všech verzí dohromady nenahrazuje identifikátor konkrétní verze; vztahy a čísla verzí pomohou správné citaci.", en = "Compare the identifiers of released versions. An identifier for the project or all versions together does not replace one for a specific version; version relationships and numbers support accurate citation." }
 
 [[item]]
 id = "software.04"
+principles = ["F2", "R1"]
 requirement = "FRSM.FRSM-04"
-statement = { cs = "Metadata vysvětlují, co software dělá a k čemu slouží.", en = "Metadata explain what the software does and its purpose." }
+statement = { cs = "Metadata uvádějí název softwaru a vysvětlují, co dělá a k čemu slouží.", en = "Metadata give the software title and explain what it does and its purpose." }
 tier = "basic"
 block = "description"
 fixAt = "metadata"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Prohlédněte README, metadata balíčku nebo záznam, na který vede identifikátor. Přítomnost popisu lze ověřit automaticky, jeho přesnost a srozumitelnost posuďte sami.", en = "Inspect the README, package metadata or the record reached through the identifier. Presence can be checked automatically; judge the description’s accuracy and clarity yourself." }
 
 [[item]]
 id = "software.05"
+principles = ["F2", "R1"]
 requirement = "FRSM.FRSM-05"
-statement = { cs = "Metadata uvádějí stav vývoje a údržby.", en = "Metadata state development and maintenance status." }
+statement = { cs = "Metadata popisují stav vývoje softwaru a uvádějí kontakt nebo podporu.", en = "Metadata describe the software’s development status and give contact or support information." }
 tier = "advanced"
 block = "description"
 fixAt = "metadata"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Hledejte informace o podpoře, vývoji a dokumentaci v README nebo metadatech balíčku. Datum posledního commitu samo nevysvětluje, zda je software udržován.", en = "Look for support, development and documentation information in the README or package metadata. The date of the latest commit alone does not explain whether the software is maintained." }
 
 [[item]]
 id = "software.06"
+principles = ["F2", "R1.2"]
 requirement = "FRSM.FRSM-06"
-statement = { cs = "Metadata uvádějí přispěvatele a jejich role.", en = "Metadata name contributors and their roles." }
+statement = { cs = "Metadata uvádějí přispěvatele softwaru a jejich role.", en = "Metadata name the software contributors and their roles." }
 tier = "basic"
 block = "description"
 fixAt = "citation"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Porovnejte citační metadata s přispěvateli a rolemi, které uznává vaše komunita. Seznam autorů commitů nezachytí například testování, dokumentaci nebo návrh; ORCID pomůže rozlišit osoby, které jej mají.", en = "Compare citation metadata with the contributors and roles recognised by your community. Commit authors do not capture contributions such as testing, documentation or design; ORCID helps identify people who have one." }
 
 [[item]]
 id = "software.07"
+principles = ["F3"]
 requirement = "FRSM.FRSM-07"
-statement = { cs = "Metadata obsahují identifikátor popisovaného softwaru.", en = "Metadata include the identifier of the software described." }
+statement = { cs = "Metadata obsahují identifikátor právě toho softwaru, který popisují.", en = "Metadata include the identifier of the software they describe." }
 tier = "advanced"
 block = "identity"
 fixAt = "metadata"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Zkontrolujte identifikátor v README, citačním souboru nebo záznamu metadat a ověřte jeho cíl. Dbejte na rozdíl mezi projektem, komponentou a konkrétní verzí.", en = "Check the identifier in the README, citation file or metadata record and verify its target. Distinguish the project, a component and a specific version." }
 
 [[item]]
 id = "software.08"
+principles = ["A1", "A2"]
 requirement = "FRSM.FRSM-08"
-statement = { cs = "Záznam metadat je veřejně dostupný a zůstane zachován i bez softwaru.", en = "The metadata record is publicly accessible and survives loss of the software." }
+statement = { cs = "Software má veřejně a otevřeně přístupný trvalý záznam metadat, který zůstane dostupný i bez softwaru.", en = "The software has a public, openly accessible, persistent metadata record that remains available even without the software." }
 tier = "advanced"
 block = "identity"
 fixAt = "publication"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Otevřete záznam bez přihlášení a zjistěte, jak jeho provozovatel zajišťuje uchování. Repozitář, registr nebo katalog mohou tuto úlohu plnit; funkční odkaz dnes sám dlouhodobou dostupnost nedokládá.", en = "Open the record without signing in and inspect its provider’s preservation arrangements. A repository, registry or catalogue may serve this purpose; a working link today alone does not establish long-term availability." }
 
 [[item]]
 id = "software.09"
+principles = ["A1", "A1.1"]
 requirement = "FRSM.FRSM-09"
-statement = { cs = "Kód lze získat standardním komunikačním protokolem.", en = "Code can be retrieved through a standard communications protocol." }
+statement = { cs = "Software se vyvíjí v repozitáři zdrojového kódu, který je dostupný standardním komunikačním protokolem.", en = "The software is developed in a source-code repository accessible through a standard communications protocol." }
 tier = "advanced"
 block = "identity"
 fixAt = "repository"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Ověřte přístup k vývojovému repozitáři například přes HTTPS nebo SFTP. Je-li potřebné přihlášení či oprávnění, protokol a repozitář je mohou podporovat; tento bod sám nevyžaduje anonymní přístup ke kódu.", en = "Verify access to the development repository, for example through HTTPS or SFTP. Authentication or authorisation may be supported where needed; this item alone does not require anonymous code access." }
 
 [[item]]
 id = "software.10"
+principles = ["I1", "R1.3"]
 requirement = "FRSM.FRSM-10"
-statement = { cs = "Otevřené formáty vstupů a výstupů jsou popsané a mají odkaz na specifikaci.", en = "Open input/output formats are described and reference their specifications." }
+statement = { cs = "Formáty dat, která software čte nebo vytváří, jsou popsané, otevřené a mají odkaz na specifikaci.", en = "Formats of data consumed or produced by the software are described, open and reference their specifications." }
 tier = "advanced"
 block = "execution"
 fixAt = "work"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Projděte popis vstupů a výstupů a odkazy na jejich formáty či schémata. Čitelné příklady pomáhají, ale nenahrazují popis formátu; konkrétní standard zvolte podle oboru.", en = "Inspect the input and output descriptions and references to their formats or schemas. Readable examples help but do not replace a format description; choose the relevant standard for the domain." }
 
 [[item]]
 id = "software.11"
+principles = ["A1", "I1"]
 requirement = "FRSM.FRSM-11"
-statement = { cs = "Má-li software API, jeho otevřené rozhraní má strojově čitelný popis.", en = "Where software provides an API, its open interface has a machine-readable description." }
+statement = { cs = "Pokud software implementuje API, jsou tato rozhraní zdokumentovaná, otevřená a mají strojově čitelný popis.", en = "If the software implements APIs, those interfaces are documented, open and have machine-readable definitions." }
 tier = "advanced"
 block = "execution"
 fixAt = "metadata"
 owner = ["user"]
 allowNotApplicable = true
+help = { cs = "Pokyny FRSM-11 vztahují metriku k implementovaným API. Prohlédněte rozhraní, která software poskytuje, jejich dokumentaci a strojově čitelný popis; OpenAPI je jedním z příkladů. Pokud software žádné API neposkytuje, zvolte „Netýká se“.", en = "The FRSM-11 guidance limits the metric to implemented APIs. Inspect the interfaces provided by the software, their documentation and machine-readable definitions; OpenAPI is one example. Choose “Not applicable” if the software provides no API." }
 
 [[item]]
 id = "software.12"
+principles = ["I3"]
 requirement = "FRSM.FRSM-12"
-statement = { cs = "Dokumentace odkazuje na související data a další objekty potřebné k použití.", en = "Documentation references related data and other objects needed for use." }
+statement = { cs = "Metadata softwaru obsahují strojově čitelné odkazy na další objekty, které podporují jeho použití.", en = "Software metadata include machine-readable references to other objects that support its use." }
 tier = "advanced"
 block = "description"
 fixAt = "metadata"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Hledejte odkazy například na článek o softwaru, příklad jeho použití nebo související data. Jde o příklady vhodných vazeb, ne o povinnost vytvořit všechny tyto druhy objektů.", en = "Look for references such as an article about the software, an example of its use or related data. These are examples of useful links, not a requirement to create every kind of object." }
 
 [[item]]
 id = "software.13"
+principles = ["I3", "R1"]
 requirement = "FRSM.FRSM-13"
-statement = { cs = "Jsou popsané závislosti, sestavení a nastavení potřebné ke spuštění.", en = "Dependencies, build and configuration needed to run are described." }
+statement = { cs = "Informace o závislostech, sestavení a nastavení potřebných k použití softwaru jsou strojově zpracovatelné; k dispozici je návod k sestavení, instalaci nebo spuštění.", en = "Information about dependencies, build and configuration needed to use the software is machine-actionable; build, installation or execution instructions are available." }
 tier = "basic"
 block = "execution"
 fixAt = "work"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Prohlédněte soubory závislostí, sestavovací skripty a nastavení pro posuzovanou verzi. Metrika rozlišuje návod ke spuštění a pokročilejší strojově čitelné závislosti či automatizované sestavení a instalaci; samotný odstavec v README neprokazuje obojí.", en = "Inspect dependency files, build scripts and configuration for the assessed version. The metric distinguishes execution instructions from more advanced machine-readable dependencies and automated build and installation; a README paragraph alone does not establish both." }
 
 [[item]]
 id = "software.14"
+principles = ["R1"]
 requirement = "FRSM.FRSM-14"
-statement = { cs = "Software má testovací příklady, které dokládají jeho fungování.", en = "The software has test cases demonstrating its behaviour." }
+statement = { cs = "Software má testy a potřebná testovací data, které dokládají, že funguje podle očekávání.", en = "The software provides tests and necessary test data demonstrating that it works as expected." }
 tier = "basic"
 block = "execution"
 fixAt = "work"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Ověřte, co testy spouštějí a jaký výsledek očekávají. Automatizované jednotkové a systémové testy i pokrytí jsou další úrovně metriky; samotná složka „tests“ neprokazuje správnost.", en = "Check what the tests run and which result they expect. Automated unit and system tests and coverage are further levels of the metric; a directory named “tests” alone does not establish correctness." }
 
 [[item]]
 id = "software.15"
+principles = ["R1.1"]
 requirement = "FRSM.FRSM-15"
-statement = { cs = "Licence kódu a přibalených součástí jsou dohledatelné.", en = "Licences for code and bundled components can be found." }
+statement = { cs = "Zdrojový kód obsahuje licenční informace pro software i všechny přibalené externí softwarové součásti.", en = "The source code includes licensing information for the software and all bundled external software components." }
 tier = "basic"
 block = "description"
 fixAt = "licence"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Projděte licenci projektu, přibalené knihovny a jejich oznámení či licenční hlavičky. Soubor LICENSE v kořeni neprokazuje práva ke všem součástem; označení SPDX usnadňuje jejich strojové zpracování.", en = "Inspect the project licence, bundled libraries and their notices or licence headers. A root LICENSE file does not establish rights for every component; SPDX identifiers help machine processing." }
 
 [[item]]
 id = "software.16"
+principles = ["R1.1"]
 requirement = "FRSM.FRSM-16"
-statement = { cs = "Záznam metadat uvádí licenci softwaru.", en = "The metadata record states the software licence." }
+statement = { cs = "Veřejný záznam metadat uvádí licenční a autorskoprávní informace k softwaru.", en = "The public metadata record includes licensing and copyright information for the software." }
 tier = "advanced"
 block = "description"
 fixAt = "licence"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Otevřete záznam, na který vede identifikátor, a prohlédněte údaje o právech. Licence pouze ve zdrojovém kódu nenahrazuje tuto informaci v záznamu; vhodný je také strojově čitelný identifikátor licence.", en = "Open the record reached through the identifier and inspect its rights information. A licence only in the source code does not replace this information in the record; a machine-readable licence identifier is also useful." }
 
 [[item]]
 id = "software.17"
+principles = ["R1.2"]
 requirement = "FRSM.FRSM-17"
-statement = { cs = "Je doložen původ a vývoj softwaru.", en = "The software origin and development history are documented." }
+statement = { cs = "Software obsahuje informace o původu a průběhu svého vývoje.", en = "The software includes provenance information describing its origins and development." }
 tier = "advanced"
 block = "description"
 fixAt = "work"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Prohlédněte historii změn a její vazby na úkoly, zdrojové projekty či vývojové prostředí. Historie commitů je základní doklad, ale sama nezachytí úplný původ převzatého kódu ani všechna rozhodnutí při vývoji.", en = "Inspect change history and its links to issues, upstream projects or the development environment. Commit history is basic evidence but does not by itself capture all origins of reused code or every development decision." }
 
 [[item]]
 id = "software.18"
+principles = ["R1"]
 requirement = "CODE.01"
-statement = { cs = "Kolega dokáže spustit malý příklad podle návodu, včetně vstupů a očekávaného výstupu.", en = "A colleague can run a small documented example, including inputs and expected output." }
+statement = { cs = "Kolega dokáže spustit malý zdokumentovaný příklad se zadanými vstupy a ověřit očekávaný výstup.", en = "A colleague can run a small documented example with specified inputs and verify the expected output." }
 tier = "basic"
 block = "execution"
 fixAt = "work"
 owner = ["user"]
 allowNotApplicable = false
+help = { cs = "Zkuste příklad v prostředí popsaném pro danou verzi a porovnejte výsledek s návodem. Jde o praktický krok průvodce vycházející z CODE; nenahrazuje úplné testování softwaru.", en = "Try the example in the environment documented for that version and compare the result with the instructions. This is a practical guide step based on CODE; it does not replace full software testing." }
 
 [[item]]
 id = "software.19"
+principles = ["F1", "A1"]
 requirement = "ZENODO-SW.01"
 statement = { cs = "Zdrojový kód vydané verze je dlouhodobě uložen a ověřený odkaz umožňuje dohledat právě tuto verzi.", en = "The released source code is preserved, and a verified reference identifies that specific version." }
 tier = "advanced"
@@ -208,6 +248,7 @@ fixAt = "publication"
 owner = ["user"]
 allowNotApplicable = false
 sources = ["FRSM.FRSM-03", "SWH-GUIDE.01"]
+help = { cs = "Ověřte obsah uložené verze i podmínky uchování v archivu nebo repozitáři. Software Heritage a SWHID jsou jednou možností; vhodný archiv či repozitářový depozit s identifikací konkrétní verze je také platnou volbou.", en = "Verify the preserved version’s contents and the archive or repository’s retention arrangements. Software Heritage and a SWHID are one option; an appropriate archive or repository deposit identifying the specific version is also valid." }
 
 [[item]]
 id = "software.20"
@@ -218,3 +259,4 @@ block = "description"
 fixAt = "work"
 owner = ["user"]
 allowNotApplicable = true
+help = { cs = "Odznak je dobrovolné sebehodnocení projektu podle OpenSSF, nikoli certifikace FAIR. Pokud o něj tým neusiluje, zvolte „Netýká se“; při přípravě rozlište splněná kritéria a to, co ještě zbývá.", en = "The badge is voluntary project self-certification under OpenSSF, not FAIR certification. Choose “Not applicable” if the team is not seeking it; when preparing, distinguish met criteria from work still to do." }

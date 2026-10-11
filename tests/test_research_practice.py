@@ -44,7 +44,8 @@ class ResearchPracticeTests(unittest.TestCase):
         self.assertEqual({item["requirement"] for item in fdo}, {"FDO." + label for label in labels})
         for items, count in ((software, 8), (fdo, 6)):
             self.assertEqual(sum(item["tier"] == "basic" for item in items), count)
-            self.assertTrue(all(not item.get("principles") for item in items))
+            existing = {principle["id"] for principle in self.content["principles"]}
+            self.assertTrue(all(set(item.get("principles", [])) <= existing for item in items))
             self.assertTrue(all(item.get("owner") and item.get("fixAt") for item in items))
 
     def test_lazy_questions_preserve_complete_crate_and_path_metadata(self) -> None:

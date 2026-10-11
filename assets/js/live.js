@@ -22,6 +22,11 @@
   /** Fetch JSON from an allowlisted connector; rejects on timeout, HTTP errors and non-JSON answers. With
       `allowNotFound`, a 404 answer gives null instead of an error. */
   live.fetchJson = async function (connectorId, path, options) {
+    if (options && options.maxBytes) {
+      await loadDiscovery();
+      const result = await live.readPublic(connectorId, path, options);
+      return result ? JSON.parse(result.text) : null;
+    }
     const target = connector(connectorId);
     const url = new URL(path, target.origin + "/");
     if (url.origin !== target.origin) throw new Error("refusing a URL outside " + target.origin);
@@ -44,6 +49,21 @@
     }
   };
 
+  /* Keep reviewed discovery off the initial download. A local classic script also works from file://. */
+  let discoveryLoad;
+  function loadDiscovery() {
+    if (!discoveryLoad) discoveryLoad = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = FG.config.discovery.script;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error("The guide could not load its discovery connector."));
+      document.head.append(script);
+    });
+    return discoveryLoad;
+  }
+  live.discoverObject = async (...args) => { await loadDiscovery(); return live.discoverObject(...args); };
+  live.softwareRepository = async (...args) => { await loadDiscovery(); return live.softwareRepository(...args); };
+
   /* ---------------------------------------------------------------- identifiers */
 
   /** Recognise a DOI or a Handle, also when it is written as a resolver link or with a doi:/hdl: prefix. */
@@ -65,9 +85,9 @@
   live.pidUrl = (pid) => live.origin(pid.type === "doi" ? "doi" : "handle") + "/" + pid.value;
 
   /** Ask the DOI or Handle resolver whether the identifier exists and where it leads. */
-  live.resolvePid = async function (pid) {
+  live.resolvePid = async function (pid, options) {
     const path = "api/handles/" + pid.value.split("/").map(encodeURIComponent).join("/");
-    const data = await live.fetchJson(pid.type === "doi" ? "doi" : "handle", path, { allowNotFound: true });
+    const data = await live.fetchJson(pid.type === "doi" ? "doi" : "handle", path, Object.assign({ allowNotFound: true }, options || {}));
     const found = Boolean(data && data.responseCode === 1);
     const valueOf = (type) =>
       found
@@ -76,7 +96,9 @@
             .map((value) => value.data && value.data.value)
             .find((value) => typeof value === "string" && value)
         : null;
-    return { found, url: valueOf("URL") || null, title: valueOf("TITLE") || null };
+    return { found, url: valueOf("URL") || null, title: valueOf("TITLE") || null,
+      values: found ? FG.list(data.values).map((value) => ({ type: String(value.type || ""), value: value.data && value.data.value,
+        format: value.data && value.data.format, index: value.index })) : [] };
   };
 
   /** The registration agency of a DOI (DataCite, Crossref, ...), or null when doi.org does not know the DOI. */
@@ -107,8 +129,8 @@
   };
 
   /** DataCite metadata of a DOI, or null when DataCite does not hold it. */
-  live.datacite = async function (doi) {
-    const data = await live.fetchJson("datacite", "dois/" + encodeURIComponent(doi), { allowNotFound: true });
+  live.datacite = async function (doi, options) {
+    const data = await live.fetchJson("datacite", "dois/" + encodeURIComponent(doi), Object.assign({ allowNotFound: true }, options || {}));
     return data && data.data ? data.data.attributes || {} : null;
   };
 
@@ -156,14 +178,21 @@
 
   /** Run one FAIR Champion test on an identifier; resolves to the verdict and the test's log. Any failure to get a
       verdict (HTTP error, timeout, an answer without a result) rejects, and the caller reports "no result". */
-  live.championTest = async function (testId, identifier) {
+  live.championInvocation = function (testId, identifier) {
     const champion = FG.config.champion;
     const endpoint = new URL(champion.endpoint);
-    const data = await live.fetchJson("champion", endpoint.pathname.replace(/\/$/, "") + "/" + encodeURIComponent(testId), {
+    const path = endpoint.pathname.replace(/\/$/, "") + "/" + encodeURIComponent(testId);
+    const test = typeof FG.get === "function" ? FG.get("#test-" + testId) : null;
+    return { url: test && test.url || new URL(path, endpoint.origin).href, method: "POST", body: { resource_identifier: identifier } };
+  };
+
+  live.championTest = async function (testId, identifier) {
+    const invocation = live.championInvocation(testId, identifier);
+    const data = await live.fetchJson("champion", new URL(invocation.url).pathname, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/ld+json, application/json" },
-      body: JSON.stringify({ resource_identifier: identifier }),
-      timeoutSeconds: champion.timeoutSeconds,
+      body: JSON.stringify(invocation.body),
+      timeoutSeconds: FG.config.champion.timeoutSeconds,
     });
     const graph = FG.list(data && (data["@graph"] || data));
     const result = graph.find((entity) => entity && FG.list(entity["@type"]).some((type) => /TestResult$/.test(String(type))));

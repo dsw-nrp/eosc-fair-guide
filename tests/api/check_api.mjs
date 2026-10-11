@@ -17,7 +17,9 @@ import Ajv2020 from "ajv/dist/2020.js";
 import { chromium } from "playwright";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const site = join(root, "_site");
+const siteArgument = process.argv.indexOf("--site");
+const site = siteArgument >= 0 ? resolve(process.argv[siteArgument + 1]) : join(root, "_site");
+const healthOnly = process.argv.includes("--health-only");
 const failures = [];
 const fail = (message) => failures.push(message);
 const read = (path) => JSON.parse(readFileSync(path, "utf8"));
@@ -41,6 +43,9 @@ const files = [];
     else if ([".json", ".jsonld"].includes(extname(name))) files.push(posix(relative(site, path)));
   }
 })(join(site, "api"));
+if (healthOnly) {
+  files.splice(0, files.length, "api/health.json", "api/meta.json");
+}
 
 // 1. The description is valid OpenAPI 3.1 and names its server relative to itself.
 try {
@@ -72,7 +77,7 @@ for (const file of files) {
     fail(`${file}: does not match ${route.schema}: ` + validate.errors.slice(0, 3).map((error) => `${error.instancePath || "/"} ${error.message}`).join("; "));
   }
 }
-for (const route of routes.filter((candidate) => candidate.values)) {
+for (const route of routes.filter((candidate) => candidate.values && !healthOnly)) {
   for (const value of route.values) {
     const file = route.template.slice(1).replace(/\{[^}]+\}/, value);
     if (!existsSync(join(site, file))) fail(`${route.template}: the documented record ${value} has no file`);
@@ -83,11 +88,14 @@ for (const route of routes.filter((candidate) => candidate.values)) {
 //    identifiers to its entities. Link-valued properties are the ones the context types as links.
 const context = read(join(site, "api/context.jsonld"))["@context"];
 const linkKeys = new Set(["@id", ...Object.entries(context).filter(([, definition]) => definition && (definition["@type"] === "@id" || definition["@reverse"])).map(([key]) => key)]);
+linkKeys.add("api_record"); // Ordinary health JSON links to existing records; it does not use a JSON-LD context.
 const partsOf = new Map();
 const partIds = (path) => {
   if (!partsOf.has(path)) {
     const ids = new Set();
-    (function collect(value) {
+    if (extname(path) === ".html") {
+      for (const match of readFileSync(join(site, path), "utf8").matchAll(/\bid=["']([^"']+)["']/g)) ids.add("#" + match[1]);
+    } else (function collect(value) {
       if (Array.isArray(value)) value.forEach(collect);
       else if (value && typeof value === "object") {
         if (typeof value["@id"] === "string" && value["@id"].startsWith("#")) ids.add(value["@id"]);
@@ -122,6 +130,48 @@ for (const file of files.filter((name) => name.endsWith(".json"))) {
     if (value && typeof value === "object") return Object.entries(value).forEach(([inner, item]) => walk(item, inner));
     if (typeof value === "string" && (linkKeys.has(key) || key === "@context")) check(value);
   })(read(join(site, file)), null);
+}
+
+// The health snapshot is ordinary JSON and retains the scope of every claim. A fresh build must not
+// masquerade as a completed check run; final check_all publication is checked again with --health-only.
+const health = read(join(site, "api/health.json"));
+if (health["@context"]) fail("api/health.json: ordinary check evidence must not claim a JSON-LD context");
+if (!read(join(site, "api/meta.json")).hasPart.includes("health.json")) fail("api/meta.json: no link to the health snapshot");
+if (health.live_availability.status !== "unchecked") fail("api/health.json: an offline inventory claims live availability");
+if (health.run.status === "not_run" && (health.generated_at !== null || health.run.jobs.length)) fail("api/health.json: a build inventory claims completed checks");
+if (health.run.status !== "not_run" && (typeof health.generated_at !== "string" || !Number.isFinite(Date.parse(health.generated_at)))) fail("api/health.json: completed run has no actual report timestamp");
+if (health.run.status === "passed" && health.run.jobs.some((job) => ["failed", "blocked"].includes(job.status))) fail("api/health.json: a passed run includes a failed or blocked check");
+if (new Set(health.run.jobs.map((job) => job.name)).size !== health.run.jobs.length) fail("api/health.json: duplicate check-run identities");
+let failedItems = 0;
+for (const group of health.integrity) {
+  const failed = group.items.filter((item) => item.status === "failed").length;
+  const passed = group.items.filter((item) => item.status === "passed").length;
+  failedItems += failed;
+  if (group.count !== group.items.length || group.failed !== failed || group.passed !== passed) fail(`api/health.json: inconsistent integrity counts for ${group.type}`);
+}
+if (health.integrity_failed !== failedItems) fail("api/health.json: inconsistent total integrity failures");
+for (const kind of ["clauses", "questions", "advice"]) {
+  const counts = health.original_coverage.counts[kind];
+  if (!counts) continue; // An unreadable-content diagnostic makes no coverage claim.
+  const items = health.original_coverage[kind];
+  const withOriginal = items.filter((item) => kind === "clauses" ? item.has_original : item.originals.length > 0).length;
+  if (counts.total !== items.length || counts.with_original !== withOriginal) fail(`api/health.json: inconsistent original-coverage counts for ${kind}`);
+  if (kind !== "clauses") {
+    for (const item of items) {
+      const actual = item.originals.length ? item.missing_originals.length ? "partial" : "complete" : item.reviewed_basis ? "reviewed_source_links" : "no_original";
+      if (item.status !== actual) fail(`api/health.json: inaccurate original-coverage status for ${item.id}`);
+      if (new Set([...item.originals, ...item.missing_originals]).size !== item.citations.length) fail(`api/health.json: lost citation coverage for ${item.id}`);
+    }
+  }
+}
+
+if (healthOnly) {
+  if (failures.length) {
+    console.error(failures.map((failure) => "FAIL " + failure).join("\n"));
+    process.exit(1);
+  }
+  console.log(`Health API checks passed (${health.run.status} run snapshot, ${links} record links)`);
+  process.exit(0);
 }
 
 // 4. The documentation page: its own policy, no inline script, and over HTTP it works within the site.

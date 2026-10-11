@@ -18,6 +18,21 @@ datePublished = 2026-02-15
 license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[source]]
+id = "openssf-criteria-2024"
+code = "OPENSSF"
+type = "document"
+title = "OpenSSF Best Practices criteria: introduction"
+short = { cs = "Úvod ke kritériím OpenSSF Best Practices", en = "OpenSSF Best Practices criteria introduction" }
+version = "2024-08-16"
+inLanguage = "en"
+url = "https://github.com/coreinfrastructure/best-practices-badge/blob/84c188ef9dbee4c7ca839382a7feb5245035fdad/config/locales/en.yml"
+publisher = "OpenSSF"
+authors = ["OpenSSF Best Practices badge contributors"]
+datePublished = 2024-08-16
+dateAccessed = 2026-10-11
+license = "https://creativecommons.org/licenses/by/3.0/"
+
+[[source]]
 id = "nrp-docs-nma-introduction"
 type = "webpage"
 title = "National Metadata Directory: introduction (NRP documentation)"
@@ -53,6 +68,8 @@ url = "https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_s
 publisher = "EOSC CZ"
 authors = ["M. Vávra", "T. Čížek", "J. Klusáček"]
 datePublished = 2026-04-01
+license = "https://creativecommons.org/licenses/by/"
+
 
 [[source]]
 id = "mbdb-2026"
@@ -63,7 +80,9 @@ doi = "10.1007/s00249-025-01789-1"
 url = "https://doi.org/10.1007/s00249-025-01789-1"
 publisher = "European Biophysics Journal"
 authors = ["E. D. Agerschou", "et al."]
-datePublished = "2026"
+datePublished = 2025-08-10
+license = "https://creativecommons.org/licenses/by/4.0/"
+
 
 [[source]]
 id = "ncdoi-2023"
@@ -173,6 +192,7 @@ inLanguage = "cs"
 url = "https://e-sbirka.gov.cz/sb/2025/328"
 datePublished = 2025-09-09
 dateAccessed = 2026-10-09
+version = "2025-09-09"
 
 [[source]]
 id = "os3-faq"
@@ -419,3 +439,18 @@ publisher = "CODATA"
 version = "1.1.1"
 license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
+
+[[source]]
+id = "frsm-report-1.1"
+code = "FRSM"
+type = "report"
+title = "D5.2 - Metrics for automated FAIR software assessment in a disciplinary context"
+short = { cs = "Zpráva D5.2 o metrikách softwaru, verze 1.1", en = "D5.2 software metrics report, version 1.1" }
+version = "1.1"
+inLanguage = "en"
+doi = "10.5281/zenodo.15535629"
+url = "https://zenodo.org/records/15535629"
+publisher = "FAIR-IMPACT"
+authors = ["Neil Chue Hong", "Elena Breitmoser", "Mario Antonioletti", "Joy Davidson", "Daniel Garijo", "Alejandra Gonzalez-Beltran", "Morane Gruenpeter", "Robert Huber", "Clement Jonquet", "Mike Priddy", "John Shepherdson", "Maaike Verburg", "Chris Wood"]
+datePublished = 2025-05-28
+license = "https://creativecommons.org/licenses/by/4.0/"

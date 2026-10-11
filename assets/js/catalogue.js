@@ -60,22 +60,28 @@
   /** A work an entry rests on, by its short name, leading to its own entry in the catalogue. */
   FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.catalogueHref("resources", source.identifier) }, FG.shortName(source));
 
-  /** That a statement needs refreshing or was superseded, as a badge. */
+  /** Warn when a published statement has been superseded. Refresh is an editorial status. */
   FG.clauseStatus = (status) =>
-    status && status !== "current" ? h("span", { class: "badge", "data-clause-status": status }, FG.t(status === "superseded" ? "explorer.superseded" : "explorer.refresh")) : null;
+    status === "superseded" ? h("span", { class: "badge", "data-clause-status": status }, FG.t("explorer.superseded")) : null;
 
   /** A requirement's guidance, as its source publishes it, behind a disclosure. */
-  FG.guidance = (clause) =>
-    clause.guidance
-      ? h("details", { class: "clause-guidance" }, h("summary", null, FG.t("catalogue.guidance")), h("div", { class: "content", lang: "en" }, FG.paragraphs(clause.guidance)))
-      : null;
+  FG.guidance = function (clause) {
+    if (!clause.guidance) return null;
+    const literal = FG.list(clause.guidance).find((value) => value && value["@language"]);
+    const source = FG.get(clause.isPartOf);
+    const language = (literal && literal["@language"]) || clause.guidanceLanguage || "en";
+    return h("details", { class: "clause-guidance" }, h("summary", null, FG.t("catalogue.guidance")),
+      h("div", { class: "content", lang: language },
+        source ? [h("p", { class: "small muted", lang: FG.state.lang }, FG.sourceLink(source), source.version && !FG.text(source.name).endsWith(" " + source.version) ? " · " + source.version : null),
+          source.creditText ? h("p", { class: "small muted", lang: FG.state.lang }, source.creditText) : null,
+          source.license ? h("p", { class: "small muted", lang: FG.state.lang }, FG.external(FG.id(source.license) || source.license, FG.t("catalogue.originalLicense"))) : null] : null,
+        FG.paragraphs(clause.guidance)));
+  };
 
   /** A requirement's title, when it has one besides its identifier. */
   FG.clauseTitle = (clause) => (clause.name && FG.text(clause.name) !== clause.identifier ? clause.name : null);
 
-  /** A requirement or finding as the guide shows it wherever it cites one, the same in a station, the explorer and a
-      question: its title when it has one besides its identifier, its text, then its identifier leading to the
-      catalogue, its source by short name, and once that it needs refreshing or was superseded, with the note. */
+  /** A compact catalogue entry, reused in principles, path reasons and question sources. */
   FG.clauseEntry = function (clause) {
     const source = FG.get(clause.isPartOf);
     const status = clause.creativeWorkStatus;
@@ -84,16 +90,18 @@
     return h(
       "li",
       { class: "clause" },
-      h("p", { class: "clause-text" }, title && clause.text ? [h("strong", null, FG.span(title)), " "] : null, FG.linkedSpan(clause, clause.text ? "text" : "name")),
-      FG.guidance(clause),
       h(
         "p",
-        { class: "clause-meta small" },
+        { class: "entry-head clause-meta" },
         isClause ? FG.idChip("clauses", clause.identifier) : null,
-        source ? [isClause ? " · " : null, FG.sourceLink(source)] : null,
-        FG.clauseStatus(status) ? [" ", FG.clauseStatus(status)] : null
+        clause.clauseKind ? h("span", { class: "entry-what" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null,
+        FG.clauseStatus(status)
       ),
-      status && status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null
+      title && clause.text ? h("p", { class: "entry-title clause-title" }, h("strong", null, FG.span(title))) : null,
+      h("p", { class: "clause-text" }, FG.linkedSpan(clause, clause.text ? "text" : "name")),
+      status && status !== "current" && clause.note ? h("p", { class: "small clause-note" }, FG.span(clause.note)) : null,
+      source ? h("p", { class: "clause-source small" }, h("span", { class: "entry-what" }, FG.t("catalogue.relation.basedOn") + ": "), FG.sourceLink(source)) : null,
+      FG.guidance(clause)
     );
   };
 
@@ -365,7 +373,7 @@
         entity: repository,
         name: FG.text(repository.name),
         export: { url: repository.url, text: FG.text(repository.description) },
-        text: [FG.bothLanguages(repository.name), FG.bothLanguages(repository.description), FG.list(repository.keywords).map((word) => (typeof word === "string" ? word : word["@value"])).join(" ")].join(" "),
+        text: [FG.bothLanguages(repository.name), FG.bothLanguages(repository.description), FG.bothLanguages(repository.keywords)].join(" "),
         stations: [...new Set(stationsOf(holders).concat(functions.includes("#rfunction-deposit-data") ? ["repository"] : []))],
         principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
         order: (kindIndex < 0 ? FG.repositoryKindOrder.length : kindIndex) + ":" + FG.fold(FG.text(repository.name)),
@@ -542,7 +550,7 @@
     });
   }
 
-  /** The questions each FAIR Champion test pre-fills, by test identifier. */
+  /** The questions each registered test pre-fills, by test identifier. */
   function testQuestions() {
     const byTest = new Map();
     for (const check of FG.ofType("Quiz")) {
@@ -552,6 +560,10 @@
         }
       }
     }
+    for (const test of FG.refs(FG.get("#tests"), "hasPart")) {
+      const item = FG.get(test.isImplementationOf);
+      if (item) byTest.set(test.identifier, [item]);
+    }
     return byTest;
   }
 
@@ -560,30 +572,46 @@
     return FG.graph
       .filter((entity) => String(entity["@id"]).startsWith("#test-"))
       .map((test) => {
-        const principle = FG.principles().find((entry) => entry.termCode === code(test.about));
+        const principles = FG.principlesOf(test);
+        const local = String(test.identifier).startsWith("guide-");
+        const anchor = local ? test.identifier : FG.borrowedId("fair-champion", test.identifier);
         const health = FG.id(test.healthStatus) || test.healthStatus;
+        const documentation = FG.list(test.subjectOf).map((entry) => {
+          const entity = FG.get(entry);
+          return entity && entity.url || FG.id(entry);
+        }).filter(Boolean);
+        const entryPoint = FG.refs(test, "additionalProperty").find((entry) => entry.propertyID === "entryPoint");
+        const linkedQuestions = questions.get(test.identifier) || [];
+        const checks = [...new Set(linkedQuestions.map((item) => String(item.identifier).split(".")[0]))];
+        const stations = [...new Set(linkedQuestions.map((item) => String(FG.id(item.fixAt) || "").replace("#station-", "")).filter(Boolean))];
         return {
           kind: "tests",
-          anchor: FG.borrowedId("fair-champion", test.identifier),
+          anchor,
           entity: test,
           name: FG.text(test.name),
-          export: { url: FG.refIds(test, "sameAs")[0] || test.url },
-          text: [FG.bothLanguages(test.name), test.identifier].join(" "),
-          stations: [],
-          principles: principle ? [principle.termCode] : [],
-          facets: {},
+          export: { url: FG.refIds(test, "sameAs")[0] || test.url, text: FG.text(test.description) },
+          text: [FG.bothLanguages(test.name), FG.bothLanguages(test.description), test.identifier].join(" "),
+          stations,
+          principles: principles.map((principle) => principle.termCode),
+          group: { check: checks[0] || "" },
+          facets: { execution: [local ? "browser" : "service"], check: checks, thealth: health ? [String(health)] : [] },
           render: () =>
             entryCard({
-              id: FG.borrowedId("fair-champion", test.identifier),
+              id: anchor,
               entity: test,
-              what: FG.t("catalogue.what.test"),
-              title: FG.external(test.url, FG.text(test.name)),
+              what: FG.t(local ? "catalogue.what.localTest" : "catalogue.what.test"),
+              details: FG.t("catalogue.testExecution." + (local ? "browser" : "service")),
+              title: FG.span(test.name),
+              body: [test.description ? FG.paragraphs(test.description) : null,
+                h("p", { class: "small" }, FG.external(test.url, FG.t(local ? "selfcheck.evidence.code" : "selfcheck.evidence.endpoint"))),
+                documentation.length ? h("p", { class: "small" }, documentation.map((url, index) => [index ? " · " : null, FG.external(FG.testDocumentationHref(url, test), FG.t("selfcheck.evidence.documentation") + (documentation.length > 1 ? " " + (index + 1) : ""))])) : null,
+                entryPoint ? h("p", { class: "small" }, h("code", null, entryPoint.value)) : null],
               states: health
                 ? h("span", { class: "badge", "data-health": String(health) }, FG.t("catalogue.health." + health), test.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("status.asOf", { date: FG.formatDate(test.statusAsOf) })) : null)
                 : null,
               relations: {
-                principles: principle ? tiles([principle]) : [],
-                inGuide: (questions.get(test.identifier) || []).map((item) => FG.idChip("questions", item.identifier)),
+                principles: tiles(principles),
+                inGuide: inGuide(checks.map((id) => FG.get("#check-" + id))).concat(linkedQuestions.map((item) => FG.idChip("questions", item.identifier))),
                 identifiers: FG.pidItems(test),
               },
             }),
@@ -716,7 +744,13 @@
       itemListElement: entries.map(summary),
     });
     FG.offerExport({ id: "csv", label: FG.t("export.csv", { n: rows.length }), run: () => FG.download(FG.exportName(parts, "csv"), FG.csv(columns, rows), "text/csv") });
-    FG.offerExport({ id: "json", label: FG.t("export.json", { n: rows.length }), run: () => FG.download(FG.exportName(parts, "json"), JSON.stringify(payload(), null, 2) + "\n", "application/json") });
+    const saveJson = async () => {
+      try {
+        await FG.completeLanguages();
+        FG.download(FG.exportName(parts, "json"), JSON.stringify(payload(), null, 2) + "\n", "application/json");
+      } catch (error) { FG.dataLoadError(error, saveJson); }
+    };
+    FG.offerExport({ id: "json", label: FG.t("export.json", { n: rows.length }), run: saveJson });
   }
 
   /* ---------------------------------------------------------------- facets of one kind */
@@ -751,6 +785,11 @@
     questions: [
       { key: "check", values: () => FG.ofType("Quiz").map((check) => check.identifier), label: (value) => FG.text((FG.get("#check-" + value) || {}).name) },
       { key: "tier", label: categoryLabel },
+    ],
+    tests: [
+      { key: "execution", values: () => ["browser", "service"], label: (value) => FG.t("catalogue.testExecution." + value) },
+      { key: "check", values: () => FG.ofType("Quiz").map((check) => check.identifier), label: (value) => FG.text((FG.get("#check-" + value) || {}).name) },
+      { key: "thealth", label: (value) => FG.t("catalogue.health." + value), note: "catalogue.testHealthNote" },
     ],
     actions: [{ key: "change", values: () => ["created", "updated"], label: (value) => FG.t("catalogue." + value) }],
   };
@@ -800,7 +839,7 @@
   const chosenValues = (state, route, key) => state.f[key] || [];
 
   function passesShared(entry, state, skip) {
-    if (state.q && !FG.fold(entry.text).includes(FG.fold(state.q))) return false;
+    if (state.q && !FG.fold(state.q).split(/\s+/).every((word) => FG.fold(entry.text).includes(word))) return false;
     if (skip !== "station" && state.stations.length && !entry.stations.some((station) => state.stations.includes(station))) return false;
     if (skip !== "principle" && state.principles.length && !entry.principles.some((principle) => state.principles.includes(principle))) return false;
     return true;
@@ -827,7 +866,7 @@
     questions: ["check", "principle", "station"],
     terms: ["name", "nameEn"],
     fips: ["name"],
-    tests: ["principle", "name"],
+    tests: ["check", "principle", "name"],
     actions: ["newest", "oldest"],
   };
 
@@ -1103,9 +1142,10 @@
       const natural = facet.values ? facet.values() : [...counts.keys()].sort((a, b) => FG.fold(facet.label(a)).localeCompare(FG.fold(facet.label(b)), "cs"));
       const values = natural.slice().sort((a, b) => (counts.get(b) || 0) - (counts.get(a) || 0));
       const chosen = chosenValues(state, route, facet.key);
-      return facetGroup(own + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
+      const group = facetGroup(own + "-" + facet.key, FG.t("catalogue.facet." + facet.key), values, chosen, counts, facet.label, (value, focus) =>
         go(Object.assign({}, state, { f: Object.assign({}, state.f, { [facet.key]: toggle(chosen, value) }) }), focus)
       );
+      return [group, facet.note ? h("p", { class: "facet-note small muted" }, FG.t(facet.note)) : null];
     };
     const facets = [
       search,

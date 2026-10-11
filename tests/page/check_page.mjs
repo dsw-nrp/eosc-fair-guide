@@ -66,6 +66,18 @@ async function rendered(page) {
   await page.waitForFunction(() => { const h1 = document.querySelector("#main h1"); return h1 && h1.textContent.trim() && !document.body.textContent.includes("The guide is loading."); });
 }
 
+/** Hash navigation can return while language or view data loads. Wait for the previous main to be replaced;
+    an already visible heading or #start belongs to the previous view until that happens. */
+async function navigationRendered(page, navigate) {
+  await page.evaluate(() => { const main = document.querySelector("#main"); if (main) main.dataset.previousView = "true"; });
+  await navigate();
+  await page.waitForFunction(() => {
+    const main = document.querySelector("#main");
+    return main && !main.dataset.previousView && main.querySelector("h1")?.textContent.trim() &&
+      !document.body.textContent.includes("The guide is loading.");
+  });
+}
+
 async function axe(page, label) {
   page.axeState.axeRunning = true;
   const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
@@ -328,9 +340,17 @@ sections.push(["page", async () => {
       const chips = await view.locator(".catalogue-results .card .entry-head .id-chip").allTextContents();
       return chips.length && chips.every((chip) => chip.startsWith(prefix));
     };
-    for (const [hash, prefix] of [["#/cs/V/catalogue/terms", "t.ntk."], ["#/cs/V/catalogue/fips", "fip-dashboard."], ["#/cs/V/catalogue/tests", "fair-champion."]]) {
+    for (const [hash, prefix] of [["#/cs/V/catalogue/terms", "t.ntk."], ["#/cs/V/catalogue/fips", "fip-dashboard."]]) {
       if (!(await borrowed(hash, prefix))) fail(`catalogue: an entry at ${hash} does not nest its identifier under ${prefix}`);
     }
+    await open("#/cs/V/catalogue/tests");
+    const tests = await view.evaluate(() => [...document.querySelectorAll(".catalogue-results .card")].map((card) => ({
+      chip: card.querySelector(".entry-head .id-chip")?.textContent,
+      what: card.querySelector(".entry-what")?.textContent,
+    })));
+    if (tests.filter((test) => test.chip?.startsWith("guide-")).length !== 42 || tests.filter((test) => test.chip?.startsWith("fair-champion.")).length !== 10 ||
+      tests.some((test) => test.chip?.startsWith("guide-") && test.what !== "test průvodce") ||
+      tests.some((test) => test.chip?.startsWith("fair-champion.") && test.what !== "test FAIR Champion")) fail("catalogue: local issued tests and borrowed FAIR Champion tests do not keep their distinct identities and ownership");
     // Repositories: the guide's own entries keep their names, records from the re3data snapshot nest under re3data.
     await open("#/cs/V/catalogue/repositories");
     const repositoryChips = await view.locator(".catalogue-results .card .entry-head .id-chip").allTextContents();
@@ -624,8 +644,11 @@ sections.push(["page", async () => {
       if (!inSite(href)) fail(`machines: the ${rel} link does not lead to the built API: ${href}`);
     }
     const endpoints = await view.locator(".endpoints tbody td:first-of-type a").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    const collections = await view.evaluate(() => window.FairGuide.config.api.collections.length);
-    if (endpoints.length !== collections + 2 || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
+    const expectedEndpoints = await view.evaluate(() => {
+      const api = window.FairGuide.config.api;
+      return [...api.collections.map((collection) => api.files.record.replace("{record}", collection)), api.files.meta, api.files.context, api.files.health];
+    });
+    if (endpoints.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
     // Every catalogue entry links to its record in the API; the NKR samples are illustrations, not entries.
     for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
       await view.goto(pageUrl + "#/cs/V/catalogue/" + kind);
@@ -748,15 +771,19 @@ sections.push(["page", async () => {
     if (!gathered.all || gathered.shown !== gathered.all || gathered.prompts !== gathered.all || gathered.tagged !== gathered.forOne) fail("ai page: the stations' AI tips are not all gathered with their prompts, or a tip for one view lacks its icon: " + JSON.stringify(gathered));
     const chat = view.locator('[id="cerit"] .section-action a');
     if (!(await chat.count()) || !(await chat.getAttribute("href")).startsWith("https://chat.ai.e-infra.cz") || (await chat.getAttribute("target")) !== "_blank") fail("ai page: the CERIT section does not lead to the e-INFRA CZ AI chat");
-    // Parts of the knowledge base load only when a view needs them: none at the start, the pages' text for a page.
+    // The start loads only its selected core language; a page adds its neutral part and selected translation.
     const fresh = await context.newPage();
     await fresh.goto(pageUrl);
     await rendered(fresh);
-    const atStart = await fresh.locator('script[src*="data/kb-"]').count();
-    await fresh.evaluate(() => { window.location.hash = "#/cs/V/page/about"; });
+    const startLanguage = await fresh.evaluate(() => window.FairGuide.state.lang);
+    const atStart = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
+    await navigationRendered(fresh, () => fresh.evaluate((lang) => { window.location.hash = `#/${lang}/V/page/about`; }, startLanguage));
     await fresh.waitForSelector('[id="why"]');
     const forPage = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
-    if (atStart || forPage.join() !== "assets/data/kb-pages.js") fail(`parts: the start loads ${atStart} part(s), a page loads ${forPage.join(", ")}`);
+    if (atStart.join() !== `assets/data/kb-${startLanguage}.js` ||
+        forPage.join() !== `assets/data/kb-${startLanguage}.js,assets/data/kb-pages.js,assets/data/kb-pages-${startLanguage}.js`) {
+      fail(`parts: the start loads ${atStart.join(", ")}; a page loads ${forPage.join(", ")}`);
+    }
     await fresh.close();
     // The About page links the analysis the guide is built on, where it first names it.
     await view.goto(pageUrl + "#/cs/V/page/about");
@@ -812,9 +839,9 @@ sections.push(["page", async () => {
     const nowActions = await view.locator(".now .now-actions a").evaluateAll((links) => links.map((link) => link.className));
     if (nowActions.length !== 2 || !nowActions[0].includes("button-primary") || !nowActions[1].includes("button-related")) fail("station: the next step is not followed by one quieter related tool: " + nowActions.join(" | "));
     // The how-to opens with the station's key point; the reasons go straight to what the advice rests on.
-    await view.locator('details[data-key="L1"] summary').click();
+    await view.locator('details[data-key="L1"] > summary').click();
     if (!(await view.locator('details[data-key="L1"] .content > .key-point:first-child').textContent()).includes("Hlavní myšlenka")) fail("station: the how-to does not open with the station's key point");
-    await view.locator('details[data-key="L2"] summary').click();
+    await view.locator('details[data-key="L2"] > summary').click();
     if (await view.locator('details[data-key="L2"] h3').count()) fail("station: Proč carries headings of its own (the principles, or what the advice rests on)");
     const entries = await view.locator('details[data-key="L2"] ul.clauses > li').count();
     const chips = await view.locator('details[data-key="L2"] ul.clauses > li a.id-chip').count();
@@ -823,7 +850,7 @@ sections.push(["page", async () => {
     // A requirement shows one way wherever it is cited: its identifier once, its source by short name leading to the
     // source's catalogue entry. The station's terms lead to their catalogue entries, as terms in its text do.
     const cited = await view.locator('details[data-key="L2"] ul.clauses > li').evaluateAll((items) =>
-      items.map((item) => ({ id: (item.querySelector(".id-chip") || {}).textContent, bold: (item.querySelector(".clause-text strong") || {}).textContent, source: item.querySelector("a.source-link") }))
+      items.map((item) => ({ id: (item.querySelector(".id-chip") || {}).textContent, bold: (item.querySelector(".clause-title strong") || {}).textContent, source: item.querySelector("a.source-link") }))
     );
     if (cited.some((item) => item.id && item.bold === item.id)) fail("ids: a requirement shows its identifier twice under Proč");
     const analysisLink = view.locator('details[data-key="L2"] a.source-link', { hasText: "Analýza FAIR pro NRP/NDI" }).first();
@@ -836,7 +863,7 @@ sections.push(["page", async () => {
     await view.waitForSelector(".principle-relations");
     const relationLabels = await view.locator(".principle-relations dt").allTextContents();
     if (relationLabels.join("|") !== "FIP Dashboard|CoreTrustSeal|CDIF") fail("explorer: R1.1's relations are not the FIP Dashboard, CoreTrustSeal and CDIF rows: " + relationLabels.join("|"));
-    if (await view.locator("ul.clauses > li").evaluateAll((items) => items.some((item) => (item.querySelector(".clause-text strong") || {}).textContent === (item.querySelector(".id-chip") || {}).textContent))) fail("explorer: a requirement shows its identifier twice");
+    if (await view.locator("ul.clauses > li").evaluateAll((items) => items.some((item) => (item.querySelector(".clause-title strong") || {}).textContent === (item.querySelector(".id-chip") || {}).textContent))) fail("explorer: a requirement shows its identifier twice");
     // An audience shows by icon and name.
     await view.goto(pageUrl + "#/cs/V/page/ai");
     await view.waitForSelector("#main h1");
@@ -845,7 +872,7 @@ sections.push(["page", async () => {
     await view.goto(pageUrl + "#/cs/V/path/licence");
     await view.waitForSelector(".station");
     /* The station remembers that Proč was open; a click would close it. */
-    if (!(await view.locator('details[data-key="L2"]').evaluate((details) => details.open))) await view.locator('details[data-key="L2"] summary').click();
+    if (!(await view.locator('details[data-key="L2"]').evaluate((details) => details.open))) await view.locator('details[data-key="L2"] > summary').click();
     const chip = view.locator('details[data-key="L2"] ul.clauses a.id-chip').first();
     const id = (await chip.textContent()).trim();
     await chip.click();
@@ -1079,8 +1106,8 @@ async function checkViews(views) {
   await page.goto(pageUrl);
   await rendered(page);
   for (const hash of views) {
-    await page.evaluate((value) => { window.location.hash = value; }, hash);
-    await page.waitForFunction((value) => window.location.hash === value && document.querySelector("#main h1"), hash);
+    await page.evaluate((value) => { document.getElementById("main").dataset.previousView = "true"; window.location.hash = value; }, hash);
+    await page.waitForFunction((value) => window.location.hash === value && document.querySelector("#main h1") && !document.getElementById("main").dataset.previousView, hash);
     const headingText = (await page.textContent("#main h1")).trim();
     if (!headingText) fail(`${hash}: the main heading is empty`);
     const lang = await page.evaluate(() => document.documentElement.lang);
@@ -1164,8 +1191,7 @@ sections.push(["iframe", async () => {
 sections.push(["self-check", async () => {
   const { context, page, external, problems } = await openPage();
   const go = async (hash) => {
-    await page.evaluate((value) => { window.location.hash = value; }, hash);
-    await page.waitForFunction((value) => window.location.hash === value && document.querySelector("#main h1"), hash);
+    await navigationRendered(page, () => page.evaluate((value) => window.FairGuide.navigate(value), hash));
   };
   const checked = (id) => page.locator("#" + id).isChecked();
   await page.goto(pageUrl);
@@ -1290,19 +1316,19 @@ sections.push(["self-check", async () => {
   if (!(await page.locator(".result-headline").textContent()).includes("Kontrolujete: Sample dataset")) fail("dataset check: the result does not name what is checked");
   const evidence = await page.locator("#origin-dataset-02").textContent();
   if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside dataset.02 is incomplete: " + evidence);
-  if ((await page.locator("#origin-dataset-02 a").getAttribute("href")) !== "https://repo.example/record/1") fail("dataset check: the evidence does not link to its record");
+  if (!(await page.locator('#origin-dataset-02 a[href="https://repo.example/record/1"]').count())) fail("dataset check: the evidence does not link to its record");
   await page.locator("#export-format-md").check();
   await page.locator(".export-preview summary").click();
   await page.waitForFunction(() => document.getElementById("export-preview-text").value.length > 0);
   const doiSummary = await page.locator("#export-preview-text").inputValue();
-  if (!doiSummary.includes("url = https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
+  if (!doiSummary.includes("url: https://repo.example/record/1")) fail("dataset check: the Markdown summary lacks the evidence");
   await page.locator("#export-format-jsonld").check();
   if (!(await page.locator("#export-preview-text").inputValue()).includes('"guideState"')) fail("dataset check: the preview does not follow the chosen format");
   await page.locator(".export-preview summary").click();
   await page.locator("#export-format-md").check();
   // Your answers read as a list: the answer beside each question, and the evidence under it.
   const answerRow = await page.locator(".answers-list .answer-row").filter({ has: page.locator(".item-id", { hasText: /^02$/ }) }).textContent();
-  if (!answerRow.includes("Ano") || !answerRow.includes("url = https://repo.example/record/1") || !answerRow.includes("záznam")) fail("dataset check: the answers list lacks the answer or its evidence: " + answerRow);
+  if (!answerRow.includes("Ano") || !answerRow.includes("https://repo.example/record/1") || !answerRow.includes("záznam")) fail("dataset check: the answers list lacks the answer or its evidence: " + answerRow);
   // The summary loads back with the DOI in its field, what it is, and the evidence.
   {
     const saved = resolve(root, ".cache", "doi-summary.md");
@@ -1622,7 +1648,7 @@ sections.push(["self-check", async () => {
   if (!(await panelFits(page))) fail("FIP check: the result so far scrolls or is too tall after pre-fill");
   if (!(await page.locator("#origin-fip-01").textContent()).includes("FIP Dashboard (snímek)")) fail("FIP check: fip.01 does not name its source");
   await page.locator("#answer-fip-01-partly").check();
-  if ((await page.locator("#origin-fip-01 .source-chip").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
+  if ((await page.locator("#origin-fip-01 > .source-chip").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
   await axe(page, "FIP check pre-filled");
 
   // Loading a saved result is a way to start: offered at the top of every check, also before the mode is chosen,
@@ -1666,10 +1692,10 @@ sections.push(["self-check", async () => {
   // Local data: each check says where the answers are kept, and how it works.
   const note = await page.locator(".local-data").textContent();
   if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
-  if (!/<!-- fair-guide-result v1 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
+  if (!/<!-- fair-guide-result v2 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
   if (!/<!-- fair-guide-state\n[A-Za-z0-9+/=\n]+\n-->/.test(md)) fail("export: the Markdown summary does not carry the state for loading back");
   const state = JSON.parse(exportedGraph.find((entity) => entity.guideState).guideState);
-  if (state.format !== "eosc-fair-guide-result" || state.v !== 1 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
+  if (state.format !== "eosc-fair-guide-result" || state.v !== 2 || !state.guideVersion) fail("export: the JSON-LD does not declare its format and the guide's version");
   if (state.fip !== "ndi-baseline" || !state.targetInfo) fail("export: the JSON-LD does not carry the chosen profile and what it is");
 
   // A saved result loads in another browser as a preview, keeps its evidence, and is adopted only on request; a
@@ -1703,7 +1729,7 @@ sections.push(["self-check", async () => {
       }
     };
     await tryLoad(variant("damaged.jsonld", (data) => { data.items["fip.01"].value = "maybe"; }), "poškozený", "load: a damaged file is not reported as damaged");
-    await tryLoad(variant("newer.jsonld", (data) => { data.v = 2; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
+    await tryLoad(variant("newer.jsonld", (data) => { data.v = 3; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
     await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items["fip.99"] = { value: "yes", origin: "user", prefill: null }; }));
     await view.waitForSelector(".notice.shared");
     if (!(await view.locator(".notice.shared").textContent()).includes("vynechali: 1")) fail("load: a question this version does not know is not skipped with a note");
@@ -1717,7 +1743,7 @@ sections.push(["self-check", async () => {
     await view.waitForSelector("#answer-fip-01-partly");
     if (!(await view.locator("#answer-fip-01-partly").isChecked())) fail("load: the adopted answers are not the file's answers");
     const loaded = await view.locator("#origin-fip-01").textContent();
-    if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("liší se od návrhu")) fail("load: the adopted fip.01 lost its evidence or is mislabelled: " + loaded);
+    if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("se liší od návrhu")) fail("load: the adopted fip.01 lost its evidence or is mislabelled: " + loaded);
     const restored = async (format) => {
       if ((await view.locator("#prefill-fip").inputValue()) !== "ndi-baseline") fail(`load (${format}): the profile chosen for pre-fill is not restored`);
       if (!(await view.locator(".target-card").count())) fail(`load (${format}): what the identifier is does not show after loading`);
@@ -1731,7 +1757,7 @@ sections.push(["self-check", async () => {
     await view.getByRole("button", { name: "Použít odpovědi ze souboru" }).click();
     await view.waitForSelector("#answer-fip-01-partly");
     const fromMarkdown = await view.locator("#origin-fip-01").textContent();
-    if (!fromMarkdown.includes("liší se od návrhu")) fail("load (Markdown): the adopted fip.01 lost its evidence: " + fromMarkdown);
+    if (!fromMarkdown.includes("se liší od návrhu")) fail("load (Markdown): the adopted fip.01 lost its evidence: " + fromMarkdown);
     await restored("Markdown");
     // A summary from before the state was carried still loads its answers.
     const older = resolve(root, ".cache", "older-summary.md");
@@ -1799,6 +1825,8 @@ sections.push(["funded output", async () => {
     const live = window.FairGuide.live;
     live.resolvePid = async () => ({ found: true, url: "https://zenodo.org/records/1", title: "Test" });
     live.datacite = async () => ({ doi: "10.5281/zenodo.1", titles: [{ title: "Test" }], creators: [{ name: "Nováková, Jana", nameIdentifiers: [{ nameIdentifier: "https://orcid.org/0000-0002-1825-0097", nameIdentifierScheme: "ORCID" }] }], contributors: [] });
+    live.discoverObject = async (input) => ({ input, pid: live.parsePid(input), date: "2026-10-11T12:00:00Z", supported: true,
+      resolved: await live.resolvePid(), datacite: await live.datacite(), representations: [], diagnostics: [], coverage: {} });
   });
   await page.fill("#prefill-steward", "0000-0001-5109-3700");
   await page.locator("#prefill-steward").dispatchEvent("change");
@@ -1811,7 +1839,7 @@ sections.push(["funded output", async () => {
   // A gap's basis names its source the way every citation does: by short name, leading to the catalogue; a
   // question's basis opens under the same label.
   if (!(await stewardGap.locator('a.source-link[href$="/catalogue/resources/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
-  if (!(await page.locator("#item-dataset-27 details.item-basis summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
+  if (!(await page.locator("#item-dataset-27 details.item-basis > summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
   // FAIR Champion on the dataset, as a second action after the lookup: each question shows its tests and runs them
   // alone, the lookup result runs them all, and no test runs on an identifier that does not resolve. Four outcomes:
   // a pass answers yes, a fail no, an indeterminate verdict or no result leaves the answer to the quick check; the
@@ -1866,13 +1894,14 @@ sections.push(["research practice", async () => {
       });
       await page.goto(pageUrl + `#/${lang}/V/check/${id}`);
       await page.waitForSelector(`#item-${id}-01`);
-      const count = () => page.locator(`fieldset[id^="item-${id}-"]`).count();
+      const count = () => page.locator(`.item[id^="item-${id}-"]`).count();
       if ((await count()) !== basic) fail(`${id} (${lang}): the first view does not have ${basic} advisory questions`);
       if ((await page.locator(".tier-info").textContent()).includes("Minimum")) fail(`${id}: uses the NDI minimum tier`);
       await page.locator(`#answer-${id}-01-unknown`).check();
       if (!(await page.locator("#results .gaps").textContent()).trim()) fail(`${id}: uncertainty has no follow-up`);
       await page.locator('label[for="extended-toggle"]').click();
       if ((await count()) !== total) fail(`${id} (${lang}): the extended check does not have ${total} questions`);
+      if (id === "fdo" && ((await page.locator(".item-context").count()) !== 3 || (await page.locator("fieldset.item").count()) !== 31)) fail(`fdo (${lang}): source definitions create extra answerable obligations`);
       if (!(await page.locator(`#answer-${id}-01-unknown`).isChecked())) fail(`${id}: disclosure loses an answer`);
       const roundTrip = await page.evaluate((id) => {
         const fg = window.FairGuide;
@@ -1924,7 +1953,7 @@ sections.push(["research station links", async () => {
   for (const lang of ["cs", "en"]) {
     for (const lens of ["V", "DS", "SR", "K"]) {
       for (const id of ["software", "notebooks", "provenance", "fdo"]) {
-        await page.goto(pageUrl + `#/${lang}/${lens}/page/${id}`);
+        await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/${lens}/page/${id}`));
         await page.waitForSelector("#main #start");
         const missing = await page.evaluate(({ id, lang, lens }) => {
           const fg = window.FairGuide;
@@ -1945,6 +1974,38 @@ sections.push(["research station links", async () => {
     }
   }
   for (const problem of problems) fail("research station links: " + problem);
+  await context.close();
+}]);
+
+sections.push(["published health and documentation links", async () => {
+  const { context, page, external, problems } = await openPage();
+  const health = JSON.parse(readFileSync(resolve(site, "api/health.json"), "utf8"));
+  const documents = ["health/index.html", "ro-crate-preview.html", "profile/0.1/index.html", "assets/js/tests/index.html"];
+  for (const lang of ["cs", "en"]) {
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/page/machines`));
+    const footerLink = page.locator('footer a[href="health/index.html"]');
+    if (await footerLink.count() !== 1 || await footerLink.getAttribute("hreflang") !== "en") fail(`${lang}: health dashboard is not linked from the footer with its language`);
+    for (const document of documents) {
+      if (!(await page.locator(`#main .machine-tasks a[href^="${document}"]`).count())) fail(`${lang}: Data for machines does not link ${document}`);
+      if (!existsSync(resolve(site, document))) fail(`${lang}: documentation target is missing: ${document}`);
+    }
+    await footerLink.click();
+    await page.waitForSelector("main h1");
+    const text = await page.locator("main").innerText();
+    if (!text.includes("Status: " + health.run.status)) fail("health: dashboard and API show different run outcomes");
+    if (health.generated_at && !text.includes(health.generated_at)) fail("health: dashboard and API have different timestamps");
+    if (!health.generated_at && !text.includes("No completed check run")) fail("health: a plain build claims a completed run");
+    for (const href of await page.locator("nav a").evaluateAll((links) => links.map((link) => link.getAttribute("href")))) {
+      if (!existsSync(fileURLToPath(new URL(href, page.url())))) fail("health: a published report link is broken: " + href);
+    }
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) fail(`health: dashboard overflows at ${width}px`);
+      await axe(page, `health dashboard ${lang} ${width}px`);
+    }
+  }
+  if (external.length) fail("health links: opening the dashboard made external requests: " + external.join(", "));
+  for (const problem of problems) fail("health links: " + problem);
   await context.close();
 }]);
 

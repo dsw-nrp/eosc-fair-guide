@@ -22,35 +22,94 @@
     FG.DASHBOARD = FG.config.links.fipDashboard;
   };
 
-  /* Parts of the knowledge base that only some views need (assets/data/kb-<part>.js, named in FG.config.parts),
-     each loaded once, when a view first needs it, and merged into the graph: whole entities, or properties of
-     entities already there. A part that fails to load is not tried again. */
-  FG.partsLoaded = new Set();
-  const partLoads = {};
-  FG.loadPart = function (name) {
-    if (!partLoads[name]) {
-      partLoads[name] = new Promise((resolve, reject) => {
+  /* Language patches follow the generated tree. Null array positions leave structural or original values alone;
+     objects are updated in place, so the graph index and references keep the same identity on language switching. */
+  function mergeData(target, patch) {
+    for (const [key, value] of Object.entries(patch || {})) {
+      if (value === null) continue;
+      if (value && typeof value === "object") {
+        if (!target[key] || typeof target[key] !== "object") target[key] = Array.isArray(value) ? [] : {};
+        mergeData(target[key], value);
+      } else target[key] = value;
+    }
+  }
+
+  const searchTerms = new WeakMap();
+  function bindSearch(value, entries) {
+    for (const entry of entries || []) {
+      const array = entry.path.reduce((node, key) => node && node[key], value);
+      if (array && typeof array === "object") searchTerms.set(array, entry.words);
+    }
+  }
+
+  const scriptLoads = new Map();
+  function loadScript(path) {
+    if (!scriptLoads.has(path)) {
+      scriptLoads.set(path, new Promise((resolve, reject) => {
         const script = document.createElement("script");
-        script.src = FG.config.parts[name];
-        script.onload = () => {
-          const part = (window.FairGuideData.parts || {})[name] || {};
-          for (const entity of part.entities || []) {
-            FG.graph.push(entity);
-            FG.byId.set(entity["@id"], entity);
-          }
-          for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
-          FG.partsLoaded.add(name);
-          resolve();
-        };
+        script.src = path;
+        script.onload = resolve;
         script.onerror = () => {
-          FG.partsLoaded.add(name);
-          reject(new Error("The guide could not load part " + name + " of its data."));
+          scriptLoads.delete(path);
+          script.remove();
+          reject(new Error("The guide could not load its local data file: " + path));
         };
         document.head.append(script);
+      }));
+    }
+    return scriptLoads.get(path);
+  }
+
+  FG.languagesLoaded = new Set();
+  FG.loadLanguage = async function (lang) {
+    if (FG.languagesLoaded.has(lang)) return;
+    await loadScript(FG.config.languages[lang]);
+    const values = (window.FairGuideData.languages || {})[lang];
+    if (!values) throw new Error("The guide's language data is missing: " + lang);
+    mergeData(window.FairGuideData.kb, values.kb);
+    mergeData(window.FairGuideData.ui, values.ui);
+    bindSearch(window.FairGuideData.kb, values.search);
+    FG.languagesLoaded.add(lang);
+  };
+
+  /* Views load their neutral part and selected language only. Switching language fills translations of the parts
+     already needed without changing answers or refetching neutral entities. All files are local classic scripts. */
+  FG.partsLoaded = new Set();
+  const partLoads = {};
+  const partLanguagesLoaded = new Set();
+  FG.partHasLanguage = (name, lang) => partLanguagesLoaded.has(name + "/" + lang);
+  FG.loadPart = async function (name, lang) {
+    if (!partLoads[name]) {
+      partLoads[name] = loadScript(FG.config.parts[name]).then(() => {
+        const part = (window.FairGuideData.parts || {})[name];
+        if (!part) throw new Error("The guide's data part is missing: " + name);
+        for (const entity of part.entities || []) {
+          FG.graph.push(entity);
+          FG.byId.set(entity["@id"], entity);
+        }
+        FG.partsLoaded.add(name);
+        return part;
+      }).catch((error) => {
+        delete partLoads[name];
+        throw error;
       });
     }
-    return partLoads[name];
+    const part = await partLoads[name];
+    const language = lang || FG.state.lang;
+    if (!FG.partHasLanguage(name, language)) {
+      await loadScript(FG.config.partLanguages[name][language]);
+      const values = ((window.FairGuideData.partLanguages || {})[name] || {})[language];
+      if (!values) throw new Error("The guide's part translation is missing: " + name + "/" + language);
+      mergeData(part, values.values);
+      bindSearch(part, values.search);
+      partLanguagesLoaded.add(name + "/" + language);
+    }
+    for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
   };
+
+  /** Explicit data exports keep bilingual API-style records. Reading a view does not require this load. */
+  FG.completeLanguages = () => Promise.all(LANGS.flatMap((lang) => [FG.loadLanguage(lang),
+    ...[...FG.partsLoaded].map((name) => FG.loadPart(name, lang))]));
 
   FG.list = (value) => (value == null ? [] : Array.isArray(value) ? value : [value]);
   FG.id = (value) => (typeof value === "string" ? value : value && value["@id"]);
@@ -373,6 +432,9 @@
     );
   };
 
+  /** A local test's documentation has a heading in each language; external documentation keeps its own URL. */
+  FG.testDocumentationHref = (url, test) => FG.state.lang === "en" && String(test.identifier).startsWith("guide-") && String(url).endsWith("#" + test.identifier) ? url + "-en" : url;
+
   /* ---------------------------------------------------------------- storage */
 
   FG.storage = {
@@ -495,7 +557,8 @@
       .toLowerCase();
 
   /** A language map's Czech and English text together, for matching in either language. */
-  FG.bothLanguages = (value) => FG.textOf(value, "cs").text + " " + FG.textOf(value, "en").text;
+  FG.bothLanguages = (value) => FG.list(value).map((item) => typeof item === "string" || typeof item === "number"
+    ? String(item) : item && item["@value"]).concat(value && typeof value === "object" ? searchTerms.get(value) : "").filter(Boolean).join(" ");
 
   /** Where the guide is, for links that leave the page (exports, shared links): the address the page is served from,
       or the configured address when it is opened as a local file. Nothing else names the site's address, so the

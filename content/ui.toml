@@ -358,6 +358,11 @@ fip-dashboard-snapshot = { cs = "FIP Dashboard (snímek)", en = "FIP Dashboard (
 nanopub = { cs = "nanopublikace FIP", en = "the FIP nanopublication" }
 champion = { cs = "FAIR Champion", en = "FAIR Champion" }
 shared = { cs = "sdílený odkaz", en = "a shared link" }
+landing = { cs = "stránka objektu", en = "the object landing page" }
+zenodo = { cs = "veřejný záznam Zenodo", en = "the public Zenodo record" }
+pid-record = { cs = "záznam PID", en = "the PID record" }
+github = { cs = "veřejný repozitář GitHub", en = "the public GitHub repository" }
+gitlab = { cs = "veřejný repozitář GitLab", en = "the public GitLab repository" }
 
 [selfcheck.origin]
 prefilled = { cs = "Vyplněno podle zdroje {source}, {date}", en = "Filled in from {source}, {date}" }
@@ -380,6 +385,25 @@ noDeclaration = { cs = "FIP k tomu nic nedeklaruje; doplňte to v profilu, nebo 
 declared = { cs = "Deklarované zdroje", en = "Declared resources" }
 noVerdict = { cs = "Testy nedaly výsledek; odpovězte ručně.", en = "The tests gave no verdict; answer by hand." }
 lookupFailed = { cs = "{source} se nepodařilo ověřit; odpovězte ručně, nebo to zkuste znovu.", en = "{source} could not be checked; answer by hand or try again." }
+partialCoverage = { cs = "Tento podklad dokládá jen část otázky. Zbývající části ověřte podle jejího znění a původního zdroje.", en = "This evidence supports only part of the question. Check the remaining parts against its wording and original source." }
+sourceConflict = { cs = "Podklady si odporují. Automatický návrh zůstává otevřený; vaši vlastní odpověď zachováme.", en = "The observations disagree. The automated suggestion remains open; your own answer is preserved." }
+representation = { cs = "Posouzen je pouze uvedený záznam nebo formát metadat, nikoli shoda celého objektu s profilem.", en = "Only the stated record or metadata format was inspected, not the object's full profile conformance." }
+repositoryScope = { cs = "Podklad se vztahuje k uvedenému repozitáři a commitu. Přítomnost souboru nedokládá jeho úplnost, úspěšné spuštění ani dlouhodobé uchování.", en = "The evidence concerns the stated repository and commit. File presence does not establish completeness, successful execution or long-term preservation." }
+profileDeclaration = { cs = "Metadata deklarují profil. Deklarace sama nedokládá ověřenou shodu ani úplnost.", en = "The metadata declare a profile. The declaration alone does not establish verified conformance or completeness." }
+unsupportedPid = { cs = "Tento identifikátor automaticky neprohlížíme. Posouzení lze doplnit ručně podle jeho záznamu a odkazovaných metadat.", en = "Automatic inspection is unavailable for this identifier. Complete the assessment manually from its record and linked metadata." }
+sampleCoverage = { cs = "Podklad se týká pouze zadaného vzorku záznamů. Nedokládá chování celého repozitáře.", en = "The evidence covers only the supplied sample records. It does not establish behaviour across the repository." }
+titleMeaning = { cs = "Název je uveden. Zda zdroj dostatečně a jednoznačně vystihuje, posuďte podle jeho obsahu.", en = "A title is present. Assess from the content whether it identifies the resource adequately and uniquely." }
+rightsCoverage = { cs = "Licenční údaj je dostupný. Další podmínky přístupu, smluvní či bezpečnostní omezení tato kontrola neověřila.", en = "A licence statement is available. This lookup has not checked other access conditions or contractual or security restrictions." }
+classificationScheme = { cs = "Typ zdroje je uveden. Ověřte také označení a klasifikační schéma požadované tímto bodem.", en = "A resource type is stated. Also check the label and classification scheme required by this item." }
+descriptionCoverage = { cs = "Popis je dostupný. Ještě posuďte, zda zahrnuje obsah, kontext i původ zdroje.", en = "A description is available. Still assess whether it covers the resource’s content, context and provenance." }
+creatorIdentifiers = { cs = "Původci jsou uvedeni. Úplnost seznamu a identifikátory jednotlivých osob či organizací ověřte ručně.", en = "Originators are listed. Check the completeness of the list and each person’s or organisation’s identifiers manually." }
+keywordScheme = { cs = "Některé popisné údaje jsou dostupné. Ověřte úplnost a rozlišení odborných hesel ze slovníků od volných štítků.", en = "Some descriptive information is available. Check its completeness and distinguish vocabulary terms from free tags." }
+pidProfile = { cs = "Záznam PID je strukturovaný. Soulad s určeným profilem PID a dohledání všech prvků FDO nebyly ověřeny.", en = "The PID record is structured. Conformance to a specified PID profile and discovery of every FDO element have not been checked." }
+commitVersion = { cs = "Zadaný stav kódu má identifikátor commitu. Samostatné označení každé vydané verze tím není doloženo.", en = "The selected code state has a commit identifier. This does not establish a distinct identifier for every released version." }
+copyrightCoverage = { cs = "Licenční údaj byl nalezen. Zkontrolujte také autorskoprávní informace a zda se záznam vztahuje ke všemu hodnocenému softwaru.", en = "A licence statement was found. Also check copyright information and whether the record covers all the software being assessed." }
+bundledLicences = { cs = "Licenční soubor je dostupný. Tato kontrola neposoudila jeho obsah ani licence všech přibalených součástí.", en = "A licence file is available. This lookup has not assessed its content or the licences of every bundled component." }
+testsNotRun = { cs = "Definice testu je dostupná. Testy nebyly spuštěny; jejich pokrytí, vstupní data a výsledky je třeba posoudit zvlášť.", en = "A test definition is available. Tests were not run; assess their coverage, input data and results separately." }
+dependenciesCoverage = { cs = "Deklarace závislostí je dostupná. Úplnost, sestavení, nastavení a srozumitelnost návodu je třeba posoudit zvlášť.", en = "A dependency declaration is available. Assess completeness, build, configuration and usable instructions separately." }
 
 [selfcheck.fipStatus]
 in-use = { cs = "používá se", en = "in use" }
@@ -443,6 +467,48 @@ differs = { cs = "liší se od návrhu", en = "differs from the suggestion" }
 none = { cs = "bez podkladu", en = "no evidence" }
 notStated = { cs = "záznam to neuvádí", en = "the record does not state it" }
 record = { cs = "záznam", en = "record" }
+suggestion = { cs = "Automatický návrh", en = "Automated suggestion" }
+details = { cs = "Podklady a technické podrobnosti", en = "Evidence and technical details" }
+subject = { cs = "Posuzováno", en = "Inspected subject" }
+representation = { cs = "Záznam nebo formát", en = "Record or format" }
+commit = { cs = "Commit", en = "Commit" }
+coverage = { cs = "Rozsah ověření", en = "Inspection scope" }
+bounded = { cs = "Tento uložený podklad není úplný. Prohlédněte také jeho zdroj.", en = "This saved evidence is incomplete. Inspect its source as well." }
+boundedLog = { cs = "Uložený výstup testu není úplný. Pro úplný výstup bude třeba test zopakovat.", en = "The saved test output is incomplete. Rerun the test to obtain its full output." }
+openSource = { cs = "Otevřít podklad", en = "View source record" }
+endpoint = { cs = "Adresa požadavku", en = "Request endpoint" }
+invocation = { cs = "Odeslaný požadavek", en = "Request sent" }
+documentation = { cs = "Popis testu", en = "Test documentation" }
+serviceDocumentation = { cs = "Dokumentace služby", en = "Service documentation" }
+code = { cs = "Kód testu", en = "Test code" }
+local = { cs = "Vyhodnocuje načtené podklady při předvyplnění v prohlížeči.", en = "Evaluates loaded evidence during prefill in the browser." }
+call = { cs = "Volání testu v prohlížeči", en = "Browser test invocation" }
+more = { cs = "Dalších nezobrazených hodnot: {n}.", en = "Additional values not shown: {n}." }
+log = { cs = "Vysvětlení testu", en = "Test explanation" }
+originalLog = { cs = "Původní výstup testu", en = "Original test output" }
+requestError = { cs = "Test nevrátil ověřitelný výsledek. Technické vysvětlení požadavku:", en = "The test returned no verifiable result. Technical request explanation:" }
+
+[selfcheck.question]
+previousAnswer = { cs = "Dříve uložená odpověď (zachovaná pro dohledatelnost)", en = "Previously saved answer (retained for traceability)" }
+responsible = { cs = "Odpovědnost", en = "Responsibility" }
+context = { cs = "Kontext původního zdroje", en = "Original source context" }
+contextHint = { cs = "Tato položka vysvětluje zdroj; nepřidává další podmínku a nepočítá se mezi posuzovaná kritéria.", en = "This item explains the source; it adds no further obligation and is not counted among assessed criteria." }
+
+[selfcheck.field]
+licence = { cs = "Licence", en = "Licence" }
+title = { cs = "Název", en = "Title" }
+description = { cs = "Popis", en = "Description" }
+creators = { cs = "Původci", en = "Creators" }
+contributors = { cs = "Přispěvatelé", en = "Contributors" }
+identifier = { cs = "Identifikátor", en = "Identifier" }
+publication = { cs = "Zveřejnění", en = "Publication" }
+modified = { cs = "Poslední změna", en = "Last change" }
+version = { cs = "Verze", en = "Version" }
+keywords = { cs = "Klíčová slova", en = "Keywords" }
+dependencies = { cs = "Závislosti a sestavení", en = "Dependencies and build" }
+files = { cs = "Prohlédnuté soubory", en = "Inspected files" }
+type = { cs = "Typ objektu", en = "Object type" }
+profile = { cs = "Deklarovaný profil", en = "Declared profile" }
 
 [selfcheck.state]
 met = { cs = "splněno", en = "met" }
@@ -514,6 +580,7 @@ entry = { cs = "Položka v katalogu", en = "Catalogue entry" }
 record = { cs = "Záznam v API", en = "Record in the API" }
 
 [footer]
+health = { cs = "Výsledky kontrol (EN)", en = "Healthcheck results" }
 version = { cs = "Verze {version} ze dne {date}", en = "Version {version} of {date}" }
 cite = { cs = "Jak citovat průvodce", en = "How to cite the guide" }
 basis = { cs = "Obsah vychází z", en = "The content builds on" }
@@ -580,7 +647,8 @@ created = { cs = "obsah vytvořen", en = "content created" }
 updated = { cs = "obsah upraven", en = "content updated" }
 changedItems = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{n} items" }
 openEntry = { cs = "{id} v katalogu", en = "{id} in the catalogue" }
-guidance = { cs = "Pokyny k požadavku (anglicky, jak je zdroj zveřejňuje)", en = "Guidance on the requirement (as the source publishes it)" }
+guidance = { cs = "Původní znění ze zdroje", en = "Original source wording" }
+originalLicense = { cs = "Licence původního textu", en = "Original text licence" }
 entries = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} entry|{n} entries" }
 filters = { cs = "Filtry", en = "Filters" }
 active = { cs = "Zvolené filtry", en = "Chosen filters" }
@@ -593,6 +661,7 @@ fewerValues = { cs = "Méně hodnot", en = "Fewer values" }
 noStation = { cs = "nemají zastávku", en = "have no station" }
 noPrinciple = { cs = "nemají princip", en = "have no principle" }
 noKindFilter = { cs = "Filtr {facets} platí jen pro druh {kind}; jiný druh ho zruší.", en = "The {facets} filter applies only to {kind}; another kind clears it." }
+testHealthNote = { cs = "Stav se vztahuje k externím službám a platí k datu uvedenému u testu. Místní testy stav služby nemají.", en = "Status applies to external services as of the date shown on each test. Local tests have no service status." }
 withoutStation = { cs = "Bez zastávky", en = "Without a station" }
 withoutPrinciple = { cs = "Bez principu", en = "Without a principle" }
 withoutStatus = { cs = "Bez stavu", en = "No status" }
@@ -608,7 +677,7 @@ statement = { cs = "zjištění", en = "finding" }
 [catalogue.tab]
 resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře a registry", en = "Repositories and registries" }
-clauses = { cs = "Požadavky", en = "Requirements" }
+clauses = { cs = "Požadavky a doporučení", en = "Requirements and recommendations" }
 terms = { cs = "Pojmy", en = "Glossary" }
 fips = { cs = "Profily FIP", en = "FIP profiles" }
 tests = { cs = "Testy FAIR", en = "FAIR tests" }
@@ -619,7 +688,7 @@ actions = { cs = "Změny obsahu", en = "Content changes" }
 all = { cs = "Vše, z čeho průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the guide builds on and recommends, in one catalogue." }
 terms = { cs = "Pojmy otevřené vědy, na které průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the guide links to, taken from Heslář." }
 fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
-tests = { cs = "Automatické testy FAIR Champion, které průvodce používá; každý ověřuje jeden princip.", en = "The FAIR Champion automated tests the guide uses; each checks one principle." }
+tests = { cs = "Automatické testy pro předvyplnění kontrol, s popisy, souvisejícími otázkami a principy, kódem nebo adresou služby a dokumentací.", en = "Automated tests used to prefill the checks, with descriptions, related questions and principles, code or service endpoints, and documentation." }
 clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
 questions = { cs = "Otázky všech kontrol sebehodnocení, s principy, které ověřují, a požadavky, ze kterých vycházejí.", en = "The questions of every self-check, with the principles they test and the requirements they rest on." }
 actions = { cs = "Kdy a jak se obsah průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
@@ -636,6 +705,11 @@ identifiers = { cs = "Identifikátory", en = "Identifiers" }
 term = { cs = "pojem Hesláře", en = "Heslář term" }
 fip = { cs = "profil FIP", en = "FIP profile" }
 test = { cs = "test FAIR Champion", en = "FAIR Champion test" }
+localTest = { cs = "test průvodce", en = "guide test" }
+
+[catalogue.testExecution]
+browser = { cs = "v prohlížeči", en = "in the browser" }
+service = { cs = "externí služba", en = "external service" }
 
 [catalogue.health]
 available = { cs = "funguje", en = "available" }
@@ -643,6 +717,9 @@ degraded = { cs = "funguje omezeně", en = "degraded" }
 unavailable = { cs = "nefunguje", en = "unavailable" }
 
 [machines]
+preview = { cs = "Náhled znalostní báze", en = "Knowledge base preview" }
+profile = { cs = "Profil RO-Crate průvodce", en = "The guide's RO-Crate profile" }
+testDocs = { cs = "Dokumentace testů průvodce", en = "Guide test documentation" }
 example = { cs = "například", en = "for example" }
 headLinks = { cs = "odkazy v hlavičce stránky", en = "links in the page head" }
 tasksCaption = { cs = "Co hledáte a kde to najdete", en = "What you are looking for and where it is" }
@@ -674,6 +751,14 @@ what = { cs = "Popis API ve formátu OpenAPI 3.1 a jeho interaktivní dokumentac
 [machines.task.harvest]
 want = { cs = "aby průvodce harvester našel sám", en = "a harvester to find the guide on its own" }
 what = { cs = "FAIR Signposting: typované odkazy v hlavičce každé stránky a linkset, který je vypisuje v jednom souboru.", en = "FAIR Signposting: typed links in the head of every page and a linkset that lists them in one file." }
+
+[machines.task.health]
+want = { cs = "výsledky kontrol průvodce", en = "the guide's check results" }
+what = { cs = "Přehled kontrol obsahu a sestavení v angličtině a stejný výsledek v JSON. Uvádí také kontroly, které neproběhly.", en = "Content and build check results in an English dashboard and the same report in JSON, including checks that did not run." }
+
+[machines.task.tests]
+want = { cs = "jak fungují automatické testy průvodce", en = "how the guide's automated tests work" }
+what = { cs = "Účel, zdrojový kód a volaná funkce každého testu; katalog propojuje testy s otázkami a citovanými požadavky.", en = "Each test's purpose, source code and invoked function; the catalogue links tests to questions and cited requirements." }
 
 [machines.task.result]
 want = { cs = "uložit a sdílet výsledek kontroly", en = "to save and share a check result" }
@@ -715,6 +800,8 @@ cited = { cs = "podklad obsahu", en = "basis of the content" }
 dashboard = { cs = "ve FIP Dashboardu", en = "in the FIP Dashboard" }
 
 [catalogue.facet]
+execution = { cs = "Kde test běží", en = "Where the test runs" }
+thealth = { cs = "Zaznamenaný stav služby", en = "Recorded service status" }
 kind = { cs = "Druh", en = "Kind" }
 station = { cs = "Zastávka", en = "Station" }
 principle = { cs = "Princip", en = "Principle" }
@@ -770,6 +857,8 @@ guide = { cs = "Průvodce FAIR daty", en = "The FAIR Data Guide" }
 server = { cs = "Web, který tento popis poskytuje", en = "The site that serves this description" }
 meta = { cs = "Z čeho je API sestaveno", en = "What the API is built from" }
 metaTag = { cs = "Popis API a jeho kontext JSON-LD", en = "The API's provenance and its JSON-LD context" }
+health = { cs = "Výsledky kontrol obsahu a sestavení", en = "Content and build check results" }
+healthDescription = { cs = "Uložený přehled integrity obsahu, původních znění zdrojů a výsledků běhu kontrol. Samotné sestavení neznamená provedení kontrol; jejich běh následně aktualizuje tento soubor. Dostupnost externích služeb zůstává výslovně neověřená. Endpoint /health FIP Dashboardu naproti tomu popisuje dostupnost běžící služby a počty jejích záznamů.", en = "A published snapshot of content integrity, original-source coverage and check-run results. A build alone does not run the checks; a completed check run then updates this file. External-service availability remains explicitly unchecked. The FIP Dashboard's /health endpoint reports the running service's liveness and collection counts." }
 context = { cs = "Kontext JSON-LD", en = "The JSON-LD context" }
 openapi = { cs = "Popis API (OpenAPI 3.1)", en = "API description (OpenAPI 3.1)" }
 docs = { cs = "Interaktivní dokumentace API", en = "Interactive API documentation" }
@@ -778,6 +867,7 @@ record = { cs = "JSON", en = "JSON" }
 recordTitle = { cs = "Záznam v API průvodce", en = "Record in the guide's API" }
 
 [api.test]
+contextDescription = { cs = "Tato položka vysvětluje kontext původního zdroje. Nepředstavuje samostatné hodnotitelné kritérium.", en = "This item explains the original source's context. It does not represent a separate assessable criterion." }
 name = { cs = "Ruční test otázky {id}", en = "Manual test of question {id}" }
 description = { cs = "Test provádí člověk v sebehodnocení průvodce: odpověď ano je pass, ne je fail, částečně a nevím jsou indeterminate.", en = "A person runs the test in the guide's self-check: yes is pass, no is fail, partly and don't know are indeterminate." }
 
@@ -858,3 +948,33 @@ name = { cs = "Změny obsahu", en = "Content changes" }
 description = { cs = "Změny obsahu průvodce s tím, co změnily a z čeho vycházejí.", en = "The changes to the guide's content, with what they changed and what they rest on." }
 record = { cs = "Jedna změna", en = "One change" }
 parameter = { cs = "Identifikátor změny", en = "The change's identifier" }
+
+[selfcheck.discovery]
+readable = { cs = "Načtené záznamy a formáty", en = "Records and formats read" }
+pid = { cs = "Identifikátor posuzovaného objektu (například DOI nebo Handle)", en = "Identifier of the object being assessed (such as a DOI or Handle)" }
+hint = { cs = "Načtení prohlédne dostupný záznam identifikátoru a podporované odkazy na metadata. Neposoudí celý profil ani vlastnosti infrastruktury. Další identifikátory lze doplnit pro ruční posouzení.", en = "The lookup inspects the available identifier record and supported metadata links. It does not assess a complete profile or infrastructure properties. Other identifiers can be entered for manual assessment." }
+limited = { cs = "Část podkladů se nepodařilo prohlédnout. Chybějící výsledek neznamená nesplněný požadavek.", en = "Some evidence could not be inspected. A missing result does not mean the requirement is unmet." }
+details = { cs = "Rozsah načtení a nedostupné podklady", en = "Lookup scope and unavailable evidence" }
+sampleButton = { cs = "Prohlédnout metadata vzorku", en = "Inspect sample metadata" }
+sampleHint = { cs = "Rychlé načtení ponechá zjištění u jednotlivých záznamů. Testy FAIR Champion spustíte samostatně níže.", en = "The quick lookup retains observations for individual records. Run FAIR Champion tests separately below." }
+
+[selfcheck.discovery.reason]
+origin = { cs = "Tato doména zatím není mezi povolenými zdroji automatického načítání. Podklad můžete prohlédnout přímo.", en = "This domain is not currently an approved automatic lookup source. You can inspect the evidence directly." }
+browser = { cs = "Prohlížeč nemohl podklad načíst. Příčinou může být síť, přesměrování nebo omezení přístupu z jiné stránky (CORS). Z této chyby nelze určit, zda metadata existují.", en = "The browser could not read this evidence. Network access, a redirect or restrictions on access from another page (CORS) may be the cause. This error does not establish whether metadata exist." }
+identity = { cs = "Podklad se nepodařilo bezpečně přiřadit k posuzovanému objektu. Jeho údaje se nepoužily k předvyplnění.", en = "The evidence could not be reliably linked to the inspected object. Its values were not used for prefill." }
+format = { cs = "Tento formát se automaticky nevyhodnocuje. Podklad můžete prohlédnout přímo.", en = "This format is not evaluated automatically. You can inspect the evidence directly." }
+timeout = { cs = "Zdroj neodpověděl v časovém limitu. Načtení můžete zopakovat.", en = "The source did not respond within the time limit. You can retry the lookup." }
+rate = { cs = "Služba omezila počet požadavků. Načtení můžete zopakovat později.", en = "The service limited the request rate. You can retry later." }
+limit = { cs = "Načítání dosáhlo limitu velikosti nebo počtu podkladů. Část zůstala neprohlédnutá.", en = "The lookup reached its size or evidence-count limit. Some evidence remains uninspected." }
+service = { cs = "Zdroj se nepodařilo načíst. Technické podrobnosti jsou uvedeny níže.", en = "The source could not be read. Technical details are below." }
+
+[selfcheck.software]
+repository = { cs = "Veřejný repozitář na GitHub.com nebo GitLab.com", en = "Public repository on GitHub.com or GitLab.com" }
+ref = { cs = "Větev, tag nebo commit (nepovinné; jinak výchozí větev)", en = "Branch, tag or commit (optional; otherwise the default branch)" }
+button = { cs = "Prohlédnout repozitář", en = "Inspect repository" }
+hint = { cs = "Kontrola čte veřejná metadata a vybrané soubory k jednomu konkrétnímu commitu. Kód nesestavuje ani nespouští. Výsledek nenahrazuje ověření funkčnosti, úplnosti dokumentace nebo dlouhodobého uchování.", en = "The lookup reads public metadata and selected files at one particular commit. It does not build or run the code. The result does not replace checks of functionality, documentation completeness or long-term preservation." }
+unavailable = { cs = "Veřejný repozitář nebo zadaný stav kódu se nepodařilo načíst. Posouzení můžete doplnit ručně.", en = "The public repository or requested code state could not be loaded. You can complete the assessment manually." }
+
+[selfcheck.coverage]
+sample = { cs = "Jeden záznam ze vzorku", en = "One sample record" }
+representation = { cs = "Jeden prohlédnutý metadatový záznam", en = "One inspected metadata record" }

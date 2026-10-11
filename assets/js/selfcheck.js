@@ -24,11 +24,15 @@
   /* The result format: its name and version are written into every JSON-LD and Markdown export, with the guide's
      version, so a file can be read by the version that understands it. */
   const FORMAT = "eosc-fair-guide-result";
-  const FORMAT_VERSION = 1;
+  const FORMAT_VERSION = 2;
+  const OBSERVATION_MAX = 8;
+  const VALUE_MAX = 65536;
+  const EVIDENCE_MAX = 131072;
+  const LOG_MAX = 65536;
   const MAX_FILE = 2 * 1024 * 1024;
-  const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared"];
+  const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared", "landing", "pid-record", "github", "gitlab"];
   const R3D = /r3d\d{9}/i;
-  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid"];
+  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid", "partialCoverage", "sourceConflict", "representation", "repositoryScope", "profileDeclaration", "unsupportedPid", "sampleCoverage", "titleMeaning", "rightsCoverage", "classificationScheme", "descriptionCoverage", "creatorIdentifiers", "keywordScheme", "pidProfile", "commitVersion", "copyrightCoverage", "bundledLicences", "testsNotRun", "dependenciesCoverage"];
   const ORCID_ID = /^(?:https?:\/\/orcid\.org\/)?(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i;
   const LENS_ACTOR = { V: "#actor-user", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
   const status = { check: null, text: "", busy: false };
@@ -104,7 +108,7 @@
   const providedByNrp = (item, st) => Boolean(st.profile) && FG.hasRef(item, "providedByNrpFor", "#profile-" + st.profile);
   const isFirstTier = (item) => FIRST_TIERS.includes(FG.id(item.tier));
   const applicable = (check, st) => (ready(check, st) ? itemsOf(check).filter((item) => applies(item, st)) : []);
-  const answerable = (check, st) => applicable(check, st).filter((item) => !providedByNrp(item, st));
+  const answerable = (check, st) => applicable(check, st).filter((item) => !providedByNrp(item, st) && !item.assessmentContext);
   /** The items a result covers: those the first view shows, every item once the check is extended, and any item
       the user has answered, so an answer to an extended item counts after the view returns to the basic items. */
   function resultItems(check, st) {
@@ -187,13 +191,13 @@
 
   /** Record the evidence of one source for every item it can answer. A pre-filled value never replaces an answer
       the user gave, and evidence without a value never hides an earlier source's suggestion. */
-  function applyEvidence(check, source, evidence, date, recordUrl) {
+  function applyEvidence(check, source, evidence, date, recordUrl, direct) {
     const st = stateOf(check);
     let filled = 0;
     for (const item of answerable(check, st)) {
       const entry = prefillOf(item, source);
-      if (!entry) continue;
-      const result = evidence(item, FG.list(entry.value));
+      if (!entry && !direct) continue;
+      const result = evidence(item, FG.list(entry && entry.value));
       if (!result) continue;
       let value = result.value || null;
       const notes = (result.notes || []).slice();
@@ -202,16 +206,31 @@
         notes.push({ key: "selfcheck.note.partlyOnly" });
       }
       const current = record(st, item) || {};
-      if (!value && current.prefill && current.prefill.value) continue;
-      const prefill = { source: result.source || source, date: result.date || date, value, notes, list: result.list || [], fields: result.fields || [], record: result.record || recordUrl || null };
-      const next = Object.assign({}, current, { prefill });
+      const observation = readPrefill({ source: result.source || source, date: result.date || date, value, notes, list: result.list || [], fields: result.fields || [], record: result.record || recordUrl || null, subject: result.subject || stateOf(check).target || null, representation: result.representation || null, commit: result.commit || null, coverage: result.coverage || null, testId: result.testId || null });
+      if (!observation) continue;
+      const previous = observationsOf(current);
+      const identity = (seen) => [seen.source, seen.record, seen.subject, seen.representation].join("|");
+      const observations = previous.filter((seen) => identity(seen) !== identity(observation)).concat(observation).slice(-OBSERVATION_MAX);
+      const supported = observations.filter((seen) => seen.value);
+      const conflict = supported.some((seen) => seen.value === "yes") && supported.some((seen) => seen.value === "no");
+      const chosen = conflict ? observation : supported[supported.length - 1] || observation;
+      const prefill = Object.assign({}, chosen, conflict ? { value: null, notes: chosen.notes.concat({ key: "selfcheck.note.sourceConflict" }) } : {});
+      const next = Object.assign({}, current, { prefill, observations });
+      value = prefill.value;
       if (current.origin !== "user" && value) Object.assign(next, { value, origin: "prefill" });
+      else if (current.origin !== "user") delete next.value;
       else if (!current.origin) next.origin = "prefill";
       st.items[item.identifier] = next;
       if (value) filled += 1;
     }
     save();
     return filled;
+  }
+
+  /** Older saved answers have one pre-fill record; treat it as an observation without fabricating history. */
+  function observationsOf(entry) {
+    if (!entry) return [];
+    return Array.isArray(entry.observations) ? entry.observations.slice(-OBSERVATION_MAX) : entry.prefill ? [entry.prefill] : [];
   }
 
   function filled(value) {
@@ -244,10 +263,10 @@
       const key = ["rightsUri", "rights", "relatedIdentifier", "nameIdentifier", "affiliationIdentifier", "name", "title", "description", "subject", "identifier", "url", "value"].find((name) =>
         filled(value[name])
       );
-      return key ? summarise(value[key]) : JSON.stringify(value).slice(0, 80);
+      return key ? summarise(value[key]) : JSON.stringify(value).slice(0, VALUE_MAX);
     }
     const text = String(value).replace(/\s+/g, " ").trim();
-    return text.length > 120 ? text.slice(0, 117) + "…" : text;
+    return text.slice(0, VALUE_MAX);
   }
 
   /** The values a record holds at a path, for the evidence shown beside an item. */
@@ -273,7 +292,7 @@
     return paths
       .map((path) => {
         const values = pathValues(record, path);
-        return values.length ? { path, values: values.slice(0, SHOWN_VALUES), more: Math.max(0, values.length - SHOWN_VALUES) } : null;
+        return values.length ? { path, values: values.slice(0, 8), more: Math.max(0, values.length - 8) } : null;
       })
       .filter(Boolean);
   }
@@ -357,7 +376,10 @@
       if (!entry || typeof entry !== "object") continue;
       const unchanged = entry.origin === "shared" && entry.prefill && (entry.value || null) === (entry.prefill.value || null);
       if (entry.origin === "prefill" || unchanged) delete st.items[id];
-      else delete entry.prefill;
+      else {
+        delete entry.prefill;
+        delete entry.observations;
+      }
     }
   }
 
@@ -383,6 +405,8 @@
     delete st.verdicts;
     delete st.target;
     delete st.targetInfo;
+    delete st.inspection;
+    if (key === "software") delete st.softwareRef;
     save();
     status.check = check.identifier;
     status.text = FG.t("selfcheck.prefill.cleared");
@@ -418,6 +442,8 @@
     let count = 0;
     try {
       count = await work(messages);
+    } catch (error) {
+      messages.push(FG.t("selfcheck.prefill.failed", { source: label(source) }));
     } finally {
       status.busy = false;
     }
@@ -427,49 +453,7 @@
     FG.rerender(focusId);
   }
 
-  function prefillFromPid(check, pid) {
-    return runPrefill(check, pid.type === "doi" ? "datacite" : "resolver", "prefill-pid-run", async (messages) => {
-      const date = today();
-      let count = 0;
-      try {
-        const resolved = await FG.live.resolvePid(pid);
-        if (resolved.found) describeTarget(check, { name: resolved.title, url: resolved.url });
-        count += applyEvidence(
-          check,
-          "resolver",
-          () =>
-            resolved.found
-              ? { value: "yes", notes: resolved.url ? [{ key: "selfcheck.note.resolves", params: { url: resolved.url } }] : [] }
-              : { value: null, notes: [{ key: "selfcheck.note.notResolved" }] },
-          date,
-          resolved.url || null
-        );
-      } catch (error) {
-        messages.push(FG.t("selfcheck.prefill.failed", { source: label("resolver") }));
-      }
-      if (pid.type !== "doi") return count;
-      try {
-        const attributes = await FG.live.datacite(pid.value);
-        const recordUrl = FG.config.links.dataciteRecord ? FG.config.links.dataciteRecord + pid.value : null;
-        if (attributes) describeTarget(check, dataciteInfo(attributes));
-        if (attributes)
-          count += applyEvidence(
-            check,
-            "datacite",
-            (item, fields) =>
-              fields.includes("@steward")
-                ? stewardEvidence(attributes, stateOf(check).steward)
-                : Object.assign(fieldEvidence(fields.map((field) => pathState(attributes, field))), { fields: fieldsOf(attributes, fields) }),
-            date,
-            recordUrl
-          );
-        else messages.push(FG.t("selfcheck.prefill.notFound", { source: label("datacite") }));
-      } catch (error) {
-        messages.push(FG.t("selfcheck.prefill.failed", { source: label("datacite") }));
-      }
-      return count;
-    });
-  }
+  const prefillFromPid = (...args) => loadInspection().then(() => inspection.prefillFromPid(...args));
 
   function prefillFromNkr(check, nkrRecord) {
     const st = stateOf(check);
@@ -702,66 +686,29 @@
   const foundFields = (pre) => FG.list(pre.fields).filter((field) => field && FG.list(field.values).length);
   const fieldText = (field) => field.path + " = " + field.values.join(", ") + (field.more ? " (+" + field.more + ")" : "");
 
-  /** The evidence beside an item: the verdict of a pre-fill with the values it found, its source, date and record,
-      a change by the user, or a shared link. */
-  function origin(st, item) {
-    const entry = record(st, item);
-    if (!entry) return null;
-    const value = answerOf(st, item);
-    const parts = [];
-    if (entry.origin === "shared") parts.push(h("p", { class: "source-chip", "data-origin": "shared" }, FG.t("selfcheck.origin.shared")));
-    const pre = entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
-    if (pre) {
-      const params = { source: label(pre.source), date: FG.formatDate(pre.date) };
-      let kind = entry.origin === "prefill" ? "prefilled" : "confirmed";
-      if (!pre.value) kind = "suggestion";
-      else if (entry.origin === "user" && value !== pre.value) kind = "changed";
-      /* An answer taken from someone else's result was not confirmed or changed by this user. */
-      else if (entry.origin === "shared") kind = value !== pre.value ? "differs" : "prefilled";
-      const verdict =
-        kind === "changed" || kind === "differs"
-          ? h("span", { class: "verdict", "data-kind": "changed" }, FG.t("selfcheck.evidence." + kind))
-          : pre.value
-            ? stateLabel(ANSWER_STATE[pre.value])
-            : h("span", { class: "verdict", "data-kind": "none" }, FG.t("selfcheck.evidence.none"));
-      /* A FAIR Champion answer's verdicts show on the question's test line. */
-      const fields = pre.source === "champion" ? [] : foundFields(pre);
-      parts.push(
-        h(
-          "p",
-          { class: "evidence-head" },
-          verdict,
-          fields.map((field) => [" · ", h("span", { class: "evidence-field" }, h("code", null, field.path), " = ", h("code", null, field.values.join(", ")), field.more ? " (+" + field.more + ")" : "")])
-        ),
-        h(
-          "p",
-          { class: "source-chip", "data-origin": kind },
-          FG.t("selfcheck.origin." + kind, Object.assign(params, { value: pre.value ? FG.t("selfcheck.answer." + pre.value) : "" })),
-          pre.record ? [" · ", FG.external(pre.record, FG.t("selfcheck.evidence.record"))] : null
-        )
-      );
-      for (const note of FG.list(pre.notes)) if (note && typeof note === "object") parts.push(h("p", { class: "small" }, noteText(note)));
-      const list = FG.list(pre.list).filter((entryItem) => entryItem && entryItem.name);
-      if (list.length) {
-        parts.push(
-          h("p", { class: "small" }, FG.t("selfcheck.note.declared") + ":"),
-          h(
-            "ul",
-            { class: "small" },
-            list.map((fer) =>
-              h(
-                "li",
-                null,
-                fer.url ? FG.external(fer.url, String(fer.name)) : String(fer.name),
-                FIP_RANK.includes(fer.status) ? " (" + FG.t("selfcheck.fipStatus." + fer.status) + ")" : null
-              )
-            )
-          )
-        );
-      }
-    }
-    return parts;
+  const FIELD_LABELS = {
+    "rightsList[].rightsUri": "licence", "rightsList[].rights": "licence", "license": "licence", "licence": "licence",
+    "titles[].title": "title", "title": "title", "name": "title", "description": "description", "descriptions[].description": "description",
+    "creators[].name": "creators", "contributors[].name": "contributors", "identifier": "identifier", "doi": "identifier",
+    "publicationYear": "publication", "datePublished": "publication", "dateModified": "modified", "version": "version",
+    "subjects[].subject": "keywords", "keywords": "keywords", "files": "files", "dependencies": "dependencies", "type": "type", "profile": "profile"
+  };
+  const brief = (value, max = 150) => String(value).length > max ? String(value).slice(0, max - 1) + "…" : String(value);
+  function licenceName(value) {
+    try {
+      const uri = new URL(value);
+      if (uri.hostname !== "creativecommons.org") return null;
+      const match = uri.pathname.match(/^\/licenses\/(by(?:-sa|-nc|-nd|-nc-sa|-nc-nd)?)\/(\d\.\d)(?:\/|$)/);
+      if (match) return "CC " + match[1].toUpperCase() + " " + match[2];
+      return /^\/publicdomain\/zero\/1\.0(?:\/|$)/.test(uri.pathname) ? "CC0 1.0" : null;
+    } catch (error) { return null; }
   }
+  const readableField = (field) => (FIELD_LABELS[field.path] ? FG.t("selfcheck.field." + FIELD_LABELS[field.path]) : field.path);
+  const readableValue = (value) => licenceName(value) || String(value);
+  const valueNode = (value, shorten) => webUrl(value) ? FG.external(value, shorten ? licenceName(value) || brief(value) : value) : shorten ? brief(value) : value;
+
+  const observationBody = (...args) => inspection.observationBody(...args);
+  const origin = (...args) => inspection.origin(...args);
 
   function radios(name, legend, options, current, onchange) {
     return h(
@@ -852,29 +799,7 @@
     );
   }
 
-  function pidControl(check, st) {
-    const input = h("input", { id: "prefill-pid", type: "text", autocomplete: "off", spellcheck: "false", value: st.pid || "" });
-    const run = () => {
-      const pid = FG.live.parsePid(input.value);
-      if (!pid) {
-        setStatus(check, FG.t("selfcheck.prefill.pidInvalid"));
-        return;
-      }
-      st.pid = pid.value;
-      retarget(check, FG.live.pidUrl(pid));
-      prefillFromPid(check, pid);
-    };
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") run();
-    });
-    return h(
-      "div",
-      { class: "prefill-row" },
-      h("label", { for: "prefill-pid" }, FG.t("selfcheck.prefill.pid")),
-      h("div", { class: "inline" }, clearableField(check, input, "pid", "prefill-pid"), h("button", { type: "button", id: "prefill-pid-run", onclick: run }, FG.t("selfcheck.prefill.pidButton"))),
-      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.clearHint"))
-    );
-  }
+  function pidControl(check, st) { return inspection.pidControl(check, st); }
 
   /* FAIR Champion runs the curated tests the check's questions name: on the dataset a check is about, once its
      identifier is looked up, or on a sample of a repository's records. A sample holds a few records of different
@@ -952,24 +877,7 @@
     );
   }
 
-  /** One test's state on the current records: running, not run, its verdict on a dataset, or for a sample how many
-      records with a result passed, with each record's verdict behind a disclosure. */
-  function testState(run, test) {
-    const mark = (state, text, more) =>
-      h("div", { class: "test-state", "data-state": state }, h("span", { "aria-hidden": "true" }, VERDICT_ICON[state] + " "), text, run && run.date && state !== "running" ? h("span", { class: "muted" }, " · " + FG.formatDate(run.date)) : null, more);
-    if (running.has(test)) return mark("running", FG.t("selfcheck.champion.running"));
-    if (!wasRun(run, test)) return h("div", { class: "test-state" });
-    const values = run.records.map((record) => (run.verdicts[verdictKey(test, record)] || {}).value || "none");
-    if (values.length === 1) return mark(values[0], FG.t("selfcheck.champion." + values[0]));
-    const passed = values.filter((value) => value === "pass").length;
-    const known = passed + values.filter((value) => value === "fail").length;
-    const state = !known ? "none" : passed === known ? "pass" : passed ? "partly" : "fail";
-    return mark(
-      state,
-      FG.t("selfcheck.champion.sample", { passed, n: known, total: values.length }),
-      h("details", { class: "test-records" }, h("summary", null, FG.t("selfcheck.champion.byRecord")), h("ul", null, run.records.map((record, index) => h("li", null, h("code", null, record), " " + FG.t("selfcheck.champion." + values[index])))))
-    );
-  }
+  function testState(run, test) { return inspection.testState(run, test); }
 
   /** Bring the lines of these tests up to date while a run goes on, without drawing the view again. */
   function showTests(check, st, tests) {
@@ -1016,10 +924,9 @@
       const tasks = pending.map(([test, record]) => async () => {
         try {
           const verdict = await FG.live.championTest(test, record);
-          /* Logs explain a single dataset's results in the export; a sample keeps verdicts only. */
-          run.verdicts[verdictKey(test, record)] = single ? verdict : { value: verdict.value };
+          run.verdicts[verdictKey(test, record)] = { value: verdict.value, log: String(verdict.log || "").slice(0, LOG_MAX), truncated: String(verdict.log || "").length > LOG_MAX, invocation: FG.live.championInvocation(test, record) };
         } catch (error) {
-          run.verdicts[verdictKey(test, record)] = null;
+          run.verdicts[verdictKey(test, record)] = { value: null, error: String(error.message || error).slice(0, 1000), invocation: FG.live.championInvocation(test, record) };
         }
         setProgress((done += 1), tasks.length);
         left.set(test, left.get(test) - 1);
@@ -1045,8 +952,8 @@
         check,
         "champion",
         (item, named) => {
-          const own = named.filter((test) => ran.includes(test));
-          if (!own.length) return null;
+          const own = named;
+          if (!own.some((test) => ran.includes(test))) return null;
           const states = run.records.map((record) => {
             const values = own.map((test) => valueOf(test, record));
             if (values.includes("fail")) return "fail";
@@ -1056,7 +963,9 @@
           const known = states.filter((state) => state === "pass" || state === "fail").length;
           const passed = states.filter((state) => state === "pass").length;
           return {
-            value: !known ? null : passed === known ? "yes" : passed ? "partly" : "no",
+            value: !known ? null : passed === run.records.length ? "yes" : passed ? "partly" : "no",
+            notes: states.some((state) => ["none", "indeterminate"].includes(state)) ? [{ key: "selfcheck.note.partialCoverage" }] : [],
+            coverage: `${known}/${run.records.length} · ${own.length}`,
             /* The question's test line shows the verdicts; the evidence keeps them for the result and its export. */
             fields: single
               ? own.map((test) => ({ path: test, values: [FG.t("selfcheck.champion." + (valueOf(test, run.records[0]) || "none"))] }))
@@ -1110,7 +1019,7 @@
       entry, its state on the identifiers entered, and a run of this question's tests alone. */
   function testLine(check, st, item) {
     const tests = testsOf(item);
-    if (!tests.length) return null;
+    if (!tests.length) return inspection.localTestLine(item);
     const ready = championReady(check, st);
     const action = ready ? runLabel(check, st, tests, { run: "selfcheck.champion.run", retry: "selfcheck.champion.retry" }) : null;
     return h(
@@ -1136,6 +1045,8 @@
             { class: "test-row", "data-test": id },
             test ? h("a", { href: FG.catalogueHref("tests", FG.borrowedId("fair-champion", id)) }, FG.text(test.name)) : h("code", null, id),
             healthOf(test) === "degraded" ? [" ", h("span", { class: "badge", "data-health": "degraded" }, FG.t("catalogue.health.degraded"))] : null,
+            test && test.url ? h("p", { class: "small test-invocation" }, h("code", null, "POST"), " ", FG.external(test.url, FG.t("selfcheck.evidence.endpoint")),
+              FG.list(test.subjectOf).map((reference, index) => [" · ", FG.external(typeof reference === "string" ? reference : reference["@id"], FG.t(index ? "selfcheck.evidence.serviceDocumentation" : "selfcheck.evidence.documentation"))])) : null,
             " ",
             testState(currentRun(check, st), id)
           );
@@ -1198,114 +1109,22 @@
       if (all) all.replaceWith(championAll(check, st, sync));
     };
     field.addEventListener("input", sync);
-    return h("div", { class: "prefill-row" }, h("label", { for: "prefill-champion" }, FG.t("selfcheck.prefill.champion", { n: SAMPLE_MAX })), field, championAll(check, st, sync));
-  }
-
-  /** The re3data field: a re3data DOI (resolved through doi.org), an r3d identifier or the record's address. */
-  function re3dataControl(check, st) {
-    const input = h("input", { id: "prefill-re3data", type: "text", autocomplete: "off", spellcheck: "false", value: st.re3data || "" });
-    const run = async () => {
-      const value = input.value.trim();
-      let id = (value.match(R3D) || [])[0];
-      const pid = id ? null : FG.live.parsePid(value);
-      if (!id && pid && pid.type === "doi") {
-        try {
-          const resolved = await FG.live.resolvePid(pid);
-          id = ((resolved.url || "").match(R3D) || [])[0];
-        } catch (error) {
-          id = null;
-        }
-      }
-      if (!id) {
-        setStatus(check, FG.t("selfcheck.prefill.re3dataInvalid"));
-        return;
-      }
-      prefillFromRe3data(check, id.toLowerCase());
+    const inspect = () => {
+      sync();
+      const entries = sampleOf(st.sample);
+      if (!entries.length || entries.length > SAMPLE_MAX) { setStatus(check, FG.t("selfcheck.prefill.championInvalid", { n: SAMPLE_MAX })); return; }
+      inspection.inspectSample(check, entries);
     };
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") run();
-    });
-    return h(
-      "div",
-      { class: "prefill-row" },
-      h("label", { for: "prefill-re3data" }, FG.t("selfcheck.prefill.re3data")),
-      h("div", { class: "inline" }, clearableField(check, input, "re3data", "prefill-re3data"), h("button", { type: "button", id: "prefill-re3data-run", onclick: run }, FG.t("selfcheck.prefill.re3dataButton"))),
-      h("p", { class: "small muted" }, FG.t("selfcheck.prefill.re3dataHint"))
-    );
+    return h("div", { class: "prefill-row" }, h("label", { for: "prefill-champion" }, FG.t("selfcheck.prefill.champion", { n: SAMPLE_MAX })), field,
+      h("button", { type: "button", id: "prefill-sample-run", onclick: inspect }, FG.t("selfcheck.discovery.sampleButton")),
+      h("p", { class: "small muted" }, FG.t("selfcheck.discovery.sampleHint")), championAll(check, st, sync));
   }
 
-  /** NKR's repositories to fill the check from; while NKR lists none, the status says how to go on instead. */
-  function nkrControl(check, st, re3data) {
-    const nkr = FG.live.nkr;
-    const records = nkr.state === "done" ? nkr.records : [];
-    let picker = null;
-    if (records.length) {
-      const select = h(
-        "select",
-        { id: "prefill-nkr" },
-        records.map((item, index) => h("option", { value: String(index), selected: st.nkr && st.nkr === item.id }, item.name))
-      );
-      picker = [
-        h("label", { for: "prefill-nkr" }, FG.t("selfcheck.prefill.nkrChoose")),
-        h(
-          "div",
-          { class: "inline" },
-          select,
-          h("button", { type: "button", id: "prefill-nkr-run", onclick: () => prefillFromNkr(check, records[Number(select.value)]) }, FG.t("selfcheck.prefill.nkrButton"))
-        ),
-      ];
-    }
-    return h("div", { class: "prefill-row" }, FG.live.nkrButton({ empty: FG.t(re3data ? "selfcheck.prefill.nkrEmptyRe3data" : "selfcheck.prefill.nkrEmptyByHand") }), picker);
-  }
-
-  function fipControl(check, st) {
-    const fips = FG.refs(FG.get("#fips"), "hasPart");
-    const snapshot = FG.get("#snapshot-fip-dashboard");
-    const select = h(
-      "select",
-      { id: "prefill-fip" },
-      fips.map((fip) => h("option", { value: fip.identifier, selected: st.fip === fip.identifier }, [fip.alternateName, FG.text(fip.name)].filter(Boolean).join(": ")))
-    );
-    const nanopub = h("input", { id: "prefill-nanopub", type: "text", autocomplete: "off", spellcheck: "false" });
-    const runNanopub = () => {
-      const code = FG.live.nanopubCode(nanopub.value);
-      if (code) prefillFromNanopub(check, code);
-      else setStatus(check, FG.t("selfcheck.prefill.nanopubInvalid"));
-    };
-    nanopub.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") runNanopub();
-    });
-    return [
-      fips.length
-        ? h(
-            "div",
-            { class: "prefill-row" },
-            h("label", { for: "prefill-fip" }, FG.t("selfcheck.prefill.fipChoose")),
-            h(
-              "div",
-              { class: "inline" },
-              select,
-              h("button", { type: "button", id: "prefill-fip-run", onclick: () => prefillFromDashboard(check, fips.find((fip) => fip.identifier === select.value)) }, FG.t("selfcheck.prefill.fipButton"))
-            ),
-            !FG.live.available("fip-dashboard") && snapshot
-              ? h(
-                  "p",
-                  { class: "small" },
-                  FG.t("finder.snapshot", { date: FG.formatDate(snapshot.dateCreated) }) + ". ",
-                  snapshot.disclaimer ? [h("strong", null, FG.t("finder.disclaimer") + ": "), FG.span(snapshot.disclaimer)] : null
-                )
-              : null
-          )
-        : null,
-      h(
-        "div",
-        { class: "prefill-row" },
-        h("label", { for: "prefill-nanopub" }, FG.t("selfcheck.prefill.nanopub")),
-        h("div", { class: "inline" }, clearableField(check, nanopub, "nanopub", "prefill-nanopub"), h("button", { type: "button", id: "prefill-nanopub-run", onclick: runNanopub }, FG.t("selfcheck.prefill.nanopubButton"))),
-        h("p", { class: "small muted" }, FG.t("selfcheck.prefill.clearHint"))
-      ),
-    ];
-  }
+  const re3dataControl = (...args) => inspection.re3dataControl(...args);
+  const nkrControl = (...args) => inspection.nkrControl(...args);
+  const fipControl = (...args) => inspection.fipControl(...args);
+  const softwareControl = (...args) => inspection.softwareControl(...args);
+  const inspectionDetails = (...args) => inspection.inspectionDetails(...args);
 
   /** The ways to start a check without answering everything by hand: public records that the check's questions
       can be filled in from, and a result saved earlier. Before the mode or profile is chosen, only the saved result,
@@ -1313,7 +1132,8 @@
   function startPanel(check, st, ready) {
     const sources = ready ? sourcesOf(check, st) : new Set();
     const controls = [];
-    if (sources.has("datacite") || sources.has("resolver")) controls.push(pidControl(check, st));
+    if (sources.has("datacite") || sources.has("resolver") || (ready && ["cdif", "fdo"].includes(check.identifier))) controls.push(pidControl(check, st));
+    if (ready && check.identifier === "software") controls.push(softwareControl(check, st));
     if (ready && needsSteward(check, st)) controls.push(stewardControl(check, st));
     if (sources.has("nkr")) controls.push(nkrControl(check, st, sources.has("re3data")));
     if (sources.has("re3data")) controls.push(re3dataControl(check, st));
@@ -1322,7 +1142,9 @@
     const dataset = sources.has("datacite") || sources.has("resolver");
     if (sources.has("champion") && !dataset) controls.push(championSampleControl(check, st));
     if (sources.has("fip")) controls.push(fipControl(check, st));
-    if (!controls.length) {
+    controls.push(inspectionDetails(st));
+    const available = controls.filter(Boolean);
+    if (!available.length) {
       return h(
         "section",
         { class: "prefill no-print", "aria-labelledby": "prefill-title" },
@@ -1337,7 +1159,7 @@
       h("h2", { id: "prefill-title" }, FG.t("selfcheck.prefill.title")),
       h("h3", null, FG.t("selfcheck.prefill.fromRecords")),
       h("p", { class: "small" }, FG.t("selfcheck.prefill.privacy")),
-      controls,
+      available,
       targetCard(st),
       sources.has("champion") && dataset && st.target && championReady(check, st) ? championAll(check, st) : null,
       h("p", { id: "prefill-status", role: "status", class: "small" }, status.check === check.identifier ? status.text : ""),
@@ -1366,16 +1188,21 @@
           "details",
           { class: "item-basis" },
           h("summary", null, FG.t("catalogue.relation.basedOn") + " (" + clauses.length + ")"),
-          h("ul", { class: "content clauses" }, clauses.map(FG.clauseEntry))
+          h("ul", { class: "content clauses", role: "list" }, clauses.map(FG.clauseEntry))
         )
       : null;
-    if (providedByNrp(item, st)) {
+    if (providedByNrp(item, st) || item.assessmentContext) {
       return h(
         "div",
-        { class: "item item-provided", id: "item-" + id },
+        { class: "item " + (item.assessmentContext ? "item-context" : "item-provided"), id: "item-" + id },
         h("p", { class: "item-statement" }, statement),
         meta,
-        h("p", null, stateLabel("provided"), " ", FG.t("selfcheck.providedByNrpText"))
+        item.description ? h("p", { class: "question-help" }, FG.span(item.description)) : null,
+        item.note ? h("p", { class: "small" }, FG.span(item.note)) : null,
+        item.assessmentContext ? [h("p", { class: "source-chip" }, FG.t("selfcheck.question.context")), h("p", { class: "small muted" }, FG.t("selfcheck.question.contextHint"))] : h("p", null, stateLabel("provided"), " ", FG.t("selfcheck.providedByNrpText")),
+        item.assessmentContext && answerOf(st, item) ? h("details", { class: "historical-answer" }, h("summary", null, FG.t("selfcheck.question.previousAnswer")), h("div", { class: "content" }, FG.t("selfcheck.answer." + answerOf(st, item)))) : null,
+        fixAtLine(item),
+        basedOn
       );
     }
     const current = answerOf(st, item);
@@ -1385,7 +1212,7 @@
       { class: "item", id: "item-" + id },
       h("legend", null, statement),
       meta,
-      item.description ? h("p", { class: "small" }, FG.span(item.description)) : null,
+      item.description ? h("p", { class: "question-help" }, FG.span(item.description)) : null,
       item.note ? h("p", { class: "small" }, FG.span(item.note)) : null,
       h(
         "div",
@@ -1410,7 +1237,10 @@
   /** The path step where an item is addressed, as a link to it, on every item. */
   function fixAtLine(item) {
     const station = FG.get(item.fixAt);
-    return station ? h("p", { class: "fix-at small muted" }, FG.t("selfcheck.result.whereFix") + ": ", stepLink(station)) : null;
+    const actors = FG.refs(item, "fixedBy").map((actor) => FG.text(actor.name));
+    return h("dl", { class: "relations question-relations fix-at small" },
+      actors.length ? [h("dt", null, FG.t("selfcheck.question.responsible")), h("dd", null, actors.join(", "))] : null,
+      station ? [h("dt", null, FG.t("selfcheck.result.whereFix")), h("dd", null, stepLink(station))] : null);
   }
 
   const letterOf = (item) => String((FG.principlesOf(item)[0] || {}).termCode || "").charAt(0);
@@ -1670,14 +1500,14 @@
   /** The evidence of an answer in one line, for the summary and the exported result set. */
   function evidenceText(st, item) {
     const entry = record(st, item);
-    const pre = entry && entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
-    if (!pre) return "";
-    const fers = FG.list(pre.list).filter((fer) => fer && fer.name).map((fer) => String(fer.name));
-    return foundFields(pre)
-      .map(fieldText)
-      .concat(fers.length ? [FG.t("selfcheck.note.declared") + ": " + fers.join(", ")] : [])
-      .concat(pre.record ? [pre.record] : [])
-      .join("; ");
+    return observationsOf(entry).map((pre) => {
+      const fers = FG.list(pre.list).filter((fer) => fer && fer.name).map((fer) => String(fer.name));
+      return [label(pre.source), FG.formatDate(pre.date), FG.t("selfcheck.evidence.suggestion") + ": " + (pre.value ? FG.t("selfcheck.answer." + pre.value) : FG.t("selfcheck.result.unanswered"))]
+        .concat(foundFields(pre).map((field) => readableField(field) + ": " + field.values.map(readableValue).join(", ") + (field.more ? ` (+${field.more})` : "")))
+        .concat(fers.length ? [FG.t("selfcheck.note.declared") + ": " + fers.join(", ")] : [])
+        .concat(FG.list(pre.notes).map(noteText)).concat([pre.subject, pre.representation, pre.commit, pre.coverage, pre.record].filter(Boolean))
+        .concat(pre.truncated ? [FG.t("selfcheck.evidence.bounded")] : []).join("; ");
+    }).join("\n");
   }
 
   /** One answer: the question and the answer on one line, then where it came from and what supports it. */
@@ -1689,10 +1519,7 @@
     if (entry && entry.origin === "shared") meta.push(FG.t("selfcheck.origin.shared"));
     if (pre) {
       meta.push(label(pre.source) + ", " + FG.formatDate(pre.date));
-      const fields = foundFields(pre);
-      for (const field of fields) meta.push(h("span", { class: "evidence-field" }, h("code", null, field.path), " = ", h("code", null, field.values.join(", ")), field.more ? " (+" + field.more + ")" : ""));
-      if (!fields.length && !pre.value) meta.push(FG.t("selfcheck.evidence.notStated"));
-      if (pre.record) meta.push(FG.external(pre.record, FG.t("selfcheck.evidence.record")));
+      for (const field of foundFields(pre).filter((field) => FIELD_LABELS[field.path]).slice(0, 3)) meta.push(h("span", { class: "evidence-readable" }, readableField(field), ": ", field.values.slice(0, 3).map((value, index) => [index ? ", " : "", valueNode(value, true)])));
     }
     return h(
       "li",
@@ -1708,7 +1535,8 @@
         ),
         h("span", { class: "answer-question" }, h("span", { class: "item-id" }, numberOf(item)), " ", FG.span(item.text))
       ),
-      meta.length ? h("p", { class: "answer-meta" }, meta.map((part, index) => [index ? " · " : "", part])) : null
+      meta.length ? h("p", { class: "answer-meta" }, meta.map((part, index) => [index ? " · " : "", part])) : null,
+      pre ? h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody)) : null
     );
   }
 
@@ -1794,6 +1622,7 @@
   const escapeMarkdown = (value) => String(value).replace(/([\\|[\]<>*_`#])/g, "\\$1");
 
   function markdown(check, st) {
+    st = Object.assign({}, st, SC.portableState(check, st));
     const items = resultItems(check, st);
     const { gaps, tasks } = outcomes(check, st);
     const lines = ["# " + escapeMarkdown(FG.text(check.name)) + " (" + FG.formatDate(today()) + ")", ""];
@@ -1829,7 +1658,23 @@
     lines.push("", "## " + FG.t("selfcheck.result.answers"), "");
     for (const item of items) {
       const details = [sourceText(st, item), evidenceText(st, item)].filter(Boolean).join("; ");
-      lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}: **${escapeMarkdown(answerText(st, item))}**${details ? " (" + escapeMarkdown(details) + ")" : ""}`);
+      lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}: **${escapeMarkdown(answerText(st, item))}**`, "");
+      if (details) lines.push(...details.split("\n").map((line) => "> " + escapeMarkdown(line)), "");
+    }
+    const context = applicable(check, st).filter((item) => item.assessmentContext);
+    if (context.length) {
+      lines.push("", "## " + FG.t("selfcheck.question.context"), "");
+      for (const item of context) lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}${answerOf(st, item) ? " · " + escapeMarkdown(FG.t("selfcheck.question.previousAnswer") + ": " + answerText(st, item)) : ""}`);
+    }
+    const run = currentRun(check, st);
+    if (run && Object.keys(run.verdicts).length) {
+      lines.push("", "## " + FG.t("selfcheck.evidence.log"), "");
+      for (const [key, result] of Object.entries(run.verdicts)) {
+        lines.push("### " + escapeMarkdown(key), "", escapeMarkdown(FG.t("selfcheck.champion." + (result.value || "none"))), "");
+        if (result.error) lines.push(escapeMarkdown(FG.t("selfcheck.evidence.requestError") + " " + result.error), "");
+        if (result.log) lines.push(escapeMarkdown(FG.t("selfcheck.evidence.originalLog")), "", ...result.log.split(/\r?\n/).map((line) => "> " + escapeMarkdown(line)), "");
+        if (result.truncated) lines.push(escapeMarkdown(FG.t("selfcheck.evidence.bounded")), "");
+      }
     }
     lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${FG.pageAddress()}`, "");
     /* Hidden from readers: the answers as in a shared link, with the format and guide versions, and the whole state
@@ -1855,6 +1700,7 @@
 
   /** The result as an FTR test result set in a small RO-Crate. Self-check answers and live test verdicts share it. */
   SC.ftrCrate = function (check, st) {
+    st = Object.assign({}, st, SC.portableState(check, st));
     const vocab = FG.config.vocab;
     const guideCrate = FG.siteAddress() + "ro-crate-metadata.json";
     const now = new Date().toISOString();
@@ -1880,18 +1726,20 @@
       });
       tests.push({ "@id": testId, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: item.identifier + ": " + FG.text(item.text) });
     }
-    for (const verdict of FG.list(st.verdicts)) {
+    const run = currentRun(check, st);
+    const probeVerdicts = run ? run.records.flatMap((record, index) => championTests(check, st).map((test) => Object.assign({ test: test.id, target: record, index }, run.verdicts[verdictKey(test.id, record)]))) : FG.list(st.verdicts);
+    for (const verdict of probeVerdicts) {
       if (!verdict || !["pass", "fail", "indeterminate"].includes(verdict.value) || !verdict.test) continue;
       const test = FG.get("#test-" + verdict.test);
       if (!test) continue;
       members.push({
-        "@id": "#result-" + verdict.test,
+        "@id": "#result-" + verdict.test + (run && run.records.length > 1 ? "-" + verdict.index : ""),
         "@type": ["CreativeWork", "TestResult"],
         name: FG.text(test.name),
         "prov:value": verdict.value,
         "ftr:completion": verdict.value === "pass" ? 1 : verdict.value === "fail" ? 0 : undefined,
         "ftr:outputFromTest": { "@id": test.url },
-        "ftr:assessmentTarget": target,
+        "ftr:assessmentTarget": verdict.target ? { "@id": verdict.target } : target,
         "ftr:log": verdict.log ? String(verdict.log) : undefined,
         "prov:wasGeneratedBy": { "@id": "#run" },
       });
@@ -1939,9 +1787,10 @@
         result: { "@id": "#result-set" },
       },
       ...members,
-      ...tests,
+      ...tests.filter((test, index, all) => all.findIndex((other) => other["@id"] === test["@id"]) === index),
     ];
     const records = new Set(members.map((member) => member["prov:used"] && member["prov:used"]["@id"]).filter(Boolean));
+    for (const member of members) if (member["ftr:assessmentTarget"]) records.add(member["ftr:assessmentTarget"]["@id"]);
     if (target) records.add(st.target);
     for (const id of records) graph.push({ "@id": id, "@type": "CreativeWork", name: id });
     return {
@@ -1968,9 +1817,9 @@
     for (const item of itemsOf(check)) {
       const entry = record(st, item);
       if (!entry || (!answerOf(st, item) && !entry.prefill)) continue;
-      items[item.identifier] = { value: answerOf(st, item), origin: entry.origin || null, prefill: entry.prefill || null };
+      items[item.identifier] = { value: answerOf(st, item), origin: entry.origin || null, prefill: entry.prefill || null, observations: observationsOf(entry) };
     }
-    return {
+    return boundedPortable({
       format: FORMAT,
       v: FORMAT_VERSION,
       guideVersion: FG.config.version,
@@ -1984,9 +1833,16 @@
       steward: st.steward || null,
       re3data: st.re3data || null,
       fip: st.fip || null,
+      software: st.software || null,
+      softwareRef: st.softwareRef || null,
+      sample: st.sample || null,
+      champion: st.champion || null,
+      inspection: st.inspection || null,
       items,
-    };
+    });
   };
+
+  function boundedPortable(data) { return inspection ? inspection.boundedPortable(data) : data; }
 
   /** Notes for a loaded result: questions this version does not know, and a file from another guide version. */
   function loadNotices(skipped, version) {
@@ -1997,7 +1853,10 @@
   }
 
   const isText = (value, max) => typeof value === "string" && value.length <= max;
-  const webUrl = (value) => (isText(value, 2000) && /^https?:\/\/[^\s]+$/.test(value) ? value : null);
+  const webUrl = (value) => {
+    if (!isText(value, 2000) || /\s/.test(value)) return null;
+    try { const url = new URL(value); return /^https?:$/.test(url.protocol) && !url.username && !url.password && url.href.length <= 2000 ? url.href : null; } catch (error) { return null; }
+  };
   const textValue = (value) =>
     isText(value, 2000) ? value : value && typeof value === "object" && (isText(value.cs, 2000) || isText(value.en, 2000)) ? { cs: String(value.cs || ""), en: String(value.en || "") } : null;
 
@@ -2009,29 +1868,59 @@
         if (!note || typeof note !== "object") return null;
         if (typeof note.key === "string" && NOTE_KEYS.includes(note.key.replace("selfcheck.note.", ""))) {
           const params = {};
-          for (const [key, value] of Object.entries(note.params || {})) if (isText(value, 2000)) params[key] = value;
+          for (const [key, value] of Object.entries(note.params || {}).slice(0, 4)) if (isText(key, 50) && isText(value, 300)) params[key] = value;
           return { key: "selfcheck.note." + note.key.replace("selfcheck.note.", ""), params };
         }
         const text = textValue(note.text);
         return text ? { text } : null;
       })
       .filter(Boolean);
-    const list = (Array.isArray(pre.list) ? pre.list.slice(0, 50) : [])
+    const list = (Array.isArray(pre.list) ? pre.list.slice(0, 20) : [])
       .filter((fer) => fer && isText(fer.name, 300))
       .map((fer) => ({ name: fer.name, url: webUrl(fer.url), status: FIP_RANK.includes(fer.status) ? fer.status : undefined }));
-    const fields = (Array.isArray(pre.fields) ? pre.fields.slice(0, 20) : [])
-      .filter((field) => field && isText(field.path, 100) && Array.isArray(field.values))
-      .map((field) => ({ path: field.path, values: field.values.filter((value) => isText(value, 300)).slice(0, SHOWN_VALUES), more: Number.isInteger(field.more) && field.more > 0 ? field.more : 0 }));
-    return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record) };
+    let remaining = EVIDENCE_MAX;
+    let truncated = Boolean(pre.truncated) || (Array.isArray(pre.fields) && pre.fields.length > 12);
+    const fields = (Array.isArray(pre.fields) ? pre.fields.slice(0, 12) : [])
+      .filter((field) => field && isText(field.path, 300) && Array.isArray(field.values))
+      .map((field) => {
+        const raw = field.values.filter((value) => typeof value === "string");
+        const values = raw.slice(0, 8).map((value) => {
+          const kept = value.slice(0, Math.min(VALUE_MAX, Math.max(0, remaining)));
+          remaining -= kept.length;
+          if (kept.length < value.length) truncated = true;
+          return kept;
+        }).filter(Boolean);
+        return { path: field.path, values, more: (Number.isInteger(field.more) && field.more > 0 ? field.more : 0) + raw.length - values.length };
+      });
+    const testId = isText(pre.testId, 100) && /^guide-[a-z]+-\d{2}$/.test(pre.testId) && FG.get("#test-" + pre.testId) ? pre.testId : null;
+    return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record), subject: isText(pre.subject, 2000) ? pre.subject : null, representation: isText(pre.representation, 2000) ? pre.representation : null, commit: isText(pre.commit, 100) ? pre.commit : null, coverage: isText(pre.coverage, 300) ? pre.coverage : null, testId, truncated };
   }
 
   /** A check state from a file the guide wrote, or the reason it cannot be read: not a guide file, a newer format,
       a check this version does not know, or a damaged file. Questions this version does not know are skipped. */
+  function readChampion(data, check, st) {
+    if (!data || !isText(data.input, 6000) || !Array.isArray(data.records) || !data.records.length || data.records.length > SAMPLE_MAX ||
+        !data.records.every((url) => webUrl(url)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(data.date)) ||
+        !data.verdicts || typeof data.verdicts !== "object" || Array.isArray(data.verdicts)) return null;
+    const allowed = new Set(championTests(check, st).flatMap((test) => data.records.map((record) => verdictKey(test.id, record))));
+    const verdicts = {};
+    for (const [key, result] of Object.entries(data.verdicts)) {
+      if (!allowed.has(key)) continue;
+      if (!result || (result.value !== null && !VERDICTS.includes(result.value))) return null;
+      verdicts[key] = { value: result.value, log: isText(result.log, LOG_MAX) ? result.log : typeof result.log === "string" ? result.log.slice(0, LOG_MAX) : "",
+        error: typeof result.error === "string" ? result.error.slice(0, 1000) : undefined,
+        truncated: Boolean(result.truncated) || (typeof result.log === "string" && result.log.length > LOG_MAX),
+        invocation: result.invocation && result.invocation.method === "POST" && webUrl(result.invocation.url) && result.invocation.body && webUrl(result.invocation.body.resource_identifier) ?
+          { url: webUrl(result.invocation.url), method: "POST", body: { resource_identifier: webUrl(result.invocation.body.resource_identifier) } } : null };
+    }
+    return { input: data.input, records: data.records, date: data.date, verdicts };
+  }
+
   SC.readPortable = function (data) {
     if (!data || typeof data !== "object" || Array.isArray(data)) return { error: "damaged" };
     if (data.format !== undefined && data.format !== FORMAT) return { error: "notGuide" };
     if (Number.isInteger(data.v) && data.v > FORMAT_VERSION) return { error: "newer", params: { version: isText(data.guideVersion, 40) ? data.guideVersion : "?" } };
-    if (data.v !== FORMAT_VERSION || !isText(data.check, 50)) return { error: "damaged" };
+    if (![1, FORMAT_VERSION].includes(data.v) || !isText(data.check, 50)) return { error: "damaged" };
     const check = FG.get("#check-" + data.check);
     if (!check) return { error: "unknownCheck" };
     if (!data.items || typeof data.items !== "object" || Array.isArray(data.items)) return { error: "damaged" };
@@ -2049,7 +1938,10 @@
       if (entry.value !== null && !ANSWERS.includes(entry.value)) return { error: "damaged" };
       const prefill = entry.prefill ? readPrefill(entry.prefill) : null;
       if (entry.prefill && !prefill) return { error: "damaged" };
-      items[id] = Object.assign({ origin: "shared" }, entry.value ? { value: entry.value } : {}, prefill ? { prefill } : {});
+      const observations = Array.isArray(entry.observations) ? entry.observations.slice(-OBSERVATION_MAX).map(readPrefill) : prefill ? [prefill] : [];
+      if (observations.some((seen) => !seen)) return { error: "damaged" };
+      const manual = entry.origin === "user" || (entry.value && (!prefill || entry.value !== prefill.value));
+      items[id] = Object.assign({ origin: manual ? "user" : "shared", imported: true, observations }, entry.value ? { value: entry.value } : {}, prefill ? { prefill } : {});
     }
     const state = { mode: data.mode, profile: data.profile, extended: true, target: webUrl(data.target), items };
     if (isText(data.pid, 300)) state.pid = data.pid;
@@ -2057,9 +1949,25 @@
     if (isText(data.steward, 40) && ORCID_ID.test(data.steward)) state.steward = data.steward.match(ORCID_ID)[1].toUpperCase();
     if (isText(data.re3data, 20) && /^r3d\d{9}$/.test(data.re3data)) state.re3data = data.re3data;
     if (isText(data.fip, 100) && /^[\w.-]+$/.test(data.fip)) state.fip = data.fip;
+    if (isText(data.software, 1000)) state.software = data.software;
+    if (isText(data.softwareRef, 200)) state.softwareRef = data.softwareRef;
+    if (isText(data.sample, 6000)) state.sample = data.sample;
+    if (data.inspection && typeof data.inspection === "object" && /^\d{4}-\d{2}-\d{2}$/.test(String(data.inspection.date))) {
+      state.inspection = { date: data.inspection.date, coverage: {}, representations: FG.list(data.inspection.representations).slice(0, 8)
+        .filter((entry) => entry && webUrl(entry.url) && isText(entry.format, 100) && isText(entry.source, 80))
+        .map((entry) => ({ url: webUrl(entry.url), format: entry.format, source: entry.source })), diagnostics: FG.list(data.inspection.diagnostics).slice(0, 20)
+        .filter((entry) => entry && isText(entry.code, 80) && isText(entry.message, 500))
+        .map((entry) => ({ code: entry.code, source: isText(entry.source, 80) ? entry.source : "landing", url: webUrl(entry.url), message: entry.message })) };
+    }
+    if (data.champion != null) {
+      const restored = readChampion(data.champion, check, state);
+      if (!restored) return { error: "damaged" };
+      state.champion = restored;
+      if (restored.records.length === 1) state.verdicts = Object.entries(restored.verdicts).map(([key, result]) => Object.assign({ test: key.split(" ")[0] }, result));
+    }
     if (data.targetInfo && typeof data.targetInfo === "object") {
       const info = {};
-      for (const key of ["name", "creators", "publisher", "year", "kind", "url"]) if (isText(String(data.targetInfo[key] || ""), 300) && data.targetInfo[key]) info[key] = String(data.targetInfo[key]);
+      for (const key of ["name", "creators", "publisher", "year", "kind", "url", "commit", "ref"]) if (isText(String(data.targetInfo[key] || ""), 300) && data.targetInfo[key]) info[key] = String(data.targetInfo[key]);
       if (info.url && !webUrl(info.url)) delete info.url;
       if (info.name || info.publisher) state.targetInfo = info;
     }
@@ -2607,7 +2515,32 @@
     );
   }
 
+  let inspection = null;
+  let inspectionLoading = null;
+  let inspectionFailed = false;
+  function loadInspection() {
+    if (!inspectionLoading) inspectionLoading = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = FG.config.discovery.controlsScript;
+      script.onload = () => {
+        if (!SC.inspectionFactory) { reject(new Error("inspection module unavailable")); return; }
+        inspection = SC.inspectionFactory({ FG, SC, h, stateOf, runPrefill, applyEvidence, today, webUrl, save,
+          describeTarget, dataciteInfo, stewardEvidence, fieldEvidence, pathState, fieldsOf, retarget, clearableField, brief,
+          R3D, setStatus, prefillFromRe3data, prefillFromNkr, prefillFromDashboard, prefillFromNanopub, label,
+          record, answerOf, foundFields, FIELD_LABELS, readableField, valueNode, SHOWN_VALUES, noteText, observationsOf, FIP_RANK, VERDICT_ICON, running, wasRun, verdictKey });
+        resolve();
+      };
+      script.onerror = () => reject(new Error("inspection module unavailable"));
+      document.head.appendChild(script);
+    });
+    return inspectionLoading;
+  }
+
   FG.views.selfcheck = function (route) {
+    if (!inspection) {
+      if (!inspectionFailed) loadInspection().then(() => FG.rerender()).catch(() => { inspectionFailed = true; FG.rerender(); });
+      return h("div", { class: "wrap", role: "status" }, FG.t(inspectionFailed ? "app.error" : "app.loading"));
+    }
     return route.view === "check" && FG.get("#check-" + route.arg) ? checkView(route) : overview(route);
   };
 })();

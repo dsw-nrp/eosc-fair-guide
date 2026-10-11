@@ -4,6 +4,18 @@
 
   const FG = window.FairGuide;
 
+  /** A failed local data download keeps the current view available and offers the same action again. */
+  FG.dataLoadError = function (error, retry) {
+    console.error(error.message);
+    const app = document.getElementById("app");
+    app.querySelector(".data-load-error")?.remove();
+    app.prepend(FG.h("div", { class: "wrap data-load-error", role: "alert" },
+      FG.h("p", null, FG.h("span", { lang: "cs" }, "Průvodce se nepodařilo načíst."), " / ",
+        FG.h("span", { lang: "en" }, "The guide could not be loaded.")),
+      FG.h("button", { type: "button", onclick: () => { app.querySelector(".data-load-error")?.remove(); retry(); } },
+        FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry"))));
+  };
+
   FG.navigate = function (hash) {
     if (window.location.hash === hash) FG.render();
     else window.location.hash = hash;
@@ -31,17 +43,27 @@
   /* The parts of the knowledge base a view needs beyond the start: the standards' requirements and the FIP
      profiles for the catalogue and the checks, the standards for the explorer, the pages' text for a page. */
   const VIEW_PARTS = { catalogue: ["standards", "fips", "questions"], check: ["standards", "fips", "questions"], selfcheck: ["standards", "fips", "questions"], explorer: ["standards", "questions"], page: ["pages"] };
+  let waitingFor = "";
 
   FG.render = function () {
     const route = FG.parseHash(window.location.hash);
     /* A view whose parts have not arrived yet renders once they have; the previous view stays until then. */
     const needed = [...(VIEW_PARTS[route.view] || [])];
+    if (route.lang !== FG.state.lang) needed.push(...FG.partsLoaded);
+    if (route.view === "path" && !FG.landingShown(route)) needed.push("standards");
     if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
-    const missing = needed.filter((name) => !FG.partsLoaded.has(name));
-    if (missing.length) {
-      Promise.allSettled(missing.map(FG.loadPart)).then((results) => {
-        for (const result of results) if (result.status === "rejected") console.error(result.reason.message);
+    const missing = [...new Set(needed)].filter((name) => !FG.partHasLanguage(name, route.lang));
+    if (!FG.languagesLoaded.has(route.lang) || missing.length) {
+      const key = route.lang + "/" + missing.join(",");
+      if (waitingFor === key) return;
+      waitingFor = key;
+      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang))]).then(() => {
+        if (waitingFor === key) waitingFor = "";
         FG.render();
+      }).catch((error) => {
+        if (waitingFor !== key) return;
+        waitingFor = "";
+        FG.dataLoadError(error, FG.render);
       });
       return;
     }

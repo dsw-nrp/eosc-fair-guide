@@ -87,8 +87,8 @@ await page.locator("#prefill-pid").fill(SAMPLE.missing);
 status = await prefill("#prefill-pid-run");
 console.log("Missing:", status);
 if (await answer("dataset-01")) fail("missing identifier: dataset.01 was pre-filled");
-if (!(await page.locator("#origin-dataset-01").textContent()).includes("nepodařilo")) fail("missing identifier: dataset.01 has no note");
-if (!status.includes("nezná")) fail("missing identifier: DataCite not reported as not knowing it");
+if (!(await page.locator(".inspection-details").textContent()).includes("not-found")) fail("missing identifier: the resolver's unavailable-record observation is not retained");
+if (!status.includes("Chybějící výsledek neznamená nesplněný požadavek")) fail("missing identifier: unavailable evidence is not explained");
 
 // FIP check from a published nanopublication.
 await open("#/cs/K/check/fip");

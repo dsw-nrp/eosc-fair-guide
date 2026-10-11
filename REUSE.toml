@@ -19,6 +19,7 @@ path = [
   "docs/**",
   "diagrams/**",
   "assets/diagrams/**",
+  "assets/js/tests/index.html",
   "**/*.md",
   "CITATION.cff",
 ]

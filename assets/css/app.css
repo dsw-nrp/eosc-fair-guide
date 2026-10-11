@@ -192,6 +192,7 @@ ol {
 select,
 input[type="text"],
 input[type="search"],
+input[type="url"],
 textarea {
   font: inherit;
   color: var(--text);
@@ -954,6 +955,12 @@ details > .content {
   margin: var(--space-2) 0;
 }
 
+.clause-guidance > summary {
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
 /* A page section's action, below its text. */
 .section-action {
   margin: var(--space-3) 0 var(--space-4);
@@ -1318,31 +1325,54 @@ main p > button {
   display: flex;
 }
 
-.clauses > li {
-  margin-bottom: var(--space-3);
+.clauses {
+  list-style: none;
+  padding: 0;
 }
 
-/* A requirement where the guide cites it: the text, then its identifier and source on a quieter line. */
-.clause p {
+.clauses > .clause {
+  padding: var(--space-3) 0;
   margin: 0;
 }
 
-/* A requirement's identifier, source and status, spaced so they stay apart when the line wraps. */
+.clause + .clause {
+  border-top: 1px solid var(--border);
+}
+
+/* Cited statements keep their source on a quieter line. */
+.clause > p {
+  margin: 0;
+}
+
+.clause > .clause-title {
+  margin-bottom: var(--space-1);
+}
+
+/* The identifier and source stay apart when their line wraps. */
 .clause .clause-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1) var(--space-2);
-  margin-top: var(--space-1);
+  margin: 0 0 var(--space-2);
   color: var(--text-muted);
 }
 
-.clause .clause-note {
-  margin-top: var(--space-1);
+.clause .clause-note,
+.clause .clause-source {
+  margin-top: var(--space-2);
 }
 
-/* An identifier as a chip; as a link it leads to the catalogue entry. A chip moves to the next line whole and breaks
-   only when it is wider than its column (a long adopted identifier at 320 px). */
+/* Keep the principle's statement at a readable line length. */
+.principle-detail > .lead {
+  max-width: 65ch;
+}
+
+.clause > :last-child {
+  margin-bottom: 0;
+}
+
+/* Identifier links wrap whole, except when wider than their column. */
 .id-chip {
   display: inline-block;
   max-width: 100%;
@@ -1777,7 +1807,7 @@ a.id-chip:focus-visible {
   margin: var(--space-2) 0;
   padding: var(--space-2) var(--space-3);
   border-left: 3px solid var(--border);
-  background: var(--surface);
+  background: var(--background);
   font-size: var(--size-small);
 }
 
@@ -1792,6 +1822,74 @@ a.id-chip:focus-visible {
 .origin li {
   margin: var(--space-1) 0;
   line-height: 1.6;
+}
+
+.question-help {
+  margin: var(--space-2) 0;
+  line-height: 1.65;
+}
+
+.question-relations {
+  margin: var(--space-3) 0;
+}
+
+.evidence-readable {
+  display: block;
+  margin: var(--space-1) 0;
+}
+
+.evidence-details,
+.inspection-details,
+.probe-log,
+.historical-answer {
+  margin: var(--space-2) 0;
+  font-size: var(--size-small);
+}
+
+.evidence-details > .content,
+.inspection-details > .content,
+.probe-log > .content,
+.historical-answer > .content,
+.test-records > .content {
+  padding: var(--space-2) var(--space-3);
+  color: var(--text);
+}
+
+.evidence-details > .content + .content,
+.probe-record + .probe-record {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.probe-log pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 0.9em;
+  max-height: 24rem;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.evidence-value {
+  max-height: 24rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.evidence-value > p { margin: 0; }
+.evidence-value > p + p { margin-top: var(--space-2); }
+.test-invocation { overflow-wrap: anywhere; }
+.test-invocation code { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.evidence-details summary,
+.inspection-details summary,
+.probe-log summary {
+  padding: var(--space-2) var(--space-3);
 }
 
 /* In evidence the field name is a small technical label; the value found reads as text. */
@@ -2641,6 +2739,10 @@ a.id-chip:focus-visible {
   font-size: var(--size-h3);
 }
 
+.catalogue-group + .catalogue-group {
+  margin-top: var(--space-4);
+}
+
 .group-count {
   font-weight: 400;
 }
@@ -3363,6 +3465,12 @@ a.id-chip:focus-visible {
   margin-top: var(--space-1);
 }
 
+.test-row > a {
+  display: inline-block;
+  min-height: 1.5rem;
+  line-height: 1.5rem;
+}
+
 .test-state {
   display: inline;
 }
@@ -3410,6 +3518,7 @@ a.id-chip:focus-visible {
 }
 
 .inline input[type="text"],
+.inline input[type="url"],
 .inline select {
   flex: 1 1 14rem;
   min-width: 0;

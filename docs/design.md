@@ -867,3 +867,133 @@ Expanded pages, self-check answer/result states and affected station roles were 
 languages at desktop and phone widths; representative states were inspected visually. Deliberately
 restoring each reported facet, padding and station-link defect made the browser checks fail, and the
 generated files were restored byte for byte after those probes.
+
+## Question and evidence decisions (2026-10-11)
+
+D-149: Source meaning controls the question. Software and FDO wording retains the assessed subject,
+conditions and recommendation strength. FRSM-11 follows its explicit API implementation condition.
+FDO questions 09, 29 and 32 explain source context without creating obligations; their identifiers,
+citations, positions and historical answers survive. Their API records also disclose this context.
+
+D-150: Suitable originals are attributed once on their clauses and reused by every check and the
+catalogue. They retain source language, version and reuse terms, separate from guide explanations.
+The FRSM report is version 1.1 and the metric set is 1.0. The published analysis PDF's licence governs
+its excerpts when the registry metadata differs. Passages without a suitable, permitted basis for
+reuse are omitted.
+Originals remain deferred and available in the complete crate and static API.
+
+D-151: Object discovery follows resolver records, registry metadata and declared landing representations
+on reviewed origins. It uses no hostname-specific repository behaviour or guessed API paths. JSON-LD
+identity and vocabulary scope matter; declarations cannot establish profile conformance. Browser-access
+limits leave evidence unverified with a manual route. CDIF, FDO, dataset and repository samples share
+this flow; sample observations cannot establish repository-wide compliance. Deep tests remain separate.
+
+D-152: Software pre-fill reads anonymous public GitHub.com or GitLab.com metadata and selected inert
+files at an immutable commit. There is no institutional-host support, credential flow or code execution.
+Suggestions distinguish complete and partial criteria. Filenames, a paper's DOI, repository history and
+a root licence cannot establish tests, software identity, archival preservation or all bundled rights.
+
+D-153: Shared questions put the criterion and useful explanation before native answers, followed by
+labelled responsibility, lifecycle links and sources. Original wording and evidence use separate padded
+disclosures. Context and NRP-provided variants keep explanations without editable answers. Imported
+manual answers retain their authority without saying the current reader made someone else's edit.
+
+D-154: Multiple observations retain their source, subject, date, representation, commit and scope.
+Supporting values and per-record probe logs have explicit limits. The default display is shortened;
+details disclose the retained text. Conflicts leave automatic suggestions open, manual answers survive,
+and unavailable requests remain distinct from failed criteria. Portable version 2 accepts version 1;
+exceptionally large snapshots disclose further bounds to remain loadable under the 2 MB file limit.
+
+D-155: Software and FDO groups use existing meaningful icons in questions and both result views. Work,
+metadata, licensing, publication and citation were reviewed as complete sequences in all four roles
+and both languages. The topic additions are practical L1 advice with role-specific scope; the
+maintainer's metadata and rights corrections remain. The changelog awaits the settled whole PR.
+
+Initial verification for D-149–D-155: all 16 check groups passed after focused lint and page rechecks, including
+live services, 97 unit tests and 138 rendered views. Additional fixtures cover conservative mappings,
+generic discovery on unrelated origins, JSON-LD context and identity, public immutable software files,
+manual-answer preservation, compatible saved results, multibyte export bounds and five-record logs.
+Bilingual desktop/phone question states passed accessibility and reflow checks; expanded source,
+evidence and probe states were inspected visually. Icons were checked in questions and both result views.
+The initial compressed download is 299.9 KB against the 300 KB budget; lookup code stays deferred.
+The original-coverage assertion checked each check rather than each question and missed unfinished
+excerpts. The resumed verification below replaces that coverage claim.
+
+D-156: Principles, path reasons and question sources share the catalogue's compact hierarchy:
+identifier and kind, optional title, statement, any contextual note, labelled source, then the original
+wording on request. Quiet metadata and separated rows remain the same across these contexts.
+Quoted paragraphs keep their spacing. Editorial refresh status does not appear as an action badge;
+source-update notes and warnings about superseded statements remain. Individual stations load the
+originals and their bylines directly, without depending on an earlier catalogue or check visit.
+
+Resumed source review completed 48 further original passages, bringing the ledger to 233 originals.
+Coverage is now checked question by question: 211 of 214 have suitable originals; three practical
+recommendations retain source links, with their dispositions in the content model. Review also removed
+an unsupported request condition from the Act 328/2025 explanation and limited the Open Science III
+mandatory staffing explanation to activities 1 and 2. Original conditions, database-rights exceptions
+and the data steward role footnote remain intact.
+
+Resumed verification: all 15 offline check groups passed with provenance freshness, 100 unit tests,
+138 rendered views, the API and all three crate profiles. Browser coverage renders every question
+in its applicable modes and profiles, all 15 principles and path reasons in all four roles, in both
+languages. Representative expanded originals and shared rows were inspected at desktop and phone
+widths; accessibility and reflow passed. Planted omission and paragraph-spacing regressions failed
+their guards, and generated CSS was restored byte for byte. The initial download is 299.9 KB against
+the 300 KB budget. Whole-store OpenSpec validation passed all 78 items. Existing effective-date
+annotations for section 83 were confirmed against the promulgated act. The changelog remains reserved
+for the complete PR.
+
+D-157: The first download loads neutral structure and the selected language's UI and guide text.
+Deferred parts have language patches too; switching or bilingual JSON export loads complete language
+maps on demand. Original passages, source titles and short published glossary labels retain their
+language. Compact aliases preserve offline cross-language search; the catalogue matches all query
+words consistently with universal search. Missing language files leave the current view usable and
+offer retry. Answers survive switching and full language/part reconstruction equals the original crate.
+
+D-158: Each local automated criterion has its own issued test identity, bilingual description and
+limitations, named callable selector, source and documentation. Shared pure object/software mappings
+are attached as source files to the test records in RO-Crate; each observation identifies its test.
+Questions link the test, code, documentation and function. External tests link their actual POST
+endpoint and published documentation; executed requests preserve method, endpoint and target.
+An unavailable response remains no result. The historical health snapshot is not silently re-dated
+when documentation or endpoint metadata changes.
+
+D-159: Generic discovery reads JSON-LD, Schema.org microdata and both standard linkset formats without
+provider-specific endpoint guessing. Microdata item boundaries, itemref and URL values are respected;
+unmatched subjects and detected but uninterpreted RDFa remain explicit. Equivalent failed reads from
+file and local HTTP origins demonstrate that landing retrieval problems are not exclusive to file
+previews; the browser cannot diagnose CORS versus network or redirect restrictions. Readable formats
+and manual source links accompany explanations of unavailable evidence. Full retained values and logs
+scroll vertically. Working observations have generous bounds; exceptional export limits remain
+explicit and never promise that an omitted test log can be recovered from a source record.
+
+D-160: Source coverage is measured for every question, station advice item and clause, including the
+exact missing citations and source/locator/role. Only the three reviewed question omissions are
+exempted; other gaps remain review information rather than invented exemptions or failed FAIR
+requirements. Offline integrity checks cover each content kind. A check run emits JSON, HTML and
+GitHub summary reports with actual passed, failed, blocked and unrun jobs and optional baseline trends.
+The PR workflow is read-only, pins actions by commit and publishes health/preview artifacts even when
+checks fail. Live source availability remains an explicitly separate observation, not inferred from
+passing offline checks.
+The health snapshot is also exposed as `api/health.json`, through API metadata, OpenAPI and the page
+for machines. Initial builds report an inventory with no completed run; the runner replaces it with
+actual outcomes after successful build and verification. A failed build does not rewrite stale site
+results. Live inspection of the FIP Dashboard's OpenAPI confirmed `/health` returns service status
+and collection counts; the static guide publishes its documented content/check-run scope instead.
+
+D-161: Test documentation lists every local test under a heading with its issued identifier and
+label in each language, generated from the same source as catalogue records. Links open that test's
+heading in the selected language. The test catalogue offers execution location, supported check and
+dated service-status facets. Local functions have no fabricated service status; filtering a service
+status narrows the external tests only. Shared station and principle filters derive from the linked
+questions and criteria.
+
+D-162: Test and question records reuse the existing 15 FAIR principles, the shared catalogue
+principle filter and its tiles. A question's `principles` links are inherited by its local tests
+through the existing `about` relation in the crate and API, and appear in per-test documentation.
+No categories, vocabulary, mapping property or FAIR facet are added. Existing source-linked
+CDIF/CoreTrustSeal mappings are retained. Applicable software, FDO and CDIF questions link to the
+existing principles by meaning; source requirement identifiers, wording and check grouping remain
+intact. These links relate topics and do not rename FAIR4RS requirements as FAIR-data requirements.
+Questions without an applicable link retain no principle tag. Test gaps and mapping validity will
+be reviewed by the team against the first official prerelease baseline.

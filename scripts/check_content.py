@@ -289,7 +289,12 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
         if "title" in clause:
             require_text(report, where, clause["title"], "title")
         if "guidance" in clause and not (isinstance(clause["guidance"], str) and clause["guidance"].strip()):
-            report.error(where, "guidance is the source's own text, in English as published")
+            report.error(where, "guidance is the source's own text, in its original language as published")
+        if "guidanceLanguage" in clause:
+            if not clause.get("guidance"):
+                report.error(where, "guidanceLanguage needs an original guidance passage")
+            if clause["guidanceLanguage"] not in LANGS:
+                report.error(where, "guidanceLanguage must be cs or en")
         match = ANALYSIS_CLAUSE.match(clause.get("id", ""))
         if match:
             # Lossless coverage: an analysis clause is reachable in the explorer under its own principle.
@@ -503,6 +508,10 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                 report.error(here, f"a question of the {check['id']} check has the ID {check['id']}.<nn>")
             if item.get("prefillLevel") not in (None, "partly"):
                 report.error(here, "prefillLevel can only be 'partly'")
+            if "context" in item and not isinstance(item["context"], bool):
+                report.error(here, "context must be a boolean")
+            if item.get("context") and item.get("prefill"):
+                report.error(here, "source context cannot be automatically answered as a criterion")
             if item.get("tier") not in tiers:
                 report.error(here, f"tier must be one of {', '.join(tiers)}")
             if "requirement" in item and item["requirement"] not in clause_ids:
@@ -746,7 +755,39 @@ def check_live(report: Report, content: dict[str, Any], vocab: dict[str, set[str
                 report.error(where, f"health must be one of {', '.join(HEALTH)}")
             if not isinstance(test.get("asOf"), date):
                 report.error(where, "health needs an as-of date")
-    for script in sorted((root / "assets" / "js").glob("*.js")):
+        if test.get("endpoint"):
+            endpoint_origin = re.match(r"^(https://[^/]+)", test["endpoint"])
+            if not endpoint_origin or endpoint_origin.group(1) not in origins:
+                report.error(where, "the endpoint's host is not a connector")
+    local_tests = live.get("test", [])
+    unique(report, "live", [test.get("id", "") for test in local_tests], "local test")
+    questions = {item["id"]: item for check in content["checks"] for item in check.get("item", [])}
+    assessment_scripts = live.get("discovery", {}).get("assessmentScripts", [])
+    for test in local_tests:
+        where = f"test:{test.get('id')}"
+        question = test.get("question", "")
+        if question not in questions:
+            report.error(where, f"unknown question '{question}'")
+        elif questions[question].get("context"):
+            report.error(where, "source context cannot be automatically answered")
+        if test.get("id") != "guide-" + question.replace(".", "-"):
+            report.error(where, "local test ID must be guide-<question check>-<question number>")
+        if test.get("family") not in ("object", "software"):
+            report.error(where, "family must be object or software")
+        for key in ("label", "description"):
+            if not isinstance(test.get(key), dict) or any(not test[key].get(lang) for lang in LANGS):
+                report.error(where, f"{key} needs Czech and English text")
+        for key, extension in (("script", "js"), ("documentation", "html")):
+            path = str(test.get(key, "")).split("#", 1)[0]
+            if not re.fullmatch(r"assets/js/tests/[a-z][a-z0-9-]*\." + extension, path):
+                report.error(where, f"{key} must name an attached {extension} file under assets/js/tests/")
+            elif not (root / path).is_file():
+                report.error(where, f"{key} attachment does not exist: {path}")
+        if test.get("script") not in assessment_scripts:
+            report.error(where, "the script is not in discovery.assessmentScripts")
+        if test.get("entryPoint") != f'FairGuide.selfcheck.localTests["{test.get("id")}"]':
+            report.error(where, "entryPoint must name this test's registered function")
+    for script in sorted((root / "assets" / "js").rglob("*.js")):
         for number, line in enumerate(script.read_text(encoding="utf-8").splitlines(), start=1):
             for url in URL_LITERAL.findall(line):
                 origin = re.match(r"^(https?://[^/]+)", url)
@@ -770,6 +811,8 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
             index[item["id"]] = "item"
     for page in content["pages"]:
         index[f"page:{page['id']}"] = "page"
+    for test in content["live"].get("test", []):
+        index[f"test:{test['id']}"] = "test"
     for resource in content["resources"]:
         index.setdefault(resource["id"], "resource")
     for repository in content["repositories"]:
@@ -786,8 +829,8 @@ def covered(pattern: str, item_id: str) -> bool:
 
 
 def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
-    """Every identifier the guide issues, by kind, in content order. Terms, FIPs, FIP Dashboard records and tests carry
-    the identifiers of the registries they come from, which keep them (docs/content-model.md, Identifiers)."""
+    """Every identifier the guide issues, by kind, in content order. Terms, FIPs, FIP Dashboard records and external
+    tests carry their registries' identifiers. Local tests have guide-issued IDs (docs/content-model.md)."""
     return {
         "lenses": [lens["id"] for lens in content["guide"].get("lens", [])],
         "stations": [data["station"]["id"] for data in content["stations"]],
@@ -804,6 +847,7 @@ def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
         "pages": [page["id"] for page in content["pages"]],
         "advice": [advice["id"] for data in content["stations"] for advice in data.get("advice", [])],
         "questions": [item["id"] for data in content["checks"] for item in data.get("item", [])],
+        "tests": [test["id"] for test in content["live"].get("test", [])],
         "requirements": [clause["id"] for clause in content["ledger"]],
         "sources": [source["id"] for source in content["sources"]],
         "resources": [resource["id"] for resource in content["resources"]],
@@ -863,7 +907,7 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             report.error(where, "endTime must be a date-time with a time zone")
     patterns = [pattern for action in actions for pattern in action.get("results", [])]
     for item_id, kind in index.items():
-        if kind in ("advice", "item", "resource", "clause") and not any(covered(p, item_id) for p in patterns):
+        if kind in ("advice", "item", "resource", "clause", "test") and not any(covered(p, item_id) for p in patterns):
             report.error(f"{kind}:{item_id}", "no provenance action covers this item")
 
 
@@ -1235,6 +1279,8 @@ def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:
             items[item["id"]] = item
     for resource in content["resources"]:
         items[resource["id"]] = resource
+    for test in content["live"].get("test", []):
+        items[f"test:{test['id']}"] = test
     return {key: json.dumps(value, sort_keys=True, default=str) for key, value in items.items()}
 
 

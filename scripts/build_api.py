@@ -26,19 +26,23 @@ Uses only the Python standard library. Checked by ``tests/test_scripts.py`` and 
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import posixpath
 import shutil
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Any
 
 import build_crate as kb
+import check_health
 
 SITE = kb.ROOT / "_site"
 OPENAPI_FILE = kb.API_FILES["description"]
 CONTEXT_FILE = kb.API_FILES["context"]
 META_FILE = kb.API_FILES["meta"]
+HEALTH_FILE = kb.API_FILES["health"]
 DOCS_DIR = kb.ROOT / "api"
 SWAGGER_DIR = kb.ROOT / "node_modules" / "swagger-ui-dist"
 SWAGGER_FILES = ("swagger-ui-bundle.js", "swagger-ui.css", "LICENSE", "NOTICE")
@@ -167,7 +171,19 @@ class Api:
         if path:
             return self.relative(here, path)
         entity = self.entities.get(target)
-        if entity is not None and depth == 0 and set(kb.as_list(entity.get("@type"))) & EMBEDDED_TYPES:
+        local_document = (
+            entity is not None
+            and "CreativeWork" in kb.as_list(entity.get("@type"))
+            and any(
+                "File" in kb.as_list(self.entities.get(parent, {}).get("@type"))
+                for parent in ids(entity.get("isPartOf"))
+            )
+        )
+        if (
+            entity is not None
+            and depth == 0
+            and (set(kb.as_list(entity.get("@type"))) & EMBEDDED_TYPES or local_document)
+        ):
             return self.node(entity, here, 1)
         return self.iri(target, here)
 
@@ -199,7 +215,16 @@ class Api:
             if key in ("@id", "@type") or key in DROPPED.get(collection, ()):
                 continue
             name = renamed.get(key, key)
-            node[name] = self.value(name, value, here, depth)
+            if (
+                key == "url"
+                and isinstance(value, str)
+                and value.split("#", 1)[0] in self.entities
+                and "://" not in value
+            ):
+                self.reference_keys.add(name)
+                node[name] = self.site_root(here) + value.removeprefix("./")
+            else:
+                node[name] = self.value(name, value, here, depth)
         return node
 
     def record(self, collection: str, record: str, entity_id: str) -> dict[str, Any]:
@@ -215,7 +240,15 @@ class Api:
         if collection == "principles":
             out |= self.about_principle(entity_id, here)
         if collection == "metrics":
-            out["hasImplementation"] = self.relative(here, self.tests[entity_id])
+            local = [
+                test_id
+                for _, test_id in self.records["tests"]
+                if entity_id in ids(self.entities[test_id].get("isImplementationOf"))
+            ]
+            implementations = [self.relative(here, self.tests[entity_id])] + [
+                self.relative(here, self.paths[test_id]) for test_id in local
+            ]
+            out["hasImplementation"] = implementations if local else implementations[0]
         return out
 
     def about_principle(self, principle: str, here: str) -> dict[str, Any]:
@@ -252,6 +285,7 @@ class Api:
         check = self.entities[ids(self.entities[entity_id].get("isPartOf"))[0]]
         lens = ids(check.get("audience"))[0].removeprefix("#lens-")
         strings = self.strings["test"]
+        context = self.entities[entity_id].get("assessmentContext", False)
         self.language_keys.update(("name", "description"))
         return {
             "@context": self.relative(here, CONTEXT_FILE),
@@ -259,7 +293,8 @@ class Api:
             "@type": ["Test"],
             "identifier": record,
             "name": {language: text.format(id=record) for language, text in strings["name"].items()},
-            "description": strings["description"],
+            "description": strings["contextDescription"] if context else strings["description"],
+            **({"assessmentContext": True} if context else {}),
             "isImplementationOf": self.relative(here, self.paths[entity_id]),
             "landingPage": f"{self.site_root(here)}#/{kb.LANGS[0]}/{lens}/check/{check['identifier']}",
         }
@@ -300,8 +335,69 @@ class Api:
             "license": self.iri(ids(root["license"])[0], META_FILE),
             "url": self.site_root(META_FILE),
             "isBasedOn": self.site_root(META_FILE) + kb.CRATE_FILE,
-            "hasPart": [f"{collection}.json" for collection in kb.API_COLLECTIONS],
+            "hasPart": [f"{collection}.json" for collection in kb.API_COLLECTIONS] + [posixpath.basename(HEALTH_FILE)],
         }
+
+    def health(self, report: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Ordinary JSON check evidence, enriched with relative links to the API's existing records.
+
+        A plain build has no completed check timestamp. Its inventory is evaluated against the
+        maintained content's latest recorded date so rebuilding the same sources is deterministic.
+        ``check_all`` replaces it with the actual run report after the checks finish.
+        """
+        dates = [str(self.content["guide"]["guide"]["datePublished"])[:10]] + [
+            str(action["endTime"])[:10] for action in self.content["provenance"] if action.get("endTime")
+        ]
+        as_of = max(date.fromisoformat(value) for value in dates)
+        result = copy.deepcopy(report) if report is not None else check_health.make_report(self.content, today=as_of)
+        result["content_as_of"] = as_of.isoformat()
+        if report is None:
+            result["generated_at"] = None
+        record_paths = {
+            name: {record: self.paths[entity_id] for record, entity_id in members}
+            for name, members in self.records.items()
+        }
+
+        def link(item: dict[str, Any], collections: tuple[str, ...], prefix: str = "") -> None:
+            target = self.paths.get(prefix + item["id"]) if prefix else None
+            if not target:
+                target = next(
+                    (record_paths[name][item["id"]] for name in collections if item["id"] in record_paths[name]), None
+                )
+            if target:
+                item["api_record"] = self.relative(HEALTH_FILE, target)
+
+        groups = {
+            "cited sources": ("sources", "resources"),
+            "ledger clauses": ("clauses",),
+            "stations": ("stations",),
+            "questions and source context": ("metrics",),
+            "self-checks": ("checks",),
+            "curated repositories": ("repositories", "resources"),
+            "snapshot repositories": ("repositories", "resources"),
+            "snapshot resources": ("resources",),
+            "snapshot organisations": ("organizations",),
+            "guide organisations": ("organizations",),
+            "snapshot profiles": ("fips",),
+            "glossary terms": ("terms",),
+            "FAIR principles": ("principles",),
+            "remote automated tests": ("tests",),
+            "guide automated tests": ("tests",),
+        }
+        for group in result["integrity"]:
+            collections = ("resources",) if group["type"].startswith("resources:") else groups.get(group["type"], ())
+            for item in group["items"]:
+                link(item, collections, "#advice-" if group["type"] == "station advice" else "")
+        coverage = result["original_coverage"]
+        for kind, collections, prefix in (
+            ("clauses", ("clauses",), ""),
+            ("questions", ("metrics",), ""),
+            ("advice", (), "#advice-"),
+            ("by_source", ("sources", "resources"), ""),
+        ):
+            for item in coverage[kind]:
+                link(item, collections, prefix)
+        return result
 
     def context(self) -> dict[str, Any]:
         """The JSON-LD context: schema.org by default, the guide's own terms, FTR and its neighbours, language maps
@@ -334,6 +430,7 @@ class Api:
         for collection in kb.API_COLLECTIONS:
             docs[f"api/{collection}.json"] = self.collection(collection, docs)
         docs[META_FILE] = self.meta()
+        docs[HEALTH_FILE] = self.health()
         docs[CONTEXT_FILE] = self.context()  # after the records: it names every property they use
         docs[OPENAPI_FILE] = self.openapi(docs)
         return {path: json.dumps(doc, ensure_ascii=False, indent=2) + "\n" for path, doc in docs.items()}
@@ -351,7 +448,9 @@ class Api:
             "/" + CONTEXT_FILE: operation(
                 "getContext", english["context"], "Context", "meta", media="application/ld+json"
             ),
+            "/" + HEALTH_FILE: operation("getHealth", english["health"], "Health", "meta"),
         }
+        paths["/" + HEALTH_FILE]["get"]["description"] = english["healthDescription"]
         tags = [{"name": "meta", "description": english["metaTag"]}]
         for collection in kb.API_COLLECTIONS:
             strings = {key: value[kb.LANGS[1]] for key, value in self.strings["collection"][collection].items()}
@@ -382,7 +481,7 @@ class Api:
             "servers": [{"url": ".", "description": english["server"]}],
             "tags": tags,
             "paths": paths,
-            "components": {"schemas": schemas(self.language_keys, self.reference_keys)},
+            "components": {"schemas": schemas(self.language_keys, self.reference_keys) | health_schemas()},
         }
 
 
@@ -534,6 +633,230 @@ def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]
             "properties": {key: property_schema(key) for key in required},
         }
     return out
+
+
+def health_schemas() -> dict[str, Any]:
+    """Typed ordinary-JSON evidence; outcome states are separate from recorded service statuses."""
+    strings = {"type": "array", "items": {"type": "string"}}
+    count = {"type": "integer", "minimum": 0}
+    nullable_string = {"type": ["string", "null"]}
+    record_link = {"type": "string", "minLength": 1, "description": "An API record path relative to api/health.json."}
+    counts = {
+        "type": "object",
+        "required": ["total", "with_original"],
+        "properties": {"total": count, "with_original": count},
+        "additionalProperties": count,
+    }
+    return {
+        "Health": {
+            "type": "object",
+            "description": (
+                "A published offline check snapshot; recorded results describe content and checks, "
+                "rather than runtime service liveness or a FAIR verdict."
+            ),
+            "required": [
+                "format_version",
+                "generated_at",
+                "scope",
+                "live_availability",
+                "integrity",
+                "integrity_failed",
+                "original_coverage",
+                "run",
+                "trend",
+            ],
+            "not": {"required": ["@context"]},
+            "properties": {
+                "format_version": {"type": "integer", "const": check_health.FORMAT_VERSION},
+                "generated_at": {
+                    "type": ["string", "null"],
+                    "description": "Actual report time; null for an unexecuted build inventory.",
+                },
+                "content_as_of": {"type": "string", "pattern": r"^\d{4}-\d{2}-\d{2}$"},
+                "scope": {"type": "string"},
+                "revision": nullable_string,
+                "run_url": nullable_string,
+                "live_availability": {
+                    "type": "object",
+                    "required": ["status", "reason"],
+                    "properties": {"status": {"const": "unchecked"}, "reason": {"type": "string"}},
+                },
+                "integrity": {"type": "array", "items": ref("HealthGroup")},
+                "integrity_failed": count,
+                "original_coverage": ref("HealthCoverage"),
+                "run": ref("HealthRun"),
+                "trend": {
+                    "type": "object",
+                    "required": ["available"],
+                    "properties": {
+                        "available": {"type": "boolean"},
+                        "reason": {"type": "string"},
+                        "previous_generated_at": nullable_string,
+                        "coverage": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "object",
+                                "required": [
+                                    "new_missing",
+                                    "resolved_missing",
+                                    "added_items",
+                                    "removed_items",
+                                    "with_original_delta",
+                                ],
+                                "properties": {
+                                    "new_missing": strings,
+                                    "resolved_missing": strings,
+                                    "added_items": strings,
+                                    "removed_items": strings,
+                                    "with_original_delta": {"type": "integer"},
+                                },
+                            },
+                        },
+                        "job_changes": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": ["name", "previous", "current"],
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "previous": {"type": "string"},
+                                    "current": {"type": "string"},
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        "HealthRun": {
+            "type": "object",
+            "required": ["status", "jobs"],
+            "properties": {
+                "status": {"enum": ["not_run", "passed", "partial", "failed"]},
+                "reason": {"type": "string"},
+                "jobs": {"type": "array", "items": ref("HealthJob")},
+            },
+        },
+        "HealthJob": {
+            "type": "object",
+            "required": ["name", "status"],
+            "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "status": {"enum": ["passed", "failed", "blocked", "not_run"]},
+                "seconds": {"type": ["number", "null"], "minimum": 0},
+                "output": {"type": "string"},
+            },
+        },
+        "HealthGroup": {
+            "type": "object",
+            "required": ["type", "count", "passed", "failed", "items"],
+            "properties": {
+                "type": {"type": "string"},
+                "scope": {"type": "string"},
+                "live_availability": {"enum": ["unchecked", "not_applicable"]},
+                "count": count,
+                "passed": count,
+                "failed": count,
+                "items": {"type": "array", "items": ref("HealthItem")},
+            },
+        },
+        "HealthItem": {
+            "type": "object",
+            "required": ["id", "name", "status", "checks", "issues", "notes"],
+            "properties": {
+                "id": {"type": "string"},
+                "name": {"type": "string"},
+                "status": {"enum": ["passed", "failed"]},
+                "checks": strings,
+                "issues": strings,
+                "notes": strings,
+                "recorded_status": nullable_string,
+                "recorded_date": nullable_string,
+                "api_record": record_link,
+            },
+        },
+        "HealthCoverage": {
+            "type": "object",
+            "required": ["counts", "clauses", "questions", "advice", "by_source"],
+            "properties": {
+                "counts": {
+                    "type": "object",
+                    "properties": {kind: counts for kind in ("clauses", "questions", "advice")},
+                },
+                "clauses": {"type": "array", "items": ref("HealthClause")},
+                "questions": {"type": "array", "items": ref("HealthCitedItem")},
+                "advice": {"type": "array", "items": ref("HealthCitedItem")},
+                "by_source": {"type": "array", "items": ref("HealthSourceCoverage")},
+            },
+        },
+        "HealthClause": {
+            "type": "object",
+            "required": ["id", "source", "has_original"],
+            "properties": {
+                "id": {"type": "string"},
+                "source": {"type": "string"},
+                "source_url": {"type": "string"},
+                "source_title": {"type": "string"},
+                "source_type": {"type": "string"},
+                "source_version": nullable_string,
+                "locator": {"type": "string"},
+                "guide_text": ref("LocalizedText"),
+                "kind": {"type": "string"},
+                "actor": {"type": "string"},
+                "status": {"type": "string"},
+                "has_original": {"type": "boolean"},
+                "original_language": nullable_string,
+                "api_record": record_link,
+            },
+        },
+        "HealthCitedItem": {
+            "type": "object",
+            "required": ["id", "parent", "citations", "originals", "missing_originals", "status"],
+            "properties": {
+                "id": {"type": "string"},
+                "parent": {"type": "string"},
+                "guide_text": ref("LocalizedText"),
+                "kind": {"type": "string"},
+                "lens": nullable_string,
+                "level": nullable_string,
+                "citations": strings,
+                "originals": strings,
+                "missing_originals": strings,
+                "missing_sources": strings,
+                "status": {"enum": ["complete", "partial", "no_original", "reviewed_source_links"]},
+                "reviewed_basis": nullable_string,
+                "api_record": record_link,
+            },
+        },
+        "HealthSourceCoverage": {
+            "type": "object",
+            "required": ["id", "clauses", "with_original", "missing_clauses"],
+            "properties": {
+                "id": {"type": "string"},
+                "title": {"type": "string"},
+                "url": {"type": "string"},
+                "type": {"type": "string"},
+                "clauses": count,
+                "with_original": count,
+                "missing_clauses": strings,
+                "questions_without_original": strings,
+                "questions_with_other_original": strings,
+                "advice_without_original": strings,
+                "advice_with_other_original": strings,
+                "api_record": record_link,
+            },
+        },
+    }
+
+
+def publish_health(out: Path, report: dict[str, Any], content: dict[str, Any] | None) -> None:
+    """Replace only the health snapshot of an already built site; callers require a successful fresh build."""
+    target = out / HEALTH_FILE
+    if not target.is_file() or not (out / OPENAPI_FILE).is_file():
+        raise kb.ContentError("health publication requires an existing built API")
+    document = Api(kb.build_crate(content), content).health(report) if content is not None else report
+    target.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    check_health.write_site_dashboard(document, out)
 
 
 def write_site(out: Path, files: dict[str, str]) -> None:

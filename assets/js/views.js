@@ -327,7 +327,8 @@
           h("li", null, h("a", { href: FG.href("page", "about") + "/privacy" }, FG.t("footer.localData"))),
           h("li", null, h("a", { href: FG.href("page", "about") }, FG.t("footer.ai"))),
           h("li", null, FG.external(root.url, FG.t("footer.repository"))),
-          h("li", null, h("a", { href: FG.href("page", "machines") }, FG.t("footer.crate")))
+          h("li", null, h("a", { href: FG.href("page", "machines") }, FG.t("footer.crate"))),
+          h("li", null, h("a", { href: "health/index.html", hreflang: "en" }, FG.t("footer.health")))
         ),
         h("p", null, FG.span(root.usageInfo)),
         h("p", null, FG.span(root.creditText)),
@@ -605,7 +606,7 @@
       notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.linkedSpan(note)))) : null,
       /* The station's principles show in its header; the reasons go straight to what the advice rests on, which the
          section's title already names. */
-      h("ul", { class: "clauses" }, clauses.map(FG.clauseEntry)),
+      h("ul", { class: "clauses", role: "list" }, clauses.map(FG.clauseEntry)),
     ];
   }
 
@@ -999,7 +1000,7 @@
         selected
           ? h(
               "section",
-              { "aria-labelledby": "principle-heading" },
+              { class: "principle-detail", "aria-labelledby": "principle-heading" },
               heading(2, { id: "principle-heading" }, h("span", { class: "principle-letter", "data-letter": String(selected.termCode).charAt(0) }, String(selected.termCode).charAt(0)), String(selected.termCode).slice(1) + " · ", FG.span(selected.name)),
               h("p", { class: "lead" }, FG.span(selected.description)),
               relatedTerms(selected),
@@ -1007,7 +1008,7 @@
               actors.map((actor) => {
                 const group = clauses.filter((clause) => FG.hasRef(clause, "audience", actor));
                 if (!group.length) return null;
-                return h("section", null, h("h3", null, FG.termName(actor)), h("ul", { class: "clauses" }, group.map(FG.clauseEntry)));
+                return h("section", { class: "principle-requirements" }, h("h3", null, FG.termName(actor)), h("ul", { class: "clauses", role: "list" }, group.map(FG.clauseEntry)));
               })
             )
           : explorerOverview(principles, actors)
@@ -1249,9 +1250,11 @@
     const link = (href, label, type) => h("a", { href, type: type || null }, label || href);
     const example = "principles/R1.1";
     const rows = [
-      ["crate", [link("ro-crate-metadata.json", null, "application/ld+json")]],
+      ["crate", [link("ro-crate-metadata.json", null, "application/ld+json"), " · ", link("ro-crate-preview.html", FG.t("machines.preview")), " · ", link("profile/0.1/index.html", FG.t("machines.profile"))]],
       ["record", [h("code", null, files.record.replace("{record}", "<kolekce>/<id>")), " · ", FG.t("machines.example") + ": ", link(files.record.replace("{record}", example), null, "application/json")]],
       ["service", [link(files.description, null, "application/vnd.oai.openapi+json"), " · ", link(files.docs, FG.t("api.docs"), "text/html")]],
+      ["health", [link("health/index.html", FG.t("footer.health"), "text/html"), " · ", link(files.health, "JSON", "application/json")]],
+      ["tests", [link("assets/js/tests/index.html" + (FG.state.lang === "en" ? "#english" : ""), FG.t("machines.testDocs"), "text/html"), " · ", link(FG.href("catalogue", "k!tests"), FG.t("catalogue.tab.tests"))]],
       ["harvest", [link("linkset.json", null, "application/linkset+json"), " · ", h("a", { href: "#signposts" }, FG.t("machines.headLinks"))]],
       ["result", [link(FG.href("selfcheck"), FG.t("nav.selfcheck"))]],
       ["list", [link(FG.href("catalogue"), FG.t("nav.catalogue"))]],
@@ -1306,7 +1309,7 @@
             h("td", null, h("code", null, files.record.replace("{record}", name + "/<id>")))
           )
         ),
-        [["meta", files.meta, "application/json"], ["context", files.context, "application/ld+json"]].map(([key, path, type]) =>
+        [["meta", files.meta, "application/json"], ["context", files.context, "application/ld+json"], ["health", files.health, "application/json"]].map(([key, path, type]) =>
           h("tr", null, h("th", { scope: "row" }, FG.t("api." + key)), h("td", null, file(path, type)), h("td", null, ""))
         )
       )

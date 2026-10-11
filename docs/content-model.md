@@ -274,7 +274,11 @@ puts the person (with their ORCID iD) into the crate, or a plain name.
 `text`, `status` (`current`, `refresh`, `superseded`), `note` (text: what has changed since the source was
 published), `noteSources` (clause or source IDs that support the note), `supersededBy` (clause or source ID),
 `title` (text: a requirement's own title, when its source gives one) and `guidance` (a string: the guidance its
-source publishes with it, quoted in English as published; paragraphs and `- ` lists as in page text). The
+source publishes with it, quoted as published; paragraphs and lists with `-` markers as in page text), and optional
+`guidanceLanguage` (`cs` or `en`, default `en`). Originals keep their own language; the guide's bilingual
+statement and explanation remain separate. Use only fitting published passages with permitted reuse,
+their version, source attribution and licence. PDF layout joins and omitted footnote markers do not
+change wording; retain a footnote when it determines the requirement's meaning. The
 CoreTrustSeal Requirements 2026–2028 are clauses `CTS.R0` (the context an application gives) and `CTS.R01` to
 `CTS.R16`, with the statement in English as published and in the guide's Czech translation. CDIF 1.1 is clauses
 `CDIF.REQ1`–`REQ6`, `CON1`–`CON3`, `REC1`–`REC14` and `MET1`–`MET3` (the content requirements of the basic
@@ -305,11 +309,11 @@ guidance.
 
 ### `checks/<id>.toml`
 
-`[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`, `coretrustseal`, `cdif`), `name`, `icon` (shown on its card in the
+`[check]`: `id` (`dataset`, `gate`, `maturity`, `fip`, `institution`, `coretrustseal`, `cdif`, `software`, `fdo`), `name`, `icon` (shown on its card in the
 self-check overview), `description`, `lenses`, `minutes`, `modes` (dataset check: `before`, `after`),
 `[[check.profile]]` (`id`, `label`; gate check: the deployment profiles `core-system`, `nrp-infrastructure` and `independent`; dataset check: the programme that funded the
 output), `defaultProfile` (the profile a check starts with; dataset check: `none`, no programme; the profile question
-then shows only in a mode where some item names profiles). `[[block]]` (`id`, `name`): the blocks a check is organised in,
+then shows only in a mode where some item names profiles). `[[block]]` (`id`, `name`, optional `icon`): the blocks a check is organised in,
 in order; when a check declares blocks, every item names its `block`, and the list, summary and result group by
 block instead of by principle or path step.
 
@@ -323,6 +327,7 @@ block instead of by principle or path step.
 | `principles` | list | Principle IDs; empty for gate items and for institution items that serve no single principle |
 | `statement` | text | The statement the user answers |
 | `help` | text | A short explanation |
+| `context` | boolean | Source context instead of an answerable criterion; preserves the issued identifier, source, position and historical answers without including them in outcomes or pre-fill |
 | `sources` | list | Clause IDs; at least one |
 | `fixAt` | string | Station ID where a gap is addressed |
 | `owner` | list | Actor IDs (`role = "owner"`) who can fix a gap |
@@ -429,7 +434,7 @@ button with the page's title and icon beside the language switch, marked while t
 page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `helper` (true
 for a page that holds an interactive helper; until the page script provides it, the page says it is still being
 built), `[[page.section]]` with `heading`, `body` (text; paragraphs are separated by a blank line, and a block
-whose lines all start with `- ` is shown as a list, an item's short lead before a colon in bold), an optional `id` and an optional `action` (a `label` and an
+whose lines all start with a `-` and a space is shown as a list, an item's short lead before a colon in bold), an optional `id` and an optional `action` (a `label` and an
 `href`, as on an L0 advice item, shown as a button below the text); the section
 `credits` on the about page carries the roles table, generated from the guide's metadata, and on the page for
 machines `tasks`, `practice` and `endpoints` carry the table of what a reader wants and where it is, the guide's
@@ -533,6 +538,99 @@ software-specific metric identities and FDO layer responsibilities; they do not 
 principles. Source labels in FRSM 1.0 and FDO Proposed Recommendation 3.0 remain in clause identifiers.
 All questions use the existing answer, uncertainty, result and portable export/import contracts.
 
+Questions present the criterion and its necessary conditions before useful help and native answers.
+Responsibility, lifecycle links and sources are labelled relations; original wording and technical
+evidence have separate native disclosures. Source context in FDO questions 09, 29 and 32 remains
+read-only. Old answers survive import as historical information.
+
+Evidence retains up to eight observations per question with source, date, subject, representation,
+commit, test identity and coverage. Supporting values keep up to 65,536 characters each, within a
+131,072-character budget per observation; disclosures show these values in full in keyboard-accessible
+scrollable areas. Probe logs keep up to 65,536 characters
+per test and record, with a separate failure explanation. Suggestions never overwrite authored answers;
+conflicting Yes/No observations leave the suggestion open. Replacing the last supported observation
+with an unknown observation clears its automatic answer. Missing access or incomplete coverage is
+unverified evidence; earlier observations keep their own dates and inspected subjects.
+
+Portable results use format version 2 and accept version 1. They carry observations, sample records,
+per-record logs and software commit details. The 2 MB file limit remains. Exceptionally large portable
+payloads have a 384 KB budget: older observations or long supporting text may be shortened with an
+explicit bound marker, preserving answers and source links. Markdown and FTR use the same bounded
+snapshot; the browser's working observations remain unchanged.
+
+Object discovery and software inspection require an explicit user action. Resolver/registry records
+remain attributable independently of landing representations. Discovery reads embedded JSON-LD and
+Schema.org microdata, plus declared typed links and JSON or text linksets on origins enrolled in
+`live.toml`; it never guesses a repository API endpoint. Microdata preserves nested item boundaries,
+machine-readable values and `itemref`; unrelated subjects cannot contribute evidence. Detected RDFa
+remains explicitly uninspected. Browser failures cannot distinguish CORS, redirects and network errors.
+Reviewed origins generate the CSP too. Identity, vocabulary context and representation scope must fit
+before a fact can support a suggestion. Profile declaration and profile validation are distinct.
+Unavailable CORS, unsupported managed PIDs and unobserved infrastructure stay open for manual assessment.
+Dataset and repository-sample lookups reuse discovery; samples remain limited to five objects and
+cannot establish repository-wide compliance. FAIR Champion remains a separate action.
+
+Software inspection supports only anonymous public GitHub.com and GitLab.com repositories, at a
+resolved immutable commit. Request, tree, response and selected-file limits are configured in
+`live.toml`. File text is inert: no cloning, installation, execution or badge issuance. A filename,
+paper citation or commit history cannot establish complete dependencies, a software PID, successful
+execution or archival preservation.
+
+Source verification distinguishes the FRSM report version 1.1 from metric set 1.0. The added originals
+come from the published FAIR analysis 1.2, NRP conditions 3.4, policy manual 0.1, FRSM report 1.1,
+FDO Proposed Recommendation 3.0 and CODE. Existing CTS and CDIF originals remain. The analysis PDF
+declares CC BY 4.0; its repository record's different licence is not substituted for the PDF's terms.
+Further originals come from the Open Science III rules (version 1), the promulgated text of Act
+328/2025, CESSDA's documentation guidance, the FORCE11 citation principles and the OSTrails CZ
+pilot's published recommendations. Official statutory and administrative texts are reproduced with
+their scope and attribution; no Creative Commons licence is assigned to them. The CoreTrustSeal
+About page supplies a short attributed quotation about certification. CESSDA and FORCE11 excerpts
+retain CC BY-SA 4.0; the pilot recommendations retain CC BY 4.0 and cite the specific deposited version.
+OpenSSF's introduction is pinned to the 16 August 2024 source snapshot under CC BY 3.0. It is unchanged
+in the current criteria introduction; later contributions have different terms. The application code's
+MIT licence is not substituted for the prose licence.
+
+Original-passage coverage is checked for each question. Three practical recommendations retain source
+links without an invented original requirement: `dataset.19` asks about local advice for sensitive
+data, `institution.24` about institutional storage provision, and `maturity.18` about registration in
+two independent registries. Their cited services and schema do not prescribe those exact criteria.
+Secondary service links need no extra quotation when an appropriate original already explains the
+criterion. Guide recommendations remain separate from quoted requirements and examples.
+
+Questions use their existing `principles` field to link to the guide's established FAIR vocabulary.
+Local tests inherit the question's `about` links. Catalogue tags, the shared principle filter
+(`p!F1`, for example), documentation and API records use those same links. No additional FAIR
+categories or mapping properties are introduced. Original framework identifiers and wording remain
+intact, and questions with no applicable principle retain no link.
+
+`scripts/check_health.py` inventories original coverage separately for clauses, questions and station
+advice. It distinguishes all citations covered, some citations covered, no original, and the three
+reviewed source-link-only questions. Missing passages elsewhere remain review information; no reuse
+permission or deliberate exemption is inferred. Its offline per-kind integrity checks and optional
+previous-report comparison produce JSON, a self-contained HTML dashboard and a CI Markdown summary.
+`check_all.py` adds actual job outcomes, including omitted jobs and build failures. Live availability
+of the full external estate remains unchecked; separate optional live jobs report their actual subset.
+Neither source coverage nor service availability is a FAIR verdict.
+The same report is published at `api/health.json`, linked from API metadata and described in OpenAPI.
+A build-only inventory states that no check run has completed; the runner publishes its final result
+only after a successful fresh build, leaving a stale site untouched when the build fails. This endpoint
+is a dated content/check-run snapshot. The FIP Dashboard's `/health` instead reports its running
+service status and collection counts.
+
+Local criterion definitions are authored in `live.toml` `[[test]]`: stable issued `id`, `question`,
+`family`, source `script`, callable `entryPoint`, `documentation`, bilingual `label` and `description`.
+The source and documentation files are RO-Crate attachments. These Test records link their question,
+its cited requirements and implementation; observations retain `testId`. Shared source files contain
+the pure family mappings and named criterion selectors. External test records carry their actual POST
+endpoint and published documentation; a per-test override is used when the service has a different
+published endpoint. Saved executions record endpoint, method and inspected identifier. A displayed
+endpoint link identifies the request address; it does not run a test by following the link.
+
+Guide translations load by language, including deferred parts. Original source passages, original
+titles and short published vocabulary labels retain their source language. Switching loads the other
+language once and preserves answers; bilingual JSON export explicitly loads complete language maps.
+Compact search aliases preserve cross-language matching without loading the other display texts.
+
 A page section with `details = true` renders as native details/summary and remains closed initially.
 Text references can name a lifecycle station as `[[station:<id>|phrase]]`, with the same target in both
 languages. Pages can be named in provenance results as `page:<id>`.
@@ -540,6 +638,9 @@ languages. Pages can be named in provenance results as `page:<id>`.
 The initial knowledge base keeps check descriptions and structural links. Question entities load from
 `kb-questions.js` for checks, the catalogue, the explorer, a station or a search; returning visitors with
 answers also load them before the landing renders its gaps. Full reconstruction still yields the crate.
+Original passages and their source bylines load together for checks, the catalogue, principles and
+individual stations. The guide's foundation citation keeps its authors in the initial data for the
+landing and About page. Attribution does not depend on which view the reader visited first.
 
 The crate describes the app as `#guide-software`, its source as `#guide-source` and the content dataset
 as `./`, with separate identities and licences. docs/software-practice.md maps release evidence.

@@ -62,10 +62,11 @@ id = "institution.02"
 block = "law"
 tier = "minimum"
 principles = ["A1"]
-statement = { cs = "Na žádost instituce bezplatně poskytne údaje, které už zveřejnila v repozitáři, nebo odkaz na ně.", en = "On request, the institution provides free of charge the data it has already published in a repository, or a link to them." }
+statement = { cs = "Instituce bezplatně poskytuje třetím osobám již zveřejněné údaje z výzkumu, na které se vztahuje § 83 odst. 2, nebo odkaz na ně.", en = "The institution provides third parties, free of charge, with already published research data covered by section 83(2), or a link to them." }
 sources = ["LAW-328-2025.83.2"]
 fixAt = "publication"
 owner = ["data-steward"]
+help = { cs = "Ověřte podmínky § 83 odst. 2, zejména veřejné financování a ochranu práv. U údajů již zveřejněných pro bezplatný dálkový přístup postačuje odkaz (§ 83 odst. 4).", en = "Check the conditions of section 83(2), particularly public funding and protected rights. A link suffices for data already published with free remote access (section 83(4))." }
 
 [[item]]
 id = "institution.03"
@@ -82,12 +83,13 @@ id = "institution.04"
 block = "law"
 tier = "minimum"
 principles = []
-statement = { cs = "Instituce ví, z jakých zákonných důvodů smí poskytnutí údajů odmítnout, a odmítnutí eviduje.", en = "The institution knows on which legal grounds it may refuse to provide data, and records each refusal." }
+statement = { cs = "Instituce zná zákonné důvody, pro které může odmítnout poskytnutí údajů z výzkumu.", en = "The institution knows the legal grounds on which it may refuse to provide research data." }
 sources = ["LAW-328-2025.83.5", "POLICY-MANUAL.05"]
 fixAt = "licence"
 owner = ["data-steward"]
 
 # Strategy
+help = { cs = "§ 83 odst. 5 připouští odmítnutí k ochraně uvedených práv a oprávněných zájmů. Manuál ponechává instituci volbu, zda důvody výjimek evidovat; nejde o další povinnost stanovenou tímto odstavcem zákona.", en = "Section 83(5) permits refusal to protect the listed rights and legitimate interests. The manual leaves the institution a choice whether to record exception grounds; that paragraph of the act does not create an additional recording duty." }
 
 [[item]]
 id = "institution.05"
@@ -251,10 +253,11 @@ id = "institution.20"
 block = "policy"
 tier = "recommended"
 principles = ["R1.1"]
-statement = { cs = "Politika určuje, zda je sdílení dat povinné, nebo doporučené, jaké licence se doporučují a jak se evidují výjimky.", en = "The policy says whether sharing data is required or recommended, which licences are recommended and how exceptions are recorded." }
+statement = { cs = "Politika určuje, zda je sdílení dat povinné nebo doporučené, které licence jsou doporučené a jak se nakládá s přípustnými výjimkami.", en = "The policy states whether data sharing is required or recommended, which licences are recommended and how permitted exceptions are handled." }
 sources = ["POLICY-MANUAL.05", "LAW-328-2025.83.5"]
 fixAt = "licence"
 owner = ["data-steward"]
+help = { cs = "Rozlišujte zákonné či smluvní povinnosti od doporučení instituce. Manuál umožňuje evidenci důvodů výjimek do politiky zahrnout, ale výslovně připouští tento bod vypustit, pokud ji instituce nechce zavést.", en = "Distinguish legal or contractual duties from institutional recommendations. The manual allows exception recording to be included in the policy, but explicitly permits omitting that item when the institution does not choose to introduce it." }
 
 [[item]]
 id = "institution.21"

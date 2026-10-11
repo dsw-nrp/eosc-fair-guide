@@ -143,6 +143,13 @@ version = "GPT-6.1 Sol (user-confirmed)"
 url = "https://openai.com/codex/"
 kind = "ai-model"
 
+[[instrument]]
+id = "openai-codex-luna"
+name = "OpenAI Codex / GPT-6 Luna"
+version = "gpt-6-luna (requested)"
+url = "https://openai.com/codex/"
+kind = "ai-model"
+
 [[repositoryFunction]]
 id = "deposit-data"
 name = { cs = "Uložit výzkumná data", en = "Deposit research data" }

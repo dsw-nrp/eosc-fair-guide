@@ -63,6 +63,58 @@ name = "DMP.eosc.cz status (Upptime)"
 origin = "https://raw.githubusercontent.com"
 purpose = "Availability of DMP.eosc.cz"
 
+# This public repository origin was reviewed with anonymous read-only browser/API probes. Its HTML may
+# refuse cross-origin reads. Discovery follows only declared standard links, without guessing API paths.
+[[connector]]
+id = "public-object"
+name = "Reviewed public object representations"
+origin = "https://zenodo.org"
+purpose = "Generic declared object representations on a reviewed public origin"
+
+[[connector]]
+id = "github-api"
+name = "GitHub public REST API"
+origin = "https://api.github.com"
+purpose = "Anonymous public repository metadata and selected files at one immutable commit"
+
+[[connector]]
+id = "gitlab-public"
+name = "GitLab.com public REST API"
+origin = "https://gitlab.com"
+purpose = "Anonymous public repository metadata and selected files at one immutable commit"
+
+# Discovery follows standards-based links on these already reviewed origins, without provider adapters.
+# New origins need explicit connector review and CSP enrollment. Other links remain manual routes.
+# Responses and links are bounded; a readable fragment is never combined into a profile-conformance claim.
+[discovery]
+script = "assets/js/discovery.js"
+assessmentScript = "assets/js/assess.js"
+assessmentScripts = ["assets/js/assess.js", "assets/js/tests/object.js", "assets/js/tests/software.js"]
+controlsScript = "assets/js/inspection.js"
+schemaVocabulary = "https://schema.org/"
+codeMetaVocabulary = "https://codemeta.github.io/terms/"
+codeMetaContexts = ["https://doi.org/10.5063/schema/codemeta-2.0", "https://doi.org/10.5063/schema/codemeta-3.0", "https://codemeta.github.io/terms/"]
+conformsTo = "http://purl.org/dc/terms/conformsTo"
+connectors = ["nkr", "public-object"]
+maxRequests = 8
+maxBytes = 524288
+maxRepresentations = 8
+maxLinks = 40
+timeoutSeconds = 15
+
+# Public GitHub.com and GitLab.com are the entire scope, including in future use of this feature.
+# Credentials, institutional GitLab hosts, cloning and running repository code are excluded.
+[software]
+githubOrigin = "https://github.com"
+githubConnector = "github-api"
+gitlabConnector = "gitlab-public"
+maxRequests = 20
+maxFiles = 12
+maxFileBytes = 65536
+maxResponseBytes = 1048576
+maxTreeEntries = 1000
+timeoutSeconds = 15
+
 # Link targets the page builds links to; links are not calls, and the page fetches nothing from them.
 [links]
 fipDashboard = "https://fip-dashboard.dmp.eosc.cz/"
@@ -103,6 +155,8 @@ path = "dsw-nrp/status/master/history/summary.json"
 
 [champion]
 endpoint = "https://tests.ostrails.eu/tests/assess/test"
+documentation = "https://docs.ostrails.eu/en/stable/commons/fair/catalogue-of-tests.html"
+testRecord = "https://tests.ostrails.eu/tests/{id}"
 maxParallel = 4
 timeoutSeconds = 60
 
@@ -112,6 +166,7 @@ timeoutSeconds = 60
 
 [[champion.test]]
 id = "fc_metadata_identifier_persistence"
+description = { cs = "Porovnává identifikátor metadat se známými schématy trvalých identifikátorů.", en = "Compares the metadata identifier against known persistent-identifier schemes." }
 principle = "F1"
 label = { cs = "Identifikátor metadat je trvalý", en = "Metadata identifier is persistent" }
 health = "available"
@@ -119,6 +174,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_data_identifier_in_metadata"
+description = { cs = "Hledá jednoznačný odkaz na data v podporovaných polích metadat.", en = "Looks for an unambiguous data reference in supported metadata fields." }
 principle = "F3"
 label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
 health = "available"
@@ -126,6 +182,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_searchable"
+description = { cs = "Ověřuje nalezení zdroje prostřednictvím metavyhledávače SearXNG.", en = "Checks discovery of the resource through the SearXNG metasearch service." }
 principle = "F4"
 label = { cs = "Záznam je dohledatelný vyhledávači", en = "Record is findable by search engines" }
 health = "available"
@@ -133,6 +190,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_protocol"
+description = { cs = "Posuzuje protokol rozlišení identifikátoru metadat; neověřuje obsah metadat.", en = "Examines the metadata identifier's resolution protocol, rather than metadata contents." }
 principle = "A1.1"
 label = { cs = "Metadata jsou dostupná otevřeným protokolem", en = "Metadata are retrievable by an open protocol" }
 health = "available"
@@ -140,6 +198,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_persistence"
+description = { cs = "Hledá deklaraci zachování metadat; u DOI zachování předpokládá.", en = "Looks for a metadata-persistence declaration; assumes persistence for DOIs." }
 principle = "A2"
 label = { cs = "Repozitář deklaruje trvalost metadat", en = "Repository declares metadata persistence" }
 health = "available"
@@ -147,6 +206,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_structured_metadata"
+description = { cs = "Hledá strojově čitelná strukturovaná metadata v podporovaných formátech.", en = "Looks for machine-readable structured metadata in supported formats." }
 principle = "I1"
 label = { cs = "Metadata jsou strukturovaná", en = "Metadata are structured" }
 health = "available"
@@ -154,6 +214,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_uses_fair_vocabularies"
+description = { cs = "Posuzuje, zda termíny v propojených metadatech vedou na propojené zdroje.", en = "Examines whether terms in linked metadata resolve to linked resources." }
 principle = "I2"
 label = { cs = "Metadata používají FAIR slovníky", en = "Metadata use FAIR vocabularies" }
 health = "available"
@@ -161,6 +222,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_outward_links"
+description = { cs = "Hledá odkazy na jiné zdroje v metadatech reprezentovaných jako propojená data.", en = "Looks for outward references in metadata represented as linked data." }
 principle = "I3"
 label = { cs = "Metadata odkazují na jiné zdroje", en = "Metadata link to other resources" }
 health = "available"
@@ -168,6 +230,7 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "fc_metadata_includes_license"
+description = { cs = "Hledá výslovný odkaz na licenci v propojených metadatech.", en = "Looks for an explicit licence reference in linked metadata." }
 principle = "R1.1"
 label = { cs = "Metadata uvádějí licenci", en = "Metadata include a licence" }
 health = "available"
@@ -175,6 +238,9 @@ asOf = 2026-10-08
 
 [[champion.test]]
 id = "community_metadata_includes_author_affiliation"
+description = { cs = "Hledá afiliace v záznamech DataCite a Crossref nebo ve vlastnosti citation_author_institution vstupní stránky.", en = "Looks for affiliations in DataCite and Crossref records or landing-page citation_author_institution metadata." }
+record = "https://tests.ostrails.eu/community-tests/community_metadata_includes_author_affiliation"
+endpoint = "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation"
 principle = "R1.2"
 label = { cs = "Metadata uvádějí afiliaci autorů", en = "Metadata include author affiliation" }
 health = "degraded"
@@ -184,3 +250,425 @@ asOf = 2026-10-08
 # DataCite metadata lists the described resource's addresses, including its re3data record.
 [fairsharing]
 prefix = "10.25504"
+
+# Local advisory tests: one identity per evaluated question; source and documentation are crate attachments.
+
+[[test]]
+id = "guide-dataset-01"
+question = "dataset.01"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-dataset-01\"]"
+documentation = "assets/js/tests/index.html#guide-dataset-01"
+label = { cs = "Datový soubor: rozlišený PID", en = "Dataset: resolved PID" }
+description = { cs = "Rozlišený PID dokládá použití identifikátoru podporovaného službou pro rozlišení PID. Nedokládá dlouhodobou dostupnost dat.", en = "A resolved PID shows use of an identifier supported by the resolver. It does not establish long-term availability of the data." }
+
+[[test]]
+id = "guide-dataset-02"
+question = "dataset.02"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-dataset-02\"]"
+documentation = "assets/js/tests/index.html#guide-dataset-02"
+label = { cs = "Datový soubor: vstupní stránka", en = "Dataset: landing page" }
+description = { cs = "Úspěšné rozlišení PID dokládá adresu vstupní stránky. Obsah stránky a přístup k datům se posuzují zvlášť.", en = "Successful PID resolution establishes a landing-page address. Page contents and access to the data are assessed separately." }
+
+[[test]]
+id = "guide-dataset-03"
+question = "dataset.03"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-dataset-03\"]"
+documentation = "assets/js/tests/index.html#guide-dataset-03"
+label = { cs = "Datový soubor: odkaz ke stažení", en = "Dataset: download link" }
+description = { cs = "V metadatech přiřazených objektu hledá adresu distribuce Schema.org. Soubor nestahuje a neověřuje oprávnění k přístupu.", en = "Looks for a Schema.org distribution address in metadata matched to the object. It does not download the file or verify access permissions." }
+
+[[test]]
+id = "guide-dataset-04"
+question = "dataset.04"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-dataset-04\"]"
+documentation = "assets/js/tests/index.html#guide-dataset-04"
+label = { cs = "Datový soubor: odkaz na licenci", en = "Dataset: licence link" }
+description = { cs = "Hledá adresu licence v záznamu DataCite nebo v metadatech Schema.org přiřazených objektu. Neověřuje právní použitelnost licence.", en = "Looks for a licence address in the DataCite record or Schema.org metadata matched to the object. It does not verify legal applicability." }
+
+[[test]]
+id = "guide-dataset-06"
+question = "dataset.06"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-dataset-06\"]"
+documentation = "assets/js/tests/index.html#guide-dataset-06"
+label = { cs = "Datový soubor: popisná pole", en = "Dataset: descriptive fields" }
+description = { cs = "Hledá název, popis nebo klíčová slova v jednom přiřazeném záznamu. Nalezené pole podporuje jen částečnou odpověď; kvalitu a úplnost popisu posoudí člověk.", en = "Looks for a title, description or keywords in one matched record. A field supports only a partial answer; a person assesses the description's quality and completeness." }
+
+[[test]]
+id = "guide-maturity-02"
+question = "maturity.02"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-maturity-02\"]"
+documentation = "assets/js/tests/index.html#guide-maturity-02"
+label = { cs = "Repozitář: dosažitelná stránka vzorku", en = "Repository: reachable sample page" }
+description = { cs = "Úspěšné rozlišení dokládá stránku jednoho záznamu. Nevypovídá o všech záznamech ani o jejich trvalé dostupnosti.", en = "Successful resolution establishes a page for one record. It does not describe all records or their lasting availability." }
+
+[[test]]
+id = "guide-maturity-03"
+question = "maturity.03"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-maturity-03\"]"
+documentation = "assets/js/tests/index.html#guide-maturity-03"
+label = { cs = "Repozitář: identifikátor ve vzorku metadat", en = "Repository: identifier in sample metadata" }
+description = { cs = "Hledá identifikátor v přiřazených metadatech mimo registr DataCite. Samotné deklarované pole neprokazuje trvalost ani identifikaci všech souborů.", en = "Looks for an identifier in matched metadata outside the DataCite registry. The declared field alone does not prove persistence or identification of every file." }
+
+[[test]]
+id = "guide-maturity-06"
+question = "maturity.06"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-maturity-06\"]"
+documentation = "assets/js/tests/index.html#guide-maturity-06"
+label = { cs = "Repozitář: licence ve vzorku metadat", en = "Repository: licence in sample metadata" }
+description = { cs = "Hledá adresu licence v jednom přiřazeném záznamu. Neověřuje oprávnění ani pravidla repozitáře pro všechny objekty.", en = "Looks for a licence address in one matched record. It does not verify permissions or the repository's rules for every object." }
+
+[[test]]
+id = "guide-maturity-12"
+question = "maturity.12"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-maturity-12\"]"
+documentation = "assets/js/tests/index.html#guide-maturity-12"
+label = { cs = "Repozitář: propojená metadata vzorku", en = "Repository: linked sample metadata" }
+description = { cs = "Přiřazená reprezentace ve formátu JSON-LD nebo RDF podporuje částečnou odpověď. Test neověřuje kvalitu modelu ani všechny záznamy repozitáře.", en = "A matched JSON-LD or RDF representation supports a partial answer. The test does not validate model quality or every repository record." }
+
+[[test]]
+id = "guide-cdif-01"
+question = "cdif.01"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-01\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-01"
+label = { cs = "CDIF: identifikátor a rozlišení", en = "CDIF: identifier and resolution" }
+description = { cs = "Hledá identifikátor v jednom přiřazeném záznamu a úspěšné rozlišení vstupu. Neověřuje další profily CDIF.", en = "Looks for an identifier in one matched record and successful resolution of the input. It does not validate other CDIF profiles." }
+
+[[test]]
+id = "guide-cdif-02"
+question = "cdif.02"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-02\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-02"
+label = { cs = "CDIF: název v metadatech", en = "CDIF: title in metadata" }
+description = { cs = "Hledá název v jednom přiřazeném záznamu. Přítomnost podporuje částečnou odpověď; výstižnost názvu posoudí člověk.", en = "Looks for a title in one matched record. Presence supports a partial answer; a person assesses whether the title is informative." }
+
+[[test]]
+id = "guide-cdif-03"
+question = "cdif.03"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-03\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-03"
+label = { cs = "CDIF: adresa distribuce", en = "CDIF: distribution address" }
+description = { cs = "Hledá adresu distribuce v přiřazených metadatech Schema.org. Neověřuje dostupnost souboru ani přístupová práva.", en = "Looks for a distribution address in matched Schema.org metadata. It does not verify file availability or access rights." }
+
+[[test]]
+id = "guide-cdif-04"
+question = "cdif.04"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-04\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-04"
+label = { cs = "CDIF: deklarovaná licence", en = "CDIF: declared licence" }
+description = { cs = "Hledá adresu licence v jednom přiřazeném záznamu. Licenční pole pokrývá jen část podmínek práv a přístupu.", en = "Looks for a licence address in one matched record. A licence field covers only part of the rights and access conditions." }
+
+[[test]]
+id = "guide-cdif-05"
+question = "cdif.05"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-05\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-05"
+label = { cs = "CDIF: deklarace profilu", en = "CDIF: profile declaration" }
+description = { cs = "Hledá výslovný odkaz na profil v deklaraci shody reprezentace. Přítomnost odkazu neznamená, že metadata tomuto profilu vyhovují.", en = "Looks for an explicit profile link in the representation's conformance declaration. The link's presence does not mean that the metadata conform to that profile." }
+
+[[test]]
+id = "guide-cdif-06"
+question = "cdif.06"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-06\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-06"
+label = { cs = "CDIF: klasifikace typu", en = "CDIF: type classification" }
+description = { cs = "Hledá typ zdroje v jednom přiřazeném záznamu. Neověřuje použitý klasifikační systém ani správnost zařazení.", en = "Looks for the resource type in one matched record. It does not validate the classification scheme or the correctness of the classification." }
+
+[[test]]
+id = "guide-cdif-07"
+question = "cdif.07"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-07\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-07"
+label = { cs = "CDIF: deklarované proměnné", en = "CDIF: declared variables" }
+description = { cs = "Hledá pole variableMeasured v přiřazených metadatech Schema.org. Význam a úplnost popisu proměnných posoudí člověk.", en = "Looks for variableMeasured in matched Schema.org metadata. A person assesses the meaning and completeness of the variable descriptions." }
+
+[[test]]
+id = "guide-cdif-08"
+question = "cdif.08"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-08\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-08"
+label = { cs = "CDIF: časový rozsah", en = "CDIF: temporal coverage" }
+description = { cs = "Hledá pole temporalCoverage v přiřazených metadatech Schema.org. Neověřuje význam intervalu ani to, zda je pro zdroj tento prvek relevantní.", en = "Looks for temporalCoverage in matched Schema.org metadata. It does not validate the interval's meaning or whether the element applies to the resource." }
+
+[[test]]
+id = "guide-cdif-09"
+question = "cdif.09"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-09\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-09"
+label = { cs = "CDIF: prostorový rozsah", en = "CDIF: spatial coverage" }
+description = { cs = "Hledá pole spatialCoverage v přiřazených metadatech Schema.org. Neověřuje souřadnicový systém, správnost souřadnic ani použitelnost prvku.", en = "Looks for spatialCoverage in matched Schema.org metadata. It does not validate the coordinate system, coordinates or applicability of the element." }
+
+[[test]]
+id = "guide-cdif-10"
+question = "cdif.10"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-10\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-10"
+label = { cs = "CDIF: popis zdroje", en = "CDIF: resource description" }
+description = { cs = "Hledá popis v jednom přiřazeném záznamu. Přítomnost sama neprokazuje popis kontextu a původu zdroje.", en = "Looks for a description in one matched record. Presence alone does not establish coverage of the resource's context and provenance." }
+
+[[test]]
+id = "guide-cdif-11"
+question = "cdif.11"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-11\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-11"
+label = { cs = "CDIF: deklarovaní původci", en = "CDIF: declared originators" }
+description = { cs = "Hledá původce v jednom přiřazeném záznamu. Neověřuje identifikátory všech osob a organizací ani jejich správné přiřazení.", en = "Looks for originators in one matched record. It does not verify identifiers for every person and organisation or their correct attribution." }
+
+[[test]]
+id = "guide-cdif-12"
+question = "cdif.12"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-12\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-12"
+label = { cs = "CDIF: datum změny zdroje", en = "CDIF: resource modification date" }
+description = { cs = "Hledá platné strojově čitelné datum změny zdroje. Neověřuje, zda datum odpovídá poslední skutečné změně.", en = "Looks for a valid machine-readable resource modification date. It does not verify that the date reflects the latest actual change." }
+
+[[test]]
+id = "guide-cdif-13"
+question = "cdif.13"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-13\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-13"
+label = { cs = "CDIF: kontaktní údaj", en = "CDIF: contact information" }
+description = { cs = "Hledá pole contactPoint v přiřazených metadatech Schema.org. Neověřuje funkčnost kontaktu ani úplnost kontaktních údajů.", en = "Looks for contactPoint in matched Schema.org metadata. It does not verify that the contact works or that the details are complete." }
+
+[[test]]
+id = "guide-cdif-15"
+question = "cdif.15"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-15\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-15"
+label = { cs = "CDIF: údaje o financování", en = "CDIF: funding information" }
+description = { cs = "Hledá údaje o financování v jednom přiřazeném záznamu. Neověřuje úplnost, identifikátory poskytovatelů ani použitelnost tohoto prvku.", en = "Looks for funding information in one matched record. It does not verify completeness, funder identifiers or applicability of the element." }
+
+[[test]]
+id = "guide-cdif-16"
+question = "cdif.16"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-16\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-16"
+label = { cs = "CDIF: klíčová slova", en = "CDIF: keywords" }
+description = { cs = "Hledá klíčová slova v jednom přiřazeném záznamu. Neověřuje slovník, klasifikační systém ani pokrytí témat zdroje.", en = "Looks for keywords in one matched record. It does not validate the vocabulary, classification scheme or coverage of the resource's topics." }
+
+[[test]]
+id = "guide-cdif-18"
+question = "cdif.18"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-18\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-18"
+label = { cs = "CDIF: datum zveřejnění", en = "CDIF: publication date" }
+description = { cs = "Hledá platné strojově čitelné datum zveřejnění. Neověřuje jeho věcnou správnost.", en = "Looks for a valid machine-readable publication date. It does not verify the date's factual accuracy." }
+
+[[test]]
+id = "guide-cdif-19"
+question = "cdif.19"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-19\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-19"
+label = { cs = "CDIF: přispěvatelé", en = "CDIF: contributors" }
+description = { cs = "Hledá přispěvatele v jednom přiřazeném záznamu. Neověřuje úplnost seznamu ani popis rolí.", en = "Looks for contributors in one matched record. It does not verify completeness or descriptions of their roles." }
+
+[[test]]
+id = "guide-cdif-20"
+question = "cdif.20"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-20\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-20"
+label = { cs = "CDIF: související identifikátory", en = "CDIF: related identifiers" }
+description = { cs = "Hledá relatedIdentifiers v přiřazeném záznamu DataCite. Neověřuje význam vztahů ani jejich úplnost.", en = "Looks for relatedIdentifiers in the matched DataCite record. It does not validate the relationships' meaning or completeness." }
+
+[[test]]
+id = "guide-cdif-21"
+question = "cdif.21"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-21\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-21"
+label = { cs = "CDIF: označení verze", en = "CDIF: version designation" }
+description = { cs = "Hledá označení verze v jednom přiřazeném záznamu. Neověřuje vztahy mezi verzemi ani oddělenou identifikaci každé verze.", en = "Looks for a version designation in one matched record. It does not validate relationships between versions or separate identification of each version." }
+
+[[test]]
+id = "guide-cdif-24"
+question = "cdif.24"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-cdif-24\"]"
+documentation = "assets/js/tests/index.html#guide-cdif-24"
+label = { cs = "CDIF: datum změny metadat", en = "CDIF: metadata modification date" }
+description = { cs = "Hledá platné datum updated v přiřazeném záznamu DataCite. Jde o datum změny záznamu metadat, které nemusí být datem změny zdroje.", en = "Looks for a valid updated date in the matched DataCite record. This is the metadata record's modification date, which need not be the resource's modification date." }
+
+[[test]]
+id = "guide-fdo-01"
+question = "fdo.01"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-fdo-01\"]"
+documentation = "assets/js/tests/index.html#guide-fdo-01"
+label = { cs = "FDO: rozlišený PID", en = "FDO: resolved PID" }
+description = { cs = "Úspěšné rozlišení PID podporuje jen částečnou odpověď. Test neověřuje všechny vlastnosti PID ani shodu s definicí FDO.", en = "Successful PID resolution supports only a partial answer. The test does not validate every PID property or conformance to the FDO definition." }
+
+[[test]]
+id = "guide-fdo-02"
+question = "fdo.02"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-fdo-02\"]"
+documentation = "assets/js/tests/index.html#guide-fdo-02"
+label = { cs = "FDO: dostupný záznam PID", en = "FDO: available PID record" }
+description = { cs = "Hledá hodnoty záznamu PID vrácené službou pro rozlišení PID nebo přiřazenou reprezentaci záznamu PID. Neověřuje obsah proti profilu záznamu.", en = "Looks for PID-record values returned by the resolver or a matched PID-record representation. It does not validate the contents against a record profile." }
+
+[[test]]
+id = "guide-fdo-04"
+question = "fdo.04"
+family = "object"
+script = "assets/js/tests/object.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-fdo-04\"]"
+documentation = "assets/js/tests/index.html#guide-fdo-04"
+label = { cs = "FDO: deklarace profilu záznamu PID", en = "FDO: PID-record profile declaration" }
+description = { cs = "Hledá odkaz na profil v přiřazené reprezentaci záznamu PID. Deklarace podporuje jen částečnou odpověď; profil ani shoda záznamu se neověřují.", en = "Looks for a profile link in a matched PID-record representation. The declaration supports only a partial answer; neither the profile nor record conformance is validated." }
+
+[[test]]
+id = "guide-software-03"
+question = "software.03"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-03\"]"
+documentation = "assets/js/tests/index.html#guide-software-03"
+label = { cs = "Software: identifikátor commitu", en = "Software: commit identifier" }
+description = { cs = "Rozlišený úplný identifikátor commitu dokládá jednu neměnnou revizi repozitáře. Neprokazuje identifikaci všech vydaných verzí softwaru.", en = "A resolved full commit identifier establishes one immutable repository revision. It does not prove identification of every released software version." }
+
+[[test]]
+id = "guide-software-04"
+question = "software.04"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-04\"]"
+documentation = "assets/js/tests/index.html#guide-software-04"
+label = { cs = "Software: název a popis", en = "Software: title and description" }
+description = { cs = "Hledá název nebo popis ve veřejném záznamu repozitáře či v přiřazeném CodeMeta. Výstižnost, účel a úplnost popisu posoudí člověk.", en = "Looks for a name or description in the public repository record or matched CodeMeta. A person assesses clarity, purpose and completeness." }
+
+[[test]]
+id = "guide-software-05"
+question = "software.05"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-05\"]"
+documentation = "assets/js/tests/index.html#guide-software-05"
+label = { cs = "Software: stav vývoje nebo hlášení chyb", en = "Software: development status or issue tracking" }
+description = { cs = "Hledá developmentStatus nebo issueTracker v CodeMeta přiřazeném tomuto repozitáři. Neověřuje skutečný stav údržby ani reakce správců.", en = "Looks for developmentStatus or issueTracker in CodeMeta matched to this repository. It does not verify actual maintenance status or maintainer responses." }
+
+[[test]]
+id = "guide-software-06"
+question = "software.06"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-06\"]"
+documentation = "assets/js/tests/index.html#guide-software-06"
+label = { cs = "Software: autorství v metadatech", en = "Software: credit in metadata" }
+description = { cs = "Hledá autory či přispěvatele v přiřazeném CodeMeta nebo jména autorů v nejvyšší úrovni CITATION.cff. Neověřuje správnost a úplnost autorství.", en = "Looks for authors or contributors in matched CodeMeta or author names at the top level of CITATION.cff. It does not verify correct or complete attribution." }
+
+[[test]]
+id = "guide-software-07"
+question = "software.07"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-07\"]"
+documentation = "assets/js/tests/index.html#guide-software-07"
+label = { cs = "Software: deklarovaný identifikátor", en = "Software: declared identifier" }
+description = { cs = "Hledá adresu identifikátoru v CodeMeta přiřazeném repozitáři. Neověřuje rozlišení cíle ani trvalost; identifikátor článku z preferred-citation se softwaru nepřipisuje.", en = "Looks for an identifier address in CodeMeta matched to the repository. It does not resolve the target or verify persistence; an article identifier from preferred-citation is not attributed to the software." }
+
+[[test]]
+id = "guide-software-09"
+question = "software.09"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-09\"]"
+documentation = "assets/js/tests/index.html#guide-software-09"
+label = { cs = "Software: veřejný zdrojový repozitář", en = "Software: public source repository" }
+description = { cs = "Veřejná viditelnost podle API a rozlišený commit dokládají veřejný zdrojový repozitář. Test neověřuje právo software dále užívat.", en = "Public visibility reported by the API and a resolved commit establish a public source repository. The test does not verify permission to reuse the software." }
+
+[[test]]
+id = "guide-software-13"
+question = "software.13"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-13\"]"
+documentation = "assets/js/tests/index.html#guide-software-13"
+label = { cs = "Software: deklarované závislosti", en = "Software: declared dependencies" }
+description = { cs = "Hledá závislosti v podporovaném manifestu nebo softwareRequirements v přiřazeném CodeMeta. Nic neinstaluje; neověřuje úplnost, dostupnost ani slučitelnost závislostí.", en = "Looks for dependencies in a supported manifest or softwareRequirements in matched CodeMeta. It installs nothing and does not verify completeness, availability or compatibility." }
+
+[[test]]
+id = "guide-software-14"
+question = "software.14"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-14\"]"
+documentation = "assets/js/tests/index.html#guide-software-14"
+label = { cs = "Software: nalezená definice testu", en = "Software: detected test definition" }
+description = { cs = "Ve vybraném souboru hledá podporovaný zápis definice testu po odstranění komentářů. Testy nespouští a neověřuje jejich pokrytí ani výsledky.", en = "Looks for supported test-definition syntax in a selected file after removing comments. It does not run tests or verify their coverage or results." }
+
+[[test]]
+id = "guide-software-15"
+question = "software.15"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-15\"]"
+documentation = "assets/js/tests/index.html#guide-software-15"
+label = { cs = "Software: licenční soubor součástí", en = "Software: component licence file" }
+description = { cs = "Nalezený neprázdný licenční soubor podporuje částečnou odpověď. Neověřuje licence všech přibalených součástí ani jejich vzájemnou slučitelnost.", en = "A non-empty licence file supports a partial answer. It does not verify licences of every bundled component or their compatibility." }
+
+[[test]]
+id = "guide-software-16"
+question = "software.16"
+family = "software"
+script = "assets/js/tests/software.js"
+entryPoint = "FairGuide.selfcheck.localTests[\"guide-software-16\"]"
+documentation = "assets/js/tests/index.html#guide-software-16"
+label = { cs = "Software: licenční deklarace", en = "Software: licence declaration" }
+description = { cs = "Hledá licenci ve veřejném záznamu repozitáře nebo přiřazeném CodeMeta. Neověřuje nositele práv, platnost licence ani oprávnění k jejímu udělení.", en = "Looks for a licence in the public repository record or matched CodeMeta. It does not verify rights holders, licence validity or authority to grant it." }
