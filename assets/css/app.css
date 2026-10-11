@@ -961,6 +961,42 @@ details > .content {
   font-weight: 400;
 }
 
+/* The identifier helper keeps each returned record with its local check and explicit lookup action. */
+.identifier-helper form {
+  margin-bottom: var(--space-3);
+}
+
+.identifier-helper textarea {
+  display: block;
+  width: 100%;
+  padding-right: 2.75rem;
+  margin: 0;
+}
+
+.identifier-helper .field-clearable {
+  display: block;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.identifier-helper .field-clear {
+  top: var(--space-1);
+  transform: none;
+}
+
+.identifier-helper .identifier-list {
+  list-style: none;
+  padding: 0;
+}
+
+.identifier-helper .identifier-list > li {
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--border);
+}
+
+.identifier-helper .identifier-list > li > :last-child {
+  margin-bottom: 0;
+}
+
 /* A page section's action, below its text. */
 .section-action {
   margin: var(--space-3) 0 var(--space-4);

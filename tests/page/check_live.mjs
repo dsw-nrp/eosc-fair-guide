@@ -139,6 +139,20 @@ said = await findOut("10.1038/sdata.2016.18");
 console.log("What is the article DOI:", said);
 if (!said.includes("Jde o publikaci") || !said.includes("Crossref")) fail("lookup: the article DOI is not placed as a Crossref publication: " + said);
 
+// The identifier helper resolves public person and organisation records only on its explicit lookup action.
+await open("#/cs/V/page/identifiers");
+await page.waitForSelector("#identifier-text");
+const beforeHelper = requests.length;
+await page.locator("#identifier-text").fill("0000-0001-6592-6291 02mhbdp94 10.1038/sdata.2016.18");
+await page.locator('.identifier-helper button[type="submit"]').click();
+if (requests.length !== beforeHelper) fail("identifier helper: local scanning called an external service");
+await page.locator('.identifier-helper .buttons button[type="button"]').click();
+await page.waitForFunction(() => !document.querySelector('.identifier-list > li[data-status="running"], .identifier-list > li[data-status="queued"]'), null, { timeout: 60000 });
+for (const item of await page.locator(".identifier-list > li").allTextContents()) {
+  if (!item.includes("Záznam nalezen.") || item.includes("není v načtené odpovědi dostupný")) fail("identifier helper: public record name unavailable: " + item);
+}
+console.log("Identifier helper:", await page.locator(".identifier-list").innerText());
+
 for (const url of requests) {
   if (!origins.some((allowed) => url.startsWith(allowed + "/"))) fail("request outside the connector allowlist: " + url);
 }

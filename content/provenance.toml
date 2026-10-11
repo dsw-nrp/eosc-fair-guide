@@ -1590,3 +1590,14 @@ instruments = ["openai-codex", "openai-codex-luna"]
 objects = ["analyza-fair-1.2", "cambridge-notebooks", "copyright-licences", "datacite-schema", "ds-handbook", "ec-genai-guidelines", "eosc-data-stewards", "eosc-training", "eosc-working-groups", "ethical-seven", "mbdb-2026", "policy-manual", "survey-2025"]
 results = ["A.A1.1.F1", "A.A1.1.N1", "A.A1.2.F1", "A.A1.2.N1", "A.A1.2.X1", "A.A1.F2", "A.A1.N1", "A.A1.X1", "A.A2.F1", "A.A2.N1", "A.A2.X1", "A.F1.N3", "A.F1.N5", "A.F1.X1", "A.F2.X1", "A.F2.X2", "A.F2.X3", "A.F2.X4", "A.F3.X1", "A.F4.N1", "A.F4.N2", "A.F4.N3", "A.F4.X1", "A.F4.X2", "A.I1.N1", "A.I1.N2", "A.I1.X2", "A.I2.N2", "A.I2.R3", "A.I2.X1", "A.I2.X2", "A.I3.F2", "A.I3.N1", "A.I3.R4", "A.I3.X1", "A.K2.1", "A.K2.2.1", "A.K2.2.2", "A.K2.2.3", "A.K2.2.4", "A.K2.3.2a", "A.K2.3.2b", "A.K2.3.2c", "A.K4.2", "A.K4.3", "A.K5.0", "A.K5.1", "A.K5.2.1", "A.K5.2.2", "A.K6", "A.P1", "A.R1.1.N1", "A.R1.1.N2", "A.R1.1.X2", "A.R1.1.X3", "A.R1.2.F2", "A.R1.2.N1", "A.R1.2.N2", "A.R1.2.X2", "A.R1.3.F2", "A.R1.3.N1", "A.R1.3.N2", "A.R1.3.N3", "A.R1.3.R1", "A.R1.3.R3", "A.R1.F2", "A.R1.N1", "A.R1.R2", "A.R1.X1", "A.R1.X2", "A.REC1", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.02", "EC-GENAI-GUIDELINES.03", "EC-GENAI-GUIDELINES.04", "EC-GENAI-GUIDELINES.05", "ETHICAL-SEVEN.01", "COPYRIGHT-LICENCES.01", "DS-HANDBOOK.01", "POLICY-MANUAL.01", "MBDB-2026.01", "SURVEY-2025.01", "EOSC-TRAINING.01", "EOSC-WORKING-GROUPS.01", "EOSC-DATA-STEWARDS.01", "CAMBRIDGE-ERN.01", "DATACITE-SCHEMA.01", "ethical-seven", "copyright-licences", "ds-handbook", "datacite-schema", "policy-manual"]
 endTime = 2026-10-11T10:52:58+00:00
+
+[[action]]
+id = "2026-10-11-identifier-helper"
+type = "update"
+name = "Public identifier verification"
+description = "Implemented local identifier extraction and the ORCID MOD 11-2 and ROR Crockford/MOD 97-10 checksums from their published technical documentation. Public lookup requires an explicit action, checks DOI identity before using DataCite or Crossref titles, and distinguishes invalid checksums, unknown identifiers, unavailable services and records without public titles. Handle extraction requires a resolver link or explicit prefix to avoid false matches; a textarea control clears input and results. Search carries the selected identifier to the helper. The dataset-check page links to the existing two-stage self-check, and the tool pages use distinct icons. Implemented and verified with OpenAI Codex using GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose the exact backend model ID."
+agent = "david-novak"
+instruments = ["openai-codex"]
+objects = ["orcid-identifier-pattern", "ror-identifier-pattern", "crossref-rest-api", "fair-champion"]
+results = ["page:identifiers", "page:live-check", "page:software", "page:notebooks", "page:provenance", "page:fdo", "orcid-identifier-pattern", "ror-identifier-pattern", "crossref-rest-api"]
+endTime = 2026-10-11T14:13:41+00:00

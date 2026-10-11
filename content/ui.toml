@@ -978,3 +978,29 @@ unavailable = { cs = "Veřejný repozitář nebo zadaný stav kódu se nepodaři
 [selfcheck.coverage]
 sample = { cs = "Jeden záznam ze vzorku", en = "One sample record" }
 representation = { cs = "Jeden prohlédnutý metadatový záznam", en = "One inspected metadata record" }
+
+[helper.identifiers]
+clear = { cs = "Vymazat text a výsledky", en = "Clear text and results" }
+coverage = { cs = "Načítání záznamů: {done} z {total} dokončeno. Výsledky jsou u jednotlivých identifikátorů.", en = "Record lookups: {done} of {total} completed. Results appear beside each identifier." }
+label = { cs = "Text s identifikátory", en = "Text containing identifiers" }
+privacy = { cs = "Text se neukládá a zůstává v této kartě prohlížeče. Hledání a ověření kontrolních číslic proběhne místně. Při načtení záznamů se veřejným službám odešlou pouze příslušné identifikátory. Pro Handle použijte úplný odkaz na hdl.handle.net nebo předponu hdl:; běžné zlomky a části cest tak nebudou zaměněny za identifikátory.", en = "The text is not saved and stays in this browser tab. Extraction and checksum checks run locally. Looking up records sends only the relevant identifiers to public services. For a Handle, use its full hdl.handle.net link or the hdl: prefix; ordinary fractions and path fragments will then avoid being mistaken for identifiers." }
+find = { cs = "Najít identifikátory", en = "Find identifiers" }
+resolveAll = { cs = "Načíst nalezené záznamy", en = "Look up found records" }
+resolve = { cs = "Načíst záznam", en = "Look up record" }
+retry = { cs = "Zkusit načtení znovu", en = "Retry lookup" }
+count = { cs = "Nalezené identifikátory: {n}. Záznamy zatím nebyly načteny.", en = "Identifiers found: {n}. Records have not been retrieved yet." }
+empty = { cs = "V textu nebyl nalezen podporovaný identifikátor. Zkontrolujte zápis nebo vložte jeho úplnou adresu.", en = "No supported identifier was found. Check its spelling or paste its full address." }
+textLimit = { cs = "Text je příliš dlouhý. Vložte nejvýše {n} znaků; nic nebylo zpracováno ani odesláno.", en = "The text is too long. Paste at most {n} characters; nothing was processed or sent." }
+itemLimit = { cs = "Zobrazuje se prvních {n} různých identifikátorů. Pro kontrolu ostatních vložte další část textu.", en = "The first {n} distinct identifiers are shown. Paste the next part of the text to check the others." }
+checksumValid = { cs = "Kontrolní číslice souhlasí. Existenci záznamu a správné přiřazení je třeba ověřit zvlášť.", en = "The checksum matches. Record existence and correct attribution need separate verification." }
+checksumInvalid = { cs = "Kontrolní číslice nesouhlasí nebo zápis neodpovídá formátu identifikátoru.", en = "The checksum does not match or the identifier does not follow its format." }
+invalid = { cs = "Zkontrolujte zápis. Tento identifikátor se službě k ověření neodešle.", en = "Check the spelling. This identifier will not be sent to the service for verification." }
+unresolved = { cs = "Záznam zatím nebyl načten.", en = "The record has not been retrieved yet." }
+queued = { cs = "Čeká na načtení záznamu.", en = "Waiting to retrieve the record." }
+running = { cs = "Načítá se veřejný záznam…", en = "Retrieving the public record…" }
+found = { cs = "Záznam nalezen.", en = "Record found." }
+notFound = { cs = "Služba tento identifikátor nerozpoznala. Zkontrolujte zápis a odkaz na záznam.", en = "The service did not recognise this identifier. Check the spelling and the record link." }
+unavailable = { cs = "Záznam se nepodařilo načíst. Příčinou může být síť nebo omezení služby; neznamená to, že identifikátor neexistuje.", en = "The record could not be retrieved. A network problem or service restriction may be the cause; this does not mean the identifier does not exist." }
+titleMissing = { cs = "Jméno nebo název není v načtené odpovědi dostupný. Otevřete záznam a porovnejte jej s očekávaným výsledkem.", en = "No name or title is available in the retrieved response. Open the record and compare it with the expected result." }
+metadataUnavailable = { cs = "Identifikátor byl rozlišen, ale metadata pro načtení názvu nejsou dostupná.", en = "The identifier resolved, but metadata for retrieving its title are unavailable." }
+openRecord = { cs = "Otevřít nalezený záznam", en = "Open the found record" }

@@ -134,6 +134,12 @@
     return data && data.data ? data.data.attributes || {} : null;
   };
 
+  /** Crossref metadata of a DOI, or null when Crossref does not hold it. */
+  live.crossref = async function (doi) {
+    const data = await live.fetchJson("crossref", "works/" + encodeURIComponent(doi), { allowNotFound: true });
+    return data && data.status === "ok" && data.message ? data.message : null;
+  };
+
   /* ---------------------------------------------------------------- FAIR Implementation Profiles */
 
   /** The trusty URI code of a nanopublication in a code or an address, or null. */

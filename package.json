@@ -8,6 +8,7 @@
     "browsers": "playwright install chromium",
     "check:page": "node tests/page/check_page.mjs",
     "check:discovery": "node tests/page/check_discovery.mjs",
+    "check:helpers": "node tests/page/check_helpers.mjs",
     "check:assessment": "node tests/page/check_assess.mjs && node tests/page/check_questions.mjs && node tests/page/check_sources.mjs && node tests/page/check_languages.mjs && node tests/page/check_tests.mjs",
     "check:live": "node tests/page/check_live.mjs",
     "check:diagrams": "node tests/page/check_diagrams.mjs",

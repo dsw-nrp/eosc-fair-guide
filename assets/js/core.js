@@ -60,6 +60,8 @@
     return scriptLoads.get(path);
   }
 
+  FG.loadHelpers = () => loadScript(FG.config.helpers.script);
+
   FG.languagesLoaded = new Set();
   FG.loadLanguage = async function (lang) {
     if (FG.languagesLoaded.has(lang)) return;

@@ -64,11 +64,12 @@ id = "live-check"
 menu = "tools"
 icon = "magnifying-glass-chart"
 description = { cs = "Ověří, kam vede DOI nebo Handle datové sady, a spustí vybrané testy FAIR.", en = "Checks where a dataset's DOI or Handle leads and runs selected FAIR tests." }
-helper = true
+helper = false
 title = { cs = "Kontrola datové sady", en = "Dataset check" }
 
 [[page.section]]
 heading = { cs = "Rychlá a hloubková kontrola", en = "Quick and deep check" }
+action = { label = { cs = "Otevřít kontrolu datové sady", en = "Open the dataset check" }, href = "#check-dataset" }
 body = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede, a načte metadata z [[datacite|DataCite]]. Hloubková kontrola spustí vybrané testy nástroje [[fair-champion|FAIR Champion]]; běží jen na vaše vyžádání a může trvat i několik minut.\n\nKaždý test skončí jako splněno, nesplněno, neurčité, nebo bez výsledku, pokud služba neodpověděla. Test bez výsledku se nepočítá jako nesplněný požadavek a u výsledků vždy vidíte, kolik testů skutečně proběhlo. Výsledky vypovídají hlavně o nastavení repozitáře.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and loads the metadata from [[datacite|DataCite]]. The deep check runs selected [[fair-champion|FAIR Champion]] tests; it runs only when you ask for it and can take several minutes.\n\nEach test ends as passed, failed, indeterminate, or no result if the service did not respond. A test without a result never counts as a failed requirement, and the results always show how many tests actually ran. The results mainly reflect the repository's setup." }
 
 [[page]]
@@ -81,7 +82,7 @@ title = { cs = "Ověřit identifikátory", en = "Verify identifiers" }
 
 [[page.section]]
 heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
-body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde [[orcid|ORCID]], DOI, Handle a [[ror|ROR]], kontrolní číslici ORCID ověří přímo v prohlížeči a po kliknutí ukáže jméno nebo název, ke kterému identifikátor vede. Identifikátor, který nevede nikam, označí.", en = "Paste a text, for example metadata drafted with AI. The helper finds [[orcid|ORCID]] iDs, DOIs, Handles and [[ror|ROR]] IDs, checks the ORCID check digit in your browser, and on request shows the name or title each identifier leads to. It flags identifiers that lead nowhere." }
+body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pomocník v něm najde [[orcid|ORCID]], DOI, Handle a [[ror|ROR]] a přímo v prohlížeči ověří kontrolní číslice ORCID a ROR. Po kliknutí načte dostupné jméno nebo název z veřejného záznamu. Porovnejte jej s tím, koho nebo co chcete označit: platná kontrolní číslice ani existující záznam nezaručují správné přiřazení.", en = "Paste text, for example metadata drafted with AI. The helper finds [[orcid|ORCID]] iDs, DOIs, Handles and [[ror|ROR]] IDs and checks ORCID and ROR check digits in your browser. On request it retrieves the available name or title from the public record. Compare it with the person or object you intend to identify: a valid checksum or an existing record does not establish correct attribution." }
 
 [[page]]
 id = "citation"
@@ -152,7 +153,7 @@ body = { cs = "Tytéž koncové body, které ukazuje interaktivní dokumentace A
 [[page]]
 id = "software"
 menu = "tools"
-icon = "book"
+icon = "laptop-code"
 title = { cs = "Zveřejnit výzkumný software", en = "Publish research software" }
 description = { cs = "Jak připravit skript, výpočetní notebook nebo aplikaci, aby je mohl použít i někdo další.", en = "Prepare a script, computational notebook or application for someone else to use." }
 
@@ -187,7 +188,7 @@ details = true
 [[page]]
 id = "notebooks"
 menu = "tools"
-icon = "book"
+icon = "book-open"
 title = { cs = "Vést laboratorní a terénní deník", en = "Keep a laboratory or field notebook" }
 description = { cs = "Záznam pozorování, postupů a změn, ze kterého lze později sestavit dokumentaci dat.", en = "Record observations, procedures and changes that can later inform data documentation." }
 
@@ -215,7 +216,7 @@ details = true
 [[page]]
 id = "provenance"
 menu = "tools"
-icon = "book"
+icon = "diagram-project"
 title = { cs = "Zaznamenat původ dat a rozhodnutí", en = "Capture provenance and decisions" }
 description = { cs = "Co zaznamenat, aby šlo dohledat vznik výsledku i pochopit důvody jeho podoby.", en = "Record how a result was produced and why it took its particular form." }
 
@@ -243,7 +244,7 @@ details = true
 [[page]]
 id = "fdo"
 menu = "tools"
-icon = "book"
+icon = "cubes"
 title = { cs = "Pracovat s FAIR digitálními objekty", en = "Work with FAIR Digital Objects" }
 description = { cs = "Jak identifikátory, typy a metadata pomáhají programům pracovat s výzkumnými objekty.", en = "How identifiers, types and metadata help programs work with research objects." }
 

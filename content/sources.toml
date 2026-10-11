@@ -3,6 +3,36 @@
 # Field reference: docs/content-model.md.
 
 [[source]]
+id = "orcid-identifier-pattern"
+type = "webpage"
+title = "Structure of the ORCID Identifier"
+short = { cs = "Struktura identifikátoru ORCID", en = "ORCID identifier structure" }
+inLanguage = "en"
+url = "https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier"
+publisher = "ORCID"
+dateAccessed = 2026-10-11
+
+[[source]]
+id = "ror-identifier-pattern"
+type = "webpage"
+title = "Identifier pattern"
+short = { cs = "Formát identifikátoru ROR", en = "ROR identifier pattern" }
+inLanguage = "en"
+url = "https://ror.readme.io/docs/identifier"
+publisher = "Research Organization Registry"
+dateAccessed = 2026-10-11
+
+[[source]]
+id = "crossref-rest-api"
+type = "webpage"
+title = "REST API"
+short = { cs = "Dokumentace Crossref REST API", en = "Crossref REST API documentation" }
+inLanguage = "en"
+url = "https://www.crossref.org/documentation/retrieve-metadata/rest-api/"
+publisher = "Crossref"
+dateAccessed = 2026-10-11
+
+[[source]]
 id = "analyza-fair-1.2"
 code = "A"
 type = "report"

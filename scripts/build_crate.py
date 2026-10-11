@@ -1943,6 +1943,7 @@ def page_config(
             "dmpStatus": live.get("dmpStatus"),
             "fairsharing": live.get("fairsharing"),
             "discovery": live.get("discovery"),
+            "helpers": live.get("helpers"),
             "software": live.get("software"),
             "vocab": {
                 "roCrate": RO_CRATE,

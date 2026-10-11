@@ -53,11 +53,12 @@
     if (route.view === "path" && !FG.landingShown(route)) needed.push("standards");
     if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
     const missing = [...new Set(needed)].filter((name) => !FG.partHasLanguage(name, route.lang));
-    if (!FG.languagesLoaded.has(route.lang) || missing.length) {
-      const key = route.lang + "/" + missing.join(",");
+    const helperNeeded = route.view === "page" && FG.list(FG.config.helpers?.pages).includes(route.arg) && !(FG.helpers && FG.helpers[route.arg]);
+    if (!FG.languagesLoaded.has(route.lang) || missing.length || helperNeeded) {
+      const key = route.lang + "/" + missing.join(",") + (helperNeeded ? "/helper" : "");
       if (waitingFor === key) return;
       waitingFor = key;
-      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang))]).then(() => {
+      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang)), ...(helperNeeded ? [FG.loadHelpers()] : [])]).then(() => {
         if (waitingFor === key) waitingFor = "";
         FG.render();
       }).catch((error) => {

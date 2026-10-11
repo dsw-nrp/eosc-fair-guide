@@ -997,3 +997,24 @@ existing principles by meaning; source requirement identifiers, wording and chec
 intact. These links relate topics and do not rename FAIR4RS requirements as FAIR-data requirements.
 Questions without an applicable link retain no principle tag. Test gaps and mapping validity will
 be reviewed by the team against the first official prerelease baseline.
+
+## Identifier verification
+
+The identifier helper loads its local script only when opened. It finds candidates in pasted text and
+checks ORCID's MOD 11-2 checksum and ROR's Crockford/MOD 97-10 checksum locally, following the
+[ORCID identifier documentation](https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier)
+and the [ROR identifier pattern](https://ror.readme.io/docs/identifier). It keeps pasted text in memory,
+outside saved guide state, and sends only selected identifiers to the existing public connectors after
+an explicit lookup action. Search links carry the selected identifier into the helper without starting
+a request. The helper recognises resolver links and bare ORCID/ROR/DOI candidates; Handle candidates
+require their resolver link or an explicit `hdl:` prefix to avoid guessing fractions or paths. Text extraction is
+bounded and cannot disambiguate every punctuation mark or Handle-like value in prose.
+
+Checksum validity, record existence and correct attribution are separate. Results show the public name
+or available resolver, DataCite or Crossref title and a record link; DOI metadata titles are used only
+when their stated DOI matches the requested identifier. A record without a public name or title remains
+resolved with that limitation stated. Network and service errors remain unavailable, with manual retry.
+The shared lookup queue admits at most four simultaneous identifiers. Limits and resolver addresses
+live in `content/live.toml`; bilingual interface strings live in `content/ui.toml`. The dataset-check
+page opens the existing dataset self-check, where quick inspection and the separately requested FAIR
+Champion tests share answers and evidence.

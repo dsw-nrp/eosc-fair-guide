@@ -145,7 +145,7 @@
   const datasetCheck = (pid, primary) => resultLink({ onclick: () => FG.selfcheck.startWithPid(pid) }, FG.t("search.checkDataset", { pid }), "check", primary);
   const cite = (primary) => resultLink({ href: FG.href("page", "citation") }, FG.t("search.cite"), "cite", primary);
   const nma = (pid) => resultLink({ url: FG.config.links.nmaSearch + "?q=" + encodeURIComponent('"' + pid + '"') }, FG.t("search.nma"), "search");
-  const verify = (id, primary) => resultLink({ href: FG.href("page", "identifiers") }, FG.t("search.verify", { id }), "identifier", primary);
+  const verify = (id, primary) => resultLink({ href: FG.href("page", "identifiers") + "/" + encodeURIComponent(id) }, FG.t("search.verify", { id }), "identifier", primary);
   /* A re3data DOI that does not lead to a record still opens the check, to be filled in by hand. */
   const maturity = (value, primary) =>
     resultLink({ onclick: async () => (await FG.selfcheck.startWithRe3data(value)) || FG.navigate(FG.href("check", "maturity")) }, FG.t("search.maturityRe3data"), "check", primary);
@@ -329,7 +329,7 @@
     /* The standards' requirements are searched too: their part loads when the field is first used. */
     input.addEventListener("focus", () =>
       Promise.all([FG.loadPart("standards"), FG.loadPart("questions")]).then(
-        () => input.value.trim() && show(false),
+        () => input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
         () => null
       )
     );

@@ -14,6 +14,12 @@ origin = "https://doi.org"
 purpose = "Resolve a DOI to its landing page"
 
 [[connector]]
+id = "crossref"
+name = "Crossref REST API"
+origin = "https://api.crossref.org"
+purpose = "Public metadata and titles for Crossref DOIs in the identifier helper"
+
+[[connector]]
 id = "handle"
 name = "Handle resolver (hdl.handle.net)"
 origin = "https://hdl.handle.net"
@@ -82,6 +88,16 @@ id = "gitlab-public"
 name = "GitLab.com public REST API"
 origin = "https://gitlab.com"
 purpose = "Anonymous public repository metadata and selected files at one immutable commit"
+
+# Identifier extraction is local; public lookup uses the existing anonymous connectors.
+[helpers]
+script = "assets/js/helpers.js"
+pages = ["identifiers"]
+maxItems = 40
+maxCharacters = 100000
+maxConcurrent = 4
+orcidUrl = "https://orcid.org/"
+rorUrl = "https://ror.org/"
 
 # Discovery follows standards-based links on these already reviewed origins, without provider adapters.
 # New origins need explicit connector review and CSP enrollment. Other links remain manual routes.

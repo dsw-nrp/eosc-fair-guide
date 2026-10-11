@@ -910,7 +910,7 @@ sections.push(["page", async () => {
     if ((await current()) !== "Nástroje a postupy") fail("tools: the menu does not mark the tools item on the tools view");
     const tools = await view.locator(".tool-card h2 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
     if (tools.join(",") !== "live-check,identifiers,citation,ai,software,notebooks,provenance,fdo") fail("tools: the tools view does not list the tool pages in order: " + tools.join(","));
-    if ((await view.locator(".tool-coming").count()) !== 3) fail("tools: the helpers in preparation are not marked as such");
+    if ((await view.locator(".tool-coming").count()) !== 1) fail("tools: the helpers in preparation are not marked as such");
     for (const [id, item] of [["identifiers", "Nástroje a postupy"], ["ai", "Nástroje a postupy"], ["live-check", "Nástroje a postupy"], ["citation", "Nástroje a postupy"], ["about", "O průvodci"], ["accessibility", "O průvodci"]]) {
       await view.goto(pageUrl + "#/cs/V/page/" + id);
       await view.waitForSelector("#main h1");
@@ -963,7 +963,7 @@ sections.push(["page", async () => {
     const rows = await view.locator(".explorer-overview tbody tr").count();
     const caption = await view.locator(".explorer-overview caption").textContent().catch(() => "");
     if (rows !== 4 || !/^\d+ požadav/.test(caption)) fail("explorer: no overview of the requirements before a principle is chosen: " + caption);
-    for (const [id, expected] of [["identifiers", true], ["citation", true], ["live-check", true], ["about", false]]) {
+    for (const [id, expected] of [["identifiers", false], ["citation", true], ["live-check", false], ["about", false]]) {
       await view.goto(pageUrl + "#/cs/V/page/" + id);
       await view.waitForSelector("#main h1");
       const coming = await view.locator(".helper-coming").count();

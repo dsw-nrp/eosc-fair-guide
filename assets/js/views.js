@@ -1239,7 +1239,7 @@
             folded ? h("div", { class: "content" }, content) : content
           );
         }),
-        FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier]() : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
+        FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier](route) : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
       )
     );
   };
@@ -1318,7 +1318,7 @@
 
   /** Whether a page holds a helper that the page script does not provide yet. */
   function helperComing(page) {
-    return FG.list(page.additionalType).includes(FG.config.vocab.webApplication) && !(FG.helpers && FG.helpers[page.identifier]);
+    return FG.list(page.additionalType).includes(FG.config.vocab.webApplication) && !FG.list(FG.config.helpers?.pages).includes(page.identifier) && !(FG.helpers && FG.helpers[page.identifier]);
   }
 
   /** The tools: the helpers for single tasks on the path and the advice on AI, each as a card. */
