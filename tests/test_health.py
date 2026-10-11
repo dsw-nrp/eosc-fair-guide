@@ -129,7 +129,7 @@ class HealthTests(unittest.TestCase):
         self.assertNotIn("JavaScript implementation attachment exists", test["issues"])
         self.assertIn("documentation attachment exists", test["issues"])
         self.assertIn("named invocation exists", test["issues"])
-        self.assertFalse(check_health.local_file(ROOT, "../aiscr-management/AGENTS.md"))
+        self.assertFalse(check_health.local_file(ROOT, "../another-repository/AGENTS.md"))
         self.assertFalse(check_health.local_file(ROOT, "https://example.org/test.js"))
 
     def test_deleting_an_item_is_not_reported_as_fixing_its_missing_original(self) -> None:
