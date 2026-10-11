@@ -948,6 +948,8 @@ sources = [
   "ror-identifier-pattern",
   "crossref-rest-api",
   "layers-and-seams-manuscript",
+  "doi-citation-service",
+  "csl-iso690-cs",
 ]
 resources = [
   "dmp-eosc",
@@ -1107,6 +1109,9 @@ actions = [
   "2026-10-11-original-passages-and-health-links",
   "2026-10-11-identifier-helper",
   "2026-10-11-layers-and-seams",
+  "2026-10-11-citation-helper",
+  "2026-10-11-champion-selection",
+  "2026-10-11-prerelease-metadata",
 ]
 tests = [
   "guide-dataset-01",

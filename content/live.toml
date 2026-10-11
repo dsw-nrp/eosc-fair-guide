@@ -5,7 +5,7 @@
 id = "datacite"
 name = "DataCite REST API"
 origin = "https://api.datacite.org"
-purpose = "DOI metadata and formatted citations"
+purpose = "Public DOI metadata"
 
 [[connector]]
 id = "doi"
@@ -17,7 +17,19 @@ purpose = "Resolve a DOI to its landing page"
 id = "crossref"
 name = "Crossref REST API"
 origin = "https://api.crossref.org"
-purpose = "Public metadata and titles for Crossref DOIs in the identifier helper"
+purpose = "Public DOI metadata and citation exports"
+
+[[connector]]
+id = "doi-citation"
+name = "DOI Foundation citation formatter"
+origin = "https://citation.doi.org"
+purpose = "APA and Czech ISO 690 citations on explicit request"
+
+[[connector]]
+id = "datacite-content"
+name = "DataCite content resolver"
+origin = "https://data.crosscite.org"
+purpose = "BibTeX and RIS representations of DataCite DOIs"
 
 [[connector]]
 id = "handle"
@@ -92,12 +104,29 @@ purpose = "Anonymous public repository metadata and selected files at one immuta
 # Identifier extraction is local; public lookup uses the existing anonymous connectors.
 [helpers]
 script = "assets/js/helpers.js"
-pages = ["identifiers"]
+pages = ["identifiers", "citation"]
 maxItems = 40
 maxCharacters = 100000
 maxConcurrent = 4
 orcidUrl = "https://orcid.org/"
 rorUrl = "https://ror.org/"
+
+# The formatter's published style list is checked before labelling a formatted citation.
+# Exports use the registration agency's documented direct representations, avoiding resolver redirects.
+[helpers.citation]
+formatter = "doi-citation"
+stylesPath = "styles"
+formatPath = "format"
+apaStyle = "apa"
+apaLocale = "en-US"
+isoStyle = "iso690-author-date-cs"
+isoLocale = "cs-CZ"
+dataciteConnector = "datacite-content"
+datacitePath = "{mime}/{doi}"
+crossrefPath = "works/{doi}/transform/{mime}"
+maxBytes = 65536
+maxStylesBytes = 262144
+timeoutSeconds = 15
 
 # Discovery follows standards-based links on these already reviewed origins, without provider adapters.
 # New origins need explicit connector review and CSP enrollment. Other links remain manual routes.
@@ -186,23 +215,23 @@ description = { cs = "Porovnává identifikátor metadat se známými schématy 
 principle = "F1"
 label = { cs = "Identifikátor metadat je trvalý", en = "Metadata identifier is persistent" }
 health = "available"
-asOf = 2026-10-08
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_data_identifier_in_metadata"
 description = { cs = "Hledá jednoznačný odkaz na data v podporovaných polích metadat.", en = "Looks for an unambiguous data reference in supported metadata fields." }
 principle = "F3"
 label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
-health = "available"
-asOf = 2026-10-08
+health = "degraded"
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_searchable"
 description = { cs = "Ověřuje nalezení zdroje prostřednictvím metavyhledávače SearXNG.", en = "Checks discovery of the resource through the SearXNG metasearch service." }
 principle = "F4"
 label = { cs = "Záznam je dohledatelný vyhledávači", en = "Record is findable by search engines" }
-health = "available"
-asOf = 2026-10-08
+health = "degraded"
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_metadata_protocol"
@@ -210,47 +239,47 @@ description = { cs = "Posuzuje protokol rozlišení identifikátoru metadat; neo
 principle = "A1.1"
 label = { cs = "Metadata jsou dostupná otevřeným protokolem", en = "Metadata are retrievable by an open protocol" }
 health = "available"
-asOf = 2026-10-08
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_metadata_persistence"
 description = { cs = "Hledá deklaraci zachování metadat; u DOI zachování předpokládá.", en = "Looks for a metadata-persistence declaration; assumes persistence for DOIs." }
 principle = "A2"
 label = { cs = "Repozitář deklaruje trvalost metadat", en = "Repository declares metadata persistence" }
-health = "available"
-asOf = 2026-10-08
+health = "degraded"
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_structured_metadata"
 description = { cs = "Hledá strojově čitelná strukturovaná metadata v podporovaných formátech.", en = "Looks for machine-readable structured metadata in supported formats." }
 principle = "I1"
 label = { cs = "Metadata jsou strukturovaná", en = "Metadata are structured" }
-health = "available"
-asOf = 2026-10-08
+health = "degraded"
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_metadata_uses_fair_vocabularies"
 description = { cs = "Posuzuje, zda termíny v propojených metadatech vedou na propojené zdroje.", en = "Examines whether terms in linked metadata resolve to linked resources." }
 principle = "I2"
 label = { cs = "Metadata používají FAIR slovníky", en = "Metadata use FAIR vocabularies" }
-health = "available"
-asOf = 2026-10-08
+health = "degraded"
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_metadata_outward_links"
 description = { cs = "Hledá odkazy na jiné zdroje v metadatech reprezentovaných jako propojená data.", en = "Looks for outward references in metadata represented as linked data." }
 principle = "I3"
 label = { cs = "Metadata odkazují na jiné zdroje", en = "Metadata link to other resources" }
-health = "available"
-asOf = 2026-10-08
+health = "degraded"
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "fc_metadata_includes_license"
 description = { cs = "Hledá výslovný odkaz na licenci v propojených metadatech.", en = "Looks for an explicit licence reference in linked metadata." }
 principle = "R1.1"
 label = { cs = "Metadata uvádějí licenci", en = "Metadata include a licence" }
-health = "available"
-asOf = 2026-10-08
+health = "degraded"
+asOf = 2026-10-11
 
 [[champion.test]]
 id = "community_metadata_includes_author_affiliation"
@@ -260,7 +289,33 @@ endpoint = "https://tests.ostrails.eu/community-tests/assess/test/community_meta
 principle = "R1.2"
 label = { cs = "Metadata uvádějí afiliaci autorů", en = "Metadata include author affiliation" }
 health = "degraded"
-asOf = 2026-10-08
+asOf = 2026-10-11
+
+[[champion.test]]
+id = "fc_unique_identifier"
+description = { cs = "Porovnává identifikátor s formáty známých schémat. Samostatně neověřuje jedinečnost všech přidělených identifikátorů.", en = "Compares the identifier with known scheme patterns. It does not independently verify uniqueness across all assigned identifiers." }
+principle = "F1"
+label = { cs = "Identifikátor odpovídá známému schématu", en = "Identifier matches a known scheme" }
+health = "available"
+asOf = 2026-10-11
+
+[[champion.test]]
+id = "test_FM_F1_M_IdentPersistent"
+description = { cs = "Posuzuje pravděpodobnou trvalost podle známých schémat identifikátorů a URL. Výsledek neurčuje budoucí dostupnost objektu ani pravidla repozitáře.", en = "Assesses likely persistence from known identifier and URL schemes. The result does not establish future object availability or the repository's rules." }
+principle = "F1"
+label = { cs = "Schéma identifikátoru podporuje trvalost", en = "Identifier scheme supports persistence" }
+health = "available"
+asOf = 2026-10-11
+
+[[champion.test]]
+id = "community_data_cited_in_pub"
+description = { cs = "Hledá identifikátor v citačních indexech OpenAlex a OpenCitations. Nenalezení odkazu nevylučuje citaci mimo jejich záběr; dostupnost jednotlivých indexů ukazuje protokol testu.", en = "Searches the OpenAlex and OpenCitations citation indexes for the identifier. A missing reference does not exclude citations outside their coverage; the test log shows access to individual indexes." }
+record = "https://tests.ostrails.eu/community-tests/community_data_cited_in_pub"
+endpoint = "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub"
+principle = "R1.2"
+label = { cs = "Citace nalezená v citačních indexech", en = "Citation found in citation indexes" }
+health = "available"
+asOf = 2026-10-11
 
 # FAIRsharing's API needs a login, so the page finds FAIRsharing records through their DataCite DOIs: each record's
 # DataCite metadata lists the described resource's addresses, including its re3data record.

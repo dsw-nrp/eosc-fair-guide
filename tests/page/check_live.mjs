@@ -153,6 +153,20 @@ for (const item of await page.locator(".identifier-list > li").allTextContents()
 }
 console.log("Identifier helper:", await page.locator(".identifier-list").innerText());
 
+// DOI citation negotiation is verified in the actual browser, from a local file under generated CSP.
+for (const doi of ["10.71495/5dv6-v116", "10.1038/sdata.2016.18"]) {
+  const beforeCitation = requests.length;
+  await open("#/cs/V/page/citation/" + encodeURIComponent(doi));
+  await page.waitForSelector("#citation-doi");
+  if (requests.length !== beforeCitation) fail("citation: route entry made an external request");
+  await page.locator('.citation-helper button[type="submit"]').click();
+  await page.waitForFunction(() => !document.querySelector('.citation-helper button[type="submit"]').disabled, null, { timeout: 60000 });
+  const count = await page.locator(".citation-format pre").count();
+  console.log("Citation representations:", doi, count, "of 4");
+  if (count !== 4) fail("citation: live representations unavailable for " + doi + ": " + await page.locator(".citation-helper").innerText());
+  if (count === 4 && await page.locator("#citation-apa").textContent() === await page.locator("#citation-iso690").textContent()) fail("citation: Czech ISO style fell back to APA");
+}
+
 for (const url of requests) {
   if (!origins.some((allowed) => url.startsWith(allowed + "/"))) fail("request outside the connector allowlist: " + url);
 }

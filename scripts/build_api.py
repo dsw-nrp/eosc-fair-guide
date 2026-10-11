@@ -599,6 +599,10 @@ def schemas(language_keys: set[str], reference_keys: set[str]) -> dict[str, Any]
     """The schemas of the records, a list and the context; `Text` and `Links` cover what every record may hold."""
 
     def property_schema(key: str) -> dict[str, Any]:
+        if key == "championEvidenceOnly":
+            return {"type": "boolean"}
+        if key == "prefillLevel":
+            return {"type": "string", "enum": ["partly"]}
         if key in language_keys:
             return ref("Text")
         if key in reference_keys or key in TERMS:

@@ -3408,6 +3408,34 @@ a.id-chip:focus-visible {
   background: none;
 }
 
+.citation-helper form > .field-clearable {
+  display: flex;
+}
+
+.citation-helper label {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.citation-format {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.citation-format pre {
+  max-height: 24rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: var(--space-3);
+  background: var(--surface);
+}
+
+.citation-format pre.citation-text {
+  font: inherit;
+}
+
 .prefill {
   background: var(--surface);
   border-radius: var(--radius);

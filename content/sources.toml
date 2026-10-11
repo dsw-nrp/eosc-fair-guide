@@ -482,6 +482,28 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 dateAccessed = 2026-10-10
 
 [[source]]
+id = "doi-citation-service"
+type = "webpage"
+title = "DOI Foundation citation formatter: content negotiation documentation"
+short = { cs = "Citační služba DOI Foundation", en = "DOI Foundation citation service" }
+inLanguage = "en"
+url = "https://citation.doi.org/docs.html"
+publisher = "International DOI Foundation"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-11
+
+[[source]]
+id = "csl-iso690-cs"
+type = "software"
+title = { cs = "ISO-690 (author-date, Čeština): styl Citation Style Language", en = "Czech ISO 690 author–date: Citation Style Language style" }
+short = { cs = "Český styl ČSN ISO 690 v CSL", en = "Czech ISO 690 CSL style" }
+inLanguage = "cs"
+url = "https://github.com/citation-style-language/styles/blob/master/iso690-author-date-cs.csl"
+publisher = "Citation Style Language"
+license = "https://creativecommons.org/licenses/by-sa/3.0/"
+dateAccessed = 2026-10-11
+
+[[source]]
 id = "frsm-report-1.1"
 code = "FRSM"
 type = "report"

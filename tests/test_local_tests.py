@@ -69,7 +69,7 @@ class LocalTestRecords(unittest.TestCase):
                     metric["hasImplementation"],
                     [f"../tests/{test['question']}.json", f"../tests/{test['id']}.json"],
                 )
-        self.assertEqual(json.loads(self.files["api/tests.json"])["numberOfItems"], 214 + 10 + 42)
+        self.assertEqual(json.loads(self.files["api/tests.json"])["numberOfItems"], 214 + 13 + 42)
 
     def test_external_tests_link_documentation_and_execution_separately(self) -> None:
         for test in self.content["live"]["champion"]["test"]:

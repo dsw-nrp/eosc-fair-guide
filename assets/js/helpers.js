@@ -1,4 +1,4 @@
-/* Identifier verification. Extraction and checksums stay local; only an explicit lookup calls a connector.
+/* Identifier and citation helpers. Only an explicit lookup calls a connector.
    Checksum algorithms follow ORCID's identifier documentation and ROR's documented Crockford/MOD 97-10 pattern. */
 (function () {
   "use strict";
@@ -200,6 +200,135 @@
       controls();
     }
     if (draft) scan();
+    return box;
+  };
+  const CITATION_FORMATS = [
+    { id: "apa", style: "apaStyle", locale: "apaLocale", mime: "text/plain", extension: "txt" },
+    { id: "iso690", style: "isoStyle", locale: "isoLocale", mime: "text/plain", extension: "txt" },
+    { id: "bibtex", mime: "application/x-bibtex", extension: "bib" },
+    { id: "ris", mime: "application/x-research-info-systems", extension: "ris" },
+  ];
+  const sameDoi = (a, b) => typeof a === "string" && a.trim().toLowerCase() === b.toLowerCase();
+  const citationError = (code) => Object.assign(new Error(code), { code });
+
+  /** Public DOI representations. A failed format remains unavailable; it never becomes another style. */
+  H.generateCitations = async function (doi) {
+    const config = FG.config.helpers.citation, live = FG.live;
+    const options = { maxBytes: config.maxBytes, timeoutSeconds: config.timeoutSeconds };
+    const agency = await live.doiAgency(doi, options);
+    if (!agency) throw citationError("notFound");
+    if (!["DataCite", "Crossref"].includes(agency)) throw citationError("unsupported");
+    const encoded = encodeURIComponent(doi);
+    const data = await live.fetchJson(agency === "DataCite" ? "datacite" : "crossref",
+      (agency === "DataCite" ? "dois/" : "works/") + encoded, { ...options, allowNotFound: true });
+    const record = data && (agency === "DataCite" ? data.data && data.data.attributes : data.message);
+    if (!record) throw citationError("notFound");
+    if (!sameDoi(agency === "DataCite" ? record.doi : record.DOI, doi)) throw citationError("mismatch");
+    const title = FG.list(agency === "DataCite" ? record.titles : record.title)
+      .map((entry) => typeof entry === "string" ? entry : entry && entry.title).find((entry) => typeof entry === "string" && entry.trim()) || doi;
+    // The published list prevents unknown-style fallback from being labelled as Czech ISO 690.
+    const styles = live.fetchJson(config.formatter, config.stylesPath, { ...options, maxBytes: config.maxStylesBytes })
+      .then((value) => ({ values: Array.isArray(value) ? value : [] }), () => ({ error: "unavailable" }));
+    const formats = await Promise.all(CITATION_FORMATS.map(async (format) => {
+      const item = { ...format };
+      let connector, path;
+      if (format.style) {
+        connector = config.formatter;
+        path = config.formatPath + "?" + new URLSearchParams({ doi, style: config[format.style], lang: config[format.locale] });
+      } else {
+        connector = agency === "DataCite" ? config.dataciteConnector : "crossref";
+        path = (agency === "DataCite" ? config.datacitePath : config.crossrefPath)
+          .replace("{mime}", format.mime).replace("{doi}", encoded);
+      }
+      item.url = new URL(path, live.origin(connector) + "/").href;
+      try {
+        if (format.style) {
+          const available = await styles;
+          if (available.error) throw citationError(available.error);
+          if (!available.values.includes(config[format.style])) throw citationError("styleMissing");
+        }
+        const result = await live.fetchText(connector, path, { ...options, accept: format.mime });
+        const text = result.text.trim();
+        if (!text || /^(?:<!doctype|<html)/i.test(text)) throw citationError("invalidResponse");
+        if ((result.format && result.format !== format.mime) || (format.style && !result.format)) throw citationError("invalidResponse");
+        if (format.id === "bibtex") {
+          const found = text.match(/\bdoi\s*=\s*(?:\{([^}]+)\}|"([^"]+)")/i);
+          if (!/^@\w+\s*\{/.test(text) || !found || !sameDoi(found[1] || found[2], doi)) throw citationError("invalidResponse");
+        } else if (format.id === "ris") {
+          const found = text.match(/^DO\s+-\s*(.+)$/m);
+          if (!/^TY\s+-\s*\S+/m.test(text) || !/^ER\s+-\s*$/m.test(text) || !found || !sameDoi(found[1], doi)) throw citationError("invalidResponse");
+        }
+        item.text = text;
+      } catch (error) { item.error = ["styleMissing", "invalidResponse", "rate-limit"].includes(error.code) ? error.code : "unavailable"; }
+      return item;
+    }));
+    return { doi, title, agency, formats, checkedAt: new Date().toISOString() };
+  };
+
+  let citationDraft = "", citationSeed = null, citationResult = null, citationStatus = "", citationGeneration = 0, refreshCitation;
+  H.citation = function (route) {
+    if (route.extra && (route.extra !== citationSeed || !document.querySelector(".citation-helper"))) {
+      citationDraft = route.extra; citationSeed = route.extra; citationResult = null; citationStatus = ""; citationGeneration++;
+    }
+    const t = (key, values) => FG.t("helper.citation." + key, values);
+    const output = h("div", { class: "citation-results" });
+    const status = h("p", { role: "status", id: "citation-status" });
+    const input = h("input", { id: "citation-doi", type: "text", maxlength: 1024, autocomplete: "off", spellcheck: "false",
+      "aria-describedby": "citation-privacy citation-status", value: citationDraft, oninput: () => {
+        citationDraft = input.value; citationResult = null; citationStatus = ""; citationGeneration++; refresh();
+      } });
+    const clear = h("button", { type: "button", class: "field-clear", "aria-label": t("clear"), title: t("clear"), onclick: () => {
+      input.value = ""; citationDraft = ""; citationSeed = null; citationResult = null; citationStatus = ""; citationGeneration++;
+      window.history.replaceState(null, "", FG.href("page", "citation")); refresh(); input.focus();
+    } }, FG.icon("clear"));
+    const submit = h("button", { type: "submit", class: "button button-primary" }, t("generate"));
+    const form = h("form", { onsubmit: async (event) => {
+      event.preventDefault();
+      const pid = FG.live.parsePid(input.value);
+      if (!pid || pid.type !== "doi" || /[<>"\x00-\x1f]/.test(pid.value)) { citationStatus = "invalid"; refresh(); return; }
+      const generation = ++citationGeneration;
+      citationResult = null; citationStatus = "running"; refresh();
+      try {
+        const result = await H.generateCitations(pid.value);
+        if (generation !== citationGeneration) return;
+        citationResult = result; citationStatus = "done";
+      } catch (error) {
+        if (generation !== citationGeneration) return;
+        citationStatus = ["notFound", "unsupported", "mismatch"].includes(error.code) ? error.code : "unavailable";
+      }
+      if (refreshCitation) refreshCitation();
+    } }, h("label", { for: "citation-doi" }, t("label")), h("div", { class: "field-clearable" }, input, clear),
+    h("p", { id: "citation-privacy", class: "small muted" }, t("privacy")), submit);
+    const box = h("section", { class: "citation-helper", "aria-label": t("label") }, form, status, output);
+
+    function refresh() {
+      status.textContent = citationStatus ? t(citationStatus) : "";
+      submit.disabled = citationStatus === "running";
+      output.replaceChildren();
+      if (!citationResult) {
+        const pid = FG.live.parsePid(citationDraft);
+        if (citationStatus && !["running", "invalid"].includes(citationStatus) && pid && pid.type === "doi") {
+          output.append(h("p", null, FG.external(FG.live.pidUrl(pid), pid.value)));
+        }
+        return;
+      }
+      const result = citationResult;
+      output.append(h("p", null, h("strong", null, result.title)), h("p", { class: "small muted" },
+        FG.external(FG.live.pidUrl({ type: "doi", value: result.doi }), result.doi), " · " + result.agency + " · ",
+        h("time", { datetime: result.checkedAt }, new Date(result.checkedAt).toLocaleString(FG.state.lang))), h("p", { class: "small" }, t("review")));
+      for (const format of result.formats) {
+        const id = "citation-" + format.id;
+        const block = h("section", { class: "citation-format", "aria-labelledby": id + "-heading" },
+          h("h3", { id: id + "-heading" }, t(format.id)), h("p", { class: "small muted" }, FG.external(format.url, t("source"))));
+        if (format.error) block.append(h("p", { role: "status" }, t(format.error)));
+        else block.append(h("pre", { id, tabindex: "0", class: ["apa", "iso690"].includes(format.id) ? "citation-text" : null }, format.text), h("div", { class: "buttons" },
+          h("button", { type: "button", class: "button button-small", onclick: (event) => FG.copyText(event, format.text, id) }, FG.t("common.copy")),
+          h("button", { type: "button", class: "button button-small", onclick: () => FG.download(FG.exportName(["citation", format.id], format.extension), format.text, format.mime) }, t("download"))));
+        output.append(block);
+      }
+    }
+    refreshCitation = refresh;
+    refresh();
     return box;
   };
 })();

@@ -494,6 +494,7 @@
     describeTarget(check, { name: [fip.alternateName, FG.text(fip.name)].filter(Boolean).join(": "), kind: "FIP" });
     const source = FG.live.available("fip-dashboard") ? "fip-dashboard" : "fip-dashboard-snapshot";
     return runPrefill(check, source, "prefill-fip-run", async (messages) => {
+      let evidenceSource = "fip-dashboard-snapshot";
       let declarations = snapshotDeclarations(fip);
       let date = (FG.get("#snapshot-fip-dashboard") || {}).dateCreated;
       if (source === "fip-dashboard") {
@@ -502,6 +503,7 @@
           const current = data.fips.find((item) => item && item.id === fip.identifier);
           const names = new Map(data.resources.map((item) => [item && item.id, item]));
           if (current) {
+            evidenceSource = "fip-dashboard";
             declarations = FG.list(current.declarations).map((declaration) => {
               const resource = names.get(declaration.resource) || {};
               return {
@@ -517,7 +519,7 @@
           messages.push(FG.t("selfcheck.prefill.failed", { source: label("fip-dashboard") }));
         }
       }
-      return applyEvidence(check, "fip", (item, questions) => Object.assign(fipEvidence(questions, declarations, "principle"), { source }), date, st.target);
+      return applyEvidence(check, "fip", (item, questions) => Object.assign(fipEvidence(questions, declarations, "principle"), { source: evidenceSource }), date, st.target);
     });
   }
 
@@ -963,7 +965,7 @@
           const known = states.filter((state) => state === "pass" || state === "fail").length;
           const passed = states.filter((state) => state === "pass").length;
           return {
-            value: !known ? null : passed === run.records.length ? "yes" : passed ? "partly" : "no",
+            value: item.championEvidenceOnly || !known ? null : passed === run.records.length ? "yes" : passed ? "partly" : "no",
             notes: states.some((state) => ["none", "indeterminate"].includes(state)) ? [{ key: "selfcheck.note.partialCoverage" }] : [],
             coverage: `${known}/${run.records.length} · ${own.length}`,
             /* The question's test line shows the verdicts; the evidence keeps them for the result and its export. */

@@ -1612,3 +1612,36 @@ instruments = ["openai-codex"]
 objects = ["layers-and-seams-manuscript", "analyza-fair-1.2", "fip-ontology", "mbdb-2026", "nrp-conditions"]
 results = ["model:layers-and-seams", "model:worked-example", "layers-and-seams-manuscript", "eosc-cz", "page:model", "page:machines", "layer.policy", "layer.community", "layer.infrastructure", "layer.planning", "layer.support", "layer.evaluation", "seam.repository-nma", "seam.nma-research-register", "seam.institution-nma", "seam.repository-authentication", "seam.repository-pid-registry", "seam.community-repository", "seam.working-groups-services", "seam.repository-catalogue-planning", "seam.community-planning", "seam.plan-repository", "seam.repository-support", "seam.assessment-remediation", "example.nkr-catalogue", "example.nkr-planning", "example.assessment-feedback", "context:plan:V", "context:plan:DS", "context:plan:K", "context:work:K", "context:metadata:V", "context:metadata:DS", "context:metadata:SR", "context:metadata:K", "context:publication:SR", "context:findability:V", "context:findability:DS", "context:findability:SR", "context:citation:SR", "context:assessment:V", "context:assessment:DS", "context:assessment:SR", "context:assessment:K", "ccmm", "oai-pmh", "nma-export-docs", "nrp-docs-nma-access", "gate.08", "maturity.05", "NRP.M8", "NMA-EXPORT-DOCS.01", "A.F4.R1", "A.A1.R1", "nma", "dataset.05", "dataset.23", "institution.26", "metadata.08", "nma-riv-docs", "NMA-RIV-DOCS.01", "policy-manual", "institution.23", "pid-centre", "orcid", "ror", "datacite", "dataset.01", "fip.01", "A.F1.R1", "test:guide-dataset-01", "test:guide-fdo-01", "maturity.10", "A.A1.2.R1", "A.A1.2.R2", "A.F2.F1", "A.R1.F1", "A.F2.R2", "A.R1.R2", "A.R1.3.F1", "A.R1.3.R2", "NRP.M12", "gate.12", "maturity.08", "maturity.09", "maturity.13", "fip.02", "metadata.17", "metadata.18", "metadata.23", "metadata.28", "metadata.29", "metadata.30", "metadata.31", "metadata.33", "work.19", "work.20", "work.21", "eosc-working-groups", "EOSC-WORKING-GROUPS.01", "nkr", "nkr-schema", "dsw-nrp", "DSW-NRP.01", "dataset.15", "dataset.16", "fip-dashboard", "fip-ontology", "fip-wizard-templates", "A.K4.1", "A.K4.3", "plan.22", "plan.24", "fair-champion", "assessment.23", "assessment.25", "test:guide-maturity-12", "test:guide-software-03", "datacite-schema", "metadata.36", "survey-2025", "os-linkages-1.1", "os3-faq", "ndi-architecture", "dmp-eosc", "ds-handbook", "ds-personas", "eosc-data-stewards", "eosc-training", "repo-recommendations", "repo-user-needs", "repo-integration", "os2", "copyright-licences", "deposit-licence", "ethical-seven", "aai-sensitive", "os3", "eosc-acknowledgement"]
 endTime = 2026-10-11T18:06:37+00:00
+
+[[action]]
+id = "2026-10-11-citation-helper"
+type = "update"
+name = "DOI citation helper and service recovery"
+description = "Implemented explicit anonymous citation retrieval for DataCite and Crossref DOIs, with the DOI Foundation formatter's published APA and Czech ISO 690 styles and agency-supplied BibTeX and RIS. Verified the requested record identity and style availability, retained independent format failures, and rendered external responses as selectable plain text. Search preserves the DOI without making a request on entry. Added reset, source links, copy and download controls and bilingual guidance to compare metadata with the record. Exercised each enrolled service's network failure under standalone and local-file hosting. Corrected the FIP Dashboard live-failure fallback to attribute retained declarations to their dated snapshot. Deferred helper labels and detailed provenance without removing source records from the complete crate or API. OpenAI Codex used GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose its exact backend model ID."
+agent = "david-novak"
+instruments = ["openai-codex"]
+objects = ["crossref-rest-api", "doi-citation-service", "csl-iso690-cs", "fip-ontology"]
+results = ["page:citation", "doi-citation-service", "csl-iso690-cs", "fip.*"]
+endTime = 2026-10-11T19:03:00+00:00
+
+[[action]]
+id = "2026-10-11-champion-selection"
+type = "update"
+name = "Evidence-based Champion selection and question scope"
+description = "Inspected the published Champion registry and all 48 test APIs on its enrolled service origin. Probed those tests anonymously against three public reference records, retaining 144 measured outcomes and the original identities and metrics. Added identifier recognition, likely persistence and citation-index observations. Associated existing protocol and metadata-persistence tests with questions, preserving their narrower scope through observation-only evidence. Removed identifier-scheme tests from landing-page questions. Refreshed the curated health snapshot, recorded the absence of a suitable Signposting test and added a reusable bounded browser health probe. Verified the pilot's per-test evidence structure without inferring aggregate reliability from a partial download. OpenAI Codex used GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose its exact backend model ID."
+agent = "david-novak"
+instruments = ["openai-codex"]
+objects = ["fair-champion", "ostrails-cz-pilot", "analyza-fair-1.2", "force11-citation", "fair-signposting"]
+results = ["test:fc_unique_identifier", "test:test_FM_F1_M_IdentPersistent", "test:community_data_cited_in_pub", "test:fc_metadata_identifier_persistence", "test:fc_data_identifier_in_metadata", "test:fc_searchable", "test:fc_metadata_protocol", "test:fc_metadata_persistence", "test:fc_structured_metadata", "test:fc_metadata_uses_fair_vocabularies", "test:fc_metadata_outward_links", "test:fc_metadata_includes_license", "test:community_metadata_includes_author_affiliation", "dataset.01", "dataset.02", "dataset.13", "maturity.01", "maturity.02", "maturity.05", "maturity.11"]
+endTime = 2026-10-11T19:13:50+00:00
+
+[[action]]
+id = "2026-10-11-prerelease-metadata"
+type = "update"
+name = "First prerelease version metadata"
+description = "Set the current application, package, lockfile and software citation version to 1.0.0-alpha.1 at the maintainer's request. The first official prerelease tag will be v1.0.0-alpha.1. Kept the testing status; the actual release date and tag are set when the release is published. OpenAI Codex used GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose its exact backend model ID."
+agent = "david-novak"
+instruments = ["openai-codex"]
+objects = []
+results = ["guide"]
+endTime = 2026-10-11T21:13:31+00:00

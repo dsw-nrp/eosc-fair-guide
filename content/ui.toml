@@ -1014,6 +1014,29 @@ titleMissing = { cs = "Jméno nebo název není v načtené odpovědi dostupný.
 metadataUnavailable = { cs = "Identifikátor byl rozlišen, ale metadata pro načtení názvu nejsou dostupná.", en = "The identifier resolved, but metadata for retrieving its title are unavailable." }
 openRecord = { cs = "Otevřít nalezený záznam", en = "Open the found record" }
 
+[helper.citation]
+label = { cs = "DOI datové sady, softwaru nebo publikace", en = "DOI of a dataset, software or publication" }
+clear = { cs = "Vymazat DOI a citace", en = "Clear the DOI and citations" }
+generate = { cs = "Připravit citaci", en = "Prepare citation" }
+privacy = { cs = "Po kliknutí se DOI odešle službám DOI, DataCite nebo Crossref a citační službě. Vstup ani citace se neukládají do prohlížeče.", en = "After you click, the DOI is sent to the DOI services, DataCite or Crossref, and the citation service. Your input and citations are not saved in browser storage." }
+invalid = { cs = "Vložte jedno DOI nebo jeho odkaz na doi.org.", en = "Enter one DOI or its doi.org link." }
+running = { cs = "Načítají se metadata a citace…", en = "Retrieving metadata and citations…" }
+done = { cs = "Načítání dokončeno. Dostupné formáty jsou uvedeny níže.", en = "Retrieval complete. Available formats are shown below." }
+notFound = { cs = "Záznam DOI nebyl nalezen. Zkontrolujte zápis a otevřete odkaz na záznam.", en = "No DOI record was found. Check the spelling and open the record link." }
+unsupported = { cs = "Pomocník podporuje DOI registrovaná u DataCite a Crossref. Citaci tohoto záznamu převezměte z jeho stránky.", en = "The helper supports DOIs registered with DataCite and Crossref. Use the citation from this record's page." }
+mismatch = { cs = "Načtená metadata patří jinému DOI. Citace nebyla připravena.", en = "The retrieved metadata belong to a different DOI. No citation was prepared." }
+unavailable = { cs = "Odpověď služby není dostupná. Zkuste načtení znovu nebo použijte citaci na stránce záznamu.", en = "The service response is unavailable. Try again or use the citation on the record's page." }
+styleMissing = { cs = "Služba tento citační styl nenabízí. Použijte jiný dostupný formát nebo citaci upravte ručně.", en = "The service does not offer this citation style. Use another available format or edit the citation manually." }
+invalidResponse = { cs = "Odpověď neodpovídá očekávanému formátu nebo DOI. Nelze ji nabídnout jako citaci.", en = "The response does not match the expected format or DOI. It cannot be offered as a citation." }
+rate-limit = { cs = "Služba omezila počet požadavků. Vyčkejte a zkuste načtení znovu.", en = "The service has limited the number of requests. Wait before trying again." }
+review = { cs = "Porovnejte citaci se stránkou záznamu: autory, název, rok, verzi a vydavatele. Výstup závisí na metadatech; upravte jej podle pokynů časopisu nebo instituce.", en = "Compare the citation with the record's page: authors, title, year, version and publisher. The output depends on the metadata; adapt it to the journal's or institution's instructions." }
+apa = { cs = "APA", en = "APA" }
+iso690 = { cs = "ČSN ISO 690 (autor–datum, česky)", en = "Czech ISO 690 (author–date, in Czech)" }
+bibtex = { cs = "BibTeX", en = "BibTeX" }
+ris = { cs = "RIS", en = "RIS" }
+source = { cs = "Otevřít odpověď služby", en = "Open the service response" }
+download = { cs = "Stáhnout", en = "Download" }
+
 [model]
 inPreparation = { cs = "v přípravě", en = "in preparation" }
 statusAsOf = { cs = "stav v mapování k {date}", en = "mapping status as of {date}" }

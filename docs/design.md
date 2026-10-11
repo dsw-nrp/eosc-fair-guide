@@ -1055,3 +1055,62 @@ retain that precision. Maintaining actors are not silently presented as formally
 owners. An unavailable live response limits the inspection and does not prove a broken connection.
 Assessment hand-over reuses the existing target, criterion, evidence, invocation, date and actor;
 the guide's source-to-question-to-test-to-revision example demonstrates these transfers in practice.
+
+## DOI citation helper
+
+The helper accepts DataCite and Crossref DOIs, including the DOI handed over from search. Entry and
+editing remain local; an explicit action retrieves the agency and matching metadata, then independently
+requests APA, Czech ISO 690 author–date, BibTeX and RIS. The DOI Foundation formatter's published style
+list confirms `apa` and `iso690-author-date-cs` before either is labelled. The earlier DataCite REST
+spike's unknown-style fallback is unsuitable for the Czech style. The supported formatter removes
+the need for a local ISO template.
+
+The agency's documented direct representations supply BibTeX and RIS. All responses are anonymous,
+bounded by time and size, and read without redirects through enrolled connectors. Export syntax and
+DOI identity are checked. Outputs remain plain text with their exact response links, copy/download
+controls and retrieval time; a failed format does not erase successful formats. The reader compares
+authors, year, version and publisher with the landing page. No missing bibliographic field is invented.
+Helper labels load with page data, preserving the initial-download budget and local-file operation.
+
+Detailed provenance descriptions load with the catalogue's existing requirements part; the initial
+data retains action identities, names, dates and links needed by credits. The complete crate and
+API keep every description. The blocked-service suite covers every enrolled host under standalone
+HTTP and local-file hosting in both languages, checking partial results, manual answers, retry and
+honest failure states. A failed live FIP Dashboard request retains the snapshot's source and date.
+
+## Champion selection and observation scope
+
+The [selection record](champion/selection.md) documents the candidate inventory, three-record browser
+measurement, original test/metric identities and the reasons for each association. The reusable probe
+measures the core and candidates without editing the curated set. Service health is independent of
+criterion validity. Questions with `championEvidenceOnly` retain narrower test results without choosing
+an answer; other evidence sources and manual answers continue normally. Source descriptions and
+question help identify the specific limit. Signposting remains a manual criterion because the reviewed
+registry offers no suitable conformance test. Selection and health edits carry their own fresh provenance.
+
+## Diagram coverage
+
+The public model page uses the approved Figure 1 adaptation for the six functions and hand-offs, and
+Figure 2 for the dated Czech infrastructure example. Data for machines uses Figure 3 for metadata
+transfer and harvesting. Each of these three figures has a Czech and English SVG, accessible title and
+description, linked manuscript attribution, full-size access and equivalent adjacent prose. The build
+copies all six approved SVGs exactly; diagram and model browser checks verify their presence and meaning.
+
+The remaining pages express their actions through the interactive path, question groups, evidence
+and catalogue links. The architecture-note Mermaid diagrams describe authoring, runtime or delivery
+machinery, or earlier forms of the live-check flow; adding them to these public pages would not clarify
+the reader's task. No further public diagram is required by this review. Any later diagram should
+serve a named reader decision and follow the same accessibility and source conventions.
+
+## PR review publication
+
+The PR workflow runs the complete offline check suite with read-only permissions and produces health,
+preview and bilingual changed-content artifacts. Dependabot covers npm, Python tools and action pins.
+A separate `workflow_run` workflow posts the review comment, as approved by the maintainer. It checks out
+only default-branch code, reads bounded JSON data from that completed run without executing it, verifies
+the current PR head and source repository, escapes names for Markdown and updates only its own bot comment.
+Its only write permission is `pull-requests: write`; the PR workflow receives no write token or secrets.
+
+The first official prerelease tag is `v1.0.0-alpha.1`. Application, package, lockfile and citation metadata
+use `1.0.0-alpha.1`. The release process sets the actual release date and tag; testing status remains
+until EOSC CZ agrees the guide. This official prerelease provides the baseline for the deferred team audit.

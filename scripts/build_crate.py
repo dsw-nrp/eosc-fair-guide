@@ -138,6 +138,7 @@ TERMS = MODEL_TERMS | {
     "assessmentContext": "Source context that explains an assessment without creating a separate answerable criterion.",
     "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
     "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
+    "championEvidenceOnly": "Champion observations supplement a question without answering its broader criterion.",
     "lookup": "Service where a user can find out the answer to a self-check item.",
 }
 
@@ -851,6 +852,7 @@ def build_checks(graph: Graph, checks: list[dict[str, Any]], links: dict[str, st
                     "note": text(item.get("note")),
                     "additionalProperty": refs(prefill_ids),
                     "prefillLevel": item.get("prefillLevel"),
+                    "championEvidenceOnly": True if item.get("championEvidenceOnly") else None,
                     "lookup": ref(links[item["lookup"]]) if item.get("lookup") else None,
                     "isPartOf": ref(check_id),
                 },
@@ -1659,7 +1661,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             "about": ref("./"),
         }
     )
-    graph.add({"@id": "./", "@type": "Dataset"})  # completed below, after its parts exist
+    graph.add({"@id": "./", "@type": "Dataset"}, "guide")  # completed below, after its parts exist
     graph.add(
         {"@id": PROCESS_RUN_CRATE, "@type": ["CreativeWork", "Profile"], "name": "Process Run Crate", "version": "0.5"}
     )
@@ -2248,6 +2250,10 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
             parts["fips"]["entities"].append(entity)
         elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
             parts["standards"]["entities"].append(entity)
+        elif entity.get("@type") in ("CreateAction", "UpdateAction") and entity.get("description"):
+            # The catalogue uses detailed provenance; navigation and credits need only names and dates.
+            parts["standards"]["properties"][entity["@id"]] = {"description": entity["description"]}
+            core.append({key: value for key, value in entity.items() if key != "description"})
         elif entity["@id"] in sections:
             parts["pages"]["entities"].append(entity)
         elif "guidance" in entity:
@@ -2420,6 +2426,10 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)
+    # Helper labels belong with the pages that use them, not the initial download.
+    if "helper" in ui["ui"]:
+        parts["pages"]["ui"] = {"helper": ui["ui"]["helper"]}
+        ui["ui"] = {key: value for key, value in ui["ui"].items() if key != "helper"}
     localized_core, core_languages, core_search = split_languages(core)
     localized_ui, ui_languages, _ = split_languages(ui)
     localized_parts = {name: split_languages(part) for name, part in parts.items()}

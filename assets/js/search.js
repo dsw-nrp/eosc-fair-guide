@@ -143,7 +143,7 @@
   }
 
   const datasetCheck = (pid, primary) => resultLink({ onclick: () => FG.selfcheck.startWithPid(pid) }, FG.t("search.checkDataset", { pid }), "check", primary);
-  const cite = (primary) => resultLink({ href: FG.href("page", "citation") }, FG.t("search.cite"), "cite", primary);
+  const cite = (pid, primary) => resultLink({ href: FG.href("page", "citation") + "/" + encodeURIComponent(pid) }, FG.t("search.cite"), "cite", primary);
   const nma = (pid) => resultLink({ url: FG.config.links.nmaSearch + "?q=" + encodeURIComponent('"' + pid + '"') }, FG.t("search.nma"), "search");
   const verify = (id, primary) => resultLink({ href: FG.href("page", "identifiers") + "/" + encodeURIComponent(id) }, FG.t("search.verify", { id }), "identifier", primary);
   /* A re3data DOI that does not lead to a record still opens the check, to be filled in by hand. */
@@ -157,7 +157,7 @@
     const findOut = resultLink({ onclick: () => lookUp(found, box) }, FG.t("search.findOut"), "identifier", true);
     switch (found.type) {
       case "doi":
-        return [basis("form", { type: idName(found.type) }), list([findOut, datasetCheck(found.value, false), cite(false), nma(found.value), verify(found.value, false)])];
+        return [basis("form", { type: idName(found.type) }), list([findOut, datasetCheck(found.value, false), cite(found.value, false), nma(found.value), verify(found.value, false)])];
       case "handle":
         return [basis("form", { type: idName(found.type) }), list([findOut, datasetCheck(found.value, false), nma(found.value)])];
       case "re3data":
@@ -223,13 +223,13 @@
       : h("p", { class: "search-basis", role: "status" }, h("strong", null, FG.t("search.is", { kind: FG.t("search.what." + result.kind) })), what ? " " + what : null, result.by ? h("span", { class: "muted" }, " (" + FG.t("search.by", { source: result.by }) + ")") : null);
     const note = (key) => h("p", { class: "small" }, FG.t("search.note." + key));
     const actions = {
-      dataset: [list([datasetCheck(found.value, true), cite(false), nma(found.value)])],
-      software: [note("software"), list([datasetCheck(found.value, true), cite(false)])],
-      publication: [note("publication"), list([cite(true), datasetCheck(found.value, false)])],
+      dataset: [list([datasetCheck(found.value, true), cite(found.value, false), nma(found.value)])],
+      software: [note("software"), list([datasetCheck(found.value, true), cite(found.value, false)])],
+      publication: [note("publication"), list([cite(found.value, true), datasetCheck(found.value, false)])],
       repository: [list([maturity(result.r3d, true)])],
       fairsharing: [list([resultLink({ url: FG.live.pidUrl({ type: "doi", value: found.value }) }, FG.t("search.open.fairsharing"), "external", true), resultLink({ href: FG.href("check", "maturity") }, FG.t("search.maturity"), "check")])],
       handle: [list([datasetCheck(found.value, true), nma(found.value)])],
-      other: [list([datasetCheck(found.value, true), cite(false), verify(found.value, false)])],
+      other: [list([datasetCheck(found.value, true), cite(found.value, false), verify(found.value, false)])],
       unknown: [list([verify(found.value, true)])],
       failed: [list([resultLink({ onclick: () => lookUp(found, box) }, FG.t("search.findOut"), "identifier", true), datasetCheck(found.value, false)])],
     }[result.kind];

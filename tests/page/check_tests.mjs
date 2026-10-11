@@ -104,7 +104,7 @@ try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await checkFacets(lang);
     // Check the crate and every generated record independently of pagination in the catalogue.
-    assert.equal(definitions.length, 52);
+    assert.equal(definitions.length, 55);
     for (const test of definitions) {
       const automatic = test.identifier.startsWith("guide-");
       const anchor = automatic ? test.identifier : "fair-champion." + test.identifier;

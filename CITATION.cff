@@ -15,7 +15,7 @@ authors:
     given-names: "David"
     orcid: "https://orcid.org/0000-0001-6592-6291"
     affiliation: "Knihovna AV ČR, v. v. i.; Archeologický ústav AV ČR, Praha, v. v. i."
-version: "0.1.0-dev"
+version: "1.0.0-alpha.1"
 license:
   - MIT
   - CC-BY-4.0

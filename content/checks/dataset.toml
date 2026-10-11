@@ -86,7 +86,9 @@ sources = ["A.MIN1", "A.F1.R1"]
 fixAt = "publication"
 owner = ["repository-admin"]
 modes = ["after"]
-prefill = { resolver = true, datacite = ["doi"] }
+prefill = { resolver = true, datacite = ["doi"], champion = ["fc_unique_identifier", "test_FM_F1_M_IdentPersistent"] }
+championEvidenceOnly = true
+help = { cs = "Testy porovnají identifikátor se známými schématy. Zkontrolujte také, kdo identifikátor spravuje a zajišťuje jeho trvalost; u Handle může test vrátit neurčitý výsledek.", en = "The tests compare the identifier with known schemes. Also check who manages the identifier and maintains its persistence; for a Handle, the test may return an indeterminate result." }
 
 [[item]]
 id = "dataset.02"
@@ -97,7 +99,7 @@ sources = ["A.F1.R2"]
 fixAt = "publication"
 owner = ["repository-admin"]
 modes = ["after"]
-prefill = { resolver = true, champion = ["fc_metadata_identifier_persistence"] }
+prefill = { resolver = true }
 
 [[item]]
 id = "dataset.03"
@@ -223,7 +225,9 @@ fixAt = "citation"
 owner = ["user"]
 modes = ["after"]
 allowNotApplicable = true
-prefill = { datacite = ["relatedIdentifiers[relationType=IsCitedBy]"] }
+prefill = { datacite = ["relatedIdentifiers[relationType=IsCitedBy]"], champion = ["community_data_cited_in_pub"] }
+championEvidenceOnly = true
+help = { cs = "Test hledá odkazy na identifikátor v OpenAlex a OpenCitations. Pokud nic nenajde, citace může být mimo jejich záběr. Odpověď ověřte přímo v článku nebo v prohlášení o dostupnosti dat.", en = "The test searches OpenAlex and OpenCitations for references to the identifier. A citation may fall outside their coverage even if nothing is found. Verify the answer in the article or its data availability statement." }
 
 [[item]]
 id = "dataset.14"

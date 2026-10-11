@@ -63,6 +63,8 @@
   }
   live.discoverObject = async (...args) => { await loadDiscovery(); return live.discoverObject(...args); };
   live.softwareRepository = async (...args) => { await loadDiscovery(); return live.softwareRepository(...args); };
+  /** Read a bounded public representation without credentials or redirects, through reviewed discovery. */
+  live.fetchText = async (...args) => { await loadDiscovery(); return live.readPublic(...args); };
 
   /* ---------------------------------------------------------------- identifiers */
 
@@ -102,8 +104,8 @@
   };
 
   /** The registration agency of a DOI (DataCite, Crossref, ...), or null when doi.org does not know the DOI. */
-  live.doiAgency = async function (doi) {
-    const data = await live.fetchJson("doi", "ra/" + String(doi).split("/").map(encodeURIComponent).join("/"));
+  live.doiAgency = async function (doi, options) {
+    const data = await live.fetchJson("doi", "ra/" + String(doi).split("/").map(encodeURIComponent).join("/"), options);
     const agency = FG.list(data)[0] || {};
     return agency.RA && !/does not exist|invalid/i.test(String(agency.status || "")) ? String(agency.RA) : null;
   };
@@ -200,6 +202,11 @@
       body: JSON.stringify(invocation.body),
       timeoutSeconds: FG.config.champion.timeoutSeconds,
     });
+    return live.championResult(data);
+  };
+
+  /** Decode the same published result contract in the page and the scheduled browser health probe. */
+  live.championResult = function (data) {
     const graph = FG.list(data && (data["@graph"] || data));
     const result = graph.find((entity) => entity && FG.list(entity["@type"]).some((type) => /TestResult$/.test(String(type))));
     const vocab = FG.config.vocab;

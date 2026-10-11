@@ -16,7 +16,9 @@ statement = { cs = "Každá zveřejněná datová sada dostane PID; převzaté z
 sources = ["A.MIN1", "A.F1.R1", "A.F1.N1"]
 fixAt = "publication"
 owner = ["repository-admin"]
-prefill = { nkr = ["pidType"], re3data = ["pidTypes"] }
+prefill = { nkr = ["pidType"], re3data = ["pidTypes"], champion = ["fc_unique_identifier", "test_FM_F1_M_IdentPersistent"] }
+championEvidenceOnly = true
+help = { cs = "Testy zkoumají schémata identifikátorů ve vzorku záznamů. Zda PID dostávají všechny zveřejněné datové sady, ověřte v pravidlech a praxi repozitáře.", en = "The tests examine identifier schemes in the sample records. Check the repository's rules and practice to establish whether every published dataset receives a PID." }
 
 [[item]]
 id = "maturity.02"
@@ -26,7 +28,6 @@ statement = { cs = "PID vždy vede na platnou landing page; při změnách infra
 sources = ["A.F1.R2", "A.F1.R3"]
 fixAt = "publication"
 owner = ["repository-admin"]
-prefill = { champion = ["fc_metadata_identifier_persistence"] }
 
 [[item]]
 id = "maturity.03"
@@ -51,12 +52,14 @@ prefill = { nkr = ["metadataSchema"], re3data = ["metadataStandards"] }
 [[item]]
 id = "maturity.05"
 tier = "minimum"
-principles = ["F4", "A1"]
+principles = ["F4", "A1", "A1.1"]
 statement = { cs = "Metadata jsou dostupná přes [[oai-pmh|OAI-PMH]] (CCMM-XML, Dublin Core) a endpoint je uveden v [[nkr|NKR]].", en = "Metadata are available through [[oai-pmh|OAI-PMH]] (CCMM-XML, Dublin Core), and the endpoint is given in [[nkr|NKR]]." }
 sources = ["A.F4.R1", "A.A1.N2", "A.A1.R1", "A.A1.1.R1"]
 fixAt = "findability"
 owner = ["repository-admin"]
-prefill = { nkr = ["oaipmhEndpoint"], re3data = ["apis=OAI-PMH"] }
+prefill = { nkr = ["oaipmhEndpoint"], re3data = ["apis=OAI-PMH"], champion = ["fc_metadata_protocol"] }
+championEvidenceOnly = true
+help = { cs = "Test zjišťuje protokol, kterým se ve vzorku rozlišují identifikátory. Neověřuje OAI-PMH, formáty metadat ani registraci v NKR. Ty ověřte na endpointu repozitáře a v jeho záznamu v NKR.", en = "The test identifies the protocol used to resolve the sample identifiers. It does not verify OAI-PMH, metadata formats or NKR registration. Check these at the repository endpoint and in its NKR record." }
 
 [[item]]
 id = "maturity.06"
@@ -112,10 +115,12 @@ id = "maturity.11"
 tier = "recommended"
 principles = ["A2"]
 statement = { cs = "Po odstranění dat zůstávají metadata: tombstone s PID, citací a důvodem a PID přesměrovaný na něj.", en = "After data removal the metadata remain: a tombstone with the PID, the citation and the reason, and the PID redirected to it." }
-help = { cs = "Automatické testy toto bývají schopné posoudit jen neurčitě; odpovězte podle praxe repozitáře.", en = "Automated tests can usually judge this only as indeterminate; answer according to the repository's practice." }
+help = { cs = "Test u DOI zachování metadat předpokládá; sám tím neověří tombstone ani chování po odstranění dat. Projděte příklady odstraněných záznamů a pravidla repozitáře.", en = "For a DOI the test assumes metadata persistence; this does not verify a tombstone or behaviour after data removal. Review examples of withdrawn records and the repository's rules." }
 sources = ["A.A2.R1", "A.A2.R2", "A.A2.R3"]
 fixAt = "findability"
 owner = ["repository-admin"]
+prefill = { champion = ["fc_metadata_persistence"] }
+championEvidenceOnly = true
 
 [[item]]
 id = "maturity.12"

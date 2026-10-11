@@ -115,6 +115,16 @@ Změny přicházejí jako pull request do `main`. CI kontroluje strukturu, obsah
 stránek, odkazy, diagramy a čistotu repozitáře. Odpovědný recenzent kontroluje správnost a styl.
 Podrobný postup je v [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Workflow kontrol pull requestu má pouze oprávnění ke čtení. Samostatný důvěryhodný workflow přidá
+dvojjazyčný komentář s přehledem změn a odkazy na kontroly a náhledy. Čte jen omezené podklady z
+dokončeného běhu, používá kód z výchozí větve a před zveřejněním ověřuje aktuální commit pull requestu.
+
+[Záznam výběru testů Champion](docs/champion/selection.md) vysvětluje jejich rozsah a datované měření
+dostupnosti. Po sestavení webu změříte všechny posouzené kandidáty i základní sadu příkazem
+`node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. Výběr testů se tím nemění.
+
+První oficiální předběžné vydání bude označeno `v1.0.0-alpha.1`; metadata aplikace a citace uvádějí `1.0.0-alpha.1`.
+
 ## Licence
 
 Kód je pod licencí MIT, obsah pod licencí CC BY 4.0. Přiřazení licencí jednotlivým souborům je

@@ -1,0 +1,5 @@
+[
+  {"id":"zenodo-doi","identifier":"https://doi.org/10.5281/zenodo.21726258","landingPage":"https://zenodo.org/records/21726259","basis":"OSTrails CZ pilot deposit"},
+  {"id":"lindat-handle","identifier":"https://hdl.handle.net/11234/1-5787","basis":"LINDAT public language-resource record"},
+  {"id":"dspace-handle","identifier":"https://hdl.handle.net/11012/82536","landingPage":"https://dspace.vut.cz/items/70afe85f-0b38-4438-9796-c1efd48dc0b3","basis":"Brno University of Technology DSpace thesis record"}
+]

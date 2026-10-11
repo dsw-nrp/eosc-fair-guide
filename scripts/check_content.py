@@ -631,6 +631,11 @@ def check_checks(report: Report, content: dict[str, Any], vocab: dict[str, set[s
                 report.error(here, f"a question of the {check['id']} check has the ID {check['id']}.<nn>")
             if item.get("prefillLevel") not in (None, "partly"):
                 report.error(here, "prefillLevel can only be 'partly'")
+            if "championEvidenceOnly" in item:
+                if not isinstance(item["championEvidenceOnly"], bool):
+                    report.error(here, "championEvidenceOnly must be a boolean")
+                if not item.get("prefill", {}).get("champion"):
+                    report.error(here, "championEvidenceOnly needs named Champion tests")
             if "context" in item and not isinstance(item["context"], bool):
                 report.error(here, "context must be a boolean")
             if item.get("context") and item.get("prefill"):
@@ -920,7 +925,7 @@ def check_live(report: Report, content: dict[str, Any], vocab: dict[str, set[str
 
 def content_index(content: dict[str, Any]) -> dict[str, str]:
     """Map content IDs that provenance actions can name to their kind."""
-    index: dict[str, str] = {}
+    index: dict[str, str] = {"guide": "guide"}
     for clause in content["ledger"]:
         index[clause["id"]] = "clause"
     for source in content["sources"]:
@@ -934,7 +939,7 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
             index[item["id"]] = "item"
     for page in content["pages"]:
         index[f"page:{page['id']}"] = "page"
-    for test in content["live"].get("test", []):
+    for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
         index[f"test:{test['id']}"] = "test"
     for resource in content["resources"]:
         index.setdefault(resource["id"], "resource")
@@ -1409,7 +1414,7 @@ def git(root: Path, *args: str) -> str:
 
 def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:
     """Canonical JSON of every item that provenance must cover."""
-    items: dict[str, Any] = {}
+    items: dict[str, Any] = {"guide": content["guide"]["guide"]}
     for clause in content["ledger"]:
         items[clause["id"]] = clause
     for data in content["stations"]:
@@ -1420,7 +1425,7 @@ def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:
             items[item["id"]] = item
     for resource in content["resources"]:
         items[resource["id"]] = resource
-    for test in content["live"].get("test", []):
+    for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
         items[f"test:{test['id']}"] = test
     for organization in content["guide"].get("organization", []):
         items[organization["id"]] = organization

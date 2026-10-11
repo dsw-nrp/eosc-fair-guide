@@ -218,6 +218,27 @@ class GeneratorTests(FixtureCase):
         self.assertIsNotNone(warning)
         self.assertIn("over its budget of 0 KB; largest: ", warning or "")
 
+    def test_helper_labels_are_deferred_with_complete_page_translations(self) -> None:
+        self.append("ui.toml", '\n[helper.citation]\nlabel = { cs = "DOI pro citaci", en = "Citation DOI" }\n')
+        generated = build_crate.outputs(self.root)
+        self.assertNotIn('"helper"', generated[build_crate.UI_SCRIPT])
+        for lang, label in [("cs", "DOI pro citaci"), ("en", "Citation DOI")]:
+            self.assertNotIn(label, generated[build_crate.LANGUAGE_SCRIPTS[lang]])
+            self.assertIn(label, generated[build_crate.PART_LANGUAGE_SCRIPTS["pages"][lang]])
+        self.assertIn('"helper"', generated[build_crate.PART_SCRIPTS["pages"]])
+
+    def test_provenance_details_load_with_catalogue_without_losing_dates(self) -> None:
+        self.edit(
+            "provenance.toml",
+            'name = "Create the test content"',
+            'name = "Create the test content"\ndescription = "Detailed provenance for the catalogue"',
+        )
+        generated = build_crate.outputs(self.root)
+        self.assertNotIn("Detailed provenance for the catalogue", generated[build_crate.KB_SCRIPT])
+        self.assertIn("2026-01-01T12:00:00+01:00", generated[build_crate.KB_SCRIPT])
+        self.assertIn("Detailed provenance for the catalogue", generated[build_crate.PART_SCRIPTS["standards"]])
+        self.assertIn("Detailed provenance for the catalogue", generated[build_crate.CRATE_FILE])
+
     def test_reference_in_text_becomes_a_mention(self) -> None:
         self.edit(
             "stations/01-one.toml",
@@ -412,6 +433,35 @@ class ContentCheckTests(FixtureCase):
     def test_champion_prefill_outside_curated_set(self) -> None:
         self.edit("checks/gate.toml", 'champion = ["test_one"]', 'champion = ["test_two"]')
         self.assertError("outside the curated set")
+
+    def test_champion_selection_has_fresh_provenance(self) -> None:
+        content = build_crate.load_content(self.root / "content")
+        self.assertEqual(check_content.content_index(content)["test:test_one"], "test")
+        self.assertIn("test:test_one", check_content.item_fingerprints(content))
+        self.edit("provenance.toml", ', "test:test_one"', "")
+        self.assertError("test:test_one: no provenance action covers this item")
+
+    def test_guide_metadata_has_its_actual_crate_identity(self) -> None:
+        content = build_crate.load_content(self.root / "content")
+        self.assertIn("guide", check_content.item_fingerprints(content))
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
+        self.assertEqual(graph.resolve(["guide"]), ["./"])
+
+    def test_champion_evidence_only_contract(self) -> None:
+        self.edit(
+            "checks/gate.toml", 'champion = ["test_one"] }', 'champion = ["test_one"] }\nchampionEvidenceOnly = true'
+        )
+        self.assertEqual(self.errors(), [])
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        item = next(entity for entity in crate["@graph"] if entity["@id"] == "#item-gate.01")
+        self.assertTrue(item["championEvidenceOnly"])
+        self.edit("checks/gate.toml", "championEvidenceOnly = true", 'championEvidenceOnly = "true"')
+        self.assertError("championEvidenceOnly must be a boolean")
+
+    def test_champion_evidence_only_needs_tests(self) -> None:
+        self.edit("checks/gate.toml", ', champion = ["test_one"] }', "}\nchampionEvidenceOnly = true")
+        self.assertError("championEvidenceOnly needs named Champion tests")
 
     def test_lookup_must_name_a_link(self) -> None:
         self.edit("checks/gate.toml", 'champion = ["test_one"] }', 'champion = ["test_one"] }\nlookup = "nowhere"')

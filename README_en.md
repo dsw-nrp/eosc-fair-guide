@@ -119,6 +119,16 @@ Every change arrives as a pull request into `main`. CI checks structure, content
 accessibility, links, diagrams and repository hygiene; a code owner reviews correctness and tone. See
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
+The PR check workflow runs with read-only permissions. A separate trusted workflow posts the bilingual
+review comment and links to its checks and preview artifacts. It reads only bounded review data from
+the completed run, uses default-branch code and checks the current PR head before posting.
+
+The [Champion selection record](docs/champion/selection.md) explains test scope and the dated health
+measurement. To remeasure all reviewed candidates and the core after building the site, run
+`node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. This does not edit the selection.
+
+The first official prerelease tag is `v1.0.0-alpha.1`; application and citation metadata use `1.0.0-alpha.1`.
+
 ## Licence
 
 Code is licensed under MIT and content under CC BY 4.0. Per-file licensing is declared in

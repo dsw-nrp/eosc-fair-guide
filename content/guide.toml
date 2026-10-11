@@ -1,7 +1,7 @@
 # Guide metadata and shared vocabularies. Field reference: docs/content-model.md.
 
 [guide]
-version = "0.1.0-dev"
+version = "1.0.0-alpha.1"
 releaseStatus = "testing"
 testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This guide is in testing. Its content may change, and the EOSC CZ initiative has not agreed it yet." }
 datePublished = 2026-10-08

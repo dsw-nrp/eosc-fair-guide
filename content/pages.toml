@@ -111,13 +111,13 @@ body = { cs = "Vložte text, například metadata připravená s pomocí AI. Pom
 id = "citation"
 menu = "tools"
 icon = "quote-right"
-description = { cs = "Připraví citaci datové sady z jejího DOI podle APA a ČSN ISO 690 a export do BibTeX a RIS.", en = "Prepares a dataset citation from its DOI in APA and Czech ISO 690 style, with BibTeX and RIS exports." }
+description = { cs = "Připraví citaci z DOI podle APA a českého stylu ČSN ISO 690 a export do BibTeX a RIS.", en = "Prepares a citation from a DOI in APA and Czech ISO 690 style, with BibTeX and RIS exports." }
 helper = true
 title = { cs = "Generovat citaci z DOI", en = "Generate citation from a DOI" }
 
 [[page.section]]
 heading = { cs = "Jak pomocník funguje", en = "How the helper works" }
-body = { cs = "Vložte DOI datové sady registrované u [[datacite|DataCite]]. Průvodce načte metadata z DataCite a připraví citaci podle APA a podle ČSN ISO 690 a export ve formátech BibTeX a RIS ke zkopírování. Pokud DataCite neodpoví, citaci sestavíte ručně: autor, rok, název, repozitář, verze a DOI.", en = "Enter the DOI of a dataset registered with [[datacite|DataCite]]. The guide loads the metadata from DataCite and prepares an APA citation, a Czech ISO 690 citation, and BibTeX and RIS exports to copy. If DataCite does not respond, put the citation together by hand: author, year, title, repository, version and DOI." }
+body = { cs = "Vložte DOI registrované u [[datacite|DataCite]] nebo [[crossref-rest-api|Crossref]]. [[doi-citation-service|Citační služba DOI Foundation]] z jeho metadat připraví APA a [[csl-iso690-cs|český styl ČSN ISO 690 (autor–datum)]]. BibTeX a RIS poskytuje registrační agentura. Každý dostupný formát můžete zkopírovat nebo stáhnout.\n\nCitaci zkontrolujte podle stránky záznamu a pokynů časopisu či instituce, zejména autory, rok a verzi. Při nedostupnosti služby využijte doporučenou citaci na stránce záznamu nebo ji sestavte ručně z ověřených údajů.", en = "Enter a DOI registered with [[datacite|DataCite]] or [[crossref-rest-api|Crossref]]. The [[doi-citation-service|DOI Foundation citation service]] formats its metadata in APA and the [[csl-iso690-cs|Czech ISO 690 author–date style]]. BibTeX and RIS are supplied by the registration agency. You can copy or download each available format.\n\nCheck the citation against the record's page and the journal's or institution's instructions, especially its authors, year and version. If a service is unavailable, use the recommended citation on the record's page or put one together from verified details." }
 
 [[page]]
 id = "ai"

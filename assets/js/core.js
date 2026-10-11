@@ -107,6 +107,7 @@
       partLanguagesLoaded.add(name + "/" + language);
     }
     for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
+    if (part.ui) mergeData(FG.ui, part.ui);
   };
 
   /** Explicit data exports keep bilingual API-style records. Reading a view does not require this load. */

@@ -391,6 +391,7 @@ block instead of by principle or path step.
 | `note` | text | An extra remark shown with the item |
 | `prefill` | table | Sources that can answer the item: `datacite`, `nkr`, `re3data` (the re3data snapshot), `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean). A field is `name`, `list[].name`, `list[key=value]`, `list[key=value].name`, or `name=value` for a list that contains a value (case-insensitive). `@steward` in `datacite` looks for the data steward the user names by ORCID iD among the record's creators and contributors: found answers yes, not found no; without an ORCID iD a data curator or data manager contributor answers partly |
 | `prefillLevel` | string | `partly` when the evidence can only partly prove the statement; a pre-filled answer then never exceeds "partly" |
+| `championEvidenceOnly` | boolean | With named Champion tests, retain their verdicts and evidence without choosing an answer. Other prefill sources still work normally. Use when the tests inspect only a narrower part of the question; explain that limit in the bilingual help. |
 | `lookup` | string | Key of a link in `[links]` of `live.toml` where the user can find out the answer; shown with a "don't know" task |
 
 ### `resources.toml`
@@ -453,6 +454,12 @@ with `source`, `url` and `retrieved` (and `license` where the source states one)
 `id`, `text`, `url`, `lenses`.
 
 ### `live.toml`
+
+The identifier and citation helper share the deferred `helpers.script`. `helpers.pages` enables each
+implemented page. `helpers.citation` configures the reviewed formatter connector, published style IDs
+and locales, agency representation paths, byte limit and timeout. Paths resolve only against enrolled
+connector origins. The citation helper checks the DOI's registration agency and record identity;
+each format has its own outcome and source URL. External representations are rendered as plain text.
 
 `[[connector]]`: `id`, `name`, `origin` (scheme and host), `purpose`, and `browserAccess = false` for a service
 whose API does not admit the guide's origin yet (the page then uses its snapshot). The page calls no other host, and
