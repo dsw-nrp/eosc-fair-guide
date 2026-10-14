@@ -306,8 +306,8 @@ takes = { cs = "několik sekund", en = "a few seconds" }
 
 [selfcheck.evidenceCard.re3data]
 title = { cs = "Záznam v re3data", en = "The re3data record" }
-sends = { cs = "nic: Průvodce má snímek re3data; zápis ve FAIRsharing ověří přes DataCite", en = "nothing: the Guide carries a re3data snapshot; FAIRsharing registration is checked through DataCite" }
-takes = { cs = "okamžitě", en = "no time" }
+sends = { cs = "identifikátor r3d nebo adresa záznamu zůstává v prohlížeči; zadáte-li DOI nebo Handle, odešle se k ověření službě doi.org nebo hdl.handle.net. Údaje se čtou ze snímků re3data a záznamů FAIRsharing získaných z DataCite", en = "an r3d identifier or record address stays in the browser; a DOI or Handle is sent to doi.org or hdl.handle.net for resolution. Facts come from snapshots of re3data and FAIRsharing records retrieved from DataCite" }
+takes = { cs = "ze snímků okamžitě; ověření DOI nebo Handle několik sekund", en = "snapshots take no time; resolving a DOI or Handle takes a few seconds" }
 
 [selfcheck.evidenceCard.sample]
 title = { cs = "Vzorek záznamů repozitáře", en = "A sample of the repository's records" }
@@ -392,7 +392,7 @@ nkrChoose = { cs = "Repozitář v NKR", en = "Repository in NKR" }
 nkrButton = { cs = "Vyplnit podle NKR", en = "Fill in from NKR" }
 re3data = { cs = "Záznam v re3data: DOI, identifikátor r3d nebo adresa záznamu", en = "Record in re3data: DOI, r3d identifier or the record's address" }
 re3dataButton = { cs = "Vyplnit podle re3data", en = "Fill in from re3data" }
-re3dataHint = { cs = "Údaje bere Průvodce ze snímku re3data, který s ním přichází; re3data nelze číst přímo z prohlížeče. Zápis ve FAIRsharing ověří přes DataCite.", en = "The Guide takes the facts from the re3data snapshot it carries; re3data cannot be read directly from a browser. It checks the FAIRsharing registration through DataCite." }
+re3dataHint = { cs = "Údaje bere Průvodce ze snímku re3data, který s ním přichází; re3data nelze číst přímo z prohlížeče. Zápis ve FAIRsharing ověří ze snímku záznamů získaných z DataCite.", en = "The Guide takes the facts from the re3data snapshot it carries; re3data cannot be read directly from a browser. It checks FAIRsharing registration from the snapshot of records retrieved from DataCite." }
 re3dataInvalid = { cs = "Zadejte DOI záznamu v re3data (10.17616/…), identifikátor r3d (například r3d100010386) nebo adresu záznamu.", en = "Enter the DOI of a re3data record (10.17616/…), an r3d identifier (for example r3d100010386) or the record's address." }
 re3dataMissing = { cs = "Repozitář {id} není ve snímku re3data, který Průvodce nese (jsou v něm repozitáře z Česka). Odpovězte ručně, nebo otevřete jeho záznam v re3data.", en = "Repository {id} is not in the re3data snapshot the Guide carries (it holds repositories from Czechia). Answer by hand, or open its record in re3data." }
 fipChoose = { cs = "Profil komunity ve FIP Dashboardu", en = "Community profile in the FIP Dashboard" }
@@ -1430,7 +1430,7 @@ unconfirmed = { cs = "nepotvrzeno", en = "unconfirmed" }
 # and a sentence. The hand-over visual draws its steps from the model's seam records and needs only its labels here.
 [visual.evidence]
 title = { cs = "Jak podklad ovlivní odpověď", en = "How evidence affects your answer" }
-note = { cs = "Žádný krok nepočítá skóre. Nedostupný výsledek ani nativní fail samy neznamenají odpověď Ne.", en = "No step computes a score. An unavailable result or a native fail does not on its own mean No." }
+note = { cs = "Žádný krok nepočítá skóre. Nedostupný výsledek ani stav „fail“ v původní zprávě samy neznamenají odpověď Ne.", en = "No step computes a score. An unavailable result or a ‘fail’ status in the original report does not on its own mean No." }
 
 [visual.evidence.observation]
 label = { cs = "Zjištění", en = "Observation" }

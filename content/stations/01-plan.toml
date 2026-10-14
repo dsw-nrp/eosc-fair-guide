@@ -163,7 +163,7 @@ sources = ["NRP.CS"]
 id = "plan.20"
 lens = "SR"
 level = "L2"
-text = { cs = "Strojově čitelné požadavky repozitářů nese z části záznam v [[nkr|NKR]], který je v pilotním provozu; jejich využití při plánování se teprve připravuje.", en = "Part of a repository's machine-readable requirements is carried by its [[nkr|NKR]] record, which is in pilot operation; using them during planning is still in preparation." }
+text = { cs = "Strojově čitelné požadavky repozitářů nese zčásti záznam v [[nkr|NKR]], který je v pilotním provozu; jejich využití při plánování se teprve připravuje.", en = "Part of a repository's machine-readable requirements is carried by its [[nkr|NKR]] record, which is in pilot operation; using them during planning is still in preparation." }
 sources = ["OS-LINKAGES.01", "NKR-SCHEMA.01"]
 
 [[advice]]

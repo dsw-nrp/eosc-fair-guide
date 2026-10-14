@@ -28,6 +28,25 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(lock["version"], expected)
         self.assertEqual(lock["packages"][""]["version"], expected)
         self.assertEqual(load("CITATION.cff")["version"], expected)
+        self.assertEqual(tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"], expected)
+        self.assertEqual(load("CITATION.cff")["date-released"], str(guide["datePublished"]))
+
+    def test_release_dispatches_use_trusted_source_and_separate_app_delivery(self) -> None:
+        for name in ("prepare-release", "tag-release"):
+            workflow = load(f".github/workflows/{name}.yml")
+            self.assertEqual(set(workflow["on"]), {"workflow_dispatch"})
+            self.assertEqual(workflow["permissions"]["contents"], "read")
+            job = next(iter(workflow["jobs"].values()))
+            self.assertIn("github.event.repository.default_branch", job["if"])
+            self.assertIn("github.ref", job["if"])
+            steps = job["steps"]
+            app = next(step for step in steps if step.get("id") == "app")
+            self.assertEqual(app["with"]["permission-contents"], "write")
+            self.assertIn("SOURCE_REFRESH_APP_ID", app["with"]["app-id"])
+            self.assertTrue(any("release_versions.py" in step.get("run", "") for step in steps))
+            delivery = steps[-1]
+            self.assertEqual(delivery["with"]["github-token"], "${{ steps.app.outputs.token }}")
+            self.assertIn(".propose(" if name == "prepare-release" else ".tag(", delivery["with"]["script"])
 
     def test_the_editing_skills_are_identical_and_name_every_release_fact(self) -> None:
         shared = (ROOT / ".agents/skills/fair-guide-editor/SKILL.md").read_text(encoding="utf-8")
@@ -130,21 +149,38 @@ class WorkflowContracts(unittest.TestCase):
         deploy = load(".github/workflows/deploy.yml")
         self.assertEqual(set(deploy["on"]), {"push", "workflow_dispatch"})
         self.assertEqual(deploy["permissions"], {"contents": "read"})
-        verify = [step.get("run", "") + step.get("uses", "") for step in deploy["jobs"]["verify"]["steps"]]
+        self.assertEqual(deploy["jobs"]["sources"]["permissions"], {"contents": "read", "actions": "read"})
+        self.assertEqual(deploy["on"]["push"], {"branches": ["main"], "tags": ["v*"]})
+        verify = [step.get("run", "") + step.get("uses", "") for step in deploy["jobs"]["production"]["steps"]]
         order = [
             next(index for index, step in enumerate(verify) if marker in step)
-            for marker in ("check_all.py", "package_site.py", "upload-artifact", "upload-pages-artifact")
+            for marker in ("check_all.py", "package_site.py", "upload-artifact")
         ]
         self.assertEqual(order, sorted(order), "check, then package and hand over the same site")
         self.assertFalse(any("build_site.py" in step for step in verify), "nothing is rebuilt after the checks")
+        for step in deploy["jobs"]["production"]["steps"]:
+            if "check_all.py" in step.get("run", ""):
+                self.assertEqual(step["if"], "needs.sources.outputs.build == 'true'", "only a tag rebuilds production")
+        staging = deploy["jobs"]["staging"]
+        self.assertIn("check_all.py", " ".join(step.get("run", "") for step in staging["steps"]))
+        self.assertEqual(staging["env"]["FAIR_GUIDE_CHECK_REVISION"], "${{ needs.sources.outputs.staging }}")
+        assemble = deploy["jobs"]["assemble"]
+        self.assertIn("assemble_pages.py", " ".join(step.get("run", "") for step in assemble["steps"]))
+        self.assertNotIn("check_all.py", " ".join(step.get("run", "") for step in assemble["steps"]))
+        marker = next(step for step in staging["steps"] if step.get("with", {}).get("name") == "staging-site")
+        self.assertEqual(marker["with"]["include-hidden-files"], "true", "the checked site marker travels with staging")
         self.assertEqual(deploy["jobs"]["deploy"]["permissions"], {"pages": "write", "id-token": "write"})
         release = load(".github/workflows/release.yml")
-        self.assertEqual(release["on"], {"push": {"tags": ["v*"]}})
+        self.assertEqual(
+            release["on"], {"workflow_run": {"workflows": ["Deploy the verified site"], "types": ["completed"]}}
+        )
         self.assertEqual(release["jobs"]["release"]["permissions"], {"contents": "write", "actions": "read"})
         text = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
         self.assertNotIn("build_site", text)
         self.assertNotIn("check_all", text)
-        self.assertIn("guide-site-${{ github.sha }}", text)
+        self.assertIn("guide-site-${{ steps.source.outputs.sha }}", text)
+        self.assertIn("workflow_run.event == 'push'", release["jobs"]["release"]["if"])
+        self.assertIn("workflow_run.head_repository.full_name == github.repository", release["jobs"]["release"]["if"])
 
     def test_code_owners_and_the_template_name_real_people_and_the_required_parts(self) -> None:
         owners = [

@@ -1,5 +1,6 @@
 """Tests for scripts/vendor_favicons.py: which host stands for a tool, which icon is tried first, which bytes count
-as an image, how a refresh replaces the folder without keeping originals, and what the check refuses."""
+as an image, how a refresh updates what it obtains and keeps a favicon it cannot (prune being the only deletion), and
+what the check refuses."""
 
 from __future__ import annotations
 
@@ -110,6 +111,14 @@ class VendorTests(unittest.TestCase):
             {"a.example.org": "https://a.example.org/app", "b.example.org": "https://b.example.org/"},
         )
 
+    def test_a_corrected_record_address_is_asked_for_its_favicon(self) -> None:
+        (self.root / "content" / "repositories.toml").write_text(
+            '[[record]]\nre3data = "r3d100013576"\nurl = "https://d.example.org/"\n'
+            'evidence = ["https://d.example.org/"]\n',
+            encoding="utf-8",
+        )
+        self.assertEqual(vf.service_urls(self.root)["d.example.org"], "https://d.example.org/")
+
     def test_the_first_icon_that_shows_is_kept_normalised_and_the_originals_are_not(self) -> None:
         seen: list[str] = []
 
@@ -195,6 +204,28 @@ class VendorTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "HTTPS"):
             vf.infrastructure_marks(self.root, self.fetch)
+
+    def test_a_refresh_keeps_a_favicon_it_cannot_obtain_again_and_prune_drops_it(self) -> None:
+        vf.vendor(
+            self.root,
+            self.fetch,
+            "2026-10-13",
+            lambda originals, output: (output / "a.example.org~1.png").write_bytes(png()) and [],
+        )
+
+        def unreachable(url: str, limit: int) -> tuple[str, bytes]:
+            raise OSError(url)
+
+        # A second run that reaches no host keeps every recorded favicon, its file and its date untouched.
+        count, missing = vf.vendor(self.root, unreachable, "2026-10-14", lambda originals, output: [])
+        self.assertEqual((count, missing), (1, ["b.example.org"]))
+        records = vf._toml(self.root / vf.MANIFEST)["favicon"]
+        self.assertEqual(str(records[0]["retrieved"]), "2026-10-13", "an unrefreshed favicon keeps its date")
+        self.assertEqual(vf.check(self.root), [])
+        # --prune is the explicit way to drop a favicon that was not obtained again.
+        count, _ = vf.vendor(self.root, unreachable, "2026-10-14", lambda originals, output: [], prune=True)
+        self.assertEqual(count, 0)
+        self.assertEqual(vf.check(self.root), [])
 
     def test_the_check_refuses_changed_unrecorded_and_wrongly_sized_files(self) -> None:
         vf.vendor(

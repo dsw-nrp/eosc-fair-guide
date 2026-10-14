@@ -10,6 +10,8 @@ reviewed source-link-only questions are labelled as such. Live availability stay
     python scripts/check_health.py [--output .cache/health] [--previous-report path/to/health.json]
 
 Exit status 1 means an offline integrity check failed; coverage gaps alone do not fail the run.
+FAIR_GUIDE_CHECK_REVISION identifies the source checked when it differs from a workflow's GITHUB_SHA,
+as for a default-branch preview built during a release-tag deployment.
 """
 
 from __future__ import annotations
@@ -539,7 +541,7 @@ def make_report(
             "Offline authored-content integrity and original-passage inventory; "
             "no live requests or conformance verdict."
         ),
-        "revision": os.environ.get("GITHUB_SHA"),
+        "revision": os.environ.get("FAIR_GUIDE_CHECK_REVISION") or os.environ.get("GITHUB_SHA"),
         "run_url": os.environ.get("GITHUB_SERVER_URL", "https://github.com")
         + "/"
         + os.environ["GITHUB_REPOSITORY"]

@@ -70,10 +70,14 @@ observation date. Context explanations address an existing station and lens and 
   says whether the criterion covers a whole question or part of it, with a bilingual note on what it covers. Map
   `whole` only when a native pass establishes everything the question asks; a narrower criterion is `partial`, and
   an unrelated one stays unmapped. A new provider version needs its own review before it is listed.
-- **What the runtime does with them.** Only whole coverage, a reviewed version and a native pass suggest Yes; a
-  native fail, a full score with a native fail, an unavailable result or partial coverage suggests nothing. A
-  reader's answer is never replaced. Late results for another target are discarded. FAIR-Checker's scores and
-  F-UJI's points and maturity are the services' own and are never combined into a FAIR score.
+- **What the runtime does with them.** Read each result as the provider presents it: FAIR-Checker scores 2, 1
+  and 0 mean met, partly met and not met; an all-zero assessment establishes nothing. F-UJI's maximum maturity
+  level is met, intermediate levels partly met, and level 0 not established; retain its native status separately.
+  For a reviewed version, whole coverage suggests Yes, Partly or No from that reading; partial coverage suggests
+  Partly when its part is met (even partly), or No when it fails. Unavailable, unestablished and unreviewed results
+  suggest nothing. Whole-question evidence outranks partial evidence; disagreements stay for the reader to settle.
+  A reader's answer is never replaced. Late results for another target are discarded. Provider scores stay native
+  and are never combined into a FAIR score.
 - **Retention.** One record per accepted assessment; questions refer to it. Original reports are kept once per
   digest and leave the browser only in the complete evidence download. A result with assessments is format
   revision 3; keep revisions 1 and 2 loadable.
@@ -154,12 +158,17 @@ the review gates in `CONTRIBUTING.md`. Do not merge your own pull request.
 
 ## 11. Release
 
-1. Write the `CHANGELOG.md` entries for the whole pull request once it is ready, not commit by commit.
-2. Set one version everywhere: `content/guide.toml` (`version`, and `datePublished` as the actual release date),
-   `CITATION.cff` (`version`, and `date-released` as the same date), `package.json` and both version fields of
-   `package-lock.json`. The crate and the API take theirs from `content/guide.toml`. `tests/test_workflows.py`
-   checks that the versions agree; compare the dates yourself.
-3. After review and merge, the deployment workflow checks, packages and publishes one verified site. Tag
-   `vX.Y.Z` (for a prerelease `vX.Y.Z-alpha.N`) on that commit only after the maintainer accepts the release; the
-   release workflow attaches that same artifact and drafts the notes. Keep the testing notice until EOSC CZ
-   agrees the guide.
+1. Describe the settled scope of the whole pull request when reviewing it. Release preparation writes
+   `CHANGELOG.md` from every pull request merged since the previous release tag, once per release.
+2. Run **Prepare release** on the default branch with the intended version. The standard-library owner
+   `scripts/release_versions.py` updates `content/guide.toml` (`version`, `datePublished`), `CITATION.cff`
+   (root `version`, `date-released`), `package.json`, both `package-lock.json` root versions and `pyproject.toml`.
+   The crate and API derive theirs from the Guide. Its referenced works retain their original dates and versions.
+   The script records the reviewed dispatcher's provenance and opens a release pull request through the App.
+3. Review the release PR and its ordinary checks, then merge. Run **Tag release** separately on that exact current
+   default-branch merge commit. Its `vX.Y.Z` tag (with a SemVer prerelease suffix when needed) starts a checked
+   production build; production and the draft release receive the same artifact. No workflow merges the PR or
+   publishes the draft. Keep the testing notice until EOSC CZ agrees the Guide.
+4. Check consistency with `python scripts/release_versions.py check --site _site`; `check_all.py` includes it.
+   Do not restate the Guide version in prose. For configuration, held activation and recovery, read
+   [deployment.md](../../../docs/deployment.md#release-preparation-and-tagging).

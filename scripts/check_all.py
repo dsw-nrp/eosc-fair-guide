@@ -71,6 +71,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
     found = [
         Job("content", [python, "scripts/check_content.py", *(["--base", base] if base else [])]),
         Job("duplicates", [python, "scripts/check_duplicates.py"]),
+        Job("versions", [python, "scripts/release_versions.py", "check", "--site", "_site"]),
         Job("health", [python, "scripts/check_health.py", "--output", ".cache/health-inventory"]),
         Job("unit", [python, "-m", "unittest", "discover", "-s", "tests", "-q"]),
         Job("ruff", [python, "-m", "ruff", "check", "scripts", "tests"]),

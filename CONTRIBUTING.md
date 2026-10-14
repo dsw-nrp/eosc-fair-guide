@@ -103,11 +103,16 @@ followed by a body when the reason is not obvious. Mention AI assistance in the 
 
 ## Releases
 
-A release sets one version and the actual release date everywhere they appear: `content/guide.toml` (which the
-crate carries), `CITATION.cff`, `package.json` and `package-lock.json` (both of its version fields), and the
-`CHANGELOG.md` entry written for the complete pull request. `tests/test_workflows.py` checks that the versions
-agree. After the maintainer accepts the candidate, the tag `vX.Y.Z` (or `vX.Y.Z-alpha.N`) on a deployed commit makes
-the release workflow draft the release with that commit's verified site.
+Use the **Prepare release** manual workflow on the default branch. `scripts/release_versions.py` sets the version
+and release dates in `content/guide.toml`, `CITATION.cff`, `package.json`, `package-lock.json` and `pyproject.toml`,
+records the reviewed dispatcher's provenance, and writes `CHANGELOG.md` from all pull requests merged since the
+previous tag. The crate and API derive their metadata from the Guide. The release pull request runs ordinary
+checks; review and merge it before using the separate **Tag release** dispatch on that merged commit.
+
+`python scripts/release_versions.py check --site _site` refuses metadata/date disagreements and prose that
+restates the Guide version. Tags use `vX.Y.Z` (or a SemVer prerelease suffix). The tag checks and packages the site;
+production and the draft release receive those same verified bytes. See [deployment](docs/deployment.md) for
+configuration, local fixtures and recovery. These workflows never merge a pull request or publish a release.
 
 ## Conduct
 

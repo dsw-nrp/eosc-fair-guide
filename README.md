@@ -36,8 +36,9 @@ průvodce předvyplní z profilu v dashboardu, nebo z publikované nanopublikace
 API dashboardu zatím z prohlížeče nepřijímá požadavky z adresy průvodce, proto průvodce čte datovaný snímek jeho
 profilů a zdrojů a všude, kde je používá, to uvádí i s upozorněním samotného dashboardu. Plánovaná úloha navrhne
 obnovení snímku pull requestem, když se data dashboardu změní. Až API adresu průvodce přijme, nastavení konektoru
-`browserAccess` umožní číst je živě a snímek ponechat jako zálohu. Podrobnosti jsou v `docs/design.md`
-(rozhodnutí 18 a 19, *Snapshot refresh*).
+`browserAccess` umožní číst je živě a snímek ponechat jako zálohu. Podrobnosti popisuje
+[návrh katalogu a infrastruktury](docs/design.md#catalogue-and-infrastructure) a
+[obnovování snímků](docs/design.md#snapshot-refresh-and-source-watch).
 
 ## Jak průvodce spustit
 
@@ -149,9 +150,10 @@ každý týden obnoví snímky Hesláře, re3data, FIP Dashboardu a NKR, ponech�
 kontrolou, a každý změněný zdroj navrhne jako samostatný pull request přes GitHub App repozitáře.
 `health-watch.yml` každý týden kontroluje odkazy, služby, zastaralá data a stránky EOSC CZ, na kterých průvodce
 stojí, jednou měsíčně znovu změří testy FAIR Champion a pro každý trvající problém otevře jedno issue. Žádný z nich
-necommituje ani neslučuje; nastavení aplikace popisuje [docs/design.md](docs/design.md).
+necommituje ani neslučuje; nastavení aplikace popisuje [konfigurace vydání](docs/deployment.md#release-preparation-and-tagging).
 
-První oficiální předběžné vydání bude označeno `v1.0.0-alpha.1`; metadata aplikace a citace uvádějí `1.0.0-alpha.1`.
+Verzi vydání určuje [content/guide.toml](content/guide.toml). Postup popisuje
+[příprava a označení vydání](docs/deployment.md#release-preparation-and-tagging).
 
 ## Licence
 

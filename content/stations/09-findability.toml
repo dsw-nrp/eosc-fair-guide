@@ -70,7 +70,7 @@ sources = ["A.F4.N3", "A.F4.X1", "SCHEMA-DATASET.01"]
 id = "findability.07"
 lens = "V"
 level = "L1"
-text = { cs = "Pro vykázání v RIV použijete odkaz pro RIV z [[nma|NMA]]; v citacích ale vždy uvádějte trvalý identifikátor (viz zastávka Citace a uznání).", en = "For reporting in RIV, use the RIV link from [[nma|NMA]]; in citations, however, always give the persistent identifier (see the Citation and credit station)." }
+text = { cs = "Pro vykázání v RIV použijete odkaz pro RIV z [[nma|NMA]]; v citacích ale vždy uvádějte trvalý identifikátor (viz zastávka [[station:citation|Citace a opakované užití]]).", en = "For reporting in RIV, use the RIV link from [[nma|NMA]]; in citations, however, always give the persistent identifier (see the [[station:citation|Citation and reuse]] station)." }
 sources = ["NMA-RIV-DOCS.01"]
 
 [[advice]]

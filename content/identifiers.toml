@@ -1257,6 +1257,8 @@ actions = [
   "2026-10-14-environments-and-workflows",
   "2026-10-14-licensing-guidance-and-matrix",
   "2026-10-14-infrastructure-marks",
+  "2026-10-14-release-metadata-owner",
+  "2026-10-14-language-and-discoverability-review",
 ]
 tests = [
   "guide-dataset-01",

@@ -330,7 +330,7 @@ publisher named like a curated organisation.
 | Table | Field | Type | Meaning |
 | --- | --- | --- | --- |
 | `[guide]` | `version` | string | Semantic version, the same as in `CHANGELOG.md` and `CITATION.cff` |
-| `[guide]` | `genericGuideUses` | list of strings | Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case; the content check accepts a lower-case form only inside one of them (D-177) |
+| `[guide]` | `genericGuideUses` | list of strings | Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case; the content check accepts a lower-case form only inside one of them |
 | | `releaseStatus` | string | `testing` until EOSC CZ agrees the guide, then `released`; drives the testing-phase notice |
 | | `testingNotice` | text | The notice shown on every view while the status is `testing` |
 | | `datePublished` | date | Date of the version |
@@ -484,7 +484,7 @@ Dashboard), `knav` (its ID in the KNAV tools catalogue), `datacite` (its reposit
 `status`, `asOf`, and `abbreviation` (a table of the name's abbreviation in each language, `{ cs = "ČSDA", en = "CSDA" }`).
 A `[[source]]` that the KNAV catalogue lists carries `knav` too.
 
-A repository's name follows the reader's language with that language's abbreviation (D-173): a Czech page reads
+A repository's name follows the reader's language with that language's abbreviation: a Czech page reads
 "Český sociálněvědní datový archiv (ČSDA)", an English page "Czech Social Science Data Archive (CSDA)", the entry keeps
 the other language's form among its details, and search matches every form. re3data tags names unevenly, so a curated
 name corrects or completes them: the entry's own `name`, or the `name` of the record annotation that joins the re3data
@@ -499,8 +499,9 @@ Research-data repository records from re3data default to `deposit-data`. A regis
 unless its stated functions include depositing.
 
 `[[record]]` annotations in `repositories.toml` identify imported records by `re3data`, `fipDashboard` and/or `knav`,
-carry their reviewed `functions` (for a repository or registry), a curated `name` and `abbreviation` taken from the
-repository's own site, and HTTPS `evidence`, and can join records of the same thing across registries.
+carry their reviewed `functions` (for a repository or registry), a curated `name`, `abbreviation` and `url` taken from
+the repository's own site (the `url` where the record's own address differs), and HTTPS `evidence`, and can join
+records of the same thing across registries.
 They create no new entry and do not edit source snapshots. The content check refuses missing or repeated records,
 unknown functions and missing evidence; the duplicate check uses these identity links too. Similar names or hosts
 alone never join entries. Both borrowed identifiers still open the same visible entry. Provenance results can
@@ -539,7 +540,7 @@ offers no export of its data and is linked only.
 ### `infrastructures.toml` and `eosc-node.toml`
 
 The large research infrastructures of the Roadmap of Large Research Infrastructures of the Czech Republic for
-2023–2026 (2024 update) are a reviewed record of what the roadmap states, each fact cited by annex (D-174). The
+2023–2026 (2024 update) are a reviewed record of what the roadmap states, each fact cited by annex. The
 roadmap is a PDF without a licence statement or a machine-readable export, so descriptions and coordinators' contact
 details are not copied. `[infrastructures]`: `source` (the roadmap), `namesSource` (the portal whose pages give the
 Czech names), `checked`. `[[infrastructure]]`: `id`, `acronym`, `name` (the English name of Annex 1, with the
@@ -557,7 +558,7 @@ up (Annex 6). `[[infrastructure.operates]]`: a catalogue entry (`resource`, or `
 record) it operates and the HTTPS `evidence` that states it; the relation is recorded only where a source states it.
 
 The three relations stay distinct: being the national node of a European infrastructure, membership of an ERIC, and
-operating a catalogue entry. Membership of the EOSC CZ Node is the entry's own (D-172). `eosc-node.toml` holds `[node]`
+operating a catalogue entry. Membership of the EOSC CZ Node is the entry's own. `eosc-node.toml` holds `[node]`
 (`id`, `name`, `url`, `operator` (an infrastructure ID), `state` (`candidate`), `stateDate`, `sources`, `checked`) and
 `[[member]]` entries that name a catalogue entry (`resource` or `repository`) with its `role` (a `[[nodeRole]]`:
 `service`, `repository`, `incubator`), the `milestone` by which a repository's integration is planned (`M6`, `M12`)

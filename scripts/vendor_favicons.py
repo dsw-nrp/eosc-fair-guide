@@ -1,6 +1,6 @@
 """Vendor the favicons of the tools and services the guide names into assets/favicons/, normalised.
 
-Usage: python scripts/vendor_favicons.py [--check | --infrastructures] [--input DIR] [--date YYYY-MM-DD]
+Usage: python scripts/vendor_favicons.py [--check | --infrastructures] [--prune] [--input DIR] [--date YYYY-MM-DD]
 
 A tool or service is shown beside its name with its own favicon wherever one can be obtained (D-183). The page
 requests nothing from other sites when it loads, so each favicon is taken from its site here and normalised once to a
@@ -10,11 +10,13 @@ from and the file's SHA-256. One favicon stands for one host. A host that serves
 a DOI resolver) stands only for itself: a tool found only there keeps its monogram, and so does a site whose favicon
 cannot be obtained or does not draw.
 
-Without `--check` the script asks every host for its favicon and replaces the folder; with `--check` it changes
-nothing and exits 1 when a recorded file is missing, changed, not a SIZE-pixel PNG or unrecorded. `--input DIR` reads
-responses from files named by `response_name()` instead of the network (for tests). Fetching uses only the standard
-library; on a machine whose certificate store refuses sites that verify elsewhere, point SSL_CERT_FILE at a current CA
-bundle. Normalising needs Node and the Playwright browser (`npm ci`, `npx playwright install chromium`).
+Without `--check` the script asks every host for its favicon and writes what it obtains; a host it does not obtain
+again keeps the favicon already recorded, so a refresh drops nothing it already has. `--prune` removes recorded
+favicons that were not obtained again, the only way a refresh deletes one. With `--check` it changes nothing and exits
+1 when a recorded file is missing, changed, not a SIZE-pixel PNG or unrecorded. `--input DIR` reads responses from
+files named by `response_name()` instead of the network (for tests). Fetching uses only the standard library; on a
+machine whose certificate store refuses sites that verify elsewhere, point SSL_CERT_FILE at a current CA bundle.
+Normalising needs Node and the Playwright browser (`npm ci`, `npx playwright install chromium`).
 
 Infrastructure marks use their reviewed `website` and, where a generic site favicon is unsuitable, an explicit
 `logo` from that official site. They are keyed by infrastructure, so a faculty's favicon is never inferred from a
@@ -136,6 +138,8 @@ def service_urls(root: Path = ROOT) -> dict[str, str]:
         if resource.get("type") in SERVICE_TYPES or resource.get("repository")
     ]
     urls += [str(item.get("url", "")) for item in _toml(content / "repositories.toml").get("repository", [])]
+    # A record annotation may correct a repository's own address from its site; the guide shows that one, so ask it.
+    urls += [str(item.get("url", "")) for item in _toml(content / "repositories.toml").get("record", [])]
     snapshots = content / "snapshots"
     urls += [str(item.get("url", "")) for item in _toml(snapshots / "re3data.toml").get("repository", [])]
     urls += [str(item.get("url", "")) for item in _toml(snapshots / "knav-tools.toml").get("tool", [])]
@@ -373,6 +377,30 @@ def manifest_text(entries: list[tuple[Found, bytes]], retrieved: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def carried_entries(root: Path, previous: dict[str, Any], refreshed: set[str]) -> list[tuple[Found, bytes]]:
+    """The recorded favicons a refresh did not obtain again, kept exactly as recorded: the file, the address it was
+    taken from and its date, so a run that cannot reach a site drops nothing. `--prune` is the only way a refresh
+    removes one."""
+    fallback = str((previous.get("favicons") or {}).get("retrieved", ""))
+    kept: list[tuple[Found, bytes]] = []
+    for row in previous.get("favicon", []):
+        identity = row.get("key") or row.get("host")
+        path = root / TARGET / row["file"]
+        if identity in refreshed or not path.is_file():
+            continue
+        item = Found(
+            row["host"],
+            row["source"],
+            path.read_bytes(),
+            "png",
+            key=row.get("key"),
+            retrieved=str(row.get("retrieved") or fallback),
+            file=row["file"],
+        )
+        kept.append((item, item.data))
+    return kept
+
+
 def vendor(
     root: Path,
     fetch: Fetch,
@@ -380,9 +408,11 @@ def vendor(
     normalise: Normalise = node_normalise,
     *,
     infrastructures_only: bool = False,
+    prune: bool = False,
 ) -> tuple[int, list[str]]:
-    """Ask every host for its favicon, normalise what was found and replace the folder with it; the number of
-    favicons and the hosts that keep their monogram. The originals live only in the work folder, which is removed."""
+    """Ask every host for its favicon and write what is obtained; a recorded favicon the run does not obtain again is
+    kept as it was, so a refresh that cannot reach a site drops nothing. `prune` removes the recorded favicons not
+    obtained again, the only deletion a refresh makes. The originals live only in the work folder, which is removed."""
     hosts = {} if infrastructures_only else service_urls(root)
     previous = _toml(root / MANIFEST)
     if infrastructures_only and (problems := check(root)):
@@ -401,23 +431,7 @@ def vendor(
             for index, item in enumerate(items):
                 (originals / f"{item.stem}~{index}.{item.kind}").write_bytes(item.data)
         normalise(originals, normalised)
-        entries = []
-        if infrastructures_only:
-            for row in previous.get("favicon", []):
-                if not row.get("key"):
-                    entries.append(
-                        (
-                            Found(
-                                row["host"],
-                                row["source"],
-                                b"",
-                                "png",
-                                retrieved=str(row.get("retrieved", previous["favicons"]["retrieved"])),
-                                file=row["file"],
-                            ),
-                            (root / TARGET / row["file"]).read_bytes(),
-                        )
-                    )
+        entries: list[tuple[Found, bytes]] = []
         for _host, items in sorted(found.items()):
             for index, item in enumerate(items):
                 path = normalised / f"{item.stem}~{index}.png"
@@ -425,17 +439,26 @@ def vendor(
                 if png_size(data) == (SIZE, SIZE) and len(data) <= MAX_FILE_BYTES:
                     entries.append((item, data))
                     break
+        refreshed = {item.key or item.host for item, _ in entries}
+        if not prune:
+            entries += carried_entries(root, previous, refreshed)
+        entries.sort(key=lambda pair: pair[0].key or pair[0].host)
+        # A carried favicon keeps its own file, so a mark that shares one still does; a new one takes the first name.
+        shared: dict[str, str] = {}
+        for item, data in entries:
+            if item.file:
+                shared.setdefault(hashlib.sha256(data).hexdigest(), item.file)
         target = root / TARGET
         shutil.rmtree(target, ignore_errors=True)
         target.mkdir(parents=True)
-        shared: dict[str, str] = {}
         for item, data in entries:
-            digest = hashlib.sha256(data).hexdigest()
-            if item.key:
-                item.file = shared.setdefault(digest, item.stem + ".png")
-            else:
-                item.file = item.host + ".png"
-                shared.setdefault(digest, item.file)
+            if item.file is None:
+                digest = hashlib.sha256(data).hexdigest()
+                if item.key:
+                    item.file = shared.setdefault(digest, item.stem + ".png")
+                else:
+                    item.file = item.host + ".png"
+                    shared.setdefault(digest, item.file)
             (target / item.file).write_bytes(data)
         (root / MANIFEST).write_text(manifest_text(entries, retrieved), encoding="utf-8", newline="\n")
     finally:
@@ -487,9 +510,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="refresh only infrastructure marks, keeping verified service files",
     )
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="drop recorded favicons not obtained again; the only way a refresh deletes one",
+    )
     parser.add_argument("--input", type=Path, help="read responses from this folder instead of the network")
     parser.add_argument("--date", default=date.today().isoformat(), help="retrieval date to record (YYYY-MM-DD)")
     args = parser.parse_args(argv)
+    if args.prune and args.infrastructures:
+        parser.error("--prune cannot be combined with --infrastructures, which keeps every verified service file")
     if args.check:
         problems = check(ROOT)
         for problem in problems:
@@ -498,7 +528,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"vendor_favicons: {count} favicons recorded, {len(problems)} problem(s)")
         return 1 if problems else 0
     fetch = file_fetch(args.input) if args.input else network_fetch
-    count, missing = vendor(ROOT, fetch, args.date, infrastructures_only=args.infrastructures)
+    count, missing = vendor(ROOT, fetch, args.date, infrastructures_only=args.infrastructures, prune=args.prune)
     print(f"vendor_favicons: {count} favicons, {len(missing)} hosts keep their monogram")
     for host in missing:
         print(f"  monogram: {host}")

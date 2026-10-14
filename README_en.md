@@ -41,7 +41,8 @@ The dashboard's API does not yet admit the guide's origin from a browser, so the
 profiles and resources and says so wherever they are used, with the dashboard's own disclaimer. A scheduled job
 proposes a snapshot refresh by pull request when the dashboard's data change; once the API admits the guide's origin,
 the connector setting `browserAccess` lets the page read it live and keep the snapshot as its fallback. See
-`docs/design.md` (decisions 18 and 19, *Snapshot refresh*).
+[the catalogue and infrastructure design](docs/design.md#catalogue-and-infrastructure) and
+[snapshot refresh](docs/design.md#snapshot-refresh-and-source-watch).
 
 ## Running the guide
 
@@ -153,9 +154,10 @@ refreshes the Heslář, re3data, FIP Dashboard and NKR snapshots weekly, keeps a
 fails validation and proposes each changed source as its own pull request through the repository's GitHub App.
 `health-watch.yml` checks links, services, stale dates and the EOSC CZ pages the guide depends on weekly, remeasures
 FAIR Champion tests monthly and opens one issue per persistent problem. Neither commits or merges; see
-[docs/design.md](docs/design.md) for the App settings.
+[deployment configuration](docs/deployment.md#release-preparation-and-tagging) for the App settings.
 
-The first official prerelease tag is `v1.0.0-alpha.1`; application and citation metadata use `1.0.0-alpha.1`.
+The release version comes from [content/guide.toml](content/guide.toml). See
+[release preparation and tagging](docs/deployment.md#release-preparation-and-tagging).
 
 ## Licence
 

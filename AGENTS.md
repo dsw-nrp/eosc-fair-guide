@@ -10,7 +10,7 @@ use the editing skill `fair-guide-editor` (`.agents/skills/fair-guide-editor/SKI
 A static Czech and English FAIR data guide for EOSC CZ, an official output of NRP KA 5.1. It turns the FAIR
 analysis for NRP/NDI (version 1.2, <https://doi.org/10.71495/5dv6-v116>) into a path of stations seen through
 four role lenses, with a principle explorer, a self-check, live identifier checks and a resource finder. The
-design and every settled decision are in [docs/design.md](docs/design.md); the content rules are in
+current design and binding principles are in [docs/design.md](docs/design.md); the content rules are in
 [docs/content-model.md](docs/content-model.md).
 
 ## Invariants
@@ -121,8 +121,8 @@ PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .c
 
 Start from what the reader wants to do and what an entry means. Navigation, labels, grouping and defaults must
 make sense without knowing the data files, registries or implementation. Source, recommendation and verification
-are separate facts shown where they help a decision. Apply this lens to every view and review (D-137 in
-`docs/design.md`).
+are separate facts shown where they help a decision. Apply this lens to every view and review; the reasons are in
+[Reader navigation and presentation](docs/design.md#reader-navigation-and-presentation).
 
 Read the whole station through each affected role before adding advice. Integrate with existing steps,
 use the responsibility of that role, and omit an addition when it offers no useful action there.
@@ -140,8 +140,10 @@ measured (`misalignedControls` and `collisions` in `tests/page/check_page.mjs`);
   stacked keep at least the smallest spacing token between them. Where contact is the design (the funder's logo set),
   mark the container `data-joined` so the decision shows in the markup and in review. Something may lie over a form
   field only within its padding, as the clear button does.
-- **Reflow and touch.** Nothing scrolls sideways at 320 px; a button is at least 2.75rem (44 px) high and every other
-  target at least 24 px (WCAG 2.2, checked by axe); a long identifier or address never widens a column, so room
+- **Reflow and touch.** Nothing scrolls sideways at 320 px; ordinary action buttons are at least 2.75rem (44 px)
+  high. Inline reference chips and read toggles use their explicit compact sizes, with at least a 24 px target;
+  read toggles stay square. Every other target is at least 24 px (WCAG 2.2, checked by axe). A long identifier or
+  address never widens a column, so room
   reserved for a corner element must still fit a phone.
 - **One look per role.** Actions in one row share one style (an export that is a link looks like the buttons beside
   it); a control marks the page it opens, not an unrelated menu item; links in running text stay quiet (a dotted

@@ -3,12 +3,12 @@
 [guide]
 version = "1.0.0-alpha.1"
 releaseStatus = "testing"
-testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This Guide is in testing. Its content may change, and the EOSC CZ initiative has not agreed it yet." }
+testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This Guide is in testing. Its content may change, and the EOSC CZ initiative has not approved it yet." }
 datePublished = 2026-10-08
 # Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case (D-177; content check).
 genericGuideUses = ["průvodce licencemi", "průvodcem licencemi", "praktický průvodce", "interaktivní průvodce", "interaktivního průvodce", "an interactive guide"]
 name = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }
-description = { cs = "Interaktivní průvodce, který vede výzkumníky, datové stewardy, správce repozitářů a oborové komunity od plánu projektu k FAIR datům. Vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2) a odráží současný stav národních služeb.", en = "An interactive guide that leads researchers, data stewards, repository administrators and research communities from the project plan to FAIR data. It builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2) and reflects the current state of national services." }
+description = { cs = "Interaktivní průvodce, který vede výzkumníky, data stewardy, správce repozitářů a oborové komunity od plánu projektu k FAIR datům. Vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2) a odráží současný stav národních služeb.", en = "An interactive guide that leads researchers, data stewards, repository administrators and research communities from the project plan to FAIR data. It builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2) and reflects the current state of national services." }
 keywords = [
   { cs = "FAIR principy", en = "FAIR principles" },
   { cs = "výzkumná data", en = "research data" },
@@ -165,6 +165,13 @@ id = "openai-codex-runtime"
 name = "OpenAI Codex"
 version = "not exposed by the runtime"
 url = "https://openai.com/codex/"
+kind = "software"
+
+[[instrument]]
+id = "release-automation"
+name = "Release preparation script"
+version = "1"
+url = "https://github.com/motyc/eosc-fair-guide/blob/HEAD/scripts/release_versions.py"
 kind = "software"
 
 [[instrument]]

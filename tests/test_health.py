@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -29,6 +30,12 @@ class HealthTests(unittest.TestCase):
 
     def report(self, content=None, **kwargs) -> dict:
         return check_health.make_report(content or self.content, today=TODAY, **kwargs)
+
+    def test_checked_revision_can_differ_from_the_workflow_trigger(self) -> None:
+        with mock.patch.dict(os.environ, {"GITHUB_SHA": "a" * 40, "FAIR_GUIDE_CHECK_REVISION": "b" * 40}, clear=True):
+            self.assertEqual(self.report()["revision"], "b" * 40)
+        with mock.patch.dict(os.environ, {"GITHUB_SHA": "a" * 40}, clear=True):
+            self.assertEqual(self.report()["revision"], "a" * 40)
 
     def test_inventory_covers_each_advice_question_and_clause(self) -> None:
         coverage = check_health.original_coverage(self.content)

@@ -1,18 +1,17 @@
 name: Release
 
-# An authorized tag push names a commit the deployment workflow already verified. The release attaches that run's
-# commit-labelled site artifact after checking its digest and version; it builds nothing. The release is created as
-# a draft, so publication stays the maintainer's explicit act.
-
+# Wait for the tag's deployment to finish; use trusted default-branch code and its exact checked artifact.
 on:
-  push:
-    tags: ["v*"]
+  workflow_run:
+    workflows: ['Deploy the verified site']
+    types: [completed]
 
 permissions:
   contents: read
 
 jobs:
   release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'v') && github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -23,23 +22,27 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
-      - id: run
-        name: Find the verified deployment of the tagged commit
+      - id: source
+        name: Bind the completed deployment to its current release tag
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
-            const { verifiedRun } = require('./.github/scripts/release-artifact.cjs');
-            core.setOutput('id', String(await verifiedRun({ github, context })));
-      - name: Download its site artifact
+            const { completedTag } = require('./.github/scripts/release-artifact.cjs');
+            for (const [key, value] of Object.entries(await completedTag({ github, context }))) core.setOutput(key, value);
+      - name: Download that run's release artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: guide-site-${{ github.sha }}
+          name: guide-site-${{ steps.source.outputs.sha }}
           path: .cache/release
-          run-id: ${{ steps.run.outputs.id }}
+          run-id: ${{ steps.source.outputs.run }}
           github-token: ${{ github.token }}
       - name: Create the draft release with the same artifact
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          RELEASE_TAG: ${{ steps.source.outputs.tag }}
+          RELEASE_SHA: ${{ steps.source.outputs.sha }}
         with:
           script: |
             const { draftRelease } = require('./.github/scripts/release-artifact.cjs');
-            await draftRelease({ github, context, core });
+            const selected = { ...context, ref: 'refs/tags/' + process.env.RELEASE_TAG, sha: process.env.RELEASE_SHA };
+            await draftRelease({ github, context: selected, core });

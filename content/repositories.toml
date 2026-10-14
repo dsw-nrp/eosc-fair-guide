@@ -116,11 +116,13 @@ name = { cs = "Český sociálněvědní datový archiv", en = "Czech Social Sci
 abbreviation = { cs = "ČSDA", en = "CSDA" }
 evidence = ["https://www.re3data.org/repository/r3d100010484", "https://archiv.soc.cas.cz/cz/", "https://archiv.soc.cas.cz/en/"]
 
-# Names re3data tags unevenly, corrected from each repository's own site (D-173).
+# Names and addresses re3data tags unevenly, corrected from each repository's own site (D-173): AMČR's own address
+# is its information portal, not the digital archive re3data lists.
 [[record]]
 re3data = "r3d100013576"
 name = { cs = "Archeologická mapa České republiky", en = "Archaeological Map of the Czech Republic" }
 abbreviation = { cs = "AMČR", en = "AMCR" }
+url = "https://amcr-info.aiscr.cz/"
 evidence = ["https://www.re3data.org/repository/r3d100013576", "https://amcr-info.aiscr.cz/", "https://amcr-info.aiscr.cz/en"]
 
 [[record]]
