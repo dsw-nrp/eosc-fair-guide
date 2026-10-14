@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   const FG = window.FairGuide;
-  const SC = FG.selfcheck;
+  const SC = (FG.selfcheck = FG.selfcheck || {}); // discovery loads this before selfcheck.js on helper pages
   const list = FG.list;
   const present = (value) => value !== undefined && value !== null && value !== "" && (!Array.isArray(value) || value.length > 0);
   const text = (value) => typeof value === "string" ? value : value && typeof value === "object" ? value.name || value["@id"] || value.url || value.value || JSON.stringify(value) : String(value);

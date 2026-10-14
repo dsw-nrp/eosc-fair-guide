@@ -1170,6 +1170,7 @@ actions = [
   "2026-10-13-more-catalogues",
   "2026-10-13-datacite-repositories",
   "2026-10-14-evaluator-reading",
+  "2026-10-14-glossary-and-language",
 ]
 tests = [
   "guide-dataset-01",

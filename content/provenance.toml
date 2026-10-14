@@ -1821,5 +1821,5 @@ description = "Imported the Heslář Open Science API's original Czech definitio
 agent = "david-novak"
 instruments = ["openai-codex-runtime"]
 objects = ["heslar"]
-results = ["repository.07", "institution.17", "t.ntk.*"]
+results = ["repository.07", "institution.17", "term:*"]
 endTime = 2026-10-14T00:55:40+00:00

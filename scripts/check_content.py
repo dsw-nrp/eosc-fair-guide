@@ -1256,6 +1256,8 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
             index[item["id"]] = "item"
     for page in content["pages"]:
         index[f"page:{page['id']}"] = "page"
+    for term in content["glossary"].get("term", []):
+        index[f"term:{term['id']}"] = "term"
     for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
         index[f"test:{test['id']}"] = "test"
     for key in provider_criteria(content):

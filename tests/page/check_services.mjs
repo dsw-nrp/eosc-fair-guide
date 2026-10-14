@@ -62,6 +62,13 @@ const visit = async (base, lang, view) => {
   if (view === "check/dataset") await page.check("#mode-after");
   assert.equal(attempted.length, 0, "no external request on entry: " + view);
 };
+// A check's evidence (its pre-fill sources) and its answers are separate parts; answers persist across them.
+const part = async (name) => {
+  const [prefix] = page.url().match(/#\/[a-z]{2}\/[A-Z]+\/check\/[a-z-]+/);
+  await page.evaluate((hash) => { window.location.hash = hash; }, prefix + "/" + name);
+  await page.waitForSelector(`.check-parts [aria-current="step"][href$="/${name}"]`);
+  if (name === "answers") await page.waitForSelector("#main .item");
+};
 const done = () => page.waitForFunction(() => {
   const text = document.querySelector("#prefill-status")?.textContent;
   return text && !/Načítám|Loading/.test(text);
@@ -87,30 +94,33 @@ try {
       }
       for (const [connector, repo] of [["github-api", "https://github.com/example/tool"], ["gitlab-public", "https://gitlab.com/example/tool"]]) {
         blocked = origins.get(connector); await visit(base, lang, "check/software");
-        await page.check("#answer-software-01-yes");
+        await part("answers"); await page.check("#answer-software-01-yes"); await part("evidence");
         await page.fill("#prefill-software", repo); await page.click("#prefill-software-run"); await done();
-        assert(await page.locator("#answer-software-01-yes").isChecked(), "manual answer survives " + connector);
         assert(await page.locator("#prefill-software-run").isEnabled());
         assert(/nepodařilo|could not|unavailable|nedostupn/i.test(await page.locator("#prefill-status").textContent()));
         assert(attempted.some((url) => url.startsWith(blocked + "/")));
+        await part("answers");
+        assert(await page.locator("#answer-software-01-yes").isChecked(), "manual answer survives " + connector);
       }
+      // NKR enters as a reviewed snapshot: the repository check offers no on-demand load and asks NKR for nothing.
       blocked = origins.get("nkr"); await visit(base, lang, "check/maturity");
-      await page.click("#nkr-load"); await page.waitForFunction(() => !document.querySelector("#nkr-load").disabled);
-      assert(/nepodařilo|could not|failed/i.test(await page.locator("#nkr-status").textContent()));
-      assert.equal(await page.locator(".item input[value='no']:checked").count(), 0, "NKR failure creates no negative answers");
+      assert.equal(await page.locator("#nkr-load").count(), 0, "the NKR snapshot offers no on-demand load");
       blocked = origins.get("nanopub"); await visit(base, lang, "check/fip");
       await page.fill("#prefill-nanopub", "RAhoyQ_s4N_K_yuZ6jeolF5L8u2y75dcISHS8UJ-MZ5fM");
       await page.click("#prefill-nanopub-run"); await done();
-      assert.equal(await page.locator(".item input[value='no']:checked").count(), 0);
       assert(attempted.some((url) => url.startsWith(blocked + "/")));
+      await part("answers");
+      assert.equal(await page.locator(".item input[value='no']:checked").count(), 0);
       blocked = origins.get("fip-dashboard"); await visit(base, lang, "check/fip");
       await page.evaluate(() => { FairGuide.config.connectors.find((entry) => entry.id === "fip-dashboard").browserAccess = true; });
       await page.selectOption("#prefill-fip", "ndi-baseline"); await page.click("#prefill-fip-run"); await done();
       assert(attempted.some((url) => url.startsWith(blocked + "/")));
+      await part("answers");
       assert(/snímek|snapshot/.test(await page.locator("#origin-fip-01").textContent()), "failed live Dashboard retains correctly attributed snapshot");
       blocked = origins.get("public-object"); await visit(base, lang, "check/fdo");
       await page.fill("#prefill-pid", "10.1234/record"); await page.click("#prefill-pid-run"); await done();
       assert(attempted.some((url) => url.startsWith(blocked + "/")), "landing fetch attempted");
+      await part("answers");
       assert.equal(await page.locator(".item input[value='no']:checked").count(), 0, "unreadable landing page is not a failed requirement");
       blocked = origins.get("champion"); await visit(base, lang, "check/dataset");
       await page.fill("#prefill-pid", "10.1234/record"); await page.click("#prefill-pid-run"); await done();
@@ -118,6 +128,7 @@ try {
       await page.waitForFunction(() => Object.keys(FairGuide.state.answers.dataset?.champion?.verdicts || {}).length > 0);
       await page.waitForFunction(() => /tests gave a result|Výsledek dalo/.test(document.querySelector("#prefill-status").textContent));
       assert(attempted.some((url) => url.startsWith(blocked + "/")));
+      await part("answers");
       assert.equal(await page.locator(".item input[value='no']:checked").count(), 0, "blocked Champion produces no failed answers");
       blocked = origins.get("dmp-status");
       const rejected = await page.evaluate(async () => { try { await FairGuide.live.dmpStatus(); return false; } catch { return true; } });

@@ -645,6 +645,12 @@ class ContentCheckTests(FixtureCase):
         self.edit("checks/gate.toml", 'champion = ["test_one"]', 'champion = ["test_two"]')
         self.assertError("outside the curated set")
 
+    def test_provenance_can_name_glossary_terms(self) -> None:
+        content = build_crate.load_content(self.root / "content")
+        content["glossary"] = {"term": [{"id": "87"}]}
+        self.assertEqual(check_content.content_index(content)["term:87"], "term")
+        self.assertTrue(check_content.covered("term:*", "term:87"))
+
     def test_champion_selection_has_fresh_provenance(self) -> None:
         content = build_crate.load_content(self.root / "content")
         self.assertEqual(check_content.content_index(content)["test:test_one"], "test")
