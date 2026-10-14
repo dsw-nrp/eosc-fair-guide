@@ -88,3 +88,10 @@ text = { cs = "Skripty pro zpracování dat napíšete s asistenty pro programov
 check = { cs = "Skript nejdřív spusťte na kopii dat a výsledek porovnejte s očekáváním (počty řádků, součty, rozsahy hodnot). Skript uložte k datům, aby se zpracování dalo zopakovat.", en = "Run the script on a copy of the data first and compare the result with what you expect (row counts, totals, value ranges). Keep the script with the data so the processing can be repeated." }
 prompt = { cs = "Napiš skript v Pythonu, který načte všechny soubory CSV ve složce data/, převede kódování na UTF-8 a oddělovač na čárku, zachová názvy sloupců a pro každý soubor vypíše počet řádků před převodem a po něm. Každý krok okomentuj a nic nemaž.", en = "Write a Python script that reads every CSV file in the data/ folder, converts the encoding to UTF-8 and the separator to a comma, keeps the column names, and prints each file's row count before and after the conversion. Comment every step and delete nothing." }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
+
+[[advice]]
+id = "process.11"
+lens = "*"
+level = "L1"
+text = { cs = "Při čištění postupujte podle [[rdmkit-quality|plánu kontrol kvality]] a zachovejte [[rdmkit-provenance|záznam jednotlivých změn]]. Pro tabulky lze použít [[openrefine|OpenRefine]]; jeho historii úprav uložte vedle původních dat a datového slovníku.", en = "When cleaning data, follow your [[rdmkit-quality|quality-check plan]] and retain [[rdmkit-provenance|a record of changes]]. For tables, [[openrefine|OpenRefine]] is one option; save its transformation history beside the original data and data dictionary." }
+sources = ["RDMKIT.tasks.01"]

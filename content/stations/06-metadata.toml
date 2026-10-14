@@ -307,3 +307,10 @@ text = { cs = "AI vám pomůže navrhnout mapování polí vašeho metadatového
 check = { cs = "Mapování ověřte proti specifikaci schématu, ne proti paměti modelu, a vyzkoušejte ho na několika skutečných záznamech.", en = "Check the mapping against the schema's specification, not the model's memory, and try it on a few real records." }
 prompt = { cs = "Navrhni mapování polí našeho metadatového schématu (níže) na pole schématu DataCite podle specifikace, kterou vložím. U každého pole uveď, zda je mapování úplné, částečné, nebo chybí, a co se při převodu ztratí.\n\nNaše schéma: […]\n\nSpecifikace DataCite: […]", en = "Draft a mapping of our metadata schema's fields (below) to the fields of the DataCite schema, following the specification I paste. For each field say whether the mapping is complete, partial or missing, and what is lost in conversion.\n\nOur schema: […]\n\nDataCite specification: […]" }
 sources = ["EC-GENAI-GUIDELINES.01"]
+
+[[advice]]
+id = "metadata.41"
+lens = "*"
+level = "L1"
+text = { cs = "Pro popis souborů využijte [[rdmkit-metadata|dokumentaci a metadata v RDMkit]] a [[cookbook-dictionary|recept na datový slovník]]. Oborový profil slaďte s požadavky svého repozitáře; mezinárodní příklad automaticky nedokládá shodu s CCMM.", en = "Use [[rdmkit-metadata|RDMkit's documentation and metadata guidance]] and the [[cookbook-dictionary|data-dictionary recipe]] to describe files. Align a domain profile with your repository's requirements; an international example does not establish CCMM conformance." }
+sources = ["RDMKIT.tasks.01"]

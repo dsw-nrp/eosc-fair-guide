@@ -194,6 +194,9 @@ TERMS = MODEL_TERMS | {
     "descriptionTranslation": "Languages in which a stage's definition is the guide's translation of its source's.",
     "quotedDefinition": "A stage's definition quoted as a second source publishes it, with its stage label.",
     "discipline": "Discipline group of a tool in the KNAV Data Management Tools Catalogue.",
+    "rdmkitRecord": "The pinned RDMkit tool record joined to this resource.",
+    "trainingSearch": "Training materials about this tool, searched in ELIXIR TeSS.",
+    "sourceLocator": "The section or page in the cited version supporting this clause or original definition.",
 }
 
 # Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
@@ -762,6 +765,7 @@ def build_ledger(graph: Graph, clauses: list[dict[str, Any]]) -> None:
                 "audience": refs([f"#actor-{clause['actor']}"] if clause.get("actor") else []),
                 "isPartOf": refs(graph.resolve([clause["source"]])) if clause.get("source") else None,
                 "clauseKind": clause.get("kind"),
+                "sourceLocator": clause.get("locator"),
                 "creativeWorkStatus": clause.get("status", "current"),
                 "note": text(clause.get("note")),
             },
@@ -967,6 +971,15 @@ def build_resources(
     for resource in resources:
         resource_id = f"#resource-{resource['id']}"
         citation = resource.get("citation")
+        rdmkit = resource.get("rdmkit", {})
+        registry_links = [
+            base + urllib.parse.quote(rdmkit[key], safe="")
+            for key, base in (
+                ("biotools", "https://bio.tools/"),
+                ("fairsharing", "https://fairsharing.org/FAIRsharing."),
+            )
+            if rdmkit.get(key) and rdmkit[key] != "NA"
+        ]
         entity = {
             "@id": resource_id,
             "@type": RESOURCE_TYPES[resource["type"]],
@@ -988,8 +1001,17 @@ def build_resources(
             "statusAsOf": iso(resource["asOf"]) if resource.get("asOf") else None,
             "operatorName": text((resource.get("operator") or {}).get("name")),
             "operatorSource": (resource.get("operator") or {}).get("source"),
+            "rdmkitRecord": (
+                "https://rdmkit.elixir-europe.org/all_tools_and_resources#" + rdmkit["id"] if rdmkit.get("id") else None
+            ),
+            "trainingSearch": (
+                "https://tess.elixir-europe.org/search?" + urllib.parse.urlencode({"q": '"' + rdmkit["tess"] + '"'})
+                if rdmkit.get("tess")
+                else None
+            ),
             "sameAs": refs(
                 resource.get("sameAs", [])
+                + registry_links
                 + ([FIP_DASHBOARD + resource["fipDashboard"]] if resource.get("fipDashboard") else [])
                 + ([f"https://doi.org/{citation['doi']}"] if citation and citation.get("doi") else [])
             ),
@@ -1481,6 +1503,7 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
                     "name": text(item["name"]),
                     "abbreviation": item["acronym"],
                     "url": item.get("url"),
+                    "sameAs": ref(item["website"]) if item.get("website") else None,
                     "hostingInstitution": item.get("host"),
                     "researchField": ref(f"#rifield-{item['field']}") if item.get("field") else None,
                     "infrastructurePhase": ref(f"#riphase-{item['phase']}"),
@@ -1677,7 +1700,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
     return ["#fers", "#fips"]
 
 
-def build_glossary(graph: Graph, glossary: dict[str, Any]) -> None:
+def build_glossary(graph: Graph, glossary: dict[str, Any], clauses: list[dict[str, Any]] | None = None) -> None:
     info = glossary.get("glossary")
     if not info:
         return
@@ -1699,6 +1722,9 @@ def build_glossary(graph: Graph, glossary: dict[str, Any]) -> None:
                 "@id": f"#term-{term['id']}",
                 "@type": "DefinedTerm",
                 "termCode": str(term["id"]),
+                "subjectOf": refs(
+                    [f"#clause-{item['id']}" for item in clauses or [] if str(term["id"]) in item.get("terms", [])]
+                ),
                 "name": text(term["label"]),
                 "description": text({term.get("definitionLanguage", "cs"): term["definition"]})
                 if isinstance(term.get("definition"), str)
@@ -2266,7 +2292,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     crosswalk = type_crosswalk(guide_file)
     source_ids = build_sources(graph, content["sources"], organizations, people, names, crosswalk=crosswalk)
     build_vocabularies(graph, guide_file)
-    build_glossary(graph, content["glossary"])
+    build_glossary(graph, content["glossary"], content["ledger"])
     # Resources exist before the ledger, because a clause may cite a resource; the stations they are recommended at
     # are linked once the stations exist.
     cited_resource_ids = build_resources(
@@ -2874,8 +2900,9 @@ def page_config(
                 "webApplication": WEB_APPLICATION,
             },
             "favicons": {
-                "hosts": sorted(entry["host"] for entry in content.get("favicons", [])),
+                "hosts": sorted(entry["host"] for entry in content.get("favicons", []) if not entry.get("key")),
                 "homeOnly": sorted(entry["host"] for entry in content.get("favicons", []) if entry.get("homeOnly")),
+                "marks": {entry["key"]: entry["file"] for entry in content.get("favicons", []) if entry.get("key")},
             },
             "icons": {
                 "ui": content.get("icons", {}).get("ui", {}),

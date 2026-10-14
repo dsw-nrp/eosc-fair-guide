@@ -1845,3 +1845,58 @@ instruments = ["openai-codex-runtime"]
 objects = ["isvavai-infrastructures", "ggp-cz-project", "lri-roadmap-2023"]
 results = ["infrastructure:auger-cz", "infrastructure:cta-cz", "infrastructure:cicrr", "infrastructure:ggp-cz", "infrastructure:lindat-clariah-cz", "infrastructure:e-infra-cz", "infrastructure:czech-bioimaging", "czech-bioimaging"]
 endTime = 2026-10-14T12:05:28+00:00
+
+[[action]]
+id = "2026-10-14-rdmkit-tasks-roles-and-tools"
+type = "update"
+name = "RDMkit tasks, roles, domains, recipes and selected tools"
+description = "Linked task and role guidance in its station and lens context, selected life-science domain examples, and practical FAIR Cookbook resources. Enriched ten existing tools and selected seven further tools from the pinned RDMkit catalogue, preserving its bio.tools, FAIRsharing and TeSS values; NA is omitted and training searches are not identity links. Czech DMP services, repository conditions and the published Czech interpretation of CC0 remain explicit. The assistant runtime does not expose the exact backend model identifier."
+agent = "david-novak"
+instruments = ["openai-codex-runtime"]
+objects = ["rdmkit", "copyright-licences"]
+results = ["re3data", "fairsharing", "orcid", "ror", "openaire-explore", "google-dataset-search", "argos", "dmponline", "software-heritage", "elabftw", "rdmkit-dmp", "rdmkit-organisation", "rdmkit-quality", "rdmkit-metadata", "rdmkit-licensing", "rdmkit-publication", "rdmkit-existing-data", "rdmkit-provenance", "rdmkit-security", "rdmkit-researcher", "rdmkit-pi", "rdmkit-steward", "rdmkit-policy", "rdmkit-rse", "rdmkit-trainer", "rdmkit-domains", "rdmkit-bioimaging", "rdmkit-human-data", "cookbook-dictionary", "cookbook-assessment", "tess", "conda", "docker", "nextflow", "snakemake", "jupyter", "workflowhub", "openrefine", "plan.28", "plan.29", "plan.30", "collect.21", "process.11", "analyse.10", "repository.24", "metadata.41", "licence.27", "publication.29", "citation.23", "assessment.29", "RDMKIT.tasks.01", "COPYRIGHT-LICENCES.03"]
+endTime = 2026-10-14T12:29:10+00:00
+
+[[action]]
+id = "2026-10-14-situations-and-read-steps"
+type = "update"
+name = "Situations and read steps"
+description = "Rephrased four shortcuts per role as reader situations, each opening its path step and the actions there. Reading a valid step records its identifier locally; the rail and life-cycle journey show derived read marks, retained across reload and role or language changes and removed with local Guide data. Older state retains only the last known read step. No manual completion control was added. The assistant runtime does not expose the exact backend model identifier."
+agent = "david-novak"
+instruments = ["openai-codex-runtime"]
+objects = []
+results = ["guide"]
+endTime = 2026-10-14T12:38:25+00:00
+
+[[action]]
+id = "2026-10-14-environments-and-workflows"
+type = "update"
+name = "Environments and workflows"
+description = "Added role-specific environment and workflow guidance at analysis, linked to the research-software page: Conda definitions, container digests, CWL, Nextflow, Snakemake, Workflow RO-Crate and WorkflowHub, with Galaxy, JupyterHub CERIT and LEXIS as national examples. Workflow RO-Crate 1.1 and its RO-Crate 1.3 scope are explicit; the Guide does not claim conformance to that workflow profile. The assistant runtime does not expose the exact backend model identifier."
+agent = "david-novak"
+instruments = ["openai-codex-runtime"]
+objects = ["conda-environments", "container-images", "workflow-ro-crate"]
+results = ["cwl", "workflow-ro-crate", "conda-environments", "container-images", "CONDAENV.01", "WFCRATE.01", "CONTAINER.01", "analyse.11", "analyse.12", "analyse.13", "analyse.14", "page:software"]
+endTime = 2026-10-14T12:38:25+00:00
+
+[[action]]
+id = "2026-10-14-licensing-guidance-and-matrix"
+type = "update"
+name = "Licensing guidance and the NRP compatibility table"
+description = "Read the published NRP copyright handbook v1.0 and its page-14 matrix. Added role-specific rights and deposit/user licence guidance and the sensitive-data callout rights warning, the Czech CC0 qualification, a flat attributed compatibility table under Guides with its exact matrix and scope, and the handbook-linked NRP software License Selector. Added attributed original Czech definitions for the matching Heslar concepts public licence and Creative Commons, preserving the original glossary definitions. The assistant runtime does not expose the exact backend model identifier."
+agent = "david-novak"
+instruments = ["openai-codex-runtime"]
+objects = ["copyright-licences"]
+results = ["licence.02", "page:licence-compatibility", "nrp-license-selector", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05", "licence.28", "licence.29", "licence.30", "COPYRIGHT-LICENCES.06", "term:250", "COPYRIGHT-LICENCES.07", "term:50"]
+endTime = 2026-10-14T12:44:43+00:00
+
+[[action]]
+id = "2026-10-14-infrastructure-marks"
+type = "update"
+name = "Reviewed official infrastructure sites and local marks"
+description = "Followed the national portal's official site links, verified current official infrastructure pages and collected their own favicons or published logo marks through the existing local normalizer. Explicit marks replace generic framework or institute favicons; reviewed sites without a distinct usable mark retain the catalogue kind icon. The service assets and their original retrieval dates are preserved, shared normalized marks reuse one file, and every retained mark records its source URL, retrieval date and checksum. The assistant runtime does not expose the exact backend model identifier."
+agent = "david-novak"
+instruments = ["openai-codex-runtime"]
+objects = ["ri-portal", "lri-roadmap-2023"]
+results = ["infrastructure:*"]
+endTime = 2026-10-14T13:09:07+00:00

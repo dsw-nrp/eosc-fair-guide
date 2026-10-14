@@ -221,3 +221,24 @@ text = { cs = "Při kontrole plánů správy dat vám AI pomůže najít části
 check = { cs = "Každou výtku ověřte v plánu i v šabloně; o plánu nerozhoduje AI. Plán výzkumníka vkládejte jen do nástroje, který data neposílá mimo infrastrukturu.", en = "Verify each finding in the plan and in the template; the AI does not decide on the plan. Put a researcher's plan only into a tool that keeps it within the infrastructure." }
 prompt = { cs = "Porovnej plán správy dat níže se šablonou poskytovatele a vypiš části, které chybějí, jsou neúplné nebo si odporují; ke každé uveď místo v plánu. Nic nedoplňuj.\n\nŠablona: […]\n\nPlán: […]", en = "Compare the data management plan below with the funder's template and list the parts that are missing, incomplete or contradictory, each with its place in the plan. Do not fill anything in.\n\nTemplate: […]\n\nPlan: […]" }
 sources = ["EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04", "EC-GENAI-GUIDELINES.05"]
+
+[[advice]]
+id = "plan.28"
+lens = "V"
+level = "L1"
+text = { cs = "Při přípravě projektu projděte [[rdmkit-dmp|obsah plánu podle RDMkit]] a zkontrolujte požadavky svého poskytovatele; pro české šablony použijte [[dmp-eosc|DMP.eosc.cz]]. S rozdělením práce pomohou role [[rdmkit-researcher|výzkumníka]] a [[rdmkit-pi|vedoucího projektu]].", en = "When preparing a project, use the [[rdmkit-dmp|RDMkit DMP guidance]] and check your funder's requirements; use [[dmp-eosc|DMP.eosc.cz]] for Czech templates. The [[rdmkit-researcher|researcher]] and [[rdmkit-pi|principal investigator]] pages help divide responsibilities." }
+sources = ["RDMKIT.tasks.01", "DSW-NRP.01"]
+
+[[advice]]
+id = "plan.29"
+lens = "DS"
+level = "L1"
+text = { cs = "Domluvte s týmem, kdo odpovídá za jednotlivé kroky správy dat. Využijte popis role [[rdmkit-steward|data stewarda]], podklady pro [[rdmkit-policy|tvorbu politiky]] a pro [[rdmkit-trainer|školení týmu]] v RDMkit; české institucionální požadavky ověřte v kontrole Instituce a správa dat.", en = "Agree who is responsible for each data-management step. Use RDMkit's [[rdmkit-steward|data-steward role]], [[rdmkit-policy|policy-making guidance]] and [[rdmkit-trainer|trainer resources]]; check the Czech institutional requirements in Institution and data management." }
+sources = ["RDMKIT.tasks.01"]
+
+[[advice]]
+id = "plan.30"
+lens = "K"
+level = "L1"
+text = { cs = "V biologických vědách porovnejte svůj postup s [[rdmkit-domains|oborovými stránkami RDMkit]], například pro [[rdmkit-bioimaging|obrazová]] nebo [[rdmkit-human-data|lidská data]]. Pro jiné obory vycházejte z vlastních komunitních standardů a příslušné národní infrastruktury; biologický příklad není obecný požadavek.", en = "In the life sciences, compare your practices with [[rdmkit-domains|RDMkit's domain pages]], for example for [[rdmkit-bioimaging|imaging]] or [[rdmkit-human-data|human data]]. Other fields should use their own community standards and national infrastructure; a life-science example is not a general requirement." }
+sources = ["RDMKIT.tasks.01"]

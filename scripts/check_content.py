@@ -280,6 +280,11 @@ def check_ledger(report: Report, content: dict[str, Any], vocab: dict[str, set[s
     clause_ids = set(ids)
     for clause in clauses:
         where = f"ledger:{clause.get('id')}"
+        for term in clause.get("terms", []):
+            if term not in {str(item["id"]) for item in content.get("glossary", {}).get("term", [])}:
+                report.error(where, f"original definition names unknown term '{term}'")
+            if not clause.get("guidance"):
+                report.error(where, "an original definition needs its source text in guidance")
         id_match = CLAUSE_ID.match(clause.get("id", ""))
         if not id_match:
             report.error(where, "ID must be <source code>.<local part>")
@@ -879,8 +884,21 @@ def check_item_answers(
 
 def check_resources(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], today: date) -> None:
     unique(report, "resources", [resource.get("id", "") for resource in content["resources"]], "resource")
+    unique(
+        report,
+        "resources",
+        [resource["rdmkit"].get("id", "") for resource in content["resources"] if resource.get("rdmkit")],
+        "RDMkit tool record",
+    )
     for resource in content["resources"]:
         where = f"resource:{resource.get('id')}"
+        if resource.get("rdmkit"):
+            record = resource["rdmkit"]
+            if not SLUG.fullmatch(str(record.get("id", ""))):
+                report.error(where, "rdmkit needs its source record ID")
+            for key in ("biotools", "fairsharing", "tess"):
+                if key in record and (not isinstance(record[key], str) or not record[key].strip()):
+                    report.error(where, f"rdmkit {key} must be its non-empty source identifier")
         require_text(report, where, resource.get("name"), "name", proper_name_allowed=True)
         if resource.get("description") is not None:
             require_text(report, where, resource.get("description"), "description")
@@ -1536,6 +1554,10 @@ def check_infrastructures(report: Report, content: dict[str, Any]) -> None:
     unique(report, "infrastructures", [item.get("id", "") for item in items], "infrastructure")
     for item in items:
         where = f"infrastructure:{item.get('id')}"
+        for key in ("website", "logo"):
+            value = item.get(key)
+            if value is not None and not (key == "logo" and value is False) and not str(value).startswith("https://"):
+                report.error(where, f"{key} must be an HTTPS address (or logo=false after reviewing available marks)")
         if item.get("namesSource") and item["namesSource"] not in sources:
             report.error(where, f"unknown namesSource '{item['namesSource']}'")
         for field, kind in (

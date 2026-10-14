@@ -264,6 +264,10 @@
         principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
         audience: audiences(FG.refIds(resource, "audience")),
         operatedBy: operatorRow(resource),
+        basedOn: [
+          resource.rdmkitRecord ? FG.external(resource.rdmkitRecord, "RDMkit") : null,
+          resource.trainingSearch ? FG.external(resource.trainingSearch, FG.t("catalogue.trainingSearch")) : null,
+        ],
         inGuide: inGuide(holders),
         identifiers: FG.pidItems(resource).concat(record ? [FG.pidItem("dashboard", record.url)] : []),
       },

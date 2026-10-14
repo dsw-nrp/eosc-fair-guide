@@ -6,7 +6,7 @@ id = "sensitive-data"
 title = { cs = "Pracujete s osobními nebo jinak citlivými daty?", en = "Working with personal or otherwise sensitive data?" }
 intro = { cs = "FAIR neznamená otevřená. Popis dat může být veřejný, i když data samotná zpřístupníte jen oprávněným lidem.", en = "FAIR does not mean open. The description of the data can be public even when the data themselves are available only to authorised people." }
 stations = ["plan", "collect", "process", "repository", "licence"]
-order = { SR = ["aai", "cloud", "steward", "principles", "community"], K = ["community", "steward", "principles", "cloud", "aai"] }
+order = { SR = ["aai", "cloud", "steward", "rights", "principles", "community"], K = ["community", "steward", "rights", "principles", "cloud", "aai"] }
 
 [[callout.item]]
 id = "steward"
@@ -33,6 +33,11 @@ id = "aai"
 text = { cs = "Pro správce repozitářů: Initial AAI architecture for sensitive data in NRP.", en = "For repository administrators: Initial AAI architecture for sensitive data in NRP." }
 url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#AAI_NRP_SD"
 lenses = ["SR", "DS"]
+
+[[callout.item]]
+id = "rights"
+text = { cs = "Otevřená licence nenahrazuje právní důvod ke zveřejnění osobních, smluvně omezených nebo jinak chráněných dat. Příručka NRP Autorská práva a licence vysvětluje jednotlivé režimy i rozdíl mezi autorskými a databázovými právy.", en = "An open licence does not replace the legal grounds for disclosing personal, contractually restricted or otherwise protected data. The NRP copyright handbook explains these regimes and the distinction between copyright and database rights." }
+url = "https://www.eosc.cz/media/4233522/faq-licence_final-ver.pdf#page=6"
 
 [[callout]]
 id = "verify-identifiers"

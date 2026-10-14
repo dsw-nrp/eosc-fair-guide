@@ -934,7 +934,7 @@ sections.push(["page", async () => {
     await view.waitForSelector(".tool-cards");
     if ((await current()) !== "Nástroje a postupy") fail("tools: the menu does not mark the tools item on the tools view");
     const tools = await view.locator(".tool-card h3 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
-    if (tools.join(",") !== "live-check,identifiers,citation,model,ai,software,notebooks,provenance,fdo") fail("tools: the tools view does not list interactive tools before guidance: " + tools.join(","));
+    if (tools.join(",") !== "live-check,identifiers,citation,model,ai,software,notebooks,provenance,fdo,licence-compatibility") fail("tools: the tools view does not list interactive tools before guidance: " + tools.join(","));
     if ((await view.locator(".tool-group").count()) !== 2) fail("tools: interactive tools and guidance are not separate groups");
     if ((await view.locator(".tool-coming").count()) !== 0) fail("tools: implemented helpers are still marked as in preparation");
     for (const [id, item] of [["identifiers", "Nástroje a postupy"], ["ai", "Nástroje a postupy"], ["live-check", "Nástroje a postupy"], ["citation", "Nástroje a postupy"], ["about", "O Průvodci"], ["accessibility", "O Průvodci"]]) {
@@ -1094,7 +1094,7 @@ sections.push(["page", async () => {
   if ((await page.locator('.lens-option[data-lens="SR"]').getAttribute("href")) !== "#/cs/SR/path/start") fail("lens band: an option is not a shareable link");
   await page.locator('.lens-option[data-lens="SR"]').click();
   await lensShown(page, "SR");
-  if (!(await page.locator(".tasks").textContent()).includes("Podmínky NRP")) fail("landing: the repository administrator's tasks are missing");
+  if (!(await page.locator(".tasks").textContent()).includes("podmínky NRP")) fail("landing: the repository administrator's tasks are missing");
   await context.close();
 }]);
 
@@ -2708,6 +2708,116 @@ sections.push(["linked catalogues", async () => {
   await visit("#/cs/K/catalogue/resources/knav.openmarketplace");
   if ((await card.first().getAttribute("id")) !== "item-ssh-open-marketplace") fail("linked catalogues: the KNAV record of the Marketplace does not open the Guide's entry");
   for (const problem of problems) fail(`linked catalogues: ${problem}`);
+  await context.close();
+}]);
+
+sections.push(["Licence compatibility", async () => {
+  const { context, page, problems } = await openPage({ width: 320, height: 900 });
+  // Independent transcription of the published NRP v1.0 table, p. 14, in its printed column order.
+  const names = ["BY", "BY-SA", "BY-NC", "BY-ND", "BY-NC-SA", "BY-NC-ND", "CC0"];
+  const expected = ["1110101", "1100001", "1010101", "0000000", "1010101", "0000000", "1110101"];
+  for (const lang of ["cs", "en"]) {
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/page/licence-compatibility`));
+    const table = page.locator("#main .text-table");
+    const actual = await table.locator("tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => ["ano", "yes"].includes(cell.textContent.trim()) ? "1" : "0").join("")));
+    if (actual.join(",") !== expected.join(",")) fail(`licence matrix: ${lang} differs from NRP`);
+    if (await table.locator('th[scope="row"]').count() !== names.length || await table.locator('th[scope="col"]').count() !== names.length + 1) fail("licence matrix: missing native row/column headers");
+    if (await page.locator('#main select').count()) fail("licence matrix: a selector replaced the flat guidance table");
+    if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) fail("licence table: horizontal page overflow at 320px");
+    await axe(page, `licence table ${lang}`);
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/tools`));
+    if (!await page.locator('.tool-group[aria-labelledby="tools-guidance"] a[href$="/page/licence-compatibility"]').count()) fail("licence table: missing from Guides");
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/terms/t.ntk.250`));
+    const quote = page.locator("#main blockquote");
+    if (!await quote.count() || !(await quote.first().textContent()).includes("standardizovan")) fail(`original definitions: missing public-licence source text in ${lang}`);
+    if (!await page.locator('#main details a[href$="/resources/copyright-licences"]').count()) fail(`original definitions: missing NRP attribution in ${lang}`);
+  }
+  for (const problem of problems) fail(`licence compatibility: ${problem}`);
+  await context.close();
+}]);
+
+sections.push(["Read steps and situations", async () => {
+  const { context, page, problems } = await openPage();
+  const visit = (hash) => navigationRendered(page, () => page.goto(pageUrl + hash));
+  for (const lang of ["cs", "en"]) for (const lens of ["V", "DS", "SR", "K"]) {
+    await visit(`#/${lang}/${lens}/path/start`);
+    const shortcuts = page.locator(".tasks a");
+    if (await shortcuts.count() !== 4) fail(`shortcuts: expected four situations for ${lang}/${lens}`);
+    const hrefs = await shortcuts.evaluateAll((links) => links.map((link) => link.getAttribute("href")));
+    if (hrefs.some((href) => !href.includes("/path/"))) fail(`shortcuts: a ${lang}/${lens} situation bypasses its step`);
+    if (await page.locator(".journey-steps [data-read]").count()) fail("read steps: landing visits marked a step");
+  }
+  await visit("#/cs/V/path/plan");
+  if (!await page.locator('#main a[href="https://dmp.eosc.cz/"]').count()) fail("shortcuts: planning has no DMP next action");
+  await visit("#/cs/V/path/licence");
+  for (const id of ["plan", "licence"]) if (!await page.locator(`.rail-desktop [data-read="${id}"]`).count()) fail(`read steps: missing rail mark ${id}`);
+  await page.reload();
+  await page.waitForSelector("#main h1");
+  await visit("#/en/DS/path/start");
+  if (await page.locator(".journey-steps [data-read]").count() !== 2) fail("read steps: visits did not survive reload and language/role change");
+  await page.evaluate(() => window.FairGuide.clearStoredData());
+  await visit("#/cs/DS/path/start");
+  await page.reload();
+  await page.waitForSelector("#main h1");
+  if (await page.locator(".journey-steps [data-read]").count()) fail("read steps: clear-local-data retained visits");
+  for (const problem of problems) fail(`read steps: ${problem}`);
+  await context.close();
+}]);
+
+sections.push(["RDMkit reuse", async () => {
+  const { context, page, problems } = await openPage();
+  for (const lang of ["cs", "en"]) {
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/resources/elabftw`));
+    const entries = page.locator("#main .catalogue-results .entry-card");
+    if (await entries.count() !== 1) fail(`RDMkit: eLabFTW has duplicate ${lang} entries`);
+    if (!await entries.locator('a[href="https://rdmkit.elixir-europe.org/all_tools_and_resources#elabftw"]').count()) fail(`RDMkit: missing ${lang} tool record`);
+    if (!await entries.locator('a[href*="tess.elixir-europe.org/search?"]').count()) fail(`RDMkit: missing ${lang} training search`);
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/path/plan`));
+    if (!await page.locator('#main a[href$="/rdmkit-researcher"]').count()) fail(`RDMkit: researcher role missing at ${lang} planning`);
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/path/metadata`));
+    if (!await page.locator('#main a[href$="/cookbook-dictionary"]').count()) fail(`RDMkit: dictionary recipe missing at ${lang} metadata`);
+  }
+  for (const problem of problems) fail(`RDMkit reuse: ${problem}`);
+  await context.close();
+}]);
+
+sections.push(["Workflow guidance", async () => {
+  const { context, page, problems } = await openPage();
+  for (const lang of ["cs", "en"]) for (const lens of ["V", "DS", "SR", "K"]) {
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/${lens}/path/analyse`));
+    const resource = { V: "conda-environments", DS: "conda-environments", SR: "workflow-ro-crate", K: "workflow-ro-crate" }[lens];
+    if (!await page.locator(`.steps a[href$="/resources/${resource}"]`).count()) fail(`workflows: missing ${lang}/${lens} analysis guidance`);
+    if (!await page.locator('#main a[href$="/page/software"]').count()) fail(`workflows: missing ${lang}/${lens} software-page link`);
+  }
+  for (const lang of ["cs", "en"]) {
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/page/software`));
+    const workflows = page.locator("#workflows");
+    for (const id of ["conda", "workflow-ro-crate", "workflowhub", "galaxy-cz", "jupyterhub-cerit", "lexis"]) {
+      if (!await workflows.locator(`a[href$="/resources/${id}"]`).count()) fail(`workflows: missing ${lang} ${id}`);
+    }
+  }
+  for (const problem of problems) fail(`workflow guidance: ${problem}`);
+  await context.close();
+}]);
+
+sections.push(["Infrastructure marks", async () => {
+  const { context, page, problems } = await openPage();
+  const records = graph.filter((entity) => entity["@id"].startsWith("#infrastructure-") && entity.identifier);
+  const marks = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config.favicons.marks;
+  for (const lang of ["cs", "en"]) for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const record of records) {
+      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/catalogue/infrastructures/${record.identifier}`));
+      const image = page.locator(".catalogue-results .entry-title .service-favicon img");
+      const expected = marks["infrastructure-" + record.identifier];
+      if (expected) {
+        if (await image.count()) { await image.scrollIntoViewIfNeeded(); await image.evaluate((i) => i.decode()); }
+        if (!await image.count() || !await image.evaluate((i) => i.complete && i.naturalWidth === 48)) fail(`infrastructure marks: ${record.identifier} does not load ${expected}`);
+      } else if (await image.count()) fail(`infrastructure marks: ${record.identifier} inherited a portal or institutional favicon`);
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) fail(`infrastructure marks: ${lang} ${width}px ${record.identifier} overflows`);
+    }
+  }
+  for (const problem of problems) fail(`infrastructure marks: ${problem}`);
   await context.close();
 }]);
 

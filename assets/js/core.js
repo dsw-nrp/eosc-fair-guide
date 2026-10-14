@@ -170,7 +170,8 @@
       obtained (D-183); otherwise the icon of its catalogue kind on the kind's colour, as the kind facet shows it, so
       one service looks the same everywhere (D-185). */
   FG.serviceBadge = function (key, url, kind = "resources") {
-    const favicon = FG.faviconOf(url);
+    const mark = FG.config.favicons?.marks?.[key];
+    const favicon = mark ? "assets/favicons/" + mark : FG.faviconOf(url);
     if (favicon) {
       return FG.h("span", { class: "service-badge service-favicon", "data-service": String(key), "aria-hidden": "true" },
         FG.h("img", { src: favicon, alt: "", width: "48", height: "48", loading: "lazy", decoding: "async" }));
@@ -413,6 +414,17 @@
   /* A block of text: a list when every line starts with "- ", a paragraph otherwise. */
   function textBlock(block, lang, nodesOf) {
     const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    // A flat pipe table keeps its column and row headers at phone width inside its own scroll region.
+    const cells = (line) => line.slice(1, -1).split("|").map((cell) => cell.trim());
+    if (lines.length >= 3 && lines.every((line) => line.startsWith("|") && line.endsWith("|"))) {
+      const rows = lines.map(cells);
+      if (rows[1].every((cell) => /^:?-{3,}:?$/.test(cell)) && rows.every((row) => row.length === rows[0].length)) {
+        return FG.h("div", { class: "text-table-scroll", role: "region", tabindex: "0", "aria-label": rows[0][0], lang: lang || null },
+          FG.h("table", { class: "text-table" },
+            FG.h("thead", null, FG.h("tr", null, rows[0].map((cell) => FG.h("th", { scope: "col" }, ...nodesOf(cell))))),
+            FG.h("tbody", null, rows.slice(2).map((row) => FG.h("tr", null, row.map((cell, i) => FG.h(i ? "td" : "th", i ? null : { scope: "row" }, ...nodesOf(cell))))))));
+      }
+    }
     if (lines.length && lines.every((line) => line.startsWith("- "))) {
       return FG.h("ul", { class: "text-list", lang: lang || null }, ...lines.map((line) => listItem(line.slice(2), nodesOf)));
     }
@@ -665,7 +677,7 @@
     },
   };
 
-  FG.state = { lang: "cs", lens: "V", answers: {}, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false };
+  FG.state = { lang: "cs", lens: "V", answers: {}, lastStation: null, lastVisit: null, readStations: [], checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false };
 
   /** Disclosure levels the user opened (L1, L2, L3, ai); kept while the page is open, so switching lens keeps them. */
   FG.openLevels = new Set();
@@ -675,13 +687,14 @@
     !Object.keys(state.answers || {}).length &&
     !state.lastStation &&
     !state.lastVisit &&
+    !FG.list(state.readStations).length &&
     state.checkGrouping !== "steps" &&
     !state.resultCollapsed &&
     !state.hideCheckBadges;
 
   /** Remove everything the guide stores in this browser and start from an empty state. */
   FG.clearStoredData = function () {
-    Object.assign(FG.state, { answers: {}, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false });
+    Object.assign(FG.state, { answers: {}, lastStation: null, lastVisit: null, readStations: [], checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false });
     FG.openLevels.clear();
     FG.storage.remove();
     /* Reports held for this visit go too. */
@@ -703,6 +716,7 @@
       answers: FG.state.answers,
       lastStation: FG.state.lastStation,
       lastVisit: FG.state.lastVisit,
+      readStations: FG.state.readStations,
       checkGrouping: FG.state.checkGrouping,
       resultCollapsed: FG.state.resultCollapsed,
       hideCheckBadges: FG.state.hideCheckBadges,

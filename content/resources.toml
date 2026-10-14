@@ -363,6 +363,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "re3data"
+rdmkit = { id = "re3data", tess = "re3data" }
 functions = ["find-repositories"]
 name = "re3data.org"
 description = { cs = "Mezinárodní registr výzkumných repozitářů.", en = "International registry of research data repositories." }
@@ -397,6 +398,7 @@ languages = ["en"]
 
 [[resource]]
 id = "fairsharing"
+rdmkit = { id = "fairsharing", fairsharing = "2abjs5", tess = "FAIRsharing" }
 knav = "fairsharing"
 functions = ["find-standards", "find-repositories"]
 name = "FAIRsharing"
@@ -640,6 +642,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "orcid"
+rdmkit = { id = "orcid", biotools = "orcid", fairsharing = "nx58jg" }
 name = "ORCID"
 description = { cs = "Trvalé identifikátory výzkumných pracovníků.", en = "Persistent identifiers for researchers." }
 url = "https://orcid.org/"
@@ -655,6 +658,7 @@ sameAs = ["http://purl.org/np/RA1MzU1MPio-mtLzm1P7zfTBSMnTNc2I8HLNARhPjpif8#ORCI
 
 [[resource]]
 id = "ror"
+rdmkit = { id = "ror", fairsharing = "1jKfji" }
 name = { cs = "ROR (Research Organization Registry)", en = "ROR (Research Organization Registry)" }
 description = { cs = "Trvalé identifikátory výzkumných organizací.", en = "Persistent identifiers for research organisations." }
 url = "https://ror.org/"
@@ -1095,6 +1099,7 @@ languages = ["en"]
 
 [[resource]]
 id = "openaire-explore"
+rdmkit = { id = "openaire-explore" }
 name = "OpenAIRE Explore"
 description = { cs = "Evropské vyhledávání výsledků výzkumu.", en = "European search of research outputs." }
 url = "https://explore.openaire.eu/"
@@ -1107,6 +1112,7 @@ languages = ["en"]
 
 [[resource]]
 id = "google-dataset-search"
+rdmkit = { id = "google-dataset-search" }
 name = "Google Dataset Search"
 description = { cs = "Vyhledávání datových sad podle metadat Schema.org.", en = "Dataset search based on Schema.org metadata." }
 url = "https://datasetsearch.research.google.com/"
@@ -1342,6 +1348,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "argos"
+rdmkit = { id = "argos", tess = "Argos" }
 knav = "argos"
 name = "ARGOS"
 description = { cs = "Platforma OpenAIRE a EUDAT pro tvorbu plánů správy dat (DMP).", en = "The OpenAIRE and EUDAT platform for writing data management plans (DMPs)." }
@@ -1355,6 +1362,7 @@ languages = ["en"]
 
 [[resource]]
 id = "dmponline"
+rdmkit = { id = "dmponline", tess = "DMPonline" }
 knav = "dmponline"
 name = "DMPonline"
 description = { cs = "Nástroj britského Digital Curation Centre pro tvorbu plánů správy dat (DMP).", en = "The UK Digital Curation Centre's tool for writing data management plans (DMPs)." }
@@ -1752,6 +1760,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[resource]]
 id = "software-heritage"
+rdmkit = { id = "software-heritage", fairsharing = "6ffb92" }
 knav = "softwareheritage"
 code = "SWH"
 name = "Software Heritage"
@@ -1863,6 +1872,7 @@ dateAccessed = 2026-10-10
 
 [[resource]]
 id = "elabftw"
+rdmkit = { id = "elabftw", tess = "eLabFTW" }
 knav = "elab"
 code = "ELABFTW"
 name = "eLabFTW"
@@ -2075,3 +2085,431 @@ stations = ["analyse"]
 languages = ["en"]
 sameAs = ["https://doi.org/10.5281/zenodo.4471217", "https://doi.org/10.5281/zenodo.5483565"]
 operator = { name = "RECETOX", source = "https://www.recetox.muni.cz/en/services/recetox-central-laboratories/biomarker-analysis-laboratories/recetox-mass-spectrum-reference-library" }
+
+[[resource]]
+id = "rdmkit-dmp"
+name = { cs = "Plán správy dat v RDMkit", en = "RDMkit data management plan" }
+description = { cs = "Požadavky poskytovatele, obsah plánu a výběr šablony. V českém prostředí začněte v DMP.eosc.cz.", en = "Funder requirements, plan contents and template selection. In the Czech setting, start with DMP.eosc.cz." }
+url = "https://rdmkit.elixir-europe.org/data_management_plan"
+type = "guide"
+stations = ["plan"]
+lenses = ["V", "DS"]
+citation = { type = "webpage", title = "RDMkit data management plan", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-organisation"
+name = { cs = "Organizace dat v RDMkit", en = "RDMkit data organisation" }
+description = { cs = "Názvy souborů, adresářová struktura a verzování při sběru a zpracování dat.", en = "File naming, directory structure and versioning while collecting and processing data." }
+url = "https://rdmkit.elixir-europe.org/data_organisation"
+type = "guide"
+stations = ["collect", "process"]
+lenses = ["V", "DS"]
+citation = { type = "webpage", title = "RDMkit data organisation", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-quality"
+name = { cs = "Kvalita dat v RDMkit", en = "RDMkit data quality" }
+description = { cs = "Plánování kontrol kvality a zaznamenání jejich výsledků.", en = "Planning data-quality checks and recording their results." }
+url = "https://rdmkit.elixir-europe.org/data_quality"
+type = "guide"
+stations = ["collect", "process", "analyse"]
+lenses = ["V", "DS", "K"]
+citation = { type = "webpage", title = "RDMkit data quality", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-metadata"
+name = { cs = "Dokumentace a metadata v RDMkit", en = "RDMkit documentation and metadata" }
+description = { cs = "README, datový slovník, metadatové standardy a praktické recepty FAIR Cookbook.", en = "README files, data dictionaries, metadata standards and practical FAIR Cookbook recipes." }
+url = "https://rdmkit.elixir-europe.org/metadata_management"
+type = "guide"
+stations = ["metadata"]
+lenses = ["V", "DS", "SR", "K"]
+citation = { type = "webpage", title = "RDMkit documentation and metadata", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-licensing"
+name = { cs = "Licencování v RDMkit", en = "RDMkit licensing" }
+description = { cs = "Mezinárodní doporučení k licencím; pro český výklad CC0 použijte také příručku NRP Autorská práva a licence.", en = "International licensing guidance; also consult the NRP copyright handbook for the interpretation of CC0 under Czech law." }
+url = "https://rdmkit.elixir-europe.org/licensing"
+type = "guide"
+stations = ["licence"]
+lenses = ["V", "DS", "SR"]
+citation = { type = "webpage", title = "RDMkit licensing", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-publication"
+name = { cs = "Publikování dat v RDMkit", en = "RDMkit data publication" }
+description = { cs = "Volba repozitáře a příprava dat k publikaci; národní služby vybírejte v katalogu Průvodce.", en = "Repository selection and preparing data for publication; find national services in the Guide's catalogue." }
+url = "https://rdmkit.elixir-europe.org/data_publication"
+type = "guide"
+stations = ["repository", "publication", "findability"]
+lenses = ["V", "DS", "SR"]
+citation = { type = "webpage", title = "RDMkit data publication", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-existing-data"
+name = { cs = "Opakované užití dat v RDMkit", en = "RDMkit existing data" }
+description = { cs = "Hledání existujících dat a posouzení, zda se hodí pro nový výzkum.", en = "Finding existing data and assessing whether they fit new research." }
+url = "https://rdmkit.elixir-europe.org/existing_data"
+type = "guide"
+stations = ["plan", "citation"]
+lenses = ["V", "DS", "K"]
+citation = { type = "webpage", title = "RDMkit existing data", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-provenance"
+name = { cs = "Provenience v RDMkit", en = "RDMkit data provenance" }
+description = { cs = "Zachycení původu dat a změn při zpracování a analýze.", en = "Recording the origin of data and their changes during processing and analysis." }
+url = "https://rdmkit.elixir-europe.org/data_provenance"
+type = "guide"
+stations = ["collect", "process", "analyse", "metadata"]
+lenses = ["V", "DS", "SR", "K"]
+citation = { type = "webpage", title = "RDMkit data provenance", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-security"
+name = { cs = "Bezpečnost dat v RDMkit", en = "RDMkit data security" }
+description = { cs = "Plánování zabezpečení; konkrétní právní a smluvní podmínky řešte se svou institucí.", en = "Planning data security; resolve the applicable legal and contractual conditions with your institution." }
+url = "https://rdmkit.elixir-europe.org/data_security"
+type = "guide"
+stations = ["plan", "collect", "licence"]
+lenses = ["V", "DS", "SR"]
+citation = { type = "webpage", title = "RDMkit data security", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-researcher"
+name = { cs = "Výzkumník v RDMkit", en = "RDMkit researcher" }
+description = { cs = "Povinnosti a praktické kroky výzkumníka při správě dat.", en = "A researcher's responsibilities and practical data-management steps." }
+url = "https://rdmkit.elixir-europe.org/researcher"
+type = "guide"
+stations = ["plan", "collect"]
+lenses = ["V"]
+citation = { type = "webpage", title = "RDMkit researcher", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-pi"
+name = { cs = "Vedoucí projektu v RDMkit", en = "RDMkit principal investigator" }
+description = { cs = "Odpovědnost vedoucího projektu za lidi, zdroje a správu dat.", en = "A principal investigator's responsibilities for people, resources and data management." }
+url = "https://rdmkit.elixir-europe.org/principal_investigator"
+type = "guide"
+stations = ["plan"]
+lenses = ["V"]
+citation = { type = "webpage", title = "RDMkit principal investigator", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-steward"
+name = { cs = "Data steward v RDMkit", en = "RDMkit data steward" }
+description = { cs = "Úkoly data stewarda, spolupráce s výzkumníky a rozvoj odbornosti.", en = "Data-steward tasks, working with researchers and developing expertise." }
+url = "https://rdmkit.elixir-europe.org/data_steward"
+type = "guide"
+stations = ["plan", "metadata"]
+lenses = ["DS"]
+citation = { type = "webpage", title = "RDMkit data steward", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-policy"
+name = { cs = "Datová politika v RDMkit", en = "RDMkit policy maker" }
+description = { cs = "Role při tvorbě datové politiky; české požadavky popisuje institucionální kontrola Průvodce.", en = "The policy-making role; the Guide's institution check covers the Czech requirements." }
+url = "https://rdmkit.elixir-europe.org/policy_maker"
+type = "guide"
+stations = ["plan"]
+lenses = ["DS"]
+citation = { type = "webpage", title = "RDMkit policy maker", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-rse"
+name = { cs = "Vývojář výzkumného softwaru v RDMkit", en = "RDMkit research software engineer" }
+description = { cs = "Odpovědnosti při vývoji a údržbě výzkumného softwaru.", en = "Responsibilities when developing and maintaining research software." }
+url = "https://rdmkit.elixir-europe.org/research_software_engineer"
+type = "guide"
+stations = ["analyse"]
+lenses = ["V", "DS"]
+citation = { type = "webpage", title = "RDMkit research software engineer", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-trainer"
+name = { cs = "Lektor v RDMkit", en = "RDMkit trainer" }
+description = { cs = "Příprava školení správy dat a volba materiálů pro tým.", en = "Preparing data-management training and choosing materials for the team." }
+url = "https://rdmkit.elixir-europe.org/trainer"
+type = "guide"
+stations = ["plan"]
+lenses = ["DS"]
+citation = { type = "webpage", title = "RDMkit trainer", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-domains"
+name = { cs = "Obory v RDMkit", en = "RDMkit life-science domains" }
+description = { cs = "Oborové příklady z biologických věd. Pro ostatní obory využijte vlastní komunitní standardy a národní infrastruktury.", en = "Life-science domain examples. For other fields, use your own community standards and national infrastructures." }
+url = "https://rdmkit.elixir-europe.org/your_domain"
+type = "guide"
+stations = ["plan", "metadata"]
+lenses = ["K"]
+citation = { type = "webpage", title = "RDMkit life-science domains", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-bioimaging"
+name = { cs = "Biozobrazování v RDMkit", en = "RDMkit bioimaging data" }
+description = { cs = "Správa obrazových dat od měření po uložení; v ČR navazuje infrastruktura Czech-BioImaging.", en = "Managing imaging data from acquisition to deposition; Czech-BioImaging provides the Czech infrastructure context." }
+url = "https://rdmkit.elixir-europe.org/bioimaging_data"
+type = "guide"
+stations = ["collect", "metadata", "repository"]
+lenses = ["K"]
+citation = { type = "webpage", title = "RDMkit bioimaging data", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "rdmkit-human-data"
+name = { cs = "Lidská data v RDMkit", en = "RDMkit human data" }
+description = { cs = "Oborové postupy pro lidská data; právní režim a vhodné prostředí ověřte ve své instituci.", en = "Domain practices for human data; verify the legal regime and suitable environment with your institution." }
+url = "https://rdmkit.elixir-europe.org/human_data"
+type = "guide"
+stations = ["plan", "licence"]
+lenses = ["K"]
+citation = { type = "webpage", title = "RDMkit human data", inLanguage = "en", publisher = "ELIXIR", version = "73476cbd558ae263e155884af0333537c74c982e", dateAccessed = "2026-10-14", license = "https://creativecommons.org/licenses/by/4.0/" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "cookbook-dictionary"
+name = { cs = "FAIR Cookbook: datový slovník", en = "FAIR Cookbook: data dictionary" }
+description = { cs = "Postup pro popis proměnných a jejich hodnot ve strojově čitelném datovém slovníku.", en = "A recipe for describing variables and their values in a machine-actionable data dictionary." }
+url = "https://w3id.org/faircookbook/FCB025"
+type = "guide"
+stations = ["collect", "process", "metadata"]
+lenses = ["V", "DS", "K"]
+citation = { type = "webpage", title = "FAIR Cookbook: data dictionary", inLanguage = "en", publisher = "FAIRplus", dateAccessed = "2026-10-14" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "cookbook-assessment"
+name = { cs = "FAIR Cookbook: posouzení FAIR", en = "FAIR Cookbook: FAIR assessment" }
+description = { cs = "Recepty k posouzení FAIR; výsledky konkrétních nástrojů čtěte v jejich deklarovaném rozsahu.", en = "Recipes for FAIR assessment; read each tool's results within its stated assessment scope." }
+url = "https://faircookbook.elixir-europe.org/content/recipes/assessing-fairness.html"
+type = "guide"
+stations = ["assessment"]
+lenses = ["V", "DS", "K"]
+citation = { type = "webpage", title = "FAIR Cookbook: FAIR assessment", inLanguage = "en", publisher = "FAIRplus", dateAccessed = "2026-10-14" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "conda"
+name = "Conda"
+description = { cs = "Správa balíčků a oddělených softwarových prostředí.", en = "Package management and isolated software environments." }
+url = "https://docs.conda.io/en/latest/"
+type = "tool"
+stations = ["process", "analyse"]
+lenses = ["V", "DS", "K"]
+rdmkit = { id = "conda", tess = "Conda" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "docker"
+name = "Docker"
+description = { cs = "Balení aplikací a jejich závislostí do kontejnerových obrazů.", en = "Packaging applications and their dependencies in container images." }
+url = "https://www.docker.com/"
+type = "tool"
+stations = ["analyse"]
+lenses = ["V", "DS", "K"]
+rdmkit = { id = "docker", tess = "Docker" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "nextflow"
+name = "Nextflow"
+description = { cs = "Popis a spouštění výpočetních pracovních postupů na různých výpočetních prostředích.", en = "Describing and running computational workflows across execution environments." }
+url = "https://www.nextflow.io"
+type = "tool"
+stations = ["analyse"]
+lenses = ["V", "DS", "K"]
+rdmkit = { id = "nextflow", biotools = "nextflow", tess = "Nextflow" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "snakemake"
+name = "Snakemake"
+description = { cs = "Systém pravidel pro opakovatelné datové analýzy.", en = "A rule-based system for reproducible data analyses." }
+url = "https://snakemake.github.io"
+type = "tool"
+stations = ["analyse"]
+lenses = ["V", "DS", "K"]
+rdmkit = { id = "snakemake", biotools = "snakemake", tess = "Snakemake" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "jupyter"
+name = "Jupyter"
+description = { cs = "Interaktivní zápisníky propojující kód, vysvětlení a výsledky.", en = "Interactive notebooks combining code, explanations and results." }
+url = "https://jupyter.org"
+type = "tool"
+stations = ["collect", "analyse"]
+lenses = ["V", "DS", "K"]
+rdmkit = { id = "jupyter", tess = "Jupyter" }
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "workflowhub"
+name = "WorkflowHub"
+description = { cs = "Registr pro popis, sdílení a publikování výpočetních pracovních postupů.", en = "A registry for describing, sharing and publishing computational workflows." }
+url = "https://workflowhub.eu"
+type = "registry"
+stations = ["analyse", "publication"]
+lenses = ["V", "DS", "K"]
+rdmkit = { id = "workflowhub", biotools = "workflowhub", fairsharing = "07cf72", tess = "WorkflowHub" }
+knav = "workflowhub"
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "openrefine"
+name = "OpenRefine"
+description = { cs = "Čištění tabulkových dat se záznamem úprav.", en = "Cleaning tabular data with a record of transformations." }
+url = "https://openrefine.org/"
+type = "tool"
+stations = ["process"]
+lenses = ["V", "DS", "K"]
+rdmkit = { id = "openrefine", tess = "OpenRefine" }
+knav = "openrefine"
+status = "operational"
+asOf = 2026-10-14
+languages = ["en"]
+
+[[resource]]
+id = "cwl"
+name = "Common Workflow Language (CWL)"
+description = { cs = "Otevřený standard pro popis příkazových nástrojů a jejich propojení do přenositelných pracovních postupů.", en = "An open standard for describing command-line tools and connecting them into portable workflows." }
+url = "https://www.commonwl.org/"
+type = "standard"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS", "SR", "K"]
+stations = ["analyse"]
+citation = { type = "webpage", title = "Common Workflow Language", inLanguage = "en", publisher = "CWL Project", dateAccessed = "2026-10-14" }
+
+[[resource]]
+id = "workflow-ro-crate"
+code = "WFCRATE"
+name = "Workflow RO-Crate"
+description = { cs = "Profil RO-Crate pro popis výpočetního pracovního postupu, jeho souborů, prostředí a souvisejících metadat.", en = "An RO-Crate profile for describing a computational workflow, its files, environment and related metadata." }
+url = "https://w3id.org/workflowhub/workflow-ro-crate/1.1"
+type = "standard"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS", "SR", "K"]
+stations = ["analyse", "publication"]
+citation = { type = "webpage", title = "Workflow RO-Crate profile", inLanguage = "en", publisher = "WorkflowHub", version = "1.1", dateAccessed = "2026-10-14" }
+
+[[resource]]
+id = "conda-environments"
+code = "CONDAENV"
+name = { cs = "Prostředí v Conda", en = "Conda environments" }
+description = { cs = "Oficiální postupy pro vytváření, export a obnovu prostředí Conda.", en = "Official instructions for creating, exporting and recreating Conda environments." }
+url = "https://docs.conda.io/projects/conda/en/stable/user-guide/tasks/manage-environments.html"
+type = "guide"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS", "SR"]
+stations = ["analyse"]
+citation = { type = "webpage", title = "Managing environments", inLanguage = "en", publisher = "Conda", dateAccessed = "2026-10-14" }
+
+[[resource]]
+id = "container-images"
+code = "CONTAINER"
+name = { cs = "Reprodukovatelné obrazy kontejnerů", en = "Reproducible container images" }
+description = { cs = "Oficiální doporučení Docker k sestavení obrazu a připnutí základního obrazu pomocí digestu.", en = "Docker's official guidance on building an image and pinning its base image by digest." }
+url = "https://docs.docker.com/build/building/best-practices/"
+type = "guide"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS", "SR"]
+stations = ["analyse"]
+citation = { type = "webpage", title = "Building best practices", inLanguage = "en", publisher = "Docker", dateAccessed = "2026-10-14" }
+
+[[resource]]
+id = "nrp-license-selector"
+name = "NRP License Selector"
+description = { cs = "Nástroj NRP pro výběr veřejné licence, včetně softwarových licencí; příručka Autorská práva a licence na něj odkazuje v části o softwaru.", en = "The NRP tool for choosing a public licence, including software licences; the copyright handbook links it from its software section." }
+url = "https://ufal.github.io/public-license-selector/"
+type = "tool"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS", "SR"]
+stations = ["licence", "analyse"]
+languages = ["en"]
+
+[[resource]]
+id = "tess"
+name = "TeSS"
+description = { cs = "Katalog ELIXIR pro školení, vzdělávací materiály a události v biologických vědách a práci s daty.", en = "ELIXIR's catalogue of training materials and events in life sciences and working with data." }
+url = "https://tess.elixir-europe.org/"
+type = "registry"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS", "K"]
+stations = ["plan", "analyse"]
+languages = ["en"]

@@ -141,7 +141,60 @@ class VendorTests(unittest.TestCase):
             encoding="utf-8",
         )
         config = build_crate.page_config(build_crate.load_content(fixture / "content"))["config"]["favicons"]
-        self.assertEqual(config, {"hosts": ["a.example.org", "github.com"], "homeOnly": ["github.com"]})
+        self.assertEqual(config, {"hosts": ["a.example.org", "github.com"], "homeOnly": ["github.com"], "marks": {}})
+
+    def test_infrastructure_refresh_keeps_service_dates_and_shares_own_marks(self) -> None:
+        vf.vendor(
+            self.root,
+            self.fetch,
+            "2026-10-13",
+            lambda originals, output: (output / "a.example.org~1.png").write_bytes(png()) and [],
+        )
+        (self.root / "content" / "infrastructures.toml").write_text(
+            '[[infrastructure]]\nid="one"\nwebsite="https://b.example.org/"\nlogo="https://b.example.org/own.png"\n'
+            '[[infrastructure]]\nid="two"\nwebsite="https://b.example.org/"\nlogo="https://b.example.org/own.png"\n'
+            '[[infrastructure]]\nid="institution"\nwebsite="https://a.example.org/"\nlogo=false\n'
+            '[[infrastructure]]\nid="unavailable"\nurl="https://www.vyzkumne-infrastruktury.cz/record/"\n',
+            encoding="utf-8",
+        )
+        self.responses["https://b.example.org/own.png"] = png()
+        asked = []
+
+        def fetch(url: str, limit: int) -> tuple[str, bytes]:
+            asked.append(url)
+            return self.fetch(url, limit)
+
+        def normalise(originals: Path, output: Path) -> list[str]:
+            for path in originals.iterdir():
+                (output / (path.stem + ".png")).write_bytes(png())
+            return []
+
+        count, missing = vf.vendor(self.root, fetch, "2026-10-14", normalise, infrastructures_only=True)
+        self.assertEqual((count, missing), (3, ["infrastructure-institution", "infrastructure-unavailable"]))
+        self.assertEqual(asked, ["https://b.example.org/own.png"] * 2)
+        self.assertEqual(vf.check(self.root), [])
+        records = vf._toml(self.root / vf.MANIFEST)["favicon"]
+        self.assertEqual(str(records[0]["retrieved"]), "2026-10-13")
+        self.assertEqual({r["file"] for r in records}, {"a.example.org.png"}, "identical marks reuse the service file")
+        fixture = self.root / "fixture"
+        shutil.copytree(ROOT / "tests" / "fixtures" / "minimal", fixture)
+        shutil.copytree(self.root / vf.TARGET, fixture / vf.TARGET)
+        config = build_crate.page_config(build_crate.load_content(fixture / "content"))["config"]["favicons"]
+        self.assertEqual(config["hosts"], ["a.example.org"])
+        self.assertEqual(
+            config["marks"], {"infrastructure-one": "a.example.org.png", "infrastructure-two": "a.example.org.png"}
+        )
+
+    def test_infrastructure_marks_refuse_unsafe_identity_and_logo_sources(self) -> None:
+        path = self.root / "content" / "infrastructures.toml"
+        path.write_text('[[infrastructure]]\nid="../escape"\nwebsite="https://a.example.org/"\n', encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "lowercase slug"):
+            vf.infrastructure_marks(self.root, self.fetch)
+        path.write_text(
+            '[[infrastructure]]\nid="one"\nwebsite="https://a.example.org/"\nlogo="file:///private"\n', encoding="utf-8"
+        )
+        with self.assertRaisesRegex(ValueError, "HTTPS"):
+            vf.infrastructure_marks(self.root, self.fetch)
 
     def test_the_check_refuses_changed_unrecorded_and_wrongly_sized_files(self) -> None:
         vf.vendor(

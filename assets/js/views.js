@@ -411,9 +411,14 @@
   const stageClass = (index) => "stage-" + (index + 1);
   const stationIcon = (station) => ((FG.config.icons && FG.config.icons.station) || {})[station.identifier];
 
+  const readMark = (stationId) => FG.list(FG.state.readStations).includes(stationId)
+    ? h("span", { class: "badge read-mark", title: FG.t("journey.read"), "data-read": stationId },
+      h("span", { "aria-hidden": "true" }, "✓"), h("span", { class: "visually-hidden" }, FG.t("journey.read")))
+    : null;
+
   /** A stage's steps, one per line, each with its icon. */
   const stepLinks = (steps) =>
-    h("ul", { class: "journey-steps" }, steps.map((station) => h("li", null, h("a", { href: FG.href("path", station.identifier) }, FG.icon(stationIcon(station)), FG.span(station.name)))));
+    h("ul", { class: "journey-steps" }, steps.map((station) => h("li", null, h("a", { href: FG.href("path", station.identifier) }, FG.icon(stationIcon(station)), FG.span(station.name), readMark(station.identifier)))));
 
   function rail(route, currentId) {
     const current = FG.stations().find((station) => station.identifier === currentId);
@@ -463,6 +468,7 @@
           h("span", { class: "number" }, String(station.position)),
           FG.icon(stationIcon(station)) || h("span"),
           FG.span(station.name),
+          readMark(station.identifier),
           shown.length
             ? h("span", { class: "rail-marks" }, shown.map((state) => railMark(state, counts[state])),
               h("span", { class: "visually-hidden" }, " " + FG.t("rail.marksHere", { list: shown.map((state) => FG.t("selfcheck.state." + state) + " " + counts[state]).join(", ") })))
@@ -504,6 +510,7 @@
         null,
         h("li", null, h("span", { class: "rail-stage-number stage-1", "aria-hidden": "true" }, "1"), h("span", null, FG.t("rail.legendStage"))),
         h("li", null, h("span", { class: "legend-current", "aria-hidden": "true" }), h("span", null, FG.t("rail.legendCurrent"))),
+        h("li", null, h("span", { class: "badge read-mark", "aria-hidden": "true" }, "✓"), h("span", null, FG.t("journey.read"))),
         RAIL_STATES.map((state) => h("li", null, railMark(state), h("span", null, FG.t("rail.legendState", { state: FG.t("selfcheck.state." + state) }))))
       ),
       h("p", { class: "rail-legend-note" }, FG.t("rail.legendCount"), " ", h("a", { href: FG.href("selfcheck") }, FG.t(open ? "rail.legendOpen" : "rail.legendNone")))
@@ -1176,10 +1183,13 @@
   FG.views.path = function (route) {
     const showEntry = FG.landingShown(route);
     const currentId = showEntry ? null : route.arg || FG.state.lastStation || FG.stations()[0].identifier;
-    if (currentId && FG.stations().some((station) => station.identifier === currentId) && (currentId !== FG.state.lastStation || FG.state.lastVisit !== FG.today())) {
+    if (currentId && FG.stations().some((station) => station.identifier === currentId)) {
+      const visited = FG.list(FG.state.readStations);
+      const changed = !visited.includes(currentId) || currentId !== FG.state.lastStation || FG.state.lastVisit !== FG.today();
+      FG.state.readStations = [...new Set(visited.concat(currentId))];
       FG.state.lastStation = currentId;
       FG.state.lastVisit = FG.today();
-      FG.saveState();
+      if (changed) FG.saveState();
     }
     if (showEntry) return landing(route);
     return h("div", { class: "layout layout-path wrap" }, h("div", { class: "path-side" }, rail(route, currentId)), h("div", null, station(Object.assign({}, route, { arg: currentId }))));

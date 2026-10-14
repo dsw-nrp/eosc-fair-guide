@@ -188,6 +188,7 @@
     /* A stage chosen in an older version of the guide (`started`, `entryStation`) is ignored: the stage is derived. */
     const known = (id) => FG.stations().some((station) => station.identifier === id);
     if (!known(FG.state.lastStation)) FG.state.lastStation = null;
+    FG.state.readStations = [...new Set((Array.isArray(saved.readStations) ? saved.readStations : [FG.state.lastStation]).filter(known))];
     FG.focusAfterRender = false;
     FG.firstRender = true;
     window.addEventListener("hashchange", FG.render);

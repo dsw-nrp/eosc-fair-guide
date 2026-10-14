@@ -14,6 +14,7 @@ checked = 2026-10-14
 
 [[infrastructure]]
 id = "auger-cz"
+website = "https://www.particle.cz/infrastructures/auger-cz/"
 acronym = "AUGER-CZ"
 name = { cs = "Observatoř Pierra Augera – účast České republiky", en = "Pierre Auger Observatory – participation of the Czech Republic" }
 namesSource = "isvavai-infrastructures"
@@ -27,6 +28,7 @@ annex1 = "Annex 1, p. 124"
 
 [[infrastructure]]
 id = "bnl-cz"
+website = "https://bnl.casticova-fyzika.cz/"
 acronym = "BNL-CZ"
 name = { cs = "Brookhavenská národní laboratoř – účast ČR", en = "Brookhaven National Laboratory – participation of the Czech Republic" }
 host = "Czech Technical University in Prague"
@@ -40,6 +42,9 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/bnl-cz/"
 
 [[infrastructure]]
 id = "cemnat"
+website = "https://fcht.upce.cz/fcht/cemnat.html"
+# Reviewed site: no distinct usable infrastructure mark; its institution favicon is not substituted.
+logo = false
 acronym = "CEMNAT"
 name = { cs = "Centrum materiálů a nanotechnologií", en = "Centre of Materials and Nanotechnologies" }
 host = "University Pardubice"
@@ -53,6 +58,7 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/cemnat/"
 
 [[infrastructure]]
 id = "ceplant"
+website = "https://ceplant.cz/"
 acronym = "CEPLANT"
 name = { cs = "Centrum výzkumu a vývoje plazmatu a nanotechnologických povrchových úprav", en = "R&D Centre for Plasma and Nanotechnology Surface Modifications" }
 host = "Masaryk University"
@@ -66,6 +72,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/ceplant/"
 
 [[infrastructure]]
 id = "cern-cz"
+website = "https://www.particle.cz/infrastructures/CERN-CZ"
+logo = "https://www.particle.cz/infrastructures/CERN-CZ/img/VI_CERN-CZ_m1.png"
 acronym = "CERN-CZ"
 name = { cs = "Výzkumná infrastruktura pro experimenty v CERN", en = "Research Infrastructure for Experiments at CERN" }
 host = "Institute of Physics of the Czech Academy of Sciences"
@@ -83,6 +91,7 @@ esfri = "landmark"
 
 [[infrastructure]]
 id = "cta-cz"
+website = "https://www.particle.cz/infrastructures/cta-cz/"
 acronym = "CTA-CZ"
 name = { cs = "Cherenkov Telescope Array – účast České republiky", en = "Cherenkov Telescope Array – participation of the Czech Republic" }
 namesSource = "isvavai-infrastructures"
@@ -104,6 +113,8 @@ entry = "expected"
 
 [[infrastructure]]
 id = "czechnanolab"
+website = "https://www.czechnanolab.cz/"
+logo = "https://www.czechnanolab.cz/assets/images/logo_black.png"
 acronym = "CzechNanoLab"
 name = { cs = "Výzkumná infrastruktura CzechNanoLab", en = "CzechNanoLab Research Infrastructure" }
 host = "Brno University of Technology"
@@ -117,6 +128,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/czechnanolab/"
 
 [[infrastructure]]
 id = "ess-scandinavia-cz"
+website = "https://www.ujf.cas.cz/en/research-development/large-research-infrastructures-and-centres/ess-scandinavia-cz//"
+logo = "https://www.ujf.cas.cz/export/sites/ujf/.content/galerie-content/ESS/logo_ess.png"
 acronym = "ESS Scandinavia-CZ"
 name = { cs = "Evropský spalační zdroj – účast ČR", en = "European Spallation Source – participation of the Czech Republic" }
 host = "Nuclear Physics Institute of the Czech Academy of Sciences"
@@ -138,6 +151,7 @@ entry = "2015"
 
 [[infrastructure]]
 id = "est-cz"
+website = "https://www.est-east.eu/"
 acronym = "EST-CZ"
 name = { cs = "Evropský sluneční teleskop – účast ČR", en = "European Solar Telescope – participation of the Czech Republic" }
 host = "Astronomical Institute of the Czech Academy of Sciences"
@@ -155,6 +169,8 @@ esfri = "project"
 
 [[infrastructure]]
 id = "eu-arc-cz"
+website = "https://www.asu.cas.cz/alma"
+logo = false
 acronym = "EU-ARC.CZ"
 name = { cs = "Atacama Large Millimeter / Submillimeter Array – účast ČR", en = "Atacama Large Millimeter / Submillimeter Array – participation of the Czech Republic" }
 host = "Astronomical Institute of the Czech Academy of Sciences"
@@ -168,6 +184,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/eu-arc-cz/"
 
 [[infrastructure]]
 id = "fair-cz"
+website = "https://www.ujf.cas.cz/cs/vyzkum-a-vyvoj/velke-vyzkumne-infrastruktury-a-centra/fair-cz/"
+logo = false
 acronym = "FAIR-CZ"
 name = { cs = "Laboratoř pro výzkum s antiprotony a těžkými ionty (FAIR) – účast ČR", en = "Facility for Antiproton and Ion Research – participation of the Czech Republic" }
 host = "Nuclear Physics Institute of the Czech Academy of Sciences"
@@ -185,6 +203,7 @@ esfri = "landmark"
 
 [[infrastructure]]
 id = "fermilab-cz"
+website = "https://www.particle.cz/infrastructures/fermilab-cz/"
 acronym = "FERMILAB-CZ"
 name = { cs = "Výzkumná infrastruktura pro experimenty ve Fermilab", en = "Research Infrastructure for Fermilab Experiments" }
 host = "Institute of Physics of the Czech Academy of Sciences"
@@ -198,6 +217,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/fermilab-cz/"
 
 [[infrastructure]]
 id = "lsm-cz"
+website = "https://lsm.utef.cvut.cz/"
+logo = "https://lsm.utef.cvut.cz/style/LSM_logo.png"
 acronym = "LSM-CZ"
 name = { cs = "Podzemní laboratoř LSM – účast ČR", en = "Laboratoire Souterrain de Modane – participation of the Czech Republic" }
 host = "Czech Technical University in Prague"
@@ -211,6 +232,7 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/lsm-cz/"
 
 [[infrastructure]]
 id = "mgml"
+website = "https://mgml.eu/"
 acronym = "MGML"
 name = { cs = "Laboratoř pro syntézu a měření materiálů", en = "Materials Growth and Measurement Laboratory" }
 host = "Charles University"
@@ -224,6 +246,7 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/mgml/"
 
 [[infrastructure]]
 id = "pals"
+website = "https://www.pals.cas.cz/"
 acronym = "PALS"
 name = "Prague Asterix Laser System"
 host = "Institute of Plasma Physics of the Czech Academy of Sciences"
@@ -237,6 +260,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/fyzika/pals/"
 
 [[infrastructure]]
 id = "spiral2-cz"
+website = "https://www.ujf.cas.cz/cs/vyzkum-a-vyvoj/velke-vyzkumne-infrastruktury-a-centra/spiral2-cz/"
+logo = false
 acronym = "SPIRAL2-CZ"
 name = { cs = "Système de Production d’Ions Radioactifs Accélérés en Ligne – účast ČR", en = "Système de Production d’Ions Radioactifs Accélérés en Ligne – participation of the Czech Republic" }
 host = "Nuclear Physics Institute of the Czech Academy of Sciences"
@@ -254,6 +279,8 @@ esfri = "landmark"
 
 [[infrastructure]]
 id = "spl-htc"
+website = "https://nano.mff.cuni.cz/"
+logo = "https://nano.mff.cuni.cz/assets/template/img/spl-htc-eric-banner.svg?v=1.0.1"
 acronym = "SPL-HTC"
 name = "Surface Physics Laboratory – Hydrogen Technology Centre"
 host = "Charles University"
@@ -271,6 +298,7 @@ entry = "2014"
 
 [[infrastructure]]
 id = "cicrr"
+website = "https://www.cicrr.cz/"
 acronym = "CICRR"
 name = { cs = "České mezinárodní centrum výzkumných reaktorů", en = "Czech International Centre of Research Reactors" }
 namesSource = "isvavai-infrastructures"
@@ -288,6 +316,8 @@ esfri = "landmark"
 
 [[infrastructure]]
 id = "compass"
+website = "https://www.ipp.cas.cz/Compass_U/"
+logo = false
 acronym = "COMPASS"
 name = { cs = "COMPASS – Tokamak pro výzkum termonukleární fúze", en = "COMPASS – Tokamak for Thermonuclear Fusion Research" }
 host = "Institute of Plasma Physics of the Czech Academy of Sciences"
@@ -301,6 +331,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/energetika/compass/"
 
 [[infrastructure]]
 id = "enregat"
+website = "https://ceet.vsb.cz/cs/ceet/vyzkumna-centra/institut-environmentalnich-technologii/institut/"
+logo = "https://ceet.vsb.cz/.content/galerie-obrazku/Loga/IET/Enregat_logo_.png?__scale=w:720,h:300,t:2"
 acronym = "ENREGAT"
 name = { cs = "Energetické využití odpadů a čištění plynů", en = "Energy Waste Recovery and Gas Treatment" }
 host = "VŠB – Technical University of Ostrava"
@@ -314,6 +346,9 @@ url = "https://www.vyzkumne-infrastruktury.cz/energetika/enregat/"
 
 [[infrastructure]]
 id = "wczv"
+website = "https://reaktor-vr1.cz/"
+# Reviewed site: no distinct usable infrastructure mark; its institution favicon is not substituted.
+logo = false
 acronym = "WCZV"
 name = "VR-1 Nuclear Experimental Hub"
 host = "Czech Technical University in Prague"
@@ -327,6 +362,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/energetika/wczv/"
 
 [[infrastructure]]
 id = "actris-cz"
+website = "https://actris.cz/web/"
+logo = "https://actris.cz/web/wp-content/uploads/2025/01/Czech_Republic_SM_gradient_frame-150x150.png"
 acronym = "ACTRIS-CZ"
 name = { cs = "ACTRIS – účast ČR", en = "ACTRIS – participation of the Czech Republic" }
 host = "Czech Hydrometeorological Institute"
@@ -348,6 +385,9 @@ entry = "2023"
 
 [[infrastructure]]
 id = "cenakva"
+website = "https://www.frov.jcu.cz/cz/fakulta/soucasti-fakulty/jihoceske-vyzkumne-centrum-akvakultury-a-biodiverzity-hydrocenoz/velka-vyzkumna-infrastruktura-cenakva"
+# Reviewed site: no distinct usable infrastructure mark; its institution favicon is not substituted.
+logo = false
 acronym = "CENAKVA"
 name = { cs = "Jihočeské výzkumné centrum akvakultury a biodiverzity hydrocenóz", en = "South Bohemian Research Centre of Aquaculture and Biodiversity of Hydrocenoses" }
 host = "University of South Bohemia in České Budějovice"
@@ -369,6 +409,7 @@ entry = "expected"
 
 [[infrastructure]]
 id = "czecos"
+website = "https://czecos.cz/"
 acronym = "CzeCOS"
 name = "Czech Carbon Observation System"
 host = "Global Change Research Institute of the Czech Academy of Sciences"
@@ -410,6 +451,7 @@ entry = "expected"
 
 [[infrastructure]]
 id = "nanoenvicz"
+website = "https://www.nanoenvicz.cz/en"
 acronym = "NanoEnviCz"
 name = { cs = "Nanomateriály a nanotechnologie pro ochranu životního prostředí a udržitelnou budoucnost", en = "Nanomaterials and Nanotechnologies for Environment Protection and Sustainable Future" }
 host = "J. Heyrovsky Institute of Physical Chemistry of the Czech Academy of Sciences"
@@ -423,6 +465,7 @@ url = "https://www.vyzkumne-infrastruktury.cz/environmentalni-vedy/nanoenvicz-2/
 
 [[infrastructure]]
 id = "recetox-ri"
+website = "https://www.recetox.muni.cz/"
 acronym = "RECETOX RI"
 name = { cs = "Výzkumná infrastruktura RECETOX", en = "RECETOX Research Infrastructure" }
 host = "Masaryk University"
@@ -448,6 +491,7 @@ evidence = "https://eosc.eu/wp-content/uploads/2026/06/EOSC_CZ_National_Node_Cha
 
 [[infrastructure]]
 id = "bbmri-cz"
+website = "https://www.bbmri.cz/"
 acronym = "BBMRI.cz"
 name = { cs = "Banka klinických vzorků", en = "Network of Czech Biobanks" }
 host = "Masaryk Memorial Cancer Institute"
@@ -469,6 +513,8 @@ entry = "2013"
 
 [[infrastructure]]
 id = "ccp"
+website = "https://www.phenogenomics.cz/"
+logo = "https://www.phenogenomics.cz/wp-content/themes/phenogenomics/images/logo.svg"
 acronym = "CCP"
 name = { cs = "České centrum pro fenogenomiku", en = "Czech Centre for Phenogenomics" }
 host = "Institute of Molecular Genetics of the Czech Academy of Sciences"
@@ -490,6 +536,7 @@ entry = "expected"
 
 [[infrastructure]]
 id = "ciisb"
+website = "https://www.ciisb.org/"
 acronym = "CIISB"
 name = { cs = "Česká infrastruktura pro integrativní strukturní biologii", en = "Czech Infrastructure for Integrative Structural Biology" }
 host = "Masaryk University"
@@ -511,6 +558,7 @@ entry = "2017"
 
 [[infrastructure]]
 id = "czecrin"
+website = "https://czecrin.cz/"
 acronym = "CZECRIN"
 name = { cs = "Český národní uzel Evropské sítě infrastruktur klinického výzkumu", en = "Czech National Node to the European Clinical Research Infrastructure Network" }
 host = "Masaryk University"
@@ -532,6 +580,7 @@ entry = "2018"
 
 [[infrastructure]]
 id = "czech-bioimaging"
+website = "https://www.czech-bioimaging.cz/"
 acronym = "Czech-BioImaging"
 name = { cs = "Národní infrastruktura pro biologické a medicínské zobrazování", en = "National Research Infrastructure for Biological and Medical Imaging" }
 host = "Institute of Molecular Genetics of the Czech Academy of Sciences"
@@ -557,6 +606,7 @@ evidence = "https://dev.cbird.jh-inst.cas.cz/"
 
 [[infrastructure]]
 id = "cz-openscreen"
+website = "https://openscreen.cz/"
 acronym = "CZ-OPENSCREEN"
 name = { cs = "Národní infrastruktura chemické biologie", en = "National Infrastructure for Chemical Biology" }
 host = "Institute of Molecular Genetics of the Czech Academy of Sciences"
@@ -578,6 +628,8 @@ entry = "2018"
 
 [[infrastructure]]
 id = "eatris-cz"
+website = "https://eatris.cz/"
+logo = "https://eatris.cz/themes/eatris/images/logo.png"
 acronym = "EATRIS-CZ"
 name = { cs = "Český národní uzel Evropské infrastruktury pro translační medicínu", en = "Czech National Node to the European Infrastructure for Translational Medicine" }
 host = "Palacký University Olomouc"
@@ -599,6 +651,7 @@ entry = "2013"
 
 [[infrastructure]]
 id = "elixir-cz"
+website = "https://www.elixir-czech.cz/"
 fip = "elixir-cz-life"
 acronym = "ELIXIR CZ"
 name = { cs = "Česká národní infrastruktura pro biologická data", en = "Czech National Infrastructure for Biological Data" }
@@ -617,6 +670,8 @@ esfri = "landmark"
 
 [[infrastructure]]
 id = "metrofood-cz"
+website = "https://metrofood.cz/en/"
+logo = "https://metrofood.cz/wp-content/uploads/metrofood-cz-e1606940079342.png"
 acronym = "METROFOOD-CZ"
 name = { cs = "Infrastruktura pro propagaci metrologie v potravinářství a výživě v ČR", en = "Infrastructure for Promoting Metrology in Food and Nutrition in the Czech Republic" }
 host = "Czech University of Life Sciences Prague"
@@ -634,6 +689,7 @@ esfri = "project"
 
 [[infrastructure]]
 id = "ncmg"
+website = "https://ncmg.cz/"
 acronym = "NCMG"
 name = { cs = "Národní centrum lékařské genomiky", en = "National Centre for Medical Genomic" }
 host = "Charles University"
@@ -647,6 +703,7 @@ url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/ncmg/"
 
 [[infrastructure]]
 id = "ais-cr"
+website = "https://www.aiscr.cz/"
 acronym = "AIS CR"
 name = { cs = "Archeologický informační systém České republiky", en = "Archaeological Information System of the Czech Republic" }
 host = "Institute of Archaeology of the Czech Academy of Sciences, Brno"
@@ -664,6 +721,7 @@ evidence = "https://amcr-info.aiscr.cz/en"
 
 [[infrastructure]]
 id = "clb"
+website = "https://clb.ucl.cas.cz/"
 acronym = "CLB"
 name = { cs = "Česká literární bibliografie", en = "Czech Literary Bibliography" }
 host = "Institute of Czech Literature of the Czech Academy of Sciences"
@@ -677,6 +735,8 @@ url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/clb/"
 
 [[infrastructure]]
 id = "cnc"
+website = "https://www.korpus.cz/"
+logo = "https://www.korpus.cz/img/cnk-logo-notext.svg?v=1509638072"
 acronym = "CNC"
 name = { cs = "Český národní korpus", en = "Czech National Corpus" }
 host = "Charles University"
@@ -694,6 +754,7 @@ evidence = "https://www.korpus.cz/"
 
 [[infrastructure]]
 id = "csda-ess-cz"
+website = "https://archiv.soc.cas.cz/cz/"
 fip = "csda-social"
 acronym = "CSDA/ESS-CZ"
 name = "Czech Social Science Data Archive / European Social Survey – participation of the Czech Republic"
@@ -728,6 +789,8 @@ evidence = "https://www.vyzkumne-infrastruktury.cz/en/social-sciences-and-humani
 
 [[infrastructure]]
 id = "ggp-cz"
+website = "https://ggp-cz.fss.muni.cz/"
+logo = "https://cdn.muni.cz/media/3947526/transparent_green_ext_cz.png?width=450"
 acronym = "GGP-CZ"
 name = { cs = "Český národní uzel pro výzkum rodiny", en = "Czech National Cluster for Family Research" }
 namesSource = "ggp-cz-project"
@@ -746,6 +809,7 @@ esfri = "project"
 
 [[infrastructure]]
 id = "lindat-clariah-cz"
+website = "https://lindat.cz/"
 fip = "lindat-clariah"
 acronym = "LINDAT/CLARIAH-CZ"
 name = { cs = "Digitální výzkumná infrastruktura pro jazykové technologie, umění a humanitní vědy", en = "Digital Research Infrastructure for Language Technologies, Arts and Humanities" }
@@ -785,6 +849,7 @@ evidence = "https://lindat.mff.cuni.cz/repository/home"
 
 [[infrastructure]]
 id = "share-cz"
+website = "https://share.cerge-ei.cz/"
 acronym = "SHARE-CZ"
 name = { cs = "Survey of Health, Ageing and Retirement in Europe – účast ČR", en = "Survey of Health, Ageing and Retirement in Europe – participation of the Czech Republic" }
 host = "Economics Institute of the Czech Academy of Sciences"
@@ -806,6 +871,7 @@ entry = "2011"
 
 [[infrastructure]]
 id = "e-infra-cz"
+website = "https://www.e-infra.cz/"
 acronym = "e-INFRA CZ"
 name = { cs = "e-Infrastruktura CZ", en = "e-Infrastructure of the Czech Republic" }
 namesSource = "isvavai-infrastructures"

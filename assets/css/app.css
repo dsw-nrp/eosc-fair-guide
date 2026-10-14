@@ -455,6 +455,8 @@ button:hover,
   padding-bottom: var(--space-7);
 }
 
+.layout > article { min-width: 0; }
+
 @media (min-width: 60rem) {
   .layout-path {
     grid-template-columns: 15rem minmax(0, 1fr);
@@ -887,9 +889,23 @@ button:hover,
 }
 
 .journey-steps .icon {
-  margin-right: var(--space-1);
   color: var(--stage);
 }
+
+.journey-steps a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.read-mark {
+  flex-shrink: 0;
+}
+
+.text-table-scroll { overflow-x: auto; margin-block: var(--space-3); }
+.text-table { width: 100%; border-collapse: collapse; }
+.text-table th, .text-table td { padding: var(--space-2); border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; }
+.text-table th:first-child { text-align: left; }
 
 .stage-1 { --stage: var(--stage-1); }
 .stage-2 { --stage: var(--stage-2); }

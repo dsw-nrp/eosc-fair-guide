@@ -232,3 +232,10 @@ text = { cs = "AI vám pomůže převést popis praxe komunity na přehled, kter
 check = { cs = "Každý zdroj ověřte, že ho komunita opravdu používá a že existuje pod tím jménem; deklarace profilu potvrzuje komunita, ne AI.", en = "Check that the community really uses each resource and that it exists under that name; the community confirms the profile's declarations, not the AI." }
 prompt = { cs = "Z popisu praxe naší komunity níže sestav pro každý princip FAIR seznam zdrojů, které komunita používá (standardy, slovníky, repozitáře, protokoly). Uveď jen zdroje, které v popisu jsou; co chybí, označ jako otázku.\n\nPopis praxe: […]", en = "From the description of our community's practice below, list for each FAIR principle the resources the community uses (standards, vocabularies, repositories, protocols). Include only resources the description names; mark what is missing as a question.\n\nDescription of practice: […]" }
 sources = ["EC-GENAI-GUIDELINES.01"]
+
+[[advice]]
+id = "assessment.29"
+lens = "*"
+level = "L1"
+text = { cs = "K výsledku připojte vlastní zjištění a jejich meze. [[cookbook-assessment|Recepty FAIR Cookbook k posouzení FAIR]] pomohou zvolit metodu; různé nástroje mohou sledovat různé části téhož kritéria.", en = "Keep your findings and their limits with the result. [[cookbook-assessment|FAIR Cookbook's assessment recipes]] help select a method; different tools may inspect different parts of the same criterion." }
+sources = ["RDMKIT.tasks.01"]

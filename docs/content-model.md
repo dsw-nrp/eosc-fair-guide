@@ -78,6 +78,13 @@ erDiagram
 
 ### Identifiers
 
+Resources may carry `rdmkit = { id, biotools, fairsharing, tess }`, transcribed from the tool list at the
+revision recorded by the `rdmkit` source. Join an existing resource by its address or its registry identifiers;
+check that the record denotes the same service rather than a different national instance. A selected new tool
+becomes one curated resource, linked to its KNAV or FIP Dashboard record where present. `id` links the RDMkit
+record; bio.tools and FAIRsharing identifiers become identity links (`NA` is omitted). TeSS values are quoted
+training searches, not identity links. The catalogue shows the RDMkit record and TeSS training under its sources.
+
 The guide's identifiers were set on 10 October 2026 and are kept from then on. An identifier names the same entry
 for good: it is never renamed, renumbered or reused, whatever later happens to the entry's name, place or wording. An
 entry that is no longer valid is marked as superseded instead of deleted; an entry that does go away leaves its
@@ -381,7 +388,8 @@ puts the person (with their ORCID iD) into the crate, or a plain name.
 published), `noteSources` (clause or source IDs that support the note), `supersededBy` (clause or source ID),
 `title` (text: a requirement's own title, when its source gives one) and `guidance` (a string: the guidance its
 source publishes with it, quoted as published; paragraphs and lists with `-` markers as in page text), and optional
-`guidanceLanguage` (`cs` or `en`, default `en`). Originals keep their own language; the guide's bilingual
+`guidanceLanguage` (`cs` or `en`, default `en`). Optional `terms` lists existing Heslář IDs whose catalogue cards
+also disclose this attributed original passage; it never replaces their glossary definitions. Originals keep their own language; the guide's bilingual
 statement and explanation remain separate. Use only fitting published passages with permitted reuse,
 their version, source attribution and licence. PDF layout joins and omitted footnote markers do not
 change wording; retain a footnote when it determines the requirement's meaning. The
@@ -539,7 +547,9 @@ Czech name from an official source), optional `namesSource` (overrides the colle
 for example IS VaVaI or the hosting institution's project page), `host` (the
 hosting institution, the coordinator, as Annex 1 names it), `field`, `phase` and `character` (values of
 `[[researchField]]`, `[[infrastructurePhase]]` and `[[infrastructureCharacter]]` in `guide.toml`), `included` (the year
-of inclusion), `esfri` (`[[esfriStatus]]` values), `annex1` (its locator), `url` (its portal page), `fip` (the FIP of its
+of inclusion), `esfri` (`[[esfriStatus]]` values), `annex1` (its locator), `url` (its portal page),
+`website` (its reviewed official site, emitted as `sameAs`), optional `logo` (an HTTPS image linked by that site,
+or `false` when review finds no distinct usable mark), `fip` (the FIP of its
 community in the FIP Dashboard snapshot, where it has one). `[[infrastructure.nodeOf]]`: `name` and `esfri` of a
 European research infrastructure the infrastructure is the Czech node of (Annex 7). `[[infrastructure.eric]]`: `name`
 of an ERIC it belongs to and `entry`, the year the Czech Republic entered it, or `expected` while the ERIC is being set
@@ -627,7 +637,11 @@ service's own favicon wherever one could be obtained, otherwise its catalogue ki
 `scripts/vendor_favicons.py` asks each service's site for its favicon, normalises it once to a 48-pixel PNG
 (`scripts/normalise_favicons.mjs`, in the Playwright browser; a light icon made for dark tabs is set on a dark tile)
 and keeps only that, one per host, in `assets/favicons/` with `sources.toml` recording the address and date each was
-taken from; a code-hosting platform's favicon stands only for its own home page, never for a tool hosted there. The
+taken from; a code-hosting platform's favicon stands only for its own home page, never for a tool hosted there.
+Infrastructure marks use their reviewed official sites and optional own logos, keyed by infrastructure rather than
+inferred from the national portal or a shared institutional host. `--infrastructures` refreshes only these marks
+after verifying existing service files; their original retrieval dates remain. Identical normalized marks share
+files, including existing service marks, while each infrastructure retains its source record. The
 favicons stay outside the guide's licences (`LicenseRef-Service-Favicons`). `scripts/vendor_icons.py` copies exactly
 the named icons from the
 pinned npm package into `assets/icons/`, and the generator inlines them as one hidden SVG sprite. The content
@@ -642,7 +656,9 @@ tools page, required: `tool` for an interactive helper or `guidance` for a how-t
 separate sections, helpers first), `helper` (true
 for a page that holds an interactive helper; until the page script provides it, the page says it is still being
 built), `[[page.section]]` with `heading`, `body` (text; paragraphs are separated by a blank line, and a block
-whose lines all start with a `-` and a space is shown as a list, an item's short lead before a colon in bold), an optional `id` and an optional `action` (a `label` and an
+whose lines all start with a `-` and a space is shown as a list, an item's short lead before a colon in bold;
+a rectangular pipe table with a separator row renders as a native table with column and first-column row headers,
+inside a keyboard-focusable horizontal scroll region labelled by its top-left heading), an optional `id` and an optional `action` (a `label` and an
 `href`, as on an L0 advice item, shown as a button below the text); the section
 `credits` on the about page carries the roles table, generated from the guide's metadata, and on the page for
 machines `tasks`, `practice` and `endpoints` carry the table of what a reader wants and where it is, the guide's

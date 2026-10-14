@@ -210,12 +210,14 @@
           entryCard({ kind: "infrastructures",
             id: infra.identifier,
             entity: infra,
+            service: { identifier: "infrastructure-" + infra.identifier },
             what: [field, phase].filter(Boolean).map(categoryLabel),
             title: infra.url ? FG.external(infra.url, name) : name,
             details: [otherName(infra), FG.t("infrastructure.host", { host: infra.hostingInstitution }), FG.t("infrastructure.since", { year: infra.roadmapSince }), character ? categoryLabel(character) : null],
             states: FG.refIds(infra, "esfriStatus").map((id) => h("span", { class: "badge" }, FG.termName(id))),
             relations: {
               operates: FG.refs(infra, "operates").map(entryLink),
+              identifiers: FG.pidItems(infra),
               nationalNodeOf: nodes.map((ri) => h("span", null, ri.name + (FG.id(ri.esfriStatus) ? " (" + FG.termName(FG.id(ri.esfriStatus)) + ")" : ""))),
               fips: FG.id(infra.subjectOf) ? [h("a", { href: FG.catalogueHref("fips", FG.id(infra.subjectOf).replace("#fip-", "fip-dashboard.")) }, FG.text((FG.get(FG.id(infra.subjectOf)) || {}).name) || FG.id(infra.subjectOf).replace("#fip-", ""))] : [],
               memberOf: erics.map((eric) => h("span", null, eric.czechMembershipSince === "expected" ? FG.t("infrastructure.ericExpected", { name: eric.name }) : FG.t("infrastructure.ericSince", { name: eric.name, year: eric.czechMembershipSince }))),
@@ -450,6 +452,10 @@
             /* Definitions retain the source's language; no English translation is invented. */
             body: [
               term.description ? h("div", { class: "term-definition" }, FG.paragraphs(term.description)) : null,
+              FG.refs(term, "subjectOf").filter((clause) => clause.guidance).map((clause) => h("details", null,
+                h("summary", null, FG.t("catalogue.originalDefinition")),
+                h("div", { class: "content" }, h("p", null, FG.sourceLink(FG.get(clause.isPartOf)), clause.sourceLocator ? " · " + clause.sourceLocator : ""),
+                  h("blockquote", null, FG.paragraphs(clause.guidance))))),
               h("p", { class: "small muted term-attribution" }, FG.external(term.url, FG.t("catalogue.termDefinition")),
                 term.license ? [" · ", FG.external(term.license, "CC BY 4.0")] : null),
             ],

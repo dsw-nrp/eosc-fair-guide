@@ -97,6 +97,48 @@ class FixtureCase(unittest.TestCase):
 
 
 class GeneratorTests(FixtureCase):
+    def test_original_term_definition_keeps_source_language_and_snapshot(self) -> None:
+        (self.root / "content" / "glossary.toml").write_text(
+            '[glossary]\nsource = "Glossary"\n\n[[term]]\nid = "1"\nlabel = "Term"\n'
+            'definition = "Snapshot definition."\ndefinitionLanguage = "en"\n',
+            encoding="utf-8",
+        )
+        self.edit(
+            "ledger.toml",
+            'id = "A.F1.R1"\n',
+            'id = "A.F1.R1"\nterms = ["1"]\nguidance = "Original source definition."\n'
+            'guidanceLanguage = "cs"\nlocator = "p. 5"\n',
+        )
+        entities = {
+            item["@id"]: item
+            for item in build_crate.build_crate(build_crate.load_content(self.root / "content"))["@graph"]
+        }
+        self.assertEqual(entities["#term-1"]["description"], {"@value": "Snapshot definition.", "@language": "en"})
+        self.assertEqual(entities["#term-1"]["subjectOf"], {"@id": "#clause-A.F1.R1"})
+        self.assertEqual(
+            entities["#clause-A.F1.R1"]["guidance"], {"@value": "Original source definition.", "@language": "cs"}
+        )
+        self.assertEqual(entities["#clause-A.F1.R1"]["sourceLocator"], "p. 5")
+        self.edit("ledger.toml", 'terms = ["1"]', 'terms = ["missing"]')
+        self.assertError("original definition names unknown term 'missing'")
+
+    def test_rdmkit_enriches_one_tool_with_registry_links_and_training(self) -> None:
+        self.append(
+            "resources.toml",
+            '\n[resource.rdmkit]\nid = "example-tool"\nbiotools = "example_tool"\n'
+            'fairsharing = "NA"\ntess = "Example tool"\n',
+        )
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        tools = [item for item in crate["@graph"] if item.get("identifier") == "service"]
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(
+            tools[0]["rdmkitRecord"], "https://rdmkit.elixir-europe.org/all_tools_and_resources#example-tool"
+        )
+        self.assertEqual(tools[0]["sameAs"], {"@id": "https://bio.tools/example_tool"})
+        self.assertEqual(tools[0]["trainingSearch"], "https://tess.elixir-europe.org/search?q=%22Example+tool%22")
+        self.edit("resources.toml", 'id = "example-tool"', 'id = "invalid identifier"')
+        self.assertError("rdmkit needs its source record ID")
+
     def add_infrastructures(
         self, member: str = 'resource = "service"\nrole = "service"\nlocator = "Section 3"\n'
     ) -> None:
@@ -146,6 +188,18 @@ class GeneratorTests(FixtureCase):
         self.assertEqual(entities["#eric-eu-ri-eric"]["isBasedOn"], {"@id": "#source-report"})
         self.edit("infrastructures.toml", 'namesSource = "official-names"', 'namesSource = "missing-source"')
         self.assertError("unknown namesSource 'missing-source'")
+
+    def test_infrastructure_official_site_and_reviewed_mark(self) -> None:
+        self.add_infrastructures()
+        self.edit(
+            "infrastructures.toml", 'id = "ri"\n', 'id = "ri"\nwebsite = "https://ri.example.org/"\nlogo = false\n'
+        )
+        self.assertEqual(self.errors(), [])
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        entity = next(item for item in crate["@graph"] if item["@id"] == "#infrastructure-ri")
+        self.assertEqual(entity["sameAs"], {"@id": "https://ri.example.org/"})
+        self.edit("infrastructures.toml", "logo = false", 'logo = "file:///private"')
+        self.assertError("logo must be an HTTPS address")
 
     def test_infrastructures_and_the_node_keep_their_relations_apart(self) -> None:
         self.add_infrastructures()

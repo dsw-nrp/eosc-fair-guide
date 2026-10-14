@@ -4645,3 +4645,90 @@ principles = ["R1.3"]
 actor = "other"
 kind = "statement"
 text = { cs = "Příloha 7 cestovní mapy uvádí pro každou evropskou výzkumnou infrastrukturu z cestovní mapy ESFRI, na které se Česká republika podílí, velkou výzkumnou infrastrukturu, která je jejím národním uzlem.", en = "Annex 7 of the roadmap names, for each European research infrastructure on the ESFRI roadmap in which the Czech Republic participates, the large research infrastructure that is its Czech national node." }
+
+[[clause]]
+id = "RDMKIT.tasks.01"
+source = "rdmkit"
+principles = ["R1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "RDMkit propojuje úkoly správy dat s rolemi, oborovými postupy, nástroji, školeními v TeSS a recepty FAIR Cookbook.", en = "RDMkit connects data-management tasks with roles, domain practices, tools, TeSS training and FAIR Cookbook recipes." }
+locator = "Your tasks; Your role; Your domain; All tools and resources; pinned source revision"
+
+[[clause]]
+id = "COPYRIGHT-LICENCES.03"
+source = "copyright-licences"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Českých autorských práv se nelze vzdát; CC0 se u autorského díla vykládá jako nejširší oprávnění k užití. Zvláštní právo pořizovatele databáze lze převést nebo se ho vzdát.", en = "Authors' rights cannot be waived under Czech law; for a copyright work, CC0 is read as the broadest permission to use it. A database maker's sui generis right may be transferred or waived." }
+locator = "Version 1.0, pp. 8 and 13; CC0 and database rights"
+
+[[clause]]
+id = "CONDAENV.01"
+source = "conda-environments"
+principles = ["R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Conda umí exportovat definici prostředí a vytvořit z ní prostředí znovu; při přenosu je třeba zohlednit platformu a dostupnost balíčků.", en = "Conda can export an environment definition and recreate an environment from it; portability depends on the platform and package availability." }
+locator = "Sharing an environment; recreating an environment"
+
+[[clause]]
+id = "WFCRATE.01"
+source = "workflow-ro-crate"
+principles = ["I1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Workflow RO-Crate doplňuje RO-Crate o popis hlavního výpočetního postupu a jeho souvisejících souborů a metadat.", en = "Workflow RO-Crate extends RO-Crate with a description of the main computational workflow and its related files and metadata." }
+locator = "Workflow RO-Crate profile 1.1"
+
+[[clause]]
+id = "CONTAINER.01"
+source = "container-images"
+principles = ["R1.2"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Připnutí obrazu kontejneru pomocí digestu určuje konkrétní verzi; proměnlivý tag sám o sobě stejný obraz nezaručuje.", en = "Pinning a container image by digest identifies a specific version; a mutable tag alone does not guarantee the same image." }
+locator = "Pin base image versions"
+
+[[clause]]
+id = "COPYRIGHT-LICENCES.04"
+source = "copyright-licences"
+principles = ["R1.1", "A1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Právní ochrana závisí na povaze dat; mohou se souběžně uplatnit autorské a databázové právo, ochrana osobních údajů, obchodního tajemství a další právní či smluvní omezení.", en = "Protection depends on the nature of the data; copyright, database rights, personal-data and trade-secret protection and other legal or contractual restrictions may apply together." }
+locator = "Version 1.0, pp. 6–8: Protection of research data"
+
+[[clause]]
+id = "COPYRIGHT-LICENCES.05"
+source = "copyright-licences"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Tabulka slučitelnosti se vztahuje na zpracování a spojování vstupních děl; prvky ND zpracování omezují a prvky SA a NC určují další podmínky.", en = "The compatibility table concerns adapting and combining input works; ND restricts adaptation, and SA and NC impose further conditions." }
+locator = "Version 1.0, p. 14: CC licence compatibility"
+
+[[clause]]
+id = "COPYRIGHT-LICENCES.06"
+source = "copyright-licences"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Veřejná licence oslovuje neurčitý okruh osob.", en = "A public licence addresses an unspecified group of users." }
+locator = "Version 1.0, p. 5: Public licence"
+guidance = "Jedná se o standardizovaná licenční ujednání, kde na jedné straně stojí poskytovatel licence a na straně druhé neomezený a neurčitý okruh osob, které lze aplikovat pouhým připojením odkazu na její celé znění. K uzavření smlouvy dochází tím, že se uživatel začne chovat v souladu s podmínkami licence, aniž by o tom byl poskytovatel licence výslovně vyrozuměn."
+guidanceLanguage = "cs"
+terms = ["250"]
+
+[[clause]]
+id = "COPYRIGHT-LICENCES.07"
+source = "copyright-licences"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Creative Commons jsou typizované licence pro obsah.", en = "Creative Commons are standard licences for content." }
+locator = "Version 1.0, pp. 10-11: Creative Commons"
+guidance = "Nejvyužívanějšími jsou typizované licence Creative Commons (CC), které jsou používány celosvětově a umožňují nakládání s dílem co nejširšímu okruhu osob za předem stanovených  podmínek. Jsou vhodné prakticky pro všechny typy autorských děl s výjimkou softwarů, pro které existují zvláštní typizované licence (viz níže). "
+guidanceLanguage = "cs"
+terms = ["50"]

@@ -28,6 +28,8 @@ lens = { cs = "Pohled", en = "View as" }
 switchTo = { cs = "English", en = "Česky" }
 
 [journey]
+read = { cs = "přečteno", en = "read" }
+
 title = { cs = "Životní cyklus výzkumných dat", en = "The research data life cycle" }
 intro = { cs = "Cesta Průvodce sleduje sedm fází životního cyklu dat podle {rdmkit}. Začněte fází, ve které jste; každý krok můžete otevřít kdykoli.", en = "The Guide's path follows the seven stages of the {rdmkit} research data life cycle. Start with the stage you are in; you can open any step at any time." }
 lastRead = { cs = "Naposledy jste četli", en = "Last read" }
@@ -896,6 +898,8 @@ aboutLink = { cs = "Jak Průvodce ukládá vaše odpovědi a jak je smazat", en 
 notSaved = { cs = "Prohlížeč odmítl odpovědi uložit (nemá místo, nebo je ukládání zakázáno). Do zavření stránky zůstanou; uložte si výsledek do souboru.", en = "The browser refused to save the answers (no room, or storage is blocked). They stay until the page closes; save the result to a file." }
 
 [catalogue]
+originalDefinition = { cs = "Původní definice z příručky NRP", en = "Original definition from the NRP handbook" }
+trainingSearch = { cs = "Školení v TeSS", en = "Training in TeSS" }
 title = { cs = "Katalog", en = "Catalogue" }
 reviewedVersion = { cs = "Mapování posouzeno pro verze", en = "Mappings reviewed for versions" }
 unmapped = { cs = "Kritérium není mapováno na otázku Průvodce; zůstává podkladem.", en = "The criterion is not mapped to a guide question; it remains evidence." }

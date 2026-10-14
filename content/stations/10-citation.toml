@@ -173,3 +173,10 @@ text = { cs = "AI vám pomůže najít v textu místa, kde používáte data, a 
 check = { cs = "Každý DOI v citaci rozřešte a porovnejte autory, název, rok a verzi se záznamem.", en = "Resolve every DOI in a citation and compare the authors, title, year and version with the record." }
 prompt = { cs = "Projdi text níže a vypiš místa, kde se používají nebo zmiňují výzkumná data, včetně dat jiných autorů. U každého uveď větu a jaká data by se měla citovat. Citace nevytvářej.\n\nText: […]", en = "Go through the text below and list the places where research data are used or mentioned, including other authors' data. For each, give the sentence and which data should be cited. Do not create citations.\n\nText: […]" }
 sources = ["EC-GENAI-GUIDELINES.02", "EC-GENAI-GUIDELINES.01"]
+
+[[advice]]
+id = "citation.23"
+lens = "*"
+level = "L1"
+text = { cs = "Při novém využití ověřte [[rdmkit-existing-data|vhodnost existujících dat]], jejich licenci a původ. Citujte konkrétní použitou verzi a popište změny; [[rdmkit-provenance|provenience]] pomůže dalšímu uživateli odlišit původní data od výsledku analýzy.", en = "Before reuse, check [[rdmkit-existing-data|whether the existing data fit your purpose]], their licence and origin. Cite the version used and describe transformations; [[rdmkit-provenance|provenance]] helps the next user distinguish source data from analysis outputs." }
+sources = ["RDMKIT.tasks.01"]

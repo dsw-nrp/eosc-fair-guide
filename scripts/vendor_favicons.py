@@ -1,6 +1,6 @@
 """Vendor the favicons of the tools and services the guide names into assets/favicons/, normalised.
 
-Usage: python scripts/vendor_favicons.py [--check] [--input DIR] [--date YYYY-MM-DD]
+Usage: python scripts/vendor_favicons.py [--check | --infrastructures] [--input DIR] [--date YYYY-MM-DD]
 
 A tool or service is shown beside its name with its own favicon wherever one can be obtained (D-183). The page
 requests nothing from other sites when it loads, so each favicon is taken from its site here and normalised once to a
@@ -15,6 +15,11 @@ nothing and exits 1 when a recorded file is missing, changed, not a SIZE-pixel P
 responses from files named by `response_name()` instead of the network (for tests). Fetching uses only the standard
 library; on a machine whose certificate store refuses sites that verify elsewhere, point SSL_CERT_FILE at a current CA
 bundle. Normalising needs Node and the Playwright browser (`npm ci`, `npx playwright install chromium`).
+
+Infrastructure marks use their reviewed `website` and, where a generic site favicon is unsuitable, an explicit
+`logo` from that official site. They are keyed by infrastructure, so a faculty's favicon is never inferred from a
+portal page. `--infrastructures` refreshes only those marks, retaining verified service files and their retrieval
+dates. Identical normalised marks share one file. A full refresh includes both services and infrastructures.
 """
 
 from __future__ import annotations
@@ -75,6 +80,7 @@ PLATFORMS = {
     "osf.io",
     "sites.google.com",
     "docs.google.com",
+    "vyzkumne-infrastruktury.cz",
 }
 # Image types by their first bytes, and the extension an original is kept under while it is normalised.
 SIGNATURES = (
@@ -246,6 +252,49 @@ class Found:
     source: str
     data: bytes
     kind: str
+    key: str | None = None
+    retrieved: str | None = None
+    file: str | None = None
+
+    @property
+    def stem(self) -> str:
+        """A safe local identity, distinct from the website when an infrastructure shares its host."""
+        return self.key or self.host
+
+
+def infrastructure_marks(root: Path, fetch: Fetch) -> tuple[dict[str, list[Found]], list[str]]:
+    """Reviewed official sites, using an explicit own logo where the site's favicon is generic or absent."""
+    items = _toml(root / "content" / "infrastructures.toml").get("infrastructure", [])
+
+    def find(item: dict[str, Any]) -> tuple[str, list[Found]]:
+        if not re.fullmatch(r"[a-z0-9-]+", item["id"]):
+            raise ValueError("an infrastructure ID must be a lowercase slug")
+        key = "infrastructure-" + item["id"]
+        url = item.get("website", "")
+        host = host_of(url)
+        if not host:
+            return key, []
+        if item.get("logo") is False:
+            # A reviewed site has no distinct usable infrastructure mark; do not substitute its institution's icon.
+            return key, []
+        if item.get("logo"):
+            if not str(item["logo"]).startswith("https://"):
+                raise ValueError(f"{key}: logo must use HTTPS")
+            try:
+                _, data = fetch(item["logo"], MAX_SOURCE_BYTES)
+                kind = image_kind(data) if len(data) <= MAX_SOURCE_BYTES else None
+                found = [Found(host, item["logo"], data, kind)] if kind else []
+            except (OSError, ValueError):
+                found = []
+        else:
+            found = favicons(host, url, fetch)
+        for mark in found:
+            mark.key = key
+        return key, found
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        found = dict(pool.map(find, items))
+    return found, list(found)
 
 
 def favicons(host: str, url: str, fetch: Fetch) -> list[Found]:
@@ -312,21 +361,36 @@ def manifest_text(entries: list[tuple[Found, bytes]], retrieved: str) -> str:
             "",
             "[[favicon]]",
             f'host = "{item.host}"',
-            f'file = "{item.host}.png"',
+            f'file = "{item.file or item.stem + ".png"}"',
             f"source = {json.dumps(item.source)}",
             f'sha256 = "{hashlib.sha256(data).hexdigest()}"',
+            f"retrieved = {item.retrieved or retrieved}",
         ]
+        if item.key:
+            lines.append(f'key = "{item.key}"')
         if item.host in PLATFORMS:
             lines.append("homeOnly = true")
     return "\n".join(lines) + "\n"
 
 
-def vendor(root: Path, fetch: Fetch, retrieved: str, normalise: Normalise = node_normalise) -> tuple[int, list[str]]:
+def vendor(
+    root: Path,
+    fetch: Fetch,
+    retrieved: str,
+    normalise: Normalise = node_normalise,
+    *,
+    infrastructures_only: bool = False,
+) -> tuple[int, list[str]]:
     """Ask every host for its favicon, normalise what was found and replace the folder with it; the number of
     favicons and the hosts that keep their monogram. The originals live only in the work folder, which is removed."""
-    hosts = service_urls(root)
+    hosts = {} if infrastructures_only else service_urls(root)
+    previous = _toml(root / MANIFEST)
+    if infrastructures_only and (problems := check(root)):
+        raise ValueError("existing favicon files must pass --check before a partial refresh: " + "; ".join(problems))
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         found = dict(zip(hosts, pool.map(lambda item: favicons(item[0], item[1], fetch), hosts.items()), strict=True))
+    marks, mark_keys = infrastructure_marks(root, fetch)
+    found.update(marks)
     work = root / WORK
     shutil.rmtree(work, ignore_errors=True)
     originals, normalised = work / "originals", work / "normalised"
@@ -335,12 +399,28 @@ def vendor(root: Path, fetch: Fetch, retrieved: str, normalise: Normalise = node
     try:
         for items in found.values():
             for index, item in enumerate(items):
-                (originals / f"{item.host}~{index}.{item.kind}").write_bytes(item.data)
+                (originals / f"{item.stem}~{index}.{item.kind}").write_bytes(item.data)
         normalise(originals, normalised)
         entries = []
-        for host, items in sorted(found.items()):
+        if infrastructures_only:
+            for row in previous.get("favicon", []):
+                if not row.get("key"):
+                    entries.append(
+                        (
+                            Found(
+                                row["host"],
+                                row["source"],
+                                b"",
+                                "png",
+                                retrieved=str(row.get("retrieved", previous["favicons"]["retrieved"])),
+                                file=row["file"],
+                            ),
+                            (root / TARGET / row["file"]).read_bytes(),
+                        )
+                    )
+        for _host, items in sorted(found.items()):
             for index, item in enumerate(items):
-                path = normalised / f"{host}~{index}.png"
+                path = normalised / f"{item.stem}~{index}.png"
                 data = path.read_bytes() if path.is_file() else b""
                 if png_size(data) == (SIZE, SIZE) and len(data) <= MAX_FILE_BYTES:
                     entries.append((item, data))
@@ -348,21 +428,38 @@ def vendor(root: Path, fetch: Fetch, retrieved: str, normalise: Normalise = node
         target = root / TARGET
         shutil.rmtree(target, ignore_errors=True)
         target.mkdir(parents=True)
+        shared: dict[str, str] = {}
         for item, data in entries:
-            (target / f"{item.host}.png").write_bytes(data)
+            digest = hashlib.sha256(data).hexdigest()
+            if item.key:
+                item.file = shared.setdefault(digest, item.stem + ".png")
+            else:
+                item.file = item.host + ".png"
+                shared.setdefault(digest, item.file)
+            (target / item.file).write_bytes(data)
         (root / MANIFEST).write_text(manifest_text(entries, retrieved), encoding="utf-8", newline="\n")
     finally:
         shutil.rmtree(work, ignore_errors=True)
-    kept = {item.host for item, _ in entries}
-    return len(entries), [host for host in hosts if host not in kept]
+    kept = {item.stem for item, _ in entries}
+    return len(entries), [key for key in [*hosts, *mark_keys] if key not in kept]
 
 
 def check(root: Path = ROOT) -> list[str]:
     """Problems with the vendored favicons: a recorded file missing, changed or not a SIZE-pixel PNG within the size
     limit, a record without its source, or a file not recorded."""
     problems = []
-    recorded = {item["file"]: item for item in _toml(root / MANIFEST).get("favicon", [])}
-    for name, item in recorded.items():
+    records = _toml(root / MANIFEST).get("favicon", [])
+    recorded = {item["file"] for item in records}
+    identities = set()
+    for item in records:
+        name = item["file"]
+        identity = item.get("key", item.get("host"))
+        if identity in identities:
+            problems.append(f"{identity}: duplicate favicon identity")
+        identities.add(identity)
+        if not re.fullmatch(r"[a-z0-9.-]+\.png", name) or (not item.get("key") and name != f"{item.get('host')}.png"):
+            problems.append(f"{name}: invalid local filename")
+            continue
         path = root / TARGET / name
         if not path.is_file():
             problems.append(f"{name}: recorded but missing")
@@ -372,7 +469,7 @@ def check(root: Path = ROOT) -> list[str]:
             problems.append(f"{name}: differs from the recorded file")
         if png_size(data) != (SIZE, SIZE) or len(data) > MAX_FILE_BYTES:
             problems.append(f"{name}: not a {SIZE}-pixel PNG within {MAX_FILE_BYTES // 1024} KB")
-        if not str(item.get("source", "")).startswith("https://") or name != f"{item.get('host')}.png":
+        if not str(item.get("source", "")).startswith("https://") or not re.fullmatch(r"[a-z0-9.-]+\.png", name):
             problems.append(f"{name}: its source or host is not recorded")
     folder = root / TARGET
     if folder.is_dir():
@@ -385,6 +482,11 @@ def check(root: Path = ROOT) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true", help="report problems instead of fetching; exit 1 on any")
+    parser.add_argument(
+        "--infrastructures",
+        action="store_true",
+        help="refresh only infrastructure marks, keeping verified service files",
+    )
     parser.add_argument("--input", type=Path, help="read responses from this folder instead of the network")
     parser.add_argument("--date", default=date.today().isoformat(), help="retrieval date to record (YYYY-MM-DD)")
     args = parser.parse_args(argv)
@@ -396,7 +498,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"vendor_favicons: {count} favicons recorded, {len(problems)} problem(s)")
         return 1 if problems else 0
     fetch = file_fetch(args.input) if args.input else network_fetch
-    count, missing = vendor(ROOT, fetch, args.date)
+    count, missing = vendor(ROOT, fetch, args.date, infrastructures_only=args.infrastructures)
     print(f"vendor_favicons: {count} favicons, {len(missing)} hosts keep their monogram")
     for host in missing:
         print(f"  monogram: {host}")
