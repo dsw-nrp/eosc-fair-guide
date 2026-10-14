@@ -153,6 +153,27 @@ try {
   assert.equal(read.echo.echoed, "F1A", "a response naming another metric keeps the requested identity and records the difference");
   assert(read.mappings.service.every((coverage) => coverage === "partial"), "FAIR-Checker metrics only add evidence");
   assert.deepEqual(read.mappings.fuji.sort(), ["FsF-A1-01M dataset.10", "FsF-F1-02MD dataset.01"]);
+  // FAIR-Checker scoring 0 everywhere usually read no metadata at all, so it decides nothing; one 0 among other
+  // scores is that metric's No. Numbers are written as the page's language writes them.
+  const guard = await page.evaluate(() => {
+    const P = window.FairGuide.providers, FG = window.FairGuide;
+    const item = FG.get("#item-dataset.01");
+    const rows = [{ metric: "F1A", coverage: "partial" }];
+    const service = P.provider("fair-checker");
+    const assessment = (scores) => ({ provider: "fair-checker", reviewed: true, target: "https://doi.org/10.1234/example",
+      results: Object.entries(scores).map(([id, score]) => P.readFairChecker(id, JSON.stringify({ metric: id, score }), service)) });
+    const blank = P.evidence(item, rows, assessment({ F1A: 0, F1B: 0, A11: 0 }));
+    const one = P.evidence(item, rows, assessment({ F1A: 0, F1B: 2, A11: 1 }));
+    const lang = FG.state.lang;
+    FG.state.lang = "cs";
+    const czech = FG.formatNumber(0.5); // P.outcome writes every number through it
+    FG.state.lang = lang;
+    return { blank: [blank.value, blank.notes.map((note) => note.key)], one: one.value, czech };
+  });
+  assert.equal(guard.blank[0], null, "a FAIR-Checker assessment that scored 0 everywhere suggests nothing");
+  assert(guard.blank[1].includes("selfcheck.note.providerBlank"), "and it says why");
+  assert.equal(guard.one, "no", "one metric's 0 among other scores still suggests No through a partial mapping");
+  assert(guard.czech.includes("0,5"), "Czech pages write the points with a decimal comma: " + guard.czech);
 
   for (const lang of ["cs", "en"]) {
     await reset();
@@ -247,6 +268,21 @@ try {
     assert.equal(persistent.value, "yes", "a metric F-UJI shows as passed at level 3 suggests Yes through a whole mapping, whatever its test status");
     assert(persistent.observations.some((seen) => seen.source === "f-uji" && seen.value === "yes" && !seen.notes.some((note) => note.key === "selfcheck.note.providerFail")));
     assert.equal(persistent.prefill.source, "f-uji", "evidence about the whole question outranks FAIR-Checker's earlier partial suggestion");
+    /* A saved assessment follows the current reading on the next visit: an observation stored under an earlier
+       reading is replaced once, and only that assessment's own. */
+    await page.evaluate(() => {
+      const entry = window.FairGuide.state.answers.dataset.items["dataset.01"];
+      entry.observations.find((seen) => seen.source === "f-uji").value = "no";
+      entry.prefill.value = "no"; entry.value = "no";
+      window.FairGuide.saveState();
+    });
+    await page.reload();
+    await page.waitForSelector("#main h1");
+    await part("report");
+    await page.waitForSelector("#provider-overview-1");
+    const reread = await item("dataset.01");
+    assert.equal(reread.observations.find((seen) => seen.source === "f-uji").value, "yes", "a saved assessment is read again under the current reading on the next visit");
+    assert.equal(reread.value, "yes", "and its suggestion follows");
     assert((await page.locator("#provider-overview-1").textContent()).includes(lang === "cs" ? "test_status" : "test_status"), "the report's own status is shown where it differs");
     assert.equal((await item("dataset.10")).value, "no", "a whole-mapping pass leaves the reader's No unchanged");
     assert.equal((await item("dataset.10")).origin, "user");

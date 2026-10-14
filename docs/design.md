@@ -1063,6 +1063,11 @@ registry offers no suitable conformance test. Selection and health edits carry t
 
 ## Optional evaluators
 
+Repository samples retain quick discovery and the existing FAIR Champion tests. FAIR-Checker and F-UJI
+assess one object at a time; running them over every sample record is explicitly deferred follow-up work
+(maintainer decision, 14 October 2026). The maturity check's evidence cards describe the supported sample
+checks and do not promise that deferred batch evaluation.
+
 A check about one object offers FAIR-Checker and F-UJI next to quick discovery and FAIR Champion. Each choice
 states what the service assesses, which identifier it receives and where, and starts only when the reader chooses
 it; nothing runs on entry, while typing, on quick lookup or on a report preview. FAIR-Checker runs from the browser

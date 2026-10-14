@@ -196,6 +196,16 @@ url = "https://www.eosc.cz/o-nas/acknowledgement"
 id = "eosc-data-stewards"
 url = "https://www.eosc.cz/komunity/data-stewardi"
 
+# The EOSC CZ Node's page, for changes to its state and members (content/eosc-node.toml, D-172).
+[[watch]]
+id = "eosc-cz-node"
+url = "https://www.eosc.cz/o-nas/eosc-node-czechia"
+
+# The national roadmap of large research infrastructures, for its 2027 update (content/infrastructures.toml, D-174).
+[[watch]]
+id = "lri-roadmap"
+url = "https://www.vyzkumne-infrastruktury.cz/cestovni-mapa-velkych-vyzkumnych-infrastruktur-cr/"
+
 # Link targets the page builds links to; links are not calls, and the page fetches nothing from them.
 [links]
 fipDashboard = "https://fip-dashboard.dmp.eosc.cz/"

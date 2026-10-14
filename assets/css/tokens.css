@@ -46,6 +46,7 @@
   --kind-lifecycle: #b04a0e;
   --kind-model: #4b5a61;
   --kind-actions: #6b4f2a;
+  --kind-infrastructures: #7a2e8e;
 
   /* Answer states, solid in bars and distributions; Yes and Don't know differ clearly in hue; always with a label */
   --state-met: #2f7a3a;

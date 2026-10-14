@@ -955,8 +955,10 @@ questions = { cs = "Otázky kontrol", en = "Check questions" }
 actions = { cs = "Změny obsahu", en = "Content changes" }
 lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
 model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+infrastructures = { cs = "Velké výzkumné infrastruktury", en = "Large research infrastructures" }
 
 [catalogue.intro]
+infrastructures = { cs = "Velké výzkumné infrastruktury z Cestovní mapy velkých výzkumných infrastruktur ČR na léta 2023–2026: obor, fáze, hostitelská instituce, národní uzly evropských výzkumných infrastruktur a členství v ERIC, jak je mapa uvádí, a repozitáře, které provozují, kde to uvádí zdroj.", en = "The large research infrastructures of the Czech Roadmap of Large Research Infrastructures for 2023–2026: field, phase, hosting institution, national nodes of European research infrastructures and ERIC memberships as the roadmap states them, and the repositories they operate where a source says so." }
 lifecycle = { cs = "Fáze životního cyklu výzkumných dat podle RDMkit, MaLDReTH a katalogu nástrojů KNAV, jak je zdroje publikují, a jak si navzájem odpovídají. Cesta Průvodce sleduje fáze RDMkit.", en = "Stages of the research data life cycle in RDMkit, MaLDReTH and the KNAV tools catalogue, as their sources publish them, and how they correspond. The Guide's path follows the RDMkit stages." }
 model = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami Průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the Guide." }
 all = { cs = "Vše, z čeho Průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the Guide builds on and recommends, in one catalogue." }
@@ -983,6 +985,7 @@ questions = { cs = "Otázka kontroly", en = "Check question" }
 actions = { cs = "Změna obsahu", en = "Content change" }
 lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
 model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+infrastructures = { cs = "Velká výzkumná infrastruktura", en = "Large research infrastructure" }
 
 # What DataCite reports about a repository in the finder, read on the reader's request.
 [catalogue.datacite]
@@ -1008,6 +1011,12 @@ inGuide = { cs = "V Průvodci", en = "In the Guide" }
 identifiers = { cs = "Identifikátory", en = "Identifiers" }
 implementationLayers = { cs = "Vrstvy implementace", en = "Implementation layers" }
 implementationSeams = { cs = "Návaznosti", en = "Connections" }
+operatedBy = { cs = "Provozovatel", en = "Operated by" }
+nationalNodeOf = { cs = "Národní uzel", en = "National node of" }
+memberOf = { cs = "Členství v ERIC", en = "ERIC membership" }
+operates = { cs = "Provozuje", en = "Operates" }
+fips = { cs = "Profil FIP komunity", en = "Community FIP" }
+developedBy = { cs = "Vyvinuli", en = "Developed by" }
 
 [catalogue.what]
 term = { cs = "pojem Hesláře", en = "Heslář term" }
@@ -1154,6 +1163,10 @@ cstatus = { cs = "Platnost", en = "Validity" }
 check = { cs = "Kontrola", en = "Check" }
 tier = { cs = "Úroveň", en = "Tier" }
 change = { cs = "Druh změny", en = "Kind of change" }
+field = { cs = "Obor", en = "Field" }
+riphase = { cs = "Fáze", en = "Phase" }
+esfri = { cs = "Status ESFRI", en = "ESFRI status" }
+node = { cs = "EOSC CZ Node", en = "EOSC CZ Node" }
 
 [catalogue.clauseStatus]
 current = { cs = "platné", en = "current" }
@@ -1165,6 +1178,7 @@ cs = { cs = "čeština", en = "Czech" }
 en = { cs = "angličtina", en = "English" }
 
 [catalogue.orderBy]
+field = { cs = "podle oboru", en = "by field" }
 name = { cs = "podle názvu", en = "by name" }
 station = { cs = "podle zastávky", en = "by station" }
 principle = { cs = "podle principu", en = "by principle" }
@@ -1487,3 +1501,27 @@ name = { cs = "Životní cyklus výzkumných dat", en = "Research data life cycl
 description = { cs = "Modely životního cyklu výzkumných dat (RDMkit, MaLDReTH, katalog nástrojů KNAV) s fázemi, jak je zdroje publikují, a převodník mezi nimi, u každé shody s jejím základem.", en = "Research data life-cycle models (RDMkit, MaLDReTH, the KNAV tools catalogue) with their stages as their sources publish them, and the crosswalk between them, each correspondence with its basis." }
 record = { cs = "Jeden model, fáze nebo shoda mezi fázemi", en = "One model, stage or correspondence between stages" }
 parameter = { cs = "Identifikátor modelu, fáze nebo shody", en = "The model, stage or correspondence identifier" }
+
+# A large research infrastructure in the catalogue (content/infrastructures.toml, D-174).
+[infrastructure]
+host = { cs = "hostitelská instituce: {host}", en = "hosting institution: {host}" }
+since = { cs = "na cestovní mapě od roku {year}", en = "on the roadmap since {year}" }
+ericSince = { cs = "{name}, ČR členem od roku {year}", en = "{name}, the Czech Republic a member since {year}" }
+ericExpected = { cs = "{name}, ČR zakládajícím členem po jeho založení", en = "{name}, the Czech Republic a founding member once it is set up" }
+source = { cs = "Cestovní mapa VVI 2023–2026, {locator}", en = "Roadmap of Large Research Infrastructures 2023–2026, {locator}" }
+operatorSource = { cs = "podle zdroje", en = "as stated by the source" }
+
+# What an entry is in the EOSC CZ Node, as the node's charter says (D-172); the node is a candidate node.
+[node]
+service = { cs = "služba uzlu", en = "node service" }
+repository = { cs = "zapojení plánováno do {milestone}", en = "integration planned by {milestone}" }
+incubator = { cs = "služba v inkubátoru uzlu", en = "node incubator service" }
+checked = { cs = "ověřeno {date}", en = "checked {date}" }
+source = { cs = "charta uzlu", en = "node charter" }
+candidate = { cs = "EOSC CZ Node je kandidátským uzlem Federace EOSC od {date}.", en = "EOSC CZ Node has been a candidate node of the EOSC Federation since {date}." }
+
+[api.collection.infrastructures]
+name = { cs = "Velké výzkumné infrastruktury", en = "Large research infrastructures" }
+description = { cs = "Velké výzkumné infrastruktury z Cestovní mapy ČR na léta 2023–2026 s fakty podle jejích příloh, národními uzly, členstvím v ERIC a repozitáři, které provozují.", en = "The large research infrastructures of the Czech roadmap for 2023–2026 with the facts its annexes state, their national nodes, ERIC memberships and the repositories they operate." }
+record = { cs = "Jedna velká výzkumná infrastruktura", en = "One large research infrastructure" }
+parameter = { cs = "Identifikátor infrastruktury", en = "The infrastructure identifier" }

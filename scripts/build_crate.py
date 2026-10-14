@@ -165,6 +165,27 @@ TERMS = MODEL_TERMS | {
     ),
     "lifecycleStage": "Stage of the RDMkit research data life cycle that a path step belongs to.",
     "dataciteRepository": "The repository's ID in DataCite (its DataCite client), as the maintainer reviewed it.",
+    "abbreviation": "The abbreviation of a name in each language, such as ČSDA in Czech and CSDA in English (D-173).",
+    "operatorName": "Who operates a service or repository, as the source in operatorSource states it.",
+    "operatorSource": "The published page or document that states who operates a service or repository.",
+    "operatedBy": "The large research infrastructure operating a catalogue entry, where a source says so (D-174).",
+    "hostingInstitution": "The hosting institution (coordinator) of a large research infrastructure, per its roadmap.",
+    "researchField": "The science-disciplinary domain of a large research infrastructure in the national roadmap.",
+    "infrastructurePhase": "The life-cycle phase of a large research infrastructure in the national roadmap.",
+    "infrastructureCharacter": "Whether an infrastructure is single-sited, multi-sited, distributed or virtual.",
+    "roadmapSince": "The year a large research infrastructure was included in the national roadmap.",
+    "esfriStatus": "The ESFRI Roadmap 2021 status: ESFRI Landmark or ESFRI Project.",
+    "nationalNodeOf": "ESFRI research infrastructures that an infrastructure is the Czech node of.",
+    "roadmapLocator": "Where in the national roadmap a large research infrastructure's facts are stated.",
+    "czechMembershipSince": "The year the Czech Republic entered an ERIC; 'expected' while the ERIC is being set up.",
+    "nodeMembership": "An entry's role in the EOSC CZ Node, with its milestone, date checked and source.",
+    "nodeMilestone": "The month of the node's project by which a repository's integration is planned (M6, M12).",
+    "nodeState": "The state of the EOSC CZ Node in the EOSC Federation, such as candidate.",
+    "nodeStateSince": "The date the EOSC CZ Node reached its state, such as its approval as a candidate node.",
+    "operatedBySource": "The published page or document that states which infrastructure operates an entry.",
+    "operates": "Catalogue entries a large research infrastructure operates, where a source states it (D-174).",
+    "developerName": "Who developed a repository, as developerSource states it, where no operator is stated.",
+    "developerSource": "The published page that states who developed a repository.",
     "mappingBasis": (
         "Basis of a correspondence between life-cycle stages: published by its source, reviewed by the guide, or "
         "unconfirmed."
@@ -280,6 +301,8 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "resources": optional("resources.toml").get("resource", []),
         "repositories": optional("repositories.toml").get("repository", []),
         "repository_records": optional("repositories.toml").get("record", []),
+        "infrastructures": optional("infrastructures.toml"),
+        "node": optional("eosc-node.toml"),
         "snapshots": snapshots,
         "glossary": optional("glossary.toml"),
         "callouts": optional("callouts.toml").get("callout", []),
@@ -450,6 +473,10 @@ def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
     targets |= {"page:" + page["id"]: f"#page-{page['id']}" for page in content["pages"]}
     targets |= {"station:" + data["station"]["id"]: f"#station-{data['station']['id']}" for data in content["stations"]}
     targets |= {"clause:" + clause["id"]: f"#clause-{clause['id']}" for clause in content["ledger"]}
+    infrastructures = (content.get("infrastructures") or {}).get("infrastructure", [])
+    targets |= {"infrastructure:" + item["id"]: f"#infrastructure-{item['id']}" for item in infrastructures}
+    if infrastructures:
+        targets["infrastructures"] = "#infrastructures"
     targets["profile"] = content["guide"]["guide"]["profile"]
     targets |= {
         key: entity_ids[0]
@@ -606,6 +633,15 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
         "rfunction",
         guide.get("repositoryFunction", []),
     )
+    defined_terms(graph, "research-fields", "Research fields", "rifield", guide.get("researchField", []))
+    defined_terms(
+        graph, "ri-phases", "Infrastructure life-cycle phases", "riphase", guide.get("infrastructurePhase", [])
+    )
+    defined_terms(
+        graph, "ri-characters", "Infrastructure characters", "richaracter", guide.get("infrastructureCharacter", [])
+    )
+    defined_terms(graph, "esfri-statuses", "ESFRI statuses", "esfri", guide.get("esfriStatus", []))
+    defined_terms(graph, "node-roles", "EOSC CZ Node roles", "noderole", guide.get("nodeRole", []))
     for help_route in guide.get("help", []):
         graph.add(
             {
@@ -950,6 +986,8 @@ def build_resources(
             "repositoryFunction": refs([f"#rfunction-{value}" for value in resource.get("functions", [])]),
             "serviceStatus": ref(f"#status-{resource['status']}") if resource.get("status") else None,
             "statusAsOf": iso(resource["asOf"]) if resource.get("asOf") else None,
+            "operatorName": text((resource.get("operator") or {}).get("name")),
+            "operatorSource": (resource.get("operator") or {}).get("source"),
             "sameAs": refs(
                 resource.get("sameAs", [])
                 + ([FIP_DASHBOARD + resource["fipDashboard"]] if resource.get("fipDashboard") else [])
@@ -1000,9 +1038,16 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         same_as.append(f"{NKR_OBJECTS}{repository['nkr']}")
     if repository.get("fipDashboard"):
         same_as.append(FIP_DASHBOARD + repository["fipDashboard"])
+    # A name re3data gives only in English takes the first name it tags as Czech for Czech readers; a curated name
+    # (a table, from the entry or its record annotation) corrects both (D-173).
+    name = repository["name"]
+    czech = repository.get("namesCs") or []
+    if isinstance(name, str) and czech and czech[0] != name:
+        name = {"cs": czech[0], "en": name}
     return {
         "@type": "DataCatalog",
-        "name": text(repository["name"]),
+        "name": text(name),
+        "abbreviation": text(repository.get("abbreviation")),
         "url": repository.get("url"),
         "repositoryKind": ref(f"#rkind-{repository['kind']}") if repository.get("kind") else None,
         "repositoryFunction": refs([f"#rfunction-{value}" for value in repository.get("functions", ["deposit-data"])]),
@@ -1014,6 +1059,10 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         "dataciteRepository": repository.get("datacite"),
         "serviceStatus": ref(f"#status-{repository['status']}") if repository.get("status") else None,
         "statusAsOf": iso(repository["asOf"]) if repository.get("asOf") else None,
+        "operatorName": text((repository.get("operator") or {}).get("name")),
+        "operatorSource": (repository.get("operator") or {}).get("source"),
+        "developerName": text((repository.get("developer") or {}).get("name")),
+        "developerSource": (repository.get("developer") or {}).get("source"),
         "isBasedOn": [ref(based_on)],
     }
 
@@ -1357,6 +1406,157 @@ def build_reviews(graph: Graph, item_id: str, verifications: list[dict[str, Any]
             }
         )
     return review_ids
+
+
+def catalogue_entry(graph: Graph, row: dict[str, Any]) -> str | None:
+    """The catalogue entry a node member or an operator relation names: a resource by its ID, a repository by its
+    curated ID or by its re3data record (a repository listed from re3data has no ID of the guide's own)."""
+    if row.get("resource"):
+        entity_id = f"#resource-{row['resource']}"
+        return entity_id if entity_id in graph.entities else None
+    value = str(row.get("repository", ""))
+    for entity_id in (f"#repository-{value}", f"#resource-{value}"):
+        if entity_id in graph.entities:
+            return entity_id
+    for entity_id, entity in graph.entities.items():
+        if entity.get("@type") == "DataCatalog" and value in [str(item) for item in as_list(entity.get("identifier"))]:
+            return entity_id
+    return None
+
+
+def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
+    """The large research infrastructures of the national roadmap (D-174): each with its names, hosting institution,
+    field, phase, character, year of inclusion and ESFRI status (Annex 1), the European research infrastructures it is
+    the Czech node of (Annex 7), the ERICs it belongs to through the Czech Republic's membership (Annex 6), and the
+    catalogue entries it operates where a source states it. Three relations stay distinct: node, ERIC membership and
+    operating an entry; EOSC CZ Node membership is the entry's own (build_node)."""
+    info = data.get("infrastructures", {})
+    items = data.get("infrastructure", [])
+    if not items:
+        return []
+    based_on = graph.resolve([info[key] for key in ("source", "namesSource") if info.get(key)])
+    collection_sources = list(based_on)
+    ids = []
+
+    def european_ri(name: str, status: str) -> str:
+        entity_id = f"#european-ri-{slug(name)}"
+        if entity_id not in graph.entities:
+            graph.add({"@id": entity_id, "@type": "Organization", "name": name, "esfriStatus": ref(f"#esfri-{status}")})
+        return entity_id
+
+    def eric(name: str, since: str) -> str:
+        entity_id = f"#eric-{slug(name)}"
+        if entity_id not in graph.entities:
+            graph.add(
+                {
+                    "@id": entity_id,
+                    "@type": "Organization",
+                    "name": name,
+                    "czechMembershipSince": since,
+                    "isBasedOn": refs(based_on[:1]),
+                }
+            )
+        return entity_id
+
+    for item in items:
+        entity_id = f"#infrastructure-{item['id']}"
+        item_sources = graph.resolve(
+            [source for source in (info.get("source"), item.get("namesSource", info.get("namesSource"))) if source]
+        )
+        collection_sources.extend(source for source in item_sources if source not in collection_sources)
+        operated = []
+        for row in item.get("operates", []):
+            target = catalogue_entry(graph, row)
+            if target is None:
+                raise ContentError(f"infrastructure {item['id']}: operates an unknown catalogue entry {row}")
+            graph.entities[target]["operatedBy"] = ref(entity_id)
+            graph.entities[target]["operatedBySource"] = row.get("evidence")
+            operated.append(target)
+        ids.append(
+            graph.add(
+                {
+                    "@id": entity_id,
+                    "@type": "Organization",
+                    "identifier": item["id"],
+                    "name": text(item["name"]),
+                    "abbreviation": item["acronym"],
+                    "url": item.get("url"),
+                    "hostingInstitution": item.get("host"),
+                    "researchField": ref(f"#rifield-{item['field']}") if item.get("field") else None,
+                    "infrastructurePhase": ref(f"#riphase-{item['phase']}"),
+                    "infrastructureCharacter": ref(f"#richaracter-{item['character']}"),
+                    "roadmapSince": str(item["included"]),
+                    "esfriStatus": refs([f"#esfri-{status}" for status in item.get("esfri", [])]),
+                    "nationalNodeOf": refs([european_ri(row["name"], row["esfri"]) for row in item.get("nodeOf", [])]),
+                    "memberOf": refs([eric(row["name"], row["entry"]) for row in item.get("eric", [])]),
+                    "operates": refs(operated),
+                    # The FIP of the infrastructure's community in the FIP Dashboard snapshot, where it has one.
+                    "subjectOf": ref(f"#fip-{item['fip']}") if item.get("fip") else None,
+                    "roadmapLocator": item.get("annex1"),
+                    "isBasedOn": refs(item_sources),
+                },
+                f"infrastructure:{item['id']}",
+            )
+        )
+    graph.add(
+        {
+            "@id": "#infrastructures",
+            "@type": "CreativeWork",
+            "name": "Large research infrastructures",
+            "hasPart": refs(ids),
+            "isBasedOn": refs(collection_sources),
+            "dateModified": iso(info["checked"]) if info.get("checked") else None,
+        }
+    )
+    return ["#infrastructures", *ids]
+
+
+def build_node(graph: Graph, data: dict[str, Any]) -> list[str]:
+    """The EOSC CZ Node (D-172): its operator, its state and its members. Each member entry carries its membership:
+    the role, any planned milestone, the date checked and the source, so a badge says no more than the charter does."""
+    node = data.get("node")
+    if not node:
+        return []
+    sources = graph.resolve(node.get("sources", []))
+    operator = f"#infrastructure-{node['operator']}"
+    memberships = []
+    for member in data.get("member", []):
+        target = catalogue_entry(graph, member)
+        if target is None:
+            raise ContentError(f"EOSC CZ Node: member {member} names no catalogue entry")
+        membership_id = f"#node-membership-{slug(target.lstrip('#'))}"
+        graph.add(
+            {
+                "@id": membership_id,
+                "@type": "OrganizationRole",
+                "roleName": ref(f"#noderole-{member['role']}"),
+                "nodeMilestone": member.get("milestone"),
+                "statusAsOf": iso(node["checked"]),
+                "citation": refs(sources[:1]),
+                "description": member.get("locator"),
+                "member": ref(target),
+                "memberOf": ref("#eosc-cz-node"),
+            }
+        )
+        graph.entities[target]["nodeMembership"] = ref(membership_id)
+        memberships.append(membership_id)
+    graph.add(
+        {
+            "@id": "#eosc-cz-node",
+            "@type": "Organization",
+            "identifier": node["id"],
+            "name": node["name"],
+            "url": node.get("url"),
+            "nodeState": node.get("state"),
+            "statusAsOf": iso(node["checked"]),
+            "nodeStateSince": iso(node["stateDate"]) if node.get("stateDate") else None,
+            "operatedBy": ref(operator) if operator in graph.entities else None,
+            "isBasedOn": refs(sources),
+            "member": refs(memberships),
+        },
+        "node:eosc-cz-node",
+    )
+    return ["#eosc-cz-node", *memberships]
 
 
 def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk: dict[str, str]) -> list[str]:
@@ -2094,6 +2294,8 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     build_repositories(
         graph, content["repositories"], content["snapshots"], content["resources"], content.get("repository_records")
     )
+    infrastructure_ids = build_infrastructures(graph, content.get("infrastructures") or {})
+    node_ids = build_node(graph, content.get("node") or {})
     knav_ids = build_knav_tools(graph, content)
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
@@ -2214,6 +2416,8 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             + page_ids
             + model_ids
             + lifecycle_ids
+            + infrastructure_ids[:1]
+            + node_ids[:1]
         ),
     }
     graph.entities["./"] = prune(root)
@@ -2244,6 +2448,7 @@ API_COLLECTIONS = (
     "changes",
     "model",
     "lifecycle",
+    "infrastructures",
 )
 API_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 # Where the API's own files sit in the site; records are `api/<collection>/<record ID>.json`.
@@ -2271,6 +2476,7 @@ API_PREFIXES = {
     "#model-example-": "model",
     "#lifecycle-": "lifecycle",
     "#crosswalk-": "lifecycle",
+    "#infrastructure-": "infrastructures",
 }
 
 
@@ -2329,6 +2535,9 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             collection, record = "resources", f"knav.{entity['identifier']}"
         if entity_id == "#implementation-model":
             collection, record = "model", entity["identifier"]
+        if entity_id == "#eosc-cz-node":
+            # The EOSC CZ Node is an organisation of its own, beside the curated ones (D-172).
+            collection, record = "organizations", entity["identifier"]
         if collection is None:
             continue
         if not isinstance(record, str) or not API_ID.match(record):
@@ -2802,7 +3011,8 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
         elif str(entity["@id"]).startswith(("#item-", "#criterion-", "#mapping-")):
             # External evaluators' criteria and their reviewed mappings load with the questions they relate to.
             parts["questions"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(("#fip-", "#fer-", "#knav-")):
+        elif str(entity["@id"]).startswith(("#fip-", "#fer-", "#knav-", "#infrastructure", "#european-ri-", "#eric-")):
+            # The large research infrastructures load with the catalogue, as the registries' records do.
             parts["fips"]["entities"].append(entity)
         elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
             parts["standards"]["entities"].append(entity)
@@ -2932,12 +3142,14 @@ def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any
             bilingual = all(lang in node for lang in LANGS) and not any(isinstance(node[lang], dict) for lang in LANGS)
             source_language = node.get("inLanguage") if not node.get("resourceType") else None
             glossary = str(node.get("@id", "")).startswith("#term-") and node.get("termCode")
+            # A repository's or an infrastructure's entry keeps its name in the other language too (D-173).
+            named = node.get("@type") == "DataCatalog" or "abbreviation" in node
             for key, item in node.items():
                 if bilingual and key in LANGS:
                     common[key] = ""
                     patches[key][key] = item
                     continue
-                if glossary and key == "name":
+                if (glossary and key == "name") or (named and key in ("name", "abbreviation")):
                     # The published vocabulary is deliberately shown as Czech/English pairs in its catalogue.
                     common[key] = item
                     continue

@@ -177,6 +177,13 @@ text = { cs = "V oborech bez standardů a repozitářů spolupracujte s projekte
 sources = ["A.R1.3.N3", "NRP.R2", "OS2.01"]
 
 [[advice]]
+id = "repository.23"
+lens = "K"
+level = "L1"
+text = { cs = "Zjistěte, zda váš obor zastupuje národní uzel evropské výzkumné infrastruktury, například [[infrastructure:csda-ess-cz|CSDA/ESS-CZ]] pro CESSDA a ESS nebo [[infrastructure:lindat-clariah-cz|LINDAT/CLARIAH-CZ]] pro CLARIN a DARIAH. Uzel často provozuje oborový repozitář, který komunita může doporučit ve FIP; uzly a repozitáře, které provozují, uvádí [[infrastructures|katalog velkých výzkumných infrastruktur]].", en = "Find out whether a Czech national node of a European research infrastructure represents your field, such as [[infrastructure:csda-ess-cz|CSDA/ESS-CZ]] for CESSDA and ESS or [[infrastructure:lindat-clariah-cz|LINDAT/CLARIAH-CZ]] for CLARIN and DARIAH. A node often operates a domain repository that the community can recommend in its FIP; the [[infrastructures|catalogue of large research infrastructures]] lists the nodes and the repositories they operate." }
+sources = ["LRI.A7", "A.K4.1"]
+
+[[advice]]
 id = "repository.22"
 lens = "*"
 level = "L1"

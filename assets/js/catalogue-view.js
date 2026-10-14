@@ -7,9 +7,9 @@
 
   const FG = window.FairGuide;
   const h = (...args) => FG.h(...args);
-  const { audiences, citationDetails, citations, code, entryCard, icons, inGuide, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState } = FG.catalogueParts;
+  const { audiences, citationDetails, citations, code, developerRow, entryCard, entryLink, icons, inGuide, operatorRow, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState } = FG.catalogueParts;
 
-  const KINDS = ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
+  const KINDS = ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
   /* Older addresses named the kinds as tabs; cited sources are now part of the resources. */
   const ALIASES = { sources: "resources" };
   const PAGE = 50;
@@ -113,6 +113,7 @@
           language: FG.list(resource.inLanguage).map(String),
           lens: FG.refIds(resource, "audience").map((id) => id.replace("#lens-", "")),
           discipline: tool ? FG.list(tool.discipline) : [],
+          node: nodeRole(resource),
         },
         render: () => resourceCard(resource, record, used, recommended.concat(citedBy)),
       });
@@ -177,6 +178,57 @@
     return entries;
   }
 
+  /** What an entry is in the EOSC CZ Node, as a facet value: its role there, or none (D-172). */
+  const nodeRole = (entity) => {
+    const membership = FG.get(FG.id(entity.nodeMembership));
+    return membership ? [FG.id(membership.roleName)] : [];
+  };
+
+  /** The large research infrastructures of the national roadmap (D-174): names in the reader's language with the
+      acronym, the facts the roadmap states with where it states them, and three relations kept apart: the European
+      infrastructures each is the Czech node of, its ERIC memberships, and the entries it operates. */
+  function infrastructureEntries() {
+    return FG.refs(FG.get("#infrastructures"), "hasPart").map((infra) => {
+      const field = FG.id(infra.researchField);
+      const phase = FG.id(infra.infrastructurePhase);
+      const character = FG.id(infra.infrastructureCharacter);
+      const nodes = FG.refs(infra, "nationalNodeOf");
+      const erics = FG.refs(infra, "memberOf");
+      const name = FG.abbreviatedName(infra, FG.state.lang);
+      return {
+        kind: "infrastructures",
+        anchor: infra.identifier,
+        entity: infra,
+        name,
+        export: { url: infra.url },
+        text: [FG.nameForms(infra), infra.hostingInstitution, nodes.map((ri) => ri.name).join(" "), erics.map((eric) => eric.name).join(" ")].join(" "),
+        stations: [],
+        principles: [],
+        order: FG.fold(infra.abbreviation || FG.text(infra.name)),
+        facets: { field: field ? [field] : [], riphase: phase ? [phase] : [], esfri: FG.refIds(infra, "esfriStatus") },
+        render: () =>
+          entryCard({ kind: "infrastructures",
+            id: infra.identifier,
+            entity: infra,
+            what: [field, phase].filter(Boolean).map(categoryLabel),
+            title: infra.url ? FG.external(infra.url, name) : name,
+            details: [otherName(infra), FG.t("infrastructure.host", { host: infra.hostingInstitution }), FG.t("infrastructure.since", { year: infra.roadmapSince }), character ? categoryLabel(character) : null],
+            states: FG.refIds(infra, "esfriStatus").map((id) => h("span", { class: "badge" }, FG.termName(id))),
+            relations: {
+              operates: FG.refs(infra, "operates").map(entryLink),
+              nationalNodeOf: nodes.map((ri) => h("span", null, ri.name + (FG.id(ri.esfriStatus) ? " (" + FG.termName(FG.id(ri.esfriStatus)) + ")" : ""))),
+              fips: FG.id(infra.subjectOf) ? [h("a", { href: FG.catalogueHref("fips", FG.id(infra.subjectOf).replace("#fip-", "fip-dashboard.")) }, FG.text((FG.get(FG.id(infra.subjectOf)) || {}).name) || FG.id(infra.subjectOf).replace("#fip-", ""))] : [],
+              memberOf: erics.map((eric) => h("span", null, eric.czechMembershipSince === "expected" ? FG.t("infrastructure.ericExpected", { name: eric.name }) : FG.t("infrastructure.ericSince", { name: eric.name, year: eric.czechMembershipSince }))),
+              basedOn: FG.refs(infra, "isBasedOn").map((source, index) => h("span", null, sourceLink(source), index === 0 && infra.roadmapLocator ? " · " + infra.roadmapLocator : null)),
+            },
+          }),
+      };
+    });
+  }
+
+  /** An entry's name in the other language, where it differs (D-173). */
+  const otherName = (entity) => (FG.otherLanguageName(entity) || {}).text || null;
+
   function repositoryEntries(cited) {
     const citedSet = new Set(FG.refIds(FG.get("#sources"), "hasPart"));
     const knav = knavIndex();
@@ -196,9 +248,9 @@
         anchor,
         aliases: borrowedAliases(anchor, r3d, record, tool),
         entity: repository,
-        name: FG.text(repository.name),
+        name: FG.abbreviatedName(repository, FG.state.lang),
         export: { url: repository.url, text: FG.text(repository.description) },
-        text: [FG.bothLanguages(repository.name), FG.bothLanguages(repository.description), FG.bothLanguages(repository.keywords)].join(" "),
+        text: [FG.nameForms(repository), FG.bothLanguages(repository.description), FG.bothLanguages(repository.keywords)].join(" "),
         stations: [...new Set(stationsOf(holders).concat(functions.includes("#rfunction-deposit-data") ? ["repository"] : []))],
         principles: record && record.fer ? FG.refs(record.fer, "about").map(code) : [],
         order: (kindIndex < 0 ? FG.repositoryKindOrder.length : kindIndex) + ":" + FG.fold(FG.text(repository.name)),
@@ -210,6 +262,7 @@
           status: FG.id(repository.serviceStatus) ? [FG.id(repository.serviceStatus)] : [],
           language: FG.list(repository.inLanguage).map(String),
           lens: FG.refIds(repository, "audience").map((id) => id.replace("#lens-", "")),
+          node: nodeRole(repository),
         },
         render: () =>
           entryCard({ kind: "repositories",
@@ -217,12 +270,15 @@
             entity: repository,
             service: { identifier: anchor, name: repository.name, url: repository.url },
             what: functions.map(FG.termName).concat(FG.id(repository.repositoryKind) ? [FG.termName(FG.id(repository.repositoryKind))] : [], uses(used)),
-            title: FG.external(repository.url, FG.text(repository.name)),
-            details: FG.subjectsOf(repository).join(", "),
+            title: FG.external(repository.url, FG.abbreviatedName(repository, FG.state.lang)),
+            /* The name in the other language stays on the entry (D-173). */
+            details: [otherName(repository), FG.subjectsOf(repository).join(", ")].filter(Boolean),
             body: [repository.description ? h("p", null, FG.span(repository.description)) : null, dataciteBlock(repository, anchor)],
-            states: [FG.statusBadge(repository), record ? FG.verificationBadges(record.fer) : null],
+            states: [FG.statusBadge(repository), FG.nodeBadge(repository), record ? FG.verificationBadges(record.fer) : null],
             relations: {
               principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
+              operatedBy: operatorRow(repository),
+              developedBy: developerRow(repository),
               basedOn: FG.repositorySourceLinks(repository),
               audience: audiences(FG.refIds(repository, "audience")),
               inGuide: inGuide(holders),
@@ -622,6 +678,7 @@
     const kinds = {
       resources: resourceEntries(bySource),
       repositories: repositoryEntries(bySource),
+      infrastructures: infrastructureEntries(),
       clauses: clauseEntries(byClause),
       questions: questionEntries(),
       terms: termEntries(),
@@ -797,6 +854,7 @@
       /* The lens narrows what the guide recommends; a cited work or a dashboard record has no audience and stays. */
       { key: "lens", values: () => FG.lenses().map((lens) => lens.audienceType), label: (value) => FG.category(FG.text((FG.lenses().find((lens) => lens.audienceType === value) || {}).name)), passThrough: true },
       { key: "discipline", values: () => KNAV_DISCIPLINES, label: (value) => FG.t("catalogue.discipline." + value) },
+      { key: "node", values: () => FG.refIds(FG.get("#node-roles"), "hasDefinedTerm"), label: categoryLabel },
     ],
     repositories: [
       { key: "rfunction", values: () => FG.refIds(FG.get("#repository-functions"), "hasDefinedTerm"), label: categoryLabel },
@@ -806,6 +864,12 @@
       { key: "status", label: categoryLabel },
       { key: "language", values: () => ["cs", "en"], label: (value) => FG.t("catalogue.language." + value) },
       { key: "lens", values: () => FG.lenses().map((lens) => lens.audienceType), label: (value) => FG.category(FG.text((FG.lenses().find((lens) => lens.audienceType === value) || {}).name)), passThrough: true },
+      { key: "node", values: () => FG.refIds(FG.get("#node-roles"), "hasDefinedTerm"), label: categoryLabel },
+    ],
+    infrastructures: [
+      { key: "field", values: () => FG.refIds(FG.get("#research-fields"), "hasDefinedTerm"), label: categoryLabel },
+      { key: "riphase", values: () => FG.refIds(FG.get("#ri-phases"), "hasDefinedTerm"), label: categoryLabel },
+      { key: "esfri", values: () => FG.refIds(FG.get("#esfri-statuses"), "hasDefinedTerm"), label: (value) => FG.termName(value) },
     ],
     clauses: [
       { key: "ckind", values: () => ["requirement", "recommendation", "fulfilment", "statement"], label: (value) => FG.t("catalogue.clauseKind." + value) },
@@ -889,6 +953,7 @@
   const ORDERS_FOR = {
     resources: ["name", "type", "status", "checked"],
     repositories: ["guided", "name", "rsource"],
+    infrastructures: ["field", "name"],
     clauses: ["source", "principle", "station"],
     questions: ["check", "principle", "station"],
     terms: ["name", "nameEn"],
@@ -958,6 +1023,7 @@
       return grouped(labelOf, (label) => label, rankIn(labels));
     }
     if (order === "status") return byFacet("status", FG.refIds(FG.get("#statuses"), "hasDefinedTerm"), FG.t("catalogue.withoutStatus"));
+    if (order === "field") return byFacet("field", FG.refIds(FG.get("#research-fields"), "hasDefinedTerm"), "");
     if (order === "rsource") return byFacet("rsource", ["#repositories-curated", "#snapshot-re3data", "#snapshot-nkr", "#snapshot-fairsharing", "#snapshot-datacite", "#snapshot-fip-dashboard"], "");
     if (order === "checked") {
       /* The status checked longest ago first, so stale entries surface. */
@@ -1110,15 +1176,27 @@
         h("p", { class: "small" }, intro),
         FG.dashboardNotice(),
         snapshot ? h("p", { class: "small" }, FG.t("repositories.fairsharingNote", { n: recorded, total: all.length, date: FG.formatDate(snapshot.dateCreated) })) : null,
-        FG.live.nkrNote()
+        FG.live.nkrNote(),
+        nodeNote()
       );
     }
     return h(
       "div",
       { class: "kind-intro" },
       h("p", { class: "small" }, intro),
-      kind === "fips" || kind === "resources" || kind === "repositories" ? FG.dashboardNotice() : null
+      kind === "fips" || kind === "resources" || kind === "repositories" ? FG.dashboardNotice() : null,
+      kind === "resources" || kind === "infrastructures" ? nodeNote() : null
     );
+  }
+
+  /** What the EOSC CZ Node is, where its badges show: a candidate node of the EOSC Federation since its approval,
+      with the announcement that says so (D-172). */
+  function nodeNote() {
+    const node = FG.get("#eosc-cz-node");
+    if (!node || !node.nodeStateSince) return null;
+    const sources = FG.refs(node, "isBasedOn");
+    const source = sources[1] || sources[0];
+    return h("p", { class: "small" }, FG.t("node.candidate", { date: FG.formatDate(node.nodeStateSince) }), source ? [" ", sourceLink(source)] : null);
   }
 
   FG.views.catalogue = function (route) {

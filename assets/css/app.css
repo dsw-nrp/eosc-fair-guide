@@ -3508,6 +3508,7 @@ section.datacite-read p {
 .kind-fips { --kind: var(--kind-fips); }
 .kind-tests { --kind: var(--kind-tests); }
 .kind-lifecycle { --kind: var(--kind-lifecycle); }
+.kind-infrastructures { --kind: var(--kind-infrastructures); }
 .kind-model { --kind: var(--kind-model); }
 .kind-actions { --kind: var(--kind-actions); }
 
@@ -3975,8 +3976,13 @@ section.datacite-read p {
   overflow-wrap: anywhere;
 }
 
+/* The result so far: beside the questions on wide screens, and after them on narrow ones. */
 .check-summary {
-  display: none;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  font-size: var(--size-small);
 }
 
 @media (min-width: 60rem) {
@@ -3990,14 +3996,8 @@ section.datacite-read p {
   }
 
   .check-summary {
-    display: block;
     position: sticky;
     top: calc(var(--lens-band-height, 0px) + var(--space-4));
-    padding: var(--space-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--background);
-    font-size: var(--size-small);
   }
 
   /* Collapsed, only the control remains, in exactly the place it had. */

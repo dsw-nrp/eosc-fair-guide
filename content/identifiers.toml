@@ -318,6 +318,8 @@ advice = [
   "citation.22",
   "collect.20",
   "analyse.09",
+  "repository.23",
+  "metadata.39",
 ]
 questions = [
   "cdif.01",
@@ -930,6 +932,7 @@ requirements = [
   "RDMKIT.analyse.02",
   "RDMKIT.reuse.01",
   "RDMKIT.reuse.02",
+  "LRI.A7",
 ]
 sources = [
   "analyza-fair-1.2",
@@ -993,6 +996,12 @@ sources = [
   "fuji-metrics-v0-8",
   "fair-checker-check-view",
   "fair-checker-metrics",
+  "eosc-cz-node-charter",
+  "eosc-cz-node-announcement",
+  "lri-roadmap-2023",
+  "ri-portal",
+  "isvavai-infrastructures",
+  "ggp-cz-project",
 ]
 resources = [
   "dmp-eosc",
@@ -1112,12 +1121,20 @@ resources = [
   "opendoar",
   "ssh-open-marketplace",
   "infra-finder",
+  "galaxy-cz",
+  "jupyterhub-cerit",
+  "lexis",
+  "cesnet-owncloud",
+  "recetox-ms-library",
 ]
 repositories = [
   "zenodo",
   "mbdb",
   "dryad",
   "harvard-dataverse",
+  "czech-bioimaging",
+  "datahub-cuni",
+  "genasis",
 ]
 actions = [
   "2026-10-08-content-model-sample",
@@ -1171,6 +1188,8 @@ actions = [
   "2026-10-13-datacite-repositories",
   "2026-10-14-evaluator-reading",
   "2026-10-14-glossary-and-language",
+  "2026-10-14-names-node-and-infrastructures",
+  "2026-10-14-infrastructure-names-and-cbird",
 ]
 tests = [
   "guide-dataset-01",

@@ -1,0 +1,823 @@
+# The large research infrastructures of the Roadmap of Large Research Infrastructures of the Czech Republic for
+# 2023-2026 (2024 update), as a reviewed record of what the roadmap states, each fact cited by annex (D-174): Annex 1
+# for the acronym, English name, hosting institution (the coordinator), life-cycle phase, character, year of inclusion
+# and ESFRI status; Annex 7 for the European research infrastructures an infrastructure is the Czech national node of;
+# Annex 6 for its ERIC memberships. Czech names come from the portal or the entry's named official source.
+# Descriptions and contact details are not copied. An infrastructure operates a catalogue entry only where a source
+# states it, and that source is recorded. Field reference: docs/content-model.md. The roadmap's 2027 update is
+# watched (content/live.toml).
+
+[infrastructures]
+source = "lri-roadmap-2023"
+namesSource = "ri-portal"
+checked = 2026-10-14
+
+[[infrastructure]]
+id = "auger-cz"
+acronym = "AUGER-CZ"
+name = { cs = "Observatoř Pierra Augera – účast České republiky", en = "Pierre Auger Observatory – participation of the Czech Republic" }
+namesSource = "isvavai-infrastructures"
+host = "Institute of Physics of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 124"
+
+[[infrastructure]]
+id = "bnl-cz"
+acronym = "BNL-CZ"
+name = { cs = "Brookhavenská národní laboratoř – účast ČR", en = "Brookhaven National Laboratory – participation of the Czech Republic" }
+host = "Czech Technical University in Prague"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2015
+esfri = []
+annex1 = "Annex 1, p. 124"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/bnl-cz/"
+
+[[infrastructure]]
+id = "cemnat"
+acronym = "CEMNAT"
+name = { cs = "Centrum materiálů a nanotechnologií", en = "Centre of Materials and Nanotechnologies" }
+host = "University Pardubice"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "single-sited"
+included = 2015
+esfri = []
+annex1 = "Annex 1, p. 124"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/cemnat/"
+
+[[infrastructure]]
+id = "ceplant"
+acronym = "CEPLANT"
+name = { cs = "Centrum výzkumu a vývoje plazmatu a nanotechnologických povrchových úprav", en = "R&D Centre for Plasma and Nanotechnology Surface Modifications" }
+host = "Masaryk University"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "single-sited"
+included = 2019
+esfri = []
+annex1 = "Annex 1, p. 124"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/ceplant/"
+
+[[infrastructure]]
+id = "cern-cz"
+acronym = "CERN-CZ"
+name = { cs = "Výzkumná infrastruktura pro experimenty v CERN", en = "Research Infrastructure for Experiments at CERN" }
+host = "Institute of Physics of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 124"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/cern-cz/"
+
+[[infrastructure.nodeOf]]
+name = "HL-LHC"
+esfri = "landmark"
+
+[[infrastructure]]
+id = "cta-cz"
+acronym = "CTA-CZ"
+name = { cs = "Cherenkov Telescope Array – účast České republiky", en = "Cherenkov Telescope Array – participation of the Czech Republic" }
+namesSource = "isvavai-infrastructures"
+host = "Institute of Physics of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "construction"
+character = "distributed"
+included = 2015
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 124"
+
+[[infrastructure.nodeOf]]
+name = "CTAO"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "CTAO ERIC"
+entry = "expected"
+
+[[infrastructure]]
+id = "czechnanolab"
+acronym = "CzechNanoLab"
+name = { cs = "Výzkumná infrastruktura CzechNanoLab", en = "CzechNanoLab Research Infrastructure" }
+host = "Brno University of Technology"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 124"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/czechnanolab/"
+
+[[infrastructure]]
+id = "ess-scandinavia-cz"
+acronym = "ESS Scandinavia-CZ"
+name = { cs = "Evropský spalační zdroj – účast ČR", en = "European Spallation Source – participation of the Czech Republic" }
+host = "Nuclear Physics Institute of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "construction"
+character = "single-sited"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/ess-scandinavia-cz/"
+
+[[infrastructure.nodeOf]]
+name = "ESS ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "European Spallation Source ERIC"
+entry = "2015"
+
+[[infrastructure]]
+id = "est-cz"
+acronym = "EST-CZ"
+name = { cs = "Evropský sluneční teleskop – účast ČR", en = "European Solar Telescope – participation of the Czech Republic" }
+host = "Astronomical Institute of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "preparatory"
+character = "single-sited"
+included = 2019
+esfri = ["project"]
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/est-cz/"
+
+[[infrastructure.nodeOf]]
+name = "EST"
+esfri = "project"
+
+[[infrastructure]]
+id = "eu-arc-cz"
+acronym = "EU-ARC.CZ"
+name = { cs = "Atacama Large Millimeter / Submillimeter Array – účast ČR", en = "Atacama Large Millimeter / Submillimeter Array – participation of the Czech Republic" }
+host = "Astronomical Institute of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2015
+esfri = []
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/eu-arc-cz/"
+
+[[infrastructure]]
+id = "fair-cz"
+acronym = "FAIR-CZ"
+name = { cs = "Laboratoř pro výzkum s antiprotony a těžkými ionty (FAIR) – účast ČR", en = "Facility for Antiproton and Ion Research – participation of the Czech Republic" }
+host = "Nuclear Physics Institute of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "construction"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/fair-cz/"
+
+[[infrastructure.nodeOf]]
+name = "FAIR"
+esfri = "landmark"
+
+[[infrastructure]]
+id = "fermilab-cz"
+acronym = "FERMILAB-CZ"
+name = { cs = "Výzkumná infrastruktura pro experimenty ve Fermilab", en = "Research Infrastructure for Fermilab Experiments" }
+host = "Institute of Physics of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/fermilab-cz/"
+
+[[infrastructure]]
+id = "lsm-cz"
+acronym = "LSM-CZ"
+name = { cs = "Podzemní laboratoř LSM – účast ČR", en = "Laboratoire Souterrain de Modane – participation of the Czech Republic" }
+host = "Czech Technical University in Prague"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/lsm-cz/"
+
+[[infrastructure]]
+id = "mgml"
+acronym = "MGML"
+name = { cs = "Laboratoř pro syntézu a měření materiálů", en = "Materials Growth and Measurement Laboratory" }
+host = "Charles University"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "single-sited"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/mgml/"
+
+[[infrastructure]]
+id = "pals"
+acronym = "PALS"
+name = "Prague Asterix Laser System"
+host = "Institute of Plasma Physics of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "single-sited"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/pals/"
+
+[[infrastructure]]
+id = "spiral2-cz"
+acronym = "SPIRAL2-CZ"
+name = { cs = "Système de Production d’Ions Radioactifs Accélérés en Ligne – účast ČR", en = "Système de Production d’Ions Radioactifs Accélérés en Ligne – participation of the Czech Republic" }
+host = "Nuclear Physics Institute of the Czech Academy of Sciences"
+field = "physical-sciences-and-engineering"
+phase = "construction"
+character = "single-sited"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/spiral2-cz/"
+
+[[infrastructure.nodeOf]]
+name = "SPIRAL2"
+esfri = "landmark"
+
+[[infrastructure]]
+id = "spl-htc"
+acronym = "SPL-HTC"
+name = "Surface Physics Laboratory – Hydrogen Technology Centre"
+host = "Charles University"
+field = "physical-sciences-and-engineering"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 126"
+url = "https://www.vyzkumne-infrastruktury.cz/fyzika/spl-msb-2/"
+
+[[infrastructure.eric]]
+name = "CERIC-ERIC"
+entry = "2014"
+
+[[infrastructure]]
+id = "cicrr"
+acronym = "CICRR"
+name = { cs = "České mezinárodní centrum výzkumných reaktorů", en = "Czech International Centre of Research Reactors" }
+namesSource = "isvavai-infrastructures"
+host = "Research Centre Řež s r.o."
+field = "energy"
+phase = "operational"
+character = "multi-sited"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 128"
+
+[[infrastructure.nodeOf]]
+name = "JHR"
+esfri = "landmark"
+
+[[infrastructure]]
+id = "compass"
+acronym = "COMPASS"
+name = { cs = "COMPASS – Tokamak pro výzkum termonukleární fúze", en = "COMPASS – Tokamak for Thermonuclear Fusion Research" }
+host = "Institute of Plasma Physics of the Czech Academy of Sciences"
+field = "energy"
+phase = "major-upgrade"
+character = "single-sited"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/energetika/compass/"
+
+[[infrastructure]]
+id = "enregat"
+acronym = "ENREGAT"
+name = { cs = "Energetické využití odpadů a čištění plynů", en = "Energy Waste Recovery and Gas Treatment" }
+host = "VŠB – Technical University of Ostrava"
+field = "energy"
+phase = "operational"
+character = "single-sited"
+included = 2019
+esfri = []
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/energetika/enregat/"
+
+[[infrastructure]]
+id = "wczv"
+acronym = "WCZV"
+name = "VR-1 Nuclear Experimental Hub"
+host = "Czech Technical University in Prague"
+field = "energy"
+phase = "operational"
+character = "single-sited"
+included = 2011
+esfri = []
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/energetika/wczv/"
+
+[[infrastructure]]
+id = "actris-cz"
+acronym = "ACTRIS-CZ"
+name = { cs = "ACTRIS – účast ČR", en = "ACTRIS – participation of the Czech Republic" }
+host = "Czech Hydrometeorological Institute"
+field = "environmental-sciences"
+phase = "operational"
+character = "distributed"
+included = 2015
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/environmentalni-vedy/actris-cz/"
+
+[[infrastructure.nodeOf]]
+name = "ACTRIS ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "ACTRIS ERIC"
+entry = "2023"
+
+[[infrastructure]]
+id = "cenakva"
+acronym = "CENAKVA"
+name = { cs = "Jihočeské výzkumné centrum akvakultury a biodiverzity hydrocenóz", en = "South Bohemian Research Centre of Aquaculture and Biodiversity of Hydrocenoses" }
+host = "University of South Bohemia in České Budějovice"
+field = "environmental-sciences"
+phase = "operational"
+character = "single-sited"
+included = 2019
+esfri = ["project"]
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/environmentalni-vedy/cenakva/"
+
+[[infrastructure.nodeOf]]
+name = "DANUBIUS-RI"
+esfri = "project"
+
+[[infrastructure.eric]]
+name = "DANUBIUS-ERIC"
+entry = "expected"
+
+[[infrastructure]]
+id = "czecos"
+acronym = "CzeCOS"
+name = "Czech Carbon Observation System"
+host = "Global Change Research Institute of the Czech Academy of Sciences"
+field = "environmental-sciences"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark", "project"]
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/environmentalni-vedy/czecos-2/"
+
+[[infrastructure.nodeOf]]
+name = "AnaEE ERIC"
+esfri = "landmark"
+
+[[infrastructure.nodeOf]]
+name = "ICOS ERIC"
+esfri = "landmark"
+
+[[infrastructure.nodeOf]]
+name = "DANUBIUS-RI"
+esfri = "project"
+
+[[infrastructure.nodeOf]]
+name = "eLTER RI"
+esfri = "project"
+
+[[infrastructure.eric]]
+name = "ICOS ERIC"
+entry = "2017"
+
+[[infrastructure.eric]]
+name = "AnaEE-ERIC"
+entry = "2022"
+
+[[infrastructure.eric]]
+name = "DANUBIUS-ERIC"
+entry = "expected"
+
+[[infrastructure]]
+id = "nanoenvicz"
+acronym = "NanoEnviCz"
+name = { cs = "Nanomateriály a nanotechnologie pro ochranu životního prostředí a udržitelnou budoucnost", en = "Nanomaterials and Nanotechnologies for Environment Protection and Sustainable Future" }
+host = "J. Heyrovsky Institute of Physical Chemistry of the Czech Academy of Sciences"
+field = "environmental-sciences"
+phase = "operational"
+character = "distributed"
+included = 2015
+esfri = []
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/environmentalni-vedy/nanoenvicz-2/"
+
+[[infrastructure]]
+id = "recetox-ri"
+acronym = "RECETOX RI"
+name = { cs = "Výzkumná infrastruktura RECETOX", en = "RECETOX Research Infrastructure" }
+host = "Masaryk University"
+field = "environmental-sciences"
+phase = "implementation"
+character = "single-sited"
+included = 2010
+esfri = ["project"]
+annex1 = "Annex 1, p. 128"
+url = "https://www.vyzkumne-infrastruktury.cz/environmentalni-vedy/recetox-ri/"
+
+[[infrastructure.nodeOf]]
+name = "EIRENE RI"
+esfri = "project"
+
+[[infrastructure.operates]]
+repository = "genasis"
+evidence = "https://www.vyzkumne-infrastruktury.cz/wp-content/uploads/2025/01/Mapa_VV_2023_EN_aktualizace2024.pdf"
+
+[[infrastructure.operates]]
+resource = "recetox-ms-library"
+evidence = "https://eosc.eu/wp-content/uploads/2026/06/EOSC_CZ_National_Node_Charter_Revised_Public.pdf"
+
+[[infrastructure]]
+id = "bbmri-cz"
+acronym = "BBMRI.cz"
+name = { cs = "Banka klinických vzorků", en = "Network of Czech Biobanks" }
+host = "Masaryk Memorial Cancer Institute"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 130"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/bbmri-cz/"
+
+[[infrastructure.nodeOf]]
+name = "BBMRI-ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "BBMRI-ERIC"
+entry = "2013"
+
+[[infrastructure]]
+id = "ccp"
+acronym = "CCP"
+name = { cs = "České centrum pro fenogenomiku", en = "Czech Centre for Phenogenomics" }
+host = "Institute of Molecular Genetics of the Czech Academy of Sciences"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "single-sited"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 130"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/ccp/"
+
+[[infrastructure.nodeOf]]
+name = "INFRAFRONTIER"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "INFRAFRONTIER ERIC"
+entry = "expected"
+
+[[infrastructure]]
+id = "ciisb"
+acronym = "CIISB"
+name = { cs = "Česká infrastruktura pro integrativní strukturní biologii", en = "Czech Infrastructure for Integrative Structural Biology" }
+host = "Masaryk University"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 130"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/ciisb/"
+
+[[infrastructure.nodeOf]]
+name = "Instruct-ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "Instruct-ERIC"
+entry = "2017"
+
+[[infrastructure]]
+id = "czecrin"
+acronym = "CZECRIN"
+name = { cs = "Český národní uzel Evropské sítě infrastruktur klinického výzkumu", en = "Czech National Node to the European Clinical Research Infrastructure Network" }
+host = "Masaryk University"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 130"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/czecrin-2/"
+
+[[infrastructure.nodeOf]]
+name = "ECRIN-ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "ECRIN-ERIC"
+entry = "2018"
+
+[[infrastructure]]
+id = "czech-bioimaging"
+acronym = "Czech-BioImaging"
+name = { cs = "Národní infrastruktura pro biologické a medicínské zobrazování", en = "National Research Infrastructure for Biological and Medical Imaging" }
+host = "Institute of Molecular Genetics of the Czech Academy of Sciences"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 130"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/czech-bioimaging-2/"
+
+[[infrastructure.nodeOf]]
+name = "Euro-BioImaging"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "Euro-BioImaging ERIC"
+entry = "2019"
+
+[[infrastructure.operates]]
+repository = "czech-bioimaging"
+evidence = "https://dev.cbird.jh-inst.cas.cz/"
+
+[[infrastructure]]
+id = "cz-openscreen"
+acronym = "CZ-OPENSCREEN"
+name = { cs = "Národní infrastruktura chemické biologie", en = "National Infrastructure for Chemical Biology" }
+host = "Institute of Molecular Genetics of the Czech Academy of Sciences"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 130"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/cz-openscreen-2/"
+
+[[infrastructure.nodeOf]]
+name = "EU-OPENSCREEN ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "EU-OPENSCREEN ERIC"
+entry = "2018"
+
+[[infrastructure]]
+id = "eatris-cz"
+acronym = "EATRIS-CZ"
+name = { cs = "Český národní uzel Evropské infrastruktury pro translační medicínu", en = "Czech National Node to the European Infrastructure for Translational Medicine" }
+host = "Palacký University Olomouc"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 132"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/eatris-cz-2/"
+
+[[infrastructure.nodeOf]]
+name = "EATRIS ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "EATRIS ERIC"
+entry = "2013"
+
+[[infrastructure]]
+id = "elixir-cz"
+fip = "elixir-cz-life"
+acronym = "ELIXIR CZ"
+name = { cs = "Česká národní infrastruktura pro biologická data", en = "Czech National Infrastructure for Biological Data" }
+host = "Institute of Organic Chemistry and Biochemistry of the Czech Academy of Sciences"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2011
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 132"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/elixir-cz/"
+
+[[infrastructure.nodeOf]]
+name = "ELIXIR"
+esfri = "landmark"
+
+[[infrastructure]]
+id = "metrofood-cz"
+acronym = "METROFOOD-CZ"
+name = { cs = "Infrastruktura pro propagaci metrologie v potravinářství a výživě v ČR", en = "Infrastructure for Promoting Metrology in Food and Nutrition in the Czech Republic" }
+host = "Czech University of Life Sciences Prague"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2019
+esfri = ["project"]
+annex1 = "Annex 1, p. 132"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/metrofood-cz/"
+
+[[infrastructure.nodeOf]]
+name = "METROFOOD-RI"
+esfri = "project"
+
+[[infrastructure]]
+id = "ncmg"
+acronym = "NCMG"
+name = { cs = "Národní centrum lékařské genomiky", en = "National Centre for Medical Genomic" }
+host = "Charles University"
+field = "biological-and-medical-sciences"
+phase = "operational"
+character = "distributed"
+included = 2011
+esfri = []
+annex1 = "Annex 1, p. 132"
+url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/ncmg/"
+
+[[infrastructure]]
+id = "ais-cr"
+acronym = "AIS CR"
+name = { cs = "Archeologický informační systém České republiky", en = "Archaeological Information System of the Czech Republic" }
+host = "Institute of Archaeology of the Czech Academy of Sciences, Brno"
+field = "social-sciences-and-humanities"
+phase = "operational"
+character = "virtual"
+included = 2015
+esfri = []
+annex1 = "Annex 1, p. 134"
+url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/ais-cr/"
+
+[[infrastructure.operates]]
+repository = "r3d100013576"
+evidence = "https://amcr-info.aiscr.cz/en"
+
+[[infrastructure]]
+id = "clb"
+acronym = "CLB"
+name = { cs = "Česká literární bibliografie", en = "Czech Literary Bibliography" }
+host = "Institute of Czech Literature of the Czech Academy of Sciences"
+field = "social-sciences-and-humanities"
+phase = "operational"
+character = "virtual"
+included = 2015
+esfri = []
+annex1 = "Annex 1, p. 134"
+url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/clb/"
+
+[[infrastructure]]
+id = "cnc"
+acronym = "CNC"
+name = { cs = "Český národní korpus", en = "Czech National Corpus" }
+host = "Charles University"
+field = "social-sciences-and-humanities"
+phase = "operational"
+character = "virtual"
+included = 2010
+esfri = []
+annex1 = "Annex 1, p. 134"
+url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/cnc/"
+
+[[infrastructure.operates]]
+repository = "r3d100013045"
+evidence = "https://www.korpus.cz/"
+
+[[infrastructure]]
+id = "csda-ess-cz"
+fip = "csda-social"
+acronym = "CSDA/ESS-CZ"
+name = "Czech Social Science Data Archive / European Social Survey – participation of the Czech Republic"
+host = "Institute of Sociology of the Czech Academy of Sciences"
+field = "social-sciences-and-humanities"
+phase = "operational"
+character = "virtual"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 134"
+url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/csda/"
+
+[[infrastructure.nodeOf]]
+name = "CESSDA ERIC"
+esfri = "landmark"
+
+[[infrastructure.nodeOf]]
+name = "ESS ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "ESS ERIC"
+entry = "2013"
+
+[[infrastructure.eric]]
+name = "CESSDA ERIC"
+entry = "2017"
+
+[[infrastructure.operates]]
+repository = "r3d100010484"
+evidence = "https://www.vyzkumne-infrastruktury.cz/en/social-sciences-and-humanities/csda-ess-cz/"
+
+[[infrastructure]]
+id = "ggp-cz"
+acronym = "GGP-CZ"
+name = { cs = "Český národní uzel pro výzkum rodiny", en = "Czech National Cluster for Family Research" }
+namesSource = "ggp-cz-project"
+url = "https://ggp-cz.fss.muni.cz/"
+host = "Masaryk University"
+field = "social-sciences-and-humanities"
+phase = "operational"
+character = "distributed"
+included = 2024
+esfri = ["project"]
+annex1 = "Annex 1, p. 134"
+
+[[infrastructure.nodeOf]]
+name = "GGP"
+esfri = "project"
+
+[[infrastructure]]
+id = "lindat-clariah-cz"
+fip = "lindat-clariah"
+acronym = "LINDAT/CLARIAH-CZ"
+name = { cs = "Digitální výzkumná infrastruktura pro jazykové technologie, umění a humanitní vědy", en = "Digital Research Infrastructure for Language Technologies, Arts and Humanities" }
+namesSource = "isvavai-infrastructures"
+host = "Charles University"
+field = "social-sciences-and-humanities"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark", "project"]
+annex1 = "Annex 1, p. 134"
+url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/lindat-clariah-cz/"
+
+[[infrastructure.nodeOf]]
+name = "CLARIN ERIC"
+esfri = "landmark"
+
+[[infrastructure.nodeOf]]
+name = "DARIAH ERIC"
+esfri = "landmark"
+
+[[infrastructure.nodeOf]]
+name = "EHRI"
+esfri = "project"
+
+[[infrastructure.eric]]
+name = "CLARIN ERIC"
+entry = "2012"
+
+[[infrastructure.eric]]
+name = "DARIAH ERIC"
+entry = "2019"
+
+[[infrastructure.operates]]
+repository = "r3d100010386"
+evidence = "https://lindat.mff.cuni.cz/repository/home"
+
+[[infrastructure]]
+id = "share-cz"
+acronym = "SHARE-CZ"
+name = { cs = "Survey of Health, Ageing and Retirement in Europe – účast ČR", en = "Survey of Health, Ageing and Retirement in Europe – participation of the Czech Republic" }
+host = "Economics Institute of the Czech Academy of Sciences"
+field = "social-sciences-and-humanities"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 134"
+url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/share-cz-2/"
+
+[[infrastructure.nodeOf]]
+name = "SHARE-ERIC"
+esfri = "landmark"
+
+[[infrastructure.eric]]
+name = "SHARE-ERIC"
+entry = "2011"
+
+[[infrastructure]]
+id = "e-infra-cz"
+acronym = "e-INFRA CZ"
+name = { cs = "e-Infrastruktura CZ", en = "e-Infrastructure of the Czech Republic" }
+namesSource = "isvavai-infrastructures"
+host = "CESNET, z. s. p. o."
+field = "e-infrastructures"
+phase = "operational"
+character = "distributed"
+included = 2010
+esfri = ["landmark"]
+annex1 = "Annex 1, p. 134"
+url = "https://www.vyzkumne-infrastruktury.cz/2020/03/e-infra-cz-covid-19/"
+
+[[infrastructure.nodeOf]]
+name = "PRACE"
+esfri = "landmark"

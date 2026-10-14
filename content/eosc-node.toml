@@ -1,0 +1,105 @@
+# The EOSC CZ Node (D-172): its operator, its state and the catalogue entries that belong to it, as the node's
+# project charter and the EOSC CZ announcement state them, until the node publishes a machine-readable catalogue.
+# The node is a candidate node in onboarding; a member's badge says what the charter says and claims no full
+# federation membership. Entries exist for the services and repositories a step's advice uses; pure infrastructure
+# services without reader guidance are not added only to carry a badge. Field reference: docs/content-model.md.
+
+[node]
+id = "eosc-cz-node"
+name = "EOSC CZ Node"
+url = "https://www.eosc.cz/o-nas/eosc-node-czechia"
+operator = "e-infra-cz"
+state = "candidate"
+stateDate = 2026-04-21
+sources = ["eosc-cz-node-charter", "eosc-cz-node-announcement"]
+checked = 2026-10-14
+
+# Services (charter, section 3)
+[[member]]
+resource = "dmp-eosc"
+role = "service"
+locator = "Section 3, service 1 (Data Stewardship Wizard)"
+
+[[member]]
+resource = "cesnet-owncloud"
+role = "service"
+locator = "Section 3, service 2 (Federated Enterprise File Sync-and-Share)"
+
+[[member]]
+resource = "jupyterhub-cerit"
+role = "service"
+locator = "Section 3, service 3 (Jupyter Notebooks)"
+
+[[member]]
+resource = "sensitive-cloud"
+role = "service"
+locator = "Section 3, service 5 (SensitiveCloud)"
+
+[[member]]
+resource = "galaxy-cz"
+role = "service"
+locator = "Section 3, service 6 (Galaxy including UMSA)"
+
+[[member]]
+resource = "cerit-aiaas"
+role = "service"
+locator = "Section 3, service 8 (LLM-as-a-Service)"
+
+[[member]]
+resource = "einfra-aai"
+role = "service"
+locator = "Section 3, service 9 (LS AAI / Perun)"
+
+[[member]]
+resource = "lexis"
+role = "service"
+locator = "Section 3, service 10 (LEXIS Platform)"
+
+# Repositories (charter, Appendix A; integration milestones in section 8, milestone 8+)
+[[member]]
+repository = "r3d100010386"
+role = "repository"
+milestone = "M6"
+locator = "Appendix A, repository 12; section 8, milestone 8+"
+
+[[member]]
+repository = "mbdb"
+role = "repository"
+milestone = "M6"
+locator = "Appendix A, repository 13; section 8, milestone 8+"
+
+[[member]]
+repository = "czech-bioimaging"
+role = "repository"
+milestone = "M6"
+locator = "Appendix A, repository 14; section 8, milestone 8+"
+
+[[member]]
+repository = "r3d100013576"
+role = "repository"
+milestone = "M12"
+locator = "Appendix A, repository 15; section 8, milestone 8+"
+
+[[member]]
+repository = "r3d100010484"
+role = "repository"
+milestone = "M12"
+locator = "Appendix A, repository 16; section 8, milestone 8+"
+
+[[member]]
+repository = "datahub-cuni"
+role = "repository"
+milestone = "M12"
+locator = "Appendix A, repository 17; section 8, milestone 8+"
+
+[[member]]
+repository = "genasis"
+role = "repository"
+milestone = "M12"
+locator = "Appendix A, repository 18; section 8, milestone 8+"
+
+[[member]]
+resource = "recetox-ms-library"
+role = "repository"
+milestone = "M12"
+locator = "Appendix A, repository 19; section 8, milestone 8+"

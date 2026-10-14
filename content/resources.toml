@@ -2006,3 +2006,72 @@ asOf = 2026-10-13
 lenses = ["DS", "SR"]
 stations = ["repository"]
 languages = ["en"]
+
+# Services of the EOSC CZ Node that a step's advice uses (D-172); each names its operator as its own source states it.
+[[resource]]
+id = "galaxy-cz"
+knav = "galaxy1"
+name = "Galaxy (usegalaxy.cz)"
+description = { cs = "Národní instance Galaxy: analytické postupy bez programování, ve webovém prohlížeči, se záznamem každého kroku. Je součástí evropské sítě Galaxy; přihlašuje se přes e-INFRA CZ AAI nebo LS AAI.", en = "The national Galaxy instance: analysis workflows without programming, in a web browser, with every step recorded. It belongs to the European Galaxy network; sign-in is through e-INFRA CZ AAI or LS AAI." }
+url = "https://usegalaxy.cz/"
+type = "service"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS", "K"]
+stations = ["analyse"]
+languages = ["en"]
+operator = { name = { cs = "konsorcium e-INFRA CZ", en = "e-INFRA CZ consortium" }, source = "https://eosc.eu/wp-content/uploads/2026/06/EOSC_CZ_National_Node_Charter_Revised_Public.pdf" }
+
+[[resource]]
+id = "jupyterhub-cerit"
+name = "JupyterHub (CERIT-SC)"
+description = { cs = "Interaktivní notebooky Jupyter na kontejnerové platformě CERIT-SC s napojením na úložiště e-INFRA CZ; výpočet, kód a jeho výsledek zůstávají pohromadě.", en = "Interactive Jupyter notebooks on the CERIT-SC container platform, connected to e-INFRA CZ storage; the computation, its code and its result stay together." }
+url = "https://docs.cerit.io/en/docs/web-apps/jupyterhub"
+type = "service"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS"]
+stations = ["analyse"]
+languages = ["en"]
+operator = { name = "CERIT-SC", source = "https://docs.cerit.io/en/docs/web-apps/jupyterhub" }
+
+[[resource]]
+id = "lexis"
+name = "LEXIS Platform"
+description = { cs = "Webová platforma pro spouštění složitých výpočetních workflow na připojených superpočítačích, se správou dat a orchestrací výpočtů.", en = "A web platform for running complex computational workflows on connected supercomputers, with data management and workflow orchestration." }
+url = "https://portal.lexis.tech/"
+type = "service"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS"]
+stations = ["analyse"]
+languages = ["en"]
+operator = { name = "IT4Innovations, LRZ", source = "https://lexis-project.eu/web/" }
+
+[[resource]]
+id = "cesnet-owncloud"
+name = "ownCloud@CESNET"
+description = { cs = "Synchronizace a sdílení souborů pro výzkum: rozpracovaná data na více zařízeních a ve skupině, uložená v národní e-infrastruktuře.", en = "File synchronisation and sharing for research: work-in-progress data across devices and within a group, stored in the national e-infrastructure." }
+url = "https://du.cesnet.cz/en/navody/owncloud/start"
+type = "service"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS"]
+stations = ["collect"]
+languages = ["cs", "en"]
+operator = { name = "CESNET", source = "https://du.cesnet.cz/en/navody/owncloud/start" }
+
+# Reference data of the EOSC CZ Node's repositories (charter, Appendix A, repository 19), as its operator publishes it.
+[[resource]]
+id = "recetox-ms-library"
+name = { cs = "Referenční knihovny hmotnostních spekter RECETOX", en = "RECETOX Mass Spectrum Reference Libraries" }
+description = { cs = "Spektra autentických látek pro identifikaci v hmotnostní spektrometrii (GC-MS s vysokým rozlišením), jako MSP s databází látek v SDF; archivované v Zenodu pod licencí CC BY-NC.", en = "Spectra of authentic compounds for identification in mass spectrometry (high-resolution GC-MS), as MSP with a compound database in SDF; archived in Zenodo under CC BY-NC." }
+url = "https://www.recetox.muni.cz/en/services/recetox-central-laboratories/biomarker-analysis-laboratories/recetox-mass-spectrum-reference-library"
+type = "data"
+status = "operational"
+asOf = 2026-10-14
+lenses = ["V", "DS"]
+stations = ["analyse"]
+languages = ["en"]
+sameAs = ["https://doi.org/10.5281/zenodo.4471217", "https://doi.org/10.5281/zenodo.5483565"]
+operator = { name = "RECETOX", source = "https://www.recetox.muni.cz/en/services/recetox-central-laboratories/biomarker-analysis-laboratories/recetox-mass-spectrum-reference-library" }

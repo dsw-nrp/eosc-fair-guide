@@ -522,6 +522,7 @@ PARAMETERS = {
     "changes": "change_id",
     "model": "model_id",
     "lifecycle": "lifecycle_id",
+    "infrastructures": "infrastructure_id",
 }
 SCHEMAS = {
     "principles": "Principle",
@@ -539,6 +540,7 @@ SCHEMAS = {
     "changes": "Change",
     "model": "Model",
     "lifecycle": "Lifecycle",
+    "infrastructures": "Infrastructure",
 }
 # What every record of a collection carries; a record may carry more.
 REQUIRED = {
@@ -557,6 +559,7 @@ REQUIRED = {
     "Change": ["name"],
     "Model": ["identifier", "name", "citation"],
     "Lifecycle": ["identifier", "name"],
+    "Infrastructure": ["identifier", "name", "abbreviation", "hostingInstitution", "roadmapLocator"],
     "Meta": ["name", "description", "version", "url", "isBasedOn", "hasPart"],
 }
 

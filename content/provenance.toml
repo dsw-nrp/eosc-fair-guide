@@ -1823,3 +1823,25 @@ instruments = ["openai-codex-runtime"]
 objects = ["heslar"]
 results = ["repository.07", "institution.17", "term:*"]
 endTime = 2026-10-14T00:55:40+00:00
+
+[[action]]
+id = "2026-10-14-names-node-and-infrastructures"
+type = "create"
+name = "Names with abbreviations, the EOSC CZ Node and the large research infrastructures"
+description = "Kept the names re3data tags as Czech and corrected the names and abbreviations of ČSDA, AMČR, ČNK, ASEP, LINDAT/CLARIAH-CZ, MBDB and the Charles University map collection from each repository's own site (D-173). Recorded the EOSC CZ Node with its operator, its candidate state since 21 April 2026 and the services and repositories its charter lists, each with its role, planned milestone, date checked and locator, and added the node services and repositories a step's advice uses (Galaxy, JupyterHub, LEXIS, ownCloud, Czech-BioImaging, DataHub, GENASIS, the RECETOX mass spectrum libraries) with the operators their own sources state (D-172). Recorded the 44 large research infrastructures of the Roadmap 2023–2026 from Annex 1 with their national nodes (Annex 7), ERIC memberships (Annex 6), Czech names from the portal where its page names the current infrastructure, the repositories they operate where a source states it, and the FIPs of the communities that have one; linked them from the community lens of the repository and metadata steps (D-174). MBDB names its developers and no operator. The assistant runtime does not expose its version beyond the recorded instrument."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["eosc-cz-node-charter", "eosc-cz-node-announcement", "lri-roadmap-2023", "ri-portal", "re3data", "fip-dashboard"]
+results = ["galaxy-cz", "jupyterhub-cerit", "lexis", "cesnet-owncloud", "recetox-ms-library", "infrastructure:*", "node:eosc-cz-node", "LRI.A7", "repository.23", "metadata.39"]
+endTime = 2026-10-14T08:59:36+00:00
+
+[[action]]
+id = "2026-10-14-infrastructure-names-and-cbird"
+type = "update"
+name = "Official Czech infrastructure names and the C-bird repository address"
+description = "Completed six infrastructure names: the maintainer supplied the IS VaVaI list and the Czech names of AUGER-CZ, CTA-CZ, CICRR, LINDAT/CLARIAH-CZ and e-INFRA CZ; Masaryk University's project LM2024074 supplies the Czech name of GGP-CZ. Retained the roadmap acronyms and English names, and attributed each completed Czech name to its own source. The maintainer supplied C-bird's public repository address; its landing page explicitly confirms pilot testing and administration by Czech-BioImaging, replacing the infrastructure homepage and the inferred status evidence. The visual pass also exposed the infrastructure ordering control's untranslated field label, now named in Czech and English with a browser regression check. The assistant runtime does not expose the exact backend model identifier."
+agent = "david-novak"
+instruments = ["openai-codex-runtime"]
+objects = ["isvavai-infrastructures", "ggp-cz-project", "lri-roadmap-2023"]
+results = ["infrastructure:auger-cz", "infrastructure:cta-cz", "infrastructure:cicrr", "infrastructure:ggp-cz", "infrastructure:lindat-clariah-cz", "infrastructure:e-infra-cz", "infrastructure:czech-bioimaging", "czech-bioimaging"]
+endTime = 2026-10-14T12:05:28+00:00

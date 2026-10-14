@@ -680,3 +680,68 @@ publisher = "Institut Français de Bioinformatique"
 version = "0b21c44c6d66644ac8c283e2e3277dfd5b070482"
 dateModified = 2026-10-01
 dateAccessed = 2026-10-14
+
+[[source]]
+id = "eosc-cz-node-charter"
+type = "document"
+title = "EOSC Federation Build-Up Phase Project Charter: EOSC CZ National Node"
+short = { cs = "Charta EOSC CZ Node", en = "EOSC CZ Node charter" }
+inLanguage = "en"
+url = "https://eosc.eu/wp-content/uploads/2026/06/EOSC_CZ_National_Node_Charter_Revised_Public.pdf"
+publisher = "e-INFRA CZ consortium"
+dateModified = 2025-10-10
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "eosc-cz-node-announcement"
+type = "webpage"
+title = "EOSC CZ Node Joins the EOSC Federation"
+short = { cs = "Oznámení o EOSC CZ Node", en = "EOSC CZ Node announcement" }
+inLanguage = "en"
+url = "https://www.eosc.cz/en/news-and-events/news/eosc-cz-node-joins-the-eosc-federation"
+publisher = "eosc-cz"
+datePublished = 2026-04-29
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "lri-roadmap-2023"
+code = "LRI"
+type = "report"
+title = "Roadmap of Large Research Infrastructures of the Czech Republic for the years 2023–2026"
+short = { cs = "Cestovní mapa velkých výzkumných infrastruktur 2023–2026", en = "Roadmap of Large Research Infrastructures 2023–2026" }
+inLanguage = "en"
+url = "https://www.vyzkumne-infrastruktury.cz/wp-content/uploads/2025/01/Mapa_VV_2023_EN_aktualizace2024.pdf"
+publisher = "msmt"
+version = "2024 update"
+datePublished = "2024"
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "ri-portal"
+type = "webpage"
+title = { cs = "Výzkumné infrastruktury", en = "Research Infrastructures" }
+short = { cs = "Portál výzkumných infrastruktur", en = "Research infrastructures portal" }
+inLanguage = "cs"
+url = "https://www.vyzkumne-infrastruktury.cz/"
+publisher = "msmt"
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "isvavai-infrastructures"
+type = "webpage"
+title = { cs = "IS VaVaI: výzkumné infrastruktury", en = "IS VaVaI: research infrastructures" }
+short = { cs = "Výzkumné infrastruktury v IS VaVaI", en = "Research infrastructures in IS VaVaI" }
+inLanguage = "cs"
+url = "https://www.isvavai.cz/cep?s=vyzkumne-infrastruktury"
+publisher = "Research, Development and Innovation Council"
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "ggp-cz-project"
+type = "webpage"
+title = { cs = "Český národní uzel pro výzkum rodiny (GGP-CZ)", en = "Czech National Cluster for Family Research (GGP-CZ)" }
+short = { cs = "GGP-CZ: projekt LM2024074", en = "GGP-CZ: project LM2024074" }
+inLanguage = "cs"
+url = "https://www.fss.muni.cz/vyzkum/resene-projekty/72431"
+publisher = "Masaryk University"
+dateAccessed = 2026-10-14

@@ -282,6 +282,13 @@ text = { cs = "Pro mezioborovou výměnu využijte profily [[cdif|CDIF 1.1]] a d
 sources = ["A.F2.X4", "CDIF.01", "TF-SEMANTIC.01"]
 
 [[advice]]
+id = "metadata.39"
+lens = "K"
+level = "L1"
+text = { cs = "Má-li vaše komunita národní uzel evropské výzkumné infrastruktury s profilem FIP ve [[fip-dashboard|FIP Dashboardu]], jako [[infrastructure:csda-ess-cz|CSDA/ESS-CZ]], [[infrastructure:elixir-cz|ELIXIR CZ]] nebo [[infrastructure:lindat-clariah-cz|LINDAT/CLARIAH-CZ]], vyjděte z metadatových standardů a slovníků, které jeho FIP deklaruje.", en = "If your community has a national node of a European research infrastructure with a FIP in the [[fip-dashboard|FIP Dashboard]], such as [[infrastructure:csda-ess-cz|CSDA/ESS-CZ]], [[infrastructure:elixir-cz|ELIXIR CZ]] or [[infrastructure:lindat-clariah-cz|LINDAT/CLARIAH-CZ]], start from the metadata standards and vocabularies its FIP declares." }
+sources = ["LRI.A7", "FIP-DASHBOARD.01"]
+
+[[advice]]
 id = "metadata.37"
 lens = "*"
 level = "L1"

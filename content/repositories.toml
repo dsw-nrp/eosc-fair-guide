@@ -20,7 +20,10 @@ asOf = 2026-10-08
 id = "mbdb"
 datacite = "biot.mbdb"
 functions = ["deposit-data"]
-name = "Molecular Biophysics Database (MBDB)"
+name = "Molecular Biophysics Database"
+abbreviation = { cs = "MBDB", en = "MBDB" }
+# Its sources name its developers and no operating infrastructure (D-174).
+developer = { name = { cs = "Biotechnologický ústav AV ČR a CESNET v rámci projektu MOSBRI", en = "Institute of Biotechnology of the Czech Academy of Sciences and CESNET within the MOSBRI project" }, source = "https://www.ciisb.org/news/launch-of-database-for-raw-molecular-biophysics-data-mbdb" }
 url = "https://mbdb-data.org"
 kind = "domain"
 subjects = { cs = "molekulární biofyzika", en = "molecular biophysics" }
@@ -54,25 +57,82 @@ pidTypes = ["DOI"]
 status = "operational"
 asOf = 2026-10-09
 
+# Repositories of the EOSC CZ Node (charter, Appendix A) that re3data does not list (D-172); each names its operator
+# as its own source states it.
+[[repository]]
+id = "czech-bioimaging"
+functions = ["deposit-data"]
+name = { cs = "Repozitář Czech-BioImaging", en = "Czech-BioImaging repository" }
+url = "https://dev.cbird.jh-inst.cas.cz/"
+kind = "domain"
+subjects = { cs = "biologické a medicínské zobrazování", en = "biological and medical imaging" }
+status = "pilot"
+asOf = 2026-10-14
+operator = { name = "Czech-BioImaging", source = "https://dev.cbird.jh-inst.cas.cz/" }
+
+[[repository]]
+id = "datahub-cuni"
+functions = ["deposit-data"]
+name = "DataHub"
+url = "https://datahub.natur.cuni.cz/"
+kind = "domain"
+subjects = { cs = "geografie, životní prostředí, klimatologie, kartografie", en = "geography, environment, climatology, cartography" }
+status = "operational"
+asOf = 2026-10-14
+operator = { name = { cs = "Mapové a datové centrum Přírodovědecké fakulty Univerzity Karlovy", en = "Map and Data Centre, Faculty of Science, Charles University" }, source = "https://natur.cuni.cz/geografie/katedry-a-pracoviste/mapove-a-datove-centrum" }
+
+[[repository]]
+id = "genasis"
+functions = ["deposit-data"]
+name = "GENASIS"
+url = "https://genasis.cz/"
+kind = "domain"
+subjects = { cs = "znečištění životního prostředí perzistentními organickými polutanty", en = "environmental contamination by persistent organic pollutants" }
+status = "operational"
+asOf = 2026-10-14
+operator = { name = { cs = "Masarykova univerzita (RECETOX a IBA MU)", en = "Masaryk University (RECETOX and IBA MU)" }, source = "https://genasis.cz/" }
+
 # Annotations of records, not extra entries or changes to the source snapshots. An annotation naming records of
 # several registries (re3data, the FIP Dashboard, the KNAV tools catalogue) says they are one thing.
 [[record]]
 re3data = "r3d100014032"
 fipDashboard = "asep-arl"
+name = { cs = "Datový repozitář ASEP", en = "ASEP Data Repository" }
 functions = ["deposit-data", "deposit-publications"]
-evidence = ["https://www.re3data.org/repository/r3d100014032", "https://lib.cas.cz/en/vav-support/asep-system/"]
+evidence = ["https://www.re3data.org/repository/r3d100014032", "https://lib.cas.cz/en/vav-support/asep-system/", "https://asep-portal.lib.cas.cz/uvod-do-asep/datovy-repozitar/"]
 
 [[record]]
 re3data = "r3d100010386"
 fipDashboard = "clarin-dspace"
 knav = "lindatclariah"
+name = { cs = "Repozitář LINDAT/CLARIAH-CZ", en = "LINDAT/CLARIAH-CZ Repository" }
 functions = ["deposit-data"]
-evidence = ["https://www.re3data.org/repository/r3d100010386", "https://fip-dashboard.dmp.eosc.cz/resources/clarin-dspace", "https://lindat.mff.cuni.cz/repository/home"]
+evidence = ["https://www.re3data.org/repository/r3d100010386", "https://fip-dashboard.dmp.eosc.cz/resources/clarin-dspace", "https://lindat.mff.cuni.cz/repository/home", "https://lindat.mff.cuni.cz/cs/"]
 
 [[record]]
 re3data = "r3d100010484"
 knav = "csda"
-evidence = ["https://www.re3data.org/repository/r3d100010484", "https://archiv.soc.cas.cz/cz/"]
+name = { cs = "Český sociálněvědní datový archiv", en = "Czech Social Science Data Archive" }
+abbreviation = { cs = "ČSDA", en = "CSDA" }
+evidence = ["https://www.re3data.org/repository/r3d100010484", "https://archiv.soc.cas.cz/cz/", "https://archiv.soc.cas.cz/en/"]
+
+# Names re3data tags unevenly, corrected from each repository's own site (D-173).
+[[record]]
+re3data = "r3d100013576"
+name = { cs = "Archeologická mapa České republiky", en = "Archaeological Map of the Czech Republic" }
+abbreviation = { cs = "AMČR", en = "AMCR" }
+evidence = ["https://www.re3data.org/repository/r3d100013576", "https://amcr-info.aiscr.cz/", "https://amcr-info.aiscr.cz/en"]
+
+[[record]]
+re3data = "r3d100013045"
+name = { cs = "Český národní korpus", en = "Czech National Corpus" }
+abbreviation = { cs = "ČNK", en = "CNC" }
+evidence = ["https://www.re3data.org/repository/r3d100013045", "https://www.korpus.cz/", "https://wiki.korpus.cz/doku.php/en:cnk:uvod"]
+
+[[record]]
+re3data = "r3d100012473"
+name = { cs = "Mapová sbírka Přírodovědecké fakulty UK", en = "Map Collection of the Faculty of Science, Charles University" }
+evidence = ["https://www.re3data.org/repository/r3d100012473", "https://natur.cuni.cz/geografie/katedry-a-pracoviste/mapova-sbirka", "https://natur.cuni.cz/en/geography/departments-and-work-places/map-collection"]
 
 [[record]]
 fipDashboard = "eduid-cz"

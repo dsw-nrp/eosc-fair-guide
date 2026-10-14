@@ -1276,6 +1276,12 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
                 index.setdefault(f"{prefix}.{record[key]}", "repository record")
     index |= {key: "model" for key in model_items(content)}
     index |= {key: "lifecycle" for key in lifecycle_items(content)}
+    index |= {
+        f"infrastructure:{item['id']}": "infrastructure"
+        for item in (content.get("infrastructures") or {}).get("infrastructure", [])
+    }
+    if (content.get("node") or {}).get("node"):
+        index["node:eosc-cz-node"] = "node"
     for snapshot in content["snapshots"]:
         index |= {f"knav.{tool['id']}": "catalogue tool" for tool in snapshot.get("tool", [])}
     return index
@@ -1435,6 +1441,10 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
         if source
     }
     cited |= referenced(content)
+    infrastructures = (content.get("infrastructures") or {}).get("infrastructures", {})
+    cited |= {infrastructures.get("source"), infrastructures.get("namesSource")}
+    cited |= {item.get("namesSource") for item in (content.get("infrastructures") or {}).get("infrastructure", [])}
+    cited |= set(((content.get("node") or {}).get("node") or {}).get("sources", []))
     for resource in content["resources"]:
         if not resource.get("stations") and resource["id"] not in cited and not resource.get("repository"):
             report.warn(
@@ -1467,6 +1477,10 @@ def check_references(report: Report, content: dict[str, Any]) -> None:
     known |= {"page:" + page["id"] for page in content["pages"]}
     known |= {"station:" + data["station"]["id"] for data in content["stations"]}
     known |= {"clause:" + clause["id"] for clause in content["ledger"]}
+    infrastructures = (content.get("infrastructures") or {}).get("infrastructure", [])
+    known |= {"infrastructure:" + item["id"] for item in infrastructures}
+    if infrastructures:
+        known.add("infrastructures")
     known.add("profile")
     known |= set(model_items(content))
 
@@ -1490,6 +1504,79 @@ def check_references(report: Report, content: dict[str, Any]) -> None:
                 entries(where, value)
 
 
+def check_infrastructures(report: Report, content: dict[str, Any]) -> None:
+    """The large research infrastructures and the EOSC CZ Node (D-172, D-174): known vocabularies and sources, unique
+    IDs, an operator relation only with its evidence and to a catalogue entry, and node members that name catalogue
+    entries with a known role; a planned repository names its milestone."""
+    guide = content["guide"]
+    vocab = {
+        kind: {item["id"] for item in guide.get(kind, [])}
+        for kind in ("researchField", "infrastructurePhase", "infrastructureCharacter", "esfriStatus", "nodeRole")
+    }
+    sources = {source["id"] for source in content["sources"]}
+    resources = {resource["id"] for resource in content["resources"]}
+    repositories = {repository["id"] for repository in content["repositories"]}
+    repositories |= {item["re3data"] for snapshot in content["snapshots"] for item in snapshot.get("repository", [])}
+    fips = {item["id"] for snapshot in content["snapshots"] for item in snapshot.get("fip", [])}
+
+    def names_entry(where: str, row: dict[str, Any]) -> None:
+        if row.get("resource") and row["resource"] not in resources:
+            report.error(where, f"unknown resource '{row['resource']}'")
+        elif row.get("repository") and row["repository"] not in repositories:
+            report.error(where, f"unknown repository '{row['repository']}' (a curated ID or a re3data record)")
+        elif not row.get("resource") and not row.get("repository"):
+            report.error(where, "names no catalogue entry (resource or repository)")
+
+    data = content.get("infrastructures") or {}
+    info = data.get("infrastructures", {})
+    for key in ("source", "namesSource"):
+        if info.get(key) and info[key] not in sources:
+            report.error("infrastructures", f"unknown {key} '{info[key]}'")
+    items = data.get("infrastructure", [])
+    unique(report, "infrastructures", [item.get("id", "") for item in items], "infrastructure")
+    for item in items:
+        where = f"infrastructure:{item.get('id')}"
+        if item.get("namesSource") and item["namesSource"] not in sources:
+            report.error(where, f"unknown namesSource '{item['namesSource']}'")
+        for field, kind in (
+            ("field", "researchField"),
+            ("phase", "infrastructurePhase"),
+            ("character", "infrastructureCharacter"),
+        ):
+            if item.get(field) not in vocab[kind]:
+                report.error(where, f"unknown {field} '{item.get(field)}'")
+        for status in item.get("esfri", []) + [row.get("esfri") for row in item.get("nodeOf", [])]:
+            if status not in vocab["esfriStatus"]:
+                report.error(where, f"unknown ESFRI status '{status}'")
+        if item.get("fip") and item["fip"] not in fips:
+            report.error(where, f"unknown FIP '{item['fip']}' in the FIP Dashboard snapshot")
+        if not item.get("acronym") or not item.get("host"):
+            report.error(where, "an infrastructure needs its acronym and its hosting institution from the roadmap")
+        for row in item.get("operates", []):
+            names_entry(where, row)
+            if not str(row.get("evidence", "")).startswith("https://"):
+                report.error(where, "an operator relation is recorded only with the source that states it (HTTPS)")
+    ids = {item.get("id") for item in items}
+    node = (content.get("node") or {}).get("node")
+    if node:
+        if node.get("operator") not in ids:
+            report.error("node", f"the node's operator '{node.get('operator')}' is not a listed infrastructure")
+        for source in node.get("sources", []):
+            if source not in sources:
+                report.error("node", f"unknown source '{source}'")
+        members = (content.get("node") or {}).get("member", [])
+        unique(report, "node", [str(row.get("resource") or row.get("repository")) for row in members], "member")
+        for row in members:
+            where = f"node member:{row.get('resource') or row.get('repository')}"
+            names_entry(where, row)
+            if row.get("role") not in vocab["nodeRole"]:
+                report.error(where, f"unknown role '{row.get('role')}'")
+            if row.get("role") == "repository" and not re.fullmatch(r"M\d{1,2}", str(row.get("milestone", ""))):
+                report.error(where, "a repository's planned integration names its milestone (M6, M12)")
+            if not row.get("locator"):
+                report.error(where, "a member says where the charter lists it")
+
+
 def check_names(report: Report, content: dict[str, Any]) -> None:
     """Names readers see have an English form: a Czech name is a table with 'cs' and 'en', and a plain name is
     language-neutral (R6). A publisher that is a curated organisation is cited by the organisation's ID, which carries
@@ -1506,11 +1593,39 @@ def check_names(report: Report, content: dict[str, Any]) -> None:
         publishers.append((f"resource:{resource['id']}", (resource.get("citation") or {}).get("publisher")))
     for repository in content["repositories"]:
         named.append((f"repository:{repository['id']}", repository.get("name")))
+    records = content.get("repository_records", [])
+    for record in records:
+        if "name" in record:
+            named.append((f"repository record:{record.get('re3data') or record.get('fipDashboard')}", record["name"]))
 
     # R6, Czech names have an English form
     for where, name in named:
         if isinstance(name, str) and CZECH_LETTERS.search(name):
             report.error(where, f"'{name}' is a Czech name with no English form; give it as a table with 'cs' and 'en'")
+
+    # R6a, and where a Czech form exists, a curated name carries it: re3data tags a Czech name for the record, so the
+    # entry or record annotation that names the repository gives its Czech name too (D-173).
+    czech = {
+        item["re3data"]: item["namesCs"]
+        for snapshot in content["snapshots"]
+        for item in snapshot.get("repository", [])
+        if item.get("namesCs")
+    }
+    curated = [(f"repository:{item['id']}", item) for item in content["repositories"]]
+    curated += [(f"repository record:{item.get('re3data')}", item) for item in records]
+    for where, entry in curated:
+        name = entry.get("name")
+        if entry.get("re3data") in czech and name is not None and not (isinstance(name, dict) and name.get("cs")):
+            report.error(
+                where,
+                f"re3data gives a Czech name ({czech[entry['re3data']][0]}); "
+                "give the name as a table with its Czech form",
+            )
+        abbreviation = entry.get("abbreviation")
+        if abbreviation is not None and not (
+            isinstance(abbreviation, dict) and set(abbreviation) <= {"cs", "en"} and abbreviation
+        ):
+            report.error(where, "an abbreviation is a table of its forms by language ('cs', 'en')")
     for where, name in publishers:
         if isinstance(name, str) and name not in ids and CZECH_LETTERS.search(name):
             report.error(
@@ -1737,6 +1852,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_resources(report, content, vocab, today or date.today())
     check_repositories(report, content, vocab, today or date.today())
     check_glossary(report, content)
+    check_infrastructures(report, content)
     check_fip_dashboard(report, content, vocab)
     check_callouts(report, content, vocab)
     check_live(report, content, vocab, root)
@@ -1800,6 +1916,10 @@ def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
         items[organization["id"]] = ("organization", organization)
     items |= {key: ("model", value) for key, value in model_items(content).items()}
     items |= {key: ("lifecycle", value) for key, value in lifecycle_items(content).items()}
+    for item in (content.get("infrastructures") or {}).get("infrastructure", []):
+        items[f"infrastructure:{item['id']}"] = ("infrastructure", item)
+    if (content.get("node") or {}).get("node"):
+        items["node:eosc-cz-node"] = ("node", content["node"])
     # Association changes alter the meaning of the mapped item and need that item's fresh paradata too.
     for association in content.get("model", {}).get("association", []):
         target = association["target"]

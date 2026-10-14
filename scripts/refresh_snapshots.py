@@ -298,6 +298,18 @@ def r3d(element: ET.Element, tag: str) -> list[str]:
     return [(child.text or "").strip() for child in element.iter() if child.tag.endswith("}" + tag) and child.text]
 
 
+def r3d_names_in(record: ET.Element, language: str) -> list[str]:
+    """The names a re3data record tags with one language (ISO 639-3), its repository name before its other names, in
+    the record's order and each once. re3data tags names unevenly, so curated entries correct them (D-173)."""
+    names: list[str] = []
+    for tag in ("repositoryName", "additionalName"):
+        for child in record.iter():
+            value = (child.text or "").strip()
+            if child.tag.endswith("}" + tag) and child.get("language") == language and value and value not in names:
+                names.append(value)
+    return names
+
+
 def r3d_named(record: ET.Element, tag: str) -> list[str]:
     """The distinct named values of a re3data field, leaving out none, other and unknown."""
     return sorted({value for value in r3d(record, tag) if value.lower() not in ("none", "other", "unknown")})
@@ -361,6 +373,8 @@ def re3data(fetch: Fetcher, today: str, root: Path | None = None) -> Snapshot:
             {child.get("apiType", "") for child in record.iter() if child.tag.endswith("}api")} - {"", "other"}
         )
         lines = ["[[repository]]", f"id = {q(repository_id.lower())}", f"name = {q(names[0])}", f"url = {q(url)}"]
+        if czech := r3d_names_in(record, "ces"):
+            lines.insert(3, f"namesCs = {q(czech)}")
         if repository_id in included:
             lines.insert(1, f"# {INCLUSION_NOTE}")
         if kinds:

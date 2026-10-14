@@ -4,7 +4,7 @@
 [snapshot]
 source = "re3data"
 url = "https://www.re3data.org/"
-retrieved = 2026-10-13
+retrieved = 2026-10-14
 license = "https://creativecommons.org/publicdomain/zero/1.0/"
 
 [[repository]]
@@ -136,6 +136,7 @@ qualityManagement = true
 [[repository]]
 id = "r3d100012473"
 name = "Map collection Charles University Faculty of Science"
+namesCs = ["Digitálni mapová sbirka", "Mapová sbírka Přírodovědecké fakulty UK"]
 url = "https://natur.cuni.cz/en/geography/departments-and-work-places/map-collection"
 kind = "domain"
 re3data = "r3d100012473"
@@ -172,6 +173,7 @@ qualityManagement = true
 [[repository]]
 id = "r3d100013045"
 name = "Czech National Corpus"
+namesCs = ["CNK", "Český národní korpus"]
 url = "https://korpus.cz/"
 kind = "domain"
 re3data = "r3d100013045"
@@ -190,6 +192,7 @@ qualityManagement = false
 [[repository]]
 id = "r3d100013576"
 name = "Archaeological Map of the Czech Republic"
+namesCs = ["Archeologická mapa České republiky", "Digitální archiv AMČR"]
 url = "https://digiarchiv.aiscr.cz/"
 kind = "domain"
 re3data = "r3d100013576"
@@ -243,6 +246,7 @@ qualityManagement = false
 [[repository]]
 id = "r3d100014032"
 name = "ASEP Repository"
+namesCs = ["Repozitář ASEP"]
 url = "https://asep.lib.cas.cz/arl-cav/en/"
 kind = "institutional"
 re3data = "r3d100014032"

@@ -204,6 +204,24 @@
     return FG.h("span", Object.assign({ lang: lang || null }, attrs || {}), text);
   };
 
+  /** A repository's or an infrastructure's name in one language with that language's abbreviation, where it has one
+      the name does not already contain: "Český sociálněvědní datový archiv (ČSDA)" (D-173). */
+  FG.abbreviatedName = function (entity, lang) {
+    const name = FG.text(entity.name, lang);
+    const abbreviation = entity.abbreviation ? FG.text(entity.abbreviation, lang) : "";
+    return abbreviation && !name.includes(abbreviation) ? name + " (" + abbreviation + ")" : name;
+  };
+
+  /** The same name in the other language, where it differs, so an entry keeps both forms. */
+  FG.otherLanguageName = function (entity) {
+    const other = FG.state.lang === "cs" ? "en" : "cs";
+    const theirs = FG.abbreviatedName(entity, other);
+    return theirs !== FG.abbreviatedName(entity, FG.state.lang) ? { lang: other, text: theirs } : null;
+  };
+
+  /** Every form of a name, in both languages with the abbreviations, for search to match. */
+  FG.nameForms = (entity) => [FG.bothLanguages(entity.name), FG.bothLanguages(entity.abbreviation)].join(" ");
+
   /** An entity's name as nodes in the reader's language, marked with its language. A resource shows the guide's
       name for it; a work the guide only cites, written in another language and carrying a translated title, shows
       its original title followed by the translation in brackets, as a citation would. */
@@ -327,6 +345,9 @@
 
   /** Where a reference in text leads: its catalogue entry, page or lifecycle station. */
   FG.referenceHref = function (id) {
+    /* The infrastructures load with the catalogue; their entries' addresses follow from their IDs alone. */
+    if (id === "#infrastructures") return FG.catalogueHref("infrastructures");
+    if (String(id).startsWith("#infrastructure-")) return FG.catalogueHref("infrastructures", String(id).slice("#infrastructure-".length));
     const entity = FG.get(id);
     if (!entity) return null;
     if (String(id).startsWith("#page-")) return FG.href("page", entity.identifier);

@@ -341,7 +341,7 @@ sections.push(["page", async () => {
       if ((await kinds()) !== kind) fail(`catalogue: the address for ${old} does not select ${kind}`);
       if (!(await view.locator(".catalogue-results .card").count())) fail(`catalogue: ${kind} list nothing`);
     }
-    if ((await view.locator('[data-facet="kind"] input[type="radio"]').count()) !== 10) fail("catalogue: the kind is not a single choice among ten");
+    if ((await view.locator('[data-facet="kind"] input[type="radio"]').count()) !== 11) fail("catalogue: the kind is not a single choice among eleven");
     const toolbarGap = await view.evaluate(() => {
       const bar = document.querySelector(".catalogue-toolbar");
       return bar.nextElementSibling.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
@@ -469,7 +469,7 @@ sections.push(["page", async () => {
 
     // No shared facet shows only zeros: a kind whose entries carry no station or principle shows no such facet or
     // order; FIP profiles take principles from their declarations, content changes the places of what they changed.
-    for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
+    for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
       await open("#/cs/V/catalogue/" + kind);
       const empty = await view.evaluate(() =>
         ["station", "principle"].filter((name) => {
@@ -670,7 +670,7 @@ sections.push(["page", async () => {
     });
     if (endpoints.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
     // Every catalogue entry links to its record in the API; the NKR samples are illustrations, not entries.
-    for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
+    for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
       await view.goto(pageUrl + "#/cs/V/catalogue/" + kind);
       await view.waitForFunction((id) => { const radio = document.getElementById(id); return radio && radio.checked && document.querySelector(".catalogue .card"); }, "facet-kind-" + kind);
       const unlinked = await view.locator(".catalogue .card").evaluateAll((cards) => cards.filter((card) => !card.querySelector(".json-link")).map((card) => card.id || card.textContent.trim().slice(0, 40)));
@@ -683,7 +683,7 @@ sections.push(["page", async () => {
       });
       if (!corner) fail(`catalogue: the ${kind} record link does not sit in the card's top right corner`);
       // One card for every kind: its own identifier in the head, and its relations under fixed labels in one order.
-      const order = ["Principy", "Pro koho", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
+      const order = ["Principy", "Pro koho", "Provozovatel", "Vyvinuli", "Provozuje", "Národní uzel", "Členství v ERIC", "Profil FIP komunity", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
       const cards = await view.locator(".catalogue .card").evaluateAll((all) =>
         all.map((card) => ({ id: card.id, chip: (card.querySelector(".entry-head .id-chip-static") || {}).textContent, labels: [...card.querySelectorAll(".relations dt")].map((dt) => dt.textContent) }))
       );
@@ -2373,8 +2373,8 @@ sections.push(["knav catalogue", async () => {
 // colour, labelled rows carry one icon per label in one order, and a tool or service carries the same badge in the
 // catalogue and among a step's resources, while a standard carries none.
 sections.push(["visual system", async () => {
-  const kinds = ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
-  const ROW_ORDER = ["Principy", "Pro koho", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
+  const kinds = ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
+  const ROW_ORDER = ["Principy", "Pro koho", "Provozovatel", "Vyvinuli", "Provozuje", "Národní uzel", "Členství v ERIC", "Profil FIP komunity", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
   const { context, page, problems } = await openPage();
   await page.goto(pageUrl);
   await rendered(page);
@@ -2504,6 +2504,126 @@ sections.push(["glossary definitions", async () => {
   }
   if (external.length) fail("glossary: external requests without a user lookup: " + external.join(", "));
   for (const problem of problems) fail(`glossary: ${problem}`);
+  await context.close();
+}]);
+
+// The answers step counts answers as they are given, and the result so far stays beside the questions on a wide
+// screen and follows them on a phone.
+sections.push(["check parts", async () => {
+  const { context, page, problems } = await openPage();
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(pageUrl + "#/en/SR/check/maturity/answers");
+    await rendered(page);
+    await page.evaluate(() => { window.FairGuide.clearStoredData(); window.FairGuide.rerender(); });
+    await page.waitForSelector("#main .item");
+    const note = page.locator("#parts-answers-note");
+    const before = await note.textContent();
+    await page.locator('#main .item input[type="radio"][value="yes"]').first().check();
+    const after = await note.textContent();
+    if (!/^0 /.test(before) || !/^1 /.test(after)) fail(`check parts (${width}px): the answers step does not count an answer as it is given: ${before} → ${after}`);
+    const place = await page.evaluate(() => {
+      const panel = document.querySelector(".check-summary").getBoundingClientRect();
+      const main = document.querySelector(".check-main").getBoundingClientRect();
+      return { shown: panel.height > 0, beside: panel.left >= main.right, after: panel.top >= main.bottom };
+    });
+    if (!place.shown) fail(`check parts (${width}px): the result so far is not shown`);
+    else if (width > 900 ? !place.beside : !place.after) fail(`check parts (${width}px): the result so far is not ${width > 900 ? "beside" : "after"} the questions`);
+  }
+  // Crossing the wide-screen width (turning a tablet, zooming) re-renders the check and keeps the focus.
+  await page.locator('#main .item input[type="radio"][value="yes"]').first().focus();
+  const focused = await page.evaluate(() => document.activeElement.id);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.waitForFunction(() => document.querySelector(".check-summary .summary-controls"));
+  if ((await page.evaluate(() => document.activeElement.id)) !== focused) fail("check parts: crossing the wide-screen width loses the focus");
+  // Withdrawing by keyboard reaches the count, the result so far and the export like any other change of answer.
+  const first = await page.locator("#main .item").first().getAttribute("id");
+  const id = first.replace("item-", "");
+  await page.locator("#withdraw-" + id).press("Enter");
+  await page.waitForFunction((key) => !document.getElementById("withdraw-" + key), id);
+  if (!/^0 /.test(await page.locator("#parts-answers-note").textContent())) fail("check parts: withdrawing an answer does not reach the answers step's count");
+  if (await page.locator(`input[name="answer-${id}"]:checked`).count()) fail("check parts: a withdrawn answer without a suggestion stays chosen");
+  if (!/Answered 0 of \d/.test(await page.locator(".check-summary").innerText())) fail("check parts: the result so far still counts a withdrawn answer");
+  if (!(await page.evaluate((key) => document.activeElement && document.activeElement.name === "answer-" + key, id))) fail("check parts: withdrawing by keyboard does not return the focus to the question's answers");
+  const exported = await page.evaluate(() => { const SC = window.FairGuide.selfcheck; return JSON.stringify(SC.portableState(window.FairGuide.get("#check-maturity"), window.FairGuide.state.answers.maturity)); });
+  if (exported.includes('"value":"yes"')) fail("check parts: the export still carries a withdrawn answer");
+  // An evaluator's work carries its badge beside its name: FAIR Champion's tests in a question's details, and its
+  // column in the report's table of answers and evaluators.
+  await page.evaluate(() => { window.FairGuide.state.answers.maturity = { items: {}, extended: true }; window.FairGuide.saveState(); window.FairGuide.rerender(); });
+  const testHead = page.locator("#tests-maturity-11 .test-label");
+  if (!(await testHead.locator(".service-badge").count()) || !(await testHead.textContent()).includes("FAIR Champion")) fail("check parts: FAIR Champion's tests do not carry its badge and name");
+  await page.locator('#main .item input[type="radio"][value="no"]').first().check();
+  await page.evaluate(() => { window.location.hash = "#/en/SR/check/maturity/report"; });
+  await page.waitForSelector('.check-parts [aria-current="step"][href$="/report"]');
+  const column = page.locator("th .evaluator-name", { hasText: "FAIR Champion" });
+  if (!(await column.count()) || !(await column.first().locator(".service-badge").count())) fail("check parts: the report's evaluator column does not carry FAIR Champion's badge and name");
+  for (const problem of problems) fail(`check parts: ${problem}`);
+  await context.close();
+}]);
+
+// Names in the reader's language with their abbreviations (guide-experience, "Names appear in the reader's language
+// with their abbreviations"): a Czech reader finds the Czech Social Science Data Archive by "CSDA" and by "ČSDA", it
+// reads with its Czech abbreviation, and the English form stays on the entry; an English page the other way round.
+sections.push(["repository names", async () => {
+  const { context, page, problems } = await openPage();
+  const cards = async (lang, query) => {
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/k!repositories~q!${encodeURIComponent(query)}`));
+    await page.waitForSelector("#main .entry-card");
+    return page.$$eval("#main .entry-card", (els) => els.map((card) => [card.querySelector(".entry-title").textContent, card.querySelector(".card-details")?.textContent || ""]));
+  };
+  for (const query of ["CSDA", "ČSDA"]) {
+    const found = (await cards("cs", query)).find(([title]) => title.includes("Český sociálněvědní datový archiv (ČSDA)"));
+    if (!found) fail(`repository names: "${query}" does not find "Český sociálněvědní datový archiv (ČSDA)" on a Czech page`);
+    else if (!found[1].includes("Czech Social Science Data Archive (CSDA)")) fail("repository names: the English form is not on the Czech entry");
+  }
+  const english = (await cards("en", "ČSDA")).find(([title]) => title.includes("Czech Social Science Data Archive (CSDA)"));
+  if (!english || !english[1].includes("Český sociálněvědní datový archiv (ČSDA)")) fail("repository names: the English entry does not read with its abbreviation and keep the Czech form");
+  for (const problem of problems) fail(`repository names: ${problem}`);
+  await context.close();
+}]);
+
+// The EOSC CZ Node and the large research infrastructures (guide-knowledge-base, "EOSC CZ Node membership is recorded
+// with its state", "Large research infrastructures keep distinct relations"; guide-experience, "EOSC CZ Node
+// membership is visible"): ČSDA carries the node badge with its planned milestone, the date checked and the charter,
+// and is operated by CSDA/ESS-CZ, which is the Czech node of CESSDA and ESS and operates ČSDA; MBDB names its
+// developers and no operator; the node facet narrows the repositories to the node's; a node service carries the
+// badge among a step's resources too.
+sections.push(["node and infrastructures", async () => {
+  const { context, page, problems } = await openPage();
+  const visit = (hash) => navigationRendered(page, () => page.goto(pageUrl + hash));
+  const card = (text) => page.locator("#main .entry-card", { hasText: text }).first();
+  const rows = (entry) => entry.locator(".relations").evaluate((list) => Object.fromEntries([...list.querySelectorAll(":scope > dt")].map((dt) => [dt.textContent.trim(), dt.nextElementSibling.textContent.replace(/\s+/g, " ").trim()])));
+  await visit("#/cs/K/catalogue/k!repositories~q!CSDA");
+  await page.waitForSelector("#main .entry-card");
+  const csda = card("Český sociálněvědní datový archiv (ČSDA)");
+  const badge = (await csda.locator(".node-badge").count()) ? await csda.locator(".node-badge").textContent() : "";
+  if (!/EOSC CZ Node · zapojení plánováno do M12 · ověřeno/.test(badge) || !(await csda.locator('.node-badge a[href*="EOSC_CZ_National_Node_Charter"]').count())) fail("node: ČSDA does not carry the node badge with its milestone, date and charter: " + badge);
+  if (!((await rows(csda))["Provozovatel"] || "").includes("CSDA/ESS-CZ")) fail("node: ČSDA does not name CSDA/ESS-CZ as its operator");
+  for (const lang of ["cs", "en"]) {
+    await visit(`#/${lang}/K/catalogue/infrastructures/csda-ess-cz`);
+    const labels = await page.locator("#catalogue-order option").allTextContents();
+    if (labels.some((label) => label.startsWith("catalogue.orderBy."))) fail(`infrastructures: untranslated ${lang} ordering: ${labels.join(", ")}`);
+  }
+  await visit("#/cs/K/catalogue/infrastructures/csda-ess-cz");
+  await page.waitForSelector("#main .entry-card");
+  const infra = await rows(card("CSDA/ESS-CZ"));
+  if (!/CESSDA ERIC/.test(infra["Národní uzel"] || "") || !/ESS ERIC/.test(infra["Národní uzel"] || "")) fail("infrastructures: CSDA/ESS-CZ is not the node of CESSDA and ESS: " + JSON.stringify(infra));
+  if (!(infra["Provozuje"] || "").includes("ČSDA")) fail("infrastructures: CSDA/ESS-CZ does not operate ČSDA");
+  if (!/Annex 7|Annex 1/.test(infra["Vychází z"] || "") && !/Cestovní mapa/.test(infra["Vychází z"] || "")) fail("infrastructures: CSDA/ESS-CZ does not cite the roadmap");
+  await visit("#/cs/K/catalogue/repositories/mbdb");
+  await page.waitForSelector("#main .entry-card");
+  const mbdb = await rows(card("MBDB"));
+  if (!/Biotechnologický ústav AV ČR a CESNET/.test(mbdb["Vyvinuli"] || "") || mbdb["Provozovatel"]) fail("infrastructures: MBDB does not name its developers without an operator: " + JSON.stringify(mbdb));
+  await visit("#/cs/K/catalogue/k!repositories~f.node!" + encodeURIComponent("#noderole-repository"));
+  await page.waitForSelector("#main .entry-card");
+  const members = await page.locator("#main .catalogue-results .entry-card").count();
+  const badges = await page.locator("#main .catalogue-results .entry-card .node-badge").count();
+  // Seven of the charter's eight repositories are catalogue repositories; the RECETOX libraries are reference data.
+  if (members !== 7 || badges !== members) fail(`node: the node facet does not narrow the repositories to the node's seven (${members} entries, ${badges} badges)`);
+  await visit("#/cs/V/path/analyse");
+  await page.waitForSelector(".station-resources");
+  if (!(await page.locator(".station-resources .entry-card", { hasText: "Galaxy" }).locator(".node-badge").count())) fail("node: Galaxy carries no node badge among the analysis step's resources");
+  for (const problem of problems) fail(`node and infrastructures: ${problem}`);
   await context.close();
 }]);
 

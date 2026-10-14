@@ -4636,3 +4636,12 @@ principles = []
 actor = "other"
 kind = "recommendation"
 text = { cs = "Vydání softwaru lze uložit v repozitáři s popisem a zdrojovým kódem; Zenodo nabízí ruční nahrání i propojení s vydáním na GitHubu. Archivaci kódu je třeba ověřit na zveřejněném záznamu.", en = "A software release can be deposited with descriptive metadata and source code; Zenodo offers manual upload and integration with GitHub releases. Code archival needs verification on the published record." }
+
+[[clause]]
+id = "LRI.A7"
+source = "lri-roadmap-2023"
+locator = "Annex 7"
+principles = ["R1.3"]
+actor = "other"
+kind = "statement"
+text = { cs = "Příloha 7 cestovní mapy uvádí pro každou evropskou výzkumnou infrastrukturu z cestovní mapy ESFRI, na které se Česká republika podílí, velkou výzkumnou infrastrukturu, která je jejím národním uzlem.", en = "Annex 7 of the roadmap names, for each European research infrastructure on the ESFRI roadmap in which the Czech Republic participates, the large research infrastructure that is its Czech national node." }

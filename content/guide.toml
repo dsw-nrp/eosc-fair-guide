@@ -404,6 +404,88 @@ name = { cs = "projekt", en = "project" }
 id = "course"
 name = { cs = "školení", en = "training" }
 
+# Facts of the large research infrastructures (content/infrastructures.toml), as the national roadmap names them.
+[[researchField]]
+id = "physical-sciences-and-engineering"
+name = { cs = "fyzikální vědy a inženýrství", en = "physical sciences and engineering" }
+
+[[researchField]]
+id = "energy"
+name = { cs = "energetika", en = "energy" }
+
+[[researchField]]
+id = "environmental-sciences"
+name = { cs = "environmentální vědy", en = "environmental sciences" }
+
+[[researchField]]
+id = "biological-and-medical-sciences"
+name = { cs = "biologické a lékařské vědy", en = "biological and medical sciences" }
+
+[[researchField]]
+id = "social-sciences-and-humanities"
+name = { cs = "sociální a humanitní vědy", en = "social sciences and humanities" }
+
+[[researchField]]
+id = "e-infrastructures"
+name = { cs = "e-infrastruktury", en = "e-infrastructures" }
+
+[[infrastructurePhase]]
+id = "preparatory"
+name = { cs = "příprava", en = "preparatory" }
+
+[[infrastructurePhase]]
+id = "implementation"
+name = { cs = "implementace", en = "implementation" }
+
+[[infrastructurePhase]]
+id = "construction"
+name = { cs = "výstavba", en = "construction" }
+
+[[infrastructurePhase]]
+id = "operational"
+name = { cs = "provoz", en = "operational" }
+
+[[infrastructurePhase]]
+id = "major-upgrade"
+name = { cs = "rozsáhlá modernizace", en = "major upgrade" }
+
+[[infrastructureCharacter]]
+id = "single-sited"
+name = { cs = "jedno místo", en = "single-sited" }
+
+[[infrastructureCharacter]]
+id = "multi-sited"
+name = { cs = "více míst", en = "multi-sited" }
+
+[[infrastructureCharacter]]
+id = "distributed"
+name = { cs = "distribuovaná", en = "distributed" }
+
+[[infrastructureCharacter]]
+id = "virtual"
+name = { cs = "virtuální", en = "virtual" }
+
+[[esfriStatus]]
+id = "landmark"
+name = { cs = "ESFRI Landmark", en = "ESFRI Landmark" }
+
+[[esfriStatus]]
+id = "project"
+name = { cs = "ESFRI Project", en = "ESFRI Project" }
+
+# What an entry is in the EOSC CZ Node (content/eosc-node.toml), as the node's charter says.
+[[nodeRole]]
+id = "service"
+name = { cs = "služba uzlu", en = "node service" }
+
+[[nodeRole]]
+id = "repository"
+name = { cs = "repozitář uzlu", en = "node repository" }
+
+[[nodeRole]]
+id = "incubator"
+name = { cs = "služba v inkubátoru uzlu", en = "node incubator service" }
+
 [[repositoryKind]]
 id = "domain"
 name = { cs = "oborový", en = "domain" }

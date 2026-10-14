@@ -97,6 +97,94 @@ class FixtureCase(unittest.TestCase):
 
 
 class GeneratorTests(FixtureCase):
+    def add_infrastructures(
+        self, member: str = 'resource = "service"\nrole = "service"\nlocator = "Section 3"\n'
+    ) -> None:
+        """An infrastructure that operates the fixture's service and a node whose member is that service, covered by
+        provenance, with the vocabularies they use."""
+        self.append(
+            "guide.toml",
+            '\n[[researchField]]\nid = "energy"\nname = { cs = "energetika", en = "energy" }\n'
+            '\n[[infrastructurePhase]]\nid = "operational"\nname = { cs = "provoz", en = "operational" }\n'
+            '\n[[infrastructureCharacter]]\nid = "virtual"\nname = { cs = "virtuální", en = "virtual" }\n'
+            '\n[[esfriStatus]]\nid = "landmark"\nname = { cs = "ESFRI Landmark", en = "ESFRI Landmark" }\n'
+            '\n[[nodeRole]]\nid = "service"\nname = { cs = "služba uzlu", en = "node service" }\n'
+            '\n[[nodeRole]]\nid = "repository"\nname = { cs = "repozitář uzlu", en = "node repository" }\n',
+        )
+        (self.root / "content" / "infrastructures.toml").write_text(
+            '[infrastructures]\nsource = "report"\nchecked = 2026-01-01\n\n'
+            '[[infrastructure]]\nid = "ri"\nacronym = "RI-CZ"\n'
+            'name = { cs = "Infrastruktura", en = "Infrastructure" }\n'
+            'host = "A University"\nfield = "energy"\nphase = "operational"\ncharacter = "virtual"\nincluded = 2010\n'
+            'esfri = ["landmark"]\nannex1 = "Annex 1, p. 1"\n\n'
+            '[[infrastructure.nodeOf]]\nname = "EU-RI ERIC"\nesfri = "landmark"\n\n'
+            '[[infrastructure.eric]]\nname = "EU-RI ERIC"\nentry = "2012"\n\n'
+            '[[infrastructure.operates]]\nresource = "service"\nevidence = "https://ri.example.org/about"\n',
+            encoding="utf-8",
+        )
+        (self.root / "content" / "eosc-node.toml").write_text(
+            '[node]\nid = "eosc-cz-node"\nname = "EOSC CZ Node"\noperator = "ri"\nstate = "candidate"\n'
+            'stateDate = 2026-01-01\nsources = ["report"]\nchecked = 2026-01-02\n\n[[member]]\n' + member,
+            encoding="utf-8",
+        )
+        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "infrastructure:*", "node:eosc-cz-node"]')
+
+    def test_infrastructure_names_keep_their_own_sources(self) -> None:
+        self.add_infrastructures()
+        self.append(
+            "sources.toml",
+            '\n[[source]]\nid = "official-names"\ntype = "webpage"\nname = "Official names"\n'
+            'title = "Official names"\nurl = "https://names.example.org/"\ninLanguage = "cs"\n',
+        )
+        self.edit("infrastructures.toml", 'id = "ri"\n', 'id = "ri"\nnamesSource = "official-names"\n')
+        content = build_crate.load_content(self.root / "content")
+        crate = build_crate.build_crate(content)
+        entities = {item["@id"]: item for item in crate["@graph"]}
+        expected = [{"@id": "#source-report"}, {"@id": "#source-official-names"}]
+        self.assertEqual(entities["#infrastructure-ri"]["isBasedOn"], expected)
+        self.assertEqual(entities["#infrastructures"]["isBasedOn"], expected)
+        self.assertEqual(entities["#eric-eu-ri-eric"]["isBasedOn"], {"@id": "#source-report"})
+        self.edit("infrastructures.toml", 'namesSource = "official-names"', 'namesSource = "missing-source"')
+        self.assertError("unknown namesSource 'missing-source'")
+
+    def test_infrastructures_and_the_node_keep_their_relations_apart(self) -> None:
+        self.add_infrastructures()
+        self.assertEqual(self.errors(), [])
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        entities = {item["@id"]: item for item in crate["@graph"]}
+        infrastructure = entities["#infrastructure-ri"]
+        # The node of a European infrastructure, an ERIC membership and operating an entry stay three relations.
+        self.assertEqual(infrastructure["nationalNodeOf"], {"@id": "#european-ri-eu-ri-eric"})
+        self.assertEqual(infrastructure["memberOf"], {"@id": "#eric-eu-ri-eric"})
+        self.assertEqual(entities["#eric-eu-ri-eric"]["czechMembershipSince"], "2012")
+        self.assertEqual(infrastructure["operates"], {"@id": "#resource-service"})
+        service = entities["#resource-service"]
+        self.assertEqual(service["operatedBy"], {"@id": "#infrastructure-ri"})
+        self.assertEqual(service["operatedBySource"], "https://ri.example.org/about")
+        # The entry carries its membership: role, date checked and source; the node names its operator and state.
+        membership = entities[service["nodeMembership"]["@id"]]
+        self.assertEqual(membership["roleName"], {"@id": "#noderole-service"})
+        self.assertEqual(membership["statusAsOf"], "2026-01-02")
+        self.assertEqual(entities["#eosc-cz-node"]["operatedBy"], {"@id": "#infrastructure-ri"})
+        self.assertEqual(entities["#eosc-cz-node"]["nodeState"], "candidate")
+        records = build_crate.api_records(entities, build_crate.load_content(self.root / "content"))
+        self.assertIn(("ri", "#infrastructure-ri"), records["infrastructures"])
+        self.assertIn(("eosc-cz-node", "#eosc-cz-node"), records["organizations"])
+        # The infrastructures load with the catalogue; the node and its memberships come with every view.
+        core, parts = build_crate.split_crate(crate)
+        self.assertIn("#infrastructure-ri", [item["@id"] for item in parts["fips"]["entities"]])
+        self.assertIn("#eosc-cz-node", [item["@id"] for item in core["@graph"]])
+
+    def test_infrastructure_and_node_records_are_checked(self) -> None:
+        self.add_infrastructures('resource = "service"\nrole = "repository"\nlocator = "Appendix A"\n')
+        self.assertError("a repository's planned integration names its milestone (M6, M12)")
+        self.edit("infrastructures.toml", 'evidence = "https://ri.example.org/about"\n', "")
+        self.assertError("an operator relation is recorded only with the source that states it")
+        self.edit("infrastructures.toml", 'field = "energy"', 'field = "astrology"')
+        self.assertError("unknown field 'astrology'")
+        self.edit("eosc-node.toml", 'operator = "ri"', 'operator = "elsewhere"')
+        self.assertError("the node's operator 'elsewhere' is not a listed infrastructure")
+
     def test_station_references_resolve_and_unknown_stations_fail(self) -> None:
         self.edit("stations/01-one.toml", "Take the first step.", "Read [[station:one|the station]].")
         graph = build_crate.Graph()
@@ -998,6 +1086,26 @@ class SnapshotTests(FixtureCase):
         self.assertEqual(rejected.status, "rejected")
         self.assertIn("not a re3data DOI", rejected.reason)
 
+    def test_re3data_keeps_the_names_it_tags_as_czech(self) -> None:
+        inputs = Path(self.temp.name) / "inputs"
+        inputs.mkdir()
+        (inputs / "re3data-list.xml").write_text("<list><repository><id>r3d1</id></repository></list>")
+        (inputs / "re3data-r3d1.xml").write_text(
+            '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
+            '<r3d:repositoryName language="eng">Czech National Corpus</r3d:repositoryName>'
+            '<r3d:additionalName language="eng">CNC</r3d:additionalName>'
+            '<r3d:additionalName language="ces">CNK</r3d:additionalName>'
+            '<r3d:additionalName language="ces">Český národní korpus</r3d:additionalName>'
+            '<r3d:additionalName language="ces">CNK</r3d:additionalName>'
+            "<r3d:repositoryURL>https://korpus.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
+            encoding="utf-8",
+        )
+        outcome = refresh_snapshots.refresh("re3data", refresh_snapshots.Fetcher(inputs), "2026-01-01", self.root)
+        self.assertEqual(outcome.status, "changed", outcome.reason)
+        snapshot = (self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8")
+        self.assertIn('name = "Czech National Corpus"', snapshot)
+        self.assertIn('namesCs = ["CNK", "Český národní korpus"]', snapshot)
+
     def test_re3data_adds_reviewed_czech_hosted_repositories(self) -> None:
         inputs = Path(self.temp.name) / "inputs"
         inputs.mkdir()
@@ -1071,6 +1179,45 @@ class SnapshotRefreshTests(FixtureCase):
             '[[repository]]\nid = "r3d100000002"\nname = "Registered repository"\nurl = "https://registered.example.org"\n'
             're3data = "r3d100000002"\ndoi = "10.17616/R3AB12"\n',
             encoding="utf-8",
+        )
+
+    def test_repository_names_keep_their_czech_form_and_abbreviations(self) -> None:
+        (self.root / "content" / "snapshots").mkdir(exist_ok=True)
+        (self.root / "content" / "snapshots" / "re3data.toml").write_text(
+            '[snapshot]\nsource = "re3data"\nurl = "https://www.re3data.org/"\nretrieved = 2026-01-01\n\n'
+            '[[repository]]\nid = "r3d100000002"\nname = "Czech Archive"\nnamesCs = ["Český archiv"]\n'
+            'url = "https://archive.example.org"\nre3data = "r3d100000002"\n\n'
+            '[[repository]]\nid = "r3d100000003"\nname = "Other Archive"\nnamesCs = ["Jiný archiv"]\n'
+            'url = "https://other.example.org"\nre3data = "r3d100000003"\n',
+            encoding="utf-8",
+        )
+        record = '[[record]]\nre3data = "r3d100000002"\n{fields}evidence = ["https://archive.example.org/about"]\n'
+        path = self.root / "content" / "repositories.toml"
+        path.write_text(record.format(fields='name = "Czech Archive"\n'), encoding="utf-8")
+        self.assertError("re3data gives a Czech name (Český archiv); give the name as a table with its Czech form")
+        path.write_text(
+            record.format(fields='name = { cs = "Český archiv", en = "Czech Archive" }\nabbreviation = "ČA"\n'),
+            encoding="utf-8",
+        )
+        self.assertError("an abbreviation is a table of its forms by language")
+        path.write_text(
+            record.format(
+                fields='name = { cs = "Český archiv", en = "Czech Archive" }\nabbreviation = { cs = "ČA", en = "CA" }\n'
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual(self.errors(), [])
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        entities = {item["@id"]: item for item in crate["@graph"]}
+        corrected = entities["#repository-r3d100000002"]
+        self.assertEqual(
+            corrected["abbreviation"], [{"@value": "ČA", "@language": "cs"}, {"@value": "CA", "@language": "en"}]
+        )
+        self.assertIn({"@value": "Český archiv", "@language": "cs"}, corrected["name"])
+        # Without a curated name, the name re3data tags as Czech serves Czech readers.
+        self.assertEqual(
+            entities["#repository-r3d100000003"]["name"],
+            [{"@value": "Jiný archiv", "@language": "cs"}, {"@value": "Other Archive", "@language": "en"}],
         )
 
     @staticmethod

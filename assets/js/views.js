@@ -134,6 +134,25 @@
     return /^https?:\/\//.test(String(target || "")) ? FG.external(target, breakable(target), { class: "id-chip pid-chip" }) : h("span", { class: "id-chip id-chip-static" }, String(target || ""));
   };
   FG.statusBadge = statusBadge;
+
+  /** An entry's membership of the EOSC CZ Node as one badge: the node, what the entry is in it as the node's charter
+      says (a node service, a repository whose integration is planned by a stated milestone, an incubator service),
+      the date checked and the charter it comes from. The badge claims no more than the charter (D-172). */
+  FG.nodeBadge = function (entity) {
+    const membership = FG.get(FG.id(entity && entity.nodeMembership));
+    if (!membership) return null;
+    const role = FG.id(membership.roleName).replace("#noderole-", "");
+    const source = FG.refs(membership, "citation")[0];
+    const what = role === "repository" && membership.nodeMilestone ? FG.t("node.repository", { milestone: membership.nodeMilestone }) : FG.t("node." + role);
+    return h(
+      "span",
+      { class: "badge node-badge", "data-node": role },
+      h("span", { "aria-hidden": "true" }, "◆"),
+      "EOSC CZ Node · " + what,
+      membership.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("node.checked", { date: FG.formatDate(membership.statusAsOf) })) : null,
+      source && (source.url || String(source["@id"]).startsWith("https://")) ? [" · ", FG.external(source.url || source["@id"], FG.t("node.source"))] : null
+    );
+  };
   FG.dashboardRecord = dashboardRecord;
 
   function lensOf(entity, lens) {

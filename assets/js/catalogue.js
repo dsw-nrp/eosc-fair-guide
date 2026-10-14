@@ -146,7 +146,7 @@
   /* ---------------------------------------------------------------- one card for every kind */
 
   /* The relations a card may show, in this order, each under one label and icon wherever it appears. */
-  const RELATIONS = ["principles", "audience", "basedOn", "inGuide", "identifiers"];
+  const RELATIONS = ["principles", "audience", "operatedBy", "developedBy", "operates", "nationalNodeOf", "memberOf", "fips", "basedOn", "inGuide", "identifiers"];
   /* The resource types that are tools or services, whose entries carry a service badge. */
   const SERVICE_TYPES = ["#rtype-service", "#rtype-tool", "#rtype-registry"];
 
@@ -190,6 +190,30 @@
   }
 
   const tiles = (principles) => principles.map((principle) => FG.principleTile(principle));
+
+  /** A link to an entry's own place in the catalogue: a repository under its anchor, an infrastructure or a resource
+      under its identifier. */
+  const entryLink = (entity) => {
+    if (!entity) return null;
+    const id = String(entity["@id"]);
+    const name = entity.abbreviation ? FG.abbreviatedName(entity, FG.state.lang) : FG.text(entity.name);
+    if (id.startsWith("#infrastructure-")) return h("a", { href: FG.catalogueHref("infrastructures", entity.identifier) }, name);
+    if (entity["@type"] === "DataCatalog" || id.startsWith("#repository-")) return h("a", { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) }, name);
+    return h("a", { href: FG.catalogueHref("resources", entity.identifier) }, name);
+  };
+
+  /** Who operates an entry, as its sources state it: the operator its own page names and the large research
+      infrastructure that operates it, each with the source that says so (D-172, D-174). */
+  const operatorRow = (entity) => [
+    entity.operatorName ? h("span", null, FG.text(entity.operatorName), entity.operatorSource ? [" (", FG.external(entity.operatorSource, FG.t("infrastructure.operatorSource")), ")"] : null) : null,
+    FG.get(FG.id(entity.operatedBy))
+      ? h("span", null, entryLink(FG.get(FG.id(entity.operatedBy))), entity.operatedBySource ? [" (", FG.external(entity.operatedBySource, FG.t("infrastructure.operatorSource")), ")"] : null)
+      : null,
+  ].filter(Boolean);
+
+  /** Who developed an entry, where its sources name its developers rather than an operator (D-174). */
+  const developerRow = (entity) =>
+    entity.developerName ? [h("span", null, FG.text(entity.developerName), entity.developerSource ? [" (", FG.external(entity.developerSource, FG.t("infrastructure.operatorSource")), ")"] : null)] : [];
   /** The audiences an entry is for, by icon and name. */
   const audiences = (lensIds) =>
     lensIds
@@ -235,10 +259,11 @@
       title: FG.external(resource.url, FG.nameNodes(resource)),
       details: citationDetails(resource),
       body: resource.description ? h("p", null, FG.span(resource.description)) : null,
-      states: [FG.statusBadge(resource), record ? FG.verificationBadges(record.fer) : null],
+      states: [FG.statusBadge(resource), FG.nodeBadge(resource), record ? FG.verificationBadges(record.fer) : null],
       relations: {
         principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
         audience: audiences(FG.refIds(resource, "audience")),
+        operatedBy: operatorRow(resource),
         inGuide: inGuide(holders),
         identifiers: FG.pidItems(resource).concat(record ? [FG.pidItem("dashboard", record.url)] : []),
       },
@@ -310,5 +335,5 @@
 
 
   /* What the catalogue view builds on, for assets/js/catalogue-view.js. */
-  FG.catalogueParts = { audiences, citationDetails, citations, code, entryCard, icons, inGuide, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState };
+  FG.catalogueParts = { audiences, citationDetails, citations, code, developerRow, entryCard, entryLink, icons, inGuide, operatorRow, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState };
 })();

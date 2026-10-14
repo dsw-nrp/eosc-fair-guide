@@ -208,6 +208,8 @@
     }
     FG.renderList("results", () => fragment(results(check, st)));
     FG.renderList("summary-body", () => fragment(summary(check, st)));
+    const note = document.getElementById("parts-answers-note");
+    if (note) note.textContent = answersNote(check, st);
     refreshPreview(check, st);
     FG.renderList("share-output", () => fragment());
     if (exportGate && exportGate.isConnected) exportGate.refresh();
@@ -1146,7 +1148,9 @@
       h(
         "p",
         { class: "test-head" },
-        h("span", { class: "test-label" }, FG.t("selfcheck.champion.label", { n: tests.length })),
+        /* The tests are FAIR Champion's: its badge and name lead the line, as wherever an evaluator's work appears. */
+        h("span", { class: "test-label evaluator-name" }, inspection.sourceBadge("champion"),
+          h("span", null, FG.text((FG.get("#resource-fair-champion") || {}).name || "FAIR Champion") + " · " + FG.t("selfcheck.champion.label", { n: tests.length }))),
         action
           ? h("button", { type: "button", class: "button-small test-run", id: "test-run-" + keyOf(item), disabled: status.busy || null, onclick: () => runChampion(check, tests, "tests-" + keyOf(item)) }, action)
           : ready
@@ -1625,10 +1629,11 @@
   const groupTitle = (group) => [groupMark(group), " ", groupName(group)];
 
   /* On a wide screen with the summary open, the check's controls sit in the summary, at hand while scrolling; on a
-     narrow screen or with the summary collapsed they sit above the questions. Crossing the width re-renders. */
+     narrow screen or with the summary collapsed they sit above the questions. Crossing the width (turning a tablet,
+     zooming) re-renders, keeping the focus on the control that had it. */
   const WIDE = window.matchMedia ? window.matchMedia("(min-width: 60rem)") : null;
   const controlsInSummary = () => Boolean(WIDE && WIDE.matches) && !FG.state.resultCollapsed;
-  if (WIDE && WIDE.addEventListener) WIDE.addEventListener("change", () => document.querySelector(".check-view") && FG.rerender());
+  if (WIDE && WIDE.addEventListener) WIDE.addEventListener("change", () => document.querySelector(".check-view") && FG.rerender(document.activeElement && document.activeElement.id));
 
   /** The extended switch (when the check has further items) and the grouping. */
   function checkControls(check, st, compact) {
@@ -3158,13 +3163,18 @@
   const partOf = (route) => (PARTS.includes(route.extra) ? route.extra : route.extra ? null : "evidence");
   const partHref = (check, part) => FG.href("check", check.identifier) + "/" + part;
 
+  /** How far the answers are, as the answers step says it; answering updates it in place. */
+  function answersNote(check, st) {
+    if (!ready(check, st)) return FG.t("selfcheck.parts.answersWaiting");
+    const items = resultItems(check, st);
+    return FG.t("selfcheck.parts.answersNote", { n: items.filter((item) => answerOf(st, item)).length, total: items.length });
+  }
+
   /** The three parts as numbered steps, the current one marked; each step says what it holds or how far it is. */
   function partsNav(check, st, part) {
-    const items = ready(check, st) ? resultItems(check, st) : [];
-    const answered = items.filter((item) => answerOf(st, item)).length;
     const notes = {
       evidence: FG.t("selfcheck.parts.evidenceNote"),
-      answers: ready(check, st) ? FG.t("selfcheck.parts.answersNote", { n: answered, total: items.length }) : FG.t("selfcheck.parts.answersWaiting"),
+      answers: answersNote(check, st),
       report: FG.t("selfcheck.parts.reportNote"),
     };
     return h(
@@ -3181,7 +3191,7 @@
               "a",
               { class: "check-part", href: partHref(check, key), "aria-current": key === part ? "step" : null },
               h("span", { class: "check-part-number", "aria-hidden": "true" }, h("span", null, String(index + 1))),
-              h("span", { class: "check-part-text" }, h("strong", null, FG.t("selfcheck.parts." + key)), h("span", { class: "small" }, notes[key]))
+              h("span", { class: "check-part-text" }, h("strong", null, FG.t("selfcheck.parts." + key)), h("span", { class: "small", id: "parts-" + key + "-note" }, notes[key]))
             )
           )
         )

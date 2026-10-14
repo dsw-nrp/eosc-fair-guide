@@ -77,6 +77,17 @@ try {
     assert(observed.notes.some((note) => note.key === "selfcheck.note.partialCoverage"), "export/import retains the partial-coverage basis");
     assert.equal(await page.locator('#tests-maturity-11 .test-list > .test-row > .test-invocation > a[href="https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence"]').count(), 1, "the invocation identity stays accessible");
     assert.equal(await page.locator("#tests-maturity-02").count(), 0, "an identifier-scheme test does not answer landing-page continuity");
+    // A run saved under the earlier evidence-only rule follows the current one on the next visit (D-184).
+    await page.evaluate(() => {
+      const entry = FairGuide.state.answers.maturity.items["maturity.11"];
+      for (const seen of [entry.prefill, ...entry.observations]) if (seen.source === "champion") { seen.value = null; seen.notes = []; }
+      delete entry.value; delete entry.origin;
+      FairGuide.saveState();
+    });
+    await page.reload();
+    await part("answers");
+    await page.waitForSelector("#item-maturity-11");
+    assert.deepEqual(await page.locator("#item-maturity-11 input:checked").evaluateAll((inputs) => inputs.map((input) => input.value)), ["partly"], "a saved FAIR Champion run is applied again under the current rule");
 
     await visit(lang, "dataset");
     await page.fill("#prefill-pid", "10.1234/record");
