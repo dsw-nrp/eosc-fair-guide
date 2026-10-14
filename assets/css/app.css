@@ -500,13 +500,27 @@ button:hover,
 
 .rail a {
   display: grid;
-  grid-template-columns: var(--rail-number) var(--rail-icon) minmax(0, 1fr) auto;
+  grid-template-columns: var(--rail-number) var(--rail-icon) minmax(0, 1fr);
   gap: var(--space-2);
   align-items: center;
   padding: var(--space-2) var(--space-2);
   border-radius: var(--radius);
   text-decoration: none;
   color: var(--text);
+}
+
+/* A step's row: its link and the reader's own read control beside it. The control is a sibling of the link, never
+   inside it, so a button is not nested in a link (D-190). */
+.rail .rail-step,
+.journey-steps .journey-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.rail .rail-step:hover > a {
+  background: var(--surface);
 }
 
 .rail a:hover {
@@ -900,6 +914,36 @@ button:hover,
 
 .read-mark {
   flex-shrink: 0;
+}
+
+/* The reader's read mark on a step: a small control beside the step that the reader sets and clears (D-190). */
+.read-toggle {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.read-toggle[data-state="read"] {
+  border-color: var(--tint-teal);
+  color: var(--tint-teal);
+}
+
+.read-toggle:hover {
+  background: var(--surface);
+}
+
+.read-toggle-glyph {
+  font-size: var(--size-small);
 }
 
 .text-table-scroll { overflow-x: auto; margin-block: var(--space-3); }

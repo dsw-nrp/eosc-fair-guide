@@ -411,14 +411,25 @@
   const stageClass = (index) => "stage-" + (index + 1);
   const stationIcon = (station) => ((FG.config.icons && FG.config.icons.station) || {})[station.identifier];
 
-  const readMark = (stationId) => FG.list(FG.state.readStations).includes(stationId)
-    ? h("span", { class: "badge read-mark", title: FG.t("journey.read"), "data-read": stationId },
-      h("span", { "aria-hidden": "true" }, "✓"), h("span", { class: "visually-hidden" }, FG.t("journey.read")))
-    : null;
+  /* A step's read mark is the reader's own, not a record of visits: this control sets it and takes it off again,
+     and every step carries one, so the mark is optional rather than automatic (D-190). */
+  const readToggle = (stationId) => {
+    const read = FG.list(FG.state.readStations).includes(stationId);
+    return h(
+      "button",
+      { type: "button", class: "read-toggle", "data-read": stationId, "data-state": read ? "read" : "unread",
+        "aria-pressed": read ? "true" : "false", title: FG.t(read ? "journey.readOff" : "journey.readOn"),
+        onclick: () => FG.toggleReadStation(stationId) },
+      h("span", { class: "read-toggle-glyph", "aria-hidden": "true" }, read ? "✓" : "○"),
+      h("span", { class: "visually-hidden" }, FG.t("journey.read"))
+    );
+  };
 
-  /** A stage's steps, one per line, each with its icon. */
+  /** A stage's steps, one per line, each with its icon and the reader's own read mark. */
   const stepLinks = (steps) =>
-    h("ul", { class: "journey-steps" }, steps.map((station) => h("li", null, h("a", { href: FG.href("path", station.identifier) }, FG.icon(stationIcon(station)), FG.span(station.name), readMark(station.identifier)))));
+    h("ul", { class: "journey-steps" }, steps.map((station) => h("li", { class: "journey-step" },
+      h("a", { href: FG.href("path", station.identifier) }, FG.icon(stationIcon(station)), FG.span(station.name)),
+      readToggle(station.identifier))));
 
   function rail(route, currentId) {
     const current = FG.stations().find((station) => station.identifier === currentId);
@@ -461,19 +472,19 @@
       const shown = RAIL_STATES.filter((state) => counts[state]);
       return h(
         "li",
-        null,
+        { class: "rail-step" },
         h(
           "a",
           { href: FG.href("path", station.identifier), "aria-current": station.identifier === currentId ? "step" : null },
           h("span", { class: "number" }, String(station.position)),
           FG.icon(stationIcon(station)) || h("span"),
           FG.span(station.name),
-          readMark(station.identifier),
           shown.length
             ? h("span", { class: "rail-marks" }, shown.map((state) => railMark(state, counts[state])),
               h("span", { class: "visually-hidden" }, " " + FG.t("rail.marksHere", { list: shown.map((state) => FG.t("selfcheck.state." + state) + " " + counts[state]).join(", ") })))
             : null
-        )
+        ),
+        readToggle(station.identifier)
       );
     };
     return h(
@@ -1183,13 +1194,10 @@
   FG.views.path = function (route) {
     const showEntry = FG.landingShown(route);
     const currentId = showEntry ? null : route.arg || FG.state.lastStation || FG.stations()[0].identifier;
-    if (currentId && FG.stations().some((station) => station.identifier === currentId)) {
-      const visited = FG.list(FG.state.readStations);
-      const changed = !visited.includes(currentId) || currentId !== FG.state.lastStation || FG.state.lastVisit !== FG.today();
-      FG.state.readStations = [...new Set(visited.concat(currentId))];
+    if (currentId && FG.stations().some((station) => station.identifier === currentId) && (currentId !== FG.state.lastStation || FG.state.lastVisit !== FG.today())) {
       FG.state.lastStation = currentId;
       FG.state.lastVisit = FG.today();
-      if (changed) FG.saveState();
+      FG.saveState();
     }
     if (showEntry) return landing(route);
     return h("div", { class: "layout layout-path wrap" }, h("div", { class: "path-side" }, rail(route, currentId)), h("div", null, station(Object.assign({}, route, { arg: currentId }))));

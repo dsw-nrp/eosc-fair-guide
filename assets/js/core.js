@@ -701,6 +701,22 @@
     if (FG.providers && FG.providers.forgetAll) FG.providers.forgetAll();
   };
 
+  /** The reader's own read mark on a step: set it or take it off. Every visible control for the step follows without a
+      re-render, so the control the reader used keeps the focus (D-190). */
+  FG.toggleReadStation = function (stationId) {
+    const reads = FG.list(FG.state.readStations);
+    FG.state.readStations = reads.includes(stationId) ? reads.filter((id) => id !== stationId) : reads.concat(stationId);
+    const read = FG.state.readStations.includes(stationId);
+    FG.saveState();
+    for (const control of document.querySelectorAll('.read-toggle[data-read="' + CSS.escape(stationId) + '"]')) {
+      control.dataset.state = read ? "read" : "unread";
+      control.setAttribute("aria-pressed", read ? "true" : "false");
+      control.setAttribute("title", FG.t(read ? "journey.readOff" : "journey.readOn"));
+      const glyph = control.querySelector(".read-toggle-glyph");
+      if (glyph) glyph.textContent = read ? "✓" : "○";
+    }
+  };
+
   /** Save the state; whether it was saved is returned and kept in `FG.storageFull`. When the browser refuses it,
       retained evaluator reports give way first: they are dropped from storage (the page keeps them for the visit)
       and the answers are saved again, so a report never costs the reader their answers. */

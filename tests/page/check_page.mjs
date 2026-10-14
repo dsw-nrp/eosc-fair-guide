@@ -43,6 +43,26 @@ const failures = [];
 // The question numbers a list of gaps or tasks shows: a question shows by its number inside its check.
 const numbersIn = (list) => list.locator(".item-id").allTextContents();
 const fail = (message) => failures.push(message);
+/** A followed link marks its entry for about a second and a half and then lets the mark go, so a wait started after
+    the click can miss it on a loaded machine and report a defect that is not there. Record the mark in the page as
+    the browser applies it, before the click, and assert the recorded fact once the click has settled. */
+async function watchJump(page, entryId) {
+  await page.evaluate((id) => {
+    window.__jumpMarked = false;
+    const seen = (node) => {
+      if (!node || typeof node.id !== "string") return;
+      const candidates = node.id === "item-" + id ? [node] : node.querySelectorAll('[id="item-' + CSS.escape(id) + '"]');
+      for (const element of candidates) if (element.classList.contains("jumped")) window.__jumpMarked = true;
+    };
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.type === "attributes") seen(record.target);
+        else for (const node of record.addedNodes) if (node.nodeType === 1) seen(node);
+      }
+    });
+    observer.observe(document.getElementById("app") || document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+  }, entryId);
+}
 
 const browser = await chromium.launch();
 /** The independent sections of the checks, run at once; each opens its own browser context. */
@@ -623,8 +643,10 @@ sections.push(["page", async () => {
     const step = crate["@graph"].find((entity) => entity["@id"] === "#advice-findability.04-step-3");
     if (!step || JSON.stringify(step.text).includes("[[") || !JSON.stringify(step.mentions).includes("#resource-datacite")) fail("text links: the crate does not record DataCite as mentioned by the step with clean text");
     if (JSON.stringify(crate).includes("[[")) fail("text links: reference markup reached the crate");
+    await watchJump(view, "datacite");
     await named.click();
-    await view.waitForSelector("#item-datacite.jumped");
+    await view.waitForSelector("#item-datacite");
+    await view.waitForFunction(() => window.__jumpMarked === true, null, { timeout: 30000 });
 
     await view.goto(pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
@@ -900,10 +922,11 @@ sections.push(["page", async () => {
     if (!(await view.locator('details[data-key="L2"]').evaluate((details) => details.open))) await view.locator('details[data-key="L2"] > summary').click();
     const chip = view.locator('details[data-key="L2"] ul.clauses a.id-chip').first();
     const id = (await chip.textContent()).trim();
+    await watchJump(view, id);
     await chip.click();
     await view.waitForSelector(".catalogue-layout");
     await view.waitForFunction((expected) => document.activeElement && document.activeElement.id === "item-" + expected, id);
-    if (!(await view.evaluate(() => document.activeElement.classList.contains("jumped")))) fail("ids: the catalogue entry is not marked when the identifier is followed");
+    if (!(await view.evaluate(() => window.__jumpMarked === true))) fail("ids: the catalogue entry is not marked when the identifier is followed");
     if (!(await view.locator("#facet-kind-clauses").isChecked())) fail("ids: the identifier does not select the requirements");
     await view.goto("about:blank");
     await view.goto(pageUrl + "#/cs/V/catalogue/clauses/A.F1.N1");
@@ -2745,21 +2768,29 @@ sections.push(["Read steps and situations", async () => {
     if (await shortcuts.count() !== 4) fail(`shortcuts: expected four situations for ${lang}/${lens}`);
     const hrefs = await shortcuts.evaluateAll((links) => links.map((link) => link.getAttribute("href")));
     if (hrefs.some((href) => !href.includes("/path/"))) fail(`shortcuts: a ${lang}/${lens} situation bypasses its step`);
-    if (await page.locator(".journey-steps [data-read]").count()) fail("read steps: landing visits marked a step");
+    /* A visit marks nothing: the read mark is the reader's own, and every step offers the control (D-190). */
+    if (await page.locator(".journey-steps [data-read][data-state='read']").count()) fail(`read steps: ${lang}/${lens} marked a step without the reader`);
+    if (await page.locator(".journey-steps [data-read]").count() !== 11) fail(`read steps: ${lang}/${lens} does not offer a read control on every step`);
   }
   await visit("#/cs/V/path/plan");
   if (!await page.locator('#main a[href="https://dmp.eosc.cz/"]').count()) fail("shortcuts: planning has no DMP next action");
   await visit("#/cs/V/path/licence");
-  for (const id of ["plan", "licence"]) if (!await page.locator(`.rail-desktop [data-read="${id}"]`).count()) fail(`read steps: missing rail mark ${id}`);
+  /* The reader marks two steps by hand; nothing marks itself, and the mark is theirs to take off again. */
+  await page.locator('.rail-desktop [data-read="plan"]').click();
+  await page.locator('.rail-desktop [data-read="licence"]').click();
+  for (const id of ["plan", "licence"]) if (!await page.locator(`.rail-desktop [data-read="${id}"][data-state="read"]`).count()) fail(`read steps: missing rail mark ${id}`);
   await page.reload();
   await page.waitForSelector("#main h1");
   await visit("#/en/DS/path/start");
-  if (await page.locator(".journey-steps [data-read]").count() !== 2) fail("read steps: visits did not survive reload and language/role change");
+  if (await page.locator(".journey-steps [data-read][data-state='read']").count() !== 2) fail("read steps: marks did not survive reload and language/role change");
+  await page.locator('.journey-steps [data-read="plan"]').click();
+  if (await page.locator('[data-read="plan"][data-state="read"]').count()) fail("read steps: a mark cannot be taken off");
+  if (await page.locator('[data-read="licence"][data-state="read"]').count() !== 1) fail("read steps: taking one mark off changed another");
   await page.evaluate(() => window.FairGuide.clearStoredData());
   await visit("#/cs/DS/path/start");
   await page.reload();
   await page.waitForSelector("#main h1");
-  if (await page.locator(".journey-steps [data-read]").count()) fail("read steps: clear-local-data retained visits");
+  if (await page.locator("[data-read][data-state='read']").count()) fail("read steps: clear-local-data retained marks");
   for (const problem of problems) fail(`read steps: ${problem}`);
   await context.close();
 }]);
