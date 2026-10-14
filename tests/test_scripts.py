@@ -1982,6 +1982,12 @@ def make_link(test: unittest.TestCase, path: Path, target: Path) -> None:
 class SiteOutputTests(FixtureCase):
     """The build replaces only a site directory it made; it refuses before anything is generated or removed."""
 
+    def test_development_container_inputs_are_not_site_output(self) -> None:
+        path = self.root / ".devcontainer" / "generated"
+        with self.assertRaisesRegex(build_crate.UnsafeOutputError, "authored tree"):
+            build_crate.site_directory(path, self.root)
+        self.assertFalse(path.exists())
+
     def sentinel(self, relative: str, root: Path | None = None) -> Path:
         path = (root or self.root) / relative
         path.parent.mkdir(parents=True, exist_ok=True)

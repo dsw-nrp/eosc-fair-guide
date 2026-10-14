@@ -52,6 +52,11 @@ python scripts/build_site.py
 Generátor používá standardní knihovnu Pythonu; upravené obrázky SVG jsou místní soubory.
 Hotová stránka funguje i bez připojení; jen živé
 kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) nebo zveřejnit samostatně.
+Pro automatickou výšku rámce a sdílení adresy hostitelské stránky slouží [ukázka vložení a protokol zpráv](docs/embedding.md).
+
+Připravené prostředí nabízí [vývojový kontejner](CONTRIBUTING.md#development-container). Po otevření repozitáře
+v kontejneru jsou Python, Node.js, kontrolní nástroje i Chromium nainstalované; kontroly spustíte příkazem
+`python scripts/check_all.py --jobs 4`.
 
 Pro místní server, který některé prohlížeče potřebují pro práci se schránkou:
 

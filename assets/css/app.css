@@ -923,6 +923,7 @@ button:hover,
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
+  min-height: 1.75rem;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1347,6 +1348,8 @@ details > .content {
 }
 
 button.id-chip {
+  /* Inline question references keep the chip's size rather than the action button's 44px minimum. */
+  min-height: 1.5rem;
   cursor: pointer;
 }
 

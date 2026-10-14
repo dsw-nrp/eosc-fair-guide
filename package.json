@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "browsers": "playwright install chromium",
-    "check:page": "node tests/page/check_page.mjs",
+    "check:page": "node tests/page/check_page.mjs && node tests/page/check_embed.mjs",
+    "check:embed": "node tests/page/check_embed.mjs",
     "check:discovery": "node tests/page/check_discovery.mjs",
     "check:helpers": "node tests/page/check_accessibility.mjs && node tests/page/check_safety.mjs && node tests/page/check_helpers.mjs && node tests/page/check_citation.mjs && node tests/page/check_datacite.mjs && node tests/page/check_services.mjs && node tests/page/check_champion_probe.mjs && node tests/page/check_pr_comment.mjs && node tests/page/check_source_publisher.mjs && node tests/page/check_health_issues.mjs && node tests/page/check_release.mjs",
     "check:model": "node tests/page/check_model.mjs && node tests/page/check_visuals.mjs",

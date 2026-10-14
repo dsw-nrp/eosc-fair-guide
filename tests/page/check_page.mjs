@@ -11,6 +11,7 @@
 
 import { chromium } from "playwright";
 import { audit } from "./accessibility.mjs";
+import { compactControlProblems } from "./compact_controls.mjs";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -2771,10 +2772,16 @@ sections.push(["Read steps and situations", async () => {
     /* A visit marks nothing: the read mark is the reader's own, and every step offers the control (D-190). */
     if (await page.locator(".journey-steps [data-read][data-state='read']").count()) fail(`read steps: ${lang}/${lens} marked a step without the reader`);
     if (await page.locator(".journey-steps [data-read]").count() !== 11) fail(`read steps: ${lang}/${lens} does not offer a read control on every step`);
+    for (const width of [1280, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const problem of await compactControlProblems(page)) fail(`read steps: ${lang}/${lens}/${width}: ${problem}`);
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
   }
   await visit("#/cs/V/path/plan");
   if (!await page.locator('#main a[href="https://dmp.eosc.cz/"]').count()) fail("shortcuts: planning has no DMP next action");
   await visit("#/cs/V/path/licence");
+  for (const problem of await compactControlProblems(page)) fail(`read steps rail: ${problem}`);
   /* The reader marks two steps by hand; nothing marks itself, and the mark is theirs to take off again. */
   await page.locator('.rail-desktop [data-read="plan"]').click();
   await page.locator('.rail-desktop [data-read="licence"]').click();

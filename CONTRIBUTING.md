@@ -41,6 +41,25 @@ python scripts/check_all.py        # before a pull request: build, then every ch
 
 `check_all.py` needs `npm ci` and the tools from `requirements-dev.txt`, and reports each check's result and time.
 
+### Development container
+
+With Docker and the Dev Containers extension, open this checkout and choose **Reopen in Container**. The image
+pins Python 3.12.15 and Node.js 22.23.3, installs the check tools and the lockfile's Playwright Chromium with its
+system dependencies, and installs workspace Node packages automatically. Run `python scripts/check_all.py --jobs 4`
+without any further setup, or `python scripts/serve.py --build` for the forwarded preview on port 8000. Rebuild
+the container after changing the pinned runtimes, requirements or lockfile.
+
+The same setup can be verified without an editor from the repository root:
+
+```bash
+docker build -f .devcontainer/Dockerfile -t fair-guide-dev .
+docker run --rm --mount type=bind,source="$PWD",target=/workspaces/eosc-fair-guide --mount type=volume,target=/workspaces/eosc-fair-guide/node_modules fair-guide-dev sh -c 'npm ci && python scripts/check_all.py --jobs 4'
+```
+
+The bind mount keeps edited sources and generated preview/check reports in the checkout. A separate volume
+holds container Node packages, preserving the host installation. The container uses its own `/opt/ms-playwright`
+browser installation rather than a host browser cache.
+
 Repository hygiene needs two tools from `requirements-dev.txt`:
 
 ```bash

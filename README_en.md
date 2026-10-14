@@ -56,12 +56,16 @@ python scripts/build_site.py
 The generator uses the Python standard library; adapted SVG figures are local assets.
 The built page works offline; only the live checks need the
 internet. It can be embedded in another site (iframe) or hosted on its own.
+The [host snippet and message protocol](docs/embedding.md) provide automatic frame height and shareable host addresses.
 
 For a local server, which some browsers need for clipboard features:
 
 ```bash
 python scripts/serve.py --build
 ```
+
+For a prepared environment, reopen the checkout in its [development container](CONTRIBUTING.md#development-container).
+It installs Python, Node.js, the check tools and Chromium; run `python scripts/check_all.py --jobs 4` directly.
 
 The guide documents its own research software practice. The first official prerelease will establish
 the baseline; archiving the public code and any OpenSSF self-certification remain release steps.

@@ -2615,6 +2615,7 @@ PROTECTED_TREES = frozenset(
     {
         ".agents",
         ".claude",
+        ".devcontainer",
         ".git",
         ".github",
         ".venv",

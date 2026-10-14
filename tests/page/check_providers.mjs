@@ -7,6 +7,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { compactControlProblems } from "./compact_controls.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
@@ -377,6 +378,7 @@ try {
       /* Crossing the wide-layout width draws the view again. */
       await page.waitForTimeout(100);
       await page.waitForSelector("#results-assessments");
+      assert.deepEqual(await compactControlProblems(page), [], `${lang} overview ${width}: compact question references`);
       await page.evaluate(() => document.getElementById("results-assessments").scrollIntoView());
       await checkAccess(`${lang} overview ${width}`);
       await page.screenshot({ path: resolve(screenshots, `${lang}-overview-${width}.png`), fullPage: true });
