@@ -5,7 +5,7 @@
 id = "gate"
 name = { cs = "Podmínky NRP", en = "NRP conditions" }
 icon = "door-open"
-description = { cs = "Splňuje repozitář podmínky pro zapojení do NRP? Nejdřív zvolte profil repozitáře; seznam se podle něj upraví. Zvažte také doporučení NRP: nespecializovat repozitář příliš úzce a dát přednost základním systémům NRP. O zapojení rozhoduje NRP; průvodce jen radí.", en = "Does the repository meet the conditions for joining NRP? First choose the repository profile; the list adapts to it. Also consider the NRP recommendations: do not specialise the repository too narrowly, and prefer the core NRP systems. NRP decides on joining; the guide only advises." }
+description = { cs = "Splňuje repozitář podmínky pro zapojení do NRP? Nejdřív zvolte profil repozitáře; seznam se podle něj upraví. Zvažte také doporučení NRP: nespecializovat repozitář příliš úzce a dát přednost základním systémům NRP. O zapojení rozhoduje NRP; Průvodce jen radí.", en = "Does the repository meet the conditions for joining NRP? First choose the repository profile; the list adapts to it. Also consider the NRP recommendations: do not specialise the repository too narrowly, and prefer the core NRP systems. NRP decides on joining; the Guide only advises." }
 lenses = ["SR"]
 minutes = 10
 
@@ -38,7 +38,7 @@ tier = "required"
 principles = ["A1"]
 statement = { cs = "Repozitář má webové rozhraní i API pro strojový přístup.", en = "The repository has a web interface and an API for machine access." }
 sources = ["NRP.M2", "NRP.EXT"]
-fixAt = "work"
+fixAt = "collect"
 owner = ["repository-admin"]
 profiles = ["core-system", "nrp-infrastructure", "independent"]
 prefill = { nkr = ["restApi"] }

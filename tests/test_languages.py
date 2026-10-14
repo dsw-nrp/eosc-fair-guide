@@ -20,23 +20,20 @@ def assignment(script: str, prefix: str):
 
 
 def merge_patch(target, patch):
-    """Apply generated patch semantics, keeping objects and array positions unchanged."""
-    for key, value in enumerate(patch) if isinstance(patch, list) else patch.items():
-        if value is None:
-            continue
-        if isinstance(target, list):
-            while len(target) <= key:
-                target.append(None)
-        if isinstance(value, (dict, list)):
-            existing = target[key] if isinstance(target, list) else target.get(key)
-            if not isinstance(existing, (dict, list)):
-                target[key] = [] if isinstance(value, list) else {}
-            merge_patch(target[key], value)
-        else:
-            target[key] = copy.deepcopy(value)
+    """The generator's documented patch semantics, applied to a copy so a test cannot alias generated data."""
+    build_crate.apply_language_patch(target, copy.deepcopy(patch))
 
 
 class LanguageTests(unittest.TestCase):
+    def test_patch_semantics_match_the_shared_expected_results(self) -> None:
+        fixture = json.loads((ROOT / "tests/fixtures/language-patch.json").read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(fixture["cases"]), 5)
+        for case in fixture["cases"]:
+            with self.subTest(case["name"]):
+                target = copy.deepcopy(case["target"])
+                merge_patch(target, case["patch"])
+                self.assertEqual(target, case["expected"])
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.generated = build_crate.outputs()
@@ -65,6 +62,19 @@ class LanguageTests(unittest.TestCase):
         for lang in ("en", "cs"):
             merge_patch(common, languages[lang])
         self.assertEqual(common, value)
+
+    def test_a_table_keyed_by_language_codes_reaches_both_languages(self) -> None:
+        labels = {"cs": {"cs": "čeština", "en": "Czech"}, "en": {"cs": "angličtina", "en": "English"}}
+        common, languages, _ = build_crate.split_languages({"ui": {"language": labels}})
+        merge_patch(common, languages["cs"])
+        self.assertEqual(common["ui"]["language"]["en"]["cs"], "angličtina")
+        self.assertEqual(common["ui"]["language"]["cs"]["cs"], "čeština")
+        ui = assignment(self.generated[build_crate.UI_SCRIPT], "window.FairGuideData.ui = ")
+        czech = assignment(
+            self.generated[build_crate.LANGUAGE_SCRIPTS["cs"]], 'window.FairGuideData.languages["cs"] = '
+        )
+        merge_patch(ui, czech["ui"])
+        self.assertEqual(ui["ui"]["catalogue"]["language"]["en"]["cs"], "angličtina")
 
     def test_language_values_are_absent_until_selected(self) -> None:
         core = assignment(self.generated[build_crate.KB_SCRIPT], "window.FairGuideData.kb = ")

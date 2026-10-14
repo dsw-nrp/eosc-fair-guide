@@ -1260,7 +1260,7 @@ actor = "nrp"
 kind = "requirement"
 text = { cs = "NRP nabízí mechanismy (částečně automatického) sebehodnocení a validace vůči komunitním standardům (FAIR-Checker, F-UJI).", en = "NRP offers mechanisms for (partly automated) self-assessment and validation against community standards (FAIR-Checker, F-UJI)." }
 status = "refresh"
-note = { cs = "Pro automatizované hodnocení průvodce doporučuje FAIR Champion.", en = "For automated assessment, the guide recommends FAIR Champion." }
+note = { cs = "Pro automatizované hodnocení Průvodce doporučuje FAIR Champion.", en = "For automated assessment, the Guide recommends FAIR Champion." }
 noteSources = ["FAIR-CHAMPION.01"]
 guidance = "Validace standardů: Zavést mechanismy pro podporu (částečně automatického sebehodnocení a validaci metadat vůči komunitním standardům (např. pomocí FAIR-Checker⁵⁴ , F-UJI⁵⁵)."
 guidanceLanguage = "cs"
@@ -1360,7 +1360,7 @@ locator = "kap. 2.1"
 principles = ["F4"]
 actor = "other"
 kind = "statement"
-text = { cs = "Architektura národní datové infrastruktury: Národní metadatový adresář (NMA), Národní katalog repozitářů (NKR) a Centrum PID.", en = "Architecture of the national data infrastructure: the National Metadata Directory (NMA), the National Repository Catalogue (NKR) and the PID Centre." }
+text = { cs = "Architektura Národní datové infrastruktury: Národní metadatový adresář (NMA), Národní katalog repozitářů (NKR) a Centrum PID.", en = "Architecture of the National Data Infrastructure: the National Metadata Directory (NMA), the National Repository Catalogue (NKR) and the PID Centre." }
 status = "refresh"
 note = { cs = "NMA je v provozu, NKR v pilotním provozu s otevřeným API; Centrum PID působí jako identifikatory.cz.", en = "NMA is in operation, NKR in pilot operation with an open API; the PID Centre operates as identifikatory.cz." }
 noteSources = ["PID-CENTRE.01"]
@@ -1487,7 +1487,7 @@ actor = "other"
 kind = "statement"
 text = { cs = "Pro tvorbu FIP slouží FIP Wizard; zvažovala se národní instance.", en = "FIPs are created with the FIP Wizard; a national instance was considered." }
 status = "superseded"
-note = { cs = "Průvodce nepočítá se samostatnou národní instancí FIP Wizard; schválené FER bude nabízet NKR.", en = "The guide does not assume a separate national FIP Wizard instance; NKR will offer approved FERs." }
+note = { cs = "Průvodce nepočítá se samostatnou národní instancí FIP Wizard; schválené FER bude nabízet NKR.", en = "The Guide does not assume a separate national FIP Wizard instance; NKR will offer approved FERs." }
 guidance = "V rámci NDI bude FIP Wizard využíván pro tvorbu FIP, jak bylo zmíněno výše. Bude spravována vlastní instance, která bude technicky nezávislá na globální síti nanopublikací z důvodu zajištění plné technické kontroly na národní úrovni, nicméně tyto globální nanopublikace bude možné využívat a bude možné do nich i přispívat."
 guidanceLanguage = "cs"
 
@@ -1547,7 +1547,7 @@ actor = "other"
 kind = "statement"
 text = { cs = "Automatizované nástroje: FAIR-Checker, F-UJI (nehodnotí A2), FAIR Evaluator, OpenAIRE Validator, FAIR Assist, FAIR Implementation Framework, FC4E-CAT.", en = "Automated tools: FAIR-Checker, F-UJI (does not assess A2), FAIR Evaluator, OpenAIRE Validator, FAIR Assist, FAIR Implementation Framework, FC4E-CAT." }
 status = "refresh"
-note = { cs = "Průvodce doporučuje především FAIR Champion (OSTrails).", en = "The guide primarily recommends FAIR Champion (OSTrails)." }
+note = { cs = "Průvodce doporučuje především FAIR Champion (OSTrails).", en = "The Guide primarily recommends FAIR Champion (OSTrails)." }
 noteSources = ["FAIR-CHAMPION.01"]
 guidance = "FAIR-Checker⁵⁴ - nástroj vytvořený v rámci francouzského nodu projektu ELIXIR (IFB - French Institute for Bioinformatics) je dostupný pod otevřenou licencí na portálu GitHub. Z webových stránek je extrahována anotace datové sady, která tvoří minimální znalostní graf. Tento znalostní graf je následně doplněn o data z již existujících znalostních grafů, jako jsou DataCite PID Graph, OpenAIRE Graph a Wikidata. Výsledný graf je testován, zda použité prvky odpovídají standardizovaným Linked Open Vocabularies (LOV), Ontology Lookup Service (OLS) nebo Bioportal. Nakonec je ověřena kvalita metadat vůči komunitním profilům, jako jsou Bioschemas. Výstupem je paprskový graf s procentuálně vyjádřeným skóre ve čtyřech kategoriích (F, A, I, R), tabulka bodového ohodnocení jednotlivých testů (0, 1, 2) a textová doporučení pro zlepšení v případě nižšího skóre. Důležité je, že stoprocentní FAIR compliance není podmíněna dosažením plného bodového výsledku.\n\nF-UJI⁵⁵ - nástroj vyvinutý v rámci projektu FAIRsFAIR. Hodnotí již uložené datové sady na základě agregovaných metadat získaných z landing pages, PID služeb (např. DataCite) a dalších zdrojů, jako je re3data⁷⁵. Testuje 16 ze 17 FAIR metrik (vše kromě A2 principu – Metadata jsou přístupná, i když data již nejsou k dispozici). Výstupem je procentuální skóre FAIR compliance. Tabulka bodového hodnocení pro čtyři FAIR kategorie na základě bodového hodnocení přiřazuje každé kategorii úroveň plnění FAIR principů:\n\n- Incomplete (neúplné)\n- Initial (počáteční)\n- Moderate (střední)\n- Advanced (pokročilé)\n\nF-UJI poskytuje podrobnější analytický pohled na FAIR compliance než FAIR-Checker. Je vhodný zejména pro organizace a správce repozitářů, kteří chtějí získat přehled o slabinách svého metadatového popisu a jeho strojového zpřístupnění. V Příloze 1 je k dispozici hodnocení konkrétních repozitářů, které ilustruje, jak pracovat s výsledky hodnocení nástrojem F-UJI a následnými doporučeními.\n\nFAIR Evaluator⁷⁶ - nástroj vyvinutý v rámci iniciativy GO FAIR, zaměřený na automatické hodnocení FAIR compliance pomocí sady FAIR Metrics definovaných FAIR Metrics Group. Ověřuje metadata digitálních objektů na základě jejich identifikátorů (např. DOI, URL) a provádí testy strojové čitelnosti a přístupnosti. Na rozdíl od jiných nástrojů se soustředí výhradně na automatizované testování, přičemž výsledky jsou prezentovány jako skóre pro jednotlivé FAIR kategorie. Umožňuje také manuální úpravy hodnocení a zpětnou vazbu. Tento nástroj je vhodný zejména pro výzkumníky a vývojáře, kteří chtějí systematicky hodnotit FAIR vlastnosti svých datových zdrojů.\n\nOpenAIRE Validator⁷⁷ - vytvořen v rámci projektu OpenAIRE. Hodnotí naplňování FAIR principů v rámci jednotlivých repozitářů. Vyhodnocuje nastavení metadatových standardů podle doporučení Research Data Alliance (RDA). Na rozdíl od F-UJI a FAIR-Checker se zaměřuje na hodnocení celého repozitáře, jeho politiku a strukturu, nikoli na hodnocení jednotlivých datových záznamů. Výstupem je report o souladu repozitáře s FAIR principy a doporučení ke zlepšení metadatových standardů v repozitáři. Tento nástroj je užitečný především pro správce repozitářů, kteří chtějí vylepšit FAIR kompatibilitu své infrastruktury.\n\nDalší relevantní nástroje:\n\n- FAIR Assist⁷⁸: Portál s užitečnými nástroji a průvodci pro FAIR hodnocení.\n- FAIR Implementation Framework⁷⁹: Rámec pro implementaci FAIR principů v různých kontextech vytvořený v projektu FAIR-Impact.\n- FC4E-CAT-UI⁸⁰: FAIR Compliance Assessment Toolkit – Nástroj pro podrobné hodnocení FAIR compliance organizací a jejich datových sad vytvořený v projektu FAIR-CORE4EOSC."
 guidanceLanguage = "cs"
@@ -2062,12 +2062,103 @@ guidance = "Právní ochrana výzkumných dat\n\nVzhledem k různorodé povaze d
 
 
 [[clause]]
+id = "COPYRIGHT-LICENCES.02"
+source = "copyright-licences"
+principles = ["R1.1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Vkladatel uděluje repozitáři nevýhradní licenci k uložení a zpřístupnění dat tím, že přijme jeho depoziční licenční podmínky, například zaškrtnutím souhlasu; písemná smlouva není třeba.", en = "The depositor grants the repository a non-exclusive licence to store and provide the data by accepting its deposit licence conditions, for example by ticking a consent box; no written contract is needed." }
+locator = "Depoziční licenční podmínky; FAQ; PDF pp. 10, 16"
+guidanceLanguage = "cs"
+guidance = "Při ukládání obsahu do repozitáře je nutné, aby vkladatel poskytnul provozovateli repozitáře oprávnění k užití tohoto obsahu, konkrétně k jeho uložení a případnému zpřístupnění veřejnosti. K tomu slouží depoziční licenční smlouva. V rámci NRP byly vytvořeny vzorové depoziční licenční podmínky, které mohou zájemci o repozitář využít, případně se jimi inspirovat při vytváření vlastních depozičních licenčních podmínek nebo při formulování licenčních ustanovení v podmínkách užití repozitáře. Tyto podmínky upravují vztah mezi vkladatelem a provozovatelem repozitáře, kterého opravňují užít data či datovou sadu, trvale je uložit v repozitáři a dále je zpřístupňovat. Vkladatel vyjádří souhlas s těmito podmínkami nahráním datové sady do repozitáře, případně zaškrtnutím pole souhlasu (což skýtá větší právní jistotu). V každém případě musí mít vkladatel možnost seznámit se s plným zněním těchto podmínek.\n\nVzorové depoziční licenční podmínky slouží jako vzor licenčních ujednání pro zřizovatele a provozovatele repozitářů. Při vkládání obsahu do repozitářů musí vkladatel poskytnout provozovateli licenci k užití (uložení a zpřístupnění) tohoto obsahu. Toho může provozovatel repozitáře (nabyvatel licence) dosáhnout například tak, že podmíní vklad obsahu do repozitáře odsouhlasením licenčních podmínek (jejichž znění může být přejato právě ze vzorových depozičních licenčních podmínek). Vkladatel (jako poskytovatel licence) tak pouze „zaškrtne“ políčko souhlasu (nebo jinak projeví vůli licenci poskytnout), čímž je licence platně udělena. Udělení nevýhradní licence nevyžaduje písemnou formu, není proto třeba uzavírat s vkladateli písemné smlouvy, s čímž při vytváření vzorové depoziční licence ani nebylo počítáno."
+
+[[clause]]
 id = "DEPOSIT-LICENCE.01"
 source = "deposit-licence"
 principles = ["R1.1"]
 actor = "other"
 kind = "statement"
 text = { cs = "Vzor depoziční licence zajišťuje oprávnění ke zveřejnění a archivaci dat v repozitáři.", en = "The deposit licence template secures the permissions needed to publish and archive data in a repository." }
+
+[[clause]]
+id = "RDMKIT.collect.01"
+source = "rdmkit"
+principles = ["R1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Při sběru vzniká základ kvality dat i jejich dokumentace; rozhodnutí o kvalitě a postupy sběru je třeba zaznamenat.", en = "Collection lays the foundation for the quality of the data and its documentation; quality decisions and collection procedures need to be recorded." }
+locator = "Data life cycle › Collecting › Why is data collection important?"
+guidance = "Apart from being the source of information to build your findings on, the collection phase lays the foundation for the quality of both the data and its documentation. It is important that the decisions made regarding quality measures are implemented, and that the collect procedures are appropriately recorded."
+
+[[clause]]
+id = "RDMKIT.collect.02"
+source = "rdmkit"
+principles = ["F2", "R1.2", "R1.3"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Při sběru zachyťte provenienci, zajistěte kvalitu, zvažte opakované užití existujících dat a sběr předem navrhněte; ověřte ochranu citlivých dat a souhlasy, určete formát a objem ukládání, vhodný repozitář a metadatové standardy. Pomohou elektronické laboratorní deníky a podobné nástroje.", en = "When collecting, capture provenance, ensure quality, consider reusing existing data and design the collection in advance; check the protection of sensitive data and consent, and define the storage format and volume, a suitable repository and metadata standards. Electronic lab notebooks and similar tools help." }
+locator = "Data life cycle › Collecting › What should be considered for data collection?"
+guidance = "Appropriate tools or integration of multiple tools (also called tool assembly or ecosystem) can help you with data management and documentation during data collection. Suitable tools for data management and documentation during data collection are Electronic Lab Notebooks (ELNs), Electronic Data Capture (EDC) systems, Laboratory Information Management Systems (LIMS). Moreover, online platforms for collaborative research and file sharing services could also be used as ELN or data management systems.\n\nIndependently of the tools you will use, consider the following, while collecting data.\n\n- Capture the provenance e.g. of samples, researchers and instruments.\n- Ensure data quality, since data can either be generated by yourself, or by another infrastructure or facility with this specialisation.\n- Check options for reusing data instead of generating new data.\n- Define the experimental design including a collection plan (e.g. repetitions, controls, randomisation) in advance.\n- Calibrate the instruments.\n- Check data protection and security issues if you work with sensitive or confidential data.\n- Check permissions or consent if you work with human-related data.\n- Define how to store the data e.g. format and volume.\n- Find suitable repository to store the data.\n- Identify suitable metadata standards."
+
+[[clause]]
+id = "RDMKIT.process.01"
+source = "rdmkit"
+principles = ["R1", "R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Zpracování zajišťuje kvalitu dat a připravuje je k analýze i ke spojování; přesná dokumentace každého kroku je klíčem k reprodukovatelnosti.", en = "Processing ensures data quality and prepares data for analysis and for combining datasets; accurate documentation of every step is key to reproducibility." }
+locator = "Data life cycle › Processing › Why is data processing important?"
+guidance = "Data processing is important to ensure good quality of the collected data and to prepare it for meaningful data analysis. Accurate data processing is also essential for combining two or more datasets into a single dataset. An accurate documentation of every step done during data processing is key for the reproducibility of your result. Processing data correctly makes it easy to arrange, analyse and also saves a lot of space."
+
+[[clause]]
+id = "RDMKIT.process.02"
+source = "rdmkit"
+principles = ["I1", "R1.2"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Citlivá data pseudonymizujte nebo anonymizujte, pro kódování polí používejte vhodné standardy a všechny kroky kódování a anonymizace dokumentujte, včetně významu prázdných a zvláštních hodnot a vztahů mezi poli.", en = "Pseudonymise or anonymise sensitive data, use appropriate standards to encode fields, and document every encoding and anonymisation step, including the meaning of empty and special values and the relationships between fields." }
+locator = "Data life cycle › Processing › What should be considered for data processing?"
+guidance = "The following considerations are important for data processing:\n\n- sensitive data should be pseudonymised/anonymised. Not only should you remove the directly identifying data, but also be attentive to other sources e.g. names written on images;\n- appropriate standards for encoding different data fields should be used;\n- all steps of encoding and anonymisation should be properly documented. E.g. consider recording:\n  - encoding formats used for data fields;\n  - significance of empty fields and meaning of any special value;\n  - all relationships between data fields (e.g. if a dataset contains \"medication\" and \"disease\", is that medication actually used to treat the disease? Or is it a medication that the patient is using for other reasons?)."
+
+[[clause]]
+id = "RDMKIT.analyse.01"
+source = "rdmkit"
+principles = ["R1.2"]
+actor = "other"
+kind = "statement"
+text = { cs = "Analýza je ústředním krokem výzkumu; analytický postup má odpovídat FAIR principům a ostatní ho mají umět zopakovat.", en = "Analysis is central to research; the analysis workflow should comply with the FAIR principles and be reproducible by others." }
+locator = "Data life cycle › Analysing › Why is data analysis important?"
+guidance = "Since data analysis is the stage where new knowledge and information are generated, it can be considered as central in the research process. Because of the relevance of the data analysis stage in research findings, it is essential that the analysis workflow applied to a dataset complies with the FAIR principles. Moreover, it is extremely important that the analysis workflow is reproducible by other researchers and scientists. With many disciplines becoming data-oriented, more data intensive projects will arise which will require experts from dedicated fields."
+
+[[clause]]
+id = "RDMKIT.analyse.02"
+source = "rdmkit"
+principles = ["R1.2"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Zvolte výpočetní a pracovní prostředí blízko dat, zdokumentujte přesné kroky analýzy včetně verze softwaru, parametrů a prostředí, zajistěte spolupracovníkům přístup, například ve virtuálním výzkumném prostředí, a zvažte zveřejnění analytického workflow.", en = "Choose a computing and work environment close to the data, document the exact analysis steps including the software version, parameters and environment, give collaborators access, for example in a virtual research environment, and consider publishing the analysis workflow." }
+locator = "Data life cycle › Analysing › What should be considered for data analysis?"
+guidance = "Because of the diversity of domains and technologies in Life Sciences, data can be either \"small\" or \"big data\". As a consequence, the methods and technical solutions used for data analysis might differ. The characteristics of \"big data\" are often summarized by a growing list of \"V\" properties: Volume, Velocity, Variety, Variability, Veracity, Visualization and Value.\n\n- The data analysis stage relies on the previous stages (collection, processing) that will lay the foundations for the generation of new knowledge by providing accurate and trustworthy data.\n- The location of your data is important because of the need of proximity with computing resources. This can impact data transfer across the different infrastructures. It is worthwhile to compare the cost of the transfer of massive amounts of data compared to the transfer of virtual images of machines for the analysis.\n- For the analysis of data, you will first have to consider the computing environment and choose between several computing infrastructure types, e.g. cluster, cloud. You will also need to select the appropriate work environment according to your needs and expertise (command line, web portal).\n- You will have to select the tools best suited for the analysis of your data.\n- It is important to document the exact steps used for data analysis. This includes the version of the software used, as well as the parameters used, as well as the computing environment. Manual \"manipulation\" of the data may complicate this documentation process.\n- In the case of collaborative data analysis, you will have to ensure access to the data and tools for all collaborators. This can be achieved by setting up virtual research environments.\n- Consider publishing your analysis workflow according to the FAIR principles as well as your datasets."
+
+[[clause]]
+id = "RDMKIT.reuse.01"
+source = "rdmkit"
+principles = ["R1"]
+actor = "other"
+kind = "statement"
+text = { cs = "Opakované užití dat poskytne referenční data, ušetří zbytečné experimenty, umožní ověřit zveřejněná zjištění a propojením datových sad přináší nové poznatky.", en = "Reusing data provides reference data, avoids unnecessary experiments, allows published findings to be verified and yields new insights by connecting datasets." }
+locator = "Data life cycle › Reusing › Why is data reuse important?"
+guidance = "By reusing existing data you can:\n\n- obtain reference data for your research;\n- avoid doing new, unnecessary experiments;\n- run analyses to verify that reported findings are correct, and thereby making subsequent findings more robust;\n- make research more robust by aggregating results obtained from different methods or samples;\n- gain novel insights by connecting and meta-analysing datasets."
+
+[[clause]]
+id = "RDMKIT.reuse.02"
+source = "rdmkit"
+principles = ["F1", "R1.1", "R1.2"]
+actor = "other"
+kind = "recommendation"
+text = { cs = "Před opakovaným užitím ověřte licenci a podmínky, dostatek metadat, kvalitu a důvěryhodnost zdroje a soulad s etickými a právními pravidly; zaznamenejte použitou verzi dat a data citujte s perzistentním identifikátorem.", en = "Before reusing data, check the licence and terms, sufficient metadata, the quality and trustworthiness of the source and compliance with ethical and legal rules; record the version used and cite the data with its persistent identifier." }
+locator = "Data life cycle › Reusing › What should be considered for data reuse?"
+guidance = "Reusing existing data implies checking the necessary conditions for reuse are met.\n\n- Explore different sources for reusable data. A starting point can be to look for value added databases with curated content. Other possibilities include searching data deposition repositories for suitable datasets based on their annotation, or obtaining data directly from the author of a scientific article.\n- Check under which terms and conditions the data is shared. Make sure that there is a licence, and that the licence gives you permission to do what you intend to.\n- Check whether there is sufficient metadata to enable data reuse. Some types of data can be straightforward to reuse (e.g. genome data), while other may require extensive metadata to interpret and reuse (e.g. gene expression experiment data).\n- Assess the quality of the data.\n  - Evaluate if the data comes from a trusted source and if it is curated.\n  - Check if the data adheres to a standard.\n- Verify that the data has been ethically collected and that your reuse of the data conforms with policies and regulations you are expected to follow. For personal (sensitive) data, there are usually legal and technical requirements that have to be met before data can be accessed. Getting access to personal (sensitive) data will therefore involve additional steps.\n- If the data you are reusing has been updated, make sure to document which version of the data you are using. Also consider what impact the changes may have on your results.\n- Cite the data properly by include a persistent identifier (such as a DOI) in the citation, if there is one."
 
 [[clause]]
 id = "ETHICAL-SEVEN.01"
@@ -2317,7 +2408,7 @@ source = "fip-dashboard"
 principles = ["R1.3"]
 actor = "other"
 kind = "statement"
-text = { cs = "FIP Dashboard je katalog zdrojů umožňujících FAIR (FER) národní datové infrastruktury a profilů FIP komunit, které je používají; u zdrojů uvádí ověření (mimo jiné NRP a EOSC CZ). Je v pilotním provozu s ukázkovými daty.", en = "The FIP Dashboard is a catalogue of the FAIR-enabling resources (FERs) of the national data infrastructure and of the FIPs of the communities that use them; it records verifications of resources (among others by NRP and EOSC CZ). It is in pilot operation with sample data." }
+text = { cs = "FIP Dashboard je katalog zdrojů umožňujících FAIR (FER) Národní datové infrastruktury a profilů FIP komunit, které je používají; u zdrojů uvádí ověření (mimo jiné NRP a EOSC CZ). Je v pilotním provozu s ukázkovými daty.", en = "The FIP Dashboard is a catalogue of the FAIR-enabling resources (FERs) of the National Data Infrastructure and of the FIPs of the communities that use them; it records verifications of resources (among others by NRP and EOSC CZ). It is in pilot operation with sample data." }
 
 [[clause]]
 id = "CDSC-README.01"

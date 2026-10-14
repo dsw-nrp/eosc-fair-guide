@@ -5,6 +5,7 @@
 
   const FG = (window.FairGuide = window.FairGuide || {});
   const STORAGE_KEY = "eosc-fair-guide";
+  const SOURCE_KEY = STORAGE_KEY + ":source:";
   const LANGS = ["cs", "en"];
 
   /* ---------------------------------------------------------------- knowledge base */
@@ -22,17 +23,23 @@
     FG.DASHBOARD = FG.config.links.fipDashboard;
   };
 
+  /* Keys that write through to an object's prototype instead of the object. Every merge of data read from a file or a
+     service skips them (language patches here, discovered metadata in discovery.js, imported results). */
+  const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+  FG.unsafeKey = (name) => UNSAFE_KEYS.has(name);
+
   /* Language patches follow the generated tree. Null array positions leave structural or original values alone;
      objects are updated in place, so the graph index and references keep the same identity on language switching. */
   function mergeData(target, patch) {
     for (const [key, value] of Object.entries(patch || {})) {
-      if (value === null) continue;
+      if (value === null || UNSAFE_KEYS.has(key)) continue;
       if (value && typeof value === "object") {
         if (!target[key] || typeof target[key] !== "object") target[key] = Array.isArray(value) ? [] : {};
         mergeData(target[key], value);
       } else target[key] = value;
     }
   }
+  FG.mergeData = mergeData;
 
   const searchTerms = new WeakMap();
   function bindSearch(value, entries) {
@@ -52,7 +59,7 @@
         script.onerror = () => {
           scriptLoads.delete(path);
           script.remove();
-          reject(new Error("The guide could not load its local data file: " + path));
+          reject(new Error("The Guide could not load its local data file: " + path));
         };
         document.head.append(script);
       }));
@@ -61,13 +68,15 @@
   }
 
   FG.loadHelpers = () => loadScript(FG.config.helpers.script);
+  /** A view whose code loads when it first opens (the catalogue). */
+  FG.loadView = (name) => loadScript(FG.config.views[name]);
 
   FG.languagesLoaded = new Set();
   FG.loadLanguage = async function (lang) {
     if (FG.languagesLoaded.has(lang)) return;
     await loadScript(FG.config.languages[lang]);
     const values = (window.FairGuideData.languages || {})[lang];
-    if (!values) throw new Error("The guide's language data is missing: " + lang);
+    if (!values) throw new Error("The Guide's language data is missing: " + lang);
     mergeData(window.FairGuideData.kb, values.kb);
     mergeData(window.FairGuideData.ui, values.ui);
     bindSearch(window.FairGuideData.kb, values.search);
@@ -84,7 +93,7 @@
     if (!partLoads[name]) {
       partLoads[name] = loadScript(FG.config.parts[name]).then(() => {
         const part = (window.FairGuideData.parts || {})[name];
-        if (!part) throw new Error("The guide's data part is missing: " + name);
+        if (!part) throw new Error("The Guide's data part is missing: " + name);
         for (const entity of part.entities || []) {
           FG.graph.push(entity);
           FG.byId.set(entity["@id"], entity);
@@ -101,7 +110,7 @@
     if (!FG.partHasLanguage(name, language)) {
       await loadScript(FG.config.partLanguages[name][language]);
       const values = ((window.FairGuideData.partLanguages || {})[name] || {})[language];
-      if (!values) throw new Error("The guide's part translation is missing: " + name + "/" + language);
+      if (!values) throw new Error("The Guide's part translation is missing: " + name + "/" + language);
       mergeData(part, values.values);
       bindSearch(part, values.search);
       partLanguagesLoaded.add(name + "/" + language);
@@ -129,8 +138,50 @@
   FG.modelRows = function (entity) {
     return ["implementationLayers", "implementationSeams"].flatMap((property) => {
       const terms = FG.refs(entity, property);
-      return terms.length ? [FG.h("dt", null, FG.t("catalogue.relation." + property)), FG.h("dd", { class: "model-tags" }, terms.map(FG.modelLink))] : [];
+      return terms.length ? [FG.relationTerm(property), FG.h("dd", { class: "model-tags" }, terms.map(FG.modelLink))] : [];
     });
+  };
+  /** A labelled row's label with the row's icon, the same wherever the row appears; a row of a model term's own
+      details names its label. */
+  FG.relationTerm = (key, label) =>
+    FG.h("dt", null, FG.icon(((FG.config && FG.config.icons && FG.config.icons.relation) || {})[key]), label || FG.t("catalogue.relation." + key));
+
+  /** The icon of each answer state, the same in the self-check, its report and the path's rail. */
+  FG.STATE_ICON = { met: "✓", partly: "◐", gap: "✗", unknown: "?", open: "–", provided: "↗" };
+
+  /** The favicon that stands for an address: its host's, normalised and kept with the page, unless the host serves
+      many tools and the address is not its home page. */
+  FG.faviconOf = function (url) {
+    const favicons = (FG.config && FG.config.favicons) || { hosts: [], homeOnly: [] };
+    let parts;
+    try {
+      parts = new URL(String(url || ""));
+    } catch (error) {
+      return null;
+    }
+    const host = parts.hostname.toLowerCase().replace(/^www\./, "");
+    if (parts.protocol !== "https:" || !favicons.hosts.includes(host)) return null;
+    if (favicons.homeOnly.includes(host) && parts.pathname.replace(/\/+$/, "") !== "") return null;
+    return "assets/favicons/" + host + ".png";
+  };
+
+  /** One badge for an external tool or service wherever the Guide shows it, beside its name: in the catalogue, among
+      a step's resources and in the self-check's evidence. It is the service's own favicon wherever one could be
+      obtained (D-183); otherwise the icon of its catalogue kind on the kind's colour, as the kind facet shows it, so
+      one service looks the same everywhere (D-185). */
+  FG.serviceBadge = function (key, url, kind = "resources") {
+    const favicon = FG.faviconOf(url);
+    if (favicon) {
+      return FG.h("span", { class: "service-badge service-favicon", "data-service": String(key), "aria-hidden": "true" },
+        FG.h("img", { src: favicon, alt: "", width: "48", height: "48", loading: "lazy", decoding: "async" }));
+    }
+    return FG.kindBadge(kind, key);
+  };
+
+  /** An entry's icon where it has no favicon of its own: its catalogue kind's icon on the kind's colour. */
+  FG.kindBadge = function (kind, key) {
+    const icon = ((FG.config && FG.config.icons && FG.config.icons.kind) || {})[kind];
+    return FG.h("span", { class: "service-badge service-placeholder kind-" + kind, "data-service": key ? String(key) : null, "aria-hidden": "true" }, FG.icon(icon));
   };
   FG.modelContexts = (station, lens) => FG.graph.filter((entity) => String(entity["@id"]).startsWith("#model-context-") && FG.hasRef(entity, "isPartOf", station["@id"]) && FG.hasRef(entity, "audience", "#lens-" + lens));
 
@@ -244,12 +295,16 @@
       ? Object.fromEntries(FG.list(value).filter((item) => item && item["@language"]).map((item) => [item["@language"], item["@value"]]))
       : FG.text(value);
 
-  /** The view's exports and printing, under the view; the whole knowledge base is on the page for machines. */
+  /** The view's exports and printing, under the view; the whole knowledge base is on the page for machines. An export
+      that cannot act now (`unavailable`, its reason) is inactive, and the bar states each such reason once. */
   FG.exportBar = function () {
+    const reasons = [...new Set(FG.exports.map((entry) => entry.unavailable).filter(Boolean))];
+    const reasonId = (text) => "export-reason-" + reasons.indexOf(text);
     const button = (entry) =>
       entry.href
         ? FG.h("a", { class: "button button-small", id: "export-" + entry.id, href: entry.href, type: "application/json" }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label))
-        : FG.h("button", { type: "button", class: "button-small", id: "export-" + entry.id, onclick: entry.run }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label));
+        : FG.h("button", { type: "button", class: "button-small", id: "export-" + entry.id, onclick: entry.run, disabled: Boolean(entry.unavailable),
+          "aria-describedby": entry.unavailable ? reasonId(entry.unavailable) : null }, FG.icon(entry.icon || "download"), FG.h("span", null, entry.label));
     return FG.h(
       "section",
       { class: "export-bar wrap no-print", "aria-labelledby": "export-bar-title" },
@@ -262,7 +317,8 @@
           { class: "export-actions" },
           FG.exports.map(button),
           button({ id: "print", icon: "print", label: FG.t("export.print"), run: () => window.print() })
-        )
+        ),
+        reasons.map((text) => FG.h("p", { class: "control-reason small", id: reasonId(text) }, text))
       )
     );
   };
@@ -278,6 +334,11 @@
     if (String(id).startsWith("#clause-")) return FG.catalogueHref("clauses", entity.identifier);
     if (String(id).startsWith("#item-")) return FG.catalogueHref("questions", entity.identifier);
     if (String(id).startsWith("#test-")) return FG.catalogueHref("tests", entity.identifier.startsWith("guide-") ? entity.identifier : "fair-champion." + entity.identifier);
+    /* An external evaluator's criterion is listed with the tests under its provider's own identifier. */
+    if (String(id).startsWith("#criterion-")) {
+      const provider = FG.list((FG.config.providers || {}).list).find((entry) => id === "#criterion-" + entry.id + "-" + entity.identifier);
+      if (provider) return FG.catalogueHref("tests", provider.id + "." + entity.identifier);
+    }
     if (String(id).startsWith("#action-")) return FG.catalogueHref("actions", entity.identifier || String(id).slice(8));
     if (id === "#implementation-model") return FG.href("page", "model");
     if (String(id).startsWith("#layer-") || String(id).startsWith("#seam-")) return FG.catalogueHref("model", entity.identifier);
@@ -381,6 +442,9 @@
     return FG.state.lang === "cs" ? `${Number(parts[2])}. ${Number(parts[1])}. ${parts[0]}` : parts.join("-");
   };
 
+  /** A number as the page's language writes it: a decimal comma and grouped thousands in Czech. */
+  FG.formatNumber = (value) => Number(value).toLocaleString(FG.state.lang === "cs" ? "cs-CZ" : "en-GB");
+
   /** Today's date in the visitor's time zone, as YYYY-MM-DD. */
   FG.today = function () {
     const now = new Date();
@@ -397,33 +461,96 @@
      IRI, is shown as it is and linked over HTTPS. */
   const HTTPS_RESOLVER = /^http:\/\/((www\.)?purl\.org|w3id\.org|(dx\.)?doi\.org|hdl\.handle\.net|identifiers\.org|n2t\.net)\//i;
 
+  /* A browser drops leading and trailing control characters and spaces and every tab and newline before it reads an
+     address's scheme (WHATWG URL), so "java\tscript:" is a script link; the check reads the address as the browser
+     will. A backslash counts as a slash, so "/\host" leaves the guide like "//host". */
+  const URL_EDGES = /^[\u0000-\u0020]+|[\u0000-\u0020]+$/g;
+  const URL_TABS_AND_NEWLINES = /[\t\n\r]/g;
+  const URL_CONTROL = /[\u0000-\u001f\u007f]/;
+  const NETWORK_PATH = /^[\\/]{2}/;
+
   /** A link's address if it is safe to follow; null when it is not, so the element is not a link at all rather than
       one that leads back to the start. */
   FG.safeHref = function (href) {
-    const value = String(href || "").trim();
+    const value = String(href || "").replace(URL_EDGES, "").replace(URL_TABS_AND_NEWLINES, "");
+    if (URL_CONTROL.test(value)) return null;
     if (value.startsWith("#") || SAFE_SCHEME.test(value)) return value;
     if (HTTPS_RESOLVER.test(value)) return "https://" + value.slice("http://".length);
-    if (ANY_SCHEME.test(value) || value.startsWith("//")) return null;
+    if (ANY_SCHEME.test(value) || NETWORK_PATH.test(value)) return null;
     return value;
   };
+
+  /* Attributes that name an address pass FG.safeHref; event handlers are only ever functions, never inline code; an
+     inline document is never set. */
+  const URL_ATTRIBUTES = new Set(["href", "src", "action", "formaction", "poster", "xlink:href"]);
+  const REFUSED_ATTRIBUTES = new Set(["srcdoc"]);
 
   FG.h = function (tag, attrs, ...children) {
     const element = document.createElement(tag);
     for (const [name, value] of Object.entries(attrs || {})) {
       if (value == null || value === false) continue;
+      const lower = name.toLowerCase();
       if (name === "class") element.className = value;
-      else if (name.startsWith("on") && typeof value === "function") element.addEventListener(name.slice(2), value);
-      else if (name === "href") {
-        const safe = FG.safeHref(value);
-        if (safe !== null) element.setAttribute("href", safe);
+      else if (lower.startsWith("on")) {
+        if (typeof value === "function") element.addEventListener(name.slice(2), value);
       }
-      else element.setAttribute(name, value === true ? "" : String(value));
+      else if (URL_ATTRIBUTES.has(lower)) {
+        const safe = FG.safeHref(value);
+        if (safe !== null) element.setAttribute(name, safe);
+      }
+      else if (!REFUSED_ATTRIBUTES.has(lower)) element.setAttribute(name, value === true ? "" : String(value));
     }
     for (const child of children.flat(Infinity)) {
       if (child == null || child === false || child === "") continue;
       element.append(child instanceof Node ? child : document.createTextNode(String(child)));
     }
     return element;
+  };
+
+  /* Controls that can act only once something exists (an identifier, records, an answer) stay inactive until then,
+     with the reason as visible text: an inactive control cannot take focus, so the reason cannot live in a tooltip.
+     The reason shows only while the controls are inactive; it is rechecked whenever a watched field changes, and its
+     refresh() serves other triggers, such as an answer. */
+  let reasonCount = 0;
+  FG.gate = function (controls, reasonText, ready, fields) {
+    const list = [].concat(controls).filter(Boolean);
+    const id = "reason-" + (reasonCount += 1);
+    const reason = FG.h("p", { class: "control-reason small", id }, reasonText);
+    const refresh = () => {
+      const can = Boolean(ready());
+      for (const control of list) {
+        control.disabled = !can;
+        if (can) control.removeAttribute("aria-describedby");
+        else control.setAttribute("aria-describedby", id);
+      }
+      reason.hidden = can;
+    };
+    for (const field of [].concat(fields || []).filter(Boolean)) field.addEventListener("input", refresh);
+    reason.refresh = refresh;
+    refresh();
+    return reason;
+  };
+
+  /** A small reader visual from one maintained definition: the labelled steps of `visual.<name>` in content/ui.toml,
+      in their order, as a figure with an ordered list. It reads in order with a screen reader, reflows on a phone,
+      prints, and needs no drawing runtime; the arrows between steps are decoration. */
+  FG.flow = function (name, extra) {
+    const definition = FG.ui.visual && FG.ui.visual[name];
+    if (!definition) return null;
+    const steps = Object.keys(definition).filter((key) => definition[key] && definition[key].label);
+    return FG.h(
+      "figure",
+      { class: "flow", "data-flow": name },
+      FG.h("figcaption", { class: "flow-title" }, FG.t("visual." + name + ".title")),
+      FG.h(
+        "ol",
+        { class: "flow-steps" },
+        steps.map((key) => FG.h("li", { class: "flow-step", "data-step": key }, FG.h("strong", { class: "flow-label" }, FG.t("visual." + name + "." + key + ".label")), " ",
+          FG.h("span", { class: "flow-text" }, FG.t("visual." + name + "." + key + ".text"))))
+      ),
+      definition.note ? FG.h("p", { class: "flow-note small" }, FG.t("visual." + name + ".note")) : null,
+      extra || null
+    );
   };
 
   /** An icon from the inlined sprite: an interface key from content/icons.toml or a Font Awesome name. Icons are
@@ -468,20 +595,56 @@
     write(value) {
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+        return true;
       } catch (error) {
-        /* Storage can be unavailable (private windows, blocked site data); the guide works without it. */
+        /* Storage can be unavailable (private windows, blocked site data) or full; the guide works without it and
+           says so where answers are kept. */
+        return false;
       }
     },
     remove() {
       try {
         window.localStorage.removeItem(STORAGE_KEY);
+        for (const key of Object.keys(window.localStorage)) if (key.startsWith(SOURCE_KEY)) window.localStorage.removeItem(key);
       } catch (error) {
         /* Nothing to remove when storage is unavailable. */
       }
     },
+    /* Original evaluator reports, one key per content digest, apart from the answers: a report the browser refuses
+       to keep never stops the answers from being saved. Writing reports whether the report was kept. */
+    readSource(digest) {
+      try {
+        return window.localStorage.getItem(SOURCE_KEY + digest);
+      } catch (error) {
+        return null;
+      }
+    },
+    writeSource(digest, text) {
+      try {
+        window.localStorage.setItem(SOURCE_KEY + digest, text);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    pruneSources(used) {
+      try {
+        for (const key of Object.keys(window.localStorage)) if (key.startsWith(SOURCE_KEY) && !used.has(key.slice(SOURCE_KEY.length))) window.localStorage.removeItem(key);
+      } catch (error) {
+        /* Nothing to remove when storage is unavailable. */
+      }
+    },
+    /** The characters of every retained report, for the shared budget. */
+    sourceSize() {
+      try {
+        return Object.keys(window.localStorage).filter((key) => key.startsWith(SOURCE_KEY)).reduce((sum, key) => sum + (window.localStorage.getItem(key) || "").length, 0);
+      } catch (error) {
+        return 0;
+      }
+    },
   };
 
-  FG.state = { lang: "cs", lens: "V", answers: {}, started: false, entryStation: null, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false };
+  FG.state = { lang: "cs", lens: "V", answers: {}, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false };
 
   /** Disclosure levels the user opened (L1, L2, L3, ai); kept while the page is open, so switching lens keeps them. */
   FG.openLevels = new Set();
@@ -489,36 +652,48 @@
   /** Whether the state holds nothing worth keeping: language and lens come from the address anyway. */
   const isEmptyState = (state) =>
     !Object.keys(state.answers || {}).length &&
-    !state.started &&
-    !state.entryStation &&
     !state.lastStation &&
     !state.lastVisit &&
     state.checkGrouping !== "steps" &&
-    !state.resultCollapsed;
+    !state.resultCollapsed &&
+    !state.hideCheckBadges;
 
   /** Remove everything the guide stores in this browser and start from an empty state. */
   FG.clearStoredData = function () {
-    Object.assign(FG.state, { answers: {}, started: false, entryStation: null, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false });
+    Object.assign(FG.state, { answers: {}, lastStation: null, lastVisit: null, checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false });
     FG.openLevels.clear();
     FG.storage.remove();
+    /* Reports held for this visit go too. */
+    if (FG.providers && FG.providers.forgetAll) FG.providers.forgetAll();
   };
 
+  /** Save the state; whether it was saved is returned and kept in `FG.storageFull`. When the browser refuses it,
+      retained evaluator reports give way first: they are dropped from storage (the page keeps them for the visit)
+      and the answers are saved again, so a report never costs the reader their answers. */
   FG.saveState = function () {
     if (isEmptyState(FG.state)) {
       FG.storage.remove();
-      return;
+      FG.storageFull = false;
+      return true;
     }
-    FG.storage.write({
+    const value = {
       lang: FG.state.lang,
       lens: FG.state.lens,
       answers: FG.state.answers,
-      started: FG.state.started,
-      entryStation: FG.state.entryStation,
       lastStation: FG.state.lastStation,
       lastVisit: FG.state.lastVisit,
       checkGrouping: FG.state.checkGrouping,
       resultCollapsed: FG.state.resultCollapsed,
-    });
+      hideCheckBadges: FG.state.hideCheckBadges,
+    };
+    let saved = FG.storage.write(value);
+    if (!saved && FG.storage.pruneSources) {
+      if (FG.keepSourcesForVisit) FG.keepSourcesForVisit();
+      FG.storage.pruneSources(new Set());
+      saved = FG.storage.write(value);
+    }
+    FG.storageFull = !saved;
+    return saved;
   };
 
   /* ---------------------------------------------------------------- routing */
@@ -535,6 +710,8 @@
     if ((match = id.match(/^check-(.+)$/))) return { view: "check", arg: match[1] };
     if ((match = id.match(/^page-(.+)$/))) return { view: "page", arg: match[1] };
     if ((match = id.match(/^resource-(.+)$/))) return { view: "catalogue", arg: "resources", extra: match[1] };
+    /* A topic (`#resources?type=standard,vocabulary`) opens the kind narrowed to it, for the reader's lens. */
+    if ((match = id.match(/^(resources|repositories)\?(.+)$/)) && FG.catalogueTopic) return { view: "catalogue", arg: FG.catalogueTopic(match[1], match[2]) };
     if (id === "repositories") return FG.repositoryFinderHref ? FG.parseHash(FG.repositoryFinderHref()) : { view: "catalogue", arg: "repositories" };
     if (id === "resources") return { view: "catalogue", arg: "resources" };
     if (id === "tests") return { view: "catalogue", arg: "tests" };
@@ -599,11 +776,14 @@
     return "#/" + [lang, lens, view].concat(arg ? [arg] : []).map(encodeURIComponent).join("/");
   };
 
-  /** Turn an advice action target into a link: in-page entity targets become routes. */
+  /** The current address with its language or lens changed, keeping the entry or part it names. */
+  FG.routeHref = (route, overrides, arg = route.arg) => FG.href(route.view, arg, overrides) + (route.extra ? "/" + encodeURIComponent(route.extra) : "");
+
+  /** Turn an advice action target into a link: in-page entity targets become routes, keeping the entry they name. */
   FG.actionHref = function (target) {
     if (target.startsWith("#")) {
       const route = FG.entityRoute(target);
-      return route ? FG.href(route.view, route.arg) : "#";
+      return route ? FG.routeHref(route) : "#";
     }
     return target;
   };

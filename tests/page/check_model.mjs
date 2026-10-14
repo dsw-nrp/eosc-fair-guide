@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { AxeBuilder } from "@axe-core/playwright";
+import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.env.FAIR_GUIDE_SITE || "_site");
@@ -44,7 +44,7 @@ async function choose(selector) {
 async function accessible() {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "the model reflows");
   axeRunning = true;
-  const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  const result = await audit(page);
   axeRunning = false;
   assert.deepEqual(result.violations.map((violation) => ({ id: violation.id, targets: violation.nodes.map((node) => node.target) })), []);
 }
@@ -102,7 +102,9 @@ try {
       assert.equal(await page.locator(`[id="item-${anchor}"]`).count(), 1, `the ${kind} catalogue finds its displayed ID case-insensitively`);
     }
     await visit(`#/${lang}/K/catalogue/k!model`, ".catalogue-results");
-    assert.equal(await page.locator(`.entry-head svg use[href="${modelIcon}"]`).count(), 18, "model records reuse its icon");
+    // The model's icon marks its kind in the facet; entries carry the kind's colour, not its icon (D-185).
+    assert.equal(await page.locator(`.facet-kinds label[for="facet-kind-model"] use[href="${modelIcon}"]`).count(), 1, "the kind facet marks model records with its icon");
+    assert.equal(await page.locator(".entry-card .entry-head .kind-mark").count(), 0, "model records do not repeat the kind's icon");
     await choose("#facet-model-modelKind-layer");
     assert.equal(await page.locator(".entry-card").count(), 6);
     await visit(`#/${lang}/K/catalogue/k!questions~n!%23seam-repository-nma`, ".catalogue-results");
@@ -190,11 +192,15 @@ try {
     const example = page.locator(".model-worked-example");
     assert.equal(await example.locator("ol > li").count(), 4, "the worked example follows the actual four-record chain");
     for (const family of ["clauses", "questions", "tests", "actions"]) assert.equal(await example.locator(`ol a[href*="/catalogue/${family}/"]`).count(), 1, "each example step opens the correct record family");
-    await visit(`#/${lang}/SR/check/maturity`, "#item-maturity-01");
+    /* The check's parts: the questions are answered on one, the hand-overs and exports are in the report, and a
+       saved result is loaded among the evidence. */
+    const checkPart = (name, selector) => visit(`#/${lang}/SR/check/maturity/${name}`, selector);
+    await checkPart("answers", "#item-maturity-01");
     await page.locator('label[for="extended-toggle"]').click();
     await page.waitForSelector("#item-maturity-09");
     assert(await page.locator("#item-maturity-09 .model-tag").count() > 0, "question detail shows its connections");
     await page.locator("#answer-maturity-09-unknown").check();
+    await checkPart("report", ".result-handover");
     await page.locator(".result-handover summary").first().click();
     assert((await page.locator(".result-handover").first().textContent()).includes(lang === "cs" ? "není uložen" : "No automatically"), "manual uncertainty does not fabricate evidence");
     const result = await page.evaluate(() => { const FG = window.FairGuide; return FG.selfcheck.ftrCrate(FG.get("#check-maturity"), FG.state.answers.maturity); });
@@ -203,6 +209,7 @@ try {
     assert.equal(member["prov:value"], "indeterminate", "an unanswered connection is not declared broken");
     await page.locator("#export-format-jsonld").check();
     const exported = await download("#export-download");
+    await checkPart("evidence", "#load-file");
     await page.locator("#load-file").setInputFiles({ name: "model-result.jsonld", mimeType: "application/ld+json", buffer: Buffer.from(exported) });
     await page.waitForSelector(".notice.shared");
     assert(await page.locator(".result-handover .model-tag").count() > 0, "a saved result preview restores connections from the current question records");
@@ -214,8 +221,9 @@ try {
       for (const item of Object.values(data.items)) delete item.observations;
       return FG.selfcheck.readPortable(data); });
     assert(!old.error && old.state.items["maturity.09"].value === "unknown", "older saved states need no new model fields");
-    await page.evaluate(() => { const FG = window.FairGuide; const st = FG.state.answers.maturity; st.target = "10.1234/example"; st.targetInfo = { name: "Named record" }; FG.render(); });
-    assert.equal(await page.locator('.result-handover a[href="https://doi.org/10.1234/example"]').count(), 1, "a bare DOI gets its resolver link in the hand-over");
+    await page.evaluate(() => { const FG = window.FairGuide; const st = FG.state.answers.maturity; st.target = "10.1234/example"; st.targetInfo = { name: "Named record" }; FG.saveState(); });
+    await checkPart("report", ".result-handover");
+    assert.equal(await page.locator('.result-handover:first-of-type a.pid-chip[href="https://doi.org/10.1234/example"]').count(), 1, "a bare DOI gets its resolver link, as an identifier chip, in the hand-over");
     assert((await page.locator(".result-handover").first().textContent()).includes("Named record"), "retained target description is shown");
     const questionText = get("#item-maturity.09").text.find((value) => value["@language"] === lang)["@value"];
     assert((await page.locator(".result-handover").first().textContent()).includes(questionText), "the hand-over retains the full criterion");
@@ -225,9 +233,11 @@ try {
       await page.setViewportSize({ width, height: 900 });
       const isWide = await page.evaluate(() => matchMedia("(min-width: 60rem)").matches);
       if (wasWide !== isWide) await page.waitForFunction((node) => !node.isConnected, previous);
+      await checkPart("answers", "#item-maturity-09");
       await page.locator("#item-maturity-09").scrollIntoViewIfNeeded();
       await accessible();
       await page.screenshot({ path: resolve(screenshots, `${lang}-question-${width}.png`) });
+      await checkPart("report", ".result-handover");
       await page.locator(".result-handover").first().evaluate((element) => { element.open = true; });
       await page.locator(".result-handover").first().scrollIntoViewIfNeeded();
       await page.screenshot({ path: resolve(screenshots, `${lang}-handover-${width}.png`) });
@@ -238,6 +248,7 @@ try {
     await page.locator("#prefill-fip").selectOption("ndi-baseline");
     await page.locator("#prefill-fip-run").click();
     await page.waitForFunction(() => window.FairGuide.state.answers.fip?.items?.["fip.02"]?.value);
+    await visit(`#/${lang}/K/check/fip/answers`, "#answer-fip-02-partly");
     assert(await page.locator("#answer-fip-02-partly").isChecked(), "selecting an F2 resource does not establish all profile attributes");
     assert.equal(get("#item-fip.02").prefillLevel, "partly");
     await page.locator("#answer-fip-02-yes").check();

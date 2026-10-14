@@ -240,8 +240,8 @@ fair-guide:Repository a sh:NodeShape ;
         sh:name "Repository link" ;
         sh:path schema:url ;
         sh:minCount 1 ;
-        sh:pattern "^https?://" ;
-        sh:message "A repository MUST have a link" ;
+        sh:pattern "^https://" ;
+        sh:message "A repository MUST have an HTTPS link" ;
     ] ;
     sh:property [
         sh:name "Repository source" ;

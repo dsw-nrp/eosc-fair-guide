@@ -1,0 +1,234 @@
+# Station 11: checking FAIRness. Results are feedback, mostly about the repository's setup, never a grade for the
+# author. Field reference: docs/content-model.md.
+
+[station]
+id = "assessment"
+position = 11
+lifecycleStage = "reuse"
+name = { cs = "Kontrola", en = "Check" }
+title = { cs = "Ověření FAIR", en = "Checking FAIRness" }
+icon = "list-check"
+principles = ["F1", "F2", "F3", "F4", "A1", "A1.1", "A1.2", "A2", "I1", "I2", "I3", "R1", "R1.1", "R1.2", "R1.3"]
+minutes = 5
+glossary = ["77", "99", "97"]
+
+[[advice]]
+id = "assessment.01"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Automatické testy FAIR hodnotí hlavně nastavení repozitáře, ne práci autora, a malá změna může skóre výrazně posunout. Berte je jako zpětnou vazbu, ne jako známku.", en = "Automated FAIR tests mostly assess how the repository is set up, not the author's work, and a small change can move the score a lot. Treat them as feedback, not as a grade." }
+sources = ["A.K5.2.1", "A.K6"]
+
+[[advice]]
+id = "assessment.02"
+lens = "V"
+level = "L0"
+text = { cs = "Zveřejněnou datovou sadu si můžete nechat automaticky zkontrolovat; stačí vložit její PID. Výsledek berte jako zpětnou vazbu: vypovídá hodně o nastavení repozitáře a méně o vaší práci.", en = "You can have a published dataset checked automatically; just enter its PID. Take the result as feedback: it says a lot about the repository's setup and less about your work." }
+action = { label = { cs = "Zkontrolovat datovou sadu", en = "Check your dataset" }, href = "#check-dataset" }
+sources = ["A.K5.2.1", "FAIR-CHAMPION.01"]
+
+[[advice]]
+id = "assessment.03"
+lens = "V"
+level = "L1"
+text = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede a co obsahují metadata. Hloubková kontrola nástrojem [[fair-champion|FAIR Champion]] běží až po dalším kliknutí a může trvat i několik minut. Některé testy nemusí odpovědět; to není chyba vaší datové sady.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and what the metadata contain. The deep check with [[fair-champion|FAIR Champion]] runs only after a further click and can take several minutes. Some tests may not respond; that is not a fault of your dataset." }
+sources = ["OSTRAILS-CZ-PILOT.01", "FAIR-CHAMPION.01"]
+
+[[advice]]
+id = "assessment.04"
+lens = "V"
+level = "L1"
+text = { cs = "Výsledek čtěte po principech: co chybí a kdo to může opravit (vy, kurátor, správce repozitáře).", en = "Read the result principle by principle: what is missing and who can fix it (you, the curator, the repository administrator)." }
+sources = ["A.K5.2.1"]
+
+[[advice]]
+id = "assessment.05"
+lens = "V"
+level = "L1"
+text = { cs = "Co opravíte sami (popis, vazby, licence), opravte v repozitáři; ostatní nahlaste repozitáři.", en = "Fix what you can yourself (description, links, licence) in the repository; report the rest to the repository." }
+sources = ["A.K5.2.1"]
+
+[[advice]]
+id = "assessment.06"
+lens = "V"
+level = "L1"
+text = { cs = "Ještě před zveřejněním si můžete udělat sebehodnocení, například [[fair-aware|FAIR-Aware]] nebo nástroj ARDC v českém překladu.", en = "Before publishing, you can do a self-assessment, for example [[fair-aware|FAIR-Aware]] or the ARDC tool in Czech translation." }
+sources = ["A.K5.1"]
+
+[[advice]]
+id = "assessment.07"
+lens = "DS"
+level = "L0"
+text = { cs = "Automatická hodnocení používejte jako podklad k rozhovoru s repozitářem, ne jako známku pro výzkumníka.", en = "Use automated assessments as a basis for a conversation with the repository, not as a grade for the researcher." }
+action = [{ label = { cs = "Přehled hodnoticích nástrojů", en = "Overview of assessment tools" }, href = "#resources?station=assessment" }, { label = { cs = "Testy FAIR Champion v katalogu", en = "FAIR Champion tests in the catalogue" }, href = "#tests" }]
+sources = ["A.K5.2.1", "A.K6"]
+
+[[advice]]
+id = "assessment.08"
+lens = "DS"
+level = "L1"
+text = { cs = "Sebehodnocení lze udělat kdykoli, i před vznikem dat; automatizované testy hodnotí jen zveřejněné záznamy.", en = "Self-assessment can be done at any time, even before the data exist; automated tests assess only published records." }
+sources = ["A.K5.0"]
+
+[[advice]]
+id = "assessment.09"
+lens = "DS"
+level = "L1"
+text = { cs = "Nástroje:", en = "Tools:" }
+steps = [
+  { cs = "automatizované: [[fair-champion|FAIR Champion]] (preferovaný), [[f-uji|F-UJI]] (nehodnotí A2), [[fair-checker|FAIR-Checker]], FAIR Evaluator;", en = "automated: [[fair-champion|FAIR Champion]] (preferred), [[f-uji|F-UJI]] (does not assess A2), [[fair-checker|FAIR-Checker]], FAIR Evaluator;" },
+  { cs = "sebehodnoticí: [[fair-aware|FAIR-Aware]], nástroj ARDC (česky), CAT;", en = "self-assessment: [[fair-aware|FAIR-Aware]], the ARDC tool (in Czech), CAT;" },
+  { cs = "metodika: [[fdmm|FAIR Data Maturity Model]].", en = "methodology: the [[fdmm|FAIR Data Maturity Model]]." },
+]
+sources = ["A.K5.1", "A.K5.2.2"]
+
+[[advice]]
+id = "assessment.10"
+lens = "DS"
+level = "L1"
+text = { cs = "Stejný záznam může dostat různé skóre podle cesty: ASEP přes DOI (metadata z [[datacite|DataCite]]) a přes Handle (jen landing page).", en = "The same record can score differently depending on the route: ASEP through its DOI (metadata from [[datacite|DataCite]]) versus through its Handle (landing page only)." }
+sources = ["A.P1"]
+
+[[advice]]
+id = "assessment.11"
+lens = "DS"
+level = "L1"
+text = { cs = "Malá změna nastavení může skóre výrazně změnit; výsledky interpretujte opatrně.", en = "A small change in setup can move the score a lot; interpret results with care." }
+sources = ["A.K6"]
+
+[[advice]]
+id = "assessment.12"
+lens = "DS"
+level = "L1"
+text = { cs = "Zjištění směrujte tomu, kdo je může opravit; výsledky slouží především jako zpětná vazba pro správce repozitářů.", en = "Route findings to whoever can fix them; the results serve mainly as feedback for repository administrators." }
+sources = ["A.K5.2.1"]
+
+[[advice]]
+id = "assessment.13"
+lens = "DS"
+level = "L1"
+text = { cs = "Testovací služby nejsou vždy dostupné. V pilotním hodnocení 100 záznamů repozitáře ČVUT nevrátilo výsledek 38 % volání a třetina výsledků byla neurčitá. U výsledků proto vždy uvádějte, kolik testů skutečně proběhlo.", en = "Test services are not always available. In the pilot assessment of 100 records of the CTU repository, 38 % of calls returned no verdict and a third of the verdicts were indeterminate. So always state how many tests actually ran." }
+sources = ["OSTRAILS-CZ-PILOT.01"]
+
+[[advice]]
+id = "assessment.14"
+lens = "DS"
+level = "L1"
+text = { cs = "Část testů hodnotí jiné druhy zdrojů (ontologie, identifikátory ARK, sociálněvědní metadata DDI); u běžného repozitáře je berte jako „netýká se“.", en = "Some tests assess other kinds of resources (ontologies, ARK identifiers, DDI social-science metadata); for an ordinary repository, treat them as “not applicable”." }
+sources = ["OSTRAILS-CZ-PILOT.01"]
+
+[[advice]]
+id = "assessment.15"
+lens = "SR"
+level = "L0"
+text = { cs = "Pravidelně testujte vzorek záznamů svého repozitáře (například ve [[fair-champion|FAIR Champion]]) a výsledky použijte ke zlepšení konfigurace; skóre odráží hlavně repozitář.", en = "Regularly test a sample of your repository's records (for example in [[fair-champion|FAIR Champion]]) and use the results to improve the configuration; the score mainly reflects the repository." }
+action = [{ label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }, href = "#check-maturity" }, { label = { cs = "Připravenost na CoreTrustSeal", en = "CoreTrustSeal readiness" }, href = "#check-coretrustseal" }]
+sources = ["A.K5.2.1", "OSTRAILS-CZ-PILOT.01"]
+
+[[advice]]
+id = "assessment.16"
+lens = "SR"
+level = "L1"
+text = { cs = "Testujte malý vzorek záznamů různých typů, ve [[fair-champion|FAIR Champion]] nebo dávkově nástrojem [[ostrails-cli|OSTrails CLI]]. Výsledky bývají napříč typy záznamů podobné, protože je určuje konfigurace platformy.", en = "Test a small sample of records of different types, in [[fair-champion|FAIR Champion]] or in batches with the [[ostrails-cli|OSTrails CLI]]. Results tend to be similar across record types because the platform's configuration determines them." }
+sources = ["OSTRAILS-CZ-PILOT.01", "OSTRAILS-CLI.01"]
+
+[[advice]]
+id = "assessment.17"
+lens = "SR"
+level = "L1"
+text = { cs = "Pro hodnocení celého repozitáře slouží [[openaire-validator|OpenAIRE Validator]] a certifikace [[coretrustseal|CoreTrustSeal]].", en = "For assessing the whole repository there are the [[openaire-validator|OpenAIRE Validator]] and [[coretrustseal|CoreTrustSeal]] certification." }
+sources = ["A.K5.2.2", "CORETRUSTSEAL.01"]
+
+[[advice]]
+id = "assessment.18"
+lens = "SR"
+level = "L1"
+text = { cs = "Nabídněte mechanismy (částečně automatického) sebehodnocení a validace vůči komunitním standardům.", en = "Offer mechanisms for (partly automated) self-assessment and validation against community standards." }
+sources = ["A.R1.3.N2"]
+
+[[advice]]
+id = "assessment.19"
+lens = "SR"
+level = "L1"
+text = { cs = "Dejte uživatelům zpětnou vazbu přímo v rozhraní repozitáře: rychlou kontrolu souladu a automatizované hodnocení.", en = "Give users feedback in the repository's interface: a quick compliance check and automated assessment." }
+sources = ["A.K2.3.2b"]
+
+[[advice]]
+id = "assessment.20"
+lens = "SR"
+level = "L1"
+text = { cs = "Příklady z praxe: ČSDA upravila konfiguraci Dataverse podle toho, jak metadata čte [[f-uji|F-UJI]]; v LINDAT chybějící identifikátor dat v metadatech shodil řadu testů.", en = "Examples from practice: ČSDA adjusted its Dataverse configuration to how [[f-uji|F-UJI]] reads metadata; in LINDAT, a missing data identifier in the metadata failed a number of tests." }
+sources = ["A.P1"]
+
+[[advice]]
+id = "assessment.21"
+lens = "SR"
+level = "L1"
+text = { cs = "Testy, které neodpověděly, opakujte samostatně, až služba znovu funguje; při dávkách snižte souběžnost.", en = "Repeat tests that did not respond on their own once the service works again; lower the concurrency for batches." }
+sources = ["OSTRAILS-CZ-PILOT.01"]
+
+[[advice]]
+id = "assessment.22"
+lens = "SR"
+level = "L1"
+text = { cs = "Nejčastější doporučení pro platformy, seřazená podle přínosu a pracnosti:", en = "The most common recommendations for platforms, ordered by benefit and effort:" }
+steps = [
+  { cs = "PID přímo v metadatech;", en = "the PID directly in the metadata;" },
+  { cs = "strojově čitelná licence (URI);", en = "a machine-readable licence (URI);" },
+  { cs = "strukturovaná metadata (JSON-LD, content negotiation);", en = "structured metadata (JSON-LD, content negotiation);" },
+  { cs = "řízené slovníky a jazyk kódem ISO 639;", en = "controlled vocabularies and the language as an ISO 639 code;" },
+  { cs = "[[orcid|ORCID]], [[ror|ROR]] a kvalifikované vazby;", en = "[[orcid|ORCID]], [[ror|ROR]] and qualified relations;" },
+  { cs = "indexace vyhledávači a pole pro vyhledávání (vydavatel, klíčová slova);", en = "indexing by search engines and search fields (publisher, keywords);" },
+  { cs = "strojově dohledatelná politika uchování.", en = "a machine-findable retention policy." },
+]
+sources = ["OSTRAILS-CZ-PILOT.01"]
+
+[[advice]]
+id = "assessment.23"
+lens = "K"
+level = "L0"
+text = { cs = "Pro oborové posouzení dat zvažte testy nebo benchmarky konkrétních požadavků komunitních profilů vybraných ve FIP.", en = "For domain assessment of data, consider tests or benchmarks for specific requirements of community profiles selected in the FIP." }
+action = [{ label = { cs = "Zkontrolovat úplnost FIP", en = "Check a FIP's completeness" }, href = "#check-fip" }, { label = { cs = "Katalog FAIR-IMPACT", en = "FAIR-IMPACT catalogue" }, href = "https://catalogue.fair-impact.eu/resources" }]
+sources = ["A.K2.3.1", "FAIR-IMPACT.01"]
+
+[[advice]]
+id = "assessment.24"
+lens = "K"
+level = "L1"
+text = { cs = "[[fair-champion|FAIR Champion]] pracuje s testy přiřazenými k metrikám; sada se dá rozšířit o oborové testy.", en = "[[fair-champion|FAIR Champion]] works with tests linked to metrics; the set can be extended with domain tests." }
+sources = ["FAIR-CHAMPION.01"]
+
+[[advice]]
+id = "assessment.25"
+lens = "K"
+level = "L1"
+text = { cs = "Automatizované hodnocení může kombinovat obecné požadavky NRP s ověřitelnými požadavky komunitních profilů vybraných ve FIP. Každý test má vlastní rozsah; deklarace výběru zdroje jeho požadavky neověřuje.", en = "Automated assessment can combine general NRP requirements with verifiable requirements of community profiles selected in a FIP. Each test has its own scope; a resource-selection declaration does not verify its requirements." }
+sources = ["A.K2.3.1"]
+
+[[advice]]
+id = "assessment.26"
+lens = "K"
+level = "L1"
+text = { cs = "Další zdroje k metrikám a hodnocení najdete v [[fair-impact|katalogu FAIR-IMPACT]].", en = "More resources on metrics and assessment are in the [[fair-impact|FAIR-IMPACT catalogue]]." }
+sources = ["FAIR-IMPACT.01"]
+
+[[advice]]
+id = "assessment.27"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám vysvětlí výsledky testů FAIR srozumitelným jazykem a navrhne, co zlepšit; mějte na paměti, že skóre odráží hlavně repozitář.", en = "AI explains FAIR test results in plain language and suggests what to improve; keep in mind that the score mainly reflects the repository." }
+check = { cs = "Navržené úpravy ověřte znovu spuštěným testem; co je věcí repozitáře, řešte se správcem repozitáře.", en = "Check the suggested changes by running the test again; take what is the repository's business to the repository administrator." }
+prompt = { cs = "Vysvětli srozumitelně výsledky testů FAIR níže: co každý test ověřuje, proč neprošel, co mohu zlepšit sám a co je věcí repozitáře. Netvrď nic, co z výsledků neplyne.\n\nVýsledky: […]", en = "Explain the FAIR test results below in plain language: what each test checks, why it failed, what I can improve myself and what is the repository's business. Claim nothing the results do not show.\n\nResults: […]" }
+sources = ["CERIT-AIAAS.01", "A.K5.2.1", "EC-GENAI-GUIDELINES.01"]
+
+[[advice]]
+id = "assessment.28"
+lens = "K"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám pomůže převést popis praxe komunity na přehled, které zdroje komunita používá pro jednotlivé principy FAIR, jako podklad pro profil FAIR implementace; profily jiných komunit najdete ve [[fip-dashboard|FIP Dashboardu]].", en = "AI helps you turn a description of your community's practice into an overview of which resources the community uses for each FAIR principle, as a basis for a FAIR Implementation Profile; other communities' profiles are in the [[fip-dashboard|FIP Dashboard]]." }
+check = { cs = "Každý zdroj ověřte, že ho komunita opravdu používá a že existuje pod tím jménem; deklarace profilu potvrzuje komunita, ne AI.", en = "Check that the community really uses each resource and that it exists under that name; the community confirms the profile's declarations, not the AI." }
+prompt = { cs = "Z popisu praxe naší komunity níže sestav pro každý princip FAIR seznam zdrojů, které komunita používá (standardy, slovníky, repozitáře, protokoly). Uveď jen zdroje, které v popisu jsou; co chybí, označ jako otázku.\n\nPopis praxe: […]", en = "From the description of our community's practice below, list for each FAIR principle the resources the community uses (standards, vocabularies, repositories, protocols). Include only resources the description names; mark what is missing as a question.\n\nDescription of practice: […]" }
+sources = ["EC-GENAI-GUIDELINES.01"]

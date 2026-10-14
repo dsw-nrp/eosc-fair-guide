@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { AxeBuilder } from "@axe-core/playwright";
+import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.env.FAIR_GUIDE_SITE || "_site");
@@ -18,6 +18,8 @@ const base = pathToFileURL(resolve(site, "index.html")).href;
 const graph = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"))["@graph"];
 const definitions = graph.filter((entry) => String(entry["@id"]).startsWith("#test-"));
 const localDefinitions = definitions.filter((entry) => entry.identifier.startsWith("guide-"));
+/* External evaluators' native criteria share the tests listing under their providers' own identifiers. */
+const criteria = graph.filter((entry) => String(entry["@id"]).startsWith("#criterion-") && entry.identifier && !entry.mappingCoverage);
 const questions = graph.filter((entry) => entry["@type"] === "Question");
 function principlesOf(entity) {
   const about = Array.isArray(entity.about) ? entity.about : [entity.about];
@@ -44,7 +46,7 @@ async function choose(selector) {
 }
 
 async function checkFacets(lang) {
-  for (const [kind, entities] of [["tests", definitions], ["questions", questions]]) {
+  for (const [kind, entities] of [["tests", definitions.concat(criteria)], ["questions", questions]]) {
     for (const code of ["F1", "F2", "F3", "A1", "A1.1", "A1.2", "I1", "I2", "I3", "R1", "R1.1", "R1.2", "R1.3"]) {
       await visit(`#/${lang}/K/catalogue/k!${kind}~p!${code}`);
       const expected = entities.filter((entry) => principlesOf(entry).includes(code)).length;
@@ -65,8 +67,11 @@ async function checkFacets(lang) {
   assert(await page.locator("#facet-principle-r1").isChecked(), "the shared principle selection survives switching kind");
   assert(page.url().includes("p!R1"));
   await visit(`#/${lang}/K/catalogue/k!tests`);
+  const modes = await page.evaluate(() => Object.fromEntries(window.FairGuide.config.providers.list.map((provider) => [provider.id, provider.mode])));
+  const criterionMode = (entry) => modes[Object.keys(modes).find((id) => entry["@id"] === "#criterion-" + id + "-" + entry.identifier)];
   assert.equal(await page.locator('[for="facet-tests-execution-browser"] .facet-count').textContent(), String(localDefinitions.length));
-  assert.equal(await page.locator('[for="facet-tests-execution-service"] .facet-count').textContent(), String(definitions.length - localDefinitions.length));
+  assert.equal(await page.locator('[for="facet-tests-execution-service"] .facet-count').textContent(), String(definitions.length - localDefinitions.length + criteria.filter((entry) => criterionMode(entry) === "service").length));
+  assert.equal(await page.locator('[for="facet-tests-execution-import"] .facet-count').textContent(), String(criteria.filter((entry) => criterionMode(entry) === "import").length), "imported evaluator criteria have their own execution facet");
   assert(await page.evaluate(() => {
     const kind = document.querySelector('[data-facet="kind"]');
     const execution = document.querySelector('[data-facet="tests-execution"]');
@@ -112,7 +117,7 @@ try {
       await page.waitForSelector("#item-" + anchor.replaceAll(".", "\\."));
       const entry = page.locator("[id='item-" + anchor + "']");
       assert.equal(await entry.locator(".entry-title").textContent(), test.name.find((value) => value["@language"] === lang)["@value"]);
-      if (automatic) assert.equal(await entry.locator(".entry-what").textContent(), lang === "cs" ? "test průvodce" : "guide test");
+      if (automatic) assert.equal(await entry.locator(".entry-what").textContent(), lang === "cs" ? "test Průvodce" : "guide test");
       assert.equal(await entry.locator(".card-details").textContent(), automatic ? lang === "cs" ? "v prohlížeči" : "in the browser" : lang === "cs" ? "externí služba" : "external service");
       assert(await entry.textContent().then((value) => value.includes(test.description.find((value) => value["@language"] === lang)["@value"])), "test purpose is readable in each language");
       assert.equal(await entry.locator(`a[href="${test.url}"]`).count(), 1, "test entry links actual implementation or execution endpoint");
@@ -128,7 +133,7 @@ try {
       await page.waitForSelector("#item-guide-software-14");
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
       axeRunning = true;
-      const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+      const result = await audit(page);
       axeRunning = false;
       assert.deepEqual(result.violations.map((violation) => violation.id), []);
       await page.locator("#item-guide-software-14").scrollIntoViewIfNeeded();
@@ -159,12 +164,13 @@ try {
   }
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
   axeRunning = true;
-  const docs = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  const docs = await audit(page);
   axeRunning = false;
   assert.deepEqual(docs.violations.map((violation) => violation.id), []);
   assert.deepEqual(errors, []);
   assert.deepEqual(requests, [], "browsing test definitions makes no external request");
-  console.log("check_tests: 52 bilingual catalogue identities, executable/doc links, local attachments and accessible layouts pass");
+  assert.equal(criteria.length, 29, "twelve FAIR-Checker and seventeen F-UJI criteria are listed");
+  console.log("check_tests: 55 bilingual catalogue test identities and 29 evaluator criteria, executable/doc links, local attachments and accessible layouts pass");
 } finally {
   await browser.close();
 }

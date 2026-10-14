@@ -335,12 +335,7 @@ class Api:
             "license": self.iri(ids(root["license"])[0], META_FILE),
             "url": self.site_root(META_FILE),
             "isBasedOn": self.site_root(META_FILE) + kb.CRATE_FILE,
-            "hasPart": [
-                f"{collection}.json"
-                for collection in kb.API_COLLECTIONS
-                if collection != "model" or self.records[collection]
-            ]
-            + [posixpath.basename(HEALTH_FILE)],
+            "hasPart": [f"{collection}.json" for collection in kb.API_COLLECTIONS] + [posixpath.basename(HEALTH_FILE)],
         }
 
     def health(self, report: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -451,8 +446,6 @@ class Api:
         for record, entity_id in self.records["metrics"]:
             docs[self.tests[entity_id]] = self.manual_test(record, entity_id)
         for collection in kb.API_COLLECTIONS:
-            if collection == "model" and not self.records[collection]:
-                continue
             docs[f"api/{collection}.json"] = self.collection(collection, docs)
         docs[META_FILE] = self.meta()
         docs[HEALTH_FILE] = self.health()
@@ -478,11 +471,13 @@ class Api:
         paths["/" + HEALTH_FILE]["get"]["description"] = english["healthDescription"]
         tags = [{"name": "meta", "description": english["metaTag"]}]
         for collection in kb.API_COLLECTIONS:
-            if not self.records[collection] and collection == "model":
-                continue  # Older/minimal content has no model; no empty record-ID parameter is published.
             strings = {key: value[kb.LANGS[1]] for key, value in self.strings["collection"][collection].items()}
             schema = SCHEMAS[collection]
+            tags.append({"name": collection, "description": strings["description"]})
+            paths[f"/api/{collection}.json"] = operation(f"list{schema}s", strings["name"], "List", collection)
             records = [Path(path).stem for path in docs if path.startswith(f"api/{collection}/")]
+            if not records:
+                continue  # An empty list is published as it is; there is no record path without a record to name.
             parameter = {
                 "name": PARAMETERS[collection],
                 "in": "path",
@@ -491,8 +486,6 @@ class Api:
                 "schema": {"type": "string", "enum": records},
                 "example": "R1.1" if "R1.1" in records else records[0],
             }
-            tags.append({"name": collection, "description": strings["description"]})
-            paths[f"/api/{collection}.json"] = operation(f"list{schema}s", strings["name"], "List", collection)
             paths[f"/api/{collection}/{{{PARAMETERS[collection]}}}.json"] = operation(
                 f"get{schema}", strings["record"], schema, collection, parameter=parameter
             )
@@ -528,6 +521,7 @@ PARAMETERS = {
     "fips": "fip_id",
     "changes": "change_id",
     "model": "model_id",
+    "lifecycle": "lifecycle_id",
 }
 SCHEMAS = {
     "principles": "Principle",
@@ -544,6 +538,7 @@ SCHEMAS = {
     "fips": "Fip",
     "changes": "Change",
     "model": "Model",
+    "lifecycle": "Lifecycle",
 }
 # What every record of a collection carries; a record may carry more.
 REQUIRED = {
@@ -561,6 +556,7 @@ REQUIRED = {
     "Fip": ["identifier", "name", "hasPart"],
     "Change": ["name"],
     "Model": ["identifier", "name", "citation"],
+    "Lifecycle": ["identifier", "name"],
     "Meta": ["name", "description", "version", "url", "isBasedOn", "hasPart"],
 }
 
@@ -888,13 +884,20 @@ def publish_health(out: Path, report: dict[str, Any], content: dict[str, Any] | 
     target = out / HEALTH_FILE
     if not target.is_file() or not (out / OPENAPI_FILE).is_file():
         raise kb.ContentError("health publication requires an existing built API")
+    out = kb.require_site(out)
     document = Api(kb.build_crate(content), content).health(report) if content is not None else report
-    target.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+    (out / HEALTH_FILE).write_text(
+        json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
     check_health.write_site_dashboard(document, out)
 
 
 def write_site(out: Path, files: dict[str, str]) -> None:
-    """Replace the API in the site directory: the generated files, the documentation page and Swagger UI."""
+    """Replace the API in a site directory the build made: the generated files, the documentation page and Swagger UI.
+
+    Refuses any other directory before removing anything, so the authored ``api/`` is never the target.
+    """
+    out = kb.require_site(out)
     api = out / "api"
     if api.exists():
         shutil.rmtree(api)
@@ -915,16 +918,22 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, default=SITE, help="the site directory (default: _site)")
     args = parser.parse_args(argv)
+    try:
+        kb.site_directory(args.out)
+    except kb.UnsafeOutputError as error:
+        print(f"build_api: {error}", file=sys.stderr)
+        return 2
     if not (SWAGGER_DIR / SWAGGER_FILES[0]).exists():
         print("build_api: the Swagger UI package is missing; run npm ci", file=sys.stderr)
         return 2
     try:
         content = kb.load_content()
         files = Api(kb.build_crate(content), content).files()
+        out = kb.claim_site(args.out)
     except (kb.ContentError, KeyError) as error:
         print(f"build_api: {error}", file=sys.stderr)
         return 2
-    write_site(args.out, files)
+    write_site(out, files)
     print(f"wrote {len(files)} API files and the API documentation into {args.out.name}/")
     return 0
 

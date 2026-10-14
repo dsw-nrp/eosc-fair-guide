@@ -4,14 +4,14 @@
 [app]
 title = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }
 tagline = { cs = "Krok za krokem k dohledatelným, přístupným, interoperabilním a opakovaně použitelným datům", en = "Step by step to findable, accessible, interoperable and reusable data" }
-loading = { cs = "Průvodce se načítá.", en = "The guide is loading." }
+loading = { cs = "Průvodce se načítá.", en = "The Guide is loading." }
 skip = { cs = "Přeskočit na obsah", en = "Skip to content" }
 testing = { cs = "Testovací verze", en = "Testing version" }
-error = { cs = "Průvodce se nepodařilo načíst. Zkuste stránku obnovit.", en = "The guide could not be loaded. Try reloading the page." }
+error = { cs = "Průvodce se nepodařilo načíst. Zkuste stránku obnovit.", en = "The Guide could not be loaded. Try reloading the page." }
 home = { cs = "EOSC CZ, domovská stránka", en = "EOSC CZ home page" }
 
 [nav]
-repository = { cs = "Zdrojový kód průvodce na GitHubu", en = "The guide's source code on GitHub" }
+repository = { cs = "Zdrojový kód Průvodce na GitHubu", en = "The Guide's source code on GitHub" }
 label = { cs = "Hlavní navigace", en = "Main navigation" }
 home = { cs = "Úvod", en = "Home" }
 path = { cs = "Cesta k FAIR", en = "Path to FAIR" }
@@ -21,23 +21,31 @@ resources = { cs = "Zdroje", en = "Resources" }
 repositories = { cs = "Repozitáře", en = "Repositories" }
 tools = { cs = "Nástroje a postupy", en = "Tools and guidance" }
 catalogue = { cs = "Katalog", en = "Catalogue" }
-about = { cs = "O průvodci", en = "About" }
+about = { cs = "O Průvodci", en = "About" }
 stations = { cs = "Zastávky na cestě", en = "Stations on the path" }
 language = { cs = "Jazyk", en = "Language" }
 lens = { cs = "Pohled", en = "View as" }
 switchTo = { cs = "English", en = "Česky" }
 
-[stage]
-question = { cs = "Kde se právě nacházíte?", en = "Where are you now?" }
-intro = { cs = "Průvodce vás provede od plánu projektu ke zveřejněným, dohledatelným a citovatelným datům. Začněte tam, kde jste.", en = "The guide takes you from the project plan to published, findable and citable data. Start where you are." }
-change = { cs = "Změnit", en = "Change" }
-yours = { cs = "Vaše fáze", en = "Your stage" }
-none = { cs = "zatím nevybraná", en = "not chosen yet" }
+[journey]
+title = { cs = "Životní cyklus výzkumných dat", en = "The research data life cycle" }
+intro = { cs = "Cesta Průvodce sleduje sedm fází životního cyklu dat podle {rdmkit}. Začněte fází, ve které jste; každý krok můžete otevřít kdykoli.", en = "The Guide's path follows the seven stages of the {rdmkit} research data life cycle. Start with the stage you are in; you can open any step at any time." }
+lastRead = { cs = "Naposledy jste četli", en = "Last read" }
+lastShort = { cs = "naposledy čteno", en = "last read" }
 resume = { cs = "Pokračovat: krok {n} · {station}", en = "Continue: step {n} · {station}" }
-step = { cs = "Krok {n}", en = "Step {n}" }
-steps = { cs = "Kroky {from}–{to}", en = "Steps {from}–{to}" }
-chosen = { cs = "Vybráno", en = "Selected" }
-chosenOn = { cs = "Vybráno {date}", en = "Selected {date}" }
+currentStage = { cs = "fáze, ve které je tento krok", en = "the stage this step belongs to" }
+basis = { cs = "podle RDMkit", en = "after RDMkit" }
+
+[rail]
+showChecks = { cs = "Zobrazit výsledky kontrol", en = "Show check results" }
+legend = { cs = "Co značky znamenají", en = "What the marks mean" }
+legendStage = { cs = "fáze životního cyklu dat v její barvě", en = "a stage of the data life cycle, in its colour" }
+legendCurrent = { cs = "krok, který právě čtete", en = "the step you are reading" }
+legendState = { cs = "ze sebehodnocení: {state}", en = "from the self-check: {state}" }
+legendCount = { cs = "Číslo u značky říká, kolik otázek se v kroku řeší.", en = "The number beside a mark shows how many questions are addressed at this step." }
+legendOpen = { cs = "Otevřít sebehodnocení", en = "Open the self-check" }
+legendNone = { cs = "Zatím žádné; vyplňte sebehodnocení", en = "None yet; fill in a self-check" }
+marksHere = { cs = "Ze sebehodnocení se tu řeší: {list}", en = "Self-check questions addressed here: {list}" }
 
 [landing]
 tasks = { cs = "Co potřebujete udělat?", en = "What do you need to do?" }
@@ -56,7 +64,7 @@ done = { cs = "Výsledky hledání jsou pod polem.", en = "The search results ar
 found = { cs = "Nalezeno výsledků: {n}", en = "Results found: {n}" }
 identifierHint = { cs = "Rozpoznáno: {type}. Stiskněte Enter a vyberte, co dál.", en = "Recognised: {type}. Press Enter to choose what to do with it." }
 none = { cs = "Nic nenalezeno. Zkuste jiné slovo, nebo projděte cestu níže.", en = "Nothing found. Try another word, or follow the path below." }
-localOnly = { cs = "Hledáno jen v obsahu průvodce; nic neodešlo.", en = "Searched in the guide's own content only; nothing was sent." }
+localOnly = { cs = "Hledáno jen v obsahu Průvodce; nic neodešlo.", en = "Searched in the Guide's own content only; nothing was sent." }
 notSent = { cs = "Zatím jsme nic neodeslali. Služby se zeptáme, až akci vyberete.", en = "Nothing has been sent yet. A service is asked only when you choose an action." }
 checkDataset = { cs = "Zkontrolovat datovou sadu {pid}", en = "Check the dataset {pid}" }
 cite = { cs = "Vytvořit citaci", en = "Create a citation" }
@@ -86,15 +94,15 @@ fairsharing = { cs = "Otevřít záznam ve FAIRsharing", en = "Open the record i
 
 [search.basis]
 form = { cs = "Rozpoznáno podle zápisu: {type}.", en = "Recognised by its form: {type}." }
-guide = { cs = "Identifikátor z obsahu průvodce.", en = "An identifier from the guide's own content." }
-catalogue = { cs = "Tuto adresu uvádí katalog průvodce.", en = "The guide's catalogue lists this address." }
+guide = { cs = "Identifikátor z obsahu Průvodce.", en = "An identifier from the Guide's own content." }
+catalogue = { cs = "Tuto adresu uvádí katalog Průvodce.", en = "The Guide's catalogue lists this address." }
 
 [search.idName]
 re3data = { cs = "záznam re3data", en = "re3data record" }
 nanopub = { cs = "nanopublikace FIP", en = "FIP nanopublication" }
 fipProfile = { cs = "profil FIP ve FIP Dashboardu", en = "FIP profile in the FIP Dashboard" }
 nkr = { cs = "záznam Národního katalogu repozitářů", en = "record in the National Repository Catalogue" }
-guide = { cs = "identifikátor průvodce", en = "guide identifier" }
+guide = { cs = "identifikátor Průvodce", en = "guide identifier" }
 known = { cs = "adresa z katalogu", en = "address in the catalogue" }
 
 [search.what]
@@ -112,7 +120,7 @@ failed = { cs = "Nepodařilo se zjistit, co identifikátor označuje. Zkuste to 
 
 [search.note]
 software = { cs = "Software zkontrolujeme jako datovou sadu; některé otázky se na kód hodí jen zčásti.", en = "Software is checked as a dataset; some questions fit code only in part." }
-publication = { cs = "U publikací průvodce nabízí hlavně citaci. Kontrolu datové sady použijte, pokud DOI označuje data.", en = "For publications the guide mainly offers a citation. Use the dataset check if the DOI denotes data." }
+publication = { cs = "U publikací Průvodce nabízí hlavně citaci. Kontrolu datové sady použijte, pokud DOI označuje data.", en = "For publications the Guide mainly offers a citation. Use the dataset check if the DOI denotes data." }
 
 [search.kind]
 station = { cs = "Kroky cesty", en = "Steps of the path" }
@@ -131,12 +139,17 @@ nanopub = { cs = "Nanopublikace", en = "Nanopublication" }
 ror = { cs = "ROR", en = "ROR" }
 orcid = { cs = "ORCID", en = "ORCID" }
 re3data = { cs = "re3data", en = "re3data" }
+fairsharing = { cs = "FAIRsharing", en = "FAIRsharing" }
+nkr = { cs = "NKR", en = "NKR" }
 ark = { cs = "ARK", en = "ARK" }
 iri = { cs = "Trvalé IRI", en = "Persistent IRI" }
 dashboard = { cs = "FIP Dashboard", en = "FIP Dashboard" }
 
 [station]
-step = { cs = "Krok {n} z {total}", en = "Step {n} of {total}" }
+stage = { cs = "Fáze {n} · {name}", en = "Stage {n} · {name}" }
+stageStep = { cs = "krok {i} z {n}|krok {i} ze {n}|krok {i} z {n}", en = "step {i} of {n}|step {i} of {n}" }
+stepsCount = { cs = "{n} krok|{n} kroky|{n} kroků", en = "{n} step|{n} steps" }
+whyNote = { cs = "vysvětlení a z čeho rady vycházejí", en = "the reasons and what the advice rests on" }
 minutes = { cs = "asi {n} min", en = "about {n} min" }
 principles = { cs = "FAIR principy", en = "FAIR principles" }
 next = { cs = "Další krok: {name}", en = "Next step: {name}" }
@@ -181,47 +194,20 @@ disclaimer = { cs = "Upozornění FIP Dashboardu", en = "FIP Dashboard notice" }
 
 [repositories]
 intro = { cs = "Vyberte podle toho, co potřebujete: uložit data nebo publikace, hledat metadata, standardy, repozitáře či nástroje. Pro uložení dat dejte přednost oborovému repozitáři, potom institucionálnímu a nakonec obecnému. Zařazení v katalogu samo o sobě neznamená doporučení ani kvalifikaci NRP nebo EOSC CZ; ověření uvádí, kdo je provedl.", en = "Choose by what you need: deposit data or publications, find metadata, standards, repositories or tools. For data deposit, prefer a domain repository, then an institutional one and finally a general-purpose one. Listing alone does not imply a recommendation or NRP or EOSC CZ qualification; verification names who performed it." }
-curated = { cs = "výběr průvodce", en = "the guide's selection" }
-nkrLoad = { cs = "Načíst záznamy z NKR", en = "Load records from NKR" }
-nkrLoading = { cs = "Načítám záznamy z NKR…", en = "Loading records from NKR…" }
-nkrEmpty = { cs = "NKR zatím žádný repozitář neobsahuje.", en = "NKR does not list any repository yet." }
-nkrFailed = { cs = "NKR se nepodařilo načíst. Otevřete ho přímo: {url}", en = "NKR could not be loaded. Open it directly: {url}" }
-nkrSamples = { cs = "Ukázat ukázkové záznamy", en = "Show sample records" }
-nkrSamplesHide = { cs = "Skrýt ukázkové záznamy", en = "Hide sample records" }
-nkrSamplesTitle = { cs = "Ukázkové záznamy NKR", en = "Sample NKR records" }
-nkrSamplesNote = { cs = "Ukázka, ne záznamy NKR: hodnoty pocházejí jen z veřejných záznamů skutečných repozitářů v re3data (snímek ze dne {date}). Co re3data neuvádí, ukázka nedoplňuje.", en = "Samples, not NKR records: the values come only from the public re3data records of real repositories (snapshot of {date}). What re3data does not state, the samples do not fill in." }
-fairsharingLoad = { cs = "Načíst záznamy z FAIRsharing", en = "Load records from FAIRsharing" }
-fairsharingLoading = { cs = "Hledám záznamy ve FAIRsharing…", en = "Looking for records in FAIRsharing…" }
-fairsharingFound = { cs = "Záznam ve FAIRsharing má {n} z {total} repozitářů v seznamu (vyhledáno přes DataCite). Ostatní tam zapsané být mohou, jen je průvodce podle adresy nenašel.", en = "{n} of the {total} repositories listed have a FAIRsharing record (found through DataCite). Others may be registered too; the guide did not find them by their address." }
-fairsharingFailed = { cs = "FAIRsharing se nepodařilo prohledat. Zkuste to znovu, nebo hledejte přímo: {url}", en = "FAIRsharing could not be searched. Try again, or search it directly: {url}" }
+curated = { cs = "výběr Průvodce", en = "the Guide's selection" }
+nkrEmpty = { cs = "NKR zatím žádný repozitář neuvádí; jakmile je uvede, Průvodce je při pravidelné aktualizaci převezme.", en = "NKR does not list any repository yet; once it does, the Guide takes them over at its regular update." }
+nkrOpen = { cs = "Otevřít NKR", en = "Open NKR" }
+fairsharingNote = { cs = "Záznam ve FAIRsharing má {n} z {total} repozitářů v seznamu (vyhledáno přes DataCite, stav k {date}). Ostatní tam zapsané být mohou, jen je Průvodce podle adresy nenašel.", en = "{n} of the {total} repositories in the list have a FAIRsharing record (found through DataCite, as of {date}). Others may be registered there too; the Guide just did not find them by their address." }
 
-
-[repositories.sample]
-label = { cs = "Ukázka", en = "Sample" }
-record = { cs = "Záznam v re3data", en = "Record in re3data" }
-none = { cs = "neuvedeno", en = "not stated" }
-yes = { cs = "ano", en = "yes" }
-no = { cs = "ne", en = "no" }
-kind = { cs = "Druh repozitáře", en = "Kind of repository" }
-subjects = { cs = "Obory", en = "Subjects" }
-pidTypes = { cs = "Perzistentní identifikátory", en = "Persistent identifiers" }
-apis = { cs = "Rozhraní", en = "Interfaces" }
-dataLicenses = { cs = "Licence dat", en = "Data licences" }
-metadataStandards = { cs = "Metadatové standardy", en = "Metadata standards" }
-certificates = { cs = "Certifikace", en = "Certification" }
-policies = { cs = "Zásady", en = "Policies" }
-versioning = { cs = "Verzování dat", en = "Data versioning" }
-qualityManagement = { cs = "Řízení kvality", en = "Quality management" }
-registry = { cs = "Registr", en = "Registry" }
 [explorer]
 title = { cs = "FAIR principy", en = "FAIR principles" }
-intro = { cs = "Všechny požadavky Analýzy FAIR pro NRP/NDI podle principů, rozdělené podle toho, komu jsou určeny. Cesta průvodce z nich vybírá; zde najdete všechny.", en = "Every requirement of the FAIR analysis for NRP/NDI by principle, grouped by whom it addresses. The path picks from them; here you find them all." }
+intro = { cs = "Všechny požadavky Analýzy FAIR pro NRP/NDI podle principů, rozdělené podle toho, komu jsou určeny. Cesta Průvodce z nich vybírá; zde najdete všechny.", en = "Every requirement of the FAIR analysis for NRP/NDI by principle, grouped by whom it addresses. The path picks from them; here you find them all." }
 choose = { cs = "Vyberte princip", en = "Choose a principle" }
 cts = { cs = "CoreTrustSeal", en = "CoreTrustSeal" }
-ctsNote = { cs = "Požadavky vydání 2026–2028. Analýza FAIR je čísluje převážně podle vydání 2020–2022; průvodce je propojuje podle toho, čeho se podle analýzy týkají.", en = "Requirements of the 2026–2028 edition. The FAIR analysis numbers them mostly by the 2020–2022 edition; the guide links them by what the analysis says they are about." }
+ctsNote = { cs = "Požadavky vydání 2026–2028. Analýza FAIR je čísluje převážně podle vydání 2020–2022; Průvodce je propojuje podle toho, čeho se podle analýzy týkají.", en = "Requirements of the 2026–2028 edition. The FAIR analysis numbers them mostly by the 2020–2022 edition; the Guide links them by what the analysis says they are about." }
 cdif = { cs = "CDIF", en = "CDIF" }
 dashboardLabel = { cs = "FIP Dashboard", en = "FIP Dashboard" }
-cdifNote = { cs = "Profily CDIF 1.1. Analýza FAIR jmenuje doporučení CDIF z roku 2023; průvodce je propojuje s profily podle toho, čeho se týkají.", en = "Profiles of CDIF 1.1. The FAIR analysis names the 2023 CDIF recommendations; the guide links them to the profiles by what they are about." }
+cdifNote = { cs = "Profily CDIF 1.1. Analýza FAIR jmenuje doporučení CDIF z roku 2023; Průvodce je propojuje s profily podle toho, čeho se týkají.", en = "Profiles of CDIF 1.1. The FAIR analysis names the 2023 CDIF recommendations; the Guide links them to the profiles by what they are about." }
 dashboard = { cs = "Zdroje pro {p} ve FIP Dashboardu", en = "Resources for {p} in the FIP Dashboard" }
 refresh = { cs = "Aktualizace", en = "Update" }
 superseded = { cs = "Nahrazeno", en = "Superseded" }
@@ -240,7 +226,7 @@ R = { cs = "Opakovaná použitelnost (Reusable)", en = "Reusable" }
 
 [selfcheck]
 title = { cs = "Sebehodnocení", en = "Self-check" }
-intro = { cs = "Zjistěte, co vaší datové sadě, repozitáři nebo komunitě chybí k FAIR. Průvodce nepočítá skóre: ukáže, co je v pořádku, co chybí, kde to vyřešit a kdo to udělá. Odpovědi zůstávají ve vašem prohlížeči.", en = "Find out what your dataset, repository or community still lacks for FAIR. The guide computes no score: it shows what is in order, what is missing, where to fix it and who does it. Your answers stay in your browser." }
+intro = { cs = "Zjistěte, co vaší datové sadě, repozitáři nebo komunitě chybí k FAIR. Průvodce nepočítá skóre: ukáže, co je v pořádku, co chybí, kde to vyřešit a kdo to udělá. Odpovědi zůstávají ve vašem prohlížeči.", en = "Find out what your dataset, repository or community still lacks for FAIR. The Guide computes no score: it shows what is in order, what is missing, where to fix it and who does it. Your answers stay in your browser." }
 forLens = { cs = "Kontroly pro váš pohled", en = "Checks for your view" }
 others = { cs = "Další kontroly", en = "Other checks" }
 start = { cs = "Začít: {name}", en = "Start: {name}" }
@@ -267,17 +253,91 @@ target = { cs = "Kontrolujete: {target}", en = "You are checking: {target}" }
 targetLabel = { cs = "Kontrolujete", en = "You are checking" }
 found = { cs = "Nalezeno", en = "Found" }
 etAl = { cs = "{name} a kol.", en = "{name} et al." }
-gapsHere = { cs = "Ze sebehodnocení tu zbývá vyřešit: {n}", en = "Left to resolve here from the self-check: {n}" }
-gapsLegend = { cs = "co zbývá vyřešit podle sebehodnocení", en = "what is left to resolve from the self-check" }
 
 [selfcheck.steps]
 choose = { cs = "Vyberte kontrolu podle toho, co posuzujete.", en = "Choose a check for what you are assessing." }
 answer = { cs = "Odpovězte na otázky; část odpovědí lze vyplnit z veřejných záznamů.", en = "Answer the questions; some answers can be filled in from public records." }
 result = { cs = "Uvidíte, co chybí, kde to vyřešit a kdo to udělá.", en = "See what is missing, where to fix it and who does it." }
 
+# What each check is for, so that NRP conditions, FAIR maturity, certification and profile readiness are told apart.
+[selfcheck.purpose]
+label = { cs = "K čemu slouží", en = "What it is for" }
+dataset = { cs = "stav FAIR jedné datové sady", en = "the FAIR state of one dataset" }
+gate = { cs = "podmínky zapojení repozitáře do NRP; rozhoduje NRP", en = "the conditions for a repository joining NRP; NRP decides" }
+maturity = { cs = "zralost FAIR repozitáře nad rámec podmínek NRP", en = "a repository's FAIR maturity beyond the NRP conditions" }
+coretrustseal = { cs = "připravenost na certifikaci CoreTrustSeal; certifikuje CoreTrustSeal", en = "readiness for CoreTrustSeal certification; CoreTrustSeal certifies" }
+fip = { cs = "úplnost FAIR Implementation Profile komunity", en = "the completeness of a community's FAIR Implementation Profile" }
+institution = { cs = "povinnosti a strategie instituce pro správu dat", en = "an institution's data-management obligations and strategy" }
+cdif = { cs = "připravenost metadat na profily CDIF", en = "metadata readiness for the CDIF profiles" }
+software = { cs = "stav FAIR výzkumného softwaru", en = "the FAIR state of research software" }
+fdo = { cs = "připravenost na FAIR Digital Objects", en = "readiness for FAIR Digital Objects" }
+
 [selfcheck.mode]
 before = { cs = "Ještě ne, zveřejnění připravuji", en = "Not yet, I am preparing publication" }
 after = { cs = "Ano, má trvalý identifikátor", en = "Yes, it has a persistent identifier" }
+
+# The three parts of a check, each with its own address.
+# The evidence sources of a check, one card each: what it sends where, how long it takes, how many questions it can
+# suggest an answer to.
+[selfcheck.evidenceCard]
+sends = { cs = "Odešle", en = "Sends" }
+takes = { cs = "Trvá", en = "Takes" }
+answers = { cs = "Navrhne", en = "Suggests" }
+answersCount = { cs = "odpověď na {n} otázku|odpovědi na {n} otázky|odpovědi na {n} otázek", en = "an answer to {n} question|answers to {n} questions" }
+
+[selfcheck.evidenceCard.pid]
+title = { cs = "Záznam objektu podle DOI nebo Handle", en = "The object's record by DOI or Handle" }
+sends = { cs = "identifikátor službám DataCite nebo Crossref a resolveru DOI nebo Handle", en = "the identifier to DataCite or Crossref and to the DOI or Handle resolver" }
+takes = { cs = "několik sekund", en = "a few seconds" }
+
+[selfcheck.evidenceCard.software]
+title = { cs = "Repozitář zdrojového kódu", en = "The source code repository" }
+sends = { cs = "adresu repozitáře veřejnému API GitHubu nebo GitLabu", en = "the repository's address to the public GitHub or GitLab API" }
+takes = { cs = "několik sekund", en = "a few seconds" }
+
+[selfcheck.evidenceCard.nkr]
+title = { cs = "Záznam v NKR", en = "The NKR record" }
+sends = { cs = "nic o vás: Průvodce načte veřejný seznam repozitářů z NKR", en = "nothing about you: the Guide loads NKR's public list of repositories" }
+takes = { cs = "několik sekund", en = "a few seconds" }
+
+[selfcheck.evidenceCard.re3data]
+title = { cs = "Záznam v re3data", en = "The re3data record" }
+sends = { cs = "nic: Průvodce má snímek re3data; zápis ve FAIRsharing ověří přes DataCite", en = "nothing: the Guide carries a re3data snapshot; FAIRsharing registration is checked through DataCite" }
+takes = { cs = "okamžitě", en = "no time" }
+
+[selfcheck.evidenceCard.sample]
+title = { cs = "Vzorek záznamů repozitáře", en = "A sample of the repository's records" }
+sends = { cs = "identifikátory záznamů resolverům a DataCite; adresy záznamů serveru FAIR Champion, jen když spustíte jeho testy", en = "the records' identifiers to resolvers and DataCite; their addresses to the FAIR Champion server, only when you run its tests" }
+takes = { cs = "desítky sekund, testy i několik minut", en = "tens of seconds; the tests up to several minutes" }
+
+[selfcheck.evidenceCard.fip]
+title = { cs = "Profil FIP", en = "The FIP" }
+sends = { cs = "identifikátor nanopublikace službě Knowledge Pixels; profil ze snímku FIP Dashboardu nic", en = "the nanopublication's identifier to Knowledge Pixels; a profile from the FIP Dashboard snapshot nothing" }
+takes = { cs = "několik sekund", en = "a few seconds" }
+
+[selfcheck.evidenceCard.evaluators]
+title = { cs = "Externí hodnotitelé", en = "External evaluators" }
+sends = { cs = "identifikátor službě FAIR-Checker, když ji spustíte; zpráva F-UJI se jen načte ze souboru", en = "the identifier to FAIR-Checker, when you run it; an F-UJI report is only read from a file" }
+takes = { cs = "desítky sekund", en = "tens of seconds" }
+
+[selfcheck.evidenceCard.file]
+title = { cs = "Uložený výsledek", en = "A saved result" }
+sends = { cs = "nic: soubor zůstává v prohlížeči", en = "nothing: the file stays in the browser" }
+takes = { cs = "okamžitě", en = "no time" }
+
+[selfcheck.parts]
+label = { cs = "Části kontroly", en = "Parts of the check" }
+evidence = { cs = "Podklady", en = "Evidence" }
+answers = { cs = "Odpovědi", en = "Answers" }
+report = { cs = "Zpráva", en = "Report" }
+evidenceNote = { cs = "odkud mohou přijít návrhy odpovědí", en = "where suggested answers can come from" }
+answersNote = { cs = "zodpovězeno {n} z {total}", en = "{n} of {total} answered" }
+answersWaiting = { cs = "po volbě nahoře", en = "after the choice above" }
+reportNote = { cs = "stav, co chybí, shoda s hodnotiteli", en = "state, gaps, agreement with evaluators" }
+
+[selfcheck.parts.to]
+answers = { cs = "Pokračovat k odpovědím", en = "Continue to the answers" }
+report = { cs = "Pokračovat ke zprávě", en = "Continue to the report" }
 
 [selfcheck.answer]
 yes = { cs = "Ano", en = "Yes" }
@@ -288,13 +348,27 @@ na = { cs = "Netýká se", en = "Not applicable" }
 
 [selfcheck.prefill]
 champion = { cs = "Vzorek záznamů repozitáře: DOI nebo adresy, nejvýš {n}", en = "A sample of the repository's records: DOIs or addresses, at most {n}" }
-championHint = { cs = "Průvodce spustí pro každý záznam testy FAIR Champion, na které otázky odkazují, nejvýš čtyři najednou; test bez výsledku se nepočítá jako nesplněný. Může to trvat i několik minut. Testy běží na serveru FAIR Champion, který uvidí adresy záznamů.", en = "The guide runs the FAIR Champion tests the questions refer to for each record, at most four at a time; a test without a result does not count as failed. It can take several minutes. The tests run on the FAIR Champion server, which sees the records' addresses." }
+championHint = { cs = "Průvodce spustí pro každý záznam testy FAIR Champion, na které otázky odkazují, nejvýš čtyři najednou; test bez výsledku se nepočítá jako nesplněný. Může to trvat i několik minut. Testy běží na serveru FAIR Champion, který uvidí adresy záznamů.", en = "The Guide runs the FAIR Champion tests the questions refer to for each record, at most four at a time; a test without a result does not count as failed. It can take several minutes. The tests run on the FAIR Champion server, which sees the records' addresses." }
 championInvalid = { cs = "Zadejte jeden až {n} identifikátorů záznamů.", en = "Give one to {n} record identifiers." }
 championCoverage = { cs = "Výsledek dalo {n} z {total} testů; testy bez výsledku se nepočítají jako nesplněné.", en = "{n} of {total} tests gave a result; tests without one do not count as failed." }
 championRetry = { cs = "Zopakovat testy bez výsledku ({n})", en = "Retry the tests without a result ({n})" }
 championUnresolved = { cs = "Nepřeložené identifikátory se netestují: {records}.", en = "Identifiers that do not resolve are not tested: {records}." }
-championDeepHint = { cs = "Průvodce nejdřív ověří, že se identifikátor výše přeloží, a pak pro něj spustí testy FAIR Champion, na které otázky odkazují, nejvýš čtyři najednou; test bez výsledku se nepočítá jako nesplněný. Může to trvat i několik minut. Testy běží na serveru FAIR Champion, který uvidí identifikátor.", en = "The guide first checks that the identifier above resolves, then runs the FAIR Champion tests the questions refer to, at most four at a time; a test without a result does not count as failed. It can take several minutes. The tests run on the FAIR Champion server, which sees the identifier." }
+championDeepHint = { cs = "Průvodce nejdřív ověří, že se identifikátor výše přeloží, a pak pro něj spustí testy FAIR Champion, na které otázky odkazují, nejvýš čtyři najednou; test bez výsledku se nepočítá jako nesplněný. Může to trvat i několik minut. Testy běží na serveru FAIR Champion, který uvidí identifikátor.", en = "The Guide first checks that the identifier above resolves, then runs the FAIR Champion tests the questions refer to, at most four at a time; a test without a result does not count as failed. It can take several minutes. The tests run on the FAIR Champion server, which sees the identifier." }
 championNeedsPid = { cs = "Nejdřív výše zadejte DOI nebo Handle datové sady a načtěte záznam.", en = "First enter the dataset's DOI or Handle above and look it up." }
+championNeedsSample = { cs = "Nejdřív zadejte jeden až {n} identifikátorů záznamů vzorku.", en = "First enter one to {n} record identifiers for the sample." }
+dataciteSample = { cs = "Vylosovat vzorek z DataCite", en = "Draw a sample from DataCite" }
+dataciteNeedsRepository = { cs = "Vzorek z DataCite vylosuje Průvodce pro repozitář, který DataCite uvádí. Nejdřív výše načtěte jeho záznam v re3data.", en = "The Guide draws a sample from DataCite for a repository DataCite lists. First look up its re3data record above." }
+dataciteDrawing = { cs = "Losuji vzorek z DataCite…", en = "Drawing a sample from DataCite…" }
+dataciteAbsent = { cs = "DataCite tento repozitář neuvádí. Zadejte vzorek ručně.", en = "DataCite does not list this repository. Enter the sample by hand." }
+dataciteEmpty = { cs = "DataCite u tohoto repozitáře nevrátil žádný záznam. Zadejte vzorek ručně.", en = "DataCite returned no record for this repository. Enter the sample by hand." }
+dataciteFailed = { cs = "Vzorek z DataCite se nepodařilo vylosovat. Zadejte ho ručně, nebo to zkuste znovu.", en = "The sample could not be drawn from DataCite. Enter it by hand or try again." }
+dataciteDrawn = { cs = "Vylosováno z DataCite {date}: {n} záznamů z repozitáře {name}, ze všech druhů, které zveřejňuje. Testy zatím neběžely; kterýkoli záznam můžete vyměnit a vzorek upravit i ručně.", en = "Drawn from DataCite on {date}: {n} records from {name}, of every kind it publishes. No test has run yet; you can replace any record and edit the sample by hand." }
+dataciteReplace = { cs = "Vyměnit", en = "Replace" }
+dataciteReplaceOne = { cs = "Vyměnit záznam {doi}", en = "Replace record {doi}" }
+dataciteReplaced = { cs = "Záznam {doi} byl nahrazen záznamem {fresh}.", en = "{fresh} replaced {doi}." }
+dataciteNoMore = { cs = "DataCite nevrátil žádný další záznam.", en = "DataCite returned no other record." }
+dataciteUntitled = { cs = "(bez názvu)", en = "(untitled)" }
+needsIdentifier = { cs = "Nejdřív zadejte identifikátor.", en = "Enter an identifier first." }
 championNotResolved = { cs = "Identifikátor se nepodařilo přeložit na adresu, proto se testy FAIR Champion nespustily.", en = "The identifier did not resolve to an address, so the FAIR Champion tests did not run." }
 progress = { cs = "{done} z {total} testů", en = "{done} of {total} tests" }
 nkrEmptyRe3data = { cs = "NKR zatím žádný repozitář neobsahuje. Než v něm budou, předvyplňte odpovědi ze záznamu v re3data níže.", en = "NKR does not list any repository yet. Until it does, pre-fill the answers from the re3data record below." }
@@ -302,21 +376,21 @@ nkrEmptyByHand = { cs = "NKR zatím žádný repozitář neobsahuje. Než v něm
 title = { cs = "Předvyplnit odpovědi", en = "Pre-fill the answers" }
 fromRecords = { cs = "Z veřejných záznamů", en = "From public records" }
 fromFile = { cs = "Z uloženého výsledku", en = "From a saved result" }
-fromFileText = { cs = "Výsledek uložený z průvodce se otevře jako náhled; vaše odpovědi se změní, jen když o to požádáte.", en = "A result saved from the guide opens as a preview; your answers change only if you ask." }
-privacy = { cs = "Průvodce pošle službě jen identifikátor, který zadáte. Vaše odpovědi zůstávají v prohlížeči. Vyplněné odpovědi zkontrolujte; můžete je změnit.", en = "The guide sends the service only the identifier you enter. Your answers stay in your browser. Check the answers it fills in; you can change them." }
+fromFileText = { cs = "Výsledek uložený z Průvodce se otevře jako náhled; vaše odpovědi se změní, jen když o to požádáte.", en = "A result saved from the Guide opens as a preview; your answers change only if you ask." }
+privacy = { cs = "Průvodce pošle službě jen identifikátor, který zadáte. Vaše odpovědi zůstávají v prohlížeči. Vyplněné odpovědi zkontrolujte; můžete je změnit.", en = "The Guide sends the service only the identifier you enter. Your answers stay in your browser. Check the answers it fills in; you can change them." }
 pid = { cs = "DOI nebo Handle datové sady", en = "DOI or Handle of the dataset" }
 pidButton = { cs = "Načíst záznam a vyplnit", en = "Look up and fill in" }
 steward = { cs = "ORCID iD data stewarda (nepovinné)", en = "The data steward's ORCID iD (optional)" }
-stewardHint = { cs = "Při vyhledání podle DOI ho průvodce najde mezi autory a přispěvateli v DataCite.", en = "When looking up the DOI, the guide finds it among the creators and contributors in DataCite." }
+stewardHint = { cs = "Při vyhledání podle DOI ho Průvodce najde mezi autory a přispěvateli v DataCite.", en = "When looking up the DOI, the Guide finds it among the creators and contributors in DataCite." }
 stewardInvalid = { cs = "Toto není platný zápis ORCID iD.", en = "This is not a valid ORCID iD." }
 pidInvalid = { cs = "Zadejte DOI (například 10.5281/zenodo.21726258) nebo Handle (například 11234/1-5787).", en = "Enter a DOI (for example 10.5281/zenodo.21726258) or a Handle (for example 11234/1-5787)." }
 nkrChoose = { cs = "Repozitář v NKR", en = "Repository in NKR" }
 nkrButton = { cs = "Vyplnit podle NKR", en = "Fill in from NKR" }
 re3data = { cs = "Záznam v re3data: DOI, identifikátor r3d nebo adresa záznamu", en = "Record in re3data: DOI, r3d identifier or the record's address" }
 re3dataButton = { cs = "Vyplnit podle re3data", en = "Fill in from re3data" }
-re3dataHint = { cs = "Údaje bere průvodce ze snímku re3data, který s ním přichází; re3data nelze číst přímo z prohlížeče. Zápis ve FAIRsharing ověří přes DataCite.", en = "The guide takes the facts from the re3data snapshot it carries; re3data cannot be read directly from a browser. It checks the FAIRsharing registration through DataCite." }
+re3dataHint = { cs = "Údaje bere Průvodce ze snímku re3data, který s ním přichází; re3data nelze číst přímo z prohlížeče. Zápis ve FAIRsharing ověří přes DataCite.", en = "The Guide takes the facts from the re3data snapshot it carries; re3data cannot be read directly from a browser. It checks the FAIRsharing registration through DataCite." }
 re3dataInvalid = { cs = "Zadejte DOI záznamu v re3data (10.17616/…), identifikátor r3d (například r3d100010386) nebo adresu záznamu.", en = "Enter the DOI of a re3data record (10.17616/…), an r3d identifier (for example r3d100010386) or the record's address." }
-re3dataMissing = { cs = "Repozitář {id} není ve snímku re3data, který průvodce nese (jsou v něm repozitáře z Česka). Odpovězte ručně, nebo otevřete jeho záznam v re3data.", en = "Repository {id} is not in the re3data snapshot the guide carries (it holds repositories from Czechia). Answer by hand, or open its record in re3data." }
+re3dataMissing = { cs = "Repozitář {id} není ve snímku re3data, který Průvodce nese (jsou v něm repozitáře z Česka). Odpovězte ručně, nebo otevřete jeho záznam v re3data.", en = "Repository {id} is not in the re3data snapshot the Guide carries (it holds repositories from Czechia). Answer by hand, or open its record in re3data." }
 fipChoose = { cs = "Profil komunity ve FIP Dashboardu", en = "Community profile in the FIP Dashboard" }
 fipButton = { cs = "Předvyplnit z FIP Dashboardu", en = "Pre-fill from the FIP Dashboard" }
 nanopub = { cs = "Nebo identifikátor publikované nanopublikace FIP (kód začínající RA nebo celá adresa)", en = "Or the identifier of a published FIP nanopublication (the code starting with RA, or the full address)" }
@@ -363,20 +437,26 @@ zenodo = { cs = "veřejný záznam Zenodo", en = "the public Zenodo record" }
 pid-record = { cs = "záznam PID", en = "the PID record" }
 github = { cs = "veřejný repozitář GitHub", en = "the public GitHub repository" }
 gitlab = { cs = "veřejný repozitář GitLab", en = "the public GitLab repository" }
+fair-checker = { cs = "FAIR-Checker", en = "FAIR-Checker" }
+f-uji = { cs = "F-UJI", en = "F-UJI" }
 
 [selfcheck.origin]
 prefilled = { cs = "Vyplněno podle zdroje {source}, {date}", en = "Filled in from {source}, {date}" }
-confirmed = { cs = "Potvrdili jste; zdroj {source}, {date}", en = "You confirmed it; from {source}, {date}" }
-changed = { cs = "Změnili jste; zdroj {source} navrhoval: {value} ({date})", en = "You changed it; {source} suggested: {value} ({date})" }
-differs = { cs = "Odpověď se liší od návrhu; zdroj {source} navrhoval: {value} ({date})", en = "The answer differs from the suggestion; {source} suggested: {value} ({date})" }
-suggestion = { cs = "Zdroj {source} ({date}) odpověď nenavrhl.", en = "{source} ({date}) suggested no answer." }
+confirmed = { cs = "Vaše odpověď; shoduje se s návrhem zdroje {source} ({date})", en = "Your answer; it matches the suggestion of {source} ({date})" }
+changed = { cs = "Vaše odpověď; zdroj {source} navrhoval: {value} ({date})", en = "Your answer; {source} suggested: {value} ({date})" }
+differs = { cs = "Převzato ze sdíleného výsledku; odpověď se liší od návrhu, zdroj {source} navrhoval: {value} ({date})", en = "Taken from a shared result; the answer differs from the suggestion, {source} suggested: {value} ({date})" }
+sharedMatch = { cs = "Převzato ze sdíleného výsledku; shoduje se s návrhem zdroje {source} ({date})", en = "Taken from a shared result; it matches the suggestion of {source} ({date})" }
+suggestion = { cs = "Zdroj {source} ({date}) odpověď nenavrhl; podklady jsou níže.", en = "{source} ({date}) suggested no answer; the evidence is below." }
 shared = { cs = "Převzato ze sdíleného výsledku", en = "Taken from a shared result" }
+user = { cs = "Vaše odpověď", en = "Your answer" }
+yours = { cs = "vaše odpověď", en = "your answer" }
+suggestedBy = { cs = "návrh zdroje {source}, {date}", en = "suggested by {source}, {date}" }
 
 [selfcheck.note]
 stewardFound = { cs = "Metadata uvádějí data stewarda: {name}.", en = "The metadata name the data steward: {name}." }
 stewardMissing = { cs = "Data steward s ORCID iD {orcid} není v metadatech mezi autory ani přispěvateli.", en = "The data steward with ORCID iD {orcid} is neither a creator nor a contributor in the metadata." }
 stewardRole = { cs = "Metadata uvádějí správce dat ({names}); ověřte, že jde o data stewarda projektu, nebo zadejte jeho ORCID iD.", en = "The metadata name a data curator or manager ({names}); check that this is the project's data steward, or enter their ORCID iD." }
-stewardOrcid = { cs = "Metadata neuvádějí správce dat; zadejte ORCID iD data stewarda a průvodce ho mezi autory a přispěvateli vyhledá.", en = "The metadata name no data curator or manager; enter the data steward's ORCID iD and the guide looks for it among the creators and contributors." }
+stewardOrcid = { cs = "Metadata neuvádějí správce dat; zadejte ORCID iD data stewarda a Průvodce ho mezi autory a přispěvateli vyhledá.", en = "The metadata name no data curator or manager; enter the data steward's ORCID iD and the Guide looks for it among the creators and contributors." }
 notInSource = { cs = "Záznam tuto informaci neuvádí; odpovězte podle toho, co víte.", en = "The record does not state this; answer from what you know." }
 partlyOnly = { cs = "Záznam to dokládá jen zčásti, proto nejvýš „částečně“.", en = "The record shows this only in part, so the answer is at most “partly”." }
 resolves = { cs = "Identifikátor vede na {url}", en = "The identifier leads to {url}" }
@@ -404,6 +484,129 @@ copyrightCoverage = { cs = "Licenční údaj byl nalezen. Zkontrolujte také aut
 bundledLicences = { cs = "Licenční soubor je dostupný. Tato kontrola neposoudila jeho obsah ani licence všech přibalených součástí.", en = "A licence file is available. This lookup has not assessed its content or the licences of every bundled component." }
 testsNotRun = { cs = "Definice testu je dostupná. Testy nebyly spuštěny; jejich pokrytí, vstupní data a výsledky je třeba posoudit zvlášť.", en = "A test definition is available. Tests were not run; assess their coverage, input data and results separately." }
 dependenciesCoverage = { cs = "Deklarace závislostí je dostupná. Úplnost, sestavení, nastavení a srozumitelnost návodu je třeba posoudit zvlášť.", en = "A dependency declaration is available. Assess completeness, build, configuration and usable instructions separately." }
+testUnavailable = { cs = "Test nedal výsledek (služba nebyla dostupná nebo výsledek nebyl určen), takže nic neověřil. Odpovězte podle zdroje, například článku nebo záznamu, nebo test zopakujte.", en = "The test gave no result (the service was unavailable or the result indeterminate), so it verified nothing. Answer from the source itself, such as the article or the record, or run the test again." }
+providerUnavailable = { cs = "{source} k této otázce nedal použitelný výsledek; nic tím není ověřeno ani vyvráceno.", en = "{source} gave no usable result for this question; nothing is verified or disproved by it." }
+providerVersion = { cs = "Toto hodnocení ({source}: {version}) má verzi, pro kterou mapování na otázky nebylo posouzeno. Jeho výsledky jsou podkladem, ale odpověď nenavrhují.", en = "This assessment ({source}: {version}) uses a version whose question mappings have not been reviewed. Its results are evidence but suggest no answer." }
+providerFail = { cs = "{source} toto kritérium ukazuje jako nesplněné.", en = "{source} shows this criterion as not met." }
+providerUnknown = { cs = "{source} toto kritérium neověřil: ukazuje úroveň FAIR 0 (neúplná), tedy nic nenašel. Odpověď to samo neurčuje; ověřte ji ve zdroji.", en = "{source} did not establish this criterion: it shows FAIR level 0 (incomplete), meaning it found nothing. That alone does not decide the answer; check the source." }
+providerBlank = { cs = "{source} dal všem metrikám skóre 0. Obvykle to znamená, že ze stránky nepřečetl žádná metadata, takže tím nic nerozhoduje.", en = "{source} scored every metric 0. This usually means it read no metadata from the page, so it decides nothing." }
+providerMapping = { cs = "{provider} {metric}", en = "{provider} {metric}" }
+providerHarvest = { cs = "Údaje sklidil F-UJI při svém hodnocení; Průvodce tyto stránky sám nečetl.", en = "F-UJI harvested this information during its assessment; the Guide did not read these pages itself." }
+
+[selfcheck.providers]
+title = { cs = "Další hodnotitelé FAIR", en = "Other FAIR evaluators" }
+intro = { cs = "Tyto služby posuzují objekt podle vlastních kritérií. Žádná se nespustí, dokud ji nevyberete, a dostane jen identifikátor uvedený níže. Průvodce jejich výsledky čte tak, jak je služba sama ukazuje. Kde posouzené kritérium pokrývá celou otázku, navrhne odpověď; kde jen její část, navrhne Částečně, nebo Ne, když tato část splněna není. Vaše vlastní odpovědi zůstávají.", en = "These services assess the object against their own criteria. None runs until you choose it, and it receives only the identifier shown below. The Guide reads their results as the service itself shows them. Where a reviewed criterion covers the whole question, it suggests an answer; where it covers only part, it suggests Partly, or No when that part is not met. Your own answers stay." }
+sent = { cs = "Službě se pošle:", en = "Sent to the service:" }
+needTarget = { cs = "Nejdřív výše zadejte a načtěte identifikátor objektu.", en = "First enter and look up the object's identifier above." }
+fairCheckerScope = { cs = "{n} metrik, Institut français de bioinformatique", en = "{n} metrics, Institut français de bioinformatique" }
+documentation = { cs = "Dokumentace služby", en = "Service documentation" }
+fairCheckerSends = { cs = "Spuštění zde pošle identifikátor službě {host} v {n} požadavcích, nejvýš {parallel} najednou. Každá metrika dává skóre 0–2, které FAIR-Checker ukazuje zeleně (2), oranžově (1) a červeně (0); Průvodce ho čte jako splněno, částečně splněno a nesplněno.", en = "Running it here sends the identifier to {host} in {n} requests, at most {parallel} at a time. Each metric gives a score of 0–2, which FAIR-Checker shows in green (2), orange (1) and red (0); the Guide reads it as met, partly met and not met." }
+run = { cs = "Spustit {source} zde", en = "Run {source} here" }
+runningShort = { cs = "Probíhá…", en = "Running…" }
+running = { cs = "Spouštím {source} ({n} metrik)…", en = "Running {source} ({n} metrics)…" }
+ran = { cs = "{source}: výsledek dalo {n} z {total} metrik. Metrika bez výsledku nic nevyvrací.", en = "{source}: {n} of {total} metrics gave a result. A metric without a result disproves nothing." }
+progress = { cs = "Průběh hodnocení", en = "Assessment progress" }
+fujiScope = { cs = "hodnocení datové sady na webu F-UJI", en = "dataset assessment on the F-UJI website" }
+fujiSteps = { cs = "F-UJI běží na vlastním webu. Vložte identifikátor do jeho formuláře a po dokončení stáhněte zprávu jako JSON (Export). Načtení zprávy sem ji přečte ve vašem prohlížeči a nic neodesílá; soubor může mít nejvýš {max}.", en = "F-UJI runs on its own website. Paste the identifier into its form and, when it finishes, download the report as JSON (Export). Loading the report here reads it in your browser and sends nothing; the file can be at most {max}." }
+megabytes = { cs = "{n} MB", en = "{n} MB" }
+load = { cs = "Načíst zprávu {source} (JSON)", en = "Load a {source} report (JSON)" }
+openForm = { cs = "Otevřít {source}", en = "Open {source}" }
+terms = { cs = "Podmínky použití", en = "Terms of use" }
+form = { cs = "Formulář služby", en = "The service's form" }
+previewTitle = { cs = "Zpráva {source} k připojení", en = "{source} report to attach" }
+attach = { cs = "Připojit ke kontrole", en = "Attach to this check" }
+discard = { cs = "Zahodit", en = "Discard" }
+unknown = { cs = "neuvedeno", en = "not stated" }
+bytes = { cs = "{n} B", en = "{n} B" }
+reviewedVersion = { cs = "Pro tuto verzi metrik byla mapování na otázky posouzena: kritérium pokrývající celou otázku navrhne odpověď, kritérium pokrývající její část navrhne Částečně, nebo Ne.", en = "The question mappings were reviewed for this metric version: a criterion covering a whole question suggests an answer, one covering part of it suggests Partly or No." }
+unreviewedVersion = { cs = "Pro tuto verzi {source} mapování na otázky posouzeno nebylo. Zpráva bude podkladem s úplnými nativními výsledky, ale odpovědi nenavrhne a vaše odpovědi nezmění.", en = "The question mappings have not been reviewed for this {source} version. The report will be evidence with its complete native results, but it suggests no answers and changes none of yours." }
+mismatch = { cs = "Zpráva hodnotí {report}, ale tato kontrola se týká {target}. Nepřipojí se; změňte identifikátor výše, nebo načtěte zprávu o tomto objektu.", en = "The report assesses {report}, but this check is about {target}. It is not attached; change the identifier above or load a report about this object." }
+adoptTarget = { cs = "Kontrola zatím nemá identifikátor; připojením se jím stane objekt ze zprávy.", en = "The check has no identifier yet; attaching makes the report's object its identifier." }
+duplicate = { cs = "Tato zpráva už je připojená.", en = "This report is already attached." }
+full = { cs = "Na další původní zprávu už není místo (všechny dohromady nejvýš 4 MB). Odeberte některé hodnocení, nebo si nejdřív stáhněte úplné podklady.", en = "There is no room for another original report (4 MB for all together). Remove an assessment, or download the complete evidence first." }
+unverified = { cs = "Toto hodnocení pochází z uloženého výsledku a Průvodce ho nemohl ověřit proti původní zprávě. Je to tvrzení souboru; načtením původní zprávy ho nahradíte.", en = "This assessment comes from a saved result and the Guide could not verify it against the original report. It is the file's claim; loading the original report replaces it." }
+historical = { cs = "Je už připojená jiná zpráva se stejným označením hodnocení; obě zůstanou rozlišené podle data a obsahu.", en = "Another report with the same assessment ID is attached; both stay distinguished by date and content." }
+attached = { cs = "Zpráva {source} je připojená; podle ní je vyplněna {n} odpověď.|Zpráva {source} je připojená; podle ní jsou vyplněny {n} odpovědi.|Zpráva {source} je připojená; podle ní je vyplněno {n} odpovědí.", en = "The {source} report is attached; {n} answer was filled in from it.|The {source} report is attached; {n} answers were filled in from it." }
+attachedSession = { cs = "Zpráva {source} je připojená, ale prohlížeč ji neuložil (nedostatek místa); zůstane jen do zavření stránky. Stáhněte si úplné podklady.", en = "The {source} report is attached, but the browser did not keep it (not enough space); it stays only until the page closes. Download the complete evidence." }
+noResult = { cs = "bez výsledku", en = "no result" }
+nativeScore = { cs = "skóre služby {score} z {max}", en = "the service's score {score} of {max}" }
+nativeEarned = { cs = "body služby {earned} z {total}", en = "the service's {earned} of {total} points" }
+level = { cs = "úroveň FAIR {n} ze {max} ({name})", en = "FAIR level {n} of {max} ({name})" }
+statusDiffers = { cs = "Zpráva u této metriky uvádí stav „{status}“ (test_status). {source} ve svém přehledu ukazuje výsledek podle úrovně FAIR a Průvodce ho čte stejně.", en = "The report gives this metric the status “{status}” (test_status). {source}'s own overview shows the result by its FAIR level, and the Guide reads it the same way." }
+versionUnknown = { cs = "verze neuvedena", en = "version not stated" }
+unmapped = { cs = "Bez mapování na otázku této kontroly", en = "Not mapped to a question of this check" }
+# F-UJI's names for its FAIR levels 0–3.
+levelName = { 0 = { cs = "neúplná", en = "incomplete" }, 1 = { cs = "počáteční", en = "initial" }, 2 = { cs = "střední", en = "moderate" }, 3 = { cs = "pokročilá", en = "advanced" } }
+relates = { cs = "Souvisí s otázkou", en = "Relates to" }
+subtests = { cs = "Dílčí testy {id}", en = "Subtests of {id}" }
+recommendation = { cs = "Doporučení služby", en = "The service's recommendation" }
+comment = { cs = "Komentář služby", en = "The service's comment" }
+echoed = { cs = "Služba v odpovědi uvedla jinou metriku: {metric}.", en = "The service named another metric in its response: {metric}." }
+time = { cs = "Doba vyhodnocení: {time}", en = "Evaluation time: {time}" }
+native = { cs = "Nativní podrobnosti", en = "Native details" }
+answered = { cs = "{n} z {total} s výsledkem", en = "{n} of {total} with a result" }
+harvested = { cs = "Údaje sklidil F-UJI ({date}) z uvedených zdrojů; Průvodce tyto stránky sám nečetl a jejich dostupnost z prohlížeče tím není ověřena.", en = "F-UJI harvested the information ({date}) from the sources listed; the Guide did not read these pages itself, and their browser accessibility is not established by this." }
+harvestTitle = { cs = "Sklizené zdroje ({n})", en = "Harvested sources ({n})" }
+statementScope = { cs = "Každý údaj zůstává u zdroje, odkud pochází; Průvodce z nich neurčuje jednu účinnou licenci.", en = "Each statement stays with the source it came from; the Guide does not derive one effective licence from them." }
+reviewedShort = { cs = "mapování posouzena", en = "mappings reviewed" }
+unreviewedShort = { cs = "verze bez posouzeného mapování", en = "version without reviewed mappings" }
+retry = { cs = "Zopakovat metriky bez výsledku ({n})", en = "Retry the metrics without a result ({n})" }
+noScore = { cs = "Průvodce výsledky nesčítá do celkového skóre FAIR.", en = "The Guide does not add the results up into an overall FAIR score." }
+sourceMissing = { cs = "Původní zpráva v tomto prohlížeči už není; nativní výsledky výše jsou její výtah uložený při připojení. Úplnou zprávu načtete ze souboru s úplnými podklady.", en = "The original report is no longer in this browser; the native results above are the extract saved when it was attached. Load the complete report from a complete evidence file." }
+sourceSession = { cs = "Prohlížeč původní zprávu neuložil; zůstane jen do zavření stránky. Stáhněte si ji nebo úplné podklady.", en = "The browser did not keep the original report; it stays only until the page closes. Download it or the complete evidence." }
+downloadOriginal = { cs = "Stáhnout původní zprávu", en = "Download the original report" }
+downloadRecord = { cs = "Stáhnout záznam hodnocení", en = "Download the assessment record" }
+remove = { cs = "Odebrat toto hodnocení", en = "Remove this assessment" }
+removeConfirm = { cs = "Odebrat hodnocení {source}? Zmizí jeho podklady a jím navržené odpovědi; vaše vlastní odpovědi a ostatní podklady zůstanou.", en = "Remove the {source} assessment? Its evidence and the answers it suggested go; your own answers and other evidence stay." }
+removed = { cs = "Hodnocení {source} je odebrané; vaše vlastní odpovědi zůstaly.", en = "The {source} assessment is removed; your own answers stay." }
+overview = { cs = "Připojená hodnocení", en = "Attached assessments" }
+overviewIntro = { cs = "Všechny nativní výsledky s vlastními identifikátory a znění služeb. U každého je vidět, ke které otázce se vztahuje a v jakém rozsahu; kritéria bez mapování zůstávají k nahlédnutí.", en = "Every native result with the services' own identifiers and wording. Each shows the question it relates to and how far it reaches; criteria without a mapping stay available." }
+exportScope = { cs = "Nativní protokoly a výstupy jsou v původních zprávách; obsahují je úplné podklady.", en = "Native logs and outputs are in the original reports, which the complete evidence contains." }
+openOverview = { cs = "Nativní výsledky hodnocení", en = "The assessment's native results" }
+
+attachedTitle = { cs = "Výsledek připojen ke kontrole", en = "Result attached to the check" }
+attachedFacts = { cs = "posouzeno {date} · metrik: {metrics} · navrhuje odpověď u {n} otázky|posouzeno {date} · metrik: {metrics} · navrhuje odpovědi u {n} otázek|posouzeno {date} · metrik: {metrics} · navrhuje odpovědi u {n} otázek", en = "assessed {date} · metrics: {metrics} · suggests an answer for {n} question|assessed {date} · metrics: {metrics} · suggests answers for {n} questions" }
+toAnswers = { cs = "Zobrazit odpovědi", en = "See the answers" }
+toReport = { cs = "Zpráva s podrobnostmi běhu", en = "The report with the run's details" }
+previewRead = { cs = "Zpráva {source} je přečtená (metrik: {n}). Zkontrolujte náhled a připojte ji ke kontrole.", en = "The {source} report has been read (metrics: {n}). Check the preview and attach it to the check." }
+[selfcheck.providers.version]
+software = { cs = "software", en = "software" }
+api = { cs = "API", en = "API" }
+metric = { cs = "metriky", en = "metrics" }
+specification = { cs = "specifikace", en = "specification" }
+requested = { cs = "požadované metriky", en = "requested metrics" }
+
+[selfcheck.providers.coverage]
+whole = { cs = "celá otázka", en = "whole question" }
+partial = { cs = "část otázky", en = "part of the question" }
+
+[selfcheck.providers.fact]
+object = { cs = "Hodnocený objekt", en = "Assessed object" }
+assessed = { cs = "Hodnoceno", en = "Assessed" }
+versions = { cs = "Verze", en = "Versions" }
+specification = { cs = "Specifikace metrik", en = "Metric specification" }
+report = { cs = "Označení hodnocení", en = "Assessment ID" }
+file = { cs = "Soubor", en = "File" }
+metrics = { cs = "Metriky", en = "Metrics" }
+representation = { cs = "Prohlédnutá adresa", en = "Inspected address" }
+coverage = { cs = "Výsledky", en = "Results" }
+
+[selfcheck.providers.importError]
+tooLarge = { cs = "Soubor je příliš velký ({size}); zprávu lze načíst do {max}. Nic nebylo připojeno.", en = "The file is too large ({size}); a report can be loaded up to {max}. Nothing was attached." }
+notJson = { cs = "Soubor není JSON. Stáhněte z F-UJI zprávu ve formátu JSON.", en = "The file is not JSON. Download the report from F-UJI in JSON format." }
+foreign = { cs = "Tento JSON není zpráva F-UJI (chybí požadavek a výsledky metrik).", en = "This JSON is not a F-UJI report (it has no request and metric results)." }
+guideResult = { cs = "Toto je výsledek uložený z Průvodce. Načtěte ho volbou „Z uloženého výsledku“.", en = "This is a result saved from the Guide. Load it with “From a saved result”." }
+broken = { cs = "Zpráva vypadá jako zpráva F-UJI, ale její výsledky metrik nelze přečíst. Nic nebylo připojeno.", en = "The file looks like a F-UJI report, but its metric results cannot be read. Nothing was attached." }
+noDigest = { cs = "Tento prohlížeč zde nenabízí výpočet otisku SHA-256, kterým Průvodce zprávu identifikuje. Otevřete Průvodce z adresy https nebo ze souboru.", en = "This browser does not offer the SHA-256 digest the Guide identifies a report by here. Open the Guide from an https address or a local file." }
+
+[selfcheck.providers.column]
+subtest = { cs = "Dílčí test", en = "Subtest" }
+outcome = { cs = "Nativní výsledek", en = "Native outcome" }
+
+[selfcheck.providers.statement]
+licence = { cs = "Licence", en = "Licence" }
+access = { cs = "Přístup", en = "Access" }
+identifier = { cs = "Identifikátor", en = "Identifier" }
 
 [selfcheck.fipStatus]
 in-use = { cs = "používá se", en = "in use" }
@@ -411,9 +614,46 @@ planned = { cs = "plánováno", en = "planned" }
 under-consideration = { cs = "zvažuje se", en = "under consideration" }
 to-be-replaced = { cs = "bude nahrazeno", en = "to be replaced" }
 
+# The report: the answers per principle, the gaps by who fixes them, and the answers beside the evaluators.
+[selfcheck.report]
+blocks = { cs = "Stav podle oblastí kontroly", en = "State by the check's areas" }
+block = { cs = "Oblast", en = "Area" }
+principles = { cs = "Stav podle principů FAIR", en = "State by FAIR principle" }
+principle = { cs = "Princip", en = "Principle" }
+principleOverlap = { cs = "Otázka se počítá u každé skupiny principů FAIR, které se týká, takže se řádky mohou překrývat.", en = "A question counts under every group of FAIR principles it addresses, so the rows can overlap." }
+principleOutside = { cs = "Otázky bez principu FAIR ({n}) tu nejsou.", en = "Questions without a FAIR principle ({n}) are not included here." }
+table = { cs = "Data grafu jako tabulka", en = "The chart's data as a table" }
+noScore = { cs = "Průvodce nesčítá odpovědi do skóre; každá oblast i každý princip mají vlastní stav.", en = "The Guide adds no answers into a score; each area and each principle has its own state." }
+gaps = { cs = "Co chybí, podle toho, kdo to řeší", en = "What is missing, by who fixes it" }
+anyone = { cs = "Kdokoli z týmu", en = "Anyone on the team" }
+gapsRule = { cs = "U každé otázky Průvodce uvádí, kdo daný nedostatek obvykle odstraní, a podle toho jsou nedostatky seskupené. „Vy“ je ten, kdo kontrolu vyplňuje. Zvolený pohled skupiny nemění, jen řadí skupinu vaší role na první místo.", en = "For each question the Guide states who usually puts the gap right, and the gaps are grouped by that. “You” is whoever fills in the check. The chosen view does not change the groups; it only puts your role's group first." }
+fixedBy = { cs = "Kdo to řeší: {who}", en = "Who puts it right: {who}" }
+yourRole = { cs = "vaše role", en = "your role" }
+agreementTitle = { cs = "Vaše odpovědi a hodnotitelé", en = "Your answers and the evaluators" }
+agreementIntro = { cs = "Kde se vaše odpověď liší od toho, co hodnotitel pozoroval, stojí za to podívat se blíž. Hodnotitel bez výsledku neznamená nesplněno; podrobnosti běhu otevřete u výsledku.", en = "Where your answer differs from what an evaluator observed, take a closer look. An evaluator without a result does not mean unmet; open a result for its run's details." }
+agreementNone = { cs = "Zatím tu není žádná odpověď ani výsledek hodnotitele.", en = "No answer or evaluator result yet." }
+question = { cs = "Otázka", en = "Question" }
+yours = { cs = "Vaše odpověď", en = "Your answer" }
+agree = { cs = "Shoda", en = "Agreement" }
+noResult = { cs = "bez výsledku", en = "no result" }
+unmapped = { cs = "nemapováno", en = "not mapped" }
+noVerdict = { cs = "bez verdiktu", en = "no verdict" }
+
+[selfcheck.report.agreement]
+agree = { cs = "shoda", en = "agree" }
+differ = { cs = "liší se", en = "differ" }
+none = { cs = "nelze porovnat", en = "cannot compare" }
+
 [selfcheck.result]
 title = { cs = "Výsledek", en = "Result" }
-advisory = { cs = "Výsledek vychází jen z vašich odpovědí. Průvodce radí; nic neověřuje ani necertifikuje a o zapojení do NRP rozhoduje NRP.", en = "The result rests on your answers only. The guide advises; it verifies and certifies nothing, and NRP decides on joining NRP." }
+advisory = { cs = "Výsledek vychází z vašich odpovědí, včetně těch, které jste převzali z předvyplněných podkladů. Podklady ukazují, co který zdroj zjistil a v jakém rozsahu; Průvodce radí a nic necertifikuje.", en = "The result rests on your answers, including those you kept from pre-filled evidence. The evidence shows what each source observed and how far it reaches; the Guide advises and certifies nothing." }
+advisoryGate = { cs = "O zapojení repozitáře do NRP rozhoduje NRP.", en = "NRP decides whether a repository joins NRP." }
+leadGaps = { cs = "U {n} otázky něco chybí nebo je splněno jen částečně.|U {n} otázek něco chybí nebo je splněno jen částečně.|U {n} otázek něco chybí nebo je splněno jen částečně.", en = "For {n} question, something is missing or only partly met.|For {n} questions, something is missing or only partly met." }
+leadTasks = { cs = "Mezi vašimi odpověďmi nic nechybí, ale odpověď na {n} otázku je třeba zjistit.|Mezi vašimi odpověďmi nic nechybí, ale odpovědi na {n} otázky je třeba zjistit.|Mezi vašimi odpověďmi nic nechybí, ale odpovědi na {n} otázek je třeba zjistit.", en = "Your answers show no gaps, but the answer to {n} question still needs to be established.|Your answers show no gaps, but the answers to {n} questions still need to be established." }
+leadOpen = { cs = "Zatím nic nechybí; bez odpovědi zbývá {n} otázka.|Zatím nic nechybí; bez odpovědi zbývají {n} otázky.|Zatím nic nechybí; bez odpovědi zbývá {n} otázek.", en = "Nothing is missing so far; {n} question has no answer yet.|Nothing is missing so far; {n} questions have no answer yet." }
+leadMet = { cs = "Všechny vybrané otázky jsou podle vašich odpovědí splněné ({n}). Týká se to jen otázek této kontroly.", en = "By your answers, every selected question is met ({n}). This covers only this check's questions." }
+noGapsTasks = { cs = "Mezi vašimi odpověďmi nic nechybí; co zbývá zjistit, je níže.", en = "Nothing is missing among your answers; what remains to find out is below." }
+scope = { cs = "Stavy principů shrnují jen otázky této kontroly. Nejde o hodnocení ani certifikaci FAIR.", en = "Principle states summarise this check's questions only. They are not a FAIR rating or certification." }
 principles = { cs = "Jak jste na tom podle principů FAIR", en = "Where you stand by FAIR principle" }
 principle = { cs = "Princip", en = "Principle" }
 state = { cs = "Stav", en = "State" }
@@ -468,6 +708,9 @@ none = { cs = "bez podkladu", en = "no evidence" }
 notStated = { cs = "záznam to neuvádí", en = "the record does not state it" }
 record = { cs = "záznam", en = "record" }
 suggestion = { cs = "Automatický návrh", en = "Automated suggestion" }
+suggests = { cs = "navrhuje {value}", en = "suggests {value}" }
+noSuggestion = { cs = "odpověď nenavrhuje", en = "suggests no answer" }
+observedBy = { cs = "Zjištění: {source}, {date}", en = "Observed by {source}, {date}" }
 details = { cs = "Podklady a technické podrobnosti", en = "Evidence and technical details" }
 subject = { cs = "Posuzováno", en = "Inspected subject" }
 representation = { cs = "Záznam nebo formát", en = "Record or format" }
@@ -493,6 +736,12 @@ previousAnswer = { cs = "Dříve uložená odpověď (zachovaná pro dohledateln
 responsible = { cs = "Odpovědnost", en = "Responsibility" }
 context = { cs = "Kontext původního zdroje", en = "Original source context" }
 contextHint = { cs = "Tato položka vysvětluje zdroj; nepřidává další podmínku a nepočítá se mezi posuzovaná kritéria.", en = "This item explains the source; it adds no further obligation and is not counted among assessed criteria." }
+details = { cs = "Podrobnosti: vysvětlení, podklady, testy, kdo to řeší, krok cesty, z čeho vychází", en = "Details: explanation, evidence, tests, who fixes it, path step, sources" }
+evidenceFrom = { cs = "Návrh odpovědi může přijít z: {sources}.", en = "A suggested answer can come from: {sources}." }
+noEvidence = { cs = "Žádný podklad tuto otázku neověřuje; odpovězte podle vlastních pravidel a praxe.", en = "No evidence checks this question; answer from your own rules and practice." }
+withdraw = { cs = "Zrušit odpověď", en = "Withdraw the answer" }
+localTest = { cs = "test Průvodce v prohlížeči", en = "a Guide test in the browser" }
+withdrawToSuggestion = { cs = "Zrušit odpověď a vrátit návrh", en = "Withdraw the answer and restore the suggestion" }
 
 [selfcheck.field]
 licence = { cs = "Licence", en = "Licence" }
@@ -510,6 +759,10 @@ files = { cs = "Prohlédnuté soubory", en = "Inspected files" }
 type = { cs = "Typ objektu", en = "Object type" }
 profile = { cs = "Deklarovaný profil", en = "Declared profile" }
 
+[selfcheck.hidden]
+answers = { cs = "Odpověď na {n} další otázku zůstává uložená, ale do výsledku se nepočítá.|Odpovědi na {n} další otázky zůstávají uložené, ale do výsledku se nepočítají.|Odpovědi na {n} dalších otázek zůstávají uložené, ale do výsledku se nepočítají.", en = "{n} answer to a further question stays saved but is not counted.|{n} answers to further questions stay saved but are not counted." }
+show = { cs = "Zapnout rozšířenou kontrolu", en = "Turn on the extended check" }
+
 [selfcheck.state]
 met = { cs = "splněno", en = "met" }
 partly = { cs = "částečně", en = "partly" }
@@ -520,19 +773,19 @@ provided = { cs = "zajišťuje NRP", en = "provided by NRP" }
 
 [selfcheck.load]
 label = { cs = "Načíst výsledek ze souboru", en = "Load a result from a file" }
-hint = { cs = "JSON-LD nebo Markdown uložený z průvodce", en = "JSON-LD or Markdown saved from the guide" }
-skipped = { cs = "Otázky, které tato verze průvodce nezná, jsme vynechali: {n}.", en = "Questions this version of the guide does not know were left out: {n}." }
-otherVersion = { cs = "Soubor vytvořila verze průvodce {version}, tato stránka je ve verzi {current}. Odpovědi před převzetím zkontrolujte.", en = "The file was made by guide version {version}; this page is version {current}. Check the answers before you use them." }
+hint = { cs = "JSON-LD nebo Markdown uložený z Průvodce", en = "JSON-LD or Markdown saved from the Guide" }
+skipped = { cs = "Otázky, které tato verze Průvodce nezná, jsme vynechali: {n}.", en = "Questions this version of the Guide does not know were left out: {n}." }
+otherVersion = { cs = "Soubor vytvořila verze Průvodce {version}, tato stránka je ve verzi {current}. Odpovědi před převzetím zkontrolujte.", en = "The file was made by guide version {version}; this page is version {current}. Check the answers before you use them." }
 banner = { cs = "Otevřeli jste výsledek ze souboru. Vaše vlastní odpovědi zatím zůstávají beze změny.", en = "You opened a result from a file. Your own answers stay unchanged for now." }
 use = { cs = "Použít odpovědi ze souboru", en = "Use the answers from the file" }
 gone = { cs = "Náhled souboru už není k dispozici; načtěte soubor znovu.", en = "The file preview is no longer available; load the file again." }
 
 [selfcheck.load.error]
-notGuide = { cs = "Tento soubor průvodce nevytvořil. Načíst lze výsledek uložený z průvodce: JSON-LD nebo shrnutí v Markdownu.", en = "The guide did not make this file. You can load a result saved from the guide: JSON-LD or the Markdown summary." }
-damaged = { cs = "Soubor je poškozený nebo byl upravený, a proto ho průvodce nenačte.", en = "The file is damaged or was edited, so the guide will not load it." }
-newer = { cs = "Soubor vytvořila novější verze průvodce ({version}), kterou tato stránka ještě nezná.", en = "The file was made by a newer version of the guide ({version}) that this page does not know yet." }
-unknownCheck = { cs = "Soubor patří ke kontrole, kterou tato verze průvodce nezná.", en = "The file belongs to a check this version of the guide does not know." }
-tooLarge = { cs = "Soubor je na výsledek z průvodce příliš velký.", en = "The file is too large to be a result from the guide." }
+notGuide = { cs = "Tento soubor Průvodce nevytvořil. Načíst lze výsledek uložený z Průvodce: JSON-LD nebo shrnutí v Markdownu.", en = "The Guide did not make this file. You can load a result saved from the Guide: JSON-LD or the Markdown summary." }
+damaged = { cs = "Soubor je poškozený nebo byl upravený, a proto ho Průvodce nenačte.", en = "The file is damaged or was edited, so the Guide will not load it." }
+newer = { cs = "Soubor vytvořila novější verze Průvodce ({version}), kterou tato stránka ještě nezná.", en = "The file was made by a newer version of the Guide ({version}) that this page does not know yet." }
+unknownCheck = { cs = "Soubor patří ke kontrole, kterou tato verze Průvodce nezná.", en = "The file belongs to a check this version of the Guide does not know." }
+tooLarge = { cs = "Soubor je na výsledek z Průvodce příliš velký.", en = "The file is too large to be a result from the Guide." }
 
 [selfcheck.export]
 title = { cs = "Uložit a sdílet", en = "Save and share" }
@@ -541,19 +794,23 @@ format = { cs = "Formát", en = "Format" }
 formatMd = { cs = "Shrnutí ke čtení (Markdown)", en = "Summary to read (Markdown)" }
 formatJsonld = { cs = "Výsledek pro další služby (JSON-LD)", en = "Result for other services (JSON-LD)" }
 download = { cs = "Stáhnout soubor", en = "Download the file" }
+needsAnswer = { cs = "Uložit, zkopírovat, sdílet nebo smazat půjde, až odpovíte alespoň na jednu otázku.", en = "Saving, copying, sharing and clearing become available once at least one question is answered." }
 preview = { cs = "Náhled souboru", en = "Preview the file" }
-formats = { cs = "Shrnutí se dobře čte a posílá dál. JSON-LD je výsledek jako RO-Crate ve slovníku FAIR Testing Resources (FTR), který přečtou i jiné služby, včetně podkladů k odpovědím. Oba soubory nesou verzi průvodce a lze je do průvodce znovu načíst.", en = "The summary is easy to read and pass on. JSON-LD is the result as an RO-Crate in the FAIR Testing Resources (FTR) vocabulary that other services can read, with the evidence behind the answers. Both files carry the guide's version and can be loaded back into the guide." }
+formats = { cs = "Shrnutí se dobře čte a posílá dál. JSON-LD je výsledek jako RO-Crate ve slovníku FAIR Testing Resources (FTR), který přečtou i jiné služby, včetně podkladů k odpovědím. Oba soubory nesou verzi Průvodce a lze je do Průvodce znovu načíst.", en = "The summary is easy to read and pass on. JSON-LD is the result as an RO-Crate in the FAIR Testing Resources (FTR) vocabulary that other services can read, with the evidence behind the answers. Both files carry the Guide's version and can be loaded back into the Guide." }
 print = { cs = "Vytisknout", en = "Print" }
 share = { cs = "Vytvořit odkaz", en = "Create a link" }
 shareLabel = { cs = "Odkaz s odpověďmi", en = "Link with your answers" }
 shareNote = { cs = "Odkaz obsahuje vaše odpovědi; kdo ho dostane, uvidí je. Nic jiného z prohlížeče neodchází.", en = "The link contains your answers; anyone who gets it can see them. Nothing else leaves your browser." }
+evidence = { cs = "Stáhnout úplné podklady", en = "Download the complete evidence" }
+evidenceHint = { cs = "Shrnutí a JSON-LD nesou výsledky připojených hodnocení zkráceně. Úplné podklady přidají jejich původní zprávy beze změny; i tento soubor lze do Průvodce znovu načíst.", en = "The summary and the JSON-LD carry attached assessments in compact form. The complete evidence adds their original reports unchanged; this file can also be loaded back into the Guide." }
+evidenceScope = { cs = "Soubor obsahuje také původní zprávy připojených hodnocení beze změny.", en = "The file also contains the attached assessments' original reports, unchanged." }
 sharedBanner = { cs = "Otevřeli jste odpovědi ze sdíleného odkazu. Vaše vlastní odpovědi zatím zůstávají beze změny.", en = "You opened answers from a shared link. Your own answers are unchanged so far." }
 useShared = { cs = "Použít odpovědi z odkazu", en = "Use the answers from the link" }
 keepOwn = { cs = "Ponechat své odpovědi", en = "Keep my own answers" }
 sharedInvalid = { cs = "Odkaz s odpověďmi se nepodařilo přečíst.", en = "The link with answers could not be read." }
 generatedBy = { cs = "Vytvořeno v Průvodci FAIR daty", en = "Made with the FAIR Data Guide" }
 licenseName = { cs = "Licence neurčena", en = "Licence not specified" }
-licenseText = { cs = "Výsledek vytvořil ten, kdo ho z průvodce uložil; o podmínkách dalšího užití rozhoduje on.", en = "The result was made by the person who saved it from the guide; that person decides on the terms of reuse." }
+licenseText = { cs = "Výsledek vytvořil ten, kdo ho z Průvodce uložil; o podmínkách dalšího užití rozhoduje on.", en = "The result was made by the person who saved it from the Guide; that person decides on the terms of reuse." }
 
 [help]
 title = { cs = "Kdo vám poradí", en = "Who can help" }
@@ -563,6 +820,7 @@ title = { cs = "Uložit a sdílet", en = "Save and share" }
 print = { cs = "Vytisknout nebo uložit jako PDF", en = "Print or save as PDF" }
 data = { cs = "Jako data (JSON)", en = "As data (JSON)" }
 csv = { cs = "Seznam jako CSV ({n})", en = "List as CSV ({n})" }
+emptyList = { cs = "Prázdný seznam nelze uložit; uvolněte filtry.", en = "An empty list cannot be saved; loosen the filters." }
 json = { cs = "Seznam jako data (JSON, {n})", en = "List as data (JSON, {n})" }
 markdown = { cs = "Tento krok jako Markdown", en = "This step as Markdown" }
 mdLens = { cs = "Pohled: {lens}.", en = "Lens: {lens}." }
@@ -574,6 +832,7 @@ name = { cs = "Název", en = "Name" }
 text = { cs = "Popis", en = "Description" }
 url = { cs = "Adresa", en = "Address" }
 date = { cs = "Datum", en = "Date" }
+license = { cs = "Licence", en = "Licence" }
 stations = { cs = "Kroky cesty", en = "Steps of the path" }
 principles = { cs = "Principy", en = "Principles" }
 entry = { cs = "Položka v katalogu", en = "Catalogue entry" }
@@ -584,7 +843,7 @@ record = { cs = "Záznam v API", en = "Record in the API" }
 [footer]
 health = { cs = "Výsledky kontrol (EN)", en = "Healthcheck results" }
 version = { cs = "Verze {version} ze dne {date}", en = "Version {version} of {date}" }
-cite = { cs = "Jak citovat průvodce", en = "How to cite the guide" }
+cite = { cs = "Jak citovat Průvodce", en = "How to cite the Guide" }
 basis = { cs = "Obsah vychází z", en = "The content builds on" }
 credits = { cs = "Kdo se podílel", en = "Who contributed" }
 licence = { cs = "Obsah je pod licencí CC BY 4.0, kód pod licencí MIT.", en = "Content is licensed under CC BY 4.0, code under MIT." }
@@ -612,7 +871,7 @@ software = { cs = "software", en = "software" }
 role = { cs = "Role", en = "Role" }
 who = { cs = "Kdo", en = "Who" }
 analysis = { cs = "Autoři obsahového základu: {work}", en = "Authors of the content basis: {work}" }
-editor = { cs = "Sestavení a vývoj průvodce (editor)", en = "Compilation and development of the guide (editor)" }
+editor = { cs = "Sestavení a vývoj Průvodce (editor)", en = "Compilation and development of the Guide (editor)" }
 review = { cs = "Redakční kontrola", en = "Editorial review" }
 tools = { cs = "Nástroje použité při přípravě, včetně AI", en = "Tools used in preparation, AI included" }
 funding = { cs = "Financování", en = "Funding" }
@@ -621,22 +880,26 @@ funding = { cs = "Financování", en = "Funding" }
 statement = { cs = "Vaše odpovědi zůstávají jen v tomto prohlížeči. Přenést je můžete jako soubor nebo odkaz.", en = "Your answers stay in this browser only. You can move them as a file or a link." }
 how = { cs = "Jak to funguje", en = "How it works" }
 storedTitle = { cs = "Co se ukládá", en = "What is stored" }
-stored = { cs = "odpovědi v kontrolách, zvolený režim nebo profil, zadané identifikátory a nalezené doklady, a také zvolená fáze a nastavení zobrazení.", en = "the answers in the checks, the chosen mode or profile, the identifiers entered and the evidence found, and the chosen stage and display settings." }
+stored = { cs = "odpovědi v kontrolách, zvolený režim nebo profil, zadané identifikátory a nalezené doklady, připojená hodnocení s jejich původními zprávami, a také zvolená fáze a nastavení zobrazení.", en = "the answers in the checks, the chosen mode or profile, the identifiers entered and the evidence found, attached assessments with their original reports, and the chosen stage and display settings." }
 whereTitle = { cs = "Kde", en = "Where" }
 where = { cs = "v úložišti tohoto prohlížeče, jen pro tuto stránku. Jiné prohlížeče a zařízení je nevidí a anonymní okno je po zavření zapomene.", en = "in this browser's storage, for this site only. Other browsers and devices do not see it, and a private window forgets it when closed." }
 sentTitle = { cs = "Co odchází", en = "What is sent" }
-sent = { cs = "nic. Jen když spustíte vyhledání, pošle průvodce zadaný identifikátor jmenované službě, například DataCite.", en = "nothing. Only when you start a lookup does the guide send the identifier you entered to the service named, such as DataCite." }
+sent = { cs = "nic. Jen když spustíte vyhledání, pošle Průvodce zadaný identifikátor jmenované službě, například DataCite.", en = "nothing. Only when you start a lookup does the Guide send the identifier you entered to the service named, such as DataCite." }
 moveTitle = { cs = "Jak je přenést", en = "How to move them" }
 move = { cs = "stáhněte výsledek jako JSON-LD nebo Markdown a načtěte ho v jiném prohlížeči, nebo vytvořte odkaz s odpověďmi. Načtený výsledek se otevře jako náhled a vaše odpovědi nahradí, jen když o to požádáte.", en = "download the result as JSON-LD or Markdown and load it in another browser, or create a link with your answers. A loaded result opens as a preview and replaces your answers only when you ask." }
 deleteTitle = { cs = "Jak je smazat", en = "How to delete them" }
-delete = { cs = "tlačítkem „Smazat vše, co průvodce uložil“ vedle tohoto odkazu; smaže vše, co průvodce v tomto prohlížeči uložil.", en = "with the “Delete everything the guide stored” button next to this link; it deletes everything the guide stored in this browser." }
-deleteAll = { cs = "Smazat vše, co průvodce uložil", en = "Delete everything the guide stored" }
-confirm = { cs = "Smazat všechny odpovědi a nastavení, které průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the guide stored in this browser? This cannot be undone." }
-deleted = { cs = "Vše, co průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the guide stored in this browser is deleted." }
-aboutLink = { cs = "Jak průvodce ukládá vaše odpovědi a jak je smazat", en = "How the guide keeps your answers and how to delete them" }
+delete = { cs = "tlačítkem „Smazat vše, co Průvodce uložil“ vedle tohoto odkazu; smaže vše, co Průvodce v tomto prohlížeči uložil.", en = "with the “Delete everything the Guide stored” button next to this link; it deletes everything the Guide stored in this browser." }
+deleteAll = { cs = "Smazat vše, co Průvodce uložil", en = "Delete everything the Guide stored" }
+confirm = { cs = "Smazat všechny odpovědi a nastavení, které Průvodce v tomto prohlížeči uložil? Tento krok nelze vrátit.", en = "Delete all answers and settings the Guide stored in this browser? This cannot be undone." }
+deleted = { cs = "Vše, co Průvodce v tomto prohlížeči uložil, je smazané.", en = "Everything the Guide stored in this browser is deleted." }
+aboutLink = { cs = "Jak Průvodce ukládá vaše odpovědi a jak je smazat", en = "How the Guide keeps your answers and how to delete them" }
+notSaved = { cs = "Prohlížeč odmítl odpovědi uložit (nemá místo, nebo je ukládání zakázáno). Do zavření stránky zůstanou; uložte si výsledek do souboru.", en = "The browser refused to save the answers (no room, or storage is blocked). They stay until the page closes; save the result to a file." }
 
 [catalogue]
 title = { cs = "Katalog", en = "Catalogue" }
+reviewedVersion = { cs = "Mapování posouzeno pro verze", en = "Mappings reviewed for versions" }
+unmapped = { cs = "Kritérium není mapováno na otázku Průvodce; zůstává podkladem.", en = "The criterion is not mapped to a guide question; it remains evidence." }
+criterionForm = { cs = "Formulář služby", en = "The service's form" }
 search = { cs = "Hledat", en = "Search" }
 single = { cs = "Zobrazena jen položka, na kterou vede odkaz.", en = "Showing only the entry the link leads to." }
 singleMissing = { cs = "Položka {id} v katalogu není.", en = "The catalogue has no entry {id}." }
@@ -651,6 +914,8 @@ changedItems = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} item|{
 openEntry = { cs = "{id} v katalogu", en = "{id} in the catalogue" }
 guidance = { cs = "Původní znění ze zdroje", en = "Original source wording" }
 originalLicense = { cs = "Licence původního textu", en = "Original text licence" }
+knavSteps = { cs = "Kroky v katalogu KNAV", en = "Steps in the KNAV catalogue" }
+knavHttp = { cs = "Katalog uvádí adresu jen přes nezabezpečené HTTP; najdete ji v katalogu:", en = "The catalogue gives its address over unencrypted HTTP only; find it in the catalogue:" }
 entries = { cs = "{n} položka|{n} položky|{n} položek", en = "{n} entry|{n} entries" }
 filters = { cs = "Filtry", en = "Filters" }
 active = { cs = "Zvolené filtry", en = "Chosen filters" }
@@ -658,6 +923,9 @@ clear = { cs = "Zrušit filtry", en = "Clear filters" }
 remove = { cs = "Odebrat filtr {label}", en = "Remove the filter {label}" }
 order = { cs = "Řadit", en = "Order" }
 more = { cs = "Zobrazit dalších {n}", en = "Show {n} more" }
+letters = { cs = "Rejstřík podle písmen", en = "Index by letter" }
+toLetter = { cs = "Přejít na písmeno {letter}", en = "Go to letter {letter}" }
+termDefinition = { cs = "Definice v Hesláři Open Science", en = "Definition in Heslář Open Science" }
 moreValues = { cs = "Další hodnoty ({n})", en = "More values ({n})" }
 fewerValues = { cs = "Méně hodnot", en = "Fewer values" }
 noStation = { cs = "nemají zastávku", en = "have no station" }
@@ -685,24 +953,58 @@ fips = { cs = "Profily FIP", en = "FIP profiles" }
 tests = { cs = "Testy FAIR", en = "FAIR tests" }
 questions = { cs = "Otázky kontrol", en = "Check questions" }
 actions = { cs = "Změny obsahu", en = "Content changes" }
+lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
 model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
 
 [catalogue.intro]
-model = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the guide." }
-all = { cs = "Vše, z čeho průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the guide builds on and recommends, in one catalogue." }
-terms = { cs = "Pojmy otevřené vědy, na které průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the guide links to, taken from Heslář." }
+lifecycle = { cs = "Fáze životního cyklu výzkumných dat podle RDMkit, MaLDReTH a katalogu nástrojů KNAV, jak je zdroje publikují, a jak si navzájem odpovídají. Cesta Průvodce sleduje fáze RDMkit.", en = "Stages of the research data life cycle in RDMkit, MaLDReTH and the KNAV tools catalogue, as their sources publish them, and how they correspond. The Guide's path follows the RDMkit stages." }
+model = { cs = "Funkce a předání informací v modelu Layers and Seams. Odkazy propojují model s konkrétními zdroji, požadavky a otázkami Průvodce.", en = "Functions and information hand-offs in the Layers-and-Seams Model. Links connect the model to specific resources, requirements and questions in the Guide." }
+all = { cs = "Vše, z čeho Průvodce vychází a co doporučuje, v jednom katalogu.", en = "Everything the Guide builds on and recommends, in one catalogue." }
+terms = { cs = "Pojmy otevřené vědy, na které Průvodce odkazuje, převzaté z Hesláře.", en = "The open-science terms the Guide links to, taken from Heslář." }
 fips = { cs = "Profily FAIR implementace (FIP) komunit ze snímku FIP Dashboardu; kontrola úplnosti FIP z nich umí odpovědi předvyplnit.", en = "Communities' FAIR Implementation Profiles (FIPs) from the FIP Dashboard snapshot; the FIP completeness check can fill in its answers from them." }
 tests = { cs = "Automatické testy pro předvyplnění kontrol, s popisy, souvisejícími otázkami a principy, kódem nebo adresou služby a dokumentací.", en = "Automated tests used to prefill the checks, with descriptions, related questions and principles, code or service endpoints, and documentation." }
-clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
+clauses = { cs = "Požadavky, doporučení a zjištění z publikovaných podkladů, na kterých stojí rady a otázky Průvodce; hlavním podkladem je Analýza FAIR pro NRP/NDI. Identifikátor jako A.F1.N1 uvádí podklad, princip a pořadí.", en = "The requirements, recommendations and findings from published sources that the Guide's advice and questions rest on; the main source is the FAIR analysis for NRP/NDI. An identifier such as A.F1.N1 gives the source, the principle and the order." }
 questions = { cs = "Otázky všech kontrol sebehodnocení, s principy, které ověřují, a požadavky, ze kterých vycházejí.", en = "The questions of every self-check, with the principles they test and the requirements they rest on." }
-actions = { cs = "Kdy a jak se obsah průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
-resources = { cs = "Služby, nástroje, standardy, příručky i publikace: co průvodce doporučuje, z čeho vychází a co eviduje FIP Dashboard. Značky říkají, jak je průvodce používá.", en = "Services, tools, standards, guides and publications: what the guide recommends, what it builds on and what the FIP Dashboard lists. The marks say how the guide uses each." }
+actions = { cs = "Kdy a jak se obsah Průvodce měnil. Kdo změnu provedl a s jakým nástrojem, zaznamenávají paradata ve znalostní bázi.", en = "When and how the Guide's content changed. Who made each change and with which tool is recorded in the paradata of the knowledge base." }
+resources = { cs = "Služby, nástroje, standardy, příručky i publikace: co Průvodce doporučuje, z čeho vychází a co eviduje FIP Dashboard. Značky říkají, jak je Průvodce používá.", en = "Services, tools, standards, guides and publications: what the Guide recommends, what it builds on and what the FIP Dashboard lists. The marks say how the Guide uses each." }
+
+# What one entry of each kind is, named by its kind's mark for screen readers.
+[catalogue.whole]
+entry = { cs = "Celý záznam v katalogu", en = "The whole entry in the catalogue" }
+
+[catalogue.kindOne]
+resources = { cs = "Zdroj", en = "Resource" }
+repositories = { cs = "Repozitář nebo registr", en = "Repository or registry" }
+clauses = { cs = "Požadavek nebo doporučení", en = "Requirement or recommendation" }
+terms = { cs = "Pojem", en = "Glossary term" }
+fips = { cs = "Profil FIP", en = "FIP profile" }
+tests = { cs = "Test FAIR", en = "FAIR test" }
+questions = { cs = "Otázka kontroly", en = "Check question" }
+actions = { cs = "Změna obsahu", en = "Content change" }
+lifecycle = { cs = "Životní cyklus dat", en = "Data life cycle" }
+model = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
+
+# What DataCite reports about a repository in the finder, read on the reader's request.
+[catalogue.datacite]
+load = { cs = "Zjistit, co o repozitáři uvádí DataCite", en = "See what DataCite reports about this repository" }
+loading = { cs = "Načítám údaje z DataCite…", en = "Reading DataCite…" }
+absent = { cs = "DataCite tento repozitář neuvádí.", en = "DataCite does not list this repository." }
+failed = { cs = "Údaje z DataCite se nepodařilo načíst. Zkuste to později znovu.", en = "DataCite could not be read. Try again later." }
+title = { cs = "Údaje z DataCite", en = "DataCite facts" }
+read = { cs = "Podle DataCite, načteno {date}", en = "According to DataCite, read on {date}" }
+as = { cs = "v DataCite jako {name} ({id})", en = "listed in DataCite as {name} ({id})" }
+total = { cs = "Registrovaná DOI", en = "Registered DOIs" }
+types = { cs = "Typy záznamů", en = "Record types" }
+licenses = { cs = "Licence", en = "Licences" }
+schemas = { cs = "Verze schématu metadat", en = "Metadata schema versions" }
+commons = { cs = "Repozitář v DataCite Commons", en = "The repository in DataCite Commons" }
+metadata = { cs = "Úplnost metadat v Metadata Dashboard", en = "Metadata completeness in the Metadata Dashboard" }
 
 [catalogue.relation]
 principles = { cs = "Principy", en = "Principles" }
 audience = { cs = "Pro koho", en = "For whom" }
 basedOn = { cs = "Vychází z", en = "Based on" }
-inGuide = { cs = "V průvodci", en = "In the guide" }
+inGuide = { cs = "V Průvodci", en = "In the Guide" }
 identifiers = { cs = "Identifikátory", en = "Identifiers" }
 implementationLayers = { cs = "Vrstvy implementace", en = "Implementation layers" }
 implementationSeams = { cs = "Návaznosti", en = "Connections" }
@@ -711,11 +1013,17 @@ implementationSeams = { cs = "Návaznosti", en = "Connections" }
 term = { cs = "pojem Hesláře", en = "Heslář term" }
 fip = { cs = "profil FIP", en = "FIP profile" }
 test = { cs = "test FAIR Champion", en = "FAIR Champion test" }
-localTest = { cs = "test průvodce", en = "guide test" }
+localTest = { cs = "test Průvodce", en = "guide test" }
+criterion = { cs = "kritérium hodnotitele {provider}", en = "{provider} criterion" }
 
 [catalogue.testExecution]
 browser = { cs = "v prohlížeči", en = "in the browser" }
 service = { cs = "externí služba", en = "external service" }
+import = { cs = "zpráva služby načtená v prohlížeči", en = "a service report loaded in the browser" }
+
+[catalogue.coverage]
+whole = { cs = "pokrývá celou otázku", en = "covers the whole question" }
+partial = { cs = "pokrývá část otázky", en = "covers part of the question" }
 
 [catalogue.health]
 available = { cs = "funguje", en = "available" }
@@ -724,12 +1032,12 @@ unavailable = { cs = "nefunguje", en = "unavailable" }
 
 [machines]
 preview = { cs = "Náhled znalostní báze", en = "Knowledge base preview" }
-profile = { cs = "Profil RO-Crate průvodce", en = "The guide's RO-Crate profile" }
-testDocs = { cs = "Dokumentace testů průvodce", en = "Guide test documentation" }
+profile = { cs = "Profil RO-Crate Průvodce", en = "The Guide's RO-Crate profile" }
+testDocs = { cs = "Dokumentace testů Průvodce", en = "Guide test documentation" }
 example = { cs = "například", en = "for example" }
 headLinks = { cs = "odkazy v hlavičce stránky", en = "links in the page head" }
 tasksCaption = { cs = "Co hledáte a kde to najdete", en = "What you are looking for and where it is" }
-signpostsCaption = { cs = "Odkazy v hlavičce každé stránky průvodce a v linksetu", en = "Links in the head of every page of the guide and in the linkset" }
+signpostsCaption = { cs = "Odkazy v hlavičce každé stránky Průvodce a v linksetu", en = "Links in the head of every page of the Guide and in the linkset" }
 
 [machines.column]
 want = { cs = "Chci", en = "I want" }
@@ -744,7 +1052,7 @@ record = { cs = "Záznam", en = "Record" }
 
 [machines.task.crate]
 want = { cs = "celou znalostní bázi i s paradaty", en = "the whole knowledge base with its paradata" }
-what = { cs = "Jeden soubor JSON-LD ve formátu RO-Crate 1.2, ověřený proti profilu průvodce.", en = "One JSON-LD file in RO-Crate 1.2, validated against the guide's profile." }
+what = { cs = "Jeden soubor JSON-LD ve formátu RO-Crate 1.2, ověřený proti profilu Průvodce.", en = "One JSON-LD file in RO-Crate 1.2, validated against the Guide's profile." }
 
 [machines.task.record]
 want = { cs = "údaje o jednom principu, kroku, požadavku nebo pojmu", en = "the data on one principle, step, requirement or term" }
@@ -755,15 +1063,15 @@ want = { cs = "napojit vlastní službu nebo nástroj", en = "to connect my own 
 what = { cs = "Popis API ve formátu OpenAPI 3.1 a jeho interaktivní dokumentace.", en = "The API's description in OpenAPI 3.1 and its interactive documentation." }
 
 [machines.task.harvest]
-want = { cs = "aby průvodce harvester našel sám", en = "a harvester to find the guide on its own" }
+want = { cs = "aby Průvodce harvester našel sám", en = "a harvester to find the Guide on its own" }
 what = { cs = "FAIR Signposting: typované odkazy v hlavičce každé stránky a linkset, který je vypisuje v jednom souboru.", en = "FAIR Signposting: typed links in the head of every page and a linkset that lists them in one file." }
 
 [machines.task.health]
-want = { cs = "výsledky kontrol průvodce", en = "the guide's check results" }
+want = { cs = "výsledky kontrol Průvodce", en = "the Guide's check results" }
 what = { cs = "Přehled kontrol obsahu a sestavení v angličtině a stejný výsledek v JSON. Uvádí také kontroly, které neproběhly.", en = "Content and build check results in an English dashboard and the same report in JSON, including checks that did not run." }
 
 [machines.task.tests]
-want = { cs = "jak fungují automatické testy průvodce", en = "how the guide's automated tests work" }
+want = { cs = "jak fungují automatické testy Průvodce", en = "how the Guide's automated tests work" }
 what = { cs = "Účel, zdrojový kód a volaná funkce každého testu; katalog propojuje testy s otázkami a citovanými požadavky.", en = "Each test's purpose, source code and invoked function; the catalogue links tests to questions and cited requirements." }
 
 [machines.task.result]
@@ -781,7 +1089,7 @@ service_doc = { cs = "dokumentace API pro lidi", en = "the API's documentation f
 license = { cs = "licence obsahu", en = "the content's licence" }
 type_AboutPage = { cs = "stránka je úvodní stránkou (landing page) toho, co popisuje", en = "the page is the landing page of what it describes" }
 type_Dataset = { cs = "to, co popisuje, je datová sada", en = "what it describes is a dataset" }
-author = { cs = "editor průvodce (ORCID)", en = "the guide's editor (ORCID)" }
+author = { cs = "editor Průvodce (ORCID)", en = "the Guide's editor (ORCID)" }
 cite_as = { cs = "trvalý identifikátor k citaci", en = "the persistent identifier to cite" }
 linkset = { cs = "všechny tyto odkazy v jednom souboru (RFC 9264)", en = "all these links in one file (RFC 9264)" }
 
@@ -789,6 +1097,10 @@ linkset = { cs = "všechny tyto odkazy v jednom souboru (RFC 9264)", en = "all t
 title = { cs = "Nástroje a postupy", en = "Tools and guidance" }
 intro = { cs = "Praktické postupy a pomocníci pro dokumentaci, zveřejnění a opakované použití výsledků výzkumu.", en = "Practical guidance and helpers for documenting, publishing and reusing research outputs." }
 coming = { cs = "připravuje se", en = "in preparation" }
+groupTool = { cs = "Nástroje", en = "Tools" }
+groupToolIntro = { cs = "Pomocníci, kteří ve vašem prohlížeči něco ověří nebo připraví.", en = "Helpers that check or prepare something in your browser." }
+groupGuidance = { cs = "Postupy", en = "Guidance" }
+groupGuidanceIntro = { cs = "Návody, jak při práci s daty a softwarem postupovat.", en = "How to go about working with data and software." }
 
 [page]
 helperComing = { cs = "Pomocník se teprve připravuje a v této testovací verzi ještě není; zatím postupujte podle popisu výše.", en = "The helper is still being built and is not in this test version yet; for now, follow the description above." }
@@ -801,14 +1113,27 @@ copied = { cs = "Zkopírováno", en = "Copied" }
 link = { cs = "Odkaz na tento pohled", en = "Link to this view" }
 
 [catalogue.use]
-recommended = { cs = "doporučuje průvodce", en = "recommended by the guide" }
+recommended = { cs = "doporučuje Průvodce", en = "recommended by the Guide" }
 cited = { cs = "podklad obsahu", en = "basis of the content" }
 dashboard = { cs = "ve FIP Dashboardu", en = "in the FIP Dashboard" }
+knav = { cs = "v katalogu nástrojů KNAV", en = "in the KNAV tools catalogue" }
+
+# The KNAV Data Management Tools Catalogue's discipline groups; the Czech names are the guide's translations.
+[catalogue.discipline]
+all = { cs = "obecné, pro všechny obory", en = "General, for all disciplines" }
+biology-chemistry = { cs = "biologické a chemické vědy", en = "Biological and Chemical Sciences" }
+physics-materials = { cs = "fyzikální a materiálové vědy", en = "Physical and Material Sciences" }
+computer-information = { cs = "počítačové a informační vědy", en = "Computer and Information Sciences" }
+astronomy = { cs = "astronomie a příbuzné vědy", en = "Astronomy and related Sciences" }
+social-sciences-humanities = { cs = "společenské a humanitní vědy", en = "Social Sciences and Humanities" }
+earth-sciences = { cs = "vědy o Zemi", en = "Earth Sciences" }
 
 [catalogue.facet]
 layers = { cs = "Vrstvy implementace", en = "Implementation layers" }
 seams = { cs = "Návaznosti", en = "Connections" }
 modelKind = { cs = "Část modelu", en = "Part of the model" }
+lcmodel = { cs = "Model životního cyklu", en = "Life-cycle model" }
+discipline = { cs = "Obor v katalogu KNAV", en = "Discipline in the KNAV catalogue" }
 execution = { cs = "Kde test běží", en = "Where the test runs" }
 thealth = { cs = "Zaznamenaný stav služby", en = "Recorded service status" }
 kind = { cs = "Druh", en = "Kind" }
@@ -860,8 +1185,8 @@ dataset = { cs = "Je datová sada výstupem programu?", en = "Is the dataset the
 
 # The guide's API: its OpenAPI description (in English), the machines page's endpoint list and the catalogue's links.
 [api]
-title = { cs = "API průvodce FAIR daty", en = "FAIR Data Guide API" }
-description = { cs = "Znalostní báze průvodce pro čtení strojem: záznam JSON pro každý princip, zastávku, kontrolu, otázku, zdroj, repozitář, požadavek, citované dílo, pojem, organizaci, profil FIP a změnu obsahu, s texty v obou jazycích a kontextem JSON-LD. Kontroly jsou benchmarky ve slovníku FAIR Testing Resources (FTR), jejich otázky metriky s ručními testy. Cesty odpovídají API FIP Dashboardu tam, kde obě popisují totéž; soubory končí na .json, protože API je statický web.", en = "The guide's knowledge base for machines to read: a JSON record for each principle, station, check, question, resource, repository, requirement, cited work, glossary term, organisation, FIP profile and content change, with texts in both languages and a JSON-LD context. Checks are benchmarks in the FAIR Testing Resources (FTR) vocabulary, their questions metrics with manual tests. Paths follow the FIP Dashboard API where both describe the same thing; files end in .json because the API is a static site." }
+title = { cs = "API Průvodce FAIR daty", en = "FAIR Data Guide API" }
+description = { cs = "Znalostní báze Průvodce pro čtení strojem: záznam JSON pro každý princip, zastávku, kontrolu, otázku, zdroj, repozitář, požadavek, citované dílo, pojem, organizaci, profil FIP a změnu obsahu, s texty v obou jazycích a kontextem JSON-LD. Kontroly jsou benchmarky ve slovníku FAIR Testing Resources (FTR), jejich otázky metriky s ručními testy. Cesty odpovídají API FIP Dashboardu tam, kde obě popisují totéž; soubory končí na .json, protože API je statický web.", en = "The Guide's knowledge base for machines to read: a JSON record for each principle, station, check, question, resource, repository, requirement, cited work, glossary term, organisation, FIP profile and content change, with texts in both languages and a JSON-LD context. Checks are benchmarks in the FAIR Testing Resources (FTR) vocabulary, their questions metrics with manual tests. Paths follow the FIP Dashboard API where both describe the same thing; files end in .json because the API is a static site." }
 guide = { cs = "Průvodce FAIR daty", en = "The FAIR Data Guide" }
 server = { cs = "Web, který tento popis poskytuje", en = "The site that serves this description" }
 meta = { cs = "Z čeho je API sestaveno", en = "What the API is built from" }
@@ -873,12 +1198,12 @@ openapi = { cs = "Popis API (OpenAPI 3.1)", en = "API description (OpenAPI 3.1)"
 docs = { cs = "Interaktivní dokumentace API", en = "Interactive API documentation" }
 endpoints = { cs = "Koncové body API", en = "API endpoints" }
 record = { cs = "JSON", en = "JSON" }
-recordTitle = { cs = "Záznam v API průvodce", en = "Record in the guide's API" }
+recordTitle = { cs = "Záznam v API Průvodce", en = "Record in the Guide's API" }
 
 [api.test]
 contextDescription = { cs = "Tato položka vysvětluje kontext původního zdroje. Nepředstavuje samostatné hodnotitelné kritérium.", en = "This item explains the original source's context. It does not represent a separate assessable criterion." }
 name = { cs = "Ruční test otázky {id}", en = "Manual test of question {id}" }
-description = { cs = "Test provádí člověk v sebehodnocení průvodce: odpověď ano je pass, ne je fail, částečně a nevím jsou indeterminate.", en = "A person runs the test in the guide's self-check: yes is pass, no is fail, partly and don't know are indeterminate." }
+description = { cs = "Test provádí člověk v sebehodnocení Průvodce: odpověď ano je pass, ne je fail, částečně a nevím jsou indeterminate.", en = "A person runs the test in the Guide's self-check: yes is pass, no is fail, partly and don't know are indeterminate." }
 
 [api.collection.principles]
 name = { cs = "Principy FAIR", en = "FAIR principles" }
@@ -912,37 +1237,37 @@ parameter = { cs = "Identifikátor testu: otázky kontroly nebo testu FAIR Champ
 
 [api.collection.resources]
 name = { cs = "Zdroje", en = "Resources" }
-description = { cs = "Nástroje, služby, standardy a dokumenty, které průvodce doporučuje, a zdroje z FIP Dashboardu.", en = "The tools, services, standards and documents the guide recommends, and the resources from the FIP Dashboard." }
+description = { cs = "Nástroje, služby, standardy a dokumenty, které Průvodce doporučuje, a zdroje z FIP Dashboardu.", en = "The tools, services, standards and documents the Guide recommends, and the resources from the FIP Dashboard." }
 record = { cs = "Jeden zdroj", en = "One resource" }
 parameter = { cs = "Identifikátor zdroje", en = "The resource's identifier" }
 
 [api.collection.sources]
 name = { cs = "Citovaná díla", en = "Cited works" }
-description = { cs = "Publikace a stránky, z nichž obsah průvodce vychází a které zároveň nedoporučuje jako zdroj.", en = "The publications and pages the guide's content rests on that it does not also recommend as resources." }
+description = { cs = "Publikace a stránky, z nichž obsah Průvodce vychází a které zároveň nedoporučuje jako zdroj.", en = "The publications and pages the Guide's content rests on that it does not also recommend as resources." }
 record = { cs = "Jedno citované dílo", en = "One cited work" }
 parameter = { cs = "Identifikátor díla", en = "The work's identifier" }
 
 [api.collection.repositories]
 name = { cs = "Repozitáře", en = "Repositories" }
-description = { cs = "Repozitáře, které průvodce uvádí, s druhem a stavem.", en = "The repositories the guide lists, with their kind and status." }
+description = { cs = "Repozitáře, které Průvodce uvádí, s druhem a stavem.", en = "The repositories the Guide lists, with their kind and status." }
 record = { cs = "Jeden repozitář", en = "One repository" }
 parameter = { cs = "Identifikátor repozitáře", en = "The repository's identifier" }
 
 [api.collection.clauses]
 name = { cs = "Požadavky a zjištění", en = "Requirements and findings" }
-description = { cs = "Požadavky, doporučení a zjištění ze zdrojů, na nichž průvodce stojí.", en = "The requirements, recommendations and findings from the sources the guide rests on." }
+description = { cs = "Požadavky, doporučení a zjištění ze zdrojů, na nichž Průvodce stojí.", en = "The requirements, recommendations and findings from the sources the Guide rests on." }
 record = { cs = "Jeden požadavek", en = "One requirement" }
 parameter = { cs = "Identifikátor požadavku, například A.F1.N1", en = "The requirement's identifier, such as A.F1.N1" }
 
 [api.collection.terms]
 name = { cs = "Pojmy", en = "Glossary terms" }
-description = { cs = "Pojmy z Heslaře otevřené vědy, které průvodce používá.", en = "The terms from the open science glossary that the guide uses." }
+description = { cs = "Pojmy z Hesláře otevřené vědy, které Průvodce používá.", en = "The terms from the open science glossary that the Guide uses." }
 record = { cs = "Jeden pojem", en = "One term" }
 parameter = { cs = "Identifikátor pojmu", en = "The term's identifier" }
 
 [api.collection.organizations]
 name = { cs = "Organizace", en = "Organisations" }
-description = { cs = "Organizace, které průvodce popisuje: vydavatelé, poskytovatelé a projekty.", en = "The organisations the guide describes: publishers, providers and projects." }
+description = { cs = "Organizace, které Průvodce popisuje: vydavatelé, poskytovatelé a projekty.", en = "The organisations the Guide describes: publishers, providers and projects." }
 record = { cs = "Jedna organizace", en = "One organisation" }
 parameter = { cs = "Identifikátor organizace", en = "The organisation's identifier" }
 
@@ -954,7 +1279,7 @@ parameter = { cs = "Identifikátor profilu", en = "The profile's identifier" }
 
 [api.collection.changes]
 name = { cs = "Změny obsahu", en = "Content changes" }
-description = { cs = "Změny obsahu průvodce s tím, co změnily a z čeho vycházejí.", en = "The changes to the guide's content, with what they changed and what they rest on." }
+description = { cs = "Změny obsahu Průvodce s tím, co změnily a z čeho vycházejí.", en = "The changes to the Guide's content, with what they changed and what they rest on." }
 record = { cs = "Jedna změna", en = "One change" }
 parameter = { cs = "Identifikátor změny", en = "The change's identifier" }
 
@@ -994,6 +1319,7 @@ coverage = { cs = "Načítání záznamů: {done} z {total} dokončeno. Výsledk
 label = { cs = "Text s identifikátory", en = "Text containing identifiers" }
 privacy = { cs = "Text se neukládá a zůstává v této kartě prohlížeče. Hledání a ověření kontrolních číslic proběhne místně. Při načtení záznamů se veřejným službám odešlou pouze příslušné identifikátory. Pro Handle použijte úplný odkaz na hdl.handle.net nebo předponu hdl:; běžné zlomky a části cest tak nebudou zaměněny za identifikátory.", en = "The text is not saved and stays in this browser tab. Extraction and checksum checks run locally. Looking up records sends only the relevant identifiers to public services. For a Handle, use its full hdl.handle.net link or the hdl: prefix; ordinary fractions and path fragments will then avoid being mistaken for identifiers." }
 find = { cs = "Najít identifikátory", en = "Find identifiers" }
+needsText = { cs = "Nejdřív vložte text, ve kterém se mají identifikátory najít.", en = "First paste the text to find identifiers in." }
 resolveAll = { cs = "Načíst nalezené záznamy", en = "Look up found records" }
 resolve = { cs = "Načíst záznam", en = "Look up record" }
 retry = { cs = "Zkusit načtení znovu", en = "Retry lookup" }
@@ -1018,6 +1344,7 @@ openRecord = { cs = "Otevřít nalezený záznam", en = "Open the found record" 
 label = { cs = "DOI datové sady, softwaru nebo publikace", en = "DOI of a dataset, software or publication" }
 clear = { cs = "Vymazat DOI a citace", en = "Clear the DOI and citations" }
 generate = { cs = "Připravit citaci", en = "Prepare citation" }
+needsDoi = { cs = "Nejdřív zadejte DOI.", en = "Enter a DOI first." }
 privacy = { cs = "Po kliknutí se DOI odešle službám DOI, DataCite nebo Crossref a citační službě. Vstup ani citace se neukládají do prohlížeče.", en = "After you click, the DOI is sent to the DOI services, DataCite or Crossref, and the citation service. Your input and citations are not saved in browser storage." }
 invalid = { cs = "Vložte jedno DOI nebo jeho odkaz na doi.org.", en = "Enter one DOI or its doi.org link." }
 running = { cs = "Načítají se metadata a citace…", en = "Retrieving metadata and citations…" }
@@ -1067,8 +1394,96 @@ recipient = { cs = "Kdo přijímá", en = "Who receives it" }
 carrier = { cs = "Jak se předává", en = "How it is transferred" }
 maintainers = { cs = "Kdo návaznost zajišťuje", en = "Who implements and maintains it" }
 
+[lifecycle]
+stage = { cs = "fáze životního cyklu", en = "life-cycle stage" }
+translatedName = { cs = "Český název je překlad Průvodce; zdroj uvádí anglický.", en = "The Czech name is the Guide's translation; the source gives the English one." }
+correspondsTo = { cs = "Odpovídající fáze", en = "Corresponding stages" }
+translationOf = { cs = "Překlad Průvodce z {source}", en = "Translated by the Guide from {source}" }
+quoteOf = { cs = "Česká definice podle", en = "Czech definition as given by" }
+
+[lifecycle.basis]
+published = { cs = "uvádí zdroj", en = "published by the source" }
+reviewed = { cs = "posoudil Průvodce", en = "reviewed by the Guide" }
+unconfirmed = { cs = "nepotvrzeno", en = "unconfirmed" }
+
+# Reader visuals (docs/design.md, "Visual placement"). A visual with steps lists them in order; each step has a label
+# and a sentence. The hand-over visual draws its steps from the model's seam records and needs only its labels here.
+[visual.evidence]
+title = { cs = "Jak podklad ovlivní odpověď", en = "How evidence affects your answer" }
+note = { cs = "Žádný krok nepočítá skóre. Nedostupný výsledek ani nativní fail samy neznamenají odpověď Ne.", en = "No step computes a score. An unavailable result or a native fail does not on its own mean No." }
+
+[visual.evidence.observation]
+label = { cs = "Zjištění", en = "Observation" }
+text = { cs = "Záznam, stránka nebo služba ukáže údaj o objektu, s datem a rozsahem.", en = "A record, page or service shows a fact about the object, with its date and scope." }
+
+[visual.evidence.criterion]
+label = { cs = "Kritérium služby", en = "Provider criterion" }
+text = { cs = "Hodnotící služba údaj posoudí podle vlastního kritéria a uvede svůj nativní výsledek.", en = "An evaluator judges the fact against its own criterion and states its native result." }
+
+[visual.evidence.mapping]
+label = { cs = "Posouzené mapování", en = "Reviewed mapping" }
+text = { cs = "Průvodce uvádí, zda kritérium pokrývá celou otázku, nebo jen její část, a pro kterou verzi.", en = "The Guide states whether the criterion covers the whole question or only part of it, and for which version." }
+
+[visual.evidence.answer]
+label = { cs = "Návrh, nebo vaše odpověď", en = "Suggestion or your answer" }
+text = { cs = "Kritérium pokrývající celou otázku navrhne odpověď, kritérium pokrývající její část navrhne Částečně, nebo Ne; vaše vlastní odpověď má vždy přednost.", en = "A criterion covering the whole question suggests an answer, one covering part of it suggests Partly or No; your own answer always takes precedence." }
+
+[visual.evidence.followup]
+label = { cs = "Další krok", en = "Follow-up" }
+text = { cs = "Výsledek ukáže, co chybí, kde to vyřešit a kdo to udělá.", en = "The result shows what is missing, where to fix it and who does it." }
+
+[visual.object]
+title = { cs = "Co identifikuje PID a co z něj přečte prohlížeč", en = "What a PID identifies and what a browser can read" }
+note = { cs = "Každý krok může mít jiné podmínky přístupu. Když prohlížeč stránku nebo soubor nepřečte, neznamená to, že neexistují.", en = "Each step can have its own access conditions. A browser failing to read a page or file does not mean it does not exist." }
+
+[visual.object.identifier]
+label = { cs = "Trvalý identifikátor", en = "Persistent identifier" }
+text = { cs = "DOI nebo Handle pojmenovává datovou sadu natrvalo; resolver ho převede na její aktuální adresu.", en = "A DOI or Handle names the dataset for good; a resolver turns it into the current address." }
+
+[visual.object.landing]
+label = { cs = "Stránka objektu", en = "Landing page" }
+text = { cs = "Stránka pro lidi s popisem a odkazy; může nést i strojově čitelná metadata.", en = "A page for people with the description and links; it may also carry machine-readable metadata." }
+
+[visual.object.metadata]
+label = { cs = "Záznam metadat", en = "Metadata record" }
+text = { cs = "Strukturovaný popis, například v DataCite nebo jako JSON-LD. Popisuje datovou sadu, ne nutně každý soubor.", en = "A structured description, for example in DataCite or as JSON-LD. It describes the dataset, not necessarily every file." }
+
+[visual.object.files]
+label = { cs = "Soubory dat", en = "Data files" }
+text = { cs = "Samotná data; přístup k nim může být otevřený, omezený nebo po přihlášení.", en = "The data themselves; access can be open, restricted or after signing in." }
+
+[visual.software]
+title = { cs = "Od verze k citaci softwaru", en = "From a software version to its citation" }
+note = { cs = "Archiv zvolte podle potřeby, například Zenodo, Software Heritage nebo institucionální repozitář; žádná služba není povinná.", en = "Choose an archive that suits you, for example Zenodo, Software Heritage or an institutional repository; no single service is required." }
+
+[visual.software.version]
+label = { cs = "Verze", en = "Version" }
+text = { cs = "Stav kódu označený číslem verze, například podle sémantického verzování.", en = "A state of the code labelled with a version number, for example following semantic versioning." }
+
+[visual.software.release]
+label = { cs = "Vydání", en = "Release" }
+text = { cs = "Značka (tag) a vydání v repozitáři kódu s popisem změn.", en = "A tag and a release in the code repository, with a description of the changes." }
+
+[visual.software.archive]
+label = { cs = "Archivní kopie", en = "Archived copy" }
+text = { cs = "Kopie vydání v archivu s trvalým identifikátorem.", en = "A copy of the release in an archive with a persistent identifier." }
+
+[visual.software.citation]
+label = { cs = "Citace", en = "Citation" }
+text = { cs = "Citační metadata (CITATION.cff, codemeta.json) odkazují na verzi a její identifikátor.", en = "Citation metadata (CITATION.cff, codemeta.json) refer to the version and its identifier." }
+
+[visual.handover]
+title = { cs = "Kdo komu předává informace", en = "Who passes information to whom" }
+publication = { cs = "Od zveřejnění k vykázání výsledku", en = "From publication to reporting the output" }
+
 [api.collection.model]
 name = { cs = "Model FAIR implementace", en = "FAIR implementation model" }
-description = { cs = "Vrstvy, předání informací a doložené příklady modelu Layers and Seams; návaznosti na konkrétní obsah průvodce.", en = "Layers, information hand-offs and documented examples in the Layers-and-Seams Model, with associations to specific guide content." }
+description = { cs = "Vrstvy, předání informací a doložené příklady modelu Layers and Seams; návaznosti na konkrétní obsah Průvodce.", en = "Layers, information hand-offs and documented examples in the Layers-and-Seams Model, with associations to specific guide content." }
 record = { cs = "Jedna část modelu nebo doložený příklad", en = "One model term or documented example" }
 parameter = { cs = "Identifikátor části modelu nebo příkladu", en = "The model term or example identifier" }
+
+[api.collection.lifecycle]
+name = { cs = "Životní cyklus výzkumných dat", en = "Research data life cycle" }
+description = { cs = "Modely životního cyklu výzkumných dat (RDMkit, MaLDReTH, katalog nástrojů KNAV) s fázemi, jak je zdroje publikují, a převodník mezi nimi, u každé shody s jejím základem.", en = "Research data life-cycle models (RDMkit, MaLDReTH, the KNAV tools catalogue) with their stages as their sources publish them, and the crosswalk between them, each correspondence with its basis." }
+record = { cs = "Jeden model, fáze nebo shoda mezi fázemi", en = "One model, stage or correspondence between stages" }
+parameter = { cs = "Identifikátor modelu, fáze nebo shody", en = "The model, stage or correspondence identifier" }

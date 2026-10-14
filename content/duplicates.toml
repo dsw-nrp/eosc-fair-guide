@@ -9,3 +9,11 @@ reason = "Heslář gives two concepts, a large research infrastructure and a res
 [[accepted]]
 entries = ["term:100", "term:101"]
 reason = "Heslář lists free and open-source software twice under one Czech label, as FLOSS and as FOSS."
+
+[[accepted]]
+entries = ["knav:filesend2", "knav:jupiterhub", "knav:usergroupseunode"]
+reason = "The KNAV catalogue lists three services of the EOSC EU Node (large file transfer, interactive notebooks and user groups) under the node's one dashboard address; they are distinct services."
+
+[[accepted]]
+entries = ["fip-dashboard:dsw-tool", "knav:dsw"]
+reason = "Two instances of the Data Stewardship Wizard: the FIP Dashboard record stands for the guide's DMP.eosc.cz, the national instance, and the KNAV catalogue lists ELIXIR's instance for researchers."

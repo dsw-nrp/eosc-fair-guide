@@ -54,9 +54,28 @@ Page checks (rendering, accessibility, reflow, embedding) and diagram checks run
 
 ## Review
 
-CI must pass, and a code owner must approve. Checks protect the page and the data; people judge whether the
-advice is correct and the tone right. Content code owners review texts; the maintainer reviews the design
-documents, the content model and the CI configuration.
+Checks protect the page and the data; people judge whether the advice is correct and the tone right. The
+reviewers are the accounts in [.github/CODEOWNERS](.github/CODEOWNERS); it names only people who are actually
+collaborators, never a team that does not exist.
+
+The gates that can be enforced depend on who can review:
+
+- **During the alpha, the maintainer is the only collaborator.** `main` accepts changes only through pull
+  requests, the required check "Guide checks and health report" must pass, and nothing is force-pushed or deleted.
+  Code-owner approval is not required, because GitHub does not let an author approve their own pull request; a
+  release candidate instead needs the maintainer's explicit acceptance before it is tagged.
+- **When an eligible content reviewer joins**, add them to `CODEOWNERS` for the content they review
+  (`content/`, the stations and checks) and require one approving review from a code owner on `main`. From then
+  on, nobody approves their own change.
+
+Automated refreshes and agents never merge their own pull requests.
+
+## Credit and ORCID iDs
+
+Credit follows what people actually did. `CITATION.cff`, the crate and the provenance actions name a person
+only with an identity they gave or that is reviewed (their name, their GitHub account and, if they want, their
+ORCID iD). Anyone may ask not to have their ORCID iD listed; they are then credited by name only. No identity or
+ORCID iD is guessed, and no team or bot is credited as an author.
 
 ## Commit messages
 
@@ -65,8 +84,11 @@ followed by a body when the reason is not obvious. Mention AI assistance in the 
 
 ## Releases
 
-A release updates the version and date in `CHANGELOG.md`, `CITATION.cff` and the crate together, and is
-tagged `vX.Y.Z`.
+A release sets one version and the actual release date everywhere they appear: `content/guide.toml` (which the
+crate carries), `CITATION.cff`, `package.json` and `package-lock.json` (both of its version fields), and the
+`CHANGELOG.md` entry written for the complete pull request. `tests/test_workflows.py` checks that the versions
+agree. After the maintainer accepts the candidate, the tag `vX.Y.Z` (or `vX.Y.Z-alpha.N`) on a deployed commit makes
+the release workflow draft the release with that commit's verified site.
 
 ## Conduct
 

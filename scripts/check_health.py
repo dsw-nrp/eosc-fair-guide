@@ -549,7 +549,8 @@ def make_report(
         else None,
         "live_availability": {
             "status": "unchecked",
-            "reason": "A dated resource or test status is not a current live availability probe.",
+            "reason": "A dated resource or test status is not a current live availability probe; the scheduled live "
+            "watch (scripts/watch_sources.py) observes services separately.",
         },
         "integrity": integrity(content, root, today or date.today()),
         "original_coverage": original_coverage(content),
@@ -600,6 +601,34 @@ def anchor(url: str, label: str) -> str:
     return f'<a href="{esc(url)}">{esc(label)}</a>' if https(url) else esc(label)
 
 
+LIVE_LABELS = {
+    "unchecked": "Live availability was not checked in this run; the scheduled live watch observes it separately.",
+    "not_applicable": "Guide structure only; no live service is involved.",
+}
+
+
+def revision_text(report: dict[str, Any]) -> str:
+    """The checked commit, linked where the run is known, or what the absence means."""
+    revision = report.get("revision")
+    if not revision:
+        return "not recorded (a local build)"
+    run_url = report.get("run_url") or ""
+    commit = run_url.split("/actions/runs/")[0] + "/commit/" + revision if "/actions/runs/" in run_url else ""
+    return anchor(commit, revision[:12]) if commit else esc(revision[:12])
+
+
+def unchecked_groups(report: dict[str, Any]) -> int:
+    return sum(group.get("live_availability") == "unchecked" for group in report["integrity"])
+
+
+def recorded_text(item: dict[str, Any]) -> str:
+    """An item's recorded status and its date, which describe the source on that date, not today."""
+    status, when = item.get("recorded_status"), item.get("recorded_date")
+    if not status and not when:
+        return "—"
+    return " ".join(part for part in (status or "dated", f"as of {when}" if when else "") if part)
+
+
 def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
     """Render the same report for the CI artifact or the published site, with usable relative links."""
     report_url = "../api/health.json" if site else "health.json"
@@ -621,7 +650,7 @@ def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
         ":focus-visible{outline:3px solid #005f67;outline-offset:3px}</style></head><body>"
         "<main><h1>FAIR guide check run</h1>",
         f'<p>{esc(report["scope"])}</p><p class="quiet">Generated: {esc(generated)}. '
-        f"{anchor(report.get('run_url') or '', 'CI run')}</p>",
+        f"Revision: {revision_text(report)}. {anchor(report.get('run_url') or '', 'CI run')}</p>",
         f'<nav aria-label="Report links"><p>{navigation}<a href="{report_url}">Machine-readable report</a>'
         ' · <a href="summary.md">CI summary</a></p></nav>',
         "<h2>Run results</h2>",
@@ -647,18 +676,21 @@ def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
         "They do not evaluate FAIR conformance or currently running services.</p>",
     ]
     for group in report["integrity"]:
+        live = LIVE_LABELS.get(group.get("live_availability", ""), "")
         parts.append(
             f"<details><summary>{esc(group['type'])}: {group['passed']}/{group['count']} passed; "
-            f"{group['failed']} failed</summary><p>{esc(group.get('scope', 'Offline record integrity'))}.</p>"
+            f"{group['failed']} failed</summary><p>{esc(group.get('scope', 'Offline record integrity'))}."
+            f"{' ' + esc(live) if live else ''}</p>"
             "<table><thead><tr><th>Item</th><th>Result</th>"
-            "<th>Checks / observations</th></tr></thead><tbody>"
+            "<th>Checks / observations</th><th>Recorded status</th></tr></thead><tbody>"
         )
         for item in group["items"]:
             observations = item["issues"] or item["checks"]
             parts.append(
                 f"<tr><td><code>{esc(item['id'])}</code><br>{esc(item['name'])}</td>"
                 f"<td>{esc(item['status'])}</td><td>{esc('; '.join(observations))}<br>"
-                f'<span class="quiet">{esc(" ".join(item["notes"]))}</span></td></tr>'
+                f'<span class="quiet">{esc(" ".join(item["notes"]))}</span></td>'
+                f"<td>{esc(recorded_text(item))}</td></tr>"
             )
         parts.append("</tbody></table></details>")
     coverage = report["original_coverage"]
@@ -752,6 +784,8 @@ def markdown(report: dict[str, Any]) -> str:
         "",
         f"Run: **{report['run']['status']}**. Offline item integrity failures: **{report['integrity_failed']}**.",
         "",
+        f"Revision: `{(report.get('revision') or 'not recorded')[:12]}`.",
+        "",
         "| Item | With a cited original | Total |",
         "| --- | ---: | ---: |",
     ]
@@ -771,7 +805,8 @@ def markdown(report: dict[str, Any]) -> str:
         lines.append(f"| {job['name']} | {job['status']} | {job.get('seconds', '')} |")
     lines += [
         "",
-        "Live availability: **unchecked**. Dated service statuses are not current probes.",
+        f"Live availability: **{report['live_availability']['status']}**. {report['live_availability']['reason']} "
+        f"Item groups without a live check: {unchecked_groups(report)}. Dated service statuses are not current probes.",
         "",
         "The uploaded health artifact contains the dashboard, complete item inventory, "
         "missing-clause/source associations and failure output.",

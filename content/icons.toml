@@ -30,6 +30,38 @@ cite = "quote-right"
 identifier = "fingerprint"
 ai = "robot"
 model = "object-group"
+lifecycle = "arrows-spin"
 collapse = "angles-right"
 expand = "angles-left"
 copy = "copy"
+keyPoint = "lightbulb"
+training = "graduation-cap"
+
+# Each catalogue kind's icon, shown at the head of its entries and in the kind facet (D-178).
+[kind]
+resources = "book"
+repositories = "box-archive"
+clauses = "section"
+questions = "list-check"
+terms = "tags"
+fips = "diagram-project"
+tests = "magnifying-glass-chart"
+lifecycle = "arrows-spin"
+model = "object-group"
+actions = "pen-to-square"
+
+# The icon of each labelled row of a catalogue entry, in the rows' fixed order, then of the rows that describe a
+# connection of the implementation model (D-178).
+[relation]
+principles = "compass"
+audience = "people-group"
+basedOn = "book-open"
+inGuide = "route"
+identifiers = "fingerprint"
+implementationLayers = "layer-group"
+implementationSeams = "link"
+transfer = "paper-plane"
+sender = "upload"
+recipient = "download"
+carrier = "network-wired"
+maintainers = "gears"

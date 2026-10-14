@@ -43,7 +43,9 @@ def named_icons(root: Path = ROOT) -> set[str]:
     for path in sorted(content.rglob("*.toml")):
         data = tomllib.loads(path.read_text(encoding="utf-8"))
         if path.name == "icons.toml":
-            names.update(str(name) for name in data.get("ui", {}).values())
+            for table in data.values():
+                if isinstance(table, dict):
+                    names.update(str(name) for name in table.values())
         names.update(_icon_values(data))
     return names
 

@@ -1,0 +1,85 @@
+name: Live health and source watch
+
+# Trusted default-branch code on a schedule, separate from the deterministic pull-request checks. Weekly: links,
+# connector availability, stale dated statuses and the EOSC CZ pages the guide depends on. Monthly, or on request:
+# FAIR Champion remeasurement of the core and the reviewed candidates with the existing bounded probe. Findings
+# become issues keyed for deduplication after a persistence threshold; nothing is committed or pushed.
+
+on:
+  schedule:
+    - cron: "41 4 * * 2"
+    - cron: "23 3 3 * *"
+  workflow_dispatch:
+    inputs:
+      champion:
+        description: Also remeasure FAIR Champion tests
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: health-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      issues: write
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
+      CHAMPION: ${{ github.event.schedule == '23 3 3 * *' || inputs.champion == true }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        if: env.CHAMPION == 'true'
+        with:
+          node-version: '22'
+      - name: Remeasure FAIR Champion tests
+        if: env.CHAMPION == 'true'
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          python scripts/build_site.py
+          node scripts/probe_champion.mjs --jobs 4 --output .cache/watch/champion.json || true
+      - name: Restore the previous watch state
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: .cache/watch-state
+          key: health-watch-state-${{ github.run_id }}
+          restore-keys: health-watch-state-
+      - name: Observe links, services, pages and statuses
+        run: |
+          python scripts/watch_sources.py --state .cache/watch-state/state.json --output .cache/watch \
+            --champion .cache/watch/champion.json
+          mkdir -p .cache/watch-state && cp .cache/watch/state.json .cache/watch-state/state.json
+          cat .cache/watch/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Save the watch state for the next run
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: .cache/watch-state
+          key: health-watch-state-${{ github.run_id }}
+      - name: Save the observations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: health-watch-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .cache/watch/
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Open, update or close keyed issues
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { apply } = require('./.github/scripts/health-issues.cjs');
+            await apply({ github, context, core });

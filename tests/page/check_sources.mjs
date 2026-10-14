@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { AxeBuilder } from "@axe-core/playwright";
+import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
@@ -46,7 +46,7 @@ try {
     const withoutOriginal = new Set();
     for (const check of checks) {
       const id = check.identifier;
-      await visit(`#/${lang}/V/check/${id}`);
+      await visit(`#/${lang}/V/check/${id}/answers`);
       await page.waitForFunction(() => window.FairGuide?.partsLoaded.has("questions") && window.FairGuide.partsLoaded.has("standards"));
       const combinations = await page.evaluate((id) => {
         const FG = window.FairGuide;
@@ -92,13 +92,16 @@ try {
     assert.deepEqual([...withoutOriginal].sort(), ["institution.24", "maturity.18"]);
 
     for (const [id, number] of [["institution", "02"], ["dataset", "27"], ["software", "20"]]) {
-      await visit(`#/${lang}/V/check/${id}`);
+      await visit(`#/${lang}/V/check/${id}/answers`);
       if (id === "dataset") await page.evaluate(() => {
         const FG = window.FairGuide; FG.state.answers.dataset.mode = "after"; FG.state.answers.dataset.profile = "os3"; FG.rerender();
       });
       const row = page.locator(`#item-${id}-${number}`);
       for (const width of [1280, 390]) {
         await resize(width);
+        /* The sources sit in the question card's details, which open first. */
+        const card = row.locator(".question-details");
+        if (!(await card.evaluate((node) => node.open))) await card.locator(":scope > summary").click();
         const basis = row.locator(".item-basis");
         if (!(await basis.evaluate((node) => node.open))) await basis.locator(":scope > summary").click();
         const original = row.locator(".clause-guidance").first();
@@ -130,7 +133,7 @@ try {
       await original.scrollIntoViewIfNeeded();
       await page.screenshot({ path: resolve(screenshots, `${lang}-principle-original-${width}.png`) });
       axeRunning = true;
-      const access = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+      const access = await audit(page);
       axeRunning = false;
       assert.deepEqual(access.violations, [], "expanded principles remain accessible");
     }

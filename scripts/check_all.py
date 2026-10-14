@@ -7,8 +7,10 @@ Builds the site into ``_site/``, then runs the content contract, the duplicates 
 icon and licence checks, the three crate validations and the page, API and diagram checks, each in its own process
 and as many at a time as the computer has cores. Prints each check's result and time as it finishes, the output of
 the checks that failed, and exits with 1 if any did. ``--live`` adds the live checks, which need the network;
-``--only`` runs the named checks alone; ``--base`` passes a git reference to the content checks for paradata
-freshness (``HEAD`` by default).
+``--only`` runs the named checks alone after the build, which every check depends on, and reports the others as not
+run; the published-health validation (``health-api``) runs in a full run or when named. ``--base`` passes a git
+reference to the content checks for paradata freshness, compared from where this branch left it exactly as a pull
+request is (the remote's default branch by default, so a local run reports what the pull request will).
 
 Run it with the interpreter of the environment that has ``requirements-dev.txt`` installed, after ``npm ci``. When
 ``PLAYWRIGHT_BROWSERS_PATH`` is not set and ``.cache/ms-playwright`` exists, the browser checks use it.
@@ -27,6 +29,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import build_api
+import check_content
 import check_health
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -73,6 +76,8 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("ruff", [python, "-m", "ruff", "check", "scripts", "tests"]),
         Job("format", [python, "-m", "ruff", "format", "--check", "scripts", "tests"]),
         Job("icons", [python, "scripts/vendor_icons.py", "--check"]),
+        Job("favicons", [python, "scripts/vendor_favicons.py", "--check"]),
+        Job("fonts", [python, "scripts/vendor_fonts.py", "--check"]),
         Job("reuse", [python, "-m", "reuse", "lint"]),
         Job("crate", [validator, "validate", "-p", "ro-crate-1.2", *crate]),
         Job("process-run", [validator, "validate", "-p", "process-run-crate-0.5", "-nh", *crate]),
@@ -207,7 +212,11 @@ def emit_report(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--base", default="HEAD", help="git reference for paradata freshness (default HEAD)")
+    parser.add_argument(
+        "--base",
+        help="git reference for paradata freshness, compared from where this branch left it, as in a pull request "
+        "(default: the remote's default branch)",
+    )
     parser.add_argument("--live", action="store_true", help="also run the live checks, which need the network")
     parser.add_argument("--jobs", type=int, default=os.cpu_count() or 4, help="checks run at a time")
     parser.add_argument("--only", nargs="+", metavar="NAME", help="run only these checks")
@@ -218,18 +227,19 @@ def main(argv: list[str] | None = None) -> int:
         "--previous-report", type=Path, help="previous health.json for coverage and check-result trends"
     )
     args = parser.parse_args(argv)
+    args.base = args.base or check_content.default_base(ROOT)
 
+    health_api = Job("health-api", [shutil.which("node") or "node", "tests/api/check_api.mjs", "--health-only"])
     selected = jobs(args.base, args.live)
+    known = [job.name for job in selected] + [health_api.name]
     if args.only:
-        unknown = sorted(set(args.only) - {job.name for job in selected})
+        unknown = sorted(set(args.only) - set(known))
         if unknown:
-            parser.error(f"unknown check: {', '.join(unknown)}; known: {', '.join(job.name for job in selected)}")
-        selected = [job for job in selected if job.name in args.only]
+            parser.error(f"unknown check: {', '.join(unknown)}; known: {', '.join(known)}")
+    selected = selected_jobs([*selected, health_api], args.only)
 
     env = environment()
-    health_api = Job("health-api", [shutil.which("node") or "node", "tests/api/check_api.mjs", "--health-only"])
     available = [*jobs(args.base, live=True), health_api]
-    selected.append(health_api)
     start = time.monotonic()
     build = run(Job("build", [sys.executable, "scripts/build_site.py"]), env)
     print(f"{'ok  ' if build.ok else 'FAIL'} {build.seconds:6.1f}s  build")
@@ -238,6 +248,18 @@ def main(argv: list[str] | None = None) -> int:
         emit_report(build, [], available, selected, output=args.report_dir, previous=args.previous_report)
         return 1
     results = run_all([job for job in selected if job != health_api], args.jobs, env)
+    if health_api not in selected:
+        # The published-health validation was not asked for: the report says so instead of running it anyway.
+        emit_report(
+            build,
+            results,
+            available,
+            selected,
+            output=args.report_dir,
+            previous=args.previous_report,
+            site=ROOT / "_site",
+        )
+        return finish(results, start)
     emit_report(
         build,
         results,
@@ -269,6 +291,16 @@ def main(argv: list[str] | None = None) -> int:
             previous=args.previous_report,
             site=ROOT / "_site",
         )
+    return finish(results, start)
+
+
+def selected_jobs(available: list[Job], only: list[str] | None) -> list[Job]:
+    """The jobs a run executes. Every job depends on the build, which always runs first; the published-health
+    validation (health-api) also depends on the run's own report, so it runs in a full run or when named."""
+    return list(available) if not only else [job for job in available if job.name in only]
+
+
+def finish(results: list[Result], start: float) -> int:
     failed = [result for result in results if not result.ok]
     for result in failed:
         print(f"\n--- {result.job.name} ({' '.join(result.job.command[1:])})\n{tail(result.output)}")

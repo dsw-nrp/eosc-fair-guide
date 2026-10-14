@@ -24,15 +24,19 @@ import html
 import json
 import os
 import re
+import shutil
 import sys
 import tomllib
 import unicodedata
+import urllib.parse
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
+# The record of the favicons the page shows for tools and services, relative to the checkout (D-183).
+FAVICONS = Path("assets") / "favicons" / "sources.toml"
 CRATE_FILE = "ro-crate-metadata.json"
 PAGE_FILE = "index.html"
 PREVIEW_FILE = "ro-crate-preview.html"
@@ -41,8 +45,8 @@ UI_SCRIPT = "assets/data/ui.js"
 LANGUAGE_SCRIPTS = {lang: f"assets/data/kb-{lang}.js" for lang in ("cs", "en")}
 # Parts of the knowledge base the page loads only when a view first needs them, so that what every view needs stays
 # a small first download: the requirements of the standards the guide ingests (CoreTrustSeal, CDIF) with their
-# guidance, the FIP profiles of the FIP Dashboard snapshot, and the text of the guide's pages. Each is a classic
-# script like kb.js; kb.js and the parts together are the crate.
+# guidance, the records of the FIP Dashboard and KNAV catalogue snapshots, and the text of the guide's pages. Each is
+# a classic script like kb.js; kb.js and the parts together are the crate.
 STANDARD_CLAUSES = ("#clause-CTS.", "#clause-CDIF.", "#clause-FDO.", "#clause-FRSM.")
 PART_SCRIPTS = {
     "standards": "assets/data/kb-standards.js",
@@ -50,6 +54,14 @@ PART_SCRIPTS = {
     "pages": "assets/data/kb-pages.js",
     "questions": "assets/data/kb-questions.js",
     "model": "assets/data/kb-model.js",
+}
+# View code the page loads when the view first opens, beside the shared code every view needs.
+# Views whose code loads when they first open: the catalogue, and the self-check with its parts and report, which a
+# path page also loads when saved answers mark gaps on its rail (D-182).
+VIEW_SCRIPTS = {
+    "catalogue": "assets/js/catalogue-view.js",
+    "check": "assets/js/selfcheck.js",
+    "selfcheck": "assets/js/selfcheck.js",
 }
 PART_LANGUAGE_SCRIPTS = {
     name: {lang: path.removesuffix(".js") + f"-{lang}.js" for lang in LANGUAGE_SCRIPTS}
@@ -71,6 +83,10 @@ FAIR_PRINCIPLES = "https://w3id.org/fair/principles/terms/"
 FTR_TEST = "https://w3id.org/ftr#Test"
 FIP_TERMS = "https://w3id.org/fair/fip/terms/"
 FIP_DASHBOARD = "https://fip-dashboard.dmp.eosc.cz/resources/"
+NKR_OBJECTS = "https://repo.cz/objects/"
+# NKR's repository types as the guide's repository kinds.
+NKR_KIND = {"disciplinary": "domain", "institutional": "institutional", "generic": "general"}
+RE3DATA_RECORD = re.compile(r"re3data\.org/repository/(r3d\d+)")
 FTR = "https://w3id.org/ftr#"
 PROV = "http://www.w3.org/ns/prov#"
 LANGS = ("cs", "en")
@@ -111,7 +127,6 @@ TERMS = MODEL_TERMS | {
     "promptSample": "A short prompt to copy for an AI tip; the parts in brackets are filled in by the user.",
     "block": "Block of a self-check that a question belongs to; a check's blocks are a defined term set in order.",
     "defaultProfile": "Profile a self-check starts with, such as no funding programme for the dataset check.",
-    "startsAt": "Station at which the path opens for an answer to the entry question.",
     "tier": "Self-check tier of an item.",
     "fixAt": "Station where a gap found by a self-check item is addressed.",
     "fixedBy": "Actors who can fix a gap found by a self-check item.",
@@ -138,8 +153,26 @@ TERMS = MODEL_TERMS | {
     "assessmentContext": "Source context that explains an assessment without creating a separate answerable criterion.",
     "disclaimer": "Disclaimer that a snapshot's source publishes about its data, shown while it is present.",
     "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
-    "championEvidenceOnly": "Champion observations supplement a question without answering its broader criterion.",
+    "championEvidenceOnly": "Champion tests cover part of a question: Partly when that part is met, No when it fails.",
     "lookup": "Service where a user can find out the answer to a self-check item.",
+    "mappingCoverage": (
+        "Part of a self-check question that an external evaluator's native criterion supports: whole or partial. "
+        "Only whole coverage may suggest an answer, and only from a native pass."
+    ),
+    "reviewedVersion": (
+        "External evaluator version a criterion mapping was reviewed against; other versions keep their native "
+        "results without answer suggestions."
+    ),
+    "lifecycleStage": "Stage of the RDMkit research data life cycle that a path step belongs to.",
+    "dataciteRepository": "The repository's ID in DataCite (its DataCite client), as the maintainer reviewed it.",
+    "mappingBasis": (
+        "Basis of a correspondence between life-cycle stages: published by its source, reviewed by the guide, or "
+        "unconfirmed."
+    ),
+    "nameTranslation": "Languages in which a stage's name is the guide's translation rather than its source's.",
+    "descriptionTranslation": "Languages in which a stage's definition is the guide's translation of its source's.",
+    "quotedDefinition": "A stage's definition quoted as a second source publishes it, with its stage label.",
+    "discipline": "Discipline group of a tool in the KNAV Data Management Tools Catalogue.",
 }
 
 # Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
@@ -232,6 +265,9 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
     stations.sort(key=lambda data: data["station"]["position"])
     checks = [load_toml(path) for path in sorted((content_dir / "checks").glob("*.toml"))]
     snapshots = [load_toml(path) for path in sorted((content_dir / "snapshots").glob("*.toml"))]
+    lifecycle_dir = content_dir / "lifecycle"
+    lifecycles = [load_toml(path) for path in sorted(lifecycle_dir.glob("*.toml")) if path.name != "crosswalk.toml"]
+    lifecycles.sort(key=lambda data: data["lifecycle"]["position"])
     guide = load_toml(content_dir / "guide.toml")
     apply_base_url(guide["guide"])
     content = {
@@ -254,6 +290,10 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "icons": optional("icons.toml"),
         "identifiers": optional("identifiers.toml"),
         "model": optional("model.toml"),
+        "lifecycles": lifecycles,
+        "crosswalk": optional("lifecycle/crosswalk.toml").get("correspondence", []),
+        # The normalised favicons kept with the page (scripts/vendor_favicons.py), beside the content they serve.
+        "favicons": load_toml(path).get("favicon", []) if (path := content_dir.parent / FAVICONS).is_file() else [],
     }
     resolve_requirements(content)
     return content
@@ -477,7 +517,9 @@ def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: 
 def build_people(graph: Graph, guide: dict[str, Any], organizations: dict[str, str]) -> dict[str, str]:
     people: dict[str, str] = {}
     for person in guide.get("person", []):
-        entity_id = person.get("orcid") or f"#person-{person['id']}"
+        # A person who opted out of listing their ORCID iD is identified by the guide alone.
+        orcid = None if person.get("orcidOptOut") else person.get("orcid")
+        entity_id = orcid or f"#person-{person['id']}"
         people[person["id"]] = graph.add(
             {
                 "@id": entity_id,
@@ -564,9 +606,6 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
         "rfunction",
         guide.get("repositoryFunction", []),
     )
-    stage_ids = defined_terms(graph, "stages", "Entry stages", "stage", guide.get("stage", []))
-    for stage, stage_id in zip(guide.get("stage", []), stage_ids, strict=True):
-        graph.entities[stage_id]["startsAt"] = ref(f"#station-{stage['station']}")
     for help_route in guide.get("help", []):
         graph.add(
             {
@@ -773,6 +812,9 @@ def build_stations(graph: Graph, stations: list[dict[str, Any]], all_lenses: lis
                 "timeRequired": f"PT{station['minutes']}M" if station.get("minutes") else None,
                 "itemListElement": refs(advice_ids),
                 "mentions": refs([f"#term-{term}" for term in station.get("glossary", [])]),
+                "lifecycleStage": ref(lifecycle_stage_id(PATH_LIFECYCLE, station["lifecycleStage"]))
+                if station.get("lifecycleStage")
+                else None,
             },
             station["id"],
         )
@@ -949,8 +991,13 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
     same_as = []
     if repository.get("re3data"):
         same_as.append(f"https://www.re3data.org/repository/{repository['re3data']}")
+    if repository.get("doi"):
+        # The DOI of the same re3data record, by which DataCite finds the repository.
+        same_as.append(f"https://doi.org/{repository['doi']}")
     if repository.get("fairsharing"):
         same_as.append(f"https://doi.org/{repository['fairsharing']}")
+    if repository.get("nkr"):
+        same_as.append(f"{NKR_OBJECTS}{repository['nkr']}")
     if repository.get("fipDashboard"):
         same_as.append(FIP_DASHBOARD + repository["fipDashboard"])
     return {
@@ -964,6 +1011,7 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         "identifier": identifiers,
         "inLanguage": repository.get("languages"),
         "sameAs": refs(same_as),
+        "dataciteRepository": repository.get("datacite"),
         "serviceStatus": ref(f"#status-{repository['status']}") if repository.get("status") else None,
         "statusAsOf": iso(repository["asOf"]) if repository.get("asOf") else None,
         "isBasedOn": [ref(based_on)],
@@ -980,11 +1028,49 @@ def snapshot_id(snapshot: dict[str, Any]) -> str:
     return f"#snapshot-{slug(snapshot['snapshot']['source'])}"
 
 
+def bare_url(url: str) -> str:
+    """An address without its scheme, "www." and trailing slashes, as addresses are matched across sources."""
+    value = re.sub(r"^https?://", "", str(url).strip().lower())
+    return re.sub(r"^www\.", "", value).rstrip("/")
+
+
+def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
+    """The repositories of an NKR snapshot as repository records: NKR's name, address, kind and keywords, its record
+    ID and the re3data record it names. Nothing else of the record is read here."""
+    if snapshot.get("snapshot", {}).get("source") != "NKR":
+        return []
+    repositories = []
+    for record in snapshot.get("record", []):
+        registries = [
+            str(item.get("relatedRegistryUrl", ""))
+            for item in as_list(record.get("relatedRegistry"))
+            if isinstance(item, dict)
+        ]
+        r3d = next((found.group(1) for url in registries if (found := RE3DATA_RECORD.search(url))), None)
+        repositories.append(
+            {
+                "id": "nkr-" + slug(str(record["id"])),
+                "name": str(record["repositoryName"]),
+                "url": record.get("mainUrl"),
+                "nkr": str(record["id"]),
+                "re3data": r3d,
+                "kind": NKR_KIND.get(str(record.get("type", ""))),
+                "subjects": {
+                    "cs": ", ".join(map(str, as_list(record.get("keywordCz")))),
+                    "en": ", ".join(map(str, as_list(record.get("keywordEn")))),
+                },
+            }
+        )
+    return repositories
+
+
 def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
-    """Add one entity per snapshot, with its retrieval date and, for the FIP Dashboard, its disclaimer."""
+    """Add one entity per snapshot, with its retrieval date, the catalogue entry of its source where the guide has
+    one and, for the FIP Dashboard, its disclaimer."""
     ids = []
     for snapshot in snapshots:
         info = snapshot["snapshot"]
+        source = f"#resource-{slug(info['source'])}"
         ids.append(
             graph.add(
                 {
@@ -997,11 +1083,63 @@ def build_snapshots(graph: Graph, snapshots: list[dict[str, Any]]) -> list[str]:
                     "version": info.get("datasetVersion"),
                     "dateModified": info.get("datasetUpdated"),
                     "disclaimer": text(info.get("disclaimer")),
+                    "about": ref(source) if source in graph.entities else None,
                 },
                 f"snapshot:{slug(info['source'])}",
             )
         )
     return ids
+
+
+def annotate_repositories(graph: Graph, repository_ids: list[str], snapshots: list[dict[str, Any]]) -> None:
+    """Join each snapshot annotation (FAIRsharing, DataCite) to the repository it names, by re3data record or else
+    by address: its FAIRsharing record becomes one of the repository's identifiers, its DataCite repository is
+    recorded where the guide names none, and the snapshot becomes one of its sources. An annotation adds no
+    repository of its own; one that names no listed repository is left out."""
+    by_re3data: dict[str, dict[str, Any]] = {}
+    by_address: dict[str, dict[str, Any]] = {}
+    for entity_id in repository_ids:
+        entity = graph.entities[entity_id]
+        values = [str(item) for item in as_list(entity.get("identifier"))]
+        values += [str(item.get("@id", "")) for item in as_list(entity.get("sameAs")) if isinstance(item, dict)]
+        for value in values:
+            found = RE3DATA_RECORD.search(value) or re.fullmatch(r"(r3d\d+)", value)
+            if found:
+                by_re3data.setdefault(found.group(1), entity)
+        if entity.get("url"):
+            by_address.setdefault(bare_url(entity["url"]), entity)
+    for snapshot in snapshots:
+        for row in snapshot.get("annotation", []):
+            entity = (
+                by_re3data.get(row["re3data"]) if row.get("re3data") else by_address.get(bare_url(row.get("url", "")))
+            )
+            if entity is None:
+                continue
+            if row.get("fairsharing"):
+                same_as = as_list(entity.get("sameAs"))
+                record = f"https://doi.org/{row['fairsharing']}"
+                if record not in [item.get("@id") for item in same_as if isinstance(item, dict)]:
+                    entity["sameAs"] = same_as + [ref(record)]
+            if row.get("datacite") and not entity.get("dataciteRepository"):
+                entity["dataciteRepository"] = row["datacite"]
+            if snapshot_id(snapshot) not in [item.get("@id") for item in as_list(entity.get("isBasedOn"))]:
+                append_ref(entity, "isBasedOn", snapshot_id(snapshot))
+
+
+def nkr_config(snapshots: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """What the repository check pre-fills from NKR: each listed repository's record with its reviewed fields, and
+    the date of the snapshot; none before NKR lists a repository."""
+    snapshot = next((item for item in snapshots if item.get("snapshot", {}).get("source") == "NKR"), None)
+    if not snapshot:
+        return None
+    fields = snapshot["snapshot"].get("fields", [])
+    return {
+        "retrieved": iso(snapshot["snapshot"]["retrieved"]),
+        "records": [
+            {"id": str(record["id"]), "content": {name: record[name] for name in fields if name in record}}
+            for record in snapshot.get("record", [])
+        ],
+    }
 
 
 def build_repositories(
@@ -1028,7 +1166,7 @@ def build_repositories(
     ]
     sources = [("#repositories-curated", curated + from_resources)]
     for snapshot in snapshots:
-        sources.append((snapshot_id(snapshot), snapshot.get("repository", [])))
+        sources.append((snapshot_id(snapshot), snapshot.get("repository", []) + nkr_repositories(snapshot)))
     for based_on, repositories in sources:
         for source_record in repositories:
             repository = source_record | annotations.get(source_record.get("re3data"), {})
@@ -1060,7 +1198,7 @@ def build_repositories(
         if entity.pop("_resource"):
             # The resource's entity takes the repository facts it does not state itself.
             resource = graph.entities[entity["@id"]]
-            for prop in ("repositoryKind", "repositoryFunction", "keywords", "isBasedOn"):
+            for prop in ("repositoryKind", "repositoryFunction", "keywords", "isBasedOn", "dataciteRepository"):
                 if entity.get(prop) and not resource.get(prop):
                     resource[prop] = entity[prop]
             resource["sameAs"] = as_list(resource.get("sameAs")) + [
@@ -1071,6 +1209,8 @@ def build_repositories(
             repository_ids.append(entity["@id"])
             continue
         repository_ids.append(graph.add({"@id": entity.pop("@id"), **entity}, content_id))
+
+    annotate_repositories(graph, repository_ids, snapshots)
 
     # Registry resources belong here too, even when the guide recommends or cites them elsewhere.
     for resource in resources:
@@ -1116,6 +1256,71 @@ def build_repositories(
         }
     )
     return repository_ids
+
+
+KNAV_REGISTRY = "knav-tools"  # the life-cycle model of the KNAV catalogue's steps (content/lifecycle/)
+
+
+def build_knav_tools(graph: Graph, content: dict[str, Any]) -> list[str]:
+    """The tools of the KNAV Data Management Tools Catalogue snapshot, each with its life-cycle steps, discipline
+    groups and the catalogue's licence. A tool that a curated entry (`knav`) or a record annotation names is that
+    entry: its record says so in `sameAs` and the catalogue lists the entry once."""
+    snapshot = next((item for item in content["snapshots"] if item.get("tool")), None)
+    if snapshot is None:
+        return []
+    info = snapshot["snapshot"]
+    standing: dict[str, str] = {}
+    for entry in content["resources"] + content["repositories"] + content["sources"]:
+        if entry.get("knav") and graph.index.get(entry["id"]):
+            standing[entry["knav"]] = graph.index[entry["id"]][0]
+    # A FIP Dashboard record a curated entry links is listed as that entry, so a tool joined to it is too.
+    curated_records = {
+        entry["fipDashboard"]: graph.index[entry["id"]][0]
+        for entry in content["resources"] + content["repositories"]
+        if entry.get("fipDashboard") and graph.index.get(entry["id"])
+    }
+    for record in content.get("repository_records", []):
+        if record.get("knav"):
+            if record.get("re3data"):
+                target = graph.index[f"re3data.{record['re3data']}"][0]
+            else:
+                dashboard = record["fipDashboard"]
+                target = (
+                    curated_records.get(dashboard)
+                    or graph.index.get(f"fip-dashboard.{dashboard}", [f"#fer-{dashboard}"])[0]
+                )
+            standing[record["knav"]] = target
+    tool_ids = []
+    for tool in snapshot["tool"]:
+        tool_ids.append(
+            graph.add(
+                {
+                    "@id": f"#knav-{tool['id']}",
+                    "@type": "CreativeWork",
+                    "identifier": tool["id"],
+                    "name": tool["name"],
+                    "description": {"@value": tool["description"], "@language": "en"},
+                    "url": tool.get("url"),
+                    "lifecycleStage": refs([lifecycle_stage_id(KNAV_REGISTRY, step) for step in tool["steps"]]),
+                    "discipline": tool.get("disciplines", []),
+                    "license": info.get("license"),
+                    "isBasedOn": ref(snapshot_id(snapshot)),
+                    "sameAs": ref(standing[tool["id"]]) if tool["id"] in standing else None,
+                },
+                f"knav.{tool['id']}",
+            )
+        )
+    graph.add(
+        {
+            "@id": "#knav-tools",
+            "@type": "CreativeWork",
+            "name": "KNAV Data Management Tools Catalogue",
+            "url": info.get("url"),
+            "isBasedOn": ref(snapshot_id(snapshot)),
+            "hasPart": refs(tool_ids),
+        }
+    )
+    return ["#knav-tools"]
 
 
 DASHBOARD_FIP_CLASS = {
@@ -1295,8 +1500,11 @@ def build_glossary(graph: Graph, glossary: dict[str, Any]) -> None:
                 "@type": "DefinedTerm",
                 "termCode": str(term["id"]),
                 "name": text(term["label"]),
-                "description": text(term.get("definition")),
+                "description": text({term.get("definitionLanguage", "cs"): term["definition"]})
+                if isinstance(term.get("definition"), str)
+                else text(term.get("definition")),
                 "url": term.get("url"),
+                "license": info.get("license") if term.get("definition") else None,
                 "inDefinedTermSet": ref("#glossary"),
             },
             f"term:{term['id']}",
@@ -1440,6 +1648,72 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
         }
     )
     return test_ids
+
+
+def criterion_id(provider: str, metric: str) -> str:
+    """The crate entity of an external evaluator's native criterion; the native ID is kept verbatim."""
+    return f"#criterion-{provider}-{metric}"
+
+
+def build_providers(graph: Graph, live: dict[str, Any]) -> list[str]:
+    """External evaluators' native criteria and the reviewed associations of each with guide questions.
+
+    A criterion keeps the provider's own name and identifier and adds the guide's reading as `alternateName`. A
+    mapping records the coverage it was reviewed for and the provider versions it was reviewed against; it is a
+    statement about the criterion, never a criterion the guide invents. Unmapped criteria stay listed."""
+    criteria = []
+    for provider in live.get("provider", []):
+        reviewed = [
+            ", ".join(f"{key} {value}" for key, value in entry.items()) for entry in provider.get("reviewed", [])
+        ]
+        documentation = [provider[key] for key in ("documentation", "terms") if provider.get(key)]
+        for metric in provider.get("metric", []):
+            entity_id = criterion_id(provider["id"], metric["id"])
+            mappings = [mapping for mapping in provider.get("mapping", []) if mapping["metric"] == metric["id"]]
+            mapping_ids = []
+            for mapping in mappings:
+                mapping_id = f"#mapping-{provider['id']}-{metric['id']}-{mapping['question']}"
+                mapping_ids.append(mapping_id)
+                graph.add(
+                    {
+                        "@id": mapping_id,
+                        "@type": "CreativeWork",
+                        "name": f"{provider['name']} {metric['id']} → {mapping['question']}",
+                        "about": ref("#item-" + mapping["question"]),
+                        "isBasedOn": ref(entity_id),
+                        "mappingCoverage": mapping["coverage"],
+                        "reviewedVersion": reviewed,
+                        "description": text(mapping.get("note")),
+                        "dateModified": iso(provider["observed"]) if provider.get("observed") else None,
+                    }
+                )
+            invocation = None
+            if provider.get("connector") and provider.get("path"):
+                connector = next((c for c in live.get("connector", []) if c["id"] == provider["connector"]), None)
+                if connector is None:
+                    raise ContentError(f"provider:{provider['id']}: unknown connector {provider['connector']}")
+                invocation = (
+                    connector["origin"] + "/" + provider["path"].split("?", 1)[0].replace("{metric}", metric["id"])
+                )
+            criteria.append(entity_id)
+            graph.add(
+                {
+                    "@id": entity_id,
+                    "@type": "CreativeWork",
+                    "additionalType": FTR_TEST,
+                    "identifier": metric["id"],
+                    "name": {"@language": "en", "@value": metric["name"]},
+                    "alternateName": text(metric.get("label")),
+                    "about": ref(principle_iri(metric["principle"])),
+                    "isPartOf": ref(f"#resource-{provider['resource']}"),
+                    "url": invocation or provider.get("form"),
+                    "subjectOf": refs(documentation),
+                    "reviewedVersion": reviewed,
+                    "hasPart": refs(mapping_ids),
+                },
+                f"provider:{provider['id']}.{metric['id']}",
+            )
+    return criteria
 
 
 WEB_APPLICATION = "https://schema.org/WebApplication"
@@ -1644,6 +1918,114 @@ def build_model(graph: Graph, data: dict[str, Any]) -> list[str]:
     return [model_id]
 
 
+# The life-cycle model whose stages the path follows (D-162): a station's `lifecycleStage` names one of its stages.
+PATH_LIFECYCLE = "rdmkit"
+
+
+def lifecycle_stage_id(model: str, stage: str) -> str:
+    return f"#lifecycle-{model}.{stage}"
+
+
+def build_lifecycles(
+    graph: Graph, lifecycles: list[dict[str, Any]], crosswalk: list[dict[str, Any]], sources: list[dict[str, Any]]
+) -> list[str]:
+    """The research data life-cycle models as term sets of their stages, each stage with its name and definition as
+    published, its sources and their licences; and the crosswalk, one record per correspondence between two stages
+    with its basis: published by a source, reviewed by the guide, or unconfirmed."""
+    licences = {source["id"]: source.get("license") for source in sources}
+    languages = {source["id"]: source.get("inLanguage", "en") for source in sources}
+    names: dict[str, dict[str, str]] = {}
+    ids = []
+    for data in lifecycles:
+        model = data["lifecycle"]
+        set_id = f"#lifecycle-{model['id']}"
+        cited = [model["source"]] + as_list(model.get("czechSource"))
+        language = languages.get(model["source"], "en")
+        stage_ids = []
+        for position, stage in enumerate(data.get("stage", []), 1):
+            key = f"{model['id']}.{stage['id']}"
+            names[key] = stage["name"]
+            # The definition is quoted in its source's language; a path stage adds the Průvodce's Czech translation,
+            # marked, so that both languages say the same, and the Czech source's own definition as a quotation.
+            definition = [{"@value": stage["definition"], "@language": language}]
+            if stage.get("translation"):
+                definition.append({"@value": stage["translation"], "@language": "cs"})
+            stage_ids.append(
+                graph.add(
+                    {
+                        "@id": lifecycle_stage_id(model["id"], stage["id"]),
+                        "@type": "DefinedTerm",
+                        "identifier": key,
+                        "termCode": stage["id"],
+                        "position": position,
+                        "name": text(stage["name"]),
+                        "description": definition,
+                        "nameTranslation": as_list(stage.get("translated")),
+                        "descriptionTranslation": ["cs"] if stage.get("translation") else None,
+                        "quotedDefinition": {"@value": stage["czechDefinition"], "@language": "cs"}
+                        if stage.get("czechDefinition")
+                        else None,
+                        "note": {"@value": stage["note"], "@language": language} if stage.get("note") else None,
+                        "inDefinedTermSet": ref(set_id),
+                        "citation": refs(graph.resolve(cited)),
+                        "license": list(dict.fromkeys(licences[source] for source in cited if licences.get(source))),
+                    },
+                    key,
+                )
+            )
+        ids.append(
+            graph.add(
+                {
+                    "@id": set_id,
+                    "@type": "DefinedTermSet",
+                    "identifier": model["id"],
+                    "name": text(model["name"]),
+                    "url": model.get("url"),
+                    "position": model["position"],
+                    "citation": refs(graph.resolve(cited)),
+                    "hasDefinedTerm": refs(stage_ids),
+                },
+                f"lifecycle:{model['id']}",
+            )
+        )
+    correspondence_ids = []
+    for item in crosswalk:
+        keys = item["stages"]
+        if any(key not in names for key in keys):
+            raise ContentError(f"a crosswalk correspondence names an unknown stage: {', '.join(keys)}")
+        key = "_".join(keys)
+        correspondence_ids.append(
+            graph.add(
+                {
+                    "@id": f"#crosswalk-{key}",
+                    "@type": "CreativeWork",
+                    "identifier": key,
+                    "name": text({lang: " ↔ ".join(names[stage][lang] for stage in keys) for lang in LANGS}),
+                    "about": refs([lifecycle_stage_id(*stage.split(".", 1)) for stage in keys]),
+                    "mappingBasis": item["basis"],
+                    "citation": refs(graph.resolve([item["source"]])) if item.get("source") else None,
+                    "description": text(item.get("note")),
+                    "isPartOf": ref("#lifecycle-crosswalk"),
+                },
+                f"crosswalk:{key}",
+            )
+        )
+    if correspondence_ids:
+        ids.append(
+            graph.add(
+                {
+                    "@id": "#lifecycle-crosswalk",
+                    "@type": "CreativeWork",
+                    "identifier": "crosswalk",
+                    "name": "Crosswalk between research data life-cycle models",
+                    "hasPart": refs(correspondence_ids),
+                },
+                "lifecycle:crosswalk",
+            )
+        )
+    return ids
+
+
 def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str, Any]:
     """The crate for the content; a caller that passes a graph can inspect it afterwards (the content checks read
     which entities each content ID names)."""
@@ -1699,7 +2081,12 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         }
     )
     build_ledger(graph, content["ledger"])
+    lifecycle_ids = build_lifecycles(
+        graph, content.get("lifecycles", []), content.get("crosswalk", []), content["sources"]
+    )
     build_stations(graph, content["stations"], all_lenses)
+    if f"#lifecycle-{PATH_LIFECYCLE}" in graph.entities:
+        graph.entities["#path"]["isBasedOn"] = ref(f"#lifecycle-{PATH_LIFECYCLE}")
     link_resources(graph, content["resources"])
     check_ids = build_checks(graph, content["checks"], content["live"].get("links", {}))
     snapshot_ids = build_snapshots(graph, content["snapshots"])
@@ -1707,8 +2094,10 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
     build_repositories(
         graph, content["repositories"], content["snapshots"], content["resources"], content.get("repository_records")
     )
+    knav_ids = build_knav_tools(graph, content)
     callout_ids = build_callouts(graph, content["callouts"], all_lenses)
     test_ids = build_tests(graph, content["live"])
+    build_providers(graph, content["live"])
     page_ids = build_pages(graph, content["pages"])
     model_ids = build_model(graph, content.get("model", {}))
     action_ids = build_actions(graph, content["provenance"], people)
@@ -1817,12 +2206,14 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             action_ids
             + ["#ledger", "#sources", "#resources", "#repositories"]
             + catalogue_ids
+            + knav_ids
             + snapshot_ids
             + check_ids
             + callout_ids
             + test_ids
             + page_ids
             + model_ids
+            + lifecycle_ids
         ),
     }
     graph.entities["./"] = prune(root)
@@ -1852,6 +2243,7 @@ API_COLLECTIONS = (
     "fips",
     "changes",
     "model",
+    "lifecycle",
 )
 API_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 # Where the API's own files sit in the site; records are `api/<collection>/<record ID>.json`.
@@ -1870,12 +2262,15 @@ API_PREFIXES = {
     "#station-": "stations",
     "#check-": "checks",
     "#test-": "tests",
+    "#criterion-": "tests",
     "#repository-": "repositories",
     "#clause-": "clauses",
     "#action-": "changes",
     "#layer-": "model",
     "#seam-": "model",
     "#model-example-": "model",
+    "#lifecycle-": "lifecycle",
+    "#crosswalk-": "lifecycle",
 }
 
 
@@ -1909,6 +2304,10 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             continue  # the repository kinds, a term set
         if collection in ("repositories", "changes"):
             record = entity_id.split("-", 1)[1]
+        elif entity_id.startswith("#criterion-"):
+            # An external criterion is published under its provider's resource ID and its own native identifier.
+            resource = as_list(entity.get("isPartOf"))[0]["@id"].removeprefix("#resource-")
+            record = f"{resource}.{entity.get('identifier')}"
         elif collection is not None:
             pass
         elif entity_id.startswith(FAIR_PRINCIPLES) and entity.get("termCode"):
@@ -1925,6 +2324,9 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             collection, record = "organizations", organizations[entity_id]
         elif FIP_TERMS + "FAIR-Implementation-Profile" in as_list(entity.get("additionalType")):
             collection = "fips"
+        elif entity_id.startswith("#knav-") and entity_id != "#knav-tools" and not entity.get("sameAs"):
+            # A catalogue tool no entry of the guide stands for, under the catalogue's identifier for it.
+            collection, record = "resources", f"knav.{entity['identifier']}"
         if entity_id == "#implementation-model":
             collection, record = "model", entity["identifier"]
         if collection is None:
@@ -1966,6 +2368,111 @@ def is_generated(path: str) -> bool:
     )
 
 
+# ---------------------------------------------------------------------------
+# Where the build writes
+
+DEFAULT_SITE = "_site"
+# The file a build leaves in the site directory, so that only a directory the build made is ever replaced.
+SITE_MARKER = ".fair-guide-site"
+# Top-level trees the repository authors, the build reads or the environment keeps; a site directory never lies in
+# one of them. tests/test_scripts.py requires every tracked top-level directory to be named here.
+PROTECTED_TREES = frozenset(
+    {
+        ".agents",
+        ".claude",
+        ".git",
+        ".github",
+        ".venv",
+        "LICENSES",
+        "api",
+        "assets",
+        "content",
+        "diagrams",
+        "docs",
+        "node_modules",
+        "profile",
+        "scripts",
+        "tests",
+    }
+)
+
+
+class UnsafeOutputError(ContentError):
+    """A requested output directory could replace or change files the build did not write."""
+
+
+def site_directory(out: Path, root: Path | None = None) -> Path:
+    """The resolved site directory the build may replace; refuses before anything is changed.
+
+    The directory lies inside the repository and is not the repository, reaches it through no link or junction, does
+    not lie in a protected tree, and, when it exists, is a directory the build made (it holds ``SITE_MARKER``), an
+    empty directory or the repository's default ``_site/``, never one holding a checkout.
+    """
+    root = ROOT if root is None else root
+    lexical_root = Path(os.path.abspath(root))
+    lexical = Path(os.path.abspath(out))
+    try:
+        relative = lexical.relative_to(lexical_root)
+    except ValueError:
+        raise UnsafeOutputError(f"the site directory must lie inside the repository, not {lexical}") from None
+    if not relative.parts:
+        raise UnsafeOutputError(f"the site directory must be a directory of its own, not the repository {lexical}")
+    real_root = os.path.normcase(os.path.realpath(lexical_root))
+    real = Path(os.path.realpath(lexical))
+    if os.path.normcase(real) != os.path.normcase(os.path.join(real_root, *relative.parts)):
+        raise UnsafeOutputError(f"the site directory {relative.as_posix()} passes through a link or junction to {real}")
+    protected = {os.path.normcase(name) for name in PROTECTED_TREES}
+    if os.path.normcase(relative.parts[0]) in protected:
+        raise UnsafeOutputError(
+            f"the site directory {relative.as_posix()} lies in the authored tree {relative.parts[0]}/"
+        )
+    if real.exists():
+        if not real.is_dir():
+            raise UnsafeOutputError(f"the site directory {relative.as_posix()} exists and is not a directory")
+        if (real / ".git").exists():
+            raise UnsafeOutputError(f"the site directory {relative.as_posix()} holds a checkout")
+        legacy = relative.parts == (DEFAULT_SITE,)
+        if not ((real / SITE_MARKER).is_file() or legacy or not any(real.iterdir())):
+            raise UnsafeOutputError(
+                f"the site directory {relative.as_posix()} holds files the build did not write; remove them first"
+            )
+    return real
+
+
+def mark_site(site: Path) -> None:
+    """Record that the build made this directory."""
+    (site / SITE_MARKER).write_text(
+        "Written by the FAIR guide's build, which replaces this directory as a whole.\n", encoding="utf-8", newline="\n"
+    )
+
+
+def replace_site(out: Path, root: Path | None = None) -> Path:
+    """Empty a checked site directory for a fresh build and mark it; return its resolved path."""
+    site = site_directory(out, root)
+    if site.exists():
+        shutil.rmtree(site)
+    site.mkdir(parents=True)
+    mark_site(site)
+    return site
+
+
+def claim_site(out: Path, root: Path | None = None) -> Path:
+    """Create or adopt a checked site directory without emptying it, for a build of one of its parts."""
+    site = site_directory(out, root)
+    site.mkdir(parents=True, exist_ok=True)
+    if not (site / SITE_MARKER).is_file():
+        mark_site(site)
+    return site
+
+
+def require_site(site: Path) -> Path:
+    """A directory the build made, before a part of it is replaced or changed; refuses any other directory."""
+    resolved = Path(os.path.realpath(site))
+    if site.is_symlink() or not (resolved / SITE_MARKER).is_file():
+        raise UnsafeOutputError(f"{site} is not a site directory the build made")
+    return resolved
+
+
 SCHEMA_ORG_TYPES = ("https://schema.org/AboutPage", "https://schema.org/Dataset")
 
 
@@ -2004,7 +2511,9 @@ def link_elements(links: list[dict[str, str]]) -> str:
     """The signposts as link elements for the page head; HTML has no profile attribute, the linkset carries it."""
 
     def element(link: dict[str, str]) -> str:
-        attributes = " ".join(f'{key}="{link[key]}"' for key in ("rel", "type", "href") if key in link)
+        attributes = " ".join(
+            f'{key}="{html.escape(str(link[key]), quote=True)}"' for key in ("rel", "type", "href") if key in link
+        )
         return f"\n    <link {attributes}>"
 
     return "".join(element(link) for link in links) + "\n    "
@@ -2013,7 +2522,13 @@ def link_elements(links: list[dict[str, str]]) -> str:
 def script_json(value: Any) -> str:
     """Serialise JSON safely for embedding in an HTML <script> element."""
     serialised = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-    for char, escape in (("<", "\\u003c"), (">", "\\u003e"), ("&", "\\u0026"), (" ", "\\u2028"), (" ", "\\u2029")):
+    for char, escape in (
+        ("<", "\\u003c"),
+        (">", "\\u003e"),
+        ("&", "\\u0026"),
+        ("\u2028", "\\u2028"),
+        ("\u2029", "\\u2029"),
+    ):
         serialised = serialised.replace(char, escape)
     return serialised
 
@@ -2067,6 +2582,7 @@ RE3DATA_FACTS = (
     "policies",
     "versioning",
     "qualityManagement",
+    "doi",  # the record's DOI, by which the maturity check finds the repository in DataCite
 )
 
 
@@ -2083,6 +2599,22 @@ def re3data_facts(content: dict[str, Any]) -> dict[str, Any]:
         | {key: repository[key] for key in RE3DATA_FACTS if key in repository}
         for repository in snapshot.get("repository", [])
         if repository.get("re3data")
+    }
+
+
+def provider_config(live: dict[str, Any]) -> dict[str, Any] | None:
+    """What the page needs to run or import an external evaluator: limits, links and reviewed versions. Names,
+    labels and mappings are crate data (`#criterion-*`), loaded with the questions."""
+    if not live.get("provider"):
+        return None
+    keep = ("id", "name", "mode", "connector", "path", "versionPath", "form", "documentation", "code", "terms")
+    limits = ("scoreMax", "maturityMax", "maxParallel", "timeoutSeconds", "maxBytes")
+    return live.get("providers", {}) | {
+        "list": [
+            {key: provider[key] for key in keep + limits if key in provider}
+            | {"reviewed": provider.get("reviewed", []), "metrics": [metric["id"] for metric in provider["metric"]]}
+            for provider in live["provider"]
+        ]
     }
 
 
@@ -2118,10 +2650,12 @@ def page_config(
             "champion": champion,
             "nanopub": live.get("nanopub"),
             "dmpStatus": live.get("dmpStatus"),
-            "fairsharing": live.get("fairsharing"),
+            "nkr": nkr_config(content["snapshots"]),
             "discovery": live.get("discovery"),
             "helpers": live.get("helpers"),
+            "views": VIEW_SCRIPTS,
             "software": live.get("software"),
+            "providers": provider_config(live),
             "vocab": {
                 "roCrate": RO_CRATE,
                 "ftr": FTR,
@@ -2130,11 +2664,14 @@ def page_config(
                 "guide": guide["vocabularyBase"],
                 "webApplication": WEB_APPLICATION,
             },
+            "favicons": {
+                "hosts": sorted(entry["host"] for entry in content.get("favicons", [])),
+                "homeOnly": sorted(entry["host"] for entry in content.get("favicons", []) if entry.get("homeOnly")),
+            },
             "icons": {
                 "ui": content.get("icons", {}).get("ui", {}),
-                "stage": {
-                    stage["id"]: stage["icon"] for stage in content["guide"].get("stage", []) if stage.get("icon")
-                },
+                "kind": content.get("icons", {}).get("kind", {}),
+                "relation": content.get("icons", {}).get("relation", {}),
                 "lens": {lens["id"]: lens["icon"] for lens in content["guide"].get("lens", []) if lens.get("icon")},
                 "level": {
                     level["id"]: level["icon"] for level in content["guide"].get("level", []) if level.get("icon")
@@ -2159,6 +2696,7 @@ def page_config(
             },
             "credits": build_credits(content),
             "pageMenu": {page["id"]: page["menu"] for page in content["pages"] if page.get("menu")},
+            "toolGroup": {page["id"]: page["group"] for page in content["pages"] if page.get("menu") == "tools"},
             "re3data": re3data_facts(content),
             "tasks": [
                 {key: task[key] for key in ("lens", "label", "href", "icon") if key in task}
@@ -2235,27 +2773,62 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
     }
     parts: dict[str, dict[str, Any]] = {name: {"entities": [], "properties": {}} for name in PART_SCRIPTS}
     core = []
+    path_stages = f"#lifecycle-{PATH_LIFECYCLE}."
     for entity in graph:
         if entity["@id"] == "#implementation-model" or str(entity["@id"]).startswith(
             ("#layer-", "#seam-", "#model-context-", "#model-example-", "#model-worked-")
         ):
             parts["model"]["entities"].append(entity)
+        elif str(entity["@id"]).startswith(path_stages):
+            # The path's stages name the rail on every view; their definitions load with the other life-cycle models.
+            detail = {
+                key: entity[key]
+                for key in ("description", "descriptionTranslation", "quotedDefinition", "citation", "license")
+                if key in entity
+            }
+            parts["model"]["properties"][entity["@id"]] = detail
+            core.append({key: value for key, value in entity.items() if key not in detail})
+        elif entity["@id"] == f"#lifecycle-{PATH_LIFECYCLE}":
+            # The path's model names its stages' source on the landing, with a link to the page that publishes it.
+            detail = {key: entity[key] for key in ("citation", "hasDefinedTerm") if key in entity}
+            parts["model"]["properties"][entity["@id"]] = detail
+            core.append({key: value for key, value in entity.items() if key not in detail})
+        elif str(entity["@id"]).startswith(("#lifecycle-", "#crosswalk-")):
+            parts["model"]["entities"].append(entity)
         elif entity.get("@type") == "rdf:Property" and entity.get("rdfs:label") in MODEL_TERMS:
             # Full definitions are needed only with the model; its property IRIs remain in the core context.
             parts["model"]["entities"].append(entity)
-        # The FIP Dashboard snapshot: the profiles and the resource records they declare.
-        elif str(entity["@id"]).startswith("#item-"):
+        # The FIP Dashboard snapshot (the profiles and the resource records they declare) and the KNAV catalogue's.
+        elif str(entity["@id"]).startswith(("#item-", "#criterion-", "#mapping-")):
+            # External evaluators' criteria and their reviewed mappings load with the questions they relate to.
             parts["questions"]["entities"].append(entity)
-        elif str(entity["@id"]).startswith(("#fip-", "#fer-")):
+        elif str(entity["@id"]).startswith(("#fip-", "#fer-", "#knav-")):
             parts["fips"]["entities"].append(entity)
         elif str(entity["@id"]).startswith(STANDARD_CLAUSES):
             parts["standards"]["entities"].append(entity)
-        elif entity.get("@type") in ("CreateAction", "UpdateAction") and entity.get("description"):
-            # The catalogue uses detailed provenance; navigation and credits need only names and dates.
-            parts["standards"]["properties"][entity["@id"]] = {"description": entity["description"]}
-            core.append({key: value for key, value in entity.items() if key != "description"})
+        elif entity.get("@type") in ("CreateAction", "UpdateAction") and (
+            entity.get("description") or entity.get("result")
+        ):
+            # The catalogue uses detailed provenance and a station's sources what changed it, both after this part
+            # loads; navigation and credits need only names and dates.
+            detail = {
+                key: entity[key]
+                for key in ("description", "result", "object", "agent", "instrument", "actionStatus")
+                if key in entity
+            }
+            parts["standards"]["properties"][entity["@id"]] = detail
+            core.append({key: value for key, value in entity.items() if key not in detail})
+        elif entity.get("adviceKind") == "ai" and ("promptSample" in entity or "checkAfter" in entity):
+            # An AI tip's prompt and what to check afterwards show on its station and the AI page, which load this.
+            detail = {key: entity[key] for key in ("promptSample", "checkAfter") if key in entity}
+            parts["standards"]["properties"][entity["@id"]] = detail
+            core.append({key: value for key, value in entity.items() if key not in detail})
         elif entity["@id"] in sections:
             parts["pages"]["entities"].append(entity)
+        elif str(entity["@id"]).startswith("#term-") and entity.get("description"):
+            # Glossary labels serve navigation immediately; original definitions load with sourced detail/search.
+            parts["standards"]["properties"][entity["@id"]] = {"description": entity["description"]}
+            core.append({key: value for key, value in entity.items() if key != "description"})
         elif "guidance" in entity:
             parts["standards"]["properties"][entity["@id"]] = {"guidance": entity["guidance"]}
             core.append({key: value for key, value in entity.items() if key != "guidance"})
@@ -2286,6 +2859,30 @@ def part_script(name: str, part: dict[str, Any]) -> str:
         "window.FairGuideData.parts = window.FairGuideData.parts || {};\n"
         f"window.FairGuideData.parts[{json.dumps(name)}] = {script_json(part)};\n"
     )
+
+
+def apply_language_patch(target: Any, patch: Any) -> None:
+    """Apply a language patch from `split_languages` in place, as the page's `mergeData` (assets/js/core.js) does.
+
+    The patch follows the target's tree. A null value, at an object key or an array position, changes nothing; an
+    object or array replaces a missing or scalar value with an empty container of its kind and is merged into it; an
+    array position past the end extends the array; any other value is set. Keys that would reach a prototype in the
+    page (`__proto__`, `constructor`, `prototype`) are skipped here as there. tests/fixtures/language-patch.json holds
+    the expected results both implementations are checked against.
+    """
+    entries = enumerate(patch) if isinstance(patch, list) else patch.items()
+    for key, value in entries:
+        if value is None or key in ("__proto__", "constructor", "prototype"):
+            continue
+        if isinstance(target, list):
+            target.extend([None] * (key + 1 - len(target)))
+        if isinstance(value, (dict, list)):
+            existing = target[key] if isinstance(target, list) else target.get(key)
+            if not isinstance(existing, (dict, list)):
+                target[key] = [] if isinstance(value, list) else {}
+            apply_language_patch(target[key], value)
+        else:
+            target[key] = value
 
 
 def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any]]]:
@@ -2330,7 +2927,9 @@ def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any
             return common, {lang: patch for lang, patch in patches.items() if any(item is not None for item in patch)}
         if isinstance(node, dict):
             common, patches = {}, {lang: {} for lang in LANGS}
-            bilingual = all(lang in node for lang in LANGS)
+            # A translated text holds one value per language; a table keyed by language codes whose values are
+            # themselves tables (the language facet's labels) is structure, and both languages keep all of it.
+            bilingual = all(lang in node for lang in LANGS) and not any(isinstance(node[lang], dict) for lang in LANGS)
             source_language = node.get("inLanguage") if not node.get("resourceType") else None
             glossary = str(node.get("@id", "")).startswith("#term-") and node.get("termCode")
             for key, item in node.items():
@@ -2430,6 +3029,15 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     if "helper" in ui["ui"]:
         parts["pages"]["ui"] = {"helper": ui["ui"]["helper"]}
         ui["ui"] = {key: value for key, value in ui["ui"].items() if key != "helper"}
+    # The self-check's own label groups (answers, evidence, results, evaluators) load with the questions, which every
+    # view showing them needs; its top-level strings, which the path's rail also uses, stay in the initial download.
+    selfcheck = ui["ui"].get("selfcheck", {})
+    grouped = {
+        key: value for key, value in selfcheck.items() if isinstance(value, dict) and not set(value) <= set(LANGS)
+    }
+    if grouped:
+        parts["questions"]["ui"] = {"selfcheck": grouped}
+        ui["ui"] = ui["ui"] | {"selfcheck": {key: value for key, value in selfcheck.items() if key not in grouped}}
     localized_core, core_languages, core_search = split_languages(core)
     localized_ui, ui_languages, _ = split_languages(ui)
     localized_parts = {name: split_languages(part) for name, part in parts.items()}
@@ -2490,12 +3098,13 @@ def profile_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
     comment = (re.search(r'rdfs:comment "([^"]+)"', description) or [None, ""])[1]
     specification = (re.search(r"prof:hasArtifact <([^>]+)>", description) or [None, ""])[1]
     up = "../../"
+    escape = html.escape
     files = sorted(path.relative_to(root).as_posix() for path in shapes.rglob("*.ttl"))
     items = "".join(
-        f'\n      <li><a href="{up}{name}" type="text/turtle">{name.removeprefix("profile/")}</a></li>'
+        f'\n      <li><a href="{escape(up + urllib.parse.quote(name), quote=True)}" type="text/turtle">'
+        f"{escape(name.removeprefix('profile/'))}</a></li>"
         for name in files
     )
-    escape = html.escape
     specification_link = f'<a href="{escape(specification)}">Specification</a> · ' if specification else ""
     page = f"""<!doctype html>
 <html lang="en">

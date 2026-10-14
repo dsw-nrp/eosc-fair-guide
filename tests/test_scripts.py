@@ -16,7 +16,9 @@ import sys
 import tempfile
 import tomllib
 import unittest
+import urllib.parse
 from datetime import date
+from html.parser import HTMLParser
 from pathlib import Path
 from unittest import mock
 
@@ -34,6 +36,24 @@ import register_ids  # noqa: E402
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "minimal"
 TODAY = date(2026, 3, 1)
+# Two life-cycle models, the path's and another, with one published correspondence (docs/content-model.md,
+# Life-cycle models); FixtureCase.add_lifecycles writes them into a fixture copy with covering provenance.
+LIFECYCLES = {
+    "lifecycle/1-path.toml": (
+        '[lifecycle]\nid = "rdmkit"\nposition = 1\nsource = "report"\nname = { cs = "Cyklus", en = "Cycle" }\n\n'
+        '[[stage]]\nid = "plan"\nname = { cs = "Plánování", en = "Plan" }\ndefinition = "Planning the data."\n'
+        'translation = "Plánování dat."\nlocator = "p. 1"\n'
+    ),
+    "lifecycle/2-other.toml": (
+        '[lifecycle]\nid = "other"\nposition = 2\nsource = "report"\nname = { cs = "Jiný", en = "Other" }\n\n'
+        '[[stage]]\nid = "fund"\nname = { cs = "Financování", en = "Fund" }\ntranslated = "cs"\n'
+        'definition = "Funding the work."\nlocator = "p. 2"\n'
+    ),
+    "lifecycle/crosswalk.toml": (
+        '[[correspondence]]\nstages = ["rdmkit.plan", "other.fund"]\nbasis = "published"\nsource = "report"\n'
+        'locator = "Figure 1"\n'
+    ),
+}
 
 
 class FixtureCase(unittest.TestCase):
@@ -55,6 +75,18 @@ class FixtureCase(unittest.TestCase):
         path = self.root / "content" / relative
         path.write_text(path.read_text(encoding="utf-8") + text, encoding="utf-8")
 
+    def add_lifecycles(self) -> None:
+        """LIFECYCLES in the fixture, covered by provenance, with the fixture's station in the path's stage."""
+        (self.root / "content" / "lifecycle").mkdir()
+        for relative, text in LIFECYCLES.items():
+            (self.root / "content" / relative).write_text(text, encoding="utf-8")
+        self.edit(
+            "provenance.toml",
+            '"test:test_one"]',
+            '"test:test_one", "lifecycle:*", "rdmkit.*", "other.*", "crosswalk:*"]',
+        )
+        self.edit("stations/01-one.toml", "position = 1\n", 'position = 1\nlifecycleStage = "plan"\n')
+
     def errors(self) -> list[str]:
         content = build_crate.load_content(self.root / "content")
         return check_content.check(content, self.root, today=TODAY).errors
@@ -73,6 +105,13 @@ class GeneratorTests(FixtureCase):
         self.edit("stations/01-one.toml", "station:one", "station:missing")
         self.assertError("unknown entry 'station:missing'")
 
+    def test_embedded_json_escapes_only_the_unsafe_characters(self) -> None:
+        # Markup and the two JavaScript line terminators are escaped; every other character, spaces included, stays.
+        value = {"text": "a <b> & c d e"}
+        serialised = build_crate.script_json(value)
+        self.assertEqual(serialised, '{"text":"a \\u003cb\\u003e \\u0026 c\\u2028d\\u2029e"}')
+        self.assertEqual(json.loads(serialised), value)
+
     def test_output_is_deterministic(self) -> None:
         first = build_crate.outputs(self.root)
         second = build_crate.outputs(self.root)
@@ -87,6 +126,42 @@ class GeneratorTests(FixtureCase):
         crate = json.loads(build_crate.outputs(self.root)[build_crate.CRATE_FILE])
         graph = {entity["@id"]: entity for entity in crate["@graph"]}
         self.assertEqual(graph["#clause-A.F1.R1"]["supersededBy"], {"@id": "#clause-A.F1.X1"})
+
+    def test_glossary_definition_language_license_and_deferred_text_are_lossless(self) -> None:
+        definition = "Původní česká definice.\n\nDruhý odstavec."
+        license_uri = "https://creativecommons.org/licenses/by/4.0/"
+        graph = build_crate.Graph()
+        build_crate.build_glossary(
+            graph,
+            {
+                "glossary": {"source": "Heslář", "license": license_uri},
+                "term": [
+                    {
+                        "id": 1,
+                        "label": {"cs": "data", "en": "data"},
+                        "definition": definition,
+                        "definitionLanguage": "cs",
+                        "url": "https://example.org/term/1",
+                    },
+                    {"id": 2, "label": {"cs": "pojem", "en": "term"}},
+                ],
+            },
+        )
+        entity = graph.entities["#term-1"]
+        self.assertEqual(entity["description"], {"@value": definition, "@language": "cs"})
+        self.assertEqual(entity["license"], license_uri)
+        self.assertEqual(entity["url"], "https://example.org/term/1")
+        self.assertNotIn("description", graph.entities["#term-2"])
+        crate = {"@graph": list(graph.entities.values())}
+        core, parts = build_crate.split_crate(crate)
+        rebuilt = {entry["@id"]: dict(entry) for entry in core["@graph"]}
+        self.assertNotIn("description", rebuilt["#term-1"])
+        for part in parts.values():
+            for entry in part["entities"]:
+                rebuilt[entry["@id"]] = dict(entry)
+            for identifier, properties in part["properties"].items():
+                rebuilt[identifier].update(properties)
+        self.assertEqual(rebuilt, graph.entities)
 
     def test_the_guide_signposts_itself(self) -> None:
         self.edit("guide.toml", 'profileVersion = "0.1"\n', 'profileVersion = "0.1"\ndoi = "10.1234/guide"\n')
@@ -169,15 +244,7 @@ class GeneratorTests(FixtureCase):
         prefix = "window.FairGuideData.kb = "
         line = next(row for row in generated[build_crate.KB_SCRIPT].splitlines() if row.startswith(prefix))
         core = json.loads(line[len(prefix) : -1])
-
-        def merge(target, patch):
-            for key, value in enumerate(patch) if isinstance(patch, list) else patch.items():
-                if value is None:
-                    continue
-                if isinstance(value, (list, dict)):
-                    merge(target[key], value)
-                else:
-                    target[key] = value
+        merge = build_crate.apply_language_patch  # the documented semantics the page applies
 
         for lang, path in build_crate.LANGUAGE_SCRIPTS.items():
             start = f"window.FairGuideData.languages[{json.dumps(lang)}] = "
@@ -284,6 +351,37 @@ class GeneratorTests(FixtureCase):
         page.write_text(page.read_text(encoding="utf-8").replace("<!-- generated:ui --><!-- /generated:ui -->", ""))
         with self.assertRaises(build_crate.ContentError):
             build_crate.outputs(self.root)
+
+    def test_lifecycle_stages_crosswalk_and_path_link(self) -> None:
+        self.add_lifecycles()
+        content = build_crate.load_content(self.root / "content")
+        crate = build_crate.build_crate(content)
+        entities = {entity["@id"]: entity for entity in crate["@graph"]}
+        plan = entities["#lifecycle-rdmkit.plan"]
+        self.assertEqual(
+            plan["description"],
+            [{"@value": "Planning the data.", "@language": "en"}, {"@value": "Plánování dat.", "@language": "cs"}],
+        )
+        self.assertEqual(plan["descriptionTranslation"], "cs")
+        self.assertEqual(plan["inDefinedTermSet"], {"@id": "#lifecycle-rdmkit"})
+        self.assertEqual(entities["#lifecycle-other.fund"]["nameTranslation"], "cs")
+        correspondence = entities["#crosswalk-rdmkit.plan_other.fund"]
+        self.assertEqual(correspondence["mappingBasis"], "published")
+        self.assertEqual(correspondence["about"], [{"@id": "#lifecycle-rdmkit.plan"}, {"@id": "#lifecycle-other.fund"}])
+        self.assertEqual(correspondence["citation"], {"@id": "#source-report"})
+        self.assertEqual(entities["#station-one"]["lifecycleStage"], {"@id": "#lifecycle-rdmkit.plan"})
+        self.assertEqual(entities["#path"]["isBasedOn"], {"@id": "#lifecycle-rdmkit"})
+        # The path's stages name the rail in the core; definitions and the other models load with the model part.
+        core, parts = build_crate.split_crate(crate)
+        core_ids = {entity["@id"]: entity for entity in core["@graph"]}
+        self.assertNotIn("description", core_ids["#lifecycle-rdmkit.plan"])
+        self.assertIn("description", parts["model"]["properties"]["#lifecycle-rdmkit.plan"])
+        self.assertNotIn("#crosswalk-rdmkit.plan_other.fund", core_ids)
+        records = build_crate.api_records(entities, content)["lifecycle"]
+        self.assertEqual(
+            {record for record, _ in records},
+            {"rdmkit", "rdmkit.plan", "other", "other.fund", "crosswalk", "rdmkit.plan_other.fund"},
+        )
 
 
 class ContentCheckTests(FixtureCase):
@@ -417,6 +515,119 @@ class ContentCheckTests(FixtureCase):
     def test_in_page_target_must_exist(self) -> None:
         self.edit("stations/01-one.toml", 'href = "#check-gate"', 'href = "#nowhere"')
         self.assertError("in-page target '#nowhere' does not exist")
+
+    def test_topic_target_names_known_facets_and_values(self) -> None:
+        self.edit(
+            "stations/01-one.toml", 'href = "#check-gate"', 'href = "#resources?type=service,document&station=one"'
+        )
+        self.assertEqual(self.errors(), [])
+        self.edit("stations/01-one.toml", "type=service,document&station=one", "type=service,ghost")
+        self.assertError("unknown type value(s) ghost for #resources")
+        self.edit("stations/01-one.toml", "#resources?type=service,ghost", "#resources?colour=red")
+        self.assertError("unknown facet 'colour' for #resources")
+        self.edit("stations/01-one.toml", "#resources?colour=red", "#tests?type=service")
+        self.assertError("'#tests' takes no topic")
+        self.edit("stations/01-one.toml", "#tests?type=service", "#repositories?function=")
+        self.assertError("unknown function value(s) (none) for #repositories")
+
+    def test_lifecycle_models_hold_together(self) -> None:
+        self.add_lifecycles()
+        self.assertEqual(self.errors(), [])
+
+    def test_lifecycle_definition_is_quoted_never_translated(self) -> None:
+        self.add_lifecycles()
+        self.edit(
+            "lifecycle/2-other.toml", '"Funding the work."', '{ cs = "Financování práce.", en = "Funding the work." }'
+        )
+        self.assertError("lifecycle:other.fund: definition is a text, as a string")
+
+    def test_path_stage_definition_reads_the_same_in_both_languages(self) -> None:
+        self.add_lifecycles()
+        self.edit("lifecycle/1-path.toml", 'translation = "Plánování dat."', 'translation = "Plánování. Dat."')
+        self.assertError("the translation does not render the definition sentence for sentence")
+        self.edit("lifecycle/1-path.toml", 'translation = "Plánování. Dat."\n', "")
+        self.assertError("a path stage carries the Průvodce's Czech translation of its definition")
+        self.edit("lifecycle/2-other.toml", 'locator = "p. 2"', 'translation = "Financování práce."\nlocator = "p. 2"')
+        self.assertError("only the path's stages are translated")
+
+    def test_quoted_czech_definition_keeps_its_label(self) -> None:
+        self.add_lifecycles()
+        self.edit("lifecycle/1-path.toml", 'source = "report"\n', 'source = "report"\nczechSource = "report"\n')
+        self.edit("lifecycle/1-path.toml", 'locator = "p. 1"', 'czechDefinition = "plánování dat."\nlocator = "p. 1"')
+        self.assertError("the quoted Czech definition keeps its stage label ('Plánování: …')")
+        self.edit("lifecycle/1-path.toml", '"plánování dat."', '"Plánování: plánování dat."')
+        self.assertEqual(self.errors(), [])
+
+    def test_lifecycle_czech_definition_comes_from_the_czech_source(self) -> None:
+        self.add_lifecycles()
+        self.edit(
+            "lifecycle/2-other.toml", 'locator = "p. 2"', 'czechDefinition = "Financování práce."\nlocator = "p. 2"'
+        )
+        self.assertError("a Czech definition is quoted from the model's czechSource")
+
+    def test_correspondence_links_the_path_to_another_model(self) -> None:
+        self.add_lifecycles()
+        self.edit("lifecycle/crosswalk.toml", '"other.fund"]', '"other.ghost"]')
+        self.assertError("a correspondence names two known stages")
+        self.edit("lifecycle/crosswalk.toml", '["rdmkit.plan", "other.ghost"]', '["other.fund", "other.fund"]')
+        self.assertError("links a stage of 'rdmkit' to a stage of another model")
+
+    def test_correspondence_states_its_basis(self) -> None:
+        self.add_lifecycles()
+        self.edit("lifecycle/crosswalk.toml", 'locator = "Figure 1"\n', "")
+        self.assertError("a published correspondence cites its source and where it is published")
+        self.edit("lifecycle/crosswalk.toml", 'basis = "published"', 'basis = "reviewed"')
+        self.assertError("crosswalk:rdmkit.plan_other.fund: missing note")
+        self.edit("lifecycle/crosswalk.toml", 'basis = "reviewed"', 'basis = "assumed"')
+        self.assertError("basis must be one of published, reviewed, unconfirmed")
+
+    def test_every_path_stage_corresponds_to_each_model(self) -> None:
+        self.add_lifecycles()
+        (self.root / "content" / "lifecycle" / "crosswalk.toml").write_text("", encoding="utf-8")
+        self.assertError("lifecycle:rdmkit.plan: corresponds to no stage of other")
+
+    def test_station_stage_is_a_path_stage(self) -> None:
+        self.add_lifecycles()
+        self.edit("stations/01-one.toml", 'lifecycleStage = "plan"', 'lifecycleStage = "fund"')
+        self.assertError("station:one: lifecycleStage names no stage of 'rdmkit'")
+
+    def test_every_path_stage_holds_a_step(self) -> None:
+        self.add_lifecycles()
+        self.edit("stations/01-one.toml", 'lifecycleStage = "plan"\n', "")
+        self.assertError("lifecycle:rdmkit.plan: the stage holds no step of the path")
+
+    def test_steps_follow_the_life_cycle(self) -> None:
+        content = build_crate.load_content()
+        stations = {data["station"]["id"]: data["station"] for data in content["stations"]}
+        stations["collect"]["lifecycleStage"], stations["analyse"]["lifecycleStage"] = "analyse", "collect"
+        del stations["process"]["lifecycleStage"]
+        errors = check_content.check(content, build_crate.ROOT).errors
+        self.assertTrue(any("station:analyse: the steps follow the order" in error for error in errors), errors)
+        self.assertTrue(any("station:process: every step belongs to a stage" in error for error in errors))
+        self.assertFalse(any("station:assessment" in error for error in errors))
+
+    def test_lifecycle_change_needs_provenance(self) -> None:
+        self.add_lifecycles()
+        self.edit("provenance.toml", ', "crosswalk:*"]', "]")
+        self.assertError("crosswalk:rdmkit.plan_other.fund: no provenance action covers this item")
+
+    def test_the_guide_is_named_with_a_capital_letter(self) -> None:
+        self.edit(
+            "stations/01-one.toml",
+            'text = { cs = "Postup.", en = "Steps." }',
+            'text = { cs = "Postup průvodce.", en = "Steps of the guide." }',
+        )
+        self.assertError("name the Guide with a capital letter: 'průvodce'")
+        self.assertError("name the Guide with a capital letter: 'the guide'")
+        self.edit("stations/01-one.toml", '"Postup průvodce."', '"Vyberte s průvodcem licencemi."')
+        self.edit("stations/01-one.toml", '"Steps of the guide."', '"Steps of the Guide."')
+        self.assertError("name the Guide with a capital letter: 'průvodcem'")
+        self.edit(
+            "guide.toml",
+            'releaseStatus = "testing"\n',
+            'releaseStatus = "testing"\ngenericGuideUses = ["průvodcem licencemi"]\n',
+        )
+        self.assertFalse(any("D-177" in error for error in self.errors()))
 
     def test_item_without_provenance(self) -> None:
         self.edit("provenance.toml", '"gate.01", ', "")
@@ -631,6 +842,10 @@ class ContentCheckTests(FixtureCase):
         self.assertError("missing description")
         described = 'description = { cs = "Co dělá.", en = "What it does." }\n'
         pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + described + title, encoding="utf-8")
+        # A tools page names its group, so the tools view can show tools and guidance apart (D-185).
+        self.assertError("a tools page names its group")
+        grouped = described + 'group = "guidance"\n'
+        pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + grouped + title, encoding="utf-8")
         self.assertFalse(any(error.startswith("page:") for error in self.errors()), self.errors())
 
     def test_base_url_must_use_https(self) -> None:
@@ -737,7 +952,9 @@ class SnapshotTests(FixtureCase):
     def test_re3data_plain_http_home_page_links_to_the_record(self) -> None:
         inputs = Path(self.temp.name) / "inputs"
         inputs.mkdir()
-        (inputs / "re3data-list.xml").write_text("<list><repository><id>r3d1</id></repository></list>")
+        (inputs / "re3data-list.xml").write_text(
+            "<list><repository><id>r3d1</id><doi>https://doi.org/10.17616/R3AB12</doi></repository></list>"
+        )
         (inputs / "re3data-r3d1.xml").write_text(
             '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
             "<r3d:repositoryName>Old</r3d:repositoryName><r3d:repositoryURL>http://old.example.org/</r3d:repositoryURL>"
@@ -747,12 +964,8 @@ class SnapshotTests(FixtureCase):
             "<r3d:certificate>CoreTrustSeal</r3d:certificate><r3d:certificate>other</r3d:certificate>"
             "<r3d:versioning>yes</r3d:versioning></r3d:repository></r3d:re3data>"
         )
-        original = refresh_snapshots.ROOT
-        refresh_snapshots.ROOT = self.root
-        try:
-            refresh_snapshots.re3data(refresh_snapshots.Fetcher(inputs), "2026-01-01")
-        finally:
-            refresh_snapshots.ROOT = original
+        outcome = refresh_snapshots.refresh("re3data", refresh_snapshots.Fetcher(inputs), "2026-01-01", self.root)
+        self.assertEqual(outcome.status, "changed", outcome.reason)
         self.append("guide.toml", '\n[[repositoryKind]]\nid = "domain"\nname = { cs = "oborový", en = "domain" }\n')
         snapshot = (self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8")
         self.assertIn('url = "https://www.re3data.org/repository/r3d1"', snapshot)
@@ -760,11 +973,402 @@ class SnapshotTests(FixtureCase):
         self.assertIn('apis = ["OAI-PMH"]', snapshot)
         self.assertIn('certificates = ["CoreTrustSeal"]', snapshot)
         self.assertIn("versioning = true", snapshot)
+        self.assertIn('doi = "10.17616/R3AB12"', snapshot)
         self.assertEqual(self.errors(), [])
         facts = build_crate.page_config(build_crate.load_content(self.root / "content"))["config"]["re3data"]["r3d1"]
         self.assertEqual(facts["name"], "Old")
         self.assertEqual(facts["dataLicenses"], ["CC"])
         self.assertEqual(facts["date"], "2026-01-01")
+        self.assertEqual(facts["doi"], "10.17616/R3AB12")
+        # DataCite finds the repository by the record's DOI, which the crate keeps as the record's other identifier.
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        entity = next(item for item in crate["@graph"] if item["@id"] == "#repository-r3d1")
+        self.assertIn({"@id": "https://doi.org/10.17616/R3AB12"}, entity["sameAs"])
+        # A DOI that is not re3data's is refused, and the snapshot stays as it was.
+        (inputs / "re3data-list.xml").write_text(
+            "<list><repository><id>r3d1</id><doi>https://doi.org/10.1234/other</doi></repository></list>"
+        )
+        rejected = refresh_snapshots.refresh("re3data", refresh_snapshots.Fetcher(inputs), "2026-01-02", self.root)
+        self.assertEqual(rejected.status, "rejected")
+        self.assertIn("not a re3data DOI", rejected.reason)
+
+    def test_re3data_adds_reviewed_czech_hosted_repositories(self) -> None:
+        inputs = Path(self.temp.name) / "inputs"
+        inputs.mkdir()
+        record = (
+            '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
+            "<r3d:repositoryName>{name}</r3d:repositoryName><r3d:repositoryURL>https://{name}.example.org/</r3d:repositoryURL>"
+            "</r3d:repository></r3d:re3data>"
+        )
+        (inputs / "re3data-list.xml").write_text("<list><repository><id>r3d1</id></repository></list>")
+        (inputs / "re3data-r3d1.xml").write_text(record.format(name="listed"))
+        (inputs / "re3data-r3d2.xml").write_text(record.format(name="hosted"))
+        repositories = self.root / "content" / "repositories.toml"
+        repositories.write_text(
+            '[[re3dataInclude]]\nre3data = "r3d2"\nreason = "Hosted in the Czech Republic."\n', encoding="utf-8"
+        )
+        outcome = refresh_snapshots.refresh("re3data", refresh_snapshots.Fetcher(inputs), "2026-01-01", self.root)
+        self.assertEqual(outcome.status, "changed", outcome.reason)
+        snapshot = (self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8")
+        blocks = {block.split('id = "')[1].split('"')[0]: block for block in snapshot.split("[[repository]]")[1:]}
+        self.assertEqual(sorted(blocks), ["r3d1", "r3d2"])
+        self.assertIn(refresh_snapshots.INCLUSION_NOTE, blocks["r3d2"])
+        self.assertNotIn(refresh_snapshots.INCLUSION_NOTE, blocks["r3d1"])
+        repositories.write_text(repositories.read_text(encoding="utf-8").replace('"r3d2"', '"ELI"'), encoding="utf-8")
+        rejected = refresh_snapshots.refresh("re3data", refresh_snapshots.Fetcher(inputs), "2026-01-02", self.root)
+        self.assertEqual(rejected.status, "rejected")
+        self.assertIn("reviewed re3data inclusion", rejected.reason)
+
+
+class SnapshotRefreshTests(FixtureCase):
+    """A refresh replaces a snapshot only with a complete, plausible response, atomically; otherwise it stays."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.inputs = Path(self.temp.name) / "inputs"
+        self.inputs.mkdir()
+
+    def put(self, name: str, value: object) -> None:
+        text = value if isinstance(value, str) else json.dumps(value)
+        (self.inputs / name).write_text(text, encoding="utf-8")
+
+    def refresh(self, name: str, today: str = "2026-02-01") -> refresh_snapshots.Outcome:
+        return refresh_snapshots.refresh(name, refresh_snapshots.Fetcher(self.inputs), today, self.root)
+
+    def knav_inputs(self, **changes: object) -> None:
+        """The catalogue's last commit and two tools, one with a plain-HTTP address; `changes` alter the first."""
+        lifecycle = self.root / "content" / "lifecycle"
+        lifecycle.mkdir(exist_ok=True)
+        (lifecycle / "3-knav-tools.toml").write_text(
+            '[lifecycle]\nid = "knav-tools"\n\n[[stage]]\nid = "planning"\n\n[[stage]]\nid = "storing-archiving"\n',
+            encoding="utf-8",
+        )
+        self.put(
+            "knav-tools-commit.json", [{"sha": "a" * 40, "commit": {"committer": {"date": "2026-03-28T19:46:46Z"}}}]
+        )
+        first = {"id_name": "dmp", "full_name": "A DMP tool", "lifecycle_step": ["planning"], "icon": ["user.svg"]}
+        first |= {"desc_short": "Plans data.", "link": "https://dmp.example.org/"} | changes
+        second = {"id_name": "archive", "full_name": "An archive", "lifecycle_step": ["storing_archiving"]}
+        second |= {"icon": ["infinity.svg"], "desc_short": "Keeps data.", "link": "http://archive.example.org/"}
+        self.put("knav-tools.json", [first, second])
+
+    def listed_repositories(self) -> None:
+        """Two listed repositories: a curated one with an address only, and one from the re3data snapshot with its
+        re3data record and that record's DOI."""
+        (self.root / "content" / "repositories.toml").write_text(
+            '[[repository]]\nid = "local"\nname = "Local repository"\nurl = "https://data.example.org/"\n',
+            encoding="utf-8",
+        )
+        (self.root / "content" / "snapshots").mkdir(exist_ok=True)
+        (self.root / "content" / "snapshots" / "re3data.toml").write_text(
+            '[snapshot]\nsource = "re3data"\nurl = "https://www.re3data.org/"\nretrieved = 2026-01-01\n\n'
+            '[[repository]]\nid = "r3d100000002"\nname = "Registered repository"\nurl = "https://registered.example.org"\n'
+            're3data = "r3d100000002"\ndoi = "10.17616/R3AB12"\n',
+            encoding="utf-8",
+        )
+
+    @staticmethod
+    def fairsharing_record(doi: str, *related: str) -> dict[str, object]:
+        return {
+            "id": doi.lower(),
+            "attributes": {
+                "doi": doi.lower(),
+                "titles": [{"title": "FAIRsharing record for: A repository"}],
+                "relatedIdentifiers": [{"relatedIdentifier": value} for value in related],
+            },
+        }
+
+    def test_fairsharing_records_join_listed_repositories_by_re3data_record_or_address(self) -> None:
+        self.listed_repositories()
+        self.put(
+            "fairsharing-0.json",
+            {
+                "data": [
+                    self.fairsharing_record(
+                        "10.25504/FAIRsharing.abc123", "https://www.re3data.org/repository/r3d100000002"
+                    ),
+                    self.fairsharing_record("10.25504/FAIRsharing.def456", "http://www.data.example.org"),
+                ]
+            },
+        )
+        outcome = self.refresh("fairsharing")
+        self.assertEqual((outcome.status, outcome.counts), ("changed", {"annotation": 2}), outcome.reason)
+        data = tomllib.loads((self.root / "content" / "snapshots" / "fairsharing.toml").read_text(encoding="utf-8"))
+        rows = {row.get("re3data") or row.get("url"): row for row in data["annotation"]}
+        # DataCite answers in lower case; the snapshot keeps FAIRsharing's own spelling and the record's name.
+        self.assertEqual(rows["r3d100000002"]["fairsharing"], "10.25504/FAIRsharing.abc123")
+        self.assertEqual(rows["https://data.example.org/"]["fairsharing"], "10.25504/FAIRsharing.def456")
+        self.assertEqual(rows["r3d100000002"]["fairsharingName"], "A repository")
+
+    def test_fairsharing_refuses_foreign_records_and_an_unread_second_page(self) -> None:
+        self.listed_repositories()
+        self.put(
+            "fairsharing-0.json", {"data": [self.fairsharing_record("10.5281/zenodo.1", "https://data.example.org")]}
+        )
+        self.assertEqual(self.refresh("fairsharing").status, "rejected")
+        record = self.fairsharing_record("10.25504/FAIRsharing.abc123", "https://data.example.org")
+        self.put("fairsharing-0.json", {"data": [record] * refresh_snapshots.DATACITE_PAGE})
+        self.assertEqual(self.refresh("fairsharing").status, "rejected")
+        self.assertFalse((self.root / "content" / "snapshots" / "fairsharing.toml").exists())
+
+    def test_datacite_names_a_repository_only_when_one_datacite_repository_claims_its_record(self) -> None:
+        self.listed_repositories()
+        self.put("datacite-r3d100000002.json", {"data": [{"id": "member.one"}, {"id": "member.two"}]})
+        self.assertEqual(self.refresh("datacite").status, "empty")
+        self.put("datacite-r3d100000002.json", {"data": [{"id": "member.repo"}]})
+        outcome = self.refresh("datacite")
+        self.assertEqual((outcome.status, outcome.counts), ("changed", {"annotation": 1}), outcome.reason)
+        data = tomllib.loads((self.root / "content" / "snapshots" / "datacite.toml").read_text(encoding="utf-8"))
+        self.assertEqual(data["annotation"], [{"re3data": "r3d100000002", "datacite": "member.repo"}])
+
+    def test_annotations_and_nkr_records_join_the_catalogue_at_build_time(self) -> None:
+        self.listed_repositories()
+        snapshots = self.root / "content" / "snapshots"
+        (snapshots / "fairsharing.toml").write_text(
+            '[snapshot]\nsource = "FAIRsharing"\nurl = "https://fairsharing.org/"\nretrieved = 2026-01-02\n\n'
+            '[[annotation]]\nre3data = "r3d100000002"\n'
+            'fairsharing = "10.25504/FAIRsharing.abc123"\nfairsharingName = "R"\n\n'
+            '[[annotation]]\nurl = "https://unlisted.example.org/"\nfairsharing = "10.25504/FAIRsharing.zzz999"\n',
+            encoding="utf-8",
+        )
+        (snapshots / "datacite.toml").write_text(
+            '[snapshot]\nsource = "DataCite"\nurl = "https://datacite.org/"\nretrieved = 2026-01-02\n\n'
+            '[[annotation]]\nurl = "https://data.example.org"\ndatacite = "member.repo"\n',
+            encoding="utf-8",
+        )
+        (snapshots / "nkr.toml").write_text(
+            '[snapshot]\nsource = "NKR"\nurl = "https://repo.cz/"\nretrieved = 2026-01-02\n'
+            'fields = ["repositoryName", "mainUrl", "type"]\n\n'
+            '[[record]]\nid = "21.T15999/abc"\nurl = "https://repo.cz/objects/21.T15999/abc"\n'
+            'repositoryName = "National repository"\nmainUrl = "https://national.example.org/"\n'
+            'type = "institutional"\n',
+            encoding="utf-8",
+        )
+        content = build_crate.load_content(self.root / "content")
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
+        repositories = {
+            entity["@id"]: entity for entity in graph.entities.values() if entity.get("@type") == "DataCatalog"
+        }
+
+        def same_as(entity: dict[str, object]) -> list[str]:
+            return [item["@id"] for item in build_crate.as_list(entity.get("sameAs"))]
+
+        def sources(entity: dict[str, object]) -> list[str]:
+            return [item["@id"] for item in build_crate.as_list(entity.get("isBasedOn"))]
+
+        registered = repositories["#repository-r3d100000002"]
+        self.assertIn("https://doi.org/10.25504/FAIRsharing.abc123", same_as(registered))
+        self.assertIn("#snapshot-fairsharing", sources(registered))
+        self.assertEqual(repositories["#repository-local"]["dataciteRepository"], "member.repo")
+        self.assertIn("#snapshot-datacite", sources(repositories["#repository-local"]))
+        # An annotation naming no listed repository adds none; an NKR record becomes a repository with NKR's address.
+        self.assertFalse(any("zzz999" in value for entity in repositories.values() for value in same_as(entity)))
+        national = next(
+            entity for entity in repositories.values() if "https://repo.cz/objects/21.T15999/abc" in same_as(entity)
+        )
+        self.assertIn("#snapshot-nkr", sources(national))
+        self.assertEqual(build_crate.nkr_config(content["snapshots"])["records"][0]["content"]["type"], "institutional")
+
+    def test_knav_catalogue_becomes_a_snapshot_with_steps_and_disciplines(self) -> None:
+        self.knav_inputs()
+        outcome = self.refresh("knav-tools")
+        self.assertEqual((outcome.status, outcome.counts), ("changed", {"tool": 2}), outcome.reason)
+        data = tomllib.loads((self.root / "content" / "snapshots" / "knav-tools.toml").read_text(encoding="utf-8"))
+        self.assertEqual(data["snapshot"]["datasetVersion"], "a" * 40)
+        self.assertEqual(data["snapshot"]["license"], refresh_snapshots.KNAV_LICENSE)
+        tools = {tool["id"]: tool for tool in data["tool"]}
+        self.assertEqual(tools["archive"]["steps"], ["storing-archiving"])
+        self.assertEqual(tools["dmp"]["disciplines"], ["social-sciences-humanities"])
+        # The guide links only over HTTPS: a plain-HTTP address is kept as data, never as the tool's URL.
+        self.assertNotIn("url", tools["archive"])
+        self.assertEqual(tools["archive"]["httpUrl"], "http://archive.example.org/")
+
+    def test_knav_catalogue_that_changed_shape_is_rejected(self) -> None:
+        for changes, reason in (
+            ({"lifecycle_step": ["publishing"]}, "names unknown or no steps"),
+            ({"icon": ["planet.svg"]}, "unknown discipline group"),
+            ({"id_name": "Bad Id"}, "no lower-case id_name"),
+            ({"id_name": "archive"}, "two tools are named archive"),
+            ({"link": "ftp://dmp.example.org/"}, "no web address"),
+        ):
+            with self.subTest(reason):
+                self.knav_inputs(**changes)
+                outcome = self.refresh("knav-tools")
+                self.assertEqual(outcome.status, "rejected")
+                self.assertIn(reason, outcome.reason)
+        self.assertFalse((self.root / "content" / "snapshots" / "knav-tools.toml").exists())
+
+    def re3data_inputs(self, count: int) -> None:
+        ids = [f"r3d1000000{n:02}" for n in range(count)]
+        self.put(
+            "re3data-list.xml", "<list>" + "".join(f"<repository><id>{i}</id></repository>" for i in ids) + "</list>"
+        )
+        for repository_id in ids:
+            self.put(
+                f"re3data-{repository_id}.xml",
+                '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
+                f"<r3d:repositoryName>Repository {repository_id}</r3d:repositoryName>"
+                "<r3d:repositoryURL>https://repository.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
+            )
+
+    def test_heslar_definitions_keep_their_language_and_licence_without_html(self) -> None:
+        self.put(
+            "heslar.json",
+            {
+                "data": [
+                    {
+                        "id": 1,
+                        "termin_cs": "data",
+                        "termin_en": "data",
+                        "popis_cs": "<p>První <strong>odstavec</strong> &amp; text.</p>"
+                        '<script>fetch("https://evil.example")</script>'
+                        '<p>Druhý <a href="https://example.org">odstavec</a>.</p>',
+                    }
+                ]
+            },
+        )
+        self.assertEqual(self.refresh("heslar").status, "changed")
+        glossary = tomllib.loads((self.root / "content/glossary.toml").read_text(encoding="utf-8"))
+        self.assertEqual(glossary["glossary"]["license"], refresh_snapshots.HESLAR_LICENSE)
+        self.assertEqual(glossary["term"][0]["definition"], "První odstavec & text.\n\nDruhý odstavec.")
+        self.assertEqual(glossary["term"][0]["definitionLanguage"], "cs")
+        self.assertEqual(glossary["term"][0]["url"], "https://heslar.openscience.cz/heslo.php?id=1")
+
+    def test_heslar_missing_definition_does_not_invent_one(self) -> None:
+        self.put("heslar.json", {"data": [{"id": 1, "termin_cs": "data", "termin_en": "data"}]})
+        self.assertEqual(self.refresh("heslar").status, "changed")
+        glossary = tomllib.loads((self.root / "content/glossary.toml").read_text(encoding="utf-8"))
+        self.assertNotIn("definition", glossary["term"][0])
+
+    def test_an_empty_successful_response_keeps_the_snapshot(self) -> None:
+        self.put("heslar.json", {"data": [{"id": 1, "termin_cs": "data", "termin_en": "data"}]})
+        self.assertEqual(self.refresh("heslar").status, "changed")
+        glossary = (self.root / "content/glossary.toml").read_bytes()
+        self.put("heslar.json", {"data": []})
+        outcome = self.refresh("heslar")
+        self.assertEqual(outcome.status, "rejected")
+        self.assertIn("no term records", outcome.reason)
+        self.assertEqual((self.root / "content/glossary.toml").read_bytes(), glossary)
+        for broken in ("[]", '{"data": [{"termin_cs": "x"}]}', "not json"):
+            self.put("heslar.json", broken)
+            self.assertEqual(self.refresh("heslar").status, "rejected", broken)
+        self.assertEqual((self.root / "content/glossary.toml").read_bytes(), glossary)
+
+    def test_an_implausible_removal_is_rejected_and_a_reviewed_one_accepted(self) -> None:
+        self.re3data_inputs(4)
+        self.assertEqual(self.refresh("re3data").status, "changed")
+        path = self.root / "content/snapshots/re3data.toml"
+        before = path.read_bytes()
+        self.re3data_inputs(2)
+        outcome = self.refresh("re3data")
+        self.assertEqual((outcome.status, outcome.previous), ("rejected", {}))
+        self.assertIn("2 of 4 repository records would remain", outcome.reason)
+        self.assertEqual(path.read_bytes(), before)
+        (self.inputs / "re3data-list.xml").unlink()
+        self.re3data_inputs(3)
+        self.assertEqual(self.refresh("re3data").status, "changed", "a quarter may go")
+
+    def test_identical_data_changes_nothing_not_even_the_date(self) -> None:
+        self.re3data_inputs(2)
+        self.refresh("re3data", "2026-02-01")
+        path = self.root / "content/snapshots/re3data.toml"
+        before = path.read_bytes()
+        outcome = self.refresh("re3data", "2026-03-01")
+        self.assertEqual(outcome.status, "unchanged")
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_a_failed_write_leaves_the_old_snapshot_and_no_partial_file(self) -> None:
+        self.re3data_inputs(2)
+        self.refresh("re3data", "2026-02-01")
+        path = self.root / "content/snapshots/re3data.toml"
+        before = path.read_bytes()
+        self.re3data_inputs(3)
+        with mock.patch.object(refresh_snapshots.os, "replace", side_effect=OSError("disk full")):
+            self.assertEqual(self.refresh("re3data").status, "failed")
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual([item.name for item in path.parent.iterdir()], ["re3data.toml"])
+
+    def test_an_oversized_response_is_rejected(self) -> None:
+        self.put("heslar.json", {"data": [{"id": n, "termin_cs": "x", "termin_en": "x"} for n in range(50)]})
+        with mock.patch.object(refresh_snapshots, "MAX_RESPONSE_BYTES", 100):
+            outcome = self.refresh("heslar")
+        self.assertEqual(outcome.status, "rejected")
+        self.assertIn("exceeds 100 bytes", outcome.reason)
+        self.assertFalse((self.root / "content/glossary.toml").exists())
+
+    def test_dashboard_collections_are_replaced_together_or_not_at_all(self) -> None:
+        self.put("fip-dashboard-meta.json", {"name": {"cs": "D", "en": "D"}, "version": "1"})
+        self.put("fip-dashboard-resource-types.json", [{"id": "registry", "label": {"cs": "r", "en": "r"}}])
+        self.put("fip-dashboard-organizations.json", [{"id": "org", "name": {"cs": "O", "en": "O"}}])
+        self.put("fip-dashboard-resources.json", [{"id": "res", "name": "Res", "type": "registry"}])
+        self.put(
+            "fip-dashboard-fips.json", [{"id": "fip", "declarations": [{"resource": "missing", "principle": "F1"}]}]
+        )
+        outcome = self.refresh("fip-dashboard")
+        self.assertEqual(outcome.status, "rejected")
+        self.assertIn("missing", outcome.reason)
+        self.assertFalse((self.root / "content/snapshots/fip-dashboard.toml").exists())
+        self.put("fip-dashboard-fips.json", [{"id": "fip", "declarations": [{"resource": "res", "principle": "F1"}]}])
+        self.assertEqual(self.refresh("fip-dashboard").status, "changed")
+
+    def nkr_page(self, page: int, size: int, ids: list[str]) -> None:
+        results = [
+            {
+                "id": f"nkr/{i}",
+                "content": {
+                    "repositoryName": f"Repository {i}",
+                    "mainUrl": "https://r.example.org/",
+                    "pidType": ["DOI"],
+                    "mainContact": {"email": "person@example.org"},
+                    "unreviewed": "left out",
+                },
+            }
+            for i in ids
+        ]
+        self.put(f"nkr-{page}.json", {"pageNum": page, "pageSize": 100, "size": size, "results": results})
+
+    def test_nkr_pages_completely_and_keeps_only_reviewed_fields(self) -> None:
+        self.nkr_page(0, 0, [])
+        outcome = self.refresh("nkr")
+        self.assertEqual(outcome.status, "empty", "NKR lists none: no header-only file")
+        self.assertFalse((self.root / "content/snapshots/nkr.toml").exists())
+        with mock.patch.object(refresh_snapshots, "NKR_PAGE_SIZE", 2):
+            self.nkr_page(0, 3, ["a", "b"])
+            self.nkr_page(1, 3, ["c"])
+            self.assertEqual(self.refresh("nkr").status, "changed")
+            snapshot = (self.root / "content/snapshots/nkr.toml").read_text(encoding="utf-8")
+            self.assertEqual(snapshot.count("[[record]]"), 3)
+            self.assertIn('pidType = ["DOI"]', snapshot)
+            self.assertIn("mainContactPresent = true", snapshot)
+            self.assertNotIn("person@example.org", snapshot)
+            self.assertNotIn("unreviewed", snapshot)
+            self.nkr_page(1, 3, [])
+            outcome = self.refresh("nkr")
+            self.assertEqual(outcome.status, "rejected")
+            self.assertIn("2 of 3", outcome.reason)
+        with (
+            mock.patch.object(refresh_snapshots, "MAX_PAGES", 1),
+            mock.patch.object(refresh_snapshots, "NKR_PAGE_SIZE", 1),
+        ):
+            self.nkr_page(0, 2, ["a"])
+            self.assertIn("more than 1", self.refresh("nkr").reason)
+        self.assertEqual(build_crate.load_content(self.root / "content")["snapshots"][0]["snapshot"]["source"], "NKR")
+        self.assertTrue(build_crate.outputs(self.root), "a snapshot of NKR does not disturb the build")
+        self.assertIn("pidType", refresh_snapshots.nkr_fields(build_crate.ROOT))
+        self.assertNotIn(
+            "mainContact", [line.split(" = ")[0] for line in snapshot.splitlines() if line.startswith("mainContact ")]
+        )
+
+    def test_the_run_reports_each_outcome_and_fails_on_a_rejection(self) -> None:
+        self.put("heslar.json", {"data": []})
+        report = Path(self.temp.name) / "report.json"
+        with mock.patch.object(refresh_snapshots, "ROOT", self.root), mock.patch("builtins.print"):
+            code = refresh_snapshots.main(["heslar", "--input", str(self.inputs), "--report", str(report)])
+        self.assertEqual(code, 1)
+        outcomes = json.loads(report.read_text(encoding="utf-8"))["outcomes"]
+        self.assertEqual([(item["source"], item["status"]) for item in outcomes], [("heslar", "rejected")])
+        self.assertFalse(hasattr(refresh_snapshots, "slug"), "the unused duplicate slug helper is gone")
 
 
 class FreshnessTests(FixtureCase):
@@ -790,6 +1394,70 @@ class FreshnessTests(FixtureCase):
         report = check_content.Report()
         check_content.check_freshness(report, content, self.root, "HEAD")
         self.assertEqual(report.errors, [])
+
+    def commit(self, message: str) -> str:
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.org", "add", "-A")
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.org", "commit", "-q", "-m", message)
+        return check_content.git(self.root, "rev-parse", "HEAD").strip()
+
+    def test_local_and_pull_request_runs_compare_from_where_the_branch_left_the_base(self) -> None:
+        self.git("init", "-q", "-b", "main")
+        fork = self.commit("base")
+        self.git("checkout", "-q", "-b", "topic")
+        self.edit("stations/01-one.toml", "Postup.", "Upravený postup.")
+        self.commit("branch edit without paradata")
+        self.git("checkout", "-q", "main")
+        self.append("ledger.toml", "\n# a later change on the base branch\n")
+        tip = self.commit("base moves on")
+        self.git("checkout", "-q", "topic")
+        content = build_crate.load_content(self.root / "content")
+        for base in ("main", tip):
+            self.assertEqual(check_content.comparison_base(self.root, base)[0], fork, base)
+            report = check_content.Report()
+            check_content.check_freshness(report, content, self.root, base)
+            self.assertTrue(any(error.startswith("one.03:") for error in report.errors), (base, report.errors))
+        # Comparing with the branch's own last commit, as the old local default did, hides the committed edit.
+        report = check_content.Report()
+        check_content.check_freshness(report, content, self.root, "HEAD")
+        self.assertEqual(report.errors, [])
+
+    def test_every_compared_kind_needs_an_action(self) -> None:
+        content = build_crate.load_content(self.root / "content")
+        compared = set(check_content.item_fingerprints(content))
+        self.assertTrue({"guide", "org", "test:test_one"} <= compared)
+        content["provenance"][0]["results"] = []
+        errors = check_content.check(content, self.root, today=TODAY).errors
+        for item_id in compared:
+            self.assertTrue(any(f":{item_id}: no provenance action covers" in f":{error}" for error in errors), item_id)
+
+    def test_an_organisation_needs_paradata(self) -> None:
+        self.append("guide.toml", '\n[[organization]]\nid = "new-org"\nname = "New Organisation"\n')
+        self.assertError("organization:new-org: no provenance action covers this item")
+
+
+class ExactBaseTests(unittest.TestCase):
+    """The first pull-request run failed for eight organisations against this exact base (review task 12.21)."""
+
+    BASE = "01f20310966149b5bf1fb896047608f5fb8bac50"
+    ORGANISATIONS = ("knav", "aru-praha", "cesnet", "msmt", "ntk", "csda", "cuni", "nrp")
+
+    def setUp(self) -> None:
+        try:
+            check_content.git(build_crate.ROOT, "cat-file", "-e", self.BASE + "^{commit}")
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("the reported base commit is not in this clone")
+
+    def errors(self, content: dict) -> list[str]:
+        report = check_content.Report()
+        check_content.check_freshness(report, content, build_crate.ROOT, self.BASE)
+        return [error for error in report.errors if error.split(":", 1)[0] in self.ORGANISATIONS]
+
+    def test_the_eight_organisations_are_covered_against_the_reported_base(self) -> None:
+        content = build_crate.load_content()
+        self.assertEqual(self.errors(content), [])
+        for action in content["provenance"]:
+            action["results"] = [result for result in action.get("results", []) if result not in self.ORGANISATIONS]
+        self.assertEqual(sorted(error.split(":", 1)[0] for error in self.errors(content)), sorted(self.ORGANISATIONS))
 
 
 class IdentifierRegisterTests(FixtureCase):
@@ -840,6 +1508,42 @@ class DuplicateTests(FixtureCase):
     def assertDuplicate(self, fragment: str) -> None:  # noqa: N802 - unittest naming
         errors = self.duplicates()
         self.assertTrue(any(fragment in error for error in errors), errors)
+
+    def test_knav_tool_that_is_a_curated_entry_is_linked(self) -> None:
+        snapshot = self.root / "content" / "snapshots" / "knav-tools.toml"
+        snapshot.parent.mkdir(exist_ok=True)
+        snapshot.write_text(
+            '[snapshot]\nsource = "KNAV"\nurl = "https://example.org/knav"\nretrieved = 2026-01-01\n\n'
+            '[[tool]]\nid = "svc"\nname = "Service tool"\nurl = "https://example.org/service"\nsteps = ["planning"]\n'
+            'disciplines = ["all"]\ndescription = "A service."\n',
+            encoding="utf-8",
+        )
+        self.assertDuplicate("knav:svc: describes one thing with resource:service")
+        self.assertDuplicate("link the record with knav")
+        self.edit("resources.toml", 'id = "service"\n', 'id = "service"\nknav = "svc"\n')
+        self.assertEqual(self.duplicates(), [])
+        # A curated entry names a tool the snapshot has.
+        self.edit("resources.toml", 'knav = "svc"', 'knav = "ghost"')
+        self.assertError("knav names no tool of the KNAV catalogue snapshot ('ghost')")
+
+    def test_a_datacite_repository_id_is_well_formed_and_names_one_entry(self) -> None:
+        repositories = self.root / "content" / "repositories.toml"
+        entry = (
+            '[[repository]]\nid = "{id}"\nname = "Repo"\nurl = "https://{id}.example.org/"\nkind = "general"\n'
+            'status = "pilot"\nasOf = 2026-01-01\n'
+        )
+        repositories.write_text(entry.format(id="repo-a") + 'datacite = "member.repo"\n', encoding="utf-8")
+        self.assertEqual(self.errors(), [])
+        repositories.write_text(entry.format(id="repo-a") + 'datacite = "Member Repo"\n', encoding="utf-8")
+        self.assertError("datacite is not a DataCite repository ID ('Member Repo')")
+        repositories.write_text(
+            entry.format(id="repo-a")
+            + 'datacite = "member.repo"\n\n'
+            + entry.format(id="repo-b")
+            + 'datacite = "member.repo"\n',
+            encoding="utf-8",
+        )
+        self.assertError("member.repo")
 
     def dashboard(self, record: str = "") -> None:
         snapshots = self.root / "content" / "snapshots"
@@ -981,6 +1685,29 @@ class SiteTests(unittest.TestCase):
         self.assertIn("fd:asep-arl", entries["re3data:r3d100014032"].keys)
         self.assertIn("fd:clarin-dspace", entries["re3data:r3d100010386"].keys)
 
+    def test_missing_node_package_stops_the_build_before_output(self) -> None:
+        out = build_crate.ROOT / ".cache" / "test-missing-prerequisite"
+        shutil.rmtree(out, ignore_errors=True)
+        out.mkdir(parents=True)
+        (out / "previous.txt").write_text("previous build\n", encoding="utf-8")
+        try:
+            with mock.patch.object(build_api, "SWAGGER_DIR", out / "no-such-package"):
+                with self.assertRaises(build_site.MissingPrerequisiteError) as raised:
+                    build_site.build(out)
+                self.assertIn("swagger-ui-dist", str(raised.exception))
+                self.assertIn("npm ci", str(raised.exception))
+                self.assertEqual(sorted(path.name for path in out.iterdir()), ["previous.txt"])
+                with mock.patch("sys.stderr") as stderr:
+                    self.assertEqual(build_site.main(["--out", str(out)]), 2)
+                printed = "".join(call.args[0] for call in stderr.write.call_args_list)
+                self.assertIn("swagger-ui-dist", printed)
+                self.assertIn("npm ci", printed)
+        finally:
+            shutil.rmtree(out, ignore_errors=True)
+
+    @unittest.skipUnless(
+        (build_api.SWAGGER_DIR / build_api.SWAGGER_FILES[0]).is_file(), "needs the Node packages: run npm ci"
+    )
     def test_one_command_builds_the_whole_site(self) -> None:
         out = build_crate.ROOT / ".cache" / "test-site"
         try:
@@ -1021,6 +1748,205 @@ class SiteTests(unittest.TestCase):
         with self.assertRaises(build_crate.ContentError):
             build_site.build(build_crate.ROOT)
 
+    def test_every_tracked_top_level_directory_is_protected(self) -> None:
+        try:
+            listed = subprocess.run(
+                ["git", "ls-files", "-z"], cwd=build_crate.ROOT, capture_output=True, check=True
+            ).stdout.decode("utf-8")
+        except (OSError, subprocess.CalledProcessError):
+            self.skipTest("git is not available")
+        tracked = {name.split("/", 1)[0] for name in listed.split("\0") if "/" in name}
+        self.assertTrue(tracked)
+        self.assertEqual(tracked - build_crate.PROTECTED_TREES, set())
+
+
+def make_link(test: unittest.TestCase, path: Path, target: Path) -> None:
+    """A directory link, or a junction where Windows refuses links without privilege; skips when neither exists."""
+    try:
+        os.symlink(target, path, target_is_directory=True)
+    except OSError:
+        if os.name != "nt":
+            test.skipTest("directory links are not available")
+        import _winapi  # noqa: PLC0415 - Windows only
+
+        _winapi.CreateJunction(str(target), str(path))
+
+
+class SiteOutputTests(FixtureCase):
+    """The build replaces only a site directory it made; it refuses before anything is generated or removed."""
+
+    def sentinel(self, relative: str, root: Path | None = None) -> Path:
+        path = (root or self.root) / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("authored", encoding="utf-8")
+        return path
+
+    def assertRefused(self, out: Path, *sentinels: Path) -> None:  # noqa: N802 - unittest naming
+        generated = mock.patch.object(build_crate, "outputs", side_effect=AssertionError("generated before the check"))
+        with generated, self.assertRaises(build_crate.UnsafeOutputError):
+            build_site.build(out, self.root)
+        for path in sentinels:
+            self.assertEqual(path.read_text(encoding="utf-8"), "authored", path)
+
+    def test_the_repository_and_authored_trees_are_refused(self) -> None:
+        guide = self.root / "content" / "guide.toml"
+        original = guide.read_bytes()
+        sentinels = (self.sentinel("api/index.html"), self.sentinel("assets/css/app.css"), self.sentinel("docs/a.md"))
+        for out in (
+            self.root,
+            self.root / ".",
+            self.root / "content",
+            self.root / "api",
+            self.root / "assets",
+            self.root / "assets" / "css" / "site",
+            self.root / "_site" / ".." / "content",
+            self.root / "node_modules" / "site",
+        ):
+            with self.subTest(out=out):
+                self.assertRefused(out, *sentinels)
+        self.assertEqual(guide.read_bytes(), original)
+
+    def test_directories_outside_the_repository_files_and_foreign_directories_are_refused(self) -> None:
+        outside = self.sentinel("keep.txt", self.root.parent / "outside")
+        readme = self.sentinel("README.md")
+        foreign = self.sentinel("previews/keep.txt")
+        checkout = self.sentinel("_site/.git/HEAD")
+        for out in (outside.parent, readme, foreign.parent, checkout.parent.parent):
+            with self.subTest(out=out):
+                self.assertRefused(out, outside, readme, foreign, checkout)
+
+    def test_links_and_junctions_to_other_directories_are_refused(self) -> None:
+        guide = self.root / "content" / "guide.toml"
+        original = guide.read_bytes()
+        outside = self.sentinel("keep.txt", self.root.parent / "outside")
+        make_link(self, self.root / "_site", self.root / "content")
+        make_link(self, self.root / "elsewhere", outside.parent)
+        (self.root / ".cache").mkdir()
+        make_link(self, self.root / ".cache" / "assets", self.root / "content")
+        for out in (self.root / "_site", self.root / "elsewhere", self.root / ".cache" / "assets" / "site"):
+            with self.subTest(out=out):
+                self.assertRefused(out, outside)
+        self.assertEqual(guide.read_bytes(), original)
+        self.assertFalse((self.root / "content" / "site").exists())
+
+    def test_a_site_the_build_made_an_empty_or_the_default_directory_is_replaced_and_marked(self) -> None:
+        made = self.root / ".cache" / "site"
+        build_crate.replace_site(made, self.root)
+        self.sentinel(".cache/site/stale.txt")
+        empty = self.root / "empty"
+        empty.mkdir()
+        legacy = self.sentinel("_site/old.html").parent
+        for out in (made, empty, legacy, self.root / "new" / "site"):
+            with self.subTest(out=out):
+                site = build_crate.replace_site(out, self.root)
+                self.assertEqual([path.name for path in site.iterdir()], [build_crate.SITE_MARKER])
+
+    def test_the_standalone_api_refuses_the_authored_api_before_removing_it(self) -> None:
+        docs = self.sentinel("api/index.html")
+        with self.assertRaises(build_crate.UnsafeOutputError):
+            build_api.write_site(self.root, {})
+        with self.assertRaises(build_crate.UnsafeOutputError):
+            build_api.write_site(self.root / "api", {})
+        failing = mock.Mock(side_effect=AssertionError("wrote the API"))
+        with (
+            mock.patch.object(build_crate, "ROOT", self.root),
+            mock.patch.object(build_api, "write_site", failing),
+            mock.patch("sys.stderr"),
+        ):
+            for out in (self.root, self.root / "api", self.root / "assets", self.root / "_site" / ".." / "api"):
+                with self.subTest(out=out):
+                    self.assertEqual(build_api.main(["--out", str(out)]), 2)
+        failing.assert_not_called()
+        self.assertEqual(docs.read_text(encoding="utf-8"), "authored")
+
+
+class Elements(HTMLParser):
+    """Start tags with their attributes and the text inside links, as a browser's parser reads them."""
+
+    def __init__(self, text: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.tags: list[tuple[str, dict[str, str | None]]] = []
+        self.link_texts: list[str] = []
+        self._in_link = False
+        self.feed(text)
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.tags.append((tag, dict(attrs)))
+        if tag == "a":
+            self._in_link = True
+            self.link_texts.append("")
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "a":
+            self._in_link = False
+
+    def handle_data(self, data: str) -> None:
+        if self._in_link:
+            self.link_texts[-1] += data
+
+
+class GeneratedMarkupTests(FixtureCase):
+    """Empty collections, the profile's HTTPS rule and generated HTML hold for minimal content and hostile values."""
+
+    def test_minimal_content_without_snapshots_publishes_a_valid_description(self) -> None:
+        self.assertFalse((self.root / "content" / "snapshots").exists())
+        content = build_crate.load_content(self.root / "content")
+        # The fixture carries no interface strings of its own for the API; the guide's are used as they are.
+        content["ui"]["api"] = tomllib.loads((build_crate.CONTENT / "ui.toml").read_text(encoding="utf-8"))["api"]
+        api = build_api.Api(build_crate.build_crate(content), content)
+        docs = {path: json.loads(text) for path, text in api.files().items()}
+        openapi = docs[build_api.OPENAPI_FILE]
+        empty = [
+            name for name in build_crate.API_COLLECTIONS if not any(path.startswith(f"api/{name}/") for path in docs)
+        ]
+        self.assertIn("fips", empty, "the fixture exercises an empty snapshot collection")
+        self.assertEqual(
+            docs[build_api.META_FILE]["hasPart"],
+            [f"{name}.json" for name in build_crate.API_COLLECTIONS] + ["health.json"],
+        )
+        for name in build_crate.API_COLLECTIONS:
+            listed = docs[f"api/{name}.json"]
+            self.assertEqual(listed["numberOfItems"], len(listed["itemListElement"]), name)
+            self.assertIn(f"/api/{name}.json", openapi["paths"])
+            record_path = f"/api/{name}/{{{build_api.PARAMETERS[name]}}}.json"
+            if name in empty:
+                self.assertEqual(listed["numberOfItems"], 0, name)
+                self.assertNotIn(record_path, openapi["paths"])
+                continue
+            parameter = openapi["paths"][record_path]["get"]["parameters"][0]
+            self.assertTrue(parameter["schema"]["enum"], name)
+            self.assertIn(parameter["example"], parameter["schema"]["enum"])
+
+    def test_link_elements_escape_hostile_quoted_values(self) -> None:
+        hostile = {"rel": 'x" onload="alert(1)', "type": "a&b<c>", "href": 'page"><script>alert(1)</script>'}
+        parsed = Elements(build_crate.link_elements([hostile, {"rel": "license", "href": "https://example.org/l"}]))
+        self.assertEqual([tag for tag, _ in parsed.tags], ["link", "link"])
+        self.assertEqual(parsed.tags[0][1], hostile)
+        self.assertEqual(parsed.tags[1][1], {"rel": "license", "href": "https://example.org/l"})
+
+    def test_profile_page_escapes_file_links_and_names(self) -> None:
+        shapes = self.root / build_crate.PROFILE_DIR
+        names = ['x" onmouseover="alert(1)<b>.ttl', "a'b&c #1.ttl"]
+        with mock.patch.object(Path, "rglob", return_value=[shapes / name for name in names]):
+            page = build_crate.profile_page(self.root, {"profileVersion": "0.1"})["profile/0.1/index.html"]
+        parsed = Elements(page)
+        links = [
+            attributes for tag, attributes in parsed.tags if tag == "a" and attributes.get("type") == "text/turtle"
+        ]
+        expected = sorted(f"{build_crate.PROFILE_DIR}/{name}" for name in names)
+        self.assertEqual([link["href"] for link in links], ["../../" + urllib.parse.quote(name) for name in expected])
+        self.assertTrue(all(set(link) == {"href", "type"} for link in links))
+        self.assertNotIn("b", [tag for tag, _ in parsed.tags])
+        self.assertTrue({name.removeprefix("profile/") for name in expected} <= set(parsed.link_texts))
+
+    def test_every_profile_link_rule_requires_https(self) -> None:
+        shapes = (build_crate.ROOT / build_crate.PROFILE_DIR / "must" / "1_content.ttl").read_text(encoding="utf-8")
+        blocks = re.findall(r"sh:property \[(.*?)\]", shapes, flags=re.S)
+        links = [block for block in blocks if "sh:path schema:url" in block]
+        self.assertGreaterEqual(len(links), 2)
+        for block in links:
+            self.assertIn('sh:pattern "^https://"', block)
+
 
 class CheckAllTests(unittest.TestCase):
     def test_checks_run_at_once_and_a_failure_keeps_its_output(self) -> None:
@@ -1048,6 +1974,38 @@ class CheckAllTests(unittest.TestCase):
     def test_an_unknown_check_is_refused(self) -> None:
         with mock.patch("sys.stderr"), self.assertRaises(SystemExit):
             check_all.main(["--only", "no-such-check"])
+
+    def test_only_runs_the_named_checks_and_their_documented_dependency(self) -> None:
+        build = check_all.Result(check_all.Job("build", []), 0, 0.1, "")
+        content = check_all.Result(check_all.Job("content", []), 0, 0.1, "")
+        with (
+            mock.patch.object(check_all, "run", return_value=build) as run,
+            mock.patch.object(check_all, "run_all", return_value=[content]) as run_all,
+            mock.patch.object(check_all, "emit_report") as emit,
+            mock.patch.object(check_all.check_content, "default_base", return_value="origin/main"),
+            mock.patch("builtins.print"),
+        ):
+            self.assertEqual(check_all.main(["--only", "content"]), 0)
+        self.assertEqual([call.args[0].name for call in run.call_args_list], ["build"], "no health-api or other job")
+        self.assertEqual([job.name for job in run_all.call_args.args[0]], ["content"])
+        emit.assert_called_once()
+        self.assertEqual([job.name for job in emit.call_args.args[3]], ["content"])
+        self.assertFalse(emit.call_args.kwargs.get("pending_api"))
+        self.assertIn("health-api", [job.name for job in emit.call_args.args[2]])
+        named = check_all.selected_jobs([check_all.Job("content", []), check_all.Job("health-api", [])], ["health-api"])
+        self.assertEqual([job.name for job in named], ["health-api"])
+
+    def test_unrun_jobs_are_reported_unrun_and_the_run_partial(self) -> None:
+        jobs = [check_all.Job("content", []), check_all.Job("unit", []), check_all.Job("health-api", [])]
+        build = check_all.Result(check_all.Job("build", []), 0, 0.1, "")
+        with tempfile.TemporaryDirectory() as temp, mock.patch("builtins.print"):
+            check_all.emit_report(
+                build, [check_all.Result(jobs[0], 0, 0.1, "")], jobs, jobs[:1], output=Path(temp), previous=None
+            )
+            report = json.loads((Path(temp) / "health.json").read_text(encoding="utf-8"))
+        statuses = {job["name"]: job["status"] for job in report["run"]["jobs"]}
+        self.assertEqual(statuses, {"build": "passed", "content": "passed", "unit": "not_run", "health-api": "not_run"})
+        self.assertEqual(report["run"]["status"], "partial")
 
 
 class ApiTests(unittest.TestCase):

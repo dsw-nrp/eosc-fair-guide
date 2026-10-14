@@ -1,0 +1,9 @@
+Favicons of tools and services
+
+The images in assets/favicons/ are the favicons of the tools and services the guide names, each taken from the
+site of the service it identifies and reduced to one small square image by scripts/vendor_favicons.py. The address
+each was taken from and the date are recorded in assets/favicons/sources.toml.
+
+They are not covered by the MIT License or by Creative Commons Attribution 4.0. They are shown only beside the
+name of the service they belong to, to identify it. All rights remain with their owners, and any other use is
+subject to their rules.

@@ -19,7 +19,7 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Iterator
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_crate import (  # noqa: E402
     BLOCK,
     PAGE_FILE,
+    PATH_LIFECYCLE,
     REFERENCE,
     RESOURCE_TYPES,
     ROOT,
@@ -46,6 +47,7 @@ CLAUSE_STATUSES = ("current", "refresh", "superseded")
 HEALTH = ("available", "degraded", "unavailable")
 PREFILL_SOURCES = ("datacite", "nkr", "champion", "fip", "resolver", "re3data")
 ACTION_TYPES = ("create", "update")
+LIFECYCLE_BASES = ("published", "reviewed", "unconfirmed")
 RELEASE_STATUSES = ("testing", "released")
 # The checks the guide knows; a question's ID is its check's ID and a serial number (docs/content-model.md,
 # Identifiers).
@@ -177,6 +179,7 @@ def item_label(item: Any, index: int) -> str:
 
 
 def is_text(value: Any) -> bool:
+    """Whether a value is a bilingual table: keys only from LANGS. Every rule that reads bilingual text uses this."""
     return isinstance(value, dict) and set(value) <= set(LANGS) and bool(value)
 
 
@@ -198,14 +201,6 @@ def unique(report: Report, where: str, ids: list[str], what: str) -> None:
         seen.add(item_id)
 
 
-def to_datetime(value: Any) -> datetime | None:
-    if isinstance(value, datetime):
-        return value
-    if isinstance(value, date):
-        return datetime(value.year, value.month, value.day, tzinfo=UTC)
-    return None
-
-
 # ---------------------------------------------------------------------------
 # Rules
 
@@ -215,7 +210,7 @@ def check_texts(report: Report, content: dict[str, Any]) -> None:
     for name, data in content.items():
         for path, key, value in walk(data, name):
             where = f"{path}.{key}" if path else key
-            if isinstance(value, dict) and value and set(value) <= set(LANGS):
+            if is_text(value):
                 for lang in LANGS:
                     if not str(value.get(lang, "")).strip():
                         report.error(where, f"missing {'Czech' if lang == 'cs' else 'English'} text")
@@ -229,7 +224,27 @@ def check_texts(report: Report, content: dict[str, Any]) -> None:
                 report.error(where, "the guide shows no scores or percentages")
 
 
-def check_links(report: Report, content: dict[str, Any], targets: set[str]) -> None:
+def topic_target_error(value: str, topics: dict[str, dict[str, set[str]]]) -> str | None:
+    """Why a topic target such as `#resources?type=standard,vocabulary` is invalid, or None when it is valid."""
+    base, _, query = value.partition("?")
+    facets = topics.get(base)
+    if facets is None:
+        return f"'{base}' takes no topic; use one of {', '.join(sorted(topics))}"
+    if not query:
+        return "a topic target needs at least one facet"
+    for part in query.split("&"):
+        key, _, values = part.partition("=")
+        if key not in facets:
+            return f"unknown facet '{key}' for {base}; use one of {', '.join(sorted(facets))}"
+        unknown = [item for item in values.split(",") if item not in facets[key]]
+        if not values or unknown:
+            return f"unknown {key} value(s) {', '.join(unknown) or '(none)'} for {base}"
+    return None
+
+
+def check_links(
+    report: Report, content: dict[str, Any], targets: set[str], topics: dict[str, dict[str, set[str]]] | None = None
+) -> None:
     for name, data in content.items():
         for path, key, value in walk(data, name):
             where = f"{path}.{key}"
@@ -238,7 +253,11 @@ def check_links(report: Report, content: dict[str, Any], targets: set[str]) -> N
             if key == "url" and not (value.startswith("https://") or value.startswith("mailto:")):
                 report.error(where, f"link must use HTTPS: {value}")
             elif key == "href":
-                if value.startswith("#"):
+                if value.startswith("#") and "?" in value:
+                    error = topic_target_error(value, topics or {})
+                    if error:
+                        report.error(where, f"topic target '{value}': {error}")
+                elif value.startswith("#"):
                     if value not in targets:
                         report.error(where, f"in-page target '{value}' does not exist")
                 elif not value.startswith("https://"):
@@ -508,6 +527,173 @@ def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], 
             report.error(where, "context must reference known seams")
 
 
+ABBREVIATIONS = re.compile(r"\b(?:e\.g|i\.e|etc|např|tzv|tj|resp|apod)\.", re.IGNORECASE)
+
+
+def sentences(value: str) -> int:
+    """How many sentences a text has, not counting the full stops of common abbreviations."""
+    return len([part for part in re.split(r"(?<=[.!?])\s+", ABBREVIATIONS.sub("", value.strip())) if part])
+
+
+def lifecycle_items(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Stable identifiers for the life-cycle models (`lifecycle:<model>`), their stages (`<model>.<stage>`) and the
+    crosswalk's correspondences (`crosswalk:<stage>_<stage>`)."""
+    result: dict[str, dict[str, Any]] = {}
+    for data in content.get("lifecycles", []):
+        model = data["lifecycle"]
+        result[f"lifecycle:{model['id']}"] = model
+        result |= {f"{model['id']}.{stage['id']}": stage for stage in data.get("stage", [])}
+    result |= {"crosswalk:" + "_".join(item.get("stages", [])): item for item in content.get("crosswalk", [])}
+    return result
+
+
+GUIDE_CZECH = re.compile(r"(?<![\w-])průvodc(?:e|i|em|ů|ům|ích)\b")
+GUIDE_ENGLISH = re.compile(r"\b(?:the|this) guide\b")
+# Text that is not the Guide's own wording: quoted originals, registry records and published titles.
+GUIDE_NAME_SKIPPED = {"snapshots", "glossary", "identifiers"}
+
+
+def check_guide_name(report: Report, content: dict[str, Any]) -> None:
+    """The Guide is named with a capital letter wherever the word means it: Průvodce, the Guide (D-177). A
+    lower-case form is accepted only inside a reviewed generic use (`genericGuideUses` in guide.toml), such as a
+    licence selector."""
+    generic = [phrase.lower() for phrase in content["guide"]["guide"].get("genericGuideUses", [])]
+
+    def accepted(text: str, start: int, end: int) -> bool:
+        lowered = text.lower()
+        for phrase in generic:
+            for found in re.finditer(re.escape(phrase), lowered):
+                if found.start() <= start and end <= found.end():
+                    return True
+        return False
+
+    for name, data in content.items():
+        if name in GUIDE_NAME_SKIPPED:
+            continue
+        for path, key, value in walk(data, name):
+            if not isinstance(value, str) or key in ("guidance", "genericGuideUses") or ".citation" in path:
+                continue
+            pattern = GUIDE_ENGLISH if key == "en" or (key != "cs" and not GUIDE_CZECH.search(value)) else GUIDE_CZECH
+            for match in pattern.finditer(value):
+                if not accepted(value, match.start(), match.end()):
+                    report.error(f"{path}.{key}", f"name the Guide with a capital letter: '{match.group(0)}' (D-177)")
+
+
+def check_lifecycles(report: Report, content: dict[str, Any]) -> None:
+    """Each life-cycle model cites its source, and each stage keeps its published name and definition: a name the
+    guide translated is marked, a definition is quoted, and a path stage adds the Průvodce's Czech translation of it
+    (D-176). Each correspondence links a stage of the path's
+    model to another model's stage and states its basis; a source's correspondence cites where it is published, the
+    guide's own and an unconfirmed one say why. Every path stage corresponds to a stage of each other model, and a
+    station's stage is one of the path's."""
+    lifecycles = content.get("lifecycles", [])
+    if not lifecycles:
+        return
+    sources = {source["id"] for source in content["sources"]}
+    models = [data["lifecycle"] for data in lifecycles]
+    unique(report, "lifecycle", [model.get("id", "") for model in models], "model")
+    unique(report, "lifecycle", [str(model.get("position", "")) for model in models], "position")
+    if PATH_LIFECYCLE not in {model.get("id") for model in models}:
+        report.error("lifecycle", f"the path's life-cycle model '{PATH_LIFECYCLE}' is missing")
+    stages: dict[str, str] = {}
+    for data in lifecycles:
+        model = data["lifecycle"]
+        where = f"lifecycle:{model.get('id')}"
+        if not SLUG.match(str(model.get("id", ""))):
+            report.error(where, "the model ID must be lower-case kebab-case")
+        require_text(report, where, model.get("name"), "name", proper_name_allowed=True)
+        for field in ("source", "czechSource"):
+            if field in model and model[field] not in sources:
+                report.error(where, f"{field} names no source '{model[field]}'")
+        if "source" not in model:
+            report.error(where, "a life-cycle model cites its source")
+        unique(report, where, [stage.get("id", "") for stage in data.get("stage", [])], "stage")
+        if not data.get("stage"):
+            report.error(where, "a life-cycle model lists its stages")
+        for stage in data.get("stage", []):
+            key = f"{model.get('id')}.{stage.get('id')}"
+            stages[key] = model.get("id")
+            here = f"lifecycle:{key}"
+            if not SLUG.match(str(stage.get("id", ""))):
+                report.error(here, "the stage ID must be lower-case kebab-case")
+            require_text(report, here, stage.get("name"), "name", proper_name_allowed=True)
+            if set(as_list(stage.get("translated"))) - set(LANGS):
+                report.error(here, f"translated lists languages of the name: {', '.join(LANGS)}")
+            # The source's definition is quoted in its language; a path stage adds the Průvodce's Czech translation,
+            # sentence for sentence, and a Czech source's quote keeps its stage label so that it reads as a sentence.
+            for field in ("definition", "translation", "czechDefinition", "note"):
+                if field in stage and not (isinstance(stage[field], str) and stage[field].strip()):
+                    report.error(here, f"{field} is a text, as a string")
+            if not stage.get("definition"):
+                report.error(here, "missing definition")
+            if bool(stage.get("czechDefinition")) != bool(model.get("czechSource")):
+                report.error(here, "a Czech definition is quoted from the model's czechSource, for every stage")
+            label = stage["name"].get("cs", "") if isinstance(stage.get("name"), dict) else ""
+            if stage.get("czechDefinition") and not str(stage["czechDefinition"]).startswith(f"{label}: "):
+                report.error(here, f"the quoted Czech definition keeps its stage label ('{label}: …')")
+            if model.get("id") == PATH_LIFECYCLE and not stage.get("translation"):
+                report.error(here, "a path stage carries the Průvodce's Czech translation of its definition")
+            if model.get("id") != PATH_LIFECYCLE and stage.get("translation"):
+                report.error(here, "only the path's stages are translated; other definitions stay in their language")
+            if stage.get("translation") and sentences(stage["translation"]) != sentences(stage.get("definition", "")):
+                report.error(here, "the translation does not render the definition sentence for sentence")
+            if not stage.get("locator"):
+                report.error(here, "locator says where the source publishes the stage")
+    pairs = set()
+    linked: dict[str, set[str]] = {}
+    for item in content.get("crosswalk", []):
+        keys = as_list(item.get("stages"))
+        where = "crosswalk:" + "_".join(str(key) for key in keys)
+        if len(keys) != 2 or any(key not in stages for key in keys):
+            report.error(where, "a correspondence names two known stages, as <model>.<stage>")
+            continue
+        if [stages[key] for key in keys].count(PATH_LIFECYCLE) != 1:
+            report.error(where, f"a correspondence links a stage of '{PATH_LIFECYCLE}' to a stage of another model")
+        if frozenset(keys) in pairs:
+            report.error(where, "the correspondence is listed twice")
+        pairs.add(frozenset(keys))
+        basis = item.get("basis")
+        if basis not in LIFECYCLE_BASES:
+            report.error(where, f"basis must be one of {', '.join(LIFECYCLE_BASES)}")
+        if basis in ("published", "unconfirmed") and (item.get("source") not in sources or not item.get("locator")):
+            report.error(where, f"a {basis} correspondence cites its source and where it is published (locator)")
+        if basis in ("reviewed", "unconfirmed"):
+            require_text(report, where, item.get("note"), "note")
+        path_stage, other = sorted(keys, key=lambda key: stages[key] != PATH_LIFECYCLE)
+        linked.setdefault(path_stage, set()).add(stages[other])
+    others = {model.get("id") for model in models} - {PATH_LIFECYCLE}
+    for key, model in stages.items():
+        if model == PATH_LIFECYCLE and others - linked.get(key, set()):
+            report.error(
+                f"lifecycle:{key}", "corresponds to no stage of " + ", ".join(sorted(others - linked.get(key, set())))
+            )
+    # The path follows the cycle: each stage holds its steps in the cycle's order, and no step stands outside it; the
+    # assessment, a form of reuse, belongs to the reuse stage (D-175).
+    path_stages = [
+        stage["id"]
+        for data in lifecycles
+        if data["lifecycle"].get("id") == PATH_LIFECYCLE
+        for stage in data.get("stage", [])
+    ]
+    ordered = sorted((data["station"] for data in content["stations"]), key=lambda station: station.get("position", 0))
+    reached = -1
+    for station in ordered:
+        stage = station.get("lifecycleStage")
+        where = f"station:{station['id']}"
+        if stage is None:
+            report.error(where, "every step belongs to a stage of the life cycle; name its lifecycleStage")
+        elif stage not in path_stages:
+            report.error(where, f"lifecycleStage names no stage of '{PATH_LIFECYCLE}'")
+        elif path_stages.index(stage) < reached:
+            report.error(where, "the steps follow the order of the life cycle's stages")
+        else:
+            reached = path_stages.index(stage)
+    held = {station.get("lifecycleStage") for station in ordered}
+    for stage in path_stages:
+        if stage not in held:
+            report.error(f"lifecycle:{PATH_LIFECYCLE}.{stage}", "the stage holds no step of the path")
+
+
 def check_stations(report: Report, content: dict[str, Any], vocab: dict[str, set[str]], clause_ids: set[str]) -> None:
     stations = [data["station"] for data in content["stations"]]
     unique(report, "stations", [station["id"] for station in stations], "station")
@@ -759,17 +945,24 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
             report.error(entry["id"], "repository functions belong to repositories or registries")
     repositories = {item["re3data"] for snapshot in content["snapshots"] for item in snapshot.get("repository", [])}
     dashboard = {item["id"]: item for snapshot in content["snapshots"] for item in snapshot.get("resource", [])}
+    tools = {item["id"] for snapshot in content["snapshots"] for item in snapshot.get("tool", [])}
     annotations = content.get("repository_records", [])
-    for key in ("re3data", "fipDashboard"):
+    for key in ("re3data", "fipDashboard", "knav"):
         unique(report, f"repository records:{key}", [item[key] for item in annotations if item.get(key)], "record")
     for record in annotations:
-        where = f"repository record:{record.get('re3data') or record.get('fipDashboard')}"
-        if not record.get("re3data") and not record.get("fipDashboard"):
+        where = f"repository record:{record.get('re3data') or record.get('fipDashboard') or record.get('knav')}"
+        if not any(record.get(key) for key in ("re3data", "fipDashboard", "knav")):
             report.error(where, "an annotation must identify an imported record")
         if record.get("re3data") and record["re3data"] not in repositories:
             report.error(where, "unknown re3data record")
-        if record.get("fipDashboard") and dashboard.get(record["fipDashboard"], {}).get("type") != "repository":
+        # Functions describe a repository; an annotation that only joins records may name any FIP Dashboard record.
+        if record.get("fipDashboard") and (
+            record["fipDashboard"] not in dashboard
+            or (record.get("functions") and dashboard[record["fipDashboard"]].get("type") != "repository")
+        ):
             report.error(where, "unknown FIP Dashboard repository or registry record")
+        if record.get("knav") and record["knav"] not in tools:
+            report.error(where, "unknown KNAV catalogue tool")
         if not record.get("evidence"):
             report.error(where, "reviewed record annotations need published evidence")
         for url in record.get("evidence", []):
@@ -778,6 +971,19 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         for value in record.get("functions", []):
             if value not in vocab["repository_functions"]:
                 report.error(where, f"unknown repository function '{value}'")
+    for entry in content["resources"] + content["repositories"] + content["sources"]:
+        if entry.get("knav") and entry["knav"] not in tools:
+            report.error(entry["id"], f"knav names no tool of the KNAV catalogue snapshot ('{entry['knav']}')")
+    # A DataCite repository ID is the client's own ID, `<member>.<repository>` in lower case, and names one entry.
+    datacite = [
+        (entry["id"], entry.get("datacite") or entry.get("repository", {}).get("datacite"))
+        for entry in content["repositories"] + content["resources"]
+    ]
+    datacite = [(entry_id, value) for entry_id, value in datacite if value]
+    unique(report, "repositories:datacite", [value for _, value in datacite], "DataCite repository")
+    for entry_id, value in datacite:
+        if not isinstance(value, str) or not DATACITE_REPOSITORY.fullmatch(value):
+            report.error(entry_id, f"datacite is not a DataCite repository ID ('{value}')")
     for snapshot in content["snapshots"]:
         info = snapshot.get("snapshot", {})
         where = f"snapshot:{info.get('source')}"
@@ -787,8 +993,21 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         for repository in snapshot.get("repository", []):
             if repository.get("kind") and repository["kind"] not in vocab["repository_kinds"]:
                 report.error(f"{where}:{repository.get('id')}", f"unknown kind '{repository['kind']}'")
+        # An annotation joins one listed repository, named once, and adds a well-formed record to it.
+        for number, row in enumerate(snapshot.get("annotation", []), start=1):
+            here = f"{where}:annotation {number}"
+            if bool(row.get("re3data")) == bool(row.get("url")):
+                report.error(here, "an annotation names its repository by re3data or by url, one of them")
+            if row.get("fairsharing") and not FAIRSHARING_DOI.fullmatch(str(row["fairsharing"])):
+                report.error(here, f"fairsharing is not a FAIRsharing DOI ('{row['fairsharing']}')")
+            if row.get("datacite") and not DATACITE_REPOSITORY.fullmatch(str(row["datacite"])):
+                report.error(here, f"datacite is not a DataCite repository ID ('{row['datacite']}')")
+            if not row.get("fairsharing") and not row.get("datacite"):
+                report.error(here, "an annotation adds a fairsharing record or a datacite repository")
 
 
+DATACITE_REPOSITORY = re.compile(r"[a-z0-9]+\.[a-z0-9][a-z0-9.-]*")
+FAIRSHARING_DOI = re.compile(r"10\.25504/FAIRsharing\.[A-Za-z0-9]+")
 VERIFICATION_LEVELS = ("verified", "self-declared", "under-review")
 DECLARATION_STATUSES = ("in-use", "planned", "under-consideration", "to-be-replaced")
 
@@ -831,6 +1050,8 @@ def check_glossary(report: Report, content: dict[str, Any]) -> None:
         require_text(report, where, term.get("label"), "label")
         if term.get("definition") is not None and not licensed:
             report.error(where, "definitions may be copied only when the glossary's licence permits it")
+        if "definitionLanguage" in term and term["definitionLanguage"] not in LANGS:
+            report.error(where, "definitionLanguage must name a supported source language")
 
 
 def check_callouts(report: Report, content: dict[str, Any], vocab: dict[str, set[str]]) -> None:
@@ -915,12 +1136,108 @@ def check_live(report: Report, content: dict[str, Any], vocab: dict[str, set[str
             report.error(where, "the script is not in discovery.assessmentScripts")
         if test.get("entryPoint") != f'FairGuide.selfcheck.localTests["{test.get("id")}"]':
             report.error(where, "entryPoint must name this test's registered function")
+    check_providers(report, content, vocab, root, origins=origins, questions=questions)
     for script in sorted((root / "assets" / "js").rglob("*.js")):
         for number, line in enumerate(script.read_text(encoding="utf-8").splitlines(), start=1):
             for url in URL_LITERAL.findall(line):
                 origin = re.match(r"^(https?://[^/]+)", url)
                 if not origin or origin.group(1) not in origins:
                     report.error(f"{script.relative_to(root)}:{number}", f"URL outside the connector allowlist: {url}")
+
+
+PROVIDER_MODES = ("service", "import")
+COVERAGE = ("whole", "partial")
+
+
+def check_providers(
+    report: Report,
+    content: dict[str, Any],
+    vocab: dict[str, set[str]],
+    root: Path,
+    *,
+    origins: set[str],
+    questions: dict[str, dict[str, Any]],
+) -> None:
+    """External evaluators: reviewed connectors and limits, native criteria with their own wording, and mappings that
+    name a real question, a coverage and the versions they were reviewed against."""
+    live = content["live"]
+    providers = live.get("provider", [])
+    if not providers:
+        return
+    settings = live.get("providers", {})
+    script = str(settings.get("script", ""))
+    if not re.fullmatch(r"assets/js/[a-z][a-z0-9-]*\.js", script) or not (root / script).is_file():
+        report.error("providers", "script must name an existing file under assets/js/")
+    if not isinstance(settings.get("maxImportBytes"), int) or not 0 < settings["maxImportBytes"] <= 4 * 1024 * 1024:
+        report.error("providers", "maxImportBytes must be a whole number of bytes up to 4 MiB")
+    connectors = {connector.get("id"): connector for connector in live.get("connector", [])}
+    resources = {resource["id"] for resource in content["resources"]}
+    unique(report, "providers", [provider.get("id", "") for provider in providers], "provider")
+    for provider in providers:
+        where = f"provider:{provider.get('id')}"
+        if provider.get("resource") not in resources:
+            report.error(where, f"unknown resource '{provider.get('resource')}'")
+        if provider.get("mode") not in PROVIDER_MODES:
+            report.error(where, f"mode must be one of {', '.join(PROVIDER_MODES)}")
+        for key in ("form", "documentation", "code", "terms"):
+            if key in provider and not str(provider[key]).startswith("https://"):
+                report.error(where, f"{key} must be an https address")
+        if not provider.get("form"):
+            report.error(where, "a provider needs its public form or interface")
+        if not isinstance(provider.get("observed"), date):
+            report.error(where, "observed must be the date the provider was reviewed")
+        reviewed = provider.get("reviewed")
+        if not isinstance(reviewed, list) or not reviewed:
+            report.error(where, "reviewed must list the provider versions the mappings were reviewed against")
+        elif any(
+            not isinstance(entry, dict) or not entry or not all(isinstance(v, str) and v for v in entry.values())
+            for entry in reviewed
+        ):
+            report.error(where, "each reviewed version is a table of non-empty version strings")
+        if provider.get("mode") == "service":
+            connector = connectors.get(provider.get("connector"))
+            if connector is None or connector.get("origin") not in origins:
+                report.error(where, "a service provider needs a reviewed connector")
+            path = str(provider.get("path", ""))
+            if "{metric}" not in path or "{target}" not in path or path.startswith(("/", "http")):
+                report.error(where, "path must be relative to the connector and name {metric} and {target}")
+            for key, low, high in (("maxParallel", 1, 4), ("timeoutSeconds", 1, 60), ("maxBytes", 1, 1048576)):
+                if not isinstance(provider.get(key), int) or not low <= provider[key] <= high:
+                    report.error(where, f"{key} must be between {low} and {high}")
+            if not isinstance(provider.get("scoreMax"), int) or provider["scoreMax"] < 1:
+                report.error(where, "scoreMax must be the provider's highest native score")
+        if "maturityMax" in provider and (not isinstance(provider["maturityMax"], int) or provider["maturityMax"] < 1):
+            report.error(where, "maturityMax must be the provider's highest native maturity level")
+        metrics = provider.get("metric", [])
+        if not metrics:
+            report.error(where, "a provider lists its native criteria")
+        unique(report, where, [metric.get("id", "") for metric in metrics], "metric")
+        for metric in metrics:
+            here = f"{where}.{metric.get('id')}"
+            if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", str(metric.get("id", ""))):
+                report.error(here, "a metric ID is the provider's own identifier")
+            if not isinstance(metric.get("name"), str) or not metric["name"].strip():
+                report.error(here, "name is the provider's own wording of the criterion")
+            if metric.get("principle") not in vocab["principles"]:
+                report.error(here, f"unknown principle '{metric.get('principle')}'")
+            if not isinstance(metric.get("label"), dict) or any(not metric["label"].get(lang) for lang in LANGS):
+                report.error(here, "label needs Czech and English text")
+        metric_ids = {metric.get("id") for metric in metrics}
+        pairs = [f"{mapping.get('metric')} {mapping.get('question')}" for mapping in provider.get("mapping", [])]
+        unique(report, where, pairs, "mapping")
+        for mapping in provider.get("mapping", []):
+            here = f"{where}.{mapping.get('metric')}:{mapping.get('question')}"
+            if mapping.get("metric") not in metric_ids:
+                report.error(here, f"unknown metric '{mapping.get('metric')}'")
+            question = questions.get(mapping.get("question"))
+            if question is None:
+                report.error(here, f"unknown question '{mapping.get('question')}'")
+            elif question.get("context"):
+                report.error(here, "source context cannot be automatically answered")
+            if mapping.get("coverage") not in COVERAGE:
+                report.error(here, f"coverage must be one of {', '.join(COVERAGE)}")
+            if not isinstance(mapping.get("note"), dict) or any(not mapping["note"].get(lang) for lang in LANGS):
+                report.error(here, "note needs Czech and English text stating what the criterion covers")
 
 
 def content_index(content: dict[str, Any]) -> dict[str, str]:
@@ -941,6 +1258,8 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
         index[f"page:{page['id']}"] = "page"
     for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
         index[f"test:{test['id']}"] = "test"
+    for key in provider_criteria(content):
+        index[key] = "criterion"
     for resource in content["resources"]:
         index.setdefault(resource["id"], "resource")
     for repository in content["repositories"]:
@@ -954,6 +1273,9 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
             if record.get(key):
                 index.setdefault(f"{prefix}.{record[key]}", "repository record")
     index |= {key: "model" for key in model_items(content)}
+    index |= {key: "lifecycle" for key in lifecycle_items(content)}
+    for snapshot in content["snapshots"]:
+        index |= {f"knav.{tool['id']}": "catalogue tool" for tool in snapshot.get("tool", [])}
     return index
 
 
@@ -987,6 +1309,7 @@ def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
         "repositories": [repository["id"] for repository in content["repositories"]],
         "actions": [action["id"] for action in content["provenance"]],
         "model": list(model_items(content)),
+        "lifecycle": list(lifecycle_items(content)),
     }
 
 
@@ -1040,10 +1363,9 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
         if not isinstance(end_time, datetime) or end_time.tzinfo is None:
             report.error(where, "endTime must be a date-time with a time zone")
     patterns = [pattern for action in actions for pattern in action.get("results", [])]
-    for item_id, kind in index.items():
-        if kind in ("advice", "item", "resource", "clause", "test", "model") and not any(
-            covered(p, item_id) for p in patterns
-        ):
+    # Every item whose change needs fresh paradata needs paradata at all: one list serves both rules.
+    for item_id, (kind, _) in provenance_items(content).items():
+        if not any(covered(p, item_id) for p in patterns):
             report.error(f"{kind}:{item_id}", "no provenance action covers this item")
 
 
@@ -1067,14 +1389,15 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
         if len(set(entity_ids)) > 1:
             report.error(f"id:{content_id}", "names several entities: " + ", ".join(sorted(set(entity_ids))))
 
-    # Every reference to one of the crate's own entities names an entity the crate has.
+    # Every reference to one of the crate's own entities names an entity the crate has. A topic target
+    # (`#resources?type=standard`) names its kind; check_links checks its facets and values.
     def targets(value: Any) -> Iterator[str]:
         if isinstance(value, list):
             for item in value:
                 yield from targets(item)
         elif isinstance(value, dict):
             if set(value) == {"@id"}:
-                yield value["@id"]
+                yield str(value["@id"]).split("?")[0]
             else:
                 for item in value.values():
                     yield from targets(item)
@@ -1103,6 +1426,12 @@ def check_coherence(report: Report, content: dict[str, Any]) -> None:
         source for example in content.get("model", {}).get("example", []) for source in example.get("evidence", [])
     }
     cited |= {obj for action in content["provenance"] for obj in action.get("objects", [])}
+    cited |= {
+        source
+        for item in [data["lifecycle"] for data in content.get("lifecycles", [])] + content.get("crosswalk", [])
+        for source in (item.get("source"), item.get("czechSource"))
+        if source
+    }
     cited |= referenced(content)
     for resource in content["resources"]:
         if not resource.get("stations") and resource["id"] not in cited and not resource.get("repository"):
@@ -1150,7 +1479,7 @@ def check_references(report: Report, content: dict[str, Any]) -> None:
     for name, data in content.items():
         for path, key, value in walk(data, name):
             where = f"{path}.{key}" if path else key
-            if isinstance(value, dict) and value and set(value) <= set(LANGS):
+            if is_text(value):
                 found = {lang: entries(f"{where}.{lang}", str(value.get(lang, ""))) for lang in LANGS}
                 if found["cs"] != found["en"]:
                     differ = sorted(found["cs"] ^ found["en"])
@@ -1204,6 +1533,7 @@ def check_names(report: Report, content: dict[str, Any]) -> None:
 
 
 PAGE_MENUS = ("catalogue", "tools", "about", "header")  # header: a button beside the language
+TOOL_GROUPS = ("tool", "guidance")  # the tools view's sections: interactive helpers, then guidance
 
 
 def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
@@ -1220,6 +1550,8 @@ def check_pages_and_ui(report: Report, content: dict[str, Any]) -> None:
             )
         elif page["menu"] == "tools":
             require_text(report, where, page.get("description"), "description")
+            if page.get("group") not in TOOL_GROUPS:
+                report.error(where, f"a tools page names its group, one of {', '.join(TOOL_GROUPS)}")
         for number, section in enumerate(page.get("section", []), start=1):
             require_text(report, f"{where}[{number}]", section.get("body"), "body")
             if not isinstance(section.get("details", False), bool):
@@ -1281,9 +1613,6 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
         report.error("guide", f"releaseStatus must be one of {', '.join(RELEASE_STATUSES)}")
     if guide.get("releaseStatus") == "testing":
         require_text(report, "guide", guide.get("testingNotice"), "testingNotice")
-    for stage in guide_file.get("stage", []):
-        if stage.get("station") not in vocab["stations"]:
-            report.error(f"stage:{stage.get('id')}", f"opens unknown station '{stage.get('station')}'")
     for help_route in guide_file.get("help", []):
         for lens in help_route.get("lenses", []):
             if lens not in vocab["lenses"]:
@@ -1302,9 +1631,17 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
         if guide.get(field) and guide[field] not in organization_ids:
             report.error("guide", f"unknown {field} organisation '{guide[field]}'")
     for person in guide_file.get("person", []):
+        where = f"person:{person['id']}"
         for organization in person.get("affiliation", []):
             if organization not in organization_ids:
-                report.error(f"person:{person['id']}", f"unknown affiliation '{organization}'")
+                report.error(where, f"unknown affiliation '{organization}'")
+        # Reviewed identities for contributor matching (scripts/contributors.py); nothing is inferred from them.
+        if "github" in person and not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})", str(person["github"])):
+            report.error(where, "github must be a GitHub account name")
+        if not all(isinstance(name, str) and name.strip() for name in person.get("commitNames", [])):
+            report.error(where, "commitNames must be the exact names the person commits under")
+        if person.get("orcidOptOut") and person.get("orcid"):
+            report.error(where, "a person who opted out of listing an ORCID iD carries none")
     shapes = root / "profile" / "fair-guide"
     if shapes.exists():
         profile = (shapes / "profile.ttl").read_text(encoding="utf-8")
@@ -1364,13 +1701,24 @@ def in_page_targets(content: dict[str, Any]) -> set[str]:
     return targets
 
 
+def topic_targets(vocab: dict[str, Any]) -> dict[str, dict[str, set[str]]]:
+    """The catalogue kinds a link may open narrowed to a topic, with the facets and values each accepts."""
+    stations = set(vocab["stations"])
+    return {
+        "#resources": {"type": set(vocab["resource_types"]), "station": stations},
+        "#repositories": {"function": set(vocab["repository_functions"]), "station": stations},
+    }
+
+
 def check(content: dict[str, Any], root: Path, today: date | None = None) -> Report:
     report = Report()
     vocab = vocabularies(content)
     check_texts(report, content)
-    check_links(report, content, in_page_targets(content))
+    check_links(report, content, in_page_targets(content), topic_targets(vocab))
     check_sources(report, content)
     check_model(report, content, vocab, today or date.today())
+    check_lifecycles(report, content)
+    check_guide_name(report, content)
     check_type_crosswalk(report, content)
     clause_ids = check_ledger(report, content, vocab)
     for principle in content["principles"]:
@@ -1412,48 +1760,99 @@ def git(root: Path, *args: str) -> str:
     return result.stdout
 
 
-def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:
-    """Canonical JSON of every item that provenance must cover."""
-    items: dict[str, Any] = {"guide": content["guide"]["guide"]}
+def provider_criteria(content: dict[str, Any]) -> dict[str, Any]:
+    """External evaluators' criteria by content ID (`provider:<provider>.<metric>`), each with the provider's
+    reviewed versions and its mappings, so a changed mapping or reviewed version needs that criterion's paradata."""
+    criteria = {}
+    for provider in content["live"].get("provider", []):
+        for metric in provider.get("metric", []):
+            mappings = [mapping for mapping in provider.get("mapping", []) if mapping.get("metric") == metric.get("id")]
+            criteria[f"provider:{provider['id']}.{metric['id']}"] = {
+                "metric": metric,
+                "mappings": mappings,
+                "reviewed": provider.get("reviewed", []),
+            }
+    return criteria
+
+
+def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
+    """Every item provenance must cover, with its kind and content: the guide's metadata, clauses, advice, questions,
+    resources, tests, external evaluators' criteria, organisations, the model and the life-cycle models. Mandatory
+    coverage and freshness both read this one list, so a kind whose changes are compared is never a kind no action has
+    to cover."""
+    items: dict[str, tuple[str, Any]] = {"guide": ("guide", content["guide"]["guide"])}
     for clause in content["ledger"]:
-        items[clause["id"]] = clause
+        items[clause["id"]] = ("clause", clause)
     for data in content["stations"]:
         for advice in data.get("advice", []):
-            items[advice["id"]] = advice
+            items[advice["id"]] = ("advice", advice)
     for data in content["checks"]:
         for item in data.get("item", []):
-            items[item["id"]] = item
+            items[item["id"]] = ("item", item)
     for resource in content["resources"]:
-        items[resource["id"]] = resource
+        items[resource["id"]] = ("resource", resource)
     for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
-        items[f"test:{test['id']}"] = test
+        items[f"test:{test['id']}"] = ("test", test)
+    items |= {key: ("criterion", value) for key, value in provider_criteria(content).items()}
     for organization in content["guide"].get("organization", []):
-        items[organization["id"]] = organization
-    items |= model_items(content)
+        items[organization["id"]] = ("organization", organization)
+    items |= {key: ("model", value) for key, value in model_items(content).items()}
+    items |= {key: ("lifecycle", value) for key, value in lifecycle_items(content).items()}
     # Association changes alter the meaning of the mapped item and need that item's fresh paradata too.
     for association in content.get("model", {}).get("association", []):
         target = association["target"]
-        base = items.get(target)
+        kind, base = items.get(target, (None, None))
         if base is None:
-            base = next((item for item in content["sources"] if item["id"] == target), None)
-        items[target] = {"item": base, "modelAssociation": association}
-    return {key: json.dumps(value, sort_keys=True, default=str) for key, value in items.items()}
+            kind, base = "source", next((item for item in content["sources"] if item["id"] == target), None)
+        items[target] = (kind, {"item": base, "modelAssociation": association})
+    return items
+
+
+def item_fingerprints(content: dict[str, Any]) -> dict[str, str]:
+    """Canonical JSON of every item that provenance must cover."""
+    return {
+        key: json.dumps(value, sort_keys=True, default=str) for key, (_, value) in provenance_items(content).items()
+    }
+
+
+def default_base(root: Path) -> str:
+    """The branch a pull request is compared with: the remote's default branch."""
+    try:
+        return git(root, "symbolic-ref", "--short", "refs/remotes/origin/HEAD").strip()
+    except subprocess.CalledProcessError:
+        return "origin/main"
+
+
+def merge_base(root: Path, ref: str) -> str:
+    """Where the checked-out branch left `ref`. A local run and a pull-request run judge the same changes because both
+    compare with this point; git failing to find it is an error, never a quieter base."""
+    sha = git(root, "merge-base", ref, "HEAD").strip()
+    if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", sha):
+        raise ContentError(f"no merge base with {ref}")
+    return sha
+
+
+def comparison_base(root: Path, ref: str) -> tuple[str, datetime]:
+    """The merge base with `ref` and that commit's time, which a fresh provenance action must follow."""
+    sha = merge_base(root, ref)
+    return sha, datetime.fromisoformat(git(root, "show", "-s", "--format=%cI", sha).strip())
 
 
 def check_freshness(report: Report, content: dict[str, Any], root: Path, base: str) -> None:
-    base_time = datetime.fromisoformat(git(root, "show", "-s", "--format=%cI", base).strip())
+    sha, base_time = comparison_base(root, base)
     with tempfile.TemporaryDirectory() as temp:
         temp_root = Path(temp)
-        for path in git(root, "ls-tree", "-r", "--name-only", base, "content/").split():
+        for path in git(root, "ls-tree", "-r", "--name-only", sha, "content/").split():
             target = temp_root / path
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(git(root, "show", f"{base}:{path}"), encoding="utf-8")
+            target.write_text(git(root, "show", f"{sha}:{path}"), encoding="utf-8")
         before = (
             item_fingerprints(load_content(temp_root / "content"))
             if (temp_root / "content" / "guide.toml").exists()
             else {}
         )
     after = item_fingerprints(content)
+    since = base if sha.startswith(base) else f"{base} (merge base {sha[:12]})"
     for item_id, fingerprint in after.items():
         if before.get(item_id) == fingerprint:
             continue
@@ -1465,7 +1864,7 @@ def check_freshness(report: Report, content: dict[str, Any], root: Path, base: s
             and action["endTime"] > base_time
         ]
         if not fresh:
-            report.error(f"{item_id}", f"changed since {base} but no provenance action newer than that covers it")
+            report.error(f"{item_id}", f"changed since {since} but no provenance action newer than that covers it")
 
 
 # ---------------------------------------------------------------------------

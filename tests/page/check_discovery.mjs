@@ -33,14 +33,19 @@ config.connectors.push({ id: "fixture-object-a", name: "Reviewed fixture A", ori
 config.discovery.connectors = ["fixture-object-a", "fixture-object-b"];
 const code = readFileSync(resolve(root, "assets/js/live.js"), "utf8");
 const discoveryCode = readFileSync(resolve(root, "assets/js/discovery.js"), "utf8");
+// Discovery reads JSON-LD with the shared field readers, which load before it.
+const readersCode = readFileSync(resolve(root, "assets/js/assess.js"), "utf8");
 const browser = await chromium.launch();
 const page = await browser.newPage();
 const external = [];
-let moduleLoads = 0;
+let moduleLoads = 0, readerLoads = 0;
 await page.route("**/*", async (route) => {
   if (route.request().url().endsWith("/assets/js/discovery.js")) {
     moduleLoads += 1;
     await route.fulfill({ contentType: "text/javascript", body: discoveryCode });
+  } else if (route.request().url().endsWith("/assets/js/assess.js")) {
+    readerLoads += 1;
+    await route.fulfill({ contentType: "text/javascript", body: readersCode });
   } else if (route.request().url().endsWith("/fixture.html")) {
     await route.fulfill({ contentType: "text/html", body: "<!doctype html><title>Discovery fixtures</title>" });
   } else { external.push(route.request().url()); await route.abort(); }
@@ -49,12 +54,13 @@ try {
   await page.goto("https://guide.example/fixture.html");
   await page.evaluate((configuration) => {
     window.requests = [];
-    window.FairGuide = { config: configuration, list: (value) => value == null ? [] : Array.isArray(value) ? value : [value] };
+    window.FairGuide = { config: configuration, list: (value) => value == null ? [] : Array.isArray(value) ? value : [value], selfcheck: {},
+      unsafeKey: (name) => ["__proto__", "constructor", "prototype"].includes(name) };
     window.fetch = async () => { throw new Error("unexpected request on load"); };
   }, config);
   await page.addScriptTag({ content: code });
   assert.equal(await page.evaluate(() => window.requests.length), 0, "connector evaluation starts no request");
-  assert.equal(moduleLoads, 0, "discovery code stays deferred until a user action");
+  assert.equal(moduleLoads + readerLoads, 0, "discovery code stays deferred until a user action");
 
   async function fixture(routes, overrides = {}) {
     await page.evaluate(({ routes, overrides, configuration }) => {
@@ -94,6 +100,7 @@ try {
   const concurrent = await Promise.all([discover("urn:nbn:cz:example"), software("https://institution.example/group/tool")]);
   let result = concurrent[0];
   assert.equal(moduleLoads, 1, "concurrent user actions load the local connector code once");
+  assert.equal(readerLoads, 1, "the shared field readers load once, before discovery");
   assert.equal(result.supported, false);
   assert.equal(result.diagnostics[0].code, "unsupported-pid");
   assert.equal((await calls()).length, 0, "unsupported managed PID keeps manual assessment without a request");

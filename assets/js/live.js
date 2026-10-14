@@ -8,12 +8,14 @@
   const NKR_KIND = { disciplinary: "#rkind-domain", institutional: "#rkind-institutional", generic: "#rkind-general" };
   const NANOPUB_CODE = /(?:^|[^A-Za-z0-9_-])(RA[A-Za-z0-9_-]{43})(?![A-Za-z0-9_-])/;
 
+  /** The allowlisted connector with this ID; every connector call, including reviewed discovery, looks it up here. */
   function connector(id) {
     const found = FG.config.connectors.find((item) => item.id === id);
     if (!found) throw new Error("unknown connector " + id);
     return found;
   }
 
+  live.connector = connector;
   live.origin = (id) => connector(id).origin;
 
   /** Whether the service's API admits the guide's origin; a service that does not is used through its snapshot. */
@@ -49,16 +51,22 @@
     }
   };
 
-  /* Keep reviewed discovery off the initial download. A local classic script also works from file://. */
+  /* Keep reviewed discovery off the initial download. A local classic script also works from file://. Discovery
+     reads JSON-LD with the shared field readers (assess.js), so they load first unless a check already loaded them. */
   let discoveryLoad;
+  const loadLocalScript = (path) => new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = path;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("The Guide could not load its discovery connector."));
+    document.head.append(script);
+  });
   function loadDiscovery() {
-    if (!discoveryLoad) discoveryLoad = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = FG.config.discovery.script;
-      script.onload = resolve;
-      script.onerror = () => reject(new Error("The guide could not load its discovery connector."));
-      document.head.append(script);
-    });
+    if (!discoveryLoad) {
+      discoveryLoad = (FG.jsonLd ? Promise.resolve() : loadLocalScript(FG.config.discovery.assessmentScript))
+        .then(() => loadLocalScript(FG.config.discovery.script))
+        .catch((error) => { discoveryLoad = null; throw error; });
+    }
     return discoveryLoad;
   }
   live.discoverObject = async (...args) => { await loadDiscovery(); return live.discoverObject(...args); };
@@ -85,6 +93,52 @@
 
   /** The resolver link of a parsed identifier. */
   live.pidUrl = (pid) => live.origin(pid.type === "doi" ? "doi" : "handle") + "/" + pid.value;
+
+  /* ORCID iDs, ROR IDs and re3data records are recognised here alone, so search, the identifier helper, the checks
+     and the connectors accept the same forms: the bare identifier, or its registry address with or without the scheme,
+     "www." and a closing slash. Recognition reads the form; the identifier helper verifies ORCID and ROR checksums. */
+  const ORCID_FORM = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
+  const ROR_FORM = /^0[a-z0-9]{6}\d{2}$/;
+  const RE3DATA_FORM = /^r3d\d{9}$/;
+  const registryValue = (input, address) =>
+    String(input || "").trim().replace(address, "").replace(/[?#].*$/, "").replace(/\/$/, "");
+
+  /** An ORCID iD in its canonical form (upper-case check character), or null. */
+  live.parseOrcid = (input) => {
+    const value = registryValue(input, /^(?:https?:\/\/)?(?:www\.)?orcid\.org\//i).toUpperCase();
+    return ORCID_FORM.test(value) ? value : null;
+  };
+
+  /** A ROR ID in its canonical lower-case form, or null. */
+  live.parseRor = (input) => {
+    const value = registryValue(input, /^(?:https?:\/\/)?(?:www\.)?ror\.org\//i).toLowerCase();
+    return ROR_FORM.test(value) ? value : null;
+  };
+
+  /** A re3data record identifier (r3d…) written bare or as its re3data address, or null. A re3data DOI names the same
+      record only through its resolver: live.re3dataRecord follows it. */
+  live.parseRe3data = (input) => {
+    const value = registryValue(input, /^(?:https?:\/\/)?(?:www\.)?re3data\.org\/repository\//i).toLowerCase();
+    return RE3DATA_FORM.test(value) ? value : null;
+  };
+
+  /** Whether a parsed identifier is a DOI that re3data registers for its records (prefix 10.17616). */
+  live.isRe3dataDoi = (pid) => Boolean(pid && pid.type === "doi" && /^10\.17616\//.test(pid.value));
+
+  /** The re3data record an input names: an r3d identifier or address directly, or a DOI or Handle whose resolver
+      target is a re3data record. Null when it names none or the resolver cannot be asked. */
+  live.re3dataRecord = async function (input) {
+    const direct = live.parseRe3data(input);
+    if (direct) return direct;
+    const pid = live.parsePid(input);
+    if (!pid) return null;
+    try {
+      const resolved = await live.resolvePid(pid);
+      return live.parseRe3data((resolved && resolved.url) || "");
+    } catch (error) {
+      return null;
+    }
+  };
 
   /** Ask the DOI or Handle resolver whether the identifier exists and where it leads. */
   live.resolvePid = async function (pid, options) {
@@ -224,114 +278,17 @@
       .map((entry) => ({ name: String(entry.name), status: String(entry.status || "") }));
   };
 
-  /* ---------------------------------------------------------------- FAIRsharing */
-
-  /* FAIRsharing's API needs a login, but every FAIRsharing record has a DataCite DOI whose metadata lists the
-     described resource's addresses, including its re3data record, so a DataCite search finds the records. */
-  live.fairsharing = { state: "idle", records: [], asked: 0 };
-
-  /** An address without its scheme, "www." and trailing slashes, for matching. */
-  live.bareUrl = (url) =>
-    String(url || "")
-      .trim()
-      .toLowerCase()
-      .replace(/^https?:\/\//, "")
-      .replace(/^www\./, "")
-      .replace(/\/+$/, "");
-
-  function fairsharingRecord(entry) {
-    const attributes = (entry && entry.attributes) || {};
-    const first = (list, key) => FG.list(list).map((item) => item && item[key]).find((value) => typeof value === "string" && value) || "";
-    const related = FG.list(attributes.relatedIdentifiers)
-      .map((item) => String((item && item.relatedIdentifier) || ""))
-      .filter(Boolean);
-    return {
-      doi: String((entry && entry.id) || attributes.doi || ""),
-      name: first(attributes.titles, "title").replace(/^FAIRsharing record for:\s*/i, ""),
-      re3data: related.map((value) => (value.match(/r3d\d{9}/i) || [""])[0].toLowerCase()).find(Boolean) || null,
-      addresses: related.map(live.bareUrl),
-    };
-  }
-
-  /** FAIRsharing records of the given repositories ({ identifiers, url }), found by their re3data records and
-      addresses in DataCite searches of at most 30 terms each. */
-  live.findFairsharing = async function (repositories) {
-    const terms = new Set();
-    for (const repository of repositories) {
-      for (const id of FG.list(repository.identifiers)) if (/^r3d\d{9}$/i.test(id)) terms.add(FG.config.links.re3dataRecord + id.toLowerCase());
-      const url = String(repository.url || "");
-      if (/^https?:\/\//.test(url) && !url.includes('"')) {
-        terms.add(url);
-        terms.add(url.endsWith("/") ? url.replace(/\/+$/, "") : url + "/");
-      }
-    }
-    const all = [...terms];
-    const batches = [];
-    for (let start = 0; start < all.length; start += 30) batches.push(all.slice(start, start + 30));
-    const prefix = FG.config.fairsharing.prefix;
-    const answers = await Promise.all(
-      batches.map((batch) =>
-        live.fetchJson(
-          "datacite",
-          "dois?query=" + encodeURIComponent("relatedIdentifiers.relatedIdentifier:(" + batch.map((term) => '"' + term + '"').join(" OR ") + ")") + "&prefix=" + encodeURIComponent(prefix) + "&page[size]=100"
-        )
-      )
-    );
-    const records = new Map();
-    for (const answer of answers) for (const entry of FG.list(answer && answer.data)) {
-      const found = fairsharingRecord(entry);
-      if (found.doi && found.name) records.set(found.doi.toLowerCase(), found);
-    }
-    return [...records.values()];
-  };
-
-  /** The FAIRsharing record of a repository among those found, by its re3data record or its address. */
-  live.fairsharingOf = function (repository, records) {
-    const ids = FG.list(repository.identifiers).map((id) => String(id).toLowerCase());
-    const address = live.bareUrl(repository.url);
-    return (records || live.fairsharing.records).find((record) => (record.re3data && ids.includes(record.re3data)) || (address && record.addresses.includes(address))) || null;
-  };
-
-  live.loadFairsharing = async function (repositories) {
-    live.fairsharing.state = "loading";
-    live.fairsharing.asked = repositories.length;
-    FG.rerender("fairsharing-load");
-    try {
-      live.fairsharing.records = await live.findFairsharing(repositories);
-      live.fairsharing.state = "done";
-    } catch (error) {
-      live.fairsharing.state = "failed";
-    }
-    FG.rerender("fairsharing-load");
-  };
-
-  /** The FAIRsharing button and its status line, placed apart by the caller. */
-  live.fairsharingControls = function (repositories) {
-    const found = repositories.filter((repository) => live.fairsharingOf(repository)).length;
-    const status = {
-      loading: FG.t("repositories.fairsharingLoading"),
-      done: FG.t("repositories.fairsharingFound", { n: found, total: repositories.length }),
-      failed: FG.t("repositories.fairsharingFailed", { url: FG.config.links.fairsharing }),
-    }[live.fairsharing.state];
-    return {
-      button: FG.h("button", { type: "button", id: "fairsharing-load", onclick: () => live.loadFairsharing(repositories), disabled: live.fairsharing.state === "loading" }, FG.t("repositories.fairsharingLoad")),
-      status: status ? FG.h("p", { id: "fairsharing-status", role: "status", class: "small" }, status) : null,
-    };
-  };
-
   /* ---------------------------------------------------------------- NKR */
 
-  live.nkr = { state: "idle", records: [], samples: false };
-
-  function nkrRecord(result) {
-    const content = (result && result.content) || {};
+  /* NKR's repositories come with the page, from the snapshot a scheduled workflow refreshes, as do FAIRsharing's
+     records and DataCite's repositories (scripts/refresh_snapshots.py); none is asked for on demand. While NKR lists
+     no repository there is no snapshot, and nothing stands in for one. */
+  function nkrRecord(record) {
+    const content = (record && record.content) || {};
     const registries = FG.list(content.relatedRegistry);
-    const re3data = registries
-      .map((entry) => String((entry && entry.relatedRegistryUrl) || ""))
-      .map((url) => (url.match(/r3d\d+/) || [])[0])
-      .find(Boolean);
+    const re3data = registries.map((entry) => live.parseRe3data(entry && entry.relatedRegistryUrl)).find(Boolean);
     return {
-      id: result && result.id ? String(result.id) : null,
+      id: record && record.id ? String(record.id) : null,
       name: String(content.repositoryName || ""),
       url: String(content.mainUrl || ""),
       kind: NKR_KIND[content.type] || null,
@@ -341,46 +298,71 @@
     };
   }
 
-  live.loadNkr = async function () {
-    live.nkr.state = "loading";
-    FG.rerender("nkr-load");
-    try {
-      const data = await live.fetchJson("nkr", "search?query=type:Repository&pageSize=200");
-      live.nkr.records = FG.list(data.results).map(nkrRecord).filter((record) => record.name);
-      live.nkr.state = "done";
-    } catch (error) {
-      live.nkr.state = "failed";
-    }
-    FG.rerender("nkr-load");
-  };
+  /** The repositories NKR lists, as of the snapshot. */
+  live.nkrRecords = () => FG.list(FG.config.nkr && FG.config.nkr.records).map(nkrRecord).filter((record) => record.name);
 
-  /** The NKR button and its status line, placed apart by the caller. The sample records are offered where the
-      caller shows them (the repositories in the catalogue); elsewhere `empty` says what to do while NKR lists none. */
-  live.nkrControls = function (options) {
+  /** Where NKR could help but lists no repository yet, a note saying so with a link to NKR; the caller's `empty`
+      says what to do instead. Nothing once NKR lists repositories, since they then join the guide's lists. */
+  live.nkrNote = function (options) {
+    if (live.nkrRecords().length) return null;
     const own = options && options.empty;
-    const status = {
-      loading: FG.t("repositories.nkrLoading"),
-      done: live.nkr.records.length ? null : own || FG.t("repositories.nkrEmpty"),
-      failed: FG.t("repositories.nkrFailed", { url: FG.config.links.nkr }),
-    }[live.nkr.state];
-    /* While NKR lists no repository, testers can see how its records will look, from public re3data facts. */
-    const empty = live.nkr.state === "done" && !live.nkr.records.length;
-    const toggle = () => {
-      live.nkr.samples = !live.nkr.samples;
-      FG.rerender("nkr-samples");
-    };
-    const samples = empty && !own
-      ? FG.h("button", { type: "button", id: "nkr-samples", class: "button-link", "aria-expanded": String(live.nkr.samples), onclick: toggle }, FG.t(live.nkr.samples ? "repositories.nkrSamplesHide" : "repositories.nkrSamples"))
-      : null;
-    return {
-      button: FG.h("button", { type: "button", id: "nkr-load", onclick: live.loadNkr, disabled: live.nkr.state === "loading" }, FG.t("repositories.nkrLoad")),
-      status: status ? FG.h("p", { id: "nkr-status", role: "status", class: "small" }, status, samples ? [" ", samples] : null) : null,
-      samples: empty && !own && live.nkr.samples,
-    };
+    return FG.h("p", { id: "nkr-status", class: "small" }, own || FG.t("repositories.nkrEmpty"), " ", FG.external(FG.config.links.nkr, FG.t("repositories.nkrOpen")));
   };
 
-  live.nkrButton = function (options) {
-    const controls = live.nkrControls(options);
-    return FG.h("div", null, controls.button, controls.status);
+  /* ---------------------------------------------------------------- DataCite repositories */
+
+  /* A DataCite repository ID (a DataCite client): `<member>.<repository>` in lower case. */
+  const DATACITE_REPOSITORY = /^[a-z0-9]+\.[a-z0-9][a-z0-9.-]*$/;
+  const enc = encodeURIComponent;
+
+  /** Where the guide finds an entry's repository in DataCite: the ID the maintainer reviewed, or the DOI of the
+      entry's re3data record, by which DataCite records the repository it describes. Null when there is neither. */
+  live.dataciteRoute = function (entity) {
+    if (!entity) return null;
+    const id = String(entity.dataciteRepository || entity.datacite || "");
+    if (DATACITE_REPOSITORY.test(id)) return { id };
+    const doi = FG.refIds(entity, "sameAs").concat(entity.doi ? ["https://doi.org/" + entity.doi] : [])
+      .map((value) => live.parsePid(value)).find((pid) => pid && live.isRe3dataDoi(pid));
+    return doi ? { re3dataDoi: doi.value } : null;
+  };
+
+  /** The repository DataCite records for a route, as { id, name, url }, or null when DataCite has none. */
+  live.dataciteRepository = async function (route) {
+    if (!route) return null;
+    const data = route.id
+      ? await live.fetchJson("datacite", "clients/" + enc(route.id), { allowNotFound: true })
+      : await live.fetchJson("datacite", "clients?re3data-id=" + enc(route.re3dataDoi));
+    const found = route.id ? data && data.data : FG.list(data && data.data).length === 1 ? data.data[0] : null;
+    if (!found || !DATACITE_REPOSITORY.test(String(found.id || ""))) return null;
+    const attributes = found.attributes || {};
+    return { id: found.id, name: typeof attributes.name === "string" ? attributes.name : found.id };
+  };
+
+  /** What DataCite reports about a repository's DOIs: their number, and counts by resource type, licence and metadata
+      schema version, largest first. */
+  live.dataciteCounts = async function (repositoryId) {
+    const data = await live.fetchJson("datacite", "dois?client-id=" + enc(repositoryId) + "&page%5Bsize%5D=0&disable-facets=false");
+    const meta = (data && data.meta) || {};
+    const counts = (list) => FG.list(list)
+      .filter((entry) => entry && typeof entry.id === "string" && typeof entry.title === "string" && Number.isInteger(entry.count))
+      .map((entry) => ({ id: entry.id, title: entry.title, count: entry.count }))
+      .sort((a, b) => b.count - a.count);
+    return { total: Number.isInteger(meta.total) ? meta.total : 0, resourceTypes: counts(meta.resourceTypes), licenses: counts(meta.licenses),
+      schemaVersions: counts(meta.schemaVersions) };
+  };
+
+  /** Records drawn at random from all a repository's DOIs, of every type it publishes, each with its title and type
+      (D-185). A record that is part of another (a file Dataverse registers within its dataset) is left out, so the
+      sample holds what the repository publishes. */
+  live.dataciteSample = async function (repositoryId, size) {
+    const data = await live.fetchJson("datacite", "dois?client-id=" + enc(repositoryId) +
+      "&query=" + enc("-relatedIdentifiers.relationType:IsPartOf") + "&random=true&page%5Bsize%5D=" + size + "&fields%5Bdois%5D=doi%2Ctitles%2Ctypes");
+    return FG.list(data && data.data).map((record) => {
+      const pid = live.parsePid(String((record && record.id) || ""));
+      const attributes = (record && record.attributes) || {};
+      const title = FG.list(attributes.titles).map((entry) => entry && entry.title).find((value) => typeof value === "string" && value.trim());
+      const type = String((attributes.types || {}).resourceTypeGeneral || "").slice(0, 60);
+      return pid && pid.type === "doi" ? { doi: pid.value.toLowerCase(), title: title ? title.trim().slice(0, 300) : "", type } : null;
+    }).filter(Boolean);
   };
 })();

@@ -4,11 +4,13 @@
 // - axe finds no WCAG 2.2 A or AA violation in any of those views;
 // - the keyboard reaches the main controls, the page reflows at 320 px, and it works inside an iframe;
 // - the self-check runs without network: modes, profiles, tiers, gaps on the path, snapshot pre-fill, a shared
-//   link and the exports, with no score anywhere.
+//   link and the exports, with no score anywhere;
+// - every landing shortcut and station action that stays in the guide reaches what it names;
+// - a control that cannot act yet is inactive with a visible reason, and becomes active once it can.
 // Usage: python scripts/build_site.py && npm run check:page   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
 
 import { chromium } from "playwright";
-import { AxeBuilder } from "@axe-core/playwright";
+import { audit } from "./accessibility.mjs";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -19,7 +21,10 @@ const site = resolve(root, "_site");
 const pageUrl = pathToFileURL(resolve(site, "index.html")).href;
 const crate = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"));
 const graph = crate["@graph"];
-const stations = graph.filter((e) => e["@type"] === "HowToSection").map((e) => e.identifier);
+// The interface strings' structure, to tell a raw string key on the page from ordinary text.
+const uiStrings = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).ui;
+const isUiKey = (token) => token.split(".").reduce((node, part) => (node && typeof node === "object" ? node[part] : undefined), uiStrings) !== undefined;
+const stations =graph.filter((e) => e["@type"] === "HowToSection").map((e) => e.identifier);
 const lenses = graph.filter((e) => e["@type"] === "Audience" && e["@id"].startsWith("#lens-")).map((e) => e.audienceType);
 /** The result so far must stay short and never scroll on its own. */
 const panelFits = (page) =>
@@ -63,7 +68,7 @@ async function openPage(viewport) {
 }
 
 async function rendered(page) {
-  await page.waitForFunction(() => { const h1 = document.querySelector("#main h1"); return h1 && h1.textContent.trim() && !document.body.textContent.includes("The guide is loading."); });
+  await page.waitForFunction(() => { const h1 = document.querySelector("#main h1"); return h1 && h1.textContent.trim() && !document.body.textContent.includes("The Guide is loading."); });
 }
 
 /** Hash navigation can return while language or view data loads. Wait for the previous main to be replaced;
@@ -74,13 +79,13 @@ async function navigationRendered(page, navigate) {
   await page.waitForFunction(() => {
     const main = document.querySelector("#main");
     return main && !main.dataset.previousView && main.querySelector("h1")?.textContent.trim() &&
-      !document.body.textContent.includes("The guide is loading.");
+      !document.body.textContent.includes("The Guide is loading.");
   });
 }
 
 async function axe(page, label) {
   page.axeState.axeRunning = true;
-  const result = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();
+  const result = await audit(page);
   page.axeState.axeRunning = false;
   for (const violation of result.violations) {
     fail(`${label}: axe ${violation.id} (${violation.impact}) on ${violation.nodes.length} node(s): ${violation.nodes[0].target.join(" ")}`);
@@ -287,13 +292,27 @@ sections.push(["page", async () => {
     if (!href || /^[a-z]+:/i.test(href) || !existsSync(resolve(root, href))) fail(`page icon: the ${rel} link is missing or not a file of the page: ${href}`);
   }
   if (!(await page.locator("#search-input").count())) fail("landing: no search box");
-  if (!(await page.locator("#stage-question").textContent()).includes("Kde se právě nacházíte")) fail("landing: no stage question");
-  if ((await page.locator(".stage-card").count()) !== 4) fail("landing: the four stage cards are missing");
-  if (!(await page.locator(".stage-card").first().textContent()).includes("Krok 1")) fail("landing: the stage cards do not name the steps they cover");
-  if (await page.locator(".stage-current").count()) fail("landing: a first visit marks a current stage");
+  // The life-cycle journey: the path's stages in order, each opening its first step and naming its steps, the check
+  // within reuse; before any step was read, no stage is marked.
+  const staged = graph.filter((e) => e["@type"] === "HowToSection" && e.lifecycleStage);
+  const pathStages = [...new Set(staged.map((e) => e.lifecycleStage["@id"]))];
+  if (!(await page.locator("#journey-title").textContent()).includes("Životní cyklus výzkumných dat")) fail("landing: no life-cycle journey");
+  if ((await page.locator(".journey-stages > li").count()) !== pathStages.length) fail(`landing: the journey does not show the ${pathStages.length} stages`);
+  if ((await page.locator(".journey-stages .journey-steps a").count()) !== staged.length) fail("landing: the journey's stages do not name all their steps");
+  if ((await page.locator(".journey-stage").first().getAttribute("href")) !== "#/cs/V/path/plan") fail("landing: the first stage does not open the first step");
+  if ((await page.locator(".journey-stages > li", { hasText: "Uchovávání dat" }).locator(".journey-stage").getAttribute("href")) !== "#/cs/V/path/repository") fail("landing: the preservation stage does not open the repository step");
+  if (staged.length !== stations.length) fail("landing: a step stands outside the life cycle");
+  if (!(await page.locator(".journey-stages > li", { hasText: "Opakované užití dat" }).locator('a[href="#/cs/V/path/assessment"]').count())) fail("landing: the check is not in the reuse stage");
+  // The ring draws the same stages in the same order and closes: the last stage leads back to the first.
+  const ring = await page.locator(".journey-ring .ring-stage").evaluateAll((groups) => groups.map((group) => [group.dataset.stage, group.dataset.next]));
+  const listed = await page.locator(".journey-stages > li .journey-stage strong").allTextContents();
+  if (ring.length !== pathStages.length || ring.length !== listed.length) fail(`landing: the ring has ${ring.length} stages, the list ${listed.length}`);
+  if (ring.some(([, next], index) => next !== ring[(index + 1) % ring.length][0])) fail("landing: the ring does not lead from each stage to the next and from reuse back to planning");
+  if (ring.length && (ring[0][0] !== "plan" || ring[ring.length - 1][0] !== "reuse")) fail("landing: the ring does not run from planning to reuse");
+  if ((await page.locator(".journey-ring svg").getAttribute("aria-hidden")) !== "true") fail("landing: the ring is not hidden from assistive technology beside its list");
+  if (await page.locator(".ring-last").count()) fail("landing: a first visit marks a stage on the ring");
+  if (await page.locator(".journey-last").count()) fail("landing: a first visit marks a stage as last read");
   if (!(await page.locator(".tasks .task").count())) fail("landing: no task shortcuts");
-  const stageWeights = await page.locator(".stage-card").first().evaluate((card) => [getComputedStyle(card.querySelector("strong")).fontWeight, getComputedStyle(card.querySelector(".small")).fontWeight]);
-  if (Number(stageWeights[1]) >= Number(stageWeights[0]) || Number(stageWeights[1]) > 400) fail("landing: a stage card's description is as bold as its title: " + stageWeights.join("/"));
   await axe(page, "landing");
 
   // The catalogue: one menu item over one list narrowed by facets with counts. Kind is a single choice, and older
@@ -317,12 +336,12 @@ sections.push(["page", async () => {
     if ((await current()) !== "Katalog" || (await kinds()) !== "resources") fail("catalogue: the resources address does not select the resources: " + (await kinds()));
     await open("#repositories");
     if ((await kinds()) !== "repositories") fail("catalogue: an in-page link to the repositories does not select them");
-    for (const [old, kind] of [["sources", "resources"], ["clauses", "clauses"], ["questions", "questions"], ["terms", "terms"], ["fips", "fips"], ["tests", "tests"], ["actions", "actions"]]) {
+    for (const [old, kind] of [["sources", "resources"], ["clauses", "clauses"], ["questions", "questions"], ["terms", "terms"], ["fips", "fips"], ["tests", "tests"], ["lifecycle", "lifecycle"], ["actions", "actions"]]) {
       await open("#/cs/V/catalogue/" + old);
       if ((await kinds()) !== kind) fail(`catalogue: the address for ${old} does not select ${kind}`);
       if (!(await view.locator(".catalogue-results .card").count())) fail(`catalogue: ${kind} list nothing`);
     }
-    if ((await view.locator('[data-facet="kind"] input[type="radio"]').count()) !== 9) fail("catalogue: the kind is not a single choice among nine");
+    if ((await view.locator('[data-facet="kind"] input[type="radio"]').count()) !== 10) fail("catalogue: the kind is not a single choice among ten");
     const toolbarGap = await view.evaluate(() => {
       const bar = document.querySelector(".catalogue-toolbar");
       return bar.nextElementSibling.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
@@ -349,7 +368,7 @@ sections.push(["page", async () => {
       what: card.querySelector(".entry-what")?.textContent,
     })));
     if (tests.filter((test) => test.chip?.startsWith("guide-")).length !== 42 || tests.filter((test) => test.chip?.startsWith("fair-champion.")).length !== 13 ||
-      tests.some((test) => test.chip?.startsWith("guide-") && test.what !== "test průvodce") ||
+      tests.some((test) => test.chip?.startsWith("guide-") && test.what !== "test Průvodce") ||
       tests.some((test) => test.chip?.startsWith("fair-champion.") && test.what !== "test FAIR Champion")) fail("catalogue: local issued tests and borrowed FAIR Champion tests do not keep their distinct identities and ownership");
     // Repositories: the guide's own entries keep their names, records from the re3data snapshot nest under re3data.
     await open("#/cs/V/catalogue/repositories");
@@ -364,12 +383,12 @@ sections.push(["page", async () => {
     const analysis = await analysisCard.textContent();
     const used = analysisCard.locator(".relations dd").nth(0);
     if (!(await analysisCard.locator(".entry-head").textContent()).includes("podklad obsahu") || !(await used.locator("a.holder-link", { hasText: "Plán" }).count()) || !analysis.includes("Zralost FAIR repozitáře")) fail("catalogue: the analysis is not marked as a basis with the stations and checks that cite it");
-    if ((await analysisCard.locator(".relations dt", { hasText: "V průvodci" }).count()) !== 1 || !(await analysisCard.locator(".card-details").textContent()).includes("verze 1.2") || (await analysisCard.locator(".badge", { hasText: "verze" }).count())) fail("catalogue: the analysis card does not keep where it is used in one row and its details out of the badges");
+    if ((await analysisCard.locator(".relations dt", { hasText: "V Průvodci" }).count()) !== 1 || !(await analysisCard.locator(".card-details").textContent()).includes("verze 1.2") || (await analysisCard.locator(".badge", { hasText: "verze" }).count())) fail("catalogue: the analysis card does not keep where it is used in one row and its details out of the badges");
     // A kind's own facets list their values by number of records, most first.
     const counts = await view.locator('[data-facet="resources-use"] .facet-count').allTextContents();
     if (counts.join(",") !== counts.map(Number).sort((a, b) => b - a).join(",")) fail("catalogue: a kind's facet is not ordered by number of records: " + counts.join(","));
     const both = await view.locator(".card", { hasText: "AI jako služba (CERIT)" }).first().textContent();
-    if (!both.includes("doporučuje průvodce") || !both.includes("podklad obsahu")) fail("catalogue: a resource that is also cited is not marked with both uses");
+    if (!both.includes("doporučuje Průvodce") || !both.includes("podklad obsahu")) fail("catalogue: a resource that is also cited is not marked with both uses");
 
     // Facets: a choice keeps focus and goes into the address; the kind replaces the previous one; counts follow.
     await view.locator("#facet-kind-clauses").check();
@@ -490,28 +509,28 @@ sections.push(["page", async () => {
     const statusGroups = await orderBy("status");
     if (statusGroups[0] !== "provozní" || statusGroups[statusGroups.length - 1] !== "Bez stavu") fail("finders: statuses are not in their own order: " + statusGroups.join(" | "));
     await open("#/cs/V/catalogue/repositories");
-    if ((await orderBy("rsource"))[0] !== "výběr průvodce") fail("finders: ordering repositories by data source does not start with the guide's selection");
+    if ((await orderBy("rsource"))[0] !== "výběr Průvodce") fail("finders: ordering repositories by data source does not start with the guide's selection");
     if (!(await view.locator('.relations a[href^="https://www.re3data.org/repository/r3d"]').count())) fail("finders: a repository's re3data source does not link to its record");
-    await view.evaluate(() => { window.FairGuide.live.fetchJson = async () => ({ results: [] }); });
-    if (await view.locator("#nkr-samples").count()) fail("finders: sample NKR records are offered before NKR was asked");
-    await view.locator("#nkr-load").click();
-    await view.waitForSelector("#nkr-samples");
-    if (await view.locator(".nkr-sample").count()) fail("finders: sample NKR records show without being asked for");
-    await view.locator("#nkr-samples").click();
-    await view.waitForSelector(".nkr-sample");
-    if ((await view.locator(".nkr-sample").count()) !== 3 || (await view.locator(".nkr-sample .sample-label").count()) !== 3) fail("finders: three sample records are not each labelled as samples");
-    if (!(await view.locator(".nkr-samples .notice").textContent()).includes("ne záznamy NKR")) fail("finders: the samples do not say they are not NKR records");
-    const lindat = await view.locator(".nkr-sample", { hasText: "LINDAT" }).textContent();
-    if (!lindat.includes("OAI-PMH") || !lindat.includes("neuvedeno")) fail("finders: a sample record does not show re3data's values and what re3data does not state");
-    if ((await view.evaluate(() => document.activeElement && document.activeElement.id)) !== "nkr-samples") fail("finders: showing the samples moves focus away from the control");
+    // NKR records arrive in the reviewed snapshot; an empty snapshot says so without offering an on-demand load.
+    // A snapshot record joins the repository it describes or is listed alone.
+    const repositoryCount = () => view.evaluate(() => window.FairGuide.repositoryEntries().length);
+    const repositoriesBefore = await repositoryCount();
+    if (await view.locator("#nkr-load").count()) fail("finders: the reviewed NKR snapshot still offers an on-demand load");
+    if (!(await view.locator("#nkr-status").textContent()).includes("NKR zatím žádný repozitář neuvádí") || !(await view.locator('#nkr-status a[href^="https://"]').count())) fail("finders: an empty NKR snapshot does not say so with a link to NKR");
+    if ((await repositoryCount()) !== repositoriesBefore) fail("finders: an empty NKR result changes the repositories");
+    if (await view.locator(".nkr-sample, #nkr-samples").count()) fail("finders: records NKR does not have are shown in its place");
+    // Joining matched and unmatched NKR records now happens at build time, covered by
+    // test_annotations_and_nkr_records_join_the_catalogue_at_build_time in tests/test_scripts.py.
 
     // Content from the EOSC CZ website: each step's training is a line among the help routes, not a resource card;
     // the identifier callout leads with scripted verification; the About page links the introductory courses; the
     // repository finder lists the added general-purpose and domain repositories.
-    await view.goto(pageUrl + "#/cs/V/path/work");
-    await view.waitForSelector("#main h1");
-    const training = view.locator("li.training");
-    if ((await training.locator("a").count()) !== 4 || !(await training.textContent()).startsWith("Školení k tomuto kroku")) fail("training: the Práce step does not list its four trainings, including notebooks, in one line");
+    for (const [step, count] of [["collect", 2], ["process", 1], ["analyse", 1]]) {
+      await view.goto(pageUrl + "#/cs/V/path/" + step);
+      await view.waitForFunction((id) => location.hash.endsWith("/" + id) && document.querySelector("#main h1"), step);
+      const trainings = view.locator(".station-help .training");
+      if ((await trainings.locator("a").count()) !== count || !(await trainings.textContent()).trim().startsWith("Školení k tomuto kroku")) fail(`training: the ${step} step does not list its ${count} training(s) in one line`);
+    }
     if (await view.locator('.cards .card a[href*="eosc.cz/skoleni/"]').count()) fail("training: a training shows as a resource card as well");
     await view.goto(pageUrl + "#/cs/V/path/metadata");
     await view.waitForSelector("#main h1");
@@ -519,8 +538,9 @@ sections.push(["page", async () => {
     const steps = await view.locator(".callout-verify-identifiers ol li").allTextContents();
     if (!steps[0].includes("Ověřit identifikátory") || !steps[1].includes("skript")) fail("identifier callout: it does not lead with the helper and a script: " + steps.slice(0, 2).join(" | "));
     await view.goto(pageUrl + "#/cs/V/page/about");
-    await view.waitForSelector("#main h1");
-    if (!(await view.locator('a.text-ref[href$="/catalogue/resources/training-overview"]').count())) fail("about: the introductory courses are not linked");
+    /* A hash change keeps the previous view until the about page's parts arrive; wait for the link itself. */
+    const courses = await view.waitForSelector('a.text-ref[href$="/catalogue/resources/training-overview"]', { timeout: 10000 }).catch(() => null);
+    if (!courses) fail("about: the introductory courses are not linked");
     await open("#/cs/V/catalogue/repositories");
     for (const name of ["Dryad", "Harvard Dataverse", "Molecular Biophysics Database (MBDB)"]) {
       if (!(await view.locator(".catalogue-results .card h3", { hasText: name }).count())) fail("repositories: " + name + " is not listed");
@@ -551,7 +571,7 @@ sections.push(["page", async () => {
     await view.goto(pageUrl + "#/cs/V/check/dataset");
     await view.waitForSelector("#main h1");
     if (await view.locator(".export-bar").count()) fail("exports: a single check shows the shared export bar beside its own exports");
-    await view.goto(pageUrl + "#/cs/DS/check/institution");
+    await view.goto(pageUrl + "#/cs/DS/check/institution/report");
     await view.waitForSelector("#export-data");
     if ((await view.locator("#export-data").getAttribute("href")) !== "api/checks/institution.json") fail("exports: a single check does not offer its benchmark record as data");
     const saved = async (id) => {
@@ -653,7 +673,7 @@ sections.push(["page", async () => {
     for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
       await view.goto(pageUrl + "#/cs/V/catalogue/" + kind);
       await view.waitForFunction((id) => { const radio = document.getElementById(id); return radio && radio.checked && document.querySelector(".catalogue .card"); }, "facet-kind-" + kind);
-      const unlinked = await view.locator(".catalogue .card:not(.nkr-sample)").evaluateAll((cards) => cards.filter((card) => !card.querySelector(".json-link")).map((card) => card.id || card.textContent.trim().slice(0, 40)));
+      const unlinked = await view.locator(".catalogue .card").evaluateAll((cards) => cards.filter((card) => !card.querySelector(".json-link")).map((card) => card.id || card.textContent.trim().slice(0, 40)));
       const records = await view.locator(".catalogue .card .json-link").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
       if (unlinked.length || !records.every(inSite)) fail(`catalogue: ${kind} entries without a record in the API, or a link that leads nowhere: ${unlinked.join(", ")}`);
       const corner = await view.locator(".catalogue .card .json-link").first().evaluate((link) => {
@@ -663,8 +683,8 @@ sections.push(["page", async () => {
       });
       if (!corner) fail(`catalogue: the ${kind} record link does not sit in the card's top right corner`);
       // One card for every kind: its own identifier in the head, and its relations under fixed labels in one order.
-      const order = ["Principy", "Pro koho", "Vychází z", "V průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
-      const cards = await view.locator(".catalogue .card:not(.nkr-sample)").evaluateAll((all) =>
+      const order = ["Principy", "Pro koho", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
+      const cards = await view.locator(".catalogue .card").evaluateAll((all) =>
         all.map((card) => ({ id: card.id, chip: (card.querySelector(".entry-head .id-chip-static") || {}).textContent, labels: [...card.querySelectorAll(".relations dt")].map((dt) => dt.textContent) }))
       );
       const wrong = cards.filter((card) => "item-" + card.chip !== card.id || card.labels.some((label, index) => !order.includes(label) || (index && order.indexOf(label) <= order.indexOf(card.labels[index - 1]))));
@@ -676,7 +696,7 @@ sections.push(["page", async () => {
       await view.goto(pageUrl + hash);
       await view.waitForSelector(`[id="item-${anchor}"]`);
       return view.locator(`[id="item-${anchor}"]`).evaluate((card) => ({
-        pids: [...card.querySelectorAll(".pid-line a")].map((link) => [link.previousElementSibling.textContent, link.getAttribute("href"), link.textContent.replace(/\s*\(.*\)$/, "")]),
+        pids: [...card.querySelectorAll(".pid-chip")].map((link) => [link.querySelector(".pid-scheme")?.textContent, link.getAttribute("href"), link.textContent.replace(link.querySelector(".pid-scheme")?.textContent || "", "").replace(/\s*\(.*\)$/, "").trim()]),
         plainIcons: [...card.querySelectorAll(".relations a.holder-link")].filter((link) => !link.querySelector("svg.icon")).length,
         holders: card.querySelectorAll(".relations a.holder-link").length,
       }));
@@ -792,8 +812,7 @@ sections.push(["page", async () => {
     if (!(await basis.count())) fail("about: the analysis the guide is built on is not linked where the page first names it");
     // CoreTrustSeal: one question per requirement in three blocks, each with the requirement's guidance as published;
     // a question with no FAIR principle has no empty row of tags.
-    await view.goto(pageUrl + "#/cs/SR/check/coretrustseal");
-    await view.waitForSelector("#main h1");
+    await navigationRendered(view, () => view.goto(pageUrl + "#/cs/SR/check/coretrustseal/answers"));
     const cts = await view.evaluate(() => {
       const items = [...document.querySelectorAll("#main fieldset")].filter((field) => /^\d\d\b/.test(field.querySelector("legend")?.textContent.trim() || ""));
       const guidance = [...document.querySelectorAll("#main details.item-basis details.clause-guidance .content")];
@@ -815,8 +834,7 @@ sections.push(["page", async () => {
     if (!cdifLinks.some(([text, id]) => text === "Core" && id === "CDIF.Core") || !cdifLinks.some(([text, id]) => text === "Discovery" && id === "CDIF.Core")) fail("explorer: F2 does not link its CDIF profiles by meaning: " + JSON.stringify(cdifLinks));
     // The CDIF check: what the standard requires first, then the recommended elements, metadata management and the
     // profiles; the first tier is named for the standard, not for NRP or the analysis.
-    await view.goto(pageUrl + "#/cs/SR/check/cdif");
-    await view.waitForSelector("#main h1");
+    await navigationRendered(view, () => view.goto(pageUrl + "#/cs/SR/check/cdif/answers"));
     const cdifQuestions = () => view.evaluate(() => [...document.querySelectorAll("#main fieldset legend")].filter((legend) => /^\d\d\b/.test(legend.textContent.trim())).length);
     const basicCount = await cdifQuestions();
     const tierSentence = await view.locator("#main .tier-info").innerText();
@@ -838,9 +856,15 @@ sections.push(["page", async () => {
     // The next step and one related tool, the second a quieter button.
     const nowActions = await view.locator(".now .now-actions a").evaluateAll((links) => links.map((link) => link.className));
     if (nowActions.length !== 2 || !nowActions[0].includes("button-primary") || !nowActions[1].includes("button-related")) fail("station: the next step is not followed by one quieter related tool: " + nowActions.join(" | "));
-    // The how-to opens with the station's key point; the reasons go straight to what the advice rests on.
+    // The accepted order: the key point under the title, then what to do now and the glossary terms before the
+    // disclosures; callouts before the sources; then the resources, help and the pager. The reasons go straight to
+    // what the advice rests on.
+    const order = await view.locator(".station > *").evaluateAll((parts) => parts.map((part) => part.className || (part.dataset && part.dataset.key) || part.tagName.toLowerCase()));
+    const expected = ["station-header", "key-point", "now", "station-terms", "L1", "L2", "ai", "callout", "L3", "provenance-line", "station-resources", "station-help", "pager"];
+    const at = expected.map((name) => order.findIndex((part) => String(part).split(" ").includes(name)));
+    if (at.some((index) => index < 0) || at.some((index, n) => n && index <= at[n - 1])) fail("station: the parts are not in the accepted order: " + order.join(" | "));
+    if (!(await view.locator(".station > .key-point").textContent()).includes("Hlavní myšlenka")) fail("station: the key point is not set apart under the title");
     await view.locator('details[data-key="L1"] > summary').click();
-    if (!(await view.locator('details[data-key="L1"] .content > .key-point:first-child').textContent()).includes("Hlavní myšlenka")) fail("station: the how-to does not open with the station's key point");
     await view.locator('details[data-key="L2"] > summary').click();
     if (await view.locator('details[data-key="L2"] h3').count()) fail("station: Proč carries headings of its own (the principles, or what the advice rests on)");
     const entries = await view.locator('details[data-key="L2"] ul.clauses > li').count();
@@ -866,7 +890,8 @@ sections.push(["page", async () => {
     if (await view.locator("ul.clauses > li").evaluateAll((items) => items.some((item) => (item.querySelector(".clause-title strong") || {}).textContent === (item.querySelector(".id-chip") || {}).textContent))) fail("explorer: a requirement shows its identifier twice");
     // An audience shows by icon and name.
     await view.goto(pageUrl + "#/cs/V/page/ai");
-    await view.waitForSelector("#main h1");
+    /* The page's text arrives with its part; wait for the orientation itself rather than the first heading. */
+    await view.waitForSelector(".orientation .lens-tag");
     const audienceNames = await view.locator(".orientation .lens-tag").allInnerTexts();
     if (!audienceNames.length || audienceNames.some((name) => !name.trim())) fail("ai page: an audience shows by icon alone");
     await view.goto(pageUrl + "#/cs/V/path/licence");
@@ -908,41 +933,30 @@ sections.push(["page", async () => {
     await view.goto(pageUrl + "#/cs/V/tools");
     await view.waitForSelector(".tool-cards");
     if ((await current()) !== "Nástroje a postupy") fail("tools: the menu does not mark the tools item on the tools view");
-    const tools = await view.locator(".tool-card h2 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
-    if (tools.join(",") !== "model,live-check,identifiers,citation,ai,software,notebooks,provenance,fdo") fail("tools: the tools view does not list the tool pages in order: " + tools.join(","));
+    const tools = await view.locator(".tool-card h3 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
+    if (tools.join(",") !== "live-check,identifiers,citation,model,ai,software,notebooks,provenance,fdo") fail("tools: the tools view does not list interactive tools before guidance: " + tools.join(","));
+    if ((await view.locator(".tool-group").count()) !== 2) fail("tools: interactive tools and guidance are not separate groups");
     if ((await view.locator(".tool-coming").count()) !== 0) fail("tools: implemented helpers are still marked as in preparation");
-    for (const [id, item] of [["identifiers", "Nástroje a postupy"], ["ai", "Nástroje a postupy"], ["live-check", "Nástroje a postupy"], ["citation", "Nástroje a postupy"], ["about", "O průvodci"], ["accessibility", "O průvodci"]]) {
+    for (const [id, item] of [["identifiers", "Nástroje a postupy"], ["ai", "Nástroje a postupy"], ["live-check", "Nástroje a postupy"], ["citation", "Nástroje a postupy"], ["about", "O Průvodci"], ["accessibility", "O Průvodci"]]) {
       await view.goto(pageUrl + "#/cs/V/page/" + id);
-      await view.waitForSelector("#main h1");
+      // A hash change keeps the previous view's heading until the new view renders: wait for the route, not a heading.
+      await view.waitForFunction((page) => location.hash.endsWith("/page/" + page) && document.querySelector(`#main [data-page="${page}"], #main h1`), id);
+      await view.waitForFunction((expected) => document.querySelector('.main-nav [aria-current="page"]')?.textContent.trim() === expected, item, { timeout: 5000 }).catch(() => {});
       if ((await current()) !== item) fail(`page ${id}: the menu does not mark ${item}`);
     }
     await view.close();
   }
 
-  // Repositories: FAIRsharing records are loaded on request, link from each repository they describe, and the
-  // repository names FAIRsharing among its sources.
+  // FAIRsharing records join repositories at build time and appear as identifier chips with a catalogue source.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    await view.goto(pageUrl + "#/cs/V/repositories");
-    await view.waitForSelector("#fairsharing-load");
-    if (await view.locator(".fairsharing-record").count()) fail("repositories: FAIRsharing records show before they are loaded");
-    const asked = await view.evaluate(async () => {
-      const seen = [];
-      window.FairGuide.live.findFairsharing = async (repositories) => {
-        seen.push(...repositories);
-        return [{ doi: "10.25504/FAIRsharing.f4bfb1", name: "Czech Social Science Data Archive", re3data: "r3d100010484", addresses: [] }];
-      };
-      document.getElementById("fairsharing-load").click();
-      await new Promise((done) => setTimeout(done, 300));
-      return seen.filter((repository) => (repository.identifiers || []).length).length;
-    });
-    if (!asked) fail("repositories: the FAIRsharing lookup is not given the repositories' re3data records");
-    const card = view.locator(".card", { has: view.locator(".fairsharing-record") });
-    if ((await card.count()) !== 1 || !(await card.textContent()).includes("FAIRsharing")) fail("repositories: the FAIRsharing record does not show on its repository");
-    if ((await card.locator(".fairsharing-record").getAttribute("href")) !== "https://doi.org/10.25504/FAIRsharing.f4bfb1") fail("repositories: the FAIRsharing link does not lead to the record's DOI");
-    if (!(await view.locator("#fairsharing-status").textContent()).includes("1 z")) fail("repositories: the FAIRsharing status does not say how many were found");
-    const buttons = await view.locator(".filter-actions button").evaluateAll((all) => all.map((button) => Math.round(button.getBoundingClientRect().top)));
-    if (new Set(buttons).size !== 1) fail("repositories: the live-source buttons are not aligned: " + buttons.join(", "));
+    await view.goto(pageUrl + "#/cs/V/catalogue/repositories/re3data.r3d100010484");
+    await view.waitForSelector(".catalogue-results .entry-card");
+    if (await view.locator("#fairsharing-load").count()) fail("repositories: FAIRsharing still offers an on-demand load");
+    const card = view.locator(".catalogue-results .entry-card");
+    const record = card.locator('.pid-chip[href="https://doi.org/10.25504/FAIRsharing.f4bfb1"]');
+    if (!(await record.count()) || !(await record.locator(".pid-scheme").textContent()).includes("FAIRsharing")) fail("repositories: the snapshot's FAIRsharing record is not an identifier chip on its repository");
+    if (!(await card.locator('.relations a[href$="/catalogue/resources/fairsharing"]').count())) fail("repositories: the FAIRsharing source does not lead to its catalogue entry");
     await view.close();
   }
 
@@ -978,7 +992,7 @@ sections.push(["page", async () => {
     await view.close();
   }
 
-  // Keyboard: the skip link, lens picker, language switch, search and stage cards are reachable with Tab.
+  // Keyboard: the skip link, lens picker, language switch, search and the journey's stages are reachable with Tab.
   const reached = new Set();
   for (let i = 0; i < 30; i += 1) {
     await page.keyboard.press("Tab");
@@ -988,7 +1002,7 @@ sections.push(["page", async () => {
     }));
   }
   const joined = [...reached].join(" | ");
-  for (const expected of ["skip-link", "lens-option", "English", "search-input", "Připravuji projekt"]) {
+  for (const expected of ["skip-link", "lens-option", "English", "search-input", "journey-stage:1Plánování"]) {
     if (!joined.includes(expected)) fail("keyboard does not reach: " + expected);
   }
 
@@ -1090,7 +1104,7 @@ sections.push(["views", async () => {
   for (const lang of ["cs", "en"]) {
     for (const lens of lenses) for (const station of stations) views.push(`#/${lang}/${lens}/path/${station}`);
     for (const view of ["explorer", "resources", "repositories", "tools", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
-    for (const tab of ["sources", "terms", "fips", "tests", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
+    for (const tab of ["sources", "terms", "fips", "tests", "lifecycle", "lifecycle/rdmkit.reuse", "k!resources~f.use!knav", "resources/knav.aiscr", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
     for (const check of checks) views.push(`#/${lang}/${check.lens}/check/${check.id}`);
     for (const principle of principles.slice(0, 3)) views.push(`#/${lang}/K/explorer/${principle}`);
     for (const id of pages) views.push(`#/${lang}/V/page/${id}`);
@@ -1130,7 +1144,11 @@ async function checkViews(views) {
     // The page shell holds elements only; a view part that is absent leaves no stray text.
     if (await page.evaluate(() => [...document.getElementById("app").childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()))) fail(`${hash}: stray text in the page shell`);
     // No value reaches the page unformatted.
-    if (/\[object Object\]|\bundefined\b/.test(await page.locator("#app").innerText())) fail(`${hash}: an unformatted value is shown`);
+    const shown = await page.locator("#app").innerText();
+    if (/\[object Object\]|\bundefined\b/.test(shown)) fail(`${hash}: an unformatted value is shown`);
+    // No interface string is shown as its key, as when a language lacks it.
+    const rawKeys = (shown.match(/\b[a-z][a-zA-Z]*(?:\.[a-zA-Z][\w-]*)+\b/g) || []).filter(isUiKey);
+    if (rawKeys.length) fail(`${hash}: interface keys shown instead of text: ${[...new Set(rawKeys)].slice(0, 5).join(", ")}`);
     // No link leads back to the start because its address was refused.
     if (await page.locator('#app a[href="#"]').count()) fail(`${hash}: a link that leads nowhere (href="#")`);
     // Every external link opens in a new tab.
@@ -1198,10 +1216,21 @@ sections.push(["self-check", async () => {
   await page.goto(pageUrl);
   await rendered(page);
 
+  // A check reads as three parts, each with its own address; the check's own address opens the evidence, and the
+  // parts are marked as the reader moves through them (guide-self-check, "A check reads as evidence, answers and
+  // report").
+  const part = (name) => go("#/cs/V/check/dataset/" + name);
+  /* Any check's part, in a role: the evidence, the answers or the report. */
+  const at = (lens, check, name) => go(`#/cs/${lens}/check/${check}/${name}`);
+  const currentPart = () => page.locator('.check-parts [aria-current="step"]').textContent();
   // Dataset check: the mode comes first, the first view shows the Minimum items only.
   await go("#/cs/V/check/dataset");
+  if (!(await currentPart()).includes("Podklady")) fail("dataset check: the check does not open at its evidence part");
   if (!(await page.locator(".notice", { hasText: "Nejdřív odpovězte" }).count())) fail("dataset check: no prompt to choose the mode first");
   await page.locator("#mode-after").check();
+  await page.locator(".part-next a").click();
+  await page.waitForFunction(() => location.hash.endsWith("/check/dataset/answers") && document.querySelector(".question-card"));
+  if (!(await currentPart()).includes("Odpovědi")) fail("dataset check: the answers part is not marked as current");
   if (await page.locator("#item-dataset-06").count()) fail("dataset check: a Recommended item shows in the first view");
   if (/Krok \d/.test(await page.locator(".item-group h2").first().textContent())) fail("dataset check: group headings imitate the path's step numbering");
   if (!(await page.locator("#item-dataset-04").count())) fail("dataset check: Minimum item dataset.04 is missing after publication");
@@ -1209,6 +1238,25 @@ sections.push(["self-check", async () => {
   await page.locator("#answer-dataset-04-no").check();
   await page.locator("#answer-dataset-05-unknown").check();
   await page.locator("#answer-dataset-01-yes").check();
+  // Compact question cards: the criterion, principles, answers and one evidence line in view; the explanation,
+  // tests, responsibility, path step and sources in one closed disclosure (guide-self-check, "Question cards are
+  // compact").
+  {
+    const card = page.locator("#item-dataset-04");
+    if (!(await card.locator(".principle-tile").count()) || !(await card.locator(".origin").isVisible())) fail("dataset check: a question card lacks its principles or its evidence line");
+    if ((await card.locator(".question-details").count()) !== 1 || (await card.locator(".question-details").getAttribute("open")) !== null) fail("dataset check: a question card's details are not one closed disclosure");
+    if (await card.locator(".fix-at").isVisible()) fail("dataset check: who fixes a question and its path step show outside its details");
+  }
+  // Each state has its own colour, solid when the reader answered, and Yes and Don't know differ clearly in hue.
+  {
+    const colour = (value) => page.locator(`#item-dataset-04 .option[data-value="${value}"]`).evaluate((option) => getComputedStyle(option).getPropertyValue("--state").trim());
+    const hues = await Promise.all(["yes", "partly", "no", "unknown"].map(colour));
+    if (new Set(hues).size !== 4) fail("dataset check: answer states share a colour: " + hues.join(" "));
+    const filled = await page.locator('#item-dataset-04 .option[data-value="no"]').evaluate((option) => getComputedStyle(option).backgroundColor);
+    if (filled === "rgba(0, 0, 0, 0)" || filled === "rgb(255, 255, 255)") fail("dataset check: the reader's own answer is not filled with its state's colour");
+  }
+  await part("report");
+  if (!(await currentPart()).includes("Zpráva")) fail("dataset check: the report part is not marked as current");
   const gaps = await page.locator(".gaps").first().textContent();
   if (!(await numbersIn(page.locator(".gaps").first())).includes("04") || !gaps.includes("Licence") || !gaps.includes("správce repozitáře")) fail("dataset check: the dataset.04 gap lacks where to fix it or who fixes it: " + gaps);
   const gapLink = await page.locator(".gaps a", { hasText: "Licence" }).first().getAttribute("href");
@@ -1217,12 +1265,22 @@ sections.push(["self-check", async () => {
   if (!(await numbersIn(page.locator(".gaps").nth(1))).includes("05") || !tasks.includes("data steward")) fail("dataset check: the don't-know task does not say whom to ask: " + tasks);
   if (!(await page.locator(".gaps").nth(1).locator('a[href^="https://nma.eosc.cz"]').count())) fail("dataset check: the don't-know task has no NMA search link");
   const resultText = await page.locator("#results").textContent();
-  if (/%|skóre|score/i.test(resultText)) fail("dataset check: the result shows a score or percentage");
+  if (/%|skóre|score/i.test(resultText.replace("nesčítá odpovědi do skóre", ""))) fail("dataset check: the result shows a score or percentage");
+  // The report: per-principle distributions as solid segments named in text, the gaps grouped by who fixes them.
+  {
+    const segments = await page.locator("#results .principle-distribution .distribution-bar > span").evaluateAll((all) => all.map((segment) => [segment.dataset.state, getComputedStyle(segment).backgroundColor]));
+    if (!segments.length || segments.some(([, colour]) => /rgba\(0, 0, 0, 0\)/.test(colour))) fail("dataset check: the report's distributions are not solid segments");
+    const named = await page.locator("#results .principle-distribution .distribution-text").first().textContent();
+    if (!/chybí|splněno|nevíte/.test(named)) fail("dataset check: a distribution is not named in text: " + named);
+    if (!(await page.locator("#results .gap-group h4").first().textContent()).includes("správce repozitáře")) fail("dataset check: the gaps are not grouped by who fixes them");
+  }
+  await axe(page, "dataset check report");
+  await part("answers");
   await axe(page, "dataset check answered");
   await page.locator('label[for="extended-toggle"]').click();
   if (!(await page.locator("#item-dataset-06").count())) fail("dataset check: the extended check does not show Recommended items");
   if (!(await page.locator("#extended-toggle").isChecked()) || (await page.locator("#extended-toggle").getAttribute("role")) !== "switch") fail("dataset check: the extended check is not an on/off switch that shows its state");
-  if (!(await panelFits(page))) fail("dataset check: the result so far scrolls or is too tall in the extended check");
+  if (!(await panelFits(page))) fail("dataset check: the result so far scrolls or is too tall in the extended check: " + await page.locator(".check-summary").evaluate((panel) => JSON.stringify({ height: panel.getBoundingClientRect().height, scroll: panel.scrollHeight, client: panel.clientHeight, viewport: innerHeight })));
   if (!(await checked("answer-dataset-04-no"))) fail("dataset check: opening the extended check lost an answer");
   await page.locator('label[for="extended-toggle"]').click();
 
@@ -1231,7 +1289,6 @@ sections.push(["self-check", async () => {
   const tierInfo = await page.locator(".tier-info").textContent();
   if (!tierInfo.includes("Minimum (") || !tierInfo.includes("Národní datové infrastruktury")) fail("dataset check: the first view does not explain its tier: " + tierInfo);
   const minimumCount = (tierInfo.match(/Minimum \((\d+) /) || [])[1];
-  if (!(await page.locator("#results p").first().textContent()).endsWith("z " + minimumCount)) fail("dataset check: the result counts items the first view does not show");
   if (!(await page.locator(".item-group h2").first().textContent()).includes("Dohledatelnost")) fail("dataset check: items are not grouped by FAIR principle by default");
   if (!(await page.locator('#item-dataset-04 .fix-at a.step-link[href$="/path/licence"]').count())) fail("dataset check: an item names its step without a link to it");
   if (!(await page.locator("#item-dataset-04 .fix-at").textContent()).includes("Licence")) fail("dataset check: an item does not name the step where it is addressed");
@@ -1239,22 +1296,24 @@ sections.push(["self-check", async () => {
   const listed = await page.locator(".items fieldset.item").evaluateAll((items) => items.map((item) => item.id.replace("item-dataset-", "")));
   const chips = await page.locator(".summary-chip").evaluateAll((buttons) => buttons.map((button) => button.textContent.match(/\d{2}/)[0]));
   if (listed.join(" ") !== chips.join(" ")) fail(`dataset check: the summary does not mirror the questions (${chips.join(" ")} vs ${listed.join(" ")})`);
+  if ((await page.locator(".summary-group .distribution").count()) !== (await page.locator(".summary-group").count())) fail("dataset check: the running result has no distribution per group");
   await page.locator("#grouping-steps").check();
   const stepHeading = page.locator(".item-group h2").first();
   if ((await stepHeading.locator("svg").count()) !== 1 || /Krok \d/.test(await stepHeading.textContent())) fail("dataset check: grouping by path step does not show the step's icon and name");
-  if ((await page.locator(".summary-group").count()) !== (await page.locator(".item-group").count())) fail("dataset check: the summary does not follow the grouping by path step");
-  if ((await page.locator(".result-group").count()) !== (await page.locator(".item-group").count())) fail("dataset check: the full result does not follow the grouping by path step");
+  const stepGroups = await page.locator(".item-group").count();
+  if ((await page.locator(".summary-group").count()) !== stepGroups) fail("dataset check: the summary does not follow the grouping by path step");
   if ((await page.locator(".summary-group-label .group-icon").count()) !== (await page.locator(".summary-group").count())) fail("dataset check: path steps in the summary lack their icons");
+  await part("report");
+  if (!(await page.locator("#results .result-progress").first().textContent()).endsWith("z " + minimumCount)) fail("dataset check: the result counts items the first view does not show");
+  if ((await page.locator(".result-group").count()) !== stepGroups) fail("dataset check: the full result does not follow the grouping by path step");
+  await part("answers");
   await page.locator("#grouping-principles").check();
 
-  // At the top of the page the summary's box starts level with the first box of the questions.
+  // At the top of the answers the summary's box starts level with the first box of the questions.
   await page.evaluate(() => window.scrollTo(0, 0));
-  const firstBox = await page.locator(".check-main .choice").first().boundingBox();
+  const firstBox = await page.locator(".check-main .items > *").first().boundingBox();
   const summaryBox = await page.locator(".check-summary").boundingBox();
   if (Math.abs(firstBox.y - summaryBox.y) > 2) fail(`dataset check: the summary starts ${Math.round(summaryBox.y - firstBox.y)}px off the first box`);
-  /* A legend drawn on the border would put the visible top line below the box's top edge. */
-  const legendInside = await page.locator(".check-main .choice").first().evaluate((box) => box.querySelector("legend").getBoundingClientRect().top > box.getBoundingClientRect().top + 1);
-  if (!legendInside) fail("dataset check: the first box's visible top line is not level with the summary");
 
   // The result stands beside the questions and shows the licence gap at once; it can be collapsed, and the choice
   // survives a reload.
@@ -1270,19 +1329,22 @@ sections.push(["self-check", async () => {
   // The chips and counts of the result so far lead to the items and to the full result.
   await gapCell.click();
   if (!(await page.evaluate(() => document.activeElement.closest("#item-dataset-04")))) fail("dataset check: a principle chip does not lead to its item");
-  await page.locator('.summary-count[data-kind="gaps"]').click();
-  if (!(await page.evaluate(() => document.activeElement.id === "results-gaps"))) fail("dataset check: the gap count does not lead to the gaps in the full result");
-  // A chip whose item the short view hides opens the extended view and lands on the item.
+  if ((await page.locator('.summary-count[data-kind="gaps"]').getAttribute("href")) !== "#/cs/V/check/dataset/report") fail("dataset check: the gap count does not lead to the report");
+  // Saved answers outside the short scope remain stored and return when the reader extends the check.
   await page.locator('label[for="extended-toggle"]').click();
   await page.locator("#answer-dataset-08-no").check();
   await page.locator('label[for="extended-toggle"]').click();
-  await page.locator(".summary-chip", { hasText: /(^|\s)08(\s|$)/ }).click();
-  if (!(await page.locator("#extended-toggle").isChecked()) || !(await page.evaluate(() => document.activeElement.closest("#item-dataset-08")))) fail("dataset check: a chip for a hidden item does not open the extended view at the item");
+  if (await page.locator(".summary-chip", { hasText: /(^|\s)08(\s|$)/ }).count()) fail("dataset check: a saved answer outside the short scope still appears in its summary");
+  await page.locator('label[for="extended-toggle"]').click();
+  if (!(await checked("answer-dataset-08-no"))) fail("dataset check: changing scope lost the saved answer outside it");
   await page.locator('label[for="extended-toggle"]').click();
   // The collapse control stays exactly where it was.
   await page.locator("#item-dataset-04").scrollIntoViewIfNeeded();
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   const toggleBefore = await page.locator("#result-toggle").boundingBox();
-  await page.locator("#result-toggle").click();
+  if (!(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("#result-toggle"), { x: toggleBefore.x + toggleBefore.width / 2, y: toggleBefore.y + toggleBefore.height / 2 }))) fail("dataset check: the sticky collapse control is covered by another element");
+  // Click where the reader sees the sticky control; locator.click may scroll it back to its flow position first.
+  await page.mouse.click(toggleBefore.x + toggleBefore.width / 2, toggleBefore.y + toggleBefore.height / 2);
   if (!(await page.locator("#result-body").isHidden())) fail("dataset check: the result panel does not collapse");
   const toggleAfter = await page.locator("#result-toggle").boundingBox();
   if (!(await page.locator(".check-main #extended-toggle").count())) fail("dataset check: with the summary collapsed, the controls are not above the questions");
@@ -1311,13 +1373,32 @@ sections.push(["self-check", async () => {
     FG.saveState();
     FG.rerender();
   });
-  // A resolved identifier says what it is, under the field and in the result.
+  // The question's evidence line names the source, its date and the record; its details hold every field found.
+  const evidence = await page.locator("#origin-dataset-02").textContent();
+  if (!evidence.includes("8. 10. 2026") || !evidence.includes("záznam")) fail("dataset check: the evidence line beside dataset.02 is incomplete: " + evidence);
+  if (!(await page.locator('#origin-dataset-02 a[href="https://repo.example/record/1"]').count())) fail("dataset check: the evidence does not link to its record");
+  const details = await page.locator("#item-dataset-02 .question-details").textContent();
+  if (!details.includes("url") || !details.includes("https://repo.example/record/1")) fail("dataset check: the question's details lack the fields found: " + details);
+  // Withdrawing an answer the reader changed restores the suggestion, attributed to its source, and leaves the other
+  // answers as they were (guide-self-check, "Each answer can be withdrawn").
+  await page.locator("#answer-dataset-02-no").check();
+  if (!(await page.locator("#withdraw-dataset-02").count())) fail("dataset check: a changed answer offers no way to withdraw it");
+  await page.locator("#withdraw-dataset-02").click();
+  await page.waitForFunction(() => document.getElementById("answer-dataset-02-yes") && document.getElementById("answer-dataset-02-yes").checked);
+  if ((await page.locator("#item-dataset-02").getAttribute("data-origin")) !== "suggestion" || !(await page.locator("#origin-dataset-02").textContent()).includes("resolver")) fail("dataset check: withdrawing does not restore the suggestion with its source");
+  if (!(await checked("answer-dataset-04-no")) || !(await checked("answer-dataset-01-yes"))) fail("dataset check: withdrawing one answer changed others");
+  if (await page.locator("#withdraw-dataset-02").count()) fail("dataset check: a suggestion offers to withdraw itself");
+  await page.locator("#answer-dataset-01-no").check();
+  await page.locator("#withdraw-dataset-01").click();
+  await page.waitForSelector("#answer-dataset-01-yes");
+  if (await page.locator('input[name="answer-dataset-01"]:checked').count()) fail("dataset check: withdrawing an answer without a suggestion does not leave it open");
+  await page.locator("#answer-dataset-01-yes").check();
+  // A resolved identifier says what it is, under the field in the evidence part and in the report.
+  await part("evidence");
   const card = await page.locator(".target-card").textContent();
   if (!card.includes("Sample dataset") || !card.includes("Zenodo") || !card.includes("2026")) fail("dataset check: the resolved identifier does not say what it is: " + card);
+  await part("report");
   if (!(await page.locator(".result-headline").textContent()).includes("Kontrolujete: Sample dataset")) fail("dataset check: the result does not name what is checked");
-  const evidence = await page.locator("#origin-dataset-02").textContent();
-  if (!evidence.includes("url") || !evidence.includes("https://repo.example/record/1") || !evidence.includes("8. 10. 2026")) fail("dataset check: the evidence beside dataset.02 is incomplete: " + evidence);
-  if (!(await page.locator('#origin-dataset-02 a[href="https://repo.example/record/1"]').count())) fail("dataset check: the evidence does not link to its record");
   await page.locator("#export-format-md").check();
   await page.locator(".export-preview summary").click();
   await page.waitForFunction(() => document.getElementById("export-preview-text").value.length > 0);
@@ -1339,45 +1420,42 @@ sections.push(["self-check", async () => {
       window.FairGuide.saveState();
       window.FairGuide.rerender();
     });
+    await part("evidence");
     await page.locator("#load-file").setInputFiles(saved);
     await page.waitForSelector(".notice.shared");
     await page.getByRole("button", { name: "Použít odpovědi ze souboru" }).click();
-    await page.waitForSelector("#prefill-pid");
+    // Adopted answers open at the answers part.
+    await page.waitForFunction(() => location.hash.endsWith("/check/dataset/answers") && document.getElementById("origin-dataset-02"));
+    if (!(await page.locator("#item-dataset-02 .question-details").textContent()).includes("https://repo.example/record/1")) fail("load: the evidence behind dataset.02 is lost after loading the summary");
+    await part("evidence");
     if ((await page.locator("#prefill-pid").inputValue()) !== "10.5281/zenodo.1") fail("load: the DOI is not back in its field after loading the summary");
     const restoredCard = page.locator(".target-card");
     if (!(await restoredCard.count()) || !(await restoredCard.textContent()).includes("Sample dataset")) fail("load: what the DOI is does not show after loading the summary");
-    if (!(await page.locator("#origin-dataset-02").textContent()).includes("https://repo.example/record/1")) fail("load: the evidence behind dataset.02 is lost after loading the summary");
   }
   await page.locator("#prefill-pid-clear").click();
-  if (await page.locator('input[name="answer-dataset-02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
-  if (!(await checked("answer-dataset-01-yes")) || !(await checked("answer-dataset-04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
   if (await page.locator("#prefill-pid").inputValue()) fail("dataset check: clearing did not empty the identifier field");
   if (await page.locator(".target-card").count()) fail("dataset check: clearing the identifier kept its description");
+  await part("answers");
+  if (await page.locator('input[name="answer-dataset-02"]:checked').count()) fail("dataset check: clearing the identifier kept the answer it pre-filled");
+  if (!(await checked("answer-dataset-01-yes")) || !(await checked("answer-dataset-04-no"))) fail("dataset check: clearing the identifier removed the user's own answers");
 
   // The path marks the stations with open items.
   await go("#/cs/V/path/licence");
-  if (!(await page.locator('.rail-desktop a[href="#/cs/V/path/licence"] .gap-mark').count())) fail("path: the licence station has no gap mark");
+  if (!(await page.locator('.rail-desktop a[href="#/cs/V/path/licence"] .rail-mark[data-state="gap"]').count())) fail("path: the licence station has no gap mark");
   const tileOrder = await page.locator(".station-header .principle-tile").evaluateAll((tiles) => tiles.map((tile) => tile.textContent.trim().split(" ")[0]));
   if (tileOrder.join(" ") !== "A1.2 R1.1") fail("path: the station's principles are not in F, A, I, R order: " + tileOrder.join(" "));
   const legend = page.locator(".rail-desktop .rail-legend a");
   if (!(await legend.count()) || (await legend.getAttribute("href")) !== "#/cs/V/selfcheck") fail("path: the self-check marks have no visible legend linking to the self-check");
 
-  // Until the visitor chooses a stage, no stage is shown as chosen, on the path or on the landing.
-  if (!(await page.locator(".stage-switch summary").textContent()).includes("zatím nevybraná")) fail("path: the stage switch claims a stage before one was chosen");
-  await go("#/cs/V/path/start");
-  if (await page.locator(".stage-current").count()) fail("landing: a stage is marked although none was chosen");
-
-  // The stage can be changed on the path itself; the choice opens the stage's first station.
-  await go("#/cs/V/path/licence");
-  await page.locator(".stage-switch summary").click();
-  await page.locator(".stage-switch button", { hasText: "Chci data zveřejnit" }).click();
-  try {
-    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/repository" && document.querySelector(".stage-switch summary").textContent.includes("Chci data zveřejnit"), null, { timeout: 5000 });
-  } catch (error) {
-    fail("path: choosing a stage does not open its first station and show the choice");
-  }
-  if ((await page.locator('.stage-switch button[aria-pressed="true"]').count()) !== 1) fail("path: the chosen stage is not pressed in the stage switch");
-  await go("#/cs/V/path/licence");
+  // The rail lists the steps under the life-cycle stages and marks the stage of the step being read, in words too;
+  // no stage is ever chosen.
+  const stageGroups = page.locator(".rail-desktop .rail-stage");
+  if ((await stageGroups.count()) < 7) fail("path: the rail does not list the life-cycle stages");
+  const currentStage = page.locator(".rail-desktop .current-stage");
+  if ((await currentStage.count()) !== 1 || !(await currentStage.locator(".rail-stage-name").textContent()).includes("Sdílení dat")) fail("path: the licence step's stage is not marked as current");
+  if ((await currentStage.locator("li a").count()) !== 4) fail("path: the sharing stage does not hold its four steps");
+  if (!(await currentStage.locator(".visually-hidden").count())) fail("path: the current stage is marked only visually");
+  if (await page.locator(".stage-switch, .stage-card").count()) fail("path: a stage choice is still offered");
 
   // The menu's path item opens the station the visitor was last at; the home item opens the path's start, with a
   // line to resume where they were.
@@ -1385,14 +1463,15 @@ sections.push(["self-check", async () => {
   if ((await page.locator('.main-nav a[aria-current="page"]').textContent()) !== "Cesta k FAIR") fail("menu: the path item is not marked on a station");
   await page.locator(".main-nav a", { hasText: "Úvod" }).click();
   try {
-    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/start" && document.querySelector("#stage-question") && document.querySelector("#stage-question").textContent.includes("Kde se právě nacházíte"), null, { timeout: 5000 });
+    await page.waitForFunction(() => window.location.hash === "#/cs/V/path/start" && document.querySelector("#journey-title"), null, { timeout: 5000 });
   } catch (error) {
-    fail("menu: the home item does not open the stage question");
+    fail("menu: the home item does not open the path's start");
   }
   if ((await page.locator('.main-nav a[aria-current="page"]').textContent()) !== "Úvod") fail("menu: the home item is not marked on the landing");
   if (!(await page.locator(".resume a").textContent()).includes("Licence")) fail("path: no resume line for the last station");
-  const current = await page.locator(".stage-current").allTextContents();
-  if (current.length !== 1 || !current[0].includes("Kroky 3–6") || !current[0].includes("Vybráno ")) fail("landing: the chosen stage is not marked with the last visit: " + current.join(" | "));
+  if ((await page.locator(".ring-last").getAttribute("data-stage")) !== "share") fail("landing: the ring does not mark the stage last read");
+  const lastRead = await page.locator(".journey-last").allTextContents();
+  if (lastRead.length !== 1 || !lastRead[0].includes("Sdílení dat") || !lastRead[0].includes("Naposledy jste četli")) fail("landing: the stage last read is not marked in words: " + lastRead.join(" | "));
 
   // Switching the lens keeps open levels and the scroll position.
   await go("#/cs/V/path/licence");
@@ -1440,7 +1519,7 @@ sections.push(["self-check", async () => {
   if (/Novák|Claude/.test(history) || !/obsah (vytvořen|upraven)/.test(history)) fail("station: the change history names people or tools, or lists no dated change");
   const basis = await page.locator(".site-footer p", { hasText: "Obsah vychází z" }).textContent();
   if (!basis.includes("Trtíková, I.") || !basis.includes("Čížek, T.") || !basis.includes("verze 1.2") || !basis.includes("doi.org/10.71495/5dv6-v116")) fail("footer: the analysis is not cited with its authors: " + basis);
-  const guideCitation = await page.locator(".site-footer p", { hasText: "Jak citovat průvodce" }).textContent();
+  const guideCitation = await page.locator(".site-footer p", { hasText: "Jak citovat Průvodce" }).textContent();
   if (!guideCitation.includes("Novák, D. (ed.)") || !guideCitation.includes("[software]")) fail("footer: the guide is not cited as software with its editor: " + guideCitation);
   await page.locator(".site-footer a", { hasText: "Kdo se podílel" }).click();
   await page.waitForFunction(() => document.activeElement && document.activeElement.id === "credits");
@@ -1465,7 +1544,7 @@ sections.push(["self-check", async () => {
   }
 
   // The lens band appears only where the lens changes what is shown; in the resource finder it is the lens filter.
-  for (const hash of ["#/cs/V/explorer", "#/cs/V/repositories", "#/cs/V/resources", "#/cs/V/page/about", "#/cs/V/check/dataset"]) {
+  for (const hash of ["#/cs/V/explorer", "#/cs/V/repositories", "#/cs/V/resources", "#/cs/V/page/about"]) {
     await go(hash);
     if (await page.locator(".lens-band").count()) fail("lens band: shown where the lens changes nothing: " + hash);
   }
@@ -1485,7 +1564,7 @@ sections.push(["self-check", async () => {
   if (!(await page.locator(".card", { hasText: "Analýza a návrh postupů" }).count())) fail("finder: the lens hides a cited work, which has no audience");
 
   // A shared link opens as a preview in a browser without the answers, and can be adopted.
-  await go("#/cs/V/check/dataset");
+  await part("report");
   await page.locator("#share-create").click();
   const shared = await page.locator("#share-url").inputValue();
   if (!shared.includes("/check/dataset/a2.after.none.") || !shared.includes(".04n") || !shared.includes(".05k")) fail("share link: unexpected payload " + shared);
@@ -1506,20 +1585,25 @@ sections.push(["self-check", async () => {
   }
 
   // Gate check: the core-system profile marks monitoring and central logging as provided by NRP.
-  await go("#/cs/SR/check/gate");
+  await at("SR", "gate", "evidence");
   await page.locator("#profile-core-system").check();
+  await at("SR", "gate", "answers");
   for (const id of ["gate-09", "gate-10"]) {
     if (await page.locator(`#answer-${id}-yes`).count()) fail(`gate check: ${id} asks for an answer although NRP provides it`);
     if (!/zajišťuje NRP/i.test(await page.locator(`#item-${id}`).textContent())) fail(`gate check: ${id} is not marked as provided by NRP`);
   }
   if (await page.locator("#item-gate-18").count()) fail("gate check: gate.18 shows for the core-system profile");
-  // NKR lists no repository yet, so a record is put in place of the loaded list to test the mapping.
+  // NKR lists no repository yet, so a record is put in place of the NKR snapshot the page carries.
+  await at("SR", "gate", "evidence");
   await page.evaluate(() => {
-    window.FairGuide.live.nkr = { state: "done", records: [{ id: "test/1", name: "Test repository", content: { pidType: ["DOI"], oaipmhEndpoint: ["https://repo.example/oai"] } }] };
+    window.FairGuide.config.nkr = { retrieved: "2026-10-14", records: [{ id: "test/1", content: { repositoryName: "Test repository", pidType: ["DOI"], oaipmhEndpoint: ["https://repo.example/oai"] } }] };
     window.FairGuide.rerender();
   });
   await page.locator("#prefill-nkr-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  if (!(await page.locator('.evidence-card[data-source="nkr"] #prefill-status').count())) fail("gate check: the NKR run does not report in the NKR card");
+  await page.evaluate(() => { delete window.FairGuide.config.nkr; });
+  await at("SR", "gate", "answers");
   for (const id of ["gate-01", "gate-07"]) {
     if (!(await checked(`answer-${id}-yes`))) fail(`gate check: ${id} is not pre-filled yes from an NKR record listing DOI`);
     if (!(await page.locator(`#origin-${id}`).textContent()).includes("NKR")) fail(`gate check: ${id} does not name NKR as its source`);
@@ -1529,47 +1613,55 @@ sections.push(["self-check", async () => {
   await axe(page, "gate check");
 
   // Maturity and institution checks run end to end; the institution check has no Minimum items and shows them all.
-  await go("#/cs/SR/check/maturity");
   // The maturity check fills in from the re3data snapshot and says which repository it is; a repository outside
-  // the snapshot is explained rather than guessed.
+  // the snapshot is explained rather than guessed. FAIRsharing's record comes from its snapshot (D-185).
+  await at("SR", "maturity", "answers");
   await page.locator('label[for="extended-toggle"]').click();
-  // The FAIRsharing lookup goes to DataCite; here it is replaced, as every request is in these checks.
-  await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => []; });
-  await page.fill("#prefill-re3data", "https://www.re3data.org/repository/r3d100010386");
-  await page.locator("#prefill-re3data-run").click();
-  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  const fromRe3data = async (input) => {
+    await at("SR", "maturity", "evidence");
+    if (await page.locator("#prefill-re3data-clear").isEnabled()) await page.locator("#prefill-re3data-clear").click();
+    await page.fill("#prefill-re3data", input);
+    await page.locator("#prefill-re3data-run").click();
+    await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  };
+  await fromRe3data("https://www.re3data.org/repository/r3d100010386");
+  if (!(await page.locator('.evidence-card[data-source="re3data"] .target-card').textContent()).includes("LINDAT")) fail("maturity check: the re3data record does not say which repository it is, in the re3data card");
+  if (!(await page.locator('.evidence-card[data-source="re3data"] #prefill-status').count())) fail("maturity check: the re3data run does not report in the re3data card");
+  await at("SR", "maturity", "answers");
   if (!(await checked("answer-maturity-18-partly")) || !(await page.locator("#origin-maturity-18").textContent()).includes("re3data")) fail("maturity check: maturity.18 is not partly met from re3data alone");
   if (!(await checked("answer-maturity-01-yes")) || !(await checked("answer-maturity-19-yes"))) fail("maturity check: re3data facts do not fill in maturity.01 and maturity.19");
-  if (!(await page.locator(".target-card").textContent()).includes("LINDAT")) fail("maturity check: the re3data record does not say which repository it is");
-  if (!(await page.locator("#origin-maturity-05").textContent()).includes("OAI-PMH")) fail("maturity check: maturity.05 does not show the OAI-PMH evidence from re3data");
-  // A failed FAIRsharing lookup leaves maturity.18 open with a note; a record found answers it and links to the record.
-  await page.locator("#prefill-re3data-clear").click();
-  await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => { throw new Error("offline"); }; });
-  await page.fill("#prefill-re3data", "r3d100010386");
-  await page.locator("#prefill-re3data-run").click();
-  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  if ((await page.locator('input[name="answer-maturity-18"]:checked').count()) || !(await page.locator("#origin-maturity-18").textContent()).includes("nepodařilo ověřit")) fail("maturity check: a failed FAIRsharing lookup does not leave maturity.18 open with a note");
-  if (!(await checked("answer-maturity-01-yes"))) fail("maturity check: a failed FAIRsharing lookup stopped the re3data answers");
-  await page.evaluate(() => { window.FairGuide.live.findFairsharing = async () => [{ doi: "10.25504/FAIRsharing.test", name: "LINDAT", re3data: "r3d100010386", addresses: [] }]; });
-  await page.locator("#prefill-re3data-run").click();
-  await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
-  if (!(await checked("answer-maturity-18-yes"))) fail("maturity check: a FAIRsharing record does not complete maturity.18");
-  if (!(await page.locator('#origin-maturity-18 a[href="https://doi.org/10.25504/FAIRsharing.test"]').count())) fail("maturity check: maturity.18 does not link to the FAIRsharing record");
+  if (!(await page.locator("#item-maturity-05 .question-details").textContent()).includes("OAI-PMH")) fail("maturity check: maturity.05 does not retain the OAI-PMH evidence from re3data in its details");
+  // A repository whose FAIRsharing record the snapshot holds completes maturity.18 and links the record.
+  await fromRe3data("r3d100010484");
+  await at("SR", "maturity", "answers");
+  if (!(await checked("answer-maturity-18-yes"))) fail("maturity check: a FAIRsharing record in the snapshot does not complete maturity.18");
+  if (!(await page.locator('#origin-maturity-18 a[href="https://doi.org/10.25504/FAIRsharing.f4bfb1"]').count())) fail("maturity check: maturity.18 does not link to the FAIRsharing record");
+  // Without the FAIRsharing snapshot, maturity.18 stays open with a note, and the re3data answers stand.
+  await page.evaluate(() => {
+    const FG = window.FairGuide, get = FG.get;
+    FG.get = (id) => (id === "#snapshot-fairsharing" ? undefined : get(id));
+    window.restoreGet = () => { FG.get = get; };
+  });
+  await fromRe3data("r3d100010386");
+  await page.evaluate(() => window.restoreGet());
+  await at("SR", "maturity", "answers");
+  if ((await page.locator('input[name="answer-maturity-18"]:checked').count()) || !(await page.locator("#origin-maturity-18").textContent()).includes("nepodařilo ověřit")) fail("maturity check: without the FAIRsharing snapshot maturity.18 is not left open with a note");
+  if (!(await checked("answer-maturity-01-yes"))) fail("maturity check: without the FAIRsharing snapshot the re3data answers stopped");
+  await at("SR", "maturity", "evidence");
   await page.fill("#prefill-re3data", "r3d999999999");
   await page.locator("#prefill-re3data-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("není ve snímku"));
   await page.locator("#prefill-re3data-clear").click();
   // While NKR lists no repository, the check says to use the re3data record instead and offers no sample records,
   // which only the catalogue shows.
-  await page.evaluate(() => {
-    window.FairGuide.live.nkr = { state: "done", records: [], samples: false };
-    window.FairGuide.rerender();
-  });
-  if (!(await page.locator("#nkr-status").textContent()).includes("re3data níže") || (await page.locator("#nkr-samples").count())) fail("maturity check: an empty NKR does not point to the re3data record, or offers sample records the check cannot use");
+  if (!(await page.locator("#nkr-status").textContent()).includes("re3data níže") || (await page.locator("#nkr-samples").count()) || (await page.locator("#nkr-load").count())) fail("maturity check: an empty NKR does not point to the re3data record, offers sample records the check cannot use, or offers to load NKR");
   // FAIR Champion over a sample of records (replaced here). Each question shows the tests that can answer it and runs
   // them alone; an identifier that does not resolve is not tested. One record passes, one fails and one gives no
-  // result. A narrower retention test supplies observations without answering the tombstone question. Running all tests
-  // shows a bar, the coverage is stated, and a retry runs only the tests without a result.
+  // result. A narrower retention test covers only part of the tombstone question, so it suggests Partly (D-168).
+  // Running all tests shows a bar in the sample's card, the coverage is stated, and a retry runs only the tests
+  // without a result.
+  await at("SR", "maturity", "answers");
+  if (!(await page.locator("#item-maturity-11 .question-details").evaluate((node) => node.open))) await page.locator("#item-maturity-11 .question-details > summary").click();
   const line = page.locator("#tests-maturity-11");
   if (!(await line.locator('a[href$="/catalogue/tests/fair-champion.fc_metadata_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
   await page.evaluate(() => {
@@ -1583,19 +1675,27 @@ sections.push(["self-check", async () => {
       return { value: record.endsWith("/bad") ? "fail" : "pass", log: "" };
     };
   });
+  await at("SR", "maturity", "evidence");
   await page.fill("#prefill-champion", "10.1234/good\n10.1234/bad\n10.1234/none\n10.1234/gone");
+  await at("SR", "maturity", "answers");
+  if (!(await page.locator("#item-maturity-11 .question-details").evaluate((node) => node.open))) await page.locator("#item-maturity-11 .question-details > summary").click();
   await page.locator("#test-run-maturity-11").click();
   await page.waitForFunction(() => FairGuide.state.answers.maturity.items["maturity.11"]?.observations?.some((entry) => entry.source === "champion"));
   const oneQuestion = await page.evaluate(() => window.championCalls);
   if (oneQuestion.length !== 3 || oneQuestion.some((call) => !call.startsWith("fc_metadata_persistence https://doi.org/") || call.includes("gone"))) fail("maturity check: one question's run did not test only its test on the resolved records, as resolver addresses: " + oneQuestion.join(", "));
-  if ((await page.locator('#item-maturity-11 input:checked').count()) || !(await line.textContent()).includes("1 z 2") || !(await page.locator("#origin-maturity-11").textContent()).includes("FAIR Champion")) fail("maturity check: sample observations must not answer the tombstone question, and must retain coverage at its test line");
+  if (!(await checked("answer-maturity-11-partly")) || !(await line.textContent()).includes("1 z 2") || !(await page.locator("#origin-maturity-11").textContent()).includes("FAIR Champion")) fail("maturity check: a narrower test met on part of the sample does not suggest Partly, or loses its coverage at its test line");
   if (!(await page.locator("#prefill-status").textContent()).includes("10.1234/gone")) fail("maturity check: the record that does not resolve is not reported");
   await page.evaluate(() => { window.championCalls = []; window.championGate = new Promise((resolve) => { window.openChampion = resolve; }); });
+  await at("SR", "maturity", "evidence");
   await page.locator("#prefill-champion-run").click();
   await page.waitForSelector("#prefill-progress:not([hidden])");
-  if (!(await page.locator("#prefill-progress").textContent()).includes("z 28 testů") || !(await page.locator("#tests-maturity-06 .test-state").textContent()).includes("běží")) fail("maturity check: running all tests does not show the progress of the remaining tests and the retry, or a question's line does not say its test is running");
+  if (!(await page.locator('.evidence-card[data-source="sample"] #prefill-progress').count())) fail("maturity check: the run's progress is not in the sample's card, beside its control");
+  if (!(await page.locator("#prefill-progress").textContent()).includes("z 28 testů")) fail("maturity check: running all tests does not show the progress of the remaining tests and the retry");
+  await at("SR", "maturity", "answers");
+  if (!(await page.locator("#tests-maturity-06 .test-state").textContent()).includes("běží")) fail("maturity check: a question's line does not say its test is running");
   await page.evaluate(() => window.openChampion());
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  await at("SR", "maturity", "evidence");
   if (await page.locator("#prefill-progress:not([hidden])").count()) fail("maturity check: the progress bar stays after the tests");
   const championStatus = await page.locator("#prefill-status").textContent();
   if (!championStatus.includes("20 z 30 testů")) fail("maturity check: the coverage is not reported: " + championStatus);
@@ -1604,16 +1704,26 @@ sections.push(["self-check", async () => {
   await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("30 z 30"));
   if (await page.evaluate(() => window.championCalls.length !== 10 || window.championCalls.some((record) => !record.endsWith("/none")))) fail("maturity check: the retry ran tests that had a result");
-  if (!(await page.locator("#tests-maturity-11").textContent()).includes("2 z 3") || (await page.locator("#prefill-champion-run").count())) fail("maturity check: the retried results are not counted, or a run stays offered");
+  if (await page.locator("#prefill-champion-run").count()) fail("maturity check: a run stays offered after every test has a result");
+  await at("SR", "maturity", "answers");
+  if (!(await page.locator("#tests-maturity-11").textContent()).includes("2 z 3")) fail("maturity check: the retried results are not counted");
+  await at("SR", "maturity", "evidence");
   await page.fill("#prefill-champion", "a b c d e f");
-  await page.locator("#prefill-champion-run").click();
-  if (!(await page.locator("#prefill-status").textContent()).includes("jeden až 5")) fail("maturity check: a sample over five records is accepted");
+  /* A sample over five records cannot be tested: the run waits, and the sample's reason says how many it takes. */
+  const oversized = await page.locator("#prefill-champion-run").evaluate((button) => ({ disabled: button.disabled, reason: (document.getElementById(button.getAttribute("aria-describedby") || "") || {}).textContent || "" }));
+  if (!oversized.disabled || !oversized.reason.includes("jeden až 5")) fail("maturity check: a sample over five records can be tested, or the run does not say why it waits");
+  await at("SR", "maturity", "answers");
   await page.locator("#answer-maturity-02-no").check();
+  await at("SR", "maturity", "report");
   if (!(await numbersIn(page.locator(".gaps").first())).includes("02")) fail("maturity check: the maturity.02 gap is missing");
-  await go("#/cs/DS/check/institution");
+  await at("DS", "institution", "answers");
   if (!(await page.locator("#item-institution-01").count())) fail("institution check: no item shows in the first view");
   await page.locator("#answer-institution-01-unknown").check();
+  await at("DS", "institution", "report");
   if (!(await numbersIn(page.locator(".gaps").first())).includes("01")) fail("institution check: the don't-know task is missing");
+  // A check in blocks reports its state by block, every question once (D-185).
+  if (!(await page.locator("#results-blocks").count()) || !(await page.locator("#results .block-distribution").count())) fail("institution check: the report does not give the state by block");
+  await at("DS", "institution", "answers");
   // The basic institution check is the strategy, which the Open Science III call requires, and the research act's
   // obligations; the extended check adds the action plan, the policy and the national infrastructure. Blocks replace
   // the grouping switch; a gap cites the call's minimum (and for the policy the EOSC CZ manual) and links to the
@@ -1623,33 +1733,40 @@ sections.push(["self-check", async () => {
   if ((await page.locator(".item-group > h2 svg.group-icon").count()) !== 2 || (await page.locator(".check-summary svg.group-icon").count()) < 2) fail("institution check: blocks are not marked by their icons in the list and the summary");
   if (!(await page.locator(".item-group .group-description", { hasText: "§ 83" }).count())) fail("institution check: the obligations block does not say where they come from");
   await page.locator("#answer-institution-08-no").check();
+  await at("DS", "institution", "report");
   const peopleGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^08$/ }) }).first();
   if (!(await peopleGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.04"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
+  await at("DS", "institution", "answers");
   await page.locator('label[for="extended-toggle"]').click();
   const allBlocks = await page.locator(".item-group > h2").allTextContents();
   if (allBlocks.length !== 5 || !allBlocks[3].includes("Politika")) fail("institution check: the extended check does not add the action plan, policy and infrastructure blocks: " + allBlocks.join(" | "));
   await page.locator("#answer-institution-18-no").check();
+  await at("DS", "institution", "report");
   const retentionGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^18$/ }) }).first();
   const cites = async (id) => retentionGap.locator(`.id-chip[href$="/catalogue/clauses/${id}"]`).count();
   if (!(await cites("OS3-RULES.14")) || !(await cites("POLICY-MANUAL.04")) || !(await retentionGap.locator('a[href$="/path/repository"]').count())) fail("institution check: the retention gap does not cite the call and the manual or link to the repository step");
 
   // FIP check: the dashboard snapshot pre-fills answers with their source; a principle without a declaration stays
   // open with a note; a change by the user stays marked.
-  await go("#/cs/K/check/fip");
+  await at("K", "fip", "answers");
   await page.locator('label[for="extended-toggle"]').click();
+  await at("K", "fip", "evidence");
   await page.locator("#prefill-fip").selectOption("nusl-grey");
   await page.locator("#prefill-fip-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  await at("K", "fip", "answers");
   const open = await page.evaluate(() => [...document.querySelectorAll("fieldset.item")].filter((item) => !item.querySelector("input:checked") && item.textContent.includes("nic nedeklaruje")).map((item) => item.id));
   if (!open.length) fail("FIP check: no item stays open with a note for a principle without a declaration");
+  await at("K", "fip", "evidence");
   await page.locator("#prefill-fip").selectOption("ndi-baseline");
   await page.locator("#prefill-fip-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  await at("K", "fip", "answers");
   if (!(await checked("answer-fip-01-yes"))) fail("FIP check: fip.01 is not pre-filled from the snapshot");
-  if (!(await panelFits(page))) fail("FIP check: the result so far scrolls or is too tall after pre-fill");
+  if (!(await panelFits(page))) fail("FIP check: the result so far scrolls or is too tall after pre-fill: " + await page.locator(".check-summary").evaluate((panel) => JSON.stringify({ height: panel.getBoundingClientRect().height, scroll: panel.scrollHeight, client: panel.clientHeight, viewport: innerHeight })));
   if (!(await page.locator("#origin-fip-01").textContent()).includes("FIP Dashboard (snímek)")) fail("FIP check: fip.01 does not name its source");
   await page.locator("#answer-fip-01-partly").check();
-  if ((await page.locator("#origin-fip-01 > .source-chip").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
+  if ((await page.locator("#origin-fip-01 .source-chip[data-origin]").getAttribute("data-origin")) !== "changed") fail("FIP check: a changed pre-filled answer is not marked");
   await axe(page, "FIP check pre-filled");
 
   // Loading a saved result is a way to start: offered at the top of every check, also before the mode is chosen,
@@ -1664,6 +1781,7 @@ sections.push(["self-check", async () => {
   }
 
   // Exports: Markdown and an FTR result set in an RO-Crate, naming the published page and the assessed profile.
+  await at("K", "fip", "report");
   await page.locator("#export-format-md").check();
   const [mdDownload] = await Promise.all([page.waitForEvent("download"), page.locator("#export-download").click()]);
   const md = readFileSync(await mdDownload.path(), "utf8");
@@ -1691,6 +1809,7 @@ sections.push(["self-check", async () => {
   if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../metrics/fip.01.json") fail("export: the fip.01 result does not name its test in the guide's API: " + testRef);
 
   // Local data: each check says where the answers are kept, and how it works.
+  await at("K", "fip", "evidence");
   const note = await page.locator(".local-data").textContent();
   if (!note.includes("zůstávají jen v tomto prohlížeči") || !note.includes("Co odchází")) fail("local data: the statement or its explanation is missing on the check");
   if (!/<!-- fair-guide-result v2 guide=\S+: fip a2\./.test(md)) fail("export: the Markdown summary does not carry the answers with the format and guide versions");
@@ -1730,7 +1849,9 @@ sections.push(["self-check", async () => {
       }
     };
     await tryLoad(variant("damaged.jsonld", (data) => { data.items["fip.01"].value = "maybe"; }), "poškozený", "load: a damaged file is not reported as damaged");
-    await tryLoad(variant("newer.jsonld", (data) => { data.v = 3; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
+    await tryLoad(variant("newer.jsonld", (data) => { data.v = 4; data.guideVersion = "9.0.0"; }), "novější verze", "load: a file from a newer format is not reported");
+    /* Revision 3 is assessments; a revision 2 file that claims them is damaged rather than silently partial. */
+    await tryLoad(variant("claimed.jsonld", (data) => { data.assessments = [{ id: "f-uji:sha256-00", provider: "f-uji" }]; }), "poškozený", "load: a revision 2 file with assessments is not reported as damaged");
     await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items["fip.99"] = { value: "yes", origin: "user", prefill: null }; }));
     await view.waitForSelector(".notice.shared");
     if (!(await view.locator(".notice.shared").textContent()).includes("vynechali: 1")) fail("load: a question this version does not know is not skipped with a note");
@@ -1746,6 +1867,8 @@ sections.push(["self-check", async () => {
     const loaded = await view.locator("#origin-fip-01").textContent();
     if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("se liší od návrhu")) fail("load: the adopted fip.01 lost its evidence or is mislabelled: " + loaded);
     const restored = async (format) => {
+      await view.goto(pageUrl + "#/cs/K/check/fip/evidence");
+      await view.waitForSelector("#prefill-fip");
       if ((await view.locator("#prefill-fip").inputValue()) !== "ndi-baseline") fail(`load (${format}): the profile chosen for pre-fill is not restored`);
       if (!(await view.locator(".target-card").count())) fail(`load (${format}): what the identifier is does not show after loading`);
     };
@@ -1809,6 +1932,7 @@ sections.push(["self-check", async () => {
 sections.push(["funded output", async () => {
   const { context, page, external, problems } = await openPage();
   const checked = (id) => page.locator("#" + id).isChecked();
+  const part = (name) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, "#/cs/V/check/dataset/" + name));
   await page.goto(pageUrl + "#/cs/V/check/dataset");
   await rendered(page);
   await page.waitForSelector("#mode-after");
@@ -1819,8 +1943,12 @@ sections.push(["funded output", async () => {
   await page.locator("#mode-after").check();
   if ((await page.locator('input[name="profile"]:checked').getAttribute("value")) !== "none" || (await outputItems())) fail("dataset check: the check does not start without a programme and without programme items");
   await page.locator('input[name="profile"][value="minizamer"]').check();
+  await part("answers");
+  await page.locator('label[for="extended-toggle"]').click();
   if ((await outputItems()) !== "dataset-20,dataset-21,dataset-22,dataset-23") fail("dataset check: the minizáměr programme does not show just the shared requirements: " + (await outputItems()));
+  await part("evidence");
   await page.locator('input[name="profile"][value="os3"]').check();
+  await part("answers");
   if ((await outputItems()) !== "dataset-20,dataset-21,dataset-22,dataset-23,dataset-24,dataset-25,dataset-26,dataset-27,dataset-28") fail("dataset check: Open Science III does not add its own requirements");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
@@ -1829,25 +1957,28 @@ sections.push(["funded output", async () => {
     live.discoverObject = async (input) => ({ input, pid: live.parsePid(input), date: "2026-10-11T12:00:00Z", supported: true,
       resolved: await live.resolvePid(), datacite: await live.datacite(), representations: [], diagnostics: [], coverage: {} });
   });
+  await part("evidence");
   await page.fill("#prefill-steward", "0000-0001-5109-3700");
   await page.locator("#prefill-steward").dispatchEvent("change");
   await page.fill("#prefill-pid", "10.5281/zenodo.1");
   await page.locator("#prefill-pid-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status") && document.getElementById("prefill-status").textContent.includes("Hotovo"));
+  await part("answers");
   if (!(await checked("answer-dataset-27-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
+  await part("report");
   const stewardGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^27$/ }) }).first();
   if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.24"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
   // A gap's basis names its source the way every citation does: by short name, leading to the catalogue; a
   // question's basis opens under the same label.
   if (!(await stewardGap.locator('a.source-link[href$="/catalogue/resources/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
+  await part("answers");
   if (!(await page.locator("#item-dataset-27 details.item-basis > summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
   // FAIR Champion on the dataset, as a second action after the lookup: each question shows its tests and runs them
   // alone, the lookup result runs them all, and no test runs on an identifier that does not resolve. Four outcomes:
   // a pass answers yes, a fail no, an indeterminate verdict or no result leaves the answer to the quick check; the
   // coverage is stated and a retry runs only the tests without a result. The extended view shows every question.
-  await page.locator('label[for="extended-toggle"]').click();
-  await page.waitForSelector("#tests-dataset-07");
-  if (!(await page.locator(".champion-all").textContent()).includes("6 otázek") || !(await page.locator('#tests-dataset-07 [data-health="degraded"]').count())) fail("dataset check: the lookup result does not offer the tests of six questions, or a degraded test is not marked at its question");
+  await page.waitForSelector("#tests-dataset-07", { state: "attached" });
+  if (!(await page.locator('#tests-dataset-07 [data-health="degraded"]').count())) fail("dataset check: a degraded test is not marked at its question");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     window.championCalls = [];
@@ -1859,6 +1990,7 @@ sections.push(["funded output", async () => {
       return { value: verdicts[test], log: "log of " + test };
     };
   });
+  await page.locator("#item-dataset-03 .question-details > summary").click();
   await page.locator("#test-run-dataset-03").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("nepodařilo přeložit"));
   if (await page.evaluate(() => window.championCalls.length)) fail("dataset check: FAIR Champion was called for an identifier that does not resolve");
@@ -1867,13 +1999,18 @@ sections.push(["funded output", async () => {
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("Hotovo"));
   if ((await page.evaluate(() => window.championCalls.join(","))) !== "fc_data_identifier_in_metadata https://doi.org/10.5281/zenodo.1") fail("dataset check: one question's run did not test only its test, on the DOI as its resolver address");
   if (!(await checked("answer-dataset-03-yes")) || !(await page.locator("#tests-dataset-03").textContent()).includes("splněno")) fail("dataset check: a passed test does not answer dataset.03 yes and show on its line");
+  await part("evidence");
+  if (!(await page.locator(".champion-all").textContent()).includes("6 otázek")) fail("dataset check: the evidence part does not offer the tests of six questions");
   await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("5 z 7 testů"));
+  await part("answers");
   if ((await page.evaluate(() => window.championCalls.filter((call) => call.startsWith("fc_data_identifier_in_metadata")).length)) !== 1 || (await page.evaluate(() => window.championCalls.length)) !== 7) fail("dataset check: running all tests ran again a test that had a result");
   if (!(await checked("answer-dataset-04-no")) || !(await page.locator("#tests-dataset-04").textContent()).includes("nesplněno")) fail("dataset check: a failed test does not answer dataset.04 no");
   if (!(await checked("answer-dataset-02-yes")) || !(await page.locator("#origin-dataset-02").textContent()).includes("resolver")) fail("dataset check: an indeterminate test replaced the quick check's answer to dataset.02");
-  if (!(await page.locator("#prefill-champion-run").textContent()).includes("(2)") || !(await page.locator("#test-run-dataset-09").textContent()).includes("Zopakovat")) fail("dataset check: no retry of the two tests without a result, overall or at their questions");
+  if (!(await page.locator("#test-run-dataset-09").textContent()).includes("Zopakovat")) fail("dataset check: no retry of a test without a result at its question");
   await page.evaluate(() => { window.championCalls = []; window.FairGuide.live.championTest = async (test, record) => (window.championCalls.push(test), { value: "pass", log: "" }); });
+  await part("evidence");
+  if (!(await page.locator("#prefill-champion-run").textContent()).includes("(2)")) fail("dataset check: no retry of the two tests without a result in the evidence part");
   await page.locator("#prefill-champion-run").click();
   await page.waitForFunction(() => document.getElementById("prefill-status").textContent.includes("7 z 7 testů"));
   if (await page.evaluate(() => window.championCalls.sort().join(",") !== "community_metadata_includes_author_affiliation,fc_metadata_outward_links")) fail("dataset check: the retry ran tests that had a result");
@@ -1893,13 +2030,15 @@ sections.push(["research practice", async () => {
           window.FairGuide.saveState();
         }
       });
-      await page.goto(pageUrl + `#/${lang}/V/check/${id}`);
+      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/check/${id}/answers`));
       await page.waitForSelector(`#item-${id}-01`);
       const count = () => page.locator(`.item[id^="item-${id}-"]`).count();
       if ((await count()) !== basic) fail(`${id} (${lang}): the first view does not have ${basic} advisory questions`);
       if ((await page.locator(".tier-info").textContent()).includes("Minimum")) fail(`${id}: uses the NDI minimum tier`);
       await page.locator(`#answer-${id}-01-unknown`).check();
+      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/check/${id}/report`));
       if (!(await page.locator("#results .gaps").textContent()).trim()) fail(`${id}: uncertainty has no follow-up`);
+      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/check/${id}/answers`));
       await page.locator('label[for="extended-toggle"]').click();
       if ((await count()) !== total) fail(`${id} (${lang}): the extended check does not have ${total} questions`);
       if (id === "fdo" && ((await page.locator(".item-context").count()) !== 3 || (await page.locator("fieldset.item").count()) !== 31)) fail(`fdo (${lang}): source definitions create extra answerable obligations`);
@@ -1914,7 +2053,9 @@ sections.push(["research practice", async () => {
         return { read: Boolean(read.check && read.state), saved: saved.check, results: crate["@graph"].filter((node) => [].concat(node["@type"]).includes("TestResult")).length };
       }, id);
       if (!roundTrip.read || roundTrip.saved !== id || !roundTrip.results) fail(`${id}: export/import contract failed: ${JSON.stringify(roundTrip)}`);
-      if (/%|skóre|score/i.test(await page.locator("#results").textContent())) fail(`${id}: result shows an overall score`);
+      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/check/${id}/report`));
+      const overview = await page.locator(".result-headline").innerText();
+      if (/%|celkové skóre|overall score/i.test(overview.replace(/žádné celkové skóre|no overall score/gi, ""))) fail(`${id}: result shows an overall score`);
     }
     for (const id of ["software", "notebooks", "provenance", "fdo"]) {
       await page.goto(pageUrl + `#/${lang}/V/page/${id}`);
@@ -1938,12 +2079,12 @@ sections.push(["research practice", async () => {
       }
     }
   }
-  await page.goto(pageUrl + "#/en/V/check/software");
+  await page.goto(pageUrl + "#/en/V/check/software/answers");
   await page.waitForSelector("#item-software-01");
   await page.locator("#answer-software-01-no").check();
   await page.goto(pageUrl + "#/en/V/path/publication");
   await page.waitForFunction(() => window.FairGuide.partsLoaded.has("questions"));
-  if (!(await page.locator('#main a[href*="check/software"]').count())) fail("software: saved gap is lost after reloading the path");
+  if (!(await page.locator('.rail-desktop a[href="#/en/V/path/publication"] .rail-mark[data-state="gap"]').count())) fail("software: saved gap is lost after reloading the path");
   if (external.length) fail("research practice: external requests without a lookup: " + external.join(", "));
   for (const problem of problems) fail("research practice: " + problem);
   await context.close();
@@ -2010,15 +2151,459 @@ sections.push(["published health and documentation links", async () => {
   await context.close();
 }]);
 
-// Every section at once; one that throws fails on its own and the others still report.
+// Every landing shortcut and station action that stays in the guide, in every lens and language, reaches what it
+// names: a named catalogue entry opens alone, a topic opens the catalogue narrowed to it with entries, and no link
+// opens the catalogue's bare default list of resources.
+sections.push(["targets", async () => {
+  await Promise.all(["cs", "en"].map(async (lang) => {
+    const { context, page, problems } = await openPage();
+    await page.goto(pageUrl);
+    await rendered(page);
+    const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+    /* A link to the view already open would not navigate; leave it first. */
+    const go = async (hash) => {
+      if ((await page.evaluate(() => window.location.hash)) === hash) await visit(`#/${lang}/V/explorer`);
+      await visit(hash);
+    };
+    const inGuide = (list) => list.filter(([href]) => href && href.startsWith("#/"));
+    const links = new Map();
+    for (const lens of lenses) {
+      await go(`#/${lang}/${lens}/path/start`);
+      const tasks = inGuide(await page.locator(".tasks a.task").evaluateAll((all) => all.map((a) => [a.getAttribute("href"), a.textContent.trim()])));
+      if (!tasks.length) fail(`targets: the ${lang}/${lens} landing has no shortcut within the guide`);
+      for (const [href, label] of tasks) links.set(href, `${lang}/${lens} shortcut "${label}"`);
+      for (const station of stations) {
+        await go(`#/${lang}/${lens}/path/${station}`);
+        const actions = inGuide(await page.locator(".now-actions a").evaluateAll((all) => all.map((a) => [a.getAttribute("href"), a.textContent.trim()])));
+        for (const [href, label] of actions) if (!links.has(href)) links.set(href, `${lang}/${lens} ${station} action "${label}"`);
+      }
+    }
+    for (const [href, where] of links) {
+      await go(href);
+      const parts = (await page.evaluate(() => window.location.hash)).slice(2).split("/").map(decodeURIComponent);
+      if (parts[2] !== "catalogue") continue;
+      const cards = await page.locator(".catalogue-results .entry-card").count();
+      if (parts[4]) {
+        if (cards !== 1) fail(`targets: ${where} names entry ${parts[4]} but shows ${cards} entries`);
+      } else if (/^(k!)?resources$/.test(parts[3] || "")) {
+        fail(`targets: ${where} opens the bare list of resources (${href})`);
+      } else if (!cards) {
+        fail(`targets: ${where} opens an empty list (${href})`);
+      }
+    }
+    for (const problem of problems) fail(`targets ${lang}: ${problem}`);
+    await context.close();
+  }));
+}]);
+
+// Controls that cannot act yet wait: in each empty check, helper and filtered-out list, every control that needs an
+// identifier, records, text or an answer is inactive and names a visible reason; given what it needs, it acts.
+sections.push(["inactive", async () => {
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
+  const go = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+  const state = (selector) => page.locator(selector).first().evaluate((element) => {
+    const ids = (element.getAttribute("aria-describedby") || "").split(/\s+/).filter(Boolean);
+    const reason = ids.map((id) => document.getElementById(id)).filter((item) => item && !item.hidden && item.offsetParent !== null).map((item) => item.textContent.trim()).join(" | ");
+    return { disabled: element.disabled, reason };
+  });
+  const waits = async (selector, where) => {
+    if (!(await page.locator(selector).count())) return;
+    const { disabled, reason } = await state(selector);
+    if (!disabled) fail(`inactive: ${where}: ${selector} is active but cannot act yet`);
+    else if (!reason) fail(`inactive: ${where}: ${selector} is inactive without a visible reason`);
+  };
+  const acts = async (selector, where) => {
+    const { disabled } = await state(selector);
+    if (disabled) fail(`inactive: ${where}: ${selector} stays inactive once it can act`);
+  };
+  const NEEDS = ["pid", "re3data", "nanopub", "software"].flatMap((key) => [`#prefill-${key}-run`, `#prefill-${key}-clear`])
+    .concat(["#prefill-sample-run", "#prefill-champion-run", "#export-download", "#export-copy", "#share-create", "#answers-clear"]);
+  for (const check of checks) {
+    await go(`#/cs/${check.lens}/check/${check.id}`);
+    await page.waitForSelector(".check-parts");
+    for (const selector of NEEDS) await waits(selector, `empty ${check.id} check`);
+  }
+  // Given what they need, they act: an identifier, a sample, an answer.
+  await go("#/cs/SR/check/maturity");
+  await page.fill("#prefill-re3data", "r3d100010386");
+  await acts("#prefill-re3data-run", "maturity with a re3data identifier");
+  await acts("#prefill-re3data-clear", "maturity with a re3data identifier");
+  await page.fill("#prefill-champion", "https://doi.org/10.5281/zenodo.1\nhttps://doi.org/10.5281/zenodo.2");
+  await acts("#prefill-sample-run", "maturity with a sample");
+  await acts("#prefill-champion-run", "maturity with a sample");
+  await go("#/cs/SR/check/maturity/answers");
+  await page.locator('input[name="answer-maturity-01"]').first().check();
+  await go("#/cs/SR/check/maturity/report");
+  for (const selector of ["#export-download", "#export-copy", "#share-create", "#answers-clear"]) await acts(selector, "maturity with an answer");
+  await page.evaluate(() => { localStorage.clear(); });
+  // The helpers and the landing search wait for text; a list filtered to nothing has nothing to save.
+  await go("#/cs/V/page/identifiers");
+  await waits(".identifier-helper button[type=submit]", "empty identifier helper");
+  await waits(".identifier-helper .field-clear", "empty identifier helper");
+  await page.fill("#identifier-text", "10.5281/zenodo.1");
+  await acts(".identifier-helper button[type=submit]", "identifier helper with text");
+  await go("#/cs/V/page/citation");
+  await waits(".citation-helper button[type=submit]", "empty citation helper");
+  await waits(".citation-helper .field-clear", "empty citation helper");
+  await page.fill("#citation-doi", "10.5281/zenodo.1");
+  await acts(".citation-helper button[type=submit]", "citation helper with a DOI");
+  await go("#/cs/V/catalogue/k!resources~q!zzzqqqxxx");
+  await waits("#export-csv", "an empty list");
+  await waits("#export-json", "an empty list");
+  await go("#/cs/V/path/start");
+  await waits(".search button[type=submit]", "the empty landing search");
+  for (const problem of problems) fail("inactive: " + problem);
+  await context.close();
+}]);
+
+// The life-cycle models in the catalogue: every stage is listed, and the path's reuse stage shows its definition as
+// published and each correspondence with its basis and source, the unconfirmed one marked (guide-knowledge-base,
+// "Life-cycle models and their crosswalk are records"). A name the guide translated says so.
+sections.push(["life cycle", async () => {
+  const stageCount = graph.filter((e) => /^#lifecycle-[^.]+\./.test(e["@id"])).length;
+  const citing = graph.filter((e) => e["@type"] === "HowToSection" && e.lifecycleStage && e.lifecycleStage["@id"] === "#lifecycle-rdmkit.reuse").map((e) => e.identifier);
+  if (!stageCount || !citing.length) fail("life cycle: the crate has no life-cycle stages or no station in the reuse stage");
+  await Promise.all(["cs", "en"].map(async (lang) => {
+    const { context, page, problems } = await openPage();
+    await page.goto(pageUrl);
+    await rendered(page);
+    const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+    const card = page.locator(".catalogue-results .entry-card");
+    await visit(`#/${lang}/K/catalogue/lifecycle`);
+    if ((await card.count()) !== stageCount) fail(`life cycle ${lang}: the list shows ${await card.count()} stages, the crate has ${stageCount}`);
+    await visit(`#/${lang}/K/catalogue/lifecycle/rdmkit.reuse`);
+    if ((await card.count()) !== 1) fail(`life cycle ${lang}: the reuse stage's entry is not shown alone`);
+    // Both languages state the same definition: RDMkit's own in English, the Guide's marked translation in Czech; KNAV's
+    // Czech wording follows as a quotation that keeps its stage label.
+    if ((await card.locator(".stage-definition").first().getAttribute("lang")) !== lang) fail(`life cycle ${lang}: the definition is not given in ${lang}`);
+    const translated = (await card.textContent()).includes(lang === "cs" ? "Překlad Průvodce z RDMkit" : "Translated by the Guide");
+    if (translated !== (lang === "cs")) fail(`life cycle ${lang}: the Guide's translation is ${translated ? "claimed for the source's text" : "not marked"}`);
+    const quote = card.locator(".stage-quote");
+    if ((await quote.count()) !== 1 || !(await quote.textContent()).startsWith("Opakované užití dat: ") || (await quote.getAttribute("lang")) !== "cs") fail(`life cycle ${lang}: KNAV's Czech definition is not quoted with its stage label`);
+    if (await card.locator(".card-details").count()) fail(`life cycle ${lang}: the published RDMkit/KNAV name is marked as translated`);
+    const rows = await card.locator(".crosswalk li").evaluateAll((all) => all.map((li) => ({
+      basis: li.dataset.basis, target: decodeURIComponent(li.querySelector("a").getAttribute("href")), sources: li.querySelectorAll(".source-link").length,
+    })));
+    const row = (stage) => rows.find((item) => item.target.endsWith("/" + stage));
+    for (const [stage, basis] of Object.entries({ "maldreth.access": "unconfirmed", "maldreth.transform": "reviewed", "knav-tools.reusing": "reviewed" })) {
+      if (!row(stage)) fail(`life cycle ${lang}: the reuse stage does not list ${stage}`);
+      else if (row(stage).basis !== basis) fail(`life cycle ${lang}: ${stage} is marked ${row(stage).basis}, not ${basis}`);
+    }
+    if (row("maldreth.access") && !row("maldreth.access").sources) fail(`life cycle ${lang}: the unconfirmed correspondence names no source`);
+    const sources = await card.locator(".relations .source-link").count();
+    if (sources < 2) fail(`life cycle ${lang}: the stage cites ${sources} source(s); RDMkit and KNAV expected`);
+    const steps = await card.locator(".relations .holder-link").evaluateAll((all) => all.map((a) => a.getAttribute("href")));
+    for (const station of citing) if (!steps.some((href) => href.endsWith("/path/" + station))) fail(`life cycle ${lang}: the stage does not lead to its step ${station}`);
+    await visit(`#/${lang}/K/catalogue/lifecycle/maldreth.access`);
+    const marked = await card.locator(".card-details").count();
+    if ((lang === "cs") !== (marked === 1)) fail(`life cycle ${lang}: the guide's translated name is ${marked ? "" : "not "}marked`);
+    for (const problem of problems) fail(`life cycle ${lang}: ${problem}`);
+    await context.close();
+  }));
+}]);
+
+// A stage chosen and stored by an earlier version of the guide is ignored: the path's start shows the journey with no
+// stage marked, and the next save drops the stored choice.
+sections.push(["stored stage", async () => {
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
+  await page.evaluate(() => localStorage.setItem("eosc-fair-guide", JSON.stringify({ lang: "cs", lens: "V", started: true, entryStation: "repository" })));
+  await page.goto(pageUrl + "#/cs/V/path");
+  await page.reload();
+  await rendered(page);
+  if (!(await page.locator("#journey-title").count())) fail("stored stage: the path does not open its start for a visitor who has read no step");
+  if (await page.locator(".journey-last").count()) fail("stored stage: an older stored stage marks the journey");
+  await navigationRendered(page, () => page.evaluate(() => { window.location.hash = "#/cs/V/path/plan"; }));
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("eosc-fair-guide")));
+  if ("started" in stored || "entryStation" in stored) fail("stored stage: the stored choice survives a save");
+  if (stored.lastStation !== "plan") fail("stored stage: reading a step is not remembered");
+  for (const problem of problems) fail(`stored stage: ${problem}`);
+  await context.close();
+}]);
+
+// The KNAV tools catalogue in the catalogue: a tool no entry stands for is listed once under its catalogue identifier,
+// with its steps, disciplines and licence, and reaches the guide's steps through the crosswalk; an entry that is a
+// catalogue tool is listed once, marked, and opens from the tool's identifier; a plain-HTTP address is not linked.
+sections.push(["knav catalogue", async () => {
+  const tools = graph.filter((e) => /^#knav-/.test(e["@id"]) && e["@id"] !== "#knav-tools");
+  const unlinked = tools.filter((e) => !e.sameAs);
+  if (!tools.length || tools.length === unlinked.length) fail("knav catalogue: the crate has no tools, or none an entry stands for");
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
+  const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+  const cards = page.locator(".catalogue-results .entry-card");
+  // The catalogue's view code is not part of the first download; it loads when the catalogue first opens.
+  const viewCode = () => page.locator('script[src$="assets/js/catalogue-view.js"]').count();
+  if (await viewCode()) fail("knav catalogue: the catalogue view's code loads before the catalogue opens");
+  /* Each tool is one entry: among the resources, or among the repositories and registries when one stands for it. */
+  const listed = [];
+  for (const kind of ["resources", "repositories"]) {
+    await visit(`#/cs/K/catalogue/k!${kind}~f.use!knav`);
+    while (await page.locator(".catalogue-more").count()) await page.locator(".catalogue-more").first().click();
+    listed.push(...(await cards.evaluateAll((all) => all.map((card) => card.id.replace(/^item-/, "")))));
+  }
+  if ((await viewCode()) !== 1) fail("knav catalogue: opening the catalogue did not load its view code once");
+  const borrowed = listed.filter((id) => id.startsWith("knav."));
+  if (borrowed.length !== unlinked.length) fail(`knav catalogue: ${borrowed.length} tools listed under their own identifier, ${unlinked.length} expected`);
+  if (listed.length !== tools.length) fail(`knav catalogue: the KNAV use lists ${listed.length} entries for ${tools.length} tools`);
+  await visit("#/cs/K/catalogue/resources/knav.aiscr");
+  const card = cards.first();
+  if (!(await card.locator('a[href*="/catalogue/lifecycle/knav-tools.reusing"]').count())) fail("knav catalogue: a tool does not lead to its catalogue step");
+  if (!(await card.locator('.relations a.holder-link[href$="/path/citation"]').count())) fail("knav catalogue: a reusing tool does not reach the citation step");
+  if ((await card.locator(".card-details").textContent()).trim() === "") fail("knav catalogue: a tool shows no discipline");
+  if (!(await card.locator('a[href^="https://www.gnu.org/licenses/gpl-3.0"]').count())) fail("knav catalogue: a tool does not show the catalogue's licence");
+  await visit("#/cs/K/catalogue/k!resources~s!citation~f.use!knav~f.discipline!social-sciences-humanities");
+  if (!(await page.locator("#item-knav\\.aiscr").count())) fail("knav catalogue: the station and discipline filters miss a matching tool");
+  await visit("#/cs/K/catalogue/resources/knav.kadi");
+  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-kadi4mat") fail("knav catalogue: a tool an entry stands for does not open that entry");
+  if (!(await cards.first().textContent()).includes("v katalogu nástrojů KNAV")) fail("knav catalogue: the entry that is a catalogue tool is not marked");
+  await visit("#/cs/K/catalogue/resources/knav.eduroam");
+  if (await cards.first().locator('a[href^="http:"]').count()) fail("knav catalogue: a plain-HTTP address is linked");
+  if (!(await cards.first().locator('a[href^="https://openscience.lib.cas.cz/"]').count())) fail("knav catalogue: a plain-HTTP tool does not lead to the catalogue");
+  for (const problem of problems) fail(`knav catalogue: ${problem}`);
+  await context.close();
+}]);
+
+// One visual system for catalogue entries (guide-experience, "Catalogue entries share one visual system"): every
+// entry carries its kind's mark and colour, the kind facet shows the same marks, each kind has its own icon and
+// colour, labelled rows carry one icon per label in one order, and a tool or service carries the same badge in the
+// catalogue and among a step's resources, while a standard carries none.
+sections.push(["visual system", async () => {
+  const kinds = ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
+  const ROW_ORDER = ["Principy", "Pro koho", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
+  const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+  const marks = new Map();
+  const rowIcons = new Map();
+  for (const kind of kinds) {
+    await visit(`#/cs/K/catalogue/k!${kind}`);
+    const seen = await page.locator(".catalogue-results .entry-card").evaluateAll((cards) =>
+      cards.slice(0, 12).map((card) => {
+        return {
+          id: card.id,
+          kind: card.dataset.kind,
+          marked: Boolean(card.querySelector(".entry-head .kind-mark")),
+          strip: getComputedStyle(card).borderTopColor,
+          rows: [...card.querySelectorAll(":scope > .relations:not(.model-detail) > dt")].map((dt) => dt.textContent.trim()),
+          labelled: [...card.querySelectorAll(".relations > dt")].map((dt) => ({ text: dt.textContent.trim(), icon: dt.querySelector("use") ? dt.querySelector("use").getAttribute("href") : null })),
+        };
+      })
+    );
+    if (!seen.length) fail(`visual system: no ${kind} entries to compare`);
+    for (const card of seen) {
+      if (card.kind !== kind) fail(`visual system: ${card.id} in ${kind} is marked as ${card.kind}`);
+      // The kind shows in the facet and as the card's top strip; a card carries no kind mark of its own (D-185).
+      if (card.marked) fail(`visual system: ${card.id} repeats its kind's mark`);
+      if ((marks.get(kind) || card.strip) !== card.strip) fail(`visual system: ${kind} entries carry different strips`);
+      marks.set(kind, card.strip);
+      const order = card.rows.map((row) => ROW_ORDER.indexOf(row));
+      if (order.includes(-1) || order.some((index, at) => at && index <= order[at - 1])) fail(`visual system: ${card.id}'s rows are not in the fixed order: ${card.rows.join(", ")}`);
+      for (const row of card.labelled) {
+        if (!row.icon) fail(`visual system: ${card.id}'s row "${row.text}" has no icon`);
+        if ((rowIcons.get(row.text) || row.icon) !== row.icon) fail(`visual system: the row "${row.text}" carries different icons`);
+        rowIcons.set(row.text, row.icon);
+      }
+    }
+  }
+  if (new Set(marks.values()).size !== kinds.length) fail("visual system: two kinds share a colour");
+  const facet = await page.locator(".facet-kinds li label").evaluateAll((labels) => labels.map((label) => [label.getAttribute("for"), label.querySelector(".kind-mark use")?.getAttribute("href"), getComputedStyle(label.querySelector(".kind-mark")).backgroundColor]));
+  const kindIcons = new Map();
+  for (const [id, icon, colour] of facet) {
+    const kind = id.replace("facet-kind-", "");
+    if (!icon) fail(`visual system: the kind facet shows no icon for ${kind}`);
+    kindIcons.set(kind, icon);
+    if (marks.get(kind) !== colour) fail(`visual system: the kind facet colours ${kind} (${colour}) differently from its entries' strip (${marks.get(kind)})`);
+  }
+  if (new Set(kindIcons.values()).size !== kinds.length) fail("visual system: two kinds share an icon");
+
+  // A service's badge: the same favicon, or the same kind icon and colour, at a step and in the catalogue; its own
+  // favicon wherever the page has one, and loaded from the page's own files; a tool on a code-hosting platform shows
+  // its kind's icon, never a two-letter monogram; none on a standard (D-183, D-185).
+  const badge = (card) => card.locator(".entry-title > .service-badge").evaluateAll((nodes) => nodes.map((node) =>
+    [node.dataset.service, node.textContent.trim(), (node.querySelector("use") || { getAttribute: () => "" }).getAttribute("href"), getComputedStyle(node).backgroundColor, (node.querySelector("img") || {}).src || ""].join(" ")));
+  const favicons = new Set(JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config.favicons.hosts);
+  await visit("#/cs/K/catalogue/resources/nkr");
+  const nkrBadge = page.locator(".catalogue-results .entry-card .entry-title > .service-badge img");
+  if (!favicons.has("repo.cz") || !(await nkrBadge.count()) || !(await nkrBadge.getAttribute("src")).endsWith("assets/favicons/repo.cz.png")) fail("visual system: NKR does not show its own favicon");
+  else if (!(await nkrBadge.evaluate((image) => image.complete && image.naturalWidth === 48))) fail("visual system: NKR's favicon does not load from the page's files");
+  await visit("#/cs/K/catalogue/resources/knav.qualianon");
+  if (await page.locator(".catalogue-results .entry-card .entry-title > .service-badge img").count()) fail("visual system: a tool on GitHub shows GitHub's favicon as its own");
+  const placeholder = page.locator(".catalogue-results .entry-card .entry-title > .service-placeholder");
+  if (!(await placeholder.count()) || (await placeholder.locator("use").getAttribute("href")) !== kindIcons.get("resources") || (await placeholder.textContent()).trim())
+    fail("visual system: a tool without a favicon does not show the resources kind's icon in place of one");
+  await visit("#/cs/K/catalogue/repositories/re3data.r3d100011166");
+  if (await page.locator(".catalogue-results .entry-card .entry-title > .service-badge img").count()) fail("visual system: a repository linked by its re3data record shows re3data's favicon as its own");
+  await visit("#/cs/V/path/repository");
+  const badged = page.locator("#main .station .entry-card").filter({ has: page.locator(".entry-title > .service-badge") });
+  if (!(await badged.count())) fail("visual system: no service at the repository step carries a badge");
+  else {
+    const service = (await badged.first().getAttribute("id")).replace(/^item-/, "");
+    const atStep = await badge(badged.first());
+    await visit(`#/cs/K/catalogue/resources/${service}`);
+    const inCatalogue = await badge(page.locator(".catalogue-results .entry-card").first());
+    if (atStep.length !== 1 || atStep[0] !== inCatalogue[0]) fail(`visual system: ${service}'s badge differs between the step (${atStep}) and the catalogue (${inCatalogue})`);
+  }
+  await visit("#/cs/K/catalogue/resources/fair-checker");
+  if ((await badge(page.locator(".catalogue-results .entry-card").first()))[0]?.split(" ")[0] !== "fair-checker") fail("visual system: the evaluator's catalogue entry is not badged under the key the self-check uses");
+  const standard = graph.find((r) => r.resourceType?.["@id"] === "#rtype-standard" && r.identifier);
+  await visit(`#/cs/K/catalogue/resources/${standard.identifier}`);
+  // A standard is no service: it shows its kind's icon before its title, not a service's badge (D-185).
+  {
+    const card = page.locator(".catalogue-results .entry-card").first();
+    if ((await card.locator(".entry-title > .service-badge[data-service]").count()) || (await card.locator(".entry-title > .service-placeholder use").getAttribute("href")) !== kindIcons.get("resources")) fail(`visual system: the standard ${standard.identifier} does not show its kind's icon, or carries a service's badge`);
+  }
+  for (const problem of problems) fail(`visual system: ${problem}`);
+  await context.close();
+}]);
+
+// The glossary carries licensed original descriptions, and phrases in them find the term in both search views.
+sections.push(["glossary definitions", async () => {
+  const { context, page, problems, external } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
+  const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+  const terms = graph.filter((node) => node.inDefinedTermSet?.["@id"] === "#glossary");
+  const description = (term) => [].concat(term.description || []).find((value) => value["@language"] === "cs")?.["@value"];
+  const described = terms.filter(description);
+  if (described.length !== terms.length) fail("glossary: the reviewed snapshot lost a source definition");
+  const term = described.find((entry) => description(entry).length > 200);
+  const phrase = description(term).split(/\s+/).slice(8, 12).join(" ");
+  const anchor = "t.ntk." + term.termCode;
+  for (const language of ["cs", "en"]) {
+    await visit(`#/${language}/V/catalogue/k!terms`);
+    const cards = page.locator(".catalogue-results .term-card");
+    if ((await cards.locator(".term-definition").count()) !== (await cards.count())) fail(`glossary ${language}: descriptions are missing from term cards`);
+    if ((await cards.locator('.term-attribution a[href="https://creativecommons.org/licenses/by/4.0/"]').count()) !== (await cards.count())) fail(`glossary ${language}: licence attribution is missing`);
+    await visit(`#/${language}/V/catalogue/k!terms~q!${encodeURIComponent(phrase)}`);
+    const card = page.locator(`[id="item-${anchor}"]`);
+    if (!(await card.count())) fail(`glossary ${language}: a definition-only phrase does not find its term`);
+    else {
+      if (!(await card.locator(".term-definition").innerText()).replace(/\s+/g, " ").includes(phrase)) fail(`glossary ${language}: the source description is not retained`);
+      if (await card.locator(".term-definition script, .term-definition img").count()) fail("glossary: source markup was executed");
+      if (!(await card.locator(`[href="${term.url}"]`).count())) fail("glossary: the source term is not linked");
+    }
+    const found = await page.evaluate((phrase) => window.FairGuide.search.find(phrase).find((group) => group.kind === "term")?.items.map((item) => item.target.href) || [], phrase);
+    if (!found.some((href) => href.endsWith("/terms/" + anchor))) fail(`glossary ${language}: general search does not index definitions`);
+    for (const format of ["csv", "json"]) {
+      const [download] = await Promise.all([page.waitForEvent("download"), page.locator("#export-" + format).click()]);
+      const output = readFileSync(await download.path(), "utf8");
+      const definitionText = format === "json" ? JSON.parse(output).itemListElement.find((entry) => entry.identifier === anchor)?.description?.cs || "" : output;
+      if (!definitionText.replace(/\s+/g, " ").includes(phrase)) fail(`glossary ${language}: ${format} export lost the definition`);
+      if (!output.includes(term.url) || !output.includes("https://creativecommons.org/licenses/by/4.0/")) fail(`glossary ${language}: ${format} export lost attribution`);
+    }
+    await page.setViewportSize({ width: 320, height: 900 });
+    await axe(page, "glossary definitions " + language);
+    if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)) fail(`glossary ${language}: description overflows at phone width`);
+    await page.setViewportSize({ width: 1280, height: 900 });
+  }
+  if (external.length) fail("glossary: external requests without a user lookup: " + external.join(", "));
+  for (const problem of problems) fail(`glossary: ${problem}`);
+  await context.close();
+}]);
+
+// Hiding path badges is a local display preference; it never changes answers or step navigation.
+sections.push(["rail check visibility", async () => {
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl + "#/cs/SR/check/maturity/answers");
+  await rendered(page);
+  await page.locator('input[type="radio"][value="no"]').first().check();
+  const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+  await visit("#/cs/SR/path/plan");
+  const answers = await page.evaluate(() => JSON.stringify(window.FairGuide.state.answers));
+  const desktop = page.locator("#rail-show-checks-desktop");
+  if (!(await desktop.isChecked()) || !(await page.locator(".rail-desktop .rail-marks").first().isVisible())) fail("rail visibility: check badges are not shown by default");
+  await desktop.focus();
+  await page.keyboard.press("Space");
+  if (await page.locator(".rail-desktop .rail-marks:visible").count()) fail("rail visibility: keyboard toggle did not hide badges");
+  if ((await page.evaluate(() => document.activeElement.id)) !== "rail-show-checks-desktop") fail("rail visibility: toggling lost keyboard focus");
+  await page.reload();
+  await rendered(page);
+  if ((await desktop.isChecked()) || (await page.locator(".rail-desktop .rail-marks:visible").count())) fail("rail visibility: hidden badges return after reload");
+  await visit("#/en/SR/path/plan");
+  if ((await desktop.isChecked()) || (await page.locator(".rail-desktop .rail-marks:visible").count())) fail("rail visibility: language change resets the preference");
+  if ((await page.locator('.rail-desktop a[aria-current="step"]').count()) !== 1) fail("rail visibility: current-step navigation was hidden");
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.locator(".rail-mobile > summary").click();
+  const mobile = page.locator("#rail-show-checks-mobile");
+  if (await mobile.isChecked()) fail("rail visibility: phone and desktop disagree");
+  await mobile.focus();
+  await page.keyboard.press("Space");
+  if (!(await page.locator(".rail-mobile .rail-marks").first().isVisible()) || !(await desktop.isChecked())) fail("rail visibility: phone toggle did not restore badges in both menus");
+  if (!(await page.locator(".rail-mobile").evaluate((menu) => menu.open))) fail("rail visibility: toggling closed the phone menu");
+  if ((await page.evaluate(() => JSON.stringify(window.FairGuide.state.answers))) !== answers) fail("rail visibility: toggling changed saved answers");
+  await mobile.uncheck();
+  await page.evaluate(() => { window.FairGuide.clearStoredData(); window.FairGuide.rerender(); });
+  if (!(await mobile.isChecked()) || (await page.evaluate(() => window.FairGuide.storage.read().hideCheckBadges))) fail("rail visibility: deleting local data did not reset the preference");
+  for (const problem of problems) fail(`rail visibility: ${problem}`);
+  await context.close();
+}]);
+
+// Kind radios share the middle line of the icon, label and count, including wrapped labels.
+sections.push(["facet alignment", async () => {
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
+  for (const language of ["cs", "en"]) {
+    await navigationRendered(page, () => page.evaluate((code) => { window.location.hash = `#/${code}/V/catalogue/k!questions`; }, language));
+    for (const width of [1280, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      const facets = page.locator(".catalogue-facets");
+      if (!(await facets.evaluate((node) => node.open))) await facets.locator(":scope > summary").click();
+      const offsets = await page.locator(".facet-kinds li").evaluateAll((rows) => rows.map((row) => {
+        const centre = (node) => { const box = node.getBoundingClientRect(); return box.top + box.height / 2; };
+        const radio = row.querySelector("input");
+        const label = row.querySelector("label");
+        return {
+          id: radio.id,
+          offsets: [radio, label.querySelector(".kind-mark"), label.querySelector(".facet-count")].map((node) => Math.abs(centre(node) - centre(label))),
+        };
+      }));
+      for (const row of offsets) if (row.offsets.some((offset) => offset > 1))
+        fail(`facet alignment: ${language} ${width}px ${row.id} has centre offsets ${row.offsets.join(", ")}`);
+    }
+  }
+  for (const problem of problems) fail(`facet alignment: ${problem}`);
+  await context.close();
+}]);
+
+// Catalogues the guide links (guide-knowledge-base, "Catalogues of tools and repositories are linked"): a researcher
+// on the analysis step finds the SSH Open Marketplace among its resources, OpenDOAR is listed with the repository
+// directories, and the KNAV catalogue's record of the Marketplace opens the Guide's entry.
+sections.push(["linked catalogues", async () => {
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl);
+  await rendered(page);
+  const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
+  await visit("#/cs/V/path/analyse");
+  if (!(await page.locator('#main .station [id="item-ssh-open-marketplace"]').count())) fail("linked catalogues: the analysis step does not recommend the SSH Open Marketplace to researchers");
+  await visit("#/cs/K/catalogue/repositories/opendoar");
+  const card = page.locator(".catalogue-results .entry-card");
+  if ((await card.count()) !== 1 || !(await card.first().locator(".entry-what").textContent()).includes("Hledat repozitáře")) fail("linked catalogues: OpenDOAR is not listed with the repository directories");
+  await visit("#/cs/K/catalogue/resources/knav.openmarketplace");
+  if ((await card.first().getAttribute("id")) !== "item-ssh-open-marketplace") fail("linked catalogues: the KNAV record of the Marketplace does not open the Guide's entry");
+  for (const problem of problems) fail(`linked catalogues: ${problem}`);
+  await context.close();
+}]);
+
+// Every section at once; one that throws fails on its own and the others still report. While working on some of
+// them, CHECK_PAGE_SECTIONS names the ones to run, separated by commas; the full run is the check.
+const only = (process.env.CHECK_PAGE_SECTIONS || "").split(",").map((name) => name.trim()).filter(Boolean);
 const timings = [];
 await Promise.all(
-  sections.map(async ([name, run]) => {
+  sections.filter(([name]) => !only.length || only.includes(name)).map(async ([name, run]) => {
     const start = Date.now();
     try {
       await run();
     } catch (error) {
-      fail(`${name}: stopped: ${String(error.message).split("\n")[0]}`);
+      /* Playwright names the awaited locator on the third line of its message. */
+      const location = String(error.stack).split("\n").find((line) => line.includes("check_page.mjs:")) || "";
+      fail(`${name}: stopped: ${String(error.message).split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 3).join(" | ")}${location ? " | " + location.trim() : ""}`);
     }
     timings.push(`${name} ${((Date.now() - start) / 1000).toFixed(1)}s`);
   })

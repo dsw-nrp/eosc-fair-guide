@@ -1,0 +1,65 @@
+# Field reference: docs/content-model.md, Life-cycle models.
+
+[lifecycle]
+id = "rdmkit"
+position = 1
+source = "rdmkit"
+czechSource = "knav-life-cycle"
+name = { cs = "Životní cyklus výzkumných dat podle RDMkit", en = "RDMkit research data life cycle" }
+url = "https://rdmkit.elixir-europe.org/data_life_cycle"
+
+[[stage]]
+id = "plan"
+name = { cs = "Plánování", en = "Plan" }
+definition = "Data management planning consists of defining the strategy that you plan to use for managing data and documentation generated within the project. It is about thinking upfront what's the best way to avoid problems or unexpected costs related to data management, and set the conditions for your research data to achieve the highest possible impact in science, even after the end of the project."
+translation = "Plánování správy dat spočívá ve stanovení strategie, podle které budete spravovat data a dokumentaci vzniklé v projektu. Jde o to předem promyslet, jak se nejlépe vyhnout problémům nebo nečekaným nákladům spojeným se správou dat, a vytvořit podmínky, aby vaše výzkumná data měla ve vědě co největší dopad i po skončení projektu."
+czechDefinition = "Plánování: návrh experimentu na základě existujících poznatků a dat, naplánování správy dat, návrh podmínek umožňující následné sdílení vzniklých dat, návrh sběru dat vzniklých v rámci experimentu."
+locator = "Data life cycle › Planning › What is data management planning?"
+
+[[stage]]
+id = "collect"
+name = { cs = "Vznik dat", en = "Collect" }
+definition = "Data collection is the process where information is gathered about specific variables of interest either using instrumentation or other methods (e.g. questionnaires, patient records). While data collection methods depend on the field and research subject, it is important to ensure data quality."
+translation = "Sběr dat je proces, při kterém se pomocí přístrojů nebo jinými metodami (například dotazníky nebo záznamy pacientů) získávají informace o sledovaných proměnných. Metody sběru se liší podle oboru a předmětu výzkumu, vždy je ale důležité zajistit kvalitu dat."
+czechDefinition = "Vznik dat: vznik vědeckých dat v rámci konkrétní aplikace vědecké metody, získání dat od třetích stran za účelem experimentu."
+locator = "Data life cycle › Collecting › What is data collection?"
+
+[[stage]]
+id = "process"
+name = { cs = "Zpracování dat", en = "Process" }
+definition = "Data processing is the phase in the project where data is converted into a desired format and prepared for analysis. When data has been freshly collected, data processing includes some automated steps in a workflow that perform format conversion, quality check and preprocessing following a standardised protocol."
+translation = "Zpracování dat je fáze projektu, ve které se data převádějí do požadovaného formátu a připravují k analýze. U čerstvě sebraných dat zahrnuje zpracování automatizované kroky pracovního postupu, které podle standardizovaného protokolu převádějí formát, kontrolují kvalitu a provádějí předzpracování."
+czechDefinition = "Zpracování dat: primární zpracování surových dat představující jejich čištění od šumu, vznik dokumentace dat (vznik metadat popisující jednotlivá vědecká data), převod do potřebných formátů."
+locator = "Data life cycle › Processing › What is data processing?"
+
+[[stage]]
+id = "analyse"
+name = { cs = "Analýza dat", en = "Analyse" }
+definition = "Data analysis consists in exploring the collected data to begin understanding the messages contained in a dataset and/or in applying mathematical formula (or models) to identify relationships between variables. The steps of the workflow in the analysis phase will often be repeated several times to explore the data as well as to optimise the workflow itself. According to the different types of data (quantitative or qualitative) the data analysis methods will differ. Data analysis follows the (often automated, batch) data processing stage."
+translation = "Analýza dat spočívá v prozkoumání sebraných dat s cílem porozumět tomu, co datová sada vypovídá, nebo v použití matematických vzorců či modelů ke zjištění vztahů mezi proměnnými. Kroky pracovního postupu se ve fázi analýzy často několikrát opakují, aby bylo možné data prozkoumat i samotný postup vyladit. Metody analýzy se liší podle typu dat, kvantitativních nebo kvalitativních. Analýza navazuje na zpracování dat, které často probíhá automatizovaně a dávkově."
+czechDefinition = "Analýza dat: analýza a interpretace zpracovaných dat za účelem vyhodnocení závěrů experimentu, ověření hypotéz."
+locator = "Data life cycle › Analysing › What is data analysis?"
+
+[[stage]]
+id = "preserve"
+name = { cs = "Uchovávání dat", en = "Preserve" }
+definition = "Data preservation consists of a series of activities necessary to ensure safety, integrity and accessibility of data for as long as necessary, even decades. Data preservation is indeed more than just data storage and backup, since data can be stored and backed up without being preserved."
+translation = "Uchovávání dat zahrnuje řadu činností potřebných k tomu, aby data zůstala bezpečná, neporušená a dostupná tak dlouho, jak je třeba, i po desetiletí. Uchovávání je víc než pouhé ukládání a zálohování, protože data lze uložit a zálohovat, aniž by byla uchována."
+czechDefinition = "Uchovávání dat: správné dlouhodobé uchování potřebných vědeckých dat vzniklých v rámci konkrétní aplikace vědecké metody zahrnující zejména technické zpracování vědeckých dat, přípravu dat na jejich dlouhodobé uchovávání a výběr vhodného úložiště."
+locator = "Data life cycle › Preserving › What is data preservation?"
+
+[[stage]]
+id = "share"
+name = { cs = "Sdílení dat", en = "Share" }
+definition = "Sharing data means making your data known to other people."
+translation = "Sdílet data znamená dát o svých datech vědět dalším lidem."
+czechDefinition = "Sdílení dat: zpřístupnění výzkumných dat pro spolupráci v rámci společného výzkumného projektu nebo s širší výzkumnou komunitou a společností jako takovou. Sdílení výzkumných dat nemusí nutně znamenat, že data jsou přístupná všem za jakýmkoliv účelem, data mohou být sdílena jen s omezeným přístupem."
+locator = "Data life cycle › Sharing › What is data sharing?"
+
+[[stage]]
+id = "reuse"
+name = { cs = "Opakované užití dat", en = "Reuse" }
+definition = "Data reuse means using data for other purposes than it was originally collected for. Reuse of data is particularly important in science, as it allows different researchers to analyse and publish findings based on the same data independently of one another. Reusability is one key component of the FAIR principles."
+translation = "Opakované užití dat znamená použít data k jiným účelům, než ke kterým byla původně sebrána. Ve vědě je zvlášť důležité, protože umožňuje různým výzkumníkům nezávisle na sobě analyzovat stejná data a zveřejňovat zjištění, která z nich vycházejí. Opakovaná použitelnost je jednou z klíčových součástí principů FAIR."
+czechDefinition = "Opakované užití dat: využití dat pro další výzkum nebo další účely, míra opakovaného užití dat je dána mírou zpřístupnění dat v kroku č. 6."
+locator = "Data life cycle › Reusing › What is data reuse?"

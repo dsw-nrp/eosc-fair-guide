@@ -4,6 +4,7 @@
 // - an identifier that does not exist leaves the items open with a note;
 // - a published FIP nanopublication pre-fills the FIP check;
 // - FAIRsharing records are found through DataCite for the repositories page and the maturity check;
+// - DataCite reports a repository in the finder and draws the maturity check's sample of its records;
 // - the landing's search finds out what a DOI is from its registration agency and DataCite;
 // - every request goes to an allowlisted connector, and only after a click.
 // These checks need the network and depend on outside services, so they are not part of the pull-request gate.
@@ -119,6 +120,25 @@ await page.locator("#prefill-re3data").fill("r3d100010484");
 status = await prefill("#prefill-re3data-run");
 console.log("re3data and FAIRsharing:", status);
 if ((await answer("maturity-18")) !== "yes") fail("FAIRsharing: maturity.18 is not answered yes for ČSDA");
+
+// DataCite in the finder and the maturity check: ČSDA is found by its re3data record's DOI, and a sample of its
+// top-level datasets is drawn with titles.
+await open("#/cs/K/catalogue/repositories/re3data.r3d100010484");
+await page.locator(".datacite-read button").click();
+await page.waitForSelector("section.datacite-read", { timeout: 60000 });
+const reported = await page.locator("section.datacite-read").innerText();
+console.log("DataCite for ČSDA:", reported.replace(/\s+/g, " ").slice(0, 160));
+if (!reported.includes("gesis.csda") || !reported.includes("Dataset")) fail("DataCite: ČSDA's repository or its datasets were not reported");
+await open("#/cs/SR/check/maturity");
+await page.locator('label[for="extended-toggle"]').click();
+await page.locator("#prefill-re3data").fill("r3d100010484");
+await prefill("#prefill-re3data-run");
+await page.locator("#prefill-datacite-sample").click();
+await page.waitForSelector(".datacite-sample li", { timeout: 60000 });
+const drawn = (await page.locator("#prefill-champion").inputValue()).split("\n").filter(Boolean);
+console.log("DataCite sample:", drawn.join(", "));
+if (drawn.length !== 5 || drawn.some((doi) => !doi.startsWith("10.14473/"))) fail("DataCite: the sample is not five of ČSDA's DOIs: " + drawn.join(", "));
+if (drawn.some((doi) => doi.split("/").length > 3)) fail("DataCite: the sample holds a file of a dataset: " + drawn.join(", "));
 
 // What a DOI is: a Zenodo DOI is a DataCite output, a journal article's DOI a Crossref publication.
 async function findOut(pid) {

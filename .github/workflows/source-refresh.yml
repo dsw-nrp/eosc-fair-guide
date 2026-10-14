@@ -1,0 +1,98 @@
+name: Source refresh
+
+# Trusted default-branch code only: scheduled, manually dispatched or commanded by a pull-request comment
+# ("/refresh <source>") from an account with current write access. It refreshes from the default branch, validates
+# each response (scripts/refresh_snapshots.py) and publishes changes as one bot-owned pull request per source through
+# the repository-scoped GitHub App. It never pushes to the default branch and never merges.
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Source to refresh
+        type: choice
+        options: [all, heslar, re3data, fip-dashboard, nkr, knav-tools, fairsharing, datacite]
+        default: all
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-refresh
+  cancel-in-progress: false
+
+jobs:
+  select:
+    if: github.event_name != 'issue_comment' || (github.event.issue.pull_request && startsWith(github.event.comment.body, '/refresh '))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sources: ${{ steps.select.outputs.sources }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - id: select
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { select } = require('./.github/scripts/source-publisher.cjs');
+            core.setOutput('sources', await select({ github, context, core }));
+
+  refresh:
+    needs: select
+    if: needs.select.outputs.sources != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - id: refresh
+        name: Refresh and validate the snapshots
+        env:
+          SOURCES: ${{ needs.select.outputs.sources }}
+        run: |
+          [[ "$SOURCES" =~ ^[a-z0-9\ -]+$ ]] || { echo "unexpected source list"; exit 1; }
+          read -ra keys <<< "$SOURCES"
+          set +e
+          python scripts/refresh_snapshots.py "${keys[@]}" --report .cache/refresh/report.json
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+      - name: Save the refresh report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: source-refresh-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .cache/refresh/report.json
+          if-no-files-found: warn
+          retention-days: 30
+      - id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.SOURCE_REFRESH_APP_ID }}
+          private-key: ${{ secrets.SOURCE_REFRESH_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Publish changed sources as pull requests
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          SOURCE_BOT_LOGIN: ${{ steps.app.outputs.app-slug }}[bot]
+        with:
+          github-token: ${{ steps.app.outputs.token }}
+          script: |
+            const { publish } = require('./.github/scripts/source-publisher.cjs');
+            await publish({ github, context, core });
+      - name: Report rejected or failed sources
+        if: steps.refresh.outputs.code != '0'
+        run: |
+          echo "At least one source was rejected or failed; its snapshot is unchanged. See the refresh report."
+          exit 1

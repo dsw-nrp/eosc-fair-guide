@@ -11,7 +11,7 @@ ordering = { cs = "Pořadí vrstev vysvětluje cestu od záměru k praxi. Činno
 feedback = { cs = "Plánování přináší požadavky na služby. Podpora předává opakující se zkušenosti komunitám a poskytovatelům. Hodnocení vrací konkrétní zjištění lidem, kteří mohou upravit metadata, službu nebo pravidla.", en = "Planning supplies service requirements. Support returns recurring experience to communities and providers. Evaluation returns concrete findings to people who can change metadata, services or policies." }
 
 [model.workedExample]
-name = { cs = "Jak průvodce předává požadavek do kontroly", en = "How the guide carries a requirement into a check" }
+name = { cs = "Jak Průvodce předává požadavek do kontroly", en = "How the Guide carries a requirement into a check" }
 description = { cs = "Publikovaný požadavek na identifikátor vede k otázce a k pojmenovanému testu. Test dokládá rozlišení PID; dlouhodobou dostupnost neověřuje. Záznam revize vysvětluje, jak vznikla jeho implementace a popis rozsahu. U konkrétního výsledku kontroly zůstávají také posuzovaný objekt, pozorování a datum.", en = "A published identifier requirement leads to a question and a named test. The test establishes PID resolution; it does not verify long-term availability. A revision record explains how its implementation and scope description were produced. A specific assessment result also retains the assessed object, observations and date." }
 steps = ["A.F1.R1", "dataset.01", "test:guide-dataset-01", "action:2026-10-11-test-definitions-and-health"]
 
@@ -424,15 +424,15 @@ target = "metadata.33"
 seams = ["community-repository"]
 
 [[association]]
-target = "work.19"
+target = "collect.18"
 seams = ["community-repository"]
 
 [[association]]
-target = "work.20"
+target = "collect.19"
 seams = ["community-repository"]
 
 [[association]]
-target = "work.21"
+target = "process.09"
 seams = ["community-repository"]
 
 [[association]]
@@ -543,7 +543,7 @@ seams = ["community-planning"]
 text = { cs = "FIP zaznamenává výběr zdrojů umožňujících FAIR. Podrobné požadavky zůstávají v odkazovaných profilech a schématech; srozumitelné a dostupné popisy umožní výzkumníkům promítnout výběr do vlastního plánu.", en = "A FIP records selected FAIR-enabling resources. Detailed requirements remain in the referenced profiles and schemas; clear, accessible descriptions let researchers apply these selections to their own plans." }
 
 [[context]]
-station = "work"
+station = "collect"
 lens = "K"
 seams = ["community-repository"]
 text = { cs = "Popis metody a experimentu vymezuje komunita. Stejný profil pak může vést dokumentaci během výzkumu i nastavení formuláře v repozitáři. Sjednocení metadat samo nezajišťuje, že jiný nástroj dokáže přečíst původní datový soubor.", en = "The community defines method and experiment descriptions. The same profile can guide documentation during research and repository-form configuration. Harmonised metadata alone do not ensure that another tool can read the original data file." }
@@ -618,7 +618,7 @@ text = { cs = "Různé kontroly sledují různé předměty a rozsahy. Data stew
 station = "assessment"
 lens = "SR"
 seams = ["assessment-remediation", "repository-support"]
-text = { cs = "Při převzetí zjištění je potřeba znát posuzovaný záznam, reprezentaci, kritérium a průběh testu. Tyto informace pomáhají rozlišit chybu metadat, nastavení služby a nedostupný podklad a případně předat problém podpoře infrastruktury.", en = "Acting on a finding requires the assessed record, representation, criterion and test details. These help distinguish metadata problems, service configuration and unavailable evidence, and support escalation to infrastructure support." }
+text = { cs = "Při čtení zjištění je potřeba znát posuzovaný záznam, reprezentaci, kritérium a průběh testu. Tyto informace pomáhají rozlišit chybu metadat, nastavení služby a nedostupný podklad a případně předat problém podpoře infrastruktury.", en = "Acting on a finding requires the assessed record, representation, criterion and test details. These help distinguish metadata problems, service configuration and unavailable evidence, and support escalation to infrastructure support." }
 
 [[context]]
 station = "assessment"

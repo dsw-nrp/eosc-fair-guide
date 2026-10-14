@@ -86,7 +86,10 @@
   }
 
   /* Persistent identifier schemes, recognised by address, each with the label shown before it. */
+  const RE3DATA_DOI = /^https?:\/\/(dx\.)?doi\.org\/10\.17616\//i;
   const PID_SCHEMES = [
+    [/^https?:\/\/(dx\.)?doi\.org\/10\.25504\/FAIRsharing\./i, "fairsharing"],
+    [/^https:\/\/repo\.cz\/objects\//, "nkr"],
     [/^https?:\/\/(dx\.)?doi\.org\//, "doi"],
     [/^https?:\/\/hdl\.handle\.net\//, "handle"],
     [/^https?:\/\/(purl\.org|w3id\.org)\/np\//, "nanopub"],
@@ -107,7 +110,8 @@
       .map(String)
       .flatMap((iri) => {
         const scheme = PID_SCHEMES.find(([pattern]) => pattern.test(iri));
-        if (!scheme || seen.has(iri)) return [];
+        /* A re3data record's DOI names the record the re3data address already shows, not the repository. */
+        if (!scheme || seen.has(iri) || RE3DATA_DOI.test(iri)) return [];
         seen.add(iri);
         return [{ iri, scheme: scheme[1] }];
       });
@@ -119,8 +123,16 @@
   /** An entity's persistent identifiers, each named by its scheme and linked in full; none when it has none. */
   FG.pidItems = (entity) => FG.pids(entity).map((pid) => FG.pidItem(pid.scheme, pid.iri));
 
-  /** One identifier or record address, named by its scheme and shown in full. */
-  FG.pidItem = (scheme, iri) => h("span", { class: "pid" }, h("span", { class: "pid-scheme" }, FG.t("pid." + scheme)), " ", FG.external(iri, breakable(iri)));
+  /** One identifier or record address as a chip, as the guide shows every identifier (D-185): its scheme named, the
+      identifier in full, leading to it. */
+  FG.pidItem = (scheme, iri) => FG.external(iri, [h("span", { class: "pid-scheme" }, FG.t("pid." + scheme)), " ", breakable(iri)], { class: "id-chip pid-chip" });
+
+  /** The object a check is about as a chip: its DOI or Handle, or its address. */
+  FG.targetChip = (target) => {
+    const pid = FG.live && FG.live.parsePid(target);
+    if (pid && (pid.type === "doi" || pid.type === "handle")) return FG.pidItem(pid.type, FG.live.pidUrl(pid));
+    return /^https?:\/\//.test(String(target || "")) ? FG.external(target, breakable(target), { class: "id-chip pid-chip" }) : h("span", { class: "id-chip id-chip-static" }, String(target || ""));
+  };
   FG.statusBadge = statusBadge;
   FG.dashboardRecord = dashboardRecord;
 
@@ -150,7 +162,7 @@
 
   /** Whether a path route shows the landing (the path's start) rather than a station. */
   FG.landingShown = function (route) {
-    return route.view === "path" && (route.arg === "start" || (!route.arg && !FG.state.started));
+    return route.view === "path" && (route.arg === "start" || (!route.arg && !FG.state.lastStation));
   };
 
   FG.views.header = function (route) {
@@ -186,7 +198,7 @@
               ),
             FG.external(FG.root.url, [FG.icon("repository"), h("span", { class: "visually-hidden" }, FG.t("nav.repository"))], { class: "button button-icon header-repository", title: FG.t("nav.repository") })
           ),
-          h("a", { class: "button header-lang", href: FG.href(route.view, route.arg, { lang: otherLang }), lang: otherLang, hreflang: otherLang }, FG.t("nav.switchTo"))
+          h("a", { class: "button header-lang", href: FG.routeHref(route, { lang: otherLang }), lang: otherLang, hreflang: otherLang }, FG.t("nav.switchTo"))
         )
       )
     );
@@ -194,7 +206,8 @@
 
   /* Views whose content the lens changes; the lens band is shown only there. In the catalogue the lens is one of the
      resource filters. */
-  const LENS_VIEWS = new Set(["path", "selfcheck"]);
+  /* The role changes the path's steps and a check's questions and help, so those views offer it. */
+  const LENS_VIEWS = new Set(["path", "selfcheck", "check"]);
   const lensChanges = (route) => LENS_VIEWS.has(route.view);
 
   /** The lens switch: four links under the main menu, each shareable, switching in place so roles can be compared
@@ -204,7 +217,8 @@
     const icons = (FG.config.icons && FG.config.icons.lens) || {};
     const arg = FG.landingShown(route) ? "start" : route.arg;
     const option = (lens) => {
-      const href = FG.href(route.view, arg, { lens: lens.audienceType });
+      /* A check keeps its part, so roles can be compared on the same questions or report. */
+      const href = route.view === "check" ? FG.routeHref(route, { lens: lens.audienceType }) : FG.href(route.view, arg, { lens: lens.audienceType });
       const switchInPlace = (event) => {
         if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
@@ -248,7 +262,7 @@
 
   FG.views.nav = function (route) {
     const first = FG.stations()[0];
-    const station = FG.state.lastStation || FG.state.entryStation || (first && first.identifier);
+    const station = FG.state.lastStation || (first && first.identifier);
     const landing = FG.landingShown(route);
     const items = [
       ["path", "start", "nav.home", landing],
@@ -356,89 +370,124 @@
 
   /* ---------------------------------------------------------------- path */
 
-  /** The stage switch on the path: the chosen stage, changeable without returning to the landing. */
-  function stageSwitch() {
-    const stages = stageRanges();
-    const chosen = chosenStage(stages);
-    const icons = (FG.config.icons && FG.config.icons.stage) || {};
-    return h(
-      "details",
-      { class: "stage-switch" },
-      h(
-        "summary",
-        null,
-        h("span", { class: "small muted" }, FG.t("stage.yours")),
-        h("strong", null, chosen ? FG.span(chosen.stage.name) : FG.t("stage.none")),
-        h("span", { class: "small stage-switch-action" }, FG.t("stage.change"))
-      ),
-      h(
-        "ul",
-        null,
-        stages.map((entry) =>
-          h(
-            "li",
-            null,
-            h(
-              "button",
-              { type: "button", "aria-pressed": String(entry === chosen), onclick: () => chooseStage(entry.stage) },
-              FG.icon(icons[entry.stage.termCode]),
-              h("span", null, FG.span(entry.stage.name), h("span", { class: "small muted" }, "\u00a0· " + stepsLabel(entry.from, entry.to)))
-            )
-          )
-        )
-      )
-    );
-  }
+  /** The path's life-cycle stages in their order, each with the steps it holds (`lifecycleStage`). Every step belongs
+      to a stage; the stage a reader is in is derived from the step and never chosen. */
+  FG.journeyStages = function () {
+    const stations = FG.stations();
+    const first = stations.map((station) => FG.get(FG.id(station.lifecycleStage))).find(Boolean);
+    const set = first && FG.id(first.inDefinedTermSet);
+    return FG.graph
+      .filter((entity) => set && FG.id(entity.inDefinedTermSet) === set)
+      .sort(FG.byPosition)
+      .map((stage) => ({ stage, steps: stations.filter((station) => FG.id(station.lifecycleStage) === stage["@id"]) }));
+  };
+
+  /** The stage of the step a visitor last read; none before any step was read. */
+  const lastStage = () => {
+    const station = FG.stations().find((item) => item.identifier === FG.state.lastStation);
+    return station ? FG.id(station.lifecycleStage) : null;
+  };
+
+  /* Each stage has its colour (`--stage-<n>` in tokens.css), the same on the ring, in the list and on the rail. */
+  const stageClass = (index) => "stage-" + (index + 1);
+  const stationIcon = (station) => ((FG.config.icons && FG.config.icons.station) || {})[station.identifier];
+
+  /** A stage's steps, one per line, each with its icon. */
+  const stepLinks = (steps) =>
+    h("ul", { class: "journey-steps" }, steps.map((station) => h("li", null, h("a", { href: FG.href("path", station.identifier) }, FG.icon(stationIcon(station)), FG.span(station.name)))));
 
   function rail(route, currentId) {
     const current = FG.stations().find((station) => station.identifier === currentId);
+    const hidden = FG.state.hideCheckBadges ? " rail-hide-checks" : "";
     return [
-      stageSwitch(),
-      h("nav", { class: "rail rail-desktop", "aria-label": FG.t("nav.stations") }, railList(currentId), railLegend()),
+      h("nav", { class: "rail rail-desktop" + hidden, "aria-label": FG.t("nav.stations") }, railControls("desktop"), railList(currentId), railLegend()),
       h(
         "details",
-        { class: "rail rail-mobile" },
+        { class: "rail rail-mobile" + hidden },
         h("summary", null, FG.t("nav.stations"), current ? ": " + current.position + " · " + FG.text(current.name) : ""),
-        h("nav", { "aria-label": FG.t("nav.stations") }, railList(currentId), railLegend())
+        h("nav", { "aria-label": FG.t("nav.stations") }, railControls("mobile"), railList(currentId), railLegend())
       ),
     ];
   }
 
+  /** Hide check marks without changing answers, navigation or the open mobile menu. */
+  function railControls(where) {
+    return h("label", { class: "rail-checks-toggle" },
+      h("input", { type: "checkbox", id: "rail-show-checks-" + where, checked: !FG.state.hideCheckBadges || null,
+        onchange: (event) => {
+          FG.state.hideCheckBadges = !event.target.checked;
+          FG.saveState();
+          for (const menu of document.querySelectorAll(".rail")) menu.classList.toggle("rail-hide-checks", FG.state.hideCheckBadges);
+          for (const toggle of document.querySelectorAll(".rail-checks-toggle input")) toggle.checked = !FG.state.hideCheckBadges;
+        } }),
+      h("span", null, FG.t("rail.showChecks")));
+  }
+
+  /* The self-check's open answers, in the order the self-check reports them, and their counts at a step. */
+  const RAIL_STATES = ["gap", "partly", "unknown"];
+  const openAt = (stationId) => (FG.openAt ? FG.openAt(stationId) : { gap: 0, partly: 0, unknown: 0 });
+  /** A mark for one state, in the self-check's icon and colour, with a count when there is one. */
+  const railMark = (state, count) => h("span", { class: "rail-mark", "data-state": state, "aria-hidden": "true" }, FG.STATE_ICON[state] + (count ? " " + count : ""));
+
+  /** The steps under their numbered life-cycle stages; the stage of the step being read is marked as the current one. */
   function railList(currentId) {
-    const icons = (FG.config.icons && FG.config.icons.station) || {};
-    const entryStation = FG.state.entryStation;
-    let beforeEntry = Boolean(entryStation);
-    return h(
-        "ol",
+    const current = FG.id((FG.stations().find((station) => station.identifier === currentId) || {}).lifecycleStage);
+    const step = (station) => {
+      const counts = openAt(station.identifier);
+      const shown = RAIL_STATES.filter((state) => counts[state]);
+      return h(
+        "li",
         null,
-        FG.stations().map((station) => {
-          if (station.identifier === entryStation) beforeEntry = false;
-          const gaps = FG.gapsAt ? FG.gapsAt(station.identifier) : 0;
-          return h(
-            "li",
-            { class: beforeEntry ? "earlier" : null },
-            h(
-              "a",
-              { href: FG.href("path", station.identifier), "aria-current": station.identifier === currentId ? "step" : null },
-              h("span", { class: "number" }, String(station.position)),
-              FG.icon(icons[station.identifier]) || h("span"),
-              FG.span(station.name),
-              gaps ? h("span", { class: "gap-mark" }, h("span", { "aria-hidden": "true" }, String(gaps)), h("span", { class: "visually-hidden" }, " " + FG.t("selfcheck.gapsHere", { n: gaps }))) : null
-            )
-          );
-        })
+        h(
+          "a",
+          { href: FG.href("path", station.identifier), "aria-current": station.identifier === currentId ? "step" : null },
+          h("span", { class: "number" }, String(station.position)),
+          FG.icon(stationIcon(station)) || h("span"),
+          FG.span(station.name),
+          shown.length
+            ? h("span", { class: "rail-marks" }, shown.map((state) => railMark(state, counts[state])),
+              h("span", { class: "visually-hidden" }, " " + FG.t("rail.marksHere", { list: shown.map((state) => FG.t("selfcheck.state." + state) + " " + counts[state]).join(", ") })))
+            : null
+        )
+      );
+    };
+    return h(
+      "ol",
+      { class: "rail-stages" },
+      FG.journeyStages().map(({ stage, steps }, index) => {
+        const isCurrent = stage["@id"] === current;
+        return h(
+          "li",
+          { class: ["rail-stage", stageClass(index), isCurrent ? "current-stage" : null].filter(Boolean).join(" ") },
+          h(
+            "span",
+            { class: "rail-stage-name" },
+            h("span", { class: "rail-stage-number", "aria-hidden": "true" }, String(index + 1)),
+            FG.span(stage.name),
+            isCurrent ? h("span", { class: "visually-hidden" }, " (" + FG.t("journey.currentStage") + ")") : null
+          ),
+          h("ol", null, steps.map(step))
+        );
+      })
     );
   }
 
-  /** The legend for the self-check marks on the rail, shown only when there is a mark to explain. */
+  /** What the rail shows, always below it: a stage in its colour, the step being read, and the marks the self-check
+      leaves at the steps where its open questions are put right, in the self-check's own icons and colours. */
   function railLegend() {
-    const total = FG.gapsAt ? FG.stations().reduce((sum, station) => sum + FG.gapsAt(station.identifier), 0) : 0;
-    if (!total) return null;
+    const open = FG.stations().some((station) => RAIL_STATES.some((state) => openAt(station.identifier)[state]));
     return h(
-      "p",
+      "div",
       { class: "rail-legend" },
-      h("span", { class: "gap-mark", "aria-hidden": "true" }, String(total)),
-      h("a", { href: FG.href("selfcheck") }, FG.t("selfcheck.gapsLegend"))
+      h("p", { class: "rail-legend-title" }, FG.t("rail.legend")),
+      h(
+        "ul",
+        null,
+        h("li", null, h("span", { class: "rail-stage-number stage-1", "aria-hidden": "true" }, "1"), h("span", null, FG.t("rail.legendStage"))),
+        h("li", null, h("span", { class: "legend-current", "aria-hidden": "true" }), h("span", null, FG.t("rail.legendCurrent"))),
+        RAIL_STATES.map((state) => h("li", null, railMark(state), h("span", null, FG.t("rail.legendState", { state: FG.t("selfcheck.state." + state) }))))
+      ),
+      h("p", { class: "rail-legend-note" }, FG.t("rail.legendCount"), " ", h("a", { href: FG.href("selfcheck") }, FG.t(open ? "rail.legendOpen" : "rail.legendNone")))
     );
   }
 
@@ -448,72 +497,205 @@
     return h(
       "p",
       { class: "resume" },
-      h("a", { href: FG.href("path", station.identifier) }, FG.t("stage.resume", { n: station.position, station: FG.text(station.name) }))
+      h("a", { href: FG.href("path", station.identifier) }, FG.t("journey.resume", { n: station.position, station: FG.text(station.name) }))
     );
   }
 
-  /** The four stages in path order, each with the range of steps it covers. */
-  function stageRanges() {
-    const stages = FG.ofType("DefinedTerm")
-      .filter((term) => FG.id(term.inDefinedTermSet) === "#stages")
-      .map((stage) => ({ stage, from: FG.get(stage.startsAt).position }))
-      .sort((a, b) => a.from - b.from);
-    stages.forEach((entry, index) => (entry.to = index + 1 < stages.length ? stages[index + 1].from - 1 : FG.stations().length));
-    return stages;
+  /* The ring: the stages as arrow segments in a closed circle, reuse leading back to planning. */
+  /* SVG elements take their namespace from the page's icon sprite, as the icons do. */
+  const svg = (tag, attrs, ...children) => {
+    const node = document.createElementNS(document.querySelector("svg.sprite").namespaceURI, tag);
+    for (const [name, value] of Object.entries(attrs || {})) if (value != null) node.setAttribute(name, value);
+    node.append(...children.flat().filter(Boolean));
+    return node;
+  };
+
+  /** A name on one or two lines, split where the two lines are most even. */
+  function lines(text) {
+    const words = text.split(" ");
+    if (text.length <= 13 || words.length < 2) return [text];
+    const difference = (cut) => Math.abs(words.slice(0, cut).join(" ").length - words.slice(cut).join(" ").length);
+    let best = 1;
+    for (let cut = 2; cut < words.length; cut += 1) if (difference(cut) < difference(best)) best = cut;
+    return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
   }
 
-  const stepsLabel = (from, to) => (from === to ? FG.t("stage.step", { n: from }) : FG.t("stage.steps", { from, to }));
-
-  /** Choosing a stage starts the path at its first station; the menu's path item and the rail follow the choice. */
-  function chooseStage(stage) {
-    const station = FG.get(stage.startsAt).identifier;
-    FG.state.started = true;
-    FG.state.entryStation = station;
-    FG.saveState();
-    FG.navigate(FG.href("path", station));
+  /** The life cycle drawn as a ring. It repeats the list beside it, so assistive technology skips it; a click on a
+      stage opens its first step, as the list's link does. */
+  function ring(stages, last) {
+    const cx = 390, cy = 282, radius = 174, band = 62, tip = 8, lift = 9, grow = 0, leading = 25;
+    const span = 360 / stages.length;
+    const outer = radius + band / 2, inner = radius - band / 2;
+    const at = (r, degrees) => {
+      const angle = (degrees * Math.PI) / 180;
+      return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)].map((value) => Number(value.toFixed(1)));
+    };
+    const segments = stages.map(({ stage, steps }, index) => {
+      const from = -90 - span / 2 + index * span;
+      const to = from + span;
+      const isLast = stage["@id"] === last;
+      /* Each segment is an arrow: its head reaches into the next, its tail takes the previous one's head. The stage
+         read last is deeper and stands out of the ring towards the reader. */
+      const out = outer + (isLast ? grow : 0);
+      const mid = (out + inner) / 2;
+      const d = "M " + at(out, from) + " A " + out + " " + out + " 0 0 1 " + at(out, to) + " L " + at(mid, to + tip) +
+        " L " + at(inner, to) + " A " + inner + " " + inner + " 0 0 0 " + at(inner, from) + " L " + at(mid, from + tip) + " Z";
+      const middle = (from + to + tip) / 2;
+      const [nx, ny] = at(mid, middle);
+      const [lx, ly] = at(out + 16 + (isLast ? lift : 0), middle);
+      const cos = Math.cos((middle * Math.PI) / 180);
+      const sin = Math.sin((middle * Math.PI) / 180);
+      const label = lines(FG.text(stage.name)).concat(isLast ? [FG.t("journey.lastShort")] : []);
+      const height = (label.length - 1) * leading;
+      const top = sin < -0.6 ? ly - height - 4 : sin > 0.6 ? ly + 16 : ly - height / 2 + 6;
+      const anchor = cos > 0.25 ? "start" : cos < -0.25 ? "end" : "middle";
+      /* The stage read last stands out of the ring towards the reader. */
+      const shift = isLast ? at(lift, middle).map((value, axis) => (value - (axis ? cy : cx)).toFixed(1)) : null;
+      const group = svg(
+        "g",
+        {
+          class: ["ring-stage", stageClass(index), isLast ? "ring-last" : null].filter(Boolean).join(" "),
+          "data-stage": stage.termCode,
+          "data-next": stages[(index + 1) % stages.length].stage.termCode,
+          /* Where the segment's copy grows from when it is pointed at: its own middle, so it covers the segment. */
+          "data-origin": `${nx}px ${ny}px`,
+        },
+        /* The segment carries its stage's colour itself, so a copy drawn above the ring keeps it. */
+        svg("g", { class: "ring-segment " + stageClass(index), id: "ring-segment-" + index, transform: shift ? `translate(${shift[0]} ${shift[1]})` : null },
+          svg("path", { d }),
+          svg("path", { d, class: "ring-sheen", fill: "url(#ring-sheen)" }),
+          svg("text", { class: "ring-number", x: nx, y: ny, "text-anchor": "middle", "dominant-baseline": "central" }, String(index + 1))),
+        label.map((line, number) =>
+          svg("text", { class: isLast && number === label.length - 1 ? "ring-note" : "ring-label", x: lx, y: (top + number * leading).toFixed(1), "text-anchor": anchor }, line))
+      );
+      group.addEventListener("click", () => FG.navigate(FG.href("path", steps[0].identifier)));
+      group.addEventListener("mouseenter", () => highlight(stage.termCode, true));
+      group.addEventListener("mouseleave", () => highlight(stage.termCode, false));
+      return group;
+    });
+    /* Copies of the stage read last and of the stage pointed at, drawn above both their neighbours; the pointer
+       passes through them to the segment they copy. */
+    const lastIndex = stages.findIndex(({ stage }) => stage["@id"] === last);
+    const above = [
+      lastIndex >= 0 ? svg("use", { class: "ring-top ring-top-last", href: "#ring-segment-" + lastIndex }) : null,
+      svg("use", { class: "ring-top ring-top-hover", id: "ring-top-hover" }),
+    ];
+    const title = lines(FG.t("journey.title"));
+    /* Light on the outer edge of the band, none on the inner: the ring reads as one turning band. */
+    const sheen = svg("radialGradient", { id: "ring-sheen", gradientUnits: "userSpaceOnUse", cx, cy, r: outer },
+      svg("stop", { offset: (inner / outer).toFixed(3), "stop-color": "#ffffff", "stop-opacity": "0" }),
+      svg("stop", { offset: "1", "stop-color": "#ffffff", "stop-opacity": "0.24" }));
+    const shadow = svg("filter", { id: "ring-lift", x: "-30%", y: "-30%", width: "160%", height: "160%" },
+      svg("feDropShadow", { dx: "0", dy: "3", stdDeviation: "4", "flood-color": "#1d2a30", "flood-opacity": "0.35" }));
+    /* A segment under the pointer, or whose stage has focus in the list, pops out of the ring. */
+    const pop = svg("filter", { id: "ring-pop", x: "-30%", y: "-30%", width: "160%", height: "160%" },
+      svg("feDropShadow", { dx: "0", dy: "5", stdDeviation: "7", "flood-color": "#1d2a30", "flood-opacity": "0.5" }));
+    const drawing = svg(
+      "svg",
+      { viewBox: "0 0 780 566", "aria-hidden": "true", focusable: "false", class: "ring" },
+      svg("defs", null, sheen, shadow, pop),
+      svg("circle", { class: "ring-disc", cx, cy, r: inner - 14 }),
+      svg("use", { class: "ring-cycle", href: "#i-" + ((FG.config.icons && FG.config.icons.ui && FG.config.icons.ui.lifecycle) || "arrows-spin"), x: cx - 17, y: cy - 78, width: 34, height: 34 }),
+      segments,
+      title.map((line, number) => svg("text", { class: "ring-center", x: cx, y: cy - 4 + (number - (title.length - 1) / 2) * 23, "text-anchor": "middle" }, line)),
+      svg("text", { class: "ring-basis", x: cx, y: cy + 20 + title.length * 11, "text-anchor": "middle" }, FG.t("journey.basis")),
+      above
+    );
+    /* The drawing is cut to what it shows, with room for a segment that grows out of the ring and its shadow, so it
+       fills its column without empty margins; it is cut again once the names' font has loaded, and on a phone, where
+       the names are hidden, the ring alone fills the width. */
+    const fit = () => {
+      if (!drawing.isConnected) return;
+      const box = drawing.getBBox();
+      const pad = 20;
+      if (box.width && box.height) drawing.setAttribute("viewBox", [box.x - pad, box.y - pad, box.width + 2 * pad, box.height + 2 * pad].map((value) => value.toFixed(1)).join(" "));
+    };
+    const figure = h("figure", { class: "journey-ring" }, drawing);
+    requestAnimationFrame(fit);
+    if (document.fonts) document.fonts.ready.then(fit);
+    /* When the ring's column narrows or widens, its names may hide or show again, so the drawing is cut anew. */
+    if (window.ResizeObserver) {
+      let width = 0;
+      const observer = new ResizeObserver(([entry]) => {
+        const next = Math.round(entry.contentRect.width);
+        if (next === width) return;
+        width = next;
+        if (!figure.isConnected) observer.disconnect();
+        else fit();
+      });
+      observer.observe(figure);
+    }
+    return figure;
   }
 
-  /** The stage the visitor chose; none until they choose one. */
-  function chosenStage(stages) {
-    return FG.state.started ? stages.find(({ stage }) => FG.get(stage.startsAt).identifier === FG.state.entryStation) || null : null;
+  /** The journey's introduction, with RDMkit linked to the page that publishes its life cycle. */
+  function journeyIntro() {
+    const model = FG.get("#lifecycle-rdmkit");
+    const [before, after] = FG.t("journey.intro").split("{rdmkit}");
+    if (after === undefined) return before;
+    return [before, model && model.url ? FG.external(model.url, "RDMkit") : "RDMkit", after];
   }
 
-  /** The stage question as a journey: four cards in path order, each naming the steps it covers. The card of the
-      stage the visitor chose says so, with the date of their last visit to the path. */
-  function stageCards() {
-    const stages = stageRanges();
-    const chosen = chosenStage(stages);
-    const icons = (FG.config.icons && FG.config.icons.stage) || {};
+  /** Mark a stage as pointed at in the ring or focused in the list beside it: its segment pops out above the ring
+      and its name is underlined. */
+  const highlight = (code, on) => {
+    const group = document.querySelector(`.journey-ring .ring-stage[data-stage="${CSS.escape(code)}"]`);
+    const copy = document.getElementById("ring-top-hover");
+    if (!group || !copy) return;
+    group.classList.toggle("ring-hover", on);
+    if (on) {
+      copy.setAttribute("href", "#" + group.querySelector(".ring-segment").id);
+      copy.style.transformOrigin = group.dataset.origin;
+    }
+    else if (copy.getAttribute("href") === "#" + group.querySelector(".ring-segment").id) copy.removeAttribute("href");
+  };
+
+  /** The life cycle on the path's start: the ring and, beside it, the same stages as an ordered list. Each stage opens
+      its first step and names its steps; the stage last read is marked in words and by its frame in both. */
+  function journey() {
+    const stages = FG.journeyStages();
+    const last = lastStage();
     return h(
-      "ol",
-      { class: "stage-options" },
-      stages.map((entry) => {
-        const { stage, from, to } = entry;
-        const current = entry === chosen;
-        return h(
-          "li",
-          null,
-          h(
-            "button",
-            {
-              type: "button",
-              class: "stage-card" + (current ? " stage-current" : ""),
-              onclick: () => chooseStage(stage),
-            },
+      "section",
+      { class: "journey", "aria-labelledby": "journey-title" },
+      h("h2", { id: "journey-title" }, FG.t("journey.title")),
+      h("p", { class: "muted" }, journeyIntro()),
+      h(
+        "div",
+        { class: "journey-body" },
+        ring(stages, last),
+        h(
+          "ol",
+          { class: "journey-stages" },
+          stages.map(({ stage, steps }, index) =>
             h(
-              "span",
-              { class: "stage-steps" },
-              FG.icon(icons[stage.termCode], { class: "icon-large" }),
-              stepsLabel(from, to),
-              current
-                ? h("span", { class: "badge" }, FG.state.lastVisit ? FG.t("stage.chosenOn", { date: FG.formatDate(FG.state.lastVisit) }) : FG.t("stage.chosen"))
-                : null
-            ),
-            h("strong", null, FG.span(stage.name)),
-            stage.description ? h("span", { class: "small muted" }, FG.span(stage.description)) : null
+              "li",
+              {
+                class: [stageClass(index), stage["@id"] === last ? "journey-last" : null].filter(Boolean).join(" "),
+                "data-stage": stage.termCode,
+                /* Pointing at a stage in the list, or moving focus into it, shows it in the ring too. */
+                onmouseenter: () => highlight(stage.termCode, true),
+                onmouseleave: () => highlight(stage.termCode, false),
+                onfocusin: () => highlight(stage.termCode, true),
+                onfocusout: () => highlight(stage.termCode, false),
+              },
+              /* The stage on the left, centred beside its steps, which are listed on the right. */
+              h(
+                "div",
+                { class: "journey-stage-head" },
+                h(
+                  "a",
+                  { class: "journey-stage", href: FG.href("path", steps[0].identifier) },
+                  h("span", { class: "journey-number", "aria-hidden": "true" }, String(index + 1)),
+                  h("strong", null, FG.span(stage.name))
+                ),
+                stage["@id"] === last ? h("span", { class: "badge" }, FG.t("journey.lastRead")) : null
+              ),
+              stepLinks(steps)
+            )
           )
-        );
-      })
+        )
+      )
     );
   }
 
@@ -541,7 +723,7 @@
     );
   }
 
-  /** The landing view, which is the path's start: search, stage, tasks, resume line, routes to help. */
+  /** The landing view, which is the path's start: search, the life-cycle journey, tasks, resume line, routes to help. */
   function landing(route) {
     const tasks = FG.list(FG.config.tasks).filter((task) => task.lens === route.lens);
     const steward = FG.get("#help-data-steward");
@@ -551,13 +733,7 @@
       heading(1, null, FG.t("app.title")),
       h("p", { class: "lead" }, FG.t("app.tagline")),
       FG.search ? FG.search.form() : null,
-      h(
-        "section",
-        { class: "stage-entry", "aria-labelledby": "stage-question" },
-        h("h2", { id: "stage-question" }, FG.t("stage.question")),
-        h("p", { class: "muted" }, FG.t("stage.intro")),
-        stageCards()
-      ),
+      journey(),
       tasks.length
         ? h("section", { "aria-labelledby": "tasks-title" }, h("h2", { id: "tasks-title" }, FG.t("landing.tasks")), h("ul", { class: "tasks" }, tasks.map(taskTile)))
         : null,
@@ -572,9 +748,9 @@
     );
   }
 
-  /** A station's core idea, set apart at the top of its how-to. */
+  /** A station's core idea, set apart at the top of the station. */
   function keyPoint(item) {
-    return item ? h("aside", { class: "key-point" }, h("p", { class: "key-point-label" }, FG.t("station.keyPoint")), h("p", null, FG.linkedSpan(item))) : null;
+    return item ? h("aside", { class: "key-point" }, h("p", { class: "key-point-label" }, FG.icon("keyPoint"), FG.t("station.keyPoint")), h("p", null, FG.linkedSpan(item))) : null;
   }
 
   function adviceItem(item) {
@@ -582,8 +758,10 @@
     return h("li", null, FG.linkedSpan(item), steps.length ? h("ul", null, steps.map((step) => h("li", null, FG.linkedSpan(step)))) : null);
   }
 
-  /** A disclosure level whose open state survives a lens switch while the page stays open. */
-  function details(summary, key, ...content) {
+  /** A disclosure level whose open state survives a lens switch while the page stays open; a summary given as
+      [title, note] also says, after its title, what the level holds. */
+  function details(summaryParts, key, ...content) {
+    const [summary, note] = Array.isArray(summaryParts) && summaryParts.length === 2 && typeof summaryParts[1] === "string" ? summaryParts : [summaryParts, null];
     return h(
       "details",
       {
@@ -591,7 +769,7 @@
         open: FG.openLevels.has(key),
         ontoggle: (event) => (event.target.open ? FG.openLevels.add(key) : FG.openLevels.delete(key)),
       },
-      h("summary", null, summary),
+      h("summary", null, summary, note ? h("span", { class: "summary-note small muted" }, note) : null),
       h("div", { class: "content" }, ...content)
     );
   }
@@ -602,14 +780,27 @@
     for (const item of items) {
       for (const clause of FG.refs(item, "citation")) if (!clauses.includes(clause)) clauses.push(clause);
     }
+    /* At findability and citation the dataset's publication hand-over reads as one chain; elsewhere a context's own
+       seams show who passes what to whom. The identifier, page, metadata and files are told apart at publication. */
+    const chain = ["findability", "citation"].includes(station.identifier);
     return [
+      station.identifier === "publication" ? FG.flow("object") : null,
       FG.modelContexts(station, FG.state.lens).map((context) => h("div", { class: "model-context" }, FG.paragraphs(context.text),
+        chain ? FG.publicationFlow() : FG.seamFlow(FG.refs(context, "implementationSeams")),
         h("dl", { class: "relations small" }, FG.modelRows(context)))),
-      notes.length ? h("ul", null, notes.map((note) => h("li", null, FG.linkedSpan(note)))) : null,
+      notes.map(whyNote),
       /* The station's principles show in its header; the reasons go straight to what the advice rests on, which the
          section's title already names. */
       h("ul", { class: "clauses", role: "list" }, clauses.map(FG.clauseEntry)),
     ];
+  }
+
+  /** An authored explanation as prose. One that names a service not yet in full operation is a status note, set
+      apart with its icon, so advice that rests on a pilot or a plan says so where it is read. */
+  function whyNote(note) {
+    const named = FG.list(((FG.config && FG.config.textLinks) || {})[note["@id"]]).map((link) => FG.get(link.ref)).filter(Boolean);
+    const status = named.some((entity) => FG.id(entity.serviceStatus) && FG.id(entity.serviceStatus) !== "#status-operational");
+    return h("p", { class: status ? "why-note status-note" : "why-note" }, status ? FG.icon("info") : null, FG.linkedSpan(note));
   }
 
   /** The published sources the given items cite, through their clauses. */
@@ -751,12 +942,12 @@
       if (body.length) lines.push("## " + mdText(title), "", ...body, "");
     };
     const actionUrl = (action) => (FG.id(action.target).startsWith("#") ? guideUrl(FG.actionHref(FG.id(action.target))) : FG.id(action.target));
+    if (key) lines.push("> **" + mdText(FG.t("station.keyPoint")) + ":** " + mdLine(key.text), "");
     section(levelName("L0"), now ? [mdText(FG.text(now.text))].concat(actions.length ? [""].concat(actions.map((action) => "- " + mdLink(FG.text(action.name), actionUrl(action)))) : []) : []);
+    section(FG.t("station.glossary"), terms.map((term) => "- " + mdLink(FG.text(term.name), term.url)));
     section(
       levelName("L1"),
-      (key ? ["> **" + mdText(FG.t("station.keyPoint")) + ":** " + mdLine(key.text), ""] : []).concat(
-        steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
-      )
+      steps.flatMap((item, index) => [index + 1 + ". " + mdLine(item.text)].concat(FG.refs(item, "hasPart").sort(FG.byPosition).map((step) => "   - " + mdLine(step.text))))
     );
     const notes = items.filter((item) => FG.id(item.disclosureLevel) === "#level-L2" && item.adviceKind !== "ai").sort(FG.byPosition);
     const clauses = [...new Set(items.flatMap((item) => FG.refs(item, "citation")))];
@@ -767,7 +958,7 @@
     const basis = clauses.length ? ["### " + mdText(FG.t("station.whyClauses")), "", ...clauses.map(clauseLine)] : [];
     const modelContext = FG.modelContexts(entity, route.lens).flatMap((context) => [mdLine(context.text), "",
       ...["implementationLayers", "implementationSeams"].flatMap((property) => FG.refs(context, property).map((term) => "- " + mdLink(FG.text(term.name), guideUrl(FG.catalogueHref("model", term.identifier))))), ""]);
-    section(levelName("L2"), modelContext.concat(notes.map((note) => "- " + mdLine(note.text)), notes.length && basis.length ? [""] : [], basis));
+    section(levelName("L2"), modelContext.concat(notes.flatMap((note, index) => (index ? ["", mdLine(note.text)] : [mdLine(note.text)])), notes.length && basis.length ? [""] : [], basis));
     /* An AI tip, what to check after it, and its prompt as a code block under the same list item. */
     const aiLines = (item) =>
       ["- " + mdLine(item.text)]
@@ -780,13 +971,12 @@
         (callout.text ? [mdText(FG.text(callout.text)), ""] : []).concat(orderedCalloutItems(callout, route.lens).map((item, index) => index + 1 + ". " + (item.url ? mdLink(FG.text(item.text), item.url) : mdLine(item.text))))
       );
     }
-    section(FG.t("station.glossary"), terms.map((term) => "- " + mdLink(FG.text(term.name), term.url)));
+    section(FG.t("station.sources"), sourcesOf(items).map((source) => "- " + mdLink(FG.nameText(source), source.url)));
     section(FG.t("station.resources"), resources.map((resource) => "- " + mdLink(FG.text(resource.name), resource.url) + (resource.description ? " — " + mdLine(resource.description) : "")));
     section(
       FG.t("station.help"),
       helps.map((help) => "- " + mdLink(FG.text(help.name), help.url)).concat(courses.length ? ["- " + mdText(FG.t("station.training")) + ": " + courses.map((course) => mdLink(FG.text(course.name), course.url)).join(", ")] : [])
     );
-    section(FG.t("station.sources"), sourcesOf(items).map((source) => "- " + mdLink(FG.nameText(source), source.url)));
     lines.push("---", "", mdText(FG.t("export.mdFooter", { version: FG.root.version, date: FG.formatDate(FG.today()) })) + " " + guideUrl(FG.href("path", entity.identifier)), "");
     return lines.join("\n");
   }
@@ -875,7 +1065,14 @@
     const levelName = (code) => FG.termName("#level-" + code);
     const levelTitle = (code) => [levelIcon(code), h("span", null, levelName(code))];
     const stationIcon = FG.config.icons && FG.config.icons.station && FG.config.icons.station[entity.identifier];
-    const stepLine = FG.t("station.step", { n: entity.position, total: stations.length }) + (minutes ? " · " + FG.t("station.minutes", { n: minutes }) : "");
+    const stages = FG.journeyStages();
+    const stageAt = stages.findIndex((entry) => entry.stage["@id"] === FG.id(entity.lifecycleStage));
+    const stage = stages[stageAt];
+    const stepLine = [
+      stage ? FG.t("station.stage", { n: stageAt + 1, name: FG.text(stage.stage.name) }) : null,
+      stage && stage.steps.length > 1 ? FG.t("station.stageStep", { i: stage.steps.indexOf(entity) + 1, n: stage.steps.length }) : null,
+      minutes ? FG.t("station.minutes", { n: minutes }) : null,
+    ].filter(Boolean).join(" · ");
     const parts = { items, now, key, steps, ai, actions, resources, terms, helps, courses };
     FG.offerExport({
       id: "markdown",
@@ -899,6 +1096,7 @@
           principleTiles(FG.principlesOf(entity), FG.t("station.principles"))
         )
       ),
+      keyPoint(key),
       now
         ? h(
             "section",
@@ -907,8 +1105,16 @@
             actions.length ? h("div", { class: "now-actions" }, actions.map((action, index) => actionButton(action, index > 0))) : null
           )
         : h("p", null, FG.t("station.empty")),
-      steps.length || key ? details(levelTitle("L1"), "L1", keyPoint(key), steps.length ? h("ol", { class: "steps" }, steps.map(adviceItem)) : null) : null,
-      details(levelTitle("L2"), "L2", whyContent(entity, items)),
+      terms.length
+        ? h(
+            "section",
+            { class: "station-terms", "aria-labelledby": "station-terms-title" },
+            h("h2", { id: "station-terms-title", class: "inline-heading" }, FG.t("station.glossary")),
+            h("ul", { class: "chips" }, terms.map((term) => h("li", null, h("a", { class: "chip", href: FG.catalogueHref("terms", FG.termAnchor(term)) }, FG.text(term.name)))))
+          )
+        : null,
+      steps.length ? details([levelTitle("L1"), FG.t("station.stepsCount", { n: steps.length })], "L1", h("ol", { class: "steps" }, steps.map(adviceItem))) : null,
+      details([levelTitle("L2"), FG.t("station.whyNote")], "L2", whyContent(entity, items)),
       ai.length
         ? details(
             [FG.icon("ai"), h("span", null, FG.t("station.ai"))],
@@ -918,30 +1124,26 @@
             h("p", null, h("a", { href: FG.href("page", "ai") }, FG.text(FG.get("#page-ai").headline)))
           )
         : null,
+      callouts(entity, route.lens),
       details(levelTitle("L3"), "L3", madeContent(items, entity)),
       provenanceLine(items),
-      terms.length
-        ? h(
-            "section",
-            { class: "station-terms" },
-            h("h2", null, FG.t("station.glossary")),
-            h("ul", { class: "chips" }, terms.map((term) => h("li", null, h("a", { class: "chip", href: FG.catalogueHref("terms", FG.termAnchor(term)) }, FG.text(term.name)))))
-          )
+      resources.length
+        ? h("section", { class: "station-resources" }, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards cards-compact" }, resources.map((resource) => FG.resourceCard(resource, entity.identifier, true))))
         : null,
-      callouts(entity, route.lens),
-      resources.length ? h("section", null, h("h2", null, FG.t("station.resources")), h("ul", { class: "cards" }, resources.map((resource) => FG.resourceCard(resource, entity.identifier)))) : null,
       h(
         "section",
-        null,
+        { class: "station-help" },
         h("h2", null, FG.t("station.help")),
         h(
-          "ul",
+          "p",
           null,
-          helps.map((help) => h("li", null, help.url.startsWith("mailto:") ? h("a", { href: help.url }, FG.text(help.name)) : FG.external(help.url, FG.text(help.name)))),
-          courses.length
-            ? h("li", { class: "training" }, FG.t("station.training") + ": ", courses.map((course, index) => [index ? ", " : "", FG.external(course.url, FG.text(course.name).replace(/^[^:]+:\s*/, ""))]))
-            : null
-        )
+          FG.icon("help"),
+          " ",
+          helps.map((help, index) => [index ? " · " : null, help.url.startsWith("mailto:") ? h("a", { href: help.url }, FG.text(help.name)) : FG.external(help.url, FG.text(help.name))])
+        ),
+        courses.length
+          ? h("p", { class: "training" }, FG.icon("training"), " " + FG.t("station.training") + ": ", courses.map((course, index) => [index ? ", " : "", FG.external(course.url, FG.text(course.name).replace(/^[^:]+:\s*/, ""))]))
+          : null
       ),
       h(
         "nav",
@@ -954,7 +1156,7 @@
 
   FG.views.path = function (route) {
     const showEntry = FG.landingShown(route);
-    const currentId = showEntry ? null : route.arg || FG.state.lastStation || FG.state.entryStation || FG.stations()[0].identifier;
+    const currentId = showEntry ? null : route.arg || FG.state.lastStation || FG.stations()[0].identifier;
     if (currentId && FG.stations().some((station) => station.identifier === currentId) && (currentId !== FG.state.lastStation || FG.state.lastVisit !== FG.today())) {
       FG.state.lastStation = currentId;
       FG.state.lastVisit = FG.today();
@@ -1076,30 +1278,14 @@
   /* ---------------------------------------------------------------- the finders' building blocks */
 
 
-  /** Add live NKR records: a repository already listed gains NKR as a source; a new one is appended. */
-  function withNkr(repositories) {
-    const records = FG.live && FG.live.nkr ? FG.live.nkr.records : [];
-    const merged = repositories.map((repository) => Object.assign({}, repository, { nkr: false }));
-    for (const record of records) {
-      const match = merged.find(
-        (repository) =>
-          (record.re3data && FG.list(repository.identifier).includes(record.re3data)) ||
-          (record.url && repository.url && repository.url.replace(/\/$/, "").toLowerCase() === record.url.replace(/\/$/, "").toLowerCase())
-      );
-      if (match) match.nkr = record;
-      else merged.push({ name: record.name, url: record.url, identifier: record.re3data ? [record.re3data] : [], repositoryKind: record.kind, repositoryFunction: [{ "@id": "#rfunction-deposit-data" }], keywords: record.keywords, nkr: record, isBasedOn: [] });
-    }
-    return merged;
-  }
+  /** The FAIRsharing record of a listed repository, by its re3data record, as the FAIRsharing snapshot names it. */
+  FG.fairsharingRecord = (r3d) => {
+    const repository = FG.repositoryEntries().find((entry) => FG.list(entry.identifier).includes(r3d) || FG.refIds(entry, "sameAs").some((iri) => iri.endsWith("/repository/" + r3d)));
+    return (repository && FG.refIds(repository, "sameAs").find((iri) => /\/10\.25504\/FAIRsharing\./i.test(iri))) || null;
+  };
 
-  /** Add the FAIRsharing record found for each repository, once the user loaded them. */
-  function withFairsharing(repositories) {
-    if (!FG.live || !FG.live.fairsharing) return repositories;
-    return repositories.map((repository) => Object.assign(repository, { fairsharing: FG.live.fairsharingOf({ identifiers: repository.identifier, url: repository.url }) }));
-  }
-
-  /** Every repository: the curated list, the snapshots and, once loaded, NKR records and FAIRsharing links. */
-  FG.repositoryEntries = () => withFairsharing(withNkr(FG.refs(FG.get("#repositories"), "hasPart")));
+  /** Every repository: the curated list and the snapshots, NKR's and FAIRsharing's included, joined at build time. */
+  FG.repositoryEntries = () => FG.refs(FG.get("#repositories"), "hasPart");
   FG.repositoryKindOrder = KIND_ORDER;
 
   /** The name of a source a repository record comes from. */
@@ -1112,71 +1298,17 @@
     return (mine.length ? mine : words).map((word) => (typeof word === "string" ? word : word["@value"])).filter((value, index, all) => all.indexOf(value) === index);
   }
 
-  /** The records a repository's facts came from, each linked where the record has an address of its own: re3data
-      and FIP Dashboard snapshots, NKR and FAIRsharing; the guide's own selection is named. */
+  /** The sources a repository's facts came from, each leading to the source's own entry in the catalogue; the
+      guide's own selection is named. The repository's record in each source is among its identifiers (D-185). */
   function repositorySources(repository) {
-    const r3d = FG.refIds(repository, "sameAs").find((id) => /re3data\.org/.test(id));
-    const dashboard = FG.dashboardRecord(repository);
-    const sources = FG.refIds(repository, "isBasedOn").map((id) => {
-      const name = FG.repositorySource(id);
-      if (id === "#snapshot-fip-dashboard" && dashboard) return FG.external(dashboard.url, name);
-      return id === "#snapshot-re3data" && r3d ? FG.external(r3d, name) : name;
+    return FG.refIds(repository, "isBasedOn").map((id) => {
+      const source = FG.get(FG.id((FG.get(id) || {}).about));
+      return source ? h("a", { href: FG.catalogueHref("resources", source.identifier) }, FG.repositorySource(id)) : h("span", null, FG.repositorySource(id));
     });
-    if (repository.nkr) sources.push(repository.nkr.id ? FG.external(FG.config.links.nkr + "objects/" + repository.nkr.id, "NKR") : "NKR");
-    if (repository.fairsharing) sources.push(FG.external(FG.live.pidUrl({ type: "doi", value: repository.fairsharing.doi }), "FAIRsharing", { class: "fairsharing-record" }));
-    return sources.map((source) => (typeof source === "string" ? h("span", null, source) : source));
   }
 
   FG.repositorySourceLinks = repositorySources;
   FG.subjectsOf = subjectsOf;
-
-  /* re3data facts a sample NKR record shows, in the order of a record. */
-  const SAMPLE_FIELDS = ["pidTypes", "apis", "dataLicenses", "metadataStandards", "certificates", "policies", "versioning", "qualityManagement"];
-
-  /** Sample NKR records: a few real Czech repositories with only the values their public re3data records state,
-      the richest records first, labelled as samples and not NKR records. */
-  FG.nkrSamples = function () {
-    const facts = (FG.config && FG.config.re3data) || {};
-    const stated = (value) => (Array.isArray(value) ? value.length > 0 : value !== undefined && value !== null);
-    const chosen = Object.entries(facts)
-      .map(([r3d, record]) => ({ r3d, record, repository: FG.get("#repository-" + r3d) }))
-      .filter((entry) => entry.repository)
-      .sort((a, b) => SAMPLE_FIELDS.filter((key) => stated(b.record[key])).length - SAMPLE_FIELDS.filter((key) => stated(a.record[key])).length || a.r3d.localeCompare(b.r3d))
-      .slice(0, 3);
-    if (!chosen.length) return null;
-    const value = (key, fact) => {
-      if (!stated(fact)) return h("span", { class: "muted" }, FG.t("repositories.sample.none"));
-      if (typeof fact === "boolean") return FG.t(fact ? "repositories.sample.yes" : "repositories.sample.no");
-      return FG.list(fact).join(", ");
-    };
-    const field = (key, content) => [h("dt", null, FG.t("repositories.sample." + key)), h("dd", null, content)];
-    return h(
-      "section",
-      { class: "nkr-samples", "aria-labelledby": "nkr-samples-title" },
-      h("h3", { id: "nkr-samples-title" }, FG.t("repositories.nkrSamplesTitle")),
-      h("p", { class: "notice small" }, FG.t("repositories.nkrSamplesNote", { date: FG.formatDate(chosen[0].record.date) })),
-      h(
-        "ul",
-        { class: "cards" },
-        chosen.map(({ r3d, record, repository }) =>
-          h(
-            "li",
-            { class: "card nkr-sample" },
-            h("p", { class: "badge sample-label" }, FG.t("repositories.sample.label")),
-            h("h4", null, FG.external(repository.url, record.name)),
-            h(
-              "dl",
-              { class: "sample-fields" },
-              field("kind", repository.repositoryKind ? FG.termName(FG.id(repository.repositoryKind)) : value("kind")),
-              field("subjects", subjectsOf(repository).join(", ") || value("subjects")),
-              SAMPLE_FIELDS.map((key) => field(key, value(key, record[key]))),
-              field("registry", FG.external(FG.config.links.re3dataRecord + r3d, FG.t("repositories.sample.record")))
-            )
-          )
-        )
-      )
-    );
-  };
 
   FG.renderList = function (id, build) {
     const container = document.getElementById(id);
@@ -1237,7 +1369,8 @@
             page.identifier === "machines" && section.identifier === "endpoints" ? endpointTable() : null,
             page.identifier === "machines" && section.identifier === "model-example" ? modelWorkedExample() : null,
             page.identifier === "model" && section.identifier === "national-mapping" ? modelFigure("czech-ndi-layers", FG.text(section.headline)) : null,
-            page.identifier === "model" && section.identifier === "metadata-architecture" ? modelFigure("metadata-architecture", FG.text(section.headline)) : null,
+            page.identifier === "model" && section.identifier === "metadata-architecture" ? [modelFigure("metadata-architecture", FG.text(section.headline)), FG.publicationFlow()] : null,
+            page.identifier === "software" && section.identifier === "preserve" ? FG.flow("software") : null,
             section.identifier === "privacy" && FG.selfcheck && FG.selfcheck.localDataNote ? FG.selfcheck.localDataNote() : null,
           ];
           return h(
@@ -1248,6 +1381,8 @@
           );
         }),
         page.identifier === "about" ? h("p", { class: "small" }, h("a", { href: FG.href("page", "model") }, FG.t("model.overview"))) : null,
+        /* What each part of an identified object is, before the helper inspects one. */
+        page.identifier === "identifiers" ? FG.flow("object") : null,
         FG.helpers && FG.helpers[page.identifier] ? FG.helpers[page.identifier](route) : helperComing(page) ? h("p", { class: "notice helper-coming" }, FG.t("page.helperComing")) : null
       )
     );
@@ -1257,7 +1392,7 @@
   FG.modelDetail = function (term) {
     const fields = ["transfer", "sender", "recipient", "carrier", "maintainers"].filter((key) => term[key]);
     const examples = FG.refs(term, "hasPart").filter((entry) => entry.modelKind === "example");
-    return [fields.length ? h("dl", { class: "relations model-detail" }, fields.map((key) => [h("dt", null, FG.t("model.field." + key)), h("dd", null, FG.span(term[key]))])) : null,
+    return [fields.length ? h("dl", { class: "relations model-detail" }, fields.map((key) => [FG.relationTerm(key, FG.t("model.field." + key)), h("dd", null, FG.span(term[key]))])) : null,
       examples.length ? h("details", { class: "model-examples" }, h("summary", null, FG.t("model.examples")), h("div", { class: "content" }, examples.map((example) => h("section", { class: "model-example" },
         h("h4", null, FG.span(example.name)), example.scope ? h("p", { class: "small" }, FG.span(example.scope)) : null,
         FG.paragraphs(example.description), statusBadge(example, "model.statusAsOf"),
@@ -1294,6 +1429,29 @@
       h("p", { class: "small" }, h("a", { href: FG.catalogueHref("model") }, FG.t("model.allRecords")))
     );
   }
+
+  /* The publication hand-over a dataset passes through: identifier registration, NMA harvesting and the reporting
+     link. The steps' facts are the seam records themselves; only this selection and order belong to the view. */
+  const PUBLICATION_CHAIN = ["repository-pid-registry", "repository-nma", "nma-research-register"];
+
+  /** Hand-overs as an ordered visual: for each seam, who passes what to whom and by what carrier, from the model's
+      seam records, so the same facts read the same at a station and beside the metadata figure. */
+  FG.seamFlow = function (seams, title) {
+    const records = seams.map((seam) => (typeof seam === "string" ? FG.get("#seam-" + seam) : seam)).filter((seam) => seam && seam.sender && seam.recipient);
+    if (!records.length) return null;
+    return h(
+      "figure",
+      { class: "flow flow-handover", "data-flow": "handover" },
+      h("figcaption", { class: "flow-title" }, title || FG.t("visual.handover.title")),
+      h("ol", { class: "flow-steps" }, records.map((seam) => h("li", { class: "flow-step", "data-step": seam.identifier },
+        h("strong", { class: "flow-label" }, FG.span(seam.sender), " → ", FG.span(seam.recipient)), " ",
+        seam.transfer ? h("span", { class: "flow-text" }, FG.span(seam.transfer)) : null,
+        seam.carrier ? h("span", { class: "flow-carrier small" }, FG.t("model.field.carrier") + ": ", FG.span(seam.carrier)) : null,
+        h("a", { class: "flow-record small", href: FG.catalogueHref("model", seam.identifier) }, FG.span(seam.name))))),
+      records.some((seam) => seam["@id"] === "#seam-nma-research-register") ? h("p", { class: "flow-note small" }, FG.span(FG.get("#seam-nma-research-register").description)) : null
+    );
+  };
+  FG.publicationFlow = () => FG.seamFlow(PUBLICATION_CHAIN, FG.t("visual.handover.publication"));
 
   /** Reuse the manuscript's figures without changing their geometry or scoped arrow/status meanings. */
   function modelFigure(stem, alternative, caption) {
@@ -1397,18 +1555,20 @@
       .filter(([, menu]) => menu === "tools")
       .map(([id]) => FG.get("#page-" + id))
       .filter(Boolean);
-    return h(
-      "div",
-      { class: "layout wrap tools" },
-      h(
-        "article",
-        null,
-        heading(1, null, FG.t("tools.title")),
-        h("p", { class: "lead" }, FG.t("tools.intro")),
+    const groupOf = (page) => (FG.config.toolGroup || {})[page.identifier];
+    /* Interactive helpers first, then guidance, each as its own section of cards. */
+    const section = (group, key) => {
+      const members = pages.filter((page) => groupOf(page) === group);
+      if (!members.length) return null;
+      return h(
+        "section",
+        { class: "tool-group", "aria-labelledby": "tools-" + group },
+        h("h2", { id: "tools-" + group }, FG.t("tools." + key)),
+        h("p", { class: "muted" }, FG.t("tools." + key + "Intro")),
         h(
           "ul",
           { class: "tool-cards" },
-          pages.map((page) =>
+          members.map((page) =>
             h(
               "li",
               { class: "tool-card" },
@@ -1416,14 +1576,19 @@
               h(
                 "div",
                 null,
-                h("h2", null, h("a", { href: FG.href("page", page.identifier) }, FG.span(page.headline))),
+                h("h3", null, h("a", { href: FG.href("page", page.identifier) }, FG.span(page.headline))),
                 page.description ? h("p", null, FG.span(page.description)) : null,
                 helperComing(page) ? h("p", { class: "badge tool-coming" }, FG.t("tools.coming")) : null
               )
             )
           )
         )
-      )
+      );
+    };
+    return h(
+      "div",
+      { class: "layout wrap tools" },
+      h("article", null, heading(1, null, FG.t("tools.title")), h("p", { class: "lead" }, FG.t("tools.intro")), section("tool", "groupTool"), section("guidance", "groupGuidance"))
     );
   };
 })();

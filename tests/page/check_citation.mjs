@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { AxeBuilder } from "@axe-core/playwright";
+import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
@@ -123,7 +123,7 @@ try {
       await page.setViewportSize({ width, height: 900 });
       await page.waitForSelector(".citation-format");
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "citation reflows at " + width);
-      const a11y = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+      const a11y = await audit(page);
       assert.deepEqual(a11y.violations, []);
       await page.screenshot({ path: resolve(shots, `${lang}-citation-${width}.png`), fullPage: true });
     }

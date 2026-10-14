@@ -13,18 +13,35 @@ human-facing overview.
 
 ## What the guide offers
 
-- **A path of nine stations:** Plan → Work → Repository → Description → Licence and access → Publication →
-  Findability → Citation and credit → Check. It starts where the user is now.
+- **A path along the research data life cycle:** the steps follow the seven stages of the RDMkit life cycle
+  (planning, collecting, processing and analysing data, preserving, sharing and reuse) and end with a check. It
+  starts where the user is now.
 - **Four lenses on the same path:** researcher, data steward, repository administrator or curator,
   community and FIP.
 - **Detail on demand:** one sentence and one concrete action first; steps, reasons and sources on request
   (levels L0–L3).
 - **Principle explorer:** every requirement of the analysis under its FAIR principle.
 - **Self-check:** the NRP conditions and FAIR maturity kept apart, with no overall score.
-- **Live identifier check:** a quick check, and an opt-in deep check with FAIR Champion.
+- **Evaluations the reader starts:** quick discovery from public records, the curated FAIR Champion tests,
+  FAIR-Checker's metrics and a locally loaded F-UJI report, each with its scope, versions and coverage; a
+  reader's own answers always stay theirs.
 - **Resource and repository finder** with service status and an as-of date.
 - **Layers and seams of FAIR implementation:** a model overview and catalogue associations connect guidance
   to responsibilities and information transfers, including hand-offs within a layer.
+
+### The guide and the FIP Dashboard
+
+The [FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) is the national catalogue of FAIR-enabling resources and
+community profiles; it owns their records and answers "which resources and profiles". The guide answers "what to
+do and why" and refers to the dashboard's records by their dashboard IDs instead of copying them. The guide's FIP
+completeness check is pre-filled from a dashboard profile, or from a published FIP nanopublication when a profile is
+not in the dashboard.
+
+The dashboard's API does not yet admit the guide's origin from a browser, so the guide reads a dated snapshot of its
+profiles and resources and says so wherever they are used, with the dashboard's own disclaimer. A scheduled job
+proposes a snapshot refresh by pull request when the dashboard's data change; once the API admits the guide's origin,
+the connector setting `browserAccess` lets the page read it live and keep the snapshot as its fallback. See
+`docs/design.md` (decisions 18 and 19, *Snapshot refresh*).
 
 ## Running the guide
 
@@ -126,6 +143,13 @@ the completed run, uses default-branch code and checks the current PR head befor
 The [Champion selection record](docs/champion/selection.md) explains test scope and the dated health
 measurement. To remeasure all reviewed candidates and the core after building the site, run
 `node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. This does not edit the selection.
+
+Two scheduled workflows are prepared and run once they are on the default branch. `source-refresh.yml`
+refreshes the Heslář, re3data, FIP Dashboard and NKR snapshots weekly, keeps a snapshot unchanged when a response
+fails validation and proposes each changed source as its own pull request through the repository's GitHub App.
+`health-watch.yml` checks links, services, stale dates and the EOSC CZ pages the guide depends on weekly, remeasures
+FAIR Champion tests monthly and opens one issue per persistent problem. Neither commits or merges; see
+[docs/design.md](docs/design.md) for the App settings.
 
 The first official prerelease tag is `v1.0.0-alpha.1`; application and citation metadata use `1.0.0-alpha.1`.
 

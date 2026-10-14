@@ -31,7 +31,13 @@ function body(run, report, repository) {
       shown++;
     }
   }
-  if (report.total > shown) lines.push("", `The table shows ${shown} changed items within the comment size limit. The review artifact contains the complete summary.`);
+  if (report.total > shown) {
+    // Claim a complete list only when the artifact says it carries one beside the bounded rows.
+    const complete = report.complete === "changes.json"
+      ? " Every changed item is listed in `changes.json` in the review artifact."
+      : ` Only the first ${report.items.length} changed items are in the review artifact.`;
+    lines.push("", `The table shows ${shown} of ${report.total} changed items within the comment size limit.${complete}`);
+  }
   return lines.join("\n");
 }
 

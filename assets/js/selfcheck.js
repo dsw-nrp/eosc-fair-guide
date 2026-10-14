@@ -13,7 +13,7 @@
   const FIRST_TIERS = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum"];
   const TIER_ORDER = ["#tier-required", "#tier-standard", "#tier-basic", "#tier-minimum", "#tier-recommended", "#tier-advanced"];
   const ANSWER_STATE = { yes: "met", partly: "partly", no: "gap", unknown: "unknown" };
-  const STATE_ICON = { met: "✓", partly: "◐", gap: "✗", unknown: "?", open: "–", provided: "↗" };
+  const STATE_ICON = FG.STATE_ICON;
   const FTR_VALUE = { yes: "pass", partly: "indeterminate", no: "fail", unknown: "indeterminate" };
   const FIP_RANK = ["in-use", "to-be-replaced", "planned", "under-consideration"];
   const NANOPUB_STATUS = {
@@ -24,18 +24,21 @@
   /* The result format: its name and version are written into every JSON-LD and Markdown export, with the guide's
      version, so a file can be read by the version that understands it. */
   const FORMAT = "eosc-fair-guide-result";
-  const FORMAT_VERSION = 2;
+  /* Revision 3 adds attached evaluator assessments; files without them are still written as revision 2. */
+  const FORMAT_VERSION = 3;
   const OBSERVATION_MAX = 8;
   const VALUE_MAX = 65536;
   const EVIDENCE_MAX = 131072;
   const LOG_MAX = 65536;
-  const MAX_FILE = 2 * 1024 * 1024;
-  const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared", "landing", "pid-record", "github", "gitlab"];
-  const R3D = /r3d\d{9}/i;
-  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid", "partialCoverage", "sourceConflict", "representation", "repositoryScope", "profileDeclaration", "unsupportedPid", "sampleCoverage", "titleMeaning", "rightsCoverage", "classificationScheme", "descriptionCoverage", "creatorIdentifiers", "keywordScheme", "pidProfile", "commitVersion", "copyrightCoverage", "bundledLicences", "testsNotRun", "dependenciesCoverage"];
-  const ORCID_ID = /^(?:https?:\/\/orcid\.org\/)?(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i;
+  /* A saved result file: answers and evidence, and in a complete evidence download up to a few original evaluator
+     reports, each within the providers' import limit. */
+  const MAX_FILE = 8 * 1024 * 1024;
+  const SOURCES = ["datacite", "resolver", "nkr", "re3data", "fip-dashboard", "fip-dashboard-snapshot", "nanopub", "champion", "shared", "landing", "pid-record", "github", "gitlab", "fair-checker", "f-uji"];
+  const NOTE_KEYS = ["partlyOnly", "notInSource", "noDeclaration", "resolves", "notResolved", "lookupFailed", "stewardFound", "stewardMissing", "stewardRole", "stewardOrcid", "partialCoverage", "sourceConflict", "representation", "repositoryScope", "profileDeclaration", "unsupportedPid", "sampleCoverage", "titleMeaning", "rightsCoverage", "classificationScheme", "descriptionCoverage", "creatorIdentifiers", "keywordScheme", "pidProfile", "commitVersion", "copyrightCoverage", "bundledLicences", "testsNotRun", "dependenciesCoverage", "testUnavailable", "providerUnavailable", "providerVersion", "providerFail", "providerUnknown", "providerBlank", "providerMapping", "providerHarvest"];
   const LENS_ACTOR = { V: "#actor-user", DS: "#actor-data-steward", SR: "#actor-repository-admin", K: "#actor-community" };
-  const status = { check: null, text: "", busy: false };
+  /* The last thing a run reported, and the part it was reported on: the answers part shows only what was reported
+     there, so a note left by the evidence does not stay pinned above the questions. */
+  const status = { check: null, part: null, text: "", busy: false };
 
   /* ---------------------------------------------------------------- knowledge base */
 
@@ -111,10 +114,28 @@
   const answerable = (check, st) => applicable(check, st).filter((item) => !providedByNrp(item, st) && !item.assessmentContext);
   /** The items a result covers: those the first view shows, every item once the check is extended, and any item
       the user has answered, so an answer to an extended item counts after the view returns to the basic items. */
+  /** The questions the check covers now: the first tier, or every tier once the extended check is on. The list, the
+      running result, the report, the counts of what is missing and the path's marks all follow it; answers to the
+      other questions stay saved and are counted aside (`hiddenAnswers`). */
   function resultItems(check, st) {
     const items = answerable(check, st);
     if (st.extended || !items.some(isFirstTier)) return items;
-    return items.filter((item) => isFirstTier(item) || answerOf(st, item));
+    return items.filter(isFirstTier);
+  }
+
+  /** Saved answers to questions the short check leaves out, with the way to bring them back; none when there are
+      none. */
+  function hiddenAnswers(check, st) {
+    const shown = new Set(resultItems(check, st));
+    const n = answerable(check, st).filter((item) => !shown.has(item) && answerOf(st, item)).length;
+    if (!n) return null;
+    return h(
+      "p",
+      { class: "small hidden-answers" },
+      FG.t("selfcheck.hidden.answers", { n }),
+      " ",
+      h("button", { type: "button", class: "button-link", onclick: () => { st.extended = true; save(); FG.rerender(); } }, FG.t("selfcheck.hidden.show"))
+    );
   }
 
   const byTier = (a, b) => TIER_ORDER.indexOf(FG.id(a.tier)) - TIER_ORDER.indexOf(FG.id(b.tier)) || FG.byPosition(a, b);
@@ -123,7 +144,7 @@
   function outcomes(check, st) {
     const gaps = [];
     const tasks = [];
-    for (const item of answerable(check, st)) {
+    for (const item of resultItems(check, st)) {
       const value = answerOf(st, item);
       if (value === "no" || value === "partly") gaps.push(item);
       else if (value === "unknown") tasks.push(item);
@@ -131,15 +152,19 @@
     return { gaps: gaps.sort(byTier), tasks: tasks.sort(byTier) };
   }
 
-  /** Open self-check items addressed at a station, across the checks of the current lens; the path rail marks them. */
-  FG.gapsAt = function (stationId) {
-    let count = 0;
+  /** Open self-check answers whose questions are put right at a station, by state (No, Partly, Don't know), across
+      the checks of the current lens; the path's rail marks them with the self-check's own icons. */
+  FG.openAt = function (stationId) {
+    const counts = { gap: 0, partly: 0, unknown: 0 };
     for (const check of SC.checks()) {
       if (!FG.hasRef(check, "audience", "#lens-" + FG.state.lens) || !hasState(check)) continue;
-      const { gaps, tasks } = outcomes(check, stateOf(check));
-      count += gaps.concat(tasks).filter((item) => FG.id(item.fixAt) === "#station-" + stationId).length;
+      const st = stateOf(check);
+      for (const item of resultItems(check, st)) {
+        const state = ANSWER_STATE[answerOf(st, item)];
+        if (state in counts && FG.id(item.fixAt) === "#station-" + stationId) counts[state] += 1;
+      }
     }
-    return count;
+    return counts;
   };
 
   function itemState(st, item) {
@@ -168,29 +193,42 @@
   /* ---------------------------------------------------------------- answering */
 
   function save() {
-    FG.saveState();
+    return FG.saveState();
   }
 
   function setAnswer(check, item, value) {
     const st = stateOf(check);
     st.items[item.identifier] = Object.assign({}, record(st, item) || {}, { value, origin: "user" });
     save();
-    FG.renderList("origin-" + keyOf(item), () => fragment(origin(st, item)));
+    FG.renderList("origin-" + keyOf(item), () => fragment(originLine(st, item), withdrawControl(check, st, item)));
+    const card = document.getElementById("item-" + keyOf(item));
+    if (card) {
+      card.dataset.state = itemState(st, item);
+      card.dataset.origin = "user";
+    }
     FG.renderList("results", () => fragment(results(check, st)));
     FG.renderList("summary-body", () => fragment(summary(check, st)));
     refreshPreview(check, st);
     FG.renderList("share-output", () => fragment());
+    if (exportGate && exportGate.isConnected) exportGate.refresh();
   }
 
   function setStatus(check, text) {
     status.check = check.identifier;
+    status.part = partOf(FG.parseHash(window.location.hash));
     status.text = text;
     const element = document.getElementById("prefill-status");
     if (element) element.textContent = text;
   }
 
+  /* Evidence that covers only part of its question carries the partial-coverage note (D-168); its suggestion is a
+     lower bound, which evidence about the whole question outranks. */
+  const partialOnly = (observation) => FG.list(observation.notes).some((note) => note && note.key === "selfcheck.note.partialCoverage");
+
   /** Record the evidence of one source for every item it can answer. A pre-filled value never replaces an answer
-      the user gave, and evidence without a value never hides an earlier source's suggestion. */
+      the user gave, and evidence without a value never hides an earlier source's suggestion. Evidence about the whole
+      question outranks partial evidence whatever their order; Yes against No, or No about the whole question against
+      a part found met, is a disagreement the reader settles. */
   function applyEvidence(check, source, evidence, date, recordUrl, direct) {
     const st = stateOf(check);
     let filled = 0;
@@ -206,14 +244,19 @@
         notes.push({ key: "selfcheck.note.partlyOnly" });
       }
       const current = record(st, item) || {};
-      const observation = readPrefill({ source: result.source || source, date: result.date || date, value, notes, list: result.list || [], fields: result.fields || [], record: result.record || recordUrl || null, subject: result.subject || stateOf(check).target || null, representation: result.representation || null, commit: result.commit || null, coverage: result.coverage || null, testId: result.testId || null });
+      const observation = readPrefill({ source: result.source || source, date: result.date || date, value, notes, list: result.list || [], fields: result.fields || [], record: result.record || recordUrl || null, subject: result.subject || stateOf(check).target || null, representation: result.representation || null, commit: result.commit || null, coverage: result.coverage || null, testId: result.testId || null, assessment: result.assessment || null });
       if (!observation) continue;
       const previous = observationsOf(current);
-      const identity = (seen) => [seen.source, seen.record, seen.subject, seen.representation].join("|");
+      /* One observation per source, record, subject, representation and assessment: a newer report from the same
+         provider is another observation, so historical assessments stay distinguishable. */
+      const identity = (seen) => [seen.source, seen.record, seen.subject, seen.representation, seen.assessment || ""].join("|");
       const observations = previous.filter((seen) => identity(seen) !== identity(observation)).concat(observation).slice(-OBSERVATION_MAX);
       const supported = observations.filter((seen) => seen.value);
-      const conflict = supported.some((seen) => seen.value === "yes") && supported.some((seen) => seen.value === "no");
-      const chosen = conflict ? observation : supported[supported.length - 1] || observation;
+      const whole = supported.filter((seen) => !partialOnly(seen));
+      const conflict =
+        (supported.some((seen) => seen.value === "yes") && supported.some((seen) => seen.value === "no")) ||
+        (whole.some((seen) => seen.value === "no") && supported.some((seen) => partialOnly(seen) && seen.value === "partly"));
+      const chosen = conflict ? observation : whole[whole.length - 1] || supported[supported.length - 1] || observation;
       const prefill = Object.assign({}, chosen, conflict ? { value: null, notes: chosen.notes.concat({ key: "selfcheck.note.sourceConflict" }) } : {});
       const next = Object.assign({}, current, { prefill, observations });
       value = prefill.value;
@@ -386,14 +429,27 @@
   /** Evidence describes one dataset, repository or profile; choosing another discards what the previous one gave. */
   function retarget(check, target) {
     const st = stateOf(check);
-    if (st.target !== target) delete st.targetInfo;
+    if (st.target !== target) {
+      delete st.targetInfo;
+      /* A run or report preview prepared for another target, or before there was one, no longer applies. */
+      if (providers) providers.forget(check);
+    }
     if (st.target && st.target !== target) {
       dropEvidence(st);
       delete st.champion;
       delete st.verdicts;
+      dropAssessments(check, st);
     }
     st.target = target;
     save();
+  }
+
+  /** Optional evaluator assessments describe one object too: another target ends a running assessment, whose late
+      results are then ignored, and discards the attached ones with their retained reports. */
+  function dropAssessments(check, st) {
+    delete st.assessments;
+    if (providers) providers.forget(check);
+    if (FG.providers) FG.providers.pruneSources();
   }
 
   /** Clear an identifier together with the answers it pre-filled; answers the user gave stay. */
@@ -406,37 +462,70 @@
     delete st.target;
     delete st.targetInfo;
     delete st.inspection;
+    dropAssessments(check, st);
     if (key === "software") delete st.softwareRef;
     save();
-    status.check = check.identifier;
-    status.text = FG.t("selfcheck.prefill.cleared");
+    setStatus(check, FG.t("selfcheck.prefill.cleared"));
     FG.rerender(focusId);
   }
 
   /** An identifier field with a visible control that clears it with the answers it pre-filled. */
   function clearableField(check, input, key, focusId) {
-    return h(
-      "span",
-      { class: "field-clearable" },
-      input,
-      h(
-        "button",
-        {
-          type: "button",
-          class: "field-clear",
-          id: input.id + "-clear",
-          "aria-label": FG.t("selfcheck.prefill.clearLabel"),
-          title: FG.t("selfcheck.prefill.clearLabel"),
-          onclick: () => clearTarget(check, key, focusId),
-        },
-        FG.icon("clear") || "×"
-      )
+    const clear = h(
+      "button",
+      {
+        type: "button",
+        class: "field-clear",
+        id: input.id + "-clear",
+        "aria-label": FG.t("selfcheck.prefill.clearLabel"),
+        title: FG.t("selfcheck.prefill.clearLabel"),
+        onclick: () => clearTarget(check, key, focusId),
+      },
+      FG.icon("clear") || "×"
     );
+    const field = h("span", { class: "field-clearable" }, input, clear);
+    field.clear = clear;
+    return field;
+  }
+
+  /** Whether a check holds anything an identifier pre-filled or retained, which clearing it removes. */
+  function hasPrefill(st) {
+    return Boolean(st.target || st.inspection || st.champion || st.verdicts || FG.list(st.assessments).length ||
+      Object.values(st.items || {}).some((entry) => entry && typeof entry === "object" && (entry.origin === "prefill" || entry.prefill || entry.observations)));
+  }
+
+  /** An identifier field with its run button: the button waits for an identifier, and the field's clear control waits
+      for an identifier or for what one pre-filled; one visible reason explains both while they wait. */
+  function identifierRow(check, input, key, focusId, run) {
+    const st = stateOf(check);
+    const field = clearableField(check, input, key, focusId);
+    const typed = () => input.value.trim() !== "";
+    const reason = FG.gate(run, FG.t("selfcheck.prefill.needsIdentifier"), typed, input);
+    /* Whenever the clear control has nothing to clear, the button is waiting for an identifier too, so the one
+       visible reason serves both. */
+    const refreshClear = () => {
+      const can = typed() || hasPrefill(st);
+      field.clear.disabled = !can;
+      if (can) field.clear.removeAttribute("aria-describedby");
+      else field.clear.setAttribute("aria-describedby", reason.id);
+    };
+    input.addEventListener("input", refreshClear);
+    refreshClear();
+    return [h("div", { class: "inline" }, field, run), reason];
   }
 
   async function runPrefill(check, source, focusId, work) {
     if (status.busy) return;
     status.busy = true;
+    /* The run reports in the evidence card whose control started it, so its status and progress are seen there. */
+    const started = document.getElementById(focusId);
+    const card = started && started.closest(".evidence-card");
+    status.card = card ? card.dataset.source : null;
+    const body = card && card.querySelector(".evidence-body");
+    for (const id of ["prefill-status", "prefill-progress"]) {
+      const node = document.getElementById(id);
+      if (body && node && node.closest(".evidence-card") !== card) body.append(node);
+    }
     setStatus(check, FG.t("selfcheck.prefill.working", { source: label(source) }));
     const messages = [];
     let count = 0;
@@ -448,8 +537,7 @@
       status.busy = false;
     }
     const done = count || !messages.length ? [FG.t("selfcheck.prefill.done", { source: label(source), n: count })] : [];
-    status.check = check.identifier;
-    status.text = done.concat(messages).join(" ");
+    setStatus(check, done.concat(messages).join(" "));
     FG.rerender(focusId);
   }
 
@@ -562,15 +650,12 @@
     }
     describeTarget(check, { name: facts.name, kind: "re3data" });
     return runPrefill(check, "re3data", "prefill-re3data-run", async () => {
-      /* Being in the re3data snapshot is being registered in re3data; FAIRsharing is asked through DataCite. A
-         failed lookup leaves the question open rather than answering it from re3data alone. */
-      let fairsharing = null;
-      let failed = false;
-      try {
-        fairsharing = FG.live.fairsharingOf({ identifiers: [id] }, await FG.live.findFairsharing([{ identifiers: [id] }]));
-      } catch (error) {
-        failed = true;
-      }
+      /* Being in the re3data snapshot is being registered in re3data; FAIRsharing's record comes from its snapshot,
+         which names the record of every repository the guide lists. Without that snapshot the question stays open
+         rather than being answered from re3data alone. */
+      const snapshot = FG.get("#snapshot-fairsharing");
+      const failed = !snapshot;
+      const fairsharing = FG.fairsharingRecord(id);
       const known = Object.assign({}, facts, { registries: ["re3data"].concat(fairsharing ? ["FAIRsharing"] : []) });
       return applyEvidence(
         check,
@@ -579,7 +664,7 @@
           const asksFairsharing = fields.some((field) => /=FAIRsharing$/i.test(field));
           if (asksFairsharing && failed) return { value: null, notes: [{ key: "selfcheck.note.lookupFailed", params: { source: "FAIRsharing" } }] };
           const evidence = Object.assign(fieldEvidence(fields.map((field) => pathState(known, field))), { fields: fieldsOf(known, fields) });
-          if (asksFairsharing) Object.assign(evidence, { date: today(), record: fairsharing ? FG.live.pidUrl({ type: "doi", value: fairsharing.doi }) : undefined });
+          if (asksFairsharing) Object.assign(evidence, { date: snapshot.dateCreated, record: fairsharing || undefined });
           return evidence;
         },
         facts.date,
@@ -622,18 +707,8 @@
   /** The repository maturity check for a re3data record: an r3d identifier or address directly, a re3data DOI
       through doi.org. Resolves to whether the record was placed. */
   SC.startWithRe3data = async function (input) {
-    let id = (String(input).match(R3D) || [])[0];
-    if (!id) {
-      const pid = FG.live.parsePid(input);
-      try {
-        const resolved = pid ? await FG.live.resolvePid(pid) : null;
-        id = (String((resolved && resolved.url) || "").match(R3D) || [])[0];
-      } catch (error) {
-        id = null;
-      }
-    }
-    if (!id) return false;
-    const r3d = id.toLowerCase();
+    const r3d = await FG.live.re3dataRecord(input);
+    if (!r3d) return false;
     startAt(
       "maturity",
       (st) => {
@@ -679,6 +754,8 @@
 
   function noteText(note) {
     if (note.text) return localized(note.text);
+    /* A reviewed provider mapping states its coverage in the crate, in the language shown. */
+    if (note.key === "selfcheck.note.providerMapping" && FG.providers) return FG.providers.mappingNote(note.params);
     /* Tests are kept by identifier and named in the language shown. */
     const tests = FG.list(note.tests).map((id) => FG.text((FG.get("#test-" + id) || {}).name) || String(id));
     return FG.t(note.key, Object.assign({}, note.params || {}, tests.length ? { tests: tests.join(", ") } : {}));
@@ -711,6 +788,8 @@
 
   const observationBody = (...args) => inspection.observationBody(...args);
   const origin = (...args) => inspection.origin(...args);
+  const originLine = (...args) => inspection.originLine(...args);
+  const originRest = (...args) => inspection.originRest(...args);
 
   function radios(name, legend, options, current, onchange) {
     return h(
@@ -742,7 +821,7 @@
       record: by their ORCID iD when given, otherwise only as a data curator or manager, which still needs checking. */
   function stewardEvidence(attributes, orcid) {
     const people = FG.list(attributes.creators).concat(FG.list(attributes.contributors));
-    const idOf = (identifier) => (String((identifier && identifier.nameIdentifier) || "").match(/\d{4}-\d{4}-\d{4}-\d{3}[\dX]/i) || [""])[0].toUpperCase();
+    const idOf = (identifier) => FG.live.parseOrcid(identifier && identifier.nameIdentifier);
     const names = (list) => list.map((person) => person.name || [person.givenName, person.familyName].filter(Boolean).join(" ")).join(", ");
     if (orcid) {
       const found = people.filter((person) => FG.list(person.nameIdentifiers).some((identifier) => idOf(identifier) === orcid));
@@ -787,10 +866,10 @@
   function stewardControl(check, st) {
     const input = h("input", { id: "prefill-steward", type: "text", autocomplete: "off", spellcheck: "false", value: st.steward || "", placeholder: "0000-0000-0000-0000" });
     input.addEventListener("change", () => {
-      const match = input.value.trim().match(ORCID_ID);
-      st.steward = match ? match[1].toUpperCase() : "";
+      const orcid = FG.live.parseOrcid(input.value);
+      st.steward = orcid || "";
       save();
-      setStatus(check, match || !input.value.trim() ? "" : FG.t("selfcheck.prefill.stewardInvalid"));
+      setStatus(check, orcid || !input.value.trim() ? "" : FG.t("selfcheck.prefill.stewardInvalid"));
     });
     return h(
       "div",
@@ -848,7 +927,16 @@
   };
   /** The identifiers the tests are given, as entered: the dataset looked up, or the sample. */
   const championInput = (check, st) => (onDataset(check, st) ? st.pid || "" : st.sample || "");
-  const championReady = (check, st) => (onDataset(check, st) ? Boolean(FG.live.parsePid(st.pid || "")) : sampleOf(st.sample).length > 0);
+  /** The records a run of the tests would use: the dataset looked up above, or the repository's sample. */
+  const championEntries = (check, st) => {
+    const input = championInput(check, st);
+    return onDataset(check, st) ? (FG.live.parsePid(input) ? [input] : []) : sampleOf(input);
+  };
+  /** Whether the tests can run: a dataset looked up, or a sample within its size. */
+  const championReady = (check, st) => {
+    const count = championEntries(check, st).length;
+    return count > 0 && count <= (onDataset(check, st) ? 1 : SAMPLE_MAX);
+  };
   /** The verdicts on the identifiers entered now; other identifiers start afresh. */
   const currentRun = (check, st) => (st.champion && st.champion.input === championInput(check, st) ? st.champion : null);
   const wasRun = (run, test) => Boolean(run) && run.records.some((record) => verdictKey(test, record) in run.verdicts);
@@ -896,7 +984,7 @@
     const st = stateOf(check);
     const dataset = onDataset(check, st);
     const input = championInput(check, st);
-    const entries = dataset ? (FG.live.parsePid(input) ? [input] : []) : sampleOf(input);
+    const entries = championEntries(check, st);
     if (!entries.length || entries.length > (dataset ? 1 : SAMPLE_MAX)) {
       setStatus(check, FG.t(dataset ? "selfcheck.prefill.championNeedsPid" : "selfcheck.prefill.championInvalid", { n: SAMPLE_MAX }));
       return;
@@ -913,7 +1001,6 @@
       run = st.champion = { input, records, verdicts: {}, date: today() };
     }
     const single = run.records.length === 1;
-    const valueOf = (test, record) => (run.verdicts[verdictKey(test, record)] || {}).value || null;
     return runPrefill(check, "champion", focusId, async (messages) => {
       messages.push(...notices);
       const pending = pendingOf(run, tests);
@@ -950,34 +1037,63 @@
       messages.push(FG.t("selfcheck.prefill.championCoverage", { n: total - pendingOf(run, ran).length, total }));
       /* A dataset's test results join its exported result set. */
       if (single) st.verdicts = ran.map((test) => Object.assign({ test }, run.verdicts[verdictKey(test, run.records[0])] || { value: null }));
-      return applyEvidence(
-        check,
-        "champion",
-        (item, named) => {
-          const own = named;
-          if (!own.some((test) => ran.includes(test))) return null;
-          const states = run.records.map((record) => {
-            const values = own.map((test) => valueOf(test, record));
-            if (values.includes("fail")) return "fail";
-            if (values.every((value) => value === "pass")) return "pass";
-            return values.includes("indeterminate") ? "indeterminate" : "none";
-          });
-          const known = states.filter((state) => state === "pass" || state === "fail").length;
-          const passed = states.filter((state) => state === "pass").length;
-          return {
-            value: item.championEvidenceOnly || !known ? null : passed === run.records.length ? "yes" : passed ? "partly" : "no",
-            notes: states.some((state) => ["none", "indeterminate"].includes(state)) ? [{ key: "selfcheck.note.partialCoverage" }] : [],
-            coverage: `${known}/${run.records.length} · ${own.length}`,
-            /* The question's test line shows the verdicts; the evidence keeps them for the result and its export. */
-            fields: single
-              ? own.map((test) => ({ path: test, values: [FG.t("selfcheck.champion." + (valueOf(test, run.records[0]) || "none"))] }))
-              : run.records.map((record, index) => ({ path: record, values: [FG.t("selfcheck.champion." + states[index])] })),
-          };
-        },
-        run.date,
-        single ? st.target || null : null
-      );
+      return applyChampion(check, st, run);
     });
+  }
+
+  /** Answer every question whose FAIR Champion tests have results on this run: Yes when every record passed them,
+      Partly when some did or when the tests cover only part of the question, No when none did (D-168). A test
+      without a result never counts as a failure, and the coverage is always stated. */
+  function applyChampion(check, st, run) {
+    const single = run.records.length === 1;
+    const valueOf = (test, record) => (run.verdicts[verdictKey(test, record)] || {}).value || null;
+    const ran = championTests(check, st).map((pair) => pair.id).filter((test) => wasRun(run, test));
+    return applyEvidence(
+      check,
+      "champion",
+      (item, named) => {
+        const own = named;
+        if (!own.some((test) => ran.includes(test))) return null;
+        const states = run.records.map((record) => {
+          const values = own.map((test) => valueOf(test, record));
+          if (values.includes("fail")) return "fail";
+          if (values.every((value) => value === "pass")) return "pass";
+          return values.includes("indeterminate") ? "indeterminate" : "none";
+        });
+        const known = states.filter((state) => state === "pass" || state === "fail").length;
+        const passed = states.filter((state) => state === "pass").length;
+        /* No verdict at all verified nothing, so it is not described as partial support; a narrower test or a sample
+           with records without a result supports only part of the question, and answers Partly when that part is
+           met and No when it fails (D-168). */
+        const partial = item.championEvidenceOnly || states.some((state) => ["none", "indeterminate"].includes(state));
+        const notes = !known ? [{ key: "selfcheck.note.testUnavailable" }] : partial ? [{ key: "selfcheck.note.partialCoverage" }] : [];
+        return {
+          value: !known ? null : !passed ? "no" : passed === run.records.length && !partial ? "yes" : "partly",
+          notes,
+          coverage: `${known}/${run.records.length} · ${own.length}`,
+          /* The question's test line shows the verdicts; the evidence keeps them for the result and its export. */
+          fields: single
+            ? own.map((test) => ({ path: test, values: [FG.t("selfcheck.champion." + (valueOf(test, run.records[0]) || "none"))] }))
+            : run.records.map((record, index) => ({ path: record, values: [FG.t("selfcheck.champion." + states[index])] })),
+        };
+      },
+      run.date,
+      single ? st.target || null : null
+    );
+  }
+
+  /* Saved evidence follows the current rules: once per visit, and again after answers are adopted, a saved FAIR
+     Champion run is applied again, as attached assessments are (`providers.refresh`). That replaces only its own
+     observations, so the reader's answers stay theirs. */
+  const reapplied = new Set();
+  function reapplyEvidence(check) {
+    if (!reapplied.has(check.identifier)) {
+      reapplied.add(check.identifier);
+      const st = stateOf(check);
+      const run = currentRun(check, st);
+      if (run && Object.keys(run.verdicts || {}).length) applyChampion(check, st, run);
+    }
+    if (providers) providers.refresh(check);
   }
 
   /** The identifier FAIR Champion is given: a DOI or Handle as its resolver address, which the tests accept where
@@ -1059,7 +1175,7 @@
 
   /** Every test of the check at once: how many questions they can answer, and the run of all of them; `sync` takes
       what was typed before the run reads it. */
-  function championAll(check, st, sync) {
+  function championAll(check, st, sync, sampleReasonId) {
     const pairs = championTests(check, st);
     if (!pairs.length) return null;
     const questions = new Set(pairs.flatMap((pair) => pair.items.map((item) => item.identifier))).size;
@@ -1069,6 +1185,28 @@
       pairs.map((pair) => pair.id),
       { run: "selfcheck.champion.all", retry: "selfcheck.prefill.championRetry" }
     );
+    const run = action
+      ? h(
+          "button",
+          {
+            type: "button",
+            id: "prefill-champion-run",
+            onclick: () => {
+              if (sync) sync();
+              runChampion(check, pairs.map((pair) => pair.id), "prefill-champion-run");
+            },
+          },
+          action
+        )
+      : null;
+    /* The run waits for the records it would test: the dataset looked up above, or a sample within its size, whose
+       field already says what it waits for (`sampleReasonId`). The control is drawn again when either changes. */
+    const shared = Boolean(run && sampleReasonId && !onDataset(check, st));
+    const waiting = run && !shared ? FG.gate(run, FG.t("selfcheck.prefill.championNeedsPid"), () => championReady(check, st)) : null;
+    if (shared && !championReady(check, st)) {
+      run.disabled = true;
+      run.setAttribute("aria-describedby", sampleReasonId);
+    }
     return h(
       "div",
       { class: "champion-all" },
@@ -1076,39 +1214,112 @@
         "p",
         { class: "inline" },
         h("span", null, FG.t("selfcheck.champion.intro", { n: questions })),
-        action
-          ? h(
-              "button",
-              {
-                type: "button",
-                id: "prefill-champion-run",
-                onclick: () => {
-                  if (sync) sync();
-                  runChampion(check, pairs.map((pair) => pair.id), "prefill-champion-run");
-                },
-              },
-              action
-            )
-          : h("span", { class: "muted" }, FG.t("selfcheck.champion.allDone"))
+        run || h("span", { class: "muted" }, FG.t("selfcheck.champion.allDone"))
       ),
+      waiting,
       h("p", { class: "small muted" }, FG.t(onDataset(check, st) ? "selfcheck.prefill.championDeepHint" : "selfcheck.prefill.championHint"))
     );
+  }
+
+  /** Where DataCite finds the repository a check is about: the DataCite ID the guide reviewed for the repository of
+      the check's re3data record, or that record's DOI from the re3data snapshot. */
+  function dataciteRouteOf(st) {
+    if (!st.re3data) return null;
+    const record = FG.config.links.re3dataRecord + st.re3data;
+    const listed = FG.repositoryEntries().find((repository) => FG.refIds(repository, "sameAs").includes(record));
+    return FG.live.dataciteRoute(listed) || FG.live.dataciteRoute((FG.config.re3data || {})[st.re3data]);
+  }
+
+  /** A sample drawn at random from the repository's records in DataCite, listed with their titles before any test
+      runs. Each record can be replaced by another drawn the same way, and the sample field stays editable by hand. */
+  function dataciteSampleRow(check, st, field, sync) {
+    const route = dataciteRouteOf(st);
+    const t = (key, params) => FG.t("selfcheck.prefill.datacite" + key, params);
+    const status = h("p", { class: "small", role: "status", id: "datacite-sample-status" });
+    const say = (text) => { status.textContent = text; };
+    /* The drawn records still in the sample field, in the field's order. */
+    const listed = () => {
+      const drawn = st.dataciteSample ? FG.list(st.dataciteSample.records) : [];
+      return sampleOf(st.sample).map((value) => drawn.find((record) => record.doi === value.toLowerCase())).filter(Boolean);
+    };
+    const setField = (values) => {
+      field.value = values.join("\n");
+      sync();
+      FG.renderList("datacite-sample", list);
+    };
+    const replace = async (record, button) => {
+      button.disabled = true;
+      try {
+        const sample = st.dataciteSample;
+        const taken = new Set(sampleOf(st.sample).map((value) => value.toLowerCase()));
+        const fresh = (await FG.live.dataciteSample(sample.repository.id, SAMPLE_MAX)).find((item) => !taken.has(item.doi));
+        if (!fresh) { say(t("NoMore")); button.disabled = false; return; }
+        sample.records = sample.records.filter((item) => item.doi !== record.doi).concat(fresh);
+        setField(sampleOf(st.sample).map((value) => (value.toLowerCase() === record.doi ? fresh.doi : value)));
+        say(t("Replaced", { doi: record.doi, fresh: fresh.doi }));
+        const next = document.getElementById("datacite-replace-" + fresh.doi.replace(/[^a-z0-9]+/g, "-"));
+        if (next) next.focus();
+      } catch (error) {
+        say(t("Failed"));
+        button.disabled = false;
+      }
+    };
+    function list() {
+      const records = listed();
+      if (!records.length) return fragment();
+      const sample = st.dataciteSample;
+      return fragment(
+        h("p", { class: "small" }, t("Drawn", { date: FG.formatDate(sample.date), n: records.length, name: sample.repository.name })),
+        h("ol", { class: "datacite-sample" }, records.map((record) => {
+          const replaceButton = h("button", { type: "button", class: "button-small", id: "datacite-replace-" + record.doi.replace(/[^a-z0-9]+/g, "-"),
+            "aria-label": t("ReplaceOne", { doi: record.doi }) }, t("Replace"));
+          replaceButton.addEventListener("click", () => replace(record, replaceButton));
+          return h("li", null, h("span", { class: "datacite-sample-title" }, record.title || t("Untitled")), " ",
+            record.type ? [h("span", { class: "small muted" }, record.type), " "] : null,
+            FG.external(FG.live.pidUrl({ type: "doi", value: record.doi }), record.doi), " ", replaceButton);
+        }))
+      );
+    }
+    const draw = async () => {
+      drawButton.disabled = true;
+      say(t("Drawing"));
+      try {
+        const repository = await FG.live.dataciteRepository(route);
+        if (!repository) { say(t("Absent")); return; }
+        const records = await FG.live.dataciteSample(repository.id, SAMPLE_MAX);
+        if (!records.length) { say(t("Empty")); return; }
+        st.dataciteSample = { repository, date: FG.today(), records };
+        setField(records.map((record) => record.doi));
+        say("");
+      } catch (error) {
+        say(t("Failed"));
+      } finally {
+        drawButton.disabled = !route;
+      }
+    };
+    const drawButton = h("button", { type: "button", id: "prefill-datacite-sample", onclick: draw }, t("Sample"));
+    const reason = FG.gate(drawButton, t("NeedsRepository"), () => Boolean(route));
+    return h("div", { class: "datacite-sample-row" }, drawButton, reason, status, h("div", { id: "datacite-sample" }, list()));
   }
 
   /** A sample of a repository's records to test; a new sample starts afresh. */
   function championSampleControl(check, st) {
     const field = h("textarea", { id: "prefill-champion", rows: "3", spellcheck: "false", autocomplete: "off" }, st.sample || "");
+    /* The sample's inspection and the run of all tests wait for the same sample, so they share one reason. */
+    let sampleReason = null;
     /* What is typed is the sample at once: the questions' lines and the run of all tests follow it, without the
        field being drawn again. */
     const sync = () => {
       st.sample = field.value;
       save();
+      /* A sample drawn from DataCite fills the field without typing, so the controls that wait for it follow here. */
+      if (sampleReason) sampleReason.refresh();
       for (const item of answerable(check, st)) {
         const line = document.getElementById("tests-" + keyOf(item));
         if (line) line.replaceWith(testLine(check, st, item));
       }
       const all = document.querySelector(".champion-all");
-      if (all) all.replaceWith(championAll(check, st, sync));
+      if (all) all.replaceWith(championAll(check, st, sync, sampleReason && sampleReason.id));
     };
     field.addEventListener("input", sync);
     const inspect = () => {
@@ -1117,9 +1328,12 @@
       if (!entries.length || entries.length > SAMPLE_MAX) { setStatus(check, FG.t("selfcheck.prefill.championInvalid", { n: SAMPLE_MAX })); return; }
       inspection.inspectSample(check, entries);
     };
+    const inspectButton = h("button", { type: "button", id: "prefill-sample-run", onclick: inspect }, FG.t("selfcheck.discovery.sampleButton"));
+    const sampleSized = () => { const count = sampleOf(field.value).length; return count > 0 && count <= SAMPLE_MAX; };
+    sampleReason = FG.gate(inspectButton, FG.t("selfcheck.prefill.championNeedsSample", { n: SAMPLE_MAX }), sampleSized, field);
     return h("div", { class: "prefill-row" }, h("label", { for: "prefill-champion" }, FG.t("selfcheck.prefill.champion", { n: SAMPLE_MAX })), field,
-      h("button", { type: "button", id: "prefill-sample-run", onclick: inspect }, FG.t("selfcheck.discovery.sampleButton")),
-      h("p", { class: "small muted" }, FG.t("selfcheck.discovery.sampleHint")), championAll(check, st, sync));
+      dataciteSampleRow(check, st, field, sync), inspectButton, sampleReason,
+      h("p", { class: "small muted" }, FG.t("selfcheck.discovery.sampleHint")), championAll(check, st, sync, sampleReason.id));
   }
 
   const re3dataControl = (...args) => inspection.re3dataControl(...args);
@@ -1131,42 +1345,82 @@
   /** The ways to start a check without answering everything by hand: public records that the check's questions
       can be filled in from, and a result saved earlier. Before the mode or profile is chosen, only the saved result,
       which brings its own. */
+  /* The resource each evidence source is, for its badge: the service's own favicon wherever the Guide has one. */
+  const SOURCE_RESOURCES = { pid: "datacite", nkr: "nkr", re3data: "re3data", sample: "fair-champion", fip: "fip-dashboard" };
+  const SOURCE_ICONS = { software: "code", evaluators: "check", file: "upload" };
+
+  /** One evidence source as a card: its badge and name, what it sends to which service, how long it takes and how
+      many of the shown questions it can suggest an answer to, then its controls. */
+  function evidenceCard(check, st, key, prefills, ...content) {
+    const resource = FG.get("#resource-" + SOURCE_RESOURCES[key]);
+    const count = answerable(check, st).filter((item) => prefills.some((source) => prefillOf(item, source))).length;
+    const t = (field, params) => FG.t("selfcheck.evidenceCard." + key + "." + field, params);
+    const facts = [
+      [FG.t("selfcheck.evidenceCard.sends"), t("sends")],
+      [FG.t("selfcheck.evidenceCard.takes"), t("takes")],
+      prefills.length ? [FG.t("selfcheck.evidenceCard.answers"), FG.t("selfcheck.evidenceCard.answersCount", { n: count })] : null,
+    ].filter(Boolean);
+    return h(
+      "section",
+      { class: "evidence-card", "data-source": key, "aria-labelledby": "source-" + key },
+      h(
+        "h3",
+        { id: key === "evaluators" ? "evaluators-title" : "source-" + key, class: "evidence-title" },
+        resource ? FG.serviceBadge(resource.identifier, resource.url) : h("span", { class: "evidence-icon", "aria-hidden": "true" }, FG.icon(SOURCE_ICONS[key])),
+        h("span", null, t("title"))
+      ),
+      h("dl", { class: "evidence-facts small" }, facts.map(([term, value]) => [h("dt", null, term), h("dd", null, value)])),
+      h("div", { class: "evidence-body" }, content)
+    );
+  }
+
+  /** Put these nodes at the end of the named card's body and return nothing, or return them when no card has that
+      name, so the caller shows them after the cards. */
+  function placed(cards, key, nodes) {
+    const card = key && cards.find((node) => node.dataset.source === key);
+    const body = card && card.querySelector(".evidence-body");
+    if (!body) return nodes;
+    body.append(...nodes.filter(Boolean));
+    return null;
+  }
+
+  /** The card whose lookup found the record a check is about: the re3data, NKR or FIP card for theirs, else the
+      identifier's card. */
+  const targetKeyOf = (st) => ({ re3data: "re3data", NKR: "nkr", FIP: "fip" })[(st.targetInfo || {}).kind] || "pid";
+
   function startPanel(check, st, ready) {
     const sources = ready ? sourcesOf(check, st) : new Set();
-    const controls = [];
-    if (sources.has("datacite") || sources.has("resolver") || (ready && ["cdif", "fdo"].includes(check.identifier))) controls.push(pidControl(check, st));
-    if (ready && check.identifier === "software") controls.push(softwareControl(check, st));
-    if (ready && needsSteward(check, st)) controls.push(stewardControl(check, st));
-    if (sources.has("nkr")) controls.push(nkrControl(check, st, sources.has("re3data")));
-    if (sources.has("re3data")) controls.push(re3dataControl(check, st));
     /* A check about a repository tests a sample of its records; a check about one object tests that object, offered
        on the record its lookup found. */
     const dataset = sources.has("datacite") || sources.has("resolver");
-    if (sources.has("champion") && !dataset) controls.push(championSampleControl(check, st));
-    if (sources.has("fip")) controls.push(fipControl(check, st));
-    controls.push(inspectionDetails(st));
-    const available = controls.filter(Boolean);
-    if (!available.length) {
-      return h(
-        "section",
-        { class: "prefill no-print", "aria-labelledby": "prefill-title" },
-        h("h2", { id: "prefill-title" }, FG.t("selfcheck.savedTitle")),
-        h("p", { class: "small" }, FG.t("selfcheck.savedText")),
-        loadControl("load-file")
-      );
-    }
+    const object = dataset || (ready && ["cdif", "fdo"].includes(check.identifier));
+    const cards = [
+      object
+        ? evidenceCard(check, st, "pid", ["datacite", "resolver"], pidControl(check, st), needsSteward(check, st) ? stewardControl(check, st) : null,
+          sources.has("champion") && dataset && st.target && championReady(check, st) ? championAll(check, st) : null)
+        : null,
+      ready && check.identifier === "software" ? evidenceCard(check, st, "software", ["data"], softwareControl(check, st)) : null,
+      sources.has("nkr") ? evidenceCard(check, st, "nkr", ["nkr"], nkrControl(check, st, sources.has("re3data"))) : null,
+      sources.has("re3data") ? evidenceCard(check, st, "re3data", ["re3data"], re3dataControl(check, st)) : null,
+      sources.has("champion") && !dataset ? evidenceCard(check, st, "sample", ["champion"], championSampleControl(check, st)) : null,
+      sources.has("fip") ? evidenceCard(check, st, "fip", ["fip"], fipControl(check, st)) : null,
+      /* External evaluators assess the object a check is about, through the identifier looked up in its card. */
+      providers && object ? evidenceCard(check, st, "evaluators", [], providers.panel(check, st)) : null,
+    ].filter(Boolean);
+    const file = evidenceCard(check, st, "file", [], h("p", { class: "small" }, FG.t("selfcheck.prefill.fromFileText")), loadControl("load-file"));
+    /* A run's status and progress stand in the card that started it, and the record a lookup found in the card that
+       looked it up; without such a card they follow the cards. */
+    const statusKey = status.check === check.identifier ? status.card : null;
+    const statusLine = h("p", { id: "prefill-status", role: "status", class: "small evidence-status" }, status.check === check.identifier ? status.text : "");
     return h(
       "section",
       { class: "prefill no-print", "aria-labelledby": "prefill-title" },
-      h("h2", { id: "prefill-title" }, FG.t("selfcheck.prefill.title")),
-      h("h3", null, FG.t("selfcheck.prefill.fromRecords")),
-      h("p", { class: "small" }, FG.t("selfcheck.prefill.privacy")),
-      available,
-      targetCard(st),
-      sources.has("champion") && dataset && st.target && championReady(check, st) ? championAll(check, st) : null,
-      h("p", { id: "prefill-status", role: "status", class: "small" }, status.check === check.identifier ? status.text : ""),
-      progressBox(),
-      h("div", { class: "prefill-file" }, h("h3", null, FG.t("selfcheck.prefill.fromFile")), h("p", { class: "small" }, FG.t("selfcheck.prefill.fromFileText")), loadControl("load-file"))
+      h("h2", { id: "prefill-title" }, FG.t(cards.length ? "selfcheck.prefill.title" : "selfcheck.savedTitle")),
+      h("p", { class: "small" }, FG.t(cards.length ? "selfcheck.prefill.privacy" : "selfcheck.savedText")),
+      h("div", { class: "evidence-cards" }, cards, file),
+      placed(cards, statusKey, [statusLine, progressBox()]),
+      placed(cards, targetKeyOf(st), [targetCard(st)]),
+      inspectionDetails(st)
     );
   }
 
@@ -1209,13 +1463,16 @@
     }
     const current = answerOf(st, item);
     const options = ANSWERS.filter((value) => value !== "na" || item.allowsNotApplicable);
+    const entry = record(st, item);
+    /* A compact card: the criterion and its principles, the answers, one evidence line and the way to withdraw an
+       answer; the explanation, the other evidence, the tests, who fixes it, the path step and the sources wait in one
+       disclosure, which stays open across re-renders while the page is open. */
+    const detailsKey = "question-" + id;
     return h(
       "fieldset",
-      { class: "item", id: "item-" + id },
+      { class: "item question-card", id: "item-" + id, "data-state": itemState(st, item), "data-origin": entry && entry.origin === "user" ? "user" : current ? "suggestion" : null },
       h("legend", null, statement),
       meta,
-      item.description ? h("p", { class: "question-help" }, FG.span(item.description)) : null,
-      item.note ? h("p", { class: "small" }, FG.span(item.note)) : null,
       h(
         "div",
         { class: "options" },
@@ -1223,16 +1480,61 @@
           const inputId = "answer-" + id + "-" + value;
           return h(
             "label",
-            { class: "option", for: inputId },
+            { class: "option", for: inputId, "data-value": value },
             h("input", { type: "radio", id: inputId, name: "answer-" + id, value, checked: current === value, onchange: () => setAnswer(check, item, value) }),
-            FG.t("selfcheck.answer." + value)
+            ANSWER_ICON[value] ? FG.icon(ANSWER_ICON[value]) : null,
+            h("span", null, FG.t("selfcheck.answer." + value))
           );
         })
       ),
-      h("div", { id: "origin-" + id, class: "origin" }, origin(st, item)),
-      testLine(check, st, item),
-      fixAtLine(item),
-      basedOn
+      h("div", { id: "origin-" + id, class: "origin" }, originLine(st, item), withdrawControl(check, st, item)),
+      h(
+        "details",
+        { class: "question-details", "data-key": detailsKey, open: FG.openLevels.has(detailsKey), ontoggle: (event) => (event.target.open ? FG.openLevels.add(detailsKey) : FG.openLevels.delete(detailsKey)) },
+        h("summary", null, FG.t("selfcheck.question.details")),
+        h(
+          "div",
+          { class: "content" },
+          item.description ? h("p", { class: "question-help" }, FG.span(item.description)) : null,
+          item.note ? h("p", { class: "small" }, FG.span(item.note)) : null,
+          originRest(st, item),
+          testLine(check, st, item),
+          fixAtLine(item),
+          basedOn
+        )
+      )
+    );
+  }
+
+  /* The icon of each answer, as the answer states show it everywhere. */
+  const ANSWER_ICON = { yes: "met", partly: "partly", no: "gap", unknown: "unknown" };
+
+  /** The way to withdraw an answer the reader gave: back to the current suggestion where there is one, otherwise to
+      no answer. Other questions keep their answers. */
+  function withdrawControl(check, st, item) {
+    const entry = record(st, item);
+    if (!entry || entry.origin !== "user" || !answerOf(st, item)) return null;
+    const pre = entry.prefill && typeof entry.prefill === "object" && entry.prefill.value ? entry.prefill : null;
+    return h(
+      "button",
+      {
+        type: "button",
+        class: "button-link withdraw",
+        id: "withdraw-" + keyOf(item),
+        onclick: () => {
+          const next = Object.assign({}, entry);
+          if (pre) Object.assign(next, { value: pre.value, origin: "prefill" });
+          else {
+            delete next.value;
+            delete next.origin;
+          }
+          st.items[item.identifier] = next;
+          save();
+          FG.rerender("answer-" + keyOf(item) + "-" + (pre ? pre.value : "yes"));
+        },
+      },
+      FG.icon("resume"),
+      h("span", null, FG.t(pre ? "selfcheck.question.withdrawToSuggestion" : "selfcheck.question.withdraw"))
     );
   }
 
@@ -1499,10 +1801,9 @@
     const targetName = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);
     return h("details", { class: "result-handover" }, h("summary", null, FG.t("model.handover")), h("div", { class: "content" },
       h("dl", { class: "relations small" }, FG.modelRows(item),
-        h("dt", null, FG.t("model.criterion")), h("dd", null, h("a", { href: FG.catalogueHref("questions", item.identifier) }, item.identifier), " · ", FG.span(item.text)),
+        h("dt", null, FG.t("model.criterion")), h("dd", null, FG.idChip("questions", item.identifier), " ", FG.span(item.text)),
         ask.names.length ? [h("dt", null, FG.t("selfcheck.result.askLabel")), h("dd", null, ask.names.join(", "))] : null,
-        st.target ? [h("dt", null, FG.t("selfcheck.targetLabel")), h("dd", null, targetUrl ? FG.external(targetUrl, targetName || st.target) : st.target,
-          targetName ? [" · ", st.target] : null)] : null),
+        st.target ? [h("dt", null, FG.t("selfcheck.targetLabel")), h("dd", null, targetName && targetUrl ? [FG.external(targetUrl, targetName), " "] : null, FG.targetChip(st.target))] : null),
       h("p", { class: "small" }, FG.t("model.handoverHint")),
       check ? testLine(check, st, item) : null,
       observationsOf(record(st, item)).length ? observationsOf(record(st, item)).map(observationBody) : h("p", { class: "small muted" }, FG.t("model.noObservation")),
@@ -1514,12 +1815,23 @@
     return value ? FG.t("selfcheck.answer." + value) : FG.t("selfcheck.result.unanswered");
   }
 
+  /** Who the answer comes from. A source is named only while the answer still is its suggestion; the reader's own
+      answer is theirs even when sources observed something, and those observations are listed apart. */
   function sourceText(st, item) {
     const entry = record(st, item);
-    if (!entry) return "";
+    if (!entry || !answerOf(st, item)) return "";
+    if (entry.origin === "user") return FG.t("selfcheck.origin.yours");
     if (entry.origin === "shared") return label("shared");
-    if (entry.prefill && entry.prefill.source) return label(entry.prefill.source) + ", " + FG.formatDate(entry.prefill.date);
+    if (entry.prefill && entry.prefill.source && entry.prefill.value === answerOf(st, item)) return FG.t("selfcheck.origin.suggestedBy", { source: label(entry.prefill.source), date: FG.formatDate(entry.prefill.date) });
     return "";
+  }
+
+  /** Each source's newest observation of an item, those with a readable fact first. */
+  function observedFacts(entry) {
+    const bySource = new Map();
+    for (const seen of observationsOf(entry)) bySource.set(seen.source + "|" + (seen.assessment || ""), seen);
+    const facts = (seen) => foundFields(seen).filter((field) => FIELD_LABELS[field.path] && seen.source !== "champion");
+    return [...bySource.values()].reverse().sort((a, b) => facts(b).length - facts(a).length).map((seen) => ({ seen, fields: facts(seen) }));
   }
 
   /** The evidence of an answer in one line, for the summary and the exported result set. */
@@ -1541,14 +1853,15 @@
     const pre = entry && entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
     const value = answerOf(st, item);
     const meta = [];
-    if (entry && entry.origin === "shared") meta.push(FG.t("selfcheck.origin.shared"));
-    if (pre) {
-      meta.push(label(pre.source) + ", " + FG.formatDate(pre.date));
-      for (const field of foundFields(pre).filter((field) => FIELD_LABELS[field.path]).slice(0, 3)) meta.push(h("span", { class: "evidence-readable" }, readableField(field), ": ", field.values.slice(0, 3).map((value, index) => [index ? ", " : "", valueNode(value, true)])));
+    const owner = sourceText(st, item);
+    if (owner) meta.push(h("span", { class: "answer-owner" }, owner));
+    for (const { seen, fields } of observedFacts(entry).slice(0, 3)) {
+      meta.push(h("span", { class: "answer-observation" }, FG.t("selfcheck.evidence.observedBy", { source: label(seen.source), date: FG.formatDate(seen.date) }),
+        fields.slice(0, 2).map((field) => [" ", h("span", { class: "evidence-readable" }, readableField(field), ": ", field.values.slice(0, 3).map((found, index) => [index ? ", " : "", valueNode(found, true)]))])));
     }
     return h(
       "li",
-      { class: "answer-row" },
+      { class: "answer-row", id: "report-answer-" + item.identifier, tabindex: "-1" },
       h(
         "p",
         { class: "answer-line" },
@@ -1565,6 +1878,18 @@
     );
   }
 
+  /** The result's first sentence leads with what remains to do: a gap, then a question to find out, then an
+      unanswered question. Answered is not satisfied, and Don't know stays an answer with a follow-up. */
+  function resultLead(items, answered, gaps, tasks, counts) {
+    if (gaps.length) return FG.t("selfcheck.result.leadGaps", { n: gaps.length });
+    if (tasks.length) return FG.t("selfcheck.result.leadTasks", { n: tasks.length });
+    if (answered < items.length) return FG.t("selfcheck.result.leadOpen", { n: items.length - answered });
+    return FG.t("selfcheck.result.leadMet", { n: (counts.met || 0) + (counts.provided || 0) });
+  }
+
+  /** What a result rests on, stated for this check: NRP admission is named only where the check is about it. */
+  const advisory = (check) => FG.t("selfcheck.result.advisory") + (check.identifier === "gate" ? " " + FG.t("selfcheck.result.advisoryGate") : "");
+
   function results(check, st) {
     const items = resultItems(check, st);
     const answered = items.filter((item) => answerOf(st, item)).length;
@@ -1575,7 +1900,9 @@
       h(
         "div",
         { class: "result-headline" },
+        h("p", { class: "result-lead", "data-kind": gaps.length ? "gaps" : tasks.length ? "tasks" : answered < items.length ? "open" : "met" }, resultLead(items, answered, gaps, tasks, counts)),
         h("p", { class: "result-progress" }, FG.t("selfcheck.progress", { n: answered, total: items.length })),
+        hiddenAnswers(check, st),
         h(
           "ul",
           { class: "result-counts" },
@@ -1588,16 +1915,257 @@
               "p",
               { class: "small" },
               FG.t("selfcheck.targetLabel") + ": ",
-              FG.external(st.target, (st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher)) || st.target)
+              st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher) ? [FG.external(st.target, st.targetInfo.name || st.targetInfo.publisher), " "] : null,
+              FG.targetChip(st.target)
             )
           : null,
-        h("p", { class: "small muted" }, FG.t("selfcheck.result.advisory"))
+        h("p", { class: "small muted" }, advisory(check))
       ),
-      h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.result.gaps")),
-      gaps.length ? h("ul", { class: "gaps" }, gaps.map((item) => gapItem(st, item))) : h("p", { class: "muted" }, FG.t("selfcheck.result.noGaps")),
+      /* A check organised in blocks reports by them first, as its questions are listed; every check reports by FAIR
+         area where its questions name principles. Neither adds answers into a score. */
+      stateSections(st, items),
+      h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.report.gaps")),
+      gaps.length ? gapsByWhom(st, gaps) : h("p", { class: "muted" }, FG.t(tasks.length ? "selfcheck.result.noGapsTasks" : "selfcheck.result.noGaps")),
       tasks.length ? [h("h3", { id: "results-tasks", tabindex: "-1" }, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map((item) => taskItem(item, st)))] : null,
-      h("h3", { class: "result-all" }, FG.t("selfcheck.result.answers")),
-      resultGroups(check, st, items),
+      agreement(check, st, items),
+      providers ? providers.overview(check, st) : null,
+      h(
+        "details",
+        { class: "result-all-details" },
+        h("summary", null, FG.t("selfcheck.result.answers")),
+        h("div", { class: "content" }, h("p", { class: "small muted result-scope" }, FG.t("selfcheck.result.scope")), resultGroups(check, st, items))
+      ),
+    ];
+  }
+
+  /* ---------------------------------------------------------------- the report's views of the answers */
+
+  const DISTRIBUTION_STATES = ["met", "partly", "gap", "unknown", "open"];
+
+  /** How a set of questions is answered: a bar of solid segments in the states' colours, and the same counts named
+      in text, which is what assistive technology reads. */
+  function distribution(st, items, compact) {
+    const counts = {};
+    for (const item of items) counts[itemState(st, item)] = (counts[itemState(st, item)] || 0) + 1;
+    const present = DISTRIBUTION_STATES.filter((state) => counts[state]);
+    const segments = present.map((state) => {
+      const segment = h("span", { "data-state": state }, compact ? null : String(counts[state]));
+      /* The page allows no style attributes, so each segment's share is set on the element itself. */
+      segment.style.flexGrow = String(counts[state]);
+      return segment;
+    });
+    /* In the running result the chips beside the bar name each question's state; the report names the counts. */
+    return h(
+      "div",
+      { class: "distribution" + (compact ? " distribution-compact" : "") },
+      h("div", { class: "distribution-bar", "aria-hidden": "true" }, segments),
+      compact ? null : h("p", { class: "distribution-text small" }, present.map((state) => FG.t("selfcheck.count." + state, { n: counts[state] })).join(" · "))
+    );
+  }
+
+  /** The answers per FAIR principle, one bar each, with a legend and the same numbers as a table. */
+  /** The FAIR areas (F, A, I, R) a question's principles belong to; a question can address several. */
+  const lettersOf = (item) => [...new Set(FG.principlesOf(item).map((principle) => String(principle.termCode || "").charAt(0)).filter(Boolean))];
+
+  /** The state by FAIR area: a question counts under every area its principles belong to, so the rows may overlap;
+      questions without a FAIR principle are left out and counted in the note. */
+  function principleDistributions(st, items) {
+    const rows = ["F", "A", "I", "R"]
+      .map((letter) => ({
+        mark: h("span", { class: "principle-letter", "data-letter": letter, title: FG.t("explorer.group." + letter) }, letter),
+        name: FG.t("explorer.group." + letter),
+        items: items.filter((item) => lettersOf(item).includes(letter)),
+      }))
+      .filter((row) => row.items.length);
+    if (!rows.length) return null;
+    const outside = items.filter((item) => !lettersOf(item).length).length;
+    return [
+      distributions(st, rows, "principle-distribution", FG.t("selfcheck.report.principle")),
+      h("p", { class: "small muted" }, FG.t("selfcheck.report.principleOverlap"), outside ? " " + FG.t("selfcheck.report.principleOutside", { n: outside }) : null),
+    ];
+  }
+
+  /** The state by the check's own blocks, as its questions are listed: every question once, in its block. */
+  function blockDistributions(st, items, blocks) {
+    const rows = blocks
+      .map((block, index) => ({
+        mark: h("span", { class: "block-mark" }, groupMark({ block, position: index + 1 }), FG.text(block.name)),
+        name: FG.text(block.name),
+        items: items.filter((item) => FG.id(item.block) === block["@id"]),
+      }))
+      .filter((row) => row.items.length);
+    return distributions(st, rows, "block-distribution", FG.t("selfcheck.report.block"));
+  }
+
+  function stateSections(st, items) {
+    const blocks = blocksOf(items);
+    const principles = principleDistributions(st, items);
+    return [
+      blocks.length ? [h("h3", { id: "results-blocks" }, FG.t("selfcheck.report.blocks")), blockDistributions(st, items, blocks)] : null,
+      principles ? [h("h3", { id: "results-principles" }, FG.t("selfcheck.report.principles")), principles] : null,
+      h("p", { class: "small muted" }, FG.icon("info"), " ", FG.t("selfcheck.report.noScore")),
+    ];
+  }
+
+  /** Rows of solid distributions, each after its mark, with one legend and the counts as a table. */
+  function distributions(st, rows, rowClass, header) {
+    const count = (row, state) => row.items.filter((item) => itemState(st, item) === state).length;
+    return h(
+      "div",
+      { class: "principle-distributions" },
+      rows.map((row) => h("div", { class: rowClass }, row.mark, distribution(st, row.items))),
+      h("ul", { class: "distribution-legend small" }, DISTRIBUTION_STATES.map((state) => h("li", { "data-state": state }, h("span", { class: "legend-swatch", "aria-hidden": "true" }), FG.t("selfcheck.state." + state)))),
+      h(
+        "details",
+        { class: "distribution-table" },
+        h("summary", null, FG.t("selfcheck.report.table")),
+        h(
+          "div",
+          { class: "content" },
+          h(
+            "table",
+            { class: "data-table" },
+            h("thead", null, h("tr", null, h("th", { scope: "col" }, header), DISTRIBUTION_STATES.map((state) => h("th", { scope: "col" }, FG.t("selfcheck.state." + state))))),
+            h("tbody", null, rows.map((row) => h("tr", null, h("th", { scope: "row" }, row.name), DISTRIBUTION_STATES.map((state) => h("td", null, String(count(row, state)))))))
+          )
+        )
+      )
+    );
+  }
+
+  /** The gaps, grouped by who fixes them: one card per actor, each gap with where on the path it is addressed. */
+  /* The owners a role stands for: the chosen role sees the gaps it puts right first. "You" is whoever fills in the
+     check, so it is the researcher's own group. */
+  const ROLE_OWNERS = { V: ["#actor-user"], DS: ["#actor-data-steward"], SR: ["#actor-repository-admin", "#actor-curator"], K: ["#actor-community"] };
+
+  /** The gaps grouped by who puts them right, as each question states it (its owners in the content); the rule is
+      said above the groups, and the chosen role changes only which group comes first. */
+  function gapsByWhom(st, gaps) {
+    const groups = new Map();
+    for (const item of gaps) {
+      const actors = FG.refs(item, "fixedBy");
+      const key = actors.map((actor) => actor["@id"]).join(" ") || "-";
+      if (!groups.has(key)) groups.set(key, { actors, items: [] });
+      groups.get(key).items.push(item);
+    }
+    const mine = ROLE_OWNERS[FG.state.lens] || [];
+    const isMine = (group) => group.actors.some((actor) => mine.includes(actor["@id"]));
+    const ordered = [...groups.values()].sort((a, b) => Number(isMine(b)) - Number(isMine(a)));
+    const names = (actors) => new Intl.ListFormat(FG.state.lang === "cs" ? "cs" : "en", { type: "conjunction" }).format(actors.map((actor) => FG.text(actor.name)));
+    return [
+      h("p", { class: "small muted gap-rule" }, FG.t("selfcheck.report.gapsRule")),
+      h(
+        "div",
+        { class: "gap-groups" },
+        ordered.map((group) =>
+          h(
+            "section",
+            { class: "gap-group" + (isMine(group) ? " gap-group-mine" : "") },
+            h(
+              "h4",
+              null,
+              group.actors.length ? FG.t("selfcheck.report.fixedBy", { who: names(group.actors) }) : FG.t("selfcheck.report.anyone"),
+              h("span", { class: "muted" }, " · " + group.items.length),
+              isMine(group) ? [" ", h("span", { class: "badge" }, FG.t("selfcheck.report.yourRole"))] : null
+            ),
+            h("ul", { class: "gaps" }, group.items.map((item) => gapItem(st, item)))
+          )
+        )
+      ),
+    ];
+  }
+
+  /** The evaluators that may observe a check's questions: FAIR Champion where its tests are named, and the external
+      evaluators of a check about one object. */
+  function evaluatorsOf(check, st) {
+    const list = [];
+    if (sourcesOf(check, st).has("champion")) list.push({ id: "champion", resource: "fair-champion", covers: (item) => Boolean(prefillOf(item, "champion")) });
+    const object = sourcesOf(check, st).has("datacite") || sourcesOf(check, st).has("resolver") || ["cdif", "fdo"].includes(check.identifier);
+    if (providers && object && FG.providers) {
+      for (const provider of FG.list(FG.providers.settings().list)) {
+        const mapped = new Set(FG.providers.mappings(provider).map((mapping) => mapping.question));
+        list.push({ id: provider.id, resource: provider.id, covers: (item) => mapped.has(item.identifier) });
+      }
+    }
+    return list;
+  }
+
+  /** The reader's answers beside what the evaluators observed, question by question, and whether they agree. Each
+      response leads to its question's row in the list of all answers below, where the evidence stands. */
+  function agreement(check, st, items) {
+    const evaluators = evaluatorsOf(check, st);
+    if (!evaluators.length) return null;
+    const latest = (item, source) => observationsOf(record(st, item)).filter((observation) => observation.source === source).pop();
+    const rows = items.filter((item) => answerOf(st, item) || evaluators.some((evaluator) => latest(item, evaluator.id)));
+    /* The list of all answers below opens at the question's row, which then takes focus. */
+    const toRow = (item) => () => {
+      const list = document.querySelector(".result-all-details");
+      if (list) list.open = true;
+      const row = document.getElementById("report-answer-" + item.identifier);
+      if (!row) return;
+      row.scrollIntoView({ block: "center" });
+      row.focus({ preventScroll: true });
+      row.classList.add("jumped");
+      setTimeout(() => row.classList.remove("jumped"), 1600);
+    };
+    const link = (item, content) => h("button", { type: "button", class: "button-link agreement-link", onclick: toRow(item) }, content);
+    const cell = (item, evaluator) => {
+      const observation = latest(item, evaluator.id);
+      if (!observation) return h("td", { class: "muted" }, FG.t(evaluator.covers(item) ? "selfcheck.report.noResult" : "selfcheck.report.unmapped"));
+      const verdict = observation.value ? stateLabel(ANSWER_STATE[observation.value] || "open") : FG.t("selfcheck.report.noVerdict");
+      return h("td", null, link(item, verdict));
+    };
+    /* Partial evidence is a lower bound (D-168): its Partly agrees with Yes or Partly, and its No with No or Partly. */
+    const consistent = (own, observation) => (partialOnly(observation) ? (observation.value === "partly" ? own !== "no" : own !== "yes") : observation.value === own);
+    const verdictOf = (item) => {
+      const own = answerOf(st, item);
+      const seen = evaluators.map((evaluator) => latest(item, evaluator.id)).filter((observation) => observation && observation.value);
+      if (!own || own === "unknown" || own === "na" || !seen.length) return "none";
+      return seen.every((observation) => consistent(own, observation)) ? "agree" : "differ";
+    };
+    return [
+      h("h3", { id: "results-agreement" }, FG.t("selfcheck.report.agreementTitle")),
+      h("p", { class: "small" }, FG.t("selfcheck.report.agreementIntro")),
+      rows.length
+        ? h(
+            "div",
+            { class: "table-scroll", tabindex: "0", role: "region", "aria-labelledby": "results-agreement" },
+            h(
+              "table",
+              { class: "data-table agreement" },
+              h(
+                "thead",
+                null,
+                h(
+                  "tr",
+                  null,
+                  h("th", { scope: "col" }, FG.t("selfcheck.report.question")),
+                  h("th", { scope: "col" }, FG.t("selfcheck.report.yours")),
+                  evaluators.map((evaluator) => {
+                    const resource = FG.get("#resource-" + evaluator.resource) || { name: evaluator.id };
+                    return h("th", { scope: "col" }, h("span", { class: "evaluator-name" }, FG.serviceBadge(evaluator.id, resource.url), h("span", null, FG.text(resource.name))));
+                  }),
+                  h("th", { scope: "col" }, FG.t("selfcheck.report.agree"))
+                )
+              ),
+              h(
+                "tbody",
+                null,
+                rows.map((item) =>
+                  h(
+                    "tr",
+                    { "data-agreement": verdictOf(item) },
+                    /* Each row names its question, so the table reads without the question list beside it. */
+                    h("th", { scope: "row", class: "agreement-question" }, h("button", { type: "button", class: "button-link", onclick: () => jumpToItem(check, item) }, h("span", { class: "item-id" }, numberOf(item)), " ", FG.span(item.text))),
+                    h("td", null, link(item, answerOf(st, item) ? stateLabel(itemState(st, item)) : h("span", { class: "muted" }, FG.t("selfcheck.state.open")))),
+                    evaluators.map((evaluator) => cell(item, evaluator)),
+                    h("td", { class: "agreement-verdict" }, FG.t("selfcheck.report.agreement." + verdictOf(item)))
+                  )
+                )
+              )
+            )
+          )
+        : h("p", { class: "muted" }, FG.t("selfcheck.report.agreementNone")),
     ];
   }
 
@@ -1655,7 +2223,10 @@
       const named = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);
       lines.push(escapeMarkdown(FG.t("selfcheck.targetLabel") + ": " + (named ? named + " (" + st.target + ")" : st.target)), "");
     }
-    lines.push(escapeMarkdown(FG.t("selfcheck.result.advisory")), "");
+    const answered = items.filter((item) => answerOf(st, item)).length;
+    const counts = {};
+    for (const item of items) counts[itemState(st, item)] = (counts[itemState(st, item)] || 0) + 1;
+    lines.push(escapeMarkdown(resultLead(items, answered, gaps, tasks, counts)), "", escapeMarkdown(advisory(check)), "");
     const row = (cells) => "| " + cells.map((cell) => escapeMarkdown(cell).replace(/\n/g, " ")).join(" | ") + " |";
     if (profilesOf(check).length) {
       lines.push("## " + FG.t("selfcheck.result.gate"), "", row([FG.t("selfcheck.result.condition"), FG.t("selfcheck.result.state")]), "| --- | --- |");
@@ -1663,9 +2234,10 @@
     } else {
       lines.push("## " + FG.t("selfcheck.result.principles"), "", row([FG.t("selfcheck.result.principle"), FG.t("selfcheck.result.state"), FG.t("selfcheck.result.answered")]), "| --- | --- | --- |");
       for (const entry of principleRows(check, st)) lines.push(row([entry.principle.termCode, FG.t("selfcheck.state." + entry.state), FG.t("selfcheck.result.ofTotal", { n: entry.answered, total: entry.total })]));
+      lines.push("", escapeMarkdown(FG.t("selfcheck.result.scope")));
     }
     lines.push("", "## " + FG.t("selfcheck.result.gaps"), "");
-    if (!gaps.length) lines.push(escapeMarkdown(FG.t("selfcheck.result.noGaps")));
+    if (!gaps.length) lines.push(escapeMarkdown(FG.t(tasks.length ? "selfcheck.result.noGapsTasks" : "selfcheck.result.noGaps")));
     for (const item of gaps) {
       const station = FG.get(item.fixAt);
       const where = station ? `${FG.t("selfcheck.result.whereFix")}: [${escapeMarkdown(FG.text(station.name))}](${FG.pageAddress()}${FG.href("path", station.identifier)})` : "";
@@ -1695,6 +2267,7 @@
       lines.push("", "## " + FG.t("selfcheck.question.context"), "");
       for (const item of context) lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}${answerOf(st, item) ? " · " + escapeMarkdown(FG.t("selfcheck.question.previousAnswer") + ": " + answerText(st, item)) : ""}`);
     }
+    if (providers) lines.push(...providers.markdownLines(check, st, escapeMarkdown));
     const run = currentRun(check, st);
     if (run && Object.keys(run.verdicts).length) {
       lines.push("", "## " + FG.t("selfcheck.evidence.log"), "");
@@ -1708,7 +2281,7 @@
     lines.push("", `${FG.t("selfcheck.export.generatedBy")}, ${FG.config.version}: ${FG.pageAddress()}`, "");
     /* Hidden from readers: the answers as in a shared link, with the format and guide versions, and the whole state
        the JSON-LD carries (identifiers, what they are, evidence), so the summary loads back completely. */
-    lines.push(`<!-- fair-guide-result v${FORMAT_VERSION} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`);
+    lines.push(`<!-- fair-guide-result v${FG.list(st.assessments).length ? FORMAT_VERSION : 2} guide=${FG.config.version}: ${check.identifier} ${SC.sharePayload(check, st)} -->`);
     lines.push("<!-- fair-guide-state", toBase64(JSON.stringify(SC.portableState(check, st))).match(/.{1,76}/g).join("\n"), "-->", "");
     return lines.join("\n");
   }
@@ -1778,6 +2351,10 @@
       });
       tests.push({ "@id": test.url, "@type": "CreativeWork", additionalType: { "@id": vocab.ftr + "Test" }, name: FG.text(test.name) });
     }
+    /* Optional evaluators' native results, each generated by its own assessment activity. */
+    const provided = providers ? providers.crateMembers(check, st, target) : { members: [], activities: [], tests: [] };
+    members.push(...provided.members);
+    tests.push(...provided.tests);
     const name = FG.text(check.name) + " (" + now.slice(0, 10) + ")";
     const graph = [
       { "@id": "ro-crate-metadata.json", "@type": "CreativeWork", conformsTo: { "@id": vocab.roCrate }, about: { "@id": "./" } },
@@ -1820,6 +2397,7 @@
         result: { "@id": "#result-set" },
       },
       ...members,
+      ...provided.activities,
       ...tests.filter((test, index, all) => all.findIndex((other) => other["@id"] === test["@id"]) === index),
     ];
     const records = new Set(members.map((member) => member["prov:used"] && member["prov:used"]["@id"]).filter(Boolean));
@@ -1854,9 +2432,12 @@
       if (!entry || (!answerOf(st, item) && !entry.prefill)) continue;
       items[item.identifier] = { value: answerOf(st, item), origin: entry.origin || null, prefill: entry.prefill || null, observations: observationsOf(entry) };
     }
+    /* Attached evaluator assessments need format revision 3; a result without them stays readable by earlier
+       versions of the guide. Original reports travel only in the complete evidence download. */
+    const assessments = FG.providers ? FG.providers.portable(st) : [];
     return boundedPortable({
       format: FORMAT,
-      v: FORMAT_VERSION,
+      v: assessments.length ? FORMAT_VERSION : 2,
       guideVersion: FG.config.version,
       check: check.identifier,
       mode: st.mode || null,
@@ -1871,8 +2452,10 @@
       software: st.software || null,
       softwareRef: st.softwareRef || null,
       sample: st.sample || null,
+      dataciteSample: st.dataciteSample || null,
       champion: st.champion || null,
       inspection: st.inspection || null,
+      assessments: assessments.length ? assessments : undefined,
       items,
     });
   };
@@ -1903,7 +2486,7 @@
         if (!note || typeof note !== "object") return null;
         if (typeof note.key === "string" && NOTE_KEYS.includes(note.key.replace("selfcheck.note.", ""))) {
           const params = {};
-          for (const [key, value] of Object.entries(note.params || {}).slice(0, 4)) if (isText(key, 50) && isText(value, 300)) params[key] = value;
+          for (const [key, value] of Object.entries(note.params || {}).slice(0, 4)) if (!FG.unsafeKey(key) && isText(key, 50) && isText(value, 300)) params[key] = value;
           return { key: "selfcheck.note." + note.key.replace("selfcheck.note.", ""), params };
         }
         const text = textValue(note.text);
@@ -1928,7 +2511,8 @@
         return { path: field.path, values, more: (Number.isInteger(field.more) && field.more > 0 ? field.more : 0) + raw.length - values.length };
       });
     const testId = isText(pre.testId, 100) && /^guide-[a-z]+-\d{2}$/.test(pre.testId) && FG.get("#test-" + pre.testId) ? pre.testId : null;
-    return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record), subject: isText(pre.subject, 2000) ? pre.subject : null, representation: isText(pre.representation, 2000) ? pre.representation : null, commit: isText(pre.commit, 100) ? pre.commit : null, coverage: isText(pre.coverage, 300) ? pre.coverage : null, testId, truncated };
+    const assessment = FG.providers && FG.providers.isAssessmentId(pre.assessment) ? pre.assessment : null;
+    return { source: pre.source, date: pre.date, value: ANSWERS.includes(pre.value) ? pre.value : null, notes, list, fields, record: webUrl(pre.record), subject: isText(pre.subject, 2000) ? pre.subject : null, representation: isText(pre.representation, 2000) ? pre.representation : null, commit: isText(pre.commit, 100) ? pre.commit : null, coverage: isText(pre.coverage, 300) ? pre.coverage : null, testId, assessment, truncated };
   }
 
   /** A check state from a file the guide wrote, or the reason it cannot be read: not a guide file, a newer format,
@@ -1955,7 +2539,7 @@
     if (!data || typeof data !== "object" || Array.isArray(data)) return { error: "damaged" };
     if (data.format !== undefined && data.format !== FORMAT) return { error: "notGuide" };
     if (Number.isInteger(data.v) && data.v > FORMAT_VERSION) return { error: "newer", params: { version: isText(data.guideVersion, 40) ? data.guideVersion : "?" } };
-    if (![1, FORMAT_VERSION].includes(data.v) || !isText(data.check, 50)) return { error: "damaged" };
+    if (![1, 2, FORMAT_VERSION].includes(data.v) || !isText(data.check, 50)) return { error: "damaged" };
     const check = FG.get("#check-" + data.check);
     if (!check) return { error: "unknownCheck" };
     if (!data.items || typeof data.items !== "object" || Array.isArray(data.items)) return { error: "damaged" };
@@ -1981,12 +2565,24 @@
     const state = { mode: data.mode, profile: data.profile, extended: true, target: webUrl(data.target), items };
     if (isText(data.pid, 300)) state.pid = data.pid;
     if (isText(data.nkr, 100) && /^[\w.:-]+$/.test(data.nkr)) state.nkr = data.nkr;
-    if (isText(data.steward, 40) && ORCID_ID.test(data.steward)) state.steward = data.steward.match(ORCID_ID)[1].toUpperCase();
-    if (isText(data.re3data, 20) && /^r3d\d{9}$/.test(data.re3data)) state.re3data = data.re3data;
+    if (isText(data.steward, 40) && FG.live.parseOrcid(data.steward)) state.steward = FG.live.parseOrcid(data.steward);
+    if (isText(data.re3data, 20) && FG.live.parseRe3data(data.re3data) === data.re3data) state.re3data = data.re3data;
     if (isText(data.fip, 100) && /^[\w.-]+$/.test(data.fip)) state.fip = data.fip;
     if (isText(data.software, 1000)) state.software = data.software;
     if (isText(data.softwareRef, 200)) state.softwareRef = data.softwareRef;
     if (isText(data.sample, 6000)) state.sample = data.sample;
+    const drawn = data.dataciteSample;
+    /* A sample saved before samples spanned every record type still loads; its type is no longer kept. */
+    if (drawn && typeof drawn === "object" && drawn.repository && FG.live.dataciteRoute({ datacite: drawn.repository.id }) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(String(drawn.date))) {
+      state.dataciteSample = {
+        repository: { id: drawn.repository.id, name: isText(drawn.repository.name, 300) ? drawn.repository.name : drawn.repository.id },
+        date: drawn.date,
+        records: FG.list(drawn.records).slice(0, SAMPLE_MAX)
+          .filter((record) => record && isText(record.doi, 300) && (FG.live.parsePid(record.doi) || {}).type === "doi" && isText(record.title || "", 300))
+          .map((record) => ({ doi: record.doi.toLowerCase(), title: record.title || "", type: isText(record.type || "", 60) ? record.type || "" : "" })),
+      };
+    }
     if (data.inspection && typeof data.inspection === "object" && /^\d{4}-\d{2}-\d{2}$/.test(String(data.inspection.date))) {
       state.inspection = { date: data.inspection.date, coverage: {}, representations: FG.list(data.inspection.representations).slice(0, 8)
         .filter((entry) => entry && webUrl(entry.url) && isText(entry.format, 100) && isText(entry.source, 80))
@@ -2005,6 +2601,12 @@
       for (const key of ["name", "creators", "publisher", "year", "kind", "url", "commit", "ref"]) if (isText(String(data.targetInfo[key] || ""), 300) && data.targetInfo[key]) info[key] = String(data.targetInfo[key]);
       if (info.url && !webUrl(info.url)) delete info.url;
       if (info.name || info.publisher) state.targetInfo = info;
+    }
+    if (data.assessments != null) {
+      if (data.v < 3 || !Array.isArray(data.assessments) || !FG.providers) return { error: "damaged" };
+      const assessments = data.assessments.slice(0, 8).map(FG.providers.readAssessment);
+      if (assessments.some((assessment) => !assessment)) return { error: "damaged" };
+      if (assessments.length) state.assessments = assessments;
     }
     return { check, state, notices: loadNotices(skipped, isText(data.guideVersion, 40) ? data.guideVersion : null) };
   };
@@ -2032,18 +2634,29 @@
     if (crate && typeof crate === "object") {
       const holder = FG.list(crate["@graph"]).find((entity) => entity && typeof entity.guideState === "string");
       if (!holder) return { error: "notGuide" };
+      let found;
       try {
-        return SC.readPortable(JSON.parse(holder.guideState));
+        found = SC.readPortable(JSON.parse(holder.guideState));
       } catch (error) {
         return { error: "damaged" };
       }
+      /* A complete evidence download also carries the original evaluator reports its assessments name. */
+      if (!found.error && typeof holder.guideSources === "string") {
+        try {
+          found.sources = JSON.parse(holder.guideSources);
+        } catch (error) {
+          return { error: "damaged" };
+        }
+      }
+      return found;
     }
-    const match = String(text).match(/<!--\s*fair-guide-result(?:\s+v(\d+))?(?:\s+guide=(\S+?))?:\s*([a-z-]+)\s+(a\d+\.[A-Za-z0-9._]+)\s*-->/);
+    /* The guide's own markers start a line; text in the summary always escapes "<", so a value can never start one. */
+    const match = String(text).match(/^<!--\s*fair-guide-result(?:\s+v(\d+))?(?:\s+guide=(\S+?))?:\s*([a-z-]+)\s+(a\d+\.[A-Za-z0-9._]+)\s*-->/m);
     if (!match) return { error: "notGuide" };
     if (Number(match[1] || FORMAT_VERSION) > FORMAT_VERSION) return { error: "newer", params: { version: match[2] || "?" } };
     const check = FG.get("#check-" + match[3]);
     if (!check) return { error: "unknownCheck" };
-    const carried = String(text).match(/<!--\s*fair-guide-state\b([\s\S]*?)-->/);
+    const carried = String(text).match(/^<!--\s*fair-guide-state\b([\s\S]*?)^-->/m);
     if (carried) {
       let data = null;
       try {
@@ -2076,7 +2689,7 @@
       show("selfcheck.load.error." + found.error, found.params);
       return;
     }
-    SC.pendingFile = { check: found.check.identifier, state: found.state, notices: found.notices || [] };
+    SC.pendingFile = { check: found.check.identifier, state: found.state, notices: found.notices || [], sources: found.sources || null };
     FG.navigate(FG.href("check", found.check.identifier) + "/file");
   }
 
@@ -2110,6 +2723,8 @@
         "div",
         { class: "local-data-main" },
         h("p", { class: "local-data-line" }, FG.t("localData.statement")),
+        /* The browser refused to save the answers; say so instead of letting work vanish on the next visit. */
+        FG.storageFull ? h("p", { class: "notice small", role: "alert", id: "local-data-full" }, FG.t("localData.notSaved")) : null,
         h(
           "div",
           { class: "local-data-actions" },
@@ -2191,6 +2806,16 @@
     if (field) field.focus();
   }
 
+  /** The result set with every retained original evaluator report, lossless and loadable like any saved result. */
+  function completeEvidence(check, st) {
+    const crate = SC.ftrCrate(check, st);
+    const root = crate["@graph"].find((entity) => entity["@id"] === "./");
+    root.guideSources = JSON.stringify(providers ? providers.sources(st) : {});
+    root.description = root.description + " " + FG.t("selfcheck.export.evidenceScope");
+    crate["@context"][1].guideSources = FG.config.vocab.guide + "guideSources";
+    return JSON.stringify(crate, null, 2) + "\n";
+  }
+
   /* The format chosen for saving, kept while the page is open. */
   let exportFormat = "md";
   const exportText = (check, st) => (exportFormat === "jsonld" ? JSON.stringify(SC.ftrCrate(check, st), null, 2) + "\n" : markdown(check, st));
@@ -2203,11 +2828,33 @@
   function clearAnswers(check) {
     if (!window.confirm(FG.t("selfcheck.reset") + "?")) return;
     delete FG.state.answers[check.identifier];
+    if (providers) providers.forget(check);
+    if (FG.providers) FG.providers.pruneSources();
     save();
     FG.rerender("export-title");
   }
 
+  /** Whether a check has an answer, given or pre-filled, for the exports, the share link and clearing to act on. */
+  const hasAnswers = (st) => Object.values(st.items || {}).some((entry) => entry && typeof entry === "object" && entry.value);
+  /* The reason the export controls give while the check has no answer; answering refreshes it in place. */
+  let exportGate = null;
+
   function exportSection(check, st) {
+    const download = h(
+      "button",
+      {
+        type: "button",
+        class: "button-small button-primary",
+        id: "export-download",
+        onclick: () => FG.download(fileName(check, exportFormat === "jsonld" ? "jsonld" : "md"), exportText(check, st), exportFormat === "jsonld" ? "application/ld+json" : "text/markdown"),
+      },
+      FG.icon("download"),
+      FG.t("selfcheck.export.download")
+    );
+    const copy = h("button", { type: "button", class: "button-small", id: "export-copy", onclick: (event) => FG.copyText(event, exportText(check, st), "export-preview-text") }, FG.icon("copy"), h("span", { class: "copy-label" }, FG.t("common.copy")));
+    const share = h("button", { type: "button", class: "button-small", id: "share-create", onclick: () => showShare(check, st) }, FG.icon("link"), FG.t("selfcheck.export.share"));
+    const clear = h("button", { type: "button", class: "button-link", id: "answers-clear", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset"));
+    exportGate = FG.gate([download, copy, share, clear], FG.t("selfcheck.export.needsAnswer"), () => hasAnswers(st));
     return h(
       "section",
       { class: "export no-print", "aria-labelledby": "export-title" },
@@ -2238,22 +2885,8 @@
           )
         )
       ),
-      h(
-        "div",
-        { class: "export-actions" },
-        h(
-          "button",
-          {
-            type: "button",
-            class: "button-small button-primary",
-            id: "export-download",
-            onclick: () => FG.download(fileName(check, exportFormat === "jsonld" ? "jsonld" : "md"), exportText(check, st), exportFormat === "jsonld" ? "application/ld+json" : "text/markdown"),
-          },
-          FG.icon("download"),
-          FG.t("selfcheck.export.download")
-        ),
-        h("button", { type: "button", class: "button-small", id: "export-copy", onclick: (event) => FG.copyText(event, exportText(check, st), "export-preview-text") }, FG.icon("copy"), h("span", { class: "copy-label" }, FG.t("common.copy")))
-      ),
+      h("div", { class: "export-actions" }, download, copy),
+      exportGate,
       h(
         "details",
         { class: "export-preview", ontoggle: (event) => event.target.open && refreshPreview(check, st) },
@@ -2261,16 +2894,23 @@
         h("textarea", { id: "export-preview-text", readonly: true, rows: "14", "aria-label": FG.t("selfcheck.export.preview") })
       ),
       h("p", { class: "small muted" }, FG.t("selfcheck.export.formats")),
+      /* The summary and the result set carry assessments compactly; the complete download adds every retained
+         original report, so nothing accepted is lost to the summary's size budget. */
+      providers && FG.list(st.assessments).length
+        ? h("p", { class: "export-evidence small" },
+          h("button", { type: "button", class: "button-small", id: "export-evidence", onclick: () => FG.download(fileName(check, "evidence.jsonld"), completeEvidence(check, st), "application/ld+json") }, FG.icon("download"), FG.t("selfcheck.export.evidence")),
+          " ", FG.t("selfcheck.export.evidenceHint"))
+        : null,
       h(
         "div",
         { class: "export-more" },
-        h("button", { type: "button", class: "button-small", id: "share-create", onclick: () => showShare(check, st) }, FG.icon("link"), FG.t("selfcheck.export.share")),
+        share,
         h("button", { type: "button", class: "button-small", onclick: () => window.print() }, FG.icon("print"), FG.t("selfcheck.export.print")),
         /* The check itself as data: its benchmark in the guide's API, with each question as a metric and its test. */
         FG.recordHref(check) ? h("a", { class: "button button-small", id: "export-data", href: FG.recordHref(check), type: "application/json" }, FG.icon("code"), FG.t("selfcheck.export.data")) : null
       ),
       h("div", { id: "share-output", class: "share-output" }),
-      h("p", null, h("button", { type: "button", class: "button-link", onclick: () => clearAnswers(check) }, FG.t("selfcheck.reset")))
+      h("p", null, clear)
     );
   }
 
@@ -2287,11 +2927,22 @@
         h("p", null, h("a", { class: "button", href: FG.href("check", check.identifier) }, FG.t("selfcheck.export.keepOwn"))),
       ];
     }
-    const use = () => {
+    /* The answers are saved before any original report is kept; reports are kept only when their digest verifies,
+       and their records are then rebuilt from them. */
+    const use = async () => {
+      const sources = fromFile && SC.pendingFile ? SC.pendingFile.sources : null;
       FG.state.answers[check.identifier] = shared;
+      reapplied.delete(check.identifier);
+      if (providers) providers.forget(check);
+      if (FG.providers) FG.providers.pruneSources();
       SC.pendingFile = null;
       save();
-      FG.navigate(FG.href("check", check.identifier));
+      if (providers && FG.list(shared.assessments).length) {
+        await providers.restoreSources(shared, sources);
+        save();
+      }
+      /* The adopted answers are what the reader came for. */
+      FG.navigate(partHref(check, "answers"));
     };
     return [
       h(
@@ -2325,12 +2976,21 @@
   /** Jump to an item; an item the short view hides opens the extended view first. */
   function jumpToItem(check, item) {
     const st = stateOf(check);
-    if (!document.getElementById("item-" + keyOf(item)) && !st.extended) {
-      st.extended = true;
-      save();
-      FG.rerender();
+    const go = () => {
+      if (!document.getElementById("item-" + keyOf(item)) && !st.extended) {
+        st.extended = true;
+        save();
+        FG.rerender();
+      }
+      jumpTo(document.getElementById("item-" + keyOf(item)));
+    };
+    /* The questions are in the answers part; from the evidence or the report, it opens first. */
+    if (partOf(FG.parseHash(window.location.hash)) !== "answers") {
+      window.addEventListener("hashchange", () => requestAnimationFrame(go), { once: true });
+      FG.navigate(partHref(check, "answers"));
+      return;
     }
-    jumpTo(document.getElementById("item-" + keyOf(item)));
+    go();
   }
 
   /** The questions in the same groups as the list, with a short label for each group. */
@@ -2348,17 +3008,20 @@
        question with its answer state. */
     const shown = applicable(check, st).filter((item) => providedByNrp(item, st) || items.includes(item));
     const groups = summaryGroups(shown);
-    const count = (key, n, anchor) =>
+    /* The gaps and the things to find out are listed in the report. */
+    const count = (key, n) =>
       n
-        ? h("button", { type: "button", class: "summary-count", "data-kind": key, onclick: () => jumpTo(document.getElementById(anchor)) }, FG.t("selfcheck.summary." + key, { n }))
+        ? h("a", { class: "summary-count", "data-kind": key, href: partHref(check, "report") }, FG.t("selfcheck.summary." + key, { n }))
         : h("span", { class: "summary-count summary-count-none", "data-kind": key }, FG.t("selfcheck.summary." + key, { n }));
     return [
       h("p", { class: "summary-progress" }, FG.t("selfcheck.progress", { n: answered, total: items.length })),
+      hiddenAnswers(check, st),
       groups.map((group) =>
         h(
           "div",
           { class: "summary-group" },
           h("span", { class: "summary-group-label" }, group.label),
+          distribution(st, group.items, true),
           h(
             "ul",
             { class: "summary-chips", "aria-label": group.name },
@@ -2380,8 +3043,8 @@
           )
         )
       ),
-      h("p", { class: "summary-counts" }, count("gaps", gaps.length, "results-gaps"), count("tasks", tasks.length, "results-tasks")),
-      h("p", { class: "summary-full" }, h("button", { type: "button", class: "button-link", onclick: () => jumpTo(document.getElementById("results-title")) }, FG.t("selfcheck.summary.full"))),
+      h("p", { class: "summary-counts" }, count("gaps", gaps.length), count("tasks", tasks.length)),
+      h("p", { class: "summary-full" }, h("a", { class: "button button-small button-primary", href: partHref(check, "report") }, FG.t("selfcheck.parts.report") + " →")),
     ];
   }
 
@@ -2391,6 +3054,7 @@
     const toggle = () => {
       FG.state.resultCollapsed = !collapsed;
       FG.saveState();
+      FG.keepScroll = window.scrollY;
       FG.rerender("result-toggle");
     };
     const label = FG.t(collapsed ? "selfcheck.result.show" : "selfcheck.result.hide");
@@ -2419,35 +3083,43 @@
   function checkView(route) {
     const check = FG.get("#check-" + route.arg);
     const minutes = String(check.timeRequired || "").replace(/\D/g, "");
+    const part = partOf(route);
     const head = [
       h("p", { class: "muted" }, h("a", { href: FG.href("selfcheck") }, FG.t("selfcheck.title"))),
       FG.heading(1, null, FG.span(check.name)),
       FG.paragraphs(check.description),
       minutes ? h("p", { class: "muted" }, FG.t("station.minutes", { n: minutes })) : null,
-      route.extra ? null : localDataNote(),
+      /* The note on local data heads the evidence; the other parts carry only its alert when the browser refused to
+         save, so work never vanishes unannounced. */
+      part === "evidence" ? localDataNote() : part && FG.storageFull ? h("p", { class: "notice small", role: "alert", id: "local-data-full" }, FG.t("localData.notSaved")) : null,
     ];
-    if (route.extra) return h("div", { class: "layout wrap selfcheck" }, h("article", null, head, sharedView(check, route.extra)));
+    if (!part) return h("div", { class: "layout wrap selfcheck" }, h("article", null, head, sharedView(check, route.extra)));
+    reapplyEvidence(check);
     const st = stateOf(check);
-    if (!ready(check, st)) {
+    const choose = [h("div", { class: "no-print" }, settings(check, st)), h("p", { class: "notice" }, FG.t("selfcheck.chooseFirst"))];
+    if (!ready(check, st) || part === "evidence") {
+      /* Evidence: what the check is about and the sources answers can be suggested from. */
       return h(
         "div",
-        { class: "layout wrap selfcheck" },
-        h("article", null, head, h("div", { class: "no-print" }, settings(check, st)), h("p", { class: "notice" }, FG.t("selfcheck.chooseFirst")), startPanel(check, st, false))
-      );
-    }
-    return h(
-      "div",
-      { class: "wrap selfcheck check-view" },
-      h("header", { class: "check-head" }, head),
-      h(
-        "div",
-        { class: "check-split" + (FG.state.resultCollapsed ? " result-collapsed" : "") },
+        { class: "wrap selfcheck check-view check-evidence" },
+        h("header", { class: "check-head" }, head, partsNav(check, st, part)),
         h(
           "article",
           { class: "check-main" },
-          h("div", { class: "no-print" }, settings(check, st)),
-          startPanel(check, st, true),
-          itemsSection(check, st),
+          ready(check, st) ? h("div", { class: "no-print" }, settings(check, st)) : choose,
+          startPanel(check, st, ready(check, st)),
+          ready(check, st) ? partNext(check, "answers") : null
+        )
+      );
+    }
+    if (part === "report") {
+      return h(
+        "div",
+        { class: "wrap selfcheck check-view check-report" },
+        h("header", { class: "check-head" }, head, partsNav(check, st, part)),
+        h(
+          "article",
+          { class: "check-main" },
           h(
             "section",
             { class: "results", "aria-labelledby": "results-title" },
@@ -2455,11 +3127,71 @@
             h("div", { id: "results" }, results(check, st))
           ),
           exportSection(check, st)
+        )
+      );
+    }
+    return h(
+      "div",
+      { class: "wrap selfcheck check-view check-answers" },
+      h("header", { class: "check-head" }, head, partsNav(check, st, part)),
+      h(
+        "div",
+        { class: "check-split" + (FG.state.resultCollapsed ? " result-collapsed" : "") },
+        h(
+          "article",
+          { class: "check-main" },
+          /* What a test run from a question card reports, kept in view while the reader works down the questions. */
+          h("p", { id: "prefill-status", role: "status", class: "small part-status" }, status.check === check.identifier && status.part === "answers" ? status.text : ""),
+          itemsSection(check, st),
+          partNext(check, "report")
         ),
         summaryPanel(check, st)
       )
     );
   }
+
+  /* ---------------------------------------------------------------- the check's parts */
+
+  /* A check reads as three parts, each with its own address: the evidence answers can come from, the answers, and
+     the report. The check's own address opens the evidence. */
+  const PARTS = ["evidence", "answers", "report"];
+  const partOf = (route) => (PARTS.includes(route.extra) ? route.extra : route.extra ? null : "evidence");
+  const partHref = (check, part) => FG.href("check", check.identifier) + "/" + part;
+
+  /** The three parts as numbered steps, the current one marked; each step says what it holds or how far it is. */
+  function partsNav(check, st, part) {
+    const items = ready(check, st) ? resultItems(check, st) : [];
+    const answered = items.filter((item) => answerOf(st, item)).length;
+    const notes = {
+      evidence: FG.t("selfcheck.parts.evidenceNote"),
+      answers: ready(check, st) ? FG.t("selfcheck.parts.answersNote", { n: answered, total: items.length }) : FG.t("selfcheck.parts.answersWaiting"),
+      report: FG.t("selfcheck.parts.reportNote"),
+    };
+    return h(
+      "nav",
+      { class: "check-parts no-print", "aria-label": FG.t("selfcheck.parts.label") },
+      h(
+        "ol",
+        null,
+        PARTS.map((key, index) =>
+          h(
+            "li",
+            null,
+            h(
+              "a",
+              { class: "check-part", href: partHref(check, key), "aria-current": key === part ? "step" : null },
+              h("span", { class: "check-part-number", "aria-hidden": "true" }, h("span", null, String(index + 1))),
+              h("span", { class: "check-part-text" }, h("strong", null, FG.t("selfcheck.parts." + key)), h("span", { class: "small" }, notes[key]))
+            )
+          )
+        )
+      )
+    );
+  }
+
+  /** The way on to the next part, at the end of a part. */
+  const partNext = (check, part) =>
+    h("p", { class: "part-next no-print" }, h("a", { class: "button button-primary", href: partHref(check, part) }, FG.t("selfcheck.parts.to." + part) + " →"));
 
   /** How many questions a check asks: a range when its mode or profile decides, one number otherwise. */
   function questionCount(check) {
@@ -2475,8 +3207,12 @@
   /** A check as a card: its icon and name, what it is for, how long it takes and for whom, progress once started. */
   function checkCard(check) {
     const st = hasState(check) ? stateOf(check) : null;
-    const total = st ? answerable(check, st).length : 0;
-    const answered = st ? answerable(check, st).filter((item) => answerOf(st, item)).length : 0;
+    const items = st ? resultItems(check, st) : [];
+    const total = items.length;
+    const answered = items.filter((item) => answerOf(st, item)).length;
+    /* A check already filled in shows its result as the report's chips do, one per answer state. */
+    const counts = {};
+    for (const item of answered ? items : []) counts[itemState(st, item)] = (counts[itemState(st, item)] || 0) + 1;
     const minutes = String(check.timeRequired || "").replace(/\D/g, "");
     const icon = FG.config.icons && FG.config.icons.check && FG.config.icons.check[check.identifier];
     const name = FG.text(check.name);
@@ -2491,6 +3227,10 @@
       "li",
       { class: "check-card" },
       h("div", { class: "check-card-head" }, FG.icon(icon, { class: "check-card-icon" }), h("h3", null, FG.span(check.name))),
+      /* What the check is for comes first, so NRP conditions, FAIR maturity and certification are told apart. */
+      FG.ui.selfcheck.purpose && FG.ui.selfcheck.purpose[check.identifier]
+        ? h("p", { class: "check-card-purpose", "data-check": check.identifier }, h("span", { class: "check-card-purpose-label" }, FG.t("selfcheck.purpose.label") + ": "), FG.t("selfcheck.purpose." + check.identifier))
+        : null,
       FG.paragraphs(check.description),
       h("p", { class: "check-card-meta" }, meta.join(" · ")),
       answered
@@ -2498,7 +3238,14 @@
             "div",
             { class: "check-progress" },
             h("progress", { max: String(total), value: String(answered), "aria-label": FG.t("selfcheck.progress", { n: answered, total }) }),
-            h("span", null, FG.t("selfcheck.progress", { n: answered, total }))
+            h("span", null, FG.t("selfcheck.progress", { n: answered, total })),
+            h(
+              "ul",
+              { class: "result-counts check-card-counts" },
+              ["met", "partly", "gap", "unknown", "open"]
+                .filter((state) => counts[state])
+                .map((state) => h("li", { "data-state": state }, h("span", { "aria-hidden": "true" }, STATE_ICON[state] + " "), FG.t("selfcheck.count." + state, { n: counts[state] })))
+            )
           )
         : null,
       h(
@@ -2535,6 +3282,7 @@
           { class: "how-steps" },
           steps.map((key, index) => h("li", null, h("span", { class: "how-step-number" }, String(index + 1)), h("span", null, FG.t(key))))
         ),
+        h("details", { class: "flow-details" }, h("summary", null, FG.t("visual.evidence.title")), h("div", { class: "content" }, FG.flow("evidence"))),
         h("h2", null, FG.t("selfcheck.forLens")),
         h("ul", { class: "check-cards" }, mine.map(checkCard)),
         others.length ? [h("h2", null, FG.t("selfcheck.others")), h("ul", { class: "check-cards" }, others.map(checkCard))] : null,
@@ -2551,23 +3299,29 @@
   }
 
   let inspection = null;
+  let providers = null;
   let inspectionLoading = null;
   let inspectionFailed = false;
+  const loadScript = (path) => new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = path;
+    script.onload = resolve;
+    script.onerror = () => { script.remove(); reject(new Error("check module unavailable: " + path)); };
+    document.head.appendChild(script);
+  });
+  /* The check controls and the optional evaluators load together when a check first opens; neither contacts a
+     service until the reader asks. */
   function loadInspection() {
-    if (!inspectionLoading) inspectionLoading = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = FG.config.discovery.controlsScript;
-      script.onload = () => {
-        if (!SC.inspectionFactory) { reject(new Error("inspection module unavailable")); return; }
-        inspection = SC.inspectionFactory({ FG, SC, h, stateOf, runPrefill, applyEvidence, today, webUrl, save,
-          describeTarget, dataciteInfo, stewardEvidence, fieldEvidence, pathState, fieldsOf, retarget, clearableField, brief,
-          R3D, setStatus, prefillFromRe3data, prefillFromNkr, prefillFromDashboard, prefillFromNanopub, label,
-          record, answerOf, foundFields, FIELD_LABELS, readableField, valueNode, SHOWN_VALUES, noteText, observationsOf, FIP_RANK, VERDICT_ICON, running, wasRun, verdictKey });
-        resolve();
-      };
-      script.onerror = () => reject(new Error("inspection module unavailable"));
-      document.head.appendChild(script);
-    });
+    if (!inspectionLoading) inspectionLoading = (async () => {
+      await loadScript(FG.config.discovery.controlsScript);
+      if (FG.config.providers && FG.config.providers.script) await loadScript(FG.config.providers.script);
+      if (!SC.inspectionFactory) throw new Error("inspection module unavailable");
+      inspection = SC.inspectionFactory({ FG, SC, h, stateOf, runPrefill, applyEvidence, today, webUrl, save,
+        describeTarget, dataciteInfo, stewardEvidence, fieldEvidence, pathState, fieldsOf, retarget, clearableField, identifierRow, brief,
+        setStatus, prefillFromRe3data, prefillFromNkr, prefillFromDashboard, prefillFromNanopub, label,
+        record, answerOf, foundFields, FIELD_LABELS, readableField, valueNode, SHOWN_VALUES, noteText, observationsOf, FIP_RANK, VERDICT_ICON, running, wasRun, verdictKey });
+      if (SC.providersFactory) providers = SC.providersFactory({ h, stateOf, applyEvidence, save, setStatus, record, observationsOf, keyOf, jumpToItem, inBatches, retarget });
+    })().catch((error) => { inspectionLoading = null; throw error; });
     return inspectionLoading;
   }
 

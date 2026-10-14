@@ -11,17 +11,33 @@ English version: [README_en.md](README_en.md).
 
 ## Co průvodce nabízí
 
-- **Cesta v devíti zastávkách:** Plán → Práce → Repozitář → Popis → Licence a přístup → Publikace →
-  Dohledatelnost → Citace a uznání → Kontrola. Začíná tam, kde se právě nacházíte.
+- **Cesta po životním cyklu výzkumných dat:** zastávky sledují sedm fází životního cyklu podle RDMkit (plánování,
+  vznik, zpracování a analýza dat, uchovávání, sdílení a opakované užití) a končí kontrolou. Začíná tam, kde se
+  právě nacházíte.
 - **Čtyři pohledy na stejnou cestu:** výzkumník, data steward, správce repozitáře či kurátor, komunita a FIP.
 - **Podrobnosti na vyžádání:** nejdřív jedna věta a jeden konkrétní krok, postup, zdůvodnění a zdroje až
   po rozbalení (úrovně L0–L3).
 - **Průzkumník principů:** každý požadavek analýzy pod svým FAIR principem.
 - **Sebehodnocení:** podmínky NRP a zralost FAIR zvlášť, bez celkového skóre.
-- **Živá kontrola identifikátoru:** rychlá kontrola a na vyžádání hloubková kontrola nástrojem FAIR Champion.
+- **Hodnocení, která spouštíte sami:** rychlé vyhledání ve veřejných záznamech, vybrané testy FAIR Champion,
+  metriky FAIR-Checkeru a zpráva F-UJI načtená přímo v prohlížeči, vždy s rozsahem, verzemi a pokrytím; vaše
+  vlastní odpovědi zůstávají vaše.
 - **Katalog zdrojů a repozitářů** se stavem služby a datem ověření.
 - **Vrstvy a návaznosti FAIR implementace:** přehled modelu a souvislosti v katalogu propojují pokyny
   s odpovědnostmi a předáváním informací, včetně předání uvnitř jedné vrstvy.
+
+### Průvodce a FIP Dashboard
+
+[FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) je národní katalog zdrojů umožňujících FAIR a komunitních
+profilů; jejich záznamy spravuje on a odpovídá na otázku „které zdroje a profily“. Průvodce odpovídá na otázku „co
+udělat a proč“ a na záznamy dashboardu odkazuje jejich identifikátory, místo aby je kopíroval. Kontrolu úplnosti FIP
+průvodce předvyplní z profilu v dashboardu, nebo z publikované nanopublikace FIP, pokud profil v dashboardu není.
+
+API dashboardu zatím z prohlížeče nepřijímá požadavky z adresy průvodce, proto průvodce čte datovaný snímek jeho
+profilů a zdrojů a všude, kde je používá, to uvádí i s upozorněním samotného dashboardu. Plánovaná úloha navrhne
+obnovení snímku pull requestem, když se data dashboardu změní. Až API adresu průvodce přijme, nastavení konektoru
+`browserAccess` umožní číst je živě a snímek ponechat jako zálohu. Podrobnosti jsou v `docs/design.md`
+(rozhodnutí 18 a 19, *Snapshot refresh*).
 
 ## Jak průvodce spustit
 
@@ -122,6 +138,13 @@ dokončeného běhu, používá kód z výchozí větve a před zveřejněním o
 [Záznam výběru testů Champion](docs/champion/selection.md) vysvětluje jejich rozsah a datované měření
 dostupnosti. Po sestavení webu změříte všechny posouzené kandidáty i základní sadu příkazem
 `node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. Výběr testů se tím nemění.
+
+Připravené jsou dva plánované workflow, které poběží, až budou ve výchozí větvi. `source-refresh.yml`
+každý týden obnoví snímky Hesláře, re3data, FIP Dashboardu a NKR, ponechá snímek beze změny, když odpověď neprojde
+kontrolou, a každý změněný zdroj navrhne jako samostatný pull request přes GitHub App repozitáře.
+`health-watch.yml` každý týden kontroluje odkazy, služby, zastaralá data a stránky EOSC CZ, na kterých průvodce
+stojí, jednou měsíčně znovu změří testy FAIR Champion a pro každý trvající problém otevře jedno issue. Žádný z nich
+necommituje ani neslučuje; nastavení aplikace popisuje [docs/design.md](docs/design.md).
 
 První oficiální předběžné vydání bude označeno `v1.0.0-alpha.1`; metadata aplikace a citace uvádějí `1.0.0-alpha.1`.
 

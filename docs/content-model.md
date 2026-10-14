@@ -3,52 +3,69 @@
 The guide's content is authored in small TOML files under `content/`. A generator,
 `scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and the same
 crate as scripts the page loads: `assets/data/kb.js` with what every view needs, and `kb-standards.js`, `kb-fips.js`,
-`kb-pages.js`, `kb-questions.js` and `kb-model.js` with the standards' requirements and guidance,
-the FIP Dashboard snapshot (profiles and resource records), page texts, check questions and the conceptual
-implementation model, loaded when a view first needs them; `scripts/build_site.py` writes them with the page and the
-API into the site directory `_site/`, which is not committed. This document defines the entities and the rules every content file
-follows. The design behind it is in [design.md](design.md).
+`kb-pages.js`, `kb-questions.js` and `kb-model.js` with the standards' requirements and guidance and the details
+of provenance actions, the FIP Dashboard snapshot (profiles and resource records) and the KNAV catalogue's tools,
+page texts, check questions, and the conceptual implementation model with the life-cycle models, loaded when a view
+first needs them; `scripts/build_site.py` writes them with the page and the API into the site directory `_site/`,
+which is not committed. View code that only one view needs loads with that view (`VIEW_SCRIPTS` in
+`scripts/build_crate.py`; the catalogue's `assets/js/catalogue-view.js`). This document defines the entities and the
+rules every content file follows. The design
+behind it is in [design.md](design.md).
 
 ## Entities
 
 A **station** is one step of the path. It contains **advice items**; each item belongs to one **lens** and one
 disclosure **level** and cites **clauses** of the ledger. Clauses come from published **sources** and serve
-FAIR **principles**, identified by their published w3id IRIs. **Checks** test a principle, derive from
-clauses and point to the station where a gap is fixed. **Resources** are offered at stations for given lenses,
-carry a status with an as-of date and link to published FER or FAIRsharing identifiers. **Glossary terms**
-come from Heslář. **Callouts** are shared notes reused across stations. **Provenance actions** record who
-produced or verified an item, with which tool and from which sources.
+FAIR **principles**, identified by their published w3id IRIs. A **check** asks **questions**; each question tests
+principles, derives from clauses and points to the station where a gap is fixed. A named **test** inspects part of
+one question; an external evaluator's **criterion** relates to questions only through a reviewed **mapping** that
+states whole or partial coverage. **Resources** are offered at stations for given lenses, carry a status with an
+as-of date and link to published FER or FAIRsharing identifiers. **Glossary terms** come from Heslář. **Callouts**
+are shared notes reused across stations. The implementation model's **seams** cross its **layers** and are
+associated with questions and other items. **Provenance actions** record who produced or changed an item, with
+which instruments and from which sources. This is the one maintained entity-relationship diagram; the design
+document links here.
 
 ```mermaid
 erDiagram
   accTitle: Content model
-  accDescr: Stations contain advice items seen through lenses; advice cites clauses published in sources, and clauses serve FAIR principles. Checks test a principle, derive from clauses and are fixed at a station. Resources are offered at stations for lenses, glossary terms explain advice, callouts are shown at stations, and provenance actions record who produced advice and verified resources.
+  accDescr: Stations contain advice seen through lenses; advice and check questions cite clauses published in sources, and clauses serve FAIR principles. A check asks questions, each fixed at a station. Tests inspect part of a question; an external criterion relates to a question only through a reviewed mapping. Resources are offered at stations for lenses, glossary terms explain advice, callouts are shown at stations, model seams cross layers and are associated with questions, and provenance actions record who produced or changed items.
   STATION ||--o{ ADVICE : contains
   LENS ||--o{ ADVICE : "seen through"
   ADVICE }o--o{ CLAUSE : cites
   SOURCE ||--o{ CLAUSE : "published in"
   CLAUSE }o--o{ PRINCIPLE : serves
-  CHECK }o--|| PRINCIPLE : tests
-  CHECK }o--o{ CLAUSE : "derived from"
-  CHECK }o--|| STATION : "fixed at"
+  CHECK ||--o{ QUESTION : asks
+  QUESTION }o--o{ PRINCIPLE : tests
+  QUESTION }o--o{ CLAUSE : "derived from"
+  QUESTION }o--|| STATION : "fixed at"
+  TEST }o--|| QUESTION : "inspects part of"
+  CRITERION ||--o{ MAPPING : "reviewed as"
+  MAPPING }o--|| QUESTION : "covers whole or part of"
   RESOURCE }o--o{ STATION : "offered at"
   RESOURCE }o--o{ LENS : "aimed at"
   GLOSSARY_TERM }o--o{ ADVICE : explains
   CALLOUT }o--o{ STATION : "shown at"
-  ACTION }o--o{ ADVICE : produced
-  ACTION }o--o{ RESOURCE : verified
+  SEAM }o--o{ LAYER : crosses
+  SEAM }o--o{ QUESTION : "associated with"
+  ACTION }o--o{ QUESTION : "produced or changed"
+  ACTION }o--o{ ADVICE : "produced or changed"
 ```
 
 | Entity | What it is |
 | --- | --- |
-| Station | One of nine steps: Plán, Práce, Repozitář, Popis, Licence a přístup, Publikace, Dohledatelnost, Citace a uznání, Kontrola |
+| Station | A step of the path. The steps follow the seven stages of the RDMkit research data life cycle (`lifecycleStage`); every step belongs to a stage, the check to reuse |
 | Lens | One of four audiences: `V` researcher, `DS` data steward, `SR` repository administrator or curator, `K` community and FIP |
 | Level | `L0` one sentence and one action; `L1` steps; `L2` why (principles, requirements); `L3` sources and paradata |
 | Advice item | A piece of advice for one station, lens and level |
 | Clause | One requirement or statement from a published source, with a stable ID |
 | Source | A published document, dataset or web page that clauses come from; the approved model manuscript is a narrowly scoped exception |
 | Principle | A FAIR principle, identified by `https://w3id.org/fair/principles/terms/<ID>` |
-| Check | A self-check item with a tier, a principle, a fix location and an owner |
+| Check | A self-check for one lens or more, with its modes, profiles and questions |
+| Question | A self-check item with a tier, principles, a fix location and an owner |
+| Test | A named check of part of one question: a guide test run in the browser or a FAIR Champion test |
+| Criterion | An external evaluator's native criterion, kept with its own identifier and wording |
+| Mapping | A reviewed statement that a criterion covers a whole question or part of it, for named versions |
 | Resource | A service, tool, standard, guide or repository the guide recommends |
 | Glossary term | A term from Heslář, with its label and link |
 | Callout | A shared note (sensitive data, identifier verification), defined once and ordered by lens |
@@ -88,7 +105,7 @@ An identifier says where an entry belongs, not what it says:
 - **Borrowed records nest under their registry.** A record the guide takes from another registry keeps that
   registry's identifier, nested under the registry's own catalogue entry so that it always says whose it is, however
   many registries the guide draws on: a re3data record `re3data.r3d100013576`, a FIP or a FIP Dashboard record
-  `fip-dashboard.ndi-baseline`, a FAIR Champion test `fair-champion.fc_searchable`, a record found live in NKR
+  `fip-dashboard.ndi-baseline`, a FAIR Champion test `fair-champion.fc_searchable`, a repository only NKR lists
   `nkr.<its NKR ID>`. A vocabulary's term also says that it is a term: `t.<keeper>.<ID>`, so a Heslář term is
   `t.ntk.87` (NTK keeps Heslář), and a second vocabulary's terms take their keeper's code. The content files and
   snapshots hold the registry's identifier as it is (a glossary term's `id` is `87`); the catalogue, its links and its
@@ -209,11 +226,43 @@ Clause ID prefixes:
 | `E.*` | Other published papers, datasets and pages |
 | `G` | Glossary of the FAIR analysis |
 
+### Life-cycle models
+
+`content/lifecycle/` holds the research data life-cycle models the path is mapped to: one file per model
+(`<position>-<id>.toml`) and `crosswalk.toml`. The path follows the model `rdmkit` (`PATH_LIFECYCLE` in
+`scripts/build_crate.py`); a station names its stage in `lifecycleStage`.
+
+| Table | Fields |
+| --- | --- |
+| `[lifecycle]` | `id`, `position`, `source` (source ID), optional `czechSource` (the source of Czech names and definitions), bilingual `name`, optional `url` (the page that publishes the model; the landing links the path's model there) |
+| `[[stage]]` | `id`, bilingual `name`, `translated` (languages in which the name is the Guide's translation), `definition` (a string quoted from `source`, in its language), `translation` (for a stage of the path's model only: the Guide's Czech translation of `definition`, sentence for sentence), `czechDefinition` (a string quoted from `czechSource` with its stage label, "Plánování: …", for every stage of a model that has one), `locator`, optional `note` (quoted from `source`) |
+| `[[correspondence]]` in `crosswalk.toml` | `stages` (two `<model>.<stage>`: one of the path's model, one of another), `basis` (`published`, `reviewed`, `unconfirmed`), `source` and `locator` for a published or unconfirmed one, bilingual `note` saying why for a reviewed or unconfirmed one |
+
+A definition is quoted in its source's language. So that both languages state the same definition, a stage of the
+path's model also carries the Guide's Czech translation, which the page marks as a translation; the Czech source's
+own wording follows it as a quotation that keeps its stage label. Other models' definitions are shown only in their
+source's language. A file quoting a source under another licence keeps that licence in `REUSE.toml`, as the KNAV tools
+catalogue's steps keep GPL-3.0. The content checks require every stage of the path's model to correspond to a stage
+of each other model.
+
+A stage is a `DefinedTerm` `#lifecycle-<model>.<stage>` in its model's `DefinedTermSet` `#lifecycle-<model>`, with
+`description` (its definition, language-tagged), `descriptionTranslation` (the languages in which the description is
+the Guide's translation), `quotedDefinition` (the Czech source's wording), `citation`, `license` (its sources'
+licences) and `nameTranslation`. A correspondence is a `CreativeWork` `#crosswalk-<stage>_<stage>` in `#lifecycle-crosswalk`,
+with `about` (both stages), `mappingBasis`, `citation` and `description` (the note). `#path` names the path's model
+in `isBasedOn`. The names of the path's stages stay in `kb.js`, because the rail groups the steps under them and the
+landing's journey lists them; their definitions, the other models and the crosswalk load with `kb-model.js`. The
+stage a reader is in is derived from the step and never stored. The API publishes every model, stage and
+correspondence at `api/lifecycle/<identifier>.json`; the register and provenance use `lifecycle:<model>`,
+`<model>.<stage>` and `crosswalk:<stage>_<stage>`.
+
 ### Paradata
 
-Every change to an advice item, check or resource is covered by a provenance action following the Process
-Run Crate profile: `agent` (person, ORCID where available), `instrument` (tools, naming any AI model), `object`
-(sources consulted), `result` (items produced or changed) and `endTime`.
+Every item that needs paradata (`provenance_items` in `scripts/check_content.py`: the guide's metadata, clauses,
+advice, questions, resources, tests, organisations, the model and the life-cycle models) is covered by a provenance action following the
+Process Run Crate profile: `agent` (person, ORCID where available), `instrument` (tools, naming any AI model),
+`object` (sources consulted), `result` (items produced or changed) and `endTime`. A changed item needs an action
+newer than the point where the branch left the compared base.
 
 ### Statuses
 
@@ -237,15 +286,16 @@ A service or resource status uses the five-level vocabulary and always carries a
 
 | File | Holds |
 | --- | --- |
-| `content/guide.toml` | Guide metadata, people, organisations, instruments, lenses, levels, stages, vocabularies, help routes, landing tasks |
+| `content/guide.toml` | Guide metadata, people, organisations, instruments, lenses, levels, vocabularies, help routes, landing tasks |
 | `content/principles.toml` | The fifteen FAIR principles with their CoreTrustSeal and CDIF links |
 | `content/sources.toml` | Published sources |
 | `content/ledger.toml` | Clauses |
 | `content/stations/NN-<id>.toml` | One station and its advice items |
 | `content/checks/<id>.toml` | One self-check and its items |
+| `content/lifecycle/*.toml` | Research data life-cycle models and the crosswalk between them |
 | `content/resources.toml` | Resources |
 | `content/repositories.toml` | The curated repository list |
-| `content/snapshots/*.toml` | Dated snapshots of sources a browser cannot query (re3data, Heslář) |
+| `content/snapshots/*.toml` | Dated snapshots of sources a browser cannot query or that change slowly (re3data, the FIP Dashboard, NKR, the KNAV catalogue); FAIRsharing and DataCite snapshots hold `[[annotation]]` rows that join a listed repository by `re3data` or `url` and add its `fairsharing` record (with `fairsharingName`) or its `datacite` repository |
 | `content/glossary.toml` | Glossary terms |
 | `content/callouts.toml` | Shared callouts |
 | `content/live.toml` | Connectors, the FAIR Champion test set and its health |
@@ -270,6 +320,7 @@ publisher named like a curated organisation.
 | Table | Field | Type | Meaning |
 | --- | --- | --- | --- |
 | `[guide]` | `version` | string | Semantic version, the same as in `CHANGELOG.md` and `CITATION.cff` |
+| `[guide]` | `genericGuideUses` | list of strings | Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case; the content check accepts a lower-case form only inside one of them (D-177) |
 | | `releaseStatus` | string | `testing` until EOSC CZ agrees the guide, then `released`; drives the testing-phase notice |
 | | `testingNotice` | text | The notice shown on every view while the status is `testing` |
 | | `datePublished` | date | Date of the version |
@@ -285,12 +336,11 @@ publisher named like a curated organisation.
 | | `publisher`, `funder` | ID | Organisations from `[[organization]]` |
 | | `isBasedOn` | list of IDs | Sources the guide refreshes (the FAIR analysis) |
 | | `acknowledgement`, `aiStatement` | text | Mandatory NRP acknowledgement; statement on AI use |
-| `[[person]]` | `id`, `name`, `orcid`, `affiliation` | | A person; `orcid` is the full ORCID URL, `affiliation` a list of organisation IDs |
+| `[[person]]` | `id`, `name`, `orcid`, `affiliation`, `github`, `commitNames`, `orcidOptOut` | | A person; `orcid` is the full ORCID URL, `affiliation` a list of organisation IDs. `github` (account name) and `commitNames` (exact names the person commits under) are reviewed identities that `scripts/contributors.py` matches commits against; `orcidOptOut = true` records that the person asked not to list an ORCID iD, so none is stored or suggested |
 | `[[organization]]` | `id`, `name`, `url`, `ror`, `identifier`, `funder`, `fipDashboard` | | An organisation or project; all but `id` and `name` are optional; a Czech `name` is a table with its English name (from ROR where it has one); `fipDashboard` links the matching organisation of the FIP Dashboard snapshot |
 | `[[instrument]]` | `id`, `name`, `version`, `url`, `kind` | | A tool used in provenance actions; `kind` is `ai-model`, `software` or `service` |
 | `[[lens]]` | `id`, `name`, `description`, `icon` | | `V`, `DS`, `SR`, `K` |
 | `[[level]]` | `id`, `name`, `description`, `icon` | | `L0`–`L3`; the icon leads the level's heading on a station |
-| `[[stage]]` | `id`, `label`, `station`, `description`, `icon` | | An answer of the entry question, shown as a card, and the station it opens |
 | `[[actor]]` | `id`, `name`, `role` | | Who a clause addresses (`role = "clause"`) or who fixes a gap (`role = "owner"`) |
 | `[[status]]` | `id`, `name` | | The five-level status vocabulary |
 | `[[tier]]` | `id`, `name`, `description` | | Self-check tiers; the description completes the first view's sentence on what its tier means |
@@ -341,8 +391,9 @@ guidance.
 
 ### `stations/NN-<id>.toml`
 
-`[station]`: `id`, `position`, `name` (short label), `title`, `icon` (shown in the station header and on the rail),
-`principles`, `minutes`, `glossary` (term IDs).
+`[station]`: `id`, `position`, `lifecycleStage` (the stage of the path's life-cycle model the step belongs to;
+every step names one, the check `reuse`), `name` (short label), `title`, `icon` (shown in the station header
+and on the rail), `principles`, `minutes`, `glossary` (term IDs).
 
 `[[advice]]`:
 
@@ -391,7 +442,7 @@ block instead of by principle or path step.
 | `note` | text | An extra remark shown with the item |
 | `prefill` | table | Sources that can answer the item: `datacite`, `nkr`, `re3data` (the re3data snapshot), `champion`, `fip` (lists of fields, tests or FIP questions), `resolver` (boolean). A field is `name`, `list[].name`, `list[key=value]`, `list[key=value].name`, or `name=value` for a list that contains a value (case-insensitive). `@steward` in `datacite` looks for the data steward the user names by ORCID iD among the record's creators and contributors: found answers yes, not found no; without an ORCID iD a data curator or data manager contributor answers partly |
 | `prefillLevel` | string | `partly` when the evidence can only partly prove the statement; a pre-filled answer then never exceeds "partly" |
-| `championEvidenceOnly` | boolean | With named Champion tests, retain their verdicts and evidence without choosing an answer. Other prefill sources still work normally. Use when the tests inspect only a narrower part of the question; explain that limit in the bilingual help. |
+| `championEvidenceOnly` | boolean | With named Champion tests, treat them as covering only part of the question: they suggest Partly when that part is met and No when it fails, and other sources' evidence about the whole question outranks them. Use when the tests inspect only a narrower part of the question; explain that limit in the bilingual help. |
 | `lookup` | string | Key of a link in `[links]` of `live.toml` where the user can find out the answer; shown with a "don't know" task |
 
 ### `resources.toml`
@@ -399,8 +450,8 @@ block instead of by principle or path step.
 `[[resource]]`: `id`, `name` (text, or a string for a proper name), `description`, `url`, `type` (a
 `[[resourceType]]` of `guide.toml`: `service`, `tool`, `registry` (repository or registry), `guide`, `document`,
 `publication`, `standard`, `vocabulary`, `licence`, `policy`, `data`, `community`, `project`, `course`), `fipClass` (FAIR-enabling resource classes of the FIP ontology, such as `Identifier-service` or
-`Metadata-schema`), `fipDashboard` (the resource's ID in the FIP Dashboard), `status`, `asOf`, `lenses`,
-`stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs). A `course` at a station is that
+`Metadata-schema`), `fipDashboard` (the resource's ID in the FIP Dashboard), `knav` (the tool's ID in the KNAV
+Data Management Tools Catalogue), `status`, `asOf`, `lenses`, `stations`, `languages`, `sameAs` (FER nanopublication IRIs, FAIRsharing DOIs). A `course` at a station is that
 step's training: the station lists it among the help routes as "Školení k tomuto kroku", not as a resource card.
 
 `[resource.citation]` (when the guide also cites the resource): the fields of a `[[source]]` except `id`, `code` and
@@ -417,7 +468,10 @@ the path needs (name, link, lenses, stations) and shows the qualification from t
 Curated repositories the guide does not recommend as a resource. `[[repository]]`: `id`, `name`, `url`, `kind`
 (`domain`, `institutional`, `general`), `subjects` (text),
 `re3data` (re3data ID), `nkr` (NKR handle), `fairsharing` (DOI), `fipDashboard` (the repository's ID in the FIP
-Dashboard), `pidTypes`, `status`, `asOf`.
+Dashboard), `knav` (its ID in the KNAV tools catalogue), `datacite` (its repository ID in DataCite, such as
+`cern.zenodo`, for a repository the re3data snapshot does not hold; also allowed in `[resource.repository]`), `pidTypes`,
+`status`, `asOf`. A `[[source]]` that the KNAV
+catalogue lists carries `knav` too.
 
 `functions` on a repository or registry resource lists values of `[[repositoryFunction]]` in `guide.toml`:
 `deposit-data`, `deposit-publications`, `find-metadata`, `find-standards`, `find-repositories`, `find-support`.
@@ -425,28 +479,49 @@ The catalogue groups by meaning, irrespective of source; recommendation and veri
 Research-data repository records from re3data default to `deposit-data`. A registry is not a deposit destination
 unless its stated functions include depositing.
 
-`[[record]]` annotations in `repositories.toml` identify imported records by `re3data` and/or `fipDashboard`,
-carry their reviewed `functions` and HTTPS `evidence`, and can join records of the same thing across registries.
+`[[record]]` annotations in `repositories.toml` identify imported records by `re3data`, `fipDashboard` and/or `knav`,
+carry their reviewed `functions` (for a repository or registry) and HTTPS `evidence`, and can join records of the same
+thing across registries.
 They create no new entry and do not edit source snapshots. The content check refuses missing or repeated records,
 unknown functions and missing evidence; the duplicate check uses these identity links too. Similar names or hosts
 alone never join entries. Both borrowed identifiers still open the same visible entry. Provenance results can
 name annotated records by those borrowed identifiers.
 
+`[[re3dataInclude]]` in `repositories.toml` names a repository hosted in the Czech Republic that re3data does not
+tag with the country: `re3data` (its r3d identifier) and `reason` (why it belongs, with the evidence). The re3data
+snapshot adds these records to the country listing and marks each with a comment.
+
 Snapshots are generated by `scripts/refresh_snapshots.py` and never edited by hand. Each has a `[snapshot]` table
 with `source`, `url` and `retrieved` (and `license` where the source states one):
 
 - `snapshots/re3data.toml` lists `[[repository]]` entries with `id`, `name`, `url` (the re3data record when the home
-  page is not served over HTTPS), `kind`, `re3data`, `subjectsEn`, `pidTypes` and `languages`, and the facts the
+  page is not served over HTTPS), `kind`, `re3data`, `doi` (the DOI re3data registers for the record, by which
+  DataCite finds the repository), `subjectsEn`, `pidTypes` and `languages`, and the facts the
   maturity check can be filled in from: `apis` (API types), `dataLicenses`, `certificates`, `metadataStandards`,
   `policies` (names, leaving out none, other and unknown), and `versioning` and `qualityManagement` (booleans);
 - `snapshots/fip-dashboard.toml` adds `datasetName`, `datasetVersion`, `datasetUpdated` and, while the dashboard
   publishes one, `disclaimer`; it lists `[[resourceType]]`, `[[organization]]`, `[[resource]]` (with
-  `verification`: verifier, level, date) and `[[fip]]` (with `declarations`: principle, resource, status, note).
+  `verification`: verifier, level, date) and `[[fip]]` (with `declarations`: principle, resource, status, note);
+- `snapshots/knav-tools.toml`, the KNAV Data Management Tools Catalogue at its last commit (`datasetVersion`,
+  `datasetUpdated`), lists `[[tool]]` entries with `id`, `name`, `url` (or `httpUrl` for an address served only over
+  plain HTTP, which the page does not link), `steps` (stages of the `knav-tools` life-cycle model), `disciplines`
+  (the catalogue's discipline groups) and `description`. Like the catalogue, the file is licensed GPL-3.0
+  (`REUSE.toml`), and so is each tool's entity in the crate (`#knav-<id>`, with `lifecycleStage` and `discipline`).
+  A tool that a curated entry or a record annotation names is that entry (its entity's `sameAs`) and is listed once;
+  any other tool is listed among the resources as `knav.<id>`, reaches the guide's steps through the life-cycle
+  crosswalk, and is published in the API's `resources`.
+
+A catalogue becomes a snapshot only when it offers an open API and terms that permit reuse; otherwise it is a
+resource the guide links. The SSH Open Marketplace has an open API and is linked until a harvest is decided;
+OpenDOAR is linked only, because its API (Sherpa services) requires a key from a registered account; Infra Finder
+offers no export of its data and is linked only.
 
 ### `glossary.toml`
 
 `[glossary]`: `source`, `url`, `retrieved`, `license`. `[[term]]`: `id` (the term's ID in Heslář), `label` (text), `url`, and
-`definition` (text) only where the source's licence permits copying.
+`definition` (original text) and `definitionLanguage` (the source's language) only where the source's licence permits
+copying. Heslář definitions are retained in Czech under CC BY 4.0 with attribution and source links; the English
+labels are supplied by Heslář, and the Guide does not invent English definitions.
 
 ### `callouts.toml`
 
@@ -464,14 +539,28 @@ each format has its own outcome and source URL. External representations are ren
 `[[connector]]`: `id`, `name`, `origin` (scheme and host), `purpose`, and `browserAccess = false` for a service
 whose API does not admit the guide's origin yet (the page then uses its snapshot). The page calls no other host, and
 the Content Security Policy is generated from this list. `[links]`: base URLs the page builds links to (the FIP
-Dashboard, the NMA search, NKR, the DataCite Commons record page a dataset's evidence links to, and the EOSC CZ and OP JAK sites the header
+Dashboard, the NMA search, NKR, the DataCite Commons record page a dataset's evidence links to, a repository's DataCite
+Commons page and Metadata Dashboard, and the EOSC CZ and OP JAK sites the header
 and footer logos link to; the
 ministry's logo links to the funder's organisation `url`); the page scripts contain no URLs of their own. `[champion]`: `endpoint`, `maxParallel`, `timeoutSeconds`.
 `[[champion.test]]`: `id`, `principle`, `label`, `health` (`available`, `degraded`, `unavailable`), `asOf`.
 `[dmpStatus]`: `path` of the DMP.eosc.cz status summary on the status connector. `[nanopub]`: `path` of the SPARQL endpoint, `fipIri` (the IRI forms of a FIP, with `{code}` for the
-nanopublication's trusty URI code) and `query` (with `{fips}` where the page puts those IRIs). `[fairsharing]`:
-`prefix`, the DOI prefix of FAIRsharing records, which the page searches in DataCite by a repository's re3data record
-and address (FAIRsharing's own API needs a login); `[links]` `fairsharing` is where a failed search sends the user.
+nanopublication's trusty URI code) and `query` (with `{fips}` where the page puts those IRIs).
+
+`[providers]`: `script` (the deferred evaluator module) and `maxImportBytes` (the largest local report accepted).
+`[[provider]]` is one optional external evaluator: `id`, `name`, `resource` (its entry in `resources.toml`), `mode`
+(`service`, run from the browser through `connector` and the relative `path` with `{metric}` and `{target}`, bounded
+by `maxParallel` up to 4, `timeoutSeconds` up to 60 and `maxBytes`, with the native `scoreMax`; or `import`, a report
+the reader downloads from the provider and loads locally, with `maturityMax`, the top of its maturity scale, where
+the provider grades results by level), `versionPath` (where a service states its API version),
+`form`, `documentation`, `code`, `terms` (HTTPS links), `observed` (review date) and `reviewed` (the version
+combinations the mappings were reviewed against, each a table such as `{ api = "1.0" }` or
+`{ metric = "metrics_v0.8", specification = "https://doi.org/…" }`; an assessment matches only when it supplies every
+named value). `[[provider.metric]]`: `id` and `name` exactly as the provider publishes them, an existing FAIR
+`principle`, and the guide's bilingual `label`. `[[provider.mapping]]`: `metric`, `question`, `coverage` (`whole` or
+`partial`) and a bilingual `note` saying what the criterion covers. Only whole coverage, a reviewed version and a native
+pass suggest an answer; every other result is evidence. A metric without a mapping stays listed. Each criterion is a
+provenance item, `provider:<provider>.<metric>`, together with its mappings and the reviewed versions.
 
 ### `provenance.toml`
 
@@ -482,8 +571,20 @@ ID with that prefix), `endTime` (date-time with offset).
 ### `icons.toml`
 
 Icons are [Font Awesome Free](https://fontawesome.com/) solid icons (CC BY 4.0), named by their Font Awesome
-name. `[ui]` maps an interface role (`search`, `external`, `download`, `met`, `gap` and so on) to an icon; content
-files name their own icons in `icon` fields. `scripts/vendor_icons.py` copies exactly the named icons from the
+name. `[ui]` maps an interface role (`search`, `external`, `download`, `met`, `gap` and so on) to an icon; `[kind]`
+gives each catalogue kind its icon, shown in a disc of the kind's colour (`--kind-<kind>` in `assets/css/tokens.css`)
+in the kind facet and before an entry's title wherever the entry has no favicon of its own, while the entry's top
+strip carries the kind's colour, and `[relation]` gives each labelled row its icon, the catalogue
+card's rows and a model connection's detail rows alike; content files name their own icons in `icon` fields. A tool
+or service (resource types `service`, `tool` and `registry`, repositories, KNAV catalogue tools and the self-check's
+evaluators) is marked by one badge, the same in the catalogue, among a step's resources and in the self-check: the
+service's own favicon wherever one could be obtained, otherwise its catalogue kind's icon on the kind's colour.
+`scripts/vendor_favicons.py` asks each service's site for its favicon, normalises it once to a 48-pixel PNG
+(`scripts/normalise_favicons.mjs`, in the Playwright browser; a light icon made for dark tabs is set on a dark tile)
+and keeps only that, one per host, in `assets/favicons/` with `sources.toml` recording the address and date each was
+taken from; a code-hosting platform's favicon stands only for its own home page, never for a tool hosted there. The
+favicons stay outside the guide's licences (`LicenseRef-Service-Favicons`). `scripts/vendor_icons.py` copies exactly
+the named icons from the
 pinned npm package into `assets/icons/`, and the generator inlines them as one hidden SVG sprite. The content
 check reports an icon that is named but not vendored.
 
@@ -491,7 +592,9 @@ check reports an icon that is named but not vendored.
 
 `[[page]]`: `id`, `title`, `menu` (`catalogue`, `tools` or `about`: the main-menu item the page sits under, or `header`: a
 button with the page's title and icon beside the language switch, marked while the page is open; required, so every
-page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `helper` (true
+page can be reached), `icon` and `description` (for a tools page, shown on its card in the tools view), `group` (for a
+tools page, required: `tool` for an interactive helper or `guidance` for a how-to; the tools view shows the two as
+separate sections, helpers first), `helper` (true
 for a page that holds an interactive helper; until the page script provides it, the page says it is still being
 built), `[[page.section]]` with `heading`, `body` (text; paragraphs are separated by a blank line, and a block
 whose lines all start with a `-` and a space is shown as a list, an item's short lead before a colon in bold), an optional `id` and an optional `action` (a `label` and an
@@ -512,8 +615,8 @@ profile 0.5. Schema.org types and properties are used wherever they fit; the gui
 | Content | `@type` | `@id` | Main properties |
 | --- | --- | --- | --- |
 | Guide | `Dataset` (root) | `./` | `name`, `description`, `version`, `datePublished`, `license`, `author`, `contributor`, `publisher`, `funder`, `isBasedOn`, `mainEntity`, `about`, `mentions`, `conformsTo` |
-| Path | `HowTo` | `#path` | `step` |
-| Station | `HowToSection` | `#station-<id>` | `name`, `headline`, `position`, `about`, `timeRequired`, `itemListElement`, `hasPart` (callouts), `mentions` (resources, terms) |
+| Path | `HowTo` | `#path` | `step`, `isBasedOn` (the life-cycle model it follows) |
+| Station | `HowToSection` | `#station-<id>` | `name`, `headline`, `position`, `about`, `timeRequired`, `itemListElement`, `hasPart` (callouts), `mentions` (resources, terms), `lifecycleStage` |
 | Advice item | `HowToDirection` (L0, L1), `HowToTip` (L2, AI overlay) | `#advice-<id>` | `text`, `position`, `audience`, `disclosureLevel`, `citation`, `isPartOf`, `potentialAction`, `adviceKind`, `checkAfter`, `promptSample` |
 | Lens | `Audience` | `#lens-<id>` | `name`, `audienceType` |
 | Level, tier, status, actor, profile, mode | `DefinedTerm` | `#<set>-<id>` | `name`, `termCode`, `inDefinedTermSet` |
@@ -529,8 +632,13 @@ profile 0.5. Schema.org types and properties are used wherever they fit; the gui
 | FER (FIP Dashboard snapshot) | `CreativeWork` with a FIP class as `additionalType` | `#fer-<id>` | `identifier`, `name`, `description`, `url`, `catalogueType`, `about`, `provider`, `review` (verifications as `Review`), `sameAs`, `isBasedOn` |
 | FIP (FIP Dashboard snapshot) | `CreativeWork` with `additionalType` `fip:FAIR-Implementation-Profile` | `#fip-<id>` | `name`, `abstract`, `version`, `dateModified`, `creativeWorkStatus`, `author`, `review`, `hasPart` (declarations), `isBasedOn` |
 | FAIR Champion test | `CreativeWork` with `additionalType` `ftr:Test` | `#test-<id>` | `identifier`, `url`, `about`, `healthStatus`, `statusAsOf` |
+| External evaluator criterion | `CreativeWork` with `additionalType` `ftr:Test` | `#criterion-<provider>-<metric>`; API `tests/<resource>.<metric>` | `identifier`, `name` (the provider's wording, `en`), `alternateName` (the guide's label), `about`, `isPartOf` (the provider's resource), `url` (invocation or form), `subjectOf`, `reviewedVersion`, `hasPart` (mappings) |
+| Criterion mapping | `CreativeWork` | `#mapping-<provider>-<metric>-<question>` | `about` (the question), `isBasedOn` (the criterion), `mappingCoverage`, `reviewedVersion`, `description` |
 | Provenance action | `CreateAction`, `UpdateAction` | `#action-<id>` | `name`, `description`, `agent`, `instrument`, `object`, `result`, `endTime`, `actionStatus` |
 | Instrument | `SoftwareApplication` | `#instrument-<id>` | `name`, `version`, `url`, `applicationCategory` |
+| Life-cycle model | `DefinedTermSet` | `#lifecycle-<model>` | `identifier`, `name`, `position`, `citation`, `hasDefinedTerm` |
+| Life-cycle stage | `DefinedTerm` | `#lifecycle-<model>.<stage>` | `identifier`, `termCode`, `name`, `description`, `descriptionTranslation`, `quotedDefinition`, `nameTranslation`, `note`, `position`, `inDefinedTermSet`, `citation`, `license` |
+| Correspondence | `CreativeWork` | `#crosswalk-<stage>_<stage>` | `identifier`, `name`, `about`, `mappingBasis`, `citation`, `description`, `isPartOf` |
 
 Language-dependent values are JSON-LD value objects with `@language`. A property with one value holds it
 directly; with several, a list. The page reads the graph directly; it does not need a JSON-LD processor.
@@ -567,6 +675,7 @@ both from `ui.js` for its links.
 | `organizations` | curated organisations | organisation ID |
 | `fips` | FIP profiles from the dashboard snapshot, with their declarations | profile ID |
 | `changes` | provenance actions | action ID |
+| `lifecycle` | life-cycle models, their stages and the crosswalk's correspondences | `rdmkit`, `rdmkit.reuse`, `rdmkit.reuse_maldreth.access` |
 
 A record is its crate entity with language maps (`{"cs": …, "en": …}`) in place of value lists. Links to other
 records are paths relative to the record. A part without a record of its own (advice and its steps, callouts, FIP

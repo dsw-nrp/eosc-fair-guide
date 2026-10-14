@@ -5,7 +5,7 @@
 id = "dataset"
 name = { cs = "Kontrola datové sady", en = "Dataset check" }
 icon = "magnifying-glass-chart"
-description = { cs = "Jak FAIR je vaše datová sada? Před zveřejněním projdete otázky k plánu, po zveřejnění otázky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a průvodce nepočítá žádné skóre.", en = "How FAIR is your dataset? Before publication you go through questions about the plan, after publication questions about the published record. Your answers stay in your browser, and the guide computes no score." }
+description = { cs = "Jak FAIR je vaše datová sada? Před zveřejněním projdete otázky k plánu, po zveřejnění otázky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a Průvodce nepočítá žádné skóre.", en = "How FAIR is your dataset? Before publication you go through questions about the plan, after publication questions about the published record. Your answers stay in your browser, and the Guide computes no score." }
 lenses = ["V", "DS"]
 minutes = 5
 modes = ["before", "after"]
@@ -62,7 +62,7 @@ tier = "recommended"
 principles = ["R1.2"]
 statement = { cs = "Data průběžně dokumentujete (README, záznam postupu).", en = "You document the data as you go (README, a record of how they were made)." }
 sources = ["A.R1.2.X1", "CESSDA-DMEG.01"]
-fixAt = "work"
+fixAt = "collect"
 owner = ["user"]
 modes = ["before"]
 
@@ -88,7 +88,7 @@ owner = ["repository-admin"]
 modes = ["after"]
 prefill = { resolver = true, datacite = ["doi"], champion = ["fc_unique_identifier", "test_FM_F1_M_IdentPersistent"] }
 championEvidenceOnly = true
-help = { cs = "Testy porovnají identifikátor se známými schématy. Zkontrolujte také, kdo identifikátor spravuje a zajišťuje jeho trvalost; u Handle může test vrátit neurčitý výsledek.", en = "The tests compare the identifier with known schemes. Also check who manages the identifier and maintains its persistence; for a Handle, the test may return an indeterminate result." }
+help = { cs = "Testy porovnají identifikátor se známými schématy, a když projdou, navrhnou jen Částečně: kdo identifikátor spravuje a zajišťuje jeho trvalost, neověřují, to zkontrolujte sami. U Handle může test vrátit neurčitý výsledek.", en = "The tests compare the identifier with known schemes, and when they pass they suggest only Partly: they do not check who manages the identifier and maintains its persistence, so check that yourself. For a Handle, the test may return an indeterminate result." }
 
 [[item]]
 id = "dataset.02"
@@ -198,7 +198,7 @@ tier = "recommended"
 principles = ["I1", "R1"]
 statement = { cs = "Soubory jsou v otevřených nebo rozšířených formátech a mají README nebo datový slovník.", en = "The files are in open or widely used formats and have a README or a data dictionary." }
 sources = ["A.I1.X1", "CESSDA-DMEG.01"]
-fixAt = "work"
+fixAt = "process"
 owner = ["user"]
 modes = ["after"]
 prefill = { datacite = ["formats"] }
@@ -227,7 +227,7 @@ modes = ["after"]
 allowNotApplicable = true
 prefill = { datacite = ["relatedIdentifiers[relationType=IsCitedBy]"], champion = ["community_data_cited_in_pub"] }
 championEvidenceOnly = true
-help = { cs = "Test hledá odkazy na identifikátor v OpenAlex a OpenCitations. Pokud nic nenajde, citace může být mimo jejich záběr. Odpověď ověřte přímo v článku nebo v prohlášení o dostupnosti dat.", en = "The test searches OpenAlex and OpenCitations for references to the identifier. A citation may fall outside their coverage even if nothing is found. Verify the answer in the article or its data availability statement." }
+help = { cs = "Test hledá odkazy na identifikátor v OpenAlex a OpenCitations. Když citaci najde, navrhne Částečně; když nenajde nic, navrhne Ne, ale citace může být mimo jejich záběr. Odpověď ověřte přímo v článku nebo v prohlášení o dostupnosti dat.", en = "The test searches OpenAlex and OpenCitations for references to the identifier. When it finds a citation it suggests Partly; when it finds nothing it suggests No, but a citation may fall outside their coverage. Verify the answer in the article or its data availability statement." }
 
 [[item]]
 id = "dataset.14"
@@ -332,7 +332,7 @@ id = "dataset.27"
 tier = "minimum"
 principles = []
 statement = { cs = "Data steward, který se na datové sadě podílel, je v metadatech uveden jako autor nebo přispěvatel.", en = "The data steward who worked on the dataset is named in the metadata as a creator or contributor." }
-help = { cs = "Zadejte jeho ORCID iD u předvyplnění a průvodce ho v metadatech DataCite vyhledá.", en = "Enter their ORCID iD with the pre-fill, and the guide looks for it in the DataCite metadata." }
+help = { cs = "Zadejte jeho ORCID iD u předvyplnění a Průvodce ho v metadatech DataCite vyhledá.", en = "Enter their ORCID iD with the pre-fill, and the Guide looks for it in the DataCite metadata." }
 sources = ["OS3-RULES.24"]
 fixAt = "citation"
 owner = ["data-steward"]

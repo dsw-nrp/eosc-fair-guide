@@ -130,7 +130,7 @@ type = "community"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["plan", "work"]
+stations = ["plan", "collect"]
 languages = ["cs"]
 
 [resource.citation]
@@ -161,7 +161,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["work", "metadata"]
+stations = ["collect", "metadata"]
 languages = ["en"]
 
 [resource.citation]
@@ -182,7 +182,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["en"]
 
 [resource.citation]
@@ -202,7 +202,7 @@ fipClass = ["FAIR-Training-Material"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["en"]
 
 [resource.citation]
@@ -222,7 +222,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["V", "DS"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["en"]
 
 [[resource]]
@@ -234,7 +234,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["en"]
 
 [[resource]]
@@ -246,7 +246,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS", "SR"]
-stations = ["work", "licence"]
+stations = ["process", "licence"]
 languages = ["en"]
 
 [[resource]]
@@ -258,7 +258,7 @@ type = "tool"
 status = "pilot"
 asOf = 2026-10-08
 lenses = ["V", "SR"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["cs", "en"]
 
 [resource.citation]
@@ -277,7 +277,7 @@ type = "document"
 status = "pilot"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["work"]
+stations = ["analyse"]
 languages = ["en"]
 
 [resource.citation]
@@ -297,7 +297,7 @@ fipClass = ["FAIR-Training-Material"]
 status = "operational"
 asOf = 2026-10-08
 lenses = ["DS"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["cs"]
 
 [resource.citation]
@@ -316,7 +316,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = "*"
-stations = ["plan", "work", "metadata", "assessment"]
+stations = ["plan", "process", "analyse", "metadata", "assessment"]
 languages = ["en"]
 
 [resource.citation]
@@ -330,7 +330,7 @@ dateAccessed = 2026-10-08
 id = "nkr"
 functions = ["find-repositories"]
 name = { cs = "Národní katalog repozitářů (NKR)", en = "National Repository Catalogue (NKR)" }
-description = { cs = "Katalog repozitářů zapojených do národní datové infrastruktury, s otevřeným API.", en = "Catalogue of repositories in the national data infrastructure, with an open API." }
+description = { cs = "Katalog repozitářů zapojených do Národní datové infrastruktury, s otevřeným API.", en = "Catalogue of repositories in the National Data Infrastructure, with an open API." }
 url = "https://repo.cz"
 type = "registry"
 fipClass = ["Registry"]
@@ -383,7 +383,21 @@ inLanguage = "en"
 dateAccessed = 2026-10-10
 
 [[resource]]
+id = "opendoar"
+functions = ["find-repositories"]
+name = "OpenDOAR"
+description = { cs = "Celosvětový adresář repozitářů s otevřeným přístupem, který vede Jisc. Zařazuje repozitáře publikací, kvalifikačních prací i dat, jejichž obsah je dostupný bez poplatku a bez registrace.", en = "Worldwide directory of open access repositories, run by Jisc. It lists repositories of publications, theses and data whose content is available without payment or registration." }
+url = "https://opendoar.ac.uk/"
+type = "registry"
+status = "operational"
+asOf = 2026-10-13
+lenses = ["V", "DS", "SR"]
+stations = ["repository"]
+languages = ["en"]
+
+[[resource]]
 id = "fairsharing"
+knav = "fairsharing"
 functions = ["find-standards", "find-repositories"]
 name = "FAIRsharing"
 description = { cs = "Registr standardů, databází a politik.", en = "Registry of standards, databases and policies." }
@@ -427,6 +441,7 @@ dateAccessed = 2026-10-08
 
 [resource.repository]
 kind = "general"
+datacite = "kdby.damqif"
 subjects = { cs = "všechny obory", en = "all fields" }
 pidTypes = ["DOI"]
 
@@ -769,7 +784,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 [[resource]]
 id = "deposit-licence"
 name = { cs = "Vzor depoziční licence", en = "Deposit licence template" }
-description = { cs = "Vzorová smlouva o uložení dat v repozitáři.", en = "A template agreement for depositing data in a repository." }
+description = { cs = "Vzorové licenční podmínky, jimiž vkladatel uděluje repozitáři oprávnění data uložit a zpřístupnit; repozitář je může upravit nebo nahradit ujednáním ve své politice.", en = "Model licence conditions by which a depositor grants a repository the right to store and provide data; a repository can adapt them or replace them by provisions in its policy." }
 url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence"
 type = "document"
 status = "operational"
@@ -1327,6 +1342,7 @@ dateAccessed = 2026-10-08
 
 [[resource]]
 id = "argos"
+knav = "argos"
 name = "ARGOS"
 description = { cs = "Platforma OpenAIRE a EUDAT pro tvorbu plánů správy dat (DMP).", en = "The OpenAIRE and EUDAT platform for writing data management plans (DMPs)." }
 url = "https://argos.openaire.eu/splash/"
@@ -1339,6 +1355,7 @@ languages = ["en"]
 
 [[resource]]
 id = "dmponline"
+knav = "dmponline"
 name = "DMPonline"
 description = { cs = "Nástroj britského Digital Curation Centre pro tvorbu plánů správy dat (DMP).", en = "The UK Digital Curation Centre's tool for writing data management plans (DMPs)." }
 url = "https://dmponline.dcc.ac.uk/"
@@ -1348,6 +1365,18 @@ asOf = 2026-10-09
 lenses = ["V", "DS"]
 stations = ["plan"]
 languages = ["en"]
+
+[[resource]]
+id = "avcr-fair-wizard"
+knav = "fw"
+name = { cs = "FAIR Wizard AV ČR", en = "FAIR Wizard of the Czech Academy of Sciences" }
+description = { cs = "Instance Data Stewardship Wizard pro výzkumníky pracovišť Akademie věd ČR: plán správy dat podle dotazníku, spolupráce s kolegy a export pro poskytovatele.", en = "The Data Stewardship Wizard instance for researchers at the institutes of the Czech Academy of Sciences: a data management plan built from a questionnaire, shared with colleagues and exported for funders." }
+url = "https://avcr.fair-wizard.com/"
+type = "service"
+status = "operational"
+asOf = 2026-10-13
+lenses = ["V", "DS"]
+stations = ["plan"]
 
 [[resource]]
 id = "he-dmp-template"
@@ -1370,7 +1399,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["work"]
+stations = ["analyse"]
 languages = ["cs"]
 
 [[resource]]
@@ -1382,7 +1411,7 @@ type = "service"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS"]
-stations = ["work"]
+stations = ["analyse"]
 languages = ["cs"]
 
 [[resource]]
@@ -1580,7 +1609,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["cs"]
 
 [[resource]]
@@ -1592,7 +1621,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work"]
+stations = ["process"]
 languages = ["cs"]
 
 [[resource]]
@@ -1604,7 +1633,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-09
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work"]
+stations = ["analyse"]
 languages = ["cs"]
 
 [[resource]]
@@ -1664,7 +1693,7 @@ type = "standard"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "licence", "publication", "citation"]
+stations = ["analyse", "licence", "publication", "citation"]
 languages = ["en"]
 [resource.citation]
 type = "article"
@@ -1688,7 +1717,7 @@ type = "standard"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "licence", "publication", "citation"]
+stations = ["analyse", "licence", "publication", "citation"]
 languages = ["en"]
 [resource.citation]
 type = "standard"
@@ -1707,7 +1736,7 @@ type = "publication"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "licence", "publication", "citation"]
+stations = ["analyse", "licence", "publication", "citation"]
 languages = ["en"]
 [resource.citation]
 type = "article"
@@ -1723,6 +1752,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 
 [[resource]]
 id = "software-heritage"
+knav = "softwareheritage"
 code = "SWH"
 name = "Software Heritage"
 description = { cs = "Archiv zdrojového kódu; SWHID odkazuje na přesný archivovaný obsah.", en = "A source-code archive; an SWHID references precise archived content." }
@@ -1731,7 +1761,7 @@ type = "registry"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "licence", "publication", "citation"]
+stations = ["analyse", "licence", "publication", "citation"]
 languages = ["en"]
 functions = ["preserve-software", "find-support"]
 [resource.citation]
@@ -1750,7 +1780,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "licence", "publication", "citation"]
+stations = ["analyse", "licence", "publication", "citation"]
 languages = ["en"]
 [resource.citation]
 type = "webpage"
@@ -1768,7 +1798,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "licence", "publication", "citation"]
+stations = ["analyse", "licence", "publication", "citation"]
 languages = ["en"]
 [resource.citation]
 type = "webpage"
@@ -1786,7 +1816,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "metadata", "publication"]
+stations = ["collect", "metadata", "publication"]
 languages = ["cs"]
 [resource.citation]
 type = "document"
@@ -1804,7 +1834,7 @@ type = "course"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "metadata", "publication"]
+stations = ["collect", "metadata", "publication"]
 languages = ["cs"]
 [resource.citation]
 type = "webpage"
@@ -1814,6 +1844,7 @@ dateAccessed = 2026-10-10
 
 [[resource]]
 id = "kadi4mat"
+knav = "kadi"
 code = "KADI4MAT"
 name = "Kadi4Mat"
 description = { cs = "Výzkumný deník a správa dat a pracovních postupů; národní integraci připravuje projekt OS II.", en = "A research notebook and data/workflow management tool; the OS II project is developing its national integration." }
@@ -1822,7 +1853,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "metadata", "publication"]
+stations = ["collect", "metadata", "publication"]
 languages = ["en"]
 [resource.citation]
 type = "webpage"
@@ -1832,6 +1863,7 @@ dateAccessed = 2026-10-10
 
 [[resource]]
 id = "elabftw"
+knav = "elab"
 code = "ELABFTW"
 name = "eLabFTW"
 description = { cs = "Elektronický laboratorní deník; národní integraci připravuje projekt OS II.", en = "An electronic laboratory notebook; the OS II project is developing its national integration." }
@@ -1840,7 +1872,7 @@ type = "tool"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "metadata", "publication"]
+stations = ["collect", "metadata", "publication"]
 languages = ["en"]
 [resource.citation]
 type = "webpage"
@@ -1858,7 +1890,7 @@ type = "document"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "metadata", "publication"]
+stations = ["collect", "metadata", "publication"]
 languages = ["en"]
 [resource.citation]
 type = "webpage"
@@ -1876,7 +1908,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "metadata", "publication"]
+stations = ["process", "metadata", "publication"]
 languages = ["en"]
 [resource.citation]
 type = "webpage"
@@ -1894,7 +1926,7 @@ type = "standard"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS", "SR", "K"]
-stations = ["work", "metadata", "publication"]
+stations = ["process", "metadata", "publication"]
 languages = ["en"]
 [resource.citation]
 type = "standard"
@@ -1917,7 +1949,7 @@ type = "guide"
 status = "operational"
 asOf = 2026-10-10
 lenses = ["V", "DS"]
-stations = ["work"]
+stations = ["collect"]
 languages = ["en"]
 
 [resource.citation]
@@ -1947,3 +1979,30 @@ title = "Upload software manually"
 inLanguage = "en"
 publisher = "CERN"
 dateAccessed = 2026-10-10
+
+[[resource]]
+id = "ssh-open-marketplace"
+knav = "openmarketplace"
+functions = ["find-support"]
+name = "SSH Open Marketplace"
+description = { cs = "Katalog nástrojů, služeb, výukových materiálů, datových sad, publikací a pracovních postupů pro společenské a humanitní vědy, který spravují výzkumné infrastruktury DARIAH, CLARIN a CESSDA. Má otevřené API.", en = "Catalogue of tools, services, training materials, datasets, publications and workflows for the social sciences and humanities, maintained by the DARIAH, CLARIN and CESSDA research infrastructures. It has an open API." }
+url = "https://marketplace.sshopencloud.eu/"
+type = "registry"
+status = "operational"
+asOf = 2026-10-13
+lenses = ["V", "DS", "K"]
+stations = ["plan", "process", "analyse"]
+languages = ["en"]
+
+[[resource]]
+id = "infra-finder"
+functions = ["find-support"]
+name = "Infra Finder"
+description = { cs = "Adresář otevřených infrastruktur pro vědu, například repozitářového softwaru, který je umožňuje porovnat vedle sebe. Pomáhá institucím a knihovnám rozhodnout, kterou infrastrukturu zavést nebo podpořit. Provozuje ho Invest in Open Infrastructure.", en = "Directory of open research infrastructure, such as repository software, that compares them side by side. It helps institutions and libraries decide which infrastructure to adopt or invest in. Run by Invest in Open Infrastructure." }
+url = "https://infrafinder.investinopen.org/"
+type = "registry"
+status = "operational"
+asOf = 2026-10-13
+lenses = ["DS", "SR"]
+stations = ["repository"]
+languages = ["en"]

@@ -118,7 +118,8 @@ for (const file of files.filter((name) => name.endsWith(".json"))) {
     const [path, fragment] = link.split("#");
     const target = path ? posix(join(dirname(file), path)) : file;
     if (target === "ro-crate-metadata.json") {
-      if (fragment && !crateIds.has("#" + fragment)) fail(`${file}: ${link} names no entity of the crate`);
+      /* A topic target (`#resources?station=assessment`) names its list; the content check checks the topic. */
+      if (fragment && !crateIds.has("#" + fragment.split("?")[0])) fail(`${file}: ${link} names no entity of the crate`);
       return;
     }
     if (target === "." || target === "./") return; // the guide's page, with a route in the fragment

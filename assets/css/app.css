@@ -1,5 +1,43 @@
 /* Layout and components of the FAIR data guide. Light theme only; reflows down to 320 CSS pixels. */
 
+/* Plus Jakarta Sans (SIL OFL 1.1) for the life cycle's stage names, in the Latin and Latin Extended subsets Czech and
+   English need; vendored by scripts/vendor_fonts.py, loaded only where it is used. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-ext-700-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-800-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-ext-800-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 *,
 *::before,
 *::after {
@@ -202,6 +240,18 @@ textarea {
   padding: var(--space-1) var(--space-2);
   min-height: 2.5rem;
   max-width: 100%;
+}
+
+/* A hidden element stays hidden whatever display its component sets; the browser's own rule loses to any author
+   rule, such as the inline-flex of a button. */
+[hidden] {
+  display: none !important;
+}
+
+/* The reason a control is inactive, shown beside it while it waits. */
+.control-reason {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
 }
 
 button,
@@ -446,75 +496,6 @@ button:hover,
   align-content: start;
 }
 
-.stage-switch {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-}
-
-.stage-switch summary {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0 var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  cursor: pointer;
-  list-style: none;
-}
-
-.stage-switch summary::-webkit-details-marker {
-  display: none;
-}
-
-.stage-switch summary .muted {
-  grid-column: 1 / -1;
-}
-
-.stage-switch-action {
-  align-self: end;
-  color: var(--tint-teal);
-  text-decoration: underline;
-}
-
-.stage-switch ul {
-  list-style: none;
-  margin: 0;
-  padding: 0 var(--space-2) var(--space-2);
-  display: grid;
-  gap: var(--space-1);
-}
-
-.stage-switch button {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-start;
-  width: 100%;
-  padding: var(--space-2);
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  background: var(--background);
-  color: var(--text);
-  text-align: left;
-  font: inherit;
-}
-
-/* The icon sits on the middle of the label's first line, however many lines the label takes. */
-.stage-switch button .icon {
-  margin-top: calc((1lh - 1.1em) / 2);
-}
-
-.stage-switch button:hover {
-  border-color: var(--tint-teal);
-}
-
-.stage-switch button[aria-pressed="true"] {
-  border-color: var(--tint-teal);
-  font-weight: 700;
-}
-
-.stage-switch .icon {
-  color: var(--tint-teal);
-}
-
 .rail a {
   display: grid;
   grid-template-columns: var(--rail-number) var(--rail-icon) minmax(0, 1fr) auto;
@@ -544,6 +525,56 @@ button:hover,
   font-weight: 700;
 }
 
+/* The steps under their numbered life-cycle stages; the stage of the step being read is marked in its colour. */
+.rail .rail-stages {
+  gap: var(--space-2);
+}
+
+.rail .rail-stage ol {
+  padding: 0;
+  border: 0;
+}
+
+.rail-stage {
+  border-left: 3px solid transparent;
+}
+
+.rail-stage-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  padding: 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.rail-stage-number,
+.journey-number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: var(--stage);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.rail-stage-number {
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 0.75rem;
+}
+
+.rail .current-stage {
+  border-left-color: var(--stage);
+}
+
+.rail .current-stage > .rail-stage-name {
+  color: var(--text);
+}
+
 .rail-mobile {
   margin: 0;
 }
@@ -564,44 +595,102 @@ button:hover,
   }
 }
 
-.rail .earlier a {
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
-  color: var(--text-muted);
-  font-size: var(--size-small);
-}
-
 .rail .number {
   color: var(--tint-teal);
   font-weight: 700;
 }
 
-.rail .gap-mark {
-  margin-left: auto;
+/* The self-check's marks at a step: one per open answer state, in the self-check's icon and colour, on their own
+   line under the step's name, so several checks' marks never squeeze the name. */
+.rail-marks {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 3 / -1;
+  gap: 0.25rem;
+  margin-top: -0.15rem;
+}
+
+.rail-hide-checks .rail-marks {
+  display: none;
+}
+
+.rail-checks-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  min-height: 1.5rem;
+  font-size: var(--size-small);
+}
+
+.rail-checks-toggle input {
+  margin: 0;
+  flex: none;
+}
+
+.rail-mark {
+  display: inline-block;
   min-width: 1.5rem;
-  padding: 0 var(--space-2);
+  padding: 0 0.35rem;
   border-radius: 1rem;
-  background: var(--tint-pink);
+  background: var(--state-unknown);
   color: #ffffff;
   font-size: var(--size-small);
   font-weight: 700;
+  line-height: 1.5;
   text-align: center;
 }
 
+.rail-mark[data-state="gap"] {
+  background: var(--state-gap);
+}
+
+.rail-mark[data-state="partly"] {
+  background: var(--state-partly);
+}
+
+/* The rail's legend, always below it. */
 .rail-legend {
-  display: grid;
-  grid-template-columns: var(--rail-number) var(--rail-icon) minmax(0, 1fr);
-  gap: var(--space-2);
-  align-items: center;
-  margin: var(--space-2) 0 0;
-  padding: var(--space-1) var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-2) 0;
+  border-top: 1px solid var(--border);
   font-size: var(--size-small);
 }
 
-.rail-legend .gap-mark {
-  grid-column: 2;
-  justify-self: center;
-  margin-left: 0;
+.rail-legend-title {
+  margin: 0 0 var(--space-1);
+  font-weight: 700;
+}
+
+.rail-legend ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.rail-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rail-legend li > :first-child {
+  flex: none;
+}
+
+.legend-current {
+  width: 1.5rem;
+  height: 1.1rem;
+  border-radius: 3px;
+  background: var(--surface-strong);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.rail-legend-note {
+  margin: 0;
+  color: var(--text-muted);
 }
 
 .rail-legend a {
@@ -613,34 +702,208 @@ button:hover,
   text-decoration: underline;
 }
 
+/* The life cycle on the path's start: a ring of the stages and, beside it, the same stages as a numbered list. */
+.journey {
+  margin-top: var(--space-6);
+}
+
+.journey-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 52rem) {
+  .journey-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.journey-ring {
+  margin: 0;
+  container: ring / inline-size;
+}
+
+.journey-ring svg {
+  display: block;
+  width: 100%;
+  max-width: 46rem;
+  height: auto;
+  margin: 0 auto;
+}
+
+.ring-stage {
+  cursor: pointer;
+}
+
+/* Each segment in its stage's colour, parted from the next by a thin white line, with a sheen towards the outer
+   edge; the name beside it in the same colour. */
+.ring-segment path {
+  fill: var(--stage);
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.ring-segment .ring-sheen {
+  stroke: none;
+  pointer-events: none;
+}
+
+/* Copies of the stage read last and of the stage pointed at are drawn above the whole ring, so each lies over both
+   its neighbours; the pointer passes through them to the segment they copy. */
+.ring-top {
+  pointer-events: none;
+}
+
+.ring-top-last {
+  filter: url(#ring-lift);
+}
+
+/* The segment under the pointer, or whose stage has focus in the list, grows in place over its neighbours with a
+   deeper shadow. */
+.ring-top-hover {
+  transform-box: view-box;
+  transform: scale(1.1);
+  filter: url(#ring-pop) brightness(1.06);
+}
+
+/* The ring's text in Plus Jakarta Sans, falling back to the page's font until it has loaded. Set by class, so the
+   copy of a segment drawn above the ring keeps it too. */
+.ring-number,
+.ring-label,
+.ring-note,
+.ring-center,
+.ring-basis {
+  font-family: "Plus Jakarta Sans", var(--font);
+}
+
+.ring-number {
+  fill: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.ring-label {
+  fill: var(--stage);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.ring-note {
+  fill: var(--text-muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* The middle: a quiet disc with the cycle's mark, the title and the model it follows. */
+.ring-disc {
+  fill: var(--surface);
+}
+
+.ring-cycle {
+  color: var(--brand-teal);
+}
+
+.ring-center {
+  fill: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.ring-basis {
+  fill: var(--text-muted);
+  font-size: 14px;
+}
+
+/* In a narrow column the names would be too small to read or crowd the ring; the list beside or below the ring
+   names every stage, so the names leave as soon as the ring's own width is under 36rem. */
+@container ring (max-width: 36rem) {
+  .ring-label,
+  .ring-note {
+    display: none;
+  }
+}
+
+.journey-stages {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each stage reads as a row: its number and name centred on the left, its steps listed on the right behind a rule. */
+.journey-stages > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--stage);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+
+.journey-stages > .journey-last {
+  background: var(--surface-strong);
+  box-shadow: inset 0 0 0 2px var(--stage);
+}
+
+.journey-stage-head {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+}
+
+.journey-stage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.journey-stage:hover strong {
+  text-decoration: underline;
+}
+
+.journey-number {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: var(--size-small);
+}
+
+.journey-steps {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 1px solid var(--border);
+  list-style: none;
+  font-size: var(--size-small);
+}
+
+.journey-steps .icon {
+  margin-right: var(--space-1);
+  color: var(--stage);
+}
+
+.stage-1 { --stage: var(--stage-1); }
+.stage-2 { --stage: var(--stage-2); }
+.stage-3 { --stage: var(--stage-3); }
+.stage-4 { --stage: var(--stage-4); }
+.stage-5 { --stage: var(--stage-5); }
+.stage-6 { --stage: var(--stage-6); }
+.stage-7 { --stage: var(--stage-7); }
+
 .resume {
   margin: var(--space-4) 0;
   padding: var(--space-3) var(--space-4);
   border-left: 4px solid var(--brand-pink);
   background: var(--surface);
-}
-
-/* Stage entry */
-
-.stage-entry {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: var(--space-5);
-}
-
-.stage-options {
-  display: grid;
-  gap: var(--space-3);
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  list-style: none;
-  padding: 0;
-}
-
-.stage-options button {
-  width: 100%;
-  justify-content: flex-start;
-  text-align: left;
-  min-height: 3.5rem;
 }
 
 /* Station */
@@ -767,15 +1030,16 @@ a.chip:hover {
   border-color: var(--tint-teal);
 }
 
-/* "What to do now": a callout with an accent line on the left, no background, and a smaller action on the right. */
+/* "What to do now": a framed block with its actions on the right. */
 .now {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-3) var(--space-5);
   align-items: center;
-  border-left: 4px solid var(--brand-teal);
-  padding: var(--space-2) 0 var(--space-2) var(--space-4);
-  margin: var(--space-5) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-4) 0;
 }
 
 @media (max-width: 39.99rem) {
@@ -802,12 +1066,14 @@ a.chip:hover {
   margin: 0;
 }
 
-/* A station's key point at the top of its how-to. */
+/* A station's key point, first under its title. */
 .key-point {
-  margin: 0 0 var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-left: 4px solid var(--brand-pink);
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--brand-teal);
+  border-radius: 0 var(--radius) var(--radius) 0;
   background: var(--surface);
+  font-size: var(--size-lead);
 }
 
 .key-point p {
@@ -815,11 +1081,82 @@ a.chip:hover {
 }
 
 .key-point-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1) !important;
+  color: var(--tint-teal);
   font-size: var(--size-small);
   font-weight: 700;
-  color: var(--tint-pink);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* The Heslář terms of a station, in one row under "do now". */
+.station-terms {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.inline-heading {
+  margin: 0;
+  font-size: var(--size-small);
+}
+
+.station-terms > .chips {
+  flex: 1 1 20rem;
+}
+
+/* What a disclosure holds, after its title. */
+.summary-note {
+  float: right;
+  margin-left: var(--space-3);
+  font-weight: 400;
+}
+
+/* An explanation that names a service not yet in full operation, set apart with its icon. */
+.status-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--notice-border);
+  background: var(--notice);
+}
+
+.status-note .icon {
+  margin-top: 0.25em;
+  color: var(--notice-border);
+}
+
+.why-note {
+  margin: 0 0 var(--space-3);
+}
+
+/* A step's resources as compact cards side by side; each leads to its whole entry in the catalogue. */
+.cards-compact {
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  align-items: start;
+}
+
+.entry-more {
+  margin: var(--space-2) 0 0;
+}
+
+.entry-compact .entry-head {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.station-help p {
+  margin: var(--space-1) 0;
+}
+
+.station-help .icon {
+  color: var(--tint-teal);
 }
 
 /* The next step, and a related tool under it as a quieter button. */
@@ -937,7 +1274,20 @@ details > .content {
 
 /* A catalogue entry's persistent identifiers, shown in full so they can be read and copied. */
 .pid-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
   overflow-wrap: anywhere;
+}
+
+/* An identifier chip may hold a whole address, so it wraps where the address allows. */
+.pid-chip {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+button.id-chip {
+  cursor: pointer;
 }
 
 .pid-scheme {
@@ -1178,6 +1528,7 @@ details > .content {
 
 .check-progress {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   margin: 0 0 var(--space-2);
@@ -1288,6 +1639,43 @@ main p > button {
 
 .badge[data-verification="verified"] {
   border-color: var(--tint-teal);
+}
+
+/* A life-cycle stage's definition, quoted as its source publishes it, and the stages it corresponds to. */
+.stage-definition {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--border);
+}
+
+.crosswalk {
+  margin: var(--space-1) 0 var(--space-3);
+  padding-left: var(--space-4);
+}
+
+.crosswalk li {
+  margin: var(--space-1) 0;
+}
+
+.badge[data-basis] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.badge[data-basis="published"] {
+  border-color: var(--tint-teal);
+  background: var(--status-operational);
+}
+
+.badge[data-basis="reviewed"] {
+  background: var(--status-in-development);
+}
+
+.badge[data-basis="unconfirmed"] {
+  border-style: dashed;
+  border-color: var(--notice-border);
+  background: var(--notice);
 }
 
 .filters {
@@ -1663,59 +2051,6 @@ a.id-chip:focus-visible {
   font-weight: 700;
 }
 
-.landing .stage-entry {
-  margin-top: var(--space-6);
-  padding: 0;
-  background: none;
-}
-
-.landing .stage-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--space-3);
-}
-
-.stage-options .stage-card {
-  display: grid;
-  align-content: start;
-  gap: var(--space-1);
-  justify-items: start;
-  width: 100%;
-  height: 100%;
-  padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--background);
-  color: var(--text);
-  text-align: left;
-}
-
-.stage-steps {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--tint-teal);
-  font-size: var(--size-small);
-  font-weight: 600;
-}
-
-.stage-options .stage-card .small {
-  font-weight: 400;
-}
-
-.stage-options .stage-current {
-  border-color: var(--tint-teal);
-  box-shadow: inset 0 0 0 1px var(--tint-teal);
-}
-
-.stage-options .stage-card:hover {
-  border-color: var(--tint-teal);
-  box-shadow: inset 0 0 0 1px var(--tint-teal);
-  background: var(--background);
-  color: var(--text);
-}
-
 .tasks {
   list-style: none;
   margin: 0;
@@ -1831,6 +2166,318 @@ a.id-chip:focus-visible {
   height: 1.25rem;
   margin: 0;
   accent-color: var(--tint-teal);
+}
+
+/* A compact question card: its state along the left edge; the answers as pills, each with its state's icon. A
+   suggestion is drawn dashed in its state's colour; the reader's own answer is filled. */
+.question-card {
+  border-left: 4px solid var(--state-open);
+}
+
+.question-card[data-state="met"] { border-left-color: var(--state-met); }
+.question-card[data-state="partly"] { border-left-color: var(--state-partly); }
+.question-card[data-state="gap"] { border-left-color: var(--state-gap); }
+.question-card[data-state="unknown"] { border-left-color: var(--state-unknown); }
+
+.option[data-value="yes"] { --state: var(--state-met); }
+.option[data-value="partly"] { --state: var(--state-partly); }
+.option[data-value="no"] { --state: var(--state-gap); }
+.option[data-value="unknown"] { --state: var(--state-unknown); }
+.option[data-value="na"] { --state: var(--state-na); }
+
+.question-card .options {
+  gap: var(--space-2);
+}
+
+.question-card .option {
+  position: relative;
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  font-weight: 600;
+}
+
+.question-card .option .icon {
+  color: var(--state);
+}
+
+/* The radio stays for keyboard and assistive technology; the pill shows its state and its focus. */
+.question-card .option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.question-card .option:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.question-card .option:hover {
+  border-color: var(--state);
+}
+
+.question-card .option:has(input:checked) {
+  border-color: var(--state);
+  background: var(--state);
+  color: #ffffff;
+}
+
+.question-card .option:has(input:checked) .icon {
+  color: #ffffff;
+}
+
+.question-card[data-origin="suggestion"] .option:has(input:checked) {
+  border-style: dashed;
+  background: var(--background);
+  color: var(--state);
+}
+
+.question-card[data-origin="suggestion"] .option:has(input:checked) .icon {
+  color: var(--state);
+}
+
+/* One evidence line in a quiet box: who owns the answer, then the most useful observation with its source's badge. */
+.question-card .origin {
+  border-left: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* The source's badge sits on the middle of the observation's first line, however many lines follow. */
+.evidence-first {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+  line-height: 1.55;
+}
+
+.evidence-first > .evidence-observation,
+.evidence-first .evidence-observation > :first-child {
+  margin-top: 0;
+}
+
+/* The badge is 1.25rem high on a first line of 1.55 times the small text size. */
+.evidence-first > .service-badge {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: calc((var(--size-small) * 1.55 - 1.25rem) / 2);
+  font-size: 0.6rem;
+}
+
+.evidence-none {
+  color: var(--text-muted);
+}
+
+.withdraw {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: var(--size-small);
+}
+
+.question-details {
+  margin: var(--space-2) 0 0;
+  border: 0;
+  background: none;
+}
+
+.question-details > summary {
+  padding: var(--space-1) 0;
+  color: var(--tint-teal);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.question-details[open] > summary {
+  border-bottom: 0;
+}
+
+.question-details > .content {
+  padding: var(--space-2) 0 0;
+}
+
+/* A distribution of answer states: solid segments in the states' colours, the counts named in text beside or
+   below. */
+[data-state="met"] { --state-color: var(--state-met); }
+[data-state="partly"] { --state-color: var(--state-partly); }
+[data-state="gap"] { --state-color: var(--state-gap); }
+[data-state="unknown"] { --state-color: var(--state-unknown); }
+[data-state="open"] { --state-color: var(--state-open); }
+
+.distribution-bar {
+  display: flex;
+  overflow: hidden;
+  min-height: 1.5rem;
+  border-radius: 0.25rem;
+  background: var(--surface);
+}
+
+.distribution-bar > span {
+  display: grid;
+  place-items: center;
+  min-width: 1.25rem;
+  background: var(--state-color);
+  color: #ffffff;
+  font-size: var(--size-small);
+  font-weight: 700;
+}
+
+.distribution-bar > span + span {
+  border-left: 2px solid #ffffff;
+}
+
+.distribution-bar > [data-state="open"] {
+  color: var(--text);
+}
+
+.distribution-text {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.distribution-compact .distribution-bar {
+  min-height: 0.6rem;
+}
+
+.distribution-compact .distribution-text {
+  font-size: 0.8rem;
+}
+
+.principle-distributions {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+/* A block's row: its icon and name above its bar, since block names are long. */
+.block-distribution {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-3);
+}
+
+.block-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+}
+
+.principle-distribution {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.distribution-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.distribution-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.legend-swatch {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  background: var(--state-color);
+}
+
+/* The gaps in one card per actor who fixes them, side by side where there is room. */
+.gap-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.gap-group {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.gap-group h4 {
+  margin: 0 0 var(--space-2);
+}
+
+.gap-rule {
+  margin: 0 0 var(--space-3);
+}
+
+/* The role the reader chose: its group first, set apart by its rule. */
+.gap-group-mine {
+  padding-left: var(--space-3);
+  border-left: 4px solid var(--tint-teal);
+}
+
+/* A response in the table leads to its row below; it reads as the state it shows. */
+.agreement-link {
+  text-align: left;
+}
+
+/* The answers beside the evaluators; a result opens on the spot to its run's details. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.agreement td,
+.agreement th {
+  vertical-align: top;
+}
+
+/* The question column reads as a list of questions: number, then wording, left-aligned and wrapping. */
+.agreement-question {
+  min-width: 14rem;
+  max-width: 28rem;
+  font-weight: 400;
+  text-align: left;
+}
+
+.agreement-question .button-link {
+  display: inline;
+  text-align: left;
+}
+
+.agreement-question .item-id {
+  font-weight: 700;
+}
+
+.agreement .run-details {
+  margin: 0;
+  border: 0;
+  background: none;
+}
+
+.agreement .run-details > summary {
+  padding: 0;
+  font-weight: 400;
+}
+
+.agreement .run-details > .content {
+  padding: var(--space-2) 0 0;
+  min-width: 16rem;
+}
+
+.agreement [data-agreement="differ"] .agreement-verdict {
+  color: var(--state-gap);
+  font-weight: 700;
 }
 
 .selfcheck article {
@@ -2791,12 +3438,155 @@ a.id-chip:focus-visible {
   margin-bottom: var(--space-3);
 }
 
+/* A sample drawn from DataCite: each record's title, its DOI and the button that replaces it. */
+.datacite-sample-row {
+  margin: var(--space-2) 0;
+}
+
+.datacite-sample {
+  margin: var(--space-1) 0 var(--space-2);
+  padding-left: var(--space-5);
+}
+
+.datacite-sample li {
+  margin: var(--space-1) 0;
+}
+
+.datacite-sample-title {
+  font-weight: 600;
+}
+
+/* What DataCite reports about a repository, framed apart from the entry's own rows. */
+.datacite-read {
+  margin: var(--space-2) 0;
+}
+
+section.datacite-read {
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--kind-repositories);
+  background: var(--surface);
+}
+
+section.datacite-read p {
+  margin: 0 0 var(--space-1);
+}
+
+.datacite-facts {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-1);
+}
+
+.datacite-facts dt {
+  color: var(--text-muted);
+}
+
+.datacite-facts dd {
+  margin: 0;
+}
+
+@media (max-width: 39.99rem) {
+  .datacite-facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
+
 .catalogue-more {
   margin-top: var(--space-3);
 }
 
-/* One card for every catalogue entry: its identifier with what it is, its title, a quiet line of details, its
-   text, badges for its state, then its relations, one row each. */
+/* One card for every catalogue entry: its kind's mark with its identifier and what it is, its title with a
+   service's badge, a quiet line of details, its text, badges for its state, then its relations, one row each with
+   its icon. The kind's colour runs along the top of the card. */
+.kind-resources { --kind: var(--kind-resources); }
+.kind-repositories { --kind: var(--kind-repositories); }
+.kind-clauses { --kind: var(--kind-clauses); }
+.kind-questions { --kind: var(--kind-questions); }
+.kind-terms { --kind: var(--kind-terms); }
+.kind-fips { --kind: var(--kind-fips); }
+.kind-tests { --kind: var(--kind-tests); }
+.kind-lifecycle { --kind: var(--kind-lifecycle); }
+.kind-model { --kind: var(--kind-model); }
+.kind-actions { --kind: var(--kind-actions); }
+
+.entry-card[data-kind] {
+  border-top: 4px solid var(--kind);
+}
+
+.kind-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--kind, var(--text-muted));
+  color: #ffffff;
+}
+
+.kind-mark .icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  vertical-align: 0;
+}
+
+/* The same marks label the kinds to choose from. */
+.facet-kinds li {
+  align-items: center;
+}
+
+.facet-kinds li input {
+  margin: 0;
+}
+
+.facet-kinds li label {
+  align-items: center;
+}
+
+.facet-kinds .facet-label {
+  flex: 1;
+}
+
+.facet-kinds .kind-mark {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.facet-kinds .kind-mark .icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* An external tool or service, beside its name: its favicon, or its kind's icon on the kind's colour. */
+.service-badge {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  background: var(--kind, var(--text-muted));
+  color: #ffffff;
+}
+
+.service-placeholder .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* A service's own favicon in place of the monogram, as the service shows it: no frame, the badge's full size. */
+.service-favicon {
+  background: none;
+}
+
+.service-favicon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .entry-head {
   display: flex;
   flex-wrap: wrap;
@@ -2810,7 +3600,46 @@ a.id-chip:focus-visible {
   color: var(--text-muted);
 }
 
+/* A filled-in check's result on its card: the report's chips, a little smaller. */
+.check-card-counts {
+  flex-basis: 100%;
+  margin: var(--space-1) 0 0;
+  font-size: var(--size-small);
+}
+
+/* An index's letters: one row of compact jumps above its groups, wrapping on a narrow screen. */
+.letter-index ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.letter-jump {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+.letter-jump:hover {
+  border-color: var(--tint-teal);
+}
+
+.term-definition {
+  margin: var(--space-1) 0 0;
+}
+
 .entry-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0 0 var(--space-1);
   font-size: var(--size-base);
 }
@@ -2827,7 +3656,7 @@ a.id-chip:focus-visible {
 /* One label width on every card, so the rows of cards in a list line up; each row on its text's baseline. */
 .relations {
   display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
+  grid-template-columns: 9.5rem minmax(0, 1fr);
   align-items: baseline;
   gap: var(--space-1) var(--space-3);
   margin: var(--space-3) 0 0;
@@ -2838,6 +3667,11 @@ a.id-chip:focus-visible {
 
 .relations dt {
   color: var(--text-muted);
+}
+
+.relations dt .icon {
+  margin-right: 0.4em;
+  color: var(--tint-teal);
 }
 
 .relations dd {
@@ -3003,7 +3837,15 @@ a.id-chip:focus-visible {
   color: var(--tint-teal);
 }
 
-.tool-card h2 {
+.tool-group {
+  margin: 0 0 var(--space-6);
+}
+
+.tool-group > h2 {
+  margin-bottom: var(--space-1);
+}
+
+.tool-card h3 {
   margin: 0 0 var(--space-1);
   font-size: var(--size-h3);
 }
@@ -3030,6 +3872,97 @@ a.id-chip:focus-visible {
 .check-view {
   padding-top: var(--space-4);
   padding-bottom: var(--space-7);
+}
+
+/* The check's three parts as numbered steps; the current one is framed in the brand colour. */
+.check-parts ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-part {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.check-part:hover {
+  border-color: var(--tint-teal);
+}
+
+.check-part[aria-current="step"] {
+  border-color: var(--brand-teal);
+  background: var(--surface);
+}
+
+.check-part-number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--brand-teal);
+  border-radius: 50%;
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+/* The digit is trimmed to its cap height, so it sits in the middle of the circle whatever the font's line box. */
+.check-part-number > span {
+  display: block;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+}
+
+.check-part[aria-current="step"] .check-part-number {
+  background: var(--brand-teal);
+  color: #ffffff;
+}
+
+.check-part-text {
+  display: grid;
+}
+
+.check-part-text .small {
+  color: var(--text-muted);
+}
+
+@media (max-width: 39.99rem) {
+  .check-parts ol {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+}
+
+.part-next {
+  margin: var(--space-5) 0;
+}
+
+/* The answers' status line stays at the top of the column while it has something to say. */
+.part-status:empty {
+  display: none;
+}
+
+.part-status:not(:empty) {
+  position: sticky;
+  top: calc(var(--lens-band-height, 0px) + var(--space-2));
+  z-index: 2;
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--notice-border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--notice);
 }
 
 .check-split {
@@ -3059,7 +3992,7 @@ a.id-chip:focus-visible {
   .check-summary {
     display: block;
     position: sticky;
-    top: var(--space-4);
+    top: calc(var(--lens-band-height, 0px) + var(--space-4));
     padding: var(--space-3);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -3107,12 +4040,12 @@ a.id-chip:focus-visible {
 }
 
 .summary-progress {
-  margin: var(--space-2) 0;
+  margin: var(--space-1) 0 var(--space-2);
 }
 
 /* The check's controls in the summary: the extended switch and the grouping, compact. */
 .summary-controls {
-  margin: var(--space-2) 0 var(--space-3);
+  margin: var(--space-2) 0 var(--space-1);
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--border);
 }
@@ -3198,8 +4131,18 @@ a.id-chip:focus-visible {
   display: grid;
   grid-template-columns: 1.6rem minmax(0, 1fr);
   align-items: start;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-2);
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 var(--space-1);
+}
+
+/* The group's bar and its question chips share the column beside the group's mark. */
+.summary-group > .distribution,
+.summary-group > .summary-chips {
+  grid-column: 2;
+}
+
+.summary-group > .summary-group-label {
+  grid-row: span 2;
 }
 
 .summary-group-label {
@@ -3282,6 +4225,11 @@ a.id-chip:focus-visible {
 }
 
 .summary-full {
+  margin: 0;
+}
+
+.summary-full .button {
+  min-height: 2rem;
   margin: 0;
 }
 
@@ -3437,10 +4385,86 @@ a.id-chip:focus-visible {
 }
 
 .prefill {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: var(--space-4);
   margin: var(--space-5) 0;
+}
+
+/* One card per evidence source, one under another, each a whole row: on a wide screen the source's name and what it
+   sends stand on the left and its controls on the right, so no card is squeezed into a narrow column. */
+.evidence-cards {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+@media (min-width: 52rem) {
+  .evidence-card {
+    display: grid;
+    grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: var(--space-5);
+    align-items: start;
+  }
+
+  .evidence-card > .evidence-title,
+  .evidence-card > .evidence-facts {
+    grid-column: 1;
+  }
+
+  .evidence-card > .evidence-body {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .evidence-card .evidence-body > :first-child,
+  .evidence-card .evidence-body > :first-child > :first-child {
+    margin-top: 0;
+  }
+}
+
+.evidence-card {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+}
+
+.prefill .evidence-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-lead);
+}
+
+.evidence-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  background: var(--surface-strong);
+  color: var(--tint-teal);
+}
+
+.evidence-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-3);
+}
+
+.evidence-facts dt {
+  color: var(--text-muted);
+}
+
+.evidence-facts dd {
+  margin: 0;
+}
+
+.evidence-card .prefill-row:first-of-type {
+  margin-top: 0;
 }
 
 .prefill h2 {
@@ -3664,37 +4688,6 @@ a.id-chip:focus-visible {
   }
 }
 
-/* Sample NKR records: plainly marked as samples. */
-.nkr-samples {
-  margin-top: var(--space-4);
-}
-
-.nkr-samples h4 {
-  margin: var(--space-2) 0;
-}
-
-.sample-label {
-  display: inline-block;
-  margin: 0;
-  background: var(--notice);
-  border-color: var(--notice-border);
-}
-
-.sample-fields {
-  display: grid;
-  grid-template-columns: minmax(8rem, max-content) 1fr;
-  gap: var(--space-1) var(--space-3);
-  margin: 0;
-}
-
-.sample-fields dt {
-  color: var(--text-muted);
-}
-
-.sample-fields dd {
-  margin: 0;
-}
-
 /* Orientation tags on a card: principle tiles and lens icons. */
 .orientation {
   display: flex;
@@ -3835,13 +4828,316 @@ a.id-chip:focus-visible {
   gap: var(--space-2);
 }
 
+/* Reader visuals: labelled steps in order, one maintained definition each. The arrow between steps is decoration;
+   the ordered list carries the sequence for every reader and in print. */
+.flow {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.flow-title {
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+}
+
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: flow;
+}
+
+.flow-step {
+  position: relative;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--brand-teal);
+  background: var(--background);
+  counter-increment: flow;
+  font-size: var(--size-small);
+  line-height: 1.5;
+}
+
+.flow-step::before {
+  content: counter(flow) ". ";
+  font-weight: 700;
+  color: var(--tint-teal);
+}
+
+.flow-step:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  top: 50%;
+  right: calc(-1 * var(--space-5) + 0.15rem);
+  transform: translateY(-50%);
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+.flow-label,
+.flow-text,
+.flow-carrier,
+.flow-record {
+  display: block;
+}
+
+.flow-carrier,
+.flow-note {
+  color: var(--text-muted);
+}
+
+.flow-note {
+  margin: var(--space-2) 0 0;
+}
+
+.flow-details {
+  margin: var(--space-3) 0;
+}
+
+@media (max-width: 40rem) {
+  .flow-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: "↓";
+    top: auto;
+    right: auto;
+    bottom: calc(-1 * var(--space-3) - 0.1rem);
+    left: var(--space-3);
+    transform: none;
+  }
+}
+
+/* What a check is for, ahead of its description. */
+.check-card-purpose {
+  margin: var(--space-1) 0;
+  font-size: var(--size-small);
+}
+
+.check-card-purpose-label {
+  color: var(--text-muted);
+}
+
+/* The result leads with what remains to do. */
+.result-lead {
+  font-weight: 700;
+}
+
+/* Evidence beside a question: one line per source, newest useful first. */
+.evidence-observation {
+  margin: var(--space-1) 0;
+}
+
+.evidence-source {
+  color: var(--text-muted);
+}
+
+.evidence-note {
+  margin-left: var(--space-3);
+}
+
+.answer-observation,
+.answer-owner {
+  white-space: normal;
+}
+
+/* Optional evaluators: explicit choices, a local report preview, and the native results of each assessment.
+   Native verdicts and scores use their own labelled marks, apart from answer states and retrieval health. */
+.evaluators {
+  margin: 0;
+}
+
+/* An evaluator's name, with its service badge before it. */
+.evaluator-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* What an evaluator's card holds once a result is read or attached, set apart so it is seen where it was loaded. */
+.attached,
+.import-read {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--state-met);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--status-operational);
+}
+
+.attached p {
+  margin: var(--space-1) 0;
+}
+
+.attached .icon {
+  color: var(--state-met);
+}
+
+.import-read {
+  border-left-color: var(--tint-teal);
+  background: var(--surface-strong);
+}
+
+.evaluator-choices {
+  margin: var(--space-2) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evaluator-choices > li {
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.evaluator-target code {
+  overflow-wrap: anywhere;
+}
+
+/* What a run reports, and its progress, under the controls that started it. */
+.evidence-status:not(:empty) {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--notice-border);
+  background: var(--notice);
+}
+
+.evidence-body > .prefill-progress,
+.evidence-body > .target-card {
+  margin: var(--space-2) 0 0;
+}
+
+.import-preview {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--notice-border);
+  background: var(--notice);
+}
+
+.import-facts dd,
+.assessment-facts dd {
+  overflow-wrap: anywhere;
+}
+
+.assessment {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.assessment-group h5 {
+  margin: var(--space-3) 0 var(--space-1);
+}
+
+.criteria {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.criterion {
+  margin: var(--space-2) 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 3px solid var(--border);
+}
+
+.criterion-head {
+  margin: 0;
+}
+
+.criterion-name,
+.criterion-questions {
+  margin: var(--space-1) 0;
+}
+
+.criterion-id {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.criterion-outcome {
+  display: block;
+  font-weight: 700;
+}
+
+/* A provider's outcome takes the colour of the answer state it reads as: met, partly met, not met, or unknown, which
+   is how F-UJI shows level 0. */
+.criterion[data-verdict="pass"],
+.criterion[data-verdict="top"] {
+  border-left-color: var(--state-met);
+}
+
+.criterion[data-verdict="fail"],
+.criterion[data-verdict="bottom"] {
+  border-left-color: var(--state-gap);
+}
+
+.criterion[data-verdict="middle"] {
+  border-left-color: var(--state-partly);
+}
+
+.criterion[data-verdict="indeterminate"] {
+  border-left-color: var(--state-unknown);
+}
+
+.criterion-outcome[data-verdict="pass"],
+.criterion-outcome[data-verdict="top"],
+.subtests td[data-verdict="pass"] {
+  color: var(--state-met);
+}
+
+.criterion-outcome[data-verdict="fail"],
+.criterion-outcome[data-verdict="bottom"],
+.subtests td[data-verdict="fail"] {
+  color: var(--state-gap);
+}
+
+.criterion-outcome[data-verdict="middle"] {
+  color: var(--state-partly);
+}
+
+.criterion-outcome[data-verdict="indeterminate"],
+.subtests td[data-verdict="indeterminate"] {
+  color: var(--state-unknown);
+}
+
+.badge[data-reviewed="false"] {
+  background: var(--notice);
+}
+
+.provider-text {
+  max-height: 16rem;
+  overflow-y: auto;
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.9em;
+}
+
+.subtests th,
+.subtests td {
+  overflow-wrap: anywhere;
+}
+
+.harvest-list {
+  padding-left: var(--space-4);
+}
+
 @media print {
   .no-print,
   .catalogue-facets,
   .catalogue-toolbar,
   .active-filters,
   .catalogue-more,
-  .stage-switch,
   .site-header .controls,
   .main-nav,
   .lens-band,
@@ -3862,6 +5158,19 @@ a.id-chip:focus-visible {
 
   .catalogue-layout {
     display: block;
+  }
+
+  /* A criterion's question references print as plain identifiers. */
+  .criterion-questions button {
+    display: inline !important;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+  }
+
+  .flow-step {
+    break-inside: avoid;
   }
 
   /* Only addresses outside the guide, in the content, are worth printing; the guide's own links lead within the

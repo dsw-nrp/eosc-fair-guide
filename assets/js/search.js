@@ -17,10 +17,7 @@
   const KINDS = ["station", "check", "principle", "resource", "repository", "term", "page", "clause"];
   /* Identifiers placed by the knowledge base alone: their routes send nothing, so they answer while typing. */
   const LOCAL = ["guide", "known"];
-  const ORCID = /^(?:https?:\/\/orcid\.org\/)?(\d{4}-\d{4}-\d{4}-\d{3}[\dX])$/i;
-  const ROR = /^(?:https?:\/\/ror\.org\/)?(0[a-hj-km-np-tv-z0-9]{6}\d{2})$/i;
   const URL = /^https:\/\/\S+$/i;
-  const R3D = /^(?:https?:\/\/(?:www\.)?re3data\.org\/repository\/)?(r3d\d{9})\/?$/i;
   const NANOPUB = /^RA[A-Za-z0-9_-]{43}$|\/np\/RA/;
   /* DataCite's general resource types, by what the guide can do with them. */
   const DATA = ["Dataset", "Collection", "Image", "Audiovisual", "Sound", "Model", "PhysicalObject", "InteractiveResource"];
@@ -52,7 +49,7 @@
       const id = String(entity["@id"]);
       if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description), { href: FG.catalogueHref("resources", entity.identifier) });
       else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, bothLanguages(entity.keywords), { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) });
-      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, "", { href: FG.catalogueHref("terms", FG.termAnchor(entity)) });
+      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, bothLanguages(entity.description), { href: FG.catalogueHref("terms", FG.termAnchor(entity)) });
       else if (id.startsWith("#page-") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
       else if (id.startsWith("#clause-") && entity.text) {
         const principle = FG.principlesOf(entity)[0];
@@ -82,7 +79,7 @@
     if (resource) return { type: "known", value, kind: "resources", anchor: resource.identifier, name: FG.text(resource.name) };
     const repository = FG.refs(FG.get("#repositories"), "hasPart").find((entity) => bare(entity.url) === address);
     if (repository) {
-      const r3d = FG.refIds(repository, "sameAs").concat(FG.list(repository.identifier)).map((id) => (String(id).match(/r3d\d{9}/i) || [])[0]).find(Boolean);
+      const r3d = FG.refIds(repository, "sameAs").concat(FG.list(repository.identifier)).map(FG.live.parseRe3data).find(Boolean);
       return { type: "known", value, kind: "repositories", anchor: FG.repositoryAnchor(repository), name: FG.text(repository.name), r3d };
     }
     return null;
@@ -93,19 +90,20 @@
     if (!value) return { type: "empty" };
     const guide = guideEntry(value);
     if (guide) return guide;
-    let match = value.match(R3D);
-    if (match) return { type: "re3data", value: match[1].toLowerCase() };
-    if (FG.live && NANOPUB.test(value) && FG.live.nanopubCode(value)) return { type: "nanopub", value: FG.live.nanopubCode(value) };
+    const live = FG.live;
+    const r3d = live.parseRe3data(value);
+    if (r3d) return { type: "re3data", value: r3d };
+    if (NANOPUB.test(value) && live.nanopubCode(value)) return { type: "nanopub", value: live.nanopubCode(value) };
     const profiles = FG.config.links.fipDashboard + "profiles/";
     if (value.startsWith(profiles)) return { type: "fipProfile", value: value.slice(profiles.length).replace(/[/?#].*$/, ""), url: value };
     if (value.startsWith(FG.config.links.nkr + "objects/")) return { type: "nkr", value };
-    const pid = FG.live && FG.live.parsePid(value);
-    if (pid && pid.type === "doi" && /^10\.17616\//.test(pid.value)) return { type: "re3data", value: pid.value };
+    const pid = live.parsePid(value);
+    if (live.isRe3dataDoi(pid)) return { type: "re3data", value: pid.value };
     if (pid) return { type: pid.type, value: pid.value };
-    match = value.match(ORCID);
-    if (match) return { type: "orcid", value: match[1].toUpperCase() };
-    match = value.match(ROR);
-    if (match) return { type: "ror", value: match[1].toLowerCase() };
+    const orcid = live.parseOrcid(value);
+    if (orcid) return { type: "orcid", value: orcid };
+    const ror = live.parseRor(value);
+    if (ror) return { type: "ror", value: ror };
     if (URL.test(value)) return knownByUrl(value) || { type: "url", value };
     return { type: "text", value };
   };
@@ -142,13 +140,15 @@
     return h("a", { class: "result" + (primary ? " result-primary" : ""), href: target.href }, children);
   }
 
-  const datasetCheck = (pid, primary) => resultLink({ onclick: () => FG.selfcheck.startWithPid(pid) }, FG.t("search.checkDataset", { pid }), "check", primary);
+  /* The self-check's code loads when a check first opens; a search that starts one waits for it. */
+  const selfcheck = () => (FG.selfcheck && FG.selfcheck.startWithPid ? Promise.resolve(FG.selfcheck) : FG.loadView("check").then(() => FG.selfcheck));
+  const datasetCheck = (pid, primary) => resultLink({ onclick: () => selfcheck().then((checks) => checks.startWithPid(pid)) }, FG.t("search.checkDataset", { pid }), "check", primary);
   const cite = (pid, primary) => resultLink({ href: FG.href("page", "citation") + "/" + encodeURIComponent(pid) }, FG.t("search.cite"), "cite", primary);
   const nma = (pid) => resultLink({ url: FG.config.links.nmaSearch + "?q=" + encodeURIComponent('"' + pid + '"') }, FG.t("search.nma"), "search");
   const verify = (id, primary) => resultLink({ href: FG.href("page", "identifiers") + "/" + encodeURIComponent(id) }, FG.t("search.verify", { id }), "identifier", primary);
   /* A re3data DOI that does not lead to a record still opens the check, to be filled in by hand. */
   const maturity = (value, primary) =>
-    resultLink({ onclick: async () => (await FG.selfcheck.startWithRe3data(value)) || FG.navigate(FG.href("check", "maturity")) }, FG.t("search.maturityRe3data"), "check", primary);
+    resultLink({ onclick: async () => (await (await selfcheck()).startWithRe3data(value)) || FG.navigate(FG.href("check", "maturity")) }, FG.t("search.maturityRe3data"), "check", primary);
   const list = (actions) => h("ul", { class: "results-list" }, actions.filter(Boolean).map((action) => h("li", null, action)));
   const basis = (key, params) => h("p", { class: "small muted search-basis" }, FG.t("search.basis." + key, params || {}));
 
@@ -163,9 +163,9 @@
       case "re3data":
         return [basis("form", { type: idName(found.type) }), list([maturity(found.value, true), /^r3d/.test(found.value) ? resultLink({ url: FG.config.links.re3dataRecord + found.value }, FG.t("search.open.re3data"), "external") : null])];
       case "nanopub":
-        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.selfcheck.startWithNanopub(found.value) }, FG.t("search.fipNanopub"), "check", true)])];
+        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => selfcheck().then((checks) => checks.startWithNanopub(found.value)) }, FG.t("search.fipNanopub"), "check", true)])];
       case "fipProfile":
-        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => FG.loadPart("fips").then(() => FG.selfcheck.startWithFip(found.value) || FG.navigate(FG.href("check", "fip"))) }, FG.t("search.fipProfile"), "check", true), resultLink({ url: found.url }, FG.t("search.open.fipProfile"), "external")])];
+        return [basis("form", { type: idName(found.type) }), list([resultLink({ onclick: () => Promise.all([FG.loadPart("fips"), selfcheck()]).then(([, checks]) => checks.startWithFip(found.value) || FG.navigate(FG.href("check", "fip"))) }, FG.t("search.fipProfile"), "check", true), resultLink({ url: found.url }, FG.t("search.open.fipProfile"), "external")])];
       case "nkr":
         return [basis("form", { type: idName(found.type) }), list([resultLink({ href: FG.href("check", "maturity") }, FG.t("search.maturity"), "check", true), resultLink({ url: found.value }, FG.t("search.open.nkr"), "external")])];
       case "orcid":
@@ -201,8 +201,8 @@
       const publisher = attributes.publisher && typeof attributes.publisher === "object" ? attributes.publisher.name : attributes.publisher;
       const details = { title: title.replace(/^FAIRsharing record for:\s*/i, ""), publisher, year: attributes.publicationYear, by: "DataCite" };
       if (/^10\.25504\//.test(found.value)) {
-        const r3d = FG.list(attributes.relatedIdentifiers).map((entry) => (String((entry && entry.relatedIdentifier) || "").match(/r3d\d{9}/i) || [])[0]).find(Boolean);
-        return Object.assign(details, { kind: r3d ? "repository" : "fairsharing", r3d: r3d && r3d.toLowerCase() });
+        const r3d = FG.list(attributes.relatedIdentifiers).map((entry) => FG.live.parseRe3data(entry && entry.relatedIdentifier)).find(Boolean);
+        return Object.assign(details, { kind: r3d ? "repository" : "fairsharing", r3d });
       }
       const kind = DATA.includes(general) ? "dataset" : SOFTWARE.includes(general) ? "software" : TEXT.includes(general) ? "publication" : "other";
       return Object.assign(details, { kind, general });
@@ -333,11 +333,16 @@
         () => null
       )
     );
+    /* The button waits for something to search for; the field's visible label says what that is. */
+    const submit = h("button", { type: "submit", class: "button button-primary", "aria-describedby": "search-label" }, FG.icon ? FG.icon("search") : null, FG.t("search.button"));
+    const waiting = () => { submit.disabled = !input.value.trim(); };
+    input.addEventListener("input", waiting);
+    waiting();
     return h(
       "form",
       { class: "search", role: "search", onsubmit: run },
-      h("label", { for: "search-input" }, FG.t("search.label")),
-      h("div", { class: "search-row" }, input, h("button", { type: "submit", class: "button button-primary" }, FG.icon ? FG.icon("search") : null, FG.t("search.button"))),
+      h("label", { for: "search-input", id: "search-label" }, FG.t("search.label")),
+      h("div", { class: "search-row" }, input, submit),
       status,
       results
     );

@@ -3,6 +3,8 @@
 
 [[repository]]
 id = "zenodo"
+knav = "zenodo"
+datacite = "cern.zenodo"
 functions = ["deposit-data", "deposit-publications"]
 name = "Zenodo"
 url = "https://zenodo.org/"
@@ -16,6 +18,7 @@ asOf = 2026-10-08
 
 [[repository]]
 id = "mbdb"
+datacite = "biot.mbdb"
 functions = ["deposit-data"]
 name = "Molecular Biophysics Database (MBDB)"
 url = "https://mbdb-data.org"
@@ -26,6 +29,8 @@ asOf = 2026-10-09
 
 [[repository]]
 id = "dryad"
+knav = "dryad"
+datacite = "dryad.dryad"
 functions = ["deposit-data"]
 name = "Dryad"
 url = "https://datadryad.org/stash"
@@ -38,6 +43,7 @@ asOf = 2026-10-09
 
 [[repository]]
 id = "harvard-dataverse"
+datacite = "gdcc.harvard-dv"
 functions = ["deposit-data"]
 name = "Harvard Dataverse"
 url = "https://dataverse.harvard.edu/"
@@ -48,7 +54,8 @@ pidTypes = ["DOI"]
 status = "operational"
 asOf = 2026-10-09
 
-# Annotations of records, not extra entries or changes to the source snapshots.
+# Annotations of records, not extra entries or changes to the source snapshots. An annotation naming records of
+# several registries (re3data, the FIP Dashboard, the KNAV tools catalogue) says they are one thing.
 [[record]]
 re3data = "r3d100014032"
 fipDashboard = "asep-arl"
@@ -58,8 +65,19 @@ evidence = ["https://www.re3data.org/repository/r3d100014032", "https://lib.cas.
 [[record]]
 re3data = "r3d100010386"
 fipDashboard = "clarin-dspace"
+knav = "lindatclariah"
 functions = ["deposit-data"]
-evidence = ["https://www.re3data.org/repository/r3d100010386", "https://fip-dashboard.dmp.eosc.cz/resources/clarin-dspace"]
+evidence = ["https://www.re3data.org/repository/r3d100010386", "https://fip-dashboard.dmp.eosc.cz/resources/clarin-dspace", "https://lindat.mff.cuni.cz/repository/home"]
+
+[[record]]
+re3data = "r3d100010484"
+knav = "csda"
+evidence = ["https://www.re3data.org/repository/r3d100010484", "https://archiv.soc.cas.cz/cz/"]
+
+[[record]]
+fipDashboard = "eduid-cz"
+knav = "eduid"
+evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/eduid-cz", "https://www.eduid.cz/"]
 
 [[record]]
 fipDashboard = "nrp-invenio"
@@ -70,3 +88,9 @@ evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/nrp-invenio"]
 fipDashboard = "nusl"
 functions = ["deposit-publications"]
 evidence = ["https://fip-dashboard.dmp.eosc.cz/resources/nusl"]
+
+# Czech-hosted repositories that re3data lists without the Czech Republic as a country; the re3data snapshot adds
+# them to its Czech listing (docs/content-model.md).
+[[re3dataInclude]]
+re3data = "r3d100013889"
+reason = "ELI ERIC Open Data Repository: ELI Beamlines, Dolní Břežany, hosts ELI ERIC's statutory seat (Roadmap of Large Research Infrastructures 2023–2026, chapter 10); re3data does not tag the record with the Czech Republic."

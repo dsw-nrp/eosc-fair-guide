@@ -3,8 +3,10 @@
 [guide]
 version = "1.0.0-alpha.1"
 releaseStatus = "testing"
-testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This guide is in testing. Its content may change, and the EOSC CZ initiative has not agreed it yet." }
+testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This Guide is in testing. Its content may change, and the EOSC CZ initiative has not agreed it yet." }
 datePublished = 2026-10-08
+# Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case (D-177; content check).
+genericGuideUses = ["průvodce licencemi", "průvodcem licencemi", "praktický průvodce", "interaktivní průvodce", "interaktivního průvodce", "an interactive guide"]
 name = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }
 description = { cs = "Interaktivní průvodce, který vede výzkumníky, datové stewardy, správce repozitářů a oborové komunity od plánu projektu k FAIR datům. Vychází z Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI (verze 1.2) a odráží současný stav národních služeb.", en = "An interactive guide that leads researchers, data stewards, repository administrators and research communities from the project plan to FAIR data. It builds on the Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI (version 1.2) and reflects the current state of national services." }
 keywords = [
@@ -37,6 +39,8 @@ id = "david-novak"
 name = "David Novák"
 orcid = "https://orcid.org/0000-0001-6592-6291"
 affiliation = ["knav", "aru-praha"]
+github = "motyc"
+commitNames = ["David Novák"]
 
 [[person]]
 id = "ilona-trtikova"
@@ -156,6 +160,20 @@ version = "gpt-6-luna (requested)"
 url = "https://openai.com/codex/"
 kind = "ai-model"
 
+[[instrument]]
+id = "openai-codex-runtime"
+name = "OpenAI Codex"
+version = "not exposed by the runtime"
+url = "https://openai.com/codex/"
+kind = "software"
+
+[[instrument]]
+id = "kilo-code"
+name = "Kilo Code"
+version = "not exposed by the runtime"
+url = "https://kilo.ai/"
+kind = "software"
+
 [[repositoryFunction]]
 id = "deposit-data"
 name = { cs = "Uložit výzkumná data", en = "Deposit research data" }
@@ -227,34 +245,6 @@ id = "L3"
 icon = "book"
 name = { cs = "Zdroje a vznik obsahu", en = "Sources and how this was made" }
 description = { cs = "Citované zdroje a paradata.", en = "Cited sources and paradata." }
-
-[[stage]]
-id = "plan"
-label = { cs = "Připravuji projekt nebo žádost", en = "I am preparing a project or a proposal" }
-station = "plan"
-description = { cs = "Plán správy dat, rozpočet a volba repozitáře", en = "Data management plan, budget and choice of repository" }
-icon = "clipboard-list"
-
-[[stage]]
-id = "work"
-label = { cs = "Sbírám a zpracovávám data", en = "I am collecting and processing data" }
-station = "work"
-description = { cs = "Ukládání, dokumentace a formáty během výzkumu", en = "Storage, documentation and formats during research" }
-icon = "flask"
-
-[[stage]]
-id = "publish"
-label = { cs = "Chci data zveřejnit", en = "I want to publish my data" }
-station = "repository"
-description = { cs = "Repozitář, popis, licence a zveřejnění", en = "Repository, description, licence and publication" }
-icon = "box-archive"
-
-[[stage]]
-id = "published"
-label = { cs = "Data už jsou zveřejněná", en = "My data are already published" }
-station = "findability"
-description = { cs = "Dohledatelnost, citace a kontrola", en = "Findability, citation and checking" }
-icon = "magnifying-glass"
 
 [[actor]]
 id = "nrp"
@@ -563,7 +553,7 @@ icon = "pen-to-square"
 [[task]]
 lens = "K"
 label = { cs = "Oborové standardy a slovníky", en = "Domain standards and vocabularies" }
-href = "#resources"
+href = "#resources?type=standard,vocabulary"
 icon = "tags"
 
 [[task]]

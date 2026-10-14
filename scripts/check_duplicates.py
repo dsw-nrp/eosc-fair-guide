@@ -2,13 +2,14 @@
 """Check that no two entries of the guide describe one thing.
 
 An entry is anything the guide lists or says: a curated resource, repository, source or organisation; a record of a
-registry the guide mirrors (a FIP Dashboard resource, organisation or FIP, a re3data repository, a Heslář term, a FAIR
-Champion test); and a piece of its own text (advice, a check question, a requirement). Two entries of one kind
-describe one thing when they share an address, a DOI, a re3data, ROR or FIP Dashboard ID, an identifier, a name or the
-same words. A curated entry that links a registry record (``fipDashboard``, ``re3data``) is that record, not a second
-entry, and no two curated entries may link one record. A group that looks alike but is kept apart is accepted in
-``content/duplicates.toml`` with its reason; any other group is an error, and so is an accepted group that no longer
-occurs.
+registry the guide mirrors (a FIP Dashboard resource, organisation or FIP, a re3data repository, a KNAV catalogue tool,
+a Heslář term, a FAIR Champion test); and a piece of its own text (advice, a check question, a requirement). Two
+entries of one kind describe one thing when they share an address, a DOI, a re3data, ROR, FIP Dashboard or KNAV ID, an
+identifier, a name or the same words. A curated entry that links a registry record (``fipDashboard``, ``re3data``,
+``knav``) is that record, not a second entry, and no two curated entries may link one record; a record annotation
+(``[[record]]`` in ``content/repositories.toml``) joins the records of several registries it names. A group that looks
+alike but is kept apart is accepted in ``content/duplicates.toml`` with its reason; any other group is an error, and
+so is an accepted group that no longer occurs.
 
 Exit status: 0 when the guide has no duplicate, 1 when it has, 2 when the content cannot be read. Uses only the Python
 standard library. The rule is documented in ``docs/content-model.md`` (One entry per thing).
@@ -31,7 +32,7 @@ from check_content import Report, bare_url  # noqa: E402
 
 ACCEPTED_FILE = "duplicates.toml"
 # Keys that state two entries are the same thing; every other key only suggests it.
-LINK_KEYS = ("fd", "fdorg", "r3d")
+LINK_KEYS = ("fd", "fdorg", "r3d", "knav")
 KEY_NAMES = {
     "url": "address",
     "doi": "DOI",
@@ -39,6 +40,7 @@ KEY_NAMES = {
     "ror": "ROR ID",
     "fd": "FIP Dashboard ID",
     "fdorg": "FIP Dashboard ID",
+    "knav": "KNAV catalogue ID",
     "id": "identifier",
     "name": "name",
     "text": "text",
@@ -78,11 +80,13 @@ def thing(label: str, curated: bool, /, **keys: Any) -> Entry:
 
 def entries(content: dict[str, Any]) -> list[Entry]:
     out: list[Entry] = []
-    record_links = {
-        item["re3data"]: item.get("fipDashboard")
-        for item in content.get("repository_records", [])
-        if item.get("re3data")
-    }
+    # A record annotation joins the records it names across registries: each of them carries the others' IDs.
+    joined: dict[str, dict[str, Any]] = {}
+    for item in content.get("repository_records", []):
+        ids = {"r3d": item.get("re3data"), "fd": item.get("fipDashboard"), "knav": item.get("knav")}
+        for kind, value in ids.items():
+            if value:
+                joined[f"{kind}:{value}"] = ids
     for resource in content["resources"]:
         citation = resource.get("citation", {})
         repository = resource.get("repository", {})
@@ -94,6 +98,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 doi=citation.get("doi", "").lower(),
                 r3d=repository.get("re3data"),
                 fd=resource.get("fipDashboard"),
+                knav=resource.get("knav"),
                 id=resource["id"],
                 name=words(resource.get("name")),
             )
@@ -107,6 +112,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 doi=(repository.get("fairsharing") or "").lower(),
                 r3d=repository.get("re3data"),
                 fd=repository.get("fipDashboard"),
+                knav=repository.get("knav"),
                 id=repository["id"],
                 name=words(repository.get("name")),
             )
@@ -119,6 +125,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 True,
                 url=[bare_url(source.get("url")), bare_url("https://doi.org/" + doi) if doi else ""],
                 doi=doi,
+                knav=source.get("knav"),
                 name=words(source.get("title")),
             )
         )
@@ -130,6 +137,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                     False,
                     url=bare_url(record.get("url")),
                     fd=record["id"],
+                    knav=joined.get(f"fd:{record['id']}", {}).get("knav"),
                     id=record["id"],
                     name=words(record.get("name")),
                 )
@@ -141,7 +149,18 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                     False,
                     url=bare_url(record.get("url")),
                     r3d=record["re3data"],
-                    fd=record_links.get(record["re3data"]),
+                    fd=joined.get(f"r3d:{record['re3data']}", {}).get("fd"),
+                    knav=joined.get(f"r3d:{record['re3data']}", {}).get("knav"),
+                    name=words(record.get("name")),
+                )
+            )
+        for record in snapshot.get("tool", []):
+            out.append(
+                thing(
+                    f"knav:{record['id']}",
+                    False,
+                    url=bare_url(record.get("url") or record.get("httpUrl")),
+                    knav=record["id"],
                     name=words(record.get("name")),
                 )
             )
@@ -224,7 +243,8 @@ def remedy(group: list[Entry]) -> str:
         kinds = {record.name.split(":")[0] for record in records}
         if "re3data" in kinds:
             return "state the record's ID as re3data"
-        return "link the record with fipDashboard"
+        fields = {"fip-dashboard": "fipDashboard", "knav": "knav"}
+        return "link the record with " + " and ".join(fields[kind] for kind in sorted(kinds) if kind in fields)
     return (
         "the registries list one thing twice; curate one entry that links both, "
         "or accept the pair in content/duplicates.toml"

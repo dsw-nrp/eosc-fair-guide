@@ -1,5 +1,6 @@
-# Provenance actions (Process Run Crate). Every change to an advice item, check, resource or clause is covered by an
-# action that names the person, the tools and the sources. Field reference: docs/content-model.md.
+# Provenance actions (Process Run Crate). Every item scripts/check_content.py lists in provenance_items (the guide's
+# metadata, clauses, advice, questions, resources, tests, organisations and the model) is covered by an action that
+# names the person, the tools and the sources. Field reference: docs/content-model.md.
 
 [[action]]
 id = "2026-10-08-content-model-sample"
@@ -303,7 +304,30 @@ instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["analyza-fair-1.2", "nrp-conditions", "nma-riv-docs", "nma-export-docs", "nkr-schema", "fip-dashboard", "cessda-dmeg", "datarepo", "ostrails-cz-pilot", "dsw-nrp", "pid-centre", "einfra-docs"]
 results = [
   "plan.*",
-  "work.*",
+  "collect.01",
+  "collect.02",
+  "collect.03",
+  "collect.04",
+  "collect.05",
+  "collect.06",
+  "collect.07",
+  "collect.09",
+  "collect.10",
+  "collect.11",
+  "collect.12",
+  "collect.13",
+  "collect.14",
+  "collect.15",
+  "collect.16",
+  "collect.17",
+  "collect.18",
+  "collect.19",
+  "process.03",
+  "process.08",
+  "process.09",
+  "process.10",
+  "analyse.03",
+  "analyse.05",
   "repository.*",
   "metadata.*",
   "licence.*",
@@ -514,7 +538,7 @@ description = "The check of the NRP conditions for repositories is called \"Podm
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["nrp-conditions"]
-results = ["work.15", "repository.12", "licence.13", "publication.12"]
+results = ["collect.15", "repository.12", "licence.13", "publication.12"]
 endTime = 2026-10-08T21:20:00+02:00
 
 [[action]]
@@ -532,7 +556,7 @@ endTime = 2026-10-08T23:10:00+02:00
 id = "2026-10-08-one-entry-per-thing"
 type = "update"
 name = "One entry per cited resource"
-description = "Resources that the guide also cites carry their citation in their own entry instead of a second, source entry; clauses that cited such a source under another ID now cite the resource."
+description = "Resources that the Guide also cites carry their citation in their own entry instead of a second, source entry; clauses that cited such a source under another ID now cite the resource."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 results = [
@@ -729,10 +753,10 @@ results = [
   "metadata.02",
   "metadata.03",
   "metadata.08",
-  "work.10",
-  "work.13",
-  "work.18",
-  "work.08",
+  "collect.10",
+  "collect.13",
+  "collect.17",
+  "collect.07",
   "publication.08",
   "publication.15",
   "publication.16",
@@ -761,7 +785,7 @@ endTime = 2026-10-09T08:59:39+02:00
 id = "2026-10-09-eosc-inventory-resources"
 type = "create"
 name = "Resources from the EOSC CZ website"
-description = "Resources the EOSC CZ website lists and the guide did not: planning and computing services, data portals, the evaluation methodology, a data journal, CC Signals, data steward and repository administrator materials, and the EOSC CZ training by life-cycle phase as each step's training link; each checked at its address on this date. The personas document records its update."
+description = "Resources the EOSC CZ website lists and the Guide did not: planning and computing services, data portals, the evaluation methodology, a data journal, CC Signals, data steward and repository administrator materials, and the EOSC CZ training by life-cycle phase as each step's training link; each checked at its address on this date. The personas document records its update."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 results = [
@@ -1083,7 +1107,7 @@ endTime = 2026-10-09T21:52:00+02:00
 id = "2026-10-09-gate-about-sources"
 type = "update"
 name = "Sources behind the gate's infrastructure questions and the About page"
-description = "The gate's questions on the AAI, security monitoring, central logging and first-line support cite what NRP's AAI architecture, its documentation and the Open Science II security monitoring report say about them; the About page says why the guide exists, citing the EOSC CZ vision paper, the NDI architecture, the ERCIM News article, the national survey of research data management and the NRP service roadmaps."
+description = "The gate's questions on the AAI, security monitoring, central logging and first-line support cite what NRP's AAI architecture, its documentation and the Open Science II security monitoring report say about them; the About page says why the Guide exists, citing the EOSC CZ vision paper, the NDI architecture, the ERCIM News article, the national survey of research data management and the NRP service roadmaps."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["aai-nrp", "nrp-aai-integration", "os2-kb1", "nrp-support", "eosc-cz-vision", "ndi-architecture", "ercim-community", "survey-2025-data", "nrp-roadmap-2025"]
@@ -1108,7 +1132,7 @@ endTime = 2026-10-09T21:50:00+02:00
 id = "2026-10-09-cerit-ai"
 type = "update"
 name = "AI in e-INFRA CZ, read from its documentation"
-description = "The AI page leads to AI in e-INFRA CZ (CERIT): what it offers, who can use it and how its data are handled, read from CERIT-SC's documentation; the guide's data rule follows CERIT-SC's privacy policy, which does not admit sensitive or personal data to the chat."
+description = "The AI page leads to AI in e-INFRA CZ (CERIT): what it offers, who can use it and how its data are handled, read from CERIT-SC's documentation; the Guide's data rule follows CERIT-SC's privacy policy, which does not admit sensitive or personal data to the chat."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["cerit-aiaas", "cerit-chat-ai", "cerit-ai-api", "cerit-ai-coding", "cerit-ai-privacy"]
@@ -1128,9 +1152,9 @@ results = [
   "cdsc-eln",
   "CDSC-README.01",
   "CDSC-ELN.01",
-  "work.05",
-  "work.06",
-  "work.11",
+  "collect.05",
+  "collect.06",
+  "collect.11",
   "metadata.06",
 ]
 endTime = 2026-10-09T20:16:00+02:00
@@ -1147,7 +1171,7 @@ results = [
   "plan.26",
   "publication.26",
   "plan.27",
-  "work.22",
+  "process.10",
   "repository.22",
   "metadata.37",
   "metadata.38",
@@ -1169,7 +1193,7 @@ endTime = 2026-10-09T20:09:00+02:00
 id = "2026-10-09-crate-standards"
 type = "create"
 name = "RO-Crate and Process Run Crate as resources"
-description = "RO-Crate and Process Run Crate, the standards the guide's knowledge base follows, become resources that the page for machines links, read from their published specifications."
+description = "RO-Crate and Process Run Crate, the standards the Guide's knowledge base follows, become resources that the page for machines links, read from their published specifications."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["ro-crate", "process-run-crate"]
@@ -1180,7 +1204,7 @@ endTime = 2026-10-09T21:00:00+02:00
 id = "2026-10-09-machine-data"
 type = "create"
 name = "FAIR Testing Resources as a resource"
-description = "The FAIR Testing Resources vocabulary, which the guide's check results and API use, becomes a resource that the page for machines explains and links, read from its published release."
+description = "The FAIR Testing Resources vocabulary, which the Guide's check results and API use, becomes a resource that the page for machines explains and links, read from its published release."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = ["ftr"]
@@ -1224,7 +1248,7 @@ endTime = 2026-10-09T10:55:15+02:00
 id = "2026-10-10-station-actions"
 type = "update"
 name = "Next steps per station and audience"
-description = "Each station offers each audience its next step and, where it helps, one related tool, drawn from what the guide has grown to offer: its checks and helpers, the data-steward community's templates, NRP and e-INFRA CZ documentation, NMA and the standards the steps rely on; no audience is sent to the same place at every station."
+description = "Each station offers each audience its next step and, where it helps, one related tool, drawn from what the Guide has grown to offer: its checks and helpers, the data-steward community's templates, NRP and e-INFRA CZ documentation, NMA and the standards the steps rely on; no audience is sent to the same place at every station."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = []
@@ -1253,10 +1277,10 @@ results = [
   "metadata.28",
   "metadata.15",
   "metadata.01",
-  "work.09",
-  "work.19",
-  "work.15",
-  "work.02",
+  "collect.09",
+  "collect.18",
+  "collect.15",
+  "collect.02",
   "publication.08",
   "publication.21",
   "publication.12",
@@ -1283,7 +1307,7 @@ results = [
   "licence.01",
   "plan.01",
   "metadata.08",
-  "work.01",
+  "collect.01",
   "publication.01",
   "repository.07",
 ]
@@ -1293,7 +1317,7 @@ endTime = 2026-10-10T08:53:00+02:00
 id = "2026-10-10-resource-types"
 type = "update"
 name = "One vocabulary of resource types"
-description = "The guide's resource types became the one vocabulary the catalogue lists resources, cited sources and FIP Dashboard records by: each type names the FIP Dashboard types and citation forms it covers, repositories and registries are one type, and publications, licences, policies and data joined; the NRP catch-all repository is a repository or registry."
+description = "The Guide's resource types became the one vocabulary the catalogue lists resources, cited sources and FIP Dashboard records by: each type names the FIP Dashboard types and citation forms it covers, repositories and registries are one type, and publications, licences, policies and data joined; the NRP catch-all repository is a repository or registry."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = []
@@ -1304,7 +1328,7 @@ endTime = 2026-10-10T09:01:00+02:00
 id = "2026-10-10-identifiers"
 type = "update"
 name = "Identifiers set and frozen"
-description = "Every entry of the guide took its identifier by one rule, set on 10 October 2026 and kept from then on: stations by short English names, advice and check questions nested under their station or check with a serial number, requirements under their source's code with the source's own label where it labels its items consistently, terms by their Heslář ID. Resources follow the stations' new identifiers."
+description = "Every entry of the Guide took its identifier by one rule, set on 10 October 2026 and kept from then on: stations by short English names, advice and check questions nested under their station or check with a serial number, requirements under their source's code with the source's own label where it labels its items consistently, terms by their Heslář ID. Resources follow the stations' new identifiers."
 agent = "david-novak"
 instruments = ["claude-opus-5-5", "claude-code"]
 objects = []
@@ -1317,7 +1341,30 @@ results = [
   "plan.*",
   "publication.*",
   "repository.*",
-  "work.*",
+  "collect.01",
+  "collect.02",
+  "collect.03",
+  "collect.04",
+  "collect.05",
+  "collect.06",
+  "collect.07",
+  "collect.09",
+  "collect.10",
+  "collect.11",
+  "collect.12",
+  "collect.13",
+  "collect.14",
+  "collect.15",
+  "collect.16",
+  "collect.17",
+  "collect.18",
+  "collect.19",
+  "process.03",
+  "process.08",
+  "process.09",
+  "process.10",
+  "analyse.03",
+  "analyse.05",
   "cdif.*",
   "coretrustseal.*",
   "dataset.*",
@@ -1544,7 +1591,7 @@ description = "Readers need research practice by meaning, without knowing the un
 agent = "david-novak"
 instruments = ["openai-codex"]
 objects = ["zenodo-software-guide", "cambridge-notebooks", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification"]
-results = ["cambridge-notebooks", "CAMBRIDGE-ERN.01", "page:software", "page:notebooks", "page:provenance", "page:fdo", "page:about", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification", "FAIR4RS.01", "CODE.01", "SWH.01", "SWH-GUIDE.01", "OPENSSF.01", "OSII-STUDY.01", "OSII-STUDY.02", "OSII-STUDY.03", "EOSC-ELN.01", "LONDON.4.6", "FDO-INTRO.01", "FRSM.FRSM-01", "FRSM.FRSM-02", "FRSM.FRSM-03", "FRSM.FRSM-04", "FRSM.FRSM-05", "FRSM.FRSM-06", "FRSM.FRSM-07", "FRSM.FRSM-08", "FRSM.FRSM-09", "FRSM.FRSM-10", "FRSM.FRSM-11", "FRSM.FRSM-12", "FRSM.FRSM-13", "FRSM.FRSM-14", "FRSM.FRSM-15", "FRSM.FRSM-16", "FRSM.FRSM-17", "FDO.FDOR-GR1", "FDO.FDOR-GR2", "FDO.FDOR-GR3", "FDO.FDO-GR4", "FDO.FDO-GR5", "FDO.FDO-GR6", "FDO.FDO-GR7", "FDO.FDO-GR8", "FDO.FDO-GR9", "FDO.FDO-GR10", "FDO.FDO-GR11", "FDO.FDO-GR12", "FDO.FDO-GR13", "FDO.FDO-GR14", "FDO.FDO-GR15", "FDO.FDO-PIDR1", "FDO.FDO-PIDR2", "FDO.FDO-PIDR3", "FDO.FDO-PIDR4", "FDO.FDO-PIDR5", "FDO.FDO-PIDR6", "FDO.FDO-FDOR1", "FDO.FDO-FDOR2", "FDO.FDO-FDOR3", "FDO.FDO-FDOR4", "FDO.FDO-FDOR5", "FDO.FDO-FDOR6", "FDO.FDO-FDOR7", "FDO.FDO-FDOR8", "FDO.FDO-FDO9", "FDO.FDO-FDO10", "FDO.FDO-FDO11", "FDO.FDO-RESR1", "FDO.FDO-RESR2", "work.23", "work.25", "metadata.40", "publication.27", "publication.28", "licence.26", "citation.19", "work.02", "work.06", "metadata.04", "metadata.13", "metadata.22", "metadata.33", "ZENODO-SW.01", "zenodo-software-guide", "software.01", "software.02", "software.03", "software.04", "software.05", "software.06", "software.07", "software.08", "software.09", "software.10", "software.11", "software.12", "software.13", "software.14", "software.15", "software.16", "software.17", "software.18", "software.19", "software.20", "fdo.01", "fdo.02", "fdo.03", "fdo.04", "fdo.05", "fdo.06", "fdo.07", "fdo.08", "fdo.09", "fdo.10", "fdo.11", "fdo.12", "fdo.13", "fdo.14", "fdo.15", "fdo.16", "fdo.17", "fdo.18", "fdo.19", "fdo.20", "fdo.21", "fdo.22", "fdo.23", "fdo.24", "fdo.25", "fdo.26", "fdo.27", "fdo.28", "fdo.29", "fdo.30", "fdo.31", "fdo.32", "fdo.33", "fdo.34"]
+results = ["cambridge-notebooks", "CAMBRIDGE-ERN.01", "page:software", "page:notebooks", "page:provenance", "page:fdo", "page:about", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification", "FAIR4RS.01", "CODE.01", "SWH.01", "SWH-GUIDE.01", "OPENSSF.01", "OSII-STUDY.01", "OSII-STUDY.02", "OSII-STUDY.03", "EOSC-ELN.01", "LONDON.4.6", "FDO-INTRO.01", "FRSM.FRSM-01", "FRSM.FRSM-02", "FRSM.FRSM-03", "FRSM.FRSM-04", "FRSM.FRSM-05", "FRSM.FRSM-06", "FRSM.FRSM-07", "FRSM.FRSM-08", "FRSM.FRSM-09", "FRSM.FRSM-10", "FRSM.FRSM-11", "FRSM.FRSM-12", "FRSM.FRSM-13", "FRSM.FRSM-14", "FRSM.FRSM-15", "FRSM.FRSM-16", "FRSM.FRSM-17", "FDO.FDOR-GR1", "FDO.FDOR-GR2", "FDO.FDOR-GR3", "FDO.FDO-GR4", "FDO.FDO-GR5", "FDO.FDO-GR6", "FDO.FDO-GR7", "FDO.FDO-GR8", "FDO.FDO-GR9", "FDO.FDO-GR10", "FDO.FDO-GR11", "FDO.FDO-GR12", "FDO.FDO-GR13", "FDO.FDO-GR14", "FDO.FDO-GR15", "FDO.FDO-PIDR1", "FDO.FDO-PIDR2", "FDO.FDO-PIDR3", "FDO.FDO-PIDR4", "FDO.FDO-PIDR5", "FDO.FDO-PIDR6", "FDO.FDO-FDOR1", "FDO.FDO-FDOR2", "FDO.FDO-FDOR3", "FDO.FDO-FDOR4", "FDO.FDO-FDOR5", "FDO.FDO-FDOR6", "FDO.FDO-FDOR7", "FDO.FDO-FDOR8", "FDO.FDO-FDO9", "FDO.FDO-FDO10", "FDO.FDO-FDO11", "FDO.FDO-RESR1", "FDO.FDO-RESR2", "collect.12", "analyse.03", "metadata.40", "publication.27", "publication.28", "licence.26", "citation.19", "collect.02", "collect.06", "metadata.04", "metadata.13", "metadata.22", "metadata.33", "ZENODO-SW.01", "zenodo-software-guide", "software.01", "software.02", "software.03", "software.04", "software.05", "software.06", "software.07", "software.08", "software.09", "software.10", "software.11", "software.12", "software.13", "software.14", "software.15", "software.16", "software.17", "software.18", "software.19", "software.20", "fdo.01", "fdo.02", "fdo.03", "fdo.04", "fdo.05", "fdo.06", "fdo.07", "fdo.08", "fdo.09", "fdo.10", "fdo.11", "fdo.12", "fdo.13", "fdo.14", "fdo.15", "fdo.16", "fdo.17", "fdo.18", "fdo.19", "fdo.20", "fdo.21", "fdo.22", "fdo.23", "fdo.24", "fdo.25", "fdo.26", "fdo.27", "fdo.28", "fdo.29", "fdo.30", "fdo.31", "fdo.32", "fdo.33", "fdo.34"]
 endTime = 2026-10-10T17:34:29Z
 
 [[action]]
@@ -1610,7 +1657,7 @@ description = "Integrated the approved conceptual model with six functional laye
 agent = "david-novak"
 instruments = ["openai-codex"]
 objects = ["layers-and-seams-manuscript", "analyza-fair-1.2", "fip-ontology", "mbdb-2026", "nrp-conditions"]
-results = ["model:layers-and-seams", "model:worked-example", "layers-and-seams-manuscript", "eosc-cz", "page:model", "page:machines", "layer.policy", "layer.community", "layer.infrastructure", "layer.planning", "layer.support", "layer.evaluation", "seam.repository-nma", "seam.nma-research-register", "seam.institution-nma", "seam.repository-authentication", "seam.repository-pid-registry", "seam.community-repository", "seam.working-groups-services", "seam.repository-catalogue-planning", "seam.community-planning", "seam.plan-repository", "seam.repository-support", "seam.assessment-remediation", "example.nkr-catalogue", "example.nkr-planning", "example.assessment-feedback", "context:plan:V", "context:plan:DS", "context:plan:K", "context:work:K", "context:metadata:V", "context:metadata:DS", "context:metadata:SR", "context:metadata:K", "context:publication:SR", "context:findability:V", "context:findability:DS", "context:findability:SR", "context:citation:SR", "context:assessment:V", "context:assessment:DS", "context:assessment:SR", "context:assessment:K", "ccmm", "oai-pmh", "nma-export-docs", "nrp-docs-nma-access", "gate.08", "maturity.05", "NRP.M8", "NMA-EXPORT-DOCS.01", "A.F4.R1", "A.A1.R1", "nma", "dataset.05", "dataset.23", "institution.26", "metadata.08", "nma-riv-docs", "NMA-RIV-DOCS.01", "policy-manual", "institution.23", "pid-centre", "orcid", "ror", "datacite", "dataset.01", "fip.01", "A.F1.R1", "test:guide-dataset-01", "test:guide-fdo-01", "maturity.10", "A.A1.2.R1", "A.A1.2.R2", "A.F2.F1", "A.R1.F1", "A.F2.R2", "A.R1.R2", "A.R1.3.F1", "A.R1.3.R2", "NRP.M12", "gate.12", "maturity.08", "maturity.09", "maturity.13", "fip.02", "metadata.17", "metadata.18", "metadata.23", "metadata.28", "metadata.29", "metadata.30", "metadata.31", "metadata.33", "work.19", "work.20", "work.21", "eosc-working-groups", "EOSC-WORKING-GROUPS.01", "nkr", "nkr-schema", "dsw-nrp", "DSW-NRP.01", "dataset.15", "dataset.16", "fip-dashboard", "fip-ontology", "fip-wizard-templates", "A.K4.1", "A.K4.3", "plan.22", "plan.24", "fair-champion", "assessment.23", "assessment.25", "test:guide-maturity-12", "test:guide-software-03", "datacite-schema", "metadata.36", "survey-2025", "os-linkages-1.1", "os3-faq", "ndi-architecture", "dmp-eosc", "ds-handbook", "ds-personas", "eosc-data-stewards", "eosc-training", "repo-recommendations", "repo-user-needs", "repo-integration", "os2", "copyright-licences", "deposit-licence", "ethical-seven", "aai-sensitive", "os3", "eosc-acknowledgement"]
+results = ["model:layers-and-seams", "model:worked-example", "layers-and-seams-manuscript", "eosc-cz", "page:model", "page:machines", "layer.policy", "layer.community", "layer.infrastructure", "layer.planning", "layer.support", "layer.evaluation", "seam.repository-nma", "seam.nma-research-register", "seam.institution-nma", "seam.repository-authentication", "seam.repository-pid-registry", "seam.community-repository", "seam.working-groups-services", "seam.repository-catalogue-planning", "seam.community-planning", "seam.plan-repository", "seam.repository-support", "seam.assessment-remediation", "example.nkr-catalogue", "example.nkr-planning", "example.assessment-feedback", "context:plan:V", "context:plan:DS", "context:plan:K", "context:collect:K", "context:metadata:V", "context:metadata:DS", "context:metadata:SR", "context:metadata:K", "context:publication:SR", "context:findability:V", "context:findability:DS", "context:findability:SR", "context:citation:SR", "context:assessment:V", "context:assessment:DS", "context:assessment:SR", "context:assessment:K", "ccmm", "oai-pmh", "nma-export-docs", "nrp-docs-nma-access", "gate.08", "maturity.05", "NRP.M8", "NMA-EXPORT-DOCS.01", "A.F4.R1", "A.A1.R1", "nma", "dataset.05", "dataset.23", "institution.26", "metadata.08", "nma-riv-docs", "NMA-RIV-DOCS.01", "policy-manual", "institution.23", "pid-centre", "orcid", "ror", "datacite", "dataset.01", "fip.01", "A.F1.R1", "test:guide-dataset-01", "test:guide-fdo-01", "maturity.10", "A.A1.2.R1", "A.A1.2.R2", "A.F2.F1", "A.R1.F1", "A.F2.R2", "A.R1.R2", "A.R1.3.F1", "A.R1.3.R2", "NRP.M12", "gate.12", "maturity.08", "maturity.09", "maturity.13", "fip.02", "metadata.17", "metadata.18", "metadata.23", "metadata.28", "metadata.29", "metadata.30", "metadata.31", "metadata.33", "collect.18", "collect.19", "process.09", "eosc-working-groups", "EOSC-WORKING-GROUPS.01", "nkr", "nkr-schema", "dsw-nrp", "DSW-NRP.01", "dataset.15", "dataset.16", "fip-dashboard", "fip-ontology", "fip-wizard-templates", "A.K4.1", "A.K4.3", "plan.22", "plan.24", "fair-champion", "assessment.23", "assessment.25", "test:guide-maturity-12", "test:guide-software-03", "datacite-schema", "metadata.36", "survey-2025", "os-linkages-1.1", "os3-faq", "ndi-architecture", "dmp-eosc", "ds-handbook", "ds-personas", "eosc-data-stewards", "eosc-training", "repo-recommendations", "repo-user-needs", "repo-integration", "os2", "copyright-licences", "deposit-licence", "ethical-seven", "aai-sensitive", "os3", "eosc-acknowledgement"]
 endTime = 2026-10-11T18:06:37+00:00
 
 [[action]]
@@ -1645,3 +1692,134 @@ instruments = ["openai-codex"]
 objects = []
 results = ["guide"]
 endTime = 2026-10-11T21:13:31+00:00
+
+[[action]]
+id = "2026-10-12-organisation-paradata"
+type = "update"
+name = "Curated organisations verified and covered by paradata"
+description = "The curated organisations (the Library and the Institute of Archaeology, Prague, of the Czech Academy of Sciences, CESNET, the Ministry of Education, Youth and Sports, the National Library of Technology, the Czech Social Science Data Archive, Charles University and the NRP project) were created and edited between 8 and 11 October 2026 by actions whose results did not name them. Organisations now need paradata like every other item whose changes are compared. Their names, addresses and ROR identifiers were checked against the seven ROR records, all active on 12 October 2026. The NRP project has no ROR record; its identifier is the one its funder's acknowledgement requires. No organisation record was changed. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "kilo-code"]
+objects = []
+results = ["knav", "aru-praha", "cesnet", "msmt", "ntk", "csda", "cuni", "nrp"]
+endTime = 2026-10-12T01:20:00+00:00
+
+[[action]]
+id = "2026-10-12-external-evaluators"
+type = "create"
+name = "FAIR-Checker and F-UJI criteria with reviewed question mappings"
+description = "Registered the twelve FAIR-Checker metrics from its published REST description (API version 1.0; the interface reported version 1.3.4 on 11 and 12 October 2026) and the seventeen F-UJI metrics from two public F-UJI reports: software 3.5.0 with metric specification 10.5281/zenodo.6461229 (metrics_v0.8) and software 4.0.1 with 10.5281/zenodo.15045911 (0.8). Both specifications list the same metric identifiers and names, which are kept verbatim; the bilingual labels are the Guide's reading. One FAIR-Checker metric was requested live on 12 October 2026 to confirm its response fields and that its REST interface admits the Guide's origin. Each mapping names the question, whether the criterion covers it wholly or partly, and the reviewed versions. Two F-UJI metrics cover a dataset question wholly: the persistent identifier (dataset.01) and the access level (dataset.10); every other mapping is partial evidence, and the remaining metrics stay unmapped. The FAIR-Checker coverage notes for persistent identifiers and access rights were checked against the published metric implementations (F1B accepts a known persistent URL authority or an identifier property; A12 accepts any of several rights properties, including a licence), and their principles against the implementations' declared principle IRIs. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "kilo-code"]
+objects = ["A.K5.2.2"]
+results = ["provider:*"]
+endTime = 2026-10-12T02:51:00+00:00
+
+[[action]]
+id = "2026-10-13-review-corrections"
+type = "update"
+name = "Corrections from the maintainer's second review"
+description = "Links that name a catalogue entry open that entry, and the community lens's shortcut for domain standards and vocabularies and the data steward's overview of assessment tools open the catalogue narrowed to their topic for the reader's lens instead of the whole list of resources. The deposit-licence advice and the template's description follow the NRP copyright and licences FAQ (version 1.0, 21 September 2026): a depositor grants a non-exclusive licence by accepting the repository's deposit licence conditions, without a written contract, and the template is not a contract of deposit. Its passages were taken from the PDF's text layer and kept verbatim as the new clause's original; the template keeps its published title. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["copyright-licences", "deposit-licence"]
+results = ["guide", "assessment.07", "licence.07", "repository.05", "deposit-licence", "COPYRIGHT-LICENCES.02"]
+endTime = 2026-10-13T03:26:46+00:00
+
+[[action]]
+id = "2026-10-13-life-cycle-path"
+type = "create"
+name = "The path along the RDMkit research data life cycle"
+description = "Added RDMkit (ELIXIR, CC BY 4.0) as a source with clauses from its Collecting, Processing, Analysing and Reusing pages, each with the page's own explanation and considerations quoted as published at revision 73476cb (pages last changed 27 March 2026). The original passages were converted from the pages' source text, keeping wording and list structure and dropping only link targets and emphasis; the Czech and English statements are the Guide's summaries. Added three life-cycle models as records: RDMkit's seven stages with the first paragraph of each stage page's 'What is' section (two sentences for Process and Preserve) and the Czech names and definitions of the KNAV Open Science life-cycle page (CC BY 4.0, updated 11 July 2025); the twelve MaLDReTH stages with their definitions from Deliverable 1 as included verbatim in the RDA Recommendation (DOI 10.15497/RDA00125, CC BY 4.0; compared with the July 2024 deliverable, identical); and the eight steps of the KNAV Data Management Tools Catalogue from its data.js at commit c6094e6 in the order of its cycle diagram (GPL-3.0, kept on that file). Czech names of MaLDReTH stages and KNAV catalogue steps are the Guide's translations and are marked. The crosswalk takes the RDMkit-MaLDReTH correspondences from Figure 2 of Deliverable 1, marks Reuse-Access unconfirmed as Figure 2 labels two columns SHARE, and adds the Guide's reviewed correspondences, each with the RDMkit passage it rests on. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["rdmkit", "maldreth", "knav-life-cycle", "knav-dm-tools-catalogue"]
+results = ["RDMKIT.*", "rdmkit", "maldreth", "knav-life-cycle", "knav-dm-tools-catalogue", "lifecycle:*", "rdmkit.*", "maldreth.*", "knav-tools.*", "crosswalk:*"]
+endTime = 2026-10-13T07:28:14+00:00
+
+[[action]]
+id = "2026-10-13-knav-tools-catalogue"
+type = "create"
+name = "The KNAV Data Management Tools Catalogue as a snapshot"
+description = "Added the KNAV Data Management Tools Catalogue (Open Science Department, Library of the Czech Academy of Sciences; GPL-3.0) as a dated snapshot of its 133 tools, retrieved by scripts/refresh_snapshots.py from dmtools.json at commit 8903ab8 (28 March 2026), each with its life-cycle steps and discipline groups (named after the catalogue's filter; the Czech names are the Guide's translations). Every overlap with an entry of the Guide or another registry was reviewed: curated entries that are catalogue tools state it (Argos, DMPonline, Kadi4Mat, eLabFTW, Software Heritage, FAIRsharing, Zenodo, Dryad, RDMkit), record annotations join the tool to its re3data or FIP Dashboard record (LINDAT/CLARIAH-CZ, CSDA, eduID), the three EOSC EU Node services sharing one address and the two Data Stewardship Wizard instances are kept apart, and the Czech Academy of Sciences' FAIR Wizard was curated with Czech and English names and checked at its address. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["knav-dm-tools-catalogue"]
+results = ["avcr-fair-wizard", "argos", "dmponline", "kadi4mat", "elabftw", "software-heritage", "fairsharing", "zenodo", "dryad", "rdmkit", "re3data.r3d100010386", "re3data.r3d100010484", "knav.eduid"]
+endTime = 2026-10-13T08:03:06+00:00
+
+[[action]]
+id = "2026-10-13-path-reshape"
+type = "update"
+name = "The path reshaped along the research data life cycle"
+description = "Split the work station into three steps of the RDMkit life cycle, renaming identifiers in place before the first release (D-163): collect (organising, documenting and storing data as they are created, with the work station's key point and each lens's next step), process (cleaning, conversion and quality checks, pseudonymisation and the encoding of fields) and analyse (repeatable analysis, computing near the data and shared environments). The new key points, next steps and tips were written from RDMkit's Collecting, Processing and Analysing pages and existing ledger clauses; the repository operator's format list, the community's format strategy and the data steward's computing pointer became those lenses' next steps with an action each. The citation step became Citation and reuse, with advice from RDMkit's Reusing page on checking licence, metadata and source before reuse. Later stations were renumbered, and resource placements, the steps where check gaps are fixed, the sensitive-data callout, model associations and the model context followed the new steps. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["RDMKIT.collect.01", "RDMKIT.collect.02", "RDMKIT.process.01", "RDMKIT.process.02", "RDMKIT.analyse.01", "RDMKIT.analyse.02", "RDMKIT.reuse.01", "RDMKIT.reuse.02"]
+results = ["collect", "process", "analyse", "citation", "collect.*", "process.*", "analyse.*", "citation.20", "citation.21", "citation.22", "dataset.18", "dataset.11", "gate.02", "institution.24", "software.10", "software.13", "software.14", "software.17", "software.18", "software.20", "eosc-data-stewards", "cdsc-readme", "cdsc-eln", "cessda-dmeg", "cesnet-storage", "onedata", "sensitive-cloud", "ddrapp", "nrp-compute", "eosc-training", "cerit-aiaas", "it4i-compute", "metacentrum", "training-collection", "training-processing", "training-analysis", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification", "cambridge-notebooks", "context:collect:K"]
+endTime = 2026-10-13T08:17:37+00:00
+
+[[action]]
+id = "2026-10-13-stage-translations"
+type = "update"
+name = "Stage definitions in both languages"
+description = "Gave each of the seven stages of the path's life-cycle model the Guide's Czech translation of its RDMkit definition, rendered sentence for sentence, so that Czech and English readers see the same definition (D-176); the Czech text is marked as the Guide's translation. KNAV's Czech definitions remain as quotations and now keep their stage labels as published ('Plánování: …'), so that each reads as a sentence. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["rdmkit", "knav-life-cycle"]
+results = ["rdmkit.*"]
+endTime = 2026-10-13T13:49:50+00:00
+
+[[action]]
+id = "2026-10-13-guide-capitalised"
+type = "update"
+name = "The Guide named with a capital letter"
+description = "Named this guide with a capital letter wherever the text means it, Průvodce in Czech and the Guide in English (D-177), across the interface strings, pages, advice, check questions, ledger notes, the model's worked example and the provenance descriptions; generic uses such as the licence selector ('průvodce licencemi') and other organisations' guides stay in lower case and are listed in genericGuideUses, which a new content check reads. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+results = ["guide", "repository.03", "repository.08", "dataset.27", "software.18", "A.K4.2", "A.K5.2.2", "A.R1.3.N2", "model:worked-example", "page:about", "page:accessibility", "page:ai", "page:fdo", "page:machines", "page:model", "page:provenance", "page:software"]
+endTime = 2026-10-13T13:57:05+00:00
+
+[[action]]
+id = "2026-10-13-more-catalogues"
+type = "create"
+name = "The SSH Open Marketplace, OpenDOAR and Infra Finder as resources"
+description = "Added three catalogues the maintainer's review named (D-179). The SSH Open Marketplace, a discovery portal for the social sciences and humanities maintained by DARIAH, CLARIN and CESSDA (EOSC Macro-Roadmap case study), is recommended at the planning, processing and analysis steps for researchers, data stewards and communities, and is linked to its KNAV catalogue tool; its open API was checked (the item search answered without a key on 13 October 2026), so a later harvest is possible. OpenDOAR, Jisc's directory of open access repositories whose inclusion criteria admit publications, theses and data available without payment or registration, joins the repository directories at the repository step; it is linked only, because its API (Sherpa services) requires a key from a registered account, as Sherpa's object retrieval documentation states. Infra Finder, Invest in Open Infrastructure's directory comparing open infrastructure such as repository software for institutions and libraries (Collister, Tsang and Wu 2024), is recommended at the repository step for data stewards and repository operators; no export of its data was found, so it is linked only. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["eosc-mrm-ssh-open-marketplace", "knav-dm-tools-catalogue", "opendoar-inclusion-criteria", "sherpa-object-retrieval-api", "infra-finder-paper"]
+results = ["ssh-open-marketplace", "opendoar", "infra-finder"]
+endTime = 2026-10-13T14:44:25+00:00
+
+[[action]]
+id = "2026-10-13-datacite-repositories"
+type = "update"
+name = "Repositories joined to their DataCite records"
+description = "Named the DataCite repository of five repositories the re3data snapshot does not hold, each as DataCite itself records it (D-180): Zenodo (cern.zenodo), Dryad (dryad.dryad) and Harvard Dataverse (gdcc.harvard-dv), whose DataCite records name their re3data records' DOIs, and MBDB (biot.mbdb) and the NRP data catch-all repository (kdby.damqif), whose DataCite records give the repositories' addresses. The re3data snapshot now records each record's DOI from re3data's list, by which DataCite finds the other repositories; the ELI ERIC repository is left without one, because its DataCite record names no re3data record and its address differs. Checked against DataCite's REST API on 13 October 2026. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["datacite-rest-api", "datacite-data-file-use-policy"]
+results = ["zenodo", "dryad", "harvard-dataverse", "mbdb", "datarepo"]
+endTime = 2026-10-13T15:14:53+00:00
+
+[[action]]
+id = "2026-10-14-evaluator-reading"
+type = "update"
+name = "Evaluator results read as the evaluators show them"
+description = "The maintainer found that a F-UJI report the Guide showed as failed was passed in F-UJI's own overview, and that neither evaluator suggested any answer. F-UJI's result page shows a metric as passed at its FAIR level from level 1 and as unknown at level 0, whatever the report's test status, which stays fail when unscored data-identifier subtests fail; its metric definitions give each subtest's level. FAIR-Checker's check view colours scores 2, 1 and 0 green, orange and red, and its metrics give 2 for a strong evaluation, 1 for a weak one (only F1B has one) and 0 otherwise. The Guide now reads them the same way (D-184): F-UJI level 3 as met, levels 1 and 2 as partly met, level 0 as not established; FAIR-Checker 2, 1 and 0 as met, partly met and not met, with an assessment scoring 0 everywhere deciding nothing. Reviewed mappings turn the reading into suggestions under the partial-evidence rule (D-168), which now also covers FAIR Champion tests marked as covering part of a question; the help of the two such questions says what their tests suggest. The F-UJI mapping notes describe levels instead of native pass and fail. Checked against the four sources on 14 October 2026 and against a saved F-UJI assessment of an archaeological dataset. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
+agent = "david-novak"
+instruments = ["claude-opus-5-5", "claude-code"]
+objects = ["fuji-simpleclient", "fuji-metrics-v0-8", "fair-checker-check-view", "fair-checker-metrics"]
+results = ["provider:*", "dataset.01", "dataset.13"]
+endTime = 2026-10-13T22:58:46+00:00
+
+[[action]]
+id = "2026-10-14-glossary-and-language"
+type = "update"
+name = "Licensed glossary definitions and reviewed interface wording"
+description = "Imported the Heslář Open Science API's original Czech definitions under the maintainer-confirmed CC BY 4.0 terms, retaining source links and language, removing source markup safely, and indexing the definitions for catalogue and general search. The definitions load with sourced detail to preserve the first-download budget. An independent language review read the authored Czech and English fields in all 24 assigned interface, page, station, check, resource and repository files. Corrected six findings: lifecycle legend translations, replacement direction in the Czech DataCite notification, English report summaries, the repository-choice explanation, Czech agreement in the institution check, and the glossary source name. Source-original passages remain unchanged. The assistant runtime does not expose the actual backend model identifier or runtime version."
+agent = "david-novak"
+instruments = ["openai-codex-runtime"]
+objects = ["heslar"]
+results = ["repository.07", "institution.17", "t.ntk.*"]
+endTime = 2026-10-14T00:55:40+00:00

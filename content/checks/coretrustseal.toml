@@ -5,7 +5,7 @@
 id = "coretrustseal"
 name = { cs = "Připravenost na CoreTrustSeal", en = "CoreTrustSeal readiness" }
 icon = "certificate"
-description = { cs = "Je repozitář připraven požádat o certifikaci CoreTrustSeal? Otázky odpovídají požadavkům vydání 2026–2028 a u každé najdete pokyny CoreTrustSeal k tomu, co má žádost doložit. Odpověď Ano odpovídá v žádosti úrovni Implemented, Částečně úrovni In progress. Certifikaci uděluje CoreTrustSeal; průvodce jen radí.", en = "Is the repository ready to apply for CoreTrustSeal certification? The questions follow the 2026–2028 requirements, and each carries CoreTrustSeal's guidance on what an application must show. Yes corresponds to the Implemented compliance level in an application, Partly to In progress. CoreTrustSeal grants the certification; the guide only advises." }
+description = { cs = "Je repozitář připraven požádat o certifikaci CoreTrustSeal? Otázky odpovídají požadavkům vydání 2026–2028 a u každé najdete pokyny CoreTrustSeal k tomu, co má žádost doložit. Odpověď Ano odpovídá v žádosti úrovni Implemented, Částečně úrovni In progress. Certifikaci uděluje CoreTrustSeal; Průvodce jen radí.", en = "Is the repository ready to apply for CoreTrustSeal certification? The questions follow the 2026–2028 requirements, and each carries CoreTrustSeal's guidance on what an application must show. Yes corresponds to the Implemented compliance level in an application, Partly to In progress. CoreTrustSeal grants the certification; the Guide only advises." }
 lenses = ["SR"]
 minutes = 30
 

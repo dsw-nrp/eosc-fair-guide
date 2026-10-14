@@ -1,0 +1,202 @@
+# Station 7: licence and access. Field reference: docs/content-model.md.
+
+[station]
+id = "licence"
+position = 7
+lifecycleStage = "share"
+name = { cs = "Licence a přístup", en = "Licence and access" }
+title = { cs = "Licence a podmínky přístupu", en = "Licence and access conditions" }
+icon = "scale-balanced"
+principles = ["R1.1", "A1.2"]
+minutes = 10
+glossary = ["190", "250", "50", "380", "188"]
+
+[[advice]]
+id = "licence.01"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Licence říká, co s daty smějí ostatní dělat, podmínky přístupu sdělují, kdo k nim smí. Popis dat může být veřejný, i když data veřejná nejsou.", en = "A licence says what others may do with the data; access conditions say who may reach them. The description can be public even when the data are not." }
+sources = ["A.R1.1.R1", "A.A1.2.R2"]
+
+[[advice]]
+id = "licence.02"
+lens = "V"
+level = "L0"
+text = { cs = "Zvolte licenci, aby ostatní věděli, co s daty smějí dělat. Pro otevřená data se nejčastěji používá CC BY 4.0 nebo CC0. Pokud data otevřít nelze, nastavte omezený přístup nebo embargo; popis dat může být veřejný i tak.", en = "Choose a licence so that others know what they may do with the data. Open data most often use CC BY 4.0 or CC0. If the data cannot be open, set restricted access or an embargo; the description of the data can still be public." }
+action = [{ label = { cs = "Průvodce licencemi v DMP.eosc.cz", en = "Licence selector in DMP.eosc.cz" }, href = "https://dmp.eosc.cz/" }, { label = { cs = "Autorská práva a licence", en = "Copyright and licences" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng" }]
+sources = ["A.R1.1.R1", "A.A1.2.R2", "DSW-NRP.01", "COPYRIGHT-LICENCES.01"]
+
+[[advice]]
+id = "licence.03"
+lens = "V"
+level = "L1"
+text = { cs = "Ověřte, že k datům máte potřebná práva (autorské a databázové právo, smlouvy, osobní údaje); pomůže příručka [[copyright-licences|Autorská práva a licence]].", en = "Check that you hold the necessary rights to the data (copyright and database rights, contracts, personal data); the [[copyright-licences|handbook on copyright and licences]] helps." }
+sources = ["COPYRIGHT-LICENCES.01"]
+
+[[advice]]
+id = "licence.04"
+lens = "V"
+level = "L1"
+text = { cs = "Vyberte licenci z nabídky repozitáře; s výběrem pomůže průvodce licencemi v [[dmp-eosc|DMP.eosc.cz]].", en = "Choose a licence from the repository's options; the licence selector in [[dmp-eosc|DMP.eosc.cz]] helps." }
+sources = ["A.R1.1.R1", "DSW-NRP.01"]
+
+[[advice]]
+id = "licence.05"
+lens = "V"
+level = "L1"
+text = { cs = "Licence se v metadatech uvádí odkazem (URI), ne jen názvem.", en = "The licence is given in the metadata as a link (URI), not only by name." }
+sources = ["A.R1.1.X1", "A.MIN3"]
+
+[[advice]]
+id = "licence.26"
+lens = "V"
+level = "L1"
+text = { cs = "Přikládáte-li k datům vlastní [[page:software|skripty nebo jiný software]], uveďte licenci kódu zvlášť. Licence dat se na něj automaticky nevztahuje. U převzatého kódu a knihoven zachovejte jejich licenční údaje.", en = "If you include your own [[page:software|scripts or other software]] with the data, state the code licence separately. The data licence does not automatically cover it. Retain licence information for reused code and libraries." }
+sources = ["FRSM.FRSM-15"]
+
+[[advice]]
+id = "licence.06"
+lens = "V"
+level = "L1"
+text = { cs = "Zvolte režim přístupu: otevřený, embargo, na vyžádání nebo omezený. Popište, jak o data požádat.", en = "Choose the access mode: open, embargoed, on request or restricted. Describe how to request the data." }
+sources = ["A.A1.2.R2"]
+
+[[advice]]
+id = "licence.07"
+lens = "V"
+level = "L1"
+text = { cs = "Při vkladu udělíte repozitáři nevýhradní licenci k uložení a zpřístupnění dat tím, že přijmete jeho depoziční licenční podmínky, obvykle zaškrtnutím souhlasu; písemnou smlouvu uzavírat nemusíte. Podmínky si před vkladem přečtěte; repozitáře mohou vycházet ze [[deposit-licence|vzoru depoziční licence]].", en = "When you deposit, you grant the repository a non-exclusive licence to store and provide the data by accepting its deposit licence conditions, usually by ticking a consent box; you need not sign a written contract. Read the conditions before you deposit; repositories can base them on the [[deposit-licence|deposit licence template]]." }
+sources = ["DEPOSIT-LICENCE.01", "COPYRIGHT-LICENCES.02"]
+
+[[advice]]
+id = "licence.08"
+lens = "DS"
+level = "L0"
+text = { cs = "Licence a podmínky přístupu bývají nejčastějším zdrojem nejistoty. Pomozte je rozhodnout včas, ideálně už v DMP.", en = "Licences and access conditions are the most common source of uncertainty. Help decide them early, ideally in the DMP." }
+action = [{ label = { cs = "Autorská práva a licence", en = "Copyright and licences" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng" }, { label = { cs = "Vzor depoziční licence", en = "Deposit licence template" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence" }]
+sources = ["COPYRIGHT-LICENCES.01", "DSW-NRP.01"]
+
+[[advice]]
+id = "licence.09"
+lens = "DS"
+level = "L1"
+text = { cs = "Opřete se o příručku [[copyright-licences|Autorská práva a licence]] a o [[deposit-licence|vzor depoziční licence]].", en = "Rely on the [[copyright-licences|handbook on copyright and licences]] and on the [[deposit-licence|deposit licence template]]." }
+sources = ["COPYRIGHT-LICENCES.01", "DEPOSIT-LICENCE.01"]
+
+[[advice]]
+id = "licence.10"
+lens = "DS"
+level = "L1"
+text = { cs = "Rozlišujte licenci dat a licenci metadat: metadata se v NRP sdílejí pod licencí odpovídající CC0, aby je šlo volně sklízet.", en = "Tell the data licence and the metadata licence apart: in NRP, metadata are shared under a licence equivalent to CC0 so that they can be harvested freely." }
+sources = ["NRP.M4"]
+
+[[advice]]
+id = "licence.11"
+lens = "DS"
+level = "L1"
+text = { cs = "Etické aspekty práce s daty shrnuje [[ethical-seven|Etické sedmero pro práci s výzkumnými daty]].", en = "[[ethical-seven|The Ethical Seven for working with research data]] summarises the ethical aspects." }
+sources = ["ETHICAL-SEVEN.01"]
+
+[[advice]]
+id = "licence.12"
+lens = "DS"
+level = "L1"
+text = { cs = "NRP plánuje katalog doporučených licencí s metodickou podporou; jeho stav ověřte před doporučením.", en = "NRP plans a catalogue of recommended licences with methodological support; check its status before recommending it." }
+sources = ["A.R1.1.N1"]
+
+[[advice]]
+id = "licence.13"
+lens = "SR"
+level = "L0"
+text = { cs = "Nabídněte výběr z doporučených licencí, zajistěte u každé datové sady licenci uvedenou jako URI a nastavte pravidla přístupu.", en = "Offer a choice of recommended licences, make sure every dataset has a licence given as a URI, and set the access rules." }
+action = [{ label = { cs = "Vzor depoziční licence", en = "Deposit licence template" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence" }, { label = { cs = "Podmínky NRP: přístup a AAI", en = "NRP conditions: access and AAI" }, href = "#check-gate" }]
+sources = ["A.R1.1.R1", "A.MIN3", "NRP.M11"]
+
+[[advice]]
+id = "licence.14"
+lens = "SR"
+level = "L1"
+text = { cs = "Licence je povinná, vybírá se z doporučených a validuje se, že je uvedena alespoň jako URI.", en = "A licence is mandatory, chosen from the recommended ones, and validated to be given at least as a URI." }
+sources = ["A.R1.1.R1", "A.MIN3"]
+
+[[advice]]
+id = "licence.15"
+lens = "SR"
+level = "L1"
+text = { cs = "Metadata nabídněte s permisivní licencí (odpovídající CC0) kvůli sklizni; podmínky NRP to vyžadují.", en = "Offer metadata under a permissive licence (equivalent to CC0) so they can be harvested; the NRP conditions require this." }
+sources = ["NRP.M4"]
+
+[[advice]]
+id = "licence.16"
+lens = "SR"
+level = "L1"
+text = { cs = "Nastavte depoziční a přístupový workflow, od otevřeného po schvalovaný přístup; podmínky NRP to vyžadují.", en = "Set up deposit and access workflows, from open to approved access; the NRP conditions require this." }
+sources = ["NRP.M11"]
+
+[[advice]]
+id = "licence.17"
+lens = "SR"
+level = "L1"
+text = { cs = "Integrujte repozitář s AAI e-INFRA CZ a nastavte role; podmínky NRP to vyžadují.", en = "Integrate the repository with the e-INFRA CZ AAI and set up roles; the NRP conditions require this." }
+sources = ["NRP.M6", "A.A1.2.R1"]
+
+[[advice]]
+id = "licence.18"
+lens = "SR"
+level = "L1"
+text = { cs = "Definujte úrovně oprávnění: veřejná data, data před zveřejněním a citlivá data.", en = "Define permission levels: public data, data before publication and sensitive data." }
+sources = ["A.A1.2.R2"]
+
+[[advice]]
+id = "licence.19"
+lens = "SR"
+level = "L1"
+text = { cs = "Licence a podmínky přístupu zpřístupněte strojově čitelně (URI); v [[ccmm|CCMM]] 2.0.0 se licence váží přímo ke třídám.", en = "Make licences and access conditions machine-readable (URIs); in [[ccmm|CCMM]] 2.0.0, licences are attached directly to classes." }
+sources = ["A.K2.3.2c", "CCMM-RELEASES.01"]
+
+[[advice]]
+id = "licence.20"
+lens = "SR"
+level = "L1"
+text = { cs = "Pro citlivá data vyjděte z dokumentu [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]].", en = "For sensitive data, start from the document [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]]." }
+sources = ["A.A1.2.X1", "AAI-SENSITIVE.01"]
+
+[[advice]]
+id = "licence.21"
+lens = "SR"
+level = "L1"
+text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v [[cdif|CDIF 1.1]]), CC REL a SPDX.", en = "For advanced rights expression there are ODRL (with guidance in [[cdif|CDIF 1.1]]), CC REL and SPDX." }
+sources = ["A.R1.1.X2", "A.R1.1.X3"]
+
+[[advice]]
+id = "licence.22"
+lens = "K"
+level = "L0"
+text = { cs = "Doporučte ve FIP licence vhodné pro váš obor a způsob jejich strojového vyjádření.", en = "Recommend in the FIP the licences that suit your domain and how to express them in machine-readable form." }
+action = { label = { cs = "Licence ve FIP Dashboardu", en = "Licences in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources?principles=R1.1" }
+sources = ["A.R1.1.F1", "FIP-DASHBOARD.01"]
+
+[[advice]]
+id = "licence.23"
+lens = "K"
+level = "L1"
+text = { cs = "Určete doporučenou sadu licencí a formát jejich strojového vyjádření.", en = "Set the recommended licences and the format for expressing them in machine-readable form." }
+sources = ["A.R1.1.F1"]
+
+[[advice]]
+id = "licence.24"
+lens = "K"
+level = "L1"
+text = { cs = "Určete pravidla přístupu v oboru (etická, bezpečnostní a právní omezení) a doporučení pro bezpečný přístup.", en = "Set your domain's access rules (ethical, security and legal restrictions) and recommendations for secure access." }
+sources = ["A.A1.2.F2", "A.A1.2.F1"]
+
+[[advice]]
+id = "licence.25"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám vysvětlí licence srozumitelným jazykem a připraví otázky pro data stewarda nebo právníka instituce; právní radu nenahradí.", en = "AI explains licences in plain language and prepares questions for your data steward or the institution's lawyer; it does not replace legal advice." }
+check = { cs = "Rozhodnutí o licenci ověřte s data stewardem nebo s právníkem instituce a s podmínkami poskytovatele. Licenční texty berte od Creative Commons, ne z odpovědi modelu.", en = "Check the licence decision with your data steward or the institution's lawyer and with the funder's terms. Take licence texts from Creative Commons, not from the model's answer." }
+prompt = { cs = "Vysvětli srozumitelně rozdíl mezi licencemi CC BY 4.0 a CC0 1.0 pro zveřejnění výzkumných dat: co uživatel smí, co musí a co z toho plyne pro citování. Uveď, na co se mám zeptat právníka své instituce, a netvrď nic o zákonech konkrétní země.", en = "Explain in plain language the difference between the CC BY 4.0 and CC0 1.0 licences for publishing research data: what users may do, what they must do, and what it means for citation. List what I should ask my institution's lawyer, and make no claims about the laws of a particular country." }
+sources = ["CERIT-AIAAS.01", "COPYRIGHT-LICENCES.01", "EC-GENAI-GUIDELINES.01"]

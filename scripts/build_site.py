@@ -6,8 +6,10 @@
 Writes into the site directory (``_site/`` by default, never committed): the page with its generated blocks and its
 copy as the crate's preview, the page's data scripts, the crate, the linkset, the profile at the guide's address, the
 page's styles, scripts and images, and the API with its documentation (``build_api.py``). The directory is replaced
-as a whole, so nothing stale stays in it. Every build warns when what the page downloads, compressed, exceeds the
-page budget; ``--sizes`` prints what it downloads.
+as a whole, so nothing stale stays in it; the build replaces only a directory inside the repository that it made
+itself, an empty one or the default ``_site/``, and refuses the repository, an authored tree, a link or any other
+directory before changing anything. Every build warns when what the page downloads, compressed, exceeds the page
+budget; ``--sizes`` prints what it downloads.
 
 Then open ``_site/index.html``, or serve the site with ``python scripts/serve.py`` to use the API locally. Uses only
 the Python standard library; the API documentation needs the Swagger UI package (``npm ci``).
@@ -30,7 +32,7 @@ import check_health
 
 SITE = kb.ROOT / "_site"
 # Authored files the page loads as they are.
-STATIC = ("assets/css", "assets/js", "assets/img")
+STATIC = ("assets/css", "assets/js", "assets/img", "assets/fonts")
 LOCAL_TEST_DOC = "assets/js/tests/index.html"
 
 
@@ -91,22 +93,45 @@ def render_test_docs(template: str, content: dict[str, Any]) -> str:
     return kb.BLOCK.sub(lambda match: match.group(1) + blocks[match.group("name")] + match.group(4), template)
 
 
+class MissingPrerequisiteError(Exception):
+    """A package the build copies into the site is not installed; nothing has been written."""
+
+
+def require_prerequisites() -> None:
+    """Stop before any output is touched when a Node package the site needs is missing, naming it and its remedy.
+
+    The API documentation page is the pinned Swagger UI package; there is no substitute from a CDN and no
+    placeholder page, since either would publish a site that is not the one checked.
+    """
+    missing = [name for name in build_api.SWAGGER_FILES if not (build_api.SWAGGER_DIR / name).is_file()]
+    if missing:
+        raise MissingPrerequisiteError(
+            f"the Node package swagger-ui-dist is missing ({', '.join(missing)} under node_modules/swagger-ui-dist); "
+            "run npm ci, then build again"
+        )
+
+
 def build(out: Path = SITE, root: Path = kb.ROOT) -> dict[str, str]:
-    """Replace the site directory with a fresh build; return the generated texts by path."""
-    out = out.resolve()
-    if out == root.resolve() or (out / ".git").exists() or not out.is_relative_to(root.resolve()):
-        raise kb.ContentError(f"the site directory must be a directory of its own inside the repository, not {out}")
+    """Replace the site directory with a fresh build; return the generated texts by path.
+
+    Prerequisites and the directory are checked before anything is generated or removed (``require_prerequisites``,
+    ``build_crate.site_directory``).
+    """
+    require_prerequisites()
+    kb.site_directory(out, root)
     generated = kb.outputs(root)
     content = kb.load_content(root / "content")
     documentation = root / LOCAL_TEST_DOC
     if documentation.is_file():
         generated[LOCAL_TEST_DOC] = render_test_docs(documentation.read_text(encoding="utf-8"), content)
-    if out.exists():
-        shutil.rmtree(out)
+    out = kb.replace_site(out, root)
     for name in STATIC:
         shutil.copytree(root / name, out / name)
     if (root / "assets/diagrams").is_dir():
         shutil.copytree(root / "assets/diagrams", out / "assets/diagrams")
+    if (root / "assets/favicons").is_dir():
+        # The page needs the images; their record of sources stays in the repository.
+        shutil.copytree(root / "assets/favicons", out / "assets/favicons", ignore=shutil.ignore_patterns("*.toml"))
     for name, text in generated.items():
         target = out / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -122,12 +147,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=SITE, help="the site directory (default: _site)")
     parser.add_argument("--sizes", action="store_true", help="print what the page downloads, compressed")
     args = parser.parse_args(argv)
-    if not (build_api.SWAGGER_DIR / build_api.SWAGGER_FILES[0]).exists():
-        print("build_site: the Swagger UI package is missing; run npm ci", file=sys.stderr)
-        return 2
     try:
         generated = build(args.out)
-    except (kb.ContentError, KeyError) as error:
+    except (kb.ContentError, KeyError, MissingPrerequisiteError) as error:
         print(f"build_site: {error}", file=sys.stderr)
         return 2
     print(f"build_site: built the site into {args.out.name}/")

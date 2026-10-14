@@ -16,9 +16,16 @@ assert(!matches({ ...pr, head: { ...pr.head, repo: { full_name: "another/guide" 
 assert(!matches({ ...pr, head: { ...pr.head, repo: null } }, { ...run, head_repository: null }), "missing repository metadata cannot establish identity");
 assert(!matches(pr, { ...run, head_repository: {} }));
 const expanded = { id: "&".repeat(400), kind: "&".repeat(400), change: "updated", name: { cs: "&".repeat(400), en: "&".repeat(400) } };
-const bounded = body(run, { ...report, total: 40, items: Array(40).fill(expanded) }, "motyc/eosc-fair-guide");
+const bounded = body(run, { ...report, total: 40, items: Array(40).fill(expanded), complete: "changes.json" }, "motyc/eosc-fair-guide");
 assert(bounded.length < 60000, "escaped rows stay within the final comment size limit");
-assert(bounded.includes("The review artifact contains the complete summary."), "omitted rows have a discoverable complete artifact");
+assert(bounded.includes("Every changed item is listed in `changes.json`"), "omitted rows have a discoverable complete artifact");
+// More than 200 changes: the bounded summary carries 200 rows and the true total; completeness is claimed only
+// when the artifact declares the complete list beside them.
+const many = { ...report, total: 250, items: Array(200).fill(item) };
+const declared = body(run, { ...many, complete: "changes.json" }, "motyc/eosc-fair-guide");
+assert(declared.includes("Changed authored items: **250**") && declared.includes("of 250 changed items") && declared.includes("`changes.json`"));
+const undeclared = body(run, many, "motyc/eosc-fair-guide");
+assert(!undeclared.includes("changes.json") && undeclared.includes("Only the first 200 changed items are in the review artifact."), "no completeness claim without a complete list");
 const changes = [], marker = "<!-- fair-guide-review-summary -->";
 const existing = [{ id: 9, user: { login: "person" }, body: marker }, { id: 10, user: { login: "github-actions[bot]" }, body: marker }];
 const github = { rest: { pulls: { get: async ({ pull_number }) => ({ data: pull_number === 2 ? pr : { ...pr, head: { ...pr.head, sha: "b".repeat(40) } } }) },

@@ -69,7 +69,10 @@ class LocalTestRecords(unittest.TestCase):
                     metric["hasImplementation"],
                     [f"../tests/{test['question']}.json", f"../tests/{test['id']}.json"],
                 )
-        self.assertEqual(json.loads(self.files["api/tests.json"])["numberOfItems"], 214 + 13 + 42)
+        # Manual question tests, curated Champion tests, local tests and external evaluators' criteria.
+        criteria = sum(len(provider["metric"]) for provider in self.content["live"].get("provider", []))
+        self.assertEqual(criteria, 29)
+        self.assertEqual(json.loads(self.files["api/tests.json"])["numberOfItems"], 214 + 13 + 42 + criteria)
 
     def test_external_tests_link_documentation_and_execution_separately(self) -> None:
         for test in self.content["live"]["champion"]["test"]:

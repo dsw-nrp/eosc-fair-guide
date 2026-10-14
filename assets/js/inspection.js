@@ -3,8 +3,8 @@
   "use strict";
   window.FairGuide.selfcheck.inspectionFactory = function (dependencies) {
     const { FG, SC, h, stateOf, runPrefill, applyEvidence, today, webUrl, save, describeTarget,
-      dataciteInfo, stewardEvidence, fieldEvidence, pathState, fieldsOf, retarget, clearableField, brief,
-      R3D, setStatus, prefillFromRe3data, prefillFromNkr, prefillFromDashboard, prefillFromNanopub, label,
+      dataciteInfo, stewardEvidence, fieldEvidence, pathState, fieldsOf, retarget, identifierRow, brief,
+      setStatus, prefillFromRe3data, prefillFromNkr, prefillFromDashboard, prefillFromNanopub, label,
       record, answerOf, foundFields, FIELD_LABELS, readableField, valueNode, SHOWN_VALUES, noteText, observationsOf, FIP_RANK, VERDICT_ICON, running, wasRun, verdictKey } = dependencies;
   /** Keep the complete portable payload small enough for both its base64 Markdown copy and FTR logs.
       Ordinary observations are unchanged. Large exports disclose omitted older observations or shortened
@@ -104,7 +104,7 @@
       "div",
       { class: "prefill-row" },
       h("label", { for: "prefill-pid" }, FG.t("selfcheck.discovery.pid")),
-      h("div", { class: "inline" }, clearableField(check, input, "pid", "prefill-pid"), h("button", { type: "button", id: "prefill-pid-run", onclick: run }, FG.t("selfcheck.prefill.pidButton"))),
+      identifierRow(check, input, "pid", "prefill-pid", h("button", { type: "button", id: "prefill-pid-run", onclick: run }, FG.t("selfcheck.prefill.pidButton"))),
       h("p", { class: "small muted" }, FG.t("selfcheck.discovery.hint"))
     );
   }
@@ -114,7 +114,9 @@
   function loadAssessors() {
     if (SC.assessObject && SC.assessSoftware) return Promise.resolve();
     if (!assessorsLoading) assessorsLoading = (async () => {
-      for (const path of FG.config.discovery.assessmentScripts || [FG.config.discovery.assessmentScript]) await new Promise((resolve, reject) => {
+      const paths = (FG.config.discovery.assessmentScripts || [FG.config.discovery.assessmentScript])
+        .filter((path) => !(FG.jsonLd && path === FG.config.discovery.assessmentScript)); // already loaded by discovery
+      for (const path of paths) await new Promise((resolve, reject) => {
         const script = document.createElement("script");
         script.src = path;
         script.onload = resolve;
@@ -167,14 +169,15 @@
     const input = h("input", { id: "prefill-software", type: "url", spellcheck: "false", autocomplete: "off", value: st.software || "" });
     const ref = h("input", { id: "prefill-software-ref", type: "text", spellcheck: "false", autocomplete: "off", value: st.softwareRef || "", maxlength: "200" });
     const run = () => runPrefill(check, "landing", "prefill-software-run", async (messages) => {
+      /* What the reader typed stays in the field after a failed attempt, as the PID does, so it can be retried. */
+      st.software = input.value.trim().slice(0, 1000);
+      st.softwareRef = ref.value.trim().slice(0, 200);
       await loadAssessors();
-      const repository = await FG.live.softwareRepository(input.value.trim(), { ref: ref.value.trim() });
+      const repository = await FG.live.softwareRepository(st.software, { ref: st.softwareRef });
       rememberInspection(check, repository);
       if (!repository.supported || !repository.commit) { messages.push(FG.t("selfcheck.software.unavailable")); return 0; }
       // Switching the assessed commit invalidates automatic evidence; authored answers survive.
       retarget(check, repository.url + "#" + repository.commit);
-      st.software = input.value.trim().slice(0, 1000);
-      st.softwareRef = ref.value.trim().slice(0, 200);
       describeTarget(check, { name: repository.metadata.name || repository.repository, kind: repository.provider, url: repository.url, commit: repository.commit, ref: repository.ref });
       const count = applyObservations(check, SC.assessSoftware(check, repository));
       if (repository.diagnostics.length) messages.push(FG.t("selfcheck.discovery.limited"));
@@ -182,7 +185,7 @@
     });
     input.addEventListener("keydown", (event) => { if (event.key === "Enter") run(); });
     return h("div", { class: "prefill-row" }, h("label", { for: input.id }, FG.t("selfcheck.software.repository")),
-      h("div", { class: "inline" }, clearableField(check, input, "software", input.id), h("button", { type: "button", id: "prefill-software-run", onclick: run }, FG.t("selfcheck.software.button"))),
+      identifierRow(check, input, "software", input.id, h("button", { type: "button", id: "prefill-software-run", onclick: run }, FG.t("selfcheck.software.button"))),
       h("label", { for: ref.id }, FG.t("selfcheck.software.ref")), ref,
       h("p", { class: "small muted" }, FG.t("selfcheck.software.hint")));
   }
@@ -213,22 +216,12 @@
   function re3dataControl(check, st) {
     const input = h("input", { id: "prefill-re3data", type: "text", autocomplete: "off", spellcheck: "false", value: st.re3data || "" });
     const run = async () => {
-      const value = input.value.trim();
-      let id = (value.match(R3D) || [])[0];
-      const pid = id ? null : FG.live.parsePid(value);
-      if (!id && pid && pid.type === "doi") {
-        try {
-          const resolved = await FG.live.resolvePid(pid);
-          id = ((resolved.url || "").match(R3D) || [])[0];
-        } catch (error) {
-          id = null;
-        }
-      }
+      const id = await FG.live.re3dataRecord(input.value);
       if (!id) {
         setStatus(check, FG.t("selfcheck.prefill.re3dataInvalid"));
         return;
       }
-      prefillFromRe3data(check, id.toLowerCase());
+      prefillFromRe3data(check, id);
     };
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") run();
@@ -237,15 +230,14 @@
       "div",
       { class: "prefill-row" },
       h("label", { for: "prefill-re3data" }, FG.t("selfcheck.prefill.re3data")),
-      h("div", { class: "inline" }, clearableField(check, input, "re3data", "prefill-re3data"), h("button", { type: "button", id: "prefill-re3data-run", onclick: run }, FG.t("selfcheck.prefill.re3dataButton"))),
+      identifierRow(check, input, "re3data", "prefill-re3data", h("button", { type: "button", id: "prefill-re3data-run", onclick: run }, FG.t("selfcheck.prefill.re3dataButton"))),
       h("p", { class: "small muted" }, FG.t("selfcheck.prefill.re3dataHint"))
     );
   }
 
   /** NKR's repositories to fill the check from; while NKR lists none, the status says how to go on instead. */
   function nkrControl(check, st, re3data) {
-    const nkr = FG.live.nkr;
-    const records = nkr.state === "done" ? nkr.records : [];
+    const records = FG.live.nkrRecords();
     let picker = null;
     if (records.length) {
       const select = h(
@@ -263,7 +255,7 @@
         ),
       ];
     }
-    return h("div", { class: "prefill-row" }, FG.live.nkrButton({ empty: FG.t(re3data ? "selfcheck.prefill.nkrEmptyRe3data" : "selfcheck.prefill.nkrEmptyByHand") }), picker);
+    return h("div", { class: "prefill-row" }, FG.live.nkrNote({ empty: FG.t(re3data ? "selfcheck.prefill.nkrEmptyRe3data" : "selfcheck.prefill.nkrEmptyByHand") }), picker);
   }
 
   function fipControl(check, st) {
@@ -309,7 +301,7 @@
         "div",
         { class: "prefill-row" },
         h("label", { for: "prefill-nanopub" }, FG.t("selfcheck.prefill.nanopub")),
-        h("div", { class: "inline" }, clearableField(check, nanopub, "nanopub", "prefill-nanopub"), h("button", { type: "button", id: "prefill-nanopub-run", onclick: runNanopub }, FG.t("selfcheck.prefill.nanopubButton"))),
+        identifierRow(check, nanopub, "nanopub", "prefill-nanopub", h("button", { type: "button", id: "prefill-nanopub-run", onclick: runNanopub }, FG.t("selfcheck.prefill.nanopubButton"))),
         h("p", { class: "small muted" }, FG.t("selfcheck.prefill.clearHint"))
       ),
     ];
@@ -338,6 +330,11 @@
       h("p", { class: "source-chip" }, label(pre.source) + " · " + FG.formatDate(pre.date), pre.record ? [" · ", FG.external(pre.record, FG.t("selfcheck.evidence.record"))] : null),
       rows.length ? h("dl", { class: "relations evidence-relations" }, rows) : null,
       pre.testId ? localTestLinks(FG.get("#test-" + pre.testId)) : null,
+      /* A provider observation refers to its one retained assessment, whose native results are in the overview. */
+      pre.assessment ? h("p", { class: "small" }, h("button", { type: "button", class: "button-link", onclick: () => {
+        const overview = document.getElementById("results-assessments");
+        if (overview) { overview.scrollIntoView({ block: "start" }); overview.focus({ preventScroll: true }); }
+      } }, FG.t("selfcheck.providers.openOverview"))) : null,
       foundFields(pre).map((field) => h("div", { class: "evidence-field" }, h("p", null, h("strong", null, readableField(field)), " · ", h("code", null, field.path)),
         h("div", { class: "evidence-value", tabindex: "0", role: "region", "aria-label": readableField(field) }, field.values.map((value) => h("p", null, valueNode(value, false)))), field.more ? h("p", { class: "small muted" }, FG.t("selfcheck.evidence.more", { n: field.more })) : null)),
       FG.list(pre.notes).map((note) => h("p", null, noteText(note))),
@@ -361,41 +358,111 @@
         h("div", { class: "content test-invocation" }, h("code", null, entryPoint.value))) : null) : null;
   }
 
-  /** The evidence beside an item: the verdict of a pre-fill with the values it found, its source, date and record,
-      a change by the user, or a shared link. */
+  /** Who gave the answer: the reader, a pre-fill they kept, changed or confirmed, or a shared result. A source is
+      named as the answer's origin only when the answer still is that source's suggestion. */
+  function ownership(entry, value, pre) {
+    const params = pre ? { source: label(pre.source), date: FG.formatDate(pre.date), value: pre.value ? FG.t("selfcheck.answer." + pre.value) : "" } : {};
+    let kind = null;
+    /* An answer taken from someone else's result was not confirmed or changed by this reader. */
+    if (entry.origin === "shared" || entry.imported) kind = pre && pre.value && value && value !== pre.value ? "differs" : pre && pre.value && value === pre.value ? "sharedMatch" : "shared";
+    else if (entry.origin === "user") kind = value ? (!pre || !pre.value ? "user" : value === pre.value ? "confirmed" : "changed") : null;
+    else if (pre) kind = pre.value && value === pre.value ? "prefilled" : "suggestion";
+    return kind ? { kind, text: FG.t("selfcheck.origin." + kind, params) } : null;
+  }
+
+  /** The observations worth reading first: one per source, newest first, those with a readable fact or suggestion
+      ahead of those without, so a later source never hides an earlier useful fact. */
+  function readable(entry) {
+    const seen = new Set();
+    const list = [];
+    for (const observation of observationsOf(entry).slice().reverse()) {
+      const key = observation.source + "|" + (observation.assessment || "");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push(observation);
+    }
+    const useful = (observation) => (observation.value ? 2 : 0) + (foundFields(observation).some((field) => FIELD_LABELS[field.path]) ? 1 : 0);
+    return list.sort((a, b) => useful(b) - useful(a));
+  }
+
+  /** One observation as a line: source and date, its suggestion or none, up to three readable values, and its first
+      notes (one in a question's evidence line, up to three in its details). */
+  function observationLine(observation, notes = 3) {
+    /* A FAIR Champion observation's verdicts show on the question's test line. */
+    const fields = observation.source === "champion" ? [] : foundFields(observation).filter((field) => FIELD_LABELS[field.path] || observation.assessment).slice(0, 3);
+    return h(
+      "div",
+      { class: "evidence-observation", "data-source": observation.source },
+      h(
+        "p",
+        { class: "evidence-head" },
+        h("span", { class: "evidence-source" }, label(observation.source) + " · " + FG.formatDate(observation.date) + ": "),
+        h("span", { class: "verdict", "data-kind": observation.value ? "suggestion" : "none" }, observation.value ? FG.t("selfcheck.evidence.suggests", { value: FG.t("selfcheck.answer." + observation.value) }) : FG.t("selfcheck.evidence.noSuggestion")),
+        observation.record ? [" · ", FG.external(observation.record, FG.t("selfcheck.evidence.record"))] : null,
+        fields.map((field) => [h("span", { class: "evidence-readable" }, h("strong", null, readableField(field) + ": "), field.values.slice(0, SHOWN_VALUES).map((value, index) => [index ? ", " : "", valueNode(value, true)]))])
+      ),
+      FG.list(observation.notes).filter((note) => note && typeof note === "object").slice(0, notes).map((note) => h("p", { class: "small evidence-note" }, noteText(note)))
+    );
+  }
+
+  /* The resource each evidence source is, so it carries its badge wherever its evidence appears. */
+  const SOURCE_RESOURCE = { champion: "fair-champion", re3data: "re3data", nkr: "nkr", datacite: "datacite", "fip-dashboard": "fip-dashboard",
+    "fip-dashboard-snapshot": "fip-dashboard", "f-uji": "f-uji", "fair-checker": "fair-checker" };
+  const sourceBadge = (source) => {
+    const resource = FG.get("#resource-" + (SOURCE_RESOURCE[source] || source));
+    return resource ? FG.serviceBadge(resource.identifier, resource.url) : null;
+  };
+
+  /** A question's one consolidated evidence line, always in view: who owns the answer, with the most useful
+      observation and its source's badge; before any evidence, where a suggestion could come from, or that none can. */
+  function originLine(st, item) {
+    const entry = record(st, item);
+    const value = answerOf(st, item);
+    const pre = entry && entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
+    const owner = entry ? ownership(entry, value, pre) : null;
+    const first = entry && pre ? readable(entry)[0] : null;
+    if (!owner && !first) {
+      const sources = [...new Set(FG.refs(item, "additionalProperty").map((property) => String(property.propertyID).replace("prefill:", "")))].map(label);
+      /* A test the Guide runs in the browser is a source too. */
+      if (FG.get("#test-guide-" + item.identifier.replace(".", "-"))) sources.push(FG.t("selfcheck.question.localTest"));
+      return h("p", { class: "evidence-line evidence-none small" },
+        sources.length ? FG.t("selfcheck.question.evidenceFrom", { sources: sources.join(", ") }) : FG.t("selfcheck.question.noEvidence"));
+    }
+    return h("div", { class: "evidence-line" },
+      owner ? h("p", { class: "source-chip", "data-origin": owner.kind }, owner.text) : null,
+      first ? h("div", { class: "evidence-first" }, sourceBadge(first.source), observationLine(first, 1)) : null);
+  }
+
+  /** The rest of a question's evidence, for its details: the other observations, the declared resources and the
+      complete technical record. */
+  function originRest(st, item) {
+    const entry = record(st, item);
+    const pre = entry && entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
+    if (!pre) return null;
+    const list = FG.list(pre.list).filter((entryItem) => entryItem && entryItem.name);
+    return [
+      readable(entry).slice(0, 4).map((observation) => h("div", { class: "evidence-first" }, sourceBadge(observation.source), observationLine(observation))),
+      list.length
+        ? [h("p", { class: "small" }, FG.t("selfcheck.note.declared") + ":"),
+          h("ul", { class: "small" }, list.map((fer) => h("li", null, fer.url ? FG.external(fer.url, String(fer.name)) : String(fer.name),
+            FIP_RANK.includes(fer.status) ? " (" + FG.t("selfcheck.fipStatus." + fer.status) + ")" : null)))]
+        : null,
+      h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody)),
+    ];
+  }
+
+  /** The evidence beside an item, in reading order: who owns the answer; the useful facts each source observed,
+      with its date and what it suggests; what remains uncertain; then the complete technical details. */
   function origin(st, item) {
     const entry = record(st, item);
     if (!entry) return null;
     const value = answerOf(st, item);
     const parts = [];
-    if (entry.origin === "shared" || entry.imported) parts.push(h("p", { class: "source-chip", "data-origin": "shared" }, FG.t("selfcheck.origin.shared")));
     const pre = entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
+    const owner = ownership(entry, value, pre);
+    if (owner) parts.push(h("p", { class: "source-chip", "data-origin": owner.kind }, owner.text));
     if (pre) {
-      const params = { source: label(pre.source), date: FG.formatDate(pre.date) };
-      let kind = entry.origin === "prefill" ? "prefilled" : "confirmed";
-      if (!pre.value) kind = "suggestion";
-      /* An answer taken from someone else's result was not confirmed or changed by this user. */
-      else if (entry.imported || entry.origin === "shared") kind = value !== pre.value ? "differs" : "prefilled";
-      else if (entry.origin === "user" && value !== pre.value) kind = "changed";
-      const verdict = h("span", { class: "verdict", "data-kind": pre.value ? "suggestion" : "none" }, FG.t("selfcheck.evidence.suggestion") + ": " + (pre.value ? FG.t("selfcheck.answer." + pre.value) : FG.t("selfcheck.result.unanswered")));
-      /* A FAIR Champion answer's verdicts show on the question's test line. */
-      const fields = pre.source === "champion" ? [] : foundFields(pre).filter((field) => FIELD_LABELS[field.path]).slice(0, 3);
-      parts.push(
-        h(
-          "p",
-          { class: "evidence-head" },
-          verdict,
-          fields.map((field) => [h("span", { class: "evidence-readable" }, h("strong", null, readableField(field) + ": "), field.values.slice(0, SHOWN_VALUES).map((value, index) => [index ? ", " : "", valueNode(value, true)]))])
-        ),
-        h(
-          "p",
-          { class: "source-chip", "data-origin": kind },
-          FG.t("selfcheck.origin." + kind, Object.assign(params, { value: pre.value ? FG.t("selfcheck.answer." + pre.value) : "" })),
-          pre.record ? [" · ", FG.external(pre.record, FG.t("selfcheck.evidence.record"))] : null
-        )
-      );
-      for (const note of FG.list(pre.notes)) if (note && typeof note === "object") parts.push(h("p", { class: "small" }, noteText(note)));
-      parts.push(h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody)));
+      parts.push(readable(entry).slice(0, 4).map(observationLine));
       const list = FG.list(pre.list).filter((entryItem) => entryItem && entryItem.name);
       if (list.length) {
         parts.push(
@@ -414,10 +481,11 @@
           )
         );
       }
+      parts.push(h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody)));
     }
     return parts;
   }
 
-    return { pidControl, testState, boundedPortable, prefillFromPid, softwareControl, inspectionDetails, inspectSample, re3dataControl, nkrControl, fipControl, observationBody, origin, localTestLine };
+    return { pidControl, testState, boundedPortable, prefillFromPid, softwareControl, inspectionDetails, inspectSample, re3dataControl, nkrControl, fipControl, observationBody, origin, originLine, originRest, sourceBadge, localTestLine };
   };
 })();

@@ -5,7 +5,7 @@
 id = "sensitive-data"
 title = { cs = "Pracujete s osobními nebo jinak citlivými daty?", en = "Working with personal or otherwise sensitive data?" }
 intro = { cs = "FAIR neznamená otevřená. Popis dat může být veřejný, i když data samotná zpřístupníte jen oprávněným lidem.", en = "FAIR does not mean open. The description of the data can be public even when the data themselves are available only to authorised people." }
-stations = ["plan", "work", "repository", "licence"]
+stations = ["plan", "collect", "process", "repository", "licence"]
 order = { SR = ["aai", "cloud", "steward", "principles", "community"], K = ["community", "steward", "principles", "cloud", "aai"] }
 
 [[callout.item]]

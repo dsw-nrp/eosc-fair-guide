@@ -6,9 +6,11 @@ import { runInNewContext } from "node:vm";
 
 const root = resolve(import.meta.dirname, "../..");
 const FG = { config: { discovery: { schemaVocabulary: "https://schema.org/", codeMetaVocabulary: "https://codemeta.github.io/terms/",
-  codeMetaContexts: ["https://doi.org/10.5063/schema/codemeta-2.0"], conformsTo: "http://purl.org/dc/terms/conformsTo" } },
-  list: (value) => value == null ? [] : Array.isArray(value) ? value : [value], selfcheck: {}, live: { pidUrl: (pid) => "https://doi.org/" + pid.value } };
-for (const script of ["assets/js/assess.js", "assets/js/tests/object.js", "assets/js/tests/software.js"])
+  codeMetaContexts: ["https://doi.org/10.5063/schema/codemeta-2.0"], conformsTo: "http://purl.org/dc/terms/conformsTo" },
+  connectors: [{ id: "doi", origin: "https://doi.org" }, { id: "handle", origin: "https://hdl.handle.net" }] },
+  list: (value) => value == null ? [] : Array.isArray(value) ? value : [value], selfcheck: {},
+  unsafeKey: (name) => ["__proto__", "constructor", "prototype"].includes(name) };
+for (const script of ["assets/js/live.js", "assets/js/assess.js", "assets/js/discovery.js", "assets/js/tests/object.js", "assets/js/tests/software.js"])
   runInNewContext(readFileSync(resolve(root, script), "utf8"), { window: { FairGuide: FG }, URL });
 const registered = Object.keys(FG.selfcheck.localTests).sort();
 const declared = [...readFileSync(resolve(root, "content/live.toml"), "utf8").matchAll(/^id = "(guide-[^"]+)"$/gm)].map((match) => match[1]).sort();
@@ -74,6 +76,35 @@ assert.equal(get(sw([codemeta("https://doi.org/10.1234/software")]), "software.0
 assert(!get(sw([file("codemeta.json", "software-metadata", JSON.stringify({ "@context": ["https://schema.org", { SoftwareSourceCode: "https://other.example/Type" }], "@type": "SoftwareSourceCode", codeRepository: software.url, identifier: software.url }))]), "software.07"), "a remapped type cannot establish the software metadata subject");
 assert(!get(sw([file("codemeta.json", "software-metadata", JSON.stringify({ "@context": "https://schema.org", "@type": "SoftwareSourceCode", codeRepository: "https://github.com/another/project", identifier: software.url }))]), "software.07"));
 assert.equal(sw([], { commit: null }).length, 0, "an unresolved ref cannot produce immutable-commit evidence");
+
+// Discovery's identity, the object readers and CodeMeta reading share one bounded context resolver.
+const doi = "https://doi.org/" + pid.value;
+const identity = (data) => FG.live.identityMatch(data, pid, landing, false, landing);
+const readers = (data) => [identity(data), Boolean(get(assess("cdif", discovery([representation(data)])), "cdif.01"))];
+const shared = [
+  [{ "@context": "https://schema.org", identifier: doi }, ["matched", true]],
+  [{ "@context": "https://doi.org/10.5063/schema/codemeta-2.0", identifier: doi }, ["matched", true]],
+  [{ "@context": { s: "https://schema.org/" }, "s:identifier": doi }, ["matched", true]],
+  [{ "@context": { id: "https://schema.org/identifier", ident: "id" }, ident: doi }, ["matched", true]],
+  [{ "http://schema.org/identifier": doi }, ["matched", true]],
+  [{ "@context": ["https://schema.org", "https://unknown.example/context"], identifier: doi }, ["unverified", false]],
+  [{ "@context": ["https://schema.org", null], identifier: doi }, ["unverified", false]],
+  [{ "@context": ["https://schema.org", { identifier: "https://other.example/id" }], identifier: doi }, ["unverified", false]],
+  [{ "@context": ["https://schema.org", { identifier: { "@reverse": "https://schema.org/identifier" } }], identifier: doi }, ["unverified", false]],
+  [{ "@context": { a: "b", b: "a" }, a: doi }, ["unverified", false]],
+  [{ "@context": Array(17).fill("https://schema.org"), identifier: doi }, ["unverified", false]],
+  [JSON.parse(`{"@context": {"__proto__": {"identifier": "https://schema.org/identifier"}}, "identifier": "${doi}"}`), ["unverified", false]],
+  [{ "@context": "https://schema.org", identifier: "https://doi.org/10.1234/another" }, ["mismatched", true]],
+];
+for (const [data, expected] of shared) assert.deepEqual(readers(data), expected, JSON.stringify(data["@context"] ?? Object.keys(data)));
+assert.equal(({}).identifier, undefined, "a context cannot reach Object.prototype");
+for (const [data] of shared) assert.deepEqual(Array.from(FG.jsonLd.propertyValues(data, "identifier")).slice(0, 1), [FG.jsonLd.property(data, "identifier")].filter(Boolean),
+  "assessment reads the first value identity reads");
+const curie = (extra) => file("codemeta.json", "software-metadata", JSON.stringify({ "@context": ["https://doi.org/10.5063/schema/codemeta-2.0", { s: "https://schema.org/" }],
+  "@type": "SoftwareSourceCode", "s:codeRepository": software.url, ...extra }));
+assert.equal(get(sw([curie({ identifier: "https://doi.org/10.1234/software", developmentStatus: "active" })]), "software.05").value, "partly", "CodeMeta terms stay known beside a prefix");
+assert.equal(get(sw([curie({ identifier: "https://doi.org/10.1234/software" })]), "software.07").value, "partly");
+assert(!get(sw([file("codemeta.json", "software-metadata", JSON.stringify({ "@context": "https://unknown.example/context", "@type": "SoftwareSourceCode", codeRepository: software.url, identifier: software.url }))]), "software.07"), "an unknown context identifies no software subject");
 assert(!get(sw([]), "software.18"), "repository inspection does not execute examples");
 assert(!get(sw([]), "software.19"), "a source repository is not archival preservation");
 console.log("check_assess: conservative object/software mappings and adversarial context fixtures pass");

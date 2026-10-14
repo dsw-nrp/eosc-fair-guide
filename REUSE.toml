@@ -37,10 +37,27 @@ SPDX-License-Identifier = "MIT AND CC-BY-4.0"
 
 # Snapshots and the glossary are data, not scanned for copyright notices, because their content contains arbitrary text.
 [[annotations]]
-path = ["content/snapshots/**", "content/glossary.toml"]
+path = ["content/snapshots/**"]
 precedence = "override"
 SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
 SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = "content/glossary.toml"
+precedence = "override"
+SPDX-FileCopyrightText = "Národní technická knihovna and the Heslář Open Science contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# The KNAV Data Management Tools Catalogue's steps and its snapshot keep that repository's licence (GPL-3.0; the
+# guide does not assume "or later").
+[[annotations]]
+path = ["content/lifecycle/3-knav-tools.toml", "content/snapshots/knav-tools.toml"]
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "Open Science Department, Library of the Czech Academy of Sciences",
+  "2026 The EOSC CZ FAIR guide contributors",
+]
+SPDX-License-Identifier = "GPL-3.0-only"
 
 # Font Awesome Free icons, vendored unchanged by scripts/vendor_icons.py; each file carries its own notice.
 [[annotations]]
@@ -49,10 +66,31 @@ precedence = "override"
 SPDX-FileCopyrightText = "2026 Fonticons, Inc. <https://fontawesome.com>"
 SPDX-License-Identifier = "CC-BY-4.0"
 
+# Plus Jakarta Sans, vendored unchanged by scripts/vendor_fonts.py from the @fontsource package.
+[[annotations]]
+path = "assets/fonts/*.woff2"
+precedence = "override"
+SPDX-FileCopyrightText = "2020 The Plus Jakarta Sans Project Authors <https://github.com/tokotype/PlusJakartaSans>"
+SPDX-License-Identifier = "OFL-1.1"
+
 # Official logos and the EOSC CZ symbol as the page icon, used unchanged; not covered by the guide's licences.
 [[annotations]]
 path = ["assets/img/*.svg", "assets/img/*.png"]
 precedence = "override"
 SPDX-FileCopyrightText = "EOSC CZ initiative; European Union; Ministry of Education, Youth and Sports of the Czech Republic"
 SPDX-License-Identifier = "LicenseRef-EOSC-CZ-Logo"
+
+# The favicons of the tools and services the guide names, reduced to one small square image each; not covered by
+# the guide's licences. Their record of sources is data of the guide.
+[[annotations]]
+path = "assets/favicons/*.png"
+precedence = "override"
+SPDX-FileCopyrightText = "The operators of the services the favicons identify"
+SPDX-License-Identifier = "LicenseRef-Service-Favicons"
+
+[[annotations]]
+path = "assets/favicons/sources.toml"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 The EOSC CZ FAIR guide contributors"
+SPDX-License-Identifier = "CC-BY-4.0"
 

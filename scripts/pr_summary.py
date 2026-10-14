@@ -4,7 +4,8 @@
     python scripts/pr_summary.py --base BASE_SHA --head HEAD_SHA --output .cache/pr-review/summary.json
 
 Only TOML content from the base revision is read, using the current parser. No code from that revision
-is checked out or executed. The report is data; the trusted comment workflow bounds and escapes it.
+is checked out or executed. The report is data; the trusted comment workflow bounds and escapes it. The output file
+holds the first 200 changed items with the true total; ``changes.json`` beside it holds every changed item.
 """
 
 from __future__ import annotations
@@ -85,22 +86,35 @@ def compare(before: dict[str, Any], after: dict[str, Any]) -> list[dict[str, Any
 
 def report(root: Path, base: str, head: str) -> dict[str, Any]:
     base, head = revision(base), revision(head)
+    # The same comparison point as the paradata freshness check: where this branch left the base.
+    merge_base = check_content.merge_base(root, base)
     with tempfile.TemporaryDirectory() as temporary:
         previous = Path(temporary)
-        for name in check_content.git(root, "ls-tree", "-r", "--name-only", base, "content/").splitlines():
+        for name in check_content.git(root, "ls-tree", "-r", "--name-only", merge_base, "content/").splitlines():
             path = Path(name)
             if path.parts[0] != "content" or ".." in path.parts or path.suffix != ".toml":
                 continue
             target = previous / path
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(check_content.git(root, "show", f"{base}:{name}"), encoding="utf-8")
+            target.write_text(check_content.git(root, "show", f"{merge_base}:{name}"), encoding="utf-8")
         before = (
             entries(build_crate.load_content(previous / "content"))
             if (previous / "content/guide.toml").exists()
             else {}
         )
     changed = compare(before, entries(build_crate.load_content(root / "content")))
-    return {"formatVersion": 1, "base": base, "head": head, "total": len(changed), "items": changed[:200]}
+    return {"formatVersion": 1, "base": base, "head": head, "total": len(changed), "items": changed}
+
+
+# The comment publisher reads at most this many rows; the complete list travels beside them in the same artifact.
+SUMMARY_ITEMS = 200
+COMPLETE_FILE = "changes.json"
+
+
+def summary(complete: dict[str, Any]) -> dict[str, Any]:
+    """The bounded summary the trusted comment reads: the first rows, the true total, and where the complete list is."""
+    items = complete["items"][:SUMMARY_ITEMS]
+    return complete | {"items": items, "complete": COMPLETE_FILE, "truncated": len(items) < complete["total"]}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -111,8 +125,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     result = report(ROOT, args.base, args.head)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
-    print(f"pr_summary: {result['total']} changed authored items")
+    for path, data in ((args.output.parent / COMPLETE_FILE, result), (args.output, summary(result))):
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
+    shown = min(result["total"], SUMMARY_ITEMS)
+    print(f"pr_summary: {result['total']} changed authored items; {shown} in the summary, all in {COMPLETE_FILE}")
     return 0
 
 

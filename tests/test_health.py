@@ -285,6 +285,7 @@ class HealthTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             site = Path(temp) / "site"
             (site / "api").mkdir(parents=True)
+            build_crate.mark_site(site)
             (site / build_api.HEALTH_FILE).write_text("{}", encoding="utf-8")
             (site / build_api.OPENAPI_FILE).write_text("{}", encoding="utf-8")
             job = check_all.Job("api", [])
@@ -317,11 +318,43 @@ class HealthTests(unittest.TestCase):
             self.assertNotIn("Generated: None", dashboard)
             self.assertFalse((Path(temp) / "health" / "health.json").exists())
 
+    def test_dashboard_and_summary_read_revision_scope_recorded_status_and_live_availability(self) -> None:
+        report = check_health.make_report(self.content, today=date(2026, 10, 12))
+        report["revision"] = "a" * 40
+        report["run_url"] = "https://github.com/motyc/eosc-fair-guide/actions/runs/7"
+        page = check_health.dashboard(report)
+        self.assertIn('href="https://github.com/motyc/eosc-fair-guide/commit/' + "a" * 40 + '"', page)
+        self.assertIn("the scheduled live watch observes it separately", page)
+        self.assertIn("Guide structure only; no live service is involved.", page)
+        dated = next(
+            item
+            for group in report["integrity"]
+            for item in group["items"]
+            if item.get("recorded_status") and item.get("recorded_date")
+        )
+        self.assertIn(check_health.esc(f"{dated['recorded_status']} as of {dated['recorded_date']}"), page)
+        summary = check_health.markdown(report)
+        self.assertIn("Revision: `" + "a" * 12 + "`", summary)
+        self.assertIn(f"Item groups without a live check: {check_health.unchecked_groups(report)}", summary)
+        local = check_health.dashboard(report | {"revision": None, "run_url": None})
+        self.assertIn("not recorded (a local build)", local)
+
     def test_api_publication_refuses_a_directory_without_a_built_api(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             with self.assertRaises(build_crate.ContentError):
                 build_api.publish_health(Path(temp), self.report(), self.content)
             self.assertFalse((Path(temp) / "api").exists())
+
+    def test_api_publication_refuses_an_api_the_build_did_not_make(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            site = Path(temp)
+            (site / "api").mkdir()
+            (site / build_api.HEALTH_FILE).write_text("authored", encoding="utf-8")
+            (site / build_api.OPENAPI_FILE).write_text("{}", encoding="utf-8")
+            with self.assertRaises(build_crate.UnsafeOutputError):
+                build_api.publish_health(site, self.report(), self.content)
+            self.assertEqual((site / build_api.HEALTH_FILE).read_text(encoding="utf-8"), "authored")
+            self.assertFalse((site / "health").exists())
 
     def test_final_api_validation_failure_is_retained_and_fails_the_runner(self) -> None:
         build = check_all.Result(check_all.Job("build", []), 0, 0.1, "")
@@ -334,7 +367,7 @@ class HealthTests(unittest.TestCase):
             mock.patch.object(check_all, "emit_report") as emit,
             mock.patch("builtins.print"),
         ):
-            self.assertEqual(check_all.main(["--only", "health"]), 1)
+            self.assertEqual(check_all.main(["--only", "health", "health-api"]), 1)
         failure = emit.call_args.args[1][-1]
         self.assertEqual(failure.returncode, 7)
         self.assertIn("invalid final health", failure.output)

@@ -7,7 +7,7 @@
   const h = (...args) => FG.h(...args);
   const NAMES = { doi: "DOI", handle: "Handle", orcid: "ORCID iD", ror: "ROR ID" };
   const BASE32 = "0123456789abcdefghjkmnpqrstvwxyz";
-  const CANDIDATE = /(?<![\w./:@-])(?:(?:https?:\/\/)?(?:orcid\.org|ror\.org|(?:dx\.)?doi\.org|hdl\.handle\.net)\/[^\s<>"']+|\d{4}-\d{4}-\d{4}-\d{3}[\dX]|0[a-z0-9]{6}\d{2}|(?:doi|hdl):\s*\d[\w.-]*\/[^\s<>"']+|10\.\d{4,9}\/[^\s<>"']+)/gi;
+  const CANDIDATE = /(?<![\w./:@-])(?:(?:https?:\/\/)?(?:(?:www\.)?orcid\.org|(?:www\.)?ror\.org|(?:dx\.)?doi\.org|hdl\.handle\.net)\/[^\s<>"']+|\d{4}-\d{4}-\d{4}-\d{3}[\dX]|0[a-z0-9]{6}\d{2}|(?:doi|hdl):\s*\d[\w.-]*\/[^\s<>"']+|10\.\d{4,9}\/[^\s<>"']+)/gi;
 
   H.validOrcid = function (value) {
     if (!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(value)) return false;
@@ -34,17 +34,19 @@
     return value;
   }
 
+  /* Forms are recognised by the shared owner in live.js, exactly as search and the checks recognise them; this
+     helper adds only the checksums. */
   function parsed(input) {
-    let value = unquote(input);
-    if (/^(?:https?:\/\/)?(?:orcid\.org|ror\.org|(?:dx\.)?doi\.org|hdl\.handle\.net)\//i.test(value)) {
+    const value = unquote(input);
+    const orcid = FG.live.parseOrcid(value);
+    if (orcid) return { type: "orcid", value: orcid };
+    const ror = FG.live.parseRor(value);
+    if (ror) return { type: "ror", value: ror };
+    if (/^(?:https?:\/\/)?(?:www\.)?(?:orcid\.org|ror\.org)\//i.test(value)) return null;
+    if (/^(?:https?:\/\/)?(?:(?:dx\.)?doi\.org|hdl\.handle\.net)\//i.test(value)) {
       const url = new URL(/^https?:\/\//i.test(value) ? value : "https://" + value);
-      if (!["orcid.org", "ror.org"].includes(url.hostname.toLowerCase())) return FG.live.parsePid(url.origin + url.pathname);
-      try { value = decodeURIComponent(url.pathname.slice(1)).replace(/\/$/, ""); } catch (error) { return null; }
-      if (url.hostname.toLowerCase() === "orcid.org") return { type: "orcid", value: value.toUpperCase() };
-      return { type: "ror", value: value.toLowerCase() };
+      return FG.live.parsePid(url.origin + url.pathname);
     }
-    if (/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(value)) return { type: "orcid", value: value.toUpperCase() };
-    if (/^0[a-z0-9]{6}\d{2}$/i.test(value)) return { type: "ror", value: value.toLowerCase() };
     return FG.live.parsePid(value);
   }
 
@@ -112,26 +114,40 @@
       rows = []; queue.length = 0;
       list.replaceChildren(); summary.textContent = "";
       window.history.replaceState(null, "", FG.href("page", "identifiers"));
-      controls(); text.focus();
+      waiting.refresh(); controls(); text.focus();
     } }, FG.icon("clear"));
     const summary = h("p", { id: "identifier-summary", role: "status" });
     const list = h("ul", { class: "identifier-list" });
     const find = h("button", { type: "submit", class: "button button-primary" }, FG.t("helper.identifiers.find"));
+    /* Finding waits for text, and clearing for text or results; one reason serves both, since clearing has nothing
+       to do only when there is no text either. */
+    const typed = () => text.value.trim() !== "";
+    const waiting = FG.gate(find, FG.t("helper.identifiers.needsText"), typed, text);
+    const refreshClear = () => {
+      const can = typed() || rows.length > 0;
+      clear.disabled = !can;
+      if (can) clear.removeAttribute("aria-describedby");
+      else clear.setAttribute("aria-describedby", waiting.id);
+    };
+    text.addEventListener("input", refreshClear);
+    /* Shown only while some found identifier is still to be looked up. */
     const all = h("button", { type: "button", class: "button", hidden: true, onclick: () => {
       rows.filter((row) => row.status === "unresolved").forEach(enqueue);
     } }, FG.t("helper.identifiers.resolveAll"));
-    const form = h("form", { onsubmit: (event) => { event.preventDefault(); scan(); } },
+    const form = h("form", { onsubmit: (event) => { event.preventDefault(); if (typed()) scan(); } },
       h("label", { for: "identifier-text" }, FG.t("helper.identifiers.label")), h("div", { class: "field-clearable" }, text, clear),
       h("p", { id: "identifier-privacy", class: "small muted" }, FG.t("helper.identifiers.privacy")),
-      h("div", { class: "buttons" }, find, all));
+      h("div", { class: "buttons" }, find, all), waiting);
     const box = h("section", { class: "identifier-helper", "aria-label": FG.t("helper.identifiers.label") }, form, summary, list);
     let rows = [], active = 0, itemLimit = false;
     const queue = [];
+    refreshClear();
 
     function controls() {
       const running = active > 0 || queue.length > 0;
-      all.hidden = !rows.length;
-      all.disabled = running || !rows.some((row) => row.status === "unresolved");
+      all.hidden = !rows.some((row) => row.status === "unresolved");
+      all.disabled = running;
+      refreshClear();
       if (rows.some((row) => !["unresolved", "invalid"].includes(row.status))) {
         summary.textContent = FG.t("helper.identifiers.coverage", {
           done: rows.filter((row) => ["found", "notFound", "unavailable"].includes(row.status)).length,
@@ -282,8 +298,12 @@
       window.history.replaceState(null, "", FG.href("page", "citation")); refresh(); input.focus();
     } }, FG.icon("clear"));
     const submit = h("button", { type: "submit", class: "button button-primary" }, t("generate"));
+    /* Preparing waits for a DOI, and clearing for a DOI or a result; one reason serves both. */
+    const typed = () => input.value.trim() !== "";
+    const waiting = FG.gate(submit, t("needsDoi"), typed);
     const form = h("form", { onsubmit: async (event) => {
       event.preventDefault();
+      if (!typed()) return;
       const pid = FG.live.parsePid(input.value);
       if (!pid || pid.type !== "doi" || /[<>"\x00-\x1f]/.test(pid.value)) { citationStatus = "invalid"; refresh(); return; }
       const generation = ++citationGeneration;
@@ -298,12 +318,17 @@
       }
       if (refreshCitation) refreshCitation();
     } }, h("label", { for: "citation-doi" }, t("label")), h("div", { class: "field-clearable" }, input, clear),
-    h("p", { id: "citation-privacy", class: "small muted" }, t("privacy")), submit);
+    h("p", { id: "citation-privacy", class: "small muted" }, t("privacy")), submit, waiting);
     const box = h("section", { class: "citation-helper", "aria-label": t("label") }, form, status, output);
 
     function refresh() {
       status.textContent = citationStatus ? t(citationStatus) : "";
-      submit.disabled = citationStatus === "running";
+      waiting.refresh();
+      if (citationStatus === "running") submit.disabled = true;
+      const clearable = typed() || Boolean(citationResult) || Boolean(citationStatus);
+      clear.disabled = !clearable;
+      if (clearable) clear.removeAttribute("aria-describedby");
+      else clear.setAttribute("aria-describedby", waiting.id);
       output.replaceChildren();
       if (!citationResult) {
         const pid = FG.live.parsePid(citationDraft);

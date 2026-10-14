@@ -32,7 +32,7 @@ try {
     const page = await context.newPage();
     const observed = watched(page);
     const other = initial === "cs" ? "en" : "cs";
-    await page.goto(file + `#/${initial}/K/check/software`);
+    await page.goto(file + `#/${initial}/K/check/software/answers`);
     await rendered(page, initial, "#item-software-04");
     assert.equal(languageFiles(observed.requests, other).length, 0, "the other display language is not downloaded initially");
     assert.equal(languageFiles(observed.requests, initial).length, 5, "one core and four required part translations, including model relations");

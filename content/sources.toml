@@ -14,6 +14,60 @@ authors = ["Lada Biedermannová", "David Novák", "Lukáš Najdekr", "Karel Berk
 dateAccessed = 2026-10-11
 
 [[source]]
+id = "rdmkit"
+knav = "rdmkit"
+code = "RDMKIT"
+type = "webpage"
+title = "RDMkit: The ELIXIR Research Data Management toolkit for Life Sciences"
+short = { cs = "RDMkit", en = "RDMkit" }
+inLanguage = "en"
+url = "https://rdmkit.elixir-europe.org/"
+publisher = "ELIXIR"
+version = "73476cbd558ae263e155884af0333537c74c982e"
+dateModified = 2026-03-27
+dateAccessed = 2026-10-13
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "maldreth"
+type = "report"
+title = "Mapping the Landscape of Digital Research Tools"
+short = { cs = "MaLDReTH", en = "MaLDReTH" }
+version = "1"
+inLanguage = "en"
+doi = "10.15497/RDA00125"
+url = "https://doi.org/10.15497/RDA00125"
+publisher = "Research Data Alliance"
+authors = ["Adam Vials Moore", "Rory Macneil", "Connie Clare", "Marcelo Garcia", "Richard Pitts", "RDA OfR Mapping the Landscape of Digital Research Tools WG"]
+datePublished = 2024-11-26
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "knav-life-cycle"
+type = "webpage"
+title = { cs = "Životní cyklus dat", en = "Data life cycle" }
+short = { cs = "Životní cyklus dat KNAV", en = "KNAV data life cycle" }
+inLanguage = "cs"
+url = "https://openscience.lib.cas.cz/fair-data/life_cycle/"
+publisher = "knav"
+dateModified = 2025-07-11
+dateAccessed = 2026-10-13
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "knav-dm-tools-catalogue"
+type = "software"
+title = "Catalogue of Data Management Tools"
+short = { cs = "Katalog nástrojů pro správu dat KNAV", en = "KNAV Data Management Tools Catalogue" }
+inLanguage = "en"
+url = "https://github.com/Open-Science-Department-KNAV/Data-Management-Tools-Catalogue"
+publisher = "knav"
+version = "c6094e625dd9d2cc7d272658e4f63ac7a4636bae"
+dateModified = 2026-04-25
+dateAccessed = 2026-10-13
+license = "https://www.gnu.org/licenses/gpl-3.0.html"
+
+[[source]]
 id = "orcid-identifier-pattern"
 type = "webpage"
 title = "Structure of the ORCID Identifier"
@@ -517,3 +571,112 @@ publisher = "FAIR-IMPACT"
 authors = ["Neil Chue Hong", "Elena Breitmoser", "Mario Antonioletti", "Joy Davidson", "Daniel Garijo", "Alejandra Gonzalez-Beltran", "Morane Gruenpeter", "Robert Huber", "Clement Jonquet", "Mike Priddy", "John Shepherdson", "Maaike Verburg", "Chris Wood"]
 datePublished = 2025-05-28
 license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "eosc-mrm-ssh-open-marketplace"
+type = "document"
+title = "SSH Open Marketplace: EOSC Macro-Roadmap case study"
+short = { cs = "Případová studie SSH Open Marketplace", en = "SSH Open Marketplace case study" }
+inLanguage = "en"
+url = "https://eosc.eu/wp-content/uploads/2025/02/EOSC-MRM_SSH-Open-Marketplace.pdf"
+publisher = "EOSC Association"
+dateAccessed = 2026-10-13
+
+[[source]]
+id = "opendoar-inclusion-criteria"
+type = "webpage"
+title = "OpenDOAR inclusion criteria"
+inLanguage = "en"
+url = "https://opendoar.ac.uk/help/inclusion-criteria"
+publisher = "Jisc"
+dateAccessed = 2026-10-13
+
+[[source]]
+id = "sherpa-object-retrieval-api"
+type = "webpage"
+title = "Object Retrieval API - Sherpa Services"
+short = { cs = "API služeb Sherpa", en = "Sherpa services API" }
+inLanguage = "en"
+url = "https://v2.sherpa.ac.uk/api/object-retrieval.html"
+publisher = "Jisc"
+dateAccessed = 2026-10-13
+
+[[source]]
+id = "infra-finder-paper"
+type = "article"
+title = "Infra Finder: A new tool to enhance transparency, discoverability, and trust in open infrastructure"
+short = { cs = "Článek o nástroji Infra Finder", en = "Infra Finder paper" }
+inLanguage = "en"
+doi = "10.5281/zenodo.10913249"
+url = "https://zenodo.org/records/10913249"
+authors = ["Lauren Collister", "Emmy Tsang", "Chrys Wu"]
+datePublished = 2024-04-03
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "datacite-rest-api"
+type = "webpage"
+title = "DataCite REST API"
+short = { cs = "REST API služby DataCite", en = "DataCite REST API" }
+inLanguage = "en"
+url = "https://support.datacite.org/docs/api"
+publisher = "DataCite"
+dateAccessed = 2026-10-13
+
+[[source]]
+id = "datacite-data-file-use-policy"
+type = "webpage"
+title = "DataCite Data File Use Policy"
+short = { cs = "Podmínky užití dat DataCite", en = "DataCite data use policy" }
+inLanguage = "en"
+url = "https://support.datacite.org/docs/datacite-data-file-use-policy"
+publisher = "DataCite"
+dateAccessed = 2026-10-13
+
+[[source]]
+id = "fuji-simpleclient"
+type = "software"
+title = "F-UJI simple client: assessment result page"
+short = { cs = "Klient F-UJI: stránka výsledku", en = "F-UJI client: result page" }
+inLanguage = "en"
+url = "https://github.com/pangaea-data-publisher/fuji/blob/0847e65b5cf760e03b2973ba7d819e3a3a477178/simpleclient/index.php"
+publisher = "PANGAEA"
+version = "0847e65b5cf760e03b2973ba7d819e3a3a477178"
+dateModified = 2024-05-02
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "fuji-metrics-v0-8"
+type = "software"
+title = "F-UJI metric definitions, version 0.8"
+short = { cs = "Metriky F-UJI 0.8", en = "F-UJI metrics 0.8" }
+inLanguage = "en"
+url = "https://github.com/pangaea-data-publisher/fuji/blob/b5a908bbb41b522a8835756c061f9cec15b3037a/fuji_server/yaml/metrics_v0.8.yaml"
+publisher = "PANGAEA"
+version = "b5a908bbb41b522a8835756c061f9cec15b3037a"
+dateModified = 2025-09-01
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "fair-checker-check-view"
+type = "software"
+title = "FAIR-Checker check view"
+short = { cs = "FAIR-Checker: zobrazení kontroly", en = "FAIR-Checker check view" }
+inLanguage = "en"
+url = "https://github.com/IFB-ElixirFr/FAIR-checker/blob/2425050a6cad0967895f9d07a22fe1857157ea7c/templates/check.html"
+publisher = "Institut Français de Bioinformatique"
+version = "2425050a6cad0967895f9d07a22fe1857157ea7c"
+dateModified = 2026-09-30
+dateAccessed = 2026-10-14
+
+[[source]]
+id = "fair-checker-metrics"
+type = "software"
+title = "FAIR-Checker metric implementations"
+short = { cs = "FAIR-Checker: implementace metrik", en = "FAIR-Checker metric implementations" }
+inLanguage = "en"
+url = "https://github.com/IFB-ElixirFr/FAIR-checker/tree/0b21c44c6d66644ac8c283e2e3277dfd5b070482/metrics"
+publisher = "Institut Français de Bioinformatique"
+version = "0b21c44c6d66644ac8c283e2e3277dfd5b070482"
+dateModified = 2026-10-01
+dateAccessed = 2026-10-14

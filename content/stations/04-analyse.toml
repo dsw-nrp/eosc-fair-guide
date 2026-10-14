@@ -1,0 +1,83 @@
+# Station 4: analysis and computing that others can repeat (RDMkit Analyse). Field reference: docs/content-model.md.
+
+[station]
+id = "analyse"
+position = 4
+lifecycleStage = "analyse"
+name = { cs = "Analýza a výpočty", en = "Analysis and computing" }
+title = { cs = "Analýza, kterou lze zopakovat", en = "Analysis that others can repeat" }
+icon = "laptop-code"
+principles = ["R1.2", "R1"]
+minutes = 3
+glossary = ["67", "197"]
+
+[[advice]]
+id = "analyse.01"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Analýzu veďte tak, aby ji jiní mohli zopakovat: kód, verzi softwaru, parametry a výpočetní prostředí ukládejte spolu s výsledky.", en = "Run your analysis so that others can repeat it: keep the code, software version, parameters and computing environment together with the results." }
+sources = ["RDMKIT.analyse.01", "RDMKIT.analyse.02"]
+
+[[advice]]
+id = "analyse.02"
+lens = "V"
+level = "L0"
+text = { cs = "Analýzu pište jako skript nebo výpočetní notebook a ukládejte ho s verzí softwaru a parametry, se kterými jste výsledky získali.", en = "Write your analysis as a script or computational notebook and keep it with the software version and parameters that produced the results." }
+action = [{ label = { cs = "Skripty a výzkumný software", en = "Scripts and research software" }, href = "#page-software" }, { label = { cs = "Výpočty v e-INFRA CZ", en = "Computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }]
+sources = ["RDMKIT.analyse.02", "CODE.01"]
+
+[[advice]]
+id = "analyse.03"
+lens = "V"
+level = "L1"
+text = { cs = "Píšete-li [[page:software|skript nebo výpočetní notebook]] pro zpracování dat, uložte použitou verzi spolu s návodem ke spuštění a seznamem závislostí. Přidejte malý příklad se vstupy a očekávaným výsledkem, na kterém lze postup ověřit.", en = "If you write a [[page:software|script or computational notebook]] to process data, retain the version used, execution instructions and dependencies. Include a small example with inputs and expected results so the procedure can be checked." }
+sources = ["FRSM.FRSM-13", "CODE.01"]
+
+[[advice]]
+id = "analyse.04"
+lens = "V"
+level = "L1"
+text = { cs = "Počítejte blízko dat: velká data analyzujte ve výpočetním prostředí e-INFRA CZ, abyste je nemuseli přenášet, a s kolegy sdílejte jedno pracovní prostředí s řízeným přístupem.", en = "Compute close to the data: analyse large data in the e-INFRA CZ computing environment so that you need not transfer them, and share one working environment with controlled access with your colleagues." }
+sources = ["RDMKIT.analyse.02", "EINFRA-DOCS.01"]
+
+[[advice]]
+id = "analyse.05"
+lens = "DS"
+level = "L0"
+text = { cs = "Upozorněte na výpočetní prostředí e-INFRA CZ, které lze propojit s daty v NRP.", en = "Point out the e-INFRA CZ computing environment, which can connect to data in NRP." }
+action = [{ label = { cs = "Výpočty s daty z NRP", en = "Computing with NRP data" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing" }]
+sources = ["NRP-COMPUTE.01"]
+
+[[advice]]
+id = "analyse.06"
+lens = "DS"
+level = "L1"
+text = { cs = "Pro společnou analýzu doporučte sdílené výzkumné prostředí s řízeným přístupem a dohodněte s týmem, jak se zaznamenají verze softwaru a parametry.", en = "For joint analysis, recommend a shared research environment with controlled access, and agree with the team how software versions and parameters will be recorded." }
+sources = ["RDMKIT.analyse.02"]
+
+[[advice]]
+id = "analyse.07"
+lens = "SR"
+level = "L0"
+text = { cs = "Umožněte číst data přes API přímo z výpočetních prostředí, aby je výzkumníci mohli analyzovat bez stahování na vlastní počítač.", en = "Let computing environments read data through the API, so that researchers can analyse the data without downloading them to their own computer." }
+action = [{ label = { cs = "Výpočty s daty z NRP", en = "Computing with NRP data" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing" }]
+sources = ["NRP.M2", "NRP-COMPUTE.01"]
+
+[[advice]]
+id = "analyse.08"
+lens = "K"
+level = "L0"
+text = { cs = "Sdílejte v komunitě ověřené analytické postupy a pracovní postupy a doporučený software zapište do FIP, aby na ně výzkumníci mohli navázat.", en = "Share proven analysis methods and workflows in the community and record the recommended software in the FIP, so that researchers can build on them." }
+action = [{ label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }]
+sources = ["RDMKIT.analyse.02", "A.R1.3.F1"]
+
+[[advice]]
+id = "analyse.09"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "Asistent pro programování vám pomůže převést analýzu z tabulkového procesoru nebo z ručních kroků do skriptu, který jde spustit opakovaně. V [[cerit-aiaas|prostředí CERIT]] zůstanou nepublikovaná data v infrastruktuře.", en = "A coding assistant can help you turn an analysis done in a spreadsheet or by hand into a script that can be run again. In [[cerit-aiaas|the CERIT environment]], unpublished data stay within the infrastructure." }
+check = { cs = "Výsledky skriptu porovnejte krok po kroku s dosavadní analýzou na stejných datech. Zapište verze použitého softwaru a balíčků a uveďte, že jste skript připravili s pomocí AI.", en = "Compare the script's results step by step with your existing analysis on the same data. Record the versions of the software and packages used, and state that you prepared the script with AI assistance." }
+prompt = { cs = "Převeď níže popsaný postup analýzy na skript v Pythonu (nebo v R). Každý krok okomentuj, parametry dej na začátek skriptu, na konci vypiš verze použitých balíčků a nic nepočítej odhadem.\n\nPostup: […]", en = "Turn the analysis procedure described below into a Python (or R) script. Comment every step, put the parameters at the top of the script, print the versions of the packages used at the end, and do not estimate anything.\n\nProcedure: […]" }
+sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.03"]

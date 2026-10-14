@@ -1,0 +1,887 @@
+# The favicons in this folder, as scripts/vendor_favicons.py took and normalised them: the host each
+# stands for, the file (a 48-pixel PNG), the address the icon was taken from and the file's SHA-256.
+# Generated; do not edit by hand.
+
+[favicons]
+retrieved = 2026-10-13
+size = 48
+
+[[favicon]]
+host = "about.gitlab.com"
+file = "about.gitlab.com.png"
+source = "https://about.gitlab.com/images/ico/favicon-192x192.png"
+sha256 = "427eed254f7ce68031b946f1850c3349b34ba8f336fb0107e296584c61717e5c"
+
+[[favicon]]
+host = "aiscr.cz"
+file = "aiscr.cz.png"
+source = "https://www.aiscr.cz/ais-mini.png"
+sha256 = "69d4a83973a10d4ec79d74f077d389436778e9b8b466f0ed082115796d2e4fe3"
+
+[[favicon]]
+host = "alphafold.ebi.ac.uk"
+file = "alphafold.ebi.ac.uk.png"
+source = "https://alphafold.ebi.ac.uk/assets/favicons/favicon.ico"
+sha256 = "8124a56ed9d5f5703a0a02520859a8019bd5c331e88c16f1c9a2d20b5cc7d43a"
+
+[[favicon]]
+host = "aquarius-ri.eu"
+file = "aquarius-ri.eu.png"
+source = "https://aquarius-ri.eu/wp-content/uploads/2024/04/AQUARIUS_favicon.png"
+sha256 = "add980c15e078026d3a73c7a83bef05fef9ca04361a12722d39d2a2940a977c7"
+
+[[favicon]]
+host = "archaeo-vault.cz"
+file = "archaeo-vault.cz.png"
+source = "https://archaeo-vault.cz/themes/custom/islandora_muni/platform_specific/images/favicon.svg"
+sha256 = "92467c710f6bf6e1ca329a2484fff6e4f781eb6e23de080560509ec597e72289"
+
+[[favicon]]
+host = "archiv.soc.cas.cz"
+file = "archiv.soc.cas.cz.png"
+source = "https://archiv.soc.cas.cz/templates/archiv_template_2020/favicon-96x96.png"
+sha256 = "f772431638f77c869d4c3b925e70bf153d1c7d9e01cc9812ca318a5a419dd6b7"
+
+[[favicon]]
+host = "archive.materialscloud.org"
+file = "archive.materialscloud.org.png"
+source = "https://archive.materialscloud.org/static/favicon-48x48.png"
+sha256 = "59eb06174e9eae29a2fa389ad66ec57ad98853a9fdfa0d0bf00860717146cdc6"
+
+[[favicon]]
+host = "argos.openaire.eu"
+file = "argos.openaire.eu.png"
+source = "https://argos.openaire.eu/portal/images/Logos/argos_1.svg"
+sha256 = "30858747a81534003aa05f9ffeb850d4895600d6cbe1db3c4fc4b284deb9ca0b"
+
+[[favicon]]
+host = "asep-portal.lib.cas.cz"
+file = "asep-portal.lib.cas.cz.png"
+source = "https://asep-portal.lib.cas.cz/favicon.ico"
+sha256 = "3616e779b4401fb7cec774f7717672d3a671bff36555782e8304668bb118c7e4"
+
+[[favicon]]
+host = "asep.lib.cas.cz"
+file = "asep.lib.cas.cz.png"
+source = "https://asep.lib.cas.cz/favicon.ico"
+sha256 = "13344719a643ff02f8adaed714318829029d485442c6141c23de1055383a6574"
+
+[[favicon]]
+host = "atlasti.com"
+file = "atlasti.com.png"
+source = "https://atlasti.com/favicon.svg"
+sha256 = "96ee91638c9588541bebdb174a74e1d64a1a2195fa766eada4652cce1c4f89de"
+
+[[favicon]]
+host = "avcr.fair-wizard.com"
+file = "avcr.fair-wizard.com.png"
+source = "https://avcr.fair-wizard.com/wizard/assets/favicon/favicon-32x32.png"
+sha256 = "6ff8fbabbb7db1ab758024bfec9cd6f15481099bc135092c1469b65358f6bbdb"
+
+[[favicon]]
+host = "bestpractices.dev"
+file = "bestpractices.dev.png"
+source = "https://www.bestpractices.dev/assets/favicon-f098b7364af46f181ea6b6d164e21494cbdb923eb9707491086ed622020f588f.ico"
+sha256 = "c556f01f4241d2838487fd24e89626166ec44d637f770a6bb8bebff7f3662371"
+
+[[favicon]]
+host = "bio.tools"
+file = "bio.tools.png"
+source = "https://bio.tools/img/favicon.ico"
+sha256 = "d9875ea7001a4663d013956adbf40d58fe2f2486e6f084aae61b69cff031b605"
+
+[[favicon]]
+host = "bmrb.io"
+file = "bmrb.io.png"
+source = "https://bmrb.io/favicon-32x32.png"
+sha256 = "b4076993022d9be94dcd9d029bc1971b63ea24fdc4c1ca7c302385685ac1c6ad"
+
+[[favicon]]
+host = "catalogue.fair-impact.eu"
+file = "catalogue.fair-impact.eu.png"
+source = "https://catalogue.fair-impact.eu/sites/default/files/favicon.png"
+sha256 = "3ef2260b13c525427fa949c0ca0a1545a8e42cd1bd0cebeaa48e28642606140e"
+
+[[favicon]]
+host = "catalogue.openaire.eu"
+file = "catalogue.openaire.eu.png"
+source = "https://catalogue.openaire.eu/assets/images/favicon.ico"
+sha256 = "51f36029da622cb2c85c6cd442b80ea15f716cf20d96de1db59c20c8197533cb"
+
+[[favicon]]
+host = "ccdc.cam.ac.uk"
+file = "ccdc.cam.ac.uk.png"
+source = "https://www.ccdc.cam.ac.uk/favicon-32x32.png"
+sha256 = "00d1ae208b1277a9da6b80b0bb5060091f292b25984dff4c8c7beec170572c83"
+
+[[favicon]]
+host = "cdsweb.u-strasbg.fr"
+file = "cdsweb.u-strasbg.fr.png"
+source = "https://cds.unistra.fr/favicon/favicon-32x32.png?v=2022"
+sha256 = "28c29ab99b548e92de512ed2d7464f577482ed3463bb3a75704ee9250f6fefe2"
+
+[[favicon]]
+host = "cdvl.org"
+file = "cdvl.org.png"
+source = "https://www.cdvl.org/favicon.ico"
+sha256 = "810079b2fc9053cc93f976d28ecc1279e264fcb1ad2b0fab9385af9838d07a85"
+
+[[favicon]]
+host = "ceric-eric.eu"
+file = "ceric-eric.eu.png"
+source = "https://www.ceric-eric.eu/wp-content/themes/ceric/assets/images/favicon/favicon-96x96.png"
+sha256 = "2b45a6688ff413fd619ff6c89ca15814a695a2fa2c76b2f5acfb00f35a50851b"
+
+[[favicon]]
+host = "chat.ai.e-infra.cz"
+file = "chat.ai.e-infra.cz.png"
+source = "https://chat.ai.e-infra.cz/static/favicon.svg"
+sha256 = "1da32a61ebe84b47b19333f2a3f9d9bd22071eeabdaf9cf11aab59cdf8624749"
+
+[[favicon]]
+host = "chemotion.net"
+file = "chemotion.net.png"
+source = "https://chemotion.net/images/favicon.png"
+sha256 = "bd8897084d29bada205923893d0d55ce1dfb9c8aa14a605ad93952dbdaf9c038"
+
+[[favicon]]
+host = "chemspider.com"
+file = "chemspider.com.png"
+source = "https://www.chemspider.com/jmol/favicon-32x32.png"
+sha256 = "9543d5d2a7199fc4c76ef423e8c1f551e9b1237156830ddd4cd3c512f673045c"
+
+[[favicon]]
+host = "colectica.com"
+file = "colectica.com.png"
+source = "https://colectica.com/img/colectica96.png"
+sha256 = "0d0c9c824e61de349f8844058c2d6fef7c776e17c59787747b00c9c68cc15767"
+
+[[favicon]]
+host = "consent.dariah.eu"
+file = "consent.dariah.eu.png"
+source = "https://consent.dariah.eu/themes/custom/acdh/icons/favicon-32x32.png"
+sha256 = "3a874642019d908b157ff566c32e499611bff144a8622563dfd1e575a67ede35"
+
+[[favicon]]
+host = "crystallography.net"
+file = "crystallography.net.png"
+source = "https://www.crystallography.net/cod/favicon.ico"
+sha256 = "b6caf8944725e233b7fbe6783dbcc67712276e6d43312e1ba556fad55a83b4ca"
+
+[[favicon]]
+host = "dariah.eu"
+file = "dariah.eu.png"
+source = "https://www.dariah.eu/icon.svg?icon.2j-4zt4xm2u4y.svg"
+sha256 = "8c4aadff1179a441c04f943c8f58eb16853bc395e2161edfb36f85d30d80e0b8"
+
+[[favicon]]
+host = "data.eli-laser.eu"
+file = "data.eli-laser.eu.png"
+source = "https://data.eli-laser.eu/static/favicon.ico"
+sha256 = "cc332f6a5986e2c976111c145b4a23f91fe6d1677fcd19439992925695890450"
+
+[[favicon]]
+host = "data.europa.eu"
+file = "data.europa.eu.png"
+source = "https://data.europa.eu/themes/contrib/oe_theme/images/favicons/eu/favicon.svg"
+sha256 = "320b70c19e194af8e60221eb1efd539d1fd82df25b26a5d77a86092c16211431"
+
+[[favicon]]
+host = "data.gov.cz"
+file = "data.gov.cz.png"
+source = "https://data.gov.cz/images/favicons/favicon.svg"
+sha256 = "0ea6cf337a988e0feedb683b9a6511f8f5284addc90c856b9ecfb33ab9318bce"
+
+[[favicon]]
+host = "datacite.org"
+file = "datacite.org.png"
+source = "https://datacite.org/wp-content/themes/mohito-2/favicon/favicon.ico"
+sha256 = "dca6f8e2b6f56f587e04f160a6903e62a157e3515f225ab4228dad8d67ff9fa7"
+
+[[favicon]]
+host = "datadryad.org"
+file = "datadryad.org.png"
+source = "https://datadryad.org/assets/favicon-32x32-a39769e170cc1f44a8ff99dea85aff3a94a1a257535ce6fafeadcf654566b95f.png"
+sha256 = "9f6922dac72f1e03fde5bd2ce51e5447c5dbe52e0691c75b474591bb9e1e5448"
+
+[[favicon]]
+host = "datarepo.eosc.cz"
+file = "datarepo.eosc.cz.png"
+source = "https://datarepo.eosc.cz/static/favicon.ico"
+sha256 = "3a3f1327cbd738c9859a4fb01bee54f52e04f0cd34c5012d1b0577cbd8427474"
+
+[[favicon]]
+host = "datasetsearch.research.google.com"
+file = "datasetsearch.research.google.com.png"
+source = "https://www.gstatic.com/images/branding/product/ico/googleg_lodp.ico"
+sha256 = "20f8f52e67bb0487493d6ff2450214ecb876c699337275aad3b9d0f936a9c6a9"
+
+[[favicon]]
+host = "dataspecer.com"
+file = "dataspecer.com.png"
+source = "https://dataspecer.com/favicon-32x32.png"
+sha256 = "8610d8175015a8c2b6614656f5dcef26829b90da1962949e21c9d19b987fa03c"
+
+[[favicon]]
+host = "ddrapp.nrp1.du.cesnet.cz"
+file = "ddrapp.nrp1.du.cesnet.cz.png"
+source = "https://ddrapp.nrp1.du.cesnet.cz/icons/favicon.ico"
+sha256 = "3fedf2b34e187402a9024ab988fddb9b28a8e03f703d9c333ea1c31969067f81"
+
+[[favicon]]
+host = "deims.org"
+file = "deims.org.png"
+source = "https://deims.org/sites/default/files/favicon.ico"
+sha256 = "56b9bcd3d3b35331ef630e1efd5c172db6258383e94feb3c985177374edca0ba"
+
+[[favicon]]
+host = "digiarchiv.aiscr.cz"
+file = "digiarchiv.aiscr.cz.png"
+source = "https://digiarchiv.aiscr.cz/assets/img/favicon.png"
+sha256 = "5d70dfd837b0ff0f541cbcda5923e5f387e89521c224b6a16327c1c864660571"
+
+[[favicon]]
+host = "dmeg.cessda.eu"
+file = "dmeg.cessda.eu.png"
+source = "https://dmeg.cessda.eu/favicon-32x32.png"
+sha256 = "0b69a7c975664e9e0284a1a484915875848d06eb800ccbd13644aed1ed4c071d"
+
+[[favicon]]
+host = "dmp.eosc.cz"
+file = "dmp.eosc.cz.png"
+source = "https://dmp.eosc.cz/static/icons/favicon.svg"
+sha256 = "6b7be16a57539a2cd2e86c95c202c1443d05758b9aa21f06bf01d1e89985329a"
+
+[[favicon]]
+host = "dmponline.dcc.ac.uk"
+file = "dmponline.dcc.ac.uk.png"
+source = "https://dmponline.dcc.ac.uk/assets/dmponline/favicon-64d44d62cb7112c4fe0a57f5a7cb1a50884e8d41b90f371525939c3b449c056c.ico"
+sha256 = "0dac89a25748eadb348288dd9774b543d0e1499759ecc78983aac29e79886e41"
+
+[[favicon]]
+host = "docs.cerit.io"
+file = "docs.cerit.io.png"
+source = "https://docs.cerit.io/-/docs/icon.svg?icon.07zhacieoahvi.svg"
+sha256 = "11f3cfa8ae30322847a0c33daa79027f671994b922098a07466294e824248622"
+
+[[favicon]]
+host = "docs.du.cesnet.cz"
+file = "docs.du.cesnet.cz.png"
+source = "https://docs.du.cesnet.cz/-/docs/icon.svg?icon.07zhacieoahvi.svg"
+sha256 = "11f3cfa8ae30322847a0c33daa79027f671994b922098a07466294e824248622"
+
+[[favicon]]
+host = "docs.it4i.cz"
+file = "docs.it4i.cz.png"
+source = "https://docs.it4i.cz/favicon.ico"
+sha256 = "210127fdd9ead3ce233e01d9453de12433cd441215145c75047704f2aad2ab9b"
+
+[[favicon]]
+host = "docs.psnc.pl"
+file = "docs.psnc.pl.png"
+source = "https://docs.psnc.pl/s/-gqe9m9/9117/1mhri29/14/_/favicon.ico"
+sha256 = "985371d015dd0956bf65b94708a31b81885e860d2e6ff1f78980a1b785ce5a08"
+
+[[favicon]]
+host = "ds-wizard.org"
+file = "ds-wizard.org.png"
+source = "https://ds-wizard.org/static/icons/favicon-32x32.png"
+sha256 = "31853f64c3a1b81fe00ec93fc47e315c7097b1a29d41fc027dffa220f418fd17"
+
+[[favicon]]
+host = "ds.iris.edu"
+file = "ds.iris.edu.png"
+source = "https://ds.iris.edu/static/img/favicon.2ff62ea8f729.ico"
+sha256 = "7d537fcc71b50f82f518d29f418d2069f5a5a12611426e459454680266ccc042"
+
+[[favicon]]
+host = "dsw-nrp.github.io"
+file = "dsw-nrp.github.io.png"
+source = "https://raw.githubusercontent.com/upptime/upptime/master/assets/upptime-icon.svg"
+sha256 = "65f4efc20e09882070e3822bee7eab01ed3713cca584941a9ae026df33725502"
+
+[[favicon]]
+host = "du.cesnet.cz"
+file = "du.cesnet.cz.png"
+source = "https://du.cesnet.cz/_media/favicon.ico"
+sha256 = "9c1bda6dfab574dab4ffe5316822466852f68c5b3dc476abab471e12e45ed062"
+
+[[favicon]]
+host = "earthref.org"
+file = "earthref.org.png"
+source = "https://earthref.org/favicon.ico"
+sha256 = "a02c1ded67a7343d0118e18fe274dc45e91e06e780a8dbf1308afd353fda9c48"
+
+[[favicon]]
+host = "ebi.ac.uk"
+file = "ebi.ac.uk.png"
+source = "https://ebi.emblstatic.net/web_guidelines/EBI-Framework/v1.4/images/logos/EMBL-EBI/favicons/favicon.ico"
+sha256 = "bf25a0994d5ee35044d478792c8c0a56959ec24b373baec484efe428e33d8f17"
+
+[[favicon]]
+host = "edugain.org"
+file = "edugain.org.png"
+source = "https://edugain.org/wp-content/uploads/2018/06/eduGAIN-FavIcon.png"
+sha256 = "9bcd90f922658e17008eb4aa4f4b8fc2793bf07393419b541500804b3883b024"
+
+[[favicon]]
+host = "eduid.cz"
+file = "eduid.cz.png"
+source = "https://www.eduid.cz/_media/favicon.ico"
+sha256 = "9ddfaf64ac569e9f6d4fc964512c46cc20724549139092fc7e4ef3aa048c01c6"
+
+[[favicon]]
+host = "elabftw.net"
+file = "elabftw.net.png"
+source = "https://www.elabftw.net/img/favicon.ico"
+sha256 = "bc671459e1b84a7b8eea3325c8a4d792a22857034344daa63941d3d18c2addda"
+
+[[favicon]]
+host = "elter-ri.eu"
+file = "elter-ri.eu.png"
+source = "https://elter-ri.eu/storage/app/uploads/public/66f/261/c3a/66f261c3a59c5653812339.png"
+sha256 = "c67b1b1adf2081e02ddd8cd216bebb93485e05329780a7d88b8dba8594831b17"
+
+[[favicon]]
+host = "epos-eu.org"
+file = "epos-eu.org.png"
+source = "https://www.epos-eu.org/sites/default/files/favicon.ico"
+sha256 = "d3c4d634b13a1e50b0373655bb4cabbbda200526bf8bca863a0ec05a1190a293"
+
+[[favicon]]
+host = "exmaralda.org"
+file = "exmaralda.org.png"
+source = "https://exmaralda.org/media/cropped-blase-fit-300x300-192x192.png"
+sha256 = "0ae25c11d5fa8579428ba0abc2695733bd14fbbcc21fb4917859bc2991f678ad"
+
+[[favicon]]
+host = "explore.openaire.eu"
+file = "explore.openaire.eu.png"
+source = "https://explore.openaire.eu/assets/common-assets/logo/favicon-96x96.png"
+sha256 = "7a72e4530f988c139cfcd7c42b1ea0ef6d54960938e93fd93456ceb861deb95b"
+
+[[favicon]]
+host = "f-uji.net"
+file = "f-uji.net.png"
+source = "https://f-uji.net/icon/fuji_logo_square.png"
+sha256 = "a2739989394e01abd794db455e8c84252295fa504cb7f1c2e022b39683735d72"
+
+[[favicon]]
+host = "fair-checker.france-bioinformatique.fr"
+file = "fair-checker.france-bioinformatique.fr.png"
+source = "https://fair-checker.france-bioinformatique.fr/favicon.ico"
+sha256 = "b3bda615697e734353b47c4a320d5162357103f35ef6f2963f34d8b966972873"
+
+[[favicon]]
+host = "fairaware.dans.knaw.nl"
+file = "fairaware.dans.knaw.nl.png"
+source = "https://fairaware.dans.knaw.nl/images/logos/favicon.ico"
+sha256 = "cc3af9beafd13b5033d0a98729c0332774502ec8f8ade9e77a9f7f7498ed6a29"
+
+[[favicon]]
+host = "fairsharing.org"
+file = "fairsharing.org.png"
+source = "https://fairsharing.org/assets/favicon.ico"
+sha256 = "225aee199e11a7f1724c17a9e2907266f898e52d62666844efbc525e02e96f00"
+
+[[favicon]]
+host = "fdsn.org"
+file = "fdsn.org.png"
+source = "https://fdsn.org/static/img/favicon.201bd0e03913.ico"
+sha256 = "b4f323555dad355721646edaa8283d7180e361b0ee10dac0f689f7064593114c"
+
+[[favicon]]
+host = "filesender.cesnet.cz"
+file = "filesender.cesnet.cz.png"
+source = "https://filesender.cesnet.cz/images/favicon.ico"
+sha256 = "3735e96fbbe3809078f97eb925d45678743917fa058f12995fa10603f1621858"
+
+[[favicon]]
+host = "fip-dashboard.dmp.eosc.cz"
+file = "fip-dashboard.dmp.eosc.cz.png"
+source = "https://fip-dashboard.dmp.eosc.cz/favicon.svg"
+sha256 = "6b7be16a57539a2cd2e86c95c202c1443d05758b9aa21f06bf01d1e89985329a"
+
+[[favicon]]
+host = "fip.fair-wizard.com"
+file = "fip.fair-wizard.com.png"
+source = "https://fip.fair-wizard.com/wizard/assets/favicon/favicon-32x32.png"
+sha256 = "6ff8fbabbb7db1ab758024bfec9cd6f15481099bc135092c1469b65358f6bbdb"
+
+[[favicon]]
+host = "foldify.cloud.e-infra.cz"
+file = "foldify.cloud.e-infra.cz.png"
+source = "https://foldify.cloud.e-infra.cz/favicon.ico?favicon.2fzmh40j9307c.ico"
+sha256 = "415e4a169ff74be4d79a453d37ffc287671b2617dc25f314a1f558ab88d5512a"
+
+[[favicon]]
+host = "git-lfs.com"
+file = "git-lfs.com.png"
+source = "https://git-lfs.com/favicon.png"
+sha256 = "28dccd42b294ac24007b256a033ed0badca5bb0327f2f6ad36309234e84ab5d7"
+
+[[favicon]]
+host = "github.com"
+file = "github.com.png"
+source = "https://github.githubassets.com/favicons/favicon.svg"
+sha256 = "c104af7487ffb2a79244e01a345154a59795389bceb49bd23682b1c6a10a1b04"
+homeOnly = true
+
+[[favicon]]
+host = "gnu.org"
+file = "gnu.org.png"
+source = "https://www.gnu.org/graphics/gnu-head-mini.png"
+sha256 = "9b0bea3f9a8d32a90bdf4cb49215c738aa1926e951d5420f120c8f2e4985c36b"
+
+[[favicon]]
+host = "graph.openaire.eu"
+file = "graph.openaire.eu.png"
+source = "https://graph.openaire.eu/images/Logos/fav-2.svg"
+sha256 = "0b21622c971138ddc71e68440e0ee2fa25e7269049c4fcb63d4cd4134b41fd07"
+
+[[favicon]]
+host = "handle.net"
+file = "handle.net.png"
+source = "https://handle.net/favicon.ico"
+sha256 = "804d481e6f4624286093168068b839a6077eb1ce11f81338e3fc4f5a03c2e0b1"
+
+[[favicon]]
+host = "hepdata.net"
+file = "hepdata.net.png"
+source = "https://www.hepdata.net:443/static/favicon.ico"
+sha256 = "934834d44bd0d9fda12600717d0919f2e5b7c60758366b8a7422c7b5db53cf4b"
+
+[[favicon]]
+host = "humanities.tools"
+file = "humanities.tools.png"
+source = "https://www.humanities.tools/favicon.ico"
+sha256 = "40d9c6c5d130358e213e524b558dcec42102a4ba04f6326631b626c0d09f0840"
+
+[[favicon]]
+host = "ibm.com"
+file = "ibm.com.png"
+source = "https://www.ibm.com/content/dam/adobe-cms/default-images/icon-192x192.png"
+sha256 = "f208cbb5c1a0911f6842a2d19e9dc7a6083456b582951eca080b773466234b0a"
+
+[[favicon]]
+host = "icos-cp.eu"
+file = "icos-cp.eu.png"
+source = "https://www.icos-cp.eu/themes/cp_theme_d10/favicon.ico"
+sha256 = "52c21f937aa5b30f46f812eb29ad70aecdf1d279aa173e95b6bbe949677c1d2d"
+
+[[favicon]]
+host = "identifikatory.cz"
+file = "identifikatory.cz.png"
+source = "https://identifikatory.cz/wp-content/uploads/2022/12/cropped-2022_NTK_identifikatory_flavicon1-1-192x192.png"
+sha256 = "ef82be9ec7e54125b864e754110ef6dc4f3ebae0856d1d6b9c49af497ae6c5d3"
+
+[[favicon]]
+host = "idr.openmicroscopy.org"
+file = "idr.openmicroscopy.org.png"
+source = "https://idr.openmicroscopy.org/about/img/logos/favicon-idr.ico"
+sha256 = "640665e7723acf598ba0f32a1bd10d2eb6d0db4a5eee9ad9197c502f833471e4"
+
+[[favicon]]
+host = "image-net.org"
+file = "image-net.org.png"
+source = "https://image-net.org/static_files/favicon.ico"
+sha256 = "d6d66ba88592c2b4f6ac47b1f7ac3a6403a61cfb0d4e5bb30187d1d35170515c"
+
+[[favicon]]
+host = "infrafinder.investinopen.org"
+file = "infrafinder.investinopen.org.png"
+source = "https://infrafinder-prd.nyc3.cdn.digitaloceanspaces.com/assets/favicon/favicon-32x32-8bb60bf0e5ed80c4a10e60f05fe3b9637a58fcdd.png"
+sha256 = "8df7a531f6a7adda6edc52201f7cae49be026a8669bd3b773bae74c002481542"
+
+[[favicon]]
+host = "iochem-bd.org"
+file = "iochem-bd.org.png"
+source = "https://www.iochem-bd.org/favicon.ico"
+sha256 = "bd2a99a6157e0840f9deb65174d7cd76e7653ca50636338319c7c4030f642bf7"
+
+[[favicon]]
+host = "irods.org"
+file = "irods.org.png"
+source = "https://irods.org/theme/irods_fav.ico"
+sha256 = "5f62f976c90c77ec3abfac3f0fbd122fabee8f707915dd9954f90ce589b33987"
+
+[[favicon]]
+host = "it4i.cz"
+file = "it4i.cz.png"
+source = "https://www.it4i.cz/file/db5a9f38f115d00b2ad8edfca7cc7853/4048/favicon/favicon.png"
+sha256 = "6d5676b8202cf8a168f56c09d72d6d2fef79d2908cb799fe6db2f2ca5d39bb01"
+
+[[favicon]]
+host = "juris-m.github.io"
+file = "juris-m.github.io.png"
+source = "https://juris-m.github.io/favicon-32x32.png"
+sha256 = "eedc456e1db902123014f67bf25abc752d04c1d11f348ba3319bb4dad6fae7e1"
+
+[[favicon]]
+host = "kadi.iam.kit.edu"
+file = "kadi.iam.kit.edu.png"
+source = "https://kadi.iam.kit.edu/favicon-32x32.png"
+sha256 = "102c7614e087254b8a7519b2e4409aa7af2e0fe43a9a70aae43888b815508f94"
+
+[[favicon]]
+host = "korpus.cz"
+file = "korpus.cz.png"
+source = "https://utils.korpus.cz/cdn/czcorpus/styles/1.3.0-alpha.2/img/icon/lupa_32x32.png"
+sha256 = "aa9b1b7d286954ad88ec34473740a500d91d0e49dc6409a1aa0d9ec54d92a7db"
+
+[[favicon]]
+host = "limesurvey.org"
+file = "limesurvey.org.png"
+source = "https://www.limesurvey.org/templates/limesurvey/favicon.ico"
+sha256 = "da30e84e9be44d877b8f698667c3fa0e743a2582019f0686142f90857c4b1848"
+
+[[favicon]]
+host = "lindat.cz"
+file = "lindat.cz.png"
+source = "https://lindat.cz/sites/default/files/favicon.ico"
+sha256 = "50f7365ee863c937cdd4fdf5d1373f49ce1fd0e2be2467f343d547c4b27d6417"
+
+[[favicon]]
+host = "lindat.mff.cuni.cz"
+file = "lindat.mff.cuni.cz.png"
+source = "https://lindat.mff.cuni.cz/sites/default/files/favicon.ico"
+sha256 = "50f7365ee863c937cdd4fdf5d1373f49ce1fd0e2be2467f343d547c4b27d6417"
+
+[[favicon]]
+host = "marketplace.sshopencloud.eu"
+file = "marketplace.sshopencloud.eu.png"
+source = "https://marketplace.sshopencloud.eu/favicon.ico"
+sha256 = "b890cb0a91c8f695c4d6cd73a3f7ce227e5d7e1ef5f159b6d09700829f0efcbd"
+
+[[favicon]]
+host = "maxqda.com"
+file = "maxqda.com.png"
+source = "https://www.maxqda.com/wp/wp-content/themes/max/assets/img/icons/mx24/favicon-96x96.png"
+sha256 = "3577f11a852cb48fd53df71de4a9dd571dc8d342ed3c22930ccdeff39b17a705"
+
+[[favicon]]
+host = "mbdb-data.org"
+file = "mbdb-data.org.png"
+source = "https://mbdb-data.org/static/favicon.ico"
+sha256 = "3a3f1327cbd738c9859a4fb01bee54f52e04f0cd34c5012d1b0577cbd8427474"
+
+[[favicon]]
+host = "metacentrum.cz"
+file = "metacentrum.cz.png"
+source = "https://www.metacentrum.cz/favicon-32x32.png"
+sha256 = "0e69a6cd22642f0b6ece7c2a912f8efb9e41e90fc54395f9eace0c36ef106502"
+
+[[favicon]]
+host = "molstar.org"
+file = "molstar.org.png"
+source = "https://molstar.org/favicon.ico"
+sha256 = "639c38789cf2ee1f2b2f4d26608a61395428338d563fe1c09f258726463976e7"
+
+[[favicon]]
+host = "mzcloud.org"
+file = "mzcloud.org.png"
+source = "https://www.mzcloud.org/favicon.ico"
+sha256 = "13742de9033fd26eab2704b34ec255207bdcf266f43e8fb3db642b39b39a0956"
+
+[[favicon]]
+host = "natur.cuni.cz"
+file = "natur.cuni.cz.png"
+source = "https://natur.cuni.cz/modules/NaturWeb/templates/base/main/img/cuni_fav_48.png"
+sha256 = "6f70fc80ae377a0a9a0999d81dcbcb07775dca441a0ef3317902f769e5a2d797"
+
+[[favicon]]
+host = "nature.com"
+file = "nature.com.png"
+source = "https://www.nature.com/static/images/favicons/nature/favicon-48x48-b52890008c.png"
+sha256 = "6ddf298d2c465f0284edc29f96eb0c4802cedb318e6bdc350b4f9a8145627461"
+
+[[favicon]]
+host = "ncbi.nlm.nih.gov"
+file = "ncbi.nlm.nih.gov.png"
+source = "https://ncbi.nlm.nih.gov/favicon.ico"
+sha256 = "7f98824707f44391e5ebe496ece53d3c852464b8df0dd05d2713d9af34519981"
+
+[[favicon]]
+host = "ncei.noaa.gov"
+file = "ncei.noaa.gov.png"
+source = "https://www.ncei.noaa.gov/themes/custom/ncei/favicon.ico"
+sha256 = "bd9faee5c3aa8f0b049f752db95922c8f045b0a1075cd884a62576563bd66ef0"
+
+[[favicon]]
+host = "nma.eosc.cz"
+file = "nma.eosc.cz.png"
+source = "https://nma.eosc.cz/static/favicon.svg"
+sha256 = "f3674e24c7f40281de3047add9d700b0d26711d3a55e8596b49a28bf3ceabdc7"
+
+[[favicon]]
+host = "nodegoat.net"
+file = "nodegoat.net.png"
+source = "https://e.nodegoat.net/cache/img/Wzk2LDk2XQ==/L2Nzcy9pbWFnZS5wbmc="
+sha256 = "d77b620fa138e1d76710c4dddf84747b6edd4438496e293078ef5406f10d4e3c"
+
+[[favicon]]
+host = "nomad-lab.eu"
+file = "nomad-lab.eu.png"
+source = "https://nomad-lab.eu/nomad-lab/assets/favicon.ico"
+sha256 = "3b6121f62827bfcb5cb73d954ecd21795328298639b5b2593cd85bad0d2564c0"
+
+[[favicon]]
+host = "open-science-cloud.ec.europa.eu"
+file = "open-science-cloud.ec.europa.eu.png"
+source = "https://open-science-cloud.ec.europa.eu/themes/custom/netcompany/images/favicons/ec/favicon.svg"
+sha256 = "bdbfdb40244e08b9ee081faa4023b8dd931d62ef23673d3b85aac0307f267d90"
+
+[[favicon]]
+host = "openbis.ch"
+file = "openbis.ch.png"
+source = "https://labnotebook.ch/wp-content/uploads/2018/08/xxx.png"
+sha256 = "c4c533aab43348b39e27a4af5138b0e9a9657f760ee38a723211cbcab0b6cba3"
+
+[[favicon]]
+host = "opendoar.ac.uk"
+file = "opendoar.ac.uk.png"
+source = "https://opendoar.ac.uk/images/favicon.ico"
+sha256 = "487280c4ce54863fa12b3e7d7d126f44f58bc1e4e53fc7bfa8c5571590c4ede8"
+
+[[favicon]]
+host = "openebench.bsc.es"
+file = "openebench.bsc.es.png"
+source = "https://openebench.bsc.es/favicon.ico"
+sha256 = "26fc9e5882a80a91ddc9a76d677211085030f8a77705f87e2bf7b5f1150ca3df"
+
+[[favicon]]
+host = "openrefine.org"
+file = "openrefine.org.png"
+source = "https://openrefine.org/img/openrefine_logo.svg"
+sha256 = "8bd6868f1acec3107518febadf8295b749da2f3eba2de298788da53209deae7b"
+
+[[favicon]]
+host = "orcid.org"
+file = "orcid.org.png"
+source = "https://orcid.org/assets/icons/favicon.ico"
+sha256 = "a4ba1f2ad61a4a260f0fa09168ada7673cf7e6fe613f0d7e308b7513a94aa2ef"
+
+[[favicon]]
+host = "osf.io"
+file = "osf.io.png"
+source = "https://osf.io/favicon.ico"
+sha256 = "0b546cb471acceaf2381f00af126a9ab724ee8482197816d268e8575ddf30d19"
+homeOnly = true
+
+[[favicon]]
+host = "owncloud.cesnet.cz"
+file = "owncloud.cesnet.cz.png"
+source = "https://owncloud.cesnet.cz/apps/theme-cesnet/core/img/favicon.ico"
+sha256 = "ec5b39ad32fe8b22b735d255ebe1df31b59f64d7e8c0f3489054c3149d5d5c7e"
+
+[[favicon]]
+host = "pangaea.de"
+file = "pangaea.de.png"
+source = "https://pangaea.de/assets/v.2d6f89e80fb0ee2bf039f8938c1ebe6a/favicon.ico"
+sha256 = "3051f2bec0bd38c7e16b790adfc8578f22bcd5800159718df2685377c53051e8"
+
+[[favicon]]
+host = "pdbj.org"
+file = "pdbj.org.png"
+source = "https://pdbj.org/newweb/media/icons/favicon64.png"
+sha256 = "099fba71bf03aa4356f1440a732513d19da76cde188b11395b3be939194955c7"
+
+[[favicon]]
+host = "pero-ocr.fit.vutbr.cz"
+file = "pero-ocr.fit.vutbr.cz.png"
+source = "https://pero-ocr.fit.vutbr.cz/static/img/favicon.ico"
+sha256 = "e44c432136ca8992e8a092c2fce9468eb4a9e21d79f21668a85c96da4b764552"
+
+[[favicon]]
+host = "perun-aai.org"
+file = "perun-aai.org.png"
+source = "https://cdn.muni.cz/media/3076278/favicon.ico"
+sha256 = "602cc2102906c470027c9d5418698e26975794f18639296c5645a43988bb09cd"
+
+[[favicon]]
+host = "polls.e-infra.cz"
+file = "polls.e-infra.cz.png"
+source = "https://polls.e-infra.cz/favicon.ico"
+sha256 = "18eba2c293b2935562de75f33a9377c32e50adf2dec0661f47ea879b42bf2651"
+
+[[favicon]]
+host = "posit.co"
+file = "posit.co.png"
+source = "https://posit.co/themes/custom/kinetic/favicon.ico"
+sha256 = "91e3ca50cf38e4a036c0176b85a3e3a21f5f8ee08a581bc11bb3dbc244ad7a46"
+
+[[favicon]]
+host = "project-redcap.org"
+file = "project-redcap.org.png"
+source = "https://project-redcap.org/wp-content/themes/rcap/favicon.ico"
+sha256 = "f4fcd1204fbb60449463ec4e901d0be9c13a70f2e3497f24bdace4398082d136"
+
+[[favicon]]
+host = "publicai.co"
+file = "publicai.co.png"
+source = "https://publicai.co/logo-mark.png"
+sha256 = "7dfca220347bcbaee46fb8d65da7d90a5891297ed635cadf620080ed00fbfebb"
+
+[[favicon]]
+host = "pytorch.org"
+file = "pytorch.org.png"
+source = "https://pytorch.org/wp-content/uploads/2024/10/cropped-favicon-192x192.webp"
+sha256 = "4755b196b9b6e7cdf83a7868bb842a3e794f3c7274f609128d40dc2b8b751ee5"
+
+[[favicon]]
+host = "qualidatanet.com"
+file = "qualidatanet.com.png"
+source = "https://www.qualidatanet.com/favicon.svg"
+sha256 = "fbc4edbb5b18d5bad1e695a97af702891753c34ba7b9ce68a691470cc9c20972"
+
+[[favicon]]
+host = "rcsb.org"
+file = "rcsb.org.png"
+source = "https://rcsb.org/img/rcsb-apple-touch-icon.jpg"
+sha256 = "9a1e9abbff7770b213f459e32c1e6b0e339794cb0384271491f3439e490c2785"
+
+[[favicon]]
+host = "rdamsc.bath.ac.uk"
+file = "rdamsc.bath.ac.uk.png"
+source = "https://rdamsc.bath.ac.uk/static/favicon.ico"
+sha256 = "3f15064712d661a613d0c8cbd20c4bcce466cc05b5b12c1f4c343de89cb1f7d9"
+
+[[favicon]]
+host = "rdmkit.elixir-europe.org"
+file = "rdmkit.elixir-europe.org.png"
+source = "https://rdmkit.elixir-europe.org/assets/img/favicon-32x32.png"
+sha256 = "c7dea3efadcd936c30f4247d6e8d424af8d3eb96c7e164781e9f5718934e0e45"
+
+[[favicon]]
+host = "rdmorganiser.github.io"
+file = "rdmorganiser.github.io.png"
+source = "https://rdmorganiser.github.io/img/favicon.png"
+sha256 = "d4f7dcf2beaef9eff89d7a983b67ec0b290cd4c51492bb6833016b64db071e08"
+
+[[favicon]]
+host = "re3data.org"
+file = "re3data.org.png"
+source = "https://www.re3data.org/favicon.ico"
+sha256 = "c8a8ffbaff1e1ef136e3055864b448923278caf1971173f8ac26083e7e2a2071"
+homeOnly = true
+
+[[favicon]]
+host = "refractiveindex.info"
+file = "refractiveindex.info.png"
+source = "https://refractiveindex.info/images/icons/prism/prism-256.png"
+sha256 = "67fc028f1dcc6865f63aefd545acb2f66f48cafc04456399cd8502a6535d8804"
+
+[[favicon]]
+host = "repo.cz"
+file = "repo.cz.png"
+source = "https://repo.cz/img/NKR_favicon.png"
+sha256 = "43ee61f5cea7e645004cb0bf311aa7e73ce8ab2cbc477ca9d9c96b855579e9df"
+
+[[favicon]]
+host = "requal.app"
+file = "requal.app.png"
+source = "https://requal.app/img/favicon.ico"
+sha256 = "fa8f30aa332f8f38f4f281c1a330a95fd28aa12b7875ec2f49047543d8028c92"
+
+[[favicon]]
+host = "researchers.dsw.elixir-europe.org"
+file = "researchers.dsw.elixir-europe.org.png"
+source = "https://researchers.dsw.elixir-europe.org/wizard/assets/favicon/favicon-32x32.png"
+sha256 = "7f72b7ed8e1dea4a3b8daf75e51fb7d26a18ae71528104bbd9e32842b5c04d46"
+
+[[favicon]]
+host = "ror.org"
+file = "ror.org.png"
+source = "https://ror.org/img/favicon.png"
+sha256 = "7c14cd6a538b8c64ab32514dae98686123d2b97d3bdbef04abd96c7aa37a8d37"
+
+[[favicon]]
+host = "scribblesense.cz"
+file = "scribblesense.cz.png"
+source = "https://scribblesense.cz/icons/favicon-96x96.png"
+sha256 = "6896f251e8343539177984594963b16020dd2c37e439941da097120cc8de5388"
+
+[[favicon]]
+host = "softwareheritage.org"
+file = "softwareheritage.org.png"
+source = "https://www.softwareheritage.org/wp-content/uploads/2015/08/cropped-swh-logo-192x192.png?ver=1784673004"
+sha256 = "fec473bb3850ed7b69545d3c00180d7c6f9b39049cd09b103300360e9d44e20f"
+
+[[favicon]]
+host = "spyder-ide.org"
+file = "spyder-ide.org.png"
+source = "https://www.spyder-ide.org/favicon.ico"
+sha256 = "b226f78a781532da9ecd6cc7adabe4146b4eb634d44992ca5e5e49be78e2f636"
+
+[[favicon]]
+host = "stata.com"
+file = "stata.com.png"
+source = "https://www.stata.com/favicon.ico"
+sha256 = "5cb463c705f95e5df47656b7fbff5dfe0a86635597d5bedb6980517ae2ecf716"
+
+[[favicon]]
+host = "taguette.org"
+file = "taguette.org.png"
+source = "https://www.taguette.org/favicon.ico"
+sha256 = "a6b71aa5f5226b6ee321902d406a7ba026b2f0c4003ca7b739ff5b33dc26ff43"
+
+[[favicon]]
+host = "transkribus.org"
+file = "transkribus.org.png"
+source = "https://www.transkribus.org/favicon.ico"
+sha256 = "0e7b7de8a55bce602fef6a7a336d69b67a54d2149a8ebd4ef44ca43b9bd0975c"
+
+[[favicon]]
+host = "unavco.org"
+file = "unavco.org.png"
+source = "https://www.unavco.org/wordpress/wp-content/uploads/2023/07/cropped-favicon-192x192.png"
+sha256 = "602285a5961545178c53527acc3987dcafcdf8b9bdce9c2b82fbf25ca17807dc"
+
+[[favicon]]
+host = "uniprot.org"
+file = "uniprot.org.png"
+source = "https://www.uniprot.org/mstile-144x144.png"
+sha256 = "df39a5f60abb3e18d60fd3f22b38fcf65a711166401514f1eb63aba73880eda4"
+
+[[favicon]]
+host = "usegalaxy.cz"
+file = "usegalaxy.cz.png"
+source = "https://usegalaxy.cz/favicon.ico"
+sha256 = "749841dc2a47ce061748664d77b069854c9d6418b5bd3f1fd6e56eae98520754"
+
+[[favicon]]
+host = "usegalaxy.eu"
+file = "usegalaxy.eu.png"
+source = "https://usegalaxy.eu/favicon.ico"
+sha256 = "f97a98cdf8c2a2b50bb0526eb190321ae1101272bbd366f5394731ebdc65f351"
+
+[[favicon]]
+host = "vqeg.org"
+file = "vqeg.org.png"
+source = "https://vqeg.org/favicon.ico"
+sha256 = "4eacc3da67dc086dc4236e290f2d9f355aa6b34a77a70b54664e69106de3a3fe"
+
+[[favicon]]
+host = "wikidata.org"
+file = "wikidata.org.png"
+source = "https://www.wikidata.org/static/favicon/wikidata.ico"
+sha256 = "4d89f21747c8a254ecfdb13e463eadbc38bce60923fcd89cccd7d120461bfc8d"
+
+[[favicon]]
+host = "workflowhub.eu"
+file = "workflowhub.eu.png"
+source = "https://workflowhub.eu/assets/favicon-3347f1fa2a35ed9eda71993b279ed800c9959dec99ab98c3e3db1ddaea17b8d0.png"
+sha256 = "cc44b6afd4e3ef375c852c3423c31670cb95f3ef32782cb1273a93e977839f2b"
+
+[[favicon]]
+host = "zenodo.org"
+file = "zenodo.org.png"
+source = "https://zenodo.org/static/favicon.ico"
+sha256 = "7ea23a5743c9b7a46fd022fdbb871dbb21d92db925de74f82880e553e4d3db01"
+homeOnly = true
+
+[[favicon]]
+host = "zotero.org"
+file = "zotero.org.png"
+source = "https://www.zotero.org/favicon.ico"
+sha256 = "6c56b049f4ad61c0a00af504c6003f33ffc87577812c3ec7d75286e7a3f46295"

@@ -136,7 +136,7 @@ requirement = "FRSM.FRSM-10"
 statement = { cs = "Formáty dat, která software čte nebo vytváří, jsou popsané, otevřené a mají odkaz na specifikaci.", en = "Formats of data consumed or produced by the software are described, open and reference their specifications." }
 tier = "advanced"
 block = "execution"
-fixAt = "work"
+fixAt = "analyse"
 owner = ["user"]
 allowNotApplicable = false
 help = { cs = "Projděte popis vstupů a výstupů a odkazy na jejich formáty či schémata. Čitelné příklady pomáhají, ale nenahrazují popis formátu; konkrétní standard zvolte podle oboru.", en = "Inspect the input and output descriptions and references to their formats or schemas. Readable examples help but do not replace a format description; choose the relevant standard for the domain." }
@@ -172,7 +172,7 @@ requirement = "FRSM.FRSM-13"
 statement = { cs = "Informace o závislostech, sestavení a nastavení potřebných k použití softwaru jsou strojově zpracovatelné; k dispozici je návod k sestavení, instalaci nebo spuštění.", en = "Information about dependencies, build and configuration needed to use the software is machine-actionable; build, installation or execution instructions are available." }
 tier = "basic"
 block = "execution"
-fixAt = "work"
+fixAt = "analyse"
 owner = ["user"]
 allowNotApplicable = false
 help = { cs = "Prohlédněte soubory závislostí, sestavovací skripty a nastavení pro posuzovanou verzi. Metrika rozlišuje návod ke spuštění a pokročilejší strojově čitelné závislosti či automatizované sestavení a instalaci; samotný odstavec v README neprokazuje obojí.", en = "Inspect dependency files, build scripts and configuration for the assessed version. The metric distinguishes execution instructions from more advanced machine-readable dependencies and automated build and installation; a README paragraph alone does not establish both." }
@@ -184,7 +184,7 @@ requirement = "FRSM.FRSM-14"
 statement = { cs = "Software má testy a potřebná testovací data, které dokládají, že funguje podle očekávání.", en = "The software provides tests and necessary test data demonstrating that it works as expected." }
 tier = "basic"
 block = "execution"
-fixAt = "work"
+fixAt = "analyse"
 owner = ["user"]
 allowNotApplicable = false
 help = { cs = "Ověřte, co testy spouštějí a jaký výsledek očekávají. Automatizované jednotkové a systémové testy i pokrytí jsou další úrovně metriky; samotná složka „tests“ neprokazuje správnost.", en = "Check what the tests run and which result they expect. Automated unit and system tests and coverage are further levels of the metric; a directory named “tests” alone does not establish correctness." }
@@ -220,7 +220,7 @@ requirement = "FRSM.FRSM-17"
 statement = { cs = "Software obsahuje informace o původu a průběhu svého vývoje.", en = "The software includes provenance information describing its origins and development." }
 tier = "advanced"
 block = "description"
-fixAt = "work"
+fixAt = "analyse"
 owner = ["user"]
 allowNotApplicable = false
 help = { cs = "Prohlédněte historii změn a její vazby na úkoly, zdrojové projekty či vývojové prostředí. Historie commitů je základní doklad, ale sama nezachytí úplný původ převzatého kódu ani všechna rozhodnutí při vývoji.", en = "Inspect change history and its links to issues, upstream projects or the development environment. Commit history is basic evidence but does not by itself capture all origins of reused code or every development decision." }
@@ -232,10 +232,10 @@ requirement = "CODE.01"
 statement = { cs = "Kolega dokáže spustit malý zdokumentovaný příklad se zadanými vstupy a ověřit očekávaný výstup.", en = "A colleague can run a small documented example with specified inputs and verify the expected output." }
 tier = "basic"
 block = "execution"
-fixAt = "work"
+fixAt = "analyse"
 owner = ["user"]
 allowNotApplicable = false
-help = { cs = "Zkuste příklad v prostředí popsaném pro danou verzi a porovnejte výsledek s návodem. Jde o praktický krok průvodce vycházející z CODE; nenahrazuje úplné testování softwaru.", en = "Try the example in the environment documented for that version and compare the result with the instructions. This is a practical guide step based on CODE; it does not replace full software testing." }
+help = { cs = "Zkuste příklad v prostředí popsaném pro danou verzi a porovnejte výsledek s návodem. Jde o praktický krok Průvodce vycházející z CODE; nenahrazuje úplné testování softwaru.", en = "Try the example in the environment documented for that version and compare the result with the instructions. This is a practical guide step based on CODE; it does not replace full software testing." }
 
 [[item]]
 id = "software.19"
@@ -256,7 +256,7 @@ requirement = "OPENSSF.01"
 statement = { cs = "Pokud tým usiluje o odznak OpenSSF Best Practices, prošel jeho kritéria a u každého zaznamenal doklady nebo zbývající práci.", en = "If the team is seeking an OpenSSF Best Practices badge, it has reviewed the criteria and recorded evidence or remaining work for each." }
 tier = "advanced"
 block = "description"
-fixAt = "work"
+fixAt = "analyse"
 owner = ["user"]
 allowNotApplicable = true
 help = { cs = "Odznak je dobrovolné sebehodnocení projektu podle OpenSSF, nikoli certifikace FAIR. Pokud o něj tým neusiluje, zvolte „Netýká se“; při přípravě rozlište splněná kritéria a to, co ještě zbývá.", en = "The badge is voluntary project self-certification under OpenSSF, not FAIR certification. Choose “Not applicable” if the team is not seeking it; when preparing, distinguish met criteria from work still to do." }

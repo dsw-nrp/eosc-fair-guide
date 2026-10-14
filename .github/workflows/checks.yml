@@ -68,11 +68,21 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: python scripts/pr_summary.py --base "$BASE_SHA" --head "$HEAD_SHA" --output .cache/pr-review/summary.json
+      - name: Suggest contributor and attribution patches
+        if: always()
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python scripts/contributors.py --base "$BASE_SHA" --output .cache/pr-review/contributors.json
+          cat .cache/pr-review/contributors.md >> "$GITHUB_STEP_SUMMARY"
       - name: Save review data for the trusted comment workflow
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: guide-review-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .cache/pr-review/summary.json
+          path: |
+            .cache/pr-review/summary.json
+            .cache/pr-review/changes.json
+            .cache/pr-review/contributors.json
           if-no-files-found: warn
           retention-days: 14

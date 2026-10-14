@@ -3,6 +3,7 @@
 [station]
 id = "plan"
 position = 1
+lifecycleStage = "plan"
 name = { cs = "Plán", en = "Plan" }
 title = { cs = "Plán správy dat", en = "Data management plan" }
 icon = "clipboard-list"

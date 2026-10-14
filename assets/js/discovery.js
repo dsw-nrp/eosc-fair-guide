@@ -3,11 +3,7 @@
   "use strict";
   const FG = window.FairGuide;
   const live = FG.live;
-  const connector = (id) => {
-    const found = FG.config.connectors.find((entry) => entry.id === id);
-    if (!found) throw new Error("unknown connector " + id);
-    return found;
-  };
+  const connector = live.connector;
 
   /** Bounded anonymous GET. Redirects are refused before they can contact an unreviewed origin. External
       text stays inert; even HTML is parsed only in a detached document and never inserted into the page. */
@@ -71,6 +67,7 @@
   }
 
   live.readPublic = publicRead;
+  live.identityMatch = (...args) => identityMatch(...args);
 
   /* ---------------------------------------------------------------- shared object discovery */
 
@@ -80,26 +77,9 @@
   }
 
   function identityMatch(data, pid, landing, registry, base) {
-    // Compact JSON-LD terms only identify a subject when their declared vocabulary supports that meaning.
-    let vocab = null, terms = {}, unknown = false;
-    for (const context of (data["@context"] === null ? [null] : FG.list(data["@context"]))) {
-      if (context === null) { vocab = null; terms = {}; unknown = false; }
-      else if (typeof context === "string") {
-        if (/^https?:\/\/schema\.org\/?$/.test(context) || FG.config.discovery.codeMetaContexts.includes(context)) vocab = FG.config.discovery.schemaVocabulary;
-        else { vocab = null; terms = {}; unknown = true; }
-      } else if (context && typeof context === "object") {
-        if (Object.hasOwn(context, "@vocab")) vocab = context["@vocab"];
-        terms = Object.assign({}, terms, context);
-      }
-    }
-    const values = (name) => {
-      if (registry) return FG.list(data[name]);
-      const namespace = FG.config.discovery.schemaVocabulary;
-      const full = FG.list(data[namespace + name]).concat(FG.list(data[namespace.replace(/^https:/, "http:") + name]));
-      const term = terms[name], mapped = typeof term === "string" ? term : term && term["@id"];
-      const known = Object.hasOwn(terms, name) ? mapped === namespace + name : !unknown && String(vocab || "").replace(/^http:\/\/schema\.org\//, namespace) === namespace;
-      return full.concat(known ? FG.list(data[name]) : []);
-    };
+    // Compact JSON-LD terms only identify a subject when their declared vocabulary supports that meaning; the shared
+    // bounded reader in assess.js decides that, exactly as the assessments read the same representation.
+    const values = (name) => registry ? FG.list(data[name]) : FG.jsonLd.propertyValues(data, name);
     const identifiers = values("identifier").concat(registry ? FG.list(data.doi) : []);
     const stated = [...identifiers, ...FG.list(data["@id"]), ...values("url"), ...values("sameAs")].map(identityValue).filter(Boolean);
     const claimed = identifiers.map(identityValue).map(live.parsePid).filter(Boolean);
@@ -160,7 +140,7 @@
         else value = node.textContent;
         if (value == null) continue;
         for (const name of properties) {
-          if (["__proto__", "constructor", "prototype", "@context", "@id", "@type"].includes(name)) continue;
+          if (FG.unsafeKey(name) || ["@context", "@id", "@type"].includes(name)) continue;
           data[name] = FG.list(data[name]).concat(value);
         }
       }

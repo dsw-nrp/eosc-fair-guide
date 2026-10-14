@@ -42,6 +42,9 @@ function diagrams() {
 
 const failures = [];
 const all = diagrams();
+/* The content model has one maintained entity-relationship diagram (docs/content-model.md); other documents link it. */
+const models = all.filter((diagram) => /^\s*erDiagram\b/.test(diagram.text));
+if (models.length !== 1 || !models[0].where.startsWith("docs/content-model.md")) failures.push(`the content-model diagram must be defined once, in docs/content-model.md: ${models.map((diagram) => diagram.where).join(", ") || "none"}`);
 const browser = await chromium.launch();
 const page = await browser.newPage();
 await page.setContent("<!doctype html><html><body></body></html>");

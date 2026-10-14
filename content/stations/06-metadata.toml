@@ -1,0 +1,302 @@
+# Station 6: describing the data (metadata). Field reference: docs/content-model.md.
+
+[station]
+id = "metadata"
+position = 6
+lifecycleStage = "share"
+name = { cs = "Popis", en = "Description" }
+title = { cs = "Popis dat (metadata)", en = "Describing the data (metadata)" }
+icon = "tags"
+principles = ["F2", "I1", "I2", "I3", "R1", "R1.2", "R1.3"]
+minutes = 15
+glossary = ["182", "389", "134", "408", "409", "216"]
+
+[[advice]]
+id = "metadata.01"
+lens = "V"
+level = "L0"
+text = { cs = "Popište data tak, aby jim porozuměl i někdo z jiného týmu za deset let: název, abstrakt, autoři s [[orcid|ORCID]], instituce s [[ror|ROR]], způsob vzniku dat, odborná hesla a klíčová slova.", en = "Describe the data so that someone from another team can understand them in ten years: title, abstract, authors with [[orcid|ORCID]], institutions with [[ror|ROR]], how the data were made, subject terms and keywords." }
+action = [{ label = { cs = "Co připravit před vyplněním formuláře", en = "What to prepare before filling in the form" }, href = "#check-dataset" }, { label = { cs = "Šablony README", en = "README templates" }, href = "https://github.com/Czech-Data-Steward-Community/README_FILES_EXAMPLES" }]
+sources = ["A.F2.N2", "A.I2.R2", "A.R1.2.X1"]
+
+[[advice]]
+id = "metadata.02"
+lens = "V"
+level = "L1"
+text = { cs = "Připravte základní údaje: název, popis, autory s [[orcid|ORCID]], afiliace s [[ror|ROR]], data vzniku, typ a jazyk. Repozitář je převede do společného modelu [[ccmm|CCMM]].", en = "Prepare the basic details: title, description, authors with [[orcid|ORCID]], affiliations with [[ror|ROR]], dates, type and language. The repository converts them to the common [[ccmm|CCMM]] model." }
+sources = ["A.F2.N2", "A.I2.R2", "A.F2.R1"]
+
+[[advice]]
+id = "metadata.03"
+lens = "V"
+level = "L1"
+text = { cs = "Odborná hesla vybírejte z řízených slovníků; volná klíčová slova je jen doplňují. [[ccmm|CCMM]] 2.0.0 obojí rozlišuje.", en = "Choose subject terms from controlled vocabularies; free keywords only complement them. [[ccmm|CCMM]] 2.0.0 distinguishes the two." }
+sources = ["A.I2.R1", "CCMM-RELEASES.01"]
+
+[[advice]]
+id = "metadata.04"
+lens = "V"
+level = "L1"
+text = { cs = "Popište, jak data vznikla: metodu, přístroje, software a jeho verzi i kroky zpracování. Odkazem připojte deník nebo jiný záznam [[page:provenance|původu dat a důvodů jejich úprav]], aby šlo postup dohledat.", en = "Describe how the data were produced: the method, instruments, software and version, and processing steps. Link the notebook or other record of [[page:provenance|data provenance and reasons for changes]] so the procedure can be traced." }
+sources = ["A.R1.2.X1", "LONDON.4.6"]
+
+[[advice]]
+id = "metadata.05"
+lens = "V"
+level = "L1"
+text = { cs = "Uveďte vazby pomocí trvalých identifikátorů: související články, zdrojová data a předchozí verze.", en = "Give links through persistent identifiers: related articles, source data and previous versions." }
+sources = ["A.I3.R3", "A.R1.2.N3"]
+
+[[advice]]
+id = "metadata.06"
+lens = "V"
+level = "L1"
+text = { cs = "K souborům přidejte README nebo datový slovník, například podle [[cdsc-readme|šablony komunity data stewardů]].", en = "Add a README or a data dictionary to the files, for example following the [[cdsc-readme|Czech data steward community's template]]." }
+sources = ["CESSDA-DMEG.01", "CDSC-README.01"]
+
+[[advice]]
+id = "metadata.07"
+lens = "V"
+level = "L1"
+text = { cs = "Má-li váš obor metadatový standard (například DDI, Darwin Core nebo CIDOC CRM), použijte ho; repozitář nebo FIP ukáže jak.", en = "If your field has a metadata standard (for example DDI, Darwin Core or CIDOC CRM), use it; the repository or the FIP shows how." }
+sources = ["A.R1.3.X2"]
+
+[[advice]]
+id = "metadata.08"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Společný záznam ([[ccmm|CCMM]]) slouží k vyhledávání v [[nma|NMA]]. Oborový popis v repozitáři zachovává podrobnosti potřebné pro další použití dat; mapování propojuje význam údajů v obou popisech.", en = "The common record ([[ccmm|CCMM]]) supports discovery in [[nma|NMA]]. The domain description in the repository retains the detail needed for further reuse; mappings connect the meaning of information in the two descriptions." }
+sources = ["A.F2.X1", "A.R1.X1"]
+
+[[advice]]
+id = "metadata.09"
+lens = "DS"
+level = "L0"
+text = { cs = "Pomozte s výběrem slovníků a se strukturou popisu. [[ccmm|CCMM]] je společné minimum, oborový profil přidává hloubku.", en = "Help with choosing vocabularies and structuring the description. [[ccmm|CCMM]] is the common minimum; a domain profile adds depth." }
+action = [{ label = { cs = "CCMM na ccmm.cz", en = "CCMM at ccmm.cz" }, href = "https://www.ccmm.cz" }, { label = { cs = "Připravenost metadat na CDIF", en = "Metadata readiness for CDIF" }, href = "#check-cdif" }]
+sources = ["A.F2.N1", "A.F2.X1"]
+
+[[advice]]
+id = "metadata.10"
+lens = "DS"
+level = "L1"
+text = { cs = "[[ccmm|CCMM]]: [[nma|NMA]] pracuje s verzí 1.1.0; verze 2.0.0 vyšla v říjnu 2026 a NMA její podporu připravuje.", en = "[[ccmm|CCMM]]: [[nma|NMA]] works with version 1.1.0; version 2.0.0 was released in October 2026, and NMA is preparing to support it." }
+sources = ["A.F2.N1", "CCMM-RELEASES.01"]
+
+[[advice]]
+id = "metadata.11"
+lens = "DS"
+level = "L1"
+text = { cs = "Slovníky hledejte v katalozích ([[fairsharing|FAIRsharing]], LOV, BioPortal, OLS) a dávejte přednost těm s trvalými URI.", en = "Look for vocabularies in catalogues ([[fairsharing|FAIRsharing]], LOV, BioPortal, OLS) and prefer those with persistent URIs." }
+sources = ["A.I2.N2", "A.I2.X2"]
+
+[[advice]]
+id = "metadata.12"
+lens = "DS"
+level = "L1"
+text = { cs = "S [[orcid|ORCID]] a [[ror|ROR]] pomůže Národní centrum ORCID a národní podpora ROR na identifikatory.cz.", en = "The National [[orcid|ORCID]] Centre and national [[ror|ROR]] support at identifikatory.cz help with ORCID and ROR." }
+sources = ["A.I2.R2", "PID-CENTRE.01"]
+
+[[advice]]
+id = "metadata.13"
+lens = "DS"
+level = "L1"
+text = { cs = "Pomozte týmu převést záznamy o [[page:provenance|původu dat]] do metadat: tvůrce, metodiku a verze alespoň v rozsahu [[ccmm|CCMM]]. Podrobné postupy a zdůvodnění úprav mohou zůstat v připojené dokumentaci; domluvte, jak na ni záznam odkáže.", en = "Help the team turn records of [[page:provenance|data provenance]] into metadata: creators, methods and versions, at least to the extent covered by [[ccmm|CCMM]]. Detailed procedures and reasons for changes can remain in attached documentation; agree how the record will link to it." }
+sources = ["A.R1.2.N1", "LONDON.4.6"]
+
+[[advice]]
+id = "metadata.14"
+lens = "DS"
+level = "L1"
+text = { cs = "Kvalitu popisu pomáhá zajistit kurátorská kontrola v repozitáři.", en = "Curation in the repository helps ensure the quality of the description." }
+sources = ["NRP.ROLE.curator"]
+
+[[advice]]
+id = "metadata.15"
+lens = "SR"
+level = "L0"
+text = { cs = "Formulář repozitáře má pokrýt povinné prvky [[ccmm|CCMM]] a nabídnout oborový profil; metadata je třeba harmonizovat. Obojí vyžadují podmínky NRP.", en = "The repository's form should cover the mandatory [[ccmm|CCMM]] elements and offer a domain profile; metadata need to be harmonised. The NRP conditions require both." }
+action = [{ label = { cs = "CCMM: verze a vydání", en = "CCMM: versions and releases" }, href = "https://github.com/techlib/CCMM/releases" }, { label = { cs = "Připravenost metadat na CDIF", en = "Metadata readiness for CDIF" }, href = "#check-cdif" }]
+sources = ["NRP.M12", "NRP.M8", "A.F2.R1"]
+
+[[advice]]
+id = "metadata.16"
+lens = "SR"
+level = "L1"
+text = { cs = "Poskytujte minimální záznam mapovaný na [[ccmm|CCMM]] a sledujte přechod z verze 1.1.0 na 2.0.0.", en = "Provide a minimum record mapped to [[ccmm|CCMM]], and follow the move from version 1.1.0 to 2.0.0." }
+sources = ["A.F2.R1", "A.R1.R1", "A.MIN2", "A.F2.N1"]
+
+[[advice]]
+id = "metadata.17"
+lens = "SR"
+level = "L1"
+text = { cs = "Vedle [[ccmm|CCMM]] nabídněte oborový profil a oborové standardy podle FIP, ve spolupráci s komunitou.", en = "Alongside [[ccmm|CCMM]], offer a domain profile and domain standards according to the FIP, together with the community." }
+sources = ["A.F2.R2", "A.R1.R2", "A.R1.3.N1", "A.R1.3.R1", "A.REC1", "NRP.M12"]
+
+[[advice]]
+id = "metadata.18"
+lens = "SR"
+level = "L1"
+text = { cs = "Validujte metadata před uložením, vůči [[ccmm|CCMM]] i vůči komunitním schématům.", en = "Validate metadata before they are stored, against [[ccmm|CCMM]] and against community schemas." }
+sources = ["A.F4.R3", "A.R1.3.R2"]
+
+[[advice]]
+id = "metadata.19"
+lens = "SR"
+level = "L1"
+text = { cs = "Vazby a identifikátory v metadatech:", en = "Links and identifiers in the metadata:" }
+steps = [
+  { cs = "pole pro vazby na jiné záznamy a datové sady;", en = "fields for links to other records and datasets;" },
+  { cs = "[[orcid|ORCID]] a [[ror|ROR]];", en = "[[orcid|ORCID]] and [[ror|ROR]];" },
+  { cs = "vztahy podle [[datacite|DataCite]], PROV-O nebo DCAT-AP;", en = "relations following [[datacite|DataCite]], PROV-O or DCAT-AP;" },
+  { cs = "kontrola, že externí odkazy fungují.", en = "a check that external links work." },
+]
+sources = ["A.I3.N1", "A.I2.R2", "A.I3.R2", "A.I3.R1", "A.I3.R4"]
+
+[[advice]]
+id = "metadata.20"
+lens = "SR"
+level = "L1"
+text = { cs = "Podporujte slovníky komunity, umožněte přidávat oborové slovníky a evidujte je v záznamu [[nkr|NKR]].", en = "Support community vocabularies, allow domain vocabularies to be added, and record them in the [[nkr|NKR]] entry." }
+sources = ["A.I2.R1", "A.I2.R3", "A.I2.N1"]
+
+[[advice]]
+id = "metadata.21"
+lens = "SR"
+level = "L1"
+text = { cs = "Zpřístupněte metadata ve strojově čitelných formátech (JSON-LD, RDF/XML, Turtle, XML), ideálně v RDF.", en = "Make metadata available in machine-readable formats (JSON-LD, RDF/XML, Turtle, XML), ideally in RDF." }
+sources = ["A.I1.R1", "A.I1.R2", "A.I1.N2"]
+
+[[advice]]
+id = "metadata.22"
+lens = "SR"
+level = "L1"
+text = { cs = "V metadatovém profilu vymezte údaje o [[page:provenance|původu dat]]: tvůrce, zpracování a historii verzí alespoň v rozsahu [[ccmm|CCMM]]. Umožněte připojit podrobnější dokumentaci a zachovat její vazbu na příslušnou verzi dat.", en = "Define [[page:provenance|data provenance]] fields in the metadata profile: creators, processing and version history, at least to the extent covered by [[ccmm|CCMM]]. Allow detailed documentation to be attached and keep its relationship to the relevant data version." }
+sources = ["A.R1.2.R1", "A.R1.2.N3"]
+
+[[advice]]
+id = "metadata.23"
+lens = "SR"
+level = "L1"
+text = { cs = "Zveřejněte pravidla repozitáře (metadatový profil, datovou politiku, případně FIP), profil i strojově čitelně (SHACL nebo JSON Schema).", en = "Publish the repository's rules (metadata profile, data policy, FIP if any), with the profile also in machine-readable form (SHACL or JSON Schema)." }
+sources = ["A.K2.3.2a", "A.K2.3.2c"]
+
+[[advice]]
+id = "metadata.24"
+lens = "SR"
+level = "L1"
+text = { cs = "Metadatové profily můžete spravovat v nástroji [[dataspecer|Dataspecer]] (verze, export SHACL a JSON Schema, mapování); k dispozici je i lokální obraz Docker.", en = "You can manage metadata profiles in [[dataspecer|Dataspecer]] (versions, SHACL and JSON Schema export, mappings); a local Docker image is also available." }
+sources = ["A.K2.2.1", "DATASPECER.01"]
+
+[[advice]]
+id = "metadata.25"
+lens = "SR"
+level = "L1"
+text = { cs = "Kurátor stanovuje pravidla ukládání, harmonizuje metadata a podílí se na tvorbě profilů.", en = "The curator sets deposit rules, harmonises metadata and takes part in creating profiles." }
+sources = ["NRP.ROLE.curator"]
+
+[[advice]]
+id = "metadata.26"
+lens = "SR"
+level = "L1"
+text = { cs = "Jazyk uvádějte kódem ISO 639 (například cs, en) a typ zdroje z řízeného slovníku, například COAR Resource Types.", en = "Give the language as an ISO 639 code (for example cs, en) and the resource type from a controlled vocabulary, for example COAR Resource Types." }
+sources = ["OSTRAILS-CZ-PILOT.01"]
+
+[[advice]]
+id = "metadata.27"
+lens = "SR"
+level = "L1"
+text = { cs = "Princip I1 nevyžaduje jen sémantický web; přípustné jsou i zavedené oborové formáty, například XML. Rozsah povinných metadat má odpovídat přínosu pro vyhledání a opakované použití.", en = "Principle I1 does not demand only the semantic web; established domain formats such as XML are acceptable too. The extent of mandatory metadata should match its benefit for discovery and reuse." }
+sources = ["A.I1.X1", "A.I2.X1"]
+
+[[advice]]
+id = "metadata.40"
+lens = "SR"
+level = "L1"
+text = { cs = "Připravujete-li podporu [[page:fdo|FAIR Digital Objects]], dohodněte s komunitou profil objektů a způsob popisu jejich typů. S poskytovatelem PID ověřte, jak z identifikátoru program získá odkazy na obsah a metadata.", en = "If you are preparing support for [[page:fdo|FAIR Digital Objects]], agree object profiles and type descriptions with the community. Check with the PID provider how a program can obtain content and metadata links from the identifier." }
+sources = ["FDO-INTRO.01", "FDO.FDOR-GR2", "FDO.FDO-FDOR1"]
+
+[[advice]]
+id = "metadata.28"
+lens = "K"
+level = "L0"
+text = { cs = "Ve FIP zaznamenejte výběr oborového metadatového profilu a slovníků, aby je mohly využít repozitáře i plánování.", en = "Record the selected domain metadata profile and vocabularies in the FIP so repositories and planning can use them." }
+action = [{ label = { cs = "Metadatová schémata ve FIP Dashboardu", en = "Metadata schemas in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources?principles=F2" }, { label = { cs = "Heslář Open Science", en = "Heslář Open Science" }, href = "https://heslar.openscience.cz/" }]
+sources = ["A.REC3", "A.K4.1", "A.F2.F1", "A.I2.F1", "FIP-DASHBOARD.01"]
+
+[[advice]]
+id = "metadata.29"
+lens = "K"
+level = "L1"
+text = { cs = "Určete povinné a doporučené metadatové profily, atributy a oborové datové standardy.", en = "Set the mandatory and recommended metadata profiles, attributes and domain data standards." }
+sources = ["A.F2.F1", "A.R1.F1", "A.R1.3.F1", "A.R1.3.F2"]
+
+[[advice]]
+id = "metadata.30"
+lens = "K"
+level = "L1"
+text = { cs = "Doporučte slovníky a ontologie s pokyny k použití.", en = "Recommend vocabularies and ontologies, with guidance on their use." }
+sources = ["A.I2.F1", "A.R1.F2"]
+
+[[advice]]
+id = "metadata.31"
+lens = "K"
+level = "L1"
+text = { cs = "Určete sémantické zdroje a serializace (SKOS, OWL, PROV-O; JSON-LD, Turtle).", en = "Set the semantic resources and serialisations (SKOS, OWL, PROV-O; JSON-LD, Turtle)." }
+sources = ["A.I1.F1", "A.I1.F2"]
+
+[[advice]]
+id = "metadata.32"
+lens = "K"
+level = "L1"
+text = { cs = "Určete povinné a doporučené vztahy mezi záznamy.", en = "Set the mandatory and recommended relations between records." }
+sources = ["A.I3.F1", "A.I3.F2"]
+
+[[advice]]
+id = "metadata.33"
+lens = "K"
+level = "L1"
+text = { cs = "Dohodněte minimální záznam [[page:provenance|původu dat]] pro váš obor: které kroky, nástroje a verze má popis obsahovat a které zásahy potřebují zdůvodnění. Přidejte vzorový záznam, podle kterého mohou postupovat výzkumníci i repozitáře.", en = "Agree the minimum [[page:provenance|data provenance]] record for your discipline: which steps, tools and versions to describe, and which interventions need an explanation. Provide an example that researchers and repositories can follow." }
+sources = ["A.R1.2.F1", "A.R1.2.F2", "LONDON.4.6"]
+
+[[advice]]
+id = "metadata.34"
+lens = "K"
+level = "L1"
+text = { cs = "Registrujte komunitní standardy ve [[fairsharing|FAIRsharing]]; záznam s DOI pak může posloužit jako FER.", en = "Register community standards in [[fairsharing|FAIRsharing]]; a record with a DOI can then serve as a FER." }
+sources = ["FIP-WIZARD-TEMPLATES.01"]
+
+[[advice]]
+id = "metadata.35"
+lens = "K"
+level = "L1"
+text = { cs = "V oborech bez ustálených standardů je vyvíjejte ve spolupráci s projektem [[os2|Open Science II]] a oborovými pracovními skupinami.", en = "In domains without established standards, develop them with the [[os2|Open Science II]] project and the domain working groups." }
+sources = ["A.R1.3.N3", "OS2.01"]
+
+[[advice]]
+id = "metadata.36"
+lens = "K"
+level = "L1"
+text = { cs = "Pro mezioborovou výměnu využijte profily [[cdif|CDIF 1.1]] a doporučení EOSC Task Force pro sémantickou interoperabilitu.", en = "For cross-domain exchange, use the [[cdif|CDIF 1.1]] profiles and the EOSC Task Force recommendations on semantic interoperability." }
+sources = ["A.F2.X4", "CDIF.01", "TF-SEMANTIC.01"]
+
+[[advice]]
+id = "metadata.37"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "AI pomůže s návrhem abstraktu, README a datového slovníku, s překladem metadat mezi češtinou a angličtinou a s návrhy klíčových slov.", en = "AI can help draft the abstract, the README and the data dictionary, translate metadata between Czech and English, and suggest keywords." }
+check = { cs = "Popis musí odpovídat datům, ne tomu, co zní dobře. Identifikátory a hesla ověřte strojem, například v pomocníkovi [[page:identifiers|Ověřit identifikátory]]; AI je umí vymyslet.", en = "The description must match the data, not what sounds good. Verify identifiers and terms by machine, for example in the [[page:identifiers|Verify identifiers]] helper; AI can make them up." }
+prompt = { cs = "Z tabulky níže navrhni datový slovník: pro každý sloupec název, popis, jednotku, datový typ a povolené hodnoty. Co z dat nepoznáš, označ otazníkem a nedomýšlej.\n\nTabulka (záhlaví a několik řádků): […]", en = "From the table below, draft a data dictionary: for each column its name, description, unit, data type and allowed values. Mark what you cannot tell from the data with a question mark and do not guess.\n\nTable (header and a few rows): […]" }
+sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.02"]
+
+[[advice]]
+id = "metadata.38"
+lens = "SR"
+level = "L1"
+kind = "ai"
+text = { cs = "AI vám pomůže navrhnout mapování polí vašeho metadatového schématu na [[datacite-schema|schéma DataCite]], aby záznamy převzaly vyhledávače bez ztrát.", en = "AI helps you draft a mapping of your metadata schema's fields to the [[datacite-schema|DataCite schema]], so that discovery services take over the records without losses." }
+check = { cs = "Mapování ověřte proti specifikaci schématu, ne proti paměti modelu, a vyzkoušejte ho na několika skutečných záznamech.", en = "Check the mapping against the schema's specification, not the model's memory, and try it on a few real records." }
+prompt = { cs = "Navrhni mapování polí našeho metadatového schématu (níže) na pole schématu DataCite podle specifikace, kterou vložím. U každého pole uveď, zda je mapování úplné, částečné, nebo chybí, a co se při převodu ztratí.\n\nNaše schéma: […]\n\nSpecifikace DataCite: […]", en = "Draft a mapping of our metadata schema's fields (below) to the fields of the DataCite schema, following the specification I paste. For each field say whether the mapping is complete, partial or missing, and what is lost in conversion.\n\nOur schema: […]\n\nDataCite specification: […]" }
+sources = ["EC-GENAI-GUIDELINES.01"]

@@ -8,7 +8,7 @@
 id = "institution"
 name = { cs = "Instituce a správa dat", en = "Institution and data management" }
 icon = "building-columns"
-description = { cs = "Kontrola pro data stewardy: splňuje strategie vaší instituce minimum výzvy Open Science III a plní instituce povinnosti zákona o výzkumu? Rozšířená kontrola projde i akční plán, politiku a využití národní datové infrastruktury.", en = "A check for data stewards: does your institution's strategy meet the Open Science III minimum, and does the institution meet the research act's obligations? The extended check also covers the action plan, the policy and the use of the national data infrastructure." }
+description = { cs = "Kontrola pro data stewardy: splňuje strategie vaší instituce minimum výzvy Open Science III a plní instituce povinnosti zákona o výzkumu? Rozšířená kontrola projde i akční plán, politiku a využití Národní datové infrastruktury.", en = "A check for data stewards: does your institution's strategy meet the Open Science III minimum, and does the institution meet the research act's obligations? The extended check also covers the action plan, the policy and the use of the National Data Infrastructure." }
 lenses = ["DS"]
 minutes = 10
 
@@ -40,7 +40,7 @@ description = { cs = "Minimální obsah, který výzva Open Science III stanoví
 id = "infrastructure"
 icon = "network-wired"
 name = { cs = "Národní datová infrastruktura a lidé", en = "National data infrastructure and people" }
-description = { cs = "Služby národní datové infrastruktury a lidé, které jejich využití potřebuje.", en = "The services of the national data infrastructure and the people their use needs." }
+description = { cs = "Služby Národní datové infrastruktury a lidé, které jejich využití potřebuje.", en = "The services of the National Data Infrastructure and the people their use needs." }
 
 # Strategy
 
@@ -137,7 +137,7 @@ id = "institution.09"
 block = "strategy"
 tier = "minimum"
 principles = []
-statement = { cs = "Strategie popisuje potřebné služby, nástroje a podporu včetně využití národní datové infrastruktury (NDI).", en = "The strategy describes the services, tools and support needed, including the use of the national data infrastructure (NDI)." }
+statement = { cs = "Strategie popisuje potřebné služby, nástroje a podporu včetně využití Národní datové infrastruktury (NDI).", en = "The strategy describes the services, tools and support needed, including the use of the National Data Infrastructure (NDI)." }
 sources = ["OS3-RULES.05", "OS3-RULES.17"]
 fixAt = "plan"
 owner = ["data-steward"]
@@ -222,7 +222,7 @@ id = "institution.17"
 block = "policy"
 tier = "recommended"
 principles = ["R1"]
-statement = { cs = "Politika stanoví, jak se plánuje a spravuje data, včetně DMP ve schváleném nástroji dostupném všem výzkumníkům.", en = "The policy sets out how data are planned and managed, including DMPs in an approved tool open to every researcher." }
+statement = { cs = "Politika stanoví, jak se plánují a spravují data, včetně DMP ve schváleném nástroji dostupném všem výzkumníkům.", en = "The policy sets out how data are planned and managed, including DMPs in an approved tool open to every researcher." }
 sources = ["OS3-RULES.13", "POLICY-MANUAL.03"]
 fixAt = "plan"
 owner = ["data-steward"]
@@ -298,7 +298,7 @@ tier = "recommended"
 principles = ["A1.2"]
 statement = { cs = "Výzkumníci mají spravované a zálohované úložiště, i pro citlivá data.", en = "Researchers have managed, backed-up storage, also for sensitive data." }
 sources = ["EINFRA-DOCS.01"]
-fixAt = "work"
+fixAt = "collect"
 owner = ["data-steward"]
 
 [[item]]

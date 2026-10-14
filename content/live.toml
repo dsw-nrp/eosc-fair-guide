@@ -53,7 +53,7 @@ purpose = "Show the organisation behind a ROR ID"
 id = "nkr"
 name = "National Repository Catalogue (NKR) API"
 origin = "https://repo.cz"
-purpose = "Repository records for the finder and the repository self-check"
+purpose = "NKR records that object discovery reaches by their links; the finder and the repository self-check read NKR from its snapshot"
 
 [[connector]]
 id = "nanopub"
@@ -65,7 +65,7 @@ purpose = "Declarations of a published FAIR Implementation Profile"
 id = "fip-dashboard"
 name = "FIP Dashboard API"
 origin = "https://fip-dashboard.dmp.eosc.cz"
-purpose = "Current FIP profiles, used once the API admits the guide's origin; the snapshot serves otherwise"
+purpose = "Current FIP profiles, used once the API admits the Guide's origin; the snapshot serves otherwise"
 # The API does not admit the guide's origin yet (CORS), so the page uses the snapshot. Set to true once it does.
 browserAccess = false
 
@@ -80,6 +80,12 @@ id = "dmp-status"
 name = "DMP.eosc.cz status (Upptime)"
 origin = "https://raw.githubusercontent.com"
 purpose = "Availability of DMP.eosc.cz"
+
+[[connector]]
+id = "fair-checker"
+name = "FAIR-Checker REST API"
+origin = "https://fair-checker.france-bioinformatique.fr"
+purpose = "Optional FAIR-Checker assessment of its twelve metrics, started by the reader"
 
 # This public repository origin was reviewed with anonymous read-only browser/API probes. Its HTML may
 # refuse cross-origin reads. Discovery follows only declared standard links, without guessing API paths.
@@ -160,6 +166,36 @@ maxResponseBytes = 1048576
 maxTreeEntries = 1000
 timeoutSeconds = 15
 
+# EOSC CZ pages the scheduled watch reads (scripts/watch_sources.py, weekly); the page never fetches them. A new or
+# changed item in a page's main content opens one issue; navigation, header and footer are ignored.
+[[watch]]
+id = "eosc-outputs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz"
+
+[[watch]]
+id = "eosc-services"
+url = "https://www.eosc.cz/sluzby/vse"
+
+[[watch]]
+id = "eosc-training"
+url = "https://www.eosc.cz/skoleni"
+
+[[watch]]
+id = "os3-faq"
+url = "https://www.eosc.cz/projekty/open-science-iii/faq"
+
+[[watch]]
+id = "os2-minizamery"
+url = "https://www.eosc.cz/projekty/open-science-ii/minizamery"
+
+[[watch]]
+id = "eosc-acknowledgement"
+url = "https://www.eosc.cz/o-nas/acknowledgement"
+
+[[watch]]
+id = "eosc-data-stewards"
+url = "https://www.eosc.cz/komunity/data-stewardi"
+
 # Link targets the page builds links to; links are not calls, and the page fetches nothing from them.
 [links]
 fipDashboard = "https://fip-dashboard.dmp.eosc.cz/"
@@ -168,6 +204,8 @@ nkr = "https://repo.cz/"
 eoscHome = "https://www.eosc.cz/"
 opJak = "https://opjak.cz/"
 dataciteRecord = "https://commons.datacite.org/doi.org/"
+dataciteRepository = "https://commons.datacite.org/repositories/"
+dataciteMetadata = "https://metadata.datacite.org/"
 fairsharing = "https://fairsharing.org/"
 re3dataRecord = "https://www.re3data.org/repository/"
 
@@ -317,10 +355,308 @@ label = { cs = "Citace nalezená v citačních indexech", en = "Citation found i
 health = "available"
 asOf = 2026-10-11
 
-# FAIRsharing's API needs a login, so the page finds FAIRsharing records through their DataCite DOIs: each record's
-# DataCite metadata lists the described resource's addresses, including its re3data record.
-[fairsharing]
-prefix = "10.25504"
+# Optional external evaluators (docs/design.md, "Optional evaluators"). Nothing runs until the reader chooses a
+# service, and only the target identifier is sent to it. A metric's `name` is the provider's own wording; `label`
+# is the guide's reading of it. Each mapping names the provider versions it was reviewed against; an assessment
+# from another version keeps its native results as evidence without answer suggestions. Each result is read as the
+# provider presents it; `whole` coverage answers as that reading, `partial` coverage answers Partly when its part is
+# met and No when it fails (D-168).
+[providers]
+script = "assets/js/providers.js"
+maxImportBytes = 2097152
+
+[[provider]]
+id = "fair-checker"
+name = "FAIR-Checker"
+resource = "fair-checker"
+mode = "service"
+connector = "fair-checker"
+path = "api/check/metric_{metric}?url={target}"
+versionPath = "swagger.json"
+form = "https://fair-checker.france-bioinformatique.fr/check"
+documentation = "https://fair-checker.france-bioinformatique.fr/swagger"
+code = "https://github.com/IFB-ElixirFr/FAIR-checker"
+terms = "https://fair-checker.france-bioinformatique.fr/terms"
+scoreMax = 2
+maxParallel = 3
+timeoutSeconds = 60
+maxBytes = 65536
+observed = 2026-10-12
+reviewed = [{ api = "1.0" }]
+
+[[provider.metric]]
+id = "F1A"
+name = "Unique IDs"
+principle = "F1"
+label = { cs = "Jedinečné identifikátory", en = "Unique identifiers" }
+
+[[provider.metric]]
+id = "F1B"
+name = "Persistent IDs"
+principle = "F1"
+label = { cs = "Trvalé identifikátory", en = "Persistent identifiers" }
+
+[[provider.metric]]
+id = "F2A"
+name = "Structured metadata"
+principle = "F2"
+label = { cs = "Strukturovaná metadata", en = "Structured metadata" }
+
+[[provider.metric]]
+id = "F2B"
+name = "Shared vocabularies for metadata"
+principle = "F2"
+label = { cs = "Sdílené slovníky pro metadata", en = "Shared vocabularies for metadata" }
+
+[[provider.metric]]
+id = "A11"
+name = "Open resolution protocol"
+principle = "A1.1"
+label = { cs = "Otevřený protokol rozlišení", en = "Open resolution protocol" }
+
+[[provider.metric]]
+id = "A12"
+name = "Authorisation procedure or access rights"
+principle = "A1.2"
+label = { cs = "Postup autorizace nebo přístupová práva", en = "Authorisation procedure or access rights" }
+
+[[provider.metric]]
+id = "I1"
+name = "Machine readable format"
+principle = "I1"
+label = { cs = "Strojově čitelný formát", en = "Machine-readable format" }
+
+[[provider.metric]]
+id = "I2"
+name = "Use shared ontologies"
+principle = "I2"
+label = { cs = "Sdílené ontologie", en = "Shared ontologies" }
+
+[[provider.metric]]
+id = "I3"
+name = "External links"
+principle = "I3"
+label = { cs = "Odkazy na jiné zdroje", en = "Links to other resources" }
+
+[[provider.metric]]
+id = "R11"
+name = "Metadata includes license"
+principle = "R1.1"
+label = { cs = "Licence v metadatech", en = "Licence in metadata" }
+
+[[provider.metric]]
+id = "R12"
+name = "Metadata includes provenance"
+principle = "R1.2"
+label = { cs = "Původ v metadatech", en = "Provenance in metadata" }
+
+[[provider.metric]]
+id = "R13"
+name = "Community standards"
+principle = "R1.3"
+label = { cs = "Komunitní standardy", en = "Community standards" }
+
+[[provider.mapping]]
+metric = "F1B"
+question = "dataset.01"
+coverage = "partial"
+note = { cs = "Metrika uzná adresu známé autority trvalých identifikátorů (například doi.org) nebo vlastnost identifier v metadatech. Kdo identifikátor spravuje a zajišťuje jeho trvalost, neověřuje.", en = "The metric accepts an address of a known persistent-identifier authority (such as doi.org) or an identifier property in the metadata. It does not check who manages the identifier and maintains its persistence." }
+
+[[provider.mapping]]
+metric = "R11"
+question = "dataset.04"
+coverage = "partial"
+note = { cs = "Licence v metadatech ještě neříká, zda je uvedena odkazem (URI). Ověřte ji v záznamu.", en = "A licence in the metadata does not yet show whether it is given as a link (URI). Check it in the record." }
+
+[[provider.mapping]]
+metric = "R12"
+question = "dataset.08"
+coverage = "partial"
+note = { cs = "Údaje o původu nemusejí popisovat metodu, přístroje a software, na které se otázka ptá.", en = "Provenance information need not describe the method, instruments and software the question asks about." }
+
+[[provider.mapping]]
+metric = "I3"
+question = "dataset.09"
+coverage = "partial"
+note = { cs = "Odkazy na jiné zdroje ještě neříkají, zda jde o články, zdrojová data a verze uvedené trvalými identifikátory.", en = "Links to other resources do not yet show whether they are articles, source data and versions given through persistent identifiers." }
+
+[[provider.mapping]]
+metric = "A12"
+question = "dataset.10"
+coverage = "partial"
+note = { cs = "Metrika uzná kteroukoli z několika vlastností o právech, včetně licence. Licence sama nepopisuje režim přístupu (otevřený, embargo, omezený); ověřte ho v záznamu.", en = "The metric accepts any of several rights properties, including a licence. A licence alone does not describe the access arrangement (open, embargoed, restricted); check it in the record." }
+
+[[provider]]
+id = "f-uji"
+name = "F-UJI"
+resource = "f-uji"
+mode = "import"
+form = "https://www.f-uji.net/?action=test"
+documentation = "https://github.com/pangaea-data-publisher/fuji/blob/master/fuji_server/yaml/openapi.yaml"
+code = "https://github.com/pangaea-data-publisher/fuji"
+# F-UJI's FAIR levels run 0-3; its client shows a metric as passed from level 1 and unknown at 0.
+maturityMax = 3
+observed = 2026-10-12
+reviewed = [
+  { metric = "metrics_v0.8", specification = "https://doi.org/10.5281/zenodo.6461229" },
+  { metric = "0.8", specification = "https://doi.org/10.5281/zenodo.15045911" },
+]
+
+[[provider.metric]]
+id = "FsF-F1-01MD"
+name = "Metadata and data are assigned a globally unique identifier."
+principle = "F1"
+label = { cs = "Globálně jedinečný identifikátor metadat a dat", en = "Globally unique identifier for metadata and data" }
+
+[[provider.metric]]
+id = "FsF-F1-02MD"
+name = "Metadata and data are assigned a persistent identifier."
+principle = "F1"
+label = { cs = "Trvalý identifikátor metadat a dat", en = "Persistent identifier for metadata and data" }
+
+[[provider.metric]]
+id = "FsF-F2-01M"
+name = "Metadata includes descriptive core elements (creator, title, data identifier, publisher, publication date, summary and keywords) to support data findability."
+principle = "F2"
+label = { cs = "Základní popisné prvky metadat", en = "Core descriptive metadata elements" }
+
+[[provider.metric]]
+id = "FsF-F3-01M"
+name = "Metadata includes the identifier of the data it describes."
+principle = "F3"
+label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
+
+[[provider.metric]]
+id = "FsF-F4-01M"
+name = "Metadata is offered in such a way that it can be registered or indexed by search engines."
+principle = "F4"
+label = { cs = "Metadata čitelná pro vyhledávače", en = "Metadata readable by search engines" }
+
+[[provider.metric]]
+id = "FsF-A1-01M"
+name = "Metadata contains access level and access conditions of the data."
+principle = "A1"
+label = { cs = "Úroveň a podmínky přístupu v metadatech", en = "Access level and conditions in metadata" }
+
+[[provider.metric]]
+id = "FsF-A1-02MD"
+name = "Metadata and data are retrievable by their identifier"
+principle = "A1"
+label = { cs = "Metadata a data dostupná podle identifikátoru", en = "Metadata and data retrievable by identifier" }
+
+[[provider.metric]]
+id = "FsF-A1.1-01MD"
+name = "A standardized communication protocol is used to access metadata and data."
+principle = "A1.1"
+label = { cs = "Standardní komunikační protokol", en = "Standard communication protocol" }
+
+[[provider.metric]]
+id = "FsF-A1.2-01MD"
+name = "Metadata and data are accessible through a standardized communication protocol which supports authentication."
+principle = "A1.2"
+label = { cs = "Protokol podporující ověření identity", en = "Protocol that supports authentication" }
+
+[[provider.metric]]
+id = "FsF-I1-01M"
+name = "Metadata is represented using a formal knowledge representation language."
+principle = "I1"
+label = { cs = "Formální jazyk reprezentace znalostí", en = "Formal knowledge representation language" }
+
+[[provider.metric]]
+id = "FsF-I2-01M"
+name = "Metadata uses registered semantic resources"
+principle = "I2"
+label = { cs = "Registrované sémantické zdroje", en = "Registered semantic resources" }
+
+[[provider.metric]]
+id = "FsF-I3-01M"
+name = "Metadata includes qualified references between the data and its related entities."
+principle = "I3"
+label = { cs = "Kvalifikované odkazy na související entity", en = "Qualified references to related entities" }
+
+[[provider.metric]]
+id = "FsF-R1-01M"
+name = "Metadata specifies the content of the data."
+principle = "R1"
+label = { cs = "Metadata popisují obsah dat", en = "Metadata describe the data content" }
+
+[[provider.metric]]
+id = "FsF-R1.1-01M"
+name = "Metadata includes license information under which data can be reused."
+principle = "R1.1"
+label = { cs = "Licenční informace v metadatech", en = "Licence information in metadata" }
+
+[[provider.metric]]
+id = "FsF-R1.2-01M"
+name = "Metadata includes provenance information about data creation or generation."
+principle = "R1.2"
+label = { cs = "Informace o vzniku dat", en = "Provenance of data creation" }
+
+[[provider.metric]]
+id = "FsF-R1.3-01M"
+name = "Metadata follows a standard recommended by the target research community of the data."
+principle = "R1.3"
+label = { cs = "Komunitní metadatový standard", en = "Community metadata standard" }
+
+[[provider.metric]]
+id = "FsF-R1.3-02D"
+name = "Data is available in a file format recommended by the target research community."
+principle = "R1.3"
+label = { cs = "Komunitou doporučený formát souboru", en = "Community-recommended file format" }
+
+[[provider.mapping]]
+metric = "FsF-F1-02MD"
+question = "dataset.01"
+coverage = "whole"
+note = { cs = "Úroveň 3 znamená, že F-UJI našel identifikátor metadat ve schématu trvalých identifikátorů a ověřil, že ho spravuje registrační autorita; úroveň 1 jen rozpoznal jeho zápis. Nebodované dílčí testy identifikátoru dat úroveň nemění, i když stav testu ve zprávě pak může být fail.", en = "Level 3 means that F-UJI found the metadata identifier in a persistent-identifier scheme and confirmed that a registration authority maintains it; level 1 only recognised its syntax. The unscored data-identifier subtests do not change the level, even when they leave the report's test status at fail." }
+
+[[provider.mapping]]
+metric = "FsF-F3-01M"
+question = "dataset.03"
+coverage = "partial"
+note = { cs = "Metrika hledá odkaz na data v metadatech; odkazy na samotné stránce datové sady ověřte přímo.", en = "The metric looks for a data link in the metadata; check the links on the dataset's page itself directly." }
+
+[[provider.mapping]]
+metric = "FsF-R1.1-01M"
+question = "dataset.04"
+coverage = "partial"
+note = { cs = "F-UJI spojuje licenční údaje z několika sklizených zdrojů. Zda je licence datové sady uvedena odkazem (URI), ukazují jednotlivé údaje s jejich zdrojem; účinná licence se z jejich souhrnu neurčuje.", en = "F-UJI combines licence statements from several harvested sources. Whether the dataset's licence is given as a link (URI) is shown by the individual statements with their sources; an effective licence is not derived from the combination." }
+
+[[provider.mapping]]
+metric = "FsF-A1-01M"
+question = "dataset.10"
+coverage = "whole"
+note = { cs = "Úroveň 3 znamená, že F-UJI v metadatech rozpoznal úroveň přístupu (například otevřený nebo omezený přístup). Samotné podmínky zůstávají ve zdroji.", en = "Level 3 means that F-UJI recognised an access level in the metadata (for example open or restricted access). The conditions themselves remain in the source." }
+
+[[provider.mapping]]
+metric = "FsF-F2-01M"
+question = "dataset.06"
+coverage = "partial"
+note = { cs = "Základní popisné prvky nezahrnují ověření, že odborná hesla pocházejí z řízeného slovníku.", en = "Core descriptive elements do not include confirming that subject terms come from a controlled vocabulary." }
+
+[[provider.mapping]]
+metric = "FsF-R1.2-01M"
+question = "dataset.08"
+coverage = "partial"
+note = { cs = "Údaje o vzniku dat nemusejí popisovat metodu, přístroje a software, na které se otázka ptá.", en = "Information on data creation need not describe the method, instruments and software the question asks about." }
+
+[[provider.mapping]]
+metric = "FsF-I3-01M"
+question = "dataset.09"
+coverage = "partial"
+note = { cs = "Kvalifikované odkazy ještě neříkají, zda jde o články, zdrojová data a verze uvedené trvalými identifikátory.", en = "Qualified references do not yet show whether they are articles, source data and versions given through persistent identifiers." }
+
+[[provider.mapping]]
+metric = "FsF-R1.3-02D"
+question = "dataset.11"
+coverage = "partial"
+note = { cs = "Metrika posuzuje formát souborů; README nebo datový slovník neověřuje.", en = "The metric assesses file formats; it does not check for a README or a data dictionary." }
+
+[[provider.mapping]]
+metric = "FsF-R1.3-01M"
+question = "dataset.14"
+coverage = "partial"
+note = { cs = "F-UJI rozpozná standard podle jmenných prostorů a schémat; zda je to standard vašeho oboru, posuďte sami.", en = "F-UJI recognises a standard by namespaces and schemas; judge yourself whether it is your field's standard." }
 
 # Local advisory tests: one identity per evaluated question; source and documentation are crate attachments.
 

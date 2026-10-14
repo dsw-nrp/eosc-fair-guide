@@ -4,16 +4,59 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { runInNewContext } from "node:vm";
-import { AxeBuilder } from "@axe-core/playwright";
+import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
 const { chromium } = await import("playwright");
-const config = { helpers: { maxCharacters: 100000, maxItems: 40 } };
-const FG = { config, list: (value) => value == null ? [] : Array.isArray(value) ? value : [value] };
-runInNewContext(readFileSync(resolve(root, "assets/js/live.js"), "utf8"), { window: { FairGuide: FG }, URL });
-runInNewContext(readFileSync(resolve(root, "assets/js/helpers.js"), "utf8"), { window: { FairGuide: FG }, URL });
+const config = { helpers: { maxCharacters: 100000, maxItems: 40 }, links: { fipDashboard: "https://fip-dashboard.dmp.eosc.cz/", nkr: "https://nkr.example/" } };
+const FG = { config, list: (value) => value == null ? [] : Array.isArray(value) ? value : [value], graph: [], get: () => null, refs: () => [] };
+for (const script of ["live.js", "helpers.js", "search.js"]) runInNewContext(readFileSync(resolve(root, "assets/js", script), "utf8"), { window: { FairGuide: FG }, URL });
 const H = FG.helpers;
+const plain = (value) => JSON.parse(JSON.stringify(value)); // values from the script context, compared by content
+// One owner recognises ORCID iDs and re3data records; search, the identifier helper and the checks agree with it.
+const orcids = [["0000-0002-1825-0097", "0000-0002-1825-0097"], ["https://orcid.org/0000-0002-1825-0097", "0000-0002-1825-0097"],
+  ["http://orcid.org/0000-0002-1825-0097/", "0000-0002-1825-0097"], ["orcid.org/0000-0002-1694-233x", "0000-0002-1694-233X"],
+  ["https://www.orcid.org/0000-0002-1694-233X", "0000-0002-1694-233X"]];
+for (const [input, canonical] of orcids) {
+  assert.equal(FG.live.parseOrcid(input), canonical, input);
+  assert.deepEqual(plain(FG.search.classify(input)), { type: "orcid", value: canonical }, "search: " + input);
+  assert.deepEqual(plain(H.extract(input).items.map((item) => [item.type, item.value])), [["orcid", canonical]], "helper: " + input);
+}
+for (const input of ["0000-0002-1825-00970", "00000002-1825-0097", "x0000-0002-1825-0097", "https://orcid.org.evil.example/0000-0002-1825-0097",
+  "https://evil.example/orcid.org/0000-0002-1825-0097", "https://orcid.org/0000-0002-1825-0097/works", "0000-0002-1825-009"]) {
+  assert.equal(FG.live.parseOrcid(input), null, input);
+  assert.notEqual(FG.search.classify(input).type, "orcid", "search: " + input);
+  assert(!H.extract(input).items.some((item) => item.type === "orcid"), "helper: " + input);
+}
+const records = [["r3d100010468", "r3d100010468"], ["R3D100010468", "r3d100010468"], ["https://www.re3data.org/repository/r3d100010468", "r3d100010468"],
+  ["re3data.org/repository/r3d100010468/", "r3d100010468"], ["http://re3data.org/repository/r3d100010468?view=1", "r3d100010468"]];
+const resolvePid = FG.live.resolvePid;
+FG.live.resolvePid = async (pid) => {
+  if (pid.value.includes("unreachable")) throw Error("resolver unavailable");
+  return { found: true, url: pid.value.startsWith("10.17616/") ? "https://www.re3data.org/repository/r3d100010468" : "https://evil.example/repository/r3d100010468" };
+};
+for (const [input, canonical] of records) {
+  assert.equal(FG.live.parseRe3data(input), canonical, input);
+  assert.deepEqual(plain(FG.search.classify(input)), { type: "re3data", value: canonical }, "search: " + input);
+  assert.equal(await FG.live.re3dataRecord(input), canonical, "check: " + input);
+}
+for (const input of ["r3d10001046", "r3d1000104680", "xr3d100010468", "see r3d100010468", "https://evil.example/repository/r3d100010468",
+  "https://www.re3data.org/search?query=r3d100010468", "10.1234/elsewhere", "10.17616/unreachable"]) {
+  assert.equal(FG.live.parseRe3data(input), null, input);
+  assert.equal(await FG.live.re3dataRecord(input), null, "check: " + input);
+}
+assert.deepEqual(plain(FG.search.classify("10.17616/R3D1D0")), { type: "re3data", value: "10.17616/R3D1D0" }, "a re3data DOI routes to the maturity check");
+assert.equal(await FG.live.re3dataRecord("https://doi.org/10.17616/R3D1D0"), "r3d100010468", "the check follows a re3data DOI to its record");
+assert.notEqual(FG.search.classify("xr3d100010468").type, "re3data");
+FG.live.resolvePid = resolvePid;
+// Reviewed discovery looks connectors up through the live owner rather than its own copy.
+const ownConnector = FG.live.connector, looked = [];
+FG.live.connector = (id) => { looked.push(id); throw Error("looked up by the shared owner"); };
+runInNewContext(readFileSync(resolve(root, "assets/js/discovery.js"), "utf8"), { window: { FairGuide: FG }, URL });
+await assert.rejects(FG.live.readPublic("datacite", "dois/x", { maxBytes: 10 }), /looked up by the shared owner/);
+assert.deepEqual(plain(looked), ["datacite"]);
+FG.live.connector = ownConnector;
 // Examples published in ORCID's identifier documentation and the ROR identifier-pattern documentation.
 for (const id of ["0000-0002-1825-0097", "0000-0001-5109-3700", "0000-0002-1694-233X"]) assert(H.validOrcid(id));
 for (const id of ["02mhbdp94", "000000098"]) assert(H.validRor(id));
@@ -108,7 +151,7 @@ try {
   assert.equal(await page.locator(".identifier-list > li").count(), 7);
   assert.equal(external.length, 0, "scanning pasted text sends nothing");
   assert(!(await page.evaluate(() => JSON.stringify(localStorage))).includes("Private context"), "pasted text is not saved");
-  const offline = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+  const offline = await audit(page);
   assert.deepEqual(offline.violations, []);
   await page.locator('.identifier-helper button', { hasText: "Načíst nalezené záznamy" }).click();
   await page.waitForFunction(() => !document.querySelector('.identifier-list > li[data-status="running"], .identifier-list > li[data-status="queued"]'));
@@ -157,7 +200,7 @@ try {
     }
     await page.locator('.identifier-helper .buttons button[type="button"]').click();
     await page.waitForFunction(() => !document.querySelector('.identifier-list > li[data-status="running"], .identifier-list > li[data-status="queued"]'));
-    const access = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    const access = await audit(page);
     assert.deepEqual(access.violations, []);
     await page.screenshot({ path: resolve(screenshots, `${lang}-identifier-resolved-320.png`) });
   }

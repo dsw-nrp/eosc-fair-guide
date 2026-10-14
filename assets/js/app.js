@@ -11,7 +11,7 @@
     app.querySelector(".data-load-error")?.remove();
     app.prepend(FG.h("div", { class: "wrap data-load-error", role: "alert" },
       FG.h("p", null, FG.h("span", { lang: "cs" }, "Průvodce se nepodařilo načíst."), " / ",
-        FG.h("span", { lang: "en" }, "The guide could not be loaded.")),
+        FG.h("span", { lang: "en" }, "The Guide could not be loaded.")),
       FG.h("button", { type: "button", onclick: () => { app.querySelector(".data-load-error")?.remove(); retry(); } },
         FG.h("span", { lang: "cs" }, "Zkusit znovu"), " / ", FG.h("span", { lang: "en" }, "Retry"))));
   };
@@ -44,6 +44,18 @@
      profiles for the catalogue and the checks, the standards for the explorer, the pages' text for a page. */
   const VIEW_PARTS = { catalogue: ["standards", "fips", "questions", "model"], check: ["standards", "fips", "questions", "model"], selfcheck: ["standards", "fips", "questions", "model"], explorer: ["standards", "questions"], page: ["pages"] };
   let waitingFor = "";
+  let lensBandObserver;
+
+  function observeLensBand() {
+    lensBandObserver?.disconnect();
+    const band = document.querySelector(".lens-band");
+    const measure = () => document.documentElement.style.setProperty("--lens-band-height", band && getComputedStyle(band).position === "sticky" ? band.getBoundingClientRect().height + "px" : "0px");
+    measure();
+    if (band && window.ResizeObserver) {
+      lensBandObserver = new ResizeObserver(measure);
+      lensBandObserver.observe(band);
+    }
+  }
 
   FG.render = function () {
     const route = FG.parseHash(window.location.hash);
@@ -52,15 +64,22 @@
     if (route.lang !== FG.state.lang) needed.push(...FG.partsLoaded);
     if (route.view === "path" && !FG.landingShown(route)) needed.push("standards", "model");
     if (route.view === "page" && ["model", "machines", "about"].includes(route.arg)) needed.push("model");
+    if (route.view === "page" && route.arg === "ai") needed.push("standards");
     if (route.view === "page" && ["model", "machines"].includes(route.arg)) needed.push("standards", "questions");
     if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
     const missing = [...new Set(needed)].filter((name) => !FG.partHasLanguage(name, route.lang));
     const helperNeeded = route.view === "page" && FG.list(FG.config.helpers?.pages).includes(route.arg) && !(FG.helpers && FG.helpers[route.arg]);
-    if (!FG.languagesLoaded.has(route.lang) || missing.length || helperNeeded) {
-      const key = route.lang + "/" + missing.join(",") + (helperNeeded ? "/helper" : "");
+    /* A check and the checks' overview are both the self-check's view; a path with saved answers and the about page's
+       privacy note use its code too. */
+    const viewName = route.view === "check" ? "selfcheck" : route.view;
+    const answered = Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length);
+    const checkCode = (route.view === "path" && answered) || (route.view === "page" && route.arg === "about");
+    const viewNeeded = (Boolean(FG.config.views && FG.config.views[route.view]) && !FG.views[viewName]) || (checkCode && !FG.views.selfcheck);
+    if (!FG.languagesLoaded.has(route.lang) || missing.length || helperNeeded || viewNeeded) {
+      const key = route.lang + "/" + missing.join(",") + (helperNeeded ? "/helper" : "") + (viewNeeded ? "/view" : "");
       if (waitingFor === key) return;
       waitingFor = key;
-      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang)), ...(helperNeeded ? [FG.loadHelpers()] : [])]).then(() => {
+      Promise.all([FG.loadLanguage(route.lang), ...missing.map((name) => FG.loadPart(name, route.lang)), ...(helperNeeded ? [FG.loadHelpers()] : []), ...(viewNeeded ? [FG.loadView(checkCode ? "check" : route.view)] : [])]).then(() => {
         if (waitingFor === key) waitingFor = "";
         FG.render();
       }).catch((error) => {
@@ -93,6 +112,7 @@
       FG.views.footer(),
     ];
     app.replaceChildren(...parts.filter(Boolean));
+    observeLensBand();
     if (typeof FG.keepScroll === "number") {
       window.scrollTo(0, FG.keepScroll);
       FG.keepScroll = null;
@@ -151,7 +171,7 @@
       FG.load();
     } catch (error) {
       const app = document.getElementById("app");
-      if (app) app.textContent = "Průvodce se nepodařilo načíst. / The guide could not be loaded.";
+      if (app) app.textContent = "Průvodce se nepodařilo načíst. / The Guide could not be loaded.";
       return;
     }
     const saved = FG.storage.read();
@@ -159,29 +179,18 @@
       lang: saved.lang === "en" ? "en" : "cs",
       lens: typeof saved.lens === "string" ? saved.lens : "V",
       answers: saved.answers && typeof saved.answers === "object" ? saved.answers : {},
-      started: Boolean(saved.started),
-      entryStation: typeof saved.entryStation === "string" ? saved.entryStation : null,
       lastStation: typeof saved.lastStation === "string" ? saved.lastStation : null,
       lastVisit: typeof saved.lastVisit === "string" && /^\d{4}-\d{2}-\d{2}$/.test(saved.lastVisit) ? saved.lastVisit : null,
       checkGrouping: saved.checkGrouping === "steps" ? "steps" : "principles",
       resultCollapsed: saved.resultCollapsed === true,
+      hideCheckBadges: saved.hideCheckBadges === true,
     });
+    /* A stage chosen in an older version of the guide (`started`, `entryStation`) is ignored: the stage is derived. */
     const known = (id) => FG.stations().some((station) => station.identifier === id);
-    if (!known(FG.state.entryStation)) FG.state.entryStation = null;
     if (!known(FG.state.lastStation)) FG.state.lastStation = null;
     FG.focusAfterRender = false;
     FG.firstRender = true;
     window.addEventListener("hashchange", FG.render);
-    /* Printing shows the closed sections too, and closes them again afterwards. */
-    let opened = [];
-    window.addEventListener("beforeprint", () => {
-      opened = [...document.querySelectorAll("#main details:not([open])")];
-      for (const section of opened) section.open = true;
-    });
-    window.addEventListener("afterprint", () => {
-      for (const section of opened) section.open = false;
-      opened = [];
-    });
     FG.render();
   }
 
