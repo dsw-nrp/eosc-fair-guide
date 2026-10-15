@@ -488,6 +488,36 @@ class GeneratorTests(FixtureCase):
         )
         self.assertError("a reference is not well formed; write [[id|phrase]]")
 
+    def test_the_reference_map_comes_from_the_catalogue_identity(self) -> None:
+        """A reference may name any published catalogue entry by `collection:record`, so a repository and a
+        catalogue tool are referenceable as a resource is; the guide's short forms stay."""
+        content = build_crate.load_content()
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
+        targets = build_crate.reference_targets(content, graph)
+        self.assertIn("repositories:zenodo", targets)
+        self.assertIn("knav.github", targets)
+        self.assertIn("resources:knav.github", targets)
+        self.assertEqual(targets["knav.github"], targets["resources:knav.github"], "both forms name the tool")
+        self.assertTrue(any(key.startswith("metrics:") for key in targets), "a question is nameable")
+        self.assertIn("page:software", targets, "the short forms stay")
+
+    def test_a_repository_reference_resolves_and_an_unknown_one_fails(self) -> None:
+        (self.root / "content" / "repositories.toml").write_text(
+            '[[repository]]\nid = "zenodo"\nname = "Zenodo"\nurl = "https://zenodo.org/"\nkind = "general"\n'
+            'status = "pilot"\nasOf = 2026-01-01\n',
+            encoding="utf-8",
+        )
+        self.edit(
+            "stations/01-one.toml",
+            'text = { cs = "Udělejte první krok.", en = "Take the first step." }',
+            'text = { cs = "Uložte v [[repositories:zenodo|Zenodu]].", '
+            'en = "Deposit in [[repositories:zenodo|Zenodo]]." }',
+        )
+        self.assertEqual(self.errors(), [])
+        self.edit("stations/01-one.toml", "repositories:zenodo", "repositories:nope")
+        self.assertError("refers to an unknown entry 'repositories:nope'")
+
     def test_missing_marker_is_reported(self) -> None:
         page = self.root / "index.html"
         page.write_text(page.read_text(encoding="utf-8").replace("<!-- generated:ui --><!-- /generated:ui -->", ""))

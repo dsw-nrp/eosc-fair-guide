@@ -460,10 +460,47 @@ class Graph:
         return resolved
 
 
+# The catalogue collections a text reference may name by `collection:record`. The rest of the catalogue
+# (principles, checks, provenance actions) is reached from the catalogue itself, not from prose.
+REFERENCE_COLLECTIONS = (
+    "resources",
+    "sources",
+    "repositories",
+    "terms",
+    "stations",
+    "clauses",
+    "tests",
+    "metrics",
+    "organizations",
+    "fips",
+    "model",
+    "lifecycle",
+    "infrastructures",
+)
+
+
 def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
-    """What a reference in text may name: a resource or source by its ID, a glossary term as term:<id>, a page of
-    the guide as page:<id>, a ledger clause as clause:<id>, and the guide's profile as profile."""
+    """What a reference in text may name, by the key that names it. The catalogue identifier `collection:record`
+    names any published entry in REFERENCE_COLLECTIONS, so a repository, a catalogue tool, an organisation, a
+    question or a criterion is referenceable as a resource is; the guide's short forms stay: a bare resource or
+    source ID, `term:<id>`, `page:<id>`, `station:<id>`, `clause:<id>`, `infrastructure:<id>`, and the model's
+    `layer.<id>`, `seam.<id>` and `example.<id>`. A catalogue tool no entry of the guide stands for is also named
+    by the catalogue's own `knav.<id>`."""
+    records = api_records(graph.entities, content)
     targets = {
+        f"{collection}:{record}": entity_id
+        for collection, members in records.items()
+        if collection in REFERENCE_COLLECTIONS
+        for record, entity_id in members
+    }
+    targets |= {
+        record: entity_id
+        for collection, members in records.items()
+        if collection == "resources"
+        for record, entity_id in members
+        if record.startswith("knav.")
+    }
+    targets |= {
         item["id"]: graph.index[item["id"]][0]
         for item in content["resources"] + content["sources"]
         if graph.index.get(item["id"])

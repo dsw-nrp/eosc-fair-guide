@@ -38,6 +38,7 @@ from build_crate import (  # noqa: E402
     build_crate,
     is_generated,
     load_content,
+    reference_targets,
 )
 
 LANGS = ("cs", "en")
@@ -1400,16 +1401,13 @@ def bare_url(url: Any) -> str:
     return re.sub(r"^https?://(www\.)?", "", str(url or "").strip().lower()).rstrip("/")
 
 
-def check_coherence(report: Report, content: dict[str, Any]) -> None:
+def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build_error: Exception | None) -> None:
     """The crate's identifiers hold together: one content ID names one entity (R1), references to snapshot records
     resolve (R4), and entries nothing uses are reported (R5). That no two entries describe one thing (R2, R3) is
     checked by scripts/check_duplicates.py."""
     # R1, read from the generator's own index of what each content ID names
-    graph = Graph()
-    try:
-        build_crate(content, graph)
-    except (ContentError, KeyError, TypeError, ValueError) as error:
-        report.error("coherence", f"the crate could not be built to check identifiers: {error}")
+    if build_error is not None:
+        report.error("coherence", f"the crate could not be built to check identifiers: {build_error}")
         return
     for content_id, entity_ids in sorted(graph.index.items()):
         if len(set(entity_ids)) > 1:
@@ -1487,27 +1485,20 @@ def referenced(content: dict[str, Any]) -> set[str]:
     }
 
 
-def check_references(report: Report, content: dict[str, Any]) -> None:
-    """A reference in text, [[id|phrase]], is well formed and names a known resource, source, glossary term
-    (term:<id>) or page of the guide (page:<id>), and a bilingual text refers to the same entries in both languages."""
-    known = {item["id"] for item in content["resources"] + content["sources"]}
-    known |= {"term:" + term["id"] for term in content["glossary"].get("term", [])}
-    known |= {"page:" + page["id"] for page in content["pages"]}
-    known |= {"station:" + data["station"]["id"] for data in content["stations"]}
-    known |= {"clause:" + clause["id"] for clause in content["ledger"]}
-    infrastructures = (content.get("infrastructures") or {}).get("infrastructure", [])
-    known |= {"infrastructure:" + item["id"] for item in infrastructures}
-    if infrastructures:
-        known.add("infrastructures")
-    known.add("profile")
-    known |= set(model_items(content))
+def check_references(report: Report, content: dict[str, Any], targets: dict[str, str] | None) -> None:
+    """A reference in text, [[id|phrase]], is well formed and names an entry the catalogue publishes, by a key
+    scripts.build_crate.reference_targets derives from the catalogue identity, and a bilingual text refers to the
+    same entries in both languages. When the crate could not be built, the entries cannot be resolved, so only the
+    form and the language parity are checked."""
+    known = set(targets) if targets is not None else None
 
     def entries(where: str, text: str) -> set[str]:
         if "[[" in REFERENCE.sub("", text) or "]]" in REFERENCE.sub("", text):
             report.error(where, "a reference is not well formed; write [[id|phrase]]")
         found = {match["id"] for match in REFERENCE.finditer(text)}
-        for entry in sorted(found - known):
-            report.error(where, f"refers to an unknown entry '{entry}'")
+        if known is not None:
+            for entry in sorted(found - known):
+                report.error(where, f"refers to an unknown entry '{entry}'")
         return found
 
     for name, data in content.items():
@@ -1852,6 +1843,16 @@ def topic_targets(vocab: dict[str, Any]) -> dict[str, dict[str, set[str]]]:
 def check(content: dict[str, Any], root: Path, today: date | None = None) -> Report:
     report = Report()
     vocab = vocabularies(content)
+    # The crate is built once: coherence reads its identifier index, and the reference targets come from the same
+    # catalogue identity, so a text reference and the build agree on what a reference may name.
+    graph = Graph()
+    build_error: Exception | None = None
+    targets: dict[str, str] | None = None
+    try:
+        build_crate(content, graph)
+        targets = reference_targets(content, graph)
+    except (ContentError, KeyError, TypeError, ValueError) as error:
+        build_error = error
     check_texts(report, content)
     check_links(report, content, in_page_targets(content), topic_targets(vocab))
     check_sources(report, content)
@@ -1882,9 +1883,9 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_icons_and_tasks(report, content, root, vocab)
     check_provenance(report, content, vocab)
     check_identifiers(report, content)
-    check_coherence(report, content)
+    check_coherence(report, content, graph, build_error)
     check_names(report, content)
-    check_references(report, content)
+    check_references(report, content, targets)
     check_pages_and_ui(report, content)
     check_guide(report, content, vocab, root)
     check_no_build_output(report, root)
