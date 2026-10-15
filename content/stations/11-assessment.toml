@@ -32,7 +32,7 @@ sources = ["A.K5.2.1", "FAIR-CHAMPION.01"]
 id = "assessment.03"
 lens = "V"
 level = "L1"
-text = { cs = "Vložte DOI, Handle nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede a co obsahují metadata. Hloubková kontrola nástrojem [[fair-champion|FAIR Champion]] běží až po dalším kliknutí a může trvat i několik minut. Některé testy nemusí odpovědět; to není chyba vaší datové sady.", en = "Enter a DOI, Handle or URL. The quick check verifies within seconds where the identifier leads and what the metadata contain. The deep check with [[fair-champion|FAIR Champion]] runs only after a further click and can take several minutes. Some tests may not respond; that is not a fault of your dataset." }
+text = { cs = "Vložte DOI, [[res/srv/handle|Handle]] nebo URL. Rychlá kontrola za několik vteřin ověří, kam identifikátor vede a co obsahují metadata. Hloubková kontrola nástrojem [[fair-champion|FAIR Champion]] běží až po dalším kliknutí a může trvat i několik minut. Některé testy nemusí odpovědět; to není chyba vaší datové sady.", en = "Enter a DOI, [[res/srv/handle|Handle]] or URL. The quick check verifies within seconds where the identifier leads and what the metadata contain. The deep check with [[fair-champion|FAIR Champion]] runs only after a further click and can take several minutes. Some tests may not respond; that is not a fault of your dataset." }
 sources = ["OSTRAILS-CZ-PILOT.01", "FAIR-CHAMPION.01"]
 
 [[advice]]
@@ -87,7 +87,7 @@ sources = ["A.K5.1", "A.K5.2.2"]
 id = "assessment.10"
 lens = "DS"
 level = "L1"
-text = { cs = "Stejný záznam může dostat různé skóre podle cesty: ASEP přes DOI (metadata z [[datacite|DataCite]]) a přes Handle (jen landing page).", en = "The same record can score differently depending on the route: ASEP through its DOI (metadata from [[datacite|DataCite]]) versus through its Handle (landing page only)." }
+text = { cs = "Stejný záznam může dostat různé skóre podle cesty: ASEP přes DOI (metadata z [[datacite|DataCite]]) a přes [[res/srv/handle|Handle]] (jen landing page).", en = "The same record can score differently depending on the route: ASEP through its DOI (metadata from [[datacite|DataCite]]) versus through its [[res/srv/handle|Handle]] (landing page only)." }
 sources = ["A.P1"]
 
 [[advice]]
@@ -115,7 +115,7 @@ sources = ["OSTRAILS-CZ-PILOT.01"]
 id = "assessment.14"
 lens = "DS"
 level = "L1"
-text = { cs = "Část testů hodnotí jiné druhy zdrojů (ontologie, identifikátory ARK, sociálněvědní metadata DDI); u běžného repozitáře je berte jako „netýká se“.", en = "Some tests assess other kinds of resources (ontologies, ARK identifiers, DDI social-science metadata); for an ordinary repository, treat them as “not applicable”." }
+text = { cs = "Část testů hodnotí jiné druhy zdrojů (ontologie, identifikátory ARK, sociálněvědní metadata [[res/std/ddi|DDI]]); u běžného repozitáře je berte jako „netýká se“.", en = "Some tests assess other kinds of resources (ontologies, ARK identifiers, [[res/std/ddi|DDI]] social-science metadata); for an ordinary repository, treat them as “not applicable”." }
 sources = ["OSTRAILS-CZ-PILOT.01"]
 
 [[advice]]
@@ -158,7 +158,7 @@ sources = ["A.K2.3.2b"]
 id = "assessment.20"
 lens = "SR"
 level = "L1"
-text = { cs = "Příklady z praxe: ČSDA upravila konfiguraci Dataverse podle toho, jak metadata čte [[f-uji|F-UJI]]; v LINDAT chybějící identifikátor dat v metadatech shodil řadu testů.", en = "Examples from practice: ČSDA adjusted its Dataverse configuration to how [[f-uji|F-UJI]] reads metadata; in LINDAT, a missing data identifier in the metadata failed a number of tests." }
+text = { cs = "Příklady z praxe: ČSDA upravila konfiguraci Dataverse podle toho, jak metadata čte [[f-uji|F-UJI]]; v [[res/tool/lindat|LINDAT]] chybějící identifikátor dat v metadatech shodil řadu testů.", en = "Examples from practice: ČSDA adjusted its Dataverse configuration to how [[f-uji|F-UJI]] reads metadata; in [[res/tool/lindat|LINDAT]], a missing data identifier in the metadata failed a number of tests." }
 sources = ["A.P1"]
 
 [[advice]]

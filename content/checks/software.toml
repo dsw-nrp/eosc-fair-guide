@@ -2,7 +2,7 @@
 id = "software"
 name = { cs = "Kontrola výzkumného softwaru", en = "Research software check" }
 icon = "list-check"
-description = { cs = "Skripty, výpočetní notebooky i aplikace: praktické otázky podle FAIR4RS a metrik FRSM 1.0. Originální popisy pocházejí ze zprávy D5.2, verze 1.1 (2025); verze zprávy a sady metrik jsou odlišné. Začněte osmi otázkami, rozšířená kontrola přidá další praxi. Jde o vlastní posouzení bez skóre a certifikace.", en = "Scripts, computational notebooks and applications: practical questions based on FAIR4RS and FRSM 1.0 metrics. Original descriptions come from the D5.2 report, version 1.1 (2025); report and metric-set versions differ. Start with eight questions; the extended check adds further practice. This is self-assessment without a score or certification." }
+description = { cs = "Skripty, výpočetní notebooky i aplikace: praktické otázky podle [[res/std/fair4rs|FAIR4RS]] a metrik FRSM 1.0. Originální popisy pocházejí ze zprávy D5.2, verze 1.1 (2025); verze zprávy a sady metrik jsou odlišné. Začněte osmi otázkami, rozšířená kontrola přidá další praxi. Jde o vlastní posouzení bez skóre a certifikace.", en = "Scripts, computational notebooks and applications: practical questions based on [[res/std/fair4rs|FAIR4RS]] and FRSM 1.0 metrics. Original descriptions come from the D5.2 report, version 1.1 (2025); report and metric-set versions differ. Start with eight questions; the extended check adds further practice. This is self-assessment without a score or certification." }
 lenses = ["V", "DS", "SR", "K"]
 minutes = 15
 
@@ -91,7 +91,7 @@ block = "description"
 fixAt = "citation"
 owner = ["user"]
 allowNotApplicable = false
-help = { cs = "Porovnejte citační metadata s přispěvateli a rolemi, které uznává vaše komunita. Seznam autorů commitů nezachytí například testování, dokumentaci nebo návrh; ORCID pomůže rozlišit osoby, které jej mají.", en = "Compare citation metadata with the contributors and roles recognised by your community. Commit authors do not capture contributions such as testing, documentation or design; ORCID helps identify people who have one." }
+help = { cs = "Porovnejte citační metadata s přispěvateli a rolemi, které uznává vaše komunita. Seznam autorů commitů nezachytí například testování, dokumentaci nebo návrh; [[res/srv/orcid|ORCID]] pomůže rozlišit osoby, které jej mají.", en = "Compare citation metadata with the contributors and roles recognised by your community. Commit authors do not capture contributions such as testing, documentation or design; [[res/srv/orcid|ORCID]] helps identify people who have one." }
 
 [[item]]
 id = "software.07"
@@ -127,7 +127,7 @@ block = "identity"
 fixAt = "repository"
 owner = ["user"]
 allowNotApplicable = false
-help = { cs = "Ověřte přístup k vývojovému repozitáři například přes HTTPS nebo SFTP. Je-li potřebné přihlášení či oprávnění, protokol a repozitář je mohou podporovat; tento bod sám nevyžaduje anonymní přístup ke kódu.", en = "Verify access to the development repository, for example through HTTPS or SFTP. Authentication or authorisation may be supported where needed; this item alone does not require anonymous code access." }
+help = { cs = "Ověřte přístup k vývojovému repozitáři například přes HTTPS nebo SFTP. Je-li potřebné [[term/authentication|přihlášení]] či oprávnění, protokol a repozitář je mohou podporovat; tento bod sám nevyžaduje anonymní přístup ke kódu.", en = "Verify access to the development repository, for example through HTTPS or SFTP. [[term/authentication|Authentication]] or authorisation may be supported where needed; this item alone does not require anonymous code access." }
 
 [[item]]
 id = "software.10"
@@ -199,7 +199,7 @@ block = "description"
 fixAt = "licence"
 owner = ["user"]
 allowNotApplicable = false
-help = { cs = "Projděte licenci projektu, přibalené knihovny a jejich oznámení či licenční hlavičky. Soubor LICENSE v kořeni neprokazuje práva ke všem součástem; označení SPDX usnadňuje jejich strojové zpracování.", en = "Inspect the project licence, bundled libraries and their notices or licence headers. A root LICENSE file does not establish rights for every component; SPDX identifiers help machine processing." }
+help = { cs = "Projděte licenci projektu, přibalené knihovny a jejich oznámení či licenční hlavičky. Soubor LICENSE v kořeni neprokazuje práva ke všem součástem; označení [[res/vocab/spdx|SPDX]] usnadňuje jejich strojové zpracování.", en = "Inspect the project licence, bundled libraries and their notices or licence headers. A root LICENSE file does not establish rights for every component; [[res/vocab/spdx|SPDX]] identifiers help machine processing." }
 
 [[item]]
 id = "software.16"
@@ -235,7 +235,7 @@ block = "execution"
 fixAt = "analyse"
 owner = ["user"]
 allowNotApplicable = false
-help = { cs = "Zkuste příklad v prostředí popsaném pro danou verzi a porovnejte výsledek s návodem. Jde o praktický krok Průvodce vycházející z CODE; nenahrazuje úplné testování softwaru.", en = "Try the example in the environment documented for that version and compare the result with the instructions. This is a practical guide step based on CODE; it does not replace full software testing." }
+help = { cs = "Zkuste příklad v prostředí popsaném pro danou verzi a porovnejte výsledek s návodem. Jde o praktický krok Průvodce vycházející z [[res/pub/code-principles|CODE]]; nenahrazuje úplné testování softwaru.", en = "Try the example in the environment documented for that version and compare the result with the instructions. This is a practical guide step based on [[res/pub/code-principles|CODE]]; it does not replace full software testing." }
 
 [[item]]
 id = "software.19"
@@ -248,7 +248,7 @@ fixAt = "publication"
 owner = ["user"]
 allowNotApplicable = false
 sources = ["FRSM.FRSM-03", "SWH-GUIDE.01"]
-help = { cs = "Ověřte obsah uložené verze i podmínky uchování v archivu nebo repozitáři. Software Heritage a SWHID jsou jednou možností; vhodný archiv či repozitářový depozit s identifikací konkrétní verze je také platnou volbou.", en = "Verify the preserved version’s contents and the archive or repository’s retention arrangements. Software Heritage and a SWHID are one option; an appropriate archive or repository deposit identifying the specific version is also valid." }
+help = { cs = "Ověřte obsah uložené verze i podmínky uchování v archivu nebo repozitáři. [[repo/reg/software-heritage|Software Heritage]] a SWHID jsou jednou možností; vhodný archiv či repozitářový depozit s identifikací konkrétní verze je také platnou volbou.", en = "Verify the preserved version’s contents and the archive or repository’s retention arrangements. [[repo/reg/software-heritage|Software Heritage]] and a SWHID are one option; an appropriate archive or repository deposit identifying the specific version is also valid." }
 
 [[item]]
 id = "software.20"

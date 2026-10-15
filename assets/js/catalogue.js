@@ -163,7 +163,7 @@
       { class: ["card", "entry-card", kind ? "kind-" + kind : null, spec.compact ? "entry-compact" : null].concat(spec.class || []).filter(Boolean).join(" "), id: "item-" + spec.id, "data-kind": kind, tabindex: "-1" },
       /* The kind shows in the card's top strip and the kind facet, and its icon stands before the title wherever the
          entry has no favicon of its own (D-185). */
-      h("p", { class: "entry-head" }, spec.compact ? null : FG.idChip(spec.entity), what.length ? h("span", { class: "entry-what" }, what.join(" · ")) : null, spec.compact ? null : FG.apiLink(spec.entity)),
+      h("p", { class: "entry-head" }, FG.idChip(spec.entity), what.length ? h("span", { class: "entry-what" }, what.join(" · ")) : null, spec.compact ? null : FG.apiLink(spec.entity)),
       spec.title
         ? h("h3", { class: "entry-title", lang: spec.titleLang || null }, spec.service ? FG.serviceBadge(spec.service.identifier, spec.service.url, kind || "resources") : kind && icons().kind?.[kind] ? FG.kindBadge(kind) : null, h("span", null, spec.title))
         : null,
@@ -253,7 +253,7 @@
       what: [FG.termName(FG.id(resource.resourceType))].concat(uses(used)),
       title: FG.external(resource.url, FG.nameNodes(resource)),
       details: citationDetails(resource),
-      body: resource.description ? h("p", null, FG.span(resource.description)) : null,
+      body: resource.description ? h("p", null, FG.linkedSpan(resource, "description")) : null,
       states: [FG.statusBadge(resource), FG.nodeBadge(resource), record ? FG.verificationBadges(record.fer) : null],
       relations: {
         principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],

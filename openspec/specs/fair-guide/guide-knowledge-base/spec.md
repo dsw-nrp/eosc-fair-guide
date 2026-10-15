@@ -625,3 +625,19 @@ remain usable as metadata and search inputs. Separately required saved-result fo
 - **GIVEN** an unreleased address replaced by the final compact address
 - **WHEN** the product is built
 - **THEN** its callers and tests use the compact address and no old-route compatibility document is emitted
+
+### Requirement: Reviewed missing-link decisions remain scoped and visible
+
+The health report SHALL separate unresolved link suggestions from reviewed unlinked mentions and stale decisions. Each decision SHALL name an exact field, target, text fingerprint, review date and reason, without wildcards. Changed text or targets SHALL reopen review; new occurrences SHALL remain eligible. Invalid or duplicate decisions SHALL fail health integrity without exempting prose broadly.
+
+#### Scenario: Reviewed text changes
+
+- **GIVEN** an exact dated decision to leave a mention unlinked
+- **WHEN** its field text or proposed target changes
+- **THEN** the current suggestion is unresolved again and the previous decision is reported as stale
+
+#### Scenario: A new occurrence of a reviewed term
+
+- **GIVEN** a decision scoped to one occurrence of a term
+- **WHEN** the term occurs in a new field
+- **THEN** that occurrence is eligible for a suggestion and the older decision does not hide it

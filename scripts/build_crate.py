@@ -330,6 +330,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "ui": optional("ui.toml"),
         "icons": optional("icons.toml"),
         "identifiers": optional("identifiers.toml"),
+        "link_reviews": optional("link-reviews.toml").get("review", []),
         "model": optional("model.toml"),
         "lifecycles": lifecycles,
         "crosswalk": optional("lifecycle/crosswalk.toml").get("correspondence", []),
@@ -483,6 +484,7 @@ REFERENCE_COLLECTIONS = (
     "repositories",
     "terms",
     "stations",
+    "checks",
     "clauses",
     "tests",
     "metrics",
@@ -2853,6 +2855,7 @@ PROTECTED_TREES = frozenset(
         "diagrams",
         "docs",
         "node_modules",
+        "openspec",
         "profile",
         "scripts",
         "tests",
@@ -3265,6 +3268,13 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
         elif entity.get("@type") == "rdf:Property" and entity.get("rdfs:label") in MODEL_TERMS:
             # Full definitions are needed only with the model; its property IRIs remain in the core context.
             parts["model"]["entities"].append(entity)
+        elif entity.get("@type") == "rdf:Property":
+            # Vocabulary definitions serve source detail and machine readers, rather than initial navigation.
+            # Keep their full definitions with the standards part, which the machine-data page also loads.
+            parts["standards"]["entities"].append(entity)
+        elif str(entity["@id"]).startswith("#alternate-term-"):
+            # Imported glossary IDs are detail metadata; catalogue/search load them with the definitions.
+            parts["standards"]["entities"].append(entity)
         # The FIP Dashboard snapshot (the profiles and the resource records they declare) and the KNAV catalogue's.
         elif str(entity["@id"]).startswith(("#item-", "#criterion-", "#mapping-")):
             # External evaluators' criteria and their reviewed mappings load with the questions they relate to.

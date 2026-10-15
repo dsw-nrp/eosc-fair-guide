@@ -361,6 +361,7 @@
     if (address) {
       const [kind, ...parts] = address.split("/");
       if (FG.catalogueKind(kind) === "stations") return FG.href("path", parts.join("/"));
+      if (kind === "check") return FG.href("check", parts.join("/"));
       return FG.catalogueHref(kind, parts.join("/"));
     }
     const base = FG.config.pageUrl || "";

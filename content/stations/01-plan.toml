@@ -16,14 +16,14 @@ id = "plan.01"
 lens = "*"
 level = "L1"
 kind = "key"
-text = { cs = "Plán správy dat zachycuje společná rozhodnutí o datech a mění se s projektem.", en = "A data management plan keeps the team's decisions about data together and changes with the project." }
+text = { cs = "[[term/data-management-plan|Plán správy dat]] zachycuje společná rozhodnutí o datech a mění se s projektem.", en = "A [[term/data-management-plan|data management plan]] keeps the team's decisions about data together and changes with the project." }
 sources = ["DSW-NRP.01", "A.K2.3.1"]
 
 [[advice]]
 id = "plan.02"
 lens = "V"
 level = "L0"
-text = { cs = "Sepište plán správy dat (DMP): jaká data vzniknou, jak je popíšete, kam je uložíte a za jakých podmínek je zpřístupníte. V [[dmp-eosc|DMP.eosc.cz]] vyberte vhodnou šablonu podle požadavků poskytovatele.", en = "Write a data management plan (DMP): which data you will create, how you will describe them, where you will deposit them and on what terms you will make them available. In [[dmp-eosc|DMP.eosc.cz]], choose a suitable template for your funder's requirements." }
+text = { cs = "Sepište [[term/data-management-plan|plán správy dat]] (DMP): jaká data vzniknou, jak je popíšete, kam je uložíte a za jakých podmínek je zpřístupníte. V [[dmp-eosc|DMP.eosc.cz]] vyberte vhodnou šablonu podle požadavků poskytovatele.", en = "Write a [[term/data-management-plan|data management plan]] (DMP): which data you will create, how you will describe them, where you will deposit them and on what terms you will make them available. In [[dmp-eosc|DMP.eosc.cz]], choose a suitable template for your funder's requirements." }
 action = [{ label = { cs = "Otevřít DMP.eosc.cz", en = "Open DMP.eosc.cz" }, href = "https://dmp.eosc.cz/" }, { label = { cs = "Zkontrolovat plán datové sady", en = "Check your dataset plan" }, href = "#check-dataset" }]
 sources = ["DSW-NRP.01", "A.K2.3.1"]
 
@@ -38,7 +38,7 @@ sources = ["DSW-NRP.01"]
 id = "plan.04"
 lens = "V"
 level = "L1"
-text = { cs = "Přihlaste se do [[dmp-eosc|DMP.eosc.cz]] účtem e-INFRA CZ a zvolte šablonu svého poskytovatele.", en = "Log in to [[dmp-eosc|DMP.eosc.cz]] with your e-INFRA CZ account and choose your funder's template." }
+text = { cs = "Přihlaste se do [[dmp-eosc|DMP.eosc.cz]] účtem [[term/e-infra-cz|e-INFRA CZ]] a zvolte šablonu svého poskytovatele.", en = "Log in to [[dmp-eosc|DMP.eosc.cz]] with your [[term/e-infra-cz|e-INFRA CZ]] account and choose your funder's template." }
 sources = ["DSW-NRP.01"]
 
 [[advice]]
@@ -64,7 +64,7 @@ sources = ["DSW-NRP.01"]
 id = "plan.07"
 lens = "V"
 level = "L1"
-text = { cs = "Obraťte se na data stewarda své instituce: pomůže vám s plánem i s požadavky instituce.", en = "Contact your institution's data steward, who can help with the plan and with the institution's requirements." }
+text = { cs = "Obraťte se na [[term/data-steward|data stewarda]] své instituce: pomůže vám s plánem i s požadavky instituce.", en = "Contact your institution's [[term/data-steward|data steward]], who can help with the plan and with the institution's requirements." }
 sources = ["EOSC-DATA-STEWARDS.01"]
 
 [[advice]]
@@ -185,7 +185,7 @@ sources = ["A.K4.1"]
 id = "plan.23"
 lens = "K"
 level = "L1"
-text = { cs = "Existující FER a profily jiných komunit hledejte ve [[fip-dashboard|FIP Dashboardu]], národním katalogu FER; zdroje ověřené NRP a EOSC CZ jsou v něm označené.", en = "Look for existing FERs and other communities' profiles in the [[fip-dashboard|FIP Dashboard]], the national FER catalogue; resources verified by NRP and EOSC CZ are marked there." }
+text = { cs = "Existující FER a profily jiných komunit hledejte ve [[fip-dashboard|FIP Dashboardu]], národním katalogu FER; zdroje ověřené NRP a [[org/eosc-cz|EOSC CZ]] jsou v něm označené.", en = "Look for existing FERs and other communities' profiles in the [[fip-dashboard|FIP Dashboard]], the national FER catalogue; resources verified by NRP and [[org/eosc-cz|EOSC CZ]] are marked there." }
 sources = ["FIP-DASHBOARD.01"]
 
 [[advice]]
@@ -199,7 +199,7 @@ sources = ["A.K4.3"]
 id = "plan.25"
 lens = "K"
 level = "L1"
-text = { cs = "Zapojte se do oborové pracovní skupiny EOSC CZ.", en = "Join the EOSC CZ working group for your domain." }
+text = { cs = "Zapojte se do oborové [[res/comm/eosc-working-groups|pracovní skupiny EOSC CZ]].", en = "Join the [[res/comm/eosc-working-groups|EOSC CZ working group]] for your domain." }
 sources = ["EOSC-WORKING-GROUPS.01"]
 
 [[advice]]
@@ -207,7 +207,7 @@ id = "plan.26"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "Návrh odpovědí do plánu správy dat z popisu projektu připravíte s [[cerit-aiaas|AI v prostředí CERIT]]; dotazy neopouštějí infrastrukturu e-INFRA CZ.", en = "You can draft the answers of a data management plan from a project description with [[cerit-aiaas|AI in the CERIT environment]]; requests stay within the e-INFRA CZ infrastructure." }
+text = { cs = "Návrh odpovědí do [[term/data-management-plan|plánu správy dat]] z popisu projektu připravíte s [[cerit-aiaas|AI v prostředí CERIT]]; dotazy neopouštějí infrastrukturu [[term/e-infra-cz|e-INFRA CZ]].", en = "You can draft the answers of a [[term/data-management-plan|data management plan]] from a project description with [[cerit-aiaas|AI in the CERIT environment]]; requests stay within the [[term/e-infra-cz|e-INFRA CZ]] infrastructure." }
 check = { cs = "Porovnejte návrh se šablonou poskytovatele a se skutečností projektu: repozitář, licenci a odpovědnosti rozhodujete vy, ne AI.", en = "Compare the draft with your funder's template and with the project as it is: you decide the repository, the licence and the responsibilities, not the AI." }
 prompt = { cs = "Z popisu projektu níže navrhni odpovědi do plánu správy dat: jaká data vzniknou, v jakých formátech a jakém objemu, kde budou uložena a zálohována, kdy a pod jakou licencí se zveřejní a kdo za ně odpovídá. Kde informace chybí, napiš místo odhadu otázku.\n\nPopis projektu: […]", en = "From the project description below, draft the answers of a data management plan: which data will be created, in which formats and volume, where they will be stored and backed up, when and under which licence they will be published, and who is responsible for them. Where information is missing, write a question instead of a guess.\n\nProject description: […]" }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
@@ -217,7 +217,7 @@ id = "plan.27"
 lens = "DS"
 level = "L1"
 kind = "ai"
-text = { cs = "Při kontrole plánů správy dat vám AI pomůže najít části, které vůči šabloně poskytovatele chybějí, jsou neúplné nebo si odporují.", en = "When you review data management plans, AI helps you find the parts that are missing, incomplete or contradictory against the funder's template." }
+text = { cs = "Při kontrole [[term/data-management-plan|plánů správy dat]] vám AI pomůže najít části, které vůči šabloně poskytovatele chybějí, jsou neúplné nebo si odporují.", en = "When you review [[term/data-management-plan|data management plans]], AI helps you find the parts that are missing, incomplete or contradictory against the funder's template." }
 check = { cs = "Každou výtku ověřte v plánu i v šabloně; o plánu nerozhoduje AI. Plán výzkumníka vkládejte jen do nástroje, který data neposílá mimo infrastrukturu.", en = "Verify each finding in the plan and in the template; the AI does not decide on the plan. Put a researcher's plan only into a tool that keeps it within the infrastructure." }
 prompt = { cs = "Porovnej plán správy dat níže se šablonou poskytovatele a vypiš části, které chybějí, jsou neúplné nebo si odporují; ke každé uveď místo v plánu. Nic nedoplňuj.\n\nŠablona: […]\n\nPlán: […]", en = "Compare the data management plan below with the funder's template and list the parts that are missing, incomplete or contradictory, each with its place in the plan. Do not fill anything in.\n\nTemplate: […]\n\nPlan: […]" }
 sources = ["EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04", "EC-GENAI-GUIDELINES.05"]
@@ -233,7 +233,7 @@ sources = ["RDMKIT.tasks.01", "DSW-NRP.01"]
 id = "plan.29"
 lens = "DS"
 level = "L1"
-text = { cs = "Domluvte s týmem, kdo odpovídá za jednotlivé kroky správy dat. Využijte popis role [[rdmkit-steward|data stewarda]], podklady pro [[rdmkit-policy|tvorbu politiky]] a pro [[rdmkit-trainer|školení týmu]] v RDMkit; české institucionální požadavky ověřte v kontrole Instituce a správa dat.", en = "Agree who is responsible for each data-management step. Use RDMkit's [[rdmkit-steward|data-steward role]], [[rdmkit-policy|policy-making guidance]] and [[rdmkit-trainer|trainer resources]]; check the Czech institutional requirements in Institution and data management." }
+text = { cs = "Domluvte s týmem, kdo odpovídá za jednotlivé kroky správy dat. Využijte popis role [[rdmkit-steward|data stewarda]], podklady pro [[rdmkit-policy|tvorbu politiky]] a pro [[rdmkit-trainer|školení týmu]] v [[res/doc/rdmkit|RDMkit]]; české institucionální požadavky ověřte v kontrole [[check/institution|Instituce a správa dat]].", en = "Agree who is responsible for each data-management step. Use [[res/doc/rdmkit|RDMkit]]'s [[rdmkit-steward|data-steward role]], [[rdmkit-policy|policy-making guidance]] and [[rdmkit-trainer|trainer resources]]; check the Czech institutional requirements in [[check/institution|Institution and data management]]." }
 sources = ["RDMKIT.tasks.01"]
 
 [[advice]]

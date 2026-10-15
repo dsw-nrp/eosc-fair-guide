@@ -10,11 +10,9 @@
   const { audiences, citationDetails, citations, code, developerRow, entryCard, entryLink, icons, inGuide, operatorRow, resourceCard, serviceOf, slug, sourceLink, stationsOf, tiles, typeOf, uses, writeState } = FG.catalogueParts;
 
   const KINDS = ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
-  const PAGE = 20;
   const sourceKey = (source, id) => source + "." + id;
   /* Values shown before "more"; the path's steps always show in full. */
   const SHOWN_VALUES = 9;
-  const expanded = new Set();
   const openFacets = new Set();
 
   /** The KNAV catalogue's tools, and the tool each entry of the guide stands for (its record's `sameAs`). */
@@ -256,7 +254,7 @@
             title: FG.external(repository.url, FG.abbreviatedName(repository, FG.state.lang)),
             /* The name in the other language stays on the entry (D-173). */
             details: [otherName(repository), FG.subjectsOf(repository).join(", ")].filter(Boolean),
-            body: [repository.description ? h("p", null, FG.span(repository.description)) : null, dataciteBlock(repository, anchor)],
+            body: [repository.description ? h("p", null, FG.linkedSpan(repository, "description")) : null, dataciteBlock(repository, anchor)],
             states: [FG.statusBadge(repository), FG.nodeBadge(repository), record ? FG.verificationBadges(record.fer) : null],
             relations: {
               principles: record && record.fer ? tiles(FG.principlesOf(record.fer)) : [],
@@ -431,9 +429,9 @@
             /* Definitions retain the source's language; no English translation is invented. */
             body: [
               term.description ? h("details", { class: "term-definition", open: Boolean(FG.parseHash(window.location.hash).extra) },
-                h("summary", null, FG.t("catalogue.originalDefinition")), FG.paragraphs(term.description)) : null,
+                h("summary", null, FG.t("catalogue.termDefinition")), h("div", { class: "content" }, FG.paragraphs(term.description))) : null,
               FG.refs(term, "subjectOf").filter((clause) => clause.guidance).map((clause) => h("details", null,
-                h("summary", null, FG.t("catalogue.originalDefinition")),
+                h("summary", null, FG.t("catalogue.originalDefinition", { source: FG.shortText(FG.get(clause.isPartOf)) })),
                 h("div", { class: "content" }, h("p", null, FG.sourceLink(FG.get(clause.isPartOf)), clause.sourceLocator ? " · " + clause.sourceLocator : ""),
                   h("blockquote", null, FG.paragraphs(clause.guidance))))),
               h("p", { class: "small muted term-attribution" }, FG.external(term.url, FG.t("catalogue.termDefinition")),
@@ -1064,7 +1062,6 @@
   /** The letters of an index as a row of jumps, each moving to its group. */
   function letterIndex(groups) {
     const jump = (group) => {
-      if (!expanded.has(group.key)) { expanded.add(group.key); FG.focusAfterRender = false; FG.render(); }
       const section = document.getElementById(group.anchor);
       if (!section) return;
       section.scrollIntoView({ block: "start" });
@@ -1348,12 +1345,8 @@
     const groups = groupsFor(order, visible);
     offerListExports(kind, groups);
     const used = new Set();
-    let remaining = PAGE;
     const results = groups.map((group) => {
-      const shown = expanded.has(group.key) ? group.entries : group.entries.slice(0, remaining);
-      remaining = Math.max(0, remaining - shown.length);
-      const all = shown.length === group.entries.length;
-      const cards = shown.map((entry) => {
+      const cards = group.entries.map((entry) => {
         const node = entry.render();
         if (node.id && used.has(node.id)) node.removeAttribute("id");
         else used.add(node.id);
@@ -1363,21 +1356,7 @@
         "section",
         { class: "catalogue-group", id: group.anchor || null },
         group.label && !single.length ? h("h2", { tabindex: group.anchor ? "-1" : null }, group.label, h("span", { class: "muted group-count" }, " · " + FG.t("catalogue.entries", { n: group.entries.length }))) : null,
-        h("ul", { class: "cards" }, cards),
-        all
-          ? null
-          : h(
-              "button",
-              {
-                type: "button",
-                class: "button-small catalogue-more",
-                onclick: () => {
-                  expanded.add(group.key);
-                  FG.rerender();
-                },
-              },
-              FG.t("catalogue.more", { n: group.entries.length - shown.length })
-            )
+        h("ul", { class: "cards" }, cards)
       );
     });
     if (route.extra) {

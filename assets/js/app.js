@@ -155,6 +155,7 @@
   /* Closed disclosures do not print, so every one opens for printing and closes again afterwards. */
   let closedForPrint = [];
   window.addEventListener("beforeprint", () => {
+    if (closedForPrint.length) return;
     closedForPrint = [...document.querySelectorAll("details:not([open])")];
     for (const element of closedForPrint) element.open = true;
   });

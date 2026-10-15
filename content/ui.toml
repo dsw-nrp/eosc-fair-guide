@@ -250,6 +250,7 @@ providedByNrpText = { cs = "U instancí základních systémů NRP tuto podmínk
 extendedSwitch = { cs = "Rozšířená kontrola: doporučené a pokročilé otázky ({n})", en = "Extended check: recommended and advanced questions ({n})" }
 extendedShort = { cs = "Rozšířená (+{n})", en = "Extended (+{n})" }
 extendedExplain = { cs = "Rozšířená kontrola přidá doporučené a pokročilé otázky; vaše odpovědi zůstanou.", en = "The extended check adds the recommended and advanced questions; your answers stay." }
+institutionMinimum = { cs = "povinnosti instituce podle § 83 zákona o výzkumu a strategie pro nakládání s výzkumnými daty požadovaná výzvou Open Science III.", en = "the institution's obligations under section 83 of the research act and the research data strategy required by the Open Science III call." }
 grouping = { cs = "Seskupit podle", en = "Group by" }
 groupOther = { cs = "Ostatní", en = "Other" }
 tierCount = { cs = "{tier} ({n} otázka):|{tier} ({n} otázky):|{tier} ({n} otázek):", en = "{tier} ({n} question):|{tier} ({n} questions):" }
@@ -901,7 +902,7 @@ aboutLink = { cs = "Jak Průvodce ukládá vaše odpovědi a jak je smazat", en 
 notSaved = { cs = "Prohlížeč odmítl odpovědi uložit (nemá místo, nebo je ukládání zakázáno). Do zavření stránky zůstanou; uložte si výsledek do souboru.", en = "The browser refused to save the answers (no room, or storage is blocked). They stay until the page closes; save the result to a file." }
 
 [catalogue]
-originalDefinition = { cs = "Původní definice z příručky NRP", en = "Original definition from the NRP handbook" }
+originalDefinition = { cs = "Původní definice: {source}", en = "Original definition: {source}" }
 trainingSearch = { cs = "Školení v TeSS", en = "Training in TeSS" }
 title = { cs = "Katalog", en = "Catalogue" }
 reviewedVersion = { cs = "Mapování posouzeno pro verze", en = "Mappings reviewed for versions" }
@@ -929,7 +930,6 @@ active = { cs = "Zvolené filtry", en = "Chosen filters" }
 clear = { cs = "Zrušit filtry", en = "Clear filters" }
 remove = { cs = "Odebrat filtr {label}", en = "Remove the filter {label}" }
 order = { cs = "Řadit", en = "Order" }
-more = { cs = "Zobrazit dalších {n}", en = "Show {n} more" }
 letters = { cs = "Rejstřík podle písmen", en = "Index by letter" }
 toLetter = { cs = "Přejít na písmeno {letter}", en = "Go to letter {letter}" }
 termDefinition = { cs = "Definice v Hesláři Open Science", en = "Definition in Heslář Open Science" }

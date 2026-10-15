@@ -69,7 +69,7 @@ id = "gate.05"
 tier = "required"
 principles = ["F4"]
 statement = { cs = "Repozitář je registrován v [[nkr|NKR]] a záznam je aktuální.", en = "The repository is registered in [[nkr|NKR]] and its record is up to date." }
-help = { cs = "NKR je národní katalog repozitářů; záznam v něm hledají výzkumníci i NRP.", en = "NKR is the national repository catalogue; researchers and NRP look for repositories there." }
+help = { cs = "[[repo/reg/nkr|NKR]] je národní katalog repozitářů; záznam v něm hledají výzkumníci i NRP.", en = "NKR is the [[repo/reg/nkr|national repository catalogue]]; researchers and NRP look for repositories there." }
 sources = ["NRP.M5", "NRP.EXT"]
 fixAt = "repository"
 owner = ["repository-admin"]

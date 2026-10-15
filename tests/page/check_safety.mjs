@@ -126,6 +126,7 @@ const printed = await page.evaluate(() => {
   const before = all.map((element) => element.open);
   window.dispatchEvent(new Event("beforeprint"));
   const during = all.every((element) => element.open);
+  window.dispatchEvent(new Event("beforeprint")); // Repeated browser notification keeps the original restoration list.
   window.dispatchEvent(new Event("afterprint"));
   return { count: all.length, before, during, after: all.map((element) => element.open) };
 });

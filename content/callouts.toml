@@ -42,16 +42,16 @@ url = "https://www.eosc.cz/media/4233522/faq-licence_final-ver.pdf#page=6"
 [[callout]]
 id = "verify-identifiers"
 title = { cs = "AI pomůže s texty, identifikátory si ale ověřte", en = "AI helps with texts, but verify the identifiers" }
-intro = { cs = "Jazykové modely umějí vytvořit ORCID, DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému. Neposuzujte je odhadem: nechte je rozřešit strojem a výsledek porovnejte.", en = "Language models can produce an ORCID, a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else. Do not judge them by eye: have a machine resolve them and compare the result." }
+intro = { cs = "Jazykové modely umějí vytvořit [[res/srv/orcid|ORCID]], DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému. Neposuzujte je odhadem: nechte je rozřešit strojem a výsledek porovnejte.", en = "Language models can produce an [[res/srv/orcid|ORCID]], a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else. Do not judge them by eye: have a machine resolve them and compare the result." }
 stations = ["metadata", "citation"]
 
 [[callout.item]]
 id = "helper"
-text = { cs = "Vložte text do pomocníka Ověřit identifikátory: najde ORCID, DOI, Handle a ROR, ověří kontrolní číslice a ukáže, komu nebo čemu identifikátor patří.", en = "Paste the text into the Verify identifiers helper: it finds ORCID iDs, DOIs, Handles and ROR IDs, checks their check digits and shows whom or what each belongs to." }
+text = { cs = "Vložte text do pomocníka Ověřit identifikátory: najde [[res/srv/orcid|ORCID]], DOI, [[res/srv/handle|Handle]] a [[res/srv/ror|ROR]], ověří kontrolní číslice a ukáže, komu nebo čemu identifikátor patří.", en = "Paste the text into the Verify identifiers helper: it finds [[res/srv/orcid|ORCID]] iDs, DOIs, [[res/srv/handle|Handle]]s and [[res/srv/ror|ROR]] IDs, checks their check digits and shows whom or what each belongs to." }
 
 [[callout.item]]
 id = "script"
-text = { cs = "Pracujete-li s AI v kódu nebo v tabulce, nechte ji napsat a spustit skript, který každý identifikátor rozřeší přes doi.org, ORCID a ROR a vypíše jméno nebo název; výpis porovnejte s tím, co čekáte.", en = "When you work with AI on code or a spreadsheet, have it write and run a script that resolves every identifier through doi.org, ORCID and ROR and prints the name or title; compare the output with what you expect." }
+text = { cs = "Pracujete-li s AI v kódu nebo v tabulce, nechte ji napsat a spustit skript, který každý identifikátor rozřeší přes doi.org, [[res/srv/orcid|ORCID]] a [[res/srv/ror|ROR]] a vypíše jméno nebo název; výpis porovnejte s tím, co čekáte.", en = "When you work with AI on code or a spreadsheet, have it write and run a script that resolves every identifier through doi.org, [[res/srv/orcid|ORCID]] and [[res/srv/ror|ROR]] and prints the name or title; compare the output with what you expect." }
 
 [[callout.item]]
 id = "orcid"
@@ -65,7 +65,7 @@ url = "https://doi.org/"
 
 [[callout.item]]
 id = "terms"
-text = { cs = "Hesla vybírejte přímo v řízeném slovníku, ne z odpovědi AI.", en = "Pick subject terms directly in the controlled vocabulary, not from an AI answer." }
+text = { cs = "Hesla vybírejte přímo v [[term/controlled-vocabulary|řízeném slovníku]], ne z odpovědi AI.", en = "Pick subject terms directly in the [[term/controlled-vocabulary|controlled vocabulary]], not from an AI answer." }
 
 [[callout.item]]
 id = "private"

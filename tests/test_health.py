@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from datetime import date
+from hashlib import sha256
 from pathlib import Path
 from unittest import mock
 
@@ -24,6 +25,92 @@ TODAY = date(2026, 10, 11)
 
 
 class HealthTests(unittest.TestCase):
+    def test_link_decisions_expire_on_text_target_or_location_changes(self) -> None:
+        candidates = check_health.missing_links(self.content)
+        row = candidates[0]
+        decision = {
+            "path": row["path"],
+            "address": row["address"],
+            "sha256": sha256(row["text"].encode("utf-8")).hexdigest(),
+            "reason": "This occurrence describes context rather than a navigation instruction.",
+            "reviewed": "2026-10-16",
+        }
+        content = {"link_reviews": [decision]}
+        reviewed = check_health.review_links(content, [row])
+        self.assertFalse(reviewed["pending"])
+        self.assertEqual(len(reviewed["reviewed"]), 1)
+        self.assertFalse(reviewed["stale"])
+        for field, replacement in [
+            ("text", row["text"] + " Changed context."),
+            ("address", "res/tool/github"),
+            ("path", "pages[new].body.en"),
+        ]:
+            with self.subTest(field=field):
+                changed = {**row, field: replacement}
+                result = check_health.review_links(content, [changed])
+                self.assertEqual(result["pending"], [changed])
+                self.assertFalse(result["reviewed"])
+                self.assertEqual(len(result["stale"]), 1)
+        new = {**row, "path": "pages[new].body.en"}
+        self.assertEqual(check_health.review_links(content, [row, new])["pending"], [new])
+
+    def test_invalid_or_duplicate_link_decisions_fail_without_a_blanket_exemption(self) -> None:
+        content = copy.deepcopy(self.content)
+        row = check_health.missing_links(content)[0]
+        decision = {
+            "path": row["path"],
+            "address": row["address"],
+            "sha256": sha256(row["text"].encode("utf-8")).hexdigest(),
+            "reason": "Reviewed context.",
+            "reviewed": "2026-10-16",
+        }
+        for field, invalid in [
+            ("path", "*"),
+            ("address", "term/*"),
+            ("reason", ""),
+            ("sha256", ""),
+            ("reviewed", "not a date"),
+        ]:
+            content["link_reviews"] = [{**decision, field: invalid}]
+            report = self.report(content)
+            group = next(group for group in report["integrity"] if group["type"] == "link review decisions")
+            self.assertEqual(group["failed"], 1)
+            self.assertIn(row, report["missing_links"])
+        content["link_reviews"] = [decision, decision]
+        self.assertTrue(check_health.review_links(content, [row])["issues"])
+
+    def test_reviewed_links_remain_visible_with_reasons_in_dashboard_and_json(self) -> None:
+        report = self.report()
+        self.assertTrue(report["missing_link_review"]["reviewed"])
+        page = check_health.dashboard(report)
+        self.assertIn("Reviewed unlinked mentions:", page)
+        self.assertIn("Stale link decisions requiring review:", page)
+        self.assertIn("Reviewed unlinked mentions:", check_health.markdown(report))
+        row = report["missing_link_review"]["reviewed"][0]
+        row["review_reason"] = '<script>alert("review")</script>'
+        page = check_health.dashboard(report)
+        self.assertNotIn(row["review_reason"], page)
+        self.assertIn("&lt;script&gt;", page)
+
+    def test_advisory_does_not_treat_generic_metadata_as_names_or_relink_external_callouts(self) -> None:
+        content = copy.deepcopy(self.content)
+        page = next(row for row in content["pages"] if row["id"] == "software")
+        section = next(row for row in page["section"] if row["id"] == "version")
+        section["body"] = {
+            "en": "Record the version, title, API and rights; NRP is not a named FIP here. Use Docker.",
+            "cs": "Zapište verze, název a práva; NRP zde není název FIP. Použijte Docker.",
+        }
+        hints = check_health.missing_links(content)
+        scoped = [row for row in hints if "[version]" in row["path"]]
+        self.assertTrue(any(row["match"] == "Docker" for row in scoped))
+        self.assertFalse(
+            any(
+                row["match"].casefold() in {"version", "title", "api", "rights", "nrp", "verze", "název", "práva"}
+                for row in scoped
+            )
+        )
+        self.assertFalse(any("callouts[sensitive-data].item[aai].text" in row["path"] for row in hints))
+
     def test_advisory_prefers_specific_reviewed_phrases_and_explains_ambiguity(self) -> None:
         content = copy.deepcopy(self.content)
         github = next(

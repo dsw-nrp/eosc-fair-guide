@@ -212,6 +212,8 @@ ol {
 
 .responsive-menu {
   border: 0;
+  border-radius: 0;
+  background: transparent;
   padding: 0;
   margin: 0;
 }
@@ -490,16 +492,19 @@ button:hover,
 
 @media (min-width: 60rem) {
   .layout-path {
-    grid-template-columns: 15rem minmax(0, 1fr);
+    grid-template-columns: 18rem minmax(0, 1fr);
   }
 }
 
 /* Path rail */
 
-/* A ruled list of stations: number, icon and name in fixed columns; the legend for the self-check marks sits
-   below the rule with its mark in the icon column. */
+/* A distinct menu panel, grouped by life-cycle stage, with each step a full-width navigation target. */
 .rail {
   --rail-icon: 1.1rem;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
 .rail ol {
@@ -510,6 +515,25 @@ button:hover,
   gap: 2px;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+}
+
+.rail-title {
+  margin: 0 0 var(--space-3);
+  font-weight: 700;
+}
+
+.compatibility-cell {
+  white-space: nowrap;
+}
+
+.compatibility-icon {
+  color: var(--state-gap);
+  font-size: var(--size-lead);
+  font-weight: 700;
+}
+
+[data-compatible="true"] .compatibility-icon {
+  color: var(--state-met);
 }
 
 @media (min-width: 60rem) {
@@ -537,6 +561,9 @@ button:hover,
   border-radius: var(--radius);
   text-decoration: none;
   color: var(--text);
+  background: var(--background);
+  border: 1px solid var(--border);
+  min-height: 2.75rem;
 }
 
 /* A step's row: its link and the reader's own read control beside it. The control is a sibling of the link, never
@@ -554,7 +581,8 @@ button:hover,
 }
 
 .rail a:hover {
-  background: var(--surface);
+  border-color: var(--tint-teal);
+  text-decoration: underline;
 }
 
 .rail a .icon {
@@ -563,6 +591,7 @@ button:hover,
 
 .rail a[aria-current="step"] {
   background: var(--surface-strong);
+  border-color: var(--tint-teal);
   font-weight: 700;
 }
 
@@ -621,7 +650,7 @@ button:hover,
 }
 
 .rail-mobile nav {
-  padding: var(--space-3);
+  padding: 0;
 }
 
 @media (min-width: 60rem) {
@@ -1228,7 +1257,6 @@ a.chip:hover {
 }
 
 .entry-compact .entry-head {
-  flex-wrap: nowrap;
   align-items: flex-start;
 }
 
@@ -1690,14 +1718,22 @@ main p > button {
 }
 
 .badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
+  display: inline-block;
+  max-width: 100%;
   padding: 0 var(--space-2);
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
+}
+
+/* Long node facts wrap as phrases, instead of competing flex columns inside a narrow card. */
+.node-badge {
+  max-width: 100%;
+}
+
+.node-badge a {
+  overflow-wrap: normal;
 }
 
 .badge[data-status="operational"] {
@@ -3576,10 +3612,6 @@ section.datacite-read p {
   }
 }
 
-.catalogue-more {
-  margin-top: var(--space-3);
-}
-
 /* One card for every catalogue entry: its kind's mark with its identifier and what it is, its title with a
    service's badge, a quiet line of details, its text, badges for its state, then its relations, one row each with
    its icon. The kind's colour runs along the top of the card. */
@@ -3684,6 +3716,10 @@ section.datacite-read p {
   color: var(--text-muted);
 }
 
+.entry-head > .id-chip {
+  flex-shrink: 0;
+}
+
 /* A filled-in check's result on its card: the report's chips, a little smaller. */
 .check-card-counts {
   flex-basis: 100%;
@@ -3718,6 +3754,11 @@ section.datacite-read p {
 
 .term-definition {
   margin: var(--space-1) 0 0;
+}
+
+.term-card details > summary {
+  color: var(--text-muted);
+  font-weight: 400;
 }
 
 .entry-title {
@@ -5216,11 +5257,53 @@ section.datacite-read p {
 }
 
 @media print {
+  @page {
+    margin: 15mm;
+  }
+
+  .wrap {
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  /* Bar counts remain legible when the printer omits background colours. Text below names every state. */
+  .distribution-bar > span[data-state] {
+    color: #000;
+    background: color-mix(in srgb, var(--state-color) 20%, white);
+    border: 1px solid #66737a;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .principle-distribution,
+  .block-distribution,
+  .result-headline,
+  .action-card,
+  .answer-row {
+    break-inside: avoid;
+  }
+
+  .check-report .check-head > p,
+  .check-view .check-parts,
+  .check-view .back,
+  .site-footer {
+    display: none;
+  }
+
+  .results {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .check-view {
+    padding-bottom: 0;
+  }
+
   .no-print,
   .catalogue-facets,
   .catalogue-toolbar,
   .active-filters,
-  .catalogue-more,
   .site-header .controls,
   .main-nav,
   .lens-band,
@@ -5239,6 +5322,13 @@ section.datacite-read p {
     display: block;
   }
 
+  /* Chromium can paginate newly opened native disclosures while keeping their contents unpainted.
+     Make the print content box explicit so later answer/evidence pages contain their actual text. */
+  details::details-content {
+    display: block;
+    content-visibility: visible;
+  }
+
   .catalogue-layout {
     display: block;
   }
@@ -5250,6 +5340,34 @@ section.datacite-read p {
     border: 0;
     background: none;
     color: inherit;
+  }
+
+  .agreement .button-link {
+    display: inline !important;
+    padding: 0;
+    border: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .table-scroll,
+  .text-table-scroll {
+    overflow: visible;
+  }
+
+  .agreement {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.75rem;
+  }
+
+  .agreement-question {
+    width: 30%;
+    min-width: 0;
+  }
+
+  .agreement .run-details > .content {
+    min-width: 0;
   }
 
   .flow-step {

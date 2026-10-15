@@ -88,7 +88,7 @@ owner = ["repository-admin"]
 modes = ["after"]
 prefill = { resolver = true, datacite = ["doi"], champion = ["fc_unique_identifier", "test_FM_F1_M_IdentPersistent"] }
 championEvidenceOnly = true
-help = { cs = "Testy porovnají identifikátor se známými schématy, a když projdou, navrhnou jen Částečně: kdo identifikátor spravuje a zajišťuje jeho trvalost, neověřují, to zkontrolujte sami. U Handle může test vrátit neurčitý výsledek.", en = "The tests compare the identifier with known schemes, and when they pass they suggest only Partly: they do not check who manages the identifier and maintains its persistence, so check that yourself. For a Handle, the test may return an indeterminate result." }
+help = { cs = "Testy porovnají identifikátor se známými schématy, a když projdou, navrhnou jen Částečně: kdo identifikátor spravuje a zajišťuje jeho trvalost, neověřují, to zkontrolujte sami. U [[res/srv/handle|Handle]] může test vrátit neurčitý výsledek.", en = "The tests compare the identifier with known schemes, and when they pass they suggest only Partly: they do not check who manages the identifier and maintains its persistence, so check that yourself. For a [[res/srv/handle|Handle]], the test may return an indeterminate result." }
 
 [[item]]
 id = "dataset.02"
@@ -128,7 +128,7 @@ id = "dataset.05"
 tier = "minimum"
 principles = ["F4"]
 statement = { cs = "Datová sada je v Národním metadatovém adresáři ([[nma|NMA]]).", en = "The dataset is in the [[nma|National Metadata Directory (NMA)]]." }
-help = { cs = "Vyhledejte ji v NMA podle PID; pokud tam není, můžete záznam založit sami.", en = "Search for it in NMA by its PID; if it is not there, you can create the record yourself." }
+help = { cs = "Vyhledejte ji v [[repo/reg/nma|NMA]] podle PID; pokud tam není, můžete záznam založit sami.", en = "Search for it in [[repo/reg/nma|NMA]] by its PID; if it is not there, you can create the record yourself." }
 note = { cs = "Potřebné pro vykázání datové sady v RIV jako výsledku typu T.", en = "Needed for reporting the dataset in RIV as a result of type T." }
 sources = ["NMA-RIV-DOCS.01", "A.MIN2"]
 fixAt = "findability"
@@ -284,7 +284,7 @@ id = "dataset.23"
 tier = "minimum"
 principles = ["F4"]
 statement = { cs = "Datová sada má kompletní záznam v [[nma|Národním metadatovém adresáři]].", en = "The dataset has a complete record in the [[nma|National Metadata Directory]]." }
-help = { cs = "Záznam založíte v NMA zadáním DOI nebo Handle; metadata z DataCite se načtou sama.", en = "You create the record in NMA by entering the DOI or Handle; the metadata from DataCite load by themselves." }
+help = { cs = "Záznam založíte v [[repo/reg/nma|NMA]] zadáním DOI nebo [[res/srv/handle|Handle]]; metadata z [[res/srv/datacite|DataCite]] se načtou sama.", en = "You create the record in [[repo/reg/nma|NMA]] by entering the DOI or [[res/srv/handle|Handle]]; the metadata from [[res/srv/datacite|DataCite]] load by themselves." }
 sources = ["OS3-RULES.25", "MINIZAMER-CATALOGUE.01", "OS3-FAQ.03"]
 fixAt = "findability"
 owner = ["user", "data-steward"]
@@ -320,7 +320,7 @@ id = "dataset.26"
 tier = "minimum"
 principles = ["A1"]
 statement = { cs = "Repozitář je veřejně dostupný a důvěryhodný nebo oborově certifikovaný, vybraný podle zvyklostí oboru.", en = "The repository is publicly available and trustworthy or domain-certified, chosen by the domain's practice." }
-help = { cs = "Nejdřív oborový repozitář v re3data s certifikací, například CoreTrustSeal; jinak Zenodo nebo Datový catch-all repozitář NRP.", en = "First a domain repository in re3data with a certification such as CoreTrustSeal; otherwise Zenodo or the NRP Data Catch-all Repository." }
+help = { cs = "Nejdřív oborový repozitář v re3data s certifikací, například [[res/std/coretrustseal|CoreTrustSeal]]; jinak [[repo/gen/zenodo|Zenodo]] nebo [[repo/gen/datarepo|Datový catch-all repozitář NRP]].", en = "First a domain repository in re3data with a certification such as [[res/std/coretrustseal|CoreTrustSeal]]; otherwise [[repo/gen/zenodo|Zenodo]] or the [[repo/gen/datarepo|NRP Data Catch-all Repository]]." }
 sources = ["OS3-RULES.23", "OS3-FAQ.02"]
 fixAt = "repository"
 owner = ["user", "data-steward"]
@@ -332,7 +332,7 @@ id = "dataset.27"
 tier = "minimum"
 principles = []
 statement = { cs = "Data steward, který se na datové sadě podílel, je v metadatech uveden jako autor nebo přispěvatel.", en = "The data steward who worked on the dataset is named in the metadata as a creator or contributor." }
-help = { cs = "Zadejte jeho ORCID iD u předvyplnění a Průvodce ho v metadatech DataCite vyhledá.", en = "Enter their ORCID iD with the pre-fill, and the Guide looks for it in the DataCite metadata." }
+help = { cs = "Zadejte jeho [[res/srv/orcid|ORCID]] iD u předvyplnění a Průvodce ho v metadatech [[res/srv/datacite|DataCite]] vyhledá.", en = "Enter their [[res/srv/orcid|ORCID]] iD with the pre-fill, and the Guide looks for it in the [[res/srv/datacite|DataCite]] metadata." }
 sources = ["OS3-RULES.24"]
 fixAt = "citation"
 owner = ["data-steward"]

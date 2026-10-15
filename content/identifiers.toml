@@ -1324,6 +1324,8 @@ actions = [
   "2026-10-14-language-review",
   "2026-10-15-catalogue-review",
   "2026-10-15-final-candidate",
+  "2026-10-16-reader-repairs",
+  "2026-10-16-link-review",
 ]
 model = [
   "model:layers-seams",

@@ -5,7 +5,7 @@
 guideRoute = "res/srv"
 id = "dmp-eosc"
 name = "DMP.eosc.cz"
-description = { cs = "Plánování správy dat v Data Stewardship Wizard se šablonami poskytovatelů a průvodcem licencemi.", en = "Data management planning in the Data Stewardship Wizard, with funder templates and a licence selector." }
+description = { cs = "[[term/data-management-planning|Plánování správy dat]] v [[res/tool/data-stewardship-wizard|Data Stewardship Wizard]] se šablonami poskytovatelů a průvodcem licencemi.", en = "[[term/data-management-planning|Data management planning]] in the [[res/tool/data-stewardship-wizard|Data Stewardship Wizard]], with funder templates and a licence selector." }
 url = "https://dmp.eosc.cz/"
 type = "service"
 fipClass = ["FAIR-Data-Stewardship-Plan-Template"]
@@ -27,7 +27,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/srv"
 id = "dmp-status"
 name = { cs = "Stav služby DMP.eosc.cz", en = "DMP.eosc.cz service status" }
-description = { cs = "Dostupnost služby DMP.eosc.cz.", en = "Availability of the DMP.eosc.cz service." }
+description = { cs = "Dostupnost služby [[res/srv/dmp-eosc|DMP.eosc.cz]].", en = "Availability of the [[res/srv/dmp-eosc|DMP.eosc.cz]] service." }
 url = "https://dsw-nrp.github.io/status"
 type = "service"
 status = "operational"
@@ -40,7 +40,7 @@ languages = ["en"]
 guideRoute = "res/tool"
 id = "dsw-nrp"
 name = { cs = "Šablony a znalostní model DMP.eosc.cz", en = "DMP.eosc.cz templates and knowledge model" }
-description = { cs = "Šablony poskytovatelů, národní znalostní model a doplňky pro DMP.eosc.cz.", en = "Funder templates, the national knowledge model and plugins for DMP.eosc.cz." }
+description = { cs = "Šablony poskytovatelů, národní znalostní model a doplňky pro [[res/srv/dmp-eosc|DMP.eosc.cz]].", en = "Funder templates, the national knowledge model and plugins for [[res/srv/dmp-eosc|DMP.eosc.cz]]." }
 url = "https://github.com/dsw-nrp"
 type = "tool"
 status = "operational"
@@ -186,7 +186,7 @@ dateAccessed = 2026-10-09
 guideRoute = "res/guide"
 id = "cdsc-eln"
 name = { cs = "Jupyter jako elektronický laboratorní deník", en = "Jupyter as an electronic lab notebook" }
-description = { cs = "Příklad komunity data stewardů: Jupyter Notebook jako elektronický laboratorní deník na vzorovém experimentu, s vytažením metadat, kontrolou dat, souhrnem v Jupyter Booku a prostředím, které lze zopakovat (Conda, Docker).", en = "An example from the data steward community: Jupyter Notebook as an electronic lab notebook for a sample experiment, with metadata extraction, data checks, a summary in Jupyter Book and an environment that can be recreated (Conda, Docker)." }
+description = { cs = "Příklad komunity data stewardů: [[res/tool/jupyter|Jupyter]] Notebook jako [[term/electronic-laboratory-notebook|elektronický laboratorní deník]] na vzorovém experimentu, s vytažením metadat, kontrolou dat, souhrnem v Jupyter Booku a prostředím, které lze zopakovat ([[res/tool/conda|Conda]], [[res/tool/docker|Docker]]).", en = "An example from the data steward community: [[res/tool/jupyter|Jupyter]] Notebook as an [[term/electronic-laboratory-notebook|electronic lab notebook]] for a sample experiment, with metadata extraction, data checks, a summary in Jupyter Book and an environment that can be recreated ([[res/tool/conda|Conda]], [[res/tool/docker|Docker]])." }
 url = "https://github.com/Czech-Data-Steward-Community/jupyter-ELN-example"
 type = "guide"
 status = "operational"
@@ -228,7 +228,7 @@ citation = { type = "webpage", title = "CESSDA Data Management Expert Guide", in
 guideRoute = "res/srv"
 id = "cesnet-storage"
 name = { cs = "Datová úložiště CESNET (S3)", en = "CESNET data storage (S3)" }
-description = { cs = "Spravované úložiště pro výzkumná data v e-INFRA CZ.", en = "Managed storage for research data in e-INFRA CZ." }
+description = { cs = "Spravované úložiště pro výzkumná data v [[term/e-infra-cz|e-INFRA CZ]].", en = "Managed storage for research data in [[term/e-infra-cz|e-INFRA CZ]]." }
 url = "https://docs.du.cesnet.cz/"
 type = "service"
 status = "operational"
@@ -241,7 +241,7 @@ languages = ["en"]
 guideRoute = "res/srv"
 id = "onedata"
 name = "Onedata"
-description = { cs = "Sdílení a správa dat napříč úložišti v e-INFRA CZ.", en = "Sharing and managing data across storage in e-INFRA CZ." }
+description = { cs = "Sdílení a správa dat napříč úložišti v [[term/e-infra-cz|e-INFRA CZ]].", en = "Sharing and managing data across storage in [[term/e-infra-cz|e-INFRA CZ]]." }
 url = "https://docs.onedata.e-infra.cz"
 type = "service"
 status = "operational"
@@ -254,7 +254,7 @@ languages = ["en"]
 guideRoute = "res/srv"
 id = "sensitive-cloud"
 name = "Sensitive Cloud"
-description = { cs = "Prostředí pro bezpečné zpracování citlivých dat v e-INFRA CZ.", en = "An environment for processing sensitive data securely in e-INFRA CZ." }
+description = { cs = "Prostředí pro bezpečné zpracování [[term/sensitive-data|citlivých dat]] v [[term/e-infra-cz|e-INFRA CZ]].", en = "An environment for processing [[term/sensitive-data|sensitive data]] securely in [[term/e-infra-cz|e-INFRA CZ]]." }
 url = "https://docs.cerit.io/en/docs/sensitivecloud/account"
 type = "service"
 status = "operational"
@@ -287,7 +287,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/doc"
 id = "nrp-compute"
 name = { cs = "Výpočty s daty z NRP", en = "Computing with data from NRP" }
-description = { cs = "Propojení dat v NRP s výpočetním prostředím e-INFRA CZ.", en = "Connecting data in NRP with the e-INFRA CZ computing environment." }
+description = { cs = "Propojení dat v NRP s výpočetním prostředím [[term/e-infra-cz|e-INFRA CZ]].", en = "Connecting data in NRP with the [[term/e-infra-cz|e-INFRA CZ]] computing environment." }
 url = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing"
 type = "document"
 status = "pilot"
@@ -328,7 +328,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/srv"
 id = "cerit-aiaas"
 name = { cs = "AI jako služba (CERIT)", en = "AI as a Service (CERIT)" }
-description = { cs = "AI v infrastruktuře e-INFRA CZ: chat, API, asistenti pro programování a AI v JupyterHubu; dotazy neopouštějí infrastrukturu.", en = "AI within the e-INFRA CZ infrastructure: chat, API, coding assistants and AI in JupyterHub; requests stay within the infrastructure." }
+description = { cs = "AI v infrastruktuře [[term/e-infra-cz|e-INFRA CZ]]: chat, API, [[res/doc/cerit-ai-coding|asistenti pro programování]] a AI v JupyterHubu; dotazy neopouštějí infrastrukturu.", en = "AI within the [[term/e-infra-cz|e-INFRA CZ]] infrastructure: chat, API, [[res/doc/cerit-ai-coding|coding assistants]] and AI in JupyterHub; requests stay within the infrastructure." }
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/introduction"
 type = "service"
 status = "operational"
@@ -349,7 +349,7 @@ guideRoute = "repo/reg"
 id = "nkr"
 functions = ["find-repositories"]
 name = { cs = "Národní katalog repozitářů (NKR)", en = "National Repository Catalogue (NKR)" }
-description = { cs = "Katalog repozitářů zapojených do Národní datové infrastruktury, s otevřeným API.", en = "Catalogue of repositories in the National Data Infrastructure, with an open API." }
+description = { cs = "Katalog repozitářů zapojených do [[term/national-data-infrastructure|Národní datové infrastruktury]], s otevřeným API.", en = "Catalogue of repositories in the [[term/national-data-infrastructure|National Data Infrastructure]], with an open API." }
 url = "https://repo.cz"
 type = "registry"
 fipClass = ["Registry"]
@@ -364,7 +364,7 @@ guideRoute = "repo/reg"
 id = "fip-dashboard"
 functions = ["find-repositories", "find-standards", "find-support"]
 name = "FIP Dashboard"
-description = { cs = "Katalog zdrojů umožňujících FAIR (FER) a profilů FIP komunit, s ověřením NRP a EOSC CZ.", en = "The catalogue of FAIR-enabling resources (FERs) and community FIPs, with verification by NRP and EOSC CZ." }
+description = { cs = "Katalog zdrojů umožňujících FAIR (FER) a profilů FIP komunit, s ověřením NRP a [[org/eosc-cz|EOSC CZ]].", en = "The catalogue of FAIR-enabling resources (FERs) and community FIPs, with verification by NRP and [[org/eosc-cz|EOSC CZ]]." }
 url = "https://fip-dashboard.dmp.eosc.cz/"
 type = "registry"
 fipClass = ["Registry"]
@@ -409,7 +409,7 @@ guideRoute = "repo/reg"
 id = "opendoar"
 functions = ["find-repositories"]
 name = "OpenDOAR"
-description = { cs = "Celosvětový adresář repozitářů s otevřeným přístupem, který vede Jisc. Zařazuje repozitáře publikací, kvalifikačních prací i dat, jejichž obsah je dostupný bez poplatku a bez registrace.", en = "Worldwide directory of open access repositories, run by Jisc. It lists repositories of publications, theses and data whose content is available without payment or registration." }
+description = { cs = "Celosvětový adresář repozitářů s [[term/open-access|otevřeným přístupem]], který vede Jisc. Zařazuje repozitáře publikací, kvalifikačních prací i dat, jejichž obsah je dostupný bez poplatku a bez registrace.", en = "Worldwide directory of [[term/open-access|open access]] repositories, run by Jisc. It lists repositories of publications, theses and data whose content is available without payment or registration." }
 url = "https://opendoar.ac.uk/"
 type = "registry"
 status = "operational"
@@ -624,7 +624,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/std"
 id = "ccmm"
 name = { cs = "Český základní metadatový model (CCMM)", en = "Czech Core Metadata Model (CCMM)" }
-description = { cs = "Společné minimum metadat pro NMA; NMA pracuje s verzí 1.1.0, vyšla verze 2.0.0.", en = "The common metadata minimum for NMA; NMA works with version 1.1.0, and version 2.0.0 has been released." }
+description = { cs = "Společné minimum metadat pro [[repo/reg/nma|NMA]]; NMA pracuje s verzí 1.1.0, vyšla verze 2.0.0.", en = "The common metadata minimum for [[repo/reg/nma|NMA]]; NMA works with version 1.1.0, and version 2.0.0 has been released." }
 url = "https://www.ccmm.cz/"
 type = "standard"
 fipClass = ["Metadata-schema"]
@@ -658,7 +658,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/srv"
 id = "pid-centre"
 name = { cs = "Centrum PID (identifikatory.cz)", en = "PID Centre (identifikatory.cz)" }
-description = { cs = "Národní centrum DOI, Národní centrum ORCID a podpora ROR.", en = "The National DOI Centre, the National ORCID Centre and ROR support." }
+description = { cs = "Národní centrum DOI, Národní centrum [[res/srv/orcid|ORCID]] a podpora [[res/srv/ror|ROR]].", en = "The National DOI Centre, the National [[res/srv/orcid|ORCID]] Centre and [[res/srv/ror|ROR]] support." }
 url = "https://identifikatory.cz/cs/"
 type = "service"
 fipClass = ["Identifier-service"]
@@ -713,7 +713,7 @@ sameAs = ["http://purl.org/np/RAFP-uWPTN5u2kPR8pYeIgdbwyP1_KYZgoogYIv0Wp-fQ#ROR"
 guideRoute = "res/tool"
 id = "dataspecer"
 name = "Dataspecer"
-description = { cs = "Správa metadatových profilů a datových specifikací; i jako obraz Docker.", en = "Managing metadata profiles and data specifications; also as a Docker image." }
+description = { cs = "Správa metadatových profilů a datových specifikací; i jako obraz [[res/tool/docker|Docker]].", en = "Managing metadata profiles and data specifications; also as a [[res/tool/docker|Docker]] image." }
 url = "https://dataspecer.com/"
 type = "tool"
 fipClass = ["FAIR-Supporting-Software"]
@@ -735,7 +735,7 @@ guideRoute = "res/std"
 id = "cdif"
 code = "CDIF"
 name = "CDIF 1.1"
-description = { cs = "Rámec pro mezioborovou interoperabilitu metadat.", en = "A framework for cross-domain metadata interoperability." }
+description = { cs = "Rámec pro mezioborovou [[term/interoperability|interoperabilitu]] metadat.", en = "A framework for cross-domain metadata [[term/interoperability|interoperability]]." }
 url = "https://book.cdif.org/"
 type = "standard"
 fipClass = ["Metadata-schema"]
@@ -759,7 +759,7 @@ dateAccessed = 2026-10-10
 guideRoute = "res/doc"
 id = "tf-semantic"
 name = { cs = "Doporučení EOSC pro sémantickou interoperabilitu", en = "EOSC recommendations on semantic interoperability" }
-description = { cs = "Praktická doporučení EOSC Task Force pro sémantickou interoperabilitu (2026).", en = "Practical recommendations of the EOSC Task Force on semantic interoperability (2026)." }
+description = { cs = "Praktická doporučení EOSC Task Force pro sémantickou [[term/interoperability|interoperabilitu]] (2026).", en = "Practical recommendations of the EOSC Task Force on semantic [[term/interoperability|interoperability]] (2026)." }
 url = "https://doi.org/10.5281/zenodo.22831063"
 type = "document"
 status = "operational"
@@ -781,7 +781,7 @@ datePublished = 2026-09-18
 guideRoute = "res/std"
 id = "datacite-schema"
 name = "DataCite Metadata Schema"
-description = { cs = "Metadatové schéma DataCite včetně typů vazeb a rolí přispěvatelů.", en = "The DataCite metadata schema, including relation types and contributor roles." }
+description = { cs = "Metadatové schéma [[res/srv/datacite|DataCite]] včetně typů vazeb a rolí přispěvatelů.", en = "The [[res/srv/datacite|DataCite]] metadata schema, including relation types and contributor roles." }
 url = "https://schema.datacite.org/"
 type = "standard"
 fipClass = ["Metadata-schema"]
@@ -806,7 +806,7 @@ version = "4.7"
 guideRoute = "res/guide"
 id = "copyright-licences"
 name = { cs = "Autorská práva a licence", en = "Copyright and licences" }
-description = { cs = "Autorské právo, ochrana výzkumných dat, depoziční a uživatelské licence, Creative Commons.", en = "Copyright, legal protection of research data, deposit and user licences, Creative Commons." }
+description = { cs = "Autorské právo, ochrana výzkumných dat, depoziční a uživatelské licence, [[res/std/creative-commons|Creative Commons]].", en = "Copyright, legal protection of research data, deposit and user licences, [[res/std/creative-commons|Creative Commons]]." }
 url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng"
 type = "guide"
 status = "operational"
@@ -890,7 +890,7 @@ license = "https://creativecommons.org/licenses/by/4.0/"
 guideRoute = "res/srv"
 id = "einfra-aai"
 name = { cs = "Účet a AAI e-INFRA CZ", en = "e-INFRA CZ account and AAI" }
-description = { cs = "Přihlašování a správa přístupů v e-INFRA CZ.", en = "Login and access management in e-INFRA CZ." }
+description = { cs = "Přihlašování a správa přístupů v [[term/e-infra-cz|e-INFRA CZ]].", en = "Login and access management in [[term/e-infra-cz|e-INFRA CZ]]." }
 url = "https://docs.account.e-infra.cz/en/docs/"
 type = "service"
 fipClass = ["Authentication-and-authorization-service"]
@@ -905,7 +905,7 @@ languages = ["en"]
 guideRoute = "res/doc"
 id = "aai-sensitive"
 name = "Initial AAI architecture for sensitive data in NRP"
-description = { cs = "Architektura správy identit a přístupů pro citlivá data v NRP.", en = "Identity and access management architecture for sensitive data in NRP." }
+description = { cs = "Architektura správy identit a přístupů pro [[term/sensitive-data|citlivá data]] v NRP.", en = "Identity and access management architecture for [[term/sensitive-data|sensitive data]] in NRP." }
 url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#AAI_NRP_SD"
 type = "document"
 status = "operational"
@@ -941,7 +941,7 @@ sameAs = ["http://purl.org/np/RANGw57Qlx5BklwMWCP1srqv4KG1o1I8cvA2IRaHq_HDg#Data
 guideRoute = "res/srv"
 id = "handle"
 name = "Handle System"
-description = { cs = "Systém trvalých identifikátorů, na kterém stojí i DOI.", en = "A persistent identifier system, which DOI also builds on." }
+description = { cs = "Systém [[term/persistent-identifier|trvalých identifikátorů]], na kterém stojí i DOI.", en = "A [[term/persistent-identifier|persistent identifier]] system, which DOI also builds on." }
 url = "https://www.handle.net/"
 type = "service"
 fipClass = ["Identifier-service"]
@@ -1004,7 +1004,7 @@ dateAccessed = 2026-10-09
 guideRoute = "res/std"
 id = "process-run-crate"
 name = "Process Run Crate"
-description = { cs = "Profil RO-Crate pro záznam o tom, jak proces data vytvořil: kdo ho spustil, jakým nástrojem, z čeho vycházel a co vzniklo.", en = "An RO-Crate profile for recording how a process made data: who ran it, with which tool, what it drew on and what resulted." }
+description = { cs = "Profil [[res/std/ro-crate|RO-Crate]] pro záznam o tom, jak proces data vytvořil: kdo ho spustil, jakým nástrojem, z čeho vycházel a co vzniklo.", en = "An [[res/std/ro-crate|RO-Crate]] profile for recording how a process made data: who ran it, with which tool, what it drew on and what resulted." }
 url = "https://w3id.org/ro/wfrun/process/0.5"
 type = "standard"
 status = "operational"
@@ -1067,7 +1067,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/std"
 id = "oai-pmh"
 name = "OAI-PMH"
-description = { cs = "Protokol pro sklízení metadat.", en = "A protocol for harvesting metadata." }
+description = { cs = "Protokol pro [[term/harvesting|sklízení]] metadat.", en = "A protocol for [[term/harvesting|harvesting]] metadata." }
 url = "https://www.openarchives.org/pmh/"
 type = "standard"
 fipClass = ["Communication-protocol"]
@@ -1127,7 +1127,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/doc"
 id = "nma-export-docs"
 name = { cs = "NMA: export z repozitáře", en = "NMA: exports from repositories" }
-description = { cs = "Návod NRP k napojení repozitáře na sklizeň do NMA.", en = "NRP instructions for connecting a repository to NMA harvesting." }
+description = { cs = "Návod NRP k napojení repozitáře na [[term/harvesting|sklizeň]] do [[repo/reg/nma|NMA]].", en = "NRP instructions for connecting a repository to [[repo/reg/nma|NMA]] [[term/harvesting|harvesting]]." }
 url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/national-metadata-directory/exports-to-nma"
 type = "document"
 status = "operational"
@@ -1147,7 +1147,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/srv"
 id = "datacite-commons"
 name = "DataCite Commons"
-description = { cs = "Vyhledávání v metadatech DataCite.", en = "Search across DataCite metadata." }
+description = { cs = "Vyhledávání v metadatech [[res/srv/datacite|DataCite]].", en = "Search across [[res/srv/datacite|DataCite]] metadata." }
 url = "https://commons.datacite.org/"
 type = "service"
 status = "operational"
@@ -1209,7 +1209,7 @@ citation = { type = "standard", title = "Joint Declaration of Data Citation Prin
 guideRoute = "res/doc"
 id = "knav-type-t"
 name = { cs = "Výsledek typu T a NMA", en = "Type T results and NMA" }
-description = { cs = "Výklad Knihovny AV ČR k výsledku typu T a Národnímu metadatovému adresáři.", en = "The Library of the Czech Academy of Sciences on type T results and the National Metadata Directory." }
+description = { cs = "Výklad [[org/knav|Knihovny AV ČR]] k výsledku typu T a [[repo/reg/nma|Národnímu metadatovému adresáři]].", en = "The [[org/knav|Library of the Czech Academy of Sciences]] on type T results and the [[repo/reg/nma|National Metadata Directory]]." }
 url = "https://openscience.lib.cas.cz/en/funders-en/new-type-t-research-output-and-the-national-metadata-directory/"
 type = "document"
 status = "operational"
@@ -1229,7 +1229,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/proj"
 id = "os3"
 name = "Open Science III"
-description = { cs = "Výzva vyžadující FAIR datovou sadu v NMA a zapojení data stewarda.", en = "A call requiring a FAIR dataset in NMA and the involvement of a data steward." }
+description = { cs = "Výzva vyžadující FAIR datovou sadu v [[repo/reg/nma|NMA]] a zapojení data stewarda.", en = "A call requiring a FAIR dataset in [[repo/reg/nma|NMA]] and the involvement of a data steward." }
 url = "https://www.eosc.cz/projekty/open-science-iii"
 type = "project"
 status = "operational"
@@ -1356,7 +1356,7 @@ languages = ["en"]
 guideRoute = "res/tool"
 id = "ostrails-cli"
 name = "OSTrails CLI"
-description = { cs = "Dávkové spouštění testů FAIR Champion nad vzorkem záznamů.", en = "Running FAIR Champion tests in batches over a sample of records." }
+description = { cs = "Dávkové spouštění testů [[res/tool/fair-champion|FAIR Champion]] nad vzorkem záznamů.", en = "Running [[res/tool/fair-champion|FAIR Champion]] tests in batches over a sample of records." }
 url = "https://github.com/MarekSuchanek/ostrails-ctu-dspace-fair"
 type = "tool"
 status = "operational"
@@ -1377,7 +1377,7 @@ dateAccessed = 2026-10-08
 guideRoute = "res/doc"
 id = "ostrails-cz-pilot"
 name = { cs = "Pilot OSTrails CZ: hodnocení vzorku DSpace ČVUT", en = "OSTrails CZ pilot: assessment of a CTU DSpace sample" }
-description = { cs = "Výsledky a doporučení z hodnocení 100 záznamů nástrojem FAIR Champion (2026).", en = "Results and recommendations from assessing 100 records with FAIR Champion (2026)." }
+description = { cs = "Výsledky a doporučení z hodnocení 100 záznamů nástrojem [[res/tool/fair-champion|FAIR Champion]] (2026).", en = "Results and recommendations from assessing 100 records with [[res/tool/fair-champion|FAIR Champion]] (2026)." }
 url = "https://doi.org/10.5281/zenodo.21726258"
 type = "document"
 status = "operational"
@@ -1426,7 +1426,7 @@ id = "argos"
 rdmkit = { id = "argos", tess = "Argos" }
 knav = "argos"
 name = "ARGOS"
-description = { cs = "Platforma OpenAIRE a EUDAT pro tvorbu plánů správy dat (DMP).", en = "The OpenAIRE and EUDAT platform for writing data management plans (DMPs)." }
+description = { cs = "Platforma OpenAIRE a EUDAT pro tvorbu [[term/data-management-plan|plánů správy dat]] (DMP).", en = "The OpenAIRE and EUDAT platform for writing [[term/data-management-plan|data management plans]] (DMPs)." }
 url = "https://argos.openaire.eu/splash/"
 type = "tool"
 status = "operational"
@@ -1441,7 +1441,7 @@ id = "dmponline"
 rdmkit = { id = "dmponline", tess = "DMPonline" }
 knav = "dmponline"
 name = "DMPonline"
-description = { cs = "Nástroj britského Digital Curation Centre pro tvorbu plánů správy dat (DMP).", en = "The UK Digital Curation Centre's tool for writing data management plans (DMPs)." }
+description = { cs = "Nástroj britského Digital Curation Centre pro tvorbu [[term/data-management-plan|plánů správy dat]] (DMP).", en = "The UK Digital Curation Centre's tool for writing [[term/data-management-plan|data management plans]] (DMPs)." }
 url = "https://dmponline.dcc.ac.uk/"
 type = "tool"
 status = "operational"
@@ -1455,7 +1455,7 @@ guideRoute = "res/srv"
 id = "avcr-fair-wizard"
 knav = "fw"
 name = { cs = "FAIR Wizard AV ČR", en = "FAIR Wizard of the Czech Academy of Sciences" }
-description = { cs = "Instance Data Stewardship Wizard pro výzkumníky pracovišť Akademie věd ČR: plán správy dat podle dotazníku, spolupráce s kolegy a export pro poskytovatele.", en = "The Data Stewardship Wizard instance for researchers at the institutes of the Czech Academy of Sciences: a data management plan built from a questionnaire, shared with colleagues and exported for funders." }
+description = { cs = "Instance [[res/tool/data-stewardship-wizard|Data Stewardship Wizard]] pro výzkumníky pracovišť Akademie věd ČR: [[term/data-management-plan|plán správy dat]] podle dotazníku, spolupráce s kolegy a export pro poskytovatele.", en = "The [[res/tool/data-stewardship-wizard|Data Stewardship Wizard]] instance for researchers at the institutes of the Czech Academy of Sciences: a [[term/data-management-plan|data management plan]] built from a questionnaire, shared with colleagues and exported for funders." }
 url = "https://avcr.fair-wizard.com/"
 type = "service"
 status = "operational"
@@ -1558,7 +1558,7 @@ languages = ["en"]
 guideRoute = "res/std"
 id = "cc-signals"
 name = "CC Signals"
-description = { cs = "Rámec Creative Commons, kterým autoři a správci obsahu vyjadřují, jak si přejí, aby se jejich díla využívala k trénování AI; ve stavu prototypu.", en = "A Creative Commons framework in which creators and content stewards state how they want their works used for AI training; at prototype stage." }
+description = { cs = "Rámec [[res/std/creative-commons|Creative Commons]], kterým autoři a správci obsahu vyjadřují, jak si přejí, aby se jejich díla využívala k trénování AI; ve stavu prototypu.", en = "A [[res/std/creative-commons|Creative Commons]] framework in which creators and content stewards state how they want their works used for AI training; at prototype stage." }
 url = "https://www.eosc.cz/sluzby/ukladani/cc-signals"
 type = "standard"
 status = "in-development"
@@ -1571,7 +1571,7 @@ languages = ["cs"]
 guideRoute = "res/guide"
 id = "strazci-dat"
 name = { cs = "Strážci dat: Mise FAIR", en = "Data guardians: Mission FAIR" }
-description = { cs = "Šestidílný seriál článků EOSC CZ o roli data stewardů, jejich nástrojích a vzdělávání.", en = "A six-part EOSC CZ article series on the data steward role, its tools and training." }
+description = { cs = "Šestidílný seriál článků [[org/eosc-cz|EOSC CZ]] o roli data stewardů, jejich nástrojích a vzdělávání.", en = "A six-part [[org/eosc-cz|EOSC CZ]] article series on the data steward role, its tools and training." }
 url = "https://www.eosc.cz/komunity/data-stewardi/strazci-dat-mise-fair"
 type = "guide"
 status = "operational"
@@ -1584,7 +1584,7 @@ languages = ["cs"]
 guideRoute = "res/guide"
 id = "ds-manual"
 name = { cs = "Manuál začínajícího data stewarda", en = "Manual for beginning data stewards" }
-description = { cs = "Kde začít, kurzy a zdroje a tipy pro první kroky; vznikl na Univerzitě Karlově a recenzovala ho komunita data stewardů v ČR.", en = "Where to start, courses and resources, and tips for the first steps; written at Charles University and reviewed by the Czech data steward community." }
+description = { cs = "Kde začít, kurzy a zdroje a tipy pro první kroky; vznikl na [[org/cuni|Univerzitě Karlově]] a recenzovala ho komunita data stewardů v ČR.", en = "Where to start, courses and resources, and tips for the first steps; written at [[org/cuni|Charles University]] and reviewed by the Czech data steward community." }
 url = "https://www.eosc.cz/media/3795276/manual_ds_10012025_cz_v_1-3.pdf"
 type = "guide"
 status = "operational"
@@ -1639,7 +1639,7 @@ dateAccessed = 2026-10-09
 guideRoute = "res/guide"
 id = "nrp-admin-docs"
 name = { cs = "Dokumentace NRP pro správce repozitářů", en = "NRP documentation for repository administrators" }
-description = { cs = "Návody NRP pro provoz repozitáře, včetně podpory uživatelů a napojení na NMA.", en = "NRP guidance on running a repository, including user support and the connection to NMA." }
+description = { cs = "Návody NRP pro provoz repozitáře, včetně podpory uživatelů a napojení na [[repo/reg/nma|NMA]].", en = "NRP guidance on running a repository, including user support and the connection to [[repo/reg/nma|NMA]]." }
 url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/repo_admins"
 type = "guide"
 status = "operational"
@@ -1693,7 +1693,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-planning"
 name = { cs = "Školení: plánování a příprava dat", en = "Training: planning and preparing data" }
-description = { cs = "Kurzy EOSC CZ k plánování a přípravě dat.", en = "EOSC CZ courses on planning and preparing data." }
+description = { cs = "Kurzy [[org/eosc-cz|EOSC CZ]] k plánování a přípravě dat.", en = "[[org/eosc-cz|EOSC CZ]] courses on planning and preparing data." }
 url = "https://www.eosc.cz/skoleni/planovani-a-priprava-dat"
 type = "course"
 status = "operational"
@@ -1706,7 +1706,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-collection"
 name = { cs = "Školení: sběr dat", en = "Training: collecting data" }
-description = { cs = "Kurzy EOSC CZ ke sběru dat.", en = "EOSC CZ courses on collecting data." }
+description = { cs = "Kurzy [[org/eosc-cz|EOSC CZ]] ke sběru dat.", en = "[[org/eosc-cz|EOSC CZ]] courses on collecting data." }
 url = "https://www.eosc.cz/skoleni/sber-dat"
 type = "course"
 status = "operational"
@@ -1719,7 +1719,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-processing"
 name = { cs = "Školení: zpracování dat", en = "Training: processing data" }
-description = { cs = "Kurzy EOSC CZ ke zpracování dat.", en = "EOSC CZ courses on processing data." }
+description = { cs = "Kurzy [[org/eosc-cz|EOSC CZ]] ke zpracování dat.", en = "[[org/eosc-cz|EOSC CZ]] courses on processing data." }
 url = "https://www.eosc.cz/skoleni/zpracovani-dat"
 type = "course"
 status = "operational"
@@ -1732,7 +1732,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-analysis"
 name = { cs = "Školení: analýza dat", en = "Training: analysing data" }
-description = { cs = "Kurzy EOSC CZ k analýze dat.", en = "EOSC CZ courses on analysing data." }
+description = { cs = "Kurzy [[org/eosc-cz|EOSC CZ]] k analýze dat.", en = "[[org/eosc-cz|EOSC CZ]] courses on analysing data." }
 url = "https://www.eosc.cz/skoleni/analyza-dat"
 type = "course"
 status = "operational"
@@ -1745,7 +1745,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-storage"
 name = { cs = "Školení: ukládání dat", en = "Training: storing data" }
-description = { cs = "Kurzy EOSC CZ k ukládání dat.", en = "EOSC CZ courses on storing data." }
+description = { cs = "Kurzy [[org/eosc-cz|EOSC CZ]] k ukládání dat.", en = "[[org/eosc-cz|EOSC CZ]] courses on storing data." }
 url = "https://www.eosc.cz/skoleni/ukladani-dat"
 type = "course"
 status = "operational"
@@ -1758,7 +1758,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-sharing"
 name = { cs = "Školení: sdílení dat", en = "Training: sharing data" }
-description = { cs = "Kurzy EOSC CZ ke sdílení dat.", en = "EOSC CZ courses on sharing data." }
+description = { cs = "Kurzy [[org/eosc-cz|EOSC CZ]] ke sdílení dat.", en = "[[org/eosc-cz|EOSC CZ]] courses on sharing data." }
 url = "https://www.eosc.cz/skoleni/sdileni-dat"
 type = "course"
 status = "operational"
@@ -1771,7 +1771,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-reuse"
 name = { cs = "Školení: znovuvyužití dat", en = "Training: reusing data" }
-description = { cs = "Kurzy EOSC CZ ke znovuvyužití dat.", en = "EOSC CZ courses on reusing data." }
+description = { cs = "Kurzy [[org/eosc-cz|EOSC CZ]] ke znovuvyužití dat.", en = "[[org/eosc-cz|EOSC CZ]] courses on reusing data." }
 url = "https://www.eosc.cz/skoleni/znovuvyuziti-dat"
 type = "course"
 status = "operational"
@@ -1784,7 +1784,7 @@ languages = ["cs"]
 guideRoute = "res/course"
 id = "training-overview"
 name = { cs = "Školení: přehledové a úvodní kurzy", en = "Training: overview and introductory courses" }
-description = { cs = "Úvodní kurzy EOSC CZ k otevřené vědě a správě výzkumných dat.", en = "EOSC CZ introductory courses on open science and research data management." }
+description = { cs = "Úvodní kurzy [[org/eosc-cz|EOSC CZ]] k [[term/open-science|otevřené vědě]] a správě výzkumných dat.", en = "[[org/eosc-cz|EOSC CZ]] introductory courses on [[term/open-science|open science]] and research data management." }
 url = "https://www.eosc.cz/skoleni/prehledove-a-uvodni-kurzy"
 type = "course"
 status = "operational"
@@ -1822,7 +1822,7 @@ guideRoute = "res/std"
 id = "frsm"
 code = "FRSM"
 name = "FAIR-IMPACT FRSM"
-description = { cs = "Sedmnáct obecných metrik pro software, verze 1.0; navazují na FAIR4RS.", en = "Seventeen generic software metrics, version 1.0, following FAIR4RS." }
+description = { cs = "Sedmnáct obecných metrik pro software, verze 1.0; navazují na [[res/std/fair4rs|FAIR4RS]].", en = "Seventeen generic software metrics, version 1.0, following [[res/std/fair4rs|FAIR4RS]]." }
 url = "https://fair-impact.eu/metrics-software"
 type = "standard"
 status = "operational"
@@ -1927,7 +1927,7 @@ guideRoute = "res/doc"
 id = "osii-study"
 code = "OSII-STUDY"
 name = { cs = "OS II: výzkumné deníky a původ dat", en = "OS II: research notebooks and provenance" }
-description = { cs = "Projekt OS II připravuje podporu laboratorních a terénních deníků, jejich propojení s repozitáři a sledování původu dat. Studie proveditelnosti popisuje plánované výstupy.", en = "The OS II project is developing support for laboratory and field notebooks, their connection to repositories and data provenance tracking. The feasibility study describes the planned outputs." }
+description = { cs = "Projekt [[res/proj/os2|OS II]] připravuje podporu laboratorních a terénních deníků, jejich propojení s repozitáři a sledování původu dat. Studie proveditelnosti popisuje plánované výstupy.", en = "The [[res/proj/os2|OS II]] project is developing support for laboratory and field notebooks, their connection to repositories and data provenance tracking. The feasibility study describes the planned outputs." }
 url = "https://www.eosc.cz/media/4083536/priloha-c-7-vyzvy_vynatek-ze-studie-proveditelnosti.pdf"
 type = "document"
 status = "operational"
@@ -1946,7 +1946,7 @@ guideRoute = "res/course"
 id = "eosc-notebooks"
 code = "EOSC-ELN"
 name = { cs = "EOSC CZ: elektronické laboratorní a terénní deníky", en = "EOSC CZ: electronic laboratory and field notebooks" }
-description = { cs = "Školení EOSC CZ z 5. září 2024, se záznamem a prezentací.", en = "EOSC CZ training of 5 September 2024, with a recording and presentation." }
+description = { cs = "[[res/course/eosc-training|Školení EOSC CZ]] z 5. září 2024, se záznamem a prezentací.", en = "[[res/course/eosc-training|EOSC CZ training]] of 5 September 2024, with a recording and presentation." }
 url = "https://www.eosc.cz/novinky-a-akce/kalendar-akci/elektronicke-laboratorni-terenni-deniky-eln"
 type = "course"
 status = "operational"
@@ -1966,7 +1966,7 @@ id = "kadi4mat"
 knav = "kadi"
 code = "KADI4MAT"
 name = "Kadi4Mat"
-description = { cs = "Výzkumný deník a správa dat a pracovních postupů; národní integraci připravuje projekt OS II.", en = "A research notebook and data/workflow management tool; the OS II project is developing its national integration." }
+description = { cs = "Výzkumný deník a správa dat a pracovních postupů; národní integraci připravuje projekt [[res/proj/os2|OS II]].", en = "A research notebook and data/workflow management tool; the [[res/proj/os2|OS II]] project is developing its national integration." }
 url = "https://kadi.iam.kit.edu/"
 type = "tool"
 status = "operational"
@@ -1987,7 +1987,7 @@ rdmkit = { id = "elabftw", tess = "eLabFTW" }
 knav = "elab"
 code = "ELABFTW"
 name = "eLabFTW"
-description = { cs = "Elektronický laboratorní deník; národní integraci připravuje projekt OS II.", en = "An electronic laboratory notebook; the OS II project is developing its national integration." }
+description = { cs = "[[term/electronic-laboratory-notebook|Elektronický laboratorní deník]]; národní integraci připravuje projekt [[res/proj/os2|OS II]].", en = "An [[term/electronic-laboratory-notebook|electronic laboratory notebook]]; the [[res/proj/os2|OS II]] project is developing its national integration." }
 url = "https://www.elabftw.net/"
 type = "tool"
 status = "operational"
@@ -2141,7 +2141,7 @@ guideRoute = "res/srv"
 id = "galaxy-cz"
 knav = "galaxy1"
 name = "Galaxy (usegalaxy.cz)"
-description = { cs = "Národní instance Galaxy: analytické postupy bez programování, ve webovém prohlížeči, se záznamem každého kroku. Je součástí evropské sítě Galaxy; přihlašuje se přes e-INFRA CZ AAI nebo LS AAI.", en = "The national Galaxy instance: analysis workflows without programming, in a web browser, with every step recorded. It belongs to the European Galaxy network; sign-in is through e-INFRA CZ AAI or LS AAI." }
+description = { cs = "Národní instance Galaxy: analytické postupy bez programování, ve webovém prohlížeči, se záznamem každého kroku. Je součástí evropské sítě Galaxy; přihlašuje se přes [[term/e-infra-cz|e-INFRA CZ]] AAI nebo LS AAI.", en = "The national Galaxy instance: analysis workflows without programming, in a web browser, with every step recorded. It belongs to the European Galaxy network; sign-in is through [[term/e-infra-cz|e-INFRA CZ]] AAI or LS AAI." }
 url = "https://usegalaxy.cz/"
 type = "service"
 status = "operational"
@@ -2155,7 +2155,7 @@ operator = { name = { cs = "konsorcium e-INFRA CZ", en = "e-INFRA CZ consortium"
 guideRoute = "res/srv"
 id = "jupyterhub-cerit"
 name = "JupyterHub (CERIT-SC)"
-description = { cs = "Interaktivní notebooky Jupyter na kontejnerové platformě CERIT-SC s napojením na úložiště e-INFRA CZ; výpočet, kód a jeho výsledek zůstávají pohromadě.", en = "Interactive Jupyter notebooks on the CERIT-SC container platform, connected to e-INFRA CZ storage; the computation, its code and its result stay together." }
+description = { cs = "Interaktivní notebooky [[res/tool/jupyter|Jupyter]] na kontejnerové platformě CERIT-SC s napojením na úložiště [[term/e-infra-cz|e-INFRA CZ]]; výpočet, kód a jeho výsledek zůstávají pohromadě.", en = "Interactive [[res/tool/jupyter|Jupyter]] notebooks on the CERIT-SC container platform, connected to [[term/e-infra-cz|e-INFRA CZ]] storage; the computation, its code and its result stay together." }
 url = "https://docs.cerit.io/en/docs/web-apps/jupyterhub"
 type = "service"
 status = "operational"
@@ -2198,7 +2198,7 @@ operator = { name = "CESNET", source = "https://du.cesnet.cz/en/navody/owncloud/
 guideRoute = "res/data"
 id = "recetox-ms-library"
 name = { cs = "Referenční knihovny hmotnostních spekter RECETOX", en = "RECETOX Mass Spectrum Reference Libraries" }
-description = { cs = "Spektra autentických látek pro identifikaci v hmotnostní spektrometrii (GC-MS s vysokým rozlišením), jako MSP s databází látek v SDF; archivované v Zenodu pod licencí CC BY-NC.", en = "Spectra of authentic compounds for identification in mass spectrometry (high-resolution GC-MS), as MSP with a compound database in SDF; archived in Zenodo under CC BY-NC." }
+description = { cs = "Spektra autentických látek pro identifikaci v hmotnostní spektrometrii (GC-MS s vysokým rozlišením), jako MSP s databází látek v SDF; archivované v [[repo/gen/zenodo|Zenodu]] pod licencí CC BY-NC.", en = "Spectra of authentic compounds for identification in mass spectrometry (high-resolution GC-MS), as MSP with a compound database in SDF; archived in [[repo/gen/zenodo|Zenodo]] under CC BY-NC." }
 url = "https://www.recetox.muni.cz/en/services/recetox-central-laboratories/biomarker-analysis-laboratories/recetox-mass-spectrum-reference-library"
 type = "data"
 status = "operational"
@@ -2213,7 +2213,7 @@ operator = { name = "RECETOX", source = "https://www.recetox.muni.cz/en/services
 guideRoute = "res/guide"
 id = "rdmkit-dmp"
 name = { cs = "Plán správy dat v RDMkit", en = "RDMkit data management plan" }
-description = { cs = "Požadavky poskytovatele, obsah plánu a výběr šablony. V českém prostředí začněte v DMP.eosc.cz.", en = "Funder requirements, plan contents and template selection. In the Czech setting, start with DMP.eosc.cz." }
+description = { cs = "Požadavky poskytovatele, obsah plánu a výběr šablony. V českém prostředí začněte v [[res/srv/dmp-eosc|DMP.eosc.cz]].", en = "Funder requirements, plan contents and template selection. In the Czech setting, start with [[res/srv/dmp-eosc|DMP.eosc.cz]]." }
 url = "https://rdmkit.elixir-europe.org/data_management_plan"
 type = "guide"
 stations = ["plan"]
@@ -2269,7 +2269,7 @@ languages = ["en"]
 guideRoute = "res/guide"
 id = "rdmkit-licensing"
 name = { cs = "Licencování v RDMkit", en = "RDMkit licensing" }
-description = { cs = "Mezinárodní doporučení k licencím; pro český výklad CC0 použijte také příručku NRP Autorská práva a licence.", en = "International licensing guidance; also consult the NRP copyright handbook for the interpretation of CC0 under Czech law." }
+description = { cs = "Mezinárodní doporučení k licencím; pro český výklad CC0 použijte také příručku NRP [[res/guide/copyright-licences|Autorská práva a licence]].", en = "International licensing guidance; also consult the [[res/guide/copyright-licences|NRP copyright handbook]] for the interpretation of CC0 under Czech law." }
 url = "https://rdmkit.elixir-europe.org/licensing"
 type = "guide"
 stations = ["licence"]
@@ -2607,7 +2607,7 @@ guideRoute = "res/std"
 id = "workflow-ro-crate"
 code = "WFCRATE"
 name = "Workflow RO-Crate"
-description = { cs = "Profil RO-Crate pro popis výpočetního pracovního postupu, jeho souborů, prostředí a souvisejících metadat.", en = "An RO-Crate profile for describing a computational workflow, its files, environment and related metadata." }
+description = { cs = "Profil [[res/std/ro-crate|RO-Crate]] pro popis výpočetního pracovního postupu, jeho souborů, prostředí a souvisejících metadat.", en = "An [[res/std/ro-crate|RO-Crate]] profile for describing a computational workflow, its files, environment and related metadata." }
 url = "https://w3id.org/workflowhub/workflow-ro-crate/1.1"
 type = "standard"
 status = "operational"
@@ -2621,7 +2621,7 @@ guideRoute = "res/guide"
 id = "conda-environments"
 code = "CONDAENV"
 name = { cs = "Prostředí v Conda", en = "Conda environments" }
-description = { cs = "Oficiální postupy pro vytváření, export a obnovu prostředí Conda.", en = "Official instructions for creating, exporting and recreating Conda environments." }
+description = { cs = "Oficiální postupy pro vytváření, export a obnovu prostředí [[res/tool/conda|Conda]].", en = "Official instructions for creating, exporting and recreating [[res/tool/conda|Conda]] environments." }
 url = "https://docs.conda.io/projects/conda/en/stable/user-guide/tasks/manage-environments.html"
 type = "guide"
 status = "operational"
@@ -2635,7 +2635,7 @@ guideRoute = "res/guide"
 id = "container-images"
 code = "CONTAINER"
 name = { cs = "Reprodukovatelné obrazy kontejnerů", en = "Reproducible container images" }
-description = { cs = "Oficiální doporučení Docker k sestavení obrazu a připnutí základního obrazu pomocí digestu.", en = "Docker's official guidance on building an image and pinning its base image by digest." }
+description = { cs = "Oficiální doporučení [[res/tool/docker|Docker]] k sestavení obrazu a připnutí základního obrazu pomocí digestu.", en = "[[res/tool/docker|Docker]]'s official guidance on building an image and pinning its base image by digest." }
 url = "https://docs.docker.com/build/building/best-practices/"
 type = "guide"
 status = "operational"
@@ -2648,7 +2648,7 @@ citation = { type = "webpage", title = "Building best practices", inLanguage = "
 guideRoute = "res/tool"
 id = "nrp-license-selector"
 name = "NRP License Selector"
-description = { cs = "Nástroj NRP pro výběr veřejné licence, včetně softwarových licencí; příručka Autorská práva a licence na něj odkazuje v části o softwaru.", en = "The NRP tool for choosing a public licence, including software licences; the copyright handbook links it from its software section." }
+description = { cs = "Nástroj NRP pro výběr veřejné licence, včetně softwarových licencí; příručka [[res/guide/copyright-licences|Autorská práva a licence]] na něj odkazuje v části o softwaru.", en = "The NRP tool for choosing a public licence, including software licences; the [[res/guide/copyright-licences|copyright handbook]] links it from its software section." }
 url = "https://ufal.github.io/public-license-selector/"
 type = "tool"
 status = "operational"

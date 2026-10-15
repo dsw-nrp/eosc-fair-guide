@@ -5,7 +5,7 @@
 id = "cdif"
 name = { cs = "Připravenost metadat na CDIF", en = "CDIF readiness of metadata" }
 icon = "circle-nodes"
-description = { cs = "Odpovídají metadata repozitáře rámci CDIF pro interoperabilitu napříč obory? Otázky sledují obsahové požadavky CDIF 1.1 na metadata pro vyhledávání a profily CDIF; u každé najdete text CDIF, jak ho kniha CDIF zveřejňuje. Základní kontrola má povinné a podmíněné prvky, rozšířená přidává doporučené prvky, správu metadat a profily.", en = "Do the repository's metadata follow CDIF, the framework for interoperability across domains? The questions follow the CDIF 1.1 content requirements for discovery metadata and the CDIF profiles, each with CDIF's text as the CDIF book publishes it. The basic check covers the required and conditional elements; the extended check adds the recommended elements, metadata management and the profiles." }
+description = { cs = "Odpovídají metadata repozitáře rámci CDIF pro [[term/interoperability|interoperabilitu]] napříč obory? Otázky sledují obsahové požadavky CDIF 1.1 na metadata pro vyhledávání a profily CDIF; u každé najdete text CDIF, jak ho kniha CDIF zveřejňuje. Základní kontrola má povinné a podmíněné prvky, rozšířená přidává doporučené prvky, správu metadat a profily.", en = "Do the repository's metadata follow CDIF, the framework for [[term/interoperability|interoperability]] across domains? The questions follow the CDIF 1.1 content requirements for discovery metadata and the CDIF profiles, each with CDIF's text as the CDIF book publishes it. The basic check covers the required and conditional elements; the extended check adds the recommended elements, metadata management and the profiles." }
 lenses = ["SR", "K"]
 minutes = 20
 
@@ -25,7 +25,7 @@ description = { cs = "Uvádějte je, kde je to možné a smysluplné.", en = "Gi
 id = "management"
 icon = "gears"
 name = { cs = "Správa metadat", en = "Metadata management" }
-description = { cs = "Pro sklizeň mezi katalogy; nástroje je obvykle vyplňují samy.", en = "For harvesting between catalogues; tools usually fill them in." }
+description = { cs = "Pro [[term/harvesting|sklizeň]] mezi katalogy; nástroje je obvykle vyplňují samy.", en = "For [[term/harvesting|harvesting]] between catalogues; tools usually fill them in." }
 
 [[block]]
 id = "profiles"

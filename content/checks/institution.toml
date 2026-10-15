@@ -8,7 +8,7 @@
 id = "institution"
 name = { cs = "Instituce a správa dat", en = "Institution and data management" }
 icon = "building-columns"
-description = { cs = "Kontrola pro data stewardy: splňuje strategie vaší instituce minimum výzvy Open Science III a plní instituce povinnosti zákona o výzkumu? Rozšířená kontrola projde i akční plán, politiku a využití Národní datové infrastruktury.", en = "A check for data stewards: does your institution's strategy meet the Open Science III minimum, and does the institution meet the research act's obligations? The extended check also covers the action plan, the policy and the use of the National Data Infrastructure." }
+description = { cs = "Kontrola pro data stewardy: splňuje strategie vaší instituce minimum výzvy [[res/proj/os3|Open Science III]] a plní instituce povinnosti zákona o výzkumu? Rozšířená kontrola projde i akční plán, politiku a využití [[term/national-data-infrastructure|Národní datové infrastruktury]].", en = "A check for data stewards: does your institution's strategy meet the [[res/proj/os3|Open Science III]] minimum, and does the institution meet the research act's obligations? The extended check also covers the action plan, the policy and the use of the [[term/national-data-infrastructure|National Data Infrastructure]]." }
 lenses = ["DS"]
 minutes = 10
 
@@ -22,25 +22,25 @@ description = { cs = "§ 83 zákona č. 328/2025 Sb., účinný od 1. ledna 2027
 id = "strategy"
 icon = "compass"
 name = { cs = "Strategie pro nakládání s výzkumnými daty", en = "Research data strategy" }
-description = { cs = "Podmínka, bez které výzva Open Science III neakceptuje výstupy.", en = "The condition without which the Open Science III call accepts no outputs." }
+description = { cs = "Podmínka, bez které výzva [[res/proj/os3|Open Science III]] neakceptuje výstupy.", en = "The condition without which the [[res/proj/os3|Open Science III]] call accepts no outputs." }
 
 [[block]]
 id = "action-plan"
 icon = "list-check"
 name = { cs = "Akční plán", en = "Action plan" }
-description = { cs = "Minimální obsah, který výzva Open Science III stanoví, když instituce akční plán připravuje.", en = "The minimum content the Open Science III call sets when an institution prepares an action plan." }
+description = { cs = "Minimální obsah, který výzva [[res/proj/os3|Open Science III]] stanoví, když instituce akční plán připravuje.", en = "The minimum content the [[res/proj/os3|Open Science III]] call sets when an institution prepares an action plan." }
 
 [[block]]
 id = "policy"
 icon = "file-contract"
 name = { cs = "Politika správy výzkumných dat", en = "Research data policy" }
-description = { cs = "Minimální obsah, který výzva Open Science III stanoví, když instituce politiku připravuje, rozpracovaný podle manuálu EOSC CZ.", en = "The minimum content the Open Science III call sets when an institution prepares a policy, detailed by the EOSC CZ manual." }
+description = { cs = "Minimální obsah, který výzva [[res/proj/os3|Open Science III]] stanoví, když instituce politiku připravuje, rozpracovaný podle manuálu [[org/eosc-cz|EOSC CZ]].", en = "The minimum content the [[res/proj/os3|Open Science III]] call sets when an institution prepares a policy, detailed by the [[org/eosc-cz|EOSC CZ]] manual." }
 
 [[block]]
 id = "infrastructure"
 icon = "network-wired"
 name = { cs = "Národní datová infrastruktura a lidé", en = "National data infrastructure and people" }
-description = { cs = "Služby Národní datové infrastruktury a lidé, které jejich využití potřebuje.", en = "The services of the National Data Infrastructure and the people their use needs." }
+description = { cs = "Služby [[term/national-data-infrastructure|Národní datové infrastruktury]] a lidé, které jejich využití potřebuje.", en = "The services of the [[term/national-data-infrastructure|National Data Infrastructure]] and the people their use needs." }
 
 # Strategy
 

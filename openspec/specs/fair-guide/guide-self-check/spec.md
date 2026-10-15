@@ -713,3 +713,29 @@ the extended check on.
 - **GIVEN** a dataset check with answers to Recommended questions
 - **WHEN** the reader switches the extended check off
 - **THEN** the list, the running result and the progress show the first tier only, and a note counts the saved answers left out
+
+### Requirement: Evaluator inputs have relevant question coverage
+
+Evaluator inputs SHALL be offered only when reviewed mappings cover at least one question in the current check, mode and tier scope. Hiding irrelevant inputs SHALL preserve accepted assessments, exports and older saved results.
+
+#### Scenario: An object check has no evaluator mapping
+
+- **GIVEN** CDIF or FDO questions with no reviewed F-UJI or FAIR-Checker mapping
+- **WHEN** the evidence view opens
+- **THEN** it offers neither evaluator as an input and retains the applicable local checks
+
+#### Scenario: A published dataset has mapped questions
+
+- **GIVEN** a published-dataset check with relevant reviewed mappings
+- **WHEN** the evidence view opens
+- **THEN** it offers the mapped evaluators without making requests until the reader acts
+
+### Requirement: Self-check reports print without trailing blank pages
+
+Printed reports SHALL retain readable counts, question names, answers and opened source details. Native disclosure contents SHALL paint on their allocated pages, with no trailing pages caused by hidden content or screen-only padding. Printing SHALL restore the reader's disclosure state afterward.
+
+#### Scenario: An extended report is saved as PDF
+
+- **GIVEN** an extended self-check report with closed answer and evidence disclosures
+- **WHEN** the reader prints or saves it as PDF
+- **THEN** each generated page contains report text, all answer details are available, and no empty pages follow the report

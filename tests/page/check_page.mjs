@@ -480,11 +480,7 @@ sections.push(["page", async () => {
 
     // In English, titles and badges carry no Czech outside an original title marked as Czech, and a work the guide
     // only cites shows its original title with the translation in brackets; in Czech the original stands alone.
-    const openAll = async (hash) => {
-      await open(hash);
-      while (await view.locator(".catalogue-more").count()) await view.locator(".catalogue-more").first().click();
-    };
-    await openAll("#/en/V/catalogue/resources");
+    await open("#/en/V/catalogue/resources");
     const czechOutside = await view.evaluate(() => {
       const czech = /[ěščřžůťďňáéíóúý]/i;
       const found = [];
@@ -499,7 +495,7 @@ sections.push(["page", async () => {
     if (czechOutside.length) fail("catalogue: Czech names in English titles or badges: " + czechOutside.slice(0, 5).join(" | "));
     const surveyTitle = async () => (await view.locator(".card h3", { hasText: "Stav správy výzkumných dat" }).first().textContent()).trim();
     if (!(await surveyTitle()).includes("[State of research data management in the Czech Republic 2025]")) fail("catalogue: a cited Czech work does not show its translated title in English: " + (await surveyTitle()));
-    await openAll("#/cs/V/catalogue/resources");
+    await open("#/cs/V/catalogue/resources");
     if ((await surveyTitle()).includes("[")) fail("catalogue: in Czech a Czech work shows a translation: " + (await surveyTitle()));
 
     // No shared facet shows only zeros: a kind whose entries carry no station or principle shows no such facet or
@@ -767,7 +763,6 @@ sections.push(["page", async () => {
         return kind && section && section.querySelector(".facet-kind-name") && !!(kind.compareDocumentPosition(facet) & Node.DOCUMENT_POSITION_FOLLOWING) && section.querySelector("fieldset") === facet;
       });
       if (!purposeInSection) fail("repositories and registries: task choices are outside the family section or reorder the kind picker");
-      while (await view.locator(".catalogue-more").count()) await view.locator(".catalogue-more").first().click();
       for (const id of ["nma", "fairsharing", "fip-dashboard.nusl", "fip-dashboard.nrp-invenio", "re3data.r3d100014032", "re3data.r3d100010386"]) {
         if ((await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) !== 1) fail(`catalogue: ${id} is not listed once among repositories and registries (${lang})`);
       }
@@ -2311,7 +2306,6 @@ sections.push(["life cycle", async () => {
     const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
     const card = page.locator(".catalogue-results .entry-card");
     await visit(`#/${lang}/K/catalogue/lifecycle`);
-    while (await page.locator(".catalogue-more").count()) await page.locator(".catalogue-more").first().click();
     if ((await card.count()) !== stageCount) fail(`life cycle ${lang}: the list shows ${await card.count()} stages, the crate has ${stageCount}`);
     await visit(`#/${lang}/K/catalogue/life/rdm/reuse`);
     if ((await card.count()) !== 1) fail(`life cycle ${lang}: the reuse stage's entry is not shown alone`);
@@ -2386,7 +2380,6 @@ sections.push(["knav catalogue", async () => {
   const listed = [];
   for (const kind of ["resources", "repositories"]) {
     await visit(`#/cs/K/catalogue/k!${kind}~f.use!knav`);
-    while (await page.locator(".catalogue-more").count()) await page.locator(".catalogue-more").first().click();
     listed.push(...(await cards.evaluateAll((all) => all.map((card) => card.id.replace(/^item-/, "")))));
   }
   if ((await viewCode()) !== 1) fail("knav catalogue: opening the catalogue did not load its view code once");
@@ -2488,7 +2481,9 @@ sections.push(["visual system", async () => {
   else {
     const service = (await badged.first().getAttribute("id")).replace(/^item-/, "");
     const atStep = await badge(badged.first());
-    await visit(`#/cs/K${cataloguePath("resources", service)}`);
+    const address = graph.find((entity) => entity.catalogueAddress?.split("/").slice(1).join("/") === service)?.catalogueAddress;
+    if (!address) throw new Error(`no published address for ${service}`);
+    await visit(`#/cs/K/catalogue/${address}`);
     const inCatalogue = await badge(page.locator(".catalogue-results .entry-card").first());
     if (atStep.length !== 1 || atStep[0] !== inCatalogue[0]) fail(`visual system: ${service}'s badge differs between the step (${atStep}) and the catalogue (${inCatalogue})`);
   }
@@ -2763,7 +2758,11 @@ sections.push(["Licence compatibility", async () => {
   for (const lang of ["cs", "en"]) {
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/page/licence-compatibility`));
     const table = page.locator("#main .text-table");
-    const actual = await table.locator("tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => ["ano", "yes"].includes(cell.textContent.trim()) ? "1" : "0").join("")));
+    const actual = await table.locator("tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => {
+      const text = cell.cloneNode(true);
+      text.querySelectorAll('[aria-hidden="true"]').forEach((icon) => icon.remove());
+      return ["ano", "yes"].includes(text.textContent.trim()) ? "1" : "0";
+    }).join("")));
     if (actual.join(",") !== expected.join(",")) fail(`licence matrix: ${lang} differs from NRP`);
     if (await table.locator('th[scope="row"]').count() !== names.length || await table.locator('th[scope="col"]').count() !== names.length + 1) fail("licence matrix: missing native row/column headers");
     if (await page.locator('#main select').count()) fail("licence matrix: a selector replaced the flat guidance table");
@@ -2851,7 +2850,8 @@ sections.push(["Workflow guidance", async () => {
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/page/software`));
     const workflows = page.locator("#workflows");
     for (const id of ["conda", "workflow-ro-crate", "workflowhub", "galaxy-cz", "jupyterhub-cerit", "lexis"]) {
-      if (!await workflows.locator(`a[href$="${cataloguePath("resources", id)}"]`).count()) fail(`workflows: missing ${lang} ${id}`);
+      const kind = id === "workflowhub" ? "repositories" : "resources";
+      if (!await workflows.locator(`a[href$="${cataloguePath(kind, id)}"]`).count()) fail(`workflows: missing ${lang} ${id}`);
     }
   }
   for (const problem of problems) fail(`workflow guidance: ${problem}`);

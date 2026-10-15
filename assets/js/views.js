@@ -32,7 +32,7 @@
     return h(
       "span",
       { class: "badge", "data-status": code },
-      h("span", { "aria-hidden": "true" }, STATUS_ICON[code] || "•"),
+      h("span", { "aria-hidden": "true" }, STATUS_ICON[code] || "•"), " ",
       FG.termName(statusId),
       asOf ? h("span", { class: "muted" }, " · " + FG.t(asOfKey, { date: FG.formatDate(asOf) })) : null,
       isStale(asOf) ? h("span", null, " · " + FG.t("status.stale")) : null
@@ -66,7 +66,7 @@
       const author = FG.get(review.author) || {};
       const name = FG.text(author.alternateName || author.name);
       return h("span", { class: "badge", "data-verification": review.reviewAspect },
-        review.reviewAspect === "verified" ? h("span", { "aria-hidden": "true" }, "✓") : null,
+        review.reviewAspect === "verified" ? [h("span", { "aria-hidden": "true" }, "✓"), " "] : null,
         FG.t("resource." + levels[review.reviewAspect], { verifiers: name }),
         review.dateCreated ? h("span", { class: "muted" }, " · " + FG.formatDate(review.dateCreated)) : null);
     });
@@ -147,10 +147,10 @@
     return h(
       "span",
       { class: "badge node-badge", "data-node": role },
-      h("span", { "aria-hidden": "true" }, "◆"),
-      "EOSC CZ Node · " + what,
+      h("span", { "aria-hidden": "true" }, "◆"), " ",
+      h("span", null, "EOSC CZ Node · " + what),
       membership.statusAsOf ? h("span", { class: "muted" }, " · " + FG.t("node.checked", { date: FG.formatDate(membership.statusAsOf) })) : null,
-      source && (source.url || String(source["@id"]).startsWith("https://")) ? [" · ", FG.external(source.url || source["@id"], FG.t("node.source"))] : null
+      source && (source.url || String(source["@id"]).startsWith("https://")) ? h("span", null, " · ", FG.external(source.url || source["@id"], FG.t("node.source"))) : null
     );
   };
   FG.dashboardRecord = dashboardRecord;
@@ -442,7 +442,7 @@
     const current = FG.stations().find((station) => station.identifier === currentId);
     const hidden = FG.state.hideCheckBadges ? " rail-hide-checks" : "";
     return [
-      h("nav", { class: "rail rail-desktop" + hidden, "aria-label": FG.t("nav.stations") }, railControls("desktop"), railList(currentId), railLegend()),
+      h("nav", { class: "rail rail-desktop" + hidden, "aria-label": FG.t("nav.stations") }, h("p", { class: "rail-title" }, FG.t("nav.stations")), railControls("desktop"), railList(currentId), railLegend()),
       h(
         "details",
         { class: "rail rail-mobile" + hidden },
@@ -954,7 +954,7 @@
               "ol",
               null,
               orderedCalloutItems(callout, lens).map((item) =>
-                h("li", null, item.url ? FG.external(item.url, FG.text(item.text)) : FG.span(item.text))
+                h("li", null, item.url ? FG.external(item.url, FG.text(item.text)) : FG.linkedSpan(item))
               )
             ),
             FG.helpers && FG.helpers.callout ? FG.helpers.callout(callout) : null
@@ -1389,6 +1389,21 @@
     );
   }
 
+  /** Keep the source table's words and add redundant visual marks for easy scanning. */
+  function licenceCompatibility(nodes) {
+    for (const node of nodes) {
+      for (const cell of node.querySelectorAll(".text-table td")) {
+        const word = cell.textContent.trim();
+        const allowed = ["ano", "yes"].includes(word.toLowerCase());
+        if (!allowed && !["ne", "no"].includes(word.toLowerCase())) continue;
+        cell.classList.add("compatibility-cell");
+        cell.dataset.compatible = String(allowed);
+        cell.prepend(h("span", { class: "compatibility-icon", "aria-hidden": "true" }, allowed ? "✓" : "✗"), " ");
+      }
+    }
+    return nodes;
+  }
+
   FG.views.page = function (route) {
     const page = FG.get("#page-" + route.arg) || FG.get("#page-about");
     const sections = FG.refs(page, "hasPart").sort(FG.byPosition);
@@ -1403,7 +1418,7 @@
         sections.map((section) => {
           const folded = (FG.config.foldedSections || []).includes(section["@id"]);
           const content = [
-            FG.linkedParagraphs(section),
+            page.identifier === "licence-compatibility" ? licenceCompatibility(FG.linkedParagraphs(section)) : FG.linkedParagraphs(section),
             section.potentialAction ? h("p", { class: "section-action" }, actionButton(FG.get(section.potentialAction))) : null,
             page.identifier === "ai" && section.identifier === "station-tips" ? aiStationTips() : null,
             section.identifier === "credits" ? creditsTable() : null,

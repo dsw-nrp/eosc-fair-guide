@@ -14,18 +14,18 @@ hygiene. The installed contracts are under `openspec/specs/fair-guide/`; the act
 | --- | --- |
 | Architecture and data | One Guide-owned primary `id`, genuine typed `alternateIds` and stored route prefixes replace the parallel full-address register. One projection supplies API records, references, routes and chips. Refresh preserves owned identity and rejects ambiguous reassignment; external source IDs, IRIs and landing URLs retain distinct metadata roles. |
 | Text | Reviewed all 11 steps in all four roles in Czech and English. Shortened authored immediate advice and removed selected repetition/superlatives. Original definitions, ledger quotations and evaluator/source labels retain their wording, language, attribution and qualifications. |
-| UX and design | Compact phone navigation and role disclosures show current context; short chips retain complete links, entry titles identify the document, initial catalogue results have one global limit, and original glossary definitions use disclosures. Potential evidence coverage is derived from registered relations, separate from observed results. |
+| UX and design | Compact phone navigation and role disclosures show current context; short chips retain complete links, entry titles identify the document, every matching catalogue card is present without another click, and original glossary definitions use attributed disclosures. Potential evidence coverage is derived from registered relations, separate from observed results. |
 | Code hygiene | Removed unreleased route aliases and duplicate API documents, obsolete alias construction and redundant card comments. Centralized identity vocabulary, aligned docs and skill mirrors, and updated meaningful identity/refresh/advisory/browser regressions. No unrelated framework or storage migration. |
 
-The initial result limit does not truncate the catalogue or its exports: each group can be expanded, and the
-terms index reveals the selected letter before moving focus. Original source text remains searchable/exportable.
+Every matching catalogue card is present without a Show more step, and print lays out every card. The terms
+index moves directly to the selected letter.
+Original source text remains searchable/exportable.
 Saved assessment formats retain their separately required import support.
 
 The final identity correction uses `id` consistently and removes `guideId`. All 458 imported source alternates
 were compared with their recorded source IDs and full non-identity payload, with no differences; 756 source-text
 and label fields also compare unchanged. Real grant, source vocabulary and ROR identifiers retain their metadata
 roles. Source alternatives are flattened PropertyValue nodes in the crate and typed values in API records.
-
 
 ## Local verification receipt
 
@@ -42,6 +42,16 @@ The machine receipt is `.cache/health/summary.md` and its dashboard; the built f
 public-content scanning, unit tests, lint/format, content/provenance, API, profile validators and browser checks.
 Before accepting, record the final run outcome and exact reviewed commit in the PR. A successful local run does
 not establish remote workflow activation.
+
+The 16 October 2026 reader-repair run passed all 25 checks in 205.1 seconds in the local Windows environment.
+It includes all 264 path/role/language/width accessibility states, every matching catalogue card, the reported
+desktop/phone defects and 40 Czech/English check/mode/scope PDFs with text on every page. The preview on port
+8000 serves the repaired assets. This receipt does not replace the pending container or human acceptance.
+
+The subsequent missing-link review passed 25/25 checks in 208.6 seconds. The dashboard/API now separate zero
+unresolved suggestions, 79 individually reviewed unlinked mentions and zero stale decisions. Their reasons are
+visible, and changed text or targets reopen review. All 18 edited content files preserve their original values
+after stripping only reference markup. Initial downloads remain within the unchanged 300 KB budget.
 
 The public-content audit scans maintained current text surfaces and local commit messages. It reports only
 relative locations and rule names. It does not assert that every historical blob has been forensically audited.

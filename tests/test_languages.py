@@ -25,6 +25,29 @@ def merge_patch(target, patch):
 
 
 class LanguageTests(unittest.TestCase):
+    def test_glossary_source_ids_load_with_definitions_and_remain_complete(self) -> None:
+        crate = json.loads(self.generated[build_crate.CRATE_FILE])
+        core, parts = build_crate.split_crate(crate)
+        source_ids = {row["@id"] for row in crate["@graph"] if row["@id"].startswith("#alternate-term-")}
+        self.assertTrue(source_ids)
+        self.assertFalse(source_ids & {row["@id"] for row in core["@graph"]})
+        self.assertEqual(source_ids, source_ids & {row["@id"] for row in parts["standards"]["entities"]})
+        for row in core["@graph"]:
+            if row["@id"].startswith("#term-"):
+                self.assertTrue(row["identifier"])
+                self.assertTrue(row["alternateIdentifier"])
+
+    def test_vocabulary_definitions_are_available_without_costing_the_initial_view(self) -> None:
+        crate = json.loads(self.generated[build_crate.CRATE_FILE])
+        core, parts = build_crate.split_crate(crate)
+        definitions = {row["@id"] for row in crate["@graph"] if row.get("@type") == "rdf:Property"}
+        self.assertTrue(definitions)
+        self.assertFalse(definitions & {row["@id"] for row in core["@graph"]})
+        self.assertEqual(
+            definitions,
+            {row["@id"] for part in parts.values() for row in part["entities"] if row.get("@type") == "rdf:Property"},
+        )
+
     def test_patch_semantics_match_the_shared_expected_results(self) -> None:
         fixture = json.loads((ROOT / "tests/fixtures/language-patch.json").read_text(encoding="utf-8"))
         self.assertGreaterEqual(len(fixture["cases"]), 5)

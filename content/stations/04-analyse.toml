@@ -38,14 +38,14 @@ sources = ["FRSM.FRSM-13", "CODE.01"]
 id = "analyse.04"
 lens = "V"
 level = "L1"
-text = { cs = "Počítejte blízko dat: velká data analyzujte ve výpočetním prostředí e-INFRA CZ, abyste je nemuseli přenášet, a s kolegy sdílejte jedno pracovní prostředí s řízeným přístupem.", en = "Compute close to the data: analyse large data in the e-INFRA CZ computing environment so that you need not transfer them, and share one working environment with controlled access with your colleagues." }
+text = { cs = "Počítejte blízko dat: velká data analyzujte ve výpočetním prostředí [[term/e-infra-cz|e-INFRA CZ]], abyste je nemuseli přenášet, a s kolegy sdílejte jedno pracovní prostředí s řízeným přístupem.", en = "Compute close to the data: analyse large data in the [[term/e-infra-cz|e-INFRA CZ]] computing environment so that you need not transfer them, and share one working environment with controlled access with your colleagues." }
 sources = ["RDMKIT.analyse.02", "EINFRA-DOCS.01"]
 
 [[advice]]
 id = "analyse.05"
 lens = "DS"
 level = "L0"
-text = { cs = "Upozorněte na výpočetní prostředí e-INFRA CZ, které lze propojit s daty v NRP.", en = "Point out the e-INFRA CZ computing environment, which can connect to data in NRP." }
+text = { cs = "Upozorněte na výpočetní prostředí [[term/e-infra-cz|e-INFRA CZ]], které lze propojit s daty v NRP.", en = "Point out the [[term/e-infra-cz|e-INFRA CZ]] computing environment, which can connect to data in NRP." }
 action = [{ label = { cs = "Výpočty s daty z NRP", en = "Computing with NRP data" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/compute/support-for-computing" }]
 sources = ["NRP-COMPUTE.01"]
 
@@ -86,7 +86,7 @@ sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.03"]
 id = "analyse.10"
 lens = "V"
 level = "L1"
-text = { cs = "Ujasněte si odpovědnosti s [[rdmkit-rse|vývojářem výzkumného softwaru]] a zaznamenejte [[rdmkit-provenance|původ vstupů a postup zpracování]]. Odkazy RDMkit na školení v [[tess|TeSS]] u jednotlivých nástrojů pomohou zvolit praktický kurz.", en = "Agree responsibilities with a [[rdmkit-rse|research software engineer]] and record [[rdmkit-provenance|the origin of inputs and the processing steps]]. RDMkit's [[tess|TeSS]] links on the tool entries help you find practical training." }
+text = { cs = "Ujasněte si odpovědnosti s [[rdmkit-rse|vývojářem výzkumného softwaru]] a zaznamenejte [[rdmkit-provenance|původ vstupů a postup zpracování]]. Odkazy [[res/doc/rdmkit|RDMkit]] na školení v [[tess|TeSS]] u jednotlivých nástrojů pomohou zvolit praktický kurz.", en = "Agree responsibilities with a [[rdmkit-rse|research software engineer]] and record [[rdmkit-provenance|the origin of inputs and the processing steps]]. [[res/doc/rdmkit|RDMkit]]'s [[tess|TeSS]] links on the tool entries help you find practical training." }
 sources = ["RDMKIT.tasks.01"]
 
 [[advice]]

@@ -57,7 +57,7 @@ sources = ["A.K2.3.2a", "DEPOSIT-LICENCE.01", "COPYRIGHT-LICENCES.02"]
 id = "repository.06"
 lens = "V"
 level = "L1"
-text = { cs = "Pokud se nic nehodí, použijte datový catch-all repozitář NRP (datarepo.eosc.cz); přiděluje DOI a zpřístupňuje metadata přes [[oai-pmh|OAI-PMH]].", en = "If nothing fits, use the NRP catch-all data repository (datarepo.eosc.cz); it assigns DOIs and exposes metadata through [[oai-pmh|OAI-PMH]]." }
+text = { cs = "Pokud se nic nehodí, použijte [[repo/gen/datarepo|datový catch-all repozitář NRP]] (datarepo.eosc.cz); přiděluje DOI a zpřístupňuje metadata přes [[oai-pmh|OAI-PMH]].", en = "If nothing fits, use the [[repo/gen/datarepo|NRP catch-all data repository]] (datarepo.eosc.cz); it assigns DOIs and exposes metadata through [[oai-pmh|OAI-PMH]]." }
 sources = ["DATAREPO.01"]
 
 [[advice]]
@@ -109,7 +109,7 @@ sources = ["NRP.M5"]
 id = "repository.13"
 lens = "SR"
 level = "L1"
-text = { cs = "Zaregistrujte repozitář v [[nkr|NKR]] a záznam aktualizujte. NKR je vedle [[nma|NMA]] a [[pid-centre|Centra PID]] jednou ze sdílených služeb Národní datové infrastruktury.", en = "Register the repository in [[nkr|NKR]] and keep the record updated. Alongside [[nma|NMA]] and the [[pid-centre|PID Centre]], NKR is one of the shared services of the National Data Infrastructure." }
+text = { cs = "Zaregistrujte repozitář v [[nkr|NKR]] a záznam aktualizujte. NKR je vedle [[nma|NMA]] a [[pid-centre|Centra PID]] jednou ze sdílených služeb [[term/national-data-infrastructure|Národní datové infrastruktury]].", en = "Register the repository in [[nkr|NKR]] and keep the record updated. Alongside [[nma|NMA]] and the [[pid-centre|PID Centre]], NKR is one of the shared services of the [[term/national-data-infrastructure|National Data Infrastructure]]." }
 sources = ["NRP.M5", "A.K2.1"]
 
 [[advice]]
@@ -188,7 +188,7 @@ id = "repository.22"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "AI vám pomůže sepsat, co od repozitáře potřebujete (obor, formáty, objem, přístup, licence, trvalý identifikátor), a porovnat to s podmínkami repozitářů. Fakta o repozitářích berte z jejich stránek, z [[re3data|re3data]] a z [[nkr|Národního katalogu repozitářů]], ne z paměti modelu.", en = "AI helps you write down what you need from a repository (field, formats, volume, access, licence, persistent identifier) and compare it with the repositories' terms. Take the facts about repositories from their own pages, from [[re3data|re3data]] and from the [[nkr|National Repository Catalogue]], not from the model's memory." }
+text = { cs = "AI vám pomůže sepsat, co od repozitáře potřebujete (obor, formáty, objem, přístup, licence, [[term/persistent-identifier|trvalý identifikátor]]), a porovnat to s podmínkami repozitářů. Fakta o repozitářích berte z jejich stránek, z [[re3data|re3data]] a z [[nkr|Národního katalogu repozitářů]], ne z paměti modelu.", en = "AI helps you write down what you need from a repository (field, formats, volume, access, licence, [[term/persistent-identifier|persistent identifier]]) and compare it with the repositories' terms. Take the facts about repositories from their own pages, from [[re3data|re3data]] and from the [[nkr|National Repository Catalogue]], not from the model's memory." }
 check = { cs = "Každé tvrzení o repozitáři ověřte na jeho stránce nebo v jeho záznamu v re3data; podmínky se mění a model je nemusí znát.", en = "Verify every statement about a repository on its own page or in its re3data record; terms change and the model may not know them." }
 prompt = { cs = "Z požadavků níže sestav tabulku kritérií pro výběr repozitáře (obor, formáty, objem, omezení přístupu, licence, trvalý identifikátor, poplatky). Pak ji porovnej s podmínkami repozitářů, které vložím, a u každého tvrzení uveď, ze které vložené podmínky pochází. Nic nedoplňuj z paměti.\n\nPožadavky: […]\n\nPodmínky repozitářů: […]", en = "From the requirements below, build a table of criteria for choosing a repository (field, formats, volume, access restrictions, licence, persistent identifier, fees). Then compare it with the repository terms I paste, and for each statement say which pasted term it comes from. Add nothing from memory.\n\nRequirements: […]\n\nRepository terms: […]" }
 sources = ["EC-GENAI-GUIDELINES.01"]
@@ -197,5 +197,5 @@ sources = ["EC-GENAI-GUIDELINES.01"]
 id = "repository.24"
 lens = "*"
 level = "L1"
-text = { cs = "Srovnejte [[rdmkit-publication|doporučení RDMkit k publikaci]] s podmínkami vybraného českého repozitáře. Katalog Průvodce rozlišuje repozitář, infrastrukturu, která ho provozuje, a plánované zapojení do EOSC CZ Node; obecné doporučení RDMkit tyto podmínky nenahrazuje.", en = "Compare [[rdmkit-publication|RDMkit's publication guidance]] with the chosen Czech repository's conditions. The Guide's catalogue distinguishes a repository, its operating infrastructure and planned EOSC CZ Node integration; general RDMkit guidance does not replace those conditions." }
+text = { cs = "Srovnejte [[rdmkit-publication|doporučení RDMkit k publikaci]] s podmínkami vybraného českého repozitáře. Katalog Průvodce rozlišuje repozitář, infrastrukturu, která ho provozuje, a plánované zapojení do [[org/eosc-cz-node|EOSC CZ Node]]; obecné doporučení [[res/doc/rdmkit|RDMkit]] tyto podmínky nenahrazuje.", en = "Compare [[rdmkit-publication|RDMkit's publication guidance]] with the chosen Czech repository's conditions. The Guide's catalogue distinguishes a repository, its operating infrastructure and planned [[org/eosc-cz-node|EOSC CZ Node]] integration; general [[res/doc/rdmkit|RDMkit]] guidance does not replace those conditions." }
 sources = ["RDMKIT.tasks.01", "LRI.A7"]

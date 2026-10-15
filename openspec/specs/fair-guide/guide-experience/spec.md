@@ -1126,13 +1126,13 @@ Checks SHALL offer deterministic ranked link suggestions using specific names, a
 
 ### Requirement: The final candidate remains readable on phones
 
-Mobile navigation SHALL show current page/role and testing status without delaying the task. Chips SHALL use compact IDs; document titles SHALL identify the current view. Catalogue lists SHALL apply a global initial limit across alphabetical groups, keep every match reachable and retain complete source text in search/exports. Long definitions MAY use disclosures while preserving original wording, language and attribution.
+Mobile navigation SHALL show current page, role and testing status without delaying the task. Chips SHALL use compact IDs and titles SHALL name the view. Catalogues SHALL present every match without Show more, retain full source text in search/exports, and lay out all cards in print. Off-screen rendering MAY be deferred with keyboard and browser-search access preserved. Long definitions MAY use disclosures that retain wording, language and attribution.
 
 #### Scenario: A reader opens the full glossary on a phone
 
 - **GIVEN** glossary terms spanning many alphabetical groups
 - **WHEN** the catalogue first renders
-- **THEN** a global initial limit bounds the rendered cards, every term remains reachable, and opening a definition
+- **THEN** every matching term is present without another click, and opening a definition
   reveals its unchanged original with attribution
 
 ### Requirement: Evidence-source capability counts describe actual coverage

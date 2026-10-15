@@ -1401,6 +1401,7 @@
        on the record its lookup found. */
     const dataset = sources.has("datacite") || sources.has("resolver");
     const object = dataset || (ready && ["cdif", "fdo"].includes(check.identifier));
+    const evaluatorPanel = providers && object ? providers.panel(check, st, resultItems(check, st)) : null;
     const cards = [
       object
         ? evidenceCard(check, st, "pid", ["datacite", "resolver"], pidControl(check, st), needsSteward(check, st) ? stewardControl(check, st) : null,
@@ -1412,7 +1413,7 @@
       sources.has("champion") && !dataset ? evidenceCard(check, st, "sample", ["champion"], championSampleControl(check, st)) : null,
       sources.has("fip") ? evidenceCard(check, st, "fip", ["fip"], fipControl(check, st)) : null,
       /* External evaluators assess the object a check is about, through the identifier looked up in its card. */
-      providers && object ? evidenceCard(check, st, "evaluators", [], providers.panel(check, st)) : null,
+      evaluatorPanel ? evidenceCard(check, st, "evaluators", [], evaluatorPanel) : null,
     ].filter(Boolean);
     const file = evidenceCard(check, st, "file", [], h("p", { class: "small" }, FG.t("selfcheck.prefill.fromFileText")), loadControl("load-file"));
     /* A run's status and progress stand in the card that started it, and the record a lookup found in the card that
@@ -1460,8 +1461,8 @@
         { class: "item " + (item.assessmentContext ? "item-context" : "item-provided"), id: "item-" + id },
         h("p", { class: "item-statement" }, statement),
         meta,
-        item.description ? h("p", { class: "question-help" }, FG.span(item.description)) : null,
-        item.note ? h("p", { class: "small" }, FG.span(item.note)) : null,
+        item.description ? h("p", { class: "question-help" }, FG.linkedSpan(item, "description")) : null,
+        item.note ? h("p", { class: "small" }, FG.linkedSpan(item, "note")) : null,
         item.assessmentContext ? [h("p", { class: "source-chip" }, FG.t("selfcheck.question.context")), h("p", { class: "small muted" }, FG.t("selfcheck.question.contextHint"))] : h("p", null, stateLabel("provided"), " ", FG.t("selfcheck.providedByNrpText")),
         item.assessmentContext && answerOf(st, item) ? h("details", { class: "historical-answer" }, h("summary", null, FG.t("selfcheck.question.previousAnswer")), h("div", { class: "content" }, FG.t("selfcheck.answer." + answerOf(st, item)))) : null,
         fixAtLine(item),
@@ -1502,8 +1503,8 @@
         h(
           "div",
           { class: "content" },
-          item.description ? h("p", { class: "question-help" }, FG.span(item.description)) : null,
-          item.note ? h("p", { class: "small" }, FG.span(item.note)) : null,
+          item.description ? h("p", { class: "question-help" }, FG.linkedSpan(item, "description")) : null,
+          item.note ? h("p", { class: "small" }, FG.linkedSpan(item, "note")) : null,
           originRest(st, item),
           testLine(check, st, item),
           fixAtLine(item),
@@ -1655,7 +1656,7 @@
       "p",
       { class: "tier-info" },
       h("strong", null, FG.t("selfcheck.tierCount", { tier: FG.text(tier.name), n: first.length }) + " "),
-      tier.description ? FG.span(tier.description) : null,
+      check.identifier === "institution" ? FG.t("selfcheck.institutionMinimum") : tier.description ? FG.span(tier.description) : null,
       " " + FG.t("selfcheck.extendedExplain")
     );
   }
@@ -1697,7 +1698,7 @@
           "section",
           { class: "item-group" },
           groupTitle(group) ? h("h2", null, groupTitle(group)) : null,
-          group.block && group.block.description ? h("p", { class: "group-description small muted" }, FG.span(group.block.description)) : null,
+          group.block && group.block.description ? h("p", { class: "group-description small muted" }, FG.linkedSpan(group.block, "description")) : null,
           group.items.map((item) => itemField(check, st, item))
         )
       )
@@ -3095,7 +3096,7 @@
     const head = [
       h("p", { class: "muted" }, h("a", { href: FG.href("selfcheck") }, FG.t("selfcheck.title"))),
       FG.heading(1, null, FG.span(check.name)),
-      FG.paragraphs(check.description),
+      FG.linkedParagraphs(check, "description"),
       minutes ? h("p", { class: "muted" }, FG.t("station.minutes", { n: minutes })) : null,
       /* The note on local data heads the evidence; the other parts carry only its alert when the browser refused to
          save, so work never vanishes unannounced. */
@@ -3244,7 +3245,7 @@
       FG.ui.selfcheck.purpose && FG.ui.selfcheck.purpose[check.identifier]
         ? h("p", { class: "check-card-purpose", "data-check": check.identifier }, h("span", { class: "check-card-purpose-label" }, FG.t("selfcheck.purpose.label") + ": "), FG.t("selfcheck.purpose." + check.identifier))
         : null,
-      FG.paragraphs(check.description),
+      FG.linkedParagraphs(check, "description"),
       h("p", { class: "check-card-meta" }, meta.join(" · ")),
       answered
         ? h(

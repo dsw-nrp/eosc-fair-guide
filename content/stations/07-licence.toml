@@ -138,14 +138,14 @@ sources = ["NRP.M11"]
 id = "licence.17"
 lens = "SR"
 level = "L1"
-text = { cs = "Integrujte repozitář s AAI e-INFRA CZ a nastavte role; podmínky NRP to vyžadují.", en = "Integrate the repository with the e-INFRA CZ AAI and set up roles; the NRP conditions require this." }
+text = { cs = "Integrujte repozitář s AAI [[term/e-infra-cz|e-INFRA CZ]] a nastavte role; podmínky NRP to vyžadují.", en = "Integrate the repository with the [[term/e-infra-cz|e-INFRA CZ]] AAI and set up roles; the NRP conditions require this." }
 sources = ["NRP.M6", "A.A1.2.R1"]
 
 [[advice]]
 id = "licence.18"
 lens = "SR"
 level = "L1"
-text = { cs = "Definujte úrovně oprávnění: veřejná data, data před zveřejněním a citlivá data.", en = "Define permission levels: public data, data before publication and sensitive data." }
+text = { cs = "Definujte úrovně oprávnění: veřejná data, data před zveřejněním a [[term/sensitive-data|citlivá data]].", en = "Define permission levels: public data, data before publication and [[term/sensitive-data|sensitive data]]." }
 sources = ["A.A1.2.R2"]
 
 [[advice]]
@@ -159,14 +159,14 @@ sources = ["A.K2.3.2c", "CCMM-RELEASES.01"]
 id = "licence.20"
 lens = "SR"
 level = "L1"
-text = { cs = "Pro citlivá data vyjděte z dokumentu [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]].", en = "For sensitive data, start from the document [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]]." }
+text = { cs = "Pro [[term/sensitive-data|citlivá data]] vyjděte z dokumentu [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]].", en = "For [[term/sensitive-data|sensitive data]], start from the document [[aai-sensitive|Initial AAI architecture for sensitive data in NRP]]." }
 sources = ["A.A1.2.X1", "AAI-SENSITIVE.01"]
 
 [[advice]]
 id = "licence.21"
 lens = "SR"
 level = "L1"
-text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v [[cdif|CDIF 1.1]]), CC REL a SPDX.", en = "For advanced rights expression there are ODRL (with guidance in [[cdif|CDIF 1.1]]), CC REL and SPDX." }
+text = { cs = "Pro pokročilé vyjádření práv existují ODRL (s doporučeními v [[cdif|CDIF 1.1]]), CC REL a [[res/vocab/spdx|SPDX]].", en = "For advanced rights expression there are ODRL (with guidance in [[cdif|CDIF 1.1]]), CC REL and [[res/vocab/spdx|SPDX]]." }
 sources = ["A.R1.1.X2", "A.R1.1.X3"]
 
 [[advice]]

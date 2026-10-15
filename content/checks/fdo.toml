@@ -2,7 +2,7 @@
 id = "fdo"
 name = { cs = "Připravenost na FAIR Digital Objects", en = "FAIR Digital Object readiness" }
 icon = "list-check"
-description = { cs = "Vlastní posouzení objektu a infrastruktury podle FDO Requirement Specifications 3.0 (2023). Šest úvodních otázek; rozšířená kontrola zpřístupní všech 34 pasáží čtyř vrstev, včetně vysvětlujícího kontextu. U poskytovatele si vyžádejte doklady k jeho části. DOI ani RO-Crate samy soulad neprokazují; kontrola nevydává certifikát.", en = "Self-assessment of an object and its infrastructure against FDO Requirement Specifications 3.0 (2023). Six introductory questions; the extended check opens all 34 passages across four layers, including explanatory context. Ask providers for evidence of their part. A DOI or RO-Crate alone does not establish conformance; this check issues no certificate." }
+description = { cs = "Vlastní posouzení objektu a infrastruktury podle [[res/std/fdo-specification|FDO Requirement Specifications 3.0]] (2023). Šest úvodních otázek; rozšířená kontrola zpřístupní všech 34 pasáží čtyř vrstev, včetně vysvětlujícího kontextu. U poskytovatele si vyžádejte doklady k jeho části. DOI ani [[res/std/ro-crate|RO-Crate]] samy soulad neprokazují; kontrola nevydává certifikát.", en = "Self-assessment of an object and its infrastructure against [[res/std/fdo-specification|FDO Requirement Specifications 3.0]] (2023). Six introductory questions; the extended check opens all 34 passages across four layers, including explanatory context. Ask providers for evidence of their part. A DOI or [[res/std/ro-crate|RO-Crate]] alone does not establish conformance; this check issues no certificate." }
 lenses = ["V", "DS", "SR", "K"]
 minutes = 15
 
@@ -430,4 +430,4 @@ block = "resources"
 fixAt = "publication"
 owner = ["curator", "repository-admin"]
 allowNotApplicable = false
-help = { cs = "Vyžádejte si datum, rozsah a výsledek posouzení od poskytovatele. Zdroj tento postup doporučuje; CoreTrustSeal je příklad standardu, nikoli jediná přijatelná volba ani povinnost mít jeho certifikát.", en = "Ask the provider for the assessment’s date, scope and outcome. The source recommends this practice; CoreTrustSeal is an example standard, not the only accepted option or a requirement to hold its certificate." }
+help = { cs = "Vyžádejte si datum, rozsah a výsledek posouzení od poskytovatele. Zdroj tento postup doporučuje; [[res/std/coretrustseal|CoreTrustSeal]] je příklad standardu, nikoli jediná přijatelná volba ani povinnost mít jeho certifikát.", en = "Ask the provider for the assessment’s date, scope and outcome. The source recommends this practice; [[res/std/coretrustseal|CoreTrustSeal]] is an example standard, not the only accepted option or a requirement to hold its certificate." }

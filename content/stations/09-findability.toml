@@ -23,7 +23,7 @@ sources = ["NRP.M8", "A.F4.R2", "NRP-DOCS-NMA-INTRODUCTION.01"]
 id = "findability.02"
 lens = "V"
 level = "L0"
-text = { cs = "Je-li váš repozitář napojený na [[nma|Národní metadatový adresář (NMA)]], objeví se tam záznam sám. Pokud ne, můžete ho tam vytvořit sami; stačí, když má datová sada trvalý identifikátor.", en = "If your repository is connected to the [[nma|National Metadata Directory (NMA)]], the record appears there by itself. If not, you can create it yourself; the dataset only needs a persistent identifier." }
+text = { cs = "Je-li váš repozitář napojený na [[nma|Národní metadatový adresář (NMA)]], objeví se tam záznam sám. Pokud ne, můžete ho tam vytvořit sami; stačí, když má datová sada [[term/persistent-identifier|trvalý identifikátor]].", en = "If your repository is connected to the [[nma|National Metadata Directory (NMA)]], the record appears there by itself. If not, you can create it yourself; the dataset only needs a [[term/persistent-identifier|persistent identifier]]." }
 action = [{ label = { cs = "Vyhledat datovou sadu v NMA", en = "Search for your dataset in NMA" }, href = "https://nma.eosc.cz/" }, { label = { cs = "NMA: ověření pro RIV", en = "NMA: verification for RIV" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-verifying-datasets-for-RIV" }]
 sources = ["A.F4.N1", "NMA-RIV-DOCS.01", "NRP-DOCS-NMA-ACCESS.01"]
 
@@ -70,14 +70,14 @@ sources = ["A.F4.N3", "A.F4.X1", "SCHEMA-DATASET.01"]
 id = "findability.07"
 lens = "V"
 level = "L1"
-text = { cs = "Pro vykázání v RIV použijete odkaz pro RIV z [[nma|NMA]]; v citacích ale vždy uvádějte trvalý identifikátor (viz zastávka [[station:citation|Citace a opakované užití]]).", en = "For reporting in RIV, use the RIV link from [[nma|NMA]]; in citations, however, always give the persistent identifier (see the [[station:citation|Citation and reuse]] station)." }
+text = { cs = "Pro vykázání v RIV použijete odkaz pro RIV z [[nma|NMA]]; v citacích ale vždy uvádějte [[term/persistent-identifier|trvalý identifikátor]] (viz zastávka [[station:citation|Citace a opakované užití]]).", en = "For reporting in RIV, use the RIV link from [[nma|NMA]]; in citations, however, always give the [[term/persistent-identifier|persistent identifier]] (see the [[station:citation|Citation and reuse]] station)." }
 sources = ["NMA-RIV-DOCS.01"]
 
 [[advice]]
 id = "findability.08"
 lens = "DS"
 level = "L0"
-text = { cs = "Dohledatelnost zajišťuje hlavně repozitář: sklizeň do [[nma|NMA]], strojově čitelná metadata pro vyhledávače a registrace v agregátorech.", en = "Findability is mainly the repository's job: harvesting into [[nma|NMA]], machine-readable metadata for search engines and registration with aggregators." }
+text = { cs = "Dohledatelnost zajišťuje hlavně repozitář: [[term/harvesting|sklizeň]] do [[nma|NMA]], strojově čitelná metadata pro vyhledávače a registrace v agregátorech.", en = "Findability is mainly the repository's job: [[term/harvesting|harvesting]] into [[nma|NMA]], machine-readable metadata for search engines and registration with aggregators." }
 action = [{ label = { cs = "Jak funguje NMA", en = "How NMA works" }, href = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-introduction" }, { label = { cs = "Výsledek typu T a NMA", en = "Result type T and NMA" }, href = "https://openscience.lib.cas.cz/en/funders-en/new-type-t-research-output-and-the-national-metadata-directory/" }]
 sources = ["NRP.M8", "A.F4.R2", "A.F4.N3", "NRP-DOCS-NMA-INTRODUCTION.01"]
 
@@ -113,7 +113,7 @@ sources = ["NRP-DOCS-NMA-ACCESS.01", "NMA-RIV-DOCS.01"]
 id = "findability.13"
 lens = "SR"
 level = "L0"
-text = { cs = "Zpřístupněte metadata pro sklizeň do [[nma|NMA]] ([[oai-pmh|OAI-PMH]], CCMM-XML), což vyžadují podmínky NRP, a nabídněte strojově čitelná metadata i vyhledávačům. Autoři pak nemusejí zakládat záznamy ručně.", en = "Make metadata available for harvesting into [[nma|NMA]] ([[oai-pmh|OAI-PMH]], CCMM-XML), which the NRP conditions require, and offer machine-readable metadata to search engines too. Authors then need not create records by hand." }
+text = { cs = "Zpřístupněte metadata pro [[term/harvesting|sklizeň]] do [[nma|NMA]] ([[oai-pmh|OAI-PMH]], [[res/std/ccmm|CCMM]]-XML), což vyžadují podmínky NRP, a nabídněte strojově čitelná metadata i vyhledávačům. Autoři pak nemusejí zakládat záznamy ručně.", en = "Make metadata available for [[term/harvesting|harvesting]] into [[nma|NMA]] ([[oai-pmh|OAI-PMH]], [[res/std/ccmm|CCMM]]-XML), which the NRP conditions require, and offer machine-readable metadata to search engines too. Authors then need not create records by hand." }
 action = [{ label = { cs = "Export do NMA (dokumentace NRP)", en = "Export to NMA (NRP documentation)" }, href = "https://docs.nrp.eosc.cz/en/docs/repo_admins/national-metadata-directory/exports-to-nma" }, { label = { cs = "Schema.org Dataset", en = "Schema.org Dataset" }, href = "https://schema.org/Dataset" }]
 sources = ["NRP.M8", "NMA-EXPORT-DOCS.01", "A.F4.R2"]
 
@@ -121,7 +121,7 @@ sources = ["NRP.M8", "NMA-EXPORT-DOCS.01", "A.F4.R2"]
 id = "findability.14"
 lens = "SR"
 level = "L1"
-text = { cs = "Sklizeň do [[nma|NMA]] probíhá podle [[ccmm|CCMM]]:", en = "Harvesting into [[nma|NMA]] follows [[ccmm|CCMM]]:" }
+text = { cs = "[[term/harvesting|Sklizeň]] do [[nma|NMA]] probíhá podle [[ccmm|CCMM]]:", en = "[[term/harvesting|Harvesting]] into [[nma|NMA]] follows [[ccmm|CCMM]]:" }
 steps = [
   { cs = "[[oai-pmh|OAI-PMH]] s metadataPrefix ccmm-xml, což standardní repozitáře NRP umějí;", en = "[[oai-pmh|OAI-PMH]] with the ccmm-xml metadataPrefix, which standard NRP repositories support;" },
   { cs = "bez nativního [[ccmm|CCMM]] veřejná transformace XSLT na stabilní HTTPS adrese.", en = "without native [[ccmm|CCMM]], a public XSLT transformation at a stable HTTPS address." },
@@ -132,7 +132,7 @@ sources = ["NRP.M8", "A.F4.R1", "A.MIN2", "NMA-EXPORT-DOCS.01"]
 id = "findability.15"
 lens = "SR"
 level = "L1"
-text = { cs = "Pro napojení napište týmu [[nma|NMA]] a uveďte endpoint OAI, setSpec, metadataPrefix, případně adresu XSLT. NMA spustí testovací sklizeň a vy získáte roli správce sklizně; průběh a chyby sledujete ve webovém rozhraní.", en = "To connect, write to the [[nma|NMA]] team with the OAI endpoint, setSpec, metadataPrefix and, if needed, the XSLT address. NMA runs a test harvest, and you get the harvest manager role; you follow progress and errors in the web interface." }
+text = { cs = "Pro napojení napište týmu [[nma|NMA]] a uveďte endpoint OAI, setSpec, metadataPrefix, případně adresu XSLT. NMA spustí testovací [[term/harvesting|sklizeň]] a vy získáte roli správce sklizně; průběh a chyby sledujete ve webovém rozhraní.", en = "To connect, write to the [[nma|NMA]] team with the OAI endpoint, setSpec, metadataPrefix and, if needed, the XSLT address. NMA runs a test [[term/harvesting|harvest]], and you get the harvest manager role; you follow progress and errors in the web interface." }
 sources = ["NMA-EXPORT-DOCS.01"]
 
 [[advice]]

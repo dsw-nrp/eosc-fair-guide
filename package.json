@@ -21,7 +21,7 @@
     "check:live-release": "node tests/page/check_live_release.mjs",
     "openspec:cli": "node node_modules/@fission-ai/openspec/bin/openspec.js",
     "openspec:validate": "npm run -s openspec:cli -- validate --all --strict",
-    "check:final": "node tests/page/check_final_candidate.mjs"
+    "check:final": "node tests/page/check_final_candidate.mjs && node tests/page/check_repairs.mjs && node tests/page/check_print.mjs"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.1.0",

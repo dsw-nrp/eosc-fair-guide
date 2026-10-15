@@ -39,7 +39,7 @@ sources = ["FORCE11-CITATION.01", "A.F1.X2"]
 id = "citation.19"
 lens = "V"
 level = "L1"
-text = { cs = "Citujte také [[page:software|software použitý při zpracování dat]]: autory, název, použitou verzi a její trvalý identifikátor, pokud jej má. Řiďte se citačními pokyny projektu; samotný odkaz na vývojový repozitář nemusí určit použitou verzi.", en = "Also cite the [[page:software|software used to process the data]]: authors, title, the version used and its persistent identifier if available. Follow the project’s citation instructions; a link to the development repository alone may not identify the version used." }
+text = { cs = "Citujte také [[page:software|software použitý při zpracování dat]]: autory, název, použitou verzi a její [[term/persistent-identifier|trvalý identifikátor]], pokud jej má. Řiďte se citačními pokyny projektu; samotný odkaz na vývojový repozitář nemusí určit použitou verzi.", en = "Also cite the [[page:software|software used to process the data]]: authors, title, the version used and its [[term/persistent-identifier|persistent identifier]] if available. Follow the project’s citation instructions; a link to the development repository alone may not identify the version used." }
 sources = ["FRSM.FRSM-03", "FRSM.FRSM-06"]
 
 [[advice]]
@@ -74,14 +74,14 @@ sources = ["RDMKIT.reuse.01", "RDMKIT.reuse.02"]
 id = "citation.06"
 lens = "V"
 level = "L1"
-text = { cs = "Záznam v [[nma|NMA]] je podmínkou vykázání datové sady v RIV jako výsledku typu T. Odkaz pro RIV získáte v NMA (viz zastávka Dohledatelnost); v citacích ale vždy uvádějte PID.", en = "An [[nma|NMA]] record is required for reporting a dataset in RIV as a result of type T. You get the RIV link in NMA (see the Findability station); in citations, however, always give the PID." }
+text = { cs = "Záznam v [[nma|NMA]] je podmínkou vykázání datové sady v RIV jako výsledku typu T. Odkaz pro RIV získáte v NMA (viz zastávka [[step/findability|Dohledatelnost]]); v citacích ale vždy uvádějte PID.", en = "An [[nma|NMA]] record is required for reporting a dataset in RIV as a result of type T. You get the RIV link in NMA (see the [[step/findability|Findability]] station); in citations, however, always give the PID." }
 sources = ["NMA-RIV-DOCS.01", "KNAV-TYPE-T.01"]
 
 [[advice]]
 id = "citation.07"
 lens = "V"
 level = "L1"
-text = { cs = "Používali jste služby EOSC CZ? Poděkování můžete vyjádřit doporučeným textem.", en = "Did you use EOSC CZ services? You can acknowledge them with the recommended text." }
+text = { cs = "Používali jste služby [[org/eosc-cz|EOSC CZ]]? Poděkování můžete vyjádřit doporučeným textem.", en = "Did you use [[org/eosc-cz|EOSC CZ]] services? You can acknowledge them with the recommended text." }
 sources = ["EOSC-ACKNOWLEDGEMENT.01"]
 
 [[advice]]
@@ -146,7 +146,7 @@ sources = ["A.I2.R2", "A.I3.R1", "DATACITE-SCHEMA.01"]
 id = "citation.15"
 lens = "SR"
 level = "L1"
-text = { cs = "Zajistěte sklizeň do [[nma|NMA]], aby autoři nemuseli zakládat záznamy pro RIV ručně.", en = "Make sure records are harvested into [[nma|NMA]] so that authors need not create them by hand for RIV." }
+text = { cs = "Zajistěte [[term/harvesting|sklizeň]] do [[nma|NMA]], aby autoři nemuseli zakládat záznamy pro RIV ručně.", en = "Make sure records are [[term/harvesting|harvested]] into [[nma|NMA]] so that authors need not create them by hand for RIV." }
 sources = ["NMA-EXPORT-DOCS.01", "NMA-RIV-DOCS.01"]
 
 [[advice]]

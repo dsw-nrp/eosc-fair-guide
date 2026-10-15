@@ -164,7 +164,7 @@ try {
       assert.equal(await figure.locator('a[target="_blank"]').count(), 1, "detailed figures can be opened at full size");
       assert((await page.locator(`#${section}`).textContent()).includes("2026"), "national diagrams retain the mapping date");
     }
-    await page.locator("#model-seam").selectOption("seam.repository-catalogue-planning");
+    await page.locator("#model-seam").selectOption("repository-catalogue-planning");
     await page.locator(".model-examples summary").click();
     assert.equal(await page.locator(".model-example").count(), 2, "catalogue publication and reuse in planning retain distinct scopes");
     assert.equal(await page.locator('.model-example [data-status="pilot"]').count(), 1);

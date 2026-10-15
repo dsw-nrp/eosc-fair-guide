@@ -31,7 +31,7 @@ sources = ["CESSDA-DMEG.01", "A.R1.2.X1"]
 id = "collect.03"
 lens = "V"
 level = "L1"
-text = { cs = "Ukládejte data na spravované a zálohované úložiště (instituce, e-INFRA CZ), ne jen na vlastní počítač nebo přenosné médium.", en = "Store data on managed, backed-up storage (your institution, e-INFRA CZ), not only on your own computer or a portable drive." }
+text = { cs = "Ukládejte data na spravované a zálohované úložiště (instituce, [[term/e-infra-cz|e-INFRA CZ]]), ne jen na vlastní počítač nebo přenosné médium.", en = "Store data on managed, backed-up storage (your institution, [[term/e-infra-cz|e-INFRA CZ]]), not only on your own computer or a portable drive." }
 sources = ["EINFRA-DOCS.01", "CESSDA-DMEG.01"]
 
 [[advice]]
@@ -81,7 +81,7 @@ sources = ["EINFRA-DOCS.01", "CESSDA-DMEG.01"]
 id = "collect.10"
 lens = "DS"
 level = "L1"
-text = { cs = "Doporučte vhodné úložiště: institucionální, CESNET (S3, [[onedata|Onedata]]), pro citlivá data [[sensitive-cloud|Sensitive Cloud]].", en = "Recommend suitable storage: institutional, CESNET (S3, [[onedata|Onedata]]), and [[sensitive-cloud|Sensitive Cloud]] for sensitive data." }
+text = { cs = "Doporučte vhodné úložiště: institucionální, [[org/cesnet|CESNET]] (S3, [[onedata|Onedata]]), pro [[term/sensitive-data|citlivá data]] [[sensitive-cloud|Sensitive Cloud]].", en = "Recommend suitable storage: institutional, [[org/cesnet|CESNET]] (S3, [[onedata|Onedata]]), and [[sensitive-cloud|Sensitive Cloud]] for [[term/sensitive-data|sensitive data]]." }
 sources = ["EINFRA-DOCS.01"]
 
 [[advice]]

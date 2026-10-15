@@ -4,7 +4,7 @@
 id = "maturity"
 name = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }
 icon = "chart-simple"
-description = { cs = "Jak dobře repozitář naplňuje FAIR principy? Výsledek ukáže stav podle principů a co chybí; žádné celkové skóre. Část odpovědí lze předvyplnit ze záznamu repozitáře v re3data, z testů FAIR Champion nad vzorkem jeho záznamů a ze záznamu v NKR, až v něm budou repozitáře.", en = "How well does the repository meet the FAIR principles? The result shows the state per principle and a list of gaps, with no overall score. Some answers can be pre-filled from the repository's re3data record, from FAIR Champion tests over a sample of its records, and from its NKR record once NKR lists repositories." }
+description = { cs = "Jak dobře repozitář naplňuje FAIR principy? Výsledek ukáže stav podle principů a co chybí; žádné celkové skóre. Část odpovědí lze předvyplnit ze záznamu repozitáře v re3data, z testů [[res/tool/fair-champion|FAIR Champion]] nad vzorkem jeho záznamů a ze záznamu v [[repo/reg/nkr|NKR]], až v něm budou repozitáře.", en = "How well does the repository meet the FAIR principles? The result shows the state per principle and a list of gaps, with no overall score. Some answers can be pre-filled from the repository's re3data record, from [[res/tool/fair-champion|FAIR Champion]] tests over a sample of its records, and from its [[repo/reg/nkr|NKR]] record once NKR lists repositories." }
 lenses = ["SR"]
 minutes = 15
 
@@ -59,7 +59,7 @@ fixAt = "findability"
 owner = ["repository-admin"]
 prefill = { nkr = ["oaipmhEndpoint"], re3data = ["apis=OAI-PMH"], champion = ["fc_metadata_protocol"] }
 championEvidenceOnly = true
-help = { cs = "Test zjišťuje protokol, kterým se ve vzorku rozlišují identifikátory. Neověřuje OAI-PMH, formáty metadat ani registraci v NKR. Ty ověřte na endpointu repozitáře a v jeho záznamu v NKR.", en = "The test identifies the protocol used to resolve the sample identifiers. It does not verify OAI-PMH, metadata formats or NKR registration. Check these at the repository endpoint and in its NKR record." }
+help = { cs = "Test zjišťuje protokol, kterým se ve vzorku rozlišují identifikátory. Neověřuje [[res/std/oai-pmh|OAI-PMH]], formáty metadat ani registraci v [[repo/reg/nkr|NKR]]. Ty ověřte na endpointu repozitáře a v jeho záznamu v NKR.", en = "The test identifies the protocol used to resolve the sample identifiers. It does not verify [[res/std/oai-pmh|OAI-PMH]], metadata formats or [[repo/reg/nkr|NKR]] registration. Check these at the repository endpoint and in its NKR record." }
 
 [[item]]
 id = "maturity.06"

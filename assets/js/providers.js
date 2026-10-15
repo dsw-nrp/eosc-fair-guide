@@ -697,13 +697,15 @@
 
     /** Every evaluator the check offers, with what it assesses, what it is sent and where, and an explicit choice.
         Nothing is called on entry, while typing, on quick lookup or on preview. */
-    function panel(check, st) {
+    function panel(check, st, questions) {
       const settings = P.settings();
-      if (!FG.list(settings.list).length) return null;
+      const active = new Set(questions.map((item) => item.identifier));
+      const offered = FG.list(settings.list).filter((provider) => P.mappings(provider).some((mapping) => active.has(mapping.question)));
+      if (!offered.length) return null;
       const target = targetOf(st);
       const running = runs.has(check.identifier);
-      const fairChecker = P.provider("fair-checker");
-      const fuji = P.provider("f-uji");
+      const fairChecker = offered.find((provider) => provider.id === "fair-checker");
+      const fuji = offered.find((provider) => provider.id === "f-uji");
       const host = (provider) => {
         try {
           return new URL(FG.live.origin(provider.connector)).host;

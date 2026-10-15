@@ -307,6 +307,19 @@ may need a catalogue reference. Each item retains its text path, language, text,
 Original source passages and labels are excluded; existing references to the same entity are respected. These
 suggestions are advisory and never fail a check or change prose automatically.
 
+`content/link-reviews.toml` records individually reviewed unlinked mentions. Each `[[review]]` names the exact
+language-specific `path`, suggested catalogue `address`, SHA-256 of the complete UTF-8 field text, ISO `reviewed`
+date and an editorial `reason`. Wildcards, duplicate decisions, missing reasons and malformed dates/hashes fail
+health integrity. Decisions never exempt a whole term, page or language. A changed field or target reopens the
+suggestion and makes its old decision stale; new occurrences remain eligible for suggestions.
+
+The health report keeps unresolved suggestions in `missing_links` and exposes current decisions with their
+reasons in `missing_link_review.reviewed`, plus obsolete decisions in `missing_link_review.stale`. Dashboard and
+summary display the counts separately. Zero unresolved suggestions means the current candidates have been
+dispositioned, not that every possible useful link has been found. Remove obsolete decisions or review their
+new context explicitly; do not refresh hashes automatically. The register is editorial metadata and does not
+alter the source prose or add a catalogue entity.
+
 ### Statuses
 
 A service or resource status uses the five-level vocabulary and always carries an `asOf` date:
@@ -350,6 +363,7 @@ A service or resource status uses the five-level vocabulary and always carries a
 | `content/icons.toml` | Interface icons |
 | `content/identifiers.toml` | The register of the identifiers the guide has issued |
 | `content/duplicates.toml` | Entries that look alike but are kept apart, each with its reason |
+| `content/link-reviews.toml` | Exact dated decisions to leave a suggested mention unlinked, with reasons and text fingerprints |
 
 A bilingual text is written as an inline table: `text = { cs = "…", en = "…" }`. Paragraphs inside one text
 are separated by a blank line (`\n\n`). Names and titles of external works are proper names, given in their

@@ -1,4 +1,4 @@
-// Final identity, potential coverage, phone navigation and globally bounded original definitions.
+// Final identity, potential coverage, phone navigation and complete catalogues with original definitions.
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -43,23 +43,21 @@ try {
         await page.waitForSelector('.evidence-card[data-source="' + (check === "software" ? "software" : "pid") + '"]');
         const facts = await page.locator(".evidence-card").first().locator("dl").innerText();
         assert.match(facts, new RegExp("\\b" + expected + "\\b"), `${check} describes registered potential coverage`);
+        assert.equal(await page.locator('.evidence-card[data-source="evaluators"]').count(), 0,
+          `${check} offers no external evaluator without a reviewed question mapping`);
         assert.equal(await page.evaluate(() => Object.keys(window.FairGuide.state.answers).some((id) =>
           Object.keys(window.FairGuide.state.answers[id].items || {}).length)), false, "showing capability never answers questions");
       }
 
       await page.goto(file + `#/${lang}/V/catalogue/term`);
       await page.waitForSelector(".letter-index");
-      assert.equal(await page.locator(".catalogue-group .entry-card").count(), 20, "the initial cap is global across letters");
-      const remaining = await page.locator(".catalogue-more").evaluateAll((buttons) => buttons.map((button) => {
-        const group = button.closest(".catalogue-group");
-        const total = Number(group.querySelector(".group-count").textContent.match(/\d+/)[0]);
-        return [Number(button.textContent.match(/-?\d+/)[0]), total - group.querySelectorAll(".entry-card").length];
-      }));
-      assert(remaining.every(([label, actual]) => label > 0 && label === actual), "each expansion names its actual hidden count");
+      assert.equal(await page.locator(".catalogue-group .entry-card").count(),
+        graph.filter((entity) => entity.catalogueAddress?.startsWith("term/")).length, "every glossary term is present immediately");
+      assert.equal(await page.locator(".catalogue-more").count(), 0, "the catalogue needs no Show more click");
       assert.equal(await page.locator(".term-definition[open]").count(), 0);
       await page.locator(".letter-index button").last().click();
       const last = page.locator(".catalogue-group").last();
-      assert(await last.locator(".entry-card").count(), "choosing a letter reveals its entries");
+      assert(await last.locator(".entry-card").count(), "choosing a letter reaches its existing entries");
       const definition = last.locator(".term-definition").first();
       if (await definition.count()) {
         await definition.locator("summary").click();
@@ -96,7 +94,7 @@ try {
   }
   assert(!existsSync(resolve(root, "_site/api/resources/knav.github.json")), "no unreleased compatibility API document");
   assert(graph.every((entry) => !entry.catalogueAddress || entry.catalogueAddress.split("/").at(-1).length <= 32));
-  console.log("check_final_candidate: compact identity, coverage, mobile menus, global limits, originals and all 264 step/role/language/width accessibility states pass");
+  console.log("check_final_candidate: compact identity, coverage, mobile menus, complete catalogues, originals and all 264 step/role/language/width accessibility states pass");
 } finally {
   await browser.close();
 }

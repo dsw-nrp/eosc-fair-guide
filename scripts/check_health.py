@@ -24,6 +24,7 @@ import re
 import sys
 from collections import Counter, defaultdict
 from datetime import UTC, date, datetime
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -127,6 +128,27 @@ def missing_links(content: dict[str, Any]) -> list[dict[str, str]]:
         "test",
         "research",
         "výzkum",
+        "version",
+        "verze",
+        "title",
+        "název",
+        "rights",
+        "práva",
+        "security",
+        "quality",
+        "infrastructure",
+        "infrastruktura",
+        "provenance",
+        "původ",
+        "process",
+        "publish",
+        "preserve",
+        "reuse",
+        "share",
+        "store",
+        "core",
+        "chat",
+        "api",
     }
     names: dict[tuple[str, str, str], str] = {}
 
@@ -136,6 +158,15 @@ def missing_links(content: dict[str, Any]) -> list[dict[str, str]]:
             return
         if len(label.split()) == 1 and label.islower():
             return  # Common nouns need an explicit, specific phrase, not a blanket glossary link.
+        # A criterion, model layer, stage or profile name often describes the subject of ordinary prose.
+        # "NRP" does not by itself name the NRP FIP, nor "rich metadata" the F2 catalogue entry.
+        if (
+            addresses[entity_id].split("/")[0] in {"cl", "pr", "model", "life", "check", "fip", "test"}
+            and len(label.split()) < 3
+        ):
+            return
+        if basis == "form used in an authored reference" and not any(char.isupper() for char in label):
+            return  # Linked common phrases are not aliases for the named tool or service everywhere else.
         names[(entity_id, label, language)] = basis
 
     rows = build_crate.catalogue_records(content)
@@ -162,6 +193,16 @@ def missing_links(content: dict[str, Any]) -> list[dict[str, str]]:
                 field not in prose_keys
                 or not isinstance(value, str)
                 or any(part in path.lower() for part in ("original", "guidance", "quote", "definition"))
+            ):
+                continue
+            # A callout item with a URL is already rendered as one complete external link.
+            callout = re.match(r"callouts\[([^]]+)\]\.item\[([^]]+)\]", path)
+            if callout and any(
+                item.get("url")
+                for group in content["callouts"]
+                if group["id"] == callout[1]
+                for item in group.get("item", [])
+                if item["id"] == callout[2]
             ):
                 continue
             language = key if key in ("cs", "en") else "und"
@@ -250,6 +291,34 @@ def missing_links(content: dict[str, Any]) -> list[dict[str, str]]:
 
 def cited_clauses(item: dict[str, Any]) -> list[str]:
     return list(dict.fromkeys(([item["requirement"]] if item.get("requirement") else []) + item.get("sources", [])))
+
+
+def review_links(content: dict[str, Any], candidates: list[dict[str, str]]) -> dict[str, Any]:
+    """Apply exact, dated editorial decisions; changed text or targets reopen the suggestion."""
+    pending = {(row["path"], row["address"]): row for row in candidates}
+    reviewed, stale, issues = [], [], []
+    seen = set()
+    for decision in content.get("link_reviews", []):
+        key = (decision.get("path"), decision.get("address"))
+        if (
+            not all(isinstance(value, str) and value for value in key)
+            or any("*" in value for value in key)
+            or not isinstance(decision.get("reason"), str)
+            or not decision["reason"].strip()
+            or iso_date(decision.get("reviewed")) is None
+            or not re.fullmatch(r"[0-9a-f]{64}", str(decision.get("sha256", "")))
+            or key in seen
+        ):
+            issues.append(f"Invalid or duplicate link review: {key}")
+            continue
+        seen.add(key)
+        candidate = pending.get(key)
+        if candidate and sha256(candidate["text"].encode("utf-8")).hexdigest() == decision["sha256"]:
+            reviewed.append({**candidate, "review_reason": decision["reason"], "reviewed": str(decision["reviewed"])})
+            del pending[key]
+        else:
+            stale.append({**decision, "reviewed": str(decision["reviewed"])})
+    return {"pending": list(pending.values()), "reviewed": reviewed, "stale": stale, "issues": issues}
 
 
 def original_coverage(content: dict[str, Any]) -> dict[str, Any]:
@@ -706,6 +775,7 @@ def make_report(
     run: dict[str, Any] | None = None,
     previous: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    link_review = review_links(content, missing_links(content))
     report = {
         "format_version": FORMAT_VERSION,
         "generated_at": datetime.now(UTC).isoformat(),
@@ -728,9 +798,29 @@ def make_report(
         },
         "integrity": integrity(content, root, today or date.today()),
         "original_coverage": original_coverage(content),
-        "missing_links": missing_links(content),
+        "missing_links": link_review.pop("pending"),
+        "missing_link_review": link_review,
         "run": run or {"status": "not_run", "jobs": [], "reason": "Only the offline health inventory was requested."},
     }
+    if link_review["issues"]:
+        report["integrity"].append(
+            {
+                "type": "link review decisions",
+                "count": 1,
+                "passed": 0,
+                "failed": 1,
+                "items": [
+                    {
+                        "id": "link-reviews",
+                        "name": "Link review decisions",
+                        "status": "failed",
+                        "checks": ["exact, dated, unique decisions with reasons"],
+                        "issues": link_review["issues"],
+                        "notes": [],
+                    }
+                ],
+            }
+        )
     report["integrity_failed"] = sum(group["failed"] for group in report["integrity"])
     report["trend"] = compare(report, previous)
     return report
@@ -945,7 +1035,7 @@ def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
     advisories = report.get("missing_links", [])
     parts.append(
         f"<h2>Possible missing links (advisory): {len(advisories)}</h2>"
-        "<p>Exact catalogue-name matches; these do not fail checks.</p>"
+        "<p>Ranked catalogue-name suggestions with context and ambiguity notes; these do not fail checks.</p>"
     )
     parts.append(
         "<details><summary>Texts and matching entries</summary><table><thead>"
@@ -958,6 +1048,25 @@ def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
             f"<p>{esc(item['confidence'])}: {esc(item['reason'])}</p></td></tr>"
         )
     parts.append("</tbody></table></details>")
+    review = report.get("missing_link_review", {})
+    parts.append(
+        f"<h3>Reviewed unlinked mentions: {len(review.get('reviewed', []))}</h3>"
+        "<p>Decisions apply only to the exact field, target and text reviewed. Changed text reopens the suggestion.</p>"
+        "<details><summary>Editorial decisions and reasons</summary><table><thead>"
+        "<tr><th>Text and target</th><th>Decision</th></tr></thead><tbody>"
+    )
+    for item in review.get("reviewed", []):
+        parts.append(
+            f"<tr><td><code>{esc(item['path'])}</code><p>{esc(item['excerpt'])}</p>"
+            f"<code>{esc(item['address'])}</code></td><td>{esc(item['review_reason'])}"
+            f"<p>Reviewed {esc(item['reviewed'])}</p></td></tr>"
+        )
+    parts.append("</tbody></table></details>")
+    parts.append(f"<h3>Stale link decisions requiring review: {len(review.get('stale', []))}</h3>")
+    for item in review.get("stale", []):
+        parts.append(
+            f"<p><code>{esc(item['path'])}</code> → <code>{esc(item['address'])}</code>: {esc(item['reason'])}</p>"
+        )
     parts += [
         "<h2>Live availability</h2>",
         f"<p><strong>{esc(report['live_availability']['status'])}</strong>: "
@@ -992,6 +1101,12 @@ def markdown(report: dict[str, Any]) -> str:
             "Missing originals are editorial review information, not failed requirements.",
         ]
     lines += ["", f"Possible missing links (advisory, non-blocking): **{len(report.get('missing_links', []))}**.", ""]
+    review = report.get("missing_link_review", {})
+    lines += [
+        f"Reviewed unlinked mentions: **{len(review.get('reviewed', []))}**; "
+        f"stale decisions requiring review: **{len(review.get('stale', []))}**.",
+        "",
+    ]
     lines += ["", "| Check | Result | Seconds |", "| --- | --- | ---: |"]
     for job in report["run"].get("jobs", []):
         lines.append(f"| {job['name']} | {job['status']} | {job.get('seconds', '')} |")

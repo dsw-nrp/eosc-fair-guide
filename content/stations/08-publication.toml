@@ -16,14 +16,14 @@ id = "publication.01"
 lens = "*"
 level = "L1"
 kind = "key"
-text = { cs = "Trvalý identifikátor (PID) je adresa, která přežije změny: vede na stránku s popisem dat (landing page), je identifikátorem záznamu v [[nma|NMA]] a dělá data citovatelnými.", en = "A persistent identifier (PID) is an address that outlives changes: it leads to the page describing the data (the landing page), identifies the record in [[nma|NMA]] and makes the data citable." }
+text = { cs = "[[term/persistent-identifier|Trvalý identifikátor]] (PID) je adresa, která přežije změny: vede na stránku s popisem dat (landing page), je identifikátorem záznamu v [[nma|NMA]] a dělá data citovatelnými.", en = "A [[term/persistent-identifier|persistent identifier]] (PID) is an address that outlives changes: it leads to the page describing the data (the landing page), identifies the record in [[nma|NMA]] and makes the data citable." }
 sources = ["A.F1.N4", "A.F1.R1", "A.F1.X2"]
 
 [[advice]]
 id = "publication.02"
 lens = "V"
 level = "L0"
-text = { cs = "Při zveřejnění repozitář datové sadě přidělí trvalý identifikátor (PID), nejčastěji DOI, jinde třeba Handle. Odkaz pak funguje i po letech a data lze citovat.", en = "At publication, the repository assigns the dataset a persistent identifier (PID), most often a DOI, elsewhere for example a Handle. The link then works for years, and the data can be cited." }
+text = { cs = "Při zveřejnění repozitář datové sadě přidělí [[term/persistent-identifier|trvalý identifikátor]] (PID), nejčastěji DOI, jinde třeba [[res/srv/handle|Handle]]. Odkaz pak funguje i po letech a data lze citovat.", en = "At publication, the repository assigns the dataset a [[term/persistent-identifier|persistent identifier]] (PID), most often a DOI, elsewhere for example a [[res/srv/handle|Handle]]. The link then works for years, and the data can be cited." }
 action = [{ label = { cs = "Co zkontrolovat před zveřejněním", en = "What to check before publishing" }, href = "#check-dataset" }, { label = { cs = "Centrum PID", en = "PID Centre" }, href = "https://identifikatory.cz/cs/" }]
 sources = ["A.F1.R1", "A.F1.N2"]
 
@@ -66,7 +66,7 @@ sources = ["FRSM.FRSM-03", "FRSM.FRSM-12", "ZENODO-SW.01"]
 id = "publication.07"
 lens = "V"
 level = "L1"
-text = { cs = "Pokud repozitář trvalý identifikátor nepřiděluje, zvažte jiný: PID je minimum pro zapojení do Národní datové infrastruktury.", en = "If the repository does not assign a persistent identifier, consider another one: a PID is the minimum for joining the National Data Infrastructure." }
+text = { cs = "Pokud repozitář [[term/persistent-identifier|trvalý identifikátor]] nepřiděluje, zvažte jiný: PID je minimum pro zapojení do [[term/national-data-infrastructure|Národní datové infrastruktury]].", en = "If the repository does not assign a [[term/persistent-identifier|persistent identifier]], consider another one: a PID is the minimum for joining the [[term/national-data-infrastructure|National Data Infrastructure]]." }
 sources = ["A.MIN1"]
 
 [[advice]]
@@ -81,7 +81,7 @@ sources = ["A.MIN1", "A.R1.2.N3", "PID-CENTRE.01"]
 id = "publication.09"
 lens = "DS"
 level = "L1"
-text = { cs = "Typy PID: DOI je nejrozšířenější a doporučený. Přípustný je i jiný trvalý identifikátor, například Handle nebo ARK, pokud trvale vede na landing page a repozitář ho spravuje.", en = "PID types: DOI is the most widespread and the recommended one. Another persistent identifier, such as a Handle or ARK, is acceptable if it resolves permanently to the landing page and the repository manages it." }
+text = { cs = "Typy PID: DOI je nejrozšířenější a doporučený. Přípustný je i jiný [[term/persistent-identifier|trvalý identifikátor]], například [[res/srv/handle|Handle]] nebo ARK, pokud trvale vede na landing page a repozitář ho spravuje.", en = "PID types: DOI is the most widespread and the recommended one. Another [[term/persistent-identifier|persistent identifier]], such as a [[res/srv/handle|Handle]] or ARK, is acceptable if it resolves permanently to the landing page and the repository manages it." }
 sources = ["A.F1.N2", "NRP.EXT"]
 
 [[advice]]
@@ -207,7 +207,7 @@ id = "publication.25"
 lens = "SR"
 level = "L1"
 kind = "ai"
-text = { cs = "AI vám může připravit JSON-LD pro landing page podle [[schema-dataset|Schema.org Dataset]] ze záznamu DataCite.", en = "AI can draft JSON-LD for a landing page following [[schema-dataset|Schema.org Dataset]] from a DataCite record." }
+text = { cs = "AI vám může připravit JSON-LD pro landing page podle [[schema-dataset|Schema.org Dataset]] ze záznamu [[res/srv/datacite|DataCite]].", en = "AI can draft JSON-LD for a landing page following [[schema-dataset|Schema.org Dataset]] from a [[res/srv/datacite|DataCite]] record." }
 check = { cs = "Výsledek před nasazením validujte a porovnejte s metadaty záznamu; identifikátory a adresy ověřte, že se rozřeší.", en = "Validate the result before deploying it and compare it with the record's metadata; check that identifiers and addresses resolve." }
 prompt = { cs = "Z metadat DataCite níže vytvoř JSON-LD typu schema.org Dataset pro landing page: name, description, identifier (DOI jako URL), creator s ORCID, license, datePublished a distribution s contentUrl a encodingFormat. Použij jen údaje z metadat; co chybí, vynech.\n\nMetadata: […]", en = "From the DataCite metadata below, create schema.org Dataset JSON-LD for a landing page: name, description, identifier (the DOI as a URL), creator with ORCID, license, datePublished and distribution with contentUrl and encodingFormat. Use only what the metadata say; leave out what is missing.\n\nMetadata: […]" }
 sources = ["CERIT-AIAAS.01", "SCHEMA-DATASET.01", "EC-GENAI-GUIDELINES.01"]
@@ -226,5 +226,5 @@ sources = ["A.R1.2.N3", "EC-GENAI-GUIDELINES.01"]
 id = "publication.29"
 lens = "*"
 level = "L1"
-text = { cs = "Před zveřejněním projděte [[rdmkit-publication|kontrolní body RDMkit k publikaci]]: popis, licenci, verzi a trvalý identifikátor. V českém prostředí navazují kroky Průvodce pro dohledatelnost v NMA a odkaz pro RIV.", en = "Before publication, follow [[rdmkit-publication|RDMkit's publication considerations]] for documentation, licensing, version and a persistent identifier. In the Czech setting, continue with the Guide's steps for NMA discovery and the RIV link." }
+text = { cs = "Před zveřejněním projděte [[rdmkit-publication|kontrolní body RDMkit k publikaci]]: popis, licenci, verzi a [[term/persistent-identifier|trvalý identifikátor]]. V českém prostředí navazují [[step/findability|kroky Průvodce pro dohledatelnost]] v [[repo/reg/nma|NMA]] a odkaz pro RIV.", en = "Before publication, follow [[rdmkit-publication|RDMkit's publication considerations]] for documentation, licensing, version and a [[term/persistent-identifier|persistent identifier]]. In the Czech setting, continue with the [[step/findability|Guide's steps]] for [[repo/reg/nma|NMA]] discovery and the RIV link." }
 sources = ["RDMKIT.tasks.01"]

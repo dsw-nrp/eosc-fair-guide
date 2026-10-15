@@ -38,7 +38,7 @@ sources = ["A.I1.X1", "MBDB-2026.01"]
 id = "process.04"
 lens = "V"
 level = "L1"
-text = { cs = "Citlivá data co nejdřív pseudonymizujte nebo anonymizujte a zaznamenejte, jak jste to udělali. Nestačí odstranit jména a rodná čísla; pozor i na identifikující údaje jinde, například jména na fotografiích.", en = "Pseudonymise or anonymise sensitive data as early as you can, and record how you did it. Removing names and personal ID numbers is not enough; watch for identifying details elsewhere too, such as names on photographs." }
+text = { cs = "[[term/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo anonymizujte a zaznamenejte, jak jste to udělali. Nestačí odstranit jména a rodná čísla; pozor i na identifikující údaje jinde, například jména na fotografiích.", en = "Pseudonymise or anonymise [[term/sensitive-data|sensitive data]] as early as you can, and record how you did it. Removing names and personal ID numbers is not enough; watch for identifying details elsewhere too, such as names on photographs." }
 sources = ["RDMKIT.process.02"]
 
 [[advice]]
@@ -60,7 +60,7 @@ sources = ["RDMKIT.process.01", "EINFRA-DOCS.01"]
 id = "process.07"
 lens = "DS"
 level = "L1"
-text = { cs = "Pro zpracování citlivých dat doporučte pseudonymizaci před sdílením v týmu a zabezpečené prostředí, například [[sensitive-cloud|Sensitive Cloud]].", en = "For processing sensitive data, recommend pseudonymisation before the data are shared in the team and a secure environment such as [[sensitive-cloud|Sensitive Cloud]]." }
+text = { cs = "Pro zpracování [[term/sensitive-data|citlivých dat]] doporučte pseudonymizaci před sdílením v týmu a zabezpečené prostředí, například [[sensitive-cloud|Sensitive Cloud]].", en = "For processing [[term/sensitive-data|sensitive data]], recommend pseudonymisation before the data are shared in the team and a secure environment such as [[sensitive-cloud|Sensitive Cloud]]." }
 sources = ["RDMKIT.process.02", "EINFRA-DOCS.01"]
 
 [[advice]]
@@ -84,7 +84,7 @@ id = "process.10"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "Skripty pro zpracování dat napíšete s asistenty pro programování nebo v JupyterHubu v [[cerit-aiaas|prostředí CERIT]], kde nepublikovaná data zůstávají v infrastruktuře.", en = "Write data-processing scripts with coding assistants or in JupyterHub in [[cerit-aiaas|the CERIT environment]], where unpublished data stay within the infrastructure." }
+text = { cs = "Skripty pro zpracování dat napíšete s [[res/doc/cerit-ai-coding|asistenty pro programování]] nebo v JupyterHubu v [[cerit-aiaas|prostředí CERIT]], kde nepublikovaná data zůstávají v infrastruktuře.", en = "Write data-processing scripts with [[res/doc/cerit-ai-coding|coding assistants]] or in JupyterHub in [[cerit-aiaas|the CERIT environment]], where unpublished data stay within the infrastructure." }
 check = { cs = "Skript nejdřív spusťte na kopii dat a výsledek porovnejte s očekáváním (počty řádků, součty, rozsahy hodnot). Skript uložte k datům, aby se zpracování dalo zopakovat.", en = "Run the script on a copy of the data first and compare the result with what you expect (row counts, totals, value ranges). Keep the script with the data so the processing can be repeated." }
 prompt = { cs = "Napiš skript v Pythonu, který načte všechny soubory CSV ve složce data/, převede kódování na UTF-8 a oddělovač na čárku, zachová názvy sloupců a pro každý soubor vypíše počet řádků před převodem a po něm. Každý krok okomentuj a nic nemaž.", en = "Write a Python script that reads every CSV file in the data/ folder, converts the encoding to UTF-8 and the separator to a comma, keeps the column names, and prints each file's row count before and after the conversion. Comment every step and delete nothing." }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]

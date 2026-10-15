@@ -45,7 +45,8 @@ address in generated records. Production and preview share canonical entity iden
 **The first download is bounded.** The build measures gzip bytes from the actual script and stylesheet
 tags and selected-language data against the 300 KB budget. Neutral structure and one language load first.
 Requirements, FIP records, page texts, detailed provenance and language patches load when needed;
-together they reconstruct the complete crate. Language changes preserve answers and view state.
+glossary source identifiers load with their definitions while primary IDs remain available for navigation.
+Together they reconstruct the complete crate. Language changes preserve answers and view state.
 Missing language files leave the usable view in place with retry. Originals, published titles and
 vocabulary labels retain their languages. Compact aliases support local cross-language search.
 
@@ -212,7 +213,7 @@ are shared facets, and kind-specific facets reset on kind change. Dimensions/ord
 meaningful; absent dimensions are explained instead of showing all-zero controls. FIP principles derive
 from declarations, change associations from their results. Ordering controls grouping, filters travel
 in the address, and an entry link shows that entry with a route back to its kind. Phone filters sit in
-a closed disclosure. A global initial card limit also applies across alphabetical groups; long original definitions use disclosures,
+a closed disclosure. Every matching card is present without a Show more step, and print lays all cards out. Long original definitions use disclosures,
 with complete text retained in search and exports. One resource-type vocabulary classifies recommendations, citations and Dashboard
 records rather than parallel taxonomies. Records expose source, use, qualification and identifiers separately.
 
@@ -282,7 +283,10 @@ assess one object at a time; running them over every sample record is explicitly
 . The maturity check's evidence cards describe the supported sample
 checks and do not promise that deferred batch evaluation.
 
-A check about one object offers FAIR-Checker and F-UJI next to quick discovery and FAIR Champion. Each choice
+An object check offers an external evaluator only when its reviewed mappings cover at least one question in the
+selected mode and tier scope. The current mappings support published-dataset questions; CDIF and FDO retain their
+local checks without unrelated evaluator inputs. Accepted reports remain inspectable and exportable independently
+of whether their input control is currently offered. Each offered choice
 states what the service assesses, which identifier it receives and where, and starts only when the reader chooses
 it; nothing runs on entry, while typing, on quick lookup or on a report preview. FAIR-Checker runs from the browser
 through its anonymous REST API (`api/check/metric_<id>?url=`), at most three of its twelve metrics at a time,
