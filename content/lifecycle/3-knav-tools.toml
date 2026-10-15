@@ -8,6 +8,7 @@ source = "knav-dm-tools-catalogue"
 name = { cs = "Kroky životního cyklu v Katalogu nástrojů pro správu dat KNAV", en = "Life-cycle steps of the KNAV Data Management Tools Catalogue" }
 
 [[stage]]
+guideRoute = "life/knav"
 id = "planning"
 name = { cs = "Plánování", en = "Planning" }
 translated = "cs"
@@ -15,6 +16,7 @@ definition = "Preparing data management before a project or experiment, e.g., cr
 locator = "index.html, cycle diagram; data.js, lifecycleData"
 
 [[stage]]
+guideRoute = "life/knav"
 id = "collecting"
 name = { cs = "Sběr dat", en = "Collecting" }
 translated = "cs"
@@ -22,6 +24,8 @@ definition = "Ensuring proper data collection, including metadata, documentation
 locator = "index.html, cycle diagram; data.js, lifecycleData"
 
 [[stage]]
+guideRoute = "life/knav"
+
 id = "organizing-collaborating"
 name = { cs = "Organizace a spolupráce", en = "Organizing & Collaborating" }
 translated = "cs"
@@ -29,6 +33,7 @@ definition = "Collaboration and organization of data during the research process
 locator = "index.html, cycle diagram; data.js, lifecycleData"
 
 [[stage]]
+guideRoute = "life/knav"
 id = "processing"
 name = { cs = "Zpracování", en = "Processing" }
 translated = "cs"
@@ -36,6 +41,7 @@ definition = "Cleaning, transforming, and converting data into suitable formats 
 locator = "index.html, cycle diagram; data.js, lifecycleData"
 
 [[stage]]
+guideRoute = "life/knav"
 id = "analyzing"
 name = { cs = "Analýza", en = "Analyzing" }
 translated = "cs"
@@ -43,6 +49,7 @@ definition = "Analyzing data to obtain results that answer research questions."
 locator = "index.html, cycle diagram; data.js, lifecycleData"
 
 [[stage]]
+guideRoute = "life/knav"
 id = "sharing"
 name = { cs = "Sdílení", en = "Sharing" }
 translated = "cs"
@@ -50,6 +57,7 @@ definition = "Sharing data publicly or within teams, in compliance with legal an
 locator = "index.html, cycle diagram; data.js, lifecycleData"
 
 [[stage]]
+guideRoute = "life/knav"
 id = "storing-archiving"
 name = { cs = "Ukládání a archivace", en = "Storing & Archiving" }
 translated = "cs"
@@ -57,6 +65,7 @@ definition = "Ensuring long-term accessibility and integrity of data after proje
 locator = "index.html, cycle diagram; data.js, lifecycleData"
 
 [[stage]]
+guideRoute = "life/knav"
 id = "reusing"
 name = { cs = "Opakované užití", en = "Reusing" }
 translated = "cs"

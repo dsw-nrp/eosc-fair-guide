@@ -9,11 +9,25 @@ Use this skill for every change to the guide. Read [AGENTS.md](../../../AGENTS.m
 apply to everything below. Field-level rules are in [docs/content-model.md](../../../docs/content-model.md), and the
 reasons behind them in [docs/design.md](../../../docs/design.md).
 
+## 0. Classify the change
+
+Behaviour, data/API contracts, stored formats, CI and governance need an OpenSpec change. Read the relevant
+`openspec/specs/` capabilities, then use `npm run openspec:cli -- list --json`, `npm run openspec:cli -- new change <slug>`, and its proposal/design/specs/tasks. Obtain explicit approval before implementation and before archive.
+A typo, wording/formatting correction, behaviour-neutral dependency update or routine source refresh can use the
+ordinary editing checks without a new change; preserve the existing contract. Do not classify a semantic change
+as wording. Validate with `npm run openspec:validate`, then `python scripts/check_all.py`.
+
 ## 1. Find what to change
 
-- Texts and data live in `content/*.toml`. Each entry has a stable, registered identifier: a station
+Every normalized catalogue record has one Guide-owned primary `id`. Imported source IDs belong in typed
+`alternateIds = [{ scheme = "knav", value = "github" }]`, using the actual source issuer and value. Never put an
+obsolete own ID there. Do not add `guideId`, old-route aliases or another full-address mapping. Source joins use
+explicit alternates; titles, external IDs/IRIs, URLs and classifications cannot silently change the local ID.
+
+
+- Texts and data live in `content/*.toml`. Each authored entry has a locally owned identifier: a station
   `repository`, an advice item `repository.03`, a check `dataset`, a question `dataset.04`, a clause `A.F1.R2`,
-  a local test `guide-dataset-01`, an evaluator criterion `provider:f-uji.FsF-F1-02MD`. Identifiers are never
+  a local test `guide-dataset-01`, an evaluator criterion `provider:f-uji.FsF-F1-02MD`. Identifiers become issued at the first official release; before that they may change in place. Issued IDs are never
   renamed or reused; `scripts/register_ids.py` registers new ones and a retired one stays under `[retired]`.
 - Search by identifier or by a phrase from the page. Never edit what the build makes: everything in `_site/`
   (the crate, the data scripts, the API, the health report) and the generated blocks of `index.html`, which stay
@@ -122,7 +136,8 @@ Add one provenance action per change batch to `content/provenance.toml` and regi
 - `endTime`: when the change was finished, with its offset.
 
 Every compared kind needs paradata: guide metadata, clauses, advice, questions, resources, tests, evaluator
-criteria (with their mappings and reviewed versions), organisations and the model. The content check compares the
+criteria (with their mappings and reviewed versions), organisations, pages, curated repositories/sources, callouts
+and the model. The content check compares the
 content with the merge base of the default branch (`--base`, which `check_all.py` sets to the remote's default
 branch): an item that changed since then needs an action added since then that covers it. Snapshot refreshes are
 recorded with the run and source by automation; a person reviews them. `scripts/contributors.py` suggests credit

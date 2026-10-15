@@ -196,13 +196,44 @@ ol {
   }
 
   .site-header .header-links {
-    grid-column: 1 / -1;
-    grid-row: 3;
+    grid-column: 2;
+    grid-row: 2;
   }
 
   .brand-title {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: 2;
+  }
+
+  .header-page span {
+    display: none;
+  }
+}
+
+.responsive-menu {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.responsive-menu > summary {
+  display: none;
+}
+
+.role-menu {
+  flex: 1;
+}
+
+@media (max-width: 39.99rem) {
+  .responsive-menu > summary {
+    display: list-item;
+    padding: var(--space-3) 0;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .lens-band-label {
+    display: none;
   }
 }
 
@@ -468,7 +499,6 @@ button:hover,
 /* A ruled list of stations: number, icon and name in fixed columns; the legend for the self-check marks sits
    below the rule with its mark in the icon column. */
 .rail {
-  --rail-number: 1.25rem;
   --rail-icon: 1.1rem;
 }
 
@@ -500,7 +530,7 @@ button:hover,
 
 .rail a {
   display: grid;
-  grid-template-columns: var(--rail-number) var(--rail-icon) minmax(0, 1fr);
+  grid-template-columns: var(--rail-icon) minmax(0, 1fr);
   gap: var(--space-2);
   align-items: center;
   padding: var(--space-2) var(--space-2);
@@ -525,11 +555,6 @@ button:hover,
 
 .rail a:hover {
   background: var(--surface);
-}
-
-.rail a .number {
-  color: var(--text-muted);
-  text-align: right;
 }
 
 .rail a .icon {
@@ -611,17 +636,12 @@ button:hover,
   }
 }
 
-.rail .number {
-  color: var(--tint-teal);
-  font-weight: 700;
-}
-
 /* The self-check's marks at a step: one per open answer state, in the self-check's icon and colour, on their own
    line under the step's name, so several checks' marks never squeeze the name. */
 .rail-marks {
   display: flex;
   flex-wrap: wrap;
-  grid-column: 3 / -1;
+  grid-column: 2 / -1;
   gap: 0.25rem;
   margin-top: -0.15rem;
 }

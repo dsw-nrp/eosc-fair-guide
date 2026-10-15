@@ -10,7 +10,7 @@ title = { cs = "Citace dat, uznání a opakované užití", en = "Data citation,
 icon = "quote-right"
 principles = ["F1", "R1"]
 minutes = 5
-glossary = ["200", "149", "444"]
+glossary = ["persistent-identifier", "digital-object-identifier", "reuse"]
 
 [[advice]]
 id = "citation.01"

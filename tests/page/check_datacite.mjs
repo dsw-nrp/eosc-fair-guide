@@ -80,7 +80,7 @@ async function visit(hash, selector) {
 
 try {
   /* ------------------------------------------------ the repository finder */
-  await visit("#/cs/K/catalogue/repositories/re3data.r3d100010484", ".catalogue-results .entry-card");
+  await visit("#/cs/K/catalogue/repo/dom/csda", ".catalogue-results .entry-card");
   /* Long enough for a lookup the page started by itself to have gone out. */
   await page.waitForTimeout(500);
   assert.equal(requests.length, 0, "opening an entry asks DataCite nothing");
@@ -99,16 +99,16 @@ try {
   await accessible("the finder's DataCite facts are accessible");
 
   requests.length = 0;
-  await visit("#/en/K/catalogue/repositories/zenodo", ".catalogue-results .entry-card .datacite-read button");
+  await visit("#/en/K/catalogue/repo/gen/zenodo", ".catalogue-results .entry-card .datacite-read button");
   await page.locator(".datacite-read button").click();
   await page.waitForSelector("section.datacite-read");
   assert.equal(new URL(requests[0]).pathname, "/clients/cern.zenodo", "a reviewed DataCite ID is asked for directly");
   assert((await page.locator("section.datacite-read").innerText()).includes("According to DataCite, read on"));
 
-  await visit("#/cs/K/catalogue/repositories/re3data.r3d100010386", ".catalogue-results .entry-card");
+  await visit("#/cs/K/catalogue/repo/dom/lindat-clariah-cz", ".catalogue-results .entry-card");
   assert.equal(await page.locator(".datacite-read").count(), 0, "an entry absent from the DataCite snapshot offers no lookup");
 
-  await visit("#/cs/K/catalogue/repositories/re3data.r3d100013889", ".catalogue-results .entry-card");
+  await visit("#/cs/K/catalogue/repo/inst/eli-eric-open-data", ".catalogue-results .entry-card");
   assert.equal(await page.locator(".datacite-read").count(), 0, "an entry with no way to DataCite offers no DataCite lookup");
 
   /* ------------------------------------------------ the maturity check's sample */

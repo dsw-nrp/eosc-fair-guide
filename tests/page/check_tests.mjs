@@ -50,15 +50,16 @@ async function checkFacets(lang) {
     for (const code of ["F1", "F2", "F3", "A1", "A1.1", "A1.2", "I1", "I2", "I3", "R1", "R1.1", "R1.2", "R1.3"]) {
       await visit(`#/${lang}/K/catalogue/k!${kind}~p!${code}`);
       const expected = entities.filter((entry) => principlesOf(entry).includes(code)).length;
+      while (await page.locator(".catalogue-more").count()) await page.locator(".catalogue-more").first().click();
       const shown = await page.locator(".entry-card").count();
       assert.equal(shown, expected, `the existing ${code} principle filter covers all ${kind} groups`);
       assert(await page.locator(`[data-facet="principle"] input:checked`).count() === 1);
       assert.equal(await page.locator('[data-facet$="-fair"]').count(), 0, "FAIR mapping uses the shared principle facet");
     }
   }
-  await visit(`#/${lang}/K/catalogue/questions/software.20`);
+  await visit(`#/${lang}/K/catalogue/q/software.20`);
   assert.equal(await page.locator('[id="item-software.20"] .principle-tile').count(), 0, "a badge review is not forced into a FAIR principle");
-  await visit(`#/${lang}/K/catalogue/questions/cdif.04`);
+  await visit(`#/${lang}/K/catalogue/q/cdif.04`);
   for (const code of ["A1.2", "R1.1"]) assert.equal(await page.locator(`[id="item-cdif.04"] .principle-tile[href$="/explorer/${code}"]`).count(), 1, "question records show their existing principle tags");
   await visit(`#/${lang}/K/catalogue/k!tests~p!R1`);
   const main = await page.$("#main");
@@ -112,9 +113,9 @@ try {
     assert.equal(definitions.length, 55);
     for (const test of definitions) {
       const automatic = test.identifier.startsWith("guide-");
-      const anchor = automatic ? test.identifier : "fair-champion." + test.identifier;
-      await visit(`#/${lang}/K/catalogue/tests/${anchor}`);
-      await page.waitForSelector("#item-" + anchor.replaceAll(".", "\\."));
+      const anchor = test.catalogueAddress.split("/").slice(1).join("/");
+      await visit(`#/${lang}/K/catalogue/${test.catalogueAddress}`);
+      await page.waitForSelector("[id='item-" + anchor + "']");
       const entry = page.locator("[id='item-" + anchor + "']");
       assert.equal(await entry.locator(".entry-title").textContent(), test.name.find((value) => value["@language"] === lang)["@value"]);
       if (automatic) assert.equal(await entry.locator(".entry-what").textContent(), lang === "cs" ? "test Průvodce" : "guide test");
@@ -124,19 +125,19 @@ try {
       assert.equal(await entry.locator("code").count(), automatic ? 1 : 0, "local entry names its invoked function");
       assert(await entry.locator("a").filter({ hasText: lang === "cs" ? "Popis testu" : "Test documentation" }).count() > 0, "documentation is linked independently of execution");
       if (automatic) assert.equal(await entry.locator(`a[href="assets/js/tests/index.html#${test.identifier}${lang === "en" ? "-en" : ""}"]`).count(), 1, "documentation leads to this test's heading in the selected language");
-      if (automatic) assert(await entry.locator("a[href*='/questions/']").count() > 0, "local test identifies the question it can prefill");
+      if (automatic) assert(await entry.locator("a[href*='/q/']").count() > 0, "local test identifies the question it can prefill");
       for (const code of principlesOf(test)) assert.equal(await entry.locator(`.relations .principle-tile[href$="/explorer/${code}"]`).count(), 1, "test records show their existing FAIR tags");
     }
     for (const width of [1280, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(base + `#/${lang}/K/catalogue/tests/guide-software-14`);
-      await page.waitForSelector("#item-guide-software-14");
+      await page.goto(base + `#/${lang}/K/catalogue/test/guide/guide-software-14`);
+      await page.waitForSelector('[id="item-guide/guide-software-14"]');
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
       axeRunning = true;
       const result = await audit(page);
       axeRunning = false;
       assert.deepEqual(result.violations.map((violation) => violation.id), []);
-      await page.locator("#item-guide-software-14").scrollIntoViewIfNeeded();
+      await page.locator('[id="item-guide/guide-software-14"]').scrollIntoViewIfNeeded();
       await page.screenshot({ path: resolve(screenshots, `${lang}-software-14-${width}.png`) });
     }
   }
@@ -150,8 +151,8 @@ try {
     assert.equal(await section.locator("h3 > code").textContent(), test.identifier, "each test ID appears in its own documentation heading");
     assert((await section.locator("h3").textContent()).includes(test.name.find((value) => value["@language"] === lang)["@value"]));
     assert((await section.textContent()).includes(test.description.find((value) => value["@language"] === lang)["@value"]));
-    assert.equal(await section.locator(`a[href="../../../index.html#/${lang}/K/catalogue/questions/${test.isImplementationOf["@id"].slice(6)}"]`).count(), 1);
-    assert.equal(await section.locator(`a[href="../../../api/tests/${test.identifier}.json"]`).count(), 1);
+    assert.equal(await section.locator(`a[href="../../../index.html#/${lang}/K/catalogue/${graph.find((entry) => entry["@id"] === test.isImplementationOf["@id"]).catalogueAddress}"]`).count(), 1);
+    assert.equal(await section.locator(`a[href="../../../api/${test.catalogueAddress}.json"]`).count(), 1);
   }
   for (const [lang, id] of [["cs", "guide-cdif-04"], ["en", "guide-software-14"]]) for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });

@@ -22,6 +22,34 @@ const site = resolve(root, "_site");
 const pageUrl = pathToFileURL(resolve(site, "index.html")).href;
 const crate = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"));
 const graph = crate["@graph"];
+// The full crate is independent of the browser's deferred loading. Keep explicit address assertions below,
+// and use the published identity to locate the same entry in checks of its other behaviour.
+const sourceAnchors = new Map();
+for (const entity of graph.filter((e) => e.catalogueAddress)) {
+  const anchor = entity.catalogueAddress.split("/").slice(1).join("/");
+  for (const reference of [].concat(entity.alternateIdentifier || [])) {
+    const source = graph.find((node) => node["@id"] === reference["@id"]);
+    if (source?.propertyID && source.value) sourceAnchors.set(source.propertyID + "." + source.value, anchor);
+  }
+  for (const reference of [].concat(entity.sameAs || [])) {
+    const match = reference["@id"]?.match(/re3data\.org\/repository\/(r3d\d+)$|fip-dashboard\.dmp\.eosc\.cz\/resources\/([^/]+)$/);
+    if (match) sourceAnchors.set((match[1] ? "re3data." : "fip-dashboard.") + (match[1] || match[2]), anchor);
+  }
+
+  for (const token of [entity.identifier, entity["@id"].replace(/^#(resource|repository|term|knav)-/, ""), entity["@id"].startsWith("#repository-r3d") && "re3data." + entity.identifier, entity["@id"].startsWith("#fer-") && "fip-dashboard." + entity.identifier, entity.termCode && "t.ntk." + entity.termCode].flat().filter(Boolean)) {
+    sourceAnchors.set(String(token), anchor);
+  }
+}
+const publishedUi = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]);
+const entryAnchor = (id) => sourceAnchors.get(String(id)) || id;
+const cataloguePath = (kind, id) => {
+  const prefix = Object.keys(publishedUi.config.catalogueKinds).find((code) => publishedUi.config.catalogueKinds[code] === kind) || kind;
+  const source = graph.find((entity) => entity.identifier === id || entity["@id"] === "#knav-" + String(id).replace(/^knav\./, ""));
+  const equivalent = [].concat(source?.sameAs || []).map((ref) => graph.find((entity) => entity["@id"] === ref["@id"])).find((entity) => entity?.catalogueAddress);
+  const entity = graph.find((entity) => entity.catalogueAddress?.startsWith(prefix + "/") && (entity.identifier === id || entity.catalogueAddress.split("/").slice(1).join("/") === entryAnchor(id))) || equivalent;
+  return "/catalogue/" + (entity?.catalogueAddress || prefix + "/" + entryAnchor(id));
+};
+
 // The interface strings' structure, to tell a raw string key on the page from ordinary text.
 const uiStrings = JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).ui;
 const isUiKey = (token) => token.split(".").reduce((node, part) => (node && typeof node === "object" ? node[part] : undefined), uiStrings) !== undefined;
@@ -38,7 +66,7 @@ const lensShown = (page, lens) => page.waitForFunction((expected) => {
   return current && current.dataset.lens === expected;
 }, lens);
 const pages = graph.filter((e) => String(e["@id"]).startsWith("#page-") && e.identifier && !e.isPartOf).map((e) => e.identifier);
-const principles = graph.filter((e) => String(e["@id"]).startsWith("https://w3id.org/fair/principles/terms/") && e.termCode).map((e) => e.termCode);
+const principles = graph.filter((e) => String(e["@id"]).startsWith("#principle-") && e.termCode).map((e) => e.termCode);
 const checks = graph.filter((e) => e["@type"] === "Quiz").map((e) => ({ id: e.identifier, lens: [].concat(e.audience)[0]["@id"].replace("#lens-", "") }));
 const failures = [];
 // The question numbers a list of gaps or tasks shows: a question shows by its number inside its check.
@@ -48,6 +76,7 @@ const fail = (message) => failures.push(message);
     the click can miss it on a loaded machine and report a defect that is not there. Record the mark in the page as
     the browser applies it, before the click, and assert the recorded fact once the click has settled. */
 async function watchJump(page, entryId) {
+  entryId = entryAnchor(entryId);
   await page.evaluate((id) => {
     window.__jumpMarked = false;
     const seen = (node) => {
@@ -351,7 +380,7 @@ sections.push(["page", async () => {
       await view.goto(pageUrl + hash);
       await view.waitForSelector(".catalogue-layout");
     };
-    await open("#/cs/V/resources");
+    await open("#/cs/V/catalogue/k!resources");
     const items = await menu();
     if (!items.includes("Katalog") || items.includes("Zdroje") || items.includes("Repozitáře")) fail("catalogue: the menu does not hold one catalogue item in place of the finders: " + items.join(", "));
     if ((await current()) !== "Katalog" || (await kinds()) !== "resources") fail("catalogue: the resources address does not select the resources: " + (await kinds()));
@@ -374,27 +403,12 @@ sections.push(["page", async () => {
     if ((drewOn.match(/FAIRsharing/g) || []).length > 4) fail("catalogue: a change lists one source more than once: " + drewOn);
     await open("#/cs/V/catalogue/terms");
     if (!(await view.locator(".term-card h3").first().textContent()).match(/^[^[(]/)) fail("catalogue: the glossary does not sort past leading brackets");
-    // A record taken from another registry says whose it is: its identifier nests under that registry's entry.
-    const borrowed = async (hash, prefix) => {
-      await open(hash);
-      const chips = await view.locator(".catalogue-results .card .entry-head .id-chip").allTextContents();
-      return chips.length && chips.every((chip) => chip.startsWith(prefix));
-    };
-    for (const [hash, prefix] of [["#/cs/V/catalogue/terms", "t.ntk."], ["#/cs/V/catalogue/fips", "fip-dashboard."]]) {
-      if (!(await borrowed(hash, prefix))) fail(`catalogue: an entry at ${hash} does not nest its identifier under ${prefix}`);
+    // Chips show the short local ID; their link retains the complete canonical address.
+    for (const kind of ["terms", "fips", "tests", "repositories"]) {
+      await open("#/cs/V/catalogue/k!" + kind);
+      const chips = await view.locator(".catalogue-results .card .entry-head .id-chip").evaluateAll((links) => links.map((link) => [link.textContent, link.getAttribute("href")]));
+      if (!chips.length || chips.some(([id, href]) => id.includes("/") || id.length > 32 || !href.endsWith("/" + id))) fail(`catalogue: ${kind} chips do not show their compact local ID`);
     }
-    await open("#/cs/V/catalogue/tests");
-    const tests = await view.evaluate(() => [...document.querySelectorAll(".catalogue-results .card")].map((card) => ({
-      chip: card.querySelector(".entry-head .id-chip")?.textContent,
-      what: card.querySelector(".entry-what")?.textContent,
-    })));
-    if (tests.filter((test) => test.chip?.startsWith("guide-")).length !== 42 || tests.filter((test) => test.chip?.startsWith("fair-champion.")).length !== 13 ||
-      tests.some((test) => test.chip?.startsWith("guide-") && test.what !== "test Průvodce") ||
-      tests.some((test) => test.chip?.startsWith("fair-champion.") && test.what !== "test FAIR Champion")) fail("catalogue: local issued tests and borrowed FAIR Champion tests do not keep their distinct identities and ownership");
-    // Repositories: the guide's own entries keep their names, records from the re3data snapshot nest under re3data.
-    await open("#/cs/V/catalogue/repositories");
-    const repositoryChips = await view.locator(".catalogue-results .card .entry-head .id-chip").allTextContents();
-    if (!repositoryChips.includes("zenodo") || !repositoryChips.some((chip) => chip.startsWith("re3data.r3d")) || repositoryChips.some((chip) => /^r3d/.test(chip))) fail("catalogue: repositories do not keep the guide's names with re3data records nested under re3data: " + repositoryChips.join(" "));
 
     // Resources and cited sources as one kind, marked by how the guide uses them.
     await open("#/cs/V/catalogue/resources");
@@ -560,7 +574,7 @@ sections.push(["page", async () => {
     if (!steps[0].includes("Ověřit identifikátory") || !steps[1].includes("skript")) fail("identifier callout: it does not lead with the helper and a script: " + steps.slice(0, 2).join(" | "));
     await view.goto(pageUrl + "#/cs/V/page/about");
     /* A hash change keeps the previous view until the about page's parts arrive; wait for the link itself. */
-    const courses = await view.waitForSelector('a.text-ref[href$="/catalogue/resources/training-overview"]', { timeout: 10000 }).catch(() => null);
+    const courses = await view.waitForSelector('a.text-ref[href$="/catalogue/res/course/training-overview"]', { timeout: 10000 }).catch(() => null);
     if (!courses) fail("about: the introductory courses are not linked");
     await open("#/cs/V/catalogue/repositories");
     for (const name of ["Dryad", "Harvard Dataverse", "Molecular Biophysics Database (MBDB)"]) {
@@ -578,8 +592,8 @@ sections.push(["page", async () => {
       ["#/cs/V/page/about", "export-print"],
       ["#/cs/V/tools", "export-print"],
       ["#/cs/V/check", "export-data,export-print", "api/checks.json"],
-      ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/principles/R1.1.json"],
-      ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/stations/licence.json"],
+      ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/pr/R1.1.json"],
+      ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/step/licence.json"],
     ]) {
       await view.goto(pageUrl + hash);
       await view.waitForSelector("#main h1");
@@ -594,7 +608,7 @@ sections.push(["page", async () => {
     if (await view.locator(".export-bar").count()) fail("exports: a single check shows the shared export bar beside its own exports");
     await view.goto(pageUrl + "#/cs/DS/check/institution/report");
     await view.waitForSelector("#export-data");
-    if ((await view.locator("#export-data").getAttribute("href")) !== "api/checks/institution.json") fail("exports: a single check does not offer its benchmark record as data");
+    if ((await view.locator("#export-data").getAttribute("href")) !== "api/check/institution.json") fail("exports: a single check does not offer its benchmark record as data");
     const saved = async (id) => {
       const [download] = await Promise.all([view.waitForEvent("download"), view.locator("#export-" + id).click()]);
       return { name: download.suggestedFilename(), text: readFileSync(await download.path(), "utf8") };
@@ -638,7 +652,7 @@ sections.push(["page", async () => {
     await view.waitForSelector("#main h1");
     await view.locator('details[data-key="L1"] > summary').click();
     const named = view.locator('details[data-key="L1"] a.text-ref', { hasText: "DataCite" }).first();
-    if (!(await named.count()) || !(await named.getAttribute("href")).endsWith("/catalogue/resources/datacite")) fail("text links: DataCite in a step does not link to its catalogue entry");
+    if (!(await named.count()) || !(await named.getAttribute("href")).endsWith("/catalogue/res/srv/datacite")) fail("text links: DataCite in a step does not link to its catalogue entry");
     const quiet = await named.evaluate((link) => getComputedStyle(link).color === getComputedStyle(link.parentElement).color && getComputedStyle(link).textDecorationStyle === "dotted");
     if (!quiet) fail("text links: a link in text does not keep the text's colour with a dotted underline");
     const step = crate["@graph"].find((entity) => entity["@id"] === "#advice-findability.04-step-3");
@@ -646,7 +660,7 @@ sections.push(["page", async () => {
     if (JSON.stringify(crate).includes("[[")) fail("text links: reference markup reached the crate");
     await watchJump(view, "datacite");
     await named.click();
-    await view.waitForSelector("#item-datacite");
+    await view.waitForSelector("[id=\"item-srv/datacite\"]");
     await view.waitForFunction(() => window.__jumpMarked === true, null, { timeout: 30000 });
 
     await view.goto(pageUrl + "#/cs/V/page/machines");
@@ -659,7 +673,7 @@ sections.push(["page", async () => {
     if (!(await view.locator('.machine-tasks a[href="ro-crate-metadata.json"]').count())) fail("machines: the page does not offer the knowledge base");
     // A data steward who wants one record finds its address pattern and a working example, and how the guide itself
     // uses the same means: its signposts, read from the same list as the head and the linkset.
-    const example = await view.locator(".machine-tasks a[href$='principles/R1.1.json']").getAttribute("href");
+    const example = await view.locator(".machine-tasks a[href$='pr/R1.1.json']").getAttribute("href");
     if (!example || !existsSync(resolve(root, "_site", example)) || !(await view.locator(".machine-tasks code", { hasText: "<id>.json" }).count())) fail("machines: the task table does not show a record's pattern and a working example");
     const shown = await view.locator(".signposts tbody tr").evaluateAll((rows) => rows.map((row) => row.querySelector("code").textContent + " " + row.querySelector("td a").getAttribute("href")).sort());
     const head = await view.locator("head link[rel]").evaluateAll((links) => links.filter((link) => !["stylesheet", "icon", "apple-touch-icon"].includes(link.rel)).map((link) => link.getAttribute("rel") + " " + link.getAttribute("href")).sort());
@@ -671,7 +685,7 @@ sections.push(["page", async () => {
     // the guide's profile to its landing page at its own address, which the build writes so the identifier resolves.
     const practice = view.locator("#practice");
     for (const id of ["ro-crate", "process-run-crate"]) {
-      if (!(await practice.locator(`a.text-ref[href$="/catalogue/resources/${id}"]`).count())) fail(`machines: the practice section does not link ${id} to its catalogue entry`);
+      if (!(await practice.locator(`a.text-ref[href$="${cataloguePath("resources", id)}"]`).count())) fail(`machines: the practice section does not link ${id} to its catalogue entry`);
     }
     const profileHref = await practice.locator('a.text-ref[href^="profile/"]').getAttribute("href");
     if (!profileHref || !existsSync(resolve(site, profileHref, "index.html"))) fail("machines: the guide's profile is not linked to its landing page: " + profileHref);
@@ -708,17 +722,17 @@ sections.push(["page", async () => {
       // One card for every kind: its own identifier in the head, and its relations under fixed labels in one order.
       const order = ["Principy", "Pro koho", "Provozovatel", "Vyvinuli", "Provozuje", "Národní uzel", "Členství v ERIC", "Profil FIP komunity", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
       const cards = await view.locator(".catalogue .card").evaluateAll((all) =>
-        all.map((card) => ({ id: card.id, chip: (card.querySelector(".entry-head .id-chip-static") || {}).textContent, labels: [...card.querySelectorAll(".relations dt")].map((dt) => dt.textContent) }))
+        all.map((card) => ({ id: card.id, chip: (card.querySelector(".entry-head .id-chip") || {}).textContent, labels: [...card.querySelectorAll(".relations dt")].map((dt) => dt.textContent) }))
       );
-      const wrong = cards.filter((card) => "item-" + card.chip !== card.id || card.labels.some((label, index) => !order.includes(label) || (index && order.indexOf(label) <= order.indexOf(card.labels[index - 1]))));
+      const wrong = cards.filter((card) => card.chip !== card.id.split("/").at(-1).replace(/^item-/, "") || card.labels.some((label, index) => !order.includes(label) || (index && order.indexOf(label) <= order.indexOf(card.labels[index - 1]))));
       if (wrong.length) fail(`catalogue: ${kind} cards without their own identifier in the head, or with relations out of order: ` + wrong.slice(0, 3).map((card) => card.id + " " + card.labels.join("/")).join("; "));
     }
     // An entry shows the persistent identifiers it has, named by scheme, and none it lacks; the stations and checks
     // an entry names carry their icons.
     const pidsOf = async (hash, anchor) => {
       await view.goto(pageUrl + hash);
-      await view.waitForSelector(`[id="item-${anchor}"]`);
-      return view.locator(`[id="item-${anchor}"]`).evaluate((card) => ({
+      await view.waitForSelector(`[id="item-${entryAnchor(anchor)}"]`);
+      return view.locator(`[id="item-${entryAnchor(anchor)}"]`).evaluate((card) => ({
         pids: [...card.querySelectorAll(".pid-chip")].map((link) => [link.querySelector(".pid-scheme")?.textContent, link.getAttribute("href"), link.textContent.replace(link.querySelector(".pid-scheme")?.textContent || "", "").replace(/\s*\(.*\)$/, "").trim()]),
         plainIcons: [...card.querySelectorAll(".relations a.holder-link")].filter((link) => !link.querySelector("svg.icon")).length,
         holders: card.querySelectorAll(".relations a.holder-link").length,
@@ -734,13 +748,11 @@ sections.push(["page", async () => {
     if (!zenodo.pids.some(([, href]) => href.endsWith("/resources/zenodo"))) fail("catalogue: Zenodo does not show its FIP Dashboard record: " + JSON.stringify(zenodo.pids));
     await view.goto(pageUrl + "#/cs/V/catalogue/k!resources~q!zenodo");
     await view.waitForSelector(".catalogue-results");
-    if (await view.locator('[id="item-fip-dashboard.zenodo"]').count()) fail("catalogue: Zenodo's FIP Dashboard record is listed apart from the repository");
-    for (const borrowedAddress of ["#/cs/V/catalogue/repositories/re3data.r3d100010468", "#/cs/V/catalogue/resources/fip-dashboard.zenodo"]) {
-      await view.goto(pageUrl + borrowedAddress);
-      await view.waitForSelector('[id="item-zenodo"]');
-      if (!(await view.evaluate(() => location.hash.endsWith("/catalogue/repositories/zenodo"))) || (await view.locator(".catalogue-results .card").count()) !== 1) fail(`catalogue: ${borrowedAddress} does not lead to Zenodo's entry alone`);
-    }
-    // Meaning determines the family; source records enrich it, and existing addresses still find the thing.
+    if (await view.locator('[id="item-gen/zenodo"]').count()) fail("catalogue: Zenodo's FIP Dashboard record is listed apart from the repository");
+    await view.goto(pageUrl + "#/cs/V/catalogue/repo/gen/zenodo");
+    await view.waitForSelector('[id="item-gen/zenodo"]');
+    if ((await view.locator(".catalogue-results .card").count()) !== 1) fail("catalogue: Zenodo does not have one canonical entry");
+    // Source records enrich the one canonical entry; external IDs remain metadata.
     for (const lang of ["cs", "en"]) {
       await view.goto(pageUrl + `#/${lang}/V/catalogue/k!resources`);
       await view.waitForSelector(".catalogue-results");
@@ -755,16 +767,17 @@ sections.push(["page", async () => {
         return kind && section && section.querySelector(".facet-kind-name") && !!(kind.compareDocumentPosition(facet) & Node.DOCUMENT_POSITION_FOLLOWING) && section.querySelector("fieldset") === facet;
       });
       if (!purposeInSection) fail("repositories and registries: task choices are outside the family section or reorder the kind picker");
+      while (await view.locator(".catalogue-more").count()) await view.locator(".catalogue-more").first().click();
       for (const id of ["nma", "fairsharing", "fip-dashboard.nusl", "fip-dashboard.nrp-invenio", "re3data.r3d100014032", "re3data.r3d100010386"]) {
-        if ((await view.locator(`[id="item-${id}"]`).count()) !== 1) fail(`catalogue: ${id} is not listed once among repositories and registries (${lang})`);
+        if ((await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) !== 1) fail(`catalogue: ${id} is not listed once among repositories and registries (${lang})`);
       }
       for (const id of ["asep-arl", "clarin-dspace"]) {
         if (await view.locator(`[id="item-fip-dashboard.${id}"]`).count()) fail(`catalogue: ${id} is listed apart from its reviewed re3data match`);
       }
-      for (const [old, target] of [["resources/nma", "nma"], ["resources/fairsharing", "fairsharing"], ["resources/fip-dashboard.asep-arl", "re3data.r3d100014032"], ["resources/fip-dashboard.clarin-dspace", "re3data.r3d100010386"]]) {
-        await view.goto(pageUrl + `#/${lang}/V/catalogue/${old}`);
-        await view.waitForSelector(`[id="item-${target}"]`);
-        if ((await view.locator(".catalogue-results .card").count()) !== 1 || !(await view.evaluate(() => location.hash.includes("/catalogue/repositories/")))) fail(`catalogue: old address ${old} does not open the single joined entry`);
+      for (const target of ["nma", "fairsharing", "re3data.r3d100014032", "re3data.r3d100010386"]) {
+        await view.goto(pageUrl + `#/${lang}/V${cataloguePath("repositories", target)}`);
+        await view.waitForSelector(`[id="item-${entryAnchor(target)}"]`);
+        if ((await view.locator(".catalogue-results .card").count()) !== 1) fail(`catalogue: ${target} does not open its single joined entry`);
       }
       await view.goto(pageUrl + `#/${lang}/V/path/repository`);
       await view.waitForSelector(".now-actions");
@@ -773,17 +786,17 @@ sections.push(["page", async () => {
       else await chooser.first().click();
       await view.waitForSelector(".catalogue-results");
       for (const id of ["zenodo", "mbdb", "re3data.r3d100014032"]) {
-        if (!(await view.locator(`[id="item-${id}"]`).count())) fail(`repository chooser: data destination ${id} is missing`);
+        if (!(await view.locator(`[id="item-${entryAnchor(id)}"]`).count())) fail(`repository chooser: data destination ${id} is missing`);
       }
       for (const id of ["nma", "fairsharing", "fip-dashboard.nusl"]) {
-        if (await view.locator(`[id="item-${id}"]`).count()) fail(`repository chooser: ${id} is presented as a data deposit destination`);
+        if (await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) fail(`repository chooser: ${id} is presented as a data deposit destination`);
       }
       await view.goto(pageUrl + `#/${lang}/V/catalogue/k!repositories~f.rfunction!%23rfunction-deposit-publications`);
       await view.waitForSelector(".catalogue-results");
       for (const id of ["zenodo", "re3data.r3d100014032", "fip-dashboard.nusl"]) {
-        if (!(await view.locator(`[id="item-${id}"]`).count())) fail(`publication filter: ${id} is missing`);
+        if (!(await view.locator(`[id="item-${entryAnchor(id)}"]`).count())) fail(`publication filter: ${id} is missing`);
       }
-      if (await view.locator('[id="item-mbdb"]').count()) fail("publication filter: a data-only repository is included");
+      if (await view.locator('[id="item-dom/mbdb"]').count()) fail("publication filter: a data-only repository is included");
       if (!(await view.locator(".kind-intro .notice").count())) fail("repositories and registries: the dashboard's demo disclaimer is missing");
     }
     const datacite = await pidsOf("#/cs/V/catalogue/k!resources~q!DataCite", "datacite");
@@ -849,11 +862,11 @@ sections.push(["page", async () => {
     // names to the requirement they are about (the analysis's "R14", reuse, is R13 in the 2026-2028 edition).
     await view.goto(pageUrl + "#/cs/V/explorer/F2");
     await view.waitForSelector("#main h1");
-    const ctsLinks = await view.locator('#main a[href*="catalogue/clauses/CTS."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href"))]));
+    const ctsLinks = await view.locator('#main a[href*="catalogue/cl/CTS."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href"))]));
     if (!ctsLinks.some(([text, href]) => text.startsWith("R13") && href.endsWith("/CTS.R13"))) fail("explorer: F2 does not link its CoreTrustSeal requirements: " + JSON.stringify(ctsLinks));
     if (!ctsLinks.some(([text, href]) => text === "R14" && href.endsWith("/CTS.R13"))) fail("explorer: the analysis's R14 (reuse) does not lead to requirement R13: " + JSON.stringify(ctsLinks));
     // CDIF: the principle links its profiles, and the analysis's 2023 name "Discovery" leads to the Core profile.
-    const cdifLinks = await view.locator('#main a[href*="catalogue/clauses/CDIF."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href")).split("/").pop()]));
+    const cdifLinks = await view.locator('#main a[href*="catalogue/cl/CDIF."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href")).split("/").pop()]));
     if (!cdifLinks.some(([text, id]) => text === "Core" && id === "CDIF.Core") || !cdifLinks.some(([text, id]) => text === "Discovery" && id === "CDIF.Core")) fail("explorer: F2 does not link its CDIF profiles by meaning: " + JSON.stringify(cdifLinks));
     // The CDIF check: what the standard requires first, then the recommended elements, metadata management and the
     // profiles; the first tier is named for the standard, not for NRP or the analysis.
@@ -901,9 +914,9 @@ sections.push(["page", async () => {
     );
     if (cited.some((item) => item.id && item.bold === item.id)) fail("ids: a requirement shows its identifier twice under Proč");
     const analysisLink = view.locator('details[data-key="L2"] a.source-link', { hasText: "Analýza FAIR pro NRP/NDI" }).first();
-    if (!(await analysisLink.count()) || !(await analysisLink.getAttribute("href")).endsWith("/catalogue/resources/analyza-fair-1.2")) fail("ids: a requirement's source is not named by its short name, leading to its catalogue entry");
+    if (!(await analysisLink.count()) || !(await analysisLink.getAttribute("href")).endsWith("/catalogue/res/pub/analyza-fair-1.2")) fail("ids: a requirement's source is not named by its short name, leading to its catalogue entry");
     const termHrefs = await view.locator(".station-terms a.chip").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/terms/t.ntk."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
+    if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/term/") || href.includes("ntk."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
     // The explorer names a principle's relations in the catalogue's rows, and its requirements without doubled
     // identifiers.
     await view.goto(pageUrl + "#/cs/V/explorer/R1.1");
@@ -922,7 +935,7 @@ sections.push(["page", async () => {
     /* The station remembers that Proč was open; a click would close it. */
     if (!(await view.locator('details[data-key="L2"]').evaluate((details) => details.open))) await view.locator('details[data-key="L2"] > summary').click();
     const chip = view.locator('details[data-key="L2"] ul.clauses a.id-chip').first();
-    const id = (await chip.textContent()).trim();
+    const id = (await chip.textContent()).trim().replace(/^clauses\//, "");
     await watchJump(view, id);
     await chip.click();
     await view.waitForSelector(".catalogue-layout");
@@ -930,7 +943,7 @@ sections.push(["page", async () => {
     if (!(await view.evaluate(() => window.__jumpMarked === true))) fail("ids: the catalogue entry is not marked when the identifier is followed");
     if (!(await view.locator("#facet-kind-clauses").isChecked())) fail("ids: the identifier does not select the requirements");
     await view.goto("about:blank");
-    await view.goto(pageUrl + "#/cs/V/catalogue/clauses/A.F1.N1");
+    await view.goto(pageUrl + "#/cs/V/catalogue/cl/A.F1.N1");
     await view.waitForSelector('[id="item-A.F1.N1"]');
     const box = await view.locator('[id="item-A.F1.N1"]').boundingBox();
     if (!box || box.y < 0 || box.y > 900) fail("ids: a directly opened link to a requirement does not bring it into view");
@@ -938,12 +951,12 @@ sections.push(["page", async () => {
     if ((await view.locator(".clause-card").count()) !== 1 || !(await view.locator(".single-entry").count())) fail("ids: a link to one requirement does not show it alone with a notice");
     await view.locator(".single-entry a").click();
     await view.waitForFunction(() => document.querySelectorAll(".clause-card").length > 1);
-    const all = await view.locator(".clause-card").count();
+    const all = Number((await view.locator(".catalogue-count").textContent()).match(/\d+/)[0]);
     await view.locator("#facet-clauses-ckind-recommendation").check();
     await view.waitForFunction(() => location.hash.includes("f.ckind!recommendation"));
-    const recommendations = await view.locator(".clause-card").count();
+    const recommendations = Number((await view.locator(".catalogue-count").textContent()).match(/\d+/)[0]);
     if (!(recommendations > 0 && recommendations < all)) fail("ids: the kind filter does not narrow the requirements");
-    await view.goto(pageUrl + "#/cs/V/catalogue/questions/maturity.18");
+    await view.goto(pageUrl + "#/cs/V/catalogue/q/maturity.18");
     await view.waitForSelector('[id="item-maturity.18"]');
     if (!(await view.locator('[id="item-maturity.18"] a.id-chip').count())) fail("ids: a check question does not link the requirements it rests on");
     await view.close();
@@ -974,13 +987,13 @@ sections.push(["page", async () => {
   // FAIRsharing records join repositories at build time and appear as identifier chips with a catalogue source.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    await view.goto(pageUrl + "#/cs/V/catalogue/repositories/re3data.r3d100010484");
+    await view.goto(pageUrl + "#/cs/V/catalogue/repo/dom/csda");
     await view.waitForSelector(".catalogue-results .entry-card");
     if (await view.locator("#fairsharing-load").count()) fail("repositories: FAIRsharing still offers an on-demand load");
     const card = view.locator(".catalogue-results .entry-card");
     const record = card.locator('.pid-chip[href="https://doi.org/10.25504/FAIRsharing.f4bfb1"]');
     if (!(await record.count()) || !(await record.locator(".pid-scheme").textContent()).includes("FAIRsharing")) fail("repositories: the snapshot's FAIRsharing record is not an identifier chip on its repository");
-    if (!(await card.locator('.relations a[href$="/catalogue/resources/fairsharing"]').count())) fail("repositories: the FAIRsharing source does not lead to its catalogue entry");
+    if (!(await card.locator('.relations a[href$="/catalogue/repo/reg/fairsharing"]').count())) fail("repositories: the FAIRsharing source does not lead to its catalogue entry");
     await view.close();
   }
 
@@ -988,7 +1001,7 @@ sections.push(["page", async () => {
   // chosen; a helper page says when its helper is not there yet; on a phone the language switch shares the logo's row.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    await view.goto(pageUrl + "#/cs/V/resources");
+    await view.goto(pageUrl + "#/cs/V/catalogue/k!resources");
     await view.waitForSelector(".cards .card");
     const gap = await view.locator(".cards .card").first().evaluate((card) => {
       const last = card.lastElementChild.getBoundingClientRect();
@@ -1068,7 +1081,7 @@ sections.push(["page", async () => {
   found = await search("https://ror.org/04wxdxa47");
   if (!(await primary()).includes("Instituce a správa dat") || !found.includes("Ověřit identifikátor")) fail("search: a ROR ID is not routed to the institution check, with verification beside it");
   found = await typeQuery("A.F1.N1");
-  if (!(await page.locator("#search-results .result-primary").getAttribute("href")).endsWith("/catalogue/clauses/A.F1.N1")) fail("search: a requirement identifier does not lead to its catalogue entry while typing");
+  if (!(await page.locator("#search-results .result-primary").getAttribute("href")).endsWith("/catalogue/cl/A.F1.N1")) fail("search: a requirement identifier does not lead to its catalogue entry while typing");
   found = await typeQuery("licence");
   if (!(await page.locator(".catalogue-handoff a").getAttribute("href")).includes("q!licence")) fail("search: text results do not hand over to the catalogue");
   // The language changes in place; the search then shows titles in English and links into the English guide.
@@ -1127,8 +1140,8 @@ sections.push(["views", async () => {
   const views = [];
   for (const lang of ["cs", "en"]) {
     for (const lens of lenses) for (const station of stations) views.push(`#/${lang}/${lens}/path/${station}`);
-    for (const view of ["explorer", "resources", "repositories", "tools", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
-    for (const tab of ["sources", "terms", "fips", "tests", "lifecycle", "lifecycle/rdmkit.reuse", "k!resources~f.use!knav", "resources/knav.aiscr", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
+    for (const view of ["explorer", "catalogue", "tools", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
+    for (const tab of ["sources", "terms", "fips", "tests", "lifecycle", "life/rdm/reuse", "k!resources~f.use!knav", "res/tool/archaeological-information-system", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
     for (const check of checks) views.push(`#/${lang}/${check.lens}/check/${check.id}`);
     for (const principle of principles.slice(0, 3)) views.push(`#/${lang}/K/explorer/${principle}`);
     for (const id of pages) views.push(`#/${lang}/V/page/${id}`);
@@ -1193,7 +1206,7 @@ async function checkViews(views) {
 // 3. Reflow at 320 CSS pixels: no horizontal scrolling, and the main views keep their alignment and spacing.
 sections.push(["reflow", async () => {
   const { context, page } = await openPage({ width: 320, height: 800 });
-  const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publication", "#/en/DS/resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/en/V/page/about"];
+  const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publication", "#/en/DS/catalogue/k!resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/en/V/page/about"];
   for (const hash of narrow) {
     await page.goto(pageUrl + hash);
     await rendered(page);
@@ -1475,6 +1488,8 @@ sections.push(["self-check", async () => {
   // no stage is ever chosen.
   const stageGroups = page.locator(".rail-desktop .rail-stage");
   if ((await stageGroups.count()) < 7) fail("path: the rail does not list the life-cycle stages");
+  if (await page.locator(".rail .rail-step .number").count()) fail("path: rail steps repeat the stage numbering");
+  if (!(await page.locator(".rail .rail-stage-number").count())) fail("path: removing step numbers also removed stage numbers");
   const currentStage = page.locator(".rail-desktop .current-stage");
   if ((await currentStage.count()) !== 1 || !(await currentStage.locator(".rail-stage-name").textContent()).includes("Sdílení dat")) fail("path: the licence step's stage is not marked as current");
   if ((await currentStage.locator("li a").count()) !== 4) fail("path: the sharing stage does not hold its four steps");
@@ -1568,7 +1583,7 @@ sections.push(["self-check", async () => {
   }
 
   // The lens band appears only where the lens changes what is shown; in the resource finder it is the lens filter.
-  for (const hash of ["#/cs/V/explorer", "#/cs/V/repositories", "#/cs/V/resources", "#/cs/V/page/about"]) {
+  for (const hash of ["#/cs/V/explorer", "#/cs/V/catalogue/k!repositories", "#/cs/V/catalogue/k!resources", "#/cs/V/page/about"]) {
     await go(hash);
     if (await page.locator(".lens-band").count()) fail("lens band: shown where the lens changes nothing: " + hash);
   }
@@ -1578,7 +1593,7 @@ sections.push(["self-check", async () => {
   if (new Set(cornerOffsets).size !== 1) fail("overview: the check cards' buttons are not in the same corner: " + cornerOffsets.join(" "));
   // In the catalogue the lens is a facet of the resources that starts empty, whatever the reader's lens; chosen, it
   // narrows what the guide recommends and leaves cited works in.
-  await go("#/cs/V/resources");
+  await go("#/cs/V/catalogue/k!resources");
   const shownNow = async () => Number(((await page.locator(".catalogue-count").textContent()).match(/\d+/) || [0])[0]);
   if (await page.locator('input[id^="facet-resources-lens-"]:checked').count()) fail("finder: the lens facet starts with a lens chosen");
   const allLenses = await shownNow();
@@ -1614,7 +1629,7 @@ sections.push(["self-check", async () => {
   await at("SR", "gate", "answers");
   for (const id of ["gate-09", "gate-10"]) {
     if (await page.locator(`#answer-${id}-yes`).count()) fail(`gate check: ${id} asks for an answer although NRP provides it`);
-    if (!/zajišťuje NRP/i.test(await page.locator(`#item-${id}`).textContent())) fail(`gate check: ${id} is not marked as provided by NRP`);
+    if (!/zajišťuje NRP/i.test(await page.locator(`#item-${entryAnchor(id)}`).textContent())) fail(`gate check: ${id} is not marked as provided by NRP`);
   }
   if (await page.locator("#item-gate-18").count()) fail("gate check: gate.18 shows for the core-system profile");
   // NKR lists no repository yet, so a record is put in place of the NKR snapshot the page carries.
@@ -1687,7 +1702,7 @@ sections.push(["self-check", async () => {
   await at("SR", "maturity", "answers");
   if (!(await page.locator("#item-maturity-11 .question-details").evaluate((node) => node.open))) await page.locator("#item-maturity-11 .question-details > summary").click();
   const line = page.locator("#tests-maturity-11");
-  if (!(await line.locator('a[href$="/catalogue/tests/fair-champion.fc_metadata_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
+  if (!(await line.locator('a[href$="/catalogue/test/fc/fc_metadata_persistence"]').count()) || !(await line.textContent()).includes("po zadání vzorku") || (await page.locator(".champion-tests").count())) fail("maturity check: a question does not show its test and that a sample comes first, or the tests are listed apart from their questions");
   await page.evaluate(() => {
     const live = window.FairGuide.live;
     window.championCalls = [];
@@ -1759,7 +1774,7 @@ sections.push(["self-check", async () => {
   await page.locator("#answer-institution-08-no").check();
   await at("DS", "institution", "report");
   const peopleGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^08$/ }) }).first();
-  if (!(await peopleGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.04"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
+  if (!(await peopleGap.locator('.id-chip[href$="/catalogue/cl/OS3-RULES.04"]').count())) fail("institution check: the strategy's human-resources gap does not cite the call's minimum");
   await at("DS", "institution", "answers");
   await page.locator('label[for="extended-toggle"]').click();
   const allBlocks = await page.locator(".item-group > h2").allTextContents();
@@ -1767,7 +1782,7 @@ sections.push(["self-check", async () => {
   await page.locator("#answer-institution-18-no").check();
   await at("DS", "institution", "report");
   const retentionGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^18$/ }) }).first();
-  const cites = async (id) => retentionGap.locator(`.id-chip[href$="/catalogue/clauses/${id}"]`).count();
+  const cites = async (id) => retentionGap.locator(`.id-chip[href$="/catalogue/cl/${id}"]`).count();
   if (!(await cites("OS3-RULES.14")) || !(await cites("POLICY-MANUAL.04")) || !(await retentionGap.locator('a[href$="/path/repository"]').count())) fail("institution check: the retention gap does not cite the call and the manual or link to the repository step");
 
   // FIP check: the dashboard snapshot pre-fills answers with their source; a principle without a declaration stays
@@ -1830,7 +1845,7 @@ sections.push(["self-check", async () => {
   const testRef = String((k01["ftr:outputFromTest"] || {})["@id"] || "");
   const testFile = testRef.startsWith(configured) ? resolve(root, "_site", testRef.slice(configured.length)) : null;
   const testRecord = testFile && existsSync(testFile) ? JSON.parse(readFileSync(testFile, "utf8")) : null;
-  if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../metrics/fip.01.json") fail("export: the fip.01 result does not name its test in the guide's API: " + testRef);
+    if (!testRecord || ![].concat(testRecord["@type"]).includes("Test") || testRecord.isImplementationOf !== "../q/fip.01.json") fail("export: the fip.01 result does not name its test in the guide's API: " + testRef);
 
   // Local data: each check says where the answers are kept, and how it works.
   await at("K", "fip", "evidence");
@@ -1991,10 +2006,10 @@ sections.push(["funded output", async () => {
   if (!(await checked("answer-dataset-27-no"))) fail("dataset check: a record without the data steward's ORCID iD does not answer no");
   await part("report");
   const stewardGap = page.locator(".gaps .action-card").filter({ has: page.locator(".item-id", { hasText: /^27$/ }) }).first();
-  if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/clauses/OS3-RULES.24"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
+  if (!(await stewardGap.textContent()).includes("nesplnila požadavek programu na výstup (Open Science III") || !(await stewardGap.locator('.id-chip[href$="/catalogue/cl/OS3-RULES.24"]').count())) fail("dataset check: the data steward gap does not say the output requirement is not met, or does not cite the call's rules");
   // A gap's basis names its source the way every citation does: by short name, leading to the catalogue; a
   // question's basis opens under the same label.
-  if (!(await stewardGap.locator('a.source-link[href$="/catalogue/resources/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
+  if (!(await stewardGap.locator('a.source-link[href$="/catalogue/res/doc/os3-rules"]').textContent()).includes("Pravidla výzvy Open Science III")) fail("dataset check: the gap does not name the call's rules by their short name, leading to the catalogue");
   await part("answers");
   if (!(await page.locator("#item-dataset-27 details.item-basis > summary").textContent()).startsWith("Vychází z (")) fail("dataset check: a question's basis does not open under the label every view uses");
   // FAIR Champion on the dataset, as a second action after the lookup: each question shows its tests and runs them
@@ -2055,8 +2070,8 @@ sections.push(["research practice", async () => {
         }
       });
       await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/check/${id}/answers`));
-      await page.waitForSelector(`#item-${id}-01`);
-      const count = () => page.locator(`.item[id^="item-${id}-"]`).count();
+      await page.waitForSelector(`#item-${entryAnchor(id)}-01`);
+      const count = () => page.locator(`.item[id^="item-${entryAnchor(id)}-"]`).count();
       if ((await count()) !== basic) fail(`${id} (${lang}): the first view does not have ${basic} advisory questions`);
       if ((await page.locator(".tier-info").textContent()).includes("Minimum")) fail(`${id}: uses the NDI minimum tier`);
       await page.locator(`#answer-${id}-01-unknown`).check();
@@ -2296,8 +2311,9 @@ sections.push(["life cycle", async () => {
     const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
     const card = page.locator(".catalogue-results .entry-card");
     await visit(`#/${lang}/K/catalogue/lifecycle`);
+    while (await page.locator(".catalogue-more").count()) await page.locator(".catalogue-more").first().click();
     if ((await card.count()) !== stageCount) fail(`life cycle ${lang}: the list shows ${await card.count()} stages, the crate has ${stageCount}`);
-    await visit(`#/${lang}/K/catalogue/lifecycle/rdmkit.reuse`);
+    await visit(`#/${lang}/K/catalogue/life/rdm/reuse`);
     if ((await card.count()) !== 1) fail(`life cycle ${lang}: the reuse stage's entry is not shown alone`);
     // Both languages state the same definition: RDMkit's own in English, the Guide's marked translation in Czech; KNAV's
     // Czech wording follows as a quotation that keeps its stage label.
@@ -2310,7 +2326,10 @@ sections.push(["life cycle", async () => {
     const rows = await card.locator(".crosswalk li").evaluateAll((all) => all.map((li) => ({
       basis: li.dataset.basis, target: decodeURIComponent(li.querySelector("a").getAttribute("href")), sources: li.querySelectorAll(".source-link").length,
     })));
-    const row = (stage) => rows.find((item) => item.target.endsWith("/" + stage));
+    const row = (stage) => {
+      const entity = graph.find((entry) => entry["@id"] === "#lifecycle-" + stage);
+      return rows.find((item) => item.target.endsWith("/" + entity?.catalogueAddress));
+    };
     for (const [stage, basis] of Object.entries({ "maldreth.access": "unconfirmed", "maldreth.transform": "reviewed", "knav-tools.reusing": "reviewed" })) {
       if (!row(stage)) fail(`life cycle ${lang}: the reuse stage does not list ${stage}`);
       else if (row(stage).basis !== basis) fail(`life cycle ${lang}: ${stage} is marked ${row(stage).basis}, not ${basis}`);
@@ -2320,7 +2339,7 @@ sections.push(["life cycle", async () => {
     if (sources < 2) fail(`life cycle ${lang}: the stage cites ${sources} source(s); RDMkit and KNAV expected`);
     const steps = await card.locator(".relations .holder-link").evaluateAll((all) => all.map((a) => a.getAttribute("href")));
     for (const station of citing) if (!steps.some((href) => href.endsWith("/path/" + station))) fail(`life cycle ${lang}: the stage does not lead to its step ${station}`);
-    await visit(`#/${lang}/K/catalogue/lifecycle/maldreth.access`);
+    await visit(`#/${lang}/K/catalogue/life/mld/access`);
     const marked = await card.locator(".card-details").count();
     if ((lang === "cs") !== (marked === 1)) fail(`life cycle ${lang}: the guide's translated name is ${marked ? "" : "not "}marked`);
     for (const problem of problems) fail(`life cycle ${lang}: ${problem}`);
@@ -2371,21 +2390,21 @@ sections.push(["knav catalogue", async () => {
     listed.push(...(await cards.evaluateAll((all) => all.map((card) => card.id.replace(/^item-/, "")))));
   }
   if ((await viewCode()) !== 1) fail("knav catalogue: opening the catalogue did not load its view code once");
-  const borrowed = listed.filter((id) => id.startsWith("knav."));
+  const borrowed = listed.filter((id) => unlinked.some((tool) => tool.catalogueAddress.split("/").slice(1).join("/") === id));
   if (borrowed.length !== unlinked.length) fail(`knav catalogue: ${borrowed.length} tools listed under their own identifier, ${unlinked.length} expected`);
   if (listed.length !== tools.length) fail(`knav catalogue: the KNAV use lists ${listed.length} entries for ${tools.length} tools`);
-  await visit("#/cs/K/catalogue/resources/knav.aiscr");
+  await visit("#/cs/K/catalogue/res/tool/ais-cr");
   const card = cards.first();
-  if (!(await card.locator('a[href*="/catalogue/lifecycle/knav-tools.reusing"]').count())) fail("knav catalogue: a tool does not lead to its catalogue step");
+  if (!(await card.locator('a[href*="/catalogue/life/knav/reusing"]').count())) fail("knav catalogue: a tool does not lead to its catalogue step");
   if (!(await card.locator('.relations a.holder-link[href$="/path/citation"]').count())) fail("knav catalogue: a reusing tool does not reach the citation step");
   if ((await card.locator(".card-details").textContent()).trim() === "") fail("knav catalogue: a tool shows no discipline");
   if (!(await card.locator('a[href^="https://www.gnu.org/licenses/gpl-3.0"]').count())) fail("knav catalogue: a tool does not show the catalogue's licence");
   await visit("#/cs/K/catalogue/k!resources~s!citation~f.use!knav~f.discipline!social-sciences-humanities");
-  if (!(await page.locator("#item-knav\\.aiscr").count())) fail("knav catalogue: the station and discipline filters miss a matching tool");
-  await visit("#/cs/K/catalogue/resources/knav.kadi");
-  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-kadi4mat") fail("knav catalogue: a tool an entry stands for does not open that entry");
+  if (!(await page.locator("[id=\"item-tool/ais-cr\"]").count())) fail("knav catalogue: the station and discipline filters miss a matching tool");
+  await visit("#/cs/K/catalogue/res/tool/kadi4mat");
+  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-tool/kadi4mat") fail("knav catalogue: a tool an entry stands for does not open that entry");
   if (!(await cards.first().textContent()).includes("v katalogu nástrojů KNAV")) fail("knav catalogue: the entry that is a catalogue tool is not marked");
-  await visit("#/cs/K/catalogue/resources/knav.eduroam");
+  await visit("#/cs/K/catalogue/res/tool/eduroam");
   if (await cards.first().locator('a[href^="http:"]').count()) fail("knav catalogue: a plain-HTTP address is linked");
   if (!(await cards.first().locator('a[href^="https://openscience.lib.cas.cz/"]').count())) fail("knav catalogue: a plain-HTTP tool does not lead to the catalogue");
   for (const problem of problems) fail(`knav catalogue: ${problem}`);
@@ -2452,16 +2471,16 @@ sections.push(["visual system", async () => {
   const badge = (card) => card.locator(".entry-title > .service-badge").evaluateAll((nodes) => nodes.map((node) =>
     [node.dataset.service, node.textContent.trim(), (node.querySelector("use") || { getAttribute: () => "" }).getAttribute("href"), getComputedStyle(node).backgroundColor, (node.querySelector("img") || {}).src || ""].join(" ")));
   const favicons = new Set(JSON.parse(readFileSync(resolve(site, "assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).config.favicons.hosts);
-  await visit("#/cs/K/catalogue/resources/nkr");
+  await visit("#/cs/K/catalogue/repo/reg/nkr");
   const nkrBadge = page.locator(".catalogue-results .entry-card .entry-title > .service-badge img");
   if (!favicons.has("repo.cz") || !(await nkrBadge.count()) || !(await nkrBadge.getAttribute("src")).endsWith("assets/favicons/repo.cz.png")) fail("visual system: NKR does not show its own favicon");
   else if (!(await nkrBadge.evaluate((image) => image.complete && image.naturalWidth === 48))) fail("visual system: NKR's favicon does not load from the page's files");
-  await visit("#/cs/K/catalogue/resources/knav.qualianon");
+  await visit("#/cs/K/catalogue/res/tool/qualianon");
   if (await page.locator(".catalogue-results .entry-card .entry-title > .service-badge img").count()) fail("visual system: a tool on GitHub shows GitHub's favicon as its own");
   const placeholder = page.locator(".catalogue-results .entry-card .entry-title > .service-placeholder");
   if (!(await placeholder.count()) || (await placeholder.locator("use").getAttribute("href")) !== kindIcons.get("resources") || (await placeholder.textContent()).trim())
     fail("visual system: a tool without a favicon does not show the resources kind's icon in place of one");
-  await visit("#/cs/K/catalogue/repositories/re3data.r3d100011166");
+  await visit("#/cs/K/catalogue/repo/dom/benchmark-energy-geometry");
   if (await page.locator(".catalogue-results .entry-card .entry-title > .service-badge img").count()) fail("visual system: a repository linked by its re3data record shows re3data's favicon as its own");
   await visit("#/cs/V/path/repository");
   const badged = page.locator("#main .station .entry-card").filter({ has: page.locator(".entry-title > .service-badge") });
@@ -2469,14 +2488,14 @@ sections.push(["visual system", async () => {
   else {
     const service = (await badged.first().getAttribute("id")).replace(/^item-/, "");
     const atStep = await badge(badged.first());
-    await visit(`#/cs/K/catalogue/resources/${service}`);
+    await visit(`#/cs/K${cataloguePath("resources", service)}`);
     const inCatalogue = await badge(page.locator(".catalogue-results .entry-card").first());
     if (atStep.length !== 1 || atStep[0] !== inCatalogue[0]) fail(`visual system: ${service}'s badge differs between the step (${atStep}) and the catalogue (${inCatalogue})`);
   }
-  await visit("#/cs/K/catalogue/resources/fair-checker");
+  await visit("#/cs/K/catalogue/res/tool/fair-checker");
   if ((await badge(page.locator(".catalogue-results .entry-card").first()))[0]?.split(" ")[0] !== "fair-checker") fail("visual system: the evaluator's catalogue entry is not badged under the key the self-check uses");
   const standard = graph.find((r) => r.resourceType?.["@id"] === "#rtype-standard" && r.identifier);
-  await visit(`#/cs/K/catalogue/resources/${standard.identifier}`);
+  await visit(`#/cs/K/catalogue/${standard.catalogueAddress}`);
   // A standard is no service: it shows its kind's icon before its title, not a service's badge (D-185).
   {
     const card = page.locator(".catalogue-results .entry-card").first();
@@ -2498,26 +2517,27 @@ sections.push(["glossary definitions", async () => {
   if (described.length !== terms.length) fail("glossary: the reviewed snapshot lost a source definition");
   const term = described.find((entry) => description(entry).length > 200);
   const phrase = description(term).split(/\s+/).slice(8, 12).join(" ");
-  const anchor = "t.ntk." + term.termCode;
+  const anchor = term.catalogueAddress.split("/").slice(1).join("/");
   for (const language of ["cs", "en"]) {
     await visit(`#/${language}/V/catalogue/k!terms`);
     const cards = page.locator(".catalogue-results .term-card");
     if ((await cards.locator(".term-definition").count()) !== (await cards.count())) fail(`glossary ${language}: descriptions are missing from term cards`);
     if ((await cards.locator('.term-attribution a[href="https://creativecommons.org/licenses/by/4.0/"]').count()) !== (await cards.count())) fail(`glossary ${language}: licence attribution is missing`);
     await visit(`#/${language}/V/catalogue/k!terms~q!${encodeURIComponent(phrase)}`);
-    const card = page.locator(`[id="item-${anchor}"]`);
+    const card = page.locator(`[id="item-${entryAnchor(anchor)}"]`);
     if (!(await card.count())) fail(`glossary ${language}: a definition-only phrase does not find its term`);
     else {
+      await card.locator(".term-definition summary").click();
       if (!(await card.locator(".term-definition").innerText()).replace(/\s+/g, " ").includes(phrase)) fail(`glossary ${language}: the source description is not retained`);
       if (await card.locator(".term-definition script, .term-definition img").count()) fail("glossary: source markup was executed");
       if (!(await card.locator(`[href="${term.url}"]`).count())) fail("glossary: the source term is not linked");
     }
     const found = await page.evaluate((phrase) => window.FairGuide.search.find(phrase).find((group) => group.kind === "term")?.items.map((item) => item.target.href) || [], phrase);
-    if (!found.some((href) => href.endsWith("/terms/" + anchor))) fail(`glossary ${language}: general search does not index definitions`);
+    if (!found.some((href) => href.endsWith("/term/" + anchor))) fail(`glossary ${language}: general search does not index definitions`);
     for (const format of ["csv", "json"]) {
       const [download] = await Promise.all([page.waitForEvent("download"), page.locator("#export-" + format).click()]);
       const output = readFileSync(await download.path(), "utf8");
-      const definitionText = format === "json" ? JSON.parse(output).itemListElement.find((entry) => entry.identifier === anchor)?.description?.cs || "" : output;
+      const definitionText = format === "json" ? JSON.parse(output).itemListElement.find((entry) => entry.identifier === term.catalogueAddress)?.description?.cs || "" : output;
       if (!definitionText.replace(/\s+/g, " ").includes(phrase)) fail(`glossary ${language}: ${format} export lost the definition`);
       if (!output.includes(term.url) || !output.includes("https://creativecommons.org/licenses/by/4.0/")) fail(`glossary ${language}: ${format} export lost attribution`);
     }
@@ -2624,17 +2644,17 @@ sections.push(["node and infrastructures", async () => {
   if (!/EOSC CZ Node · zapojení plánováno do M12 · ověřeno/.test(badge) || !(await csda.locator('.node-badge a[href*="EOSC_CZ_National_Node_Charter"]').count())) fail("node: ČSDA does not carry the node badge with its milestone, date and charter: " + badge);
   if (!((await rows(csda))["Provozovatel"] || "").includes("CSDA/ESS-CZ")) fail("node: ČSDA does not name CSDA/ESS-CZ as its operator");
   for (const lang of ["cs", "en"]) {
-    await visit(`#/${lang}/K/catalogue/infrastructures/csda-ess-cz`);
+    await visit(`#/${lang}/K/catalogue/ri/ssh/csda-ess-cz`);
     const labels = await page.locator("#catalogue-order option").allTextContents();
     if (labels.some((label) => label.startsWith("catalogue.orderBy."))) fail(`infrastructures: untranslated ${lang} ordering: ${labels.join(", ")}`);
   }
-  await visit("#/cs/K/catalogue/infrastructures/csda-ess-cz");
+  await visit("#/cs/K/catalogue/ri/ssh/csda-ess-cz");
   await page.waitForSelector("#main .entry-card");
   const infra = await rows(card("CSDA/ESS-CZ"));
   if (!/CESSDA ERIC/.test(infra["Národní uzel"] || "") || !/ESS ERIC/.test(infra["Národní uzel"] || "")) fail("infrastructures: CSDA/ESS-CZ is not the node of CESSDA and ESS: " + JSON.stringify(infra));
   if (!(infra["Provozuje"] || "").includes("ČSDA")) fail("infrastructures: CSDA/ESS-CZ does not operate ČSDA");
   if (!/Annex 7|Annex 1/.test(infra["Vychází z"] || "") && !/Cestovní mapa/.test(infra["Vychází z"] || "")) fail("infrastructures: CSDA/ESS-CZ does not cite the roadmap");
-  await visit("#/cs/K/catalogue/repositories/mbdb");
+  await visit("#/cs/K/catalogue/repo/dom/mbdb");
   await page.waitForSelector("#main .entry-card");
   const mbdb = await rows(card("MBDB"));
   if (!/Biotechnologický ústav AV ČR a CESNET/.test(mbdb["Vyvinuli"] || "") || mbdb["Provozovatel"]) fail("infrastructures: MBDB does not name its developers without an operator: " + JSON.stringify(mbdb));
@@ -2725,12 +2745,12 @@ sections.push(["linked catalogues", async () => {
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   await visit("#/cs/V/path/analyse");
-  if (!(await page.locator('#main .station [id="item-ssh-open-marketplace"]').count())) fail("linked catalogues: the analysis step does not recommend the SSH Open Marketplace to researchers");
-  await visit("#/cs/K/catalogue/repositories/opendoar");
+  if (!(await page.locator('#main .station [id="item-reg/ssh-open-marketplace"]').count())) fail("linked catalogues: the analysis step does not recommend the SSH Open Marketplace to researchers");
+  await visit("#/cs/K/catalogue/repo/reg/opendoar");
   const card = page.locator(".catalogue-results .entry-card");
   if ((await card.count()) !== 1 || !(await card.first().locator(".entry-what").textContent()).includes("Hledat repozitáře")) fail("linked catalogues: OpenDOAR is not listed with the repository directories");
-  await visit("#/cs/K/catalogue/resources/knav.openmarketplace");
-  if ((await card.first().getAttribute("id")) !== "item-ssh-open-marketplace") fail("linked catalogues: the KNAV record of the Marketplace does not open the Guide's entry");
+  await visit("#/cs/K/catalogue/repo/reg/ssh-open-marketplace");
+  if ((await card.first().getAttribute("id")) !== "item-reg/ssh-open-marketplace") fail("linked catalogues: the KNAV record of the Marketplace does not open the Guide's entry");
   for (const problem of problems) fail(`linked catalogues: ${problem}`);
   await context.close();
 }]);
@@ -2751,10 +2771,10 @@ sections.push(["Licence compatibility", async () => {
     await axe(page, `licence table ${lang}`);
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/tools`));
     if (!await page.locator('.tool-group[aria-labelledby="tools-guidance"] a[href$="/page/licence-compatibility"]').count()) fail("licence table: missing from Guides");
-    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/terms/t.ntk.250`));
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/term/public-licence`));
     const quote = page.locator("#main blockquote");
     if (!await quote.count() || !(await quote.first().textContent()).includes("standardizovan")) fail(`original definitions: missing public-licence source text in ${lang}`);
-    if (!await page.locator('#main details a[href$="/resources/copyright-licences"]').count()) fail(`original definitions: missing NRP attribution in ${lang}`);
+    if (!await page.locator('#main details a[href$="/res/guide/copyright-licences"]').count()) fail(`original definitions: missing NRP attribution in ${lang}`);
   }
   for (const problem of problems) fail(`licence compatibility: ${problem}`);
   await context.close();
@@ -2805,7 +2825,7 @@ sections.push(["Read steps and situations", async () => {
 sections.push(["RDMkit reuse", async () => {
   const { context, page, problems } = await openPage();
   for (const lang of ["cs", "en"]) {
-    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/resources/elabftw`));
+    await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/catalogue/res/tool/elabftw`));
     const entries = page.locator("#main .catalogue-results .entry-card");
     if (await entries.count() !== 1) fail(`RDMkit: eLabFTW has duplicate ${lang} entries`);
     if (!await entries.locator('a[href="https://rdmkit.elixir-europe.org/all_tools_and_resources#elabftw"]').count()) fail(`RDMkit: missing ${lang} tool record`);
@@ -2824,14 +2844,14 @@ sections.push(["Workflow guidance", async () => {
   for (const lang of ["cs", "en"]) for (const lens of ["V", "DS", "SR", "K"]) {
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/${lens}/path/analyse`));
     const resource = { V: "conda-environments", DS: "conda-environments", SR: "workflow-ro-crate", K: "workflow-ro-crate" }[lens];
-    if (!await page.locator(`.steps a[href$="/resources/${resource}"]`).count()) fail(`workflows: missing ${lang}/${lens} analysis guidance`);
+    if (!await page.locator(`.steps a[href$="${cataloguePath("resources", resource)}"]`).count()) fail(`workflows: missing ${lang}/${lens} analysis guidance`);
     if (!await page.locator('#main a[href$="/page/software"]').count()) fail(`workflows: missing ${lang}/${lens} software-page link`);
   }
   for (const lang of ["cs", "en"]) {
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/V/page/software`));
     const workflows = page.locator("#workflows");
     for (const id of ["conda", "workflow-ro-crate", "workflowhub", "galaxy-cz", "jupyterhub-cerit", "lexis"]) {
-      if (!await workflows.locator(`a[href$="/resources/${id}"]`).count()) fail(`workflows: missing ${lang} ${id}`);
+      if (!await workflows.locator(`a[href$="${cataloguePath("resources", id)}"]`).count()) fail(`workflows: missing ${lang} ${id}`);
     }
   }
   for (const problem of problems) fail(`workflow guidance: ${problem}`);
@@ -2845,7 +2865,7 @@ sections.push(["Infrastructure marks", async () => {
   for (const lang of ["cs", "en"]) for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     for (const record of records) {
-      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/catalogue/infrastructures/${record.identifier}`));
+      await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/catalogue/${record.catalogueAddress}`));
       const image = page.locator(".catalogue-results .entry-title .service-favicon img");
       const expected = marks["infrastructure-" + record.identifier];
       if (expected) {
@@ -2856,6 +2876,37 @@ sections.push(["Infrastructure marks", async () => {
     }
   }
   for (const problem of problems) fail(`infrastructure marks: ${problem}`);
+  await context.close();
+}]);
+
+sections.push(["catalogue text reference", async () => {
+  const { context, page, problems } = await openPage();
+  await page.goto(pageUrl + "#/en/V/path/plan");
+  await rendered(page);
+  // A borrowed tool need not have loaded yet: referenceHref reads the build's emitted address.
+  await page.evaluate(() => {
+    const FG = window.FairGuide;
+    const owner = { "@id": "#text-reference-check", text: "Use GitHub for collaboration." };
+    FG.config.textLinks[owner["@id"]] = [{ ref: "#knav-github", en: "GitHub" }];
+    const paragraph = FG.h("p", { id: "catalogue-reference-check" }, FG.linkedSpan(owner));
+    document.querySelector("#main").append(paragraph);
+  });
+  const link = page.locator("#catalogue-reference-check a.text-ref");
+  if ((await link.getAttribute("href")) !== "#/en/V/catalogue/res/tool/github") fail("catalogue text reference: the tool does not use its issued address");
+  await navigationRendered(page, () => link.click());
+  const cards = page.locator(".catalogue-results .entry-card");
+  if ((await cards.count()) !== 1 || (await cards.first().getAttribute("id")) !== "item-tool/github") fail("catalogue text reference: following a tool name does not reach its entry alone");
+  const term = graph.find((entity) => entity["@id"] === "#term-public-licence");
+  await navigationRendered(page, () => page.goto(pageUrl + "#/en/V/catalogue/" + term.catalogueAddress));
+  if ((await cards.count()) !== 1) fail("catalogue text reference: a canonical term does not open one entry");
+  for (const entity of [graph.find((e) => e.catalogueAddress?.startsWith("org/")), graph.find((e) => e["@id"] === "#implementation-model")]) {
+    await navigationRendered(page, () => page.goto(pageUrl + "#/en/V/catalogue/" + entity.catalogueAddress));
+    if ((await cards.count()) !== 1) fail("catalogue text reference: a published record outside the facets has no direct entry");
+    if ((await cards.first().locator(".entry-head .id-chip").textContent()) !== entity.catalogueAddress.split("/").at(-1)) fail("catalogue text reference: a direct record shows a second address");
+    if ((await cards.first().locator(".entry-title").textContent()).includes("[object Object]")) fail("catalogue text reference: a language value is rendered as an object");
+    await axe(page, "direct catalogue record " + entity.catalogueAddress);
+  }
+  for (const problem of problems) fail(`catalogue text reference: ${problem}`);
   await context.close();
 }]);
 

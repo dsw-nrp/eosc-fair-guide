@@ -11,6 +11,12 @@ procedures for implementing the FAIR principles in NRP/NDI* (version 1.2, NRP KA
 This file is the operational README for maintainers and agents. The Czech [README.md](README.md) is the
 human-facing overview.
 
+Behaviour, data/API contract, stored-format, CI and governance changes use the repository-owned
+[OpenSpec contracts](openspec/specs/) and an approved change under `openspec/changes/`. The pinned CLI is
+`npm run openspec:cli -- <command>` after `npm ci`; `npm run openspec:validate` validates all contracts and changes.
+Routine wording/formatting corrections and source refreshes use ordinary editing checks. Follow
+[CONTRIBUTING.md](CONTRIBUTING.md) and the [release hand-off](docs/release-handoff.md) for the remaining alpha gates.
+
 ## What the guide offers
 
 - **A path along the research data life cycle:** the steps follow the seven stages of the RDMkit life cycle

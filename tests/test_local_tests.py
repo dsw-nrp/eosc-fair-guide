@@ -60,14 +60,14 @@ class LocalTestRecords(unittest.TestCase):
     def test_api_describes_automatic_and_manual_implementations_separately(self) -> None:
         for test in self.content["live"]["test"]:
             with self.subTest(test=test["id"]):
-                record = json.loads(self.files[f"api/tests/{test['id']}.json"])
-                self.assertEqual(record["isImplementationOf"], f"../metrics/{test['question']}.json")
+                record = json.loads(self.files[f"api/test/guide/{test['id']}.json"])
+                self.assertEqual(record["isImplementationOf"], f"../../q/{test['question']}.json")
                 self.assertTrue(record["description"]["cs"])
                 self.assertTrue(record["description"]["en"])
-                metric = json.loads(self.files[f"api/metrics/{test['question']}.json"])
+                metric = json.loads(self.files[f"api/q/{test['question']}.json"])
                 self.assertEqual(
                     metric["hasImplementation"],
-                    [f"../tests/{test['question']}.json", f"../tests/{test['id']}.json"],
+                    [f"../tests/{test['question']}.json", f"../test/guide/{test['id']}.json"],
                 )
         # Manual question tests, curated Champion tests, local tests and external evaluators' criteria.
         criteria = sum(len(provider["metric"]) for provider in self.content["live"].get("provider", []))
@@ -79,7 +79,11 @@ class LocalTestRecords(unittest.TestCase):
             record = self.entities["#test-" + test["id"]]
             links = {entry["@id"] for entry in record["subjectOf"]}
             self.assertIn(
-                test.get("record") or self.content["live"]["champion"]["testRecord"].format(id=test["id"]), links
+                test.get("record")
+                or self.content["live"]["champion"]["testRecord"].format(
+                    id=next(item["value"] for item in test["alternateIds"] if item["scheme"] == "fair-champion")
+                ),
+                links,
             )
             self.assertIn(self.content["live"]["champion"]["documentation"], links)
             self.assertNotIn(record["url"], links)
@@ -96,10 +100,10 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertTrue(set(codes) <= known)
                 entity = self.entities["#test-" + test["id"]]
                 self.assertEqual(entity.get("about"), self.entities["#item-" + test["question"]].get("about"))
-                record = json.loads(self.files[f"api/tests/{test['id']}.json"])
+                record = json.loads(self.files[f"api/test/guide/{test['id']}.json"])
                 self.assertEqual(
                     build_crate.as_list(record["about"]),
-                    [f"../principles/{code}.json" for code in codes],
+                    [f"../../pr/{code}.json" for code in codes],
                 )
         self.assertEqual(questions["software.14"]["principles"], ["R1"])
         self.assertEqual(questions["software.20"].get("principles", []), [])
@@ -144,10 +148,8 @@ class LocalTestRecords(unittest.TestCase):
                 self.assertIn(f'<h3 id="{anchor}"><code>{test["id"]}</code>', document)
                 self.assertIn(html.escape(test["label"][language]), document)
                 self.assertIn(html.escape(test["description"][language]), document)
-                self.assertIn(
-                    f'href="../../../index.html#/{language}/K/catalogue/questions/{test["question"]}"', document
-                )
-                self.assertIn(f'href="../../../api/tests/{test["id"]}.json"', document)
+                self.assertIn(f'href="../../../index.html#/{language}/K/catalogue/q/{test["question"]}"', document)
+                self.assertIn(f'href="../../../api/test/guide/{test["id"]}.json"', document)
         changed = copy.deepcopy(self.content)
         changed["live"]["test"][0]["description"]["cs"] = '<img src="unsafe">Updated description from TOML'
         regenerated = build_site.render_test_docs(template, changed)

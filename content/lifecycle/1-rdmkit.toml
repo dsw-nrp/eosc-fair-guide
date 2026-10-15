@@ -9,6 +9,7 @@ name = { cs = "Životní cyklus výzkumných dat podle RDMkit", en = "RDMkit res
 url = "https://rdmkit.elixir-europe.org/data_life_cycle"
 
 [[stage]]
+guideRoute = "life/rdm"
 id = "plan"
 name = { cs = "Plánování", en = "Plan" }
 definition = "Data management planning consists of defining the strategy that you plan to use for managing data and documentation generated within the project. It is about thinking upfront what's the best way to avoid problems or unexpected costs related to data management, and set the conditions for your research data to achieve the highest possible impact in science, even after the end of the project."
@@ -17,6 +18,7 @@ czechDefinition = "Plánování: návrh experimentu na základě existujících 
 locator = "Data life cycle › Planning › What is data management planning?"
 
 [[stage]]
+guideRoute = "life/rdm"
 id = "collect"
 name = { cs = "Vznik dat", en = "Collect" }
 definition = "Data collection is the process where information is gathered about specific variables of interest either using instrumentation or other methods (e.g. questionnaires, patient records). While data collection methods depend on the field and research subject, it is important to ensure data quality."
@@ -25,6 +27,7 @@ czechDefinition = "Vznik dat: vznik vědeckých dat v rámci konkrétní aplikac
 locator = "Data life cycle › Collecting › What is data collection?"
 
 [[stage]]
+guideRoute = "life/rdm"
 id = "process"
 name = { cs = "Zpracování dat", en = "Process" }
 definition = "Data processing is the phase in the project where data is converted into a desired format and prepared for analysis. When data has been freshly collected, data processing includes some automated steps in a workflow that perform format conversion, quality check and preprocessing following a standardised protocol."
@@ -33,6 +36,7 @@ czechDefinition = "Zpracování dat: primární zpracování surových dat před
 locator = "Data life cycle › Processing › What is data processing?"
 
 [[stage]]
+guideRoute = "life/rdm"
 id = "analyse"
 name = { cs = "Analýza dat", en = "Analyse" }
 definition = "Data analysis consists in exploring the collected data to begin understanding the messages contained in a dataset and/or in applying mathematical formula (or models) to identify relationships between variables. The steps of the workflow in the analysis phase will often be repeated several times to explore the data as well as to optimise the workflow itself. According to the different types of data (quantitative or qualitative) the data analysis methods will differ. Data analysis follows the (often automated, batch) data processing stage."
@@ -41,6 +45,7 @@ czechDefinition = "Analýza dat: analýza a interpretace zpracovaných dat za ú
 locator = "Data life cycle › Analysing › What is data analysis?"
 
 [[stage]]
+guideRoute = "life/rdm"
 id = "preserve"
 name = { cs = "Uchovávání dat", en = "Preserve" }
 definition = "Data preservation consists of a series of activities necessary to ensure safety, integrity and accessibility of data for as long as necessary, even decades. Data preservation is indeed more than just data storage and backup, since data can be stored and backed up without being preserved."
@@ -49,6 +54,7 @@ czechDefinition = "Uchovávání dat: správné dlouhodobé uchování potřebn�
 locator = "Data life cycle › Preserving › What is data preservation?"
 
 [[stage]]
+guideRoute = "life/rdm"
 id = "share"
 name = { cs = "Sdílení dat", en = "Share" }
 definition = "Sharing data means making your data known to other people."
@@ -57,6 +63,7 @@ czechDefinition = "Sdílení dat: zpřístupnění výzkumných dat pro spolupr�
 locator = "Data life cycle › Sharing › What is data sharing?"
 
 [[stage]]
+guideRoute = "life/rdm"
 id = "reuse"
 name = { cs = "Opakované užití dat", en = "Reuse" }
 definition = "Data reuse means using data for other purposes than it was originally collected for. Reuse of data is particularly important in science, as it allows different researchers to analyse and publish findings based on the same data independently of one another. Reusability is one key component of the FAIR principles."

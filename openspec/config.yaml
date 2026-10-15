@@ -1,0 +1,22 @@
+schema: spec-driven
+
+context: |
+  EOSC CZ FAIR Data Guide: static bilingual Czech/English HTML/CSS/vanilla JavaScript,
+  a standard-library Python build and a shared RO-Crate knowledge base/static JSON API.
+  Read AGENTS.md, docs/design.md, docs/content-model.md and the fair-guide-editor skill.
+  Keep file and iframe operation, no external requests on page load, safe text rendering,
+  advisory assessment without a combined score, and source/provenance fidelity.
+  Quoted originals retain wording, language, attribution, version and normative strength.
+  Guide-owned record identities survive external changes. Generated _site output is not committed.
+  Use npm ci, npm run openspec:validate and python scripts/check_all.py.
+  Develop through reviewed pull requests. Tagging, publication and archive require explicit human approval.
+
+rules:
+  proposal:
+    - State the concrete reader or maintainer problem, scope, exclusions and validation.
+  specs:
+    - Preserve source meanings and current capability contracts; give observable acceptance scenarios.
+  design:
+    - Explain identity, data/runtime boundaries, failure handling, accessibility and migration where affected.
+  tasks:
+    - Use executable checkboxes, meaningful verification and explicit human hand-offs.

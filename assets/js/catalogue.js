@@ -8,33 +8,27 @@
   const h = (...args) => FG.h(...args);
   /* ---------------------------------------------------------------- shared helpers */
 
-  /** The link to an entity's JSON record in the guide's API; nothing until the API is published. */
-  /** The address of the catalogue showing one kind, or one entry of it. */
-  FG.catalogueHref = (kind, item) => FG.href("catalogue", kind) + (item ? "/" + encodeURIComponent(item) : "");
-
-  /* A record the guide takes from another registry is identified by that registry's own catalogue entry and the
-     registry's identifier for it (re3data.r3d100013576, fip-dashboard.ndi-baseline), so a borrowed identifier always
-     says whose it is; a vocabulary's term also says it is a term: t.<keeper>.<ID> (t.ntk.87 for Heslář, which NTK
-     keeps). The guide's own entries keep their own identifiers (docs/content-model.md, Identifiers). */
-  FG.borrowedId = (registry, id) => registry + "." + id;
-  FG.termAnchor = (term) => FG.borrowedId("t.ntk", term.termCode);
-  FG.repositoryAnchor = (repository) => {
-    if (String(repository["@id"] || "").startsWith("#fer-")) return FG.borrowedId("fip-dashboard", repository.identifier);
-    const own = String(repository["@id"] || "").replace(/^#(repository|resource)-/, "");
-    if (FG.refIds(repository, "isBasedOn").includes("#snapshot-re3data")) return FG.borrowedId("re3data", own);
-    /* A repository only NKR lists keeps NKR's identifier for it. */
-    const nkr = FG.refIds(repository, "sameAs").map((iri) => (iri.match(/^https:\/\/repo\.cz\/objects\/(.+)$/) || [])[1]).find(Boolean);
-    if (own.startsWith("nkr-") && nkr) return FG.borrowedId("nkr", nkr);
-    return own || FG.borrowedId("nkr", slug(FG.text(repository.name)));
+  /** Compact route codes are emitted from the build vocabulary; UI category names remain readable. */
+  FG.catalogueKind = (code) => FG.config.catalogueKinds[code] || code;
+  FG.catalogueCode = (kind) => Object.keys(FG.config.catalogueKinds).find((code) => FG.config.catalogueKinds[code] === kind) || kind;
+  FG.catalogueHref = (kind, item) => FG.href("catalogue") + "/" + [FG.catalogueCode(kind), ...(item ? item.split("/") : [])].map(encodeURIComponent).join("/");
+  FG.entryHref = (entity) => {
+    const address = FG.config.api.records[FG.id(entity)];
+    return address ? FG.href("catalogue") + "/" + address.split("/").map(encodeURIComponent).join("/") : null;
   };
+  FG.termAnchor = (term) => FG.config.api.records[FG.id(term)]?.split("/").slice(1).join("/");
+  FG.repositoryAnchor = (repository) => FG.config.api.records[FG.id(repository)]?.split("/").slice(1).join("/");
 
   /** The catalogue searched for a query within one kind, as the landing's search links to it. */
   FG.catalogueSearchHref = (query, kind) => writeState({ kinds: [kind || "resources"], stations: [], principles: [], q: query, order: "", f: {} });
 
 
   /** An identifier as a small chip that leads to its entry in the catalogue. */
-  FG.idChip = function (kind, id) {
-    return h("a", { class: "id-chip", href: FG.catalogueHref(kind, id), title: FG.t("catalogue.openEntry", { id }) }, id);
+  FG.idChip = function (entity) {
+    const address = FG.config.api.records[FG.id(entity)];
+    const id = address?.split("/").at(-1) || entity?.identifier || "";
+    return h(address ? "a" : "span", { class: "id-chip", href: address ? FG.entryHref(entity) : null,
+      title: address ? FG.t("catalogue.openEntry", { id: address }) : null }, id);
   };
 
   /** A source's short name: a cited resource's own name, or a source's short name when it has one. */
@@ -50,7 +44,7 @@
   };
 
   /** A work an entry rests on, by its short name, leading to its own entry in the catalogue. */
-  FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.catalogueHref("resources", source.identifier) }, FG.shortName(source));
+  FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.entryHref(source) }, FG.shortName(source));
 
   /** Warn when a published statement has been superseded. Refresh is an editorial status. */
   FG.clauseStatus = (status) =>
@@ -85,7 +79,7 @@
       h(
         "p",
         { class: "entry-head clause-meta" },
-        isClause ? FG.idChip("clauses", clause.identifier) : null,
+        isClause ? FG.idChip(clause) : null,
         clause.clauseKind ? h("span", { class: "entry-what" }, FG.t("catalogue.clauseKind." + clause.clauseKind)) : null,
         FG.clauseStatus(status)
       ),
@@ -97,7 +91,7 @@
     );
   };
 
-  const code = (iri) => String(FG.id(iri) || iri || "").split("/").pop();
+  const code = (entity) => String((FG.get(entity) || entity || {}).termCode || "");
   const slug = (value) => FG.fold(value).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const icons = () => (FG.config && FG.config.icons) || {};
 
@@ -150,7 +144,6 @@
   /* The resource types that are tools or services, whose entries carry a service badge. */
   const SERVICE_TYPES = ["#rtype-service", "#rtype-tool", "#rtype-registry"];
 
-  /** The mark of an entry's kind: the kind's icon on the kind's colour, named for screen readers. */
   /** A service's badge, when the entity is a tool or a service. */
   const serviceOf = (entity) => (SERVICE_TYPES.includes(typeOf(entity)) ? entity : null);
 
@@ -158,6 +151,8 @@
       its title; one quiet line of details; its text; badges for its state only; then its relations, one row each,
       in a fixed order, each drawn one way everywhere. */
   function entryCard(spec) {
+    const address = FG.config.api.records[FG.id(spec.entity)];
+    if (address) spec = { ...spec, kind: FG.catalogueKind(address.split("/")[0]), id: address.split("/").slice(1).join("/") };
     const kind = spec.kind || null;
     const what = FG.list(spec.what).filter(Boolean);
     const details = FG.list(spec.details).filter(Boolean);
@@ -168,16 +163,16 @@
       { class: ["card", "entry-card", kind ? "kind-" + kind : null, spec.compact ? "entry-compact" : null].concat(spec.class || []).filter(Boolean).join(" "), id: "item-" + spec.id, "data-kind": kind, tabindex: "-1" },
       /* The kind shows in the card's top strip and the kind facet, and its icon stands before the title wherever the
          entry has no favicon of its own (D-185). */
-      h("p", { class: "entry-head" }, spec.compact ? null : h("span", { class: "id-chip id-chip-static" }, spec.id), what.length ? h("span", { class: "entry-what" }, what.join(" · ")) : null, spec.compact ? null : FG.apiLink(spec.entity)),
+      h("p", { class: "entry-head" }, spec.compact ? null : FG.idChip(spec.entity), what.length ? h("span", { class: "entry-what" }, what.join(" · ")) : null, spec.compact ? null : FG.apiLink(spec.entity)),
       spec.title
-        ? h("h3", { class: "entry-title", lang: spec.titleLang || null }, spec.service ? FG.serviceBadge(spec.service.identifier, spec.service.url, kind || "resources") : kind ? FG.kindBadge(kind) : null, h("span", null, spec.title))
+        ? h("h3", { class: "entry-title", lang: spec.titleLang || null }, spec.service ? FG.serviceBadge(spec.service.identifier, spec.service.url, kind || "resources") : kind && icons().kind?.[kind] ? FG.kindBadge(kind) : null, h("span", null, spec.title))
         : null,
       spec.byline ? h("p", { class: "small entry-byline" }, spec.byline) : null,
       details.length ? h("p", { class: "small muted card-details", lang: spec.detailsLang || null }, details.join(" · ")) : null,
       spec.body,
       states.length ? h("div", { class: "badges" }, states) : null,
       spec.notes,
-      spec.compact ? h("p", { class: "small entry-more" }, h("a", { href: FG.catalogueHref(kind, spec.id) }, FG.t("catalogue.whole.entry"))) : null,
+      spec.compact ? h("p", { class: "small entry-more" }, h("a", { href: FG.entryHref(spec.entity) }, FG.t("catalogue.whole.entry"))) : null,
       !spec.compact && (rows.length || FG.modelRows(spec.entity).length)
         ? h(
             "dl",
@@ -197,9 +192,9 @@
     if (!entity) return null;
     const id = String(entity["@id"]);
     const name = entity.abbreviation ? FG.abbreviatedName(entity, FG.state.lang) : FG.text(entity.name);
-    if (id.startsWith("#infrastructure-")) return h("a", { href: FG.catalogueHref("infrastructures", entity.identifier) }, name);
-    if (entity["@type"] === "DataCatalog" || id.startsWith("#repository-")) return h("a", { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) }, name);
-    return h("a", { href: FG.catalogueHref("resources", entity.identifier) }, name);
+    if (id.startsWith("#infrastructure-")) return h("a", { href: FG.entryHref(entity) }, name);
+    if (entity["@type"] === "DataCatalog" || id.startsWith("#repository-")) return h("a", { href: FG.entryHref(entity) }, name);
+    return h("a", { href: FG.entryHref(entity) }, name);
   };
 
   /** Who operates an entry, as its sources state it: the operator its own page names and the large research
@@ -281,7 +276,6 @@
     return citedCache.bySource;
   };
 
-  /** A resource's card wherever the guide shows it; at a station, without that station among where it is used. */
   /** A resource's card wherever the guide shows it; at a station, without that station among where it is used, and
       compact: what it is, its name, its text and its state, with the way to its whole entry in the catalogue. */
   FG.resourceCard = function (resource, except, compact) {

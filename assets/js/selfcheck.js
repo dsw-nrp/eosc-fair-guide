@@ -579,7 +579,7 @@
 
   function prefillFromDashboard(check, fip) {
     const st = stateOf(check);
-    st.fip = fip.identifier;
+    st.fip = FG.sourceIdentifier(fip, "fip-dashboard");
     retarget(check, FG.id(fip.sameAs) || fip.url || null);
     describeTarget(check, { name: [fip.alternateName, FG.text(fip.name)].filter(Boolean).join(": "), kind: "FIP" });
     const source = FG.live.available("fip-dashboard") ? "fip-dashboard" : "fip-dashboard-snapshot";
@@ -590,7 +590,7 @@
       if (source === "fip-dashboard") {
         try {
           const data = await FG.live.dashboard();
-          const current = data.fips.find((item) => item && item.id === fip.identifier);
+          const current = data.fips.find((item) => item && item.id === FG.sourceIdentifier(fip, "fip-dashboard"));
           const names = new Map(data.resources.map((item) => [item && item.id, item]));
           if (current) {
             evidenceSource = "fip-dashboard";
@@ -759,7 +759,7 @@
     /* A reviewed provider mapping states its coverage in the crate, in the language shown. */
     if (note.key === "selfcheck.note.providerMapping" && FG.providers) return FG.providers.mappingNote(note.params);
     /* Tests are kept by identifier and named in the language shown. */
-    const tests = FG.list(note.tests).map((id) => FG.text((FG.get("#test-" + id) || {}).name) || String(id));
+    const tests = FG.list(note.tests).map((id) => FG.text((FG.sourceEntity("fair-champion", id) || {}).name) || String(id));
     return FG.t(note.key, Object.assign({}, note.params || {}, tests.length ? { tests: tests.join(", ") } : {}));
   }
 
@@ -907,7 +907,7 @@
   const testsOf = (item) =>
     FG.list((prefillOf(item, "champion") || {}).value)
       .map(String)
-      .filter((id) => healthOf(FG.get("#test-" + id)) !== "unavailable");
+      .filter((id) => healthOf(FG.sourceEntity("fair-champion", id)) !== "unavailable");
 
   /** The FAIR Champion tests the check's questions name, each with the questions it answers, in the questions'
       order. */
@@ -915,7 +915,7 @@
     const pairs = new Map();
     for (const item of answerable(check, st)) {
       for (const id of testsOf(item)) {
-        if (!pairs.has(id)) pairs.set(id, { id, test: FG.get("#test-" + id), items: [] });
+        if (!pairs.has(id)) pairs.set(id, { id, test: FG.sourceEntity("fair-champion", id), items: [] });
         pairs.get(id).items.push(item);
       }
     }
@@ -1161,11 +1161,11 @@
         "ul",
         { class: "test-list" },
         tests.map((id) => {
-          const test = FG.get("#test-" + id);
+          const test = FG.sourceEntity("fair-champion", id);
           return h(
             "li",
             { class: "test-row", "data-test": id },
-            test ? h("a", { href: FG.catalogueHref("tests", FG.borrowedId("fair-champion", id)) }, FG.text(test.name)) : h("code", null, id),
+            test ? h("a", { href: FG.entryHref(test) }, FG.text(test.name)) : h("code", null, id),
             healthOf(test) === "degraded" ? [" ", h("span", { class: "badge", "data-health": "degraded" }, FG.t("catalogue.health.degraded"))] : null,
             test && test.url ? h("p", { class: "small test-invocation" }, h("code", null, "POST"), " ", FG.external(test.url, FG.t("selfcheck.evidence.endpoint")),
               FG.list(test.subjectOf).map((reference, index) => [" · ", FG.external(typeof reference === "string" ? reference : reference["@id"], FG.t(index ? "selfcheck.evidence.serviceDocumentation" : "selfcheck.evidence.documentation"))])) : null,
@@ -1357,7 +1357,10 @@
       many of the shown questions it can suggest an answer to, then its controls. */
   function evidenceCard(check, st, key, prefills, ...content) {
     const resource = FG.get("#resource-" + SOURCE_RESOURCES[key]);
-    const count = answerable(check, st).filter((item) => prefills.some((source) => prefillOf(item, source))).length;
+    const localQuestions = new Set(FG.graph.filter((test) => String(test["@id"]).startsWith("#test-guide-") &&
+      ((key === "software" && test.url === "assets/js/tests/software.js") || (key === "pid" && test.url === "assets/js/tests/object.js")))
+      .flatMap((test) => FG.refIds(test, "isImplementationOf")));
+    const count = resultItems(check, st).filter((item) => localQuestions.has(FG.id(item)) || prefills.some((source) => prefillOf(item, source))).length;
     const t = (field, params) => FG.t("selfcheck.evidenceCard." + key + "." + field, params);
     const facts = [
       [FG.t("selfcheck.evidenceCard.sends"), t("sends")],
@@ -1773,7 +1776,7 @@
       "p",
       { class: "action-basis small" },
       h("span", { class: "action-label" }, FG.t("selfcheck.result.basedOn") + ": "),
-      ids.map((id, index) => [index ? " " : "", FG.idChip("clauses", id.slice("#clause-".length))]),
+      ids.map((id, index) => [index ? " " : "", FG.idChip(FG.get(id))]),
       sources.length ? [" · ", sources.map((source, index) => [index ? ", " : "", FG.sourceLink(source)])] : null
     );
   }
@@ -1806,7 +1809,7 @@
     const targetName = st.targetInfo && (st.targetInfo.name || st.targetInfo.publisher);
     return h("details", { class: "result-handover" }, h("summary", null, FG.t("model.handover")), h("div", { class: "content" },
       h("dl", { class: "relations small" }, FG.modelRows(item),
-        h("dt", null, FG.t("model.criterion")), h("dd", null, FG.idChip("questions", item.identifier), " ", FG.span(item.text)),
+        h("dt", null, FG.t("model.criterion")), h("dd", null, FG.idChip(item), " ", FG.span(item.text)),
         ask.names.length ? [h("dt", null, FG.t("selfcheck.result.askLabel")), h("dd", null, ask.names.join(", "))] : null,
         st.target ? [h("dt", null, FG.t("selfcheck.targetLabel")), h("dd", null, targetName && targetUrl ? [FG.external(targetUrl, targetName), " "] : null, FG.targetChip(st.target))] : null),
       h("p", { class: "small" }, FG.t("model.handoverHint")),
@@ -2263,7 +2266,7 @@
       lines.push(`- **${item.identifier}** ${escapeMarkdown(FG.text(item.text))}: **${escapeMarkdown(answerText(st, item))}**`, "");
       for (const property of ["implementationLayers", "implementationSeams"]) {
         const terms = FG.refs(item, property);
-        if (terms.length) lines.push(FG.t("catalogue.relation." + property) + ": " + terms.map((term) => `[${escapeMarkdown(FG.text(term.name))}](${FG.pageAddress()}${FG.catalogueHref("model", term.identifier)})`).join(", "), "");
+        if (terms.length) lines.push(FG.t("catalogue.relation." + property) + ": " + terms.map((term) => `[${escapeMarkdown(FG.text(term.name))}](${FG.pageAddress()}${FG.entryHref(term)})`).join(", "), "");
       }
       if (details) lines.push(...details.split("\n").map((line) => "> " + escapeMarkdown(line)), "");
     }
@@ -2339,7 +2342,7 @@
     const probeVerdicts = run ? run.records.flatMap((record, index) => championTests(check, st).map((test) => Object.assign({ test: test.id, target: record, index }, run.verdicts[verdictKey(test.id, record)]))) : FG.list(st.verdicts);
     for (const verdict of probeVerdicts) {
       if (!verdict || !["pass", "fail", "indeterminate"].includes(verdict.value) || !verdict.test) continue;
-      const test = FG.get("#test-" + verdict.test);
+      const test = FG.sourceEntity("fair-champion", verdict.test);
       if (!test) continue;
       members.push({
         "@id": "#result-" + verdict.test + (run && run.records.length > 1 ? "-" + verdict.index : ""),

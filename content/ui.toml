@@ -11,6 +11,7 @@ error = { cs = "Průvodce se nepodařilo načíst. Zkuste stránku obnovit.", en
 home = { cs = "EOSC CZ, domovská stránka", en = "EOSC CZ home page" }
 
 [nav]
+menu = { cs = "Nabídka", en = "Menu" }
 repository = { cs = "Zdrojový kód Průvodce na GitHubu", en = "The Guide's source code on GitHub" }
 label = { cs = "Hlavní navigace", en = "Main navigation" }
 home = { cs = "Úvod", en = "Home" }

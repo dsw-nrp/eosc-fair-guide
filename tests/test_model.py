@@ -27,7 +27,7 @@ class ModelTests(unittest.TestCase):
         self.content["ui"] = build_crate.load_toml(ROOT / "content" / "ui.toml")
         self.content["sources"].append(
             {
-                "id": "layers-and-seams-manuscript",
+                "id": "layers-seams-manuscript",
                 "type": "article",
                 "title": bilingual("Layers and seams of FAIR implementation"),
                 "authors": ["Manuscript Author"],
@@ -37,8 +37,8 @@ class ModelTests(unittest.TestCase):
         )
         self.content["model"] = {
             "model": {
-                "id": "layers-and-seams",
-                "source": "layers-and-seams-manuscript",
+                "id": "layers-seams",
+                "source": "layers-seams-manuscript",
                 **{key: bilingual(key) for key in ("name", "description", "introduction", "ordering", "feedback")},
             },
             "layer": [
@@ -64,7 +64,7 @@ class ModelTests(unittest.TestCase):
                     "scope": bilingual("Catalogue only"),
                     "status": "pilot",
                     "asOf": "2026-09",
-                    "evidence": ["layers-and-seams-manuscript"],
+                    "evidence": ["layers-seams-manuscript"],
                 }
             ],
             "association": [{"target": "service", "layers": ["infrastructure"], "seams": ["repository-nma"]}],
@@ -107,7 +107,7 @@ class ModelTests(unittest.TestCase):
             build_crate.build_crate(self.content)
 
     def test_in_preparation_exception_cannot_create_requirements_or_publication_facts(self) -> None:
-        self.content["ledger"][0]["source"] = "layers-and-seams-manuscript"
+        self.content["ledger"][0]["source"] = "layers-seams-manuscript"
         self.content["sources"][-1]["datePublished"] = date(2026, 9, 1)
         self.assertTrue(any("cannot supply ledger requirements" in error for error in self.errors()))
         self.assertTrue(any("cannot claim a DOI" in error for error in self.errors()))
@@ -148,16 +148,16 @@ class ModelTests(unittest.TestCase):
             for collection, members in api.records.items()
             for record, entity_id in members
         }
-        self.assertIn("api/model/seam.repository-nma.json", docs)
-        self.assertEqual(docs["api/model/example.pilot.json"]["statusAsOf"], "2026-09")
+        self.assertIn("api/model/repository-nma.json", docs)
+        self.assertEqual(docs["api/model/pilot.json"]["statusAsOf"], "2026-09")
         self.assertEqual(build_api.PARAMETERS["model"], "model_id")
-        record = docs["api/resources/service.json"]
-        self.assertEqual(record["implementationSeams"], "../model/seam.repository-nma.json")
+        record = docs["api/res/srv/service.json"]
+        self.assertEqual(record["implementationSeams"], "../../model/repository-nma.json")
         health = api.health(check_health.make_report(self.content, today=date(2026, 10, 11)))
         model = next(group for group in health["integrity"] if group["type"] == "implementation model")
         self.assertEqual(model["failed"], 0)
         example = next(item for item in model["items"] if item["id"] == "example.pilot")
-        self.assertEqual(example["api_record"], "model/example.pilot.json")
+        self.assertEqual(example["api_record"], "model/pilot.json")
         self.content["model"]["example"][0]["evidence"] = ["missing"]
         broken = check_health.integrity(self.content, ROOT, date(2026, 10, 11))
         self.assertGreater(next(group for group in broken if group["type"] == "implementation model")["failed"], 0)
@@ -192,7 +192,7 @@ class ModelTests(unittest.TestCase):
         )
         self.assertEqual(graph["#implementation-model"]["workExample"], {"@id": "#model-worked-example"})
         api = build_api.Api(crate, self.content)
-        record = api.record("model", "layers-and-seams", "#implementation-model")
+        record = api.record("model", "layers-seams", "#implementation-model")
         self.assertTrue(
             any(
                 isinstance(item, dict) and item.get("identifier") == "model-worked-example"

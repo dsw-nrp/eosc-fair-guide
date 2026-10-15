@@ -23,6 +23,14 @@
     FG.DASHBOARD = FG.config.links.fipDashboard;
   };
 
+  /** A genuine upstream identifier, kept separate from the Guide-owned primary. */
+  FG.sourceIdentifier = (entity, scheme) => FG.refs(entity, "alternateIdentifier")
+    .find((item) => item && item.propertyID === scheme)?.value || null;
+  FG.sourceEntity = (scheme, value, prefix = "") => {
+    const matches = FG.graph.filter((entity) => entity["@id"].startsWith(prefix) && FG.sourceIdentifier(entity, scheme) === value);
+    return matches.length === 1 ? matches[0] : null;
+  };
+
   /* Keys that write through to an object's prototype instead of the object. Every merge of data read from a file or a
      service skips them (language patches here, discovered metadata in discovery.js, imported results). */
   const UNSAFE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
@@ -117,6 +125,7 @@
     }
     for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
     if (part.ui) mergeData(FG.ui, part.ui);
+    if (part.config) mergeData(FG.config, part.config);
   };
 
   /** Explicit data exports keep bilingual API-style records. Reading a view does not require this load. */
@@ -134,7 +143,7 @@
 
   /** The implementation model is an independent organising vocabulary, with explicit editorial associations. */
   FG.modelTerms = (kind) => FG.refs(FG.get("#implementation-model"), "hasDefinedTerm").filter((term) => !kind || term.modelKind === kind).sort(FG.byPosition);
-  FG.modelLink = (term) => FG.h("a", { class: "model-tag", href: FG.catalogueHref("model", term.identifier) }, FG.span(term.name));
+  FG.modelLink = (term) => FG.h("a", { class: "model-tag", href: FG.entryHref(term) }, FG.span(term.name));
   FG.modelRows = function (entity) {
     return ["implementationLayers", "implementationSeams"].flatMap((property) => {
       const terms = FG.refs(entity, property);
@@ -346,29 +355,16 @@
 
   /** Where a reference in text leads: its catalogue entry, page or lifecycle station. */
   FG.referenceHref = function (id) {
-    /* The infrastructures load with the catalogue; their entries' addresses follow from their IDs alone. */
     if (id === "#infrastructures") return FG.catalogueHref("infrastructures");
-    if (String(id).startsWith("#infrastructure-")) return FG.catalogueHref("infrastructures", String(id).slice("#infrastructure-".length));
-    const entity = FG.get(id);
-    if (!entity) return null;
-    if (String(id).startsWith("#page-")) return FG.href("page", entity.identifier);
-    if (String(id).startsWith("#station-")) return FG.href("path", entity.identifier);
-    if (String(id).startsWith("#clause-")) return FG.catalogueHref("clauses", entity.identifier);
-    if (String(id).startsWith("#item-")) return FG.catalogueHref("questions", entity.identifier);
-    if (String(id).startsWith("#test-")) return FG.catalogueHref("tests", entity.identifier.startsWith("guide-") ? entity.identifier : "fair-champion." + entity.identifier);
-    /* An external evaluator's criterion is listed with the tests under its provider's own identifier. */
-    if (String(id).startsWith("#criterion-")) {
-      const provider = FG.list((FG.config.providers || {}).list).find((entry) => id === "#criterion-" + entry.id + "-" + entity.identifier);
-      if (provider) return FG.catalogueHref("tests", provider.id + "." + entity.identifier);
+    if (String(id).startsWith("#page-")) return FG.href("page", String(id).slice(6));
+    const address = FG.config.api?.records[id];
+    if (address) {
+      const [kind, ...parts] = address.split("/");
+      if (FG.catalogueKind(kind) === "stations") return FG.href("path", parts.join("/"));
+      return FG.catalogueHref(kind, parts.join("/"));
     }
-    if (String(id).startsWith("#action-")) return FG.catalogueHref("actions", entity.identifier || String(id).slice(8));
-    if (id === "#implementation-model") return FG.href("page", "model");
-    if (String(id).startsWith("#layer-") || String(id).startsWith("#seam-")) return FG.catalogueHref("model", entity.identifier);
-    if (String(id).startsWith("#model-example-")) return FG.catalogueHref("model", FG.get(entity.isPartOf)?.identifier);
-    /* Something of the guide's own site, such as its profile: its page at the same place, wherever the site is. */
     const base = FG.config.pageUrl || "";
-    if (base && String(id).startsWith(base)) return String(id).slice(base.length).replace(/\/?$/, "/");
-    return String(id).startsWith("#term-") ? FG.catalogueHref("terms", FG.termAnchor(entity)) : FG.catalogueHref("resources", entity.identifier);
+    return base && String(id).startsWith(base) ? String(id).slice(base.length).replace(/\/?$/, "/") : null;
   };
 
   /** A text as nodes, with the first occurrence of each phrase its entity names by reference linked; a link already
@@ -749,9 +745,7 @@
 
   /* ---------------------------------------------------------------- routing */
 
-  const VIEWS = ["path", "check", "explorer", "catalogue", "resources", "repositories", "tools", "page", "selfcheck"];
-  /* The resource and repository finders are tabs of the catalogue; their own addresses still lead there. */
-  const CATALOGUE_TABS = ["resources", "repositories"];
+  const VIEWS = ["path", "check", "explorer", "catalogue", "tools", "page", "selfcheck"];
 
   /** In-page targets that name crate entities, as used by advice actions. */
   FG.entityRoute = function (hash) {
@@ -760,7 +754,10 @@
     if ((match = id.match(/^station-(.+)$/))) return { view: "path", arg: match[1] };
     if ((match = id.match(/^check-(.+)$/))) return { view: "check", arg: match[1] };
     if ((match = id.match(/^page-(.+)$/))) return { view: "page", arg: match[1] };
-    if ((match = id.match(/^resource-(.+)$/))) return { view: "catalogue", arg: "resources", extra: match[1] };
+    if ((match = id.match(/^resource-(.+)$/))) {
+      const address = FG.config.api.records["#resource-" + match[1]];
+      return address ? { view: "catalogue", arg: address.split("/")[0], extra: address.split("/").slice(1).join("/") } : null;
+    }
     /* A topic (`#resources?type=standard,vocabulary`) opens the kind narrowed to it, for the reader's lens. */
     if ((match = id.match(/^(resources|repositories)\?(.+)$/)) && FG.catalogueTopic) return { view: "catalogue", arg: FG.catalogueTopic(match[1], match[2]) };
     if (id === "repositories") return FG.repositoryFinderHref ? FG.parseHash(FG.repositoryFinderHref()) : { view: "catalogue", arg: "repositories" };
@@ -792,8 +789,7 @@
     if (FG.lenses().some((lens) => lens.audienceType === parts[1])) route.lens = parts[1];
     if (VIEWS.includes(parts[2])) route.view = parts[2];
     route.arg = parts[3] || null;
-    route.extra = parts[4] || null;
-    if (CATALOGUE_TABS.includes(route.view)) Object.assign(route, { view: "catalogue", arg: route.view, extra: route.arg });
+    route.extra = parts.slice(4).join("/") || null;
     return route;
   };
 

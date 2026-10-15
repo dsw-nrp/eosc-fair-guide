@@ -6,7 +6,8 @@ rules are in [docs/content-model.md](docs/content-model.md); design decisions ar
 
 ## Branches and pull requests
 
-- `main` is the published state. Nobody pushes to it directly; every change arrives as a pull request.
+- `main` supplies the `/next/` preview; production comes from checked release artifacts. Nobody pushes to `main`
+  directly; every change arrives as a pull request.
 - Name branches by purpose: `content/<topic>` for texts and data, `fix/<topic>` for defects,
   `feature/<topic>` for new behaviour, and `agents/<agent>/<topic>` for work done by an AI agent.
 - Keep a pull request to one purpose. Text polishing of one station is a good size.
@@ -31,15 +32,34 @@ rules are in [docs/content-model.md](docs/content-model.md); design decisions ar
 
 ## Checking locally
 
+Changes to behaviour, data/API contracts, stored formats, CI or governance need an OpenSpec change. Read the
+relevant installed contracts in `openspec/specs/`, then use the repository's pinned CLI:
+
+```bash
+npm ci
+npm run openspec:cli -- list --json
+npm run openspec:cli -- new change <slug>
+npm run openspec:cli -- instructions proposal --change <slug>
+npm run openspec:validate
+```
+
+Complete proposal/design/specs/tasks and obtain explicit approval before implementation. Typos, wording,
+formatting, behaviour-neutral dependency updates and routine source refreshes can use ordinary editing checks;
+a semantic change is not a wording-only correction. Archive after delivery under fresh approval. The active
+`initial-alpha` package and [release hand-off](docs/release-handoff.md) state the remaining gates.
+
 ```bash
 python scripts/build_site.py       # build the site into _site/: the crate, the page with its data, the API
 python scripts/check_content.py    # content contract: languages, sources, paradata, links, statuses, identifiers
 python scripts/check_duplicates.py # one entry per thing: nothing listed or said twice
+python scripts/check_public_content.py --history # public-source and local commit-message hygiene
 python scripts/register_ids.py     # after adding entries: register their identifiers
 python scripts/check_all.py        # before a pull request: build, then every check at once (--live adds the network checks)
 ```
 
 `check_all.py` needs `npm ci` and the tools from `requirements-dev.txt`, and reports each check's result and time.
+It includes strict OpenSpec validation and public-source hygiene. Install the pinned dependencies rather than
+depending on a global OpenSpec command. Generated `_site/`, local caches and environments are never committed.
 
 ### Development container
 

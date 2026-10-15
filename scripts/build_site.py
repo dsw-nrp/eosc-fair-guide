@@ -48,6 +48,10 @@ def render_test_docs(template: str, content: dict[str, Any]) -> str:
         },
     }
     blocks = {}
+    crate = kb.build_crate(content)
+    addresses = {
+        entity["@id"]: entity["catalogueAddress"] for entity in crate["@graph"] if entity.get("catalogueAddress")
+    }
     questions = {item["id"]: item for check in content["checks"] for item in check.get("item", [])}
     principle_labels = {entry["id"]: entry["label"] for entry in content["principles"]}
     for language in kb.LANGS:
@@ -57,14 +61,16 @@ def render_test_docs(template: str, content: dict[str, Any]) -> str:
             anchor = identifier + ("-en" if language == "en" else "")
             source = posixpath.relpath(test["script"], posixpath.dirname(LOCAL_TEST_DOC))
             strings = labels[language]
+            question_address = addresses["#item-" + test["question"]]
+            test_address = addresses["#test-" + identifier]
             links = [
                 (source, strings["code"]),
                 (
-                    f"../../../index.html#/{language}/K/catalogue/questions/{test['question']}",
+                    f"../../../index.html#/{language}/K/catalogue/{question_address}",
                     strings["question"] + ": " + test["question"],
                 ),
-                (f"../../../index.html#/{language}/K/catalogue/tests/{identifier}", strings["record"]),
-                (f"../../../api/tests/{identifier}.json", "JSON"),
+                (f"../../../index.html#/{language}/K/catalogue/{test_address}", strings["record"]),
+                (f"../../../api/{test_address}.json", "JSON"),
             ]
             linked = " · ".join(
                 f'<a href="{html.escape(target, quote=True)}">{html.escape(label)}</a>' for target, label in links

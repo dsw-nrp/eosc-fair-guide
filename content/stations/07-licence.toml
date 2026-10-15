@@ -9,7 +9,7 @@ title = { cs = "Licence a podmínky přístupu", en = "Licence and access condit
 icon = "scale-balanced"
 principles = ["R1.1", "A1.2"]
 minutes = 10
-glossary = ["190", "250", "50", "380", "188"]
+glossary = ["open-licence", "public-licence", "creative-commons-license", "embargoed-access", "open-data-commons"]
 
 [[advice]]
 id = "licence.01"
@@ -73,7 +73,7 @@ sources = ["DEPOSIT-LICENCE.01", "COPYRIGHT-LICENCES.02"]
 id = "licence.08"
 lens = "DS"
 level = "L0"
-text = { cs = "Licence a podmínky přístupu bývají nejčastějším zdrojem nejistoty. Pomozte je rozhodnout včas, ideálně už v DMP.", en = "Licences and access conditions are the most common source of uncertainty. Help decide them early, ideally in the DMP." }
+text = { cs = "Pomozte výzkumníkům zvolit licenci a podmínky přístupu včas, ideálně už při přípravě DMP.", en = "Help researchers choose a licence and access conditions early, ideally while preparing the DMP." }
 action = [{ label = { cs = "Autorská práva a licence", en = "Copyright and licences" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#autorska-prava-a-licence-cz-eng" }, { label = { cs = "Vzor depoziční licence", en = "Deposit licence template" }, href = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#depo_licence" }]
 sources = ["COPYRIGHT-LICENCES.01", "DSW-NRP.01"]
 

@@ -18,11 +18,15 @@
     "check:live": "node tests/page/check_live.mjs",
     "check:diagrams": "node tests/page/check_diagrams.mjs",
     "check:api": "node tests/api/check_api.mjs",
-    "check:live-release": "node tests/page/check_live_release.mjs"
+    "check:live-release": "node tests/page/check_live_release.mjs",
+    "openspec:cli": "node node_modules/@fission-ai/openspec/bin/openspec.js",
+    "openspec:validate": "npm run -s openspec:cli -- validate --all --strict",
+    "check:final": "node tests/page/check_final_candidate.mjs"
   },
   "devDependencies": {
     "@apidevtools/swagger-parser": "13.1.0",
     "@axe-core/playwright": "4.13.0",
+    "@fission-ai/openspec": "1.14.1",
     "@fontsource/plus-jakarta-sans": "5.3.0",
     "@fortawesome/fontawesome-free": "7.3.1",
     "ajv": "8.20.0",

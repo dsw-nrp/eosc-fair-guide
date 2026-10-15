@@ -258,7 +258,10 @@ timeoutSeconds = 60
 # are hidden, degraded ones carry a warning.
 
 [[champion.test]]
-id = "fc_metadata_identifier_persistence"
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_metadata_identifier_persistence" }]
+
+guideRoute = "test/fc"
+id = "fc-metadata-pid"
 description = { cs = "Porovnává identifikátor metadat se známými schématy trvalých identifikátorů.", en = "Compares the metadata identifier against known persistent-identifier schemes." }
 principle = "F1"
 label = { cs = "Identifikátor metadat je trvalý", en = "Metadata identifier is persistent" }
@@ -266,7 +269,10 @@ health = "available"
 asOf = 2026-10-11
 
 [[champion.test]]
-id = "fc_data_identifier_in_metadata"
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_data_identifier_in_metadata" }]
+
+guideRoute = "test/fc"
+id = "fc-data-id-metadata"
 description = { cs = "Hledá jednoznačný odkaz na data v podporovaných polích metadat.", en = "Looks for an unambiguous data reference in supported metadata fields." }
 principle = "F3"
 label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
@@ -274,6 +280,9 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_searchable" }]
+
+guideRoute = "test/fc"
 id = "fc_searchable"
 description = { cs = "Ověřuje nalezení zdroje prostřednictvím metavyhledávače SearXNG.", en = "Checks discovery of the resource through the SearXNG metasearch service." }
 principle = "F4"
@@ -282,6 +291,9 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_metadata_protocol" }]
+
+guideRoute = "test/fc"
 id = "fc_metadata_protocol"
 description = { cs = "Posuzuje protokol rozlišení identifikátoru metadat; neověřuje obsah metadat.", en = "Examines the metadata identifier's resolution protocol, rather than metadata contents." }
 principle = "A1.1"
@@ -290,6 +302,9 @@ health = "available"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_metadata_persistence" }]
+
+guideRoute = "test/fc"
 id = "fc_metadata_persistence"
 description = { cs = "Hledá deklaraci zachování metadat; u DOI zachování předpokládá.", en = "Looks for a metadata-persistence declaration; assumes persistence for DOIs." }
 principle = "A2"
@@ -298,6 +313,9 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_structured_metadata" }]
+
+guideRoute = "test/fc"
 id = "fc_structured_metadata"
 description = { cs = "Hledá strojově čitelná strukturovaná metadata v podporovaných formátech.", en = "Looks for machine-readable structured metadata in supported formats." }
 principle = "I1"
@@ -306,7 +324,10 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
-id = "fc_metadata_uses_fair_vocabularies"
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_metadata_uses_fair_vocabularies" }]
+
+guideRoute = "test/fc"
+id = "fc-metadata-fair-vocabularies"
 description = { cs = "Posuzuje, zda termíny v propojených metadatech vedou na propojené zdroje.", en = "Examines whether terms in linked metadata resolve to linked resources." }
 principle = "I2"
 label = { cs = "Metadata používají FAIR slovníky", en = "Metadata use FAIR vocabularies" }
@@ -314,6 +335,9 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_metadata_outward_links" }]
+
+guideRoute = "test/fc"
 id = "fc_metadata_outward_links"
 description = { cs = "Hledá odkazy na jiné zdroje v metadatech reprezentovaných jako propojená data.", en = "Looks for outward references in metadata represented as linked data." }
 principle = "I3"
@@ -322,6 +346,9 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_metadata_includes_license" }]
+
+guideRoute = "test/fc"
 id = "fc_metadata_includes_license"
 description = { cs = "Hledá výslovný odkaz na licenci v propojených metadatech.", en = "Looks for an explicit licence reference in linked metadata." }
 principle = "R1.1"
@@ -330,7 +357,10 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
-id = "community_metadata_includes_author_affiliation"
+alternateIds = [{ "scheme" = "fair-champion", "value" = "community_metadata_includes_author_affiliation" }]
+
+guideRoute = "test/fc"
+id = "community-author-affiliation"
 description = { cs = "Hledá afiliace v záznamech DataCite a Crossref nebo ve vlastnosti citation_author_institution vstupní stránky.", en = "Looks for affiliations in DataCite and Crossref records or landing-page citation_author_institution metadata." }
 record = "https://tests.ostrails.eu/community-tests/community_metadata_includes_author_affiliation"
 endpoint = "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation"
@@ -340,6 +370,9 @@ health = "degraded"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "fc_unique_identifier" }]
+
+guideRoute = "test/fc"
 id = "fc_unique_identifier"
 description = { cs = "Porovnává identifikátor s formáty známých schémat. Samostatně neověřuje jedinečnost všech přidělených identifikátorů.", en = "Compares the identifier with known scheme patterns. It does not independently verify uniqueness across all assigned identifiers." }
 principle = "F1"
@@ -348,6 +381,9 @@ health = "available"
 asOf = 2026-10-11
 
 [[champion.test]]
+alternateIds = [{ "scheme" = "fair-champion", "value" = "test_FM_F1_M_IdentPersistent" }]
+
+guideRoute = "test/fc"
 id = "test_FM_F1_M_IdentPersistent"
 description = { cs = "Posuzuje pravděpodobnou trvalost podle známých schémat identifikátorů a URL. Výsledek neurčuje budoucí dostupnost objektu ani pravidla repozitáře.", en = "Assesses likely persistence from known identifier and URL schemes. The result does not establish future object availability or the repository's rules." }
 principle = "F1"
@@ -356,7 +392,10 @@ health = "available"
 asOf = 2026-10-11
 
 [[champion.test]]
-id = "community_data_cited_in_pub"
+alternateIds = [{ "scheme" = "fair-champion", "value" = "community_data_cited_in_pub" }]
+
+guideRoute = "test/fc"
+id = "community-data-citation"
 description = { cs = "Hledá identifikátor v citačních indexech OpenAlex a OpenCitations. Nenalezení odkazu nevylučuje citaci mimo jejich záběr; dostupnost jednotlivých indexů ukazuje protokol testu.", en = "Searches the OpenAlex and OpenCitations citation indexes for the identifier. A missing reference does not exclude citations outside their coverage; the test log shows access to individual indexes." }
 record = "https://tests.ostrails.eu/community-tests/community_data_cited_in_pub"
 endpoint = "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub"
@@ -395,72 +434,108 @@ observed = 2026-10-12
 reviewed = [{ api = "1.0" }]
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "F1A" }]
+
+guideRoute = "test/fcx"
 id = "F1A"
 name = "Unique IDs"
 principle = "F1"
 label = { cs = "Jedinečné identifikátory", en = "Unique identifiers" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "F1B" }]
+
+guideRoute = "test/fcx"
 id = "F1B"
 name = "Persistent IDs"
 principle = "F1"
 label = { cs = "Trvalé identifikátory", en = "Persistent identifiers" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "F2A" }]
+
+guideRoute = "test/fcx"
 id = "F2A"
 name = "Structured metadata"
 principle = "F2"
 label = { cs = "Strukturovaná metadata", en = "Structured metadata" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "F2B" }]
+
+guideRoute = "test/fcx"
 id = "F2B"
 name = "Shared vocabularies for metadata"
 principle = "F2"
 label = { cs = "Sdílené slovníky pro metadata", en = "Shared vocabularies for metadata" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "A11" }]
+
+guideRoute = "test/fcx"
 id = "A11"
 name = "Open resolution protocol"
 principle = "A1.1"
 label = { cs = "Otevřený protokol rozlišení", en = "Open resolution protocol" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "A12" }]
+
+guideRoute = "test/fcx"
 id = "A12"
 name = "Authorisation procedure or access rights"
 principle = "A1.2"
 label = { cs = "Postup autorizace nebo přístupová práva", en = "Authorisation procedure or access rights" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "I1" }]
+
+guideRoute = "test/fcx"
 id = "I1"
 name = "Machine readable format"
 principle = "I1"
 label = { cs = "Strojově čitelný formát", en = "Machine-readable format" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "I2" }]
+
+guideRoute = "test/fcx"
 id = "I2"
 name = "Use shared ontologies"
 principle = "I2"
 label = { cs = "Sdílené ontologie", en = "Shared ontologies" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "I3" }]
+
+guideRoute = "test/fcx"
 id = "I3"
 name = "External links"
 principle = "I3"
 label = { cs = "Odkazy na jiné zdroje", en = "Links to other resources" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "R11" }]
+
+guideRoute = "test/fcx"
 id = "R11"
 name = "Metadata includes license"
 principle = "R1.1"
 label = { cs = "Licence v metadatech", en = "Licence in metadata" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "R12" }]
+
+guideRoute = "test/fcx"
 id = "R12"
 name = "Metadata includes provenance"
 principle = "R1.2"
 label = { cs = "Původ v metadatech", en = "Provenance in metadata" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "fair-checker", "value" = "R13" }]
+
+guideRoute = "test/fcx"
 id = "R13"
 name = "Community standards"
 principle = "R1.3"
@@ -513,102 +588,153 @@ reviewed = [
 ]
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-F1-01MD" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-F1-01MD"
 name = "Metadata and data are assigned a globally unique identifier."
 principle = "F1"
 label = { cs = "Globálně jedinečný identifikátor metadat a dat", en = "Globally unique identifier for metadata and data" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-F1-02MD" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-F1-02MD"
 name = "Metadata and data are assigned a persistent identifier."
 principle = "F1"
 label = { cs = "Trvalý identifikátor metadat a dat", en = "Persistent identifier for metadata and data" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-F2-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-F2-01M"
 name = "Metadata includes descriptive core elements (creator, title, data identifier, publisher, publication date, summary and keywords) to support data findability."
 principle = "F2"
 label = { cs = "Základní popisné prvky metadat", en = "Core descriptive metadata elements" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-F3-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-F3-01M"
 name = "Metadata includes the identifier of the data it describes."
 principle = "F3"
 label = { cs = "Metadata uvádějí identifikátor dat", en = "Metadata include the data identifier" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-F4-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-F4-01M"
 name = "Metadata is offered in such a way that it can be registered or indexed by search engines."
 principle = "F4"
 label = { cs = "Metadata čitelná pro vyhledávače", en = "Metadata readable by search engines" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-A1-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-A1-01M"
 name = "Metadata contains access level and access conditions of the data."
 principle = "A1"
 label = { cs = "Úroveň a podmínky přístupu v metadatech", en = "Access level and conditions in metadata" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-A1-02MD" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-A1-02MD"
 name = "Metadata and data are retrievable by their identifier"
 principle = "A1"
 label = { cs = "Metadata a data dostupná podle identifikátoru", en = "Metadata and data retrievable by identifier" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-A1.1-01MD" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-A1.1-01MD"
 name = "A standardized communication protocol is used to access metadata and data."
 principle = "A1.1"
 label = { cs = "Standardní komunikační protokol", en = "Standard communication protocol" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-A1.2-01MD" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-A1.2-01MD"
 name = "Metadata and data are accessible through a standardized communication protocol which supports authentication."
 principle = "A1.2"
 label = { cs = "Protokol podporující ověření identity", en = "Protocol that supports authentication" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-I1-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-I1-01M"
 name = "Metadata is represented using a formal knowledge representation language."
 principle = "I1"
 label = { cs = "Formální jazyk reprezentace znalostí", en = "Formal knowledge representation language" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-I2-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-I2-01M"
 name = "Metadata uses registered semantic resources"
 principle = "I2"
 label = { cs = "Registrované sémantické zdroje", en = "Registered semantic resources" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-I3-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-I3-01M"
 name = "Metadata includes qualified references between the data and its related entities."
 principle = "I3"
 label = { cs = "Kvalifikované odkazy na související entity", en = "Qualified references to related entities" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-R1-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-R1-01M"
 name = "Metadata specifies the content of the data."
 principle = "R1"
 label = { cs = "Metadata popisují obsah dat", en = "Metadata describe the data content" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-R1.1-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-R1.1-01M"
 name = "Metadata includes license information under which data can be reused."
 principle = "R1.1"
 label = { cs = "Licenční informace v metadatech", en = "Licence information in metadata" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-R1.2-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-R1.2-01M"
 name = "Metadata includes provenance information about data creation or generation."
 principle = "R1.2"
 label = { cs = "Informace o vzniku dat", en = "Provenance of data creation" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-R1.3-01M" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-R1.3-01M"
 name = "Metadata follows a standard recommended by the target research community of the data."
 principle = "R1.3"
 label = { cs = "Komunitní metadatový standard", en = "Community metadata standard" }
 
 [[provider.metric]]
+alternateIds = [{ "scheme" = "f-uji", "value" = "FsF-R1.3-02D" }]
+
+guideRoute = "test/f-uji"
 id = "FsF-R1.3-02D"
 name = "Data is available in a file format recommended by the target research community."
 principle = "R1.3"
@@ -671,6 +797,7 @@ note = { cs = "F-UJI rozpozná standard podle jmenných prostorů a schémat; zd
 # Local advisory tests: one identity per evaluated question; source and documentation are crate attachments.
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-dataset-01"
 question = "dataset.01"
 family = "object"
@@ -681,6 +808,7 @@ label = { cs = "Datový soubor: rozlišený PID", en = "Dataset: resolved PID" }
 description = { cs = "Rozlišený PID dokládá použití identifikátoru podporovaného službou pro rozlišení PID. Nedokládá dlouhodobou dostupnost dat.", en = "A resolved PID shows use of an identifier supported by the resolver. It does not establish long-term availability of the data." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-dataset-02"
 question = "dataset.02"
 family = "object"
@@ -691,6 +819,7 @@ label = { cs = "Datový soubor: vstupní stránka", en = "Dataset: landing page"
 description = { cs = "Úspěšné rozlišení PID dokládá adresu vstupní stránky. Obsah stránky a přístup k datům se posuzují zvlášť.", en = "Successful PID resolution establishes a landing-page address. Page contents and access to the data are assessed separately." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-dataset-03"
 question = "dataset.03"
 family = "object"
@@ -701,6 +830,7 @@ label = { cs = "Datový soubor: odkaz ke stažení", en = "Dataset: download lin
 description = { cs = "V metadatech přiřazených objektu hledá adresu distribuce Schema.org. Soubor nestahuje a neověřuje oprávnění k přístupu.", en = "Looks for a Schema.org distribution address in metadata matched to the object. It does not download the file or verify access permissions." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-dataset-04"
 question = "dataset.04"
 family = "object"
@@ -711,6 +841,7 @@ label = { cs = "Datový soubor: odkaz na licenci", en = "Dataset: licence link" 
 description = { cs = "Hledá adresu licence v záznamu DataCite nebo v metadatech Schema.org přiřazených objektu. Neověřuje právní použitelnost licence.", en = "Looks for a licence address in the DataCite record or Schema.org metadata matched to the object. It does not verify legal applicability." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-dataset-06"
 question = "dataset.06"
 family = "object"
@@ -721,6 +852,7 @@ label = { cs = "Datový soubor: popisná pole", en = "Dataset: descriptive field
 description = { cs = "Hledá název, popis nebo klíčová slova v jednom přiřazeném záznamu. Nalezené pole podporuje jen částečnou odpověď; kvalitu a úplnost popisu posoudí člověk.", en = "Looks for a title, description or keywords in one matched record. A field supports only a partial answer; a person assesses the description's quality and completeness." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-maturity-02"
 question = "maturity.02"
 family = "object"
@@ -731,6 +863,7 @@ label = { cs = "Repozitář: dosažitelná stránka vzorku", en = "Repository: r
 description = { cs = "Úspěšné rozlišení dokládá stránku jednoho záznamu. Nevypovídá o všech záznamech ani o jejich trvalé dostupnosti.", en = "Successful resolution establishes a page for one record. It does not describe all records or their lasting availability." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-maturity-03"
 question = "maturity.03"
 family = "object"
@@ -741,6 +874,7 @@ label = { cs = "Repozitář: identifikátor ve vzorku metadat", en = "Repository
 description = { cs = "Hledá identifikátor v přiřazených metadatech mimo registr DataCite. Samotné deklarované pole neprokazuje trvalost ani identifikaci všech souborů.", en = "Looks for an identifier in matched metadata outside the DataCite registry. The declared field alone does not prove persistence or identification of every file." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-maturity-06"
 question = "maturity.06"
 family = "object"
@@ -751,6 +885,7 @@ label = { cs = "Repozitář: licence ve vzorku metadat", en = "Repository: licen
 description = { cs = "Hledá adresu licence v jednom přiřazeném záznamu. Neověřuje oprávnění ani pravidla repozitáře pro všechny objekty.", en = "Looks for a licence address in one matched record. It does not verify permissions or the repository's rules for every object." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-maturity-12"
 question = "maturity.12"
 family = "object"
@@ -761,6 +896,7 @@ label = { cs = "Repozitář: propojená metadata vzorku", en = "Repository: link
 description = { cs = "Přiřazená reprezentace ve formátu JSON-LD nebo RDF podporuje částečnou odpověď. Test neověřuje kvalitu modelu ani všechny záznamy repozitáře.", en = "A matched JSON-LD or RDF representation supports a partial answer. The test does not validate model quality or every repository record." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-01"
 question = "cdif.01"
 family = "object"
@@ -771,6 +907,7 @@ label = { cs = "CDIF: identifikátor a rozlišení", en = "CDIF: identifier and 
 description = { cs = "Hledá identifikátor v jednom přiřazeném záznamu a úspěšné rozlišení vstupu. Neověřuje další profily CDIF.", en = "Looks for an identifier in one matched record and successful resolution of the input. It does not validate other CDIF profiles." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-02"
 question = "cdif.02"
 family = "object"
@@ -781,6 +918,7 @@ label = { cs = "CDIF: název v metadatech", en = "CDIF: title in metadata" }
 description = { cs = "Hledá název v jednom přiřazeném záznamu. Přítomnost podporuje částečnou odpověď; výstižnost názvu posoudí člověk.", en = "Looks for a title in one matched record. Presence supports a partial answer; a person assesses whether the title is informative." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-03"
 question = "cdif.03"
 family = "object"
@@ -791,6 +929,7 @@ label = { cs = "CDIF: adresa distribuce", en = "CDIF: distribution address" }
 description = { cs = "Hledá adresu distribuce v přiřazených metadatech Schema.org. Neověřuje dostupnost souboru ani přístupová práva.", en = "Looks for a distribution address in matched Schema.org metadata. It does not verify file availability or access rights." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-04"
 question = "cdif.04"
 family = "object"
@@ -801,6 +940,7 @@ label = { cs = "CDIF: deklarovaná licence", en = "CDIF: declared licence" }
 description = { cs = "Hledá adresu licence v jednom přiřazeném záznamu. Licenční pole pokrývá jen část podmínek práv a přístupu.", en = "Looks for a licence address in one matched record. A licence field covers only part of the rights and access conditions." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-05"
 question = "cdif.05"
 family = "object"
@@ -811,6 +951,7 @@ label = { cs = "CDIF: deklarace profilu", en = "CDIF: profile declaration" }
 description = { cs = "Hledá výslovný odkaz na profil v deklaraci shody reprezentace. Přítomnost odkazu neznamená, že metadata tomuto profilu vyhovují.", en = "Looks for an explicit profile link in the representation's conformance declaration. The link's presence does not mean that the metadata conform to that profile." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-06"
 question = "cdif.06"
 family = "object"
@@ -821,6 +962,7 @@ label = { cs = "CDIF: klasifikace typu", en = "CDIF: type classification" }
 description = { cs = "Hledá typ zdroje v jednom přiřazeném záznamu. Neověřuje použitý klasifikační systém ani správnost zařazení.", en = "Looks for the resource type in one matched record. It does not validate the classification scheme or the correctness of the classification." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-07"
 question = "cdif.07"
 family = "object"
@@ -831,6 +973,7 @@ label = { cs = "CDIF: deklarované proměnné", en = "CDIF: declared variables" 
 description = { cs = "Hledá pole variableMeasured v přiřazených metadatech Schema.org. Význam a úplnost popisu proměnných posoudí člověk.", en = "Looks for variableMeasured in matched Schema.org metadata. A person assesses the meaning and completeness of the variable descriptions." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-08"
 question = "cdif.08"
 family = "object"
@@ -841,6 +984,7 @@ label = { cs = "CDIF: časový rozsah", en = "CDIF: temporal coverage" }
 description = { cs = "Hledá pole temporalCoverage v přiřazených metadatech Schema.org. Neověřuje význam intervalu ani to, zda je pro zdroj tento prvek relevantní.", en = "Looks for temporalCoverage in matched Schema.org metadata. It does not validate the interval's meaning or whether the element applies to the resource." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-09"
 question = "cdif.09"
 family = "object"
@@ -851,6 +995,7 @@ label = { cs = "CDIF: prostorový rozsah", en = "CDIF: spatial coverage" }
 description = { cs = "Hledá pole spatialCoverage v přiřazených metadatech Schema.org. Neověřuje souřadnicový systém, správnost souřadnic ani použitelnost prvku.", en = "Looks for spatialCoverage in matched Schema.org metadata. It does not validate the coordinate system, coordinates or applicability of the element." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-10"
 question = "cdif.10"
 family = "object"
@@ -861,6 +1006,7 @@ label = { cs = "CDIF: popis zdroje", en = "CDIF: resource description" }
 description = { cs = "Hledá popis v jednom přiřazeném záznamu. Přítomnost sama neprokazuje popis kontextu a původu zdroje.", en = "Looks for a description in one matched record. Presence alone does not establish coverage of the resource's context and provenance." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-11"
 question = "cdif.11"
 family = "object"
@@ -871,6 +1017,7 @@ label = { cs = "CDIF: deklarovaní původci", en = "CDIF: declared originators" 
 description = { cs = "Hledá původce v jednom přiřazeném záznamu. Neověřuje identifikátory všech osob a organizací ani jejich správné přiřazení.", en = "Looks for originators in one matched record. It does not verify identifiers for every person and organisation or their correct attribution." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-12"
 question = "cdif.12"
 family = "object"
@@ -881,6 +1028,7 @@ label = { cs = "CDIF: datum změny zdroje", en = "CDIF: resource modification da
 description = { cs = "Hledá platné strojově čitelné datum změny zdroje. Neověřuje, zda datum odpovídá poslední skutečné změně.", en = "Looks for a valid machine-readable resource modification date. It does not verify that the date reflects the latest actual change." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-13"
 question = "cdif.13"
 family = "object"
@@ -891,6 +1039,7 @@ label = { cs = "CDIF: kontaktní údaj", en = "CDIF: contact information" }
 description = { cs = "Hledá pole contactPoint v přiřazených metadatech Schema.org. Neověřuje funkčnost kontaktu ani úplnost kontaktních údajů.", en = "Looks for contactPoint in matched Schema.org metadata. It does not verify that the contact works or that the details are complete." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-15"
 question = "cdif.15"
 family = "object"
@@ -901,6 +1050,7 @@ label = { cs = "CDIF: údaje o financování", en = "CDIF: funding information" 
 description = { cs = "Hledá údaje o financování v jednom přiřazeném záznamu. Neověřuje úplnost, identifikátory poskytovatelů ani použitelnost tohoto prvku.", en = "Looks for funding information in one matched record. It does not verify completeness, funder identifiers or applicability of the element." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-16"
 question = "cdif.16"
 family = "object"
@@ -911,6 +1061,7 @@ label = { cs = "CDIF: klíčová slova", en = "CDIF: keywords" }
 description = { cs = "Hledá klíčová slova v jednom přiřazeném záznamu. Neověřuje slovník, klasifikační systém ani pokrytí témat zdroje.", en = "Looks for keywords in one matched record. It does not validate the vocabulary, classification scheme or coverage of the resource's topics." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-18"
 question = "cdif.18"
 family = "object"
@@ -921,6 +1072,7 @@ label = { cs = "CDIF: datum zveřejnění", en = "CDIF: publication date" }
 description = { cs = "Hledá platné strojově čitelné datum zveřejnění. Neověřuje jeho věcnou správnost.", en = "Looks for a valid machine-readable publication date. It does not verify the date's factual accuracy." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-19"
 question = "cdif.19"
 family = "object"
@@ -931,6 +1083,7 @@ label = { cs = "CDIF: přispěvatelé", en = "CDIF: contributors" }
 description = { cs = "Hledá přispěvatele v jednom přiřazeném záznamu. Neověřuje úplnost seznamu ani popis rolí.", en = "Looks for contributors in one matched record. It does not verify completeness or descriptions of their roles." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-20"
 question = "cdif.20"
 family = "object"
@@ -941,6 +1094,7 @@ label = { cs = "CDIF: související identifikátory", en = "CDIF: related identi
 description = { cs = "Hledá relatedIdentifiers v přiřazeném záznamu DataCite. Neověřuje význam vztahů ani jejich úplnost.", en = "Looks for relatedIdentifiers in the matched DataCite record. It does not validate the relationships' meaning or completeness." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-21"
 question = "cdif.21"
 family = "object"
@@ -951,6 +1105,7 @@ label = { cs = "CDIF: označení verze", en = "CDIF: version designation" }
 description = { cs = "Hledá označení verze v jednom přiřazeném záznamu. Neověřuje vztahy mezi verzemi ani oddělenou identifikaci každé verze.", en = "Looks for a version designation in one matched record. It does not validate relationships between versions or separate identification of each version." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-cdif-24"
 question = "cdif.24"
 family = "object"
@@ -961,6 +1116,7 @@ label = { cs = "CDIF: datum změny metadat", en = "CDIF: metadata modification d
 description = { cs = "Hledá platné datum updated v přiřazeném záznamu DataCite. Jde o datum změny záznamu metadat, které nemusí být datem změny zdroje.", en = "Looks for a valid updated date in the matched DataCite record. This is the metadata record's modification date, which need not be the resource's modification date." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-fdo-01"
 question = "fdo.01"
 family = "object"
@@ -971,6 +1127,7 @@ label = { cs = "FDO: rozlišený PID", en = "FDO: resolved PID" }
 description = { cs = "Úspěšné rozlišení PID podporuje jen částečnou odpověď. Test neověřuje všechny vlastnosti PID ani shodu s definicí FDO.", en = "Successful PID resolution supports only a partial answer. The test does not validate every PID property or conformance to the FDO definition." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-fdo-02"
 question = "fdo.02"
 family = "object"
@@ -981,6 +1138,7 @@ label = { cs = "FDO: dostupný záznam PID", en = "FDO: available PID record" }
 description = { cs = "Hledá hodnoty záznamu PID vrácené službou pro rozlišení PID nebo přiřazenou reprezentaci záznamu PID. Neověřuje obsah proti profilu záznamu.", en = "Looks for PID-record values returned by the resolver or a matched PID-record representation. It does not validate the contents against a record profile." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-fdo-04"
 question = "fdo.04"
 family = "object"
@@ -991,6 +1149,7 @@ label = { cs = "FDO: deklarace profilu záznamu PID", en = "FDO: PID-record prof
 description = { cs = "Hledá odkaz na profil v přiřazené reprezentaci záznamu PID. Deklarace podporuje jen částečnou odpověď; profil ani shoda záznamu se neověřují.", en = "Looks for a profile link in a matched PID-record representation. The declaration supports only a partial answer; neither the profile nor record conformance is validated." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-03"
 question = "software.03"
 family = "software"
@@ -1001,6 +1160,7 @@ label = { cs = "Software: identifikátor commitu", en = "Software: commit identi
 description = { cs = "Rozlišený úplný identifikátor commitu dokládá jednu neměnnou revizi repozitáře. Neprokazuje identifikaci všech vydaných verzí softwaru.", en = "A resolved full commit identifier establishes one immutable repository revision. It does not prove identification of every released software version." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-04"
 question = "software.04"
 family = "software"
@@ -1011,6 +1171,7 @@ label = { cs = "Software: název a popis", en = "Software: title and description
 description = { cs = "Hledá název nebo popis ve veřejném záznamu repozitáře či v přiřazeném CodeMeta. Výstižnost, účel a úplnost popisu posoudí člověk.", en = "Looks for a name or description in the public repository record or matched CodeMeta. A person assesses clarity, purpose and completeness." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-05"
 question = "software.05"
 family = "software"
@@ -1021,6 +1182,7 @@ label = { cs = "Software: stav vývoje nebo hlášení chyb", en = "Software: de
 description = { cs = "Hledá developmentStatus nebo issueTracker v CodeMeta přiřazeném tomuto repozitáři. Neověřuje skutečný stav údržby ani reakce správců.", en = "Looks for developmentStatus or issueTracker in CodeMeta matched to this repository. It does not verify actual maintenance status or maintainer responses." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-06"
 question = "software.06"
 family = "software"
@@ -1031,6 +1193,7 @@ label = { cs = "Software: autorství v metadatech", en = "Software: credit in me
 description = { cs = "Hledá autory či přispěvatele v přiřazeném CodeMeta nebo jména autorů v nejvyšší úrovni CITATION.cff. Neověřuje správnost a úplnost autorství.", en = "Looks for authors or contributors in matched CodeMeta or author names at the top level of CITATION.cff. It does not verify correct or complete attribution." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-07"
 question = "software.07"
 family = "software"
@@ -1041,6 +1204,7 @@ label = { cs = "Software: deklarovaný identifikátor", en = "Software: declared
 description = { cs = "Hledá adresu identifikátoru v CodeMeta přiřazeném repozitáři. Neověřuje rozlišení cíle ani trvalost; identifikátor článku z preferred-citation se softwaru nepřipisuje.", en = "Looks for an identifier address in CodeMeta matched to the repository. It does not resolve the target or verify persistence; an article identifier from preferred-citation is not attributed to the software." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-09"
 question = "software.09"
 family = "software"
@@ -1051,6 +1215,7 @@ label = { cs = "Software: veřejný zdrojový repozitář", en = "Software: publ
 description = { cs = "Veřejná viditelnost podle API a rozlišený commit dokládají veřejný zdrojový repozitář. Test neověřuje právo software dále užívat.", en = "Public visibility reported by the API and a resolved commit establish a public source repository. The test does not verify permission to reuse the software." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-13"
 question = "software.13"
 family = "software"
@@ -1061,6 +1226,7 @@ label = { cs = "Software: deklarované závislosti", en = "Software: declared de
 description = { cs = "Hledá závislosti v podporovaném manifestu nebo softwareRequirements v přiřazeném CodeMeta. Nic neinstaluje; neověřuje úplnost, dostupnost ani slučitelnost závislostí.", en = "Looks for dependencies in a supported manifest or softwareRequirements in matched CodeMeta. It installs nothing and does not verify completeness, availability or compatibility." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-14"
 question = "software.14"
 family = "software"
@@ -1071,6 +1237,7 @@ label = { cs = "Software: nalezená definice testu", en = "Software: detected te
 description = { cs = "Ve vybraném souboru hledá podporovaný zápis definice testu po odstranění komentářů. Testy nespouští a neověřuje jejich pokrytí ani výsledky.", en = "Looks for supported test-definition syntax in a selected file after removing comments. It does not run tests or verify their coverage or results." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-15"
 question = "software.15"
 family = "software"
@@ -1081,6 +1248,7 @@ label = { cs = "Software: licenční soubor součástí", en = "Software: compon
 description = { cs = "Nalezený neprázdný licenční soubor podporuje částečnou odpověď. Neověřuje licence všech přibalených součástí ani jejich vzájemnou slučitelnost.", en = "A non-empty licence file supports a partial answer. It does not verify licences of every bundled component or their compatibility." }
 
 [[test]]
+guideRoute = "test/guide"
 id = "guide-software-16"
 question = "software.16"
 family = "software"

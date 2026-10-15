@@ -129,7 +129,7 @@ flowchart TB
 ```
 
 **A view is addressable state.** Language, role, route, catalogue filters/ordering and a check's report
-can be reopened from their addresses. Supported older addresses retain their meaning. Entity links
+can be reopened from their addresses. Entity links
 open that entity; topic links open a narrowed catalogue. Unknown entities receive an explanation.
 Reader data enter public addresses only through explicit result sharing.
 
@@ -157,8 +157,7 @@ list of the same steps. Order and membership derive from content. No stage is ch
 acts. The last visited step supports resume. **Read marks belong to the reader:** each step in the
 journey and rail has an independent keyboard-operable toggle; opening a step marks nothing. Marks can
 be removed and survive navigation and role/language changes. Read marks, chosen stage and self-check
-results are separate states. The rail can hide check badges without discarding answers. Phone navigation
-collapses above content. Stage names and definitions retain their stated RDMkit/KNAV source and translation.
+results are separate states. The rail can hide check badges without discarding answers. Phone navigation and role selection collapse above content, naming the current page/role. Stage names and definitions retain their stated RDMkit/KNAV source and translation.
 
 **One path, four responsibilities, detail on demand.** Role switching preserves useful disclosure and
 position. A station shows stage/title, key point, immediate action and at most one related tool,
@@ -182,14 +181,14 @@ gaps can be addressed. Tests and provider criteria record actual question covera
 all citations. Standards retain native labels, conditions, ordering and recommendation strength.
 FAIR links relate topics without renaming FAIR4RS or FDO requirements as FAIR-data requirements.
 
-**One entry per thing, stable identities.** `content/identifiers.toml` registers issued IDs; they are
-never renamed, removed or reused, and retirement remains explicit. Advice/questions nest under their
-station/check. Borrowed IDs name their keeper; vocabulary terms also identify their kind. Curated
-repositories use Guide names because not every repository has a re3data record. Matched registry IDs
-remain working aliases when a repository gains registration. `check_duplicates.py` compares identities,
-URLs, DOIs, names and texts within kinds and across curated/snapshot records. Intentional duplicate
-groups require current reasons in `duplicates.toml`; stale exceptions fail. Similar names or hosts
-alone do not establish identity.
+**One entry per thing, locally owned identities.** Records declare short Guide IDs. Imported rows retain
+one primary `id` and the issued `guideRoute` across refresh independently of source IDs, names and URLs.
+Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are discarded before release. One build
+projection emits compact catalogue/API addresses for all consumers; there is no parallel full-address register.
+Chips display the compact record ID. Published source labels and authoritative IRIs remain metadata with their
+actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
+API documents. After issue, names/classification may change while the address remains fixed. Reviewed joins
+identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
 
 **Originals and translations have separate purposes.** Permitted originals are attributed once on
 clauses, with language, version, locator and reuse terms, and reused by stations, checks and catalogue.
@@ -213,7 +212,8 @@ are shared facets, and kind-specific facets reset on kind change. Dimensions/ord
 meaningful; absent dimensions are explained instead of showing all-zero controls. FIP principles derive
 from declarations, change associations from their results. Ordering controls grouping, filters travel
 in the address, and an entry link shows that entry with a route back to its kind. Phone filters sit in
-a closed disclosure. One resource-type vocabulary classifies recommendations, citations and Dashboard
+a closed disclosure. A global initial card limit also applies across alphabetical groups; long original definitions use disclosures,
+with complete text retained in search and exports. One resource-type vocabulary classifies recommendations, citations and Dashboard
 records rather than parallel taxonomies. Records expose source, use, qualification and identifiers separately.
 
 **Registries keep their facts.** The Guide and FIP Dashboard are complementary facets: the Guide
@@ -539,3 +539,15 @@ configuration, dispatch authorization or published releases. Capability specs an
 are intended for `openspec/` after authorized transfer; that transfer and CLI integration remain release
 preparation, not installed functionality. Minimal agent tooling uses AGENTS and one editing skill with
 an identical Claude copy. Behavior/data/API/CI changes follow the accepted planning contract.
+
+## Final candidate maintenance
+
+Run the final review through architecture/data representation, bilingual text/source fidelity, UX/GUI/design
+and code hygiene. Fix bounded defects and obsolete behaviour; module size alone does not justify a rewrite.
+Evidence cards count potential coverage from registered mappings/local tests for the current scope; observed
+results and reader answers remain separate. Advisory linking ranks specific names and authored language variants,
+uses context and ambiguity checks, and provides an excerpt, location, proposed reference and reason without
+rewriting prose or failing integrity checks. Document titles name the current page or entry.
+
+Repository-owned OpenSpec contracts and the portable active change support team contributions. See
+[release-handoff.md](release-handoff.md) for the candidate, dispositions and explicit operator/release gates.

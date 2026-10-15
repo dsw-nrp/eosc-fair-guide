@@ -11,6 +11,7 @@ timeoutSeconds = 60
 
 [[champion.test]]
 id = "test_one"
+alternateIds = [{ scheme = "fair-champion", value = "test_one" }]
 principle = "F1"
 label = { cs = "Test", en = "Test" }
 

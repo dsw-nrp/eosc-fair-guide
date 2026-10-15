@@ -50,7 +50,8 @@ LIFECYCLES = {
         'definition = "Funding the work."\nlocator = "p. 2"\n'
     ),
     "lifecycle/crosswalk.toml": (
-        '[[correspondence]]\nstages = ["rdmkit.plan", "other.fund"]\nbasis = "published"\nsource = "report"\n'
+        '[[correspondence]]\nid = "rdmkit-plan-other-fund"\nguideRoute = "life/xw"\n'
+        'stages = ["rdmkit.plan", "other.fund"]\nbasis = "published"\nsource = "report"\n'
         'locator = "Figure 1"\n'
     ),
 }
@@ -99,7 +100,8 @@ class FixtureCase(unittest.TestCase):
 class GeneratorTests(FixtureCase):
     def test_original_term_definition_keeps_source_language_and_snapshot(self) -> None:
         (self.root / "content" / "glossary.toml").write_text(
-            '[glossary]\nsource = "Glossary"\n\n[[term]]\nid = "1"\nlabel = "Term"\n'
+            '[glossary]\nsource = "Glossary"\n\n[[term]]\n alternateIds = [{ scheme = "heslar", value = "1" }]\n'
+            'id = "1"\nlabel = "Term"\n'
             'definition = "Snapshot definition."\ndefinitionLanguage = "en"\n',
             encoding="utf-8",
         )
@@ -354,7 +356,8 @@ class GeneratorTests(FixtureCase):
     def test_station_links_accumulate(self) -> None:
         (self.root / "content" / "glossary.toml").write_text(
             '[glossary]\nsource = "Test glossary"\nretrieved = 2026-01-01\n\n'
-            '[[term]]\nid = "pid"\nlabel = { cs = "PID", en = "PID" }\n',
+            '[[term]]\nalternateIds = [{ scheme = "heslar", value = "pid" }]\nid = "pid"\n'
+            'label = { cs = "PID", en = "PID" }\n',
             encoding="utf-8",
         )
         self.edit("stations/01-one.toml", "minutes = 5", 'minutes = 5\nglossary = ["pid"]')
@@ -495,14 +498,14 @@ class GeneratorTests(FixtureCase):
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         targets = build_crate.reference_targets(content, graph)
-        self.assertIn("repositories:zenodo", targets)
-        self.assertIn("knav.github", targets)
-        self.assertIn("resources:knav.github", targets)
-        self.assertEqual(targets["knav.github"], targets["resources:knav.github"], "both forms name the tool")
-        self.assertTrue(any(key.startswith("metrics:") for key in targets), "a question is nameable")
+        self.assertIn("repo/gen/zenodo", targets)
+        self.assertIn("res/tool/github", targets)
+        self.assertNotIn("knav.github", targets)
+        self.assertTrue(any(key.startswith("q/") for key in targets), "a question is nameable")
         self.assertIn("page:software", targets, "the short forms stay")
 
     def test_a_repository_reference_resolves_and_an_unknown_one_fails(self) -> None:
+        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "zenodo"]')
         (self.root / "content" / "repositories.toml").write_text(
             '[[repository]]\nid = "zenodo"\nname = "Zenodo"\nurl = "https://zenodo.org/"\nkind = "general"\n'
             'status = "pilot"\nasOf = 2026-01-01\n',
@@ -511,12 +514,11 @@ class GeneratorTests(FixtureCase):
         self.edit(
             "stations/01-one.toml",
             'text = { cs = "Udělejte první krok.", en = "Take the first step." }',
-            'text = { cs = "Uložte v [[repositories:zenodo|Zenodu]].", '
-            'en = "Deposit in [[repositories:zenodo|Zenodo]]." }',
+            'text = { cs = "Uložte v [[repo/gen/zenodo|Zenodu]].", en = "Deposit in [[repo/gen/zenodo|Zenodo]]." }',
         )
         self.assertEqual(self.errors(), [])
-        self.edit("stations/01-one.toml", "repositories:zenodo", "repositories:nope")
-        self.assertError("refers to an unknown entry 'repositories:nope'")
+        self.edit("stations/01-one.toml", "repo/gen/zenodo", "repo/gen/nope")
+        self.assertError("refers to an unknown entry 'repo/gen/nope'")
 
     def test_missing_marker_is_reported(self) -> None:
         page = self.root / "index.html"
@@ -537,7 +539,7 @@ class GeneratorTests(FixtureCase):
         self.assertEqual(plan["descriptionTranslation"], "cs")
         self.assertEqual(plan["inDefinedTermSet"], {"@id": "#lifecycle-rdmkit"})
         self.assertEqual(entities["#lifecycle-other.fund"]["nameTranslation"], "cs")
-        correspondence = entities["#crosswalk-rdmkit.plan_other.fund"]
+        correspondence = entities["#crosswalk-rdmkit-plan-other-fund"]
         self.assertEqual(correspondence["mappingBasis"], "published")
         self.assertEqual(correspondence["about"], [{"@id": "#lifecycle-rdmkit.plan"}, {"@id": "#lifecycle-other.fund"}])
         self.assertEqual(correspondence["citation"], {"@id": "#source-report"})
@@ -548,11 +550,11 @@ class GeneratorTests(FixtureCase):
         core_ids = {entity["@id"]: entity for entity in core["@graph"]}
         self.assertNotIn("description", core_ids["#lifecycle-rdmkit.plan"])
         self.assertIn("description", parts["model"]["properties"]["#lifecycle-rdmkit.plan"])
-        self.assertNotIn("#crosswalk-rdmkit.plan_other.fund", core_ids)
+        self.assertNotIn("#crosswalk-rdmkit-plan-other-fund", core_ids)
         records = build_crate.api_records(entities, content)["lifecycle"]
         self.assertEqual(
             {record for record, _ in records},
-            {"rdmkit", "rdmkit.plan", "other", "other.fund", "crosswalk", "rdmkit.plan_other.fund"},
+            {"rdmkit", "rdmkit.plan", "other", "other.fund", "crosswalk", "rdmkit-plan-other-fund"},
         )
 
 
@@ -749,7 +751,7 @@ class ContentCheckTests(FixtureCase):
         self.edit("lifecycle/crosswalk.toml", 'locator = "Figure 1"\n', "")
         self.assertError("a published correspondence cites its source and where it is published")
         self.edit("lifecycle/crosswalk.toml", 'basis = "published"', 'basis = "reviewed"')
-        self.assertError("crosswalk:rdmkit.plan_other.fund: missing note")
+        self.assertError("crosswalk:rdmkit-plan-other-fund: missing note")
         self.edit("lifecycle/crosswalk.toml", 'basis = "reviewed"', 'basis = "assumed"')
         self.assertError("basis must be one of published, reviewed, unconfirmed")
 
@@ -781,7 +783,7 @@ class ContentCheckTests(FixtureCase):
     def test_lifecycle_change_needs_provenance(self) -> None:
         self.add_lifecycles()
         self.edit("provenance.toml", ', "crosswalk:*"]', "]")
-        self.assertError("crosswalk:rdmkit.plan_other.fund: no provenance action covers this item")
+        self.assertError("crosswalk:rdmkit-plan-other-fund: no provenance action covers this item")
 
     def test_the_guide_is_named_with_a_capital_letter(self) -> None:
         self.edit(
@@ -1024,6 +1026,7 @@ class ContentCheckTests(FixtureCase):
         self.assertError("a tools page names its group")
         grouped = described + 'group = "guidance"\n'
         pages.write_text('[[page]]\nid = "tool"\nmenu = "tools"\n' + grouped + title, encoding="utf-8")
+        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "page:tool"]')
         self.assertFalse(any(error.startswith("page:") for error in self.errors()), self.errors())
 
     def test_base_url_must_use_https(self) -> None:
@@ -1055,10 +1058,12 @@ id = "identifier-service"
 label = { cs = "Služba identifikátorů", en = "Identifier service" }
 
 [[organization]]
+alternateIds = [{ scheme = "fip-dashboard", value = "org1" }]
 id = "org1"
 name = { cs = "Organizace", en = "Organisation" }
 
 [[resource]]
+alternateIds = [{ scheme = "fip-dashboard", value = "r1" }]
 id = "r1"
 name = "Resource one"
 type = "identifier-service"
@@ -1067,6 +1072,7 @@ principles = ["F1"]
 verification = [{ verifier = "org1", level = "verified", date = "2026-01-01" }]
 
 [[fip]]
+alternateIds = [{ scheme = "fip-dashboard", value = "fip1" }]
 id = "fip1"
 title = { cs = "Profil", en = "Profile" }
 community = "org1"
@@ -1160,7 +1166,7 @@ class SnapshotTests(FixtureCase):
         self.assertEqual(facts["doi"], "10.17616/R3AB12")
         # DataCite finds the repository by the record's DOI, which the crate keeps as the record's other identifier.
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
-        entity = next(item for item in crate["@graph"] if item["@id"] == "#repository-r3d1")
+        entity = next(item for item in crate["@graph"] if item.get("catalogueAddress") == "repo/dom/old")
         self.assertIn({"@id": "https://doi.org/10.17616/R3AB12"}, entity["sameAs"])
         # A DOI that is not re3data's is refused, and the snapshot stays as it was.
         (inputs / "re3data-list.xml").write_text(
@@ -1208,7 +1214,10 @@ class SnapshotTests(FixtureCase):
         outcome = refresh_snapshots.refresh("re3data", refresh_snapshots.Fetcher(inputs), "2026-01-01", self.root)
         self.assertEqual(outcome.status, "changed", outcome.reason)
         snapshot = (self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8")
-        blocks = {block.split('id = "')[1].split('"')[0]: block for block in snapshot.split("[[repository]]")[1:]}
+        blocks = {
+            tomllib.loads("[[repository]]" + block)["repository"][0]["alternateIds"][0]["value"]: block
+            for block in snapshot.split("[[repository]]")[1:]
+        }
         self.assertEqual(sorted(blocks), ["r3d1", "r3d2"])
         self.assertIn(refresh_snapshots.INCLUSION_NOTE, blocks["r3d2"])
         self.assertNotIn(refresh_snapshots.INCLUSION_NOTE, blocks["r3d1"])
@@ -1260,7 +1269,8 @@ class SnapshotRefreshTests(FixtureCase):
         (self.root / "content" / "snapshots").mkdir(exist_ok=True)
         (self.root / "content" / "snapshots" / "re3data.toml").write_text(
             '[snapshot]\nsource = "re3data"\nurl = "https://www.re3data.org/"\nretrieved = 2026-01-01\n\n'
-            '[[repository]]\nid = "r3d100000002"\nname = "Registered repository"\nurl = "https://registered.example.org"\n'
+            '[[repository]]\nalternateIds = [{ scheme = "re3data", value = "r3d100000002" }]\nid = "r3d100000002"\n'
+            'name = "Registered repository"\nurl = "https://registered.example.org"\n'
             're3data = "r3d100000002"\ndoi = "10.17616/R3AB12"\n',
             encoding="utf-8",
         )
@@ -1269,9 +1279,11 @@ class SnapshotRefreshTests(FixtureCase):
         (self.root / "content" / "snapshots").mkdir(exist_ok=True)
         (self.root / "content" / "snapshots" / "re3data.toml").write_text(
             '[snapshot]\nsource = "re3data"\nurl = "https://www.re3data.org/"\nretrieved = 2026-01-01\n\n'
-            '[[repository]]\nid = "r3d100000002"\nname = "Czech Archive"\nnamesCs = ["Český archiv"]\n'
+            '[[repository]]\nalternateIds = [{ scheme = "re3data", value = "r3d100000002" }]\n'
+            'id = "r3d100000002"\nname = "Czech Archive"\nnamesCs = ["Český archiv"]\n'
             'url = "https://archive.example.org"\nre3data = "r3d100000002"\n\n'
-            '[[repository]]\nid = "r3d100000003"\nname = "Other Archive"\nnamesCs = ["Jiný archiv"]\n'
+            '[[repository]]\nalternateIds = [{ scheme = "re3data", value = "r3d100000003" }]\n'
+            'id = "r3d100000003"\nname = "Other Archive"\nnamesCs = ["Jiný archiv"]\n'
             'url = "https://other.example.org"\nre3data = "r3d100000003"\n',
             encoding="utf-8",
         )
@@ -1376,7 +1388,8 @@ class SnapshotRefreshTests(FixtureCase):
         (snapshots / "nkr.toml").write_text(
             '[snapshot]\nsource = "NKR"\nurl = "https://repo.cz/"\nretrieved = 2026-01-02\n'
             'fields = ["repositoryName", "mainUrl", "type"]\n\n'
-            '[[record]]\nid = "21.T15999/abc"\nurl = "https://repo.cz/objects/21.T15999/abc"\n'
+            '[[record]]\nalternateIds = [{ scheme = "nkr", value = "21.T15999/abc" }]\n'
+            'id = "national-repository"\nurl = "https://repo.cz/objects/21.T15999/abc"\n'
             'repositoryName = "National repository"\nmainUrl = "https://national.example.org/"\n'
             'type = "institutional"\n',
             encoding="utf-8",
@@ -1661,7 +1674,7 @@ class FreshnessTests(FixtureCase):
     def test_every_compared_kind_needs_an_action(self) -> None:
         content = build_crate.load_content(self.root / "content")
         compared = set(check_content.item_fingerprints(content))
-        self.assertTrue({"guide", "org", "test:test_one"} <= compared)
+        self.assertTrue({"guide", "organization:org", "test:test_one"} <= compared)
         content["provenance"][0]["results"] = []
         errors = check_content.check(content, self.root, today=TODAY).errors
         for item_id in compared:
@@ -1687,14 +1700,25 @@ class ExactBaseTests(unittest.TestCase):
     def errors(self, content: dict) -> list[str]:
         report = check_content.Report()
         check_content.check_freshness(report, content, build_crate.ROOT, self.BASE)
-        return [error for error in report.errors if error.split(":", 1)[0] in self.ORGANISATIONS]
+        return [
+            error
+            for error in report.errors
+            if error.removeprefix("organization:").split(":", 1)[0] in self.ORGANISATIONS
+        ]
 
     def test_the_eight_organisations_are_covered_against_the_reported_base(self) -> None:
         content = build_crate.load_content()
         self.assertEqual(self.errors(content), [])
         for action in content["provenance"]:
-            action["results"] = [result for result in action.get("results", []) if result not in self.ORGANISATIONS]
-        self.assertEqual(sorted(error.split(":", 1)[0] for error in self.errors(content)), sorted(self.ORGANISATIONS))
+            action["results"] = [
+                result
+                for result in action.get("results", [])
+                if result.removeprefix("organization:") not in self.ORGANISATIONS
+            ]
+        self.assertEqual(
+            sorted(error.removeprefix("organization:").split(":", 1)[0] for error in self.errors(content)),
+            sorted(self.ORGANISATIONS),
+        )
 
 
 class IdentifierRegisterTests(FixtureCase):
@@ -1751,7 +1775,8 @@ class DuplicateTests(FixtureCase):
         snapshot.parent.mkdir(exist_ok=True)
         snapshot.write_text(
             '[snapshot]\nsource = "KNAV"\nurl = "https://example.org/knav"\nretrieved = 2026-01-01\n\n'
-            '[[tool]]\nid = "svc"\nname = "Service tool"\nurl = "https://example.org/service"\nsteps = ["planning"]\n'
+            '[[tool]]\nalternateIds = [{ scheme = "knav", value = "svc" }]\nid = "svc"\nname = "Service tool"\n'
+            'url = "https://example.org/service"\nsteps = ["planning"]\n'
             'disciplines = ["all"]\ndescription = "A service."\n',
             encoding="utf-8",
         )
@@ -1764,19 +1789,20 @@ class DuplicateTests(FixtureCase):
         self.assertError("knav names no tool of the KNAV catalogue snapshot ('ghost')")
 
     def test_a_datacite_repository_id_is_well_formed_and_names_one_entry(self) -> None:
+        self.edit("provenance.toml", '"test:test_one"]', '"test:test_one", "repo-first"]')
         repositories = self.root / "content" / "repositories.toml"
         entry = (
             '[[repository]]\nid = "{id}"\nname = "Repo"\nurl = "https://{id}.example.org/"\nkind = "general"\n'
             'status = "pilot"\nasOf = 2026-01-01\n'
         )
-        repositories.write_text(entry.format(id="repo-a") + 'datacite = "member.repo"\n', encoding="utf-8")
+        repositories.write_text(entry.format(id="repo-first") + 'datacite = "member.repo"\n', encoding="utf-8")
         self.assertEqual(self.errors(), [])
-        repositories.write_text(entry.format(id="repo-a") + 'datacite = "Member Repo"\n', encoding="utf-8")
+        repositories.write_text(entry.format(id="repo-first") + 'datacite = "Member Repo"\n', encoding="utf-8")
         self.assertError("datacite is not a DataCite repository ID ('Member Repo')")
         repositories.write_text(
-            entry.format(id="repo-a")
+            entry.format(id="repo-first")
             + 'datacite = "member.repo"\n\n'
-            + entry.format(id="repo-b")
+            + entry.format(id="repo-second")
             + 'datacite = "member.repo"\n',
             encoding="utf-8",
         )
@@ -1880,8 +1906,8 @@ class SiteTests(unittest.TestCase):
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
-        self.assertTrue({"#resource-nma", "#resource-fairsharing", "#fer-nusl", "#fer-nrp-invenio"} <= members)
-        self.assertNotIn("#fer-asep-arl", members)
+        self.assertTrue({"#resource-nma", "#resource-fairsharing", "#fer-nusl", "#fer-cesnet-invenio"} <= members)
+        self.assertNotIn("#fer-asep", members)
         self.assertNotIn("#fer-clarin-dspace", members)
         self.assertNotIn("#fer-zenodo", members)
         self.assertEqual(graph.index["fip-dashboard.asep-arl"], graph.index["re3data.r3d100014032"])
@@ -1913,7 +1939,7 @@ class SiteTests(unittest.TestCase):
         graph = build_crate.Graph()
         build_crate.build_crate(content, graph)
         members = {item["@id"] for item in build_crate.as_list(graph.entities["#repositories"]["hasPart"])}
-        self.assertIn("#fer-asep-arl", members)
+        self.assertIn("#fer-asep", members)
         self.assertIn("#fer-clarin-dspace", members)
 
     def test_duplicate_check_follows_reviewed_cross_registry_links(self) -> None:
@@ -1963,7 +1989,7 @@ class SiteTests(unittest.TestCase):
                 "assets/js/app.js",
                 "profile/fair-guide/profile.ttl",
                 "openapi.json",
-                "api/principles/R1.1.json",
+                "api/pr/R1.1.json",
                 "api/index.html",
                 "api/swagger-ui/swagger-ui-bundle.js",
                 "profile/0.1/index.html",
@@ -2139,9 +2165,7 @@ class GeneratedMarkupTests(FixtureCase):
         api = build_api.Api(build_crate.build_crate(content), content)
         docs = {path: json.loads(text) for path, text in api.files().items()}
         openapi = docs[build_api.OPENAPI_FILE]
-        empty = [
-            name for name in build_crate.API_COLLECTIONS if not any(path.startswith(f"api/{name}/") for path in docs)
-        ]
+        empty = [name for name in build_crate.API_COLLECTIONS if not api.records[name]]
         self.assertIn("fips", empty, "the fixture exercises an empty snapshot collection")
         self.assertEqual(
             docs[build_api.META_FILE]["hasPart"],
@@ -2156,9 +2180,8 @@ class GeneratedMarkupTests(FixtureCase):
                 self.assertEqual(listed["numberOfItems"], 0, name)
                 self.assertNotIn(record_path, openapi["paths"])
                 continue
-            parameter = openapi["paths"][record_path]["get"]["parameters"][0]
-            self.assertTrue(parameter["schema"]["enum"], name)
-            self.assertIn(parameter["example"], parameter["schema"]["enum"])
+            for _, entity_id in api.records[name]:
+                self.assertIn("/" + api.paths[entity_id], openapi["paths"], name)
 
     def test_link_elements_escape_hostile_quoted_values(self) -> None:
         hostile = {"rel": 'x" onload="alert(1)', "type": "a&b<c>", "href": 'page"><script>alert(1)</script>'}
@@ -2266,7 +2289,7 @@ class ApiTests(unittest.TestCase):
         return posixpath.normpath(posixpath.join(posixpath.dirname(here), link))
 
     def test_a_principle_carries_what_is_about_it(self) -> None:
-        here = "api/principles/R1.1.json"
+        here = "api/pr/R1.1.json"
         principle = self.docs[here]
         self.assertEqual(principle["@context"], "../context.jsonld")
         self.assertEqual(set(principle["name"]), {"cs", "en"})
@@ -2279,10 +2302,10 @@ class ApiTests(unittest.TestCase):
         }
         self.assertGreater(len(lenses), 1, "advice for more than one lens")
         metric = self.docs[self.target(here, principle["metrics"][0])]
-        self.assertIn("../principles/R1.1.json", build_crate.as_list(metric["inDimension"]))
+        self.assertIn("../pr/R1.1.json", build_crate.as_list(metric["inDimension"]))
 
     def test_checks_are_benchmarks_whose_questions_have_manual_tests(self) -> None:
-        checks = [path for path in self.docs if path.startswith("api/checks/")]
+        checks = [path for path in self.docs if path.startswith("api/check/")]
         self.assertTrue(checks)
         for path in checks:
             self.assertIn("Benchmark", self.docs[path]["@type"])

@@ -93,13 +93,16 @@
     FG.state.lens = route.lens;
     FG.saveState();
     document.documentElement.lang = route.lang;
-    document.title = FG.t("app.title") + " | EOSC CZ";
 
     const isCheck = (route.view === "check" || route.view === "selfcheck") && FG.views.selfcheck;
     const view = isCheck ? FG.views.selfcheck : FG.views[route.view] || FG.views.path;
     const app = document.getElementById("app");
     FG.exports = [];
     const main = FG.h("main", { id: "main", tabindex: "-1" }, view(route));
+    const entryId = route.view === "catalogue" && route.extra
+      ? Object.keys(FG.config.api.records).find((id) => FG.config.api.records[id] === route.arg + "/" + route.extra) : null;
+    const pageTitle = (entryId && FG.text(FG.get(entryId)?.name)) || main.querySelector("h1")?.textContent.trim() || FG.t("app.title");
+    document.title = (pageTitle === FG.t("app.title") ? pageTitle : pageTitle + " | " + FG.t("app.title")) + " | EOSC CZ";
     /* A single check saves its result in its own export area; every other view gets the shared one. */
     if (!(isCheck && route.arg)) main.append(FG.exportBar());
     const parts = [

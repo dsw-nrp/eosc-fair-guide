@@ -9,7 +9,7 @@ title = { cs = "Zveřejnění a trvalý identifikátor", en = "Publication and t
 icon = "paper-plane"
 principles = ["F1", "F3", "A1", "A1.1", "A2"]
 minutes = 5
-glossary = ["200", "149", "165"]
+glossary = ["persistent-identifier", "digital-object-identifier", "handle"]
 
 [[advice]]
 id = "publication.01"

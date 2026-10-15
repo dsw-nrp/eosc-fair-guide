@@ -20,6 +20,7 @@ import argparse
 import html
 import json
 import os
+import re
 import sys
 from collections import Counter, defaultdict
 from datetime import UTC, date, datetime
@@ -72,6 +73,179 @@ def source_entries(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
         if item.get("citation"):
             entries[item["id"]] = {**item["citation"], "id": item["id"], "url": item["url"]}
     return entries
+
+
+def missing_links(content: dict[str, Any]) -> list[dict[str, str]]:
+    """Rank useful editorial hints, retaining originals and never changing prose or integrity outcomes."""
+    graph = build_crate.Graph()
+    build_crate.build_crate(content, graph)
+    targets = build_crate.reference_targets(content, graph)
+    addresses = {
+        key: entity["catalogueAddress"] for key, entity in graph.entities.items() if entity.get("catalogueAddress")
+    }
+    generic = {
+        "data",
+        "metadata",
+        "description",
+        "popis",
+        "repository",
+        "repozitar",
+        "repozitář",
+        "access",
+        "přístup",
+        "licence",
+        "license",
+        "plan",
+        "plán",
+        "planning",
+        "plánování",
+        "check",
+        "kontrola",
+        "analysis",
+        "analýza",
+        "processing",
+        "zpracování",
+        "publication",
+        "publikace",
+        "sharing",
+        "sdílení",
+        "community",
+        "komunita",
+        "policy",
+        "politika",
+        "support",
+        "podpora",
+        "fair",
+        "open",
+        "guide",
+        "průvodce",
+        "service",
+        "služba",
+        "standard",
+        "sources",
+        "zdroje",
+        "test",
+        "research",
+        "výzkum",
+    }
+    names: dict[tuple[str, str, str], str] = {}
+
+    def add(entity_id: str, label: str, language: str, basis: str) -> None:
+        label = label.strip()
+        if entity_id not in addresses or len(label) < 3 or label.casefold() in generic or "\n" in label:
+            return
+        if len(label.split()) == 1 and label.islower():
+            return  # Common nouns need an explicit, specific phrase, not a blanket glossary link.
+        names[(entity_id, label, language)] = basis
+
+    rows = build_crate.catalogue_records(content)
+    for entity_id in addresses:
+        entity = graph.entities[entity_id]
+        for field in ("name", "alternateName"):
+            for value in build_crate.as_list(entity.get(field)):
+                add(
+                    entity_id,
+                    value.get("@value", "") if isinstance(value, dict) else str(value),
+                    value.get("@language", "und") if isinstance(value, dict) else "und",
+                    "catalogue name",
+                )
+        for language, labels in rows.get(entity_id, {}).get("linkNames", {}).items():
+            for label in labels:
+                add(entity_id, label, language, "reviewed name variant")
+    sections = ("pages", "stations", "checks", "callouts", "resources")
+    prose_keys = {"text", "body", "intro", "description", "hint", "help", "note", "detail"}
+    prose = []
+    for section in sections:
+        for path, key, value in check_content.walk(content.get(section, []), section):
+            field = path.rsplit(".", 1)[-1] if key in ("cs", "en") else key
+            if (
+                field not in prose_keys
+                or not isinstance(value, str)
+                or any(part in path.lower() for part in ("original", "guidance", "quote", "definition"))
+            ):
+                continue
+            language = key if key in ("cs", "en") else "und"
+            prose.append((path, key, value, language))
+            # Authored references provide reviewed inflected Czech and abbreviated forms without a stemmer.
+            for match in build_crate.REFERENCE.finditer(value):
+                add(targets.get(match["id"], ""), match["phrase"], language, "form used in an authored reference")
+    patterns = [
+        (
+            entity_id,
+            label,
+            language,
+            basis,
+            re.compile(r"(?<!\w)" + re.escape(label) + r"(?!\w)", 0 if label.isupper() and len(label) <= 5 else re.I),
+        )
+        for (entity_id, label, language), basis in names.items()
+    ]
+    result = []
+    for path, key, value, language in prose:
+        linked = {targets.get(match["id"]) for match in build_crate.REFERENCE.finditer(value)}
+        unlinked = build_crate.REFERENCE.sub(lambda match: " " * len(match[0]), value)
+        unlinked = re.sub(r"https?://\S+|`[^`]*`", lambda match: " " * len(match[0]), unlinked)
+        owners = [entity_id for token in re.findall(r"\[([^]]+)\]", path) for entity_id in graph.index.get(token, [])]
+        related = {
+            ref.get("@id")
+            for owner in owners
+            for values in graph.entities.get(owner, {}).values()
+            for ref in build_crate.as_list(values)
+            if isinstance(ref, dict) and "@id" in ref
+        }
+        candidates = []
+        folded = unlinked.casefold()
+        for entity_id, label, name_language, basis, pattern in patterns:
+            if (
+                name_language not in ("und", language)
+                or entity_id in linked
+                or entity_id in owners
+                or label.casefold() not in folded
+            ):
+                continue
+            native = graph.entities[entity_id].get("identifier")
+            if isinstance(native, str) and f"[{native}]" in path:
+                continue
+            for match in pattern.finditer(unlinked):
+                score = 85 if basis != "catalogue name" else 80
+                if addresses[entity_id].startswith("term/"):
+                    score -= 10
+                if entity_id in related:
+                    score += 15
+                candidates.append((match.start(), match.end(), score, entity_id, label, basis))
+        candidates.sort(key=lambda item: (-(item[1] - item[0]), -item[2], item[0], item[3]))
+        covered: list[tuple[int, int]] = []
+        emitted = set()
+        for start, end, initial_score, entity_id, label, basis in candidates:
+            score = initial_score
+            if entity_id in emitted or any(start < last and end > first for first, last in covered):
+                continue
+            peers = {item[3] for item in candidates if item[0] == start and item[1] == end and item[2] == score}
+            reason = basis + ("; associated with this record" if entity_id in related else "")
+            if len(peers) > 1:
+                score -= 25
+                reason += "; ambiguous name: review " + ", ".join(sorted(addresses[peer] for peer in peers))
+            covered.append((start, end))
+            emitted.add(entity_id)
+            phrase = value[start:end]
+            result.append(
+                {
+                    "path": f"{path}.{key}",
+                    "language": language,
+                    "text": value,
+                    "entry": entity_id,
+                    "entry_name": label,
+                    "address": addresses[entity_id],
+                    "excerpt": ("…" if start > 65 else "")
+                    + value[max(0, start - 65) : min(len(value), end + 95)]
+                    + ("…" if end + 95 < len(value) else ""),
+                    "match": phrase,
+                    "reference": "[[" + addresses[entity_id] + "|" + phrase + "]]",
+                    "confidence": "high" if score >= 80 else "review",
+                    "score": str(score),
+                    "reason": reason,
+                }
+            )
+    return sorted(result, key=lambda item: (-int(item["score"]), item["path"], item["entry"]))
 
 
 def cited_clauses(item: dict[str, Any]) -> list[str]:
@@ -209,9 +383,7 @@ def integrity(content: dict[str, Any], root: Path, today: date) -> list[dict[str
         return checks, notes
 
     for item in sources.values():
-        preparation = (
-            item.get("id") == "layers-and-seams-manuscript" and item.get("preparationStatus") == "in-preparation"
-        )
+        preparation = item.get("id") == "layers-seams-manuscript" and item.get("preparationStatus") == "in-preparation"
         citation_check = check_content.Report()
         check_content.check_citation(citation_check, "source", item, own_url=False)
         add(
@@ -243,7 +415,7 @@ def integrity(content: dict[str, Any], root: Path, today: date) -> list[dict[str
         validation = check_content.Report()
         check_content.check_model(validation, content, check_content.vocabularies(content), today)
         for identifier, item in check_content.model_items(content).items():
-            if identifier == "model:layers-and-seams":
+            if identifier == "model:layers-seams":
                 related = validation.errors
             elif identifier == "model:worked-example":
                 related = [error for error in validation.errors if error.startswith("model:worked-example:")]
@@ -556,6 +728,7 @@ def make_report(
         },
         "integrity": integrity(content, root, today or date.today()),
         "original_coverage": original_coverage(content),
+        "missing_links": missing_links(content),
         "run": run or {"status": "not_run", "jobs": [], "reason": "Only the offline health inventory was requested."},
     }
     report["integrity_failed"] = sum(group["failed"] for group in report["integrity"])
@@ -769,6 +942,22 @@ def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
         parts.append(f"<pre>{esc(json.dumps(report['trend']['job_changes'], indent=2))}</pre>")
     else:
         parts.append(f"<p>{esc(report['trend']['reason'])}</p>")
+    advisories = report.get("missing_links", [])
+    parts.append(
+        f"<h2>Possible missing links (advisory): {len(advisories)}</h2>"
+        "<p>Exact catalogue-name matches; these do not fail checks.</p>"
+    )
+    parts.append(
+        "<details><summary>Texts and matching entries</summary><table><thead>"
+        "<tr><th>Text</th><th>Entry</th></tr></thead><tbody>"
+    )
+    for item in advisories:
+        parts.append(
+            f"<tr><td><code>{esc(item['path'])}</code><p>{esc(item['excerpt'])}</p></td>"
+            f"<td>{esc(item['entry_name'])}<br><code>{esc(item['reference'])}</code>"
+            f"<p>{esc(item['confidence'])}: {esc(item['reason'])}</p></td></tr>"
+        )
+    parts.append("</tbody></table></details>")
     parts += [
         "<h2>Live availability</h2>",
         f"<p><strong>{esc(report['live_availability']['status'])}</strong>: "
@@ -802,6 +991,7 @@ def markdown(report: dict[str, Any]) -> str:
             f"{counts['questions'].get('reviewed_source_links', 0)}. "
             "Missing originals are editorial review information, not failed requirements.",
         ]
+    lines += ["", f"Possible missing links (advisory, non-blocking): **{len(report.get('missing_links', []))}**.", ""]
     lines += ["", "| Check | Result | Seconds |", "| --- | --- | ---: |"]
     for job in report["run"].get("jobs", []):
         lines.append(f"| {job['name']} | {job['status']} | {job.get('seconds', '')} |")

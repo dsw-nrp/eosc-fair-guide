@@ -234,7 +234,7 @@ endTime = {timestamp}
     if identifier in issued.get("actions", []) or identifier in registry.get("retired", {}).get("actions", []):
         raise ValueError("release action identifier has already been issued")
     issued.setdefault("actions", []).append(identifier)
-    texts["content/identifiers.toml"] = render(registry["register"]["frozen"], issued, registry.get("retired", {}))
+    texts["content/identifiers.toml"] = render(registry["register"]["prepared"], issued, registry.get("retired", {}))
     # All parsing and refusals above happen before the first write. The generated
     # crate is rebuilt, never patched; its consistency is checked with --site.
     for path, text in texts.items():

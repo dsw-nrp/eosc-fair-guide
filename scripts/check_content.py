@@ -40,6 +40,7 @@ from build_crate import (  # noqa: E402
     load_content,
     reference_targets,
 )
+from catalogue_identity import alternate_id
 
 LANGS = ("cs", "en")
 LEVELS = ("L0", "L1", "L2")
@@ -365,7 +366,7 @@ def check_citation(report: Report, where: str, citation: dict[str, Any], own_url
     if citation.get("type") not in SOURCE_TYPES:
         report.error(where, f"type must be one of {', '.join(SOURCE_TYPES)}")
     if citation.get("preparationStatus") is not None:
-        if citation.get("id") != "layers-and-seams-manuscript" or citation["preparationStatus"] != "in-preparation":
+        if citation.get("id") != "layers-seams-manuscript" or citation["preparationStatus"] != "in-preparation":
             report.error(where, "only the approved Layers-and-Seams manuscript may be cited as in preparation")
         if citation.get("type") != "article" or not citation.get("authors") or citation.get("inLanguage") != "en":
             report.error(
@@ -441,7 +442,7 @@ def model_items(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
 def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], today: date) -> None:
     """Keep conceptual definitions, explicit topic associations and scoped dated observations distinct."""
     data = content.get("model", {})
-    manuscript = "layers-and-seams-manuscript"
+    manuscript = "layers-seams-manuscript"
     for clause in content["ledger"]:
         if clause.get("source") == manuscript:
             report.error(
@@ -452,8 +453,8 @@ def check_model(report: Report, content: dict[str, Any], vocab: dict[str, Any], 
     model = data.get("model", {})
     if any(field in model for field in ("status", "asOf", "evidence", "owner")):
         report.error("model", "generic model definitions cannot carry implementation status or an assigned owner")
-    if model.get("id") != "layers-and-seams":
-        report.error("model", "model ID must be layers-and-seams")
+    if model.get("id") != "layers-seams":
+        report.error("model", "model ID must be layers-seams")
     if model.get("source") != manuscript:
         report.error("model", "the conceptual model must cite the approved manuscript")
     source = next((item for item in content["sources"] if item["id"] == manuscript), {})
@@ -549,7 +550,9 @@ def lifecycle_items(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
         model = data["lifecycle"]
         result[f"lifecycle:{model['id']}"] = model
         result |= {f"{model['id']}.{stage['id']}": stage for stage in data.get("stage", [])}
-    result |= {"crosswalk:" + "_".join(item.get("stages", [])): item for item in content.get("crosswalk", [])}
+    result |= {
+        "crosswalk:" + item.get("id", "_".join(item.get("stages", []))): item for item in content.get("crosswalk", [])
+    }
     return result
 
 
@@ -649,7 +652,7 @@ def check_lifecycles(report: Report, content: dict[str, Any]) -> None:
     linked: dict[str, set[str]] = {}
     for item in content.get("crosswalk", []):
         keys = as_list(item.get("stages"))
-        where = "crosswalk:" + "_".join(str(key) for key in keys)
+        where = "crosswalk:" + item.get("id", "_".join(str(key) for key in keys))
         if len(keys) != 2 or any(key not in stages for key in keys):
             report.error(where, "a correspondence names two known stages, as <model>.<stage>")
             continue
@@ -963,8 +966,12 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
         if entry.get("functions") and entry in content["resources"] and entry.get("type") != "registry":
             report.error(entry["id"], "repository functions belong to repositories or registries")
     repositories = {item["re3data"] for snapshot in content["snapshots"] for item in snapshot.get("repository", [])}
-    dashboard = {item["id"]: item for snapshot in content["snapshots"] for item in snapshot.get("resource", [])}
-    tools = {item["id"] for snapshot in content["snapshots"] for item in snapshot.get("tool", [])}
+    dashboard = {
+        alternate_id(item, "fip-dashboard"): item
+        for snapshot in content["snapshots"]
+        for item in snapshot.get("resource", [])
+    }
+    tools = {alternate_id(item, "knav") for snapshot in content["snapshots"] for item in snapshot.get("tool", [])}
     annotations = content.get("repository_records", [])
     for key in ("re3data", "fipDashboard", "knav"):
         unique(report, f"repository records:{key}", [item[key] for item in annotations if item.get(key)], "record")
@@ -1036,8 +1043,8 @@ def check_fip_dashboard(report: Report, content: dict[str, Any], vocab: dict[str
     snapshot = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), None)
     if snapshot is None:
         return
-    fers = {resource["id"] for resource in snapshot.get("resource", [])}
-    organizations = {organization["id"] for organization in snapshot.get("organization", [])}
+    fers = {alternate_id(resource, "fip-dashboard") for resource in snapshot.get("resource", [])}
+    organizations = {alternate_id(organization, "fip-dashboard") for organization in snapshot.get("organization", [])}
     for resource in snapshot.get("resource", []):
         for verification in resource.get("verification", []):
             if verification.get("level") not in VERIFICATION_LEVELS:
@@ -1234,14 +1241,14 @@ def check_providers(
         for metric in metrics:
             here = f"{where}.{metric.get('id')}"
             if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", str(metric.get("id", ""))):
-                report.error(here, "a metric ID is the provider's own identifier")
+                report.error(here, "a metric ID is a Guide-owned primary identifier")
             if not isinstance(metric.get("name"), str) or not metric["name"].strip():
                 report.error(here, "name is the provider's own wording of the criterion")
             if metric.get("principle") not in vocab["principles"]:
                 report.error(here, f"unknown principle '{metric.get('principle')}'")
             if not isinstance(metric.get("label"), dict) or any(not metric["label"].get(lang) for lang in LANGS):
                 report.error(here, "label needs Czech and English text")
-        metric_ids = {metric.get("id") for metric in metrics}
+        metric_ids = {alternate_id(metric, provider["id"]) for metric in metrics}
         pairs = [f"{mapping.get('metric')} {mapping.get('question')}" for mapping in provider.get("mapping", [])]
         unique(report, where, pairs, "mapping")
         for mapping in provider.get("mapping", []):
@@ -1275,6 +1282,10 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
             index[item["id"]] = "item"
     for page in content["pages"]:
         index[f"page:{page['id']}"] = "page"
+    for callout in content["callouts"]:
+        index[f"callout:{callout['id']}"] = "callout"
+        for item in callout.get("item", []):
+            index[f"callout.{callout['id']}.{item['id']}"] = "callout item"
     for term in content["glossary"].get("term", []):
         index[f"term:{term['id']}"] = "term"
     for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
@@ -1286,7 +1297,7 @@ def content_index(content: dict[str, Any]) -> dict[str, str]:
     for repository in content["repositories"]:
         index.setdefault(repository["id"], "repository")
     for organization in content["guide"].get("organization", []):
-        index.setdefault(organization["id"], "organization")
+        index.setdefault("organization:" + organization["id"], "organization")
     for action in content["provenance"]:
         index.setdefault(f"action:{action['id']}", "action")
     for record in content.get("repository_records", []):
@@ -1327,6 +1338,12 @@ def issued_ids(content: dict[str, Any]) -> dict[str, list[str]]:
             for profile in data["check"].get("profile", [])
         ],
         "pages": [page["id"] for page in content["pages"]],
+        "callouts": [f"callout:{callout['id']}" for callout in content["callouts"]],
+        "callout_items": [
+            f"callout.{callout['id']}.{item['id']}"
+            for callout in content["callouts"]
+            for item in callout.get("item", [])
+        ],
         "advice": [advice["id"] for data in content["stations"] for advice in data.get("advice", [])],
         "questions": [item["id"] for data in content["checks"] for item in data.get("item", [])],
         "tests": [test["id"] for test in content["live"].get("test", [])],
@@ -1434,7 +1451,7 @@ def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build
 
     # R4, references to snapshot records resolve (one entry per thing is scripts/check_duplicates.py)
     dashboard = next((item for item in content["snapshots"] if item.get("fip") or item.get("resource")), {})
-    org_ids = {org["id"] for org in dashboard.get("organization", [])}
+    org_ids = {alternate_id(org, "fip-dashboard") for org in dashboard.get("organization", [])}
     for organization in content["guide"].get("organization", []):
         if organization.get("fipDashboard") and organization["fipDashboard"] not in org_ids:
             report.error(
@@ -1526,7 +1543,9 @@ def check_infrastructures(report: Report, content: dict[str, Any]) -> None:
     resources = {resource["id"] for resource in content["resources"]}
     repositories = {repository["id"] for repository in content["repositories"]}
     repositories |= {item["re3data"] for snapshot in content["snapshots"] for item in snapshot.get("repository", [])}
-    fips = {item["id"] for snapshot in content["snapshots"] for item in snapshot.get("fip", [])}
+    fips = {
+        alternate_id(item, "fip-dashboard") for snapshot in content["snapshots"] for item in snapshot.get("fip", [])
+    }
 
     def names_entry(where: str, row: dict[str, Any]) -> None:
         if row.get("resource") and row["resource"] not in resources:
@@ -1815,7 +1834,7 @@ def vocabularies(content: dict[str, Any]) -> dict[str, Any]:
         "repository_functions": {item["id"] for item in guide_file.get("repositoryFunction", [])},
         "stations": {data["station"]["id"] for data in content["stations"]},
         "terms": {term["id"] for term in content["glossary"].get("term", [])},
-        "tests": {test["id"] for test in content["live"].get("champion", {}).get("test", [])},
+        "tests": {alternate_id(test, "fair-champion") for test in content["live"].get("champion", {}).get("test", [])},
         "people": {person["id"] for person in guide_file.get("person", [])},
         "instruments": {instrument["id"] for instrument in guide_file.get("instrument", [])},
         "freshness_days": int(guide_file["guide"].get("freshnessDays", 180)),
@@ -1918,7 +1937,8 @@ def provider_criteria(content: dict[str, Any]) -> dict[str, Any]:
 
 def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
     """Every item provenance must cover, with its kind and content: the guide's metadata, clauses, advice, questions,
-    resources, tests, external evaluators' criteria, organisations, the model and the life-cycle models. Mandatory
+    resources, sources, pages, curated repositories, callouts and their items, tests, external evaluators' criteria,
+    organisations, infrastructures, the node, the model and the life-cycle models. Mandatory
     coverage and freshness both read this one list, so a kind whose changes are compared is never a kind no action has
     to cover."""
     items: dict[str, tuple[str, Any]] = {"guide": ("guide", content["guide"]["guide"])}
@@ -1932,11 +1952,21 @@ def provenance_items(content: dict[str, Any]) -> dict[str, tuple[str, Any]]:
             items[item["id"]] = ("item", item)
     for resource in content["resources"]:
         items[resource["id"]] = ("resource", resource)
+    for source in content["sources"]:
+        items[source["id"]] = ("source", source)
+    for page in content["pages"]:
+        items[f"page:{page['id']}"] = ("page", page)
+    for repository in content["repositories"]:
+        items[repository["id"]] = ("repository", repository)
+    for callout in content["callouts"]:
+        items[f"callout:{callout['id']}"] = ("callout", callout)
+        for item in callout.get("item", []):
+            items[f"callout.{callout['id']}.{item['id']}"] = ("callout item", item)
     for test in content["live"].get("test", []) + content["live"].get("champion", {}).get("test", []):
         items[f"test:{test['id']}"] = ("test", test)
     items |= {key: ("criterion", value) for key, value in provider_criteria(content).items()}
     for organization in content["guide"].get("organization", []):
-        items[organization["id"]] = ("organization", organization)
+        items["organization:" + organization["id"]] = ("organization", organization)
     items |= {key: ("model", value) for key, value in model_items(content).items()}
     items |= {key: ("lifecycle", value) for key, value in lifecycle_items(content).items()}
     for item in (content.get("infrastructures") or {}).get("infrastructure", []):

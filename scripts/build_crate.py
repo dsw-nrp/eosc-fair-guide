@@ -33,6 +33,17 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
+from catalogue_identity import (
+    KIND_CODES,
+    MAX_ID,
+    SAFE_ID,
+    TYPE_CODES,
+    alternate_id,
+    has_particles,
+    source_scheme,
+    validate_identity,
+)
+
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 # The record of the favicons the page shows for tools and services, relative to the checkout (D-183).
@@ -102,6 +113,9 @@ LICENSES = {
 
 # The guide's own vocabulary: term -> definition. Each term is defined in the graph as an rdf:Property.
 MODEL_TERMS = {
+    "alternateIdentifier": (
+        "A genuine source identifier typed by its issuing scheme, distinct from the Guide primary identifier."
+    ),
     "preparationStatus": "Preparation status of the approved conceptual-model manuscript, not a published requirement.",
     "modelKind": "Kind of a Layers-and-Seams model record: layer, seam, or implementation example.",
     "implementationLayers": (
@@ -121,6 +135,7 @@ MODEL_TERMS = {
     "scope": "Precisely scoped component or connection observed in an implementation example.",
 }
 TERMS = MODEL_TERMS | {
+    "catalogueAddress": "The compact address of a Guide-owned catalogue record.",
     "disclosureLevel": "Disclosure level (L0 to L3) at which an advice item is shown.",
     "adviceKind": "Kind of an advice item that is not ordinary advice, such as the AI-in-FAIRification overlay.",
     "checkAfter": "What to check after following an AI tip, so that its output is verified before it is used.",
@@ -394,7 +409,7 @@ def append_ref(entity: dict[str, Any], key: str, entity_id: str) -> None:
 
 
 def principle_iri(principle: str) -> str:
-    return FAIR_PRINCIPLES + principle
+    return "#principle-" + principle
 
 
 def as_list(value: Any) -> list[Any]:
@@ -460,7 +475,7 @@ class Graph:
         return resolved
 
 
-# The catalogue collections a text reference may name by `collection:record`. The rest of the catalogue
+# The catalogue collections whose emitted compact addresses prose may reference. The rest of the catalogue
 # (principles, checks, provenance actions) is reached from the catalogue itself, not from prose.
 REFERENCE_COLLECTIONS = (
     "resources",
@@ -480,25 +495,18 @@ REFERENCE_COLLECTIONS = (
 
 
 def reference_targets(content: dict[str, Any], graph: Graph) -> dict[str, str]:
-    """What a reference in text may name, by the key that names it. The catalogue identifier `collection:record`
-    names any published entry in REFERENCE_COLLECTIONS, so a repository, a catalogue tool, an organisation, a
-    question or a criterion is referenceable as a resource is; the guide's short forms stay: a bare resource or
-    source ID, `term:<id>`, `page:<id>`, `station:<id>`, `clause:<id>`, `infrastructure:<id>`, and the model's
-    `layer.<id>`, `seam.<id>` and `example.<id>`. A catalogue tool no entry of the guide stands for is also named
-    by the catalogue's own `knav.<id>`."""
+    """Canonical compact catalogue addresses plus current authored short forms for Guide content and pages."""
     records = api_records(graph.entities, content)
-    targets = {
-        f"{collection}:{record}": entity_id
+    allowed = {
+        entity_id
         for collection, members in records.items()
         if collection in REFERENCE_COLLECTIONS
-        for record, entity_id in members
+        for _, entity_id in members
     }
-    targets |= {
-        record: entity_id
-        for collection, members in records.items()
-        if collection == "resources"
-        for record, entity_id in members
-        if record.startswith("knav.")
+    targets = {
+        address: entity_id
+        for entity_id, address in catalogue_addresses(graph.entities, content).items()
+        if entity_id in allowed
     }
     targets |= {
         item["id"]: graph.index[item["id"]][0]
@@ -604,7 +612,7 @@ def build_people(graph: Graph, guide: dict[str, Any], organizations: dict[str, s
 def build_organizations(graph: Graph, guide: dict[str, Any]) -> dict[str, str]:
     organizations: dict[str, str] = {}
     for organization in guide.get("organization", []):
-        entity_id = organization.get("ror") or f"#org-{organization['id']}"
+        entity_id = f"#org-{organization['id']}"
         organizations[organization["id"]] = entity_id
     for organization in guide.get("organization", []):
         graph.add(
@@ -614,10 +622,10 @@ def build_organizations(graph: Graph, guide: dict[str, Any]) -> dict[str, str]:
                 "name": text(organization["name"]),
                 "url": organization.get("url"),
                 "identifier": organization.get("identifier"),
-                "sameAs": ref(f"#fd-org-{organization['fipDashboard']}") if organization.get("fipDashboard") else None,
+                "sameAs": ref(organization["ror"]) if organization.get("ror") else None,
                 "funder": refs([organizations[funder] for funder in as_list(organization.get("funder"))]),
             },
-            organization["id"],
+            "organization:" + organization["id"],
         )
     return organizations
 
@@ -718,6 +726,7 @@ def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
         graph.add(
             {
                 "@id": principle_iri(principle["id"]),
+                "sameAs": ref(principle["iri"]) if principle.get("iri") else None,
                 "@type": "DefinedTerm",
                 "termCode": principle["id"],
                 "name": text(principle.get("label")),
@@ -1084,7 +1093,6 @@ def link_resources(graph: Graph, resources: list[dict[str, Any]]) -> None:
 
 
 def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, Any]:
-    identifiers = [value for value in (repository.get("re3data"), repository.get("nkr")) if value]
     same_as = []
     if repository.get("re3data"):
         same_as.append(f"https://www.re3data.org/repository/{repository['re3data']}")
@@ -1112,7 +1120,7 @@ def repository_entity(repository: dict[str, Any], based_on: str) -> dict[str, An
         "repositoryFunction": refs([f"#rfunction-{value}" for value in repository.get("functions", ["deposit-data"])]),
         "keywords": text(repository.get("subjects"))
         or [{"@value": subject, "@language": "en"} for subject in repository.get("subjectsEn", [])],
-        "identifier": identifiers,
+        "identifier": repository["id"],
         "inLanguage": repository.get("languages"),
         "sameAs": refs(same_as),
         "dataciteRepository": repository.get("datacite"),
@@ -1157,10 +1165,10 @@ def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
         r3d = next((found.group(1) for url in registries if (found := RE3DATA_RECORD.search(url))), None)
         repositories.append(
             {
-                "id": "nkr-" + slug(str(record["id"])),
+                "id": record["id"],
                 "name": str(record["repositoryName"]),
                 "url": record.get("mainUrl"),
-                "nkr": str(record["id"]),
+                "nkr": alternate_id(record, "nkr"),
                 "re3data": r3d,
                 "kind": NKR_KIND.get(str(record.get("type", ""))),
                 "subjects": {
@@ -1244,7 +1252,11 @@ def nkr_config(snapshots: list[dict[str, Any]]) -> dict[str, Any] | None:
     return {
         "retrieved": iso(snapshot["snapshot"]["retrieved"]),
         "records": [
-            {"id": str(record["id"]), "content": {name: record[name] for name in fields if name in record}}
+            {
+                "id": record["id"],
+                "sourceId": alternate_id(record, "nkr"),
+                "content": {name: record[name] for name in fields if name in record},
+            }
             for record in snapshot.get("record", [])
         ],
     }
@@ -1287,7 +1299,7 @@ def build_repositories(
                 for prop, value in entity.items():
                     if prop == "isBasedOn":
                         existing["isBasedOn"] += [item for item in value if item not in existing["isBasedOn"]]
-                    elif prop in ("identifier", "sameAs"):
+                    elif prop in ("sameAs", "alternateIdentifier"):
                         existing[prop] = as_list(existing.get(prop)) + [
                             item for item in as_list(value) if item not in as_list(existing.get(prop))
                         ]
@@ -1339,11 +1351,11 @@ def build_repositories(
     dashboard_annotations = {item["fipDashboard"]: item for item in records if item.get("fipDashboard")}
     for snapshot in snapshots:
         for record in snapshot.get("resource", []):
-            if record.get("type") != "repository" or record["id"] in linked:
+            if record.get("type") != "repository" or alternate_id(record, "fip-dashboard") in linked:
                 continue
             entity_id = f"#fer-{record['id']}"
             entity = graph.entities[entity_id]
-            functions = dashboard_annotations.get(record["id"], {}).get("functions", [])
+            functions = dashboard_annotations.get(alternate_id(record, "fip-dashboard"), {}).get("functions", [])
             if functions:
                 entity["repositoryFunction"] = refs([f"#rfunction-{value}" for value in functions])
             repository_ids.append(entity_id)
@@ -1413,9 +1425,11 @@ def build_knav_tools(graph: Graph, content: dict[str, Any]) -> list[str]:
                     "discipline": tool.get("disciplines", []),
                     "license": info.get("license"),
                     "isBasedOn": ref(snapshot_id(snapshot)),
-                    "sameAs": ref(standing[tool["id"]]) if tool["id"] in standing else None,
+                    "sameAs": ref(standing[alternate_id(tool, "knav")])
+                    if alternate_id(tool, "knav") in standing
+                    else None,
                 },
-                f"knav.{tool['id']}",
+                f"knav.{alternate_id(tool, 'knav')}",
             )
         )
     graph.add(
@@ -1446,7 +1460,9 @@ DASHBOARD_FIP_CLASS = {
 }
 
 
-def build_reviews(graph: Graph, item_id: str, verifications: list[dict[str, Any]]) -> list[str]:
+def build_reviews(
+    graph: Graph, item_id: str, verifications: list[dict[str, Any]], organizations: dict[str, str]
+) -> list[str]:
     """Record catalogue verifications as schema.org reviews: verifier, level and date."""
     review_ids = []
     for number, verification in enumerate(verifications, start=1):
@@ -1457,7 +1473,7 @@ def build_reviews(graph: Graph, item_id: str, verifications: list[dict[str, Any]
                 "@id": review_id,
                 "@type": "Review",
                 "itemReviewed": ref(item_id),
-                "author": ref(f"#fd-org-{verification['verifier']}"),
+                "author": ref("#fd-org-" + organizations[verification["verifier"]]),
                 "reviewAspect": verification.get("level"),
                 "dateCreated": verification.get("date"),
                 "url": verification.get("url"),
@@ -1478,7 +1494,10 @@ def catalogue_entry(graph: Graph, row: dict[str, Any]) -> str | None:
         if entity_id in graph.entities:
             return entity_id
     for entity_id, entity in graph.entities.items():
-        if entity.get("@type") == "DataCatalog" and value in [str(item) for item in as_list(entity.get("identifier"))]:
+        if entity.get("@type") != "DataCatalog":
+            continue
+        external = [str(item.get("@id", "")) for item in as_list(entity.get("sameAs")) if isinstance(item, dict)]
+        if f"https://www.re3data.org/repository/{value}" in external:
             return entity_id
     return None
 
@@ -1551,7 +1570,7 @@ def build_infrastructures(graph: Graph, data: dict[str, Any]) -> list[str]:
                     "memberOf": refs([eric(row["name"], row["entry"]) for row in item.get("eric", [])]),
                     "operates": refs(operated),
                     # The FIP of the infrastructure's community in the FIP Dashboard snapshot, where it has one.
-                    "subjectOf": ref(f"#fip-{item['fip']}") if item.get("fip") else None,
+                    "subjectOf": ref(graph.index["fip:" + item["fip"]][0]) if item.get("fip") else None,
                     "roadmapLocator": item.get("annex1"),
                     "isBasedOn": refs(item_sources),
                 },
@@ -1626,6 +1645,12 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
         return []
     based_on = ref(snapshot_id(snapshot))
     base = snapshot["snapshot"]["url"].rstrip("/")
+    organizations = {alternate_id(row, "fip-dashboard"): row["id"] for row in snapshot.get("organization", [])}
+    resources = {alternate_id(row, "fip-dashboard"): row["id"] for row in snapshot.get("resource", [])}
+
+    def organization_ref(value):
+        return ref("#fd-org-" + organizations[value]) if value in organizations else None
+
     for organization in snapshot.get("organization", []):
         graph.add(
             {
@@ -1650,7 +1675,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
         fer_id = f"#fer-{resource['id']}"
         fer_ids.append(fer_id)
         fip_class = DASHBOARD_FIP_CLASS.get(resource.get("type", ""))
-        review_ids = build_reviews(graph, fer_id, resource.get("verification", []))
+        review_ids = build_reviews(graph, fer_id, resource.get("verification", []), organizations)
         graph.add(
             {
                 "@id": fer_id,
@@ -1665,21 +1690,25 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                 "guideType": guide_type(crosswalk, "fd", resource.get("type")),
                 "spatialCoverage": resource.get("scope"),
                 "about": refs([principle_iri(principle) for principle in resource.get("principles", [])]),
-                "provider": ref(f"#fd-org-{resource['provider']}") if resource.get("provider") else None,
+                "provider": organization_ref(resource.get("provider")),
                 "sameAs": refs(
-                    [f"{base}/resources/{resource['id']}"]
+                    (
+                        [f"{base}/resources/{alternate_id(resource, 'fip-dashboard')}"]
+                        if alternate_id(resource, "fip-dashboard")
+                        else []
+                    )
                     + ([resource["identifier"]] if resource.get("identifier") else [])
                 ),
                 "review": refs(review_ids),
                 "isBasedOn": based_on,
             },
-            f"fer:{resource['id']}",
+            f"fer:{alternate_id(resource, 'fip-dashboard')}",
         )
     fip_ids = []
     for fip in snapshot.get("fip", []):
         fip_id = f"#fip-{fip['id']}"
         fip_ids.append(fip_id)
-        review_ids = build_reviews(graph, fip_id, fip.get("verification", []))
+        review_ids = build_reviews(graph, fip_id, fip.get("verification", []), organizations)
         declaration_ids = []
         for declaration in fip.get("declarations", []):
             declaration_id = f"{fip_id}-{declaration['principle']}-{declaration['resource']}"
@@ -1690,7 +1719,7 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                     "@type": "CreativeWork",
                     "additionalType": FIP_TERMS + "FIP-Declaration",
                     "about": ref(principle_iri(declaration["principle"])),
-                    "mentions": ref(f"#fer-{declaration['resource']}"),
+                    "mentions": ref("#fer-" + resources[declaration["resource"]]),
                     "creativeWorkStatus": declaration.get("status"),
                     "description": text(declaration.get("note")),
                     "isPartOf": ref(fip_id),
@@ -1710,13 +1739,15 @@ def build_fip_dashboard(graph: Graph, snapshots: list[dict[str, Any]], crosswalk
                 "dateModified": fip.get("updated"),
                 "creativeWorkStatus": fip.get("status"),
                 "url": fip.get("url"),
-                "author": ref(f"#fd-org-{fip['community']}") if fip.get("community") else None,
-                "sameAs": ref(f"{base}/profiles/{fip['id']}"),
+                "author": organization_ref(fip.get("community")),
+                "sameAs": ref(f"{base}/profiles/{alternate_id(fip, 'fip-dashboard')}")
+                if alternate_id(fip, "fip-dashboard")
+                else None,
                 "review": refs(review_ids),
                 "hasPart": refs(declaration_ids),
                 "isBasedOn": based_on,
             },
-            f"fip:{fip['id']}",
+            f"fip:{alternate_id(fip, 'fip-dashboard')}",
         )
     graph.add(
         {
@@ -1758,7 +1789,8 @@ def build_glossary(graph: Graph, glossary: dict[str, Any], clauses: list[dict[st
             {
                 "@id": f"#term-{term['id']}",
                 "@type": "DefinedTerm",
-                "termCode": str(term["id"]),
+                "identifier": term["id"],
+                "termCode": alternate_id(term, "heslar"),
                 "subjectOf": refs(
                     [f"#clause-{item['id']}" for item in clauses or [] if str(term["id"]) in item.get("terms", [])]
                 ),
@@ -1793,7 +1825,8 @@ def build_callouts(graph: Graph, callouts: list[dict[str, Any]], all_lenses: lis
                     "position": position,
                     "audience": lens_refs(item.get("lenses", "*"), all_lenses),
                     "isPartOf": ref(callout_id),
-                }
+                },
+                f"callout.{callout['id']}.{item['id']}",
             )
         order = [f"{lens}: {', '.join(items)}" for lens, items in callout.get("order", {}).items()]
         graph.add(
@@ -1819,6 +1852,7 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
     champion = live.get("champion", {})
     test_ids = []
     for test in champion.get("test", []):
+        native = alternate_id(test, "fair-champion")
         test_id = f"#test-{test['id']}"
         test_ids.append(test_id)
         graph.add(
@@ -1828,10 +1862,10 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                 "additionalType": FTR_TEST,
                 "identifier": test["id"],
                 "name": text(test.get("label")) or test["id"],
-                "url": test.get("endpoint") or champion["endpoint"].rstrip("/") + "/" + test["id"],
+                "url": test.get("endpoint") or (champion["endpoint"].rstrip("/") + "/" + native if native else None),
                 "description": text(test.get("description")),
                 "subjectOf": refs(
-                    [test.get("record") or champion["testRecord"].format(id=test["id"]), champion["documentation"]]
+                    [test.get("record") or champion["testRecord"].format(id=native), champion["documentation"]]
                     if champion.get("testRecord") and champion.get("documentation")
                     else []
                 ),
@@ -1931,8 +1965,9 @@ def build_providers(graph: Graph, live: dict[str, Any]) -> list[str]:
         ]
         documentation = [provider[key] for key in ("documentation", "terms") if provider.get(key)]
         for metric in provider.get("metric", []):
+            native = alternate_id(metric, provider["id"])
             entity_id = criterion_id(provider["id"], metric["id"])
-            mappings = [mapping for mapping in provider.get("mapping", []) if mapping["metric"] == metric["id"]]
+            mappings = [mapping for mapping in provider.get("mapping", []) if mapping["metric"] == native]
             mapping_ids = []
             for mapping in mappings:
                 mapping_id = f"#mapping-{provider['id']}-{metric['id']}-{mapping['question']}"
@@ -1955,9 +1990,7 @@ def build_providers(graph: Graph, live: dict[str, Any]) -> list[str]:
                 connector = next((c for c in live.get("connector", []) if c["id"] == provider["connector"]), None)
                 if connector is None:
                     raise ContentError(f"provider:{provider['id']}: unknown connector {provider['connector']}")
-                invocation = (
-                    connector["origin"] + "/" + provider["path"].split("?", 1)[0].replace("{metric}", metric["id"])
-                )
+                invocation = connector["origin"] + "/" + provider["path"].split("?", 1)[0].replace("{metric}", native)
             criteria.append(entity_id)
             graph.add(
                 {
@@ -2218,7 +2251,7 @@ def build_lifecycles(
                     {
                         "@id": lifecycle_stage_id(model["id"], stage["id"]),
                         "@type": "DefinedTerm",
-                        "identifier": key,
+                        "identifier": stage["id"],
                         "termCode": stage["id"],
                         "position": position,
                         "name": text(stage["name"]),
@@ -2256,7 +2289,7 @@ def build_lifecycles(
         keys = item["stages"]
         if any(key not in names for key in keys):
             raise ContentError(f"a crosswalk correspondence names an unknown stage: {', '.join(keys)}")
-        key = "_".join(keys)
+        key = item["id"]
         correspondence_ids.append(
             graph.add(
                 {
@@ -2292,6 +2325,24 @@ def build_lifecycles(
 def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str, Any]:
     """The crate for the content; a caller that passes a graph can inspect it afterwards (the content checks read
     which entities each content ID names)."""
+    try:
+        for row in catalogue_records(content).values():
+            validate_identity(row)
+        for snapshot in content["snapshots"]:
+            for kind in ("tool", "resource", "repository", "organization", "fip", "record"):
+                if kind == "record" and snapshot.get("snapshot", {}).get("source") != "NKR":
+                    continue
+                for row in snapshot.get(kind, []):
+                    validate_identity(row, source_scheme(snapshot, kind))
+        for row in content.get("glossary", {}).get("term", []):
+            validate_identity(row, "heslar")
+        for row in content.get("live", {}).get("champion", {}).get("test", []):
+            validate_identity(row, "fair-champion")
+        for provider in content.get("live", {}).get("provider", []):
+            for row in provider.get("metric", []):
+                validate_identity(row, provider["id"])
+    except ValueError as error:
+        raise ContentError(str(error)) from error
     guide_file = content["guide"]
     guide = guide_file["guide"]
     vocabulary_base = guide["vocabularyBase"]
@@ -2484,7 +2535,32 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         ),
     }
     graph.entities["./"] = prune(root)
+    for entity_id, row in catalogue_records(content).items():
+        if not isinstance(row.get("id"), str) or not row["id"]:
+            raise ContentError(f"{entity_id}: record requires one non-empty primary id")
+        if entity_id not in graph.entities:
+            continue
+        entity = graph.entities[entity_id]
+        if row.get("id"):
+            entity["identifier"] = row["id"]
+        if row.get("alternateIds"):
+            identifiers = []
+            for item in row["alternateIds"]:
+                alternate_entity = "#alternate-" + entity_id.lstrip("#") + "-" + slug(item["scheme"])
+                identifiers.append(
+                    graph.add(
+                        {
+                            "@id": alternate_entity,
+                            "@type": "PropertyValue",
+                            "propertyID": item["scheme"],
+                            "value": item["value"],
+                        }
+                    )
+                )
+            entity["alternateIdentifier"] = refs(identifiers)
     link_texts(graph, reference_targets(content, graph))
+    for entity_id, address in catalogue_addresses(graph.entities, content).items():
+        graph.entities[entity_id]["catalogueAddress"] = address
 
     context: dict[str, Any] = {term: vocabulary_base + term for term in TERMS}
     context["isImplementationOf"] = "https://semanticscience.org/resource/SIO_000233"
@@ -2521,7 +2597,7 @@ API_FILES = {
     "docs": "api/",
     "context": "api/context.jsonld",
     "meta": "api/meta.json",
-    "record": "api/{record}.json",  # a list (`principles`) or a record (`principles/R1.1`)
+    "record": "api/{record}.json",  # a list (`principles`) or a canonical record (`pr/R1.1`)
 }
 API_FILES["test"] = API_FILES["record"].replace(
     "{record}", "tests/{id}"
@@ -2553,15 +2629,20 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
         return {part["@id"] for part in as_list(entities.get(whole, {}).get("hasPart"))}
 
     organizations = {
-        organization.get("ror") or f"#org-{organization['id']}": organization["id"]
-        for organization in content["guide"].get("organization", [])
+        f"#org-{organization['id']}": organization["id"] for organization in content["guide"].get("organization", [])
+    }
+    described = {
+        target["@id"]
+        for entity_id, entity in entities.items()
+        if entity_id.startswith(("#resource-", "#repository-"))
+        for target in as_list(entity.get("sameAs"))
+        if isinstance(target, dict)
     }
     linked_fers = {
-        "#fer-" + target["@id"].rsplit("/", 1)[1]
-        for entity_id, entity in entities.items()
-        if entity_id.startswith("#resource-")
-        for target in as_list(entity.get("sameAs"))
-        if isinstance(target, dict) and target["@id"].startswith(FIP_DASHBOARD)
+        "#fer-" + row["id"]
+        for snapshot in content.get("snapshots", [])
+        for row in snapshot.get("resource", [])
+        if alternate_id(row, "fip-dashboard") and FIP_DASHBOARD + alternate_id(row, "fip-dashboard") in described
     }
     fers = part_ids("#fers") - linked_fers
     sources = part_ids("#sources")
@@ -2573,13 +2654,15 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
             continue  # the repository kinds, a term set
         if collection in ("repositories", "changes"):
             record = entity_id.split("-", 1)[1]
+        elif collection == "lifecycle":
+            record = entity_id.removeprefix("#lifecycle-").removeprefix("#crosswalk-")
         elif entity_id.startswith("#criterion-"):
             # An external criterion is published under its provider's resource ID and its own native identifier.
             resource = as_list(entity.get("isPartOf"))[0]["@id"].removeprefix("#resource-")
             record = f"{resource}.{entity.get('identifier')}"
         elif collection is not None:
             pass
-        elif entity_id.startswith(FAIR_PRINCIPLES) and entity.get("termCode"):
+        elif entity_id.startswith("#principle-") and entity.get("termCode"):
             collection, record = "principles", entity["termCode"]
         elif entity_id.startswith("#item-") and entity.get("@type") == "Question":
             collection = "metrics"
@@ -2614,6 +2697,113 @@ def api_records(entities: dict[str, dict[str, Any]], content: dict[str, Any]) ->
 def api_paths(records: dict[str, list[tuple[str, str]]]) -> dict[str, str]:
     """Each published entity's record, as `<collection>/<record ID>` under the API's directory."""
     return {entity_id: f"{name}/{record}" for name, members in records.items() for record, entity_id in members}
+
+
+def catalogue_records(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """The owning source row for a published entity; id is primary and alternateIds identify real source records."""
+    result = {}
+    if content.get("model", {}).get("model"):
+        result["#implementation-model"] = content["model"]["model"]
+    for kind in ("layer", "seam", "example"):
+        prefix = "#model-example-" if kind == "example" else "#" + kind + "-"
+        result.update((prefix + row["id"], row) for row in content.get("model", {}).get(kind, []))
+    for data in content.get("lifecycles", []):
+        result["#lifecycle-" + data["lifecycle"]["id"]] = data["lifecycle"]
+        for row in data.get("stage", []):
+            result[lifecycle_stage_id(data["lifecycle"]["id"], row["id"])] = row
+    for row in content.get("crosswalk", []):
+        result["#crosswalk-" + row["id"]] = row
+    for section, prefix in (
+        ("resources", "#resource-"),
+        ("sources", "#source-"),
+        ("repositories", "#repository-"),
+        ("principles", "#principle-"),
+        ("ledger", "#clause-"),
+        ("provenance", "#action-"),
+    ):
+        result.update((prefix + row["id"], row) for row in content.get(section, []))
+    for parent in content["stations"]:
+        row = parent["station"]
+        result["#station-" + row["id"]] = row
+    for parent in content["checks"]:
+        row = parent["check"]
+        result["#check-" + row["id"]] = row
+        result.update(("#item-" + row["id"], row) for row in parent.get("item", []))
+    for row in content["guide"].get("organization", []):
+        result["#org-" + row["id"]] = row
+    for row in content.get("infrastructures", {}).get("infrastructure", []):
+        result["#infrastructure-" + row["id"]] = row
+    for row in content.get("live", {}).get("test", []):
+        result["#test-" + row["id"]] = row
+    for row in content.get("live", {}).get("champion", {}).get("test", []):
+        result["#test-" + row["id"]] = row
+    for provider in content.get("live", {}).get("provider", []):
+        for row in provider.get("metric", []):
+            result[criterion_id(provider["id"], row["id"])] = row
+    for row in content.get("glossary", {}).get("term", []):
+        result["#term-" + str(row["id"])] = row
+    for snapshot in content["snapshots"]:
+        for key, prefix in (
+            ("repository", "#repository-"),
+            ("tool", "#knav-"),
+            ("resource", "#fer-"),
+            ("organization", "#fd-org-"),
+            ("fip", "#fip-"),
+        ):
+            result.update((prefix + str(row["id"]), row) for row in snapshot.get(key, []))
+        if snapshot.get("snapshot", {}).get("source") == "NKR":
+            result.update(("#repository-" + str(row["id"]), row) for row in snapshot.get("record", []))
+    return result
+
+
+def catalogue_addresses(entities: dict[str, dict[str, Any]], content: dict[str, Any]) -> dict[str, str]:
+    """Project stored Guide IDs and frozen prefixes once; external identities never issue a published address."""
+    records = catalogue_records(content)
+    repositories = {item["@id"] for item in as_list(entities.get("#repositories", {}).get("hasPart"))}
+    result: dict[str, str] = {}
+    for entity_id, old in api_paths(api_records(entities, content)).items():
+        entity = entities[entity_id]
+        collection, identifier = old.split("/", 1)
+        kind = {"sources": "resources", "metrics": "questions", "changes": "actions"}.get(collection, collection)
+        subtype = ""
+        if entity_id in repositories:
+            kind = "repositories"
+            subtype = (entity.get("repositoryKind") or {}).get("@id", "").removeprefix("#rkind-")
+            if not subtype and entity.get("resourceType") == ref("#rtype-registry"):
+                subtype = "registry"
+        elif kind == "resources":
+            subtype = (
+                (entity.get("resourceType") or entity.get("guideType") or {})
+                .get("@id", "#rtype-tool")
+                .removeprefix("#rtype-")
+            )
+        elif kind == "infrastructures":
+            subtype = (entity.get("researchField") or {}).get("@id", "").removeprefix("#rifield-")
+        elif kind == "tests":
+            subtype = "guide" if entity_id.startswith("#test-guide-") else "fair-champion"
+            if entity_id.startswith("#criterion-"):
+                subtype = as_list(entity.get("isPartOf"))[0]["@id"].removeprefix("#resource-")
+                identifier = str(entity["identifier"])
+        row = records.get(entity_id, {})
+        if "guideId" in row:
+            raise ContentError(f"{entity_id}: obsolete guideId field; id is the one primary value")
+        identifier = str(row.get("id") or identifier)
+        if has_particles(identifier):
+            raise ContentError(
+                f"{entity_id}: Guide slug contains a particle; use an official abbreviation or source URL words"
+            )
+        prefix = row.get("guideRoute") or "/".join(filter(None, (KIND_CODES[kind], TYPE_CODES.get(subtype, subtype))))
+        if prefix.split("/")[0] not in KIND_CODES.values() or len(prefix.split("/")) > 2:
+            raise ContentError(f"{entity_id}: invalid Guide route prefix {prefix}")
+        address = prefix + "/" + identifier
+        if not all(SAFE_ID.fullmatch(part) for part in address.split("/")) or len(identifier) > MAX_ID:
+            raise ContentError(
+                f"{entity_id}: invalid or overlong Guide identifier {identifier}; assign a short primary id"
+            )
+        if address in result.values():
+            raise ContentError(f"{entity_id}: two entries share Guide address {address}; review their identities")
+        result[entity_id] = address
+    return result
 
 
 LINKSET_FILE = "linkset.json"
@@ -2885,7 +3075,10 @@ def provider_config(live: dict[str, Any]) -> dict[str, Any] | None:
     return live.get("providers", {}) | {
         "list": [
             {key: provider[key] for key in keep + limits if key in provider}
-            | {"reviewed": provider.get("reviewed", []), "metrics": [metric["id"] for metric in provider["metric"]]}
+            | {
+                "reviewed": provider.get("reviewed", []),
+                "metrics": [alternate_id(metric, provider["id"]) for metric in provider["metric"]],
+            }
             for provider in live["provider"]
         ]
     }
@@ -3298,7 +3491,18 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
         (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")
     )
     core, parts = split_crate(crate)
-    ui = page_config(content, graph.text_links, api_paths(api_records(graph.entities, content)), links)
+    ui = page_config(
+        content,
+        graph.text_links,
+        {key: entity["catalogueAddress"] for key, entity in graph.entities.items() if entity.get("catalogueAddress")},
+        links,
+    )
+    ui["config"]["catalogueKinds"] = {code: kind for kind, code in KIND_CODES.items()}
+    # The page uses config.api.records; the complete graph field returns with its deferred data part.
+    for index, entity in enumerate(core["@graph"]):
+        if entity.get("catalogueAddress"):
+            parts["fips"]["properties"].setdefault(entity["@id"], {})["catalogueAddress"] = entity["catalogueAddress"]
+            core["@graph"][index] = {key: value for key, value in entity.items() if key != "catalogueAddress"}
     ui["config"]["parts"] = dict(PART_SCRIPTS)
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)

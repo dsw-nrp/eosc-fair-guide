@@ -9,7 +9,7 @@ title = { cs = "Sběr a organizace dat během výzkumu", en = "Collecting and or
 icon = "flask"
 principles = ["R1.2", "R1"]
 minutes = 4
-glossary = ["182", "105", "71"]
+glossary = ["metadata", "underlying-data", "electronic-laboratory-notebook"]
 
 [[advice]]
 id = "collect.01"

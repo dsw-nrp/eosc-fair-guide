@@ -2,7 +2,8 @@
 
 Usage: python scripts/register_ids.py [--content DIR]
 
-The register lists every identifier the guide has issued, by kind. The script adds the identifiers the content has
+The register reserves content IDs for the first official release and protects issued IDs afterward.
+The script adds the identifiers the content has
 and the register lacks, after the ones already there; it never removes, reorders or renames one. An entry that goes
 away keeps its identifier: add it under its kind in [retired] by hand, and it can never name another entry. The rules
 are in docs/content-model.md, Identifiers. Uses only the standard library.
@@ -23,11 +24,11 @@ from build_crate import CONTENT, load_content  # noqa: E402
 from check_content import issued_ids  # noqa: E402
 
 FILE = "identifiers.toml"
-FROZEN = date(2026, 10, 10)
+
 HEADER = """\
-# The identifiers the guide has issued, by kind (docs/content-model.md, Identifiers). They were set on the date below
-# and are kept from then on: an identifier names the same entry for good, and it is never renamed or reused. An
-# entry that goes away leaves its identifier under [retired]. scripts/register_ids.py adds new entries' identifiers.
+# Guide content IDs reserved for the first official release, then never reused (docs/content-model.md).
+# Before that release IDs may change in place through an explicit reviewed register edit. This script only adds
+# new IDs; it never silently removes or renames one. Imported catalogue IDs live on their own records.
 """
 
 
@@ -37,8 +38,8 @@ def array(values: list[str]) -> str:
     return "[\n" + "".join(f"  {json.dumps(value, ensure_ascii=False)},\n" for value in values) + "]"
 
 
-def render(frozen: date, issued: dict[str, list[str]], retired: dict[str, list[str]]) -> str:
-    lines = [HEADER, "[register]", f"frozen = {frozen.isoformat()}", "", "[issued]"]
+def render(prepared: date, issued: dict[str, list[str]], retired: dict[str, list[str]]) -> str:
+    lines = [HEADER, "[register]", f"prepared = {prepared.isoformat()}", "", "[issued]"]
     lines += [f"{kind} = {array(values)}" for kind, values in issued.items()]
     lines += ["", "[retired]"]
     lines += [f"{kind} = {array(values)}" for kind, values in retired.items() if values]
@@ -49,17 +50,18 @@ def register(content_dir: Path) -> list[str]:
     """Add the content's unregistered identifiers to the register; return them as kind:identifier."""
     path = content_dir / FILE
     existing = tomllib.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-    frozen = existing.get("register", {}).get("frozen", FROZEN)
+    prepared = existing.get("register", {}).get("prepared", date.today())
     issued = {kind: list(values) for kind, values in existing.get("issued", {}).items()}
     retired = {kind: list(values) for kind, values in existing.get("retired", {}).items()}
     added = []
-    for kind, values in issued_ids(load_content(content_dir)).items():
+    content = load_content(content_dir)
+    for kind, values in issued_ids(content).items():
         known = issued.setdefault(kind, [])
         for value in values:
             if value not in known and value not in retired.get(kind, []):
                 known.append(value)
                 added.append(f"{kind}:{value}")
-    path.write_text(render(frozen, issued, retired), encoding="utf-8", newline="\n")
+    path.write_text(render(prepared, issued, retired), encoding="utf-8", newline="\n")
     return added
 
 

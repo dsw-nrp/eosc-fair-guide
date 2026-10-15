@@ -104,7 +104,7 @@ if (!origin.includes("nanopublikace")) fail("nanopublication: the source is not 
 if (!(await page.locator(".origin a").count())) fail("nanopublication: declared resources are not listed");
 
 // FAIRsharing records through DataCite: the repositories page and the maturity check's registration question.
-await open("#/cs/V/repositories");
+await open("#/cs/V/catalogue/k!repositories");
 await page.locator("#fairsharing-load").click();
 await page.waitForFunction(() => {
   const status = document.getElementById("fairsharing-status");
@@ -123,7 +123,7 @@ if ((await answer("maturity-18")) !== "yes") fail("FAIRsharing: maturity.18 is n
 
 // DataCite in the finder and the maturity check: ČSDA is found by its re3data record's DOI, and a sample of its
 // top-level datasets is drawn with titles.
-await open("#/cs/K/catalogue/repositories/re3data.r3d100010484");
+await open("#/cs/K/catalogue/repo/dom/csda");
 await page.locator(".datacite-read button").click();
 await page.waitForSelector("section.datacite-read", { timeout: 60000 });
 const reported = await page.locator("section.datacite-read").innerText();

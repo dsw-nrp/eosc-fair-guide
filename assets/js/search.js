@@ -47,14 +47,15 @@
     }
     for (const entity of FG.graph) {
       const id = String(entity["@id"]);
-      if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description), { href: FG.catalogueHref("resources", entity.identifier) });
+      const identifiers = [entity.identifier, ...FG.refs(entity, "alternateIdentifier").map((item) => item.value)].join(" ");
+      if (id.startsWith("#resource-") && entity.name) add("resource", entity.name, bothLanguages(entity.description) + " " + identifiers, { href: FG.entryHref(entity) });
       /* A repository is found by every form of its name, the abbreviations of both languages included (D-173). */
-      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.nameForms(entity) + " " + bothLanguages(entity.keywords), { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) });
-      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, bothLanguages(entity.description), { href: FG.catalogueHref("terms", FG.termAnchor(entity)) });
+      else if (id.startsWith("#repository-") && entity.name) add("repository", entity.name, FG.nameForms(entity) + " " + bothLanguages(entity.keywords) + " " + identifiers, { href: FG.catalogueHref("repositories", FG.repositoryAnchor(entity)) });
+      else if (id.startsWith("#term-") && entity.name && entity.termCode) add("term", entity.name, bothLanguages(entity.description) + " " + identifiers, { href: FG.catalogueHref("terms", FG.termAnchor(entity)) });
       else if (id.startsWith("#page-") && entity.identifier && entity.headline) add("page", entity.headline, "", { href: FG.href("page", entity.identifier) });
       else if (id.startsWith("#clause-") && entity.text) {
         const principle = FG.principlesOf(entity)[0];
-        add("clause", entity.identifier + " " + FG.text(entity.text).slice(0, 90), bothLanguages(entity.text), { href: FG.catalogueHref("clauses", entity.identifier) });
+        add("clause", entity.identifier + " " + FG.text(entity.text).slice(0, 90), bothLanguages(entity.text), { href: FG.entryHref(entity) });
       }
     }
     return entries;
@@ -65,6 +66,8 @@
 
   /** An identifier of the guide's own: a requirement (A.F1.N1) or a check question (maturity.18). */
   function guideEntry(value) {
+    const address = Object.values(FG.config.api.records).find((address) => address === value);
+    if (address) { const [kind, ...parts] = address.split("/"); return { type: "guide", kind, value: parts.join("/") }; }
     if (!/^[A-Za-z][\w.-]{1,40}$/.test(value)) return null;
     const clause = FG.get("#clause-" + value) || FG.get("#clause-" + value.toUpperCase());
     if (clause) return { type: "guide", kind: "clauses", value: clause.identifier };
@@ -77,7 +80,7 @@
   function knownByUrl(value) {
     const address = bare(value);
     const resource = FG.graph.find((entity) => entity.resourceType && String(entity["@id"]).startsWith("#resource-") && bare(entity.url) === address);
-    if (resource) return { type: "known", value, kind: "resources", anchor: resource.identifier, name: FG.text(resource.name) };
+    if (resource) return { type: "known", value, kind: "resources", anchor: FG.config.api.records[FG.id(resource)].split("/").slice(1).join("/"), name: FG.text(resource.name) };
     const repository = FG.refs(FG.get("#repositories"), "hasPart").find((entity) => bare(entity.url) === address);
     if (repository) {
       const r3d = FG.refIds(repository, "sameAs").concat(FG.list(repository.identifier)).map(FG.live.parseRe3data).find(Boolean);

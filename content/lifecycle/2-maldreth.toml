@@ -7,6 +7,7 @@ source = "maldreth"
 name = { cs = "Harmonizovaný životní cyklus výzkumných dat MaLDReTH", en = "MaLDReTH harmonised research data lifecycle" }
 
 [[stage]]
+guideRoute = "life/mld"
 id = "conceptualise"
 name = { cs = "Konceptualizace", en = "Conceptualise" }
 translated = "cs"
@@ -14,6 +15,7 @@ definition = "To formulate the initial research idea or hypothesis, and define t
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "plan"
 name = { cs = "Plánování", en = "Plan" }
 translated = "cs"
@@ -21,6 +23,7 @@ definition = "To establish a structured strategic framework for management of th
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "fund"
 name = { cs = "Financování", en = "Fund" }
 translated = "cs"
@@ -28,6 +31,7 @@ definition = "To identify and acquire financial resources to support the researc
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "collect"
 name = { cs = "Sběr", en = "Collect" }
 translated = "cs"
@@ -35,6 +39,7 @@ definition = "To use predefined procedures, methodologies and instruments to acq
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "process"
 name = { cs = "Zpracování", en = "Process" }
 translated = "cs"
@@ -42,6 +47,7 @@ definition = "To make new and existing data analysis-ready. This may involve sta
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "analyse"
 name = { cs = "Analýza", en = "Analyse" }
 translated = "cs"
@@ -49,6 +55,7 @@ definition = "To derive insights, knowledge, and understanding from processed da
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "store"
 name = { cs = "Ukládání", en = "Store" }
 translated = "cs"
@@ -57,6 +64,7 @@ locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Defi
 note = "Note COLLECT > PROCESS > ANALYSE > STORE may be a repeating cycle."
 
 [[stage]]
+guideRoute = "life/mld"
 id = "publish"
 name = { cs = "Publikace", en = "Publish" }
 translated = "cs"
@@ -64,6 +72,7 @@ definition = "To release research data in published form for use by others with 
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "preserve"
 name = { cs = "Uchovávání", en = "Preserve" }
 translated = "cs"
@@ -71,6 +80,7 @@ definition = "To ensure the safety, integrity, and accessibility of data for as 
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "share"
 name = { cs = "Sdílení", en = "Share" }
 translated = "cs"
@@ -78,6 +88,7 @@ definition = "To make data available and accessible to humans and/or machines. D
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "access"
 name = { cs = "Přístup", en = "Access" }
 translated = "cs"
@@ -85,6 +96,7 @@ definition = "To control and manage data access by designated users and reusers.
 locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
 
 [[stage]]
+guideRoute = "life/mld"
 id = "transform"
 name = { cs = "Transformace", en = "Transform" }
 translated = "cs"

@@ -9,7 +9,7 @@ title = { cs = "Výběr repozitáře", en = "Choosing a repository" }
 icon = "box-archive"
 principles = ["F4", "A1", "A1.1", "A2", "R1.3"]
 minutes = 10
-glossary = ["211", "443", "442", "437", "400", "396"]
+glossary = ["repository", "specialist", "generalist-repository", "trusted-digital-repository", "research-data-registry", "national-repository-catalogue"]
 
 [[advice]]
 id = "repository.01"

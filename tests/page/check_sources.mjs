@@ -10,7 +10,7 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
 const { chromium } = await import("playwright");
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
 const checks = graph.filter((entity) => entity["@type"] === "Quiz");
-const principles = graph.filter((entity) => String(entity["@id"]).startsWith("https://w3id.org/fair/principles/terms/") && entity.termCode);
+const principles = graph.filter((entity) => String(entity["@id"]).startsWith("#principle-") && entity.termCode);
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
@@ -137,7 +137,7 @@ try {
       axeRunning = false;
       assert.deepEqual(access.violations, [], "expanded principles remain accessible");
     }
-    await visit(`#/${lang}/V/catalogue/clauses/A.F1.N3`);
+    await visit(`#/${lang}/V/catalogue/cl/A.F1.N3`);
     await page.waitForSelector("#item-A\\.F1\\.N3");
     assert.equal(await page.locator('[data-clause-status="refresh"]').count(), 0);
     assert.equal(await page.locator("#item-A\\.F1\\.N3 .clause-note").count(), 1);

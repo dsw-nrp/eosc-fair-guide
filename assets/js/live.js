@@ -288,7 +288,7 @@
     const registries = FG.list(content.relatedRegistry);
     const re3data = registries.map((entry) => live.parseRe3data(entry && entry.relatedRegistryUrl)).find(Boolean);
     return {
-      id: record && record.id ? String(record.id) : null,
+      id: record && record.sourceId ? String(record.sourceId) : null,
       name: String(content.repositoryName || ""),
       url: String(content.mainUrl || ""),
       kind: NKR_KIND[content.type] || null,

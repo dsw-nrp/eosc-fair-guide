@@ -43,7 +43,7 @@
   function dashboardRecord(entity) {
     const url = FG.refIds(entity, "sameAs").find((id) => id.startsWith(FG.DASHBOARD + "resources/"));
     if (!url) return null;
-    const fer = FG.get("#fer-" + url.split("/").pop());
+    const fer = FG.sourceEntity("fip-dashboard", url.split("/").pop(), "#fer-");
     return { url, fer };
   }
 
@@ -184,6 +184,11 @@
     return route.view === "path" && (route.arg === "start" || (!route.arg && !FG.state.lastStation));
   };
 
+  const phoneMenu = window.matchMedia("(max-width: 39.99rem)");
+  phoneMenu.addEventListener("change", (event) => {
+    document.querySelectorAll("details.responsive-menu").forEach((menu) => { menu.open = !event.matches; });
+  });
+
   FG.views.header = function (route) {
     const otherLang = route.lang === "cs" ? "en" : "cs";
     return h(
@@ -210,7 +215,7 @@
               .map(([id]) =>
                 h(
                   "a",
-                  { class: "button header-page", href: FG.href("page", id), "aria-current": route.view === "page" && route.arg === id ? "page" : null },
+                  { class: "button header-page", "aria-label": FG.text((FG.get("#page-" + id) || {}).headline), href: FG.href("page", id), "aria-current": route.view === "page" && route.arg === id ? "page" : null },
                   FG.icon(((FG.config.icons && FG.config.icons.page) || {})[id]),
                   h("span", null, FG.text((FG.get("#page-" + id) || {}).headline))
                 )
@@ -241,7 +246,7 @@
       const switchInPlace = (event) => {
         if (event.button || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
         event.preventDefault();
-        FG.navigateInPlace(href, `.lens-option[data-lens="${lens.audienceType}"]`);
+        FG.navigateInPlace(href, phoneMenu.matches ? ".role-menu > summary" : `.lens-option[data-lens="${lens.audienceType}"]`);
       };
       return h(
         "li",
@@ -263,7 +268,10 @@
     return h(
       "nav",
       { class: "lens-band", "aria-label": FG.t("nav.lens") },
-      h("div", { class: "wrap" }, h("span", { class: "lens-band-label", "aria-hidden": "true" }, FG.t("nav.lens")), h("ul", null, FG.lenses().map(option)))
+      h("div", { class: "wrap" }, h("span", { class: "lens-band-label", "aria-hidden": "true" }, FG.t("nav.lens")),
+        h("details", { class: "responsive-menu role-menu", open: !phoneMenu.matches },
+          h("summary", null, FG.t("nav.lens") + ": ", FG.text(FG.lenses().find((lens) => lens.audienceType === route.lens)?.name)),
+          h("ul", null, FG.lenses().map(option))))
     );
   };
 
@@ -295,11 +303,10 @@
     return h(
       "nav",
       { class: "main-nav wrap", "aria-label": FG.t("nav.label") },
-      h(
-        "ul",
-        null,
-        items.map(([view, arg, key, current]) => h("li", null, h("a", { href: FG.href(view, arg), "aria-current": current ? "page" : null }, FG.t(key))))
-      )
+      h("details", { class: "responsive-menu navigation-menu", open: !phoneMenu.matches },
+        h("summary", null, FG.t("nav.menu") + ": ", FG.t(items.find((item) => item[3])?.[2] || "nav.home")),
+        h("ul", null, items.map(([view, arg, key, current]) => h("li", null,
+          h("a", { href: FG.href(view, arg), "aria-current": current ? "page" : null }, FG.t(key))))))
     );
   };
 
@@ -476,7 +483,6 @@
         h(
           "a",
           { href: FG.href("path", station.identifier), "aria-current": station.identifier === currentId ? "step" : null },
-          h("span", { class: "number" }, String(station.position)),
           FG.icon(stationIcon(station)) || h("span"),
           FG.span(station.name),
           shown.length
@@ -994,7 +1000,7 @@
     };
     const basis = clauses.length ? ["### " + mdText(FG.t("station.whyClauses")), "", ...clauses.map(clauseLine)] : [];
     const modelContext = FG.modelContexts(entity, route.lens).flatMap((context) => [mdLine(context.text), "",
-      ...["implementationLayers", "implementationSeams"].flatMap((property) => FG.refs(context, property).map((term) => "- " + mdLink(FG.text(term.name), guideUrl(FG.catalogueHref("model", term.identifier))))), ""]);
+      ...["implementationLayers", "implementationSeams"].flatMap((property) => FG.refs(context, property).map((term) => "- " + mdLink(FG.text(term.name), guideUrl(FG.entryHref(term))))), ""]);
     section(levelName("L2"), modelContext.concat(notes.flatMap((note, index) => (index ? ["", mdLine(note.text)] : [mdLine(note.text)])), notes.length && basis.length ? [""] : [], basis));
     /* An AI tip, what to check after it, and its prompt as a code block under the same list item. */
     const aiLines = (item) =>
@@ -1298,8 +1304,8 @@
     const cts = related.filter((entity) => String(entity["@id"]).startsWith("#clause-CTS."));
     const cdif = related.filter((entity) => String(entity["@id"]).startsWith("#clause-CDIF."));
     /* A CoreTrustSeal requirement by its number and title, leading to its record in the catalogue. */
-    const requirement = (clause) => h("a", { href: FG.catalogueHref("clauses", clause.identifier) }, clause.identifier.replace(/^CTS\./, "") + " ", FG.span(clause.name));
-    const profile = (clause) => h("a", { href: FG.catalogueHref("clauses", clause.identifier) }, FG.span(clause.name));
+    const requirement = (clause) => h("a", { href: FG.entryHref(clause) }, clause.identifier.replace(/^CTS\./, "") + " ", FG.span(clause.name));
+    const profile = (clause) => h("a", { href: FG.entryHref(clause) }, FG.span(clause.name));
     const row = (label, items, note) => [h("dt", null, label), h("dd", null, items, note ? h("span", { class: "relation-note small muted" }, note) : null)];
     /* The principle's relations in the rows the catalogue uses: what the FIP Dashboard records for it and the
        standards' requirements it links. */
@@ -1340,7 +1346,7 @@
   function repositorySources(repository) {
     return FG.refIds(repository, "isBasedOn").map((id) => {
       const source = FG.get(FG.id((FG.get(id) || {}).about));
-      return source ? h("a", { href: FG.catalogueHref("resources", source.identifier) }, FG.repositorySource(id)) : h("span", null, FG.repositorySource(id));
+      return source ? h("a", { href: FG.entryHref(source) }, FG.repositorySource(id)) : h("span", null, FG.repositorySource(id));
     });
   }
 
@@ -1445,7 +1451,7 @@
     const panel = (term) => h("div", { id: "model-connection", class: "model-connection", role: "region", "aria-label": FG.t("model.kind.seam") },
       h("h3", null, FG.span(term.name)), FG.paragraphs(term.description), FG.modelDetail(term),
       h("dl", { class: "relations small" }, FG.modelRows(term)),
-      h("p", { class: "small" }, h("a", { href: FG.catalogueHref("model", term.identifier) }, FG.t("model.openRecord")), " · ",
+      h("p", { class: "small" }, h("a", { href: FG.entryHref(term) }, FG.t("model.openRecord")), " · ",
         h("a", { href: FG.modelFilterHref("resources", term) }, FG.t("model.related"))));
     return h("div", { class: "implementation-model" },
       model.description ? FG.paragraphs(model.description) : null,
@@ -1484,7 +1490,7 @@
         h("strong", { class: "flow-label" }, FG.span(seam.sender), " → ", FG.span(seam.recipient)), " ",
         seam.transfer ? h("span", { class: "flow-text" }, FG.span(seam.transfer)) : null,
         seam.carrier ? h("span", { class: "flow-carrier small" }, FG.t("model.field.carrier") + ": ", FG.span(seam.carrier)) : null,
-        h("a", { class: "flow-record small", href: FG.catalogueHref("model", seam.identifier) }, FG.span(seam.name))))),
+        h("a", { class: "flow-record small", href: FG.entryHref(seam) }, FG.span(seam.name))))),
       records.some((seam) => seam["@id"] === "#seam-nma-research-register") ? h("p", { class: "flow-note small" }, FG.span(FG.get("#seam-nma-research-register").description)) : null
     );
   };
@@ -1513,7 +1519,7 @@
   function machineTasks() {
     const files = FG.config.api.files;
     const link = (href, label, type) => h("a", { href, type: type || null }, label || href);
-    const example = "principles/R1.1";
+    const example = FG.config.api.records[FG.graph.find((entity) => entity.termCode === "R1.1")["@id"]];
     const rows = [
       ["crate", [link("ro-crate-metadata.json", null, "application/ld+json"), " · ", link("ro-crate-preview.html", FG.t("machines.preview")), " · ", link("profile/0.1/index.html", FG.t("machines.profile"))]],
       ["record", [h("code", null, files.record.replace("{record}", "<kolekce>/<id>")), " · ", FG.t("machines.example") + ": ", link(files.record.replace("{record}", example), null, "application/json")]],

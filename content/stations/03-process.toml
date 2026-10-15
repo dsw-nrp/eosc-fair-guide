@@ -9,7 +9,7 @@ title = { cs = "Zpracování: čištění, převod a kontrola dat", en = "Proces
 icon = "gears"
 principles = ["I1", "R1.2"]
 minutes = 3
-glossary = ["90", "167", "181"]
+glossary = ["anonymisation-research-data", "machine-readable-document-format", "human-readable-document"]
 
 [[advice]]
 id = "process.01"

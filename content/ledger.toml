@@ -4719,7 +4719,7 @@ text = { cs = "Veřejná licence oslovuje neurčitý okruh osob.", en = "A publi
 locator = "Version 1.0, p. 5: Public licence"
 guidance = "Jedná se o standardizovaná licenční ujednání, kde na jedné straně stojí poskytovatel licence a na straně druhé neomezený a neurčitý okruh osob, které lze aplikovat pouhým připojením odkazu na její celé znění. K uzavření smlouvy dochází tím, že se uživatel začne chovat v souladu s podmínkami licence, aniž by o tom byl poskytovatel licence výslovně vyrozuměn."
 guidanceLanguage = "cs"
-terms = ["250"]
+terms = ["public-licence"]
 
 [[clause]]
 id = "COPYRIGHT-LICENCES.07"
@@ -4731,4 +4731,4 @@ text = { cs = "Creative Commons jsou typizované licence pro obsah.", en = "Crea
 locator = "Version 1.0, pp. 10-11: Creative Commons"
 guidance = "Nejvyužívanějšími jsou typizované licence Creative Commons (CC), které jsou používány celosvětově a umožňují nakládání s dílem co nejširšímu okruhu osob za předem stanovených  podmínek. Jsou vhodné prakticky pro všechny typy autorských děl s výjimkou softwarů, pro které existují zvláštní typizované licence (viz níže). "
 guidanceLanguage = "cs"
-terms = ["50"]
+terms = ["creative-commons-license"]

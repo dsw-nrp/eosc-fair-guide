@@ -13,6 +13,7 @@ namesSource = "ri-portal"
 checked = 2026-10-14
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "auger-cz"
 website = "https://www.particle.cz/infrastructures/auger-cz/"
 acronym = "AUGER-CZ"
@@ -27,6 +28,7 @@ esfri = []
 annex1 = "Annex 1, p. 124"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "bnl-cz"
 website = "https://bnl.casticova-fyzika.cz/"
 acronym = "BNL-CZ"
@@ -41,6 +43,7 @@ annex1 = "Annex 1, p. 124"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/bnl-cz/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "cemnat"
 website = "https://fcht.upce.cz/fcht/cemnat.html"
 # Reviewed site: no distinct usable infrastructure mark; its institution favicon is not substituted.
@@ -57,6 +60,7 @@ annex1 = "Annex 1, p. 124"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/cemnat/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "ceplant"
 website = "https://ceplant.cz/"
 acronym = "CEPLANT"
@@ -71,6 +75,7 @@ annex1 = "Annex 1, p. 124"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/ceplant/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "cern-cz"
 website = "https://www.particle.cz/infrastructures/CERN-CZ"
 logo = "https://www.particle.cz/infrastructures/CERN-CZ/img/VI_CERN-CZ_m1.png"
@@ -90,6 +95,7 @@ name = "HL-LHC"
 esfri = "landmark"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "cta-cz"
 website = "https://www.particle.cz/infrastructures/cta-cz/"
 acronym = "CTA-CZ"
@@ -112,6 +118,7 @@ name = "CTAO ERIC"
 entry = "expected"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "czechnanolab"
 website = "https://www.czechnanolab.cz/"
 logo = "https://www.czechnanolab.cz/assets/images/logo_black.png"
@@ -127,6 +134,7 @@ annex1 = "Annex 1, p. 124"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/czechnanolab/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "ess-scandinavia-cz"
 website = "https://www.ujf.cas.cz/en/research-development/large-research-infrastructures-and-centres/ess-scandinavia-cz//"
 logo = "https://www.ujf.cas.cz/export/sites/ujf/.content/galerie-content/ESS/logo_ess.png"
@@ -150,6 +158,7 @@ name = "European Spallation Source ERIC"
 entry = "2015"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "est-cz"
 website = "https://www.est-east.eu/"
 acronym = "EST-CZ"
@@ -168,6 +177,7 @@ name = "EST"
 esfri = "project"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "eu-arc-cz"
 website = "https://www.asu.cas.cz/alma"
 logo = false
@@ -183,6 +193,7 @@ annex1 = "Annex 1, p. 126"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/eu-arc-cz/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "fair-cz"
 website = "https://www.ujf.cas.cz/cs/vyzkum-a-vyvoj/velke-vyzkumne-infrastruktury-a-centra/fair-cz/"
 logo = false
@@ -202,6 +213,7 @@ name = "FAIR"
 esfri = "landmark"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "fermilab-cz"
 website = "https://www.particle.cz/infrastructures/fermilab-cz/"
 acronym = "FERMILAB-CZ"
@@ -216,6 +228,7 @@ annex1 = "Annex 1, p. 126"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/fermilab-cz/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "lsm-cz"
 website = "https://lsm.utef.cvut.cz/"
 logo = "https://lsm.utef.cvut.cz/style/LSM_logo.png"
@@ -231,6 +244,7 @@ annex1 = "Annex 1, p. 126"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/lsm-cz/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "mgml"
 website = "https://mgml.eu/"
 acronym = "MGML"
@@ -245,6 +259,7 @@ annex1 = "Annex 1, p. 126"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/mgml/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "pals"
 website = "https://www.pals.cas.cz/"
 acronym = "PALS"
@@ -259,6 +274,7 @@ annex1 = "Annex 1, p. 126"
 url = "https://www.vyzkumne-infrastruktury.cz/fyzika/pals/"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "spiral2-cz"
 website = "https://www.ujf.cas.cz/cs/vyzkum-a-vyvoj/velke-vyzkumne-infrastruktury-a-centra/spiral2-cz/"
 logo = false
@@ -278,6 +294,7 @@ name = "SPIRAL2"
 esfri = "landmark"
 
 [[infrastructure]]
+guideRoute = "ri/phys"
 id = "spl-htc"
 website = "https://nano.mff.cuni.cz/"
 logo = "https://nano.mff.cuni.cz/assets/template/img/spl-htc-eric-banner.svg?v=1.0.1"
@@ -297,6 +314,7 @@ name = "CERIC-ERIC"
 entry = "2014"
 
 [[infrastructure]]
+guideRoute = "ri/energy"
 id = "cicrr"
 website = "https://www.cicrr.cz/"
 acronym = "CICRR"
@@ -315,6 +333,7 @@ name = "JHR"
 esfri = "landmark"
 
 [[infrastructure]]
+guideRoute = "ri/energy"
 id = "compass"
 website = "https://www.ipp.cas.cz/Compass_U/"
 logo = false
@@ -330,6 +349,7 @@ annex1 = "Annex 1, p. 128"
 url = "https://www.vyzkumne-infrastruktury.cz/energetika/compass/"
 
 [[infrastructure]]
+guideRoute = "ri/energy"
 id = "enregat"
 website = "https://ceet.vsb.cz/cs/ceet/vyzkumna-centra/institut-environmentalnich-technologii/institut/"
 logo = "https://ceet.vsb.cz/.content/galerie-obrazku/Loga/IET/Enregat_logo_.png?__scale=w:720,h:300,t:2"
@@ -345,6 +365,7 @@ annex1 = "Annex 1, p. 128"
 url = "https://www.vyzkumne-infrastruktury.cz/energetika/enregat/"
 
 [[infrastructure]]
+guideRoute = "ri/energy"
 id = "wczv"
 website = "https://reaktor-vr1.cz/"
 # Reviewed site: no distinct usable infrastructure mark; its institution favicon is not substituted.
@@ -361,6 +382,7 @@ annex1 = "Annex 1, p. 128"
 url = "https://www.vyzkumne-infrastruktury.cz/energetika/wczv/"
 
 [[infrastructure]]
+guideRoute = "ri/env"
 id = "actris-cz"
 website = "https://actris.cz/web/"
 logo = "https://actris.cz/web/wp-content/uploads/2025/01/Czech_Republic_SM_gradient_frame-150x150.png"
@@ -384,6 +406,7 @@ name = "ACTRIS ERIC"
 entry = "2023"
 
 [[infrastructure]]
+guideRoute = "ri/env"
 id = "cenakva"
 website = "https://www.frov.jcu.cz/cz/fakulta/soucasti-fakulty/jihoceske-vyzkumne-centrum-akvakultury-a-biodiverzity-hydrocenoz/velka-vyzkumna-infrastruktura-cenakva"
 # Reviewed site: no distinct usable infrastructure mark; its institution favicon is not substituted.
@@ -408,6 +431,7 @@ name = "DANUBIUS-ERIC"
 entry = "expected"
 
 [[infrastructure]]
+guideRoute = "ri/env"
 id = "czecos"
 website = "https://czecos.cz/"
 acronym = "CzeCOS"
@@ -450,6 +474,7 @@ name = "DANUBIUS-ERIC"
 entry = "expected"
 
 [[infrastructure]]
+guideRoute = "ri/env"
 id = "nanoenvicz"
 website = "https://www.nanoenvicz.cz/en"
 acronym = "NanoEnviCz"
@@ -464,6 +489,7 @@ annex1 = "Annex 1, p. 128"
 url = "https://www.vyzkumne-infrastruktury.cz/environmentalni-vedy/nanoenvicz-2/"
 
 [[infrastructure]]
+guideRoute = "ri/env"
 id = "recetox-ri"
 website = "https://www.recetox.muni.cz/"
 acronym = "RECETOX RI"
@@ -490,6 +516,7 @@ resource = "recetox-ms-library"
 evidence = "https://eosc.eu/wp-content/uploads/2026/06/EOSC_CZ_National_Node_Charter_Revised_Public.pdf"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "bbmri-cz"
 website = "https://www.bbmri.cz/"
 acronym = "BBMRI.cz"
@@ -512,6 +539,7 @@ name = "BBMRI-ERIC"
 entry = "2013"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "ccp"
 website = "https://www.phenogenomics.cz/"
 logo = "https://www.phenogenomics.cz/wp-content/themes/phenogenomics/images/logo.svg"
@@ -535,6 +563,7 @@ name = "INFRAFRONTIER ERIC"
 entry = "expected"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "ciisb"
 website = "https://www.ciisb.org/"
 acronym = "CIISB"
@@ -557,6 +586,7 @@ name = "Instruct-ERIC"
 entry = "2017"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "czecrin"
 website = "https://czecrin.cz/"
 acronym = "CZECRIN"
@@ -579,6 +609,7 @@ name = "ECRIN-ERIC"
 entry = "2018"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "czech-bioimaging"
 website = "https://www.czech-bioimaging.cz/"
 acronym = "Czech-BioImaging"
@@ -605,6 +636,7 @@ repository = "czech-bioimaging"
 evidence = "https://dev.cbird.jh-inst.cas.cz/"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "cz-openscreen"
 website = "https://openscreen.cz/"
 acronym = "CZ-OPENSCREEN"
@@ -627,6 +659,7 @@ name = "EU-OPENSCREEN ERIC"
 entry = "2018"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "eatris-cz"
 website = "https://eatris.cz/"
 logo = "https://eatris.cz/themes/eatris/images/logo.png"
@@ -650,6 +683,7 @@ name = "EATRIS ERIC"
 entry = "2013"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "elixir-cz"
 website = "https://www.elixir-czech.cz/"
 fip = "elixir-cz-life"
@@ -669,6 +703,7 @@ name = "ELIXIR"
 esfri = "landmark"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "metrofood-cz"
 website = "https://metrofood.cz/en/"
 logo = "https://metrofood.cz/wp-content/uploads/metrofood-cz-e1606940079342.png"
@@ -688,6 +723,7 @@ name = "METROFOOD-RI"
 esfri = "project"
 
 [[infrastructure]]
+guideRoute = "ri/bio"
 id = "ncmg"
 website = "https://ncmg.cz/"
 acronym = "NCMG"
@@ -702,6 +738,7 @@ annex1 = "Annex 1, p. 132"
 url = "https://www.vyzkumne-infrastruktury.cz/biomedicina/ncmg/"
 
 [[infrastructure]]
+guideRoute = "ri/ssh"
 id = "ais-cr"
 website = "https://www.aiscr.cz/"
 acronym = "AIS CR"
@@ -720,6 +757,7 @@ repository = "r3d100013576"
 evidence = "https://amcr-info.aiscr.cz/en"
 
 [[infrastructure]]
+guideRoute = "ri/ssh"
 id = "clb"
 website = "https://clb.ucl.cas.cz/"
 acronym = "CLB"
@@ -734,6 +772,7 @@ annex1 = "Annex 1, p. 134"
 url = "https://www.vyzkumne-infrastruktury.cz/humanitni-vedy/clb/"
 
 [[infrastructure]]
+guideRoute = "ri/ssh"
 id = "cnc"
 website = "https://www.korpus.cz/"
 logo = "https://www.korpus.cz/img/cnk-logo-notext.svg?v=1509638072"
@@ -753,6 +792,7 @@ repository = "r3d100013045"
 evidence = "https://www.korpus.cz/"
 
 [[infrastructure]]
+guideRoute = "ri/ssh"
 id = "csda-ess-cz"
 website = "https://archiv.soc.cas.cz/cz/"
 fip = "csda-social"
@@ -788,6 +828,7 @@ repository = "r3d100010484"
 evidence = "https://www.vyzkumne-infrastruktury.cz/en/social-sciences-and-humanities/csda-ess-cz/"
 
 [[infrastructure]]
+guideRoute = "ri/ssh"
 id = "ggp-cz"
 website = "https://ggp-cz.fss.muni.cz/"
 logo = "https://cdn.muni.cz/media/3947526/transparent_green_ext_cz.png?width=450"
@@ -808,6 +849,7 @@ name = "GGP"
 esfri = "project"
 
 [[infrastructure]]
+guideRoute = "ri/ssh"
 id = "lindat-clariah-cz"
 website = "https://lindat.cz/"
 fip = "lindat-clariah"
@@ -848,6 +890,7 @@ repository = "r3d100010386"
 evidence = "https://lindat.mff.cuni.cz/repository/home"
 
 [[infrastructure]]
+guideRoute = "ri/ssh"
 id = "share-cz"
 website = "https://share.cerge-ei.cz/"
 acronym = "SHARE-CZ"
@@ -870,6 +913,7 @@ name = "SHARE-ERIC"
 entry = "2011"
 
 [[infrastructure]]
+guideRoute = "ri/einfra"
 id = "e-infra-cz"
 website = "https://www.e-infra.cz/"
 acronym = "e-INFRA CZ"

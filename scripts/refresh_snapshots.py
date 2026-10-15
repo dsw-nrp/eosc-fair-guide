@@ -60,6 +60,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
+from catalogue_identity import preserve_snapshot
+
 ROOT = Path(__file__).resolve().parent.parent
 HESLAR_API = "https://heslar.openscience.cz/api/v1/heslar/"
 HESLAR_TERM = "https://heslar.openscience.cz/heslo.php?id={id}"
@@ -809,7 +811,14 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
     if not target.exists() and not any(snapshot.counts.values()):
         outcome.status, outcome.reason = "empty", "the source lists no records; nothing is written"
         return outcome
-    new_text = snapshot.text()
+    vocabulary_path = root / "content" / "guide.toml"
+    vocabulary = tomllib.loads(vocabulary_path.read_text(encoding="utf-8")) if vocabulary_path.exists() else {}
+    resource_types = {
+        native: row["id"] for row in vocabulary.get("resourceType", []) for native in row.get("fipDashboard", [])
+    }
+    new_text = preserve_snapshot(
+        snapshot.text(), target.read_text(encoding="utf-8") if target.exists() else "", resource_types=resource_types
+    )
     if target.exists() and without_date(target.read_text(encoding="utf-8")) == without_date(new_text):
         outcome.status, outcome.reason = "unchanged", "only the retrieval date would change"
         return outcome

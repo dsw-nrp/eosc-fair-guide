@@ -76,7 +76,7 @@ try {
       assert.equal(await example.locator("ol > li").count(), 4, "direct page entry resolves all four example records");
       const test = graph.find((entry) => entry.identifier === "guide-dataset-01");
       const label = test.name.find((value) => value["@language"] === lang)["@value"];
-      assert((await example.locator('li:has(a[href*="/tests/"])').textContent()).includes(label), "the test step shows its human-readable title beside its ID");
+      assert((await example.locator('li:has(a[href*="/test/"])').textContent()).includes(label), "the test step shows its human-readable title beside its ID");
     } finally { await fresh.close(); }
   }
   for (const lang of ["cs", "en"]) {
@@ -92,7 +92,7 @@ try {
     const infrastructureCount = terms.filter((entry) => entry["@id"] === "#layer-infrastructure" || refs(entry, "implementationLayers").includes("#layer-infrastructure")).length;
     assert.equal(await page.locator('[for="facet-layers-layer-infrastructure"] .facet-count').textContent(), String(infrastructureCount), "layer counts include the layer definition and its connections");
     await choose("#facet-seams-seam-repository-nma");
-    assert.deepEqual(await page.locator(".entry-card").evaluateAll((cards) => cards.map((card) => card.id)), ["item-seam.repository-nma"]);
+    assert.deepEqual(await page.locator(".entry-card").evaluateAll((cards) => cards.map((card) => card.id)), ["item-seam/repository-nma"]);
     const modelExport = JSON.parse(await download("#export-json"));
     assert.deepEqual(modelExport.itemListElement[0].implementationSeams, [], "identity filtering does not invent a self-association in exported records");
     for (const kind of ["resources", "repositories", "clauses", "questions", "terms", "fips", "tests", "model", "actions"]) {
@@ -145,10 +145,10 @@ try {
     await assert.rejects(() => expectedQuestions(["#seam-repository-nma"]), "the regression check rejects blind propagation");
     await page.evaluate((id) => { window.FairGuide.get(id).implementationSeams = window.modelSavedRefs; window.FairGuide.render(); }, unrelated["@id"]);
     await expectedQuestions(["#seam-repository-nma"]);
-    await visit(`#/${lang}/K/catalogue/model/seam.repository-nma`, ".entry-card");
+    await visit(`#/${lang}/K/catalogue/model/seam/repository-nma`, ".entry-card");
     assert.equal(await page.locator(".entry-card").count(), 1, "a direct definition link clears unrelated filters");
-    assert.equal(await page.locator('.model-tag[href$="/model/layer.infrastructure"]').count(), 1, "within-layer transfer is represented explicitly");
-    await visit(`#/${lang}/K/catalogue/resources/layers-and-seams-manuscript`, ".entry-card");
+    assert.equal(await page.locator('.model-tag[href$="/model/layer/infrastructure"]').count(), 1, "within-layer transfer is represented explicitly");
+    await visit(`#/${lang}/K/catalogue/res/pub/layers-seams-manuscript`, ".entry-card");
     assert((await page.locator(".entry-card .card-details").textContent()).includes(lang === "cs" ? "v přípravě" : "in preparation"), "the unpublished conceptual source is labelled in its own record");
     await visit(`#/${lang}/K/page/model`, "#model-seam");
     assert.equal(await page.locator(".model-layers > li").count(), 6);
@@ -191,7 +191,7 @@ try {
     await visit(`#/${lang}/K/page/machines`, ".model-worked-example");
     const example = page.locator(".model-worked-example");
     assert.equal(await example.locator("ol > li").count(), 4, "the worked example follows the actual four-record chain");
-    for (const family of ["clauses", "questions", "tests", "actions"]) assert.equal(await example.locator(`ol a[href*="/catalogue/${family}/"]`).count(), 1, "each example step opens the correct record family");
+    for (const family of ["cl", "q", "test", "act"]) assert.equal(await example.locator(`ol a[href*="/catalogue/${family}/"]`).count(), 1, "each example step opens the correct record family");
     /* The check's parts: the questions are answered on one, the hand-overs and exports are in the report, and a
        saved result is loaded among the evidence. */
     const checkPart = (name, selector) => visit(`#/${lang}/SR/check/maturity/${name}`, selector);

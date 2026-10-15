@@ -85,10 +85,9 @@ becomes one curated resource, linked to its KNAV or FIP Dashboard record where p
 record; bio.tools and FAIRsharing identifiers become identity links (`NA` is omitted). TeSS values are quoted
 training searches, not identity links. The catalogue shows the RDMkit record and TeSS training under its sources.
 
-The guide's identifiers were set on 10 October 2026 and are kept from then on. An identifier names the same entry
-for good: it is never renamed, renumbered or reused, whatever later happens to the entry's name, place or wording. An
-entry that is no longer valid is marked as superseded instead of deleted; an entry that does go away leaves its
-identifier retired.
+An identifier becomes issued in the first official release. Before then it may change in place, without a
+retirement entry or compatibility alias. An issued identifier names the same entry for good and is never reused.
+Current classifications and source metadata may change without changing that identity.
 
 `content/identifiers.toml` registers every identifier the guide has issued, by kind: lenses, stations, checks, check modes
 and profiles (`<check>.<id>`, as share links carry them), pages, advice, questions, requirements, sources,
@@ -109,21 +108,23 @@ An identifier says where an entry belongs, not what it says:
   (`OS3-RULES.24`). A source's code is its declared `code` (the FAIR analysis `A`, `NRP`, `CTS`, `CDIF`) or else its
   ID in capitals without a version suffix (`os3-rules` gives `OS3-RULES`). Where a source falls short (no labels, or
   labels it does not keep), the guide's own serial takes over.
-- **Borrowed records nest under their registry.** A record the guide takes from another registry keeps that
-  registry's identifier, nested under the registry's own catalogue entry so that it always says whose it is, however
-  many registries the guide draws on: a re3data record `re3data.r3d100013576`, a FIP or a FIP Dashboard record
-  `fip-dashboard.ndi-baseline`, a FAIR Champion test `fair-champion.fc_searchable`, a repository only NKR lists
-  `nkr.<its NKR ID>`. A vocabulary's term also says that it is a term: `t.<keeper>.<ID>`, so a Heslář term is
-  `t.ntk.87` (NTK keeps Heslář), and a second vocabulary's terms take their keeper's code. The content files and
-  snapshots hold the registry's identifier as it is (a glossary term's `id` is `87`); the catalogue, its links and its
-  exports show the nested form. The registries keep these identifiers, so they are not in the register.
-- **A curated entry carries the records it matches.** A repository, resource or organisation the guide curates is its
-  own entry, not a borrowed record: not every repository the guide lists is in re3data (the NRP catch-all repository,
-  MBDB), so repositories have the guide's own names like resources. A curated entry links the registry records it
-  matches (`re3data`, `fipDashboard`), shows them among its identifiers, and the borrowed identifiers of those
-  records lead to it: `re3data.r3d100010468` and `fip-dashboard.zenodo` open Zenodo's entry. A repository that gets a
-  re3data ID later, as MBDB may, keeps its identifier; its entry gains the re3data ID, and `re3data.<that ID>` leads
-  to it. A record listed only from a registry that the guide later curates keeps its address the same way.
+- **One primary per record.** Every normalized catalogue record stores its Guide-owned `id`. There is no
+  second primary or separate slug override. A model uses `id = "layers-seams"`; a question uses
+  `id = "software.04"`. Previously authored IDs were corrected in place before release, without aliases.
+- **Genuine source alternatives.** Imported records store `alternateIds = [{ scheme = "knav", value = "github" }]`
+  or the corresponding `heslar`, `re3data`, `nkr`, `fip-dashboard`, `fair-champion` or evaluator scheme. Values
+  come directly from that source's identifier field. An obsolete Guide slug never becomes an alternate.
+  The build rejects missing, untyped, empty or competing source identifiers. Published records expose the
+  primary as `identifier` and typed source values as `alternateIdentifier` PropertyValues.
+- **Stable identity through refresh.** `guideRoute` stores the frozen compact kind/type prefix. Refresh joins
+  through the typed source identifier or an unambiguous authoritative URL, retains `id` and `guideRoute`, and
+  updates source metadata. Names alone never merge records; ambiguous joins and splits require review.
+  New records take a short local ID once. Removed IDs stay reserved across subsequent refreshes, without routes
+  or aliases, so they cannot be assigned to a different record.
+- **External identities keep their roles.** Source IDs and authoritative IRIs remain record metadata; `url` is the
+  landing page and `sameAs` is an equivalent identity. FAIR principle records declare their published `iri`.
+  Curated records link reviewed matches rather than duplicating the described thing. Native source labels,
+  criterion IDs and quoted originals are preserved.
 - **Plain names for the guide's own structure.** Stations, checks, check modes and profiles, pages, resources,
   repositories and sources have short lower-case English names in kebab case (`repository`, `dataset`,
   `core-system`, `live-check`, `zenodo`); lenses and levels short codes (`SR`, `L1`); provenance actions
@@ -154,8 +155,31 @@ contains a phrase in another language marks it, so the page can set the right `l
 
 ### References in text
 
+Catalogue addresses belong to the Guide: `<kind-code>/<type-code>/<id>`, omitting type where unneeded.
+`scripts/catalogue_identity.py` owns the compact vocabulary; `catalogue_addresses()` in `scripts/build_crate.py`
+projects the stored record identity once. Examples: `res/tool/github`, `repo/gen/zenodo`, `q/software.04`.
+Slugs contain no articles, prepositions or conjunctions. Prefer a recorded official abbreviation, then specific
+words from the source URL; skip generic registry/resolver and interface paths. Where neither is useful, choose
+short meaningful name words without particles or cut-off words. These are one-time local assignments; later
+title, abbreviation or URL changes do not rename a record. Symbolic parts of official abbreviations remain intact.
+The API, routes, references and exports consume the emitted address; chips display its compact last segment.
+There is no `[catalogue]` full-address register, old-route alias table or duplicate API compatibility document.
+The complete address remains available through the chip link/title. `guideRoute` is frozen for issued records,
+so a classification edit does not move a published address.
+
+A canonical prose reference is `[[res/tool/github|GitHub]]`: any allowed published catalogue entry can be named by
+its compact address. Current short forms for authored resources/sources, pages, stations, clauses and the model
+are convenient content references, not compatibility routes. New imported records receive their own primary `id`
+during snapshot refresh; source changes never regenerate existing Guide IDs from names or external identifiers.
+
+Optional `linkNames = { cs = ["reviewed inflected phrase"], en = ["specific alternate name"] }` adds reviewed
+editorial matching forms to an owning record. Snapshot refresh preserves this local metadata. The advisory also
+learns forms from authored references, suppresses generic/self/already-linked mentions, prefers longer phrases
+and marks unresolved ambiguity for review. Its proposed markup and excerpt are hints; they never rewrite prose
+or fail content integrity checks. Do not add broad noun stems to force matches.
+
 A text that names a resource, a source or a glossary term marks the name as a reference: `[[id|phrase]]`, where
-`id` is the resource's or source's ID, `term:<id>` for a glossary term, `page:<id>` for a page of the guide,
+`id` is the resource's or source's ID, the emitted `term/<Guide ID>` for a glossary term, `page:<id>` for a page of the guide,
 `infrastructure:<id>` for a large research infrastructure (`infrastructures` for their catalogue),
 `clause:<id>` for a ledger clause (such as a CoreTrustSeal requirement) or `profile` for the guide's profile, and
 `phrase` is the words that name it
@@ -267,10 +291,21 @@ correspondence at `api/lifecycle/<identifier>.json`; the register and provenance
 ### Paradata
 
 Every item that needs paradata (`provenance_items` in `scripts/check_content.py`: the guide's metadata, clauses,
-advice, questions, resources, tests, organisations, the model and the life-cycle models) is covered by a provenance action following the
+advice, questions, resources, sources, pages, curated repositories, callouts and their namespaced items, tests,
+organisations, infrastructures, the EOSC CZ Node, provider criteria, the model and the life-cycle models)
+is covered by a provenance action following the
 Process Run Crate profile: `agent` (person, ORCID where available), `instrument` (tools, naming any AI model),
 `object` (sources consulted), `result` (items produced or changed) and `endTime`. A changed item needs an action
 newer than the point where the branch left the compared base.
+
+Callouts use `callout:<id>` and their items use `callout.<id>.<item>` in the identifier register and provenance
+results. Page results use `page:<id>`; curated repositories and sources keep their content IDs. The retrospective
+coverage action records review of existing records without attributing their original authorship to that review.
+
+The health JSON/API, dashboard and summary expose `missing_links`: ranked, specific name matches in authored prose that
+may need a catalogue reference. Each item retains its text path, language, text, matched entry and Guide address.
+Original source passages and labels are excluded; existing references to the same entity are respected. These
+suggestions are advisory and never fail a check or change prose automatically.
 
 ### Statuses
 

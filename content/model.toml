@@ -2,8 +2,9 @@
 # Assessment requirements retain their published ledger sources. Field reference: docs/content-model.md.
 
 [model]
-id = "layers-and-seams"
-source = "layers-and-seams-manuscript"
+
+id = "layers-seams"
+source = "layers-seams-manuscript"
 name = { cs = "Vrstvy a návaznosti FAIR implementace", en = "Layers and seams of FAIR implementation" }
 description = { cs = "FAIR data vznikají spoluprací lidí a služeb. Model pomáhá rozlišit jejich úlohy a sledovat, co si potřebují předat.", en = "FAIR data depend on people and services working together. The model helps distinguish their functions and follow what they need to pass on." }
 introduction = { cs = "Vrstva sdružuje činnosti podle jejich funkce. Návaznost (seam) je předání informací přes hranici odpovědnosti: mezi vrstvami i mezi různými činnostmi uvnitř jedné vrstvy. Předání funguje, když příjemce informacím rozumí a dokáže je použít.", en = "A layer groups activities by function. A seam is an information transfer across a responsibility boundary, between layers or between distinct functions within one layer. A transfer works when the recipient can interpret the information and act on it." }
@@ -13,42 +14,49 @@ feedback = { cs = "Plánování přináší požadavky na služby. Podpora před
 [model.workedExample]
 name = { cs = "Jak Průvodce předává požadavek do kontroly", en = "How the Guide carries a requirement into a check" }
 description = { cs = "Publikovaný požadavek na identifikátor vede k otázce a k pojmenovanému testu. Test dokládá rozlišení PID; dlouhodobou dostupnost neověřuje. Záznam revize vysvětluje, jak vznikla jeho implementace a popis rozsahu. U konkrétního výsledku kontroly zůstávají také posuzovaný objekt, pozorování a datum.", en = "A published identifier requirement leads to a question and a named test. The test establishes PID resolution; it does not verify long-term availability. A revision record explains how its implementation and scope description were produced. A specific assessment result also retains the assessed object, observations and date." }
-steps = ["A.F1.R1", "dataset.01", "test:guide-dataset-01", "action:2026-10-11-test-definitions-and-health"]
+steps = ["A.F1.R1", "dataset.01", "test:guide-dataset-01", "action:2026-10-11-test-health"]
 
 [[layer]]
+guideRoute = "model/layer"
 id = "policy"
 name = { cs = "Principy, politika a řízení", en = "Principles, policy and governance" }
 description = { cs = "Určují cíle, odpovědnosti a podmínky pro správu dat: financování, přístup, licence, uchování a uznání výsledků.", en = "Set goals, responsibilities and conditions for data management: funding, access, licensing, preservation and recognition of outputs." }
 
 [[layer]]
+guideRoute = "model/layer"
 id = "community"
 name = { cs = "Rozhodování a implementace v komunitě", en = "Community decision and implementation" }
 description = { cs = "Komunita vybírá standardy a služby a vymezuje oborový popis dat. Společné jádro, oborové profily a popis jednotlivých metod propojuje podle potřeby mapováním.", en = "The community selects standards and services and defines disciplinary data descriptions. A common core, domain profiles and method descriptions can be connected through mappings." }
 
 [[layer]]
+guideRoute = "model/layer"
 id = "infrastructure"
 name = { cs = "Infrastruktura", en = "Infrastructure" }
 description = { cs = "Poskytuje repozitáře, identifikátory, vyhledávání a rozhraní. Sdílené služby se přizpůsobují oborovým potřebám; přenos mezi dvěma službami vyžaduje použitelnou návaznost.", en = "Provides repositories, identifiers, discovery and interfaces. Shared services accommodate domain needs; a transfer between two services requires a usable seam." }
 
 [[layer]]
+guideRoute = "model/layer"
 id = "planning"
 name = { cs = "Plánování výzkumu", en = "Research planning" }
 description = { cs = "Promítá pravidla a komunitní volby do konkrétního projektu. Plán správy dat zachycuje očekávaná data, postupy a služby i potřeby, které dosud nejsou pokryty.", en = "Applies policies and community choices to a specific project. A data management plan captures expected data, practices and services, including needs that are not yet met." }
 
 [[layer]]
+guideRoute = "model/layer"
 id = "support"
 name = { cs = "Provozní podpora", en = "Operational support" }
 description = { cs = "Pomáhá při každodenní práci a řešení problémů. Zkušenosti výzkumníků, kurátorů a správců vrací do metodik, služeb a komunitních rozhodnutí.", en = "Helps with day-to-day work and problem solving. Returns experience from researchers, curators and administrators to guidance, services and community decisions." }
 
 [[layer]]
+guideRoute = "model/layer"
 id = "evaluation"
 name = { cs = "Hodnocení", en = "Evaluation" }
 description = { cs = "Posuzuje data, záznamy, služby nebo organizace podle konkrétních kritérií. Výsledek dává podklad pro nápravu; různé druhy hodnocení zodpovídají různé otázky.", en = "Assesses data, records, services or organisations against specific criteria. Findings support remediation; different kinds of evaluation answer different questions." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "repository-nma"
 layers = ["infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Repozitář → NMA", en = "Repository → NMA" }
 description = { cs = "Repozitář zpřístupňuje záznamy pro společné vyhledávání. Mapování zachovává význam oborového popisu při převodu do společného jádra.", en = "The repository exposes records for shared discovery. A mapping preserves the meaning of the domain description when converting it to the common core." }
 transfer = { cs = "Záznam pro vyhledávání a vztah k původnímu oborovému popisu", en = "A discovery record and its relationship to the original domain description" }
@@ -58,9 +66,10 @@ carrier = { cs = "CCMM-XML, OAI-PMH a mapování, například XSLT", en = "CCMM-
 maintainers = { cs = "Repozitář spravuje mapování; NMA spravuje sklizeň.", en = "The repository maintains mappings; NMA maintains harvesting." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "nma-research-register"
 layers = ["infrastructure", "evaluation"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "NMA → evidence výsledků", en = "NMA → research-output register" }
 description = { cs = "Pro vykázání datasetu slouží odkaz na jeho záznam v NMA. Identifikátor dat zůstává prostředkem pro citování samotného datasetu.", en = "Reporting a dataset uses the URL of its NMA record. The data identifier remains the reference for citing the dataset itself." }
 transfer = { cs = "Odkaz na záznam datasetu pro vykázání výsledku typu T", en = "The dataset-record URL for reporting an output of type T" }
@@ -70,9 +79,10 @@ carrier = { cs = "URL záznamu NMA a postup pro vykazování do RIV", en = "NMA 
 maintainers = { cs = "NMA zajišťuje adresu záznamu; instituce zajišťuje správné vykázání.", en = "NMA provides the record URL; the institution handles reporting." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "institution-nma"
 layers = ["policy", "infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Instituce → NMA", en = "Institution → NMA" }
 description = { cs = "Instituce promítá požadavky programu a vlastní strategii do zveřejnění a popisu konkrétního datového výstupu.", en = "An institution applies programme requirements and its strategy to the publication and description of a specific data output." }
 transfer = { cs = "Metadata financovaného datového výstupu a údaje požadované programem", en = "Metadata of a funded data output and programme-required information" }
@@ -82,9 +92,10 @@ carrier = { cs = "Programová pravidla, institucionální postup a záznam NMA",
 maintainers = { cs = "Instituce organizuje přípravu a vykázání výstupu.", en = "The institution organises preparation and reporting of the output." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "repository-authentication"
 layers = ["infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Repozitář ↔ ověření identity", en = "Repository ↔ authentication" }
 description = { cs = "Ověřená identita a oprávnění umožňují přístup k datům za stanovených podmínek. Omezený přístup může být v souladu s FAIR.", en = "An authenticated identity and authorisation enable access under defined conditions. Restricted access can be consistent with FAIR." }
 transfer = { cs = "Identita uživatele a oprávnění k přístupu", en = "User identity and access authorisation" }
@@ -94,9 +105,10 @@ carrier = { cs = "Federovaná identita a přístupová pravidla; v národním pr
 maintainers = { cs = "Správce repozitáře a poskytovatel infrastruktury pro ověření identity.", en = "Repository administrator and authentication infrastructure provider." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "repository-pid-registry"
 layers = ["infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Repozitář / instituce → registry PID", en = "Repository / institution → PID registries" }
 description = { cs = "Záznamy identifikátorů propojují data s jejich popisem, osobami a organizacemi. Správa registrace a následných aktualizací je součástí této návaznosti.", en = "Identifier records connect data to their description, people and organisations. Registration and subsequent updates are part of this seam." }
 transfer = { cs = "Identifikátory a metadata dat, osob a organizací", en = "Identifiers and metadata for data, people and organisations" }
@@ -106,9 +118,10 @@ carrier = { cs = "Spravované PID a jejich metadata; například DOI, ORCID a RO
 maintainers = { cs = "Repozitář či instituce spravuje záznamy; registry zajišťují jejich infrastrukturu.", en = "The repository or institution maintains records; registries provide their infrastructure." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "community-repository"
 layers = ["community", "infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Komunita → nastavení repozitáře", en = "Community → repository configuration" }
 description = { cs = "Oborové požadavky se promítají do formuláře, schématu a kontroly metadat. Společný popis pro vyhledávání se propojuje s oborovým profilem pomocí mapování.", en = "Domain requirements become metadata forms, schemas and validation. Mappings connect the common discovery description to the domain profile." }
 transfer = { cs = "Oborový profil, slovníky, datové formáty a mapování", en = "Domain profile, vocabularies, data formats and mappings" }
@@ -118,9 +131,10 @@ carrier = { cs = "Metadatové profily, schémata a mapování do společného j�
 maintainers = { cs = "Komunita rozvíjí oborový význam; repozitář udržuje jeho implementaci.", en = "The community develops domain meaning; the repository maintains its implementation." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "working-groups-services"
 layers = ["community", "infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Pracovní skupiny → služby", en = "Working groups → services" }
 description = { cs = "Opakující se potřeby oborů se převádějí do priorit pro rozvoj společných služeb.", en = "Recurring domain needs inform priorities for shared-service development." }
 transfer = { cs = "Požadavky komunit a priority rozvoje", en = "Community requirements and development priorities" }
@@ -130,9 +144,11 @@ carrier = { cs = "Koordinace pracovních skupin a roadmapy služeb", en = "Worki
 maintainers = { cs = "Pracovní skupiny a poskytovatelé služeb průběžně slaďují potřeby a rozvoj.", en = "Working groups and service providers continually align needs and development." }
 
 [[seam]]
+guideRoute = "model/seam"
+
 id = "repository-catalogue-planning"
 layers = ["infrastructure", "planning"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Repozitář → katalog → plánování", en = "Repository → catalogue → planning" }
 description = { cs = "Popis služby pomáhá vybrat repozitář a připravit proveditelný plán. Zveřejnění katalogového záznamu a jeho využití v plánovacím nástroji jsou dvě různé části návaznosti.", en = "A service description helps select a repository and prepare a feasible plan. Publishing a catalogue record and reusing it in a planning tool are distinct parts of the seam." }
 transfer = { cs = "Rozsah služby, podmínky přijetí, schémata a slovníky", en = "Service scope, deposit conditions, schemas and vocabularies" }
@@ -142,9 +158,10 @@ carrier = { cs = "Záznam repozitáře v katalogu; v národním prostředí NKR"
 maintainers = { cs = "Repozitář aktualizuje svůj popis; katalog a plánovací nástroj zajišťují jeho přenos.", en = "The repository updates its description; the catalogue and planning tool provide its transfer." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "community-planning"
 layers = ["community", "planning"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Komunita → plánování", en = "Community → planning" }
 description = { cs = "Komunitní výběr standardů a služeb se převádí do rozhodnutí projektu. FIP zaznamenává vybrané zdroje; podrobný popis požadavků zůstává v příslušných profilech a schématech.", en = "Community selections of standards and services inform project decisions. A FIP records selected resources; detailed requirements remain in the corresponding profiles and schemas." }
 transfer = { cs = "Vybrané zdroje umožňující FAIR a odkazy na jejich požadavky", en = "Selected FAIR-enabling resources and references to their requirements" }
@@ -154,9 +171,10 @@ carrier = { cs = "FIP, metadatové profily a plán správy dat", en = "FIP, meta
 maintainers = { cs = "Komunita udržuje svůj výběr; projekt jej promítá do plánu.", en = "The community maintains its selections; the project applies them in its plan." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "plan-repository"
 layers = ["planning", "infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Plán → repozitář", en = "Plan → repository" }
 description = { cs = "Rozhodnutí projektu se při ukládání dat porovnávají s podmínkami repozitáře. Strojové předání potřebuje informace v podobě, kterou příjemce umí zpracovat.", en = "Project decisions are compared with repository conditions at deposit. Machine-actionable transfer needs information in a form the recipient can process." }
 transfer = { cs = "Dohodnuté formáty, metadata, licence, přístup a uchování", en = "Agreed formats, metadata, licensing, access and preservation" }
@@ -166,9 +184,10 @@ carrier = { cs = "Plán správy dat, podmínky repozitáře a případně strojo
 maintainers = { cs = "Výzkumný tým připravuje plán; repozitář vymezuje a ověřuje podmínky přijetí.", en = "The research team prepares the plan; the repository defines and checks deposit conditions." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "repository-support"
 layers = ["infrastructure", "support"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Správce repozitáře → podpora infrastruktury", en = "Repository administrator → infrastructure support" }
 description = { cs = "Problém služby se předává na úroveň, která jej dokáže řešit. Podklad identifikuje službu, okolnosti a pozorované chování.", en = "A service problem is passed to the level able to address it. The report identifies the service, circumstances and observed behaviour." }
 transfer = { cs = "Popis problému, diagnostika a požadavek na změnu", en = "Problem description, diagnostics and a change request" }
@@ -178,9 +197,10 @@ carrier = { cs = "Postup podpory a předání diagnostických podkladů", en = "
 maintainers = { cs = "Správce repozitáře a příslušný poskytovatel infrastruktury.", en = "Repository administrator and the relevant infrastructure provider." }
 
 [[seam]]
+guideRoute = "model/seam"
 id = "assessment-remediation"
 layers = ["evaluation", "support", "infrastructure"]
-source = "layers-and-seams-manuscript"
+source = "layers-seams-manuscript"
 name = { cs = "Hodnocení → náprava", en = "Assessment → remediation" }
 description = { cs = "Zjištění se předává lidem, kteří mohou změnit příslušná data, metadata, službu nebo pravidla. Podklad zachovává, co se posuzovalo a co dostupné důkazy skutečně dokládají.", en = "Findings go to people able to change the relevant data, metadata, service or policy. The report preserves what was assessed and what the available evidence actually supports." }
 transfer = { cs = "Kritérium, posuzovaný objekt, zjištění, důkazy a rozsah kontroly", en = "Criterion, assessed object, findings, evidence and inspection scope" }
@@ -190,31 +210,34 @@ carrier = { cs = "Výsledek kontroly a dohodnutý postup pro nápravu", en = "As
 maintainers = { cs = "Nápravu provádí aktér, který může změnit dotčený údaj, službu nebo pravidlo.", en = "Remediation is performed by the actor able to change the affected information, service or policy." }
 
 [[example]]
+guideRoute = "model/ex"
 id = "nkr-catalogue"
 seam = "repository-catalogue-planning"
 status = "pilot"
 asOf = "2026-09"
-evidence = ["layers-and-seams-manuscript"]
+evidence = ["layers-seams-manuscript"]
 name = { cs = "Katalog repozitářů", en = "Repository catalogue" }
 description = { cs = "NKR je pilotní katalog pro popis repozitářů.", en = "NKR is a pilot catalogue for repository descriptions." }
 scope = { cs = "Katalogová část návaznosti v mapování rukopisu", en = "Catalogue part of the seam in the manuscript mapping" }
 
 [[example]]
+guideRoute = "model/ex"
 id = "nkr-planning"
 seam = "repository-catalogue-planning"
 status = "planned"
 asOf = "2026-09"
-evidence = ["layers-and-seams-manuscript"]
+evidence = ["layers-seams-manuscript"]
 name = { cs = "Využití katalogu při plánování", en = "Catalogue reuse in planning" }
 description = { cs = "Propojení popisů repozitářů s plánovacím nástrojem je v mapování vedeno jako plánované.", en = "The mapping describes connecting repository descriptions to a planning tool as planned." }
 scope = { cs = "Přenos z katalogu do plánovacího nástroje v mapování rukopisu", en = "Transfer from catalogue to planning tool in the manuscript mapping" }
 
 [[example]]
+guideRoute = "model/ex"
 id = "assessment-feedback"
 seam = "assessment-remediation"
 status = "prospective"
 asOf = "2026-09"
-evidence = ["layers-and-seams-manuscript"]
+evidence = ["layers-seams-manuscript"]
 name = { cs = "Pravidelné předávání výsledků hodnocení", en = "Routine assessment feedback" }
 description = { cs = "Mapování popisuje jednotlivá předání zjištění, ale v posuzovaných dokumentech nenachází přidělenou odpovědnost za pravidelný postup.", en = "The mapping describes case-by-case transfers of findings, but finds no assigned responsibility for a routine process in the documents examined." }
 scope = { cs = "Dokumenty a zkušenosti zahrnuté do mapování rukopisu", en = "Documents and experience included in the manuscript mapping" }

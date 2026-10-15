@@ -9,7 +9,7 @@ title = { cs = "Popis dat (metadata)", en = "Describing the data (metadata)" }
 icon = "tags"
 principles = ["F2", "I1", "I2", "I3", "R1", "R1.2", "R1.3"]
 minutes = 15
-glossary = ["182", "389", "134", "408", "409", "216"]
+glossary = ["metadata", "metadata-standard", "metadata-application-profile", "czech-core-metadata-model", "controlled-vocabulary", "research-organization-registry"]
 
 [[advice]]
 id = "metadata.01"

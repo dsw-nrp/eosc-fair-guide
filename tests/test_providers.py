@@ -46,12 +46,14 @@ reviewed = [{ api = "1.0" }]
 
 [[provider.metric]]
 id = "M1"
+alternateIds = [{ scheme = "evaluator", value = "M1" }]
 name = "The provider's own wording."
 principle = "F1"
 label = { cs = "Čtení Průvodce", en = "The Guide's reading" }
 
 [[provider.metric]]
 id = "M2"
+alternateIds = [{ scheme = "evaluator", value = "M2" }]
 name = "An unmapped criterion."
 principle = "F1"
 label = { cs = "Bez mapování", en = "Unmapped" }
@@ -97,8 +99,10 @@ class ProviderContentTests(ProviderCase):
     def test_criteria_reuse_existing_principles(self) -> None:
         self.edit(
             "live.toml",
-            'id = "M2"\nname = "An unmapped criterion."\nprinciple = "F1"',
-            'id = "M2"\nname = "An unmapped criterion."\nprinciple = "F9"',
+            'id = "M2"\nalternateIds = [{ scheme = "evaluator", value = "M2" }]\n'
+            'name = "An unmapped criterion."\nprinciple = "F1"',
+            'id = "M2"\nalternateIds = [{ scheme = "evaluator", value = "M2" }]\n'
+            'name = "An unmapped criterion."\nprinciple = "F9"',
         )
         self.assertError("unknown principle 'F9'")
 
@@ -128,7 +132,7 @@ class ProviderCrateTests(ProviderCase):
         criterion = graph["#criterion-evaluator-M1"]
         self.assertEqual(criterion["identifier"], "M1")
         self.assertEqual(criterion["name"], {"@language": "en", "@value": "The provider's own wording."})
-        self.assertEqual(criterion["about"], {"@id": build_crate.FAIR_PRINCIPLES + "F1"})
+        self.assertEqual(criterion["about"], {"@id": build_crate.principle_iri("F1")})
         self.assertEqual(criterion["url"], "https://evaluator.example.org/api/metric_M1")
         mapping = graph["#mapping-evaluator-M1-gate.01"]
         self.assertEqual(mapping["about"], {"@id": "#item-gate.01"})

@@ -28,6 +28,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from build_crate import ROOT, ContentError, load_content  # noqa: E402
+from catalogue_identity import alternate_id
 from check_content import Report, bare_url  # noqa: E402
 
 ACCEPTED_FILE = "duplicates.toml"
@@ -136,8 +137,8 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                     f"fip-dashboard:{record['id']}",
                     False,
                     url=bare_url(record.get("url")),
-                    fd=record["id"],
-                    knav=joined.get(f"fd:{record['id']}", {}).get("knav"),
+                    fd=alternate_id(record, "fip-dashboard"),
+                    knav=joined.get("fd:" + str(alternate_id(record, "fip-dashboard")), {}).get("knav"),
                     id=record["id"],
                     name=words(record.get("name")),
                 )
@@ -160,7 +161,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                     f"knav:{record['id']}",
                     False,
                     url=bare_url(record.get("url") or record.get("httpUrl")),
-                    knav=record["id"],
+                    knav=alternate_id(record, "knav"),
                     name=words(record.get("name")),
                 )
             )
@@ -170,7 +171,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 False,
                 url=bare_url(record.get("url")),
                 ror=record.get("ror"),
-                fdorg=record["id"],
+                fdorg=alternate_id(record, "fip-dashboard"),
                 name=words(record.get("name")),
             )
             entry.group = "organisations"

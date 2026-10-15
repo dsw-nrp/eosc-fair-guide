@@ -4,13 +4,13 @@
 The API is a view over the crate that ``build_crate.py`` builds; ``build_crate.api_records`` decides what it
 publishes. It is written into the site directory, which is not committed (``_site/`` by default):
 
-- ``api/<collection>.json`` and ``api/<collection>/<id>.json``: a list and a record per entity, with language maps
+- ``api/<collection>.json`` and ``api/<kind>/<type>/<id>.json``: lists and canonical records, with language maps
   (``{"cs": …, "en": …}``) and the JSON-LD context ``api/context.jsonld``. Records link each other by relative
   paths, carry small terms (tiers, lenses, levels) in full, and name the entity's identifier in the crate or outside
   the guide in ``sameAs``;
 - ``api/meta.json``: what the API is built from;
-- the FTR definitions of the checks: each check is a benchmark (``api/checks/``) and each of its questions a metric
-  (``api/metrics/``) with a manual test (``api/tests/``), which an exported result names as the test it comes from;
+- the FTR definitions of the checks: each check is a benchmark (``api/check/``) and each question a metric
+  (``api/q/``) with a manual test (``api/tests/``), which an exported result names as the test it comes from;
 - ``openapi.json``: the OpenAPI 3.1 description, with a server address relative to it;
 - ``api/index.html``: the interactive documentation, the authored files in ``api/`` with the pinned Swagger UI
   package that ``npm ci`` installs.
@@ -29,6 +29,7 @@ import argparse
 import copy
 import json
 import posixpath
+import re
 import shutil
 import sys
 from datetime import date
@@ -52,7 +53,7 @@ DCAT = "http://www.w3.org/ns/dcat#"
 SIO = "https://semanticscience.org/resource/"
 
 # Entities small enough to repeat in full inside the records that name them.
-EMBEDDED_TYPES = {"DefinedTerm", "Audience", "Action", "EntryPoint", "Person", "Organization"}
+EMBEDDED_TYPES = {"DefinedTerm", "Audience", "Action", "EntryPoint", "Person", "Organization", "PropertyValue"}
 # What a record adds to its crate entity or names differently, per collection.
 FTR_TYPES = {"checks": "Benchmark", "metrics": "Metric", "tests": "Test"}
 RENAMED = {
@@ -111,7 +112,7 @@ class Api:
         self.entities = {entity["@id"]: entity for entity in crate["@graph"]}
         self.records = kb.api_records(self.entities, content)
         self.paths = {
-            entity_id: kb.API_FILES["record"].format(record=f"{name}/{record}")
+            entity_id: kb.API_FILES["record"].format(record=self.entities[entity_id]["catalogueAddress"])
             for name, members in self.records.items()
             for record, entity_id in members
         }
@@ -227,8 +228,8 @@ class Api:
                 node[name] = self.value(name, value, here, depth)
         return node
 
-    def record(self, collection: str, record: str, entity_id: str) -> dict[str, Any]:
-        here = self.paths[entity_id]
+    def record(self, collection: str, record: str, entity_id: str, here: str | None = None) -> dict[str, Any]:
+        here = here or self.paths[entity_id]
         entity = self.entities[entity_id]
         self.given = set()
         node = self.node(entity, here, 0, collection)
@@ -389,6 +390,13 @@ class Api:
         for group in result["integrity"]:
             collections = ("resources",) if group["type"].startswith("resources:") else groups.get(group["type"], ())
             for item in group["items"]:
+                if group["type"] == "implementation model" and item["id"].startswith(("layer.", "seam.", "example.")):
+                    kind, identifier = item["id"].split(".", 1)
+                    prefix = "#model-example-" if kind == "example" else "#" + kind + "-"
+                    target = self.paths.get(prefix + identifier)
+                    if target:
+                        item["api_record"] = self.relative(HEALTH_FILE, target)
+                    continue
                 if group["type"] == "implementation model" and item["id"].startswith("context:"):
                     context_id = "#model-context-" + item["id"].removeprefix("context:").replace(":", "-")
                     if self.paths.get(context_id):
@@ -475,7 +483,9 @@ class Api:
             schema = SCHEMAS[collection]
             tags.append({"name": collection, "description": strings["description"]})
             paths[f"/api/{collection}.json"] = operation(f"list{schema}s", strings["name"], "List", collection)
-            records = [Path(path).stem for path in docs if path.startswith(f"api/{collection}/")]
+            records = [
+                Path(path).stem for path in docs if str(Path(path).parent).replace("\\", "/") == f"api/{collection}"
+            ]
             if not records:
                 continue  # An empty list is published as it is; there is no record path without a record to name.
             parameter = {
@@ -489,6 +499,18 @@ class Api:
             paths[f"/api/{collection}/{{{PARAMETERS[collection]}}}.json"] = operation(
                 f"get{schema}", strings["record"], schema, collection, parameter=parameter
             )
+        # The canonical addresses may have a subtype and share a family across API collection vocabularies.
+        # Describe concrete paths so their schema always remains that of the record, including cited sources.
+        for collection, members in self.records.items():
+            for _, entity_id in members:
+                path = self.paths[entity_id]
+                if path != kb.API_FILES["record"].format(record=f"{collection}/{Path(path).stem}"):
+                    paths["/" + path] = operation(
+                        "catalogue" + re.sub(r"[^A-Za-z0-9]", "_", path),
+                        "Catalogue record",
+                        SCHEMAS[collection],
+                        collection,
+                    )
         return {
             "openapi": "3.1.0",
             "info": {
@@ -709,6 +731,15 @@ def health_schemas() -> dict[str, Any]:
                 "scope": {"type": "string"},
                 "revision": nullable_string,
                 "run_url": nullable_string,
+                "missing_links": {
+                    "type": "array",
+                    "description": "Advisory exact-name matches in authored prose; never integrity failures.",
+                    "items": {
+                        "type": "object",
+                        "required": ["path", "language", "text", "entry", "entry_name", "address"],
+                        "additionalProperties": {"type": "string"},
+                    },
+                },
                 "live_availability": {
                     "type": "object",
                     "required": ["status", "reason"],

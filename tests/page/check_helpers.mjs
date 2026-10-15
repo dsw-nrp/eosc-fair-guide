@@ -9,7 +9,7 @@ import { audit } from "./accessibility.mjs";
 const root = resolve(import.meta.dirname, "../..");
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
 const { chromium } = await import("playwright");
-const config = { helpers: { maxCharacters: 100000, maxItems: 40 }, links: { fipDashboard: "https://fip-dashboard.dmp.eosc.cz/", nkr: "https://nkr.example/" } };
+const config = { api: { records: {} }, helpers: { maxCharacters: 100000, maxItems: 40 }, links: { fipDashboard: "https://fip-dashboard.dmp.eosc.cz/", nkr: "https://nkr.example/" } };
 const FG = { config, list: (value) => value == null ? [] : Array.isArray(value) ? value : [value], graph: [], get: () => null, refs: () => [] };
 for (const script of ["live.js", "helpers.js", "search.js"]) runInNewContext(readFileSync(resolve(root, "assets/js", script), "utf8"), { window: { FairGuide: FG }, URL });
 const H = FG.helpers;

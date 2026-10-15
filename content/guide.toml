@@ -128,7 +128,7 @@ ror = "https://ror.org/024d6js02"
 id = "nrp"
 name = { cs = "Národní repozitářová platforma pro výzkumná data", en = "National Repository Platform for Research Data" }
 url = "https://www.eosc.cz/projekty/narodni-repozitarova-platforma-pro-vyzkumna-data-nrp"
-identifier = "CZ.02.01.01/00/23_014/0008787"
+alternateIds = [{ scheme = "op-jak", value = "CZ.02.01.01/00/23_014/0008787" }]
 funder = "msmt"
 fipDashboard = "nrp"
 

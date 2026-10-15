@@ -264,7 +264,7 @@
     const select = h(
       "select",
       { id: "prefill-fip" },
-      fips.map((fip) => h("option", { value: fip.identifier, selected: st.fip === fip.identifier }, [fip.alternateName, FG.text(fip.name)].filter(Boolean).join(": ")))
+      fips.map((fip) => h("option", { value: FG.sourceIdentifier(fip, "fip-dashboard"), selected: st.fip === FG.sourceIdentifier(fip, "fip-dashboard") }, [fip.alternateName, FG.text(fip.name)].filter(Boolean).join(": ")))
     );
     const nanopub = h("input", { id: "prefill-nanopub", type: "text", autocomplete: "off", spellcheck: "false" });
     const runNanopub = () => {
@@ -285,7 +285,7 @@
               "div",
               { class: "inline" },
               select,
-              h("button", { type: "button", id: "prefill-fip-run", onclick: () => prefillFromDashboard(check, fips.find((fip) => fip.identifier === select.value)) }, FG.t("selfcheck.prefill.fipButton"))
+              h("button", { type: "button", id: "prefill-fip-run", onclick: () => prefillFromDashboard(check, FG.sourceEntity("fip-dashboard", select.value, "#fip-")) }, FG.t("selfcheck.prefill.fipButton"))
             ),
             !FG.live.available("fip-dashboard") && snapshot
               ? h(
@@ -343,7 +343,7 @@
 
   function localTestLinks(test) {
     if (!test) return null;
-    return h("p", { class: "small test-invocation" }, h("a", { href: FG.catalogueHref("tests", test.identifier) }, FG.text(test.name)),
+    return h("p", { class: "small test-invocation" }, h("a", { href: FG.entryHref(test) }, FG.text(test.name)),
       test.url ? [" · ", h("a", { href: test.url, target: "_blank", rel: "noopener" }, FG.t("selfcheck.evidence.code"))] : null,
       FG.refs(test, "subjectOf").map((doc) => [" · ", h("a", { href: FG.testDocumentationHref(doc.url || doc["@id"], test), target: "_blank", rel: "noopener" }, FG.t("selfcheck.evidence.documentation"))]));
   }

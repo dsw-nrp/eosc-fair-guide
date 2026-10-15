@@ -556,15 +556,15 @@ try {
   for (const lang of ["cs", "en"]) {
     await page.goto(base + `#/${lang}/DS/selfcheck`);
     await page.waitForSelector(".check-cards");
-    const href = await page.evaluate(() => window.FairGuide.catalogueHref("tests", "f-uji.FsF-F1-02MD"));
+    const href = await page.evaluate(() => window.FairGuide.entryHref(window.FairGuide.get("#criterion-f-uji-FsF-F1-02MD")));
     await page.goto(base + href);
-    const card = page.locator('[id="item-f-uji.FsF-F1-02MD"]');
+    const card = page.locator('[id="item-f-uji/FsF-F1-02MD"]');
     await card.waitFor();
     const text = await card.textContent();
     assert(text.includes("FsF-F1-02MD") && text.includes("Metadata and data are assigned a persistent identifier.") && text.includes("dataset.01"), "a criterion keeps its native identity and wording: " + text);
     assert(text.includes("zenodo.6461229") && text.includes("zenodo.15045911"), "the reviewed versions are named");
-    await page.goto(base + await page.evaluate(() => window.FairGuide.catalogueHref("tests", "fair-checker.F1A")));
-    const unmapped = page.locator('[id="item-fair-checker.F1A"]');
+    await page.goto(base + await page.evaluate(() => window.FairGuide.entryHref(window.FairGuide.get("#criterion-fair-checker-F1A"))));
+    const unmapped = page.locator('[id="item-fcx/F1A"]');
     await unmapped.waitFor();
     assert((await unmapped.textContent()).includes(lang === "cs" ? "není mapováno" : "not mapped"), "an unmapped criterion stays listed as evidence only");
     await checkAccess(`${lang} catalogue criterion`);

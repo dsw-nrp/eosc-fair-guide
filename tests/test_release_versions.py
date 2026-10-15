@@ -54,7 +54,7 @@ class ReleaseVersions(unittest.TestCase):
         )
         registry = tomllib.loads((self.root / "content/identifiers.toml").read_text(encoding="utf-8"))
         (self.root / "content/identifiers.toml").write_text(
-            release.render(registry["register"]["frozen"], {"actions": []}, {}), encoding="utf-8"
+            release.render(registry["register"]["prepared"], {"actions": []}, {}), encoding="utf-8"
         )
         self.prs = [
             self.pr(3, "a", "One [complete] change"),

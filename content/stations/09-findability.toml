@@ -9,7 +9,7 @@ title = { cs = "NMA a další vyhledávače", en = "NMA and other discovery serv
 icon = "magnifying-glass"
 principles = ["F4", "A2"]
 minutes = 5
-glossary = ["397", "166", "186", "394"]
+glossary = ["national-metadata-directory", "harvesting", "oai-pmh", "national-data-infrastructure"]
 
 [[advice]]
 id = "findability.01"

@@ -27,7 +27,7 @@
   P.provider = (id) => FG.list(P.settings().list).find((entry) => entry.id === id) || null;
   /** An evaluator's badge: the favicon of its entry among the resources, or its monogram. */
   const evaluatorBadge = (provider, id) => FG.serviceBadge(id || provider.id, (FG.get("#resource-" + (id || provider.id)) || {}).url);
-  P.criterion = (provider, metric) => FG.get("#criterion-" + provider + "-" + metric);
+  P.criterion = (provider, metric) => FG.sourceEntity(provider, metric);
   P.isAssessmentId = (value) => typeof value === "string" && ASSESSMENT_ID.test(value);
 
   /** The reviewed mappings of a provider's criteria: metric, question, coverage and the crate entity holding the note. */
@@ -794,7 +794,7 @@
         h("p", { class: "criterion-head" },
           h("span", { class: "criterion-outcome", "data-verdict": state }, h("span", { "aria-hidden": "true" }, (P.ICON[state] || "?") + " "), P.outcome(result, provider)),
           " ", h("strong", null, criterion ? FG.text(criterion.alternateName) || name : name), " ",
-          criterion ? FG.idChip("tests", FG.borrowedId(assessment.provider, result.id)) : h("span", { class: "id-chip id-chip-static" }, result.id)),
+          criterion ? FG.idChip(criterion) : h("span", { class: "id-chip id-chip-static" }, result.id)),
         name ? h("p", { class: "small muted criterion-name", lang: "en" }, name) : null,
         questionLinks(check, st, assessment, result.id),
         details.length ? h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.providers.native")), h("div", { class: "content" }, details)) : null);

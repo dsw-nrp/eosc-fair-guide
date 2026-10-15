@@ -9,7 +9,7 @@ title = { cs = "Analýza, kterou lze zopakovat", en = "Analysis that others can 
 icon = "laptop-code"
 principles = ["R1.2", "R1"]
 minutes = 3
-glossary = ["67", "197"]
+glossary = ["reproducibility", "open-source-software"]
 
 [[advice]]
 id = "analyse.01"
@@ -68,7 +68,7 @@ sources = ["NRP.M2", "NRP-COMPUTE.01"]
 id = "analyse.08"
 lens = "K"
 level = "L0"
-text = { cs = "Sdílejte v komunitě ověřené analytické postupy a pracovní postupy a doporučený software zapište do FIP, aby na ně výzkumníci mohli navázat.", en = "Share proven analysis methods and workflows in the community and record the recommended software in the FIP, so that researchers can build on them." }
+text = { cs = "Sdílejte v komunitě ověřené analytické metody a výpočetní postupy a doporučený software zapište do FIP, aby na ně výzkumníci mohli navázat.", en = "Share proven analysis methods and computational workflows in the community and record the recommended software in the FIP, so that researchers can build on them." }
 action = [{ label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }]
 sources = ["RDMKIT.analyse.02", "A.R1.3.F1"]
 

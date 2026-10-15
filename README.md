@@ -9,6 +9,11 @@ NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>) a doplňuje ji o současný st
 
 English version: [README_en.md](README_en.md).
 
+Změny chování, datových a API smluv, uložených formátů, CI a pravidel práce se plánují pomocí OpenSpec přímo
+v tomto repozitáři. Drobné jazykové a formátovací opravy a běžné obnovy zdrojů používají obvyklé kontroly.
+Postup je v [CONTRIBUTING.md](CONTRIBUTING.md); [předání první alfy](docs/release-handoff.md) uvádí zbývající kroky
+a rozhodnutí správce před zveřejněním.
+
 ## Co průvodce nabízí
 
 - **Cesta po životním cyklu výzkumných dat:** zastávky sledují sedm fází životního cyklu podle RDMkit (plánování,

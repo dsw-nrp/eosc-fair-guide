@@ -2,6 +2,7 @@
 # several sources appears once, crediting each. Field reference: docs/content-model.md.
 
 [[repository]]
+guideRoute = "repo/gen"
 id = "zenodo"
 knav = "zenodo"
 datacite = "cern.zenodo"
@@ -17,6 +18,7 @@ status = "operational"
 asOf = 2026-10-08
 
 [[repository]]
+guideRoute = "repo/dom"
 id = "mbdb"
 datacite = "biot.mbdb"
 functions = ["deposit-data"]
@@ -31,6 +33,7 @@ status = "operational"
 asOf = 2026-10-09
 
 [[repository]]
+guideRoute = "repo/gen"
 id = "dryad"
 knav = "dryad"
 datacite = "dryad.dryad"
@@ -45,6 +48,7 @@ status = "operational"
 asOf = 2026-10-09
 
 [[repository]]
+guideRoute = "repo/gen"
 id = "harvard-dataverse"
 datacite = "gdcc.harvard-dv"
 functions = ["deposit-data"]
@@ -60,6 +64,7 @@ asOf = 2026-10-09
 # Repositories of the EOSC CZ Node (charter, Appendix A) that re3data does not list (D-172); each names its operator
 # as its own source states it.
 [[repository]]
+guideRoute = "repo/dom"
 id = "czech-bioimaging"
 functions = ["deposit-data"]
 name = { cs = "Repozitář Czech-BioImaging", en = "Czech-BioImaging repository" }
@@ -71,6 +76,7 @@ asOf = 2026-10-14
 operator = { name = "Czech-BioImaging", source = "https://dev.cbird.jh-inst.cas.cz/" }
 
 [[repository]]
+guideRoute = "repo/dom"
 id = "datahub-cuni"
 functions = ["deposit-data"]
 name = "DataHub"
@@ -82,6 +88,7 @@ asOf = 2026-10-14
 operator = { name = { cs = "Mapové a datové centrum Přírodovědecké fakulty Univerzity Karlovy", en = "Map and Data Centre, Faculty of Science, Charles University" }, source = "https://natur.cuni.cz/geografie/katedry-a-pracoviste/mapove-a-datove-centrum" }
 
 [[repository]]
+guideRoute = "repo/dom"
 id = "genasis"
 functions = ["deposit-data"]
 name = "GENASIS"

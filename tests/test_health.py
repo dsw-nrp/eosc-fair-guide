@@ -24,6 +24,79 @@ TODAY = date(2026, 10, 11)
 
 
 class HealthTests(unittest.TestCase):
+    def test_advisory_prefers_specific_reviewed_phrases_and_explains_ambiguity(self) -> None:
+        content = copy.deepcopy(self.content)
+        github = next(
+            row
+            for row in next(
+                snapshot
+                for snapshot in content["snapshots"]
+                if snapshot["snapshot"]["source"] == "KNAV Data Management Tools Catalogue"
+            )["tool"]
+            if row["id"] == "github"
+        )
+        github["linkNames"] = {"en": ["Specific Research Hub", "Shared Portal"], "cs": ["GitHubu"]}
+        gitlab = next(
+            row
+            for row in next(
+                snapshot
+                for snapshot in content["snapshots"]
+                if snapshot["snapshot"]["source"] == "KNAV Data Management Tools Catalogue"
+            )["tool"]
+            if row["id"] == "gitlab"
+        )
+        gitlab["linkNames"] = {"en": ["Research Hub", "Shared Portal"]}
+        page = next(row for row in content["pages"] if row["id"] == "software")
+        section = next(row for row in page["section"] if row["id"] == "version")
+        section["body"] = {
+            "en": "Use Specific Research Hub and Shared Portal; data, metadata, repository and planning are generic.",
+            "cs": "Použijte GitHubu.",
+        }
+        hints = [row for row in check_health.missing_links(content) if "[version]" in row["path"]]
+        self.assertTrue(any(row["match"] == "Specific Research Hub" and row["confidence"] == "high" for row in hints))
+        self.assertFalse(any(row["match"] == "Research Hub" for row in hints))
+        ambiguous = next(row for row in hints if row["match"] == "Shared Portal")
+        self.assertEqual(ambiguous["confidence"], "review")
+        self.assertIn("ambiguous", ambiguous["reason"])
+        self.assertTrue(any(row["match"] == "GitHubu" for row in hints))
+        self.assertFalse(
+            any(row["match"].casefold() in {"data", "metadata", "repository", "planning"} for row in hints)
+        )
+        self.assertTrue(all(row["excerpt"] and row["reference"].startswith("[[") and row["reason"] for row in hints))
+
+    def test_missing_link_advisory_names_text_entry_and_language_without_failing(self) -> None:
+        content = copy.deepcopy(self.content)
+        page = next(page for page in content["pages"] if page["id"] == "software")
+        section = next(section for section in page["section"] if section["id"] == "version")
+        section["body"] = {"cs": "Použijte GitHub.", "en": "Use GitHub; GitHubby is another word."}
+        unlinked = check_health.missing_links(content)
+        matches = [
+            item
+            for item in unlinked
+            if "[software]" in item["path"] and "[version]" in item["path"] and item["entry"] == "#knav-github"
+        ]
+        self.assertEqual({item["language"] for item in matches}, {"cs", "en"})
+        self.assertTrue(all(item["address"] == "res/tool/github" for item in matches))
+        section["body"] = {"cs": "Použijte [[res/tool/github|GitHub]].", "en": "Use [[res/tool/github|GitHub]]."}
+        linked = check_health.missing_links(content)
+        self.assertFalse(
+            any(
+                item["entry"] == "#knav-github" and "[software]" in item["path"] and "[version]" in item["path"]
+                for item in linked
+            )
+        )
+        section["body"] = {"cs": "GitHubby", "en": "GitHubby"}
+        self.assertFalse(
+            any(
+                item["entry"] == "#knav-github" and "[version]" in item["path"]
+                for item in check_health.missing_links(content)
+            )
+        )
+        report = self.report(content)
+        self.assertEqual(report["integrity_failed"], self.report(self.content)["integrity_failed"])
+        self.assertIn("Possible missing links (advisory)", check_health.dashboard(report))
+        self.assertIn("non-blocking", check_health.markdown(report))
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.content = build_crate.load_content(ROOT / "content")
@@ -249,15 +322,15 @@ class HealthTests(unittest.TestCase):
         coverage = linked["original_coverage"]
         self.assertEqual(
             next(item for item in coverage["questions"] if item["id"] == "software.20")["api_record"],
-            "metrics/software.20.json",
+            "q/software.20.json",
         )
         self.assertEqual(
             next(item for item in coverage["clauses"] if item["id"] == "OPENSSF.01")["api_record"],
-            "clauses/OPENSSF.01.json",
+            "cl/OPENSSF.01.json",
         )
         self.assertEqual(
             next(item for item in coverage["advice"] if item["id"] == "plan.01")["api_record"],
-            "stations/plan.json#advice-plan.01",
+            "step/plan.json#advice-plan.01",
         )
         self.assertEqual(linked["generated_at"], report["generated_at"])
         self.assertEqual(report, original)
@@ -266,10 +339,10 @@ class HealthTests(unittest.TestCase):
         api = build_api.Api(build_crate.build_crate(self.content), self.content)
         test = next(item for item in self.content["live"]["test"] if item["id"] == "guide-cdif-01")
         record = api.record("tests", test["id"], "#test-" + test["id"])
-        self.assertEqual(record["url"], "../../" + test["script"])
+        self.assertEqual(record["url"], "../../../" + test["script"])
         self.assertIsInstance(record["subjectOf"], dict)
-        self.assertEqual(record["subjectOf"]["url"], "../../" + test["documentation"])
-        self.assertEqual(record["subjectOf"]["isPartOf"], "../../" + test["documentation"].split("#")[0])
+        self.assertEqual(record["subjectOf"]["url"], "../../../" + test["documentation"])
+        self.assertEqual(record["subjectOf"]["isPartOf"], "../../../" + test["documentation"].split("#")[0])
 
     def test_failed_build_leaves_existing_site_health_bytes_untouched(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
