@@ -65,6 +65,7 @@ PART_SCRIPTS = {
     "pages": "assets/data/kb-pages.js",
     "questions": "assets/data/kb-questions.js",
     "model": "assets/data/kb-model.js",
+    "advice": "assets/data/kb-advice.js",
 }
 # View code the page loads when the view first opens, beside the shared code every view needs.
 # Views whose code loads when they first open: the catalogue, and the self-check with its parts and report, which a
@@ -3567,7 +3568,14 @@ def split_crate(crate: dict[str, Any]) -> tuple[dict[str, Any], dict[str, dict[s
             core.append(entity)
     # Only core targets become property patches. Questions and standards keep their explicit associations
     # with their own deferred entities, so concurrent part loading cannot drop a patch for a missing target.
-    for index, entity in enumerate(core):
+    for index, original in enumerate(core):
+        entity = original
+        if entity.get("disclosureLevel", {}).get("@id") in ("#level-L1", "#level-L2", "#level-L3"):
+            detail = {key: value for key, value in entity.items() if key in ("text", "description")}
+            if detail:
+                parts["advice"]["properties"][entity["@id"]] = detail
+                entity = {key: value for key, value in entity.items() if key not in detail}
+                core[index] = entity
         deferred = {
             key: value for key, value in entity.items() if key in ("implementationLayers", "implementationSeams")
         }

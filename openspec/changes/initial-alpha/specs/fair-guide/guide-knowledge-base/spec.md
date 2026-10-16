@@ -142,6 +142,12 @@ A pull request SHALL record one Process Run Crate provenance action by default: 
 - **WHEN** one provenance action covers every item the pull request changed
 - **THEN** the content checks pass, and the action names every person and instrument the change used
 
+#### Scenario: Initial public provenance is consolidated
+
+- **GIVEN** unreleased preparation actions with the same responsible compiler and attributable instruments/sources
+- **WHEN** the initial public state is recorded as one action
+- **THEN** all produced-entity coverage and actual instruments/sources remain recorded, original-source authorship stays separate and references to the consolidated action resolve
+
 ### Requirement: Statuses are dated
 
 Every status of a service or resource SHALL use the five-level vocabulary (operational, pilot, in

@@ -1,27 +1,189 @@
-# Provenance actions (Process Run Crate). Every item scripts/check_content.py lists in provenance_items (the guide's
-# metadata, clauses, advice, questions, resources, tests, organisations and the model) is covered by an action that
-# names the person, the tools and the sources. Field reference: docs/content-model.md.
+# The initial public state is recorded once for this pull request. Subsequent pull requests add one covering
+# Process Run Crate action by default; finer actions are reserved for separately attributable work.
 
 [[action]]
-id = "2026-10-08-content-model-sample"
+id = "2026-10-16-initial-state"
 type = "create"
-name = "Content model sample"
-description = "First content entries written to test the content model and the generator: guide metadata, principles, live services, sample clauses, part of the repository station, two gate items and two resources."
+name = "Initial public Guide state"
+description = "The initial public Guide state, compiled and reviewed from the attributed sources with the instruments listed across its preparation. This consolidates the unreleased preparation actions without claiming authorship of quoted sources or imported records. It includes the reader-interface, deferred-advice and deterministic CI corrections."
 agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["analyza-fair-1.2", "nrp-conditions", "nkr-schema"]
-results = ["repository.*", "gate.05", "gate.07", "nkr", "re3data"]
-endTime = 2026-10-08T03:11:16+02:00
-
-[[action]]
-id = "2026-10-08-ledger"
-type = "create"
-name = "Clause ledger and sources"
-description = "Clause ledger converted from the planning ledger, with Czech and English text, refresh notes and their supporting sources, and the published sources the clauses come from."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["analyza-fair-1.2", "nrp-conditions", "nrp-docs-nma-introduction", "nrp-docs-nma-access", "nma-riv-docs", "nma-export-docs", "nkr-schema", "ccmm-releases", "ostrails-cz-pilot", "survey-2025", "ncdoi-2023", "os3", "knav-type-t", "tf-semantic", "cdif", "dsw-nrp"]
+instruments = [
+  "claude-code",
+  "claude-opus-5-5",
+  "kilo-code",
+  "openai-codex",
+  "openai-codex-luna",
+  "openai-codex-runtime",
+]
+objects = [
+  "A.I1.X1",
+  "A.I2.X1",
+  "A.K2.3.1",
+  "A.K5.2.2",
+  "A.R1.1.R1",
+  "A.R1.1.X2",
+  "A.R1.1.X3",
+  "CERIT-AIAAS.01",
+  "DSW-NRP.01",
+  "NRP.M3",
+  "NRP.M7",
+  "NRP.M8",
+  "RDMKIT.analyse.01",
+  "RDMKIT.analyse.02",
+  "RDMKIT.collect.01",
+  "RDMKIT.collect.02",
+  "RDMKIT.process.01",
+  "RDMKIT.process.02",
+  "RDMKIT.reuse.01",
+  "RDMKIT.reuse.02",
+  "aai-nrp",
+  "analyza-fair-1.2",
+  "cambridge-notebooks",
+  "ccmm-releases",
+  "cdif",
+  "cdif-codelist-1.1.1",
+  "cdif-conceptscheme-1.1.1",
+  "cdif-core-1.1.1",
+  "cdif-datadescription-1.1.1",
+  "cdif-datastructure-1.1.1",
+  "cdif-discovery-1.1.1",
+  "cdif-manifest-1.1.1",
+  "cdsc-eln",
+  "cdsc-readme",
+  "cerit-ai-api",
+  "cerit-ai-coding",
+  "cerit-ai-privacy",
+  "cerit-aiaas",
+  "cerit-chat-ai",
+  "cessda-dmeg",
+  "code-principles",
+  "conda-environments",
+  "container-images",
+  "copyright-licences",
+  "coretrustseal",
+  "crossref-rest-api",
+  "csl-iso690-cs",
+  "cts-2026",
+  "datacite-data-file-use-policy",
+  "datacite-rest-api",
+  "datacite-schema",
+  "datarepo",
+  "deposit-licence",
+  "doi-citation-service",
+  "ds-handbook",
+  "dsw-nrp",
+  "ec-genai-guidelines",
+  "einfra-docs",
+  "elabftw",
+  "eosc-cz-node-announcement",
+  "eosc-cz-node-charter",
+  "eosc-cz-node-page",
+  "eosc-cz-vision",
+  "eosc-data-stewards",
+  "eosc-federation-production",
+  "eosc-federation-second-wave-mou",
+  "eosc-mrm-ssh-open-marketplace",
+  "eosc-notebooks",
+  "eosc-training",
+  "eosc-working-groups",
+  "ercim-community",
+  "ethical-seven",
+  "fair-champion",
+  "fair-checker-check-view",
+  "fair-checker-metrics",
+  "fair-principles-2016",
+  "fair-signposting",
+  "fair4rs",
+  "fairsharing",
+  "fdo-overview",
+  "fdo-specification",
+  "fip-dashboard",
+  "fip-ontology",
+  "force11-citation",
+  "frsm",
+  "frsm-report-1.1",
+  "ftr",
+  "fuji-metrics-v0-8",
+  "fuji-simpleclient",
+  "ggp-cz-project",
+  "heslar",
+  "iap-cas-readme",
+  "infra-finder-paper",
+  "isvavai-infrastructures",
+  "kadi4mat",
+  "knav-dm-tools-catalogue",
+  "knav-life-cycle",
+  "knav-type-t",
+  "law-328-2025",
+  "layers-seams-manuscript",
+  "london-charter",
+  "lri-roadmap-2023",
+  "maldreth",
+  "mbdb-2026",
+  "minizamer-catalogue",
+  "ncdoi-2023",
+  "ndi-architecture",
+  "nkr-schema",
+  "nma-export-docs",
+  "nma-riv-docs",
+  "nrp-aai-integration",
+  "nrp-conditions",
+  "nrp-docs-nma-access",
+  "nrp-docs-nma-introduction",
+  "nrp-roadmap-2025",
+  "nrp-support",
+  "opendoar-inclusion-criteria",
+  "openssf-best-practices",
+  "openssf-criteria-2024",
+  "orcid-identifier-pattern",
+  "os2-kb1",
+  "os3",
+  "os3-faq",
+  "os3-rules",
+  "osii-study",
+  "ostrails-cz-pilot",
+  "pid-centre",
+  "policy-manual",
+  "process-run-crate",
+  "rdmkit",
+  "re3data",
+  "re3data-schema-3.1",
+  "ri-portal",
+  "ro-crate",
+  "ror-identifier-pattern",
+  "sherpa-object-retrieval-api",
+  "software-heritage",
+  "software-heritage-guide",
+  "survey-2025",
+  "survey-2025-data",
+  "tf-semantic",
+  "workflow-ro-crate",
+  "zenodo-software-guide",
+]
 results = [
+  "A.A1.1.F1",
+  "A.A1.1.N1",
+  "A.A1.1.R1",
+  "A.A1.2.F1",
+  "A.A1.2.F2",
+  "A.A1.2.N1",
+  "A.A1.2.R1",
+  "A.A1.2.R2",
+  "A.A1.2.X1",
+  "A.A1.F1",
+  "A.A1.F2",
+  "A.A1.N1",
+  "A.A1.N2",
+  "A.A1.R1",
+  "A.A1.X1",
+  "A.A2.F1",
+  "A.A2.N1",
+  "A.A2.R1",
+  "A.A2.R2",
+  "A.A2.R3",
+  "A.A2.X1",
+  "A.F1.F1",
+  "A.F1.F2",
   "A.F1.N1",
   "A.F1.N2",
   "A.F1.N3",
@@ -30,24 +192,24 @@ results = [
   "A.F1.R1",
   "A.F1.R2",
   "A.F1.R3",
-  "A.F1.F1",
-  "A.F1.F2",
   "A.F1.X1",
   "A.F1.X2",
+  "A.F2.F1",
   "A.F2.N1",
   "A.F2.N2",
   "A.F2.R1",
   "A.F2.R2",
-  "A.F2.F1",
   "A.F2.X1",
   "A.F2.X2",
   "A.F2.X3",
   "A.F2.X4",
+  "A.F3.F1",
   "A.F3.N1",
   "A.F3.N2",
   "A.F3.R1",
-  "A.F3.F1",
   "A.F3.X1",
+  "A.F4.F1",
+  "A.F4.F2",
   "A.F4.N1",
   "A.F4.N2",
   "A.F4.N3",
@@ -55,90 +217,34 @@ results = [
   "A.F4.R1",
   "A.F4.R2",
   "A.F4.R3",
-  "A.F4.F1",
-  "A.F4.F2",
   "A.F4.X1",
   "A.F4.X2",
-  "A.A1.N1",
-  "A.A1.N2",
-  "A.A1.R1",
-  "A.A1.F1",
-  "A.A1.F2",
-  "A.A1.X1",
-  "A.A1.1.N1",
-  "A.A1.1.R1",
-  "A.A1.1.F1",
-  "A.A1.2.N1",
-  "A.A1.2.R1",
-  "A.A1.2.R2",
-  "A.A1.2.F1",
-  "A.A1.2.F2",
-  "A.A1.2.X1",
-  "A.A2.N1",
-  "A.A2.R1",
-  "A.A2.R2",
-  "A.A2.R3",
-  "A.A2.F1",
-  "A.A2.X1",
+  "A.G",
+  "A.I1.F1",
+  "A.I1.F2",
   "A.I1.N1",
   "A.I1.N2",
   "A.I1.R1",
   "A.I1.R2",
-  "A.I1.F1",
-  "A.I1.F2",
   "A.I1.X1",
   "A.I1.X2",
+  "A.I2.F1",
   "A.I2.N1",
   "A.I2.N2",
   "A.I2.R1",
   "A.I2.R2",
   "A.I2.R3",
-  "A.I2.F1",
   "A.I2.X1",
   "A.I2.X2",
+  "A.I3.F1",
+  "A.I3.F2",
   "A.I3.N1",
   "A.I3.R1",
   "A.I3.R2",
   "A.I3.R3",
   "A.I3.R4",
   "A.I3.R5",
-  "A.I3.F1",
-  "A.I3.F2",
   "A.I3.X1",
-  "A.R1.N1",
-  "A.R1.R1",
-  "A.R1.R2",
-  "A.R1.R3",
-  "A.R1.F1",
-  "A.R1.F2",
-  "A.R1.X1",
-  "A.R1.X2",
-  "A.R1.1.N1",
-  "A.R1.1.N2",
-  "A.R1.1.R1",
-  "A.R1.1.F1",
-  "A.R1.1.X1",
-  "A.R1.1.X2",
-  "A.R1.1.X3",
-  "A.R1.2.N1",
-  "A.R1.2.N2",
-  "A.R1.2.N3",
-  "A.R1.2.R1",
-  "A.R1.2.R2",
-  "A.R1.2.F1",
-  "A.R1.2.F2",
-  "A.R1.2.X1",
-  "A.R1.2.X2",
-  "A.R1.3.N1",
-  "A.R1.3.N2",
-  "A.R1.3.N3",
-  "A.R1.3.R1",
-  "A.R1.3.R2",
-  "A.R1.3.R3",
-  "A.R1.3.F1",
-  "A.R1.3.F2",
-  "A.R1.3.X1",
-  "A.R1.3.X2",
   "A.K2.1",
   "A.K2.2.1",
   "A.K2.2.2",
@@ -156,829 +262,73 @@ results = [
   "A.K5.2.1",
   "A.K5.2.2",
   "A.K6",
-  "A.P1",
-  "A.G",
   "A.MIN1",
   "A.MIN2",
   "A.MIN3",
+  "A.P1",
+  "A.R1.1.F1",
+  "A.R1.1.N1",
+  "A.R1.1.N2",
+  "A.R1.1.R1",
+  "A.R1.1.X1",
+  "A.R1.1.X2",
+  "A.R1.1.X3",
+  "A.R1.2.F1",
+  "A.R1.2.F2",
+  "A.R1.2.N1",
+  "A.R1.2.N2",
+  "A.R1.2.N3",
+  "A.R1.2.R1",
+  "A.R1.2.R2",
+  "A.R1.2.X1",
+  "A.R1.2.X2",
+  "A.R1.3.F1",
+  "A.R1.3.F2",
+  "A.R1.3.N1",
+  "A.R1.3.N2",
+  "A.R1.3.N3",
+  "A.R1.3.R1",
+  "A.R1.3.R2",
+  "A.R1.3.R3",
+  "A.R1.3.X1",
+  "A.R1.3.X2",
+  "A.R1.F1",
+  "A.R1.F2",
+  "A.R1.N1",
+  "A.R1.R1",
+  "A.R1.R2",
+  "A.R1.R3",
+  "A.R1.X1",
+  "A.R1.X2",
   "A.REC1",
   "A.REC2",
   "A.REC3",
-  "NRP.M1",
-  "NRP.M2",
-  "NRP.M3",
-  "NRP.M4",
-  "NRP.M5",
-  "NRP.M6",
-  "NRP.M7",
-  "NRP.M8",
-  "NRP.M9",
-  "NRP.M10",
-  "NRP.M11",
-  "NRP.M12",
-  "NRP.R1",
-  "NRP.R2",
-  "NRP.R3",
-  "NRP.R4",
-  "NRP.ROLE.admin",
-  "NRP.ROLE.curator",
-  "NRP.CS",
-  "NRP.EXT",
-  "NRP-DOCS-NMA-INTRODUCTION.01",
-  "NRP-DOCS-NMA-ACCESS.01",
-  "NMA-RIV-DOCS.01",
-  "NMA-EXPORT-DOCS.01",
-  "SURVEY-2025.01",
-  "MBDB-2026.01",
-  "KNAV-TYPE-T.01",
-  "OS3.01",
-  "NCDOI-2023.01",
-  "OSTRAILS-CZ-PILOT.01",
-  "OS-LINKAGES.01",
-  "NKR-SCHEMA.01",
-  "CCMM-RELEASES.01",
-  "DSW-NRP.01",
-  "POLICY-MANUAL.01",
-  "DS-HANDBOOK.01",
-  "DS-PERSONAS.01",
-  "REPO-USER-NEEDS.01",
-  "REPO-RECOMMENDATIONS.01",
-  "REPO-INTEGRATION.01",
-  "COPYRIGHT-LICENCES.01",
-  "DEPOSIT-LICENCE.01",
-  "ETHICAL-SEVEN.01",
-  "AAI-SENSITIVE.01",
-  "EINFRA-DOCS.01",
-  "CERIT-AIAAS.01",
-  "NRP-COMPUTE.01",
-  "DDRAPP.01",
-  "EOSC-TRAINING.01",
-  "EOSC-WORKING-GROUPS.01",
-  "EOSC-DATA-STEWARDS.01",
-  "OS2.01",
-  "EOSC-ACKNOWLEDGEMENT.01",
-  "PID-CENTRE.01",
-  "NMA.01",
-  "TF-SEMANTIC.01",
-  "CDIF.01",
-  "FAIR-SIGNPOSTING.01",
-  "SCHEMA-DATASET.01",
-  "DATACITE-SCHEMA.01",
-  "FORCE11-CITATION.01",
-  "FAIR-CHAMPION.01",
-  "OSTRAILS-CLI.01",
-  "FAIR-IMPACT.01",
-  "FIP-WIZARD-TEMPLATES.01",
-  "FIP-ONTOLOGY.01",
-  "CORETRUSTSEAL.01",
-  "HESLAR.01",
-  "DATASPECER.01",
-  "FIP-DASHBOARD.01",
-  "CDSC-README.01",
-  "CDSC-ELN.01",
-  "CESSDA-DMEG.01",
-  "DATAREPO.01",
-  "FAIR-PRINCIPLES-2016.01",
-  "OS3-RULES.01",
-  "OS3-RULES.02",
-  "OS3-RULES.03",
-  "OS3-RULES.04",
-  "OS3-RULES.05",
-  "OS3-RULES.06",
-  "OS3-RULES.07",
-  "OS3-RULES.08",
-  "OS3-RULES.09",
-  "OS3-RULES.10",
-  "OS3-RULES.11",
-  "OS3-RULES.12",
-  "OS3-RULES.13",
-  "OS3-RULES.14",
-  "OS3-RULES.15",
-  "OS3-RULES.16",
-  "OS3-RULES.17",
-  "OS3-RULES.18",
-  "POLICY-MANUAL.02",
-  "POLICY-MANUAL.03",
-  "POLICY-MANUAL.04",
-  "POLICY-MANUAL.05",
-  "POLICY-MANUAL.06",
-  "POLICY-MANUAL.07",
-  "LAW-328-2025.83",
-  "LAW-328-2025.83.2",
-  "LAW-328-2025.83.3",
-  "LAW-328-2025.83.5",
-  "OS3-RULES.19",
-  "OS3-RULES.20",
-  "OS3-RULES.21",
-  "OS3-RULES.22",
-  "OS3-RULES.23",
-  "OS3-RULES.24",
-  "OS3-RULES.25",
-  "OS3-RULES.26",
-  "OS3-FAQ.01",
-  "OS3-FAQ.02",
-  "OS3-FAQ.03",
-  "MINIZAMER-CATALOGUE.01",
-  "EC-GENAI-GUIDELINES.01",
-  "EC-GENAI-GUIDELINES.02",
-  "EC-GENAI-GUIDELINES.03",
-  "EC-GENAI-GUIDELINES.04",
-  "EC-GENAI-GUIDELINES.05",
   "AAI-NRP.01",
-  "NRP-AAI-INTEGRATION.01",
-  "OS2-KB1.01",
-  "OS2-KB1.02",
-  "OS2-KB1.03",
   "AAI-NRP.02",
-  "NRP-SUPPORT.01",
-]
-endTime = 2026-10-08T03:20:40+02:00
-
-[[action]]
-id = "2026-10-08-content-migration"
-type = "create"
-name = "Stations, self-checks, resources, callouts and pages"
-description = "Nine stations with advice for four lenses in Czech and English, the dataset, gate, maturity, FIP and institution checks, the resource catalogue with FIP Dashboard links, the shared callouts and the pages, drafted from the planning inventory and traced to ledger clauses; three clauses added for the FIP Dashboard, the CESSDA guide and the NRP catch-all repository."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["analyza-fair-1.2", "nrp-conditions", "nma-riv-docs", "nma-export-docs", "nkr-schema", "fip-dashboard", "cessda-dmeg", "datarepo", "ostrails-cz-pilot", "dsw-nrp", "pid-centre", "einfra-docs"]
-results = [
-  "plan.*",
-  "collect.01",
-  "collect.02",
-  "collect.03",
-  "collect.04",
-  "collect.05",
-  "collect.06",
-  "collect.07",
-  "collect.09",
-  "collect.10",
-  "collect.11",
-  "collect.12",
-  "collect.13",
-  "collect.14",
-  "collect.15",
-  "collect.16",
-  "collect.17",
-  "collect.18",
-  "collect.19",
-  "process.03",
-  "process.08",
-  "process.09",
-  "process.10",
-  "analyse.03",
-  "analyse.05",
-  "repository.*",
-  "metadata.*",
-  "licence.*",
-  "publication.*",
-  "findability.*",
-  "citation.*",
-  "assessment.*",
-  "dataset.15",
-  "dataset.16",
-  "dataset.17",
-  "dataset.18",
-  "dataset.19",
-  "dataset.01",
-  "dataset.02",
-  "dataset.03",
-  "dataset.04",
-  "dataset.05",
-  "dataset.06",
-  "dataset.07",
-  "dataset.08",
-  "dataset.09",
-  "dataset.10",
-  "dataset.11",
-  "dataset.12",
-  "dataset.13",
-  "dataset.14",
-  "gate.01",
-  "gate.02",
-  "gate.03",
-  "gate.04",
-  "gate.05",
-  "gate.06",
-  "gate.07",
-  "gate.08",
-  "gate.09",
-  "gate.10",
-  "gate.11",
-  "gate.12",
-  "gate.13",
-  "gate.14",
-  "gate.15",
-  "gate.16",
-  "gate.17",
-  "gate.18",
-  "gate.19",
-  "maturity.01",
-  "maturity.02",
-  "maturity.03",
-  "maturity.04",
-  "maturity.05",
-  "maturity.06",
-  "maturity.07",
-  "maturity.08",
-  "maturity.09",
-  "maturity.10",
-  "maturity.11",
-  "maturity.12",
-  "maturity.13",
-  "maturity.14",
-  "maturity.15",
-  "maturity.16",
-  "maturity.17",
-  "maturity.18",
-  "maturity.19",
-  "maturity.20",
-  "maturity.21",
-  "maturity.22",
-  "fip.01",
-  "fip.02",
-  "fip.03",
-  "fip.04",
-  "fip.05",
-  "fip.06",
-  "fip.07",
-  "fip.08",
-  "fip.09",
-  "fip.10",
-  "fip.11",
-  "fip.12",
-  "fip.13",
-  "institution.01",
-  "institution.02",
-  "institution.03",
-  "institution.04",
-  "institution.05",
-  "institution.06",
-  "institution.07",
-  "institution.08",
-  "institution.09",
-  "dmp-eosc",
-  "dmp-status",
-  "dsw-nrp",
-  "policy-manual",
-  "ds-handbook",
-  "ds-personas",
-  "eosc-data-stewards",
-  "datasteward-cz",
-  "cessda-dmeg",
-  "cesnet-storage",
-  "onedata",
-  "sensitive-cloud",
-  "ddrapp",
-  "nrp-compute",
-  "eosc-training",
-  "cerit-aiaas",
-  "nkr",
-  "fip-dashboard",
-  "re3data",
-  "fairsharing",
-  "datarepo",
-  "coretrustseal",
-  "nrp-conditions",
-  "repo-recommendations",
-  "repo-user-needs",
-  "repo-integration",
-  "os2",
-  "eosc-working-groups",
-  "ccmm",
-  "heslar",
-  "pid-centre",
-  "orcid",
-  "ror",
-  "dataspecer",
-  "cdif",
-  "tf-semantic",
-  "datacite-schema",
-  "copyright-licences",
-  "deposit-licence",
-  "creative-commons",
-  "ethical-seven",
-  "einfra-aai",
-  "aai-sensitive",
-  "datacite",
-  "handle",
-  "fair-signposting",
-  "schema-dataset",
-  "oai-pmh",
-  "nma",
-  "nma-riv-docs",
-  "nma-export-docs",
-  "datacite-commons",
-  "openaire-explore",
-  "google-dataset-search",
-  "force11-citation",
-  "knav-type-t",
-  "os3",
-  "eosc-acknowledgement",
-  "fair-champion",
-  "f-uji",
-  "fair-checker",
-  "fair-aware",
-  "openaire-validator",
-  "fdmm",
-  "ostrails-cli",
-  "ostrails-cz-pilot",
-  "fair-impact",
-  "FIP-DASHBOARD.01",
-  "CESSDA-DMEG.01",
-  "DATAREPO.01",
-]
-endTime = 2026-10-08T10:15:00+02:00
-
-[[action]]
-id = "2026-10-08-self-check"
-type = "update"
-name = "Self-check pre-fill and follow-up"
-description = "Check items prepared for the self-check: items whose evidence proves them only in part are capped at partly, two gate items take their NKR evidence from the PID type and versioning fields alone, and the NMA item links the NMA search for a don't-know task."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["nkr-schema", "nma-riv-docs", "NRP.M3", "NRP.M7", "NRP.M8"]
-results = [
-  "dataset.05",
-  "dataset.11",
-  "gate.03",
-  "gate.07",
-  "gate.08",
-  "gate.12",
-  "gate.19",
-  "maturity.08",
-]
-endTime = 2026-10-08T11:09:20+02:00
-
-[[action]]
-id = "2026-10-08-re3data-prefill"
-type = "update"
-name = "Maturity check pre-fill from re3data"
-description = "Repository maturity items that a re3data record can answer name the record's facts: persistent identifier systems, metadata standards, an OAI-PMH interface, data licences, versioning, certificates and policies, as defined by the re3data metadata schema."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["re3data-schema-3.1"]
-results = [
-  "maturity.01",
-  "maturity.04",
-  "maturity.05",
-  "maturity.06",
-  "maturity.08",
-  "maturity.16",
-  "maturity.19",
-  "maturity.21",
-]
-endTime = 2026-10-08T21:06:32+02:00
-
-[[action]]
-id = "2026-10-08-nrp-conditions-name"
-type = "update"
-name = "NRP conditions check renamed"
-description = "The check of the NRP conditions for repositories is called \"Podmínky NRP\" (NRP conditions) instead of \"Brána NRP\" (NRP gate), including the actions that lead to it from the stations."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["nrp-conditions"]
-results = ["collect.15", "repository.12", "licence.13", "publication.12"]
-endTime = 2026-10-08T21:20:00+02:00
-
-[[action]]
-id = "2026-10-08-fairsharing-lookup"
-type = "update"
-name = "Repository registration checked in FAIRsharing"
-description = "The question whether a repository is registered in re3data and FAIRsharing is answered from the re3data snapshot together with a FAIRsharing record found through its DataCite DOI, which lists the repository's re3data record."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["fairsharing"]
-results = ["maturity.18"]
-endTime = 2026-10-08T23:10:00+02:00
-
-[[action]]
-id = "2026-10-08-one-entry-thing"
-type = "update"
-name = "One entry per cited resource"
-description = "Resources that the Guide also cites carry their citation in their own entry instead of a second, source entry; clauses that cited such a source under another ID now cite the resource."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-results = [
-  "NRP.CS",
-  "NRP.EXT",
-  "NRP.M1",
-  "NRP.M10",
-  "NRP.M11",
-  "NRP.M12",
-  "NRP.M2",
-  "NRP.M3",
-  "NRP.M4",
-  "NRP.M5",
-  "NRP.M6",
-  "NRP.M7",
-  "NRP.M8",
-  "NRP.M9",
-  "NRP.R1",
-  "NRP.R2",
-  "NRP.R3",
-  "NRP.R4",
-  "NRP.ROLE.admin",
-  "NRP.ROLE.curator",
-  "NMA-EXPORT-DOCS.01",
-  "NMA-RIV-DOCS.01",
+  "AAI-SENSITIVE.01",
+  "CAMBRIDGE-ERN.01",
+  "CCMM-RELEASES.01",
   "CDIF.01",
-  "FAIR-IMPACT.01",
-  "NRP-COMPUTE.01",
-  "OS2.01",
-  "OS3.01",
-  "SCHEMA-DATASET.01",
-  "TF-SEMANTIC.01",
-  "aai-sensitive",
-  "cdif",
-  "cerit-aiaas",
-  "cessda-dmeg",
-  "copyright-licences",
-  "coretrustseal",
-  "datacite-schema",
-  "datarepo",
-  "dataspecer",
-  "ddrapp",
-  "deposit-licence",
-  "dmp-eosc",
-  "ds-handbook",
-  "ds-personas",
-  "dsw-nrp",
-  "eosc-acknowledgement",
-  "eosc-data-stewards",
-  "eosc-training",
-  "eosc-working-groups",
-  "ethical-seven",
-  "fair-champion",
-  "fair-impact",
-  "fair-signposting",
-  "fairsharing",
-  "fip-dashboard",
-  "force11-citation",
-  "heslar",
-  "knav-type-t",
-  "nma",
-  "nma-export-docs",
-  "nma-riv-docs",
-  "nrp-compute",
-  "nrp-conditions",
-  "os2",
-  "os3",
-  "ostrails-cli",
-  "ostrails-cz-pilot",
-  "pid-centre",
-  "policy-manual",
-  "repo-integration",
-  "repo-recommendations",
-  "repo-user-needs",
-  "schema-dataset",
-  "tf-semantic",
-]
-endTime = 2026-10-08T23:48:07+02:00
-
-[[action]]
-id = "2026-10-09-english-names"
-type = "update"
-name = "Publishers cited as organisations"
-description = "Resources published by the Library of the Czech Academy of Sciences or the National Library of Technology cite the curated organisation, which carries its Czech and English names, instead of a Czech name alone."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-results = ["heslar", "knav-type-t", "pid-centre"]
-endTime = 2026-10-09T01:25:21+02:00
-
-[[action]]
-id = "2026-10-09-text-references"
-type = "update"
-name = "Named entries linked from text"
-description = "Texts that name a resource mark it as a reference, so the page links the name to its catalogue entry and the crate records the resource as mentioned. The English text of one NKR step names NKR, as the Czech text does."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-results = [
-  "dataset.05",
-  "dataset.07",
-  "gate.05",
-  "gate.08",
-  "institution.02",
-  "institution.04",
-  "fip.13",
-  "maturity.04",
-  "maturity.05",
-  "maturity.07",
-  "maturity.08",
-  "maturity.09",
-  "maturity.13",
-  "maturity.14",
-  "maturity.15",
-  "maturity.17",
-  "maturity.18",
-  "maturity.19",
-  "citation.09",
-  "citation.10",
-  "citation.11",
-  "citation.12",
-  "citation.14",
-  "citation.15",
-  "citation.02",
-  "citation.05",
-  "citation.06",
-  "findability.08",
-  "findability.09",
-  "findability.10",
-  "findability.11",
-  "findability.12",
-  "findability.13",
-  "findability.14",
-  "findability.15",
-  "findability.16",
-  "findability.18",
-  "findability.19",
-  "findability.20",
-  "findability.02",
-  "findability.03",
-  "findability.04",
-  "findability.05",
-  "findability.06",
-  "findability.07",
-  "assessment.09",
-  "assessment.10",
-  "assessment.24",
-  "assessment.26",
-  "assessment.15",
-  "assessment.16",
-  "assessment.17",
-  "assessment.20",
-  "assessment.22",
-  "assessment.03",
-  "assessment.06",
-  "licence.09",
-  "licence.11",
-  "licence.19",
-  "licence.20",
-  "licence.21",
-  "licence.03",
-  "licence.04",
-  "plan.09",
-  "plan.11",
-  "plan.12",
-  "plan.13",
-  "plan.14",
-  "plan.21",
-  "plan.23",
-  "plan.15",
-  "plan.16",
-  "plan.17",
-  "plan.20",
-  "plan.02",
-  "plan.03",
-  "plan.04",
-  "plan.06",
-  "metadata.09",
-  "metadata.10",
-  "metadata.11",
-  "metadata.12",
-  "metadata.13",
-  "metadata.28",
-  "metadata.34",
-  "metadata.35",
-  "metadata.36",
-  "metadata.15",
-  "metadata.16",
-  "metadata.17",
-  "metadata.18",
-  "metadata.19",
-  "metadata.20",
-  "metadata.22",
-  "metadata.24",
-  "metadata.01",
-  "metadata.02",
-  "metadata.03",
-  "metadata.08",
-  "collect.10",
-  "collect.13",
-  "collect.17",
-  "collect.07",
-  "publication.08",
-  "publication.15",
-  "publication.16",
-  "publication.18",
-  "publication.20",
-  "publication.06",
-  "repository.08",
-  "repository.09",
-  "repository.10",
-  "repository.19",
-  "repository.20",
-  "repository.21",
-  "repository.12",
-  "repository.13",
-  "repository.14",
-  "repository.15",
-  "repository.17",
-  "repository.18",
-  "repository.03",
-  "repository.04",
-  "repository.06",
-]
-endTime = 2026-10-09T08:59:39+02:00
-
-[[action]]
-id = "2026-10-09-eosc-resources"
-type = "create"
-name = "Resources from the EOSC CZ website"
-description = "Resources the EOSC CZ website lists and the Guide did not: planning and computing services, data portals, the evaluation methodology, a data journal, CC Signals, data steward and repository administrator materials, and the EOSC CZ training by life-cycle phase as each step's training link; each checked at its address on this date. The personas document records its update."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-results = [
-  "argos",
-  "dmponline",
-  "he-dmp-template",
-  "it4i-compute",
-  "metacentrum",
-  "data-europa",
-  "data-gov-cz",
-  "metodika-2025",
-  "scientific-data",
-  "cc-signals",
-  "strazci-dat",
-  "ds-manual",
-  "aai-nrp",
-  "nrp-support",
-  "nrp-admin-docs",
-  "nrp-repo-conditions",
-  "repo-proposal-template",
-  "nrp-roadmap-2026",
-  "training-planning",
-  "training-collection",
-  "training-processing",
-  "training-analysis",
-  "training-storage",
-  "training-sharing",
-  "training-reuse",
-  "training-overview",
-  "ds-personas",
-]
-endTime = 2026-10-09T09:51:51+02:00
-
-[[action]]
-id = "2026-10-09-institution-check"
-type = "update"
-name = "Institution check on the Open Science III minimums"
-description = "The institution check follows the minimum content the Open Science III call sets for the research data strategy, the action plan and the policy, with the policy detailed by the EOSC CZ manual and the obligation from section 83 of the research act, and adds a block on the national data infrastructure and the people it needs. The policy manual takes its published English title."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["os3-rules", "law-328-2025", "policy-manual"]
-results = [
-  "LAW-328-2025.83",
-  "OS3-RULES.06",
-  "OS3-RULES.07",
-  "OS3-RULES.08",
-  "OS3-RULES.09",
-  "OS3-RULES.10",
-  "OS3-RULES.11",
-  "OS3-RULES.16",
-  "OS3-RULES.17",
-  "OS3-RULES.12",
-  "OS3-RULES.13",
-  "OS3-RULES.14",
-  "OS3-RULES.15",
-  "OS3-RULES.02",
-  "OS3-RULES.03",
-  "OS3-RULES.04",
-  "OS3-RULES.05",
-  "OS3-RULES.01",
-  "OS3-RULES.18",
-  "POLICY-MANUAL.03",
-  "POLICY-MANUAL.04",
-  "POLICY-MANUAL.07",
-  "POLICY-MANUAL.02",
-  "POLICY-MANUAL.05",
-  "POLICY-MANUAL.06",
-  "institution.01",
-  "institution.02",
-  "institution.03",
-  "institution.04",
-  "institution.05",
-  "institution.06",
-  "institution.07",
-  "institution.08",
-  "institution.09",
-  "institution.10",
-  "institution.11",
-  "institution.12",
-  "institution.13",
-  "institution.14",
-  "institution.15",
-  "institution.16",
-  "institution.17",
-  "institution.18",
-  "institution.19",
-  "institution.20",
-  "institution.21",
-  "institution.22",
-  "institution.23",
-  "policy-manual",
-]
-endTime = 2026-10-09T10:17:44+02:00
-
-[[action]]
-id = "2026-10-09-institution-basic"
-type = "update"
-name = "Basic institution check: the strategy and the research act"
-description = "The basic institution check is the research data strategy, which the Open Science III call requires before it accepts outputs, and the obligations of section 83 of the research act, each paragraph a requirement of its own; the minimum content the call sets for an action plan and a policy applies when an institution prepares them, so those blocks join the national infrastructure block in the extended check. The research act's block comes first, and the items are numbered in block order."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["os3-rules", "law-328-2025"]
-results = [
-  "LAW-328-2025.83",
-  "LAW-328-2025.83.2",
-  "LAW-328-2025.83.3",
-  "LAW-328-2025.83.5",
-  "institution.01",
-  "institution.02",
-  "institution.03",
-  "institution.04",
-  "institution.05",
-  "institution.06",
-  "institution.07",
-  "institution.08",
-  "institution.09",
-  "institution.10",
-  "institution.11",
-  "institution.12",
-  "institution.13",
-  "institution.14",
-  "institution.15",
-  "institution.16",
-  "institution.17",
-  "institution.18",
-  "institution.19",
-  "institution.20",
-  "institution.21",
-  "institution.22",
-  "institution.23",
-  "institution.24",
-  "institution.25",
-  "institution.26",
-  "institution.27",
-]
-endTime = 2026-10-09T10:39:16+02:00
-
-[[action]]
-id = "2026-10-10-standard-tier"
-type = "update"
-name = "A tier for what a standard requires"
-description = "The questions of the CoreTrustSeal check, and the CDIF check's required and conditional elements, carry a tier named for what the standard requires, in place of the tiers that describe NRP's conditions and the FAIR analysis's minimum."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["cts-2026", "cdif"]
-results = [
-  "coretrustseal.01",
-  "coretrustseal.02",
-  "coretrustseal.03",
-  "coretrustseal.04",
-  "coretrustseal.05",
-  "coretrustseal.06",
-  "coretrustseal.07",
-  "coretrustseal.08",
-  "coretrustseal.09",
-  "coretrustseal.10",
-  "coretrustseal.11",
-  "coretrustseal.12",
-  "coretrustseal.13",
-  "coretrustseal.14",
-  "coretrustseal.15",
-  "coretrustseal.16",
-  "cdif.01",
-  "cdif.02",
-  "cdif.03",
-  "cdif.04",
-  "cdif.05",
-  "cdif.06",
-  "cdif.07",
-  "cdif.08",
-  "cdif.09",
-]
-endTime = 2026-10-10T00:34:00+02:00
-
-[[action]]
-id = "2026-10-10-cdif"
-type = "create"
-name = "CDIF 1.1 requirements and profiles, and a readiness check"
-description = "The content requirements of the CDIF 1.1 basic discovery metadata content model and the nine profiles of version 1.1 become records, read from the CDIF book's source at a fixed commit and the profiles' 1.1.1 releases, each with its title and short definition in English as published and in Czech, and its full text as published. The analysis clauses link the CDIF recommendations they name by meaning, as the principles do. A readiness check asks one question per requirement and per profile."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["cdif", "analyza-fair-1.2", "cdif-core-1.1.1", "cdif-discovery-1.1.1", "cdif-datadescription-1.1.1", "cdif-codelist-1.1.1", "cdif-datastructure-1.1.1", "cdif-conceptscheme-1.1.1", "cdif-manifest-1.1.1"]
-results = [
-  "CDIF.REQ1",
-  "CDIF.REQ2",
-  "CDIF.REQ3",
-  "CDIF.REQ4",
-  "CDIF.REQ5",
-  "CDIF.REQ6",
+  "CDIF.Access",
   "CDIF.CON1",
   "CDIF.CON2",
   "CDIF.CON3",
+  "CDIF.Codelist",
+  "CDIF.ConceptScheme",
+  "CDIF.Core",
+  "CDIF.DataDescription",
+  "CDIF.DataStructure",
+  "CDIF.Discovery",
+  "CDIF.MET1",
+  "CDIF.MET2",
+  "CDIF.MET3",
+  "CDIF.Manifest",
   "CDIF.REC1",
+  "CDIF.REC10",
+  "CDIF.REC11",
+  "CDIF.REC12",
+  "CDIF.REC13",
+  "CDIF.REC14",
   "CDIF.REC2",
   "CDIF.REC3",
   "CDIF.REC4",
@@ -987,28 +337,308 @@ results = [
   "CDIF.REC7",
   "CDIF.REC8",
   "CDIF.REC9",
-  "CDIF.REC10",
-  "CDIF.REC11",
-  "CDIF.REC12",
-  "CDIF.REC13",
-  "CDIF.REC14",
-  "CDIF.MET1",
-  "CDIF.MET2",
-  "CDIF.MET3",
-  "CDIF.Core",
-  "CDIF.Discovery",
-  "CDIF.DataDescription",
-  "CDIF.Codelist",
-  "CDIF.DataStructure",
-  "CDIF.ConceptScheme",
-  "CDIF.Manifest",
-  "CDIF.Access",
+  "CDIF.REQ1",
+  "CDIF.REQ2",
+  "CDIF.REQ3",
+  "CDIF.REQ4",
+  "CDIF.REQ5",
+  "CDIF.REQ6",
   "CDIF.Universals",
-  "A.F2.X4",
-  "A.I1.X2",
-  "A.R1.1.X3",
-  "A.R1.2.X2",
+  "CDSC-ELN.01",
+  "CDSC-README.01",
+  "CERIT-AIAAS.01",
+  "CESSDA-DMEG.01",
+  "CODE.01",
+  "CONDAENV.01",
+  "CONTAINER.01",
+  "COPYRIGHT-LICENCES.01",
+  "COPYRIGHT-LICENCES.02",
+  "COPYRIGHT-LICENCES.03",
+  "COPYRIGHT-LICENCES.04",
+  "COPYRIGHT-LICENCES.05",
+  "COPYRIGHT-LICENCES.06",
+  "COPYRIGHT-LICENCES.07",
+  "CORETRUSTSEAL.01",
+  "CTS.R0",
+  "CTS.R01",
+  "CTS.R02",
+  "CTS.R03",
+  "CTS.R04",
+  "CTS.R05",
+  "CTS.R06",
+  "CTS.R07",
+  "CTS.R08",
+  "CTS.R09",
+  "CTS.R10",
+  "CTS.R11",
+  "CTS.R12",
+  "CTS.R13",
+  "CTS.R14",
+  "CTS.R15",
+  "CTS.R16",
+  "DATACITE-SCHEMA.01",
+  "DATAREPO.01",
+  "DATASPECER.01",
+  "DDRAPP.01",
+  "DEPOSIT-LICENCE.01",
+  "DS-HANDBOOK.01",
+  "DS-PERSONAS.01",
+  "DSW-NRP.01",
+  "EC-GENAI-GUIDELINES.01",
+  "EC-GENAI-GUIDELINES.02",
+  "EC-GENAI-GUIDELINES.03",
+  "EC-GENAI-GUIDELINES.04",
+  "EC-GENAI-GUIDELINES.05",
+  "EINFRA-DOCS.01",
+  "EOSC-ACKNOWLEDGEMENT.01",
+  "EOSC-DATA-STEWARDS.01",
+  "EOSC-ELN.01",
+  "EOSC-TRAINING.01",
+  "EOSC-WORKING-GROUPS.01",
+  "ETHICAL-SEVEN.01",
+  "FAIR-CHAMPION.01",
+  "FAIR-IMPACT.01",
+  "FAIR-PRINCIPLES-2016.01",
+  "FAIR-SIGNPOSTING.01",
+  "FAIR4RS.01",
+  "FDO-INTRO.01",
+  "FDO.FDO-FDO10",
+  "FDO.FDO-FDO11",
+  "FDO.FDO-FDO9",
+  "FDO.FDO-FDOR1",
+  "FDO.FDO-FDOR2",
+  "FDO.FDO-FDOR3",
+  "FDO.FDO-FDOR4",
+  "FDO.FDO-FDOR5",
+  "FDO.FDO-FDOR6",
+  "FDO.FDO-FDOR7",
+  "FDO.FDO-FDOR8",
+  "FDO.FDO-GR10",
+  "FDO.FDO-GR11",
+  "FDO.FDO-GR12",
+  "FDO.FDO-GR13",
+  "FDO.FDO-GR14",
+  "FDO.FDO-GR15",
+  "FDO.FDO-GR4",
+  "FDO.FDO-GR5",
+  "FDO.FDO-GR6",
+  "FDO.FDO-GR7",
+  "FDO.FDO-GR8",
+  "FDO.FDO-GR9",
+  "FDO.FDO-PIDR1",
+  "FDO.FDO-PIDR2",
+  "FDO.FDO-PIDR3",
+  "FDO.FDO-PIDR4",
+  "FDO.FDO-PIDR5",
+  "FDO.FDO-PIDR6",
+  "FDO.FDO-RESR1",
+  "FDO.FDO-RESR2",
+  "FDO.FDOR-GR1",
+  "FDO.FDOR-GR2",
+  "FDO.FDOR-GR3",
+  "FIP-DASHBOARD.01",
+  "FIP-ONTOLOGY.01",
+  "FIP-WIZARD-TEMPLATES.01",
+  "FORCE11-CITATION.01",
+  "FRSM.FRSM-01",
+  "FRSM.FRSM-02",
+  "FRSM.FRSM-03",
+  "FRSM.FRSM-04",
+  "FRSM.FRSM-05",
+  "FRSM.FRSM-06",
+  "FRSM.FRSM-07",
+  "FRSM.FRSM-08",
+  "FRSM.FRSM-09",
+  "FRSM.FRSM-10",
+  "FRSM.FRSM-11",
+  "FRSM.FRSM-12",
+  "FRSM.FRSM-13",
+  "FRSM.FRSM-14",
+  "FRSM.FRSM-15",
+  "FRSM.FRSM-16",
+  "FRSM.FRSM-17",
+  "HESLAR.01",
+  "KNAV-TYPE-T.01",
+  "LAW-328-2025.83",
+  "LAW-328-2025.83.2",
+  "LAW-328-2025.83.3",
+  "LAW-328-2025.83.5",
+  "LONDON.4.6",
+  "LRI.A7",
+  "MBDB-2026.01",
+  "MINIZAMER-CATALOGUE.01",
+  "NCDOI-2023.01",
+  "NKR-SCHEMA.01",
+  "NMA-EXPORT-DOCS.01",
+  "NMA-RIV-DOCS.01",
+  "NMA.01",
+  "NRP-AAI-INTEGRATION.01",
+  "NRP-COMPUTE.01",
+  "NRP-DOCS-NMA-ACCESS.01",
+  "NRP-DOCS-NMA-INTRODUCTION.01",
+  "NRP-SUPPORT.01",
+  "NRP.CS",
+  "NRP.EXT",
+  "NRP.M1",
+  "NRP.M10",
+  "NRP.M11",
+  "NRP.M12",
+  "NRP.M2",
+  "NRP.M3",
+  "NRP.M4",
+  "NRP.M5",
+  "NRP.M6",
+  "NRP.M7",
+  "NRP.M8",
+  "NRP.M9",
+  "NRP.R1",
+  "NRP.R2",
+  "NRP.R3",
+  "NRP.R4",
+  "NRP.ROLE.admin",
+  "NRP.ROLE.curator",
+  "OPENSSF.01",
+  "OS-LINKAGES.01",
+  "OS2-KB1.01",
+  "OS2-KB1.02",
+  "OS2-KB1.03",
+  "OS2.01",
+  "OS3-FAQ.01",
+  "OS3-FAQ.02",
+  "OS3-FAQ.03",
+  "OS3-RULES.01",
+  "OS3-RULES.02",
+  "OS3-RULES.03",
+  "OS3-RULES.04",
+  "OS3-RULES.05",
+  "OS3-RULES.06",
+  "OS3-RULES.07",
+  "OS3-RULES.08",
+  "OS3-RULES.09",
+  "OS3-RULES.10",
+  "OS3-RULES.11",
+  "OS3-RULES.12",
+  "OS3-RULES.13",
+  "OS3-RULES.14",
+  "OS3-RULES.15",
+  "OS3-RULES.16",
+  "OS3-RULES.17",
+  "OS3-RULES.18",
+  "OS3-RULES.19",
+  "OS3-RULES.20",
+  "OS3-RULES.21",
+  "OS3-RULES.22",
+  "OS3-RULES.23",
+  "OS3-RULES.24",
+  "OS3-RULES.25",
+  "OS3-RULES.26",
+  "OS3.01",
+  "OSII-STUDY.01",
+  "OSII-STUDY.02",
+  "OSII-STUDY.03",
+  "OSTRAILS-CLI.01",
+  "OSTRAILS-CZ-PILOT.01",
+  "PID-CENTRE.01",
+  "POLICY-MANUAL.01",
+  "POLICY-MANUAL.02",
+  "POLICY-MANUAL.03",
+  "POLICY-MANUAL.04",
+  "POLICY-MANUAL.05",
+  "POLICY-MANUAL.06",
+  "POLICY-MANUAL.07",
+  "RDMKIT.analyse.01",
+  "RDMKIT.analyse.02",
+  "RDMKIT.collect.01",
+  "RDMKIT.collect.02",
+  "RDMKIT.process.01",
+  "RDMKIT.process.02",
+  "RDMKIT.reuse.01",
+  "RDMKIT.reuse.02",
+  "RDMKIT.tasks.01",
+  "REPO-INTEGRATION.01",
+  "REPO-RECOMMENDATIONS.01",
+  "REPO-USER-NEEDS.01",
+  "SCHEMA-DATASET.01",
+  "SURVEY-2025.01",
+  "SWH-GUIDE.01",
+  "SWH.01",
+  "TF-SEMANTIC.01",
+  "WFCRATE.01",
+  "ZENODO-SW.01",
+  "aai-nrp",
+  "aai-sensitive",
+  "analyse.01",
+  "analyse.02",
+  "analyse.03",
+  "analyse.04",
+  "analyse.05",
+  "analyse.06",
+  "analyse.07",
+  "analyse.08",
+  "analyse.09",
+  "analyse.10",
+  "analyse.11",
+  "analyse.12",
+  "analyse.13",
+  "analyse.14",
+  "analyza-fair-1.2",
+  "argos",
+  "assessment.01",
+  "assessment.02",
+  "assessment.03",
+  "assessment.04",
+  "assessment.05",
+  "assessment.06",
+  "assessment.07",
+  "assessment.08",
+  "assessment.09",
+  "assessment.10",
+  "assessment.11",
+  "assessment.12",
+  "assessment.13",
+  "assessment.14",
+  "assessment.15",
+  "assessment.16",
+  "assessment.17",
+  "assessment.18",
+  "assessment.19",
+  "assessment.20",
+  "assessment.21",
+  "assessment.22",
+  "assessment.23",
+  "assessment.24",
+  "assessment.25",
+  "assessment.26",
+  "assessment.27",
+  "assessment.28",
+  "assessment.29",
+  "avcr-fair-wizard",
+  "callout.sensitive-data.aai",
+  "callout.sensitive-data.cloud",
+  "callout.sensitive-data.community",
+  "callout.sensitive-data.principles",
+  "callout.sensitive-data.rights",
+  "callout.sensitive-data.steward",
+  "callout.verify-identifiers.helper",
+  "callout.verify-identifiers.orcid",
+  "callout.verify-identifiers.pid",
+  "callout.verify-identifiers.private",
+  "callout.verify-identifiers.script",
+  "callout.verify-identifiers.terms",
+  "callout:sensitive-data",
+  "callout:verify-identifiers",
+  "cambridge-notebooks",
+  "cc-signals",
+  "ccmm",
+  "ccmm-releases",
   "cdif",
+  "cdif-codelist-1.1.1",
+  "cdif-conceptscheme-1.1.1",
+  "cdif-core-1.1.1",
+  "cdif-datadescription-1.1.1",
+  "cdif-datastructure-1.1.1",
+  "cdif-discovery-1.1.1",
+  "cdif-manifest-1.1.1",
   "cdif.01",
   "cdif.02",
   "cdif.03",
@@ -1044,46 +674,85 @@ results = [
   "cdif.33",
   "cdif.34",
   "cdif.35",
-]
-endTime = 2026-10-10T00:31:00+02:00
-
-[[action]]
-id = "2026-10-09-coretrustseal"
-type = "create"
-name = "CoreTrustSeal requirements in full, and a readiness check"
-description = "The CoreTrustSeal Requirements 2026-2028 enter the ledger in full: each requirement with its statement in English as published and in Czech, and its guidance in English as published, read from the PDF and checked against it word for word. The principles' CoreTrustSeal links, taken from the FAIR analysis, follow what the analysis says each requirement is about, since its numbers mostly follow the 2020-2022 edition; the analysis clauses link the numbers they name. A readiness check asks one question per requirement."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["cts-2026", "analyza-fair-1.2"]
-results = [
-  "CTS.R0",
-  "CTS.R01",
-  "CTS.R02",
-  "CTS.R03",
-  "CTS.R04",
-  "CTS.R05",
-  "CTS.R06",
-  "CTS.R07",
-  "CTS.R08",
-  "CTS.R09",
-  "CTS.R10",
-  "CTS.R11",
-  "CTS.R12",
-  "CTS.R13",
-  "CTS.R14",
-  "CTS.R15",
-  "CTS.R16",
-  "A.F1.X2",
-  "A.F2.X3",
-  "A.F4.X2",
-  "A.A1.X1",
-  "A.A2.X1",
-  "A.I1.X2",
-  "A.I3.X1",
-  "A.R1.X2",
-  "A.R1.1.X3",
-  "A.R1.2.X2",
-  "A.R1.3.X2",
+  "cdsc-eln",
+  "cdsc-readme",
+  "cerit-ai-api",
+  "cerit-ai-coding",
+  "cerit-ai-privacy",
+  "cerit-aiaas",
+  "cerit-chat-ai",
+  "cesnet-owncloud",
+  "cesnet-storage",
+  "cessda-dmeg",
+  "citation.01",
+  "citation.02",
+  "citation.03",
+  "citation.04",
+  "citation.05",
+  "citation.06",
+  "citation.07",
+  "citation.08",
+  "citation.09",
+  "citation.10",
+  "citation.11",
+  "citation.12",
+  "citation.13",
+  "citation.14",
+  "citation.15",
+  "citation.16",
+  "citation.17",
+  "citation.18",
+  "citation.19",
+  "citation.20",
+  "citation.21",
+  "citation.22",
+  "citation.23",
+  "code-principles",
+  "collect.01",
+  "collect.02",
+  "collect.03",
+  "collect.04",
+  "collect.05",
+  "collect.06",
+  "collect.07",
+  "collect.08",
+  "collect.09",
+  "collect.10",
+  "collect.11",
+  "collect.12",
+  "collect.13",
+  "collect.14",
+  "collect.15",
+  "collect.16",
+  "collect.17",
+  "collect.18",
+  "collect.19",
+  "collect.20",
+  "collect.21",
+  "conda",
+  "conda-environments",
+  "container-images",
+  "context:assessment:DS",
+  "context:assessment:K",
+  "context:assessment:SR",
+  "context:assessment:V",
+  "context:citation:SR",
+  "context:collect:K",
+  "context:findability:DS",
+  "context:findability:SR",
+  "context:findability:V",
+  "context:metadata:DS",
+  "context:metadata:K",
+  "context:metadata:SR",
+  "context:metadata:V",
+  "context:plan:DS",
+  "context:plan:K",
+  "context:plan:V",
+  "context:publication:SR",
+  "cookbook-assessment",
+  "cookbook-dictionary",
+  "copyright-licences",
+  "coretrustseal",
   "coretrustseal.01",
   "coretrustseal.02",
   "coretrustseal.03",
@@ -1100,138 +769,61 @@ results = [
   "coretrustseal.14",
   "coretrustseal.15",
   "coretrustseal.16",
-]
-endTime = 2026-10-09T21:52:00+02:00
-
-[[action]]
-id = "2026-10-09-gate-sources"
-type = "update"
-name = "Sources behind the gate's infrastructure questions and the About page"
-description = "The gate's questions on the AAI, security monitoring, central logging and first-line support cite what NRP's AAI architecture, its documentation and the Open Science II security monitoring report say about them; the About page says why the Guide exists, citing the EOSC CZ vision paper, the NDI architecture, the ERCIM News article, the national survey of research data management and the NRP service roadmaps."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["aai-nrp", "nrp-aai-integration", "os2-kb1", "nrp-support", "eosc-cz-vision", "ndi-architecture", "ercim-community", "survey-2025-data", "nrp-roadmap-2025"]
-results = [
-  "AAI-NRP.01",
-  "NRP-AAI-INTEGRATION.01",
-  "OS2-KB1.01",
-  "OS2-KB1.02",
-  "OS2-KB1.03",
-  "AAI-NRP.02",
-  "NRP-SUPPORT.01",
-  "gate.06",
-  "gate.09",
-  "gate.10",
-  "gate.17",
-  "aai-nrp",
-  "nrp-support",
-]
-endTime = 2026-10-09T21:50:00+02:00
-
-[[action]]
-id = "2026-10-09-cerit-ai"
-type = "update"
-name = "AI in e-INFRA CZ, read from its documentation"
-description = "The AI page leads to AI in e-INFRA CZ (CERIT): what it offers, who can use it and how its data are handled, read from CERIT-SC's documentation; the Guide's data rule follows CERIT-SC's privacy policy, which does not admit sensitive or personal data to the chat."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["cerit-aiaas", "cerit-chat-ai", "cerit-ai-api", "cerit-ai-coding", "cerit-ai-privacy"]
-results = ["cerit-aiaas"]
-endTime = 2026-10-09T21:05:00+02:00
-
-[[action]]
-id = "2026-10-09-steward-community"
-type = "create"
-name = "The data steward community's README templates and lab notebook example"
-description = "The Czech data steward community's README templates, with the IAP-CAS template they build on, and its example of Jupyter as an electronic lab notebook become resources, read from their repositories and the template's DataCite record, and the README and record-keeping advice points to them."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["cdsc-readme", "cdsc-eln", "iap-cas-readme"]
-results = [
-  "cdsc-readme",
-  "cdsc-eln",
-  "CDSC-README.01",
-  "CDSC-ELN.01",
-  "collect.05",
-  "collect.06",
-  "collect.11",
-  "metadata.06",
-]
-endTime = 2026-10-09T20:16:00+02:00
-
-[[action]]
-id = "2026-10-09-ai-part"
-type = "update"
-name = "The AI part of each station"
-description = "Every station gets AI tips by lens, each with what to check afterwards and a prompt to copy, grounded in the European Commission's living guidelines on the responsible use of generative AI in research (third version); the AI page's rules follow the guidelines."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["ec-genai-guidelines", "CERIT-AIAAS.01"]
-results = [
-  "plan.26",
-  "publication.26",
-  "plan.27",
-  "process.10",
-  "repository.22",
-  "metadata.37",
-  "metadata.38",
-  "licence.25",
-  "publication.25",
-  "findability.24",
-  "citation.18",
-  "assessment.27",
-  "assessment.28",
-  "EC-GENAI-GUIDELINES.01",
-  "EC-GENAI-GUIDELINES.02",
-  "EC-GENAI-GUIDELINES.03",
-  "EC-GENAI-GUIDELINES.04",
-  "EC-GENAI-GUIDELINES.05",
-]
-endTime = 2026-10-09T20:09:00+02:00
-
-[[action]]
-id = "2026-10-09-crate-standards"
-type = "create"
-name = "RO-Crate and Process Run Crate as resources"
-description = "RO-Crate and Process Run Crate, the standards the Guide's knowledge base follows, become resources that the page for machines links, read from their published specifications."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["ro-crate", "process-run-crate"]
-results = ["ro-crate", "process-run-crate"]
-endTime = 2026-10-09T21:00:00+02:00
-
-[[action]]
-id = "2026-10-09-machine-data"
-type = "create"
-name = "FAIR Testing Resources as a resource"
-description = "The FAIR Testing Resources vocabulary, which the Guide's check results and API use, becomes a resource that the page for machines explains and links, read from its published release."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["ftr"]
-results = ["ftr"]
-endTime = 2026-10-09T18:30:00+02:00
-
-[[action]]
-id = "2026-10-09-funded-output"
-type = "create"
-name = "Funded-output profile of the dataset check"
-description = "The dataset check gains a programme picker for funded outputs: the Open Science III FAIR dataset and the Open Science II mini-project dataset, with the requirements both programmes share and those only Open Science III sets, taken from the call's specific rules, its FAQ and the minizáměr catalogue of outputs."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["os3-rules", "os3-faq", "minizamer-catalogue"]
-results = [
-  "MINIZAMER-CATALOGUE.01",
-  "OS3-FAQ.03",
-  "OS3-FAQ.01",
-  "OS3-FAQ.02",
-  "OS3-RULES.22",
-  "OS3-RULES.20",
-  "OS3-RULES.25",
-  "OS3-RULES.19",
-  "OS3-RULES.26",
-  "OS3-RULES.21",
-  "OS3-RULES.23",
-  "OS3-RULES.24",
+  "creative-commons",
+  "crossref-rest-api",
+  "crosswalk:rdm-analyse-knav-analyzing",
+  "crosswalk:rdm-analyse-mld-analyse",
+  "crosswalk:rdm-collect-knav-collecting",
+  "crosswalk:rdm-collect-knav-organizing",
+  "crosswalk:rdm-collect-mld-collect",
+  "crosswalk:rdm-collect-mld-store",
+  "crosswalk:rdm-plan-knav-planning",
+  "crosswalk:rdm-plan-mld-conceptualise",
+  "crosswalk:rdm-plan-mld-fund",
+  "crosswalk:rdm-plan-mld-plan",
+  "crosswalk:rdm-preserve-knav-storing",
+  "crosswalk:rdm-preserve-mld-preserve",
+  "crosswalk:rdm-process-knav-processing",
+  "crosswalk:rdm-process-mld-process",
+  "crosswalk:rdm-reuse-knav-reusing",
+  "crosswalk:rdm-reuse-mld-access",
+  "crosswalk:rdm-reuse-mld-transform",
+  "crosswalk:rdm-share-knav-sharing",
+  "crosswalk:rdm-share-mld-access",
+  "crosswalk:rdm-share-mld-publish",
+  "crosswalk:rdm-share-mld-share",
+  "csl-iso690-cs",
+  "cts-2026",
+  "cwl",
+  "czech-bioimaging",
+  "data-europa",
+  "data-gov-cz",
+  "datacite",
+  "datacite-commons",
+  "datacite-data-file-use-policy",
+  "datacite-rest-api",
+  "datacite-schema",
+  "datahub-cuni",
+  "datarepo",
+  "dataset.01",
+  "dataset.02",
+  "dataset.03",
+  "dataset.04",
+  "dataset.05",
+  "dataset.06",
+  "dataset.07",
+  "dataset.08",
+  "dataset.09",
+  "dataset.10",
+  "dataset.11",
+  "dataset.12",
+  "dataset.13",
+  "dataset.14",
+  "dataset.15",
+  "dataset.16",
+  "dataset.17",
+  "dataset.18",
+  "dataset.19",
   "dataset.20",
   "dataset.21",
   "dataset.22",
@@ -1241,729 +833,717 @@ results = [
   "dataset.26",
   "dataset.27",
   "dataset.28",
-]
-endTime = 2026-10-09T10:55:15+02:00
-
-[[action]]
-id = "2026-10-10-station-actions"
-type = "update"
-name = "Next steps per station and audience"
-description = "Each station offers each audience its next step and, where it helps, one related tool, drawn from what the Guide has grown to offer: its checks and helpers, the data-steward community's templates, NRP and e-INFRA CZ documentation, NMA and the standards the steps rely on; no audience is sent to the same place at every station."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = []
-results = [
-  "citation.08",
-  "citation.16",
-  "citation.12",
-  "citation.02",
-  "findability.08",
-  "findability.21",
-  "findability.13",
-  "findability.02",
-  "assessment.07",
-  "assessment.23",
-  "assessment.15",
-  "assessment.02",
-  "licence.08",
-  "licence.22",
-  "licence.13",
-  "licence.02",
-  "plan.09",
-  "plan.21",
-  "plan.15",
-  "plan.02",
-  "metadata.09",
-  "metadata.28",
-  "metadata.15",
-  "metadata.01",
-  "collect.09",
-  "collect.18",
-  "collect.15",
-  "collect.02",
-  "publication.08",
-  "publication.21",
-  "publication.12",
-  "publication.02",
-  "repository.08",
-  "repository.19",
-  "repository.12",
-  "repository.01",
-]
-endTime = 2026-10-10T08:47:00+02:00
-
-[[action]]
-id = "2026-10-10-key-points"
-type = "create"
-name = "A key point for every station"
-description = "Every station states its core idea once, for every audience, at the top of its how-to: the two ideas the repository and metadata stations stated among their reasons became key points, and the other stations gained one each, taken from the requirements they cite."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = []
-results = [
-  "citation.01",
+  "dataspecer",
+  "datasteward-cz",
+  "ddrapp",
+  "deposit-licence",
+  "dmp-eosc",
+  "dmp-status",
+  "dmponline",
+  "docker",
+  "doi-citation-service",
+  "dryad",
+  "ds-handbook",
+  "ds-manual",
+  "ds-personas",
+  "dsw-nrp",
+  "ec-genai-guidelines",
+  "einfra-aai",
+  "einfra-docs",
+  "elabftw",
+  "eosc-acknowledgement",
+  "eosc-cz-node-announcement",
+  "eosc-cz-node-charter",
+  "eosc-cz-node-page",
+  "eosc-cz-vision",
+  "eosc-data-stewards",
+  "eosc-federation-production",
+  "eosc-federation-second-wave-mou",
+  "eosc-mrm-ssh-open-marketplace",
+  "eosc-notebooks",
+  "eosc-training",
+  "eosc-working-groups",
+  "ercim-community",
+  "ethical-seven",
+  "example.assessment-feedback",
+  "example.nkr-catalogue",
+  "example.nkr-planning",
+  "f-uji",
+  "fair-aware",
+  "fair-champion",
+  "fair-checker",
+  "fair-checker-check-view",
+  "fair-checker-metrics",
+  "fair-impact",
+  "fair-principles-2016",
+  "fair-signposting",
+  "fair4rs",
+  "fairsharing",
+  "fdmm",
+  "fdo-overview",
+  "fdo-specification",
+  "fdo.01",
+  "fdo.02",
+  "fdo.03",
+  "fdo.04",
+  "fdo.05",
+  "fdo.06",
+  "fdo.07",
+  "fdo.08",
+  "fdo.09",
+  "fdo.10",
+  "fdo.11",
+  "fdo.12",
+  "fdo.13",
+  "fdo.14",
+  "fdo.15",
+  "fdo.16",
+  "fdo.17",
+  "fdo.18",
+  "fdo.19",
+  "fdo.20",
+  "fdo.21",
+  "fdo.22",
+  "fdo.23",
+  "fdo.24",
+  "fdo.25",
+  "fdo.26",
+  "fdo.27",
+  "fdo.28",
+  "fdo.29",
+  "fdo.30",
+  "fdo.31",
+  "fdo.32",
+  "fdo.33",
+  "fdo.34",
   "findability.01",
-  "assessment.01",
+  "findability.02",
+  "findability.03",
+  "findability.04",
+  "findability.05",
+  "findability.06",
+  "findability.07",
+  "findability.08",
+  "findability.09",
+  "findability.10",
+  "findability.11",
+  "findability.12",
+  "findability.13",
+  "findability.14",
+  "findability.15",
+  "findability.16",
+  "findability.17",
+  "findability.18",
+  "findability.19",
+  "findability.20",
+  "findability.21",
+  "findability.22",
+  "findability.23",
+  "findability.24",
+  "fip-dashboard",
+  "fip-ontology",
+  "fip-wizard-templates",
+  "fip.01",
+  "fip.02",
+  "fip.03",
+  "fip.04",
+  "fip.05",
+  "fip.06",
+  "fip.07",
+  "fip.08",
+  "fip.09",
+  "fip.10",
+  "fip.11",
+  "fip.12",
+  "fip.13",
+  "force11-citation",
+  "frsm",
+  "frsm-report-1.1",
+  "ftr",
+  "fuji-metrics-v0-8",
+  "fuji-simpleclient",
+  "galaxy-cz",
+  "gate.01",
+  "gate.02",
+  "gate.03",
+  "gate.04",
+  "gate.05",
+  "gate.06",
+  "gate.07",
+  "gate.08",
+  "gate.09",
+  "gate.10",
+  "gate.11",
+  "gate.12",
+  "gate.13",
+  "gate.14",
+  "gate.15",
+  "gate.16",
+  "gate.17",
+  "gate.18",
+  "gate.19",
+  "genasis",
+  "ggp-cz-project",
+  "git",
+  "google-dataset-search",
+  "guide",
+  "handle",
+  "harvard-dataverse",
+  "he-dmp-template",
+  "heslar",
+  "iap-cas-readme",
+  "infra-finder",
+  "infra-finder-paper",
+  "infrastructure:actris-cz",
+  "infrastructure:ais-cr",
+  "infrastructure:auger-cz",
+  "infrastructure:bbmri-cz",
+  "infrastructure:bnl-cz",
+  "infrastructure:ccp",
+  "infrastructure:cemnat",
+  "infrastructure:cenakva",
+  "infrastructure:ceplant",
+  "infrastructure:cern-cz",
+  "infrastructure:cicrr",
+  "infrastructure:ciisb",
+  "infrastructure:clb",
+  "infrastructure:cnc",
+  "infrastructure:compass",
+  "infrastructure:csda-ess-cz",
+  "infrastructure:cta-cz",
+  "infrastructure:cz-openscreen",
+  "infrastructure:czech-bioimaging",
+  "infrastructure:czechnanolab",
+  "infrastructure:czecos",
+  "infrastructure:czecrin",
+  "infrastructure:e-infra-cz",
+  "infrastructure:eatris-cz",
+  "infrastructure:elixir-cz",
+  "infrastructure:enregat",
+  "infrastructure:ess-scandinavia-cz",
+  "infrastructure:est-cz",
+  "infrastructure:eu-arc-cz",
+  "infrastructure:fair-cz",
+  "infrastructure:fermilab-cz",
+  "infrastructure:ggp-cz",
+  "infrastructure:lindat-clariah-cz",
+  "infrastructure:lsm-cz",
+  "infrastructure:metrofood-cz",
+  "infrastructure:mgml",
+  "infrastructure:nanoenvicz",
+  "infrastructure:ncmg",
+  "infrastructure:pals",
+  "infrastructure:recetox-ri",
+  "infrastructure:share-cz",
+  "infrastructure:spiral2-cz",
+  "infrastructure:spl-htc",
+  "infrastructure:wczv",
+  "institution.01",
+  "institution.02",
+  "institution.03",
+  "institution.04",
+  "institution.05",
+  "institution.06",
+  "institution.07",
+  "institution.08",
+  "institution.09",
+  "institution.10",
+  "institution.11",
+  "institution.12",
+  "institution.13",
+  "institution.14",
+  "institution.15",
+  "institution.16",
+  "institution.17",
+  "institution.18",
+  "institution.19",
+  "institution.20",
+  "institution.21",
+  "institution.22",
+  "institution.23",
+  "institution.24",
+  "institution.25",
+  "institution.26",
+  "institution.27",
+  "isvavai-infrastructures",
+  "it4i-compute",
+  "jupyter",
+  "jupyterhub-cerit",
+  "kadi4mat",
+  "knav-dm-tools-catalogue",
+  "knav-life-cycle",
+  "knav-tools.analyzing",
+  "knav-tools.collecting",
+  "knav-tools.organizing-collaborating",
+  "knav-tools.planning",
+  "knav-tools.processing",
+  "knav-tools.reusing",
+  "knav-tools.sharing",
+  "knav-tools.storing-archiving",
+  "knav-type-t",
+  "law-328-2025",
+  "layer.community",
+  "layer.evaluation",
+  "layer.infrastructure",
+  "layer.planning",
+  "layer.policy",
+  "layer.support",
+  "layers-seams-manuscript",
+  "lexis",
   "licence.01",
-  "plan.01",
+  "licence.02",
+  "licence.03",
+  "licence.04",
+  "licence.05",
+  "licence.06",
+  "licence.07",
+  "licence.08",
+  "licence.09",
+  "licence.10",
+  "licence.11",
+  "licence.12",
+  "licence.13",
+  "licence.14",
+  "licence.15",
+  "licence.16",
+  "licence.17",
+  "licence.18",
+  "licence.19",
+  "licence.20",
+  "licence.21",
+  "licence.22",
+  "licence.23",
+  "licence.24",
+  "licence.25",
+  "licence.26",
+  "licence.27",
+  "licence.28",
+  "licence.29",
+  "licence.30",
+  "lifecycle:knav-tools",
+  "lifecycle:maldreth",
+  "lifecycle:rdmkit",
+  "london-charter",
+  "lri-roadmap-2023",
+  "maldreth",
+  "maldreth.access",
+  "maldreth.analyse",
+  "maldreth.collect",
+  "maldreth.conceptualise",
+  "maldreth.fund",
+  "maldreth.plan",
+  "maldreth.preserve",
+  "maldreth.process",
+  "maldreth.publish",
+  "maldreth.share",
+  "maldreth.store",
+  "maldreth.transform",
+  "maturity.01",
+  "maturity.02",
+  "maturity.03",
+  "maturity.04",
+  "maturity.05",
+  "maturity.06",
+  "maturity.07",
+  "maturity.08",
+  "maturity.09",
+  "maturity.10",
+  "maturity.11",
+  "maturity.12",
+  "maturity.13",
+  "maturity.14",
+  "maturity.15",
+  "maturity.16",
+  "maturity.17",
+  "maturity.18",
+  "maturity.19",
+  "maturity.20",
+  "maturity.21",
+  "maturity.22",
+  "mbdb",
+  "mbdb-2026",
+  "metacentrum",
+  "metadata.01",
+  "metadata.02",
+  "metadata.03",
+  "metadata.04",
+  "metadata.05",
+  "metadata.06",
+  "metadata.07",
   "metadata.08",
-  "collect.01",
-  "publication.01",
-  "repository.07",
-]
-endTime = 2026-10-10T08:53:00+02:00
-
-[[action]]
-id = "2026-10-10-resource-types"
-type = "update"
-name = "One vocabulary of resource types"
-description = "The Guide's resource types became the one vocabulary the catalogue lists resources, cited sources and FIP Dashboard records by: each type names the FIP Dashboard types and citation forms it covers, repositories and registries are one type, and publications, licences, policies and data joined; the NRP catch-all repository is a repository or registry."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = []
-results = ["datarepo"]
-endTime = 2026-10-10T09:01:00+02:00
-
-[[action]]
-id = "2026-10-10-identifiers"
-type = "update"
-name = "Identifiers set and frozen"
-description = "Every entry of the Guide took its identifier by one rule, set on 10 October 2026 and kept from then on: stations by short English names, advice and check questions nested under their station or check with a serial number, requirements under their source's code with the source's own label where it labels its items consistently, terms by their Heslář ID. Resources follow the stations' new identifiers."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = []
-results = [
-  "assessment.*",
-  "citation.*",
-  "findability.*",
-  "licence.*",
-  "metadata.*",
-  "plan.*",
-  "publication.*",
-  "repository.*",
-  "collect.01",
-  "collect.02",
-  "collect.03",
-  "collect.04",
-  "collect.05",
-  "collect.06",
-  "collect.07",
-  "collect.09",
-  "collect.10",
-  "collect.11",
-  "collect.12",
-  "collect.13",
-  "collect.14",
-  "collect.15",
-  "collect.16",
-  "collect.17",
-  "collect.18",
-  "collect.19",
+  "metadata.09",
+  "metadata.10",
+  "metadata.11",
+  "metadata.12",
+  "metadata.13",
+  "metadata.14",
+  "metadata.15",
+  "metadata.16",
+  "metadata.17",
+  "metadata.18",
+  "metadata.19",
+  "metadata.20",
+  "metadata.21",
+  "metadata.22",
+  "metadata.23",
+  "metadata.24",
+  "metadata.25",
+  "metadata.26",
+  "metadata.27",
+  "metadata.28",
+  "metadata.29",
+  "metadata.30",
+  "metadata.31",
+  "metadata.32",
+  "metadata.33",
+  "metadata.34",
+  "metadata.35",
+  "metadata.36",
+  "metadata.37",
+  "metadata.38",
+  "metadata.39",
+  "metadata.40",
+  "metadata.41",
+  "metodika-2025",
+  "minizamer-catalogue",
+  "model:layers-seams",
+  "model:worked-example",
+  "ncdoi-2023",
+  "ndi-architecture",
+  "nextflow",
+  "nkr",
+  "nkr-schema",
+  "nma",
+  "nma-export-docs",
+  "nma-riv-docs",
+  "node:eosc-cz-node",
+  "nrp-aai-integration",
+  "nrp-admin-docs",
+  "nrp-compute",
+  "nrp-conditions",
+  "nrp-docs-nma-access",
+  "nrp-docs-nma-introduction",
+  "nrp-license-selector",
+  "nrp-repo-conditions",
+  "nrp-roadmap-2025",
+  "nrp-roadmap-2026",
+  "nrp-support",
+  "oai-pmh",
+  "onedata",
+  "openaire-explore",
+  "openaire-validator",
+  "opendoar",
+  "opendoar-inclusion-criteria",
+  "openrefine",
+  "openssf-best-practices",
+  "openssf-criteria-2024",
+  "orcid",
+  "orcid-identifier-pattern",
+  "organization:aru-praha",
+  "organization:cesnet",
+  "organization:csda",
+  "organization:cuni",
+  "organization:eosc-cz",
+  "organization:knav",
+  "organization:msmt",
+  "organization:nrp",
+  "organization:ntk",
+  "os-linkages-1.1",
+  "os2",
+  "os2-kb1",
+  "os3",
+  "os3-faq",
+  "os3-rules",
+  "osii-study",
+  "ostrails-cli",
+  "ostrails-cz-pilot",
+  "page:about",
+  "page:accessibility",
+  "page:ai",
+  "page:citation",
+  "page:fdo",
+  "page:identifiers",
+  "page:licence-compatibility",
+  "page:live-check",
+  "page:machines",
+  "page:model",
+  "page:notebooks",
+  "page:provenance",
+  "page:software",
+  "pid-centre",
+  "plan.01",
+  "plan.02",
+  "plan.03",
+  "plan.04",
+  "plan.05",
+  "plan.06",
+  "plan.07",
+  "plan.08",
+  "plan.09",
+  "plan.10",
+  "plan.11",
+  "plan.12",
+  "plan.13",
+  "plan.14",
+  "plan.15",
+  "plan.16",
+  "plan.17",
+  "plan.18",
+  "plan.19",
+  "plan.20",
+  "plan.21",
+  "plan.22",
+  "plan.23",
+  "plan.24",
+  "plan.25",
+  "plan.26",
+  "plan.27",
+  "plan.28",
+  "plan.29",
+  "plan.30",
+  "policy-manual",
+  "process-run-crate",
+  "process.01",
+  "process.02",
   "process.03",
+  "process.04",
+  "process.05",
+  "process.06",
+  "process.07",
   "process.08",
   "process.09",
   "process.10",
-  "analyse.03",
-  "analyse.05",
-  "cdif.*",
-  "coretrustseal.*",
-  "dataset.*",
-  "fip.*",
-  "gate.*",
-  "institution.*",
-  "maturity.*",
-  "A.F1.N3",
-  "A.F1.X1",
-  "A.F2.N1",
-  "A.F2.X2",
-  "A.F2.X4",
-  "A.F4.R1",
-  "A.A1.N2",
-  "A.A1.2.N1",
-  "A.A1.2.R1",
-  "A.A1.2.X1",
-  "A.I1.X2",
-  "A.I2.N1",
-  "A.I3.X1",
-  "A.R1.1.N2",
-  "A.R1.1.X1",
-  "A.R1.1.X3",
-  "A.R1.2.N1",
-  "A.R1.2.X1",
-  "A.R1.2.X2",
-  "A.R1.3.N2",
-  "A.K2.1",
-  "A.K2.2.1",
-  "A.K2.2.2",
-  "A.K2.2.3",
-  "A.K2.2.4",
-  "A.K2.3.1",
-  "A.K2.3.2a",
-  "A.K2.3.2b",
-  "A.K2.3.2c",
-  "A.K4.1",
-  "A.K4.2",
-  "A.K4.3",
-  "A.K5.0",
-  "A.K5.1",
-  "A.K5.2.1",
-  "A.K5.2.2",
-  "A.K6",
-  "A.P1",
-  "A.G",
-  "A.MIN1",
-  "A.MIN2",
-  "A.MIN3",
-  "A.REC1",
-  "A.REC2",
-  "A.REC3",
-  "AAI-NRP.*",
-  "AAI-SENSITIVE.*",
-  "CCMM-RELEASES.*",
-  "CDIF.01",
-  "CDSC-ELN.*",
-  "CDSC-README.*",
-  "CERIT-AIAAS.*",
-  "CESSDA-DMEG.*",
-  "COPYRIGHT-LICENCES.*",
-  "CORETRUSTSEAL.*",
-  "DATACITE-SCHEMA.*",
-  "DATAREPO.*",
-  "DATASPECER.*",
-  "DDRAPP.*",
-  "DEPOSIT-LICENCE.*",
-  "DS-HANDBOOK.*",
-  "DS-PERSONAS.*",
-  "DSW-NRP.*",
-  "EC-GENAI-GUIDELINES.*",
-  "EINFRA-DOCS.*",
-  "EOSC-ACKNOWLEDGEMENT.*",
-  "EOSC-DATA-STEWARDS.*",
-  "EOSC-TRAINING.*",
-  "EOSC-WORKING-GROUPS.*",
-  "ETHICAL-SEVEN.*",
-  "FAIR-CHAMPION.*",
-  "FAIR-IMPACT.*",
-  "FAIR-PRINCIPLES-2016.*",
-  "FAIR-SIGNPOSTING.*",
-  "FIP-DASHBOARD.*",
-  "FIP-ONTOLOGY.*",
-  "FIP-WIZARD-TEMPLATES.*",
-  "FORCE11-CITATION.*",
-  "HESLAR.*",
-  "KNAV-TYPE-T.*",
-  "LAW-328-2025.*",
-  "MBDB-2026.*",
-  "MINIZAMER-CATALOGUE.*",
-  "NCDOI-2023.*",
-  "NKR-SCHEMA.*",
-  "NMA.*",
-  "NMA-EXPORT-DOCS.*",
-  "NMA-RIV-DOCS.*",
-  "NRP.*",
-  "NRP-AAI-INTEGRATION.*",
-  "NRP-COMPUTE.*",
-  "NRP-DOCS-NMA-ACCESS.*",
-  "NRP-DOCS-NMA-INTRODUCTION.*",
-  "NRP-SUPPORT.*",
-  "OS-LINKAGES.*",
-  "OS2.*",
-  "OS2-KB1.*",
-  "OS3.*",
-  "OS3-FAQ.*",
-  "OS3-RULES.*",
-  "OSTRAILS-CLI.*",
-  "OSTRAILS-CZ-PILOT.*",
-  "PID-CENTRE.*",
-  "POLICY-MANUAL.*",
-  "REPO-INTEGRATION.*",
-  "REPO-RECOMMENDATIONS.*",
-  "REPO-USER-NEEDS.*",
-  "SCHEMA-DATASET.*",
-  "SURVEY-2025.*",
-  "TF-SEMANTIC.*",
-  "eosc-data-stewards",
-  "cdsc-readme",
-  "cdsc-eln",
-  "cessda-dmeg",
-  "cesnet-storage",
-  "onedata",
-  "sensitive-cloud",
-  "ddrapp",
-  "nrp-compute",
-  "eosc-training",
-  "cerit-aiaas",
-  "nkr",
-  "fip-dashboard",
+  "process.11",
+  "provider:f-uji.FsF-A1-01M",
+  "provider:f-uji.FsF-A1-02MD",
+  "provider:f-uji.FsF-A1.1-01MD",
+  "provider:f-uji.FsF-A1.2-01MD",
+  "provider:f-uji.FsF-F1-01MD",
+  "provider:f-uji.FsF-F1-02MD",
+  "provider:f-uji.FsF-F2-01M",
+  "provider:f-uji.FsF-F3-01M",
+  "provider:f-uji.FsF-F4-01M",
+  "provider:f-uji.FsF-I1-01M",
+  "provider:f-uji.FsF-I2-01M",
+  "provider:f-uji.FsF-I3-01M",
+  "provider:f-uji.FsF-R1-01M",
+  "provider:f-uji.FsF-R1.1-01M",
+  "provider:f-uji.FsF-R1.2-01M",
+  "provider:f-uji.FsF-R1.3-01M",
+  "provider:f-uji.FsF-R1.3-02D",
+  "provider:fair-checker.A11",
+  "provider:fair-checker.A12",
+  "provider:fair-checker.F1A",
+  "provider:fair-checker.F1B",
+  "provider:fair-checker.F2A",
+  "provider:fair-checker.F2B",
+  "provider:fair-checker.I1",
+  "provider:fair-checker.I2",
+  "provider:fair-checker.I3",
+  "provider:fair-checker.R11",
+  "provider:fair-checker.R12",
+  "provider:fair-checker.R13",
+  "publication.01",
+  "publication.02",
+  "publication.03",
+  "publication.04",
+  "publication.05",
+  "publication.06",
+  "publication.07",
+  "publication.08",
+  "publication.09",
+  "publication.10",
+  "publication.11",
+  "publication.12",
+  "publication.13",
+  "publication.14",
+  "publication.15",
+  "publication.16",
+  "publication.17",
+  "publication.18",
+  "publication.19",
+  "publication.20",
+  "publication.21",
+  "publication.22",
+  "publication.23",
+  "publication.24",
+  "publication.25",
+  "publication.26",
+  "publication.27",
+  "publication.28",
+  "publication.29",
+  "rdmkit",
+  "rdmkit-bioimaging",
+  "rdmkit-dmp",
+  "rdmkit-domains",
+  "rdmkit-existing-data",
+  "rdmkit-human-data",
+  "rdmkit-licensing",
+  "rdmkit-metadata",
+  "rdmkit-organisation",
+  "rdmkit-pi",
+  "rdmkit-policy",
+  "rdmkit-provenance",
+  "rdmkit-publication",
+  "rdmkit-quality",
+  "rdmkit-researcher",
+  "rdmkit-rse",
+  "rdmkit-security",
+  "rdmkit-steward",
+  "rdmkit-trainer",
+  "rdmkit.analyse",
+  "rdmkit.collect",
+  "rdmkit.plan",
+  "rdmkit.preserve",
+  "rdmkit.process",
+  "rdmkit.reuse",
+  "rdmkit.share",
   "re3data",
-  "fairsharing",
-  "datarepo",
-  "coretrustseal",
-  "nrp-conditions",
+  "re3data-schema-3.1",
+  "recetox-ms-library",
+  "repo-integration",
+  "repo-proposal-template",
   "repo-recommendations",
   "repo-user-needs",
-  "repo-integration",
-  "os2",
-  "eosc-working-groups",
-  "ccmm",
-  "heslar",
-  "pid-centre",
-  "orcid",
-  "ror",
-  "dataspecer",
-  "cdif",
-  "tf-semantic",
-  "datacite-schema",
-  "deposit-licence",
-  "datacite",
-  "handle",
-  "fair-signposting",
+  "repository.01",
+  "repository.02",
+  "repository.03",
+  "repository.04",
+  "repository.05",
+  "repository.06",
+  "repository.07",
+  "repository.08",
+  "repository.09",
+  "repository.10",
+  "repository.11",
+  "repository.12",
+  "repository.13",
+  "repository.14",
+  "repository.15",
+  "repository.16",
+  "repository.17",
+  "repository.18",
+  "repository.19",
+  "repository.20",
+  "repository.21",
+  "repository.22",
+  "repository.23",
+  "repository.24",
+  "ri-portal",
   "ro-crate",
-  "ftr",
+  "ror",
+  "ror-identifier-pattern",
   "schema-dataset",
-  "oai-pmh",
-  "nma",
-  "nma-riv-docs",
-  "nma-export-docs",
-  "datacite-commons",
-  "openaire-explore",
-  "google-dataset-search",
-  "force11-citation",
-  "knav-type-t",
-  "os3",
-  "eosc-acknowledgement",
-  "fair-champion",
-  "f-uji",
-  "fair-checker",
-  "fair-aware",
-  "openaire-validator",
-  "fdmm",
-  "ostrails-cli",
-  "ostrails-cz-pilot",
-  "fair-impact",
-  "it4i-compute",
-  "metacentrum",
-  "data-europa",
-  "data-gov-cz",
-  "metodika-2025",
   "scientific-data",
-  "nrp-support",
-  "nrp-admin-docs",
-  "nrp-repo-conditions",
-  "repo-proposal-template",
-  "nrp-roadmap-2026",
-  "training-collection",
-  "training-processing",
+  "seam.assessment-remediation",
+  "seam.community-planning",
+  "seam.community-repository",
+  "seam.institution-nma",
+  "seam.nma-research-register",
+  "seam.plan-repository",
+  "seam.repository-authentication",
+  "seam.repository-catalogue-planning",
+  "seam.repository-nma",
+  "seam.repository-pid-registry",
+  "seam.repository-support",
+  "seam.working-groups-services",
+  "sensitive-cloud",
+  "sherpa-object-retrieval-api",
+  "snakemake",
+  "software-heritage",
+  "software-heritage-guide",
+  "software.01",
+  "software.02",
+  "software.03",
+  "software.04",
+  "software.05",
+  "software.06",
+  "software.07",
+  "software.08",
+  "software.09",
+  "software.10",
+  "software.11",
+  "software.12",
+  "software.13",
+  "software.14",
+  "software.15",
+  "software.16",
+  "software.17",
+  "software.18",
+  "software.19",
+  "software.20",
+  "ssh-open-marketplace",
+  "strazci-dat",
+  "survey-2025",
+  "survey-2025-data",
+  "tess",
+  "test:community-author-affiliation",
+  "test:community-data-citation",
+  "test:fc-data-id-metadata",
+  "test:fc-metadata-fair-vocabularies",
+  "test:fc-metadata-pid",
+  "test:fc_metadata_includes_license",
+  "test:fc_metadata_outward_links",
+  "test:fc_metadata_persistence",
+  "test:fc_metadata_protocol",
+  "test:fc_searchable",
+  "test:fc_structured_metadata",
+  "test:fc_unique_identifier",
+  "test:guide-cdif-01",
+  "test:guide-cdif-02",
+  "test:guide-cdif-03",
+  "test:guide-cdif-04",
+  "test:guide-cdif-05",
+  "test:guide-cdif-06",
+  "test:guide-cdif-07",
+  "test:guide-cdif-08",
+  "test:guide-cdif-09",
+  "test:guide-cdif-10",
+  "test:guide-cdif-11",
+  "test:guide-cdif-12",
+  "test:guide-cdif-13",
+  "test:guide-cdif-15",
+  "test:guide-cdif-16",
+  "test:guide-cdif-18",
+  "test:guide-cdif-19",
+  "test:guide-cdif-20",
+  "test:guide-cdif-21",
+  "test:guide-cdif-24",
+  "test:guide-dataset-01",
+  "test:guide-dataset-02",
+  "test:guide-dataset-03",
+  "test:guide-dataset-04",
+  "test:guide-dataset-06",
+  "test:guide-fdo-01",
+  "test:guide-fdo-02",
+  "test:guide-fdo-04",
+  "test:guide-maturity-02",
+  "test:guide-maturity-03",
+  "test:guide-maturity-06",
+  "test:guide-maturity-12",
+  "test:guide-software-03",
+  "test:guide-software-04",
+  "test:guide-software-05",
+  "test:guide-software-06",
+  "test:guide-software-07",
+  "test:guide-software-09",
+  "test:guide-software-13",
+  "test:guide-software-14",
+  "test:guide-software-15",
+  "test:guide-software-16",
+  "test:test_FM_F1_M_IdentPersistent",
+  "tf-semantic",
   "training-analysis",
-  "training-storage",
-  "training-sharing",
+  "training-collection",
+  "training-overview",
+  "training-planning",
+  "training-processing",
   "training-reuse",
+  "training-sharing",
+  "training-storage",
+  "workflow-ro-crate",
+  "workflowhub",
+  "zenodo",
+  "zenodo-software-guide",
 ]
-endTime = 2026-10-10T09:41:00+02:00
-
-[[action]]
-id = "2026-10-10-gate-profiles"
-type = "update"
-name = "The gate's repository profiles are named"
-description = "The NRP conditions check names its three repository profiles instead of lettering them: an instance of a core NRP system (core-system), an alternative system on NRP infrastructure (nrp-infrastructure) and an independently operated repository (independent)."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = []
-results = ["gate.*"]
-endTime = 2026-10-10T09:57:00+02:00
-
-[[action]]
-id = "2026-10-10-catalogue-meaning"
-type = "update"
-name = "Repositories and registries follow the reader's task"
-description = "Repositories and registries from every source share one catalogue family and can be filtered by function. Reviewed ASEP and LINDAT record links join their representations without changing source claims or entry addresses. Source, recommendation and verification remain distinct. The editing rules now apply the reader's meaning and task to every view. AI assistance used GPT-6.1 Sol via OpenAI Codex, as confirmed by the user; the runtime does not expose the exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["re3data", "fip-dashboard"]
-results = ["zenodo", "mbdb", "dryad", "harvard-dataverse", "nkr", "fip-dashboard", "re3data", "fairsharing", "datarepo", "nma", "fair-impact", "re3data.r3d100014032", "re3data.r3d100010386", "fip-dashboard.nrp-invenio", "fip-dashboard.nusl"]
-endTime = 2026-10-10T13:11:26Z
-
-[[action]]
-id = "2026-10-10-research-practice"
-type = "update"
-name = "Research practice connects software, notebooks, provenance and FDOs"
-description = "Readers need research practice by meaning, without knowing the underlying source organisation. Dedicated pages and advisory checks distinguish software assessment, preservation and voluntary self-certification; OS II guidance explains notebook support, repository connections and provenance tracking without administrative section numbers. Planned national integration is distinguished from available notebook software. Provenance is paired with the reasons for consequential decisions. FDO readiness retains version 3.0 requirement labels and separates provider responsibilities. Continuous review called for advice in the context of each role and whole station, archive alternatives, readable pages and removal of temporary preparation commentary. Expanded content uses the established padding, and station references open the lifecycle path in the current language and role. Continuous review also found that the repository function facet displaced the shared kind picker; task choices now stay under the repositories-and-registries heading and the kind picker keeps its shared position across families. The tools menu now names both tools and practical guidance. AI assistance used user-confirmed GPT-6.1 Sol via OpenAI Codex; the runtime does not expose the exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["zenodo-software-guide", "cambridge-notebooks", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification"]
-results = ["cambridge-notebooks", "CAMBRIDGE-ERN.01", "page:software", "page:notebooks", "page:provenance", "page:fdo", "page:about", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification", "FAIR4RS.01", "CODE.01", "SWH.01", "SWH-GUIDE.01", "OPENSSF.01", "OSII-STUDY.01", "OSII-STUDY.02", "OSII-STUDY.03", "EOSC-ELN.01", "LONDON.4.6", "FDO-INTRO.01", "FRSM.FRSM-01", "FRSM.FRSM-02", "FRSM.FRSM-03", "FRSM.FRSM-04", "FRSM.FRSM-05", "FRSM.FRSM-06", "FRSM.FRSM-07", "FRSM.FRSM-08", "FRSM.FRSM-09", "FRSM.FRSM-10", "FRSM.FRSM-11", "FRSM.FRSM-12", "FRSM.FRSM-13", "FRSM.FRSM-14", "FRSM.FRSM-15", "FRSM.FRSM-16", "FRSM.FRSM-17", "FDO.FDOR-GR1", "FDO.FDOR-GR2", "FDO.FDOR-GR3", "FDO.FDO-GR4", "FDO.FDO-GR5", "FDO.FDO-GR6", "FDO.FDO-GR7", "FDO.FDO-GR8", "FDO.FDO-GR9", "FDO.FDO-GR10", "FDO.FDO-GR11", "FDO.FDO-GR12", "FDO.FDO-GR13", "FDO.FDO-GR14", "FDO.FDO-GR15", "FDO.FDO-PIDR1", "FDO.FDO-PIDR2", "FDO.FDO-PIDR3", "FDO.FDO-PIDR4", "FDO.FDO-PIDR5", "FDO.FDO-PIDR6", "FDO.FDO-FDOR1", "FDO.FDO-FDOR2", "FDO.FDO-FDOR3", "FDO.FDO-FDOR4", "FDO.FDO-FDOR5", "FDO.FDO-FDOR6", "FDO.FDO-FDOR7", "FDO.FDO-FDOR8", "FDO.FDO-FDO9", "FDO.FDO-FDO10", "FDO.FDO-FDO11", "FDO.FDO-RESR1", "FDO.FDO-RESR2", "collect.12", "analyse.03", "metadata.40", "publication.27", "publication.28", "licence.26", "citation.19", "collect.02", "collect.06", "metadata.04", "metadata.13", "metadata.22", "metadata.33", "ZENODO-SW.01", "zenodo-software-guide", "software.01", "software.02", "software.03", "software.04", "software.05", "software.06", "software.07", "software.08", "software.09", "software.10", "software.11", "software.12", "software.13", "software.14", "software.15", "software.16", "software.17", "software.18", "software.19", "software.20", "fdo.01", "fdo.02", "fdo.03", "fdo.04", "fdo.05", "fdo.06", "fdo.07", "fdo.08", "fdo.09", "fdo.10", "fdo.11", "fdo.12", "fdo.13", "fdo.14", "fdo.15", "fdo.16", "fdo.17", "fdo.18", "fdo.19", "fdo.20", "fdo.21", "fdo.22", "fdo.23", "fdo.24", "fdo.25", "fdo.26", "fdo.27", "fdo.28", "fdo.29", "fdo.30", "fdo.31", "fdo.32", "fdo.33", "fdo.34"]
-endTime = 2026-10-10T17:34:29Z
-
-[[action]]
-id = "2026-10-11-manual-review"
-type = "update"
-name = "Manual corrections to metadata and rights guidance"
-description = "The maintainer manually corrected the metadata and rights advice. OpenAI Codex recorded these human edits in provenance and checked the standing change set before committing it; the corrected wording was supplied by the maintainer."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["A.I1.X1", "A.I2.X1", "A.R1.1.X2", "A.R1.1.X3"]
-results = ["metadata.27", "licence.21"]
-endTime = 2026-10-10T22:42:22Z
-
-[[action]]
-id = "2026-10-11-question-evidence"
-type = "update"
-name = "Source wording and attributable evidence in advisory checks"
-description = "Software and FDO questions retain the published subject, conditions and strength; descriptive source context keeps its identifiers without becoming an obligation. Suitable originals use the source language, version and reuse terms. FRSM report 1.1 remains distinct from metric set 1.0. Shared questions disclose responsibility, sources, suggestions, inspection scope and per-record logs. Shared clauses follow the catalogue hierarchy in principles and path reasons; editorial refresh badges are omitted. Generic object discovery follows declared representations on reviewed origins, without repository-specific endpoints. Public GitHub.com and GitLab.com inspection uses selected inert files at an immutable commit. Partial observations cannot establish profile conformance, preservation or execution. Compatible saved results retain authored answers and disclose evidence limits. AI assistance used user-confirmed GPT-6.1 Sol via OpenAI Codex; the runtime does not expose the exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["analyza-fair-1.2", "nrp-conditions", "policy-manual", "cts-2026", "cdif", "cdif-core-1.1.1", "cdif-discovery-1.1.1", "cdif-datadescription-1.1.1", "cdif-codelist-1.1.1", "cdif-datastructure-1.1.1", "cdif-conceptscheme-1.1.1", "cdif-manifest-1.1.1", "code-principles", "frsm-report-1.1", "fdo-specification", "os3-rules", "law-328-2025", "openssf-criteria-2024", "cessda-dmeg", "force11-citation", "ostrails-cz-pilot", "coretrustseal"]
-results = ["A.F1.N1", "A.F1.N2", "A.F1.N4", "A.F1.R1", "A.F1.R2", "A.F1.R3", "A.F1.F1", "A.F1.F2", "A.F1.X2", "A.F2.N1", "A.F2.N2", "A.F2.R1", "A.F2.R2", "A.F2.F1", "A.F3.N1", "A.F3.N2", "A.F3.R1", "A.F3.F1", "A.F4.N4", "A.F4.R1", "A.F4.R2", "A.F4.R3", "A.F4.F1", "A.F4.F2", "A.A1.N2", "A.A1.R1", "A.A1.F1", "A.A1.1.R1", "A.A1.2.R1", "A.A1.2.R2", "A.A1.2.F2", "A.A2.R1", "A.A2.R2", "A.A2.R3", "A.I1.R1", "A.I1.R2", "A.I1.F1", "A.I1.F2", "A.I1.X1", "A.I2.N1", "A.I2.R1", "A.I2.R2", "A.I2.F1", "A.I3.R1", "A.I3.R2", "A.I3.R3", "A.I3.R5", "A.I3.F1", "A.R1.R1", "A.R1.R3", "A.R1.F1", "A.R1.1.R1", "A.R1.1.F1", "A.R1.1.X1", "A.R1.2.N3", "A.R1.2.R1", "A.R1.2.R2", "A.R1.2.F1", "A.R1.2.X1", "A.R1.3.R2", "A.R1.3.F1", "A.R1.3.X1", "A.R1.3.X2", "A.K2.3.1", "A.K4.1", "A.MIN1", "A.MIN2", "A.MIN3", "A.REC2", "A.REC3", "NRP.M1", "NRP.M2", "NRP.M3", "NRP.M4", "NRP.M5", "NRP.M6", "NRP.M7", "NRP.M8", "NRP.M9", "NRP.M10", "NRP.M11", "NRP.M12", "NRP.R1", "NRP.R2", "NRP.ROLE.admin", "NRP.ROLE.curator", "NRP.CS", "NRP.EXT", "OSTRAILS-CZ-PILOT.01", "FORCE11-CITATION.01", "CORETRUSTSEAL.01", "CESSDA-DMEG.01", "OS3-RULES.01", "OS3-RULES.02", "OS3-RULES.03", "OS3-RULES.04", "OS3-RULES.05", "OS3-RULES.06", "OS3-RULES.07", "OS3-RULES.08", "OS3-RULES.09", "OS3-RULES.10", "OS3-RULES.11", "OS3-RULES.12", "OS3-RULES.13", "OS3-RULES.14", "OS3-RULES.15", "OS3-RULES.16", "OS3-RULES.17", "OS3-RULES.18", "POLICY-MANUAL.02", "POLICY-MANUAL.03", "POLICY-MANUAL.04", "POLICY-MANUAL.05", "POLICY-MANUAL.06", "POLICY-MANUAL.07", "LAW-328-2025.83", "LAW-328-2025.83.2", "LAW-328-2025.83.3", "LAW-328-2025.83.5", "OS3-RULES.19", "OS3-RULES.20", "OS3-RULES.21", "OS3-RULES.22", "OS3-RULES.23", "OS3-RULES.24", "OS3-RULES.25", "OS3-RULES.26", "CODE.01", "OPENSSF.01", "FRSM.FRSM-01", "FRSM.FRSM-02", "FRSM.FRSM-03", "FRSM.FRSM-04", "FRSM.FRSM-05", "FRSM.FRSM-06", "FRSM.FRSM-07", "FRSM.FRSM-08", "FRSM.FRSM-09", "FRSM.FRSM-10", "FRSM.FRSM-11", "FRSM.FRSM-12", "FRSM.FRSM-13", "FRSM.FRSM-14", "FRSM.FRSM-15", "FRSM.FRSM-16", "FRSM.FRSM-17", "FDO.FDOR-GR1", "FDO.FDOR-GR2", "FDO.FDOR-GR3", "FDO.FDO-GR4", "FDO.FDO-GR5", "FDO.FDO-GR6", "FDO.FDO-GR7", "FDO.FDO-GR8", "FDO.FDO-GR9", "FDO.FDO-GR10", "FDO.FDO-GR11", "FDO.FDO-GR12", "FDO.FDO-GR13", "FDO.FDO-GR14", "FDO.FDO-GR15", "FDO.FDO-PIDR1", "FDO.FDO-PIDR2", "FDO.FDO-PIDR3", "FDO.FDO-PIDR4", "FDO.FDO-PIDR5", "FDO.FDO-PIDR6", "FDO.FDO-FDOR1", "FDO.FDO-FDOR2", "FDO.FDO-FDOR3", "FDO.FDO-FDOR4", "FDO.FDO-FDOR5", "FDO.FDO-FDOR6", "FDO.FDO-FDOR7", "FDO.FDO-FDOR8", "FDO.FDO-FDO9", "FDO.FDO-FDO10", "FDO.FDO-FDO11", "FDO.FDO-RESR1", "FDO.FDO-RESR2", "openssf-criteria-2024", "law-328-2025", "frsm-report-1.1", "policy-manual", "cessda-dmeg", "coretrustseal", "nrp-conditions", "force11-citation", "ostrails-cz-pilot", "fdo-specification", "fdo.01", "fdo.02", "fdo.03", "fdo.04", "fdo.05", "fdo.06", "fdo.07", "fdo.08", "fdo.09", "fdo.10", "fdo.11", "fdo.12", "fdo.13", "fdo.14", "fdo.15", "fdo.16", "fdo.17", "fdo.18", "fdo.19", "fdo.20", "fdo.21", "fdo.22", "fdo.23", "fdo.24", "fdo.25", "fdo.26", "fdo.27", "fdo.28", "fdo.29", "fdo.30", "fdo.31", "fdo.32", "fdo.33", "fdo.34", "institution.02", "institution.04", "institution.20", "software.01", "software.02", "software.03", "software.04", "software.05", "software.06", "software.07", "software.08", "software.09", "software.10", "software.11", "software.12", "software.13", "software.14", "software.15", "software.16", "software.17", "software.18", "software.19", "software.20"]
-endTime = 2026-10-11T01:24:11Z
-
-[[action]]
-id = "2026-10-11-test-health"
-type = "update"
-name = "Inspectable tests, complete retained evidence and deterministic health reporting"
-description = "Local criterion tests have stable issued identifiers, bilingual purpose and limitations, executable source attachments and individually identified documentation. The test catalogue filters by execution location, supported check and dated external service status. Tests inherit their questions' existing FAIR principle links; records and documentation reuse the established 15 principles, shared filter and tiles. Source identifiers and inherited source mappings are preserved, and unsupported links remain absent. Questions show local function/source links and external POST endpoints; executed requests remain with saved evidence. Generic landing discovery reads Schema.org microdata and text linksets alongside JSON-LD, with subject boundaries and disclosed browser/format limits. Long retained values and logs scroll without display shortening; bounded portable exports retain explicit omissions and source links. Language-specific guide texts load on selection while original source passages and vocabulary labels retain their language. Offline health inventories cover all questions, advice and clauses, distinguish reviewed omissions from unreviewed gaps, and report actual check-run coverage and failures in CI artifacts and the documented static REST health endpoint. AI assistance used user-confirmed GPT-6.1 Sol via OpenAI Codex; the runtime does not expose the exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["fair-champion", "analyza-fair-1.2", "nrp-conditions", "cdif", "fdo-specification", "frsm", "frsm-report-1.1", "code-principles", "openssf-criteria-2024"]
-results = ["test:guide-dataset-01","test:guide-dataset-02","test:guide-dataset-03","test:guide-dataset-04","test:guide-dataset-06","test:guide-maturity-02","test:guide-maturity-03","test:guide-maturity-06","test:guide-maturity-12","test:guide-cdif-01","test:guide-cdif-02","test:guide-cdif-03","test:guide-cdif-04","test:guide-cdif-05","test:guide-cdif-06","test:guide-cdif-07","test:guide-cdif-08","test:guide-cdif-09","test:guide-cdif-10","test:guide-cdif-11","test:guide-cdif-12","test:guide-cdif-13","test:guide-cdif-15","test:guide-cdif-16","test:guide-cdif-18","test:guide-cdif-19","test:guide-cdif-20","test:guide-cdif-21","test:guide-cdif-24","test:guide-fdo-01","test:guide-fdo-02","test:guide-fdo-04","test:guide-software-03","test:guide-software-04","test:guide-software-05","test:guide-software-06","test:guide-software-07","test:guide-software-09","test:guide-software-13","test:guide-software-14","test:guide-software-15","test:guide-software-16", "cdif.01", "cdif.02", "cdif.03", "cdif.04", "cdif.05", "cdif.06", "cdif.07", "cdif.08", "cdif.09", "cdif.10", "cdif.11", "cdif.12", "cdif.13", "cdif.14", "cdif.15", "cdif.16", "cdif.17", "cdif.18", "cdif.19", "cdif.20", "cdif.21", "cdif.22", "cdif.23", "cdif.24", "cdif.25", "cdif.26", "cdif.28", "cdif.29", "cdif.30", "cdif.33", "fdo.01", "fdo.02", "fdo.03", "fdo.04", "fdo.05", "fdo.06", "fdo.07", "fdo.08", "fdo.10", "fdo.11", "fdo.12", "fdo.13", "fdo.15", "fdo.16", "fdo.17", "fdo.18", "fdo.19", "fdo.20", "fdo.22", "fdo.23", "fdo.24", "fdo.25", "fdo.26", "fdo.27", "fdo.28", "fdo.30", "fdo.31", "fdo.32", "fdo.33", "software.01", "software.02", "software.03", "software.04", "software.05", "software.06", "software.07", "software.08", "software.09", "software.10", "software.11", "software.12", "software.13", "software.14", "software.15", "software.16", "software.17", "software.18", "software.19", "coretrustseal.01", "coretrustseal.03", "coretrustseal.04", "dataset.24", "dataset.27", "fip.13", "institution.04", "institution.18", "cdif.27", "cdif.31", "cdif.32", "cdif.34", "cdif.35"]
-endTime = 2026-10-11T09:43:46Z
-
-[[action]]
-id = "2026-10-11-original-links"
-type = "update"
-name = "Source originals and discoverable check reports"
-description = "Added reviewed original-language passages from published source documents, preserving source versions and source-era framework numbering separately from current guide links. Published the check dashboard with the site and linked the dashboard, crate preview, profile and test documentation from Data for machines, with a footer link to the dashboard. Reconciled Czech and English README facts and commands. A read-only drafting delegate used the requested gpt-6-luna model; GPT-6.1 Sol adjudicated and applied the work through OpenAI Codex. The runtime does not expose exact backend model IDs."
-agent = "david-novak"
-instruments = ["openai-codex", "openai-codex-luna"]
-objects = ["analyza-fair-1.2", "cambridge-notebooks", "copyright-licences", "datacite-schema", "ds-handbook", "ec-genai-guidelines", "eosc-data-stewards", "eosc-training", "eosc-working-groups", "ethical-seven", "mbdb-2026", "policy-manual", "survey-2025"]
-results = ["A.A1.1.F1", "A.A1.1.N1", "A.A1.2.F1", "A.A1.2.N1", "A.A1.2.X1", "A.A1.F2", "A.A1.N1", "A.A1.X1", "A.A2.F1", "A.A2.N1", "A.A2.X1", "A.F1.N3", "A.F1.N5", "A.F1.X1", "A.F2.X1", "A.F2.X2", "A.F2.X3", "A.F2.X4", "A.F3.X1", "A.F4.N1", "A.F4.N2", "A.F4.N3", "A.F4.X1", "A.F4.X2", "A.I1.N1", "A.I1.N2", "A.I1.X2", "A.I2.N2", "A.I2.R3", "A.I2.X1", "A.I2.X2", "A.I3.F2", "A.I3.N1", "A.I3.R4", "A.I3.X1", "A.K2.1", "A.K2.2.1", "A.K2.2.2", "A.K2.2.3", "A.K2.2.4", "A.K2.3.2a", "A.K2.3.2b", "A.K2.3.2c", "A.K4.2", "A.K4.3", "A.K5.0", "A.K5.1", "A.K5.2.1", "A.K5.2.2", "A.K6", "A.P1", "A.R1.1.N1", "A.R1.1.N2", "A.R1.1.X2", "A.R1.1.X3", "A.R1.2.F2", "A.R1.2.N1", "A.R1.2.N2", "A.R1.2.X2", "A.R1.3.F2", "A.R1.3.N1", "A.R1.3.N2", "A.R1.3.N3", "A.R1.3.R1", "A.R1.3.R3", "A.R1.F2", "A.R1.N1", "A.R1.R2", "A.R1.X1", "A.R1.X2", "A.REC1", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.02", "EC-GENAI-GUIDELINES.03", "EC-GENAI-GUIDELINES.04", "EC-GENAI-GUIDELINES.05", "ETHICAL-SEVEN.01", "COPYRIGHT-LICENCES.01", "DS-HANDBOOK.01", "POLICY-MANUAL.01", "MBDB-2026.01", "SURVEY-2025.01", "EOSC-TRAINING.01", "EOSC-WORKING-GROUPS.01", "EOSC-DATA-STEWARDS.01", "CAMBRIDGE-ERN.01", "DATACITE-SCHEMA.01", "ethical-seven", "copyright-licences", "ds-handbook", "datacite-schema", "policy-manual"]
-endTime = 2026-10-11T10:52:58+00:00
-
-[[action]]
-id = "2026-10-11-identifier-helper"
-type = "update"
-name = "Public identifier verification"
-description = "Implemented local identifier extraction and the ORCID MOD 11-2 and ROR Crockford/MOD 97-10 checksums from their published technical documentation. Public lookup requires an explicit action, checks DOI identity before using DataCite or Crossref titles, and distinguishes invalid checksums, unknown identifiers, unavailable services and records without public titles. Handle extraction requires a resolver link or explicit prefix to avoid false matches; a textarea control clears input and results. Search carries the selected identifier to the helper. The dataset-check page links to the existing two-stage self-check, and the tool pages use distinct icons. Implemented and verified with OpenAI Codex using GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose the exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["orcid-identifier-pattern", "ror-identifier-pattern", "crossref-rest-api", "fair-champion"]
-results = ["page:identifiers", "page:live-check", "page:software", "page:notebooks", "page:provenance", "page:fdo", "orcid-identifier-pattern", "ror-identifier-pattern", "crossref-rest-api"]
-endTime = 2026-10-11T14:13:41+00:00
-
-[[action]]
-id = "2026-10-11-layers-seams"
-type = "update"
-name = "Layers and seams in practical guidance"
-description = "Integrated the approved conceptual model with six functional layers, twelve responsibility-boundary connections, scoped October 2026 examples, explicit reviewed associations and role-specific explanations. Reused model relations in catalogue, path, questions, results and exports, and linked actual source-to-question-to-test-to-revision evidence. Adapted the three manuscript figures with the maintainer's explicit approval, preserving geometry and scoped meanings with bilingual labels and accessible local SVGs. Simplified the accompanying prose and used the maintainer-confirmed October 2026 diagram date; source-scoped catalogue observations retain their documented dates. Fixed model-definition facets, catalogue ID search and route-independent four-record examples with named test steps. Gave the model a distinct icon. Corrected FIP/profile guidance while preserving published requirements and originals. The conceptual manuscript is accurately identified as in preparation; it does not supply compliance requirements. Preserved the maintainer's EOSC CZ publisher choice and reused the registered organisation in existing citations. OpenAI Codex used GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose its exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["layers-seams-manuscript", "analyza-fair-1.2", "fip-ontology", "mbdb-2026", "nrp-conditions"]
-results = ["model:layers-seams", "model:worked-example", "layers-seams-manuscript", "organization:eosc-cz", "page:model", "page:machines", "layer.policy", "layer.community", "layer.infrastructure", "layer.planning", "layer.support", "layer.evaluation", "seam.repository-nma", "seam.nma-research-register", "seam.institution-nma", "seam.repository-authentication", "seam.repository-pid-registry", "seam.community-repository", "seam.working-groups-services", "seam.repository-catalogue-planning", "seam.community-planning", "seam.plan-repository", "seam.repository-support", "seam.assessment-remediation", "example.nkr-catalogue", "example.nkr-planning", "example.assessment-feedback", "context:plan:V", "context:plan:DS", "context:plan:K", "context:collect:K", "context:metadata:V", "context:metadata:DS", "context:metadata:SR", "context:metadata:K", "context:publication:SR", "context:findability:V", "context:findability:DS", "context:findability:SR", "context:citation:SR", "context:assessment:V", "context:assessment:DS", "context:assessment:SR", "context:assessment:K", "ccmm", "oai-pmh", "nma-export-docs", "nrp-docs-nma-access", "gate.08", "maturity.05", "NRP.M8", "NMA-EXPORT-DOCS.01", "A.F4.R1", "A.A1.R1", "nma", "dataset.05", "dataset.23", "institution.26", "metadata.08", "nma-riv-docs", "NMA-RIV-DOCS.01", "policy-manual", "institution.23", "pid-centre", "orcid", "ror", "datacite", "dataset.01", "fip.01", "A.F1.R1", "test:guide-dataset-01", "test:guide-fdo-01", "maturity.10", "A.A1.2.R1", "A.A1.2.R2", "A.F2.F1", "A.R1.F1", "A.F2.R2", "A.R1.R2", "A.R1.3.F1", "A.R1.3.R2", "NRP.M12", "gate.12", "maturity.08", "maturity.09", "maturity.13", "fip.02", "metadata.17", "metadata.18", "metadata.23", "metadata.28", "metadata.29", "metadata.30", "metadata.31", "metadata.33", "collect.18", "collect.19", "process.09", "eosc-working-groups", "EOSC-WORKING-GROUPS.01", "nkr", "nkr-schema", "dsw-nrp", "DSW-NRP.01", "dataset.15", "dataset.16", "fip-dashboard", "fip-ontology", "fip-wizard-templates", "A.K4.1", "A.K4.3", "plan.22", "plan.24", "fair-champion", "assessment.23", "assessment.25", "test:guide-maturity-12", "test:guide-software-03", "datacite-schema", "metadata.36", "survey-2025", "os-linkages-1.1", "os3-faq", "ndi-architecture", "dmp-eosc", "ds-handbook", "ds-personas", "eosc-data-stewards", "eosc-training", "repo-recommendations", "repo-user-needs", "repo-integration", "os2", "copyright-licences", "deposit-licence", "ethical-seven", "aai-sensitive", "os3", "eosc-acknowledgement"]
-endTime = 2026-10-11T18:06:37+00:00
-
-[[action]]
-id = "2026-10-11-citation-helper"
-type = "update"
-name = "DOI citation helper and service recovery"
-description = "Implemented explicit anonymous citation retrieval for DataCite and Crossref DOIs, with the DOI Foundation formatter's published APA and Czech ISO 690 styles and agency-supplied BibTeX and RIS. Verified the requested record identity and style availability, retained independent format failures, and rendered external responses as selectable plain text. Search preserves the DOI without making a request on entry. Added reset, source links, copy and download controls and bilingual guidance to compare metadata with the record. Exercised each enrolled service's network failure under standalone and local-file hosting. Corrected the FIP Dashboard live-failure fallback to attribute retained declarations to their dated snapshot. Deferred helper labels and detailed provenance without removing source records from the complete crate or API. OpenAI Codex used GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose its exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["crossref-rest-api", "doi-citation-service", "csl-iso690-cs", "fip-ontology"]
-results = ["page:citation", "doi-citation-service", "csl-iso690-cs", "fip.*"]
-endTime = 2026-10-11T19:03:00+00:00
-
-[[action]]
-id = "2026-10-11-champion-selection"
-type = "update"
-name = "Evidence-based Champion selection and question scope"
-description = "Inspected the published Champion registry and all 48 test APIs on its enrolled service origin. Probed those tests anonymously against three public reference records, retaining 144 measured outcomes and the original identities and metrics. Added identifier recognition, likely persistence and citation-index observations. Associated existing protocol and metadata-persistence tests with questions, preserving their narrower scope through observation-only evidence. Removed identifier-scheme tests from landing-page questions. Refreshed the curated health snapshot, recorded the absence of a suitable Signposting test and added a reusable bounded browser health probe. Verified the pilot's per-test evidence structure without inferring aggregate reliability from a partial download. OpenAI Codex used GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose its exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = ["fair-champion", "ostrails-cz-pilot", "analyza-fair-1.2", "force11-citation", "fair-signposting"]
-results = ["test:fc_unique_identifier", "test:test_FM_F1_M_IdentPersistent", "test:community-data-citation", "test:fc-metadata-pid", "test:fc-data-id-metadata", "test:fc_searchable", "test:fc_metadata_protocol", "test:fc_metadata_persistence", "test:fc_structured_metadata", "test:fc-metadata-fair-vocabularies", "test:fc_metadata_outward_links", "test:fc_metadata_includes_license", "test:community-author-affiliation", "dataset.01", "dataset.02", "dataset.13", "maturity.01", "maturity.02", "maturity.05", "maturity.11"]
-endTime = 2026-10-11T19:13:50+00:00
-
-[[action]]
-id = "2026-10-11-prerelease-metadata"
-type = "update"
-name = "First prerelease version metadata"
-description = "Set the current application, package, lockfile and software citation version to 1.0.0-alpha.1 at the maintainer's request. The first official prerelease tag will be v1.0.0-alpha.1. Kept the testing status; the actual release date and tag are set when the release is published. OpenAI Codex used GPT-6.1 Sol, as identified by the maintainer; the runtime does not expose its exact backend model ID."
-agent = "david-novak"
-instruments = ["openai-codex"]
-objects = []
-results = ["guide"]
-endTime = 2026-10-11T21:13:31+00:00
-
-[[action]]
-id = "2026-10-12-organisation-paradata"
-type = "update"
-name = "Curated organisations verified and covered by paradata"
-description = "The curated organisations (the Library and the Institute of Archaeology, Prague, of the Czech Academy of Sciences, CESNET, the Ministry of Education, Youth and Sports, the National Library of Technology, the Czech Social Science Data Archive, Charles University and the NRP project) were created and edited between 8 and 11 October 2026 by actions whose results did not name them. Organisations now need paradata like every other item whose changes are compared. Their names, addresses and ROR identifiers were checked against the seven ROR records, all active on 12 October 2026. The NRP project has no ROR record; its identifier is the one its funder's acknowledgement requires. No organisation record was changed. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "kilo-code"]
-objects = []
-results = ["organization:knav", "organization:aru-praha", "organization:cesnet", "organization:msmt", "organization:ntk", "organization:csda", "organization:cuni", "organization:nrp"]
-endTime = 2026-10-12T01:20:00+00:00
-
-[[action]]
-id = "2026-10-12-external-evaluators"
-type = "create"
-name = "FAIR-Checker and F-UJI criteria with reviewed question mappings"
-description = "Registered the twelve FAIR-Checker metrics from its published REST description (API version 1.0; the interface reported version 1.3.4 on 11 and 12 October 2026) and the seventeen F-UJI metrics from two public F-UJI reports: software 3.5.0 with metric specification 10.5281/zenodo.6461229 (metrics_v0.8) and software 4.0.1 with 10.5281/zenodo.15045911 (0.8). Both specifications list the same metric identifiers and names, which are kept verbatim; the bilingual labels are the Guide's reading. One FAIR-Checker metric was requested live on 12 October 2026 to confirm its response fields and that its REST interface admits the Guide's origin. Each mapping names the question, whether the criterion covers it wholly or partly, and the reviewed versions. Two F-UJI metrics cover a dataset question wholly: the persistent identifier (dataset.01) and the access level (dataset.10); every other mapping is partial evidence, and the remaining metrics stay unmapped. The FAIR-Checker coverage notes for persistent identifiers and access rights were checked against the published metric implementations (F1B accepts a known persistent URL authority or an identifier property; A12 accepts any of several rights properties, including a licence), and their principles against the implementations' declared principle IRIs. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "kilo-code"]
-objects = ["A.K5.2.2"]
-results = ["provider:*"]
-endTime = 2026-10-12T02:51:00+00:00
-
-[[action]]
-id = "2026-10-13-review-corrections"
-type = "update"
-name = "Corrections from the maintainer's second review"
-description = "Links that name a catalogue entry open that entry, and the community lens's shortcut for domain standards and vocabularies and the data steward's overview of assessment tools open the catalogue narrowed to their topic for the reader's lens instead of the whole list of resources. The deposit-licence advice and the template's description follow the NRP copyright and licences FAQ (version 1.0, 21 September 2026): a depositor grants a non-exclusive licence by accepting the repository's deposit licence conditions, without a written contract, and the template is not a contract of deposit. Its passages were taken from the PDF's text layer and kept verbatim as the new clause's original; the template keeps its published title. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["copyright-licences", "deposit-licence"]
-results = ["guide", "assessment.07", "licence.07", "repository.05", "deposit-licence", "COPYRIGHT-LICENCES.02"]
-endTime = 2026-10-13T03:26:46+00:00
-
-[[action]]
-id = "2026-10-13-life-cycle-path"
-type = "create"
-name = "The path along the RDMkit research data life cycle"
-description = "Added RDMkit (ELIXIR, CC BY 4.0) as a source with clauses from its Collecting, Processing, Analysing and Reusing pages, each with the page's own explanation and considerations quoted as published at revision 73476cb (pages last changed 27 March 2026). The original passages were converted from the pages' source text, keeping wording and list structure and dropping only link targets and emphasis; the Czech and English statements are the Guide's summaries. Added three life-cycle models as records: RDMkit's seven stages with the first paragraph of each stage page's 'What is' section (two sentences for Process and Preserve) and the Czech names and definitions of the KNAV Open Science life-cycle page (CC BY 4.0, updated 11 July 2025); the twelve MaLDReTH stages with their definitions from Deliverable 1 as included verbatim in the RDA Recommendation (DOI 10.15497/RDA00125, CC BY 4.0; compared with the July 2024 deliverable, identical); and the eight steps of the KNAV Data Management Tools Catalogue from its data.js at commit c6094e6 in the order of its cycle diagram (GPL-3.0, kept on that file). Czech names of MaLDReTH stages and KNAV catalogue steps are the Guide's translations and are marked. The crosswalk takes the RDMkit-MaLDReTH correspondences from Figure 2 of Deliverable 1, marks Reuse-Access unconfirmed as Figure 2 labels two columns SHARE, and adds the Guide's reviewed correspondences, each with the RDMkit passage it rests on. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["rdmkit", "maldreth", "knav-life-cycle", "knav-dm-tools-catalogue"]
-results = ["RDMKIT.*", "rdmkit", "maldreth", "knav-life-cycle", "knav-dm-tools-catalogue", "lifecycle:*", "rdmkit.*", "maldreth.*", "knav-tools.*", "crosswalk:*"]
-endTime = 2026-10-13T07:28:14+00:00
-
-[[action]]
-id = "2026-10-13-knav-tools-catalogue"
-type = "create"
-name = "The KNAV Data Management Tools Catalogue as a snapshot"
-description = "Added the KNAV Data Management Tools Catalogue (Open Science Department, Library of the Czech Academy of Sciences; GPL-3.0) as a dated snapshot of its 133 tools, retrieved by scripts/refresh_snapshots.py from dmtools.json at commit 8903ab8 (28 March 2026), each with its life-cycle steps and discipline groups (named after the catalogue's filter; the Czech names are the Guide's translations). Every overlap with an entry of the Guide or another registry was reviewed: curated entries that are catalogue tools state it (Argos, DMPonline, Kadi4Mat, eLabFTW, Software Heritage, FAIRsharing, Zenodo, Dryad, RDMkit), record annotations join the tool to its re3data or FIP Dashboard record (LINDAT/CLARIAH-CZ, CSDA, eduID), the three EOSC EU Node services sharing one address and the two Data Stewardship Wizard instances are kept apart, and the Czech Academy of Sciences' FAIR Wizard was curated with Czech and English names and checked at its address. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["knav-dm-tools-catalogue"]
-results = ["avcr-fair-wizard", "argos", "dmponline", "kadi4mat", "elabftw", "software-heritage", "fairsharing", "zenodo", "dryad", "rdmkit", "re3data.r3d100010386", "re3data.r3d100010484", "knav.eduid"]
-endTime = 2026-10-13T08:03:06+00:00
-
-[[action]]
-id = "2026-10-13-path-reshape"
-type = "update"
-name = "The path reshaped along the research data life cycle"
-description = "Split the work station into three steps of the RDMkit life cycle, renaming identifiers in place before the first release (D-163): collect (organising, documenting and storing data as they are created, with the work station's key point and each lens's next step), process (cleaning, conversion and quality checks, pseudonymisation and the encoding of fields) and analyse (repeatable analysis, computing near the data and shared environments). The new key points, next steps and tips were written from RDMkit's Collecting, Processing and Analysing pages and existing ledger clauses; the repository operator's format list, the community's format strategy and the data steward's computing pointer became those lenses' next steps with an action each. The citation step became Citation and reuse, with advice from RDMkit's Reusing page on checking licence, metadata and source before reuse. Later stations were renumbered, and resource placements, the steps where check gaps are fixed, the sensitive-data callout, model associations and the model context followed the new steps. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["RDMKIT.collect.01", "RDMKIT.collect.02", "RDMKIT.process.01", "RDMKIT.process.02", "RDMKIT.analyse.01", "RDMKIT.analyse.02", "RDMKIT.reuse.01", "RDMKIT.reuse.02"]
-results = ["collect", "process", "analyse", "citation", "collect.*", "process.*", "analyse.*", "citation.20", "citation.21", "citation.22", "dataset.18", "dataset.11", "gate.02", "institution.24", "software.10", "software.13", "software.14", "software.17", "software.18", "software.20", "eosc-data-stewards", "cdsc-readme", "cdsc-eln", "cessda-dmeg", "cesnet-storage", "onedata", "sensitive-cloud", "ddrapp", "nrp-compute", "eosc-training", "cerit-aiaas", "it4i-compute", "metacentrum", "training-collection", "training-processing", "training-analysis", "fair4rs", "frsm", "code-principles", "software-heritage", "software-heritage-guide", "openssf-best-practices", "osii-study", "eosc-notebooks", "kadi4mat", "elabftw", "london-charter", "fdo-overview", "fdo-specification", "cambridge-notebooks", "context:collect:K"]
-endTime = 2026-10-13T08:17:37+00:00
-
-[[action]]
-id = "2026-10-13-stage-translations"
-type = "update"
-name = "Stage definitions in both languages"
-description = "Gave each of the seven stages of the path's life-cycle model the Guide's Czech translation of its RDMkit definition, rendered sentence for sentence, so that Czech and English readers see the same definition (D-176); the Czech text is marked as the Guide's translation. KNAV's Czech definitions remain as quotations and now keep their stage labels as published ('Plánování: …'), so that each reads as a sentence. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["rdmkit", "knav-life-cycle"]
-results = ["rdmkit.*"]
-endTime = 2026-10-13T13:49:50+00:00
-
-[[action]]
-id = "2026-10-13-guide-capitalised"
-type = "update"
-name = "The Guide named with a capital letter"
-description = "Named this guide with a capital letter wherever the text means it, Průvodce in Czech and the Guide in English (D-177), across the interface strings, pages, advice, check questions, ledger notes, the model's worked example and the provenance descriptions; generic uses such as the licence selector ('průvodce licencemi') and other organisations' guides stay in lower case and are listed in genericGuideUses, which a new content check reads. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-results = ["guide", "repository.03", "repository.08", "dataset.27", "software.18", "A.K4.2", "A.K5.2.2", "A.R1.3.N2", "model:worked-example", "page:about", "page:accessibility", "page:ai", "page:fdo", "page:machines", "page:model", "page:provenance", "page:software"]
-endTime = 2026-10-13T13:57:05+00:00
-
-[[action]]
-id = "2026-10-13-more-catalogues"
-type = "create"
-name = "The SSH Open Marketplace, OpenDOAR and Infra Finder as resources"
-description = "Added three catalogues the maintainer's review named (D-179). The SSH Open Marketplace, a discovery portal for the social sciences and humanities maintained by DARIAH, CLARIN and CESSDA (EOSC Macro-Roadmap case study), is recommended at the planning, processing and analysis steps for researchers, data stewards and communities, and is linked to its KNAV catalogue tool; its open API was checked (the item search answered without a key on 13 October 2026), so a later harvest is possible. OpenDOAR, Jisc's directory of open access repositories whose inclusion criteria admit publications, theses and data available without payment or registration, joins the repository directories at the repository step; it is linked only, because its API (Sherpa services) requires a key from a registered account, as Sherpa's object retrieval documentation states. Infra Finder, Invest in Open Infrastructure's directory comparing open infrastructure such as repository software for institutions and libraries (Collister, Tsang and Wu 2024), is recommended at the repository step for data stewards and repository operators; no export of its data was found, so it is linked only. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["eosc-mrm-ssh-open-marketplace", "knav-dm-tools-catalogue", "opendoar-inclusion-criteria", "sherpa-object-retrieval-api", "infra-finder-paper"]
-results = ["ssh-open-marketplace", "opendoar", "infra-finder"]
-endTime = 2026-10-13T14:44:25+00:00
-
-[[action]]
-id = "2026-10-13-datacite-repositories"
-type = "update"
-name = "Repositories joined to their DataCite records"
-description = "Named the DataCite repository of five repositories the re3data snapshot does not hold, each as DataCite itself records it (D-180): Zenodo (cern.zenodo), Dryad (dryad.dryad) and Harvard Dataverse (gdcc.harvard-dv), whose DataCite records name their re3data records' DOIs, and MBDB (biot.mbdb) and the NRP data catch-all repository (kdby.damqif), whose DataCite records give the repositories' addresses. The re3data snapshot now records each record's DOI from re3data's list, by which DataCite finds the other repositories; the ELI ERIC repository is left without one, because its DataCite record names no re3data record and its address differs. Checked against DataCite's REST API on 13 October 2026. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["datacite-rest-api", "datacite-data-file-use-policy"]
-results = ["zenodo", "dryad", "harvard-dataverse", "mbdb", "datarepo"]
-endTime = 2026-10-13T15:14:53+00:00
-
-[[action]]
-id = "2026-10-14-evaluator-reading"
-type = "update"
-name = "Evaluator results read as the evaluators show them"
-description = "The maintainer found that a F-UJI report the Guide showed as failed was passed in F-UJI's own overview, and that neither evaluator suggested any answer. F-UJI's result page shows a metric as passed at its FAIR level from level 1 and as unknown at level 0, whatever the report's test status, which stays fail when unscored data-identifier subtests fail; its metric definitions give each subtest's level. FAIR-Checker's check view colours scores 2, 1 and 0 green, orange and red, and its metrics give 2 for a strong evaluation, 1 for a weak one (only F1B has one) and 0 otherwise. The Guide now reads them the same way (D-184): F-UJI level 3 as met, levels 1 and 2 as partly met, level 0 as not established; FAIR-Checker 2, 1 and 0 as met, partly met and not met, with an assessment scoring 0 everywhere deciding nothing. Reviewed mappings turn the reading into suggestions under the partial-evidence rule (D-168), which now also covers FAIR Champion tests marked as covering part of a question; the help of the two such questions says what their tests suggest. The F-UJI mapping notes describe levels instead of native pass and fail. Checked against the four sources on 14 October 2026 and against a saved F-UJI assessment of an archaeological dataset. The instruments name the assistant runtime and model used; the runtime does not expose its own version."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["fuji-simpleclient", "fuji-metrics-v0-8", "fair-checker-check-view", "fair-checker-metrics"]
-results = ["provider:*", "dataset.01", "dataset.13"]
-endTime = 2026-10-13T22:58:46+00:00
-
-[[action]]
-
-id = "2026-10-14-glossary-language"
-type = "update"
-name = "Licensed glossary definitions and reviewed interface wording"
-description = "Imported the Heslář Open Science API's original Czech definitions under the maintainer-confirmed CC BY 4.0 terms, retaining source links and language, removing source markup safely, and indexing the definitions for catalogue and general search. The definitions load with sourced detail to preserve the first-download budget. An independent language review read the authored Czech and English fields in all 24 assigned interface, page, station, check, resource and repository files. Corrected six findings: lifecycle legend translations, replacement direction in the Czech DataCite notification, English report summaries, the repository-choice explanation, Czech agreement in the institution check, and the glossary source name. Source-original passages remain unchanged."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["heslar"]
-results = ["repository.07", "institution.17", "term:*"]
-endTime = 2026-10-14T00:55:40+00:00
-
-[[action]]
-id = "2026-10-14-names-node-ri"
-type = "create"
-name = "Names with abbreviations, the EOSC CZ Node and the large research infrastructures"
-description = "Kept the names re3data tags as Czech and corrected the names and abbreviations of ČSDA, AMČR, ČNK, ASEP, LINDAT/CLARIAH-CZ, MBDB and the Charles University map collection from each repository's own site (D-173). Recorded the EOSC CZ Node with its operator, its candidate state since 21 April 2026 and the services and repositories its charter lists, each with its role, planned milestone, date checked and locator, and added the node services and repositories a step's advice uses (Galaxy, JupyterHub, LEXIS, ownCloud, Czech-BioImaging, DataHub, GENASIS, the RECETOX mass spectrum libraries) with the operators their own sources state (D-172). Recorded the 44 large research infrastructures of the Roadmap 2023–2026 from Annex 1 with their national nodes (Annex 7), ERIC memberships (Annex 6), Czech names from the portal where its page names the current infrastructure, the repositories they operate where a source states it, and the FIPs of the communities that have one; linked them from the community lens of the repository and metadata steps (D-174). MBDB names its developers and no operator. The assistant runtime does not expose its version beyond the recorded instrument."
-agent = "david-novak"
-instruments = ["claude-opus-5-5", "claude-code"]
-objects = ["eosc-cz-node-charter", "eosc-cz-node-announcement", "lri-roadmap-2023", "ri-portal", "re3data", "fip-dashboard"]
-results = ["galaxy-cz", "jupyterhub-cerit", "lexis", "cesnet-owncloud", "recetox-ms-library", "infrastructure:*", "node:eosc-cz-node", "LRI.A7", "repository.23", "metadata.39"]
-endTime = 2026-10-14T08:59:36+00:00
-
-[[action]]
-id = "2026-10-14-ri-cbird"
-type = "update"
-name = "Official Czech infrastructure names and the C-bird repository address"
-description = "Completed six infrastructure names: the maintainer supplied the IS VaVaI list and the Czech names of AUGER-CZ, CTA-CZ, CICRR, LINDAT/CLARIAH-CZ and e-INFRA CZ; Masaryk University's project LM2024074 supplies the Czech name of GGP-CZ. Retained the roadmap acronyms and English names, and attributed each completed Czech name to its own source. The maintainer supplied C-bird's public repository address; its landing page explicitly confirms pilot testing and administration by Czech-BioImaging, replacing the infrastructure homepage and the inferred status evidence. The visual pass also exposed the infrastructure ordering control's untranslated field label, now named in Czech and English with a browser regression check."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["isvavai-infrastructures", "ggp-cz-project", "lri-roadmap-2023"]
-results = ["infrastructure:auger-cz", "infrastructure:cta-cz", "infrastructure:cicrr", "infrastructure:ggp-cz", "infrastructure:lindat-clariah-cz", "infrastructure:e-infra-cz", "infrastructure:czech-bioimaging", "czech-bioimaging"]
-endTime = 2026-10-14T12:05:28+00:00
-
-[[action]]
-id = "2026-10-14-rdmkit-tools"
-type = "update"
-name = "RDMkit tasks, roles, domains, recipes and selected tools"
-description = "Linked task and role guidance in its station and lens context, selected life-science domain examples, and practical FAIR Cookbook resources. Enriched ten existing tools and selected seven further tools from the pinned RDMkit catalogue, preserving its bio.tools, FAIRsharing and TeSS values; NA is omitted and training searches are not identity links. Czech DMP services, repository conditions and the published Czech interpretation of CC0 remain explicit."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["rdmkit", "copyright-licences"]
-results = ["re3data", "fairsharing", "orcid", "ror", "openaire-explore", "google-dataset-search", "argos", "dmponline", "software-heritage", "elabftw", "rdmkit-dmp", "rdmkit-organisation", "rdmkit-quality", "rdmkit-metadata", "rdmkit-licensing", "rdmkit-publication", "rdmkit-existing-data", "rdmkit-provenance", "rdmkit-security", "rdmkit-researcher", "rdmkit-pi", "rdmkit-steward", "rdmkit-policy", "rdmkit-rse", "rdmkit-trainer", "rdmkit-domains", "rdmkit-bioimaging", "rdmkit-human-data", "cookbook-dictionary", "cookbook-assessment", "tess", "conda", "docker", "nextflow", "snakemake", "jupyter", "workflowhub", "openrefine", "plan.28", "plan.29", "plan.30", "collect.21", "process.11", "analyse.10", "repository.24", "metadata.41", "licence.27", "publication.29", "citation.23", "assessment.29", "RDMKIT.tasks.01", "COPYRIGHT-LICENCES.03"]
-endTime = 2026-10-14T12:29:10+00:00
-
-[[action]]
-id = "2026-10-14-read-steps"
-type = "update"
-name = "Situations and read steps"
-description = "Rephrased four shortcuts per role as reader situations, each opening its path step and the actions there. Reading a valid step records its identifier locally; the rail and life-cycle journey show derived read marks, retained across reload and role or language changes and removed with local Guide data. Older state retains only the last known read step. No manual completion control was added."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = []
-results = ["guide"]
-endTime = 2026-10-14T12:38:25+00:00
-
-[[action]]
-id = "2026-10-14-workflows"
-type = "update"
-name = "Environments and workflows"
-description = "Added role-specific environment and workflow guidance at analysis, linked to the research-software page: Conda definitions, container digests, CWL, Nextflow, Snakemake, Workflow RO-Crate and WorkflowHub, with Galaxy, JupyterHub CERIT and LEXIS as national examples. Workflow RO-Crate 1.1 and its RO-Crate 1.3 scope are explicit; the Guide does not claim conformance to that workflow profile."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["conda-environments", "container-images", "workflow-ro-crate"]
-results = ["cwl", "workflow-ro-crate", "conda-environments", "container-images", "CONDAENV.01", "WFCRATE.01", "CONTAINER.01", "analyse.11", "analyse.12", "analyse.13", "analyse.14", "page:software"]
-endTime = 2026-10-14T12:38:25+00:00
-
-[[action]]
-id = "2026-10-14-licence-matrix"
-type = "update"
-name = "Licensing guidance and the NRP compatibility table"
-description = "Read the published NRP copyright handbook v1.0 and its page-14 matrix. Added role-specific rights and deposit/user licence guidance and the sensitive-data callout rights warning, the Czech CC0 qualification, a flat attributed compatibility table under Guides with its exact matrix and scope, and the handbook-linked NRP software License Selector. Added attributed original Czech definitions for the matching Heslar concepts public licence and Creative Commons, preserving the original glossary definitions."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["copyright-licences"]
-results = ["licence.02", "page:licence-compatibility", "nrp-license-selector", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05", "licence.28", "licence.29", "licence.30", "COPYRIGHT-LICENCES.06", "term:public-licence", "COPYRIGHT-LICENCES.07", "term:creative-commons-license"]
-endTime = 2026-10-14T12:44:43+00:00
-
-[[action]]
-id = "2026-10-14-infrastructure-marks"
-type = "update"
-name = "Reviewed official infrastructure sites and local marks"
-description = "Followed the national portal's official site links, verified current official infrastructure pages and collected their own favicons or published logo marks through the existing local normalizer. Explicit marks replace generic framework or institute favicons; reviewed sites without a distinct usable mark retain the catalogue kind icon. The service assets and their original retrieval dates are preserved, shared normalized marks reuse one file, and every retained mark records its source URL, retrieval date and checksum."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["ri-portal", "lri-roadmap-2023"]
-results = ["infrastructure:*"]
-endTime = 2026-10-14T13:09:07+00:00
-
-[[action]]
-id = "2026-10-14-release-metadata"
-type = "update"
-name = "Release metadata ownership"
-description = "Registered the deterministic release-preparation script as a provenance instrument. Aligned the Python project version and citation release date with the existing Guide metadata, without preparing or tagging a release. Added version/date, merged-history and dispatch fixtures."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = []
-results = ["guide"]
-endTime = 2026-10-14T21:28:44+00:00
-
-[[action]]
-id = "2026-10-14-language-review"
-type = "update"
-name = "Independent bilingual language and navigation review"
-description = "Reviewed all role-specific station advice, checks, interface states, pages and helpers, model text, public labels and infrastructure/service descriptions independently in Czech and English. Corrected six authored wording issues, linked the findability advice to the current citation station title, and reconciled editing guidance with the reviewed evidence readings. Verified the re3data and FAIRsharing pre-fill reads local snapshots and corrected its labels. Published passages, source labels and infrastructure facts were preserved."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = []
-results = ["guide", "plan.20", "licence.29", "findability.07", "page:accessibility", "page:software"]
-endTime = 2026-10-14T21:36:06+00:00
-
-[[action]]
-id = "2026-10-15-catalogue-review"
-type = "update"
-name = "Catalogue references and provenance coverage review"
-description = "Reviewed existing page, curated repository, source and callout records for provenance coverage. This retrospective coverage receipt does not claim original authorship of these entries or new source retrieval. Added the Git resource after reading its official website and reference documentation, and linked the software page to Git and the existing KNAV GitHub and GitLab records. Registered namespaced callout identities and stable Guide catalogue addresses."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = []
-results = ["git", "analyza-fair-1.2", "nrp-docs-nma-introduction", "mbdb-2026", "ncdoi-2023", "ccmm-releases", "einfra-docs", "re3data-schema-3.1", "fair-principles-2016", "survey-2025-data", "os3-rules", "minizamer-catalogue", "ec-genai-guidelines", "iap-cas-readme", "cerit-chat-ai", "cerit-ai-api", "cerit-ai-coding", "cerit-ai-privacy", "os2-kb1", "nrp-aai-integration", "eosc-cz-vision", "ercim-community", "nrp-roadmap-2025", "cts-2026", "cdif-core-1.1.1", "cdif-discovery-1.1.1", "cdif-datadescription-1.1.1", "cdif-codelist-1.1.1", "cdif-datastructure-1.1.1", "cdif-conceptscheme-1.1.1", "cdif-manifest-1.1.1", "eosc-mrm-ssh-open-marketplace", "opendoar-inclusion-criteria", "sherpa-object-retrieval-api", "infra-finder-paper", "datacite-rest-api", "datacite-data-file-use-policy", "fuji-simpleclient", "fuji-metrics-v0-8", "fair-checker-check-view", "fair-checker-metrics", "eosc-cz-node-charter", "eosc-cz-node-announcement", "lri-roadmap-2023", "ri-portal", "isvavai-infrastructures", "ggp-cz-project", "datahub-cuni", "genasis", "callout:sensitive-data", "callout.sensitive-data.steward", "callout.sensitive-data.principles", "callout.sensitive-data.cloud", "callout.sensitive-data.community", "callout.sensitive-data.aai", "callout.sensitive-data.rights", "callout:verify-identifiers", "callout.verify-identifiers.helper", "callout.verify-identifiers.script", "callout.verify-identifiers.orcid", "callout.verify-identifiers.pid", "callout.verify-identifiers.terms", "callout.verify-identifiers.private", "page:software"]
-endTime = 2026-10-15T06:09:16+00:00
-
-[[action]]
-id = "2026-10-15-final-candidate"
-type = "update"
-name = "Guide-owned identity and final candidate review"
-description = "Migrated every normalized catalogue record to one Guide-owned primary id, with genuine typed source alternates and no obsolete own-ID alternatives. Preserved the real project grant identifier as an explicit OP JAK alternate. Migrated catalogue routing metadata across the knowledge base to short locally owned identifiers and compact frozen prefixes, preserving external identifiers and source passages. Applied the maintainer's particle-free slug correction using reviewed abbreviations and specific source URL words as one-time local seeds. Removed unreleased compatibility routes, improved advisory matching and evidence coverage labels, and reviewed shared mobile/catalogue presentation. Tightened selected authored station advice in both languages. This records metadata migration and editorial review, not new source retrieval, original authorship of imported records or a new verification date for their facts."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["fair-principles-2016", "DSW-NRP.01", "A.K2.3.1", "A.R1.1.R1"]
-results = ["COPYRIGHT-LICENCES.06", "COPYRIGHT-LICENCES.07", "aai-nrp", "aai-sensitive", "analyse.08", "argos", "avcr-fair-wizard", "cambridge-notebooks", "cc-signals", "ccmm", "ccmm-releases", "cdif", "cdif-codelist-1.1.1", "cdif-conceptscheme-1.1.1", "cdif-core-1.1.1", "cdif-datadescription-1.1.1", "cdif-datastructure-1.1.1", "cdif-discovery-1.1.1", "cdif-manifest-1.1.1", "cdsc-eln", "cdsc-readme", "cerit-ai-api", "cerit-ai-coding", "cerit-ai-privacy", "cerit-aiaas", "cerit-chat-ai", "cesnet-owncloud", "cesnet-storage", "cessda-dmeg", "code-principles", "conda", "conda-environments", "container-images", "cookbook-assessment", "cookbook-dictionary", "copyright-licences", "coretrustseal", "creative-commons", "crossref-rest-api", "crosswalk:rdm-analyse-knav-analyzing", "crosswalk:rdm-analyse-mld-analyse", "crosswalk:rdm-collect-knav-collecting", "crosswalk:rdm-collect-knav-organizing", "crosswalk:rdm-collect-mld-collect", "crosswalk:rdm-collect-mld-store", "crosswalk:rdm-plan-knav-planning", "crosswalk:rdm-plan-mld-conceptualise", "crosswalk:rdm-plan-mld-fund", "crosswalk:rdm-plan-mld-plan", "crosswalk:rdm-preserve-knav-storing", "crosswalk:rdm-preserve-mld-preserve", "crosswalk:rdm-process-knav-processing", "crosswalk:rdm-process-mld-process", "crosswalk:rdm-reuse-knav-reusing", "crosswalk:rdm-reuse-mld-access", "crosswalk:rdm-reuse-mld-transform", "crosswalk:rdm-share-knav-sharing", "crosswalk:rdm-share-mld-access", "crosswalk:rdm-share-mld-publish", "crosswalk:rdm-share-mld-share", "csl-iso690-cs", "cwl", "czech-bioimaging", "data-europa", "data-gov-cz", "datacite", "datacite-commons", "datacite-data-file-use-policy", "datacite-rest-api", "datacite-schema", "datahub-cuni", "datarepo", "dataspecer", "datasteward-cz", "ddrapp", "deposit-licence", "dmp-eosc", "dmp-status", "dmponline", "docker", "doi-citation-service", "dryad", "ds-handbook", "ds-manual", "ds-personas", "dsw-nrp", "ec-genai-guidelines", "einfra-aai", "einfra-docs", "elabftw", "eosc-acknowledgement", "eosc-cz-node-announcement", "eosc-cz-node-charter", "eosc-data-stewards", "eosc-mrm-ssh-open-marketplace", "eosc-notebooks", "eosc-training", "eosc-working-groups", "ethical-seven", "example.assessment-feedback", "example.nkr-catalogue", "example.nkr-planning", "f-uji", "fair-aware", "fair-champion", "fair-checker", "fair-checker-check-view", "fair-checker-metrics", "fair-impact", "fair-signposting", "fair4rs", "fairsharing", "fdmm", "fdo-overview", "fdo-specification", "fip-dashboard", "fip-ontology", "fip-wizard-templates", "force11-citation", "frsm", "ftr", "fuji-metrics-v0-8", "fuji-simpleclient", "galaxy-cz", "genasis", "ggp-cz-project", "git", "google-dataset-search", "handle", "harvard-dataverse", "he-dmp-template", "heslar", "infra-finder", "infrastructure:actris-cz", "infrastructure:ais-cr", "infrastructure:auger-cz", "infrastructure:bbmri-cz", "infrastructure:bnl-cz", "infrastructure:ccp", "infrastructure:cemnat", "infrastructure:cenakva", "infrastructure:ceplant", "infrastructure:cern-cz", "infrastructure:cicrr", "infrastructure:ciisb", "infrastructure:clb", "infrastructure:cnc", "infrastructure:compass", "infrastructure:csda-ess-cz", "infrastructure:cta-cz", "infrastructure:cz-openscreen", "infrastructure:czech-bioimaging", "infrastructure:czechnanolab", "infrastructure:czecos", "infrastructure:czecrin", "infrastructure:e-infra-cz", "infrastructure:eatris-cz", "infrastructure:elixir-cz", "infrastructure:enregat", "infrastructure:ess-scandinavia-cz", "infrastructure:est-cz", "infrastructure:eu-arc-cz", "infrastructure:fair-cz", "infrastructure:fermilab-cz", "infrastructure:ggp-cz", "infrastructure:lindat-clariah-cz", "infrastructure:lsm-cz", "infrastructure:metrofood-cz", "infrastructure:mgml", "infrastructure:nanoenvicz", "infrastructure:ncmg", "infrastructure:pals", "infrastructure:recetox-ri", "infrastructure:share-cz", "infrastructure:spiral2-cz", "infrastructure:spl-htc", "infrastructure:wczv", "isvavai-infrastructures", "it4i-compute", "jupyter", "jupyterhub-cerit", "kadi4mat", "knav-dm-tools-catalogue", "knav-life-cycle", "knav-tools.analyzing", "knav-tools.collecting", "knav-tools.organizing-collaborating", "knav-tools.planning", "knav-tools.processing", "knav-tools.reusing", "knav-tools.sharing", "knav-tools.storing-archiving", "knav-type-t", "law-328-2025", "layer.community", "layer.evaluation", "layer.infrastructure", "layer.planning", "layer.policy", "layer.support", "layers-seams-manuscript", "lexis", "licence.08", "london-charter", "lri-roadmap-2023", "maldreth.access", "maldreth.analyse", "maldreth.collect", "maldreth.conceptualise", "maldreth.fund", "maldreth.plan", "maldreth.preserve", "maldreth.process", "maldreth.publish", "maldreth.share", "maldreth.store", "maldreth.transform", "mbdb", "metacentrum", "metodika-2025", "minizamer-catalogue", "model:layers-seams", "model:worked-example", "ncdoi-2023", "ndi-architecture", "nextflow", "nkr", "nkr-schema", "nma", "nma-export-docs", "nma-riv-docs", "nrp-aai-integration", "nrp-admin-docs", "nrp-compute", "nrp-conditions", "nrp-docs-nma-access", "nrp-docs-nma-introduction", "nrp-license-selector", "nrp-repo-conditions", "nrp-roadmap-2026", "nrp-support", "oai-pmh", "onedata", "openaire-explore", "openaire-validator", "opendoar", "opendoar-inclusion-criteria", "openrefine", "openssf-best-practices", "openssf-criteria-2024", "orcid", "orcid-identifier-pattern", "organization:nrp", "os-linkages-1.1", "os2", "os2-kb1", "os3", "os3-faq", "os3-rules", "osii-study", "ostrails-cli", "ostrails-cz-pilot", "page:model", "page:software", "pid-centre", "plan.01", "plan.02", "plan.15", "plan.21", "policy-manual", "process-run-crate", "provider:f-uji.FsF-A1-01M", "provider:f-uji.FsF-A1-02MD", "provider:f-uji.FsF-A1.1-01MD", "provider:f-uji.FsF-A1.2-01MD", "provider:f-uji.FsF-F1-01MD", "provider:f-uji.FsF-F1-02MD", "provider:f-uji.FsF-F2-01M", "provider:f-uji.FsF-F3-01M", "provider:f-uji.FsF-F4-01M", "provider:f-uji.FsF-I1-01M", "provider:f-uji.FsF-I2-01M", "provider:f-uji.FsF-I3-01M", "provider:f-uji.FsF-R1-01M", "provider:f-uji.FsF-R1.1-01M", "provider:f-uji.FsF-R1.2-01M", "provider:f-uji.FsF-R1.3-01M", "provider:f-uji.FsF-R1.3-02D", "provider:fair-checker.A11", "provider:fair-checker.A12", "provider:fair-checker.F1A", "provider:fair-checker.F1B", "provider:fair-checker.F2A", "provider:fair-checker.F2B", "provider:fair-checker.I1", "provider:fair-checker.I2", "provider:fair-checker.I3", "provider:fair-checker.R11", "provider:fair-checker.R12", "provider:fair-checker.R13", "rdmkit", "rdmkit-bioimaging", "rdmkit-dmp", "rdmkit-domains", "rdmkit-existing-data", "rdmkit-human-data", "rdmkit-licensing", "rdmkit-metadata", "rdmkit-organisation", "rdmkit-pi", "rdmkit-policy", "rdmkit-provenance", "rdmkit-publication", "rdmkit-quality", "rdmkit-researcher", "rdmkit-rse", "rdmkit-security", "rdmkit-steward", "rdmkit-trainer", "rdmkit.analyse", "rdmkit.collect", "rdmkit.plan", "rdmkit.preserve", "rdmkit.process", "rdmkit.reuse", "rdmkit.share", "re3data", "recetox-ms-library", "repo-integration", "repo-proposal-template", "repo-recommendations", "repo-user-needs", "ri-portal", "ro-crate", "ror", "ror-identifier-pattern", "schema-dataset", "scientific-data", "seam.assessment-remediation", "seam.community-planning", "seam.community-repository", "seam.institution-nma", "seam.nma-research-register", "seam.plan-repository", "seam.repository-authentication", "seam.repository-catalogue-planning", "seam.repository-nma", "seam.repository-pid-registry", "seam.repository-support", "seam.working-groups-services", "sensitive-cloud", "sherpa-object-retrieval-api", "snakemake", "software-heritage", "software-heritage-guide", "ssh-open-marketplace", "strazci-dat", "survey-2025", "tess", "test:community-author-affiliation", "test:community-data-citation", "test:fc-data-id-metadata", "test:fc-metadata-fair-vocabularies", "test:fc-metadata-pid", "test:fc_metadata_includes_license", "test:fc_metadata_outward_links", "test:fc_metadata_persistence", "test:fc_metadata_protocol", "test:fc_searchable", "test:fc_structured_metadata", "test:fc_unique_identifier", "test:guide-cdif-01", "test:guide-cdif-02", "test:guide-cdif-03", "test:guide-cdif-04", "test:guide-cdif-05", "test:guide-cdif-06", "test:guide-cdif-07", "test:guide-cdif-08", "test:guide-cdif-09", "test:guide-cdif-10", "test:guide-cdif-11", "test:guide-cdif-12", "test:guide-cdif-13", "test:guide-cdif-15", "test:guide-cdif-16", "test:guide-cdif-18", "test:guide-cdif-19", "test:guide-cdif-20", "test:guide-cdif-21", "test:guide-cdif-24", "test:guide-dataset-01", "test:guide-dataset-02", "test:guide-dataset-03", "test:guide-dataset-04", "test:guide-dataset-06", "test:guide-fdo-01", "test:guide-fdo-02", "test:guide-fdo-04", "test:guide-maturity-02", "test:guide-maturity-03", "test:guide-maturity-06", "test:guide-maturity-12", "test:guide-software-03", "test:guide-software-04", "test:guide-software-05", "test:guide-software-06", "test:guide-software-07", "test:guide-software-09", "test:guide-software-13", "test:guide-software-14", "test:guide-software-15", "test:guide-software-16", "test:test_FM_F1_M_IdentPersistent", "tf-semantic", "training-analysis", "training-collection", "training-overview", "training-planning", "training-processing", "training-reuse", "training-sharing", "training-storage", "workflow-ro-crate", "workflowhub", "zenodo", "zenodo-software-guide"]
-endTime = 2026-10-15T12:43:33+00:00
-
-[[action]]
-id = "2026-10-16-reader-repairs"
-type = "update"
-name = "Reader-reported presentation repairs and named-service links"
-description = "Repair navigation, attributed source disclosures and narrow badges, licence-table marks and printed reports without blank pages; explain the institution check's actual scope; review missing-link suggestions and add bilingual references while retaining source wording; show every catalogue match and offer evaluators only for questions their reviewed mappings cover. OpenAI Codex's backend model id is not exposed by the runtime."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["analyza-fair-1.2", "os3", "law-328-2025", "copyright-licences"]
-results = ["assessment.14", "avcr-fair-wizard", "callout.verify-identifiers.helper", "callout.verify-identifiers.script", "callout:verify-identifiers", "cc-signals", "ccmm", "cdsc-eln", "citation.07", "conda-environments", "container-images", "copyright-licences", "datacite-commons", "datacite-schema", "dataset.05", "dataset.23", "dataset.26", "dataset.27", "dataspecer", "dmp-eosc", "dmp-status", "dsw-nrp", "fdo.34", "findability.13", "fip-dashboard", "fip.12", "frsm", "gate.05", "jupyterhub-cerit", "licence.21", "maturity.05", "metadata.07", "metadata.24", "metadata.31", "metadata.41", "nma-export-docs", "nrp-admin-docs", "os3", "ostrails-cli", "ostrails-cz-pilot", "page:about", "page:accessibility", "page:ai", "page:fdo", "page:identifiers", "page:licence-compatibility", "page:model", "page:provenance", "page:software", "pid-centre", "plan.23", "process-run-crate", "publication.25", "publication.29", "rdmkit-dmp", "repository.24", "software.06", "software.15", "software.19", "strazci-dat", "training-analysis", "training-collection", "training-overview", "training-planning", "training-processing", "training-reuse", "training-sharing", "training-storage", "workflow-ro-crate"]
-endTime = 2026-10-16T00:20:15+02:00
-
-[[action]]
-id = "2026-10-16-link-review"
-type = "update"
-name = "Complete review of remaining prose-link suggestions"
-description = "Review every remaining advisory match, add bilingual references to the intended resources and useful technical definitions while preserving all source wording, and record exact dated reasons for leaving other mentions unlinked. Decisions expire on text or target changes. OpenAI Codex backend model id is not exposed by the runtime."
-agent = "david-novak"
-instruments = ["openai-codex-runtime"]
-objects = ["analyza-fair-1.2", "rdmkit", "knav-dm-tools-catalogue"]
-results = ["aai-sensitive", "analyse.04", "analyse.05", "analyse.10", "argos", "assessment.03", "assessment.10", "assessment.20", "avcr-fair-wizard", "callout.verify-identifiers.helper", "callout.verify-identifiers.terms", "callout:verify-identifiers", "cdif", "cdsc-eln", "cerit-aiaas", "cesnet-storage", "citation.06", "citation.15", "citation.19", "collect.03", "collect.10", "dataset.01", "dataset.23", "dmp-eosc", "dmponline", "ds-manual", "einfra-aai", "elabftw", "eosc-notebooks", "findability.02", "findability.07", "findability.08", "findability.13", "findability.14", "findability.15", "galaxy-cz", "handle", "jupyterhub-cerit", "kadi4mat", "knav-type-t", "licence.17", "licence.18", "licence.20", "metadata.07", "metadata.14", "metadata.26", "metadata.36", "nkr", "nma-export-docs", "nrp-compute", "nrp-license-selector", "oai-pmh", "onedata", "opendoar", "osii-study", "page:about", "page:ai", "page:fdo", "page:identifiers", "page:live-check", "page:model", "plan.01", "plan.02", "plan.04", "plan.07", "plan.25", "plan.26", "plan.27", "plan.29", "process.04", "process.07", "process.10", "publication.01", "publication.02", "publication.07", "publication.09", "publication.29", "rdmkit-licensing", "recetox-ms-library", "repository.06", "repository.13", "repository.22", "repository.24", "sensitive-cloud", "software.09", "software.18", "tf-semantic", "training-overview"]
-endTime = 2026-10-16T01:23:01+02:00
+endTime = 2026-10-16T19:35:35+00:00

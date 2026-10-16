@@ -315,7 +315,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--jobs and --browser-workers must be positive")
     args.base = args.base or check_content.default_base(ROOT)
 
-    health_api = Job("health-api", [shutil.which("node") or "node", "tests/api/check_api.mjs", "--health-only"])
+    health_api = health_api_job()
     selected = jobs(args.base, args.live)
     known = [job.name for job in selected] + [health_api.name]
     if args.only:
@@ -353,6 +353,18 @@ def main(argv: list[str] | None = None) -> int:
     (args.report_dir / "execution.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     print(f"Execution: {defaults['profile']}, {args.jobs} outer jobs, {args.browser_workers} shared browser slots")
     results = run_all([job for job in selected if job != health_api], args.jobs, env)
+    return publish_results(
+        build, results, available, selected, env=env, output=args.report_dir, previous=args.previous_report, start=start
+    )
+
+
+def health_api_job() -> Job:
+    return Job("health-api", [shutil.which("node") or "node", "tests/api/check_api.mjs", "--health-only"])
+
+
+def publish_results(build, results, available, selected, *, env, output, previous, start) -> int:
+    """Publish and verify the same final health snapshot for local and partitioned runs."""
+    health_api = health_api_job()
     if health_api not in selected:
         # The published-health validation was not asked for: the report says so instead of running it anyway.
         emit_report(
@@ -360,8 +372,8 @@ def main(argv: list[str] | None = None) -> int:
             results,
             available,
             selected,
-            output=args.report_dir,
-            previous=args.previous_report,
+            output=output,
+            previous=previous,
             site=ROOT / "_site",
         )
         return finish(results, start)
@@ -370,17 +382,15 @@ def main(argv: list[str] | None = None) -> int:
         results,
         available,
         selected,
-        output=args.report_dir,
-        previous=args.previous_report,
+        output=output,
+        previous=previous,
         site=ROOT / "_site",
         pending_api=True,
     )
     candidate_api = run(health_api, env)
     print(f"{'ok  ' if candidate_api.ok else 'FAIL'} {candidate_api.seconds:6.1f}s  health-api (publication)")
     results.append(candidate_api)
-    emit_report(
-        build, results, available, selected, output=args.report_dir, previous=args.previous_report, site=ROOT / "_site"
-    )
+    emit_report(build, results, available, selected, output=output, previous=previous, site=ROOT / "_site")
     final_api = run(health_api, env)
     print(f"{'ok  ' if final_api.ok else 'FAIL'} {final_api.seconds:6.1f}s  health-api (final snapshot)")
     if not final_api.ok:
@@ -392,8 +402,8 @@ def main(argv: list[str] | None = None) -> int:
             results,
             available,
             selected,
-            output=args.report_dir,
-            previous=args.previous_report,
+            output=output,
+            previous=previous,
             site=ROOT / "_site",
         )
     return finish(results, start)

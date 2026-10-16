@@ -81,7 +81,7 @@ body = { cs = "Interaktivní dokumentace API na adrese api/ je nástroj třetí 
 
 [[page.section]]
 heading = { cs = "Zpětná vazba", en = "Feedback" }
-body = { cs = "Narazíte-li na překážku, napište nám prostřednictvím úložiště Průvodce na [[res/tool/github|GitHubu]] (github.com/motyc/eosc-fair-guide), nebo na adresu info@eosc.cz.", en = "If you meet a barrier, tell us through the Guide's repository on [[res/tool/github|GitHub]] (github.com/motyc/eosc-fair-guide) or at info@eosc.cz." }
+body = { cs = "Narazíte-li na překážku, napište nám prostřednictvím úložiště Průvodce na [[res/tool/github|GitHubu]] (github.com/dsw-nrp/eosc-fair-guide), nebo na adresu info@eosc.cz.", en = "If you meet a barrier, tell us through the Guide's repository on [[res/tool/github|GitHub]] (github.com/dsw-nrp/eosc-fair-guide) or at info@eosc.cz." }
 
 [[page]]
 id = "live-check"

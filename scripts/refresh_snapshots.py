@@ -83,7 +83,7 @@ FAIRSHARING_BATCH = 30
 DATACITE_PAGE = 100
 # A DataCite repository ID (a DataCite client): `<member>.<repository>` in lower case.
 DATACITE_CLIENT = re.compile(r"[a-z0-9]+\.[a-z0-9][a-z0-9.-]*")
-USER_AGENT = "eosc-fair-guide-snapshot/0.2 (+https://github.com/motyc/eosc-fair-guide)"
+USER_AGENT = "eosc-fair-guide-snapshot/0.2 (+https://github.com/dsw-nrp/eosc-fair-guide)"
 
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
 MAX_PAGES = 20

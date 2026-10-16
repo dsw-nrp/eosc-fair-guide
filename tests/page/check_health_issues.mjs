@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const { apply, markerOf, LABEL, MAX_WRITES } = createRequire(import.meta.url)("../../.github/scripts/health-issues.cjs");
 
-const repo = { owner: "motyc", repo: "eosc-fair-guide" };
+const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const core = { info() {} };
 const plan = (actions) => () => JSON.stringify({ format_version: 1, actions });
 function fake(open) {

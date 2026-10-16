@@ -622,6 +622,8 @@ to-be-replaced = { cs = "bude nahrazeno", en = "to be replaced" }
 
 # The report: the answers per principle, the gaps by who fixes them, and the answers beside the evaluators.
 [selfcheck.report]
+steps = { cs = "Stav podle kroků cesty", en = "State by path step" }
+step = { cs = "Krok cesty", en = "Path step" }
 blocks = { cs = "Stav podle oblastí kontroly", en = "State by the check's areas" }
 block = { cs = "Oblast", en = "Area" }
 principles = { cs = "Stav podle principů FAIR", en = "State by FAIR principle" }
@@ -700,10 +702,12 @@ tasks = { cs = "Zjistit: {n}", en = "To find out: {n}" }
 full = { cs = "Celý výsledek a uložení", en = "Full result and saving" }
 
 [selfcheck.groupByShort]
+blocks = { cs = "oblastí", en = "check area" }
 principles = { cs = "principů", en = "principle" }
 steps = { cs = "kroků cesty", en = "path step" }
 
 [selfcheck.groupBy]
+blocks = { cs = "podle oblastí kontroly", en = "by check area" }
 principles = { cs = "podle FAIR principů", en = "by FAIR principle" }
 steps = { cs = "podle kroků cesty", en = "by path step" }
 
@@ -1532,7 +1536,7 @@ ericExpected = { cs = "{name}, ČR zakládajícím členem po jeho založení", 
 source = { cs = "Cestovní mapa VVI 2023–2026, {locator}", en = "Roadmap of Large Research Infrastructures 2023–2026, {locator}" }
 operatorSource = { cs = "podle zdroje", en = "as stated by the source" }
 
-# What an entry is in the EOSC CZ Node, as the node's charter says (D-172); the node is a candidate node.
+# What an entry is in the EOSC CZ Node, as the node's charter says (D-172); the node's own state names the label.
 [node]
 service = { cs = "služba uzlu", en = "node service" }
 repository = { cs = "zapojení plánováno do {milestone}", en = "integration planned by {milestone}" }
@@ -1540,6 +1544,7 @@ incubator = { cs = "služba v inkubátoru uzlu", en = "node incubator service" }
 checked = { cs = "ověřeno {date}", en = "checked {date}" }
 source = { cs = "charta uzlu", en = "node charter" }
 candidate = { cs = "EOSC CZ Node je kandidátským uzlem Federace EOSC od {date}.", en = "EOSC CZ Node has been a candidate node of the EOSC Federation since {date}." }
+operational = { cs = "EOSC CZ Node je v produkčním provozu Federace EOSC od {date}.", en = "EOSC CZ Node has been in the EOSC Federation's production operations since {date}." }
 
 [api.collection.infrastructures]
 name = { cs = "Velké výzkumné infrastruktury", en = "Large research infrastructures" }

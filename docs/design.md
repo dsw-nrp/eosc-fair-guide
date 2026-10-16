@@ -44,11 +44,13 @@ address in generated records. Production and preview share canonical entity iden
 
 **The first download is bounded.** The build measures gzip bytes from the actual script and stylesheet
 tags and selected-language data against the 300 KB budget. Neutral structure and one language load first.
-Requirements, FIP records, page texts, detailed provenance and language patches load when needed;
+Requirements, FIP records, page texts, detailed advice, provenance and language patches load when needed;
 glossary source identifiers load with their definitions while primary IDs remain available for navigation.
 Together they reconstruct the complete crate. Language changes preserve answers and view state.
 Missing language files leave the usable view in place with retry. Originals, published titles and
 vocabulary labels retain their languages. Compact aliases support local cross-language search.
+L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
+for requirements, questions and advice in the selected language before publishing a complete index.
 
 ## Authoring and build
 
@@ -251,8 +253,11 @@ Each check has three named parts: evidence sources, answers and an addressable r
 state what leaves the browser, destination and duration. Question cards put criterion/help before native
 answers, responsibility, path and source links. Technical detail/originals are disclosed. Basic/extended
 scope and grouping by principle, step or declared block stay explicit. The short sticky running result
-mirrors groups and links to items, never scrolls independently, and collapses compactly. The report includes
-visible items and retained answered extended items, names the object, separates gaps from unknowns and
+mirrors groups and links to items, never scrolls independently, and collapses compactly. Answers and Report
+expose the same saved grouping choice per check, including native blocks where present. The report shows the
+selected state breakdown and detailed groups; FAIR counts explain overlaps, while path/block views retain
+unmapped questions under Other. The report includes the selected basic/extended scope, retains other saved
+answers separately, names the object, separates gaps from unknowns and
 links each gap to useful action or a responsible person.
 
 **The reader owns an answer.** Manual answers survive pre-fill, new evidence, retry, import, attachment
@@ -339,6 +344,11 @@ source, as its origin. Observations stay visible per source, newest useful first
 earlier fact. A run whose target or check state changes before it ends is discarded and sends no further request;
 a retry asks only for the metrics without a result. Removing an assessment withdraws only its observations and the
 suggestions that rested on it alone.
+
+In the visible evidence panel, a source's attribution and observation share one badge when they name the same
+source; different sources retain separate badges. Sources without a vendored favicon use the existing resource
+icon, including resolver results and observations that suggest no answer. Decorative badges accompany source
+names and never change who owns a manual answer.
 
 Original reports are kept once per digest in browser storage apart from the answers, all together within 4 MB, and
 native logs are read from them rather than copied into the answers. The answers are saved before a report is kept.
@@ -480,6 +490,12 @@ fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, A
 assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
 blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
 completed runs expose their actual revision and outcomes through the dashboard and `api/health.json`.
+PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane and two balanced browser
+lanes. The command inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
+Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,
+duplicate, incomplete or mismatched work, reconciles station/PDF inventories and publishes one health snapshot.
+It runs after failed lanes too. Source revision means the checked commit; trusted PR comments separately verify
+the PR head. The local full-run command and all validator profiles remain available unchanged.
 Three validation passes cover RO-Crate 1.2, Process Run Crate and the Guide profile; inheritance is
 disabled where an older crate descriptor would conflict. Known subclass inference, action-status IRI
 and RDF-property recommendations do not waive required profile checks.
@@ -490,6 +506,10 @@ job count from `--browser-workers`; browser groups share atomic case slots acros
 has one matrix over language, role, width and disclosure state. Closed guidance and expanded AI tips remain
 distinct audit states. Navigation checks wait for the requested view's replacement and data; search waits for
 the complete index before publishing results.
+Frame-free whole-document accessibility checks reuse the pinned axe engine after completed layout, preserving
+the same shared policy and full context. Frames and scoped checks retain the established Playwright adapter.
+`CHECK_AXE_MODE=compare` verifies normalized rule/check/node outcomes against that adapter; `reference` selects
+the reference throughout. A parity failure retains its diagnostic and fails verification.
 
 The health artifact includes complete successful/failing logs, individual script and case timings, explicit
 selected/skipped/aborted cases, unit-test timings and failure screenshots, route/heading/error records and traces.

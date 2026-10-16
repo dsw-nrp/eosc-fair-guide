@@ -303,7 +303,7 @@
       const value = input.value;
       const found = S.classify(value);
       // Focus loads these parts and calls show again; a partial language graph cannot be indexed yet.
-      if (found.type === "text" && !["standards", "questions"].every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
+      if (found.type === "text" && !["standards", "questions", "advice"].every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
       let content = [];
       let message = "";
       if (found.type === "text" && (confirmed || found.value.length >= MIN_TYPED)) {
@@ -334,7 +334,7 @@
     input.addEventListener("input", typed);
     /* The standards' requirements are searched too: their part loads when the field is first used. */
     input.addEventListener("focus", () =>
-      Promise.all([FG.loadPart("standards"), FG.loadPart("questions")]).then(
+      Promise.all([FG.loadPart("standards"), FG.loadPart("questions"), FG.loadPart("advice")]).then(
         () => input.value.trim() && show(results.dataset.confirmed === "true" && results.dataset.query === input.value.trim()),
         () => null
       )

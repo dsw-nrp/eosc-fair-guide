@@ -1430,6 +1430,7 @@
             page.identifier === "model" && section.identifier === "metadata-architecture" ? [modelFigure("metadata-architecture", FG.text(section.headline)), FG.publicationFlow()] : null,
             page.identifier === "software" && section.identifier === "preserve" ? FG.flow("software") : null,
             section.identifier === "privacy" && FG.selfcheck && FG.selfcheck.localDataNote ? FG.selfcheck.localDataNote() : null,
+            section.identifier === "why" ? FG.nodeNote() : null,
           ];
           return h(
             folded ? "details" : "section",

@@ -1,6 +1,6 @@
 # The EOSC CZ Node (D-172): its operator, its state and the catalogue entries that belong to it, as the node's
 # project charter and the EOSC CZ announcement state them, until the node publishes a machine-readable catalogue.
-# The node is a candidate node in onboarding; a member's badge says what the charter says and claims no full
+# The node is operational in the EOSC Federation; a member's badge says what the charter says and claims no full
 # federation membership. Entries exist for the services and repositories a step's advice uses; pure infrastructure
 # services without reader guidance are not added only to carry a badge. Field reference: docs/content-model.md.
 
@@ -9,10 +9,10 @@ id = "eosc-cz-node"
 name = "EOSC CZ Node"
 url = "https://www.eosc.cz/o-nas/eosc-node-czechia"
 operator = "e-infra-cz"
-state = "candidate"
-stateDate = 2026-04-21
-sources = ["eosc-cz-node-charter", "eosc-cz-node-announcement"]
-checked = 2026-10-14
+state = "operational"
+stateDate = 2026-10-08
+sources = ["eosc-cz-node-charter", "eosc-federation-production", "eosc-federation-second-wave-mou", "eosc-cz-node-page", "eosc-cz-node-announcement"]
+checked = 2026-10-16
 
 # Services (charter, section 3)
 [[member]]

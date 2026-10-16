@@ -70,7 +70,7 @@ class ReleaseVersions(unittest.TestCase):
             "merge_commit_sha": sha,
             "title": title,
             "merged_at": f"2026-10-{number:02}T10:00:00Z",
-            "html_url": f"https://github.com/motyc/eosc-fair-guide/pull/{number}",
+            "html_url": f"https://github.com/dsw-nrp/eosc-fair-guide/pull/{number}",
         }
 
     def snapshot(self) -> dict:

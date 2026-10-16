@@ -1567,11 +1567,10 @@ sections.push(["self-check", async () => {
   if (!(await page.locator("#results-blocks").count()) || !(await page.locator("#results .block-distribution").count())) fail("institution check: the report does not give the state by block");
   await at("DS", "institution", "answers");
   // The basic institution check is the strategy, which the Open Science III call requires, and the research act's
-  // obligations; the extended check adds the action plan, the policy and the national infrastructure. Blocks replace
-  // the grouping switch; a gap cites the call's minimum (and for the policy the EOSC CZ manual) and links to the
+  // obligations; the extended check adds the action plan, the policy and the national infrastructure. Blocks are the default grouping; a gap cites the call's minimum (and for the policy the EOSC CZ manual) and links to the
   // step where it is fixed.
   const basicBlocks = await page.locator(".item-group > h2").allTextContents();
-  if (basicBlocks.length !== 2 || !basicBlocks[0].includes("zákona o výzkumu") || !basicBlocks[1].includes("Strategie") || (await page.locator(".grouping").count())) fail("institution check: the basic check is not the research act's obligations and the strategy, or the grouping switch shows: " + basicBlocks.join(" | "));
+  if (basicBlocks.length !== 2 || !basicBlocks[0].includes("zákona o výzkumu") || !basicBlocks[1].includes("Strategie") || !(await page.locator("#grouping-blocks").isChecked())) fail("institution check: the basic check is not the research act's obligations and the strategy, or native blocks are not selected: " + basicBlocks.join(" | "));
   if ((await page.locator(".item-group > h2 svg.group-icon").count()) !== 2 || (await page.locator(".check-summary svg.group-icon").count()) < 2) fail("institution check: blocks are not marked by their icons in the list and the summary");
   if (!(await page.locator(".item-group .group-description", { hasText: "§ 83" }).count())) fail("institution check: the obligations block does not say where they come from");
   await page.locator("#answer-institution-08-no").check();
@@ -2716,6 +2715,103 @@ sections.push(["catalogue text reference", async () => {
   }
   for (const problem of problems) fail(`catalogue text reference: ${problem}`);
   await context.close();
+}]);
+
+sections.push(["grouping and typography", async () => {
+  for (const lang of ["cs", "en"]) for (const width of [1280, 390]) {
+    const { context, page, external, problems } = await openPage({ width, height: 900 });
+    const go = (hash) => navigationRendered(page, () => page.evaluate((hash) => window.FairGuide.navigate(hash), hash));
+    await gotoView(page, pageUrl + `#/${lang}/V/page/about`);
+    const sizes = await page.evaluate(() => ({ table: getComputedStyle(document.querySelector('.credits')).fontSize,
+      small: getComputedStyle(document.documentElement).getPropertyValue('--size-small').trim() }));
+    if (sizes.table !== "14px") fail(`credits typography: ${lang}/${width} ${sizes.table}`);
+    await go(`#/${lang}/DS/catalogue/k!terms`);
+    for (const viewport of [width, 320]) {
+      await page.setViewportSize({ width: viewport, height: 900 });
+      const offsets = await page.locator('.letter-jump').evaluateAll((buttons) => buttons.map((button) => {
+        const box = button.getBoundingClientRect(), range = document.createRange();
+        range.selectNodeContents(button);
+        const text = range.getBoundingClientRect();
+        return { x: Math.abs(text.x + text.width / 2 - box.x - box.width / 2),
+          y: Math.abs(text.y + text.height / 2 - box.y - box.height / 2) };
+      }));
+      if (!offsets.length || offsets.some(({ x, y }) => x > 1 || y > 0.6)) fail(`letter centring: ${lang}/${viewport} ${JSON.stringify(offsets)}`);
+      if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) fail(`letters overflow: ${lang}/${viewport}`);
+    }
+    await page.setViewportSize({ width, height: 900 });
+    const checks = graph.filter((item) => [].concat(item['@type']).includes('Quiz'));
+    for (const check of checks) {
+      const code = check.identifier;
+      await go(`#/${lang}/V/check/${code}/evidence`);
+      await page.evaluate((code) => {
+        const FG = window.FairGuide;
+        const mode = FG.refs(FG.get('#modes-' + code), 'hasDefinedTerm')[0]?.termCode;
+        const profile = FG.refs(FG.get('#profiles-' + code), 'hasDefinedTerm').at(-1)?.termCode;
+        FG.state.answers[code] = { items: {}, mode, profile };
+        FG.state.resultCollapsed = true;
+        FG.saveState();
+      }, code);
+      const at = (part) => go(`#/${lang}/V/check/${code}/${part}`);
+      await at('answers');
+      const choices = await page.locator('.grouping input').evaluateAll((radios) => radios.map((radio) => radio.value));
+      if (!choices.length || !await page.locator('.check-toolbar .grouping').isVisible()) fail(`${code}: collapsed summary hides grouping`);
+      const card = page.locator('.items fieldset.item').first();
+      const itemId = await card.getAttribute('id');
+      await card.locator('label.answer-option, label').filter({ has: page.locator('input[value="no"]') }).first().click();
+      const before = await page.evaluate((code) => JSON.stringify(window.FairGuide.state.answers[code].items), code);
+      for (const choice of choices) {
+        await at('answers');
+        await page.locator(`label[for="grouping-${choice}"]`).click();
+        const groups = await page.locator('.item-group > h2').allTextContents();
+        const itemIds = await page.locator('.items fieldset.item').evaluateAll((items) => items.map((item) => item.id));
+        if (new Set(itemIds).size !== itemIds.length || !itemIds.includes(itemId)) fail(`${code}/${choice}: grouping loses or repeats questions`);
+        const titles = await page.locator('.summary-group').evaluateAll((groups) => groups.map((group) => ({
+          title: group.querySelector('.summary-group-label').title, name: group.querySelector('ul').getAttribute('aria-label') })));
+        if (titles.some(({title, name}) => !title || title !== name)) fail(`${code}/${choice}: group titles/names differ`);
+        await at('report');
+        if (!await page.locator(`#grouping-${choice}`).isChecked()) fail(`${code}/${choice}: report selector lost its value`);
+        const headings = await page.locator('#results > h3[id^="results-"]').evaluateAll((nodes) => nodes.map((node) => node.id));
+        if (!headings.includes('results-' + choice) || headings.filter((id) => ['results-blocks','results-principles','results-steps'].includes(id)).length !== 1) fail(`${code}/${choice}: report shows the wrong breakdown`);
+        const details = await page.locator('.result-group > h3').allTextContents();
+        if (JSON.stringify(details) !== JSON.stringify(groups)) fail(`${code}/${choice}: report answer groups differ from Answers`);
+        if (choice !== 'principles') {
+          const total = await page.locator('.distribution-table tbody td').evaluateAll((cells) => cells.reduce((n, cell) => n + Number(cell.textContent), 0));
+          const progress = await page.locator('.result-progress').textContent();
+          if (Number(progress.match(/\d+/g).at(-1)) !== total) fail(`${code}/${choice}: report counts do not reconcile (${progress}, ${total})`);
+        }
+        const next = choices[(choices.indexOf(choice) + 1) % choices.length];
+        await page.locator(`label[for="grouping-${next}"]`).click();
+        await at('answers');
+        if (!await page.locator(`#grouping-${next}`).isChecked()) fail(`${code}: Report selection is not retained in Answers`);
+      }
+      if (await page.evaluate((code) => JSON.stringify(window.FairGuide.state.answers[code].items), code) !== before) fail(`${code}: grouping changes saved answers`);
+      const remembered = await page.locator('.grouping input:checked').inputValue();
+      await navigationRendered(page, () => page.reload());
+      if (await page.locator('.grouping input:checked').inputValue() !== remembered) fail(`${code}: grouping is not restored after reload`);
+      if (['dataset','fip','gate','maturity'].includes(code)) {
+        await page.locator('label[for="grouping-steps"]').click();
+        await at('report');
+        await axe(page, `${code} path report ${lang}/${width}`);
+        const directory = resolve(root, '.cache/screenshots/group24');
+        mkdirSync(directory, { recursive: true });
+        await page.locator('.results .grouping').evaluate((node) => node.scrollIntoView({ block: 'start' }));
+        await page.screenshot({ path: resolve(directory, `${code}-${lang}-${width}.png`), fullPage: false });
+        if (code === 'dataset' && lang === 'cs' && width === 1280) {
+          await page.evaluate((itemId) => {
+            const FG = window.FairGuide, item = FG.get('#item-' + itemId.replace('item-', '').replace(/-(\d+)$/, '.$1'));
+            window.groupingMissingFix = [item, item.fixAt]; delete item.fixAt; FG.rerender();
+          }, itemId);
+          if (!(await page.locator('.path-distribution .block-mark').allTextContents()).some((text) => text.includes('Ostatní'))) fail('unmapped path questions disappear instead of forming Other');
+          await page.evaluate(() => { const [item, fixAt] = window.groupingMissingFix; item.fixAt = fixAt; window.FairGuide.rerender(); });
+        }
+        const payload = await page.evaluate((code) => { const FG = window.FairGuide; return FG.selfcheck.sharePayload(FG.get('#check-' + code), FG.state.answers[code]); }, code);
+        await go(`#/${lang}/V/check/${code}/${payload}`);
+        if (!await page.locator('#grouping-steps').isChecked() || !await page.locator('#results-steps').count()) fail(`${code}: shared preview ignores the selected grouping`);
+      }
+    }
+    if (external.length || problems.length) fail(`grouping/typography: ${external.join(' ')} ${problems.join(' ')}`);
+    await context.close();
+  }
 }]);
 
 // Named sections retain individual verdicts, timings and failure artifacts; selected runs remain partial.

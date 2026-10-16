@@ -488,9 +488,9 @@ class HealthTests(unittest.TestCase):
     def test_dashboard_and_summary_read_revision_scope_recorded_status_and_live_availability(self) -> None:
         report = check_health.make_report(self.content, today=date(2026, 10, 12))
         report["revision"] = "a" * 40
-        report["run_url"] = "https://github.com/motyc/eosc-fair-guide/actions/runs/7"
+        report["run_url"] = "https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/7"
         page = check_health.dashboard(report)
-        self.assertIn('href="https://github.com/motyc/eosc-fair-guide/commit/' + "a" * 40 + '"', page)
+        self.assertIn('href="https://github.com/dsw-nrp/eosc-fair-guide/commit/' + "a" * 40 + '"', page)
         self.assertIn("the scheduled live watch observes it separately", page)
         self.assertIn("Guide structure only; no live service is involved.", page)
         dated = next(

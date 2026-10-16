@@ -127,7 +127,9 @@ observation date. Context explanations address an existing station and lens and 
 
 ## 7. Paradata and credit
 
-Add one provenance action per change batch to `content/provenance.toml` and register it:
+Add one provenance action per pull request by default to `content/provenance.toml` and register it. Extend that
+action as the pull request changes; use finer actions only for separately attributable work. The initial public
+state consolidates unreleased preparation actions without changing source attribution:
 
 - `agent`: the person responsible, from `[[person]]` in `content/guide.toml`;
 - `instruments`: the tools used, naming the AI model as an instrument when one was used (never as an author);

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const { SOURCES, parseCommand, select, publish, hashOf, markerOf } = createRequire(import.meta.url)("../../.github/scripts/source-publisher.cjs");
 
-const repo = { owner: "motyc", repo: "eosc-fair-guide" };
+const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const bot = "fair-guide-refresh[bot]";
 const files = { "content/glossary.toml": "[glossary]\n", "content/snapshots/re3data.toml": "[snapshot]\n" };
 const report = (outcomes) => JSON.stringify({ formatVersion: 1, outcomes });
@@ -57,7 +57,7 @@ assert(created.body.includes(marker));
 assert(!writes.some(([, options]) => String(options.ref || "").includes("heads/main")), "the default branch is never written");
 
 // The same content already proposed, unchanged or rejected outcomes: nothing is written.
-({ github, writes } = fakeGithub({ open: [{ number: 5, head: "motyc:refresh/heslar", body: marker }] }));
+({ github, writes } = fakeGithub({ open: [{ number: 5, head: "dsw-nrp:refresh/heslar", body: marker }] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "already-proposed" });
 assert.deepEqual(writes, []);
 ({ github, writes } = fakeGithub());
@@ -65,14 +65,14 @@ assert.deepEqual(await publish({ github, context, core }, read([{ source: "hesla
 assert.deepEqual(writes, []);
 
 // Content closed without merging is not proposed again; different content is.
-({ github, writes } = fakeGithub({ closed: [{ number: 4, head: "motyc:refresh/heslar", body: marker, merged_at: null }] }));
+({ github, writes } = fakeGithub({ closed: [{ number: 4, head: "dsw-nrp:refresh/heslar", body: marker, merged_at: null }] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "rejected-before" });
 assert.deepEqual(writes, []);
-({ github, writes } = fakeGithub({ closed: [{ number: 4, head: "motyc:refresh/heslar", body: markerOf("heslar", "0".repeat(64)), merged_at: null }] }));
+({ github, writes } = fakeGithub({ closed: [{ number: 4, head: "dsw-nrp:refresh/heslar", body: markerOf("heslar", "0".repeat(64)), merged_at: null }] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "proposed" });
 
 // An open bot proposal is updated from current main; one with a person's commit is left alone and explained.
-const older = { number: 6, head: "motyc:refresh/heslar", body: markerOf("heslar", "1".repeat(64)) };
+const older = { number: 6, head: "dsw-nrp:refresh/heslar", body: markerOf("heslar", "1".repeat(64)) };
 ({ github, writes } = fakeGithub({ open: [older], commits: [{ author: { login: bot } }], branches: ["heads/refresh/heslar"] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "updated" });
 assert.deepEqual(writes.filter(([kind]) => kind === "updateRef").map(([, options]) => [options.ref, options.force]), [["heads/refresh/heslar", true]]);

@@ -755,6 +755,41 @@ datePublished = 2026-04-29
 dateAccessed = 2026-10-14
 
 [[source]]
+guideRoute = "res/doc"
+id = "eosc-federation-second-wave-mou"
+type = "webpage"
+title = "Three second-wave EOSC Nodes sign EOSC Federation's Memorandum of Understanding"
+short = { cs = "Tři uzly druhé vlny podepsaly memorandum Federace EOSC", en = "Second-wave EOSC Nodes sign the Federation's MoU" }
+inLanguage = "en"
+url = "https://eosc.eu/news/three-second-wave-eosc-nodes-sign-eosc-federations-memorandum-of-understanding"
+publisher = "EOSC Association"
+datePublished = 2026-10-05
+dateAccessed = 2026-10-16
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-federation-production"
+type = "webpage"
+title = "EOSC Federation moves into production, beginning a new phase for European science"
+short = { cs = "Federace EOSC vstupuje do produkce", en = "EOSC Federation moves into production" }
+inLanguage = "en"
+url = "https://eosc.eu/news/eosc-federation-moves-into-production-beginning-a-new-phase-for-european-science"
+publisher = "EOSC Association"
+datePublished = 2026-10-08
+dateAccessed = 2026-10-16
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-cz-node-page"
+type = "webpage"
+title = "EOSC CZ Node (Czechia)"
+short = { cs = "Uzel EOSC CZ (Czechia)", en = "EOSC CZ Node (Czechia)" }
+inLanguage = "en"
+url = "https://www.eosc.cz/o-nas/eosc-node-czechia"
+publisher = "eosc-cz"
+dateAccessed = 2026-10-16
+
+[[source]]
 guideRoute = "res/pub"
 id = "lri-roadmap-2023"
 code = "LRI"

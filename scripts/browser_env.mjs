@@ -1,9 +1,20 @@
 // One environment policy for browser installation, npm checks and direct Node entry points.
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { availableParallelism } from "node:os";
 import { resolve } from "node:path";
 
 export const root = resolve(import.meta.dirname, "..");
+export function browserSourceDigest() {
+  const digest = createHash("sha256");
+  for (const directory of ["assets/js", "scripts", "tests/page", "tests/api"]) {
+    for (const name of readdirSync(resolve(root, directory)).filter((name) => /\.m?js$/.test(name)).sort()) {
+      digest.update(directory + "/" + name + "\0").update(readFileSync(resolve(root, directory, name)));
+    }
+  }
+  for (const name of ["package.json", "scripts/check_policy.json", "scripts/check_groups.json"]) digest.update(readFileSync(resolve(root, name)));
+  return digest.digest("hex");
+}
 export function browserEnvironment(env = process.env) {
   return { ...env, PLAYWRIGHT_BROWSERS_PATH: env.PLAYWRIGHT_BROWSERS_PATH ?? resolve(root, ".cache/ms-playwright") };
 }

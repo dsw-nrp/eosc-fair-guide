@@ -25,6 +25,26 @@ def merge_patch(target, patch):
 
 
 class LanguageTests(unittest.TestCase):
+    def test_advice_details_are_deferred_but_structure_and_l0_remain(self) -> None:
+        crate = json.loads(self.generated[build_crate.CRATE_FILE])
+        core, parts = build_crate.split_crate(crate)
+        by_id = {row["@id"]: row for row in core["@graph"]}
+        details = parts["advice"]["properties"]
+        self.assertGreater(len(details), 100)
+        for original in crate["@graph"]:
+            level = original.get("disclosureLevel", {}).get("@id")
+            if level not in {"#level-L0", "#level-L1", "#level-L2", "#level-L3"}:
+                continue
+            common = by_id[original["@id"]]
+            if level == "#level-L0":
+                self.assertEqual(common.get("text"), original.get("text"))
+            else:
+                for field in ("text", "description"):
+                    if field in original:
+                        self.assertNotIn(field, common)
+                        self.assertEqual(details[original["@id"]][field], original[field])
+            self.assertEqual(common["disclosureLevel"], original["disclosureLevel"])
+
     def test_glossary_source_ids_load_with_definitions_and_remain_complete(self) -> None:
         crate = json.loads(self.generated[build_crate.CRATE_FILE])
         core, parts = build_crate.split_crate(crate)
@@ -129,7 +149,11 @@ class LanguageTests(unittest.TestCase):
                 merge_patch(core, language["kb"])
                 merge_patch(ui, language["ui"])
             graph = {entity["@id"]: entity for entity in core["@graph"]}
-            for name, path in build_crate.PART_SCRIPTS.items():
+            part_names = list(build_crate.PART_SCRIPTS)
+            if order[0] == "en":
+                part_names.reverse()
+            for name in part_names:
+                path = build_crate.PART_SCRIPTS[name]
                 part = assignment(self.generated[path], f"window.FairGuideData.parts[{json.dumps(name)}] = ")
                 for lang in order:
                     language = assignment(

@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 const { verifiedRun, draftRelease, tagOf, compareTags, sources, reuse, completedTag } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
 
-const repo = { owner: "motyc", repo: "eosc-fair-guide" };
+const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const sha = "a".repeat(40);
 const context = (ref = "refs/tags/v1.0.0-alpha.1", commit = sha) => ({ repo, ref, sha: commit, payload: { repository: { default_branch: "main" } } });
 const core = { info() {} };
@@ -102,7 +102,7 @@ assert(written[1][1].equals(archive), "durable release bytes are reused unchange
 github.rest.repos.getReleaseByTag = async () => ({ data: { assets: [{ id: 2, name: manifest.archive, size: archive.length }] } });
 assert.deepEqual(await reuse({ github, context: context() }), { run: 5 }, "a partial draft falls back to the checked artifact");
 
-const completed = { ...goodRun, path: ".github/workflows/deploy.yml", head_repository: { full_name: "motyc/eosc-fair-guide" } };
+const completed = { ...goodRun, path: ".github/workflows/deploy.yml", head_repository: { full_name: "dsw-nrp/eosc-fair-guide" } };
 const eventContext = { ...context(), payload: { workflow_run: { id: 5 } } };
 ({ github } = fake([completed]));
 assert.deepEqual(await completedTag({ github, context: eventContext }), { tag: "v1.0.0-alpha.1", sha, run: 5 });

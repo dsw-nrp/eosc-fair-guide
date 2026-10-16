@@ -58,7 +58,7 @@ MAX_PAGE_BYTES = 512 * 1024
 # Icons tried per host, in the order of candidates(): the first that shows on a badge is kept.
 TRIES = 3
 TIMEOUT = 15
-USER_AGENT = "eosc-fair-guide-favicons/1.0 (+https://github.com/motyc/eosc-fair-guide)"
+USER_AGENT = "eosc-fair-guide-favicons/1.0 (+https://github.com/dsw-nrp/eosc-fair-guide)"
 ACCEPT = "text/html,image/*;q=0.9,*/*;q=0.8"
 # Resource types whose entries are tools or services and carry a badge; the FIP Dashboard types map to them.
 SERVICE_TYPES = {"service", "tool", "registry"}

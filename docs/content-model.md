@@ -3,9 +3,9 @@
 The guide's content is authored in small TOML files under `content/`. A generator,
 `scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and the same
 crate as scripts the page loads: `assets/data/kb.js` with what every view needs, and `kb-standards.js`, `kb-fips.js`,
-`kb-pages.js`, `kb-questions.js` and `kb-model.js` with the standards' requirements and guidance and the details
+`kb-pages.js`, `kb-questions.js`, `kb-model.js` and `kb-advice.js` with the standards' requirements and guidance and the details
 of provenance actions, the FIP Dashboard snapshot (profiles and resource records) and the KNAV catalogue's tools,
-page texts, check questions, and the conceptual implementation model with the life-cycle models, loaded when a view
+page texts, check questions, the conceptual implementation model with the life-cycle models, and L1-L3 advice text, loaded when a view
 first needs them; `scripts/build_site.py` writes them with the page and the API into the site directory `_site/`,
 which is not committed. View code that only one view needs loads with that view (`VIEW_SCRIPTS` in
 `scripts/build_crate.py`; the catalogue's `assets/js/catalogue-view.js`). This document defines the entities and the
@@ -314,9 +314,13 @@ Process Run Crate profile: `agent` (person, ORCID where available), `instrument`
 `object` (sources consulted), `result` (items produced or changed) and `endTime`. A changed item needs an action
 newer than the point where the branch left the compared base.
 
+One action per pull request is the default, covering all changed entities and the actual responsible person,
+instruments and consulted sources. Separately attributable work may use finer actions. The initial public state
+consolidates unreleased preparation into one action; quoted and imported records retain their original attribution.
+
 Callouts use `callout:<id>` and their items use `callout.<id>.<item>` in the identifier register and provenance
 results. Page results use `page:<id>`; curated repositories and sources keep their content IDs. The retrospective
-coverage action records review of existing records without attributing their original authorship to that review.
+coverage records review of existing records without attributing their original authorship to that review.
 
 The health JSON/API, dashboard and summary expose `missing_links`: ranked, specific name matches in authored prose that
 may need a catalogue reference. Each item retains its text path, language, text, matched entry and Guide address.
@@ -624,7 +628,7 @@ record) it operates and the HTTPS `evidence` that states it; the relation is rec
 
 The three relations stay distinct: being the national node of a European infrastructure, membership of an ERIC, and
 operating a catalogue entry. Membership of the EOSC CZ Node is the entry's own. `eosc-node.toml` holds `[node]`
-(`id`, `name`, `url`, `operator` (an infrastructure ID), `state` (`candidate`), `stateDate`, `sources`, `checked`) and
+(`id`, `name`, `url`, `operator` (an infrastructure ID), `state` (`candidate`, `operational`), `stateDate`, `sources`, `checked`) and
 `[[member]]` entries that name a catalogue entry (`resource` or `repository`) with its `role` (a `[[nodeRole]]`:
 `service`, `repository`, `incubator`), the `milestone` by which a repository's integration is planned (`M6`, `M12`)
 and the `locator` in the charter. The node's charter is the authoritative list until the node publishes a machine-readable

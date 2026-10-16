@@ -680,7 +680,7 @@
     },
   };
 
-  FG.state = { lang: "cs", lens: "V", answers: {}, lastStation: null, lastVisit: null, readStations: [], checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false };
+  FG.state = { lang: "cs", lens: "V", answers: {}, lastStation: null, lastVisit: null, readStations: [], checkGrouping: "principles", checkGroupings: {}, resultCollapsed: false, hideCheckBadges: false };
 
   /** Disclosure levels the user opened (L1, L2, L3, ai); kept while the page is open, so switching lens keeps them. */
   FG.openLevels = new Set();
@@ -692,12 +692,13 @@
     !state.lastVisit &&
     !FG.list(state.readStations).length &&
     state.checkGrouping !== "steps" &&
+    !Object.keys(state.checkGroupings || {}).length &&
     !state.resultCollapsed &&
     !state.hideCheckBadges;
 
   /** Remove everything the guide stores in this browser and start from an empty state. */
   FG.clearStoredData = function () {
-    Object.assign(FG.state, { answers: {}, lastStation: null, lastVisit: null, readStations: [], checkGrouping: "principles", resultCollapsed: false, hideCheckBadges: false });
+    Object.assign(FG.state, { answers: {}, lastStation: null, lastVisit: null, readStations: [], checkGrouping: "principles", checkGroupings: {}, resultCollapsed: false, hideCheckBadges: false });
     FG.openLevels.clear();
     FG.storage.remove();
     /* Reports held for this visit go too. */
@@ -737,6 +738,7 @@
       lastVisit: FG.state.lastVisit,
       readStations: FG.state.readStations,
       checkGrouping: FG.state.checkGrouping,
+      checkGroupings: FG.state.checkGroupings,
       resultCollapsed: FG.state.resultCollapsed,
       hideCheckBadges: FG.state.hideCheckBadges,
     };

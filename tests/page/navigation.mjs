@@ -32,7 +32,7 @@ export const gotoView = (page, url) => navigationRendered(page, () => page.goto(
 export async function searchReady(page, query) {
   await page.waitForFunction((query) => {
     const FG = window.FairGuide, results = document.querySelector("#search-results");
-    return FG && ["standards", "questions"].every((part) => FG.partHasLanguage(part, FG.state.lang)) &&
+    return FG && ["standards", "questions", "advice"].every((part) => FG.partHasLanguage(part, FG.state.lang)) &&
       results?.dataset.query === query;
   }, query);
 }

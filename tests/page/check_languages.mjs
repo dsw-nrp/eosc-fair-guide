@@ -127,6 +127,43 @@ try {
   assert.deepEqual(observed.errors, []);
   assert(observed.requests.every((url) => url.startsWith(origin + "/") || url.startsWith("data:")), "static-host browsing requests only its own assets");
   await context.close();
+  // Advice search waits for its language patch, and a failed advice translation remains retryable.
+  const delayed = await browser.newContext();
+  const delayedPage = await delayed.newPage();
+  let releaseAdvice, noticeAdvice;
+  const gate = new Promise((resolve) => { releaseAdvice = resolve; });
+  const requested = new Promise((resolve) => { noticeAdvice = resolve; });
+  let failAdviceEnglish = true;
+  await delayed.route(origin + '/**', async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === '/assets/data/kb-advice-en.js' && failAdviceEnglish) return route.abort('failed');
+    let body = readFileSync(resolve(site, '.' + pathname));
+    if (pathname === '/assets/data/kb-advice-cs.js') {
+      let injected = false;
+      body = body.toString().replace(/"@value":\s*"/, (match) => { if (injected) return match; injected = true; return match + 'deferredadviceprobe '; });
+      assert(injected, 'the probe belongs to a deferred advice text');
+      noticeAdvice(); await gate;
+    }
+    await route.fulfill({ body, contentType: pathname.endsWith('.js') ? 'text/javascript' : pathname.endsWith('.css') ? 'text/css' : 'text/html' });
+  });
+  await delayedPage.goto(origin + '/index.html#/cs/V/path/start');
+  await rendered(delayedPage, 'cs', '#search-input');
+  assert.equal(await delayedPage.evaluate(() => window.FairGuide.partsLoaded.has('advice')), false);
+  await delayedPage.fill('#search-input', 'deferredadviceprobe');
+  await requested;
+  await delayedPage.locator('form.search').evaluate((form) => form.requestSubmit());
+  assert.notEqual(await delayedPage.locator('#search-results').getAttribute('data-query'), 'deferredadviceprobe', 'unloaded advice does not produce a complete empty result');
+  releaseAdvice();
+  await delayedPage.waitForFunction(() => document.querySelector('#search-results')?.dataset.query === 'deferredadviceprobe');
+  assert(await delayedPage.locator('#search-results a[href*="/path/"]').count(), 'the deferred advice is in the completed index');
+  await delayedPage.getByRole('link', { name: 'English', exact: true }).click();
+  await delayedPage.locator('.data-load-error').waitFor();
+  assert.equal(await delayedPage.evaluate(() => window.FairGuide.state.lang), 'cs');
+  failAdviceEnglish = false;
+  await delayedPage.locator('.data-load-error button').click();
+  await rendered(delayedPage, 'en', '#search-input');
+  assert(await delayedPage.evaluate(() => window.FairGuide.partHasLanguage('advice', 'en')));
+  await delayed.close();
   console.log("language checks: selected downloads, both directions, exact graph, bilingual exports/search and failed-file retry passed");
 } finally {
   await browser.close();

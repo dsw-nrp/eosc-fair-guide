@@ -1558,14 +1558,27 @@
 
   const letterOf = (item) => String((FG.principlesOf(item)[0] || {}).termCode || "").charAt(0);
 
-  /** How items are grouped: by FAIR principle by default, or by the path step that addresses them. */
-  function groupingControl(compact) {
-    const current = FG.state.checkGrouping === "steps" ? "steps" : "principles";
+  /** The same per-check presentation is used by Answers, Report and shared previews. */
+  function groupingOptions(check) {
+    const items = itemsOf(check);
+    return [blocksOf(items).length && "blocks", items.some((item) => FG.principlesOf(item).length) && "principles",
+      items.some((item) => FG.get(item.fixAt)) && "steps"].filter(Boolean);
+  }
+
+  function groupingOf(check) {
+    const options = groupingOptions(check);
+    const saved = FG.state.checkGroupings[check.identifier];
+    // Retain older dataset path preferences without overriding native-block defaults in other checks.
+    return options.includes(saved) ? saved : !options.includes("blocks") && FG.state.checkGrouping === "steps" && options.includes("steps") ? "steps" : options[0] || "principles";
+  }
+
+  function groupingControl(check, compact) {
+    const current = groupingOf(check);
     return h(
       "fieldset",
       { class: "grouping no-print" + (compact ? " segmented" : "") },
       h("legend", null, FG.t("selfcheck.grouping")),
-      ["principles", "steps"].map((value) =>
+      groupingOptions(check).map((value) =>
         h(
           "label",
           { class: "option", for: "grouping-" + value },
@@ -1576,7 +1589,7 @@
             value,
             checked: current === value,
             onchange: () => {
-              FG.state.checkGrouping = value;
+              FG.state.checkGroupings[check.identifier] = value;
               FG.saveState();
               FG.rerender("grouping-" + value);
             },
@@ -1593,23 +1606,20 @@
     return block ? FG.refs(FG.get(block.inDefinedTermSet), "hasDefinedTerm") : [];
   };
 
-  /** The groups shared by the list, the summary and the result: a check with blocks groups by block; otherwise by
-      FAIR principle (F, A, I, R) by default, or by the path step that addresses each question. Questions outside
-      every group come last, ungrouped. */
-  function groupsOf(items) {
+  /** Lists contain each question once; missing mappings remain in Other. FAIR report bars may overlap. */
+  function groupsOf(check, items) {
     let groups;
-    let loose;
-    const blocks = blocksOf(items);
-    if (blocks.length) {
+    const selected = groupingOf(check);
+    const blocks = blocksOf(itemsOf(check));
+    if (selected === "blocks") {
       groups = blocks.map((block, index) => ({ block, position: index + 1, items: items.filter((item) => FG.id(item.block) === block["@id"]) }));
-      loose = items.filter((item) => !FG.get(item.block));
-    } else if (FG.state.checkGrouping === "steps") {
+    } else if (selected === "steps") {
       groups = FG.stations().map((station) => ({ station, items: items.filter((item) => FG.id(item.fixAt) === station["@id"]) }));
-      loose = items.filter((item) => !FG.get(item.fixAt));
     } else {
       groups = ["F", "A", "I", "R"].map((letter) => ({ letter, items: items.filter((item) => letterOf(item) === letter) }));
-      loose = items.filter((item) => !["F", "A", "I", "R"].includes(letterOf(item)));
     }
+    const assigned = new Set(groups.flatMap((group) => group.items));
+    const loose = items.filter((item) => !assigned.has(item));
     groups = groups.filter((group) => group.items.length);
     return loose.length ? groups.concat({ items: loose }) : groups;
   }
@@ -1644,8 +1654,7 @@
     const all = applicable(check, st);
     const first = all.filter(isFirstTier);
     const more = first.length ? all.length - first.length : 0;
-    /* A check organised in blocks keeps them; the grouping switch serves the checks without blocks. */
-    return [more ? extendedSwitch(st, more, compact) : null, blocksOf(itemsOf(check)).length ? null : groupingControl(true)];
+    return [more ? extendedSwitch(st, more, compact) : null, groupingControl(check, true)];
   }
 
   /** One sentence on what the first view's tier means and how many further items exist, with the control to add them. */
@@ -1693,7 +1702,7 @@
       { class: "items no-print" },
       tierInfo(check, st, first, more),
       controlsInSummary() ? null : h("div", { class: "check-toolbar no-print" }, checkControls(check, st)),
-      groupsOf(shown).map((group) =>
+      groupsOf(check, shown).map((group) =>
         h(
           "section",
           { class: "item-group" },
@@ -1930,9 +1939,7 @@
           : null,
         h("p", { class: "small muted" }, advisory(check))
       ),
-      /* A check organised in blocks reports by them first, as its questions are listed; every check reports by FAIR
-         area where its questions name principles. Neither adds answers into a score. */
-      stateSections(st, items),
+      stateSections(check, st, items),
       h("h3", { id: "results-gaps", tabindex: "-1" }, FG.t("selfcheck.report.gaps")),
       gaps.length ? gapsByWhom(st, gaps) : h("p", { class: "muted" }, FG.t(tasks.length ? "selfcheck.result.noGapsTasks" : "selfcheck.result.noGaps")),
       tasks.length ? [h("h3", { id: "results-tasks", tabindex: "-1" }, FG.t("selfcheck.result.tasks")), h("ul", { class: "gaps" }, tasks.map((item) => taskItem(item, st)))] : null,
@@ -1994,24 +2001,21 @@
     ];
   }
 
-  /** The state by the check's own blocks, as its questions are listed: every question once, in its block. */
-  function blockDistributions(st, items, blocks) {
-    const rows = blocks
-      .map((block, index) => ({
-        mark: h("span", { class: "block-mark" }, groupMark({ block, position: index + 1 }), FG.text(block.name)),
-        name: FG.text(block.name),
-        items: items.filter((item) => FG.id(item.block) === block["@id"]),
-      }))
-      .filter((row) => row.items.length);
-    return distributions(st, rows, "block-distribution", FG.t("selfcheck.report.block"));
+  /** Native blocks and path steps partition the questions, retaining those without mappings. */
+  function groupedDistributions(check, st, items) {
+    const rows = groupsOf(check, items).map((group) => ({
+      mark: h("span", { class: "block-mark" }, groupTitle(group)), name: groupName(group), items: group.items,
+    }));
+    const path = groupingOf(check) === "steps";
+    return distributions(st, rows, path ? "path-distribution" : "block-distribution", FG.t(path ? "selfcheck.report.step" : "selfcheck.report.block"));
   }
 
-  function stateSections(st, items) {
-    const blocks = blocksOf(items);
-    const principles = principleDistributions(st, items);
+  function stateSections(check, st, items) {
+    const selected = groupingOf(check);
     return [
-      blocks.length ? [h("h3", { id: "results-blocks" }, FG.t("selfcheck.report.blocks")), blockDistributions(st, items, blocks)] : null,
-      principles ? [h("h3", { id: "results-principles" }, FG.t("selfcheck.report.principles")), principles] : null,
+      groupingControl(check, true),
+      h("h3", { id: "results-" + selected }, FG.t("selfcheck.report." + selected)),
+      selected === "principles" ? principleDistributions(st, items) : groupedDistributions(check, st, items),
       h("p", { class: "small muted" }, FG.icon("info"), " ", FG.t("selfcheck.report.noScore")),
     ];
   }
@@ -2186,7 +2190,7 @@
     return h(
       "div",
       { class: "result-groups" },
-      groupsOf(shown).map((group) => {
+      groupsOf(check, shown).map((group) => {
         const principles = group.letter ? rows.filter((row) => String(row.principle.termCode).charAt(0) === group.letter) : [];
         return h(
           "section",
@@ -3003,8 +3007,8 @@
   }
 
   /** The questions in the same groups as the list, with a short label for each group. */
-  function summaryGroups(items) {
-    return groupsOf(items).map((group) => ({ label: groupMark(group), name: groupName(group), items: group.items }));
+  function summaryGroups(check, items) {
+    return groupsOf(check, items).map((group) => ({ label: groupMark(group), name: groupName(group), items: group.items }));
   }
 
   /** The result so far in a few lines: progress, one chip per question in the list's groups that jumps to it,
@@ -3016,7 +3020,7 @@
     /* The summary mirrors the questions: the same groups as the list (by principle or by path step), one chip per
        question with its answer state. */
     const shown = applicable(check, st).filter((item) => providedByNrp(item, st) || items.includes(item));
-    const groups = summaryGroups(shown);
+    const groups = summaryGroups(check, shown);
     /* The gaps and the things to find out are listed in the report. */
     const count = (key, n) =>
       n
@@ -3029,7 +3033,7 @@
         h(
           "div",
           { class: "summary-group" },
-          h("span", { class: "summary-group-label" }, group.label),
+          h("span", { class: "summary-group-label", title: group.name }, group.label),
           distribution(st, group.items, true),
           h(
             "ul",

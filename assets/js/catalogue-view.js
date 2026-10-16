@@ -1165,27 +1165,15 @@
         h("p", { class: "small" }, intro),
         FG.dashboardNotice(),
         snapshot ? h("p", { class: "small" }, FG.t("repositories.fairsharingNote", { n: recorded, total: all.length, date: FG.formatDate(snapshot.dateCreated) })) : null,
-        FG.live.nkrNote(),
-        nodeNote()
+        FG.live.nkrNote()
       );
     }
     return h(
       "div",
       { class: "kind-intro" },
       h("p", { class: "small" }, intro),
-      kind === "fips" || kind === "resources" || kind === "repositories" ? FG.dashboardNotice() : null,
-      kind === "resources" || kind === "infrastructures" ? nodeNote() : null
+      kind === "fips" || kind === "resources" || kind === "repositories" ? FG.dashboardNotice() : null
     );
-  }
-
-  /** What the EOSC CZ Node is, where its badges show: a candidate node of the EOSC Federation since its approval,
-      with the announcement that says so (D-172). */
-  function nodeNote() {
-    const node = FG.get("#eosc-cz-node");
-    if (!node || !node.nodeStateSince) return null;
-    const sources = FG.refs(node, "isBasedOn");
-    const source = sources[1] || sources[0];
-    return h("p", { class: "small" }, FG.t("node.candidate", { date: FG.formatDate(node.nodeStateSince) }), source ? [" ", sourceLink(source)] : null);
   }
 
   FG.views.catalogue = function (route) {

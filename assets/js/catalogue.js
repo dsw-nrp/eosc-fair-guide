@@ -46,6 +46,16 @@
   /** A work an entry rests on, by its short name, leading to its own entry in the catalogue. */
   FG.sourceLink = (source) => h("a", { class: "source-link", href: FG.entryHref(source) }, FG.shortName(source));
 
+  /** What the EOSC CZ Node is, as the About page states it: the node's own state since its date, with the source
+      that states it (D-172). */
+  FG.nodeNote = function () {
+    const node = FG.get("#eosc-cz-node");
+    if (!node || !node.nodeStateSince) return null;
+    const sources = FG.refs(node, "isBasedOn");
+    const source = sources[1] || sources[0];
+    return h("p", { class: "small" }, FG.t("node." + node.nodeState, { date: FG.formatDate(node.nodeStateSince) }), source ? [" ", FG.sourceLink(source)] : null);
+  };
+
   /** Warn when a published statement has been superseded. Refresh is an editorial status. */
   FG.clauseStatus = (status) =>
     status === "superseded" ? h("span", { class: "badge", "data-clause-status": status }, FG.t("explorer.superseded")) : null;

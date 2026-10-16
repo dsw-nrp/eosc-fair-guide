@@ -20,7 +20,7 @@ date-released: "2026-10-08"
 license:
   - MIT
   - CC-BY-4.0
-repository-code: "https://github.com/motyc/eosc-fair-guide"
+repository-code: "https://github.com/dsw-nrp/eosc-fair-guide"
 keywords:
   - FAIR
   - research data

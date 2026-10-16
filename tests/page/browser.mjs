@@ -1,11 +1,10 @@
 // Shared browser lifecycle, bounded case execution and failure evidence for all Node browser checks.
-import { root, mapLimit, workerCount } from "../../scripts/browser_env.mjs";
+import { root, mapLimit, workerCount, browserSourceDigest } from "../../scripts/browser_env.mjs";
 import { acquireSlot } from "../../scripts/browser_slots.mjs";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from "node:fs";
 import { resolve, sep } from "node:path";
-import { createHash } from "node:crypto";
 const { chromium: engine } = await import("playwright");
 const reportStart = performance.now();
 
@@ -13,15 +12,7 @@ const storage = new AsyncLocalStorage();
 const scriptName = (process.argv[1] || "browser-fixture").split(/[\\/]/).at(-1);
 const reportFile = resolve(process.env.CHECK_CASE_REPORT || resolve(root, ".cache/check-details", scriptName + ".json"));
 const artifactRoot = reportFile + ".artifacts";
-const digest = createHash("sha256");
-for (const directory of ["assets/js", "scripts", "tests/page", "tests/api"]) {
-  for (const name of readdirSync(resolve(root, directory)).filter((name) => /\.m?js$/.test(name)).sort()) {
-    digest.update(directory + "/" + name + "\0").update(readFileSync(resolve(root, directory, name)));
-  }
-}
-digest.update(readFileSync(resolve(root, "package.json")));
-digest.update(readFileSync(resolve(root, "scripts/check_policy.json")));
-const sourceDigest = digest.digest("hex");
+const sourceDigest = browserSourceDigest();
 let revision = process.env.GITHUB_SHA || "unknown";
 try { revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(); } catch { /* Report missing identity honestly. */ }
 const script = { name: scriptName, contexts: new Set(), failed: false, problems: [], artifacts: [] };

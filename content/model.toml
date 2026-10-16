@@ -14,7 +14,7 @@ feedback = { cs = "Plánování přináší požadavky na služby. Podpora před
 [model.workedExample]
 name = { cs = "Jak Průvodce předává požadavek do kontroly", en = "How the Guide carries a requirement into a check" }
 description = { cs = "Publikovaný požadavek na identifikátor vede k otázce a k pojmenovanému testu. Test dokládá rozlišení PID; dlouhodobou dostupnost neověřuje. Záznam revize vysvětluje, jak vznikla jeho implementace a popis rozsahu. U konkrétního výsledku kontroly zůstávají také posuzovaný objekt, pozorování a datum.", en = "A published identifier requirement leads to a question and a named test. The test establishes PID resolution; it does not verify long-term availability. A revision record explains how its implementation and scope description were produced. A specific assessment result also retains the assessed object, observations and date." }
-steps = ["A.F1.R1", "dataset.01", "test:guide-dataset-01", "action:2026-10-11-test-health"]
+steps = ["A.F1.R1", "dataset.01", "test:guide-dataset-01", "action:2026-10-16-initial-state"]
 
 [[layer]]
 guideRoute = "model/layer"

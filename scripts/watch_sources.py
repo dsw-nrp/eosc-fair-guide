@@ -36,7 +36,7 @@ import build_crate  # noqa: E402
 import check_content  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-USER_AGENT = "eosc-fair-guide-watch/0.1 (+https://github.com/motyc/eosc-fair-guide)"
+USER_AGENT = "eosc-fair-guide-watch/0.1 (+https://github.com/dsw-nrp/eosc-fair-guide)"
 FORMAT_VERSION = 1
 PERSISTENCE = 2  # consecutive failing runs before an issue opens
 MAX_URLS = 600

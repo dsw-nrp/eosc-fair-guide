@@ -410,8 +410,12 @@
     "fip-dashboard-snapshot": "fip-dashboard", "f-uji": "f-uji", "fair-checker": "fair-checker" };
   const sourceBadge = (source) => {
     const resource = FG.get("#resource-" + (SOURCE_RESOURCE[source] || source));
-    return resource ? FG.serviceBadge(resource.identifier, resource.url) : null;
+    return FG.serviceBadge(resource ? resource.identifier : source, resource ? resource.url : null);
   };
+
+  const ownershipLine = (owner) => h("p", { class: "source-chip", "data-origin": owner.kind }, owner.text);
+  const sourceLine = (source, ...content) => h("div", { class: "evidence-first", "data-source": source },
+    sourceBadge(source), h("div", { class: "evidence-source-body" }, ...content));
 
   /** A question's one consolidated evidence line, always in view: who owns the answer, with the most useful
       observation and its source's badge; before any evidence, where a suggestion could come from, or that none can. */
@@ -428,9 +432,12 @@
       return h("p", { class: "evidence-line evidence-none small" },
         sources.length ? FG.t("selfcheck.question.evidenceFrom", { sources: sources.join(", ") }) : FG.t("selfcheck.question.noEvidence"));
     }
+    const sourcedOwner = owner && ["prefilled", "suggestion"].includes(owner.kind);
+    const sameSource = sourcedOwner && first && pre.source === first.source;
     return h("div", { class: "evidence-line" },
-      owner ? h("p", { class: "source-chip", "data-origin": owner.kind }, owner.text) : null,
-      first ? h("div", { class: "evidence-first" }, sourceBadge(first.source), observationLine(first, 1)) : null);
+      sourcedOwner ? sourceLine(pre.source, ownershipLine(owner), sameSource ? observationLine(first, 1) : null)
+        : owner ? ownershipLine(owner) : null,
+      first && !sameSource ? sourceLine(first.source, observationLine(first, 1)) : null);
   }
 
   /** The rest of a question's evidence, for its details: the other observations, the declared resources and the
@@ -441,7 +448,7 @@
     if (!pre) return null;
     const list = FG.list(pre.list).filter((entryItem) => entryItem && entryItem.name);
     return [
-      readable(entry).slice(0, 4).map((observation) => h("div", { class: "evidence-first" }, sourceBadge(observation.source), observationLine(observation))),
+      readable(entry).slice(0, 4).map((observation) => sourceLine(observation.source, observationLine(observation))),
       list.length
         ? [h("p", { class: "small" }, FG.t("selfcheck.note.declared") + ":"),
           h("ul", { class: "small" }, list.map((fer) => h("li", null, fer.url ? FG.external(fer.url, String(fer.name)) : String(fer.name),
@@ -460,7 +467,7 @@
     const parts = [];
     const pre = entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
     const owner = ownership(entry, value, pre);
-    if (owner) parts.push(h("p", { class: "source-chip", "data-origin": owner.kind }, owner.text));
+    if (owner) parts.push(ownershipLine(owner));
     if (pre) {
       parts.push(readable(entry).slice(0, 4).map(observationLine));
       const list = FG.list(pre.list).filter((entryItem) => entryItem && entryItem.name);

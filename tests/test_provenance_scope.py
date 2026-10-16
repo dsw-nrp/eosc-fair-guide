@@ -3,7 +3,7 @@
 import copy
 import sys
 import unittest
-from datetime import UTC, datetime
+from datetime import timedelta
 from pathlib import Path
 from unittest import mock
 
@@ -63,7 +63,7 @@ class ProvenanceScopeTests(unittest.TestCase):
                 content = copy.deepcopy(before)
                 mutate(content)
                 self.assertNotEqual(cc.item_fingerprints(before)[key], cc.item_fingerprints(content)[key])
-                since = datetime(2026, 10, 16, tzinfo=UTC)
+                since = max(action["endTime"] for action in before["provenance"]) + timedelta(seconds=1)
                 with (
                     mock.patch.object(cc, "comparison_base", return_value=("base", since)),
                     mock.patch.object(
@@ -74,7 +74,7 @@ class ProvenanceScopeTests(unittest.TestCase):
                     report = cc.Report()
                     cc.check_freshness(report, content, build_crate.ROOT, "main")
                     self.assertTrue(any(error.startswith(key + ":") for error in report.errors), report.errors)
-                    content["provenance"].append({"endTime": datetime(2026, 10, 17, tzinfo=UTC), "results": [key]})
+                    content["provenance"].append({"endTime": since + timedelta(seconds=1), "results": [key]})
                     report = cc.Report()
                     cc.check_freshness(report, content, build_crate.ROOT, "main")
                     self.assertFalse(any(error.startswith(key + ":") for error in report.errors), report.errors)

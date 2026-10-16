@@ -16,7 +16,7 @@ keywords = [
   { cs = "repozitáře", en = "repositories" },
   { cs = "EOSC CZ", en = "EOSC CZ" },
 ]
-url = "https://github.com/motyc/eosc-fair-guide"
+url = "https://github.com/dsw-nrp/eosc-fair-guide"
 # The address the guide is published at. The page, the vocabulary of the guide's own terms (<baseUrl>terms#) and its
 # RO-Crate profile (<baseUrl>profile/<profileVersion>) derive from it, and the build writes it into the profile's
 # shapes. The final stable address is still open; a build can use another one with FAIR_GUIDE_BASE_URL.
@@ -171,7 +171,7 @@ kind = "software"
 id = "release-automation"
 name = "Release preparation script"
 version = "1"
-url = "https://github.com/motyc/eosc-fair-guide/blob/HEAD/scripts/release_versions.py"
+url = "https://github.com/dsw-nrp/eosc-fair-guide/blob/HEAD/scripts/release_versions.py"
 kind = "software"
 
 [[instrument]]

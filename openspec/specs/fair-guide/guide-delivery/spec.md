@@ -544,3 +544,62 @@ after authorization. Archiving SHALL follow completion.
 - **GIVEN** locally verified workflow files and an active remote-delivery hold
 - **WHEN** readiness is reported
 - **THEN** local preparation is distinguished from pending remote activation, and neither publication nor active scheduled jobs are claimed
+
+### Requirement: Deferred advice retains complete content and search
+
+Initial transport SHALL keep structure and short advice within the unchanged configured budget, deferring detailed advice. Every supported language/part load order SHALL reconstruct the complete bilingual graph. The crate/API SHALL retain all content. Station routes and complete search SHALL wait for required advice. Language/load failures SHALL preserve a usable view, saved answers and retry, with local-file/iframe operation and no external request on load retained.
+
+#### Scenario: Cold search needs deferred advice
+
+- **GIVEN** a fresh browser whose detailed-advice language part has not loaded
+- **WHEN** the reader searches for text present only in that advice while its download is delayed
+- **THEN** complete results wait for the required part and include the matching advice rather than caching an incomplete index
+
+#### Scenario: Advice language loading fails
+
+- **GIVEN** a usable station and saved answers with the other language's advice not loaded
+- **WHEN** switching languages fails to retrieve that part and the reader retries
+- **THEN** the usable view and answers survive, retry loads the requested advice and the reconstructed graph retains both languages
+
+### Requirement: Accessibility optimizations preserve audit outcomes and coverage
+
+Optimized audits SHALL retain the pinned engine, shared WCAG policy, full context and required coverage. Reuse SHALL prove equivalent normalized rule/check/node outcomes, including deliberate violations and dynamic states. Frame/scoped audits SHALL retain the established adapter unless proven equivalent. Unproven cases SHALL fall back without suppressing rules, excluding navigation/frames or accepting incomplete results as passes.
+
+#### Scenario: An optimization encounters an embedded frame
+
+- **GIVEN** a page with a frame containing a deliberately inaccessible control
+- **WHEN** the optimized check suite audits the page
+- **THEN** frame coverage remains active through the established adapter and reports the violation
+
+#### Scenario: A faster path disagrees with the reference
+
+- **GIVEN** the same frame-free dynamic page state and policy audited through both implementations
+- **WHEN** their normalized outcomes differ
+- **THEN** equivalence is not accepted and that case retains the reference implementation with diagnostic evidence
+
+### Requirement: CI partitions produce one complete attributable result
+
+CI SHALL partition one verified build through one authoritative job/case inventory. Every lane SHALL verify checked source/build identity. Aggregate status, dashboard and API SHALL claim a complete pass only when all required work passes exactly once. Subsets SHALL stay partial; missing, duplicate, wrong-revision, failed, blocked or incomplete work, including setup failures, SHALL prevent a complete pass. Diagnostics and report/preview consumers SHALL remain usable.
+
+#### Scenario: A browser partition does not finish
+
+- **GIVEN** successful CPU and browser-lane reports but a missing required browser partition
+- **WHEN** the aggregate runs after all lane outcomes
+- **THEN** it reports the missing work and does not publish a complete passing required check or health result
+
+#### Scenario: A partition has the wrong build or duplicate coverage
+
+- **GIVEN** all lane artifacts are available but one has a different build identity or a repeated required case
+- **WHEN** the collector reconciles the authoritative inventory
+- **THEN** it rejects the aggregate with the identity or coverage discrepancy instead of relying on equal case totals
+
+### Requirement: CI performance receipts preserve the coverage floor
+
+Performance receipts SHALL distinguish elapsed time, queuing, active work and total runner cost with actual
+coverage. Runtime targets SHALL NOT justify fewer cases, ignored initial failures or weaker validator profiles.
+
+#### Scenario: A faster hosted candidate is measured
+
+- **GIVEN** a previous full-run baseline and a partitioned candidate
+- **WHEN** their performance is reported
+- **THEN** revision/build identity, case coverage, elapsed time and runner cost accompany the result, and any initial failure remains recorded rather than counted as a successful retry

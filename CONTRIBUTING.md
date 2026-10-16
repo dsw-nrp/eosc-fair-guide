@@ -46,7 +46,7 @@ npm run openspec:validate
 Complete proposal/design/specs/tasks and obtain explicit approval before implementation. Typos, wording,
 formatting, behaviour-neutral dependency updates and routine source refreshes can use ordinary editing checks;
 a semantic change is not a wording-only correction. Archive after delivery under fresh approval. The active
-`initial-alpha` package and [release hand-off](docs/release-handoff.md) state the remaining gates.
+`initial-alpha` package and its [task list](openspec/changes/initial-alpha/tasks.md) state the remaining gates.
 
 ```bash
 python scripts/build_site.py       # build the site into _site/: the crate, the page with its data, the API
@@ -70,6 +70,13 @@ Stop a benchmark after a failed run, retain its evidence and diagnose it before 
 `npm run check:runtime` checks the launcher, worker policy, partial reporting and actual browser failure artifacts.
 Default traces retain actions; a failed case adds a PNG and an HTML snapshot. Set `CHECK_TRACE_SNAPSHOTS=1`
 for full trace snapshots when investigating a difficult case.
+
+PR CI runs one verified build through a CPU lane and two browser lanes, then the required `checks` collector.
+`scripts/check_ci.py` owns that adapter; `check_all.py` owns the job inventory and `scripts/check_groups.json`
+owns nested scripts. The collector verifies source/build identity, every required case and station/PDF coverage;
+lane subsets cannot publish a complete pass. Inspect per-lane artifacts as well as the final health report.
+Use `CHECK_AXE_MODE=compare` for a paired accessibility equivalence check, or `reference` for the established
+adapter. Performance receipts distinguish elapsed time and runner minutes; more runners can increase total cost.
 It includes strict OpenSpec validation and public-source hygiene. Install the pinned dependencies rather than
 depending on a global OpenSpec command. Generated `_site/`, local caches and environments are never committed.
 
@@ -113,10 +120,11 @@ collaborators, never a team that does not exist.
 
 The gates that can be enforced depend on who can review:
 
-- **During the alpha, the maintainer is the only collaborator.** `main` accepts changes only through pull
-  requests, the required check "Guide checks and health report" must pass, and nothing is force-pushed or deleted.
-  Code-owner approval is not required, because GitHub does not let an author approve their own pull request; a
-  release candidate instead needs the maintainer's explicit acceptance before it is tagged.
+- **During the alpha, the code owners are the maintainer and a second owner.** `main` accepts changes only through
+  pull requests, the required check "Guide checks and health report" must pass, and nothing is force-pushed or
+  deleted. Code-owner approval is not required while the review rules await re-verification after the repository
+  transfer, because GitHub does not let an author approve their own pull request; a release candidate instead needs
+  the maintainer's explicit acceptance before it is tagged.
 - **When an eligible content reviewer joins**, add them to `CODEOWNERS` for the content they review
   (`content/`, the stations and checks) and require one approving review from a code owner on `main`. From then
   on, nobody approves their own change.

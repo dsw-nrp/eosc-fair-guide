@@ -1316,7 +1316,6 @@ details > summary .icon {
   font-size: inherit;
 }
 
-.credits,
 /* The guide's standalone pages (its vocabulary and its RO-Crate profile): a plain reading layout of grouped,
    labelled entries. */
 .profile-page h2 { margin: 2rem 0 0.75rem; padding-bottom: 0.25rem; border-bottom: 2px solid var(--border); font-size: 1.2rem; }
@@ -1331,6 +1330,7 @@ details > summary .icon {
 .detail-files { margin: 0; padding-left: 1.2rem; }
 .detail-files li { margin: 0 0 0.3rem; }
 
+.credits,
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -2392,8 +2392,13 @@ a.id-chip:focus-visible {
 }
 
 .evidence-first > .evidence-observation,
-.evidence-first .evidence-observation > :first-child {
+.evidence-first .evidence-observation > :first-child,
+.evidence-source-body > :first-child {
   margin-top: 0;
+}
+
+.evidence-source-body {
+  min-width: 0;
 }
 
 /* The badge is 1.25rem high on a first line of 1.55 times the small text size. */
@@ -2490,7 +2495,8 @@ a.id-chip:focus-visible {
 }
 
 /* A block's row: its icon and name above its bar, since block names are long. */
-.block-distribution {
+.block-distribution,
+.path-distribution {
   display: grid;
   gap: var(--space-1);
   margin: 0 0 var(--space-3);
@@ -3752,6 +3758,10 @@ section.datacite-read p {
 }
 
 .letter-jump {
+  display: grid;
+  place-items: center;
+  justify-content: center;
+  line-height: 1;
   min-width: 2.25rem;
   min-height: 2.25rem;
   padding: 0 var(--space-2);
@@ -5291,6 +5301,7 @@ section.datacite-read p {
 
   .principle-distribution,
   .block-distribution,
+  .path-distribution,
   .result-headline,
   .action-card,
   .answer-row {

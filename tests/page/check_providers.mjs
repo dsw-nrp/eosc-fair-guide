@@ -268,6 +268,10 @@ try {
     assert.equal(persistent.value, "yes", "a metric F-UJI shows as passed at level 3 suggests Yes through a whole mapping, whatever its test status");
     assert(persistent.observations.some((seen) => seen.source === "f-uji" && seen.value === "yes" && !seen.notes.some((note) => note.key === "selfcheck.note.providerFail")));
     assert.equal(persistent.prefill.source, "f-uji", "evidence about the whole question outranks FAIR-Checker's earlier partial suggestion");
+    await part("answers");
+    assert.equal(await page.locator('#origin-dataset-01 .evidence-first[data-source="f-uji"] > .service-badge[data-service="f-uji"]').count(), 1, "Filled from F-UJI carries the evaluator's own badge once");
+    await page.locator('#origin-dataset-01').screenshot({ path: resolve(screenshots, `${lang}-fuji-origin.png`) });
+    await part("report");
     /* A saved assessment follows the current reading on the next visit: an observation stored under an earlier
        reading is replaced once, and only that assessment's own. */
     await page.evaluate(() => {
@@ -498,6 +502,45 @@ try {
     delete window.crypto.subtle;
     return read.error;
   }, fuji350), "noDigest");
+
+  /* Attribution and its visible evidence share one badge for the same source. Distinct sources keep their own;
+     sources without favicons and observations without a suggestion still have a mark beside their name. */
+  for (const lang of ["cs", "en"]) {
+    await reset();
+    await open(lang);
+    await part("answers");
+    await page.evaluate(() => {
+      const FG = window.FairGuide;
+      const seen = (source, value) => ({ source, value, date: "2026-10-16T00:00:00Z", fields: [], notes: [] });
+      const entry = (pre, observations = [pre], origin = "prefill", value = pre.value) => ({ prefill: pre, observations, origin, value });
+      const fuji = seen("f-uji", "yes");
+      FG.state.answers.dataset.extended = true;
+      FG.state.answers.dataset.items = {
+        "dataset.01": entry(fuji, [fuji, seen("resolver", "yes")]),
+        "dataset.02": entry(seen("resolver", "yes")),
+        "dataset.03": entry(seen("champion", null)),
+        "dataset.04": entry(seen("datacite", "yes")),
+        "dataset.05": entry(seen("fair-checker", "partly")),
+        "dataset.06": entry(seen("champion", "yes"), undefined, "user", "no"),
+      };
+      FG.saveState(); FG.rerender();
+    });
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const [id, sources] of [["01", ["f-uji", "resolver"]], ["02", ["resolver"]], ["03", ["fair-champion"]],
+        ["04", ["datacite"]], ["05", ["fair-checker"]], ["06", ["fair-champion"]]]) {
+        const evidence = page.locator(`#origin-dataset-${id}`);
+        assert.deepEqual((await evidence.locator(".service-badge").evaluateAll((nodes) => nodes.map((node) => node.dataset.service))).sort(), sources.slice().sort(), `${lang}/${width}/${id}: every distinct source appears once`);
+        assert.equal(await evidence.locator('.service-badge:not([aria-hidden="true"])').count(), 0, "adjacent source text names decorative badges");
+      }
+      assert.equal(await page.locator('#origin-dataset-02 .service-placeholder svg').count(), 1, "the resolver has the existing resource fallback icon");
+      assert.equal(await page.locator('#origin-dataset-03 .verdict[data-kind="none"]').count(), 1, "no suggestion stays distinct from a failed requirement");
+      assert.equal(await page.locator('#origin-dataset-06 .source-chip[data-origin="changed"]').count(), 1, "manual answers remain the reader's own");
+      await checkAccess(`${lang}/${width} source identities`);
+      for (const id of ["01", "02", "03"]) await page.locator(`#origin-dataset-${id}`).screenshot({ path: resolve(screenshots, `${lang}-source-${id}-${width}.png`) });
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
 
   /* ------------------------------------------------ probe scenarios of the evidence hierarchy */
   await reset();

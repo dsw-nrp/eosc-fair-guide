@@ -75,8 +75,23 @@ class WorkflowContracts(unittest.TestCase):
         self.assertNotIn("permissions", job)
         steps = job["steps"]
         self.assertTrue(
-            any("scripts/check_all.py" in step.get("run", "") and '--base "$BASE_SHA"' in step["run"] for step in steps)
+            any(
+                "scripts/check_ci.py collect" in step.get("run", "") and '--base "$BASE_SHA"' in step["run"]
+                for step in steps
+            )
         )
+        self.assertEqual(job["needs"], ["build", "lanes"])
+        self.assertEqual(job["if"], "always()")
+        lanes = workflow["jobs"]["lanes"]
+        self.assertEqual(lanes["strategy"]["fail-fast"], "false")
+        self.assertEqual(lanes["strategy"]["matrix"]["lane"], ["cpu", "browser-a", "browser-b"])
+        for lane in workflow["jobs"].values():
+            self.assertNotIn("permissions", lane)
+            for step in lane["steps"]:
+                if step.get("uses", "").startswith("actions/checkout@"):
+                    self.assertEqual(step["with"]["persist-credentials"], "false")
+        build_steps = workflow["jobs"]["build"]["steps"]
+        self.assertEqual(sum("scripts/check_ci.py build" in step.get("run", "") for step in build_steps), 1)
         review = next(step for step in steps if step.get("with", {}).get("name", "").startswith("guide-review-"))
         # The bounded summary the comment reads travels with the complete list it points to.
         self.assertEqual(
@@ -196,7 +211,7 @@ class WorkflowContracts(unittest.TestCase):
         for part in ("## Sources and paradata", "## Checks", "## AI assistance", "## Related issues"):
             self.assertIn(part, template)
         guide = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
-        for fact in ("only collaborator", "eligible content reviewer", "ORCID iD listed", "package-lock.json"):
+        for fact in ("second owner", "eligible content reviewer", "ORCID iD listed", "package-lock.json"):
             self.assertIn(fact, guide)
 
     def test_every_generated_file_attribute_matches_a_committed_file(self) -> None:

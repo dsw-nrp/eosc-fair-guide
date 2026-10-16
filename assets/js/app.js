@@ -62,9 +62,9 @@
     /* A view whose parts have not arrived yet renders once they have; the previous view stays until then. */
     const needed = [...(VIEW_PARTS[route.view] || [])];
     if (route.lang !== FG.state.lang) needed.push(...FG.partsLoaded);
-    if (route.view === "path" && !FG.landingShown(route)) needed.push("standards", "model");
+    if (route.view === "path" && !FG.landingShown(route)) needed.push("standards", "model", "advice");
     if (route.view === "page" && ["model", "machines", "about"].includes(route.arg)) needed.push("model");
-    if (route.view === "page" && route.arg === "ai") needed.push("standards");
+    if (route.view === "page" && route.arg === "ai") needed.push("standards", "advice");
     if (route.view === "page" && ["model", "machines"].includes(route.arg)) needed.push("standards", "questions");
     if (route.view === "path" && (route.arg || Object.values(FG.state.answers).some((answer) => Object.keys(answer.items || {}).length))) needed.push("questions");
     const missing = [...new Set(needed)].filter((name) => !FG.partHasLanguage(name, route.lang));
@@ -186,6 +186,7 @@
       lastStation: typeof saved.lastStation === "string" ? saved.lastStation : null,
       lastVisit: typeof saved.lastVisit === "string" && /^\d{4}-\d{2}-\d{2}$/.test(saved.lastVisit) ? saved.lastVisit : null,
       checkGrouping: saved.checkGrouping === "steps" ? "steps" : "principles",
+      checkGroupings: Object.fromEntries(Object.entries(saved.checkGroupings || {}).filter(([key, value]) => !FG.unsafeKey(key) && ["blocks", "principles", "steps"].includes(value))),
       resultCollapsed: saved.resultCollapsed === true,
       hideCheckBadges: saved.hideCheckBadges === true,
     });

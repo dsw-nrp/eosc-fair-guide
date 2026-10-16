@@ -147,7 +147,7 @@ declaration SHALL stay unanswered, with a note.
 
 ### Requirement: Results lead back to the path
 
-The result SHALL show a per-principle view with text labels and a gap list ordered by tier. Each gap SHALL name
+The result SHALL offer a per-principle view with text labels and a gap list ordered by tier. Each gap SHALL name
 where it is addressed (a link to the station and lens) and who can fix it (the user, the curator, the
 repository administrator or the community). The path SHALL highlight the stations that hold open gaps.
 
@@ -182,8 +182,8 @@ only when the user asks for it.
 ### Requirement: Check layout
 
 Beside the questions, a running result SHALL stay in view while the reader scrolls; on narrow screens it SHALL
-follow the questions. Items SHALL be grouped by FAIR principle by default, with a control that groups them by the
-path step where each is addressed. Group headings SHALL NOT imitate the path's step numbering. The running result
+follow the questions. Items SHALL use the selected grouping, defaulting to native check blocks where present and
+FAIR principles otherwise, with path-step grouping available where mapped. Group headings SHALL NOT imitate the path's step numbering. The running result
 SHALL be collapsible, and the choice SHALL be remembered in the browser.
 
 #### Scenario: Answering on a wide screen
@@ -216,6 +216,12 @@ Each question card SHALL show the criterion, its principles, answer controls who
 colour as well as text, one consolidated evidence line, and one disclosure for tests, responsibility, the path step
 and sources. Technical request details SHALL appear only inside that disclosure.
 
+#### Scenario: Source badges identify distinct evidence sources
+
+- **GIVEN** an answer attribution and visible observation from the same source, or from different sources
+- **WHEN** the consolidated evidence panel is shown
+- **THEN** matching attribution and evidence share one decorative source badge, distinct sources retain their own badge beside their name, and sources without a favicon use the existing resource icon even when they suggest no answer; a manual answer remains attributed to the reader
+
 #### Scenario: A question with automated tests
 
 - **GIVEN** a maturity question with two FAIR Champion tests
@@ -224,13 +230,13 @@ and sources. Technical request details SHALL appear only inside that disclosure.
 
 ### Requirement: The report is a view of its own
 
-The report SHALL have its own address and SHALL show per-principle distributions of answer states, the gaps grouped
+The report SHALL have its own address and SHALL show distributions of answer states in the selected grouping, the gaps grouped
 by who fixes them, and the agreement between the reader's answers and the evaluators' observations. It SHALL NOT
 show a combined score.
 
 #### Scenario: Opening the report
 
-- **GIVEN** a repository maturity check with answers and attached evaluator results
+- **GIVEN** a repository maturity check with answers, attached evaluator results and FAIR grouping selected
 - **WHEN** the reader opens the report
 - **THEN** a view with its own address shows the distribution of answer states per principle, the gaps grouped by who fixes them and where answers and evaluators agree or differ, with no overall score
 
@@ -674,15 +680,13 @@ started the run or the lookup, so a reader sees them without leaving the control
 
 ### Requirement: The report's state follows the check's categories
 
-A check organised in blocks SHALL report its state by block first, counting every question once in its block. The
-state by FAIR principle SHALL count a question under every group of principles it addresses and SHALL say how many
-questions have no FAIR principle.
+A check SHALL show only its selected state breakdown, defaulting to native blocks where present. Block/path views SHALL count each in-scope question once, including Other for missing mappings. FAIR distributions SHALL count every addressed area, explain overlaps and count questions without principles. Lists and summary chips SHALL show each question once.
 
 #### Scenario: A CoreTrustSeal readiness report
 
 - **GIVEN** answers to CoreTrustSeal questions, some of which address several FAIR principles and some none
-- **WHEN** the report is shown
-- **THEN** its state by block covers every answered question, and each FAIR group counts every question that addresses it
+- **WHEN** the reader switches its report from native blocks to FAIR principles and then path steps
+- **THEN** only the selected state breakdown is shown, blocks/path cover every in-scope question once including unmapped questions, and FAIR groups count every question that addresses them with overlap and omissions explained
 
 ### Requirement: The report says who puts each gap right
 
@@ -733,3 +737,48 @@ Printed reports SHALL retain readable counts, question names, answers and opened
 - **GIVEN** an extended self-check report with closed answer and evidence disclosures
 - **WHEN** the reader prints or saves it as PDF
 - **THEN** each generated page contains report text, all answer details are available, and no empty pages follow the report
+
+### Requirement: Answers and Report expose a coherent grouping switch
+
+Answers and Report SHALL expose the same visible, keyboard-operable grouping switch: FAIR/path for dataset and applicable native-block/FAIR/path options elsewhere. The selection SHALL control lists, summaries, report distributions and detailed answers, persist between views and reloads, and preserve question identity, answers, evidence and scope.
+
+#### Scenario: Dataset changes grouping in either view
+
+- **GIVEN** a partially answered dataset check with the running summary collapsed
+- **WHEN** the reader selects path steps in Answers, opens Report, selects FAIR and returns to Answers
+- **THEN** both views expose the switch and follow the retained selection in their groups and state breakdowns, without changing answers or scope
+
+#### Scenario: Checks with existing report breakdowns
+
+- **GIVEN** FIP, gate or maturity has native blocks and FAIR/path mappings
+- **WHEN** the reader chooses an available grouping in either Answers or Report
+- **THEN** that view and the next view follow the same choice instead of the report showing simultaneous breakdowns or silently overriding the choice with native blocks
+
+#### Scenario: A saved check is read on a phone
+
+- **GIVEN** saved answers and a supported grouping selection in either language
+- **WHEN** the reader reloads on a phone, opens its shared preview or prints its report
+- **THEN** the presentation follows the selected grouping, the interactive views retain a reachable switch and all answers/evidence remain intact
+
+### Requirement: Running-summary group marks identify their groups
+
+Isolated group marks SHALL carry translated titles and their groups SHALL have accessible names in every
+supported grouping. Decorative SVGs SHALL remain decorative; question-chip names SHALL retain their criterion
+and answer-state information.
+
+#### Scenario: Path groups in the running summary
+
+- **GIVEN** Answers grouped by path steps in Czech or English
+- **WHEN** the reader inspects a path icon and its group in the running summary
+- **THEN** its title names the station in that language and the group's accessible name identifies the same station
+
+### Requirement: Grouping controls remain available across presentations
+
+Grouping controls SHALL stay reachable on narrow screens and with the running summary collapsed. Shared previews
+and printed reports SHALL use the selected grouping, retaining readable group names and answer counts.
+
+#### Scenario: A summary is collapsed on a phone
+
+- **GIVEN** a saved check on a phone with its running summary collapsed
+- **WHEN** the reader switches grouping in Answers or Report and opens a shared preview or prints
+- **THEN** interactive controls remain reachable and each presentation follows the selected grouping with readable names and counts
