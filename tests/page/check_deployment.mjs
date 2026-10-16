@@ -46,8 +46,7 @@ const server = createServer((request, response) => {
 });
 await new Promise((done) => server.listen(0, "127.0.0.1", done));
 const origin = `http://127.0.0.1:${server.address().port}`;
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 const page = await (await browser.newContext()).newPage();
 const problems = [];

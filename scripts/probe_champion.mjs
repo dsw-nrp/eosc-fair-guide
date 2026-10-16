@@ -1,3 +1,4 @@
+import "./browser_env.mjs";
 // Anonymous browser health measurements of reviewed FAIR Champion endpoints; never selects or edits tests.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -51,7 +52,7 @@ export async function main(args) {
   const records = reviewedRecords(JSON.parse(readFileSync(recordPath, "utf8")));
   const workers = Number(option("--jobs", "4"));
   if (!Number.isInteger(workers) || workers < 1 || workers > 4) throw Error("Use one to four concurrent calls");
-  process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
+
   const { chromium } = await import("playwright");
   const browser = await chromium.launch();
   const page = await browser.newPage();

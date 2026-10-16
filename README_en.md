@@ -52,13 +52,18 @@ the connector setting `browserAccess` lets the page read it live and keep the sn
 
 ## Running the guide
 
-On first use, install the pinned Node.js dependencies for the bundled API documentation.
-Build with Python 3.11 or later, then open `_site/index.html`:
+On first use, install the pinned Node.js dependencies for the bundled API documentation and the
+Chromium the page checks use — into the repository's own cache, where the checks look for it. Build
+with Python 3.11 or later, then open `_site/index.html`:
 
 ```bash
 npm ci
+npm run browsers
 python scripts/build_site.py
 ```
+
+Browser installation and checks use `.cache/ms-playwright` automatically on Windows and Unix.
+Set `PLAYWRIGHT_BROWSERS_PATH` only to use another installation; the development container supplies its own override.
 
 The generator uses the Python standard library; adapted SVG figures are local assets.
 The built page works offline; only the live checks need the

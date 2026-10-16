@@ -6,8 +6,7 @@ import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();

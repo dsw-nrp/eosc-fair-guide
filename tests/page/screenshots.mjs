@@ -1,7 +1,7 @@
 // Screenshots of the FAIR Data Guide at desktop and mobile width, for pull-request previews.
 // Usage: node tests/page/screenshots.mjs <output-directory> [hash ...]
 
-import { chromium } from "playwright";
+import { chromium } from "./browser.mjs";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";

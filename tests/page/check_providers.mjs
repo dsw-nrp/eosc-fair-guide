@@ -10,8 +10,7 @@ import { audit } from "./accessibility.mjs";
 import { compactControlProblems } from "./compact_controls.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const fixture = (name) => readFileSync(resolve(root, "tests/fixtures/providers", name), "utf8");
 const fuji350 = fixture("fuji-3.5.0.json");
 const fuji401 = fixture("fuji-4.0.1.json");

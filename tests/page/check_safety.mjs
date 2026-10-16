@@ -6,8 +6,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 const page = await browser.newPage();
 const errors = [];

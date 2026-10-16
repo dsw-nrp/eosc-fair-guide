@@ -6,8 +6,7 @@ import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
 const checks = graph.filter((entity) => entity["@type"] === "Quiz");
 const principles = graph.filter((entity) => String(entity["@id"]).startsWith("#principle-") && entity.termCode);

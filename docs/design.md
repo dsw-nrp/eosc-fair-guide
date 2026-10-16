@@ -484,6 +484,20 @@ Three validation passes cover RO-Crate 1.2, Process Run Crate and the Guide prof
 disabled where an older crate descriptor would conflict. Known subclass inference, action-status IRI
 and RDF-property recommendations do not waive required profile checks.
 
+Browser installation and checks share `scripts/browser_env.mjs`: an explicit `PLAYWRIGHT_BROWSERS_PATH`
+wins, otherwise the browser lives in the repository's `.cache/ms-playwright`. The runner separates its outer
+job count from `--browser-workers`; browser groups share atomic case slots across Node processes, so inner pools cannot multiply the global limit. Station coverage
+has one matrix over language, role, width and disclosure state. Closed guidance and expanded AI tips remain
+distinct audit states. Navigation checks wait for the requested view's replacement and data; search waits for
+the complete index before publishing results.
+
+The health artifact includes complete successful/failing logs, individual script and case timings, explicit
+selected/skipped/aborted cases, unit-test timings and failure screenshots, route/heading/error records and traces.
+A selected subset remains partial even when its executed cases pass. Reruns are separate attempts and never
+erase an earlier failure. These checks establish their recorded scope, not complete visual or FAIR-semantic
+correctness. Performance comparisons name their revision, environment, coverage and concurrency; local elapsed
+time is not presented as measured hosted-runner cost.
+
 A separate trusted `workflow_run` posts the PR summary from bounded JSON artifacts without executing
 their code. It verifies current PR head/source repo, escapes Markdown and updates only its own bot
 comment with narrow PR write access. The first-page summary states the true total and links the complete

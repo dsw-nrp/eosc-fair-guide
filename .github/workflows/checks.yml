@@ -31,11 +31,11 @@ jobs:
         run: |
           python -m pip install -r requirements-dev.txt
           npm ci
-          npx playwright install --with-deps chromium
+          npm run browsers -- --with-deps
       - name: Build and verify the guide
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python -u scripts/check_all.py --base "$BASE_SHA" --jobs 4 --report-dir .cache/health
+        run: python -u scripts/check_all.py --base "$BASE_SHA" --jobs 4 --browser-workers 2 --report-dir .cache/health
       - name: Publish the run summary
         if: always()
         run: |

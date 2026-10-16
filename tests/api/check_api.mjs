@@ -14,7 +14,7 @@ import { dirname, extname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import Ajv2020 from "ajv/dist/2020.js";
-import { chromium } from "playwright";
+import { chromium } from "../page/browser.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const siteArgument = process.argv.indexOf("--site");
@@ -142,6 +142,8 @@ if (health.live_availability.status !== "unchecked") fail("api/health.json: an o
 if (health.run.status === "not_run" && (health.generated_at !== null || health.run.jobs.length)) fail("api/health.json: a build inventory claims completed checks");
 if (health.run.status !== "not_run" && (typeof health.generated_at !== "string" || !Number.isFinite(Date.parse(health.generated_at)))) fail("api/health.json: completed run has no actual report timestamp");
 if (health.run.status === "passed" && health.run.jobs.some((job) => ["failed", "blocked"].includes(job.status))) fail("api/health.json: a passed run includes a failed or blocked check");
+if (health.run.status === "passed" && health.run.jobs.some((job) => job.partial || (job.scripts || []).some((script) =>
+  script.status !== "passed" || script.pending.length || script.skipped.length))) fail("api/health.json: a passed run includes partial browser coverage");
 if (new Set(health.run.jobs.map((job) => job.name)).size !== health.run.jobs.length) fail("api/health.json: duplicate check-run identities");
 let failedItems = 0;
 for (const group of health.integrity) {

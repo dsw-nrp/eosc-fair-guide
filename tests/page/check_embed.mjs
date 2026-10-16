@@ -7,8 +7,7 @@ import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, "_site");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const mime = { ".js": "text/javascript", ".css": "text/css", ".html": "text/html", ".svg": "image/svg+xml", ".json": "application/json" };
 let hostOrigin;
 let guideOrigin;

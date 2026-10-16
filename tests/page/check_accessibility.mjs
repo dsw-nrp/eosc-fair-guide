@@ -5,8 +5,7 @@ import { resolve } from "node:path";
 import { WCAG_TAGS, audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 
 // No check keeps a tag list of its own: divergent lists silently check different criteria on different views.
 const here = resolve(root, "tests/page");

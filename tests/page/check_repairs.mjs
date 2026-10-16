@@ -7,12 +7,11 @@ import { assertNoBlankPages } from "./pdf_checks.mjs";
 import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
 const temporary = resolve(root, ".cache/browser-temp");
 mkdirSync(temporary, { recursive: true });
 process.env.TEMP = temporary;
 process.env.TMP = temporary;
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const base = pathToFileURL(resolve(root, "_site/index.html")).href;
 const shots = resolve(root, ".cache/screenshots/repairs");
 mkdirSync(shots, { recursive: true });

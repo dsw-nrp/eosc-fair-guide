@@ -1,3 +1,4 @@
+import "./browser_env.mjs";
 // Normalise favicons: each image in the input folder is drawn once into a square PNG of the given size, scaled to fit
 // and centred on a transparent background, and written to the output folder as <name>.png. The browser decodes every
 // format a favicon comes in (ICO, PNG, GIF, JPEG, WebP, SVG) the way the page would, so one renderer serves them all;
@@ -11,7 +12,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
+
 const { chromium } = await import("playwright");
 
 const [input, output, sizeText] = process.argv.slice(2);

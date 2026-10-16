@@ -9,7 +9,9 @@
 // - a control that cannot act yet is inactive with a visible reason, and becomes active once it can.
 // Usage: python scripts/build_site.py && npm run check:page   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
 
-import { chromium } from "playwright";
+import { chromium, recordFailure, runCases } from "./browser.mjs";
+import { mapLimit } from "../../scripts/browser_env.mjs";
+import { rendered, navigationRendered, gotoView, searchReady } from "./navigation.mjs";
 import { audit } from "./accessibility.mjs";
 import { compactControlProblems } from "./compact_controls.mjs";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
@@ -71,7 +73,7 @@ const checks = graph.filter((e) => e["@type"] === "Quiz").map((e) => ({ id: e.id
 const failures = [];
 // The question numbers a list of gaps or tasks shows: a question shows by its number inside its check.
 const numbersIn = (list) => list.locator(".item-id").allTextContents();
-const fail = (message) => failures.push(message);
+const fail = (message) => { failures.push(message); recordFailure(message); };
 /** A followed link marks its entry for about a second and a half and then lets the mark go, so a wait started after
     the click can miss it on a loaded machine and report a defect that is not there. Record the mark in the page as
     the browser applies it, before the click, and assert the recorded fact once the click has settled. */
@@ -117,22 +119,6 @@ async function openPage(viewport) {
   return { context, page, external, problems };
 }
 
-async function rendered(page) {
-  await page.waitForFunction(() => { const h1 = document.querySelector("#main h1"); return h1 && h1.textContent.trim() && !document.body.textContent.includes("The Guide is loading."); });
-}
-
-/** Hash navigation can return while language or view data loads. Wait for the previous main to be replaced;
-    an already visible heading or #start belongs to the previous view until that happens. */
-async function navigationRendered(page, navigate) {
-  await page.evaluate(() => { const main = document.querySelector("#main"); if (main) main.dataset.previousView = "true"; });
-  await navigate();
-  await page.waitForFunction(() => {
-    const main = document.querySelector("#main");
-    return main && !main.dataset.previousView && main.querySelector("h1")?.textContent.trim() &&
-      !document.body.textContent.includes("The Guide is loading.");
-  });
-}
-
 async function axe(page, label) {
   page.axeState.axeRunning = true;
   const result = await audit(page);
@@ -142,195 +128,12 @@ async function axe(page, label) {
   }
 }
 
-// Controls whose content is off centre, measured on what is drawn so that a stray margin or padding shows. In a
-// control on one line every icon and line of text sits on the control's middle; in a control whose label wraps, an
-// icon sits on the middle of the label's first line or of the whole label, never in between. A control that aligns
-// its content to the start is measured against its label's first line, which may be taller than the label's own text. A control that sizes to its content or centres it has equal space
-// left and right; one wider than its content and aligned to the start is left as it is. Runs in the page.
-function misalignedControls() {
-  // The range of a text node's visible characters: spaces around them take room but draw nothing. Defined here
-  // because only this function reaches the page.
-  const inkOf = (node) => {
-    const text = node.textContent;
-    const range = document.createRange();
-    range.setStart(node, text.search(/\S/));
-    range.setEnd(node, text.trimEnd().length);
-    return range;
-  };
-  const tolerance = 1;
-  const drawn = (rect) => rect.width > 0 && rect.height > 0;
-  const textLines = (node) => [...inkOf(node).getClientRects()].filter(drawn);
-  const firstLine = (node) => {
-    if (node.nodeType === Node.TEXT_NODE) return textLines(node)[0] || null;
-    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, { acceptNode: (text) => (text.textContent.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP) });
-    const text = walker.nextNode();
-    return text ? textLines(text)[0] || null : null;
-  };
-  const middle = (rect) => (rect.top + rect.bottom) / 2;
-  const found = [];
-  for (const control of document.querySelectorAll("button, .button, .button-small, .lens-option")) {
-    const box = control.getBoundingClientRect();
-    const style = getComputedStyle(control);
-    if (!drawn(box) || !style.display.includes("flex") || !style.flexDirection.startsWith("row") || control.closest(".visually-hidden")) continue;
-    const parts = [];
-    for (const node of control.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
-        const lines = textLines(node);
-        if (lines.length) parts.push({ node, rect: lines[0], text: true, lines: lines.length });
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        const part = getComputedStyle(node);
-        const rect = node.getBoundingClientRect();
-        if (part.position === "absolute" || part.display === "none" || !drawn(rect)) continue;
-        const line = firstLine(node);
-        parts.push({ node, rect, text: Boolean(line), line, lines: line ? Math.round(rect.height / line.height) : 0 });
-      }
-    }
-    if (!parts.length) continue;
-    const name = `${control.id ? "#" + control.id : "." + String(control.className).trim().split(/\s+/)[0]} "${control.textContent.trim().slice(0, 30) || control.getAttribute("aria-label") || control.title}"`;
-    const top = box.top + parseFloat(style.borderTopWidth) + parseFloat(style.paddingTop);
-    const bottom = box.bottom - parseFloat(style.borderBottomWidth) - parseFloat(style.paddingBottom);
-    const wraps = parts.some((part) => part.lines > 1) || ["flex-start", "start", "baseline"].includes(style.alignItems);
-    const label = parts.find((part) => part.text);
-    const references = wraps && label ? [middle(label.line || label.rect), middle(label.rect)] : [(top + bottom) / 2];
-    const off = parts.find((part) => (!wraps || !part.text) && references.every((reference) => Math.abs(middle(part.text ? part.line || part.rect : part.rect) - reference) > tolerance));
-    if (off) {
-      found.push(`${name}: ${off.text ? "its text" : "an icon"} is ${(middle(off.text ? off.line || off.rect : off.rect) - references[0]).toFixed(1)} px off the middle of ${wraps ? "its first line and of its label" : "the control"}`);
-      continue;
-    }
-    const left = Math.min(...parts.map((part) => part.rect.left)) - box.left;
-    const right = box.right - Math.max(...parts.map((part) => part.rect.right));
-    const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
-    const roomy = left + right - padding > tolerance;
-    const centres = ["center", "space-around", "space-evenly"].includes(style.justifyContent);
-    if (Math.abs(left - right) > tolerance && (centres || !roomy)) found.push(`${name} has ${left.toFixed(1)} px on the left and ${right.toFixed(1)} px on the right`);
-  }
-  return found;
-}
-
-// Things drawn over each other, or touching, without a deliberate decision. Marks are what the eye separates: a line
-// of text, an icon or image, a form field, and a box (a component enclosed by a border on every side, or filled with
-// rounded corners); full-width bands, table cells and one-sided separators are layout, not boxes. Two marks collide
-// when neither holds the other and they intersect by more than a pixel; lines of text in one block are left to the
-// font, an icon counts only against text on its own line, and a box may reach into the lines around it by up to three
-// pixels. Two boxes touch when they sit side by side or one above the other less than two pixels apart, and an icon
-// touches the text beside it the same way. A container marked data-joined makes its parts' contact deliberate. Only
-// what is shown counts: a closed disclosure shows its summary alone, and a mark is cut to the boxes that clip it.
-// Something may lie over a form field only within the field's padding, such as a clear button, never over its text.
-// Runs in the page.
-function collisions() {
-  // The range of a text node's visible characters: spaces around them take room but draw nothing. Defined here
-  // because only this function reaches the page.
-  const inkOf = (node) => {
-    const text = node.textContent;
-    const range = document.createRange();
-    range.setStart(node, text.search(/\S/));
-    range.setEnd(node, text.trimEnd().length);
-    return range;
-  };
-  const found = [];
-  const drawn = (rect) => rect.width > 1 && rect.height > 1;
-  const viewport = document.documentElement.clientWidth;
-  const styles = new Map();
-  const css = (element) => styles.get(element) || styles.set(element, getComputedStyle(element)).get(element);
-  const clear = (color) => color === "transparent" || /rgba\([^)]*,\s*0\)$/.test(color);
-  const enclosed = (style) => ["Top", "Right", "Bottom", "Left"].every((side) => parseFloat(style[`border${side}Width`]) > 0 && !clear(style[`border${side}Color`]));
-  const filledRound = (style) => !clear(style.backgroundColor) && parseFloat(style.borderTopLeftRadius) > 0;
-  const marks = [];
-  const cut = (rect, clip) => {
-    const left = Math.max(rect.left, clip.left);
-    const top = Math.max(rect.top, clip.top);
-    const right = Math.min(rect.right, clip.right);
-    const bottom = Math.min(rect.bottom, clip.bottom);
-    return { left, top, right, bottom, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
-  };
-  const everywhere = { left: -Infinity, top: -Infinity, right: Infinity, bottom: Infinity };
-  (function walk(element, block, clip) {
-    const style = css(element);
-    if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0" || element.classList.contains("visually-hidden") || element.classList.contains("sprite") || ["SCRIPT", "STYLE", "TEMPLATE"].includes(element.tagName)) return;
-    const own = style.display === "inline" || style.display === "contents" ? block : element;
-    const rect = cut(element.getBoundingClientRect(), clip);
-    const tag = element.tagName.toLowerCase();
-    if (tag === "details" && !element.open) {
-      const summary = element.querySelector(":scope > summary");
-      if (summary) walk(summary, own, clip);
-      return;
-    }
-    const clips = style.overflowX !== "visible" || style.overflowY !== "visible" || (style.position === "absolute" && style.clip !== "auto");
-    const inner = clips ? cut(element.getBoundingClientRect(), clip) : clip;
-    if (clips && !drawn(inner)) return;
-    if (tag === "svg") {
-      if (drawn(rect)) marks.push({ kind: "icon", node: element, rect, block: own === element ? block : own });
-      return;
-    }
-    if (["img", "input", "select", "textarea"].includes(tag)) {
-      if (drawn(rect)) marks.push({ kind: "box", node: element, rect, block });
-      return;
-    }
-    if (drawn(rect) && rect.width < 0.9 * viewport && !style.display.startsWith("table") && (enclosed(style) || filledRound(style))) marks.push({ kind: "box", node: element, rect, block });
-    for (const child of element.childNodes) {
-      if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-        for (const line of inkOf(child).getClientRects()) {
-          const shown = cut(line, inner);
-          if (drawn(shown)) marks.push({ kind: "text", node: child, rect: shown, block: own });
-        }
-      } else if (child.nodeType === Node.ELEMENT_NODE) walk(child, own, inner);
-    }
-  })(document.body, document.body, everywhere);
-  const element = (mark) => (mark.node.nodeType === Node.TEXT_NODE ? mark.node.parentElement : mark.node);
-  const holds = (a, b) => a.node.contains(b.node) || b.node.contains(a.node);
-  const joined = (a, b) => {
-    let common = element(a);
-    while (common && !common.contains(b.node)) common = common.parentElement;
-    return Boolean(common && common.closest("[data-joined]"));
-  };
-  // Whether a mark reaches into a field's text area, the box inside its border and padding.
-  const overField = (field, mark) => {
-    const style = css(field.node);
-    const box = field.node.getBoundingClientRect();
-    const left = box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
-    const right = box.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
-    return mark.rect.left < right - 1 && mark.rect.right > left + 1;
-  };
-  const describe = (mark) => {
-    const text = (mark.node.textContent || "").trim().replace(/\s+/g, " ").slice(0, 24);
-    const owner = element(mark);
-    const label = owner.id ? "#" + owner.id : owner.classList.length ? "." + owner.classList[0] : owner.tagName.toLowerCase();
-    return mark.kind === "text" ? `"${text}"` : `${mark.kind} ${label}${text ? ` "${text}"` : ""}`;
-  };
-  marks.sort((a, b) => a.rect.top - b.rect.top);
-  for (let i = 0; i < marks.length; i += 1) {
-    const a = marks[i];
-    for (let j = i + 1; j < marks.length && marks[j].rect.top < a.rect.bottom + 2; j += 1) {
-      const b = marks[j];
-      if (holds(a, b)) continue;
-      const across = Math.min(a.rect.right, b.rect.right) - Math.max(a.rect.left, b.rect.left);
-      const down = Math.min(a.rect.bottom, b.rect.bottom) - Math.max(a.rect.top, b.rect.top);
-      const sameBlock = a.block === b.block;
-      const icon = a.kind === "icon" ? a : b.kind === "icon" ? b : null;
-      const text = a.kind === "text" || b.kind === "text";
-      if (across > 1 && down > 1) {
-        if (a.kind === "text" && b.kind === "text" && sameBlock) continue;
-        if (icon && sameBlock && down < icon.rect.height / 2) continue;
-        if (text && (a.kind === "box" || b.kind === "box") && down <= 3) continue;
-        const field = [a, b].find((mark) => ["INPUT", "TEXTAREA"].includes(mark.node.tagName));
-        if (field && !overField(field, field === a ? b : a)) continue;
-        if (!joined(a, b)) found.push(`${describe(a)} overlaps ${describe(b)}`);
-        continue;
-      }
-      const sideBySide = down > Math.min(a.rect.height, b.rect.height) / 2 && across > -2;
-      const stacked = across > Math.min(a.rect.width, b.rect.width) / 2 && down > -2;
-      const boxes = a.kind === "box" && b.kind === "box";
-      const iconBesideText = icon && text && sameBlock && sideBySide;
-      if (((boxes && (sideBySide || stacked)) || iconBesideText) && !joined(a, b)) found.push(`${describe(a)} touches ${describe(b)}`);
-    }
-  }
-  return found;
-}
+import { misalignedControls, collisions } from "./layout.mjs";
 
 // 1. Load from a local file: no external request, no error.
 sections.push(["page", async () => {
   const { context, page, external, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   if (external.length) fail("requests on load: " + external.join(", "));
   for (const problem of problems) fail("load: " + problem);
@@ -377,7 +180,7 @@ sections.push(["page", async () => {
     const kinds = async () => view.locator('[data-facet="kind"] input:checked').evaluateAll((boxes) => boxes.map((box) => box.id.replace("facet-kind-", "")).join(","));
     const found = async () => Number(((await view.locator(".catalogue-count").textContent()).match(/\d+/) || [0])[0]);
     const open = async (hash) => {
-      await view.goto(pageUrl + hash);
+      await gotoView(view, pageUrl + hash);
       await view.waitForSelector(".catalogue-layout");
     };
     await open("#/cs/V/catalogue/k!resources");
@@ -557,18 +360,18 @@ sections.push(["page", async () => {
     // the identifier callout leads with scripted verification; the About page links the introductory courses; the
     // repository finder lists the added general-purpose and domain repositories.
     for (const [step, count] of [["collect", 2], ["process", 1], ["analyse", 1]]) {
-      await view.goto(pageUrl + "#/cs/V/path/" + step);
+      await gotoView(view, pageUrl + "#/cs/V/path/" + step);
       await view.waitForFunction((id) => location.hash.endsWith("/" + id) && document.querySelector("#main h1"), step);
       const trainings = view.locator(".station-help .training");
       if ((await trainings.locator("a").count()) !== count || !(await trainings.textContent()).trim().startsWith("Školení k tomuto kroku")) fail(`training: the ${step} step does not list its ${count} training(s) in one line`);
     }
     if (await view.locator('.cards .card a[href*="eosc.cz/skoleni/"]').count()) fail("training: a training shows as a resource card as well");
-    await view.goto(pageUrl + "#/cs/V/path/metadata");
+    await gotoView(view, pageUrl + "#/cs/V/path/metadata");
     await view.waitForSelector("#main h1");
     await view.locator(".callout-verify-identifiers summary").click();
     const steps = await view.locator(".callout-verify-identifiers ol li").allTextContents();
     if (!steps[0].includes("Ověřit identifikátory") || !steps[1].includes("skript")) fail("identifier callout: it does not lead with the helper and a script: " + steps.slice(0, 2).join(" | "));
-    await view.goto(pageUrl + "#/cs/V/page/about");
+    await gotoView(view, pageUrl + "#/cs/V/page/about");
     /* A hash change keeps the previous view until the about page's parts arrive; wait for the link itself. */
     const courses = await view.waitForSelector('a.text-ref[href$="/catalogue/res/course/training-overview"]', { timeout: 10000 }).catch(() => null);
     if (!courses) fail("about: the introductory courses are not linked");
@@ -591,18 +394,18 @@ sections.push(["page", async () => {
       ["#/cs/V/explorer/R1.1", "export-data,export-print", "api/pr/R1.1.json"],
       ["#/cs/V/path/licence", "export-markdown,export-data,export-print", "api/step/licence.json"],
     ]) {
-      await view.goto(pageUrl + hash);
+      await gotoView(view, pageUrl + hash);
       await view.waitForSelector("#main h1");
       if ((await exportIds()) !== expected) fail(`exports: ${hash} offers ${await exportIds()} instead of ${expected}`);
       if (record && ((await exportData()) !== record || !existsSync(resolve(root, "_site", record)))) fail(`exports: ${hash} does not offer its record ${record} as data, or it is not built`);
     }
-    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await gotoView(view, pageUrl + "#/cs/V/path/licence");
     await view.waitForSelector("#main h1");
     if (!(await view.locator('a[href="#/cs/V/catalogue/k!actions~s!licence"]').count())) fail("paradata: the station does not lead to its changes in the catalogue");
-    await view.goto(pageUrl + "#/cs/V/check/dataset");
+    await gotoView(view, pageUrl + "#/cs/V/check/dataset");
     await view.waitForSelector("#main h1");
     if (await view.locator(".export-bar").count()) fail("exports: a single check shows the shared export bar beside its own exports");
-    await view.goto(pageUrl + "#/cs/DS/check/institution/report");
+    await gotoView(view, pageUrl + "#/cs/DS/check/institution/report");
     await view.waitForSelector("#export-data");
     if ((await view.locator("#export-data").getAttribute("href")) !== "api/check/institution.json") fail("exports: a single check does not offer its benchmark record as data");
     const saved = async (id) => {
@@ -623,7 +426,7 @@ sections.push(["page", async () => {
     const inBuilt = (id) => String(id).startsWith(configured) && existsSync(resolve(root, "_site", String(id).slice(configured.length)));
     if (json["@type"] !== "ItemList" || json.numberOfItems !== listed || json.itemListElement.length !== listed || !String(json["@id"]).includes("s!licence") || !String(json["@context"]).endsWith("api/context.jsonld")) fail("exports: the list as data is not an ItemList of the filtered entries naming its filters");
     if (!json.itemListElement.every((item) => item.identifier && item.name && inBuilt(item["@id"]))) fail("exports: an entry of the list as data does not name its record in the API");
-    await view.goto(pageUrl + "#/en/DS/path/licence");
+    await gotoView(view, pageUrl + "#/en/DS/path/licence");
     await view.waitForSelector("#main h1");
     const markdown = await saved("markdown");
     if (!markdown.name.startsWith("fair-guide-station-licence-DS-en-") || !markdown.text.startsWith("# Licence and access") || !markdown.text.includes("\n## How to do it\n") || !markdown.text.includes("#/en/DS/path/licence")) fail("exports: the station's Markdown lacks its title, levels or address: " + markdown.name);
@@ -644,7 +447,7 @@ sections.push(["page", async () => {
 
     // Links from text: a step that names DataCite links the name to its catalogue entry, quietly, and the crate
     // records DataCite as mentioned by the step, with no markup in the text.
-    await view.goto(pageUrl + "#/cs/V/path/findability");
+    await gotoView(view, pageUrl + "#/cs/V/path/findability");
     await view.waitForSelector("#main h1");
     await view.locator('details[data-key="L1"] > summary').click();
     const named = view.locator('details[data-key="L1"] a.text-ref', { hasText: "DataCite" }).first();
@@ -659,7 +462,7 @@ sections.push(["page", async () => {
     await view.waitForSelector("[id=\"item-srv/datacite\"]");
     await view.waitForFunction(() => window.__jumpMarked === true, null, { timeout: 30000 });
 
-    await view.goto(pageUrl + "#/cs/V/page/machines");
+    await gotoView(view, pageUrl + "#/cs/V/page/machines");
     await view.waitForSelector("#main h1");
     // The page sits in the header: its button is marked while it is open, no main-menu item is, and the header also
     // links the source repository.
@@ -722,7 +525,7 @@ sections.push(["page", async () => {
     if (!anchors.includes("guidance")) fail("vocabulary: a term is not anchored by its own id");
     // Every catalogue entry links to its record in the API; the NKR samples are illustrations, not entries.
     for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
-      await view.goto(pageUrl + "#/cs/V/catalogue/" + kind);
+      await gotoView(view, pageUrl + "#/cs/V/catalogue/" + kind);
       await view.waitForFunction((id) => { const radio = document.getElementById(id); return radio && radio.checked && document.querySelector(".catalogue .card"); }, "facet-kind-" + kind);
       const unlinked = await view.locator(".catalogue .card").evaluateAll((cards) => cards.filter((card) => !card.querySelector(".json-link")).map((card) => card.id || card.textContent.trim().slice(0, 40)));
       const records = await view.locator(".catalogue .card .json-link").evaluateAll((links) => links.map((link) => link.getAttribute("href")));
@@ -744,7 +547,7 @@ sections.push(["page", async () => {
     // An entry shows the persistent identifiers it has, named by scheme, and none it lacks; the stations and checks
     // an entry names carry their icons.
     const pidsOf = async (hash, anchor) => {
-      await view.goto(pageUrl + hash);
+      await gotoView(view, pageUrl + hash);
       await view.waitForSelector(`[id="item-${entryAnchor(anchor)}"]`);
       return view.locator(`[id="item-${entryAnchor(anchor)}"]`).evaluate((card) => ({
         pids: [...card.querySelectorAll(".pid-chip")].map((link) => [link.querySelector(".pid-scheme")?.textContent, link.getAttribute("href"), link.textContent.replace(link.querySelector(".pid-scheme")?.textContent || "", "").replace(/\s*\(.*\)$/, "").trim()]),
@@ -760,15 +563,15 @@ sections.push(["page", async () => {
     // One real-world thing is one entry: Zenodo's FIP Dashboard record is shown with the curated repository, not on
     // its own, and the borrowed identifiers of its records lead to it from either kind.
     if (!zenodo.pids.some(([, href]) => href.endsWith("/resources/zenodo"))) fail("catalogue: Zenodo does not show its FIP Dashboard record: " + JSON.stringify(zenodo.pids));
-    await view.goto(pageUrl + "#/cs/V/catalogue/k!resources~q!zenodo");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/k!resources~q!zenodo");
     await view.waitForSelector(".catalogue-results");
     if (await view.locator('[id="item-gen/zenodo"]').count()) fail("catalogue: Zenodo's FIP Dashboard record is listed apart from the repository");
-    await view.goto(pageUrl + "#/cs/V/catalogue/repo/gen/zenodo");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/repo/gen/zenodo");
     await view.waitForSelector('[id="item-gen/zenodo"]');
     if ((await view.locator(".catalogue-results .card").count()) !== 1) fail("catalogue: Zenodo does not have one canonical entry");
     // Source records enrich the one canonical entry; external IDs remain metadata.
     for (const lang of ["cs", "en"]) {
-      await view.goto(pageUrl + `#/${lang}/V/catalogue/k!resources`);
+      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!resources`);
       await view.waitForSelector(".catalogue-results");
       const kindPosition = await view.locator('[data-facet="kind"]').evaluate((facet) => [...facet.parentElement.children].indexOf(facet));
       await view.locator("#facet-kind-repositories").check();
@@ -788,11 +591,11 @@ sections.push(["page", async () => {
         if (await view.locator(`[id="item-fip-dashboard.${id}"]`).count()) fail(`catalogue: ${id} is listed apart from its reviewed re3data match`);
       }
       for (const target of ["nma", "fairsharing", "re3data.r3d100014032", "re3data.r3d100010386"]) {
-        await view.goto(pageUrl + `#/${lang}/V${cataloguePath("repositories", target)}`);
+        await gotoView(view, pageUrl + `#/${lang}/V${cataloguePath("repositories", target)}`);
         await view.waitForSelector(`[id="item-${entryAnchor(target)}"]`);
         if ((await view.locator(".catalogue-results .card").count()) !== 1) fail(`catalogue: ${target} does not open its single joined entry`);
       }
-      await view.goto(pageUrl + `#/${lang}/V/path/repository`);
+      await gotoView(view, pageUrl + `#/${lang}/V/path/repository`);
       await view.waitForSelector(".now-actions");
       const chooser = view.locator('.now-actions a[href*="f.rfunction"]');
       if (!(await chooser.count())) fail("repository chooser: no function filter on the action");
@@ -804,7 +607,7 @@ sections.push(["page", async () => {
       for (const id of ["nma", "fairsharing", "fip-dashboard.nusl"]) {
         if (await view.locator(`[id="item-${entryAnchor(id)}"]`).count()) fail(`repository chooser: ${id} is presented as a data deposit destination`);
       }
-      await view.goto(pageUrl + `#/${lang}/V/catalogue/k!repositories~f.rfunction!%23rfunction-deposit-publications`);
+      await gotoView(view, pageUrl + `#/${lang}/V/catalogue/k!repositories~f.rfunction!%23rfunction-deposit-publications`);
       await view.waitForSelector(".catalogue-results");
       for (const id of ["zenodo", "re3data.r3d100014032", "fip-dashboard.nusl"]) {
         if (!(await view.locator(`[id="item-${entryAnchor(id)}"]`).count())) fail(`publication filter: ${id} is missing`);
@@ -817,12 +620,12 @@ sections.push(["page", async () => {
     const clause = await pidsOf("#/cs/V/catalogue/k!clauses~q!A.F1.N1", "A.F1.N1");
     if (clause.pids.length) fail("catalogue: a requirement shows a persistent identifier it does not have");
     // The accessibility statement names the API documentation as exempt and points to the accessible list.
-    await view.goto(pageUrl + "#/cs/V/page/accessibility");
+    await gotoView(view, pageUrl + "#/cs/V/page/accessibility");
     await view.waitForSelector("#main h1");
     const exemption = view.locator("#main section", { hasText: "Swagger UI" });
     if (!(await exemption.count()) || !(await exemption.locator('a[href="#/cs/V/page/machines"]').count())) fail("accessibility: the statement does not name the API documentation and point to the endpoint list");
     // A block of "- " lines in page text is a list: the AI page's practice for agents, with its link kept.
-    await view.goto(pageUrl + "#/en/V/page/ai");
+    await gotoView(view, pageUrl + "#/en/V/page/ai");
     await view.waitForSelector("#main h1");
     const agentPractice = view.locator("#main section", { hasText: "When an AI agent does the work" }).locator("ul.text-list");
     if ((await agentPractice.locator("li").count()) < 8 || (await agentPractice.innerText()).includes("- ") || !(await agentPractice.locator("a.text-ref").count())) fail("ai page: the practice for agents is not a list of items with its link");
@@ -842,7 +645,7 @@ sections.push(["page", async () => {
     if (!(await chat.count()) || !(await chat.getAttribute("href")).startsWith("https://chat.ai.e-infra.cz") || (await chat.getAttribute("target")) !== "_blank") fail("ai page: the CERIT section does not lead to the e-INFRA CZ AI chat");
     // The start loads only its selected core language; About adds pages and its linked model records.
     const fresh = await context.newPage();
-    await fresh.goto(pageUrl);
+    await gotoView(fresh, pageUrl);
     await rendered(fresh);
     const startLanguage = await fresh.evaluate(() => window.FairGuide.state.lang);
     const atStart = await fresh.locator('script[src*="data/kb-"]').evaluateAll((scripts) => scripts.map((script) => script.getAttribute("src")));
@@ -855,7 +658,7 @@ sections.push(["page", async () => {
     }
     await fresh.close();
     // The About page links the analysis the guide is built on, where it first names it.
-    await view.goto(pageUrl + "#/cs/V/page/about");
+    await gotoView(view, pageUrl + "#/cs/V/page/about");
     await view.waitForSelector("#main h1");
     const basis = view.locator("#main section").first().locator("a.text-ref", { hasText: "Analýzy a návrhu postupů" });
     if (!(await basis.count())) fail("about: the analysis the guide is built on is not linked where the page first names it");
@@ -873,7 +676,7 @@ sections.push(["page", async () => {
     if (!["Organizační infrastruktura", "Správa digitálních objektů", "Informační technologie a bezpečnost"].every((name) => ctsBlocks.some((heading) => heading.includes(name)))) fail("coretrustseal: the questions are not in the three CoreTrustSeal areas: " + ctsBlocks.join(" | "));
     // A principle links the CoreTrustSeal requirements it relates to, and an analysis clause links the numbers it
     // names to the requirement they are about (the analysis's "R14", reuse, is R13 in the 2026-2028 edition).
-    await view.goto(pageUrl + "#/cs/V/explorer/F2");
+    await gotoView(view, pageUrl + "#/cs/V/explorer/F2");
     await view.waitForSelector("#main h1");
     const ctsLinks = await view.locator('#main a[href*="catalogue/cl/CTS."]').evaluateAll((links) => links.map((link) => [link.textContent.trim(), decodeURIComponent(link.getAttribute("href"))]));
     if (!ctsLinks.some(([text, href]) => text.startsWith("R13") && href.endsWith("/CTS.R13"))) fail("explorer: F2 does not link its CoreTrustSeal requirements: " + JSON.stringify(ctsLinks));
@@ -900,7 +703,7 @@ sections.push(["page", async () => {
   // catalogue lists the requirements by source, with a kind filter, and the check questions with their basis.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await gotoView(view, pageUrl + "#/cs/V/path/licence");
     await view.waitForSelector(".station");
     // The next step and one related tool, the second a quieter button.
     const nowActions = await view.locator(".now .now-actions a").evaluateAll((links) => links.map((link) => link.className));
@@ -932,18 +735,18 @@ sections.push(["page", async () => {
     if (!termHrefs.length || termHrefs.some((href) => !href.includes("/catalogue/term/") || href.includes("ntk."))) fail("ids: the station's terms do not lead to their catalogue entries: " + termHrefs.join(" "));
     // The explorer names a principle's relations in the catalogue's rows, and its requirements without doubled
     // identifiers.
-    await view.goto(pageUrl + "#/cs/V/explorer/R1.1");
+    await gotoView(view, pageUrl + "#/cs/V/explorer/R1.1");
     await view.waitForSelector(".principle-relations");
     const relationLabels = await view.locator(".principle-relations dt").allTextContents();
     if (relationLabels.join("|") !== "FIP Dashboard|CoreTrustSeal|CDIF") fail("explorer: R1.1's relations are not the FIP Dashboard, CoreTrustSeal and CDIF rows: " + relationLabels.join("|"));
     if (await view.locator("ul.clauses > li").evaluateAll((items) => items.some((item) => (item.querySelector(".clause-title strong") || {}).textContent === (item.querySelector(".id-chip") || {}).textContent))) fail("explorer: a requirement shows its identifier twice");
     // An audience shows by icon and name.
-    await view.goto(pageUrl + "#/cs/V/page/ai");
+    await gotoView(view, pageUrl + "#/cs/V/page/ai");
     /* The page's text arrives with its part; wait for the orientation itself rather than the first heading. */
     await view.waitForSelector(".orientation .lens-tag");
     const audienceNames = await view.locator(".orientation .lens-tag").allInnerTexts();
     if (!audienceNames.length || audienceNames.some((name) => !name.trim())) fail("ai page: an audience shows by icon alone");
-    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await gotoView(view, pageUrl + "#/cs/V/path/licence");
     await view.waitForSelector(".station");
     /* The station remembers that Proč was open; a click would close it. */
     if (!(await view.locator('details[data-key="L2"]').evaluate((details) => details.open))) await view.locator('details[data-key="L2"] > summary').click();
@@ -956,7 +759,7 @@ sections.push(["page", async () => {
     if (!(await view.evaluate(() => window.__jumpMarked === true))) fail("ids: the catalogue entry is not marked when the identifier is followed");
     if (!(await view.locator("#facet-kind-clauses").isChecked())) fail("ids: the identifier does not select the requirements");
     await view.goto("about:blank");
-    await view.goto(pageUrl + "#/cs/V/catalogue/cl/A.F1.N1");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/cl/A.F1.N1");
     await view.waitForSelector('[id="item-A.F1.N1"]');
     const box = await view.locator('[id="item-A.F1.N1"]').boundingBox();
     if (!box || box.y < 0 || box.y > 900) fail("ids: a directly opened link to a requirement does not bring it into view");
@@ -969,7 +772,7 @@ sections.push(["page", async () => {
     await view.waitForFunction(() => location.hash.includes("f.ckind!recommendation"));
     const recommendations = Number((await view.locator(".catalogue-count").textContent()).match(/\d+/)[0]);
     if (!(recommendations > 0 && recommendations < all)) fail("ids: the kind filter does not narrow the requirements");
-    await view.goto(pageUrl + "#/cs/V/catalogue/q/maturity.18");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/q/maturity.18");
     await view.waitForSelector('[id="item-maturity.18"]');
     if (!(await view.locator('[id="item-maturity.18"] a.id-chip').count())) fail("ids: a check question does not link the requirements it rests on");
     await view.close();
@@ -980,7 +783,7 @@ sections.push(["page", async () => {
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const current = async () => (await view.locator('.main-nav [aria-current="page"]').textContent()).trim();
-    await view.goto(pageUrl + "#/cs/V/tools");
+    await gotoView(view, pageUrl + "#/cs/V/tools");
     await view.waitForSelector(".tool-cards");
     if ((await current()) !== "Nástroje a postupy") fail("tools: the menu does not mark the tools item on the tools view");
     const tools = await view.locator(".tool-card h3 a").evaluateAll((links) => links.map((link) => link.getAttribute("href").split("/").pop()));
@@ -988,7 +791,7 @@ sections.push(["page", async () => {
     if ((await view.locator(".tool-group").count()) !== 2) fail("tools: interactive tools and guidance are not separate groups");
     if ((await view.locator(".tool-coming").count()) !== 0) fail("tools: implemented helpers are still marked as in preparation");
     for (const [id, item] of [["identifiers", "Nástroje a postupy"], ["ai", "Nástroje a postupy"], ["live-check", "Nástroje a postupy"], ["citation", "Nástroje a postupy"], ["about", "O Průvodci"], ["accessibility", "O Průvodci"]]) {
-      await view.goto(pageUrl + "#/cs/V/page/" + id);
+      await gotoView(view, pageUrl + "#/cs/V/page/" + id);
       // A hash change keeps the previous view's heading until the new view renders: wait for the route, not a heading.
       await view.waitForFunction((page) => location.hash.endsWith("/page/" + page) && document.querySelector(`#main [data-page="${page}"], #main h1`), id);
       await view.waitForFunction((expected) => document.querySelector('.main-nav [aria-current="page"]')?.textContent.trim() === expected, item, { timeout: 5000 }).catch(() => {});
@@ -1000,7 +803,7 @@ sections.push(["page", async () => {
   // FAIRsharing records join repositories at build time and appear as identifier chips with a catalogue source.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    await view.goto(pageUrl + "#/cs/V/catalogue/repo/dom/csda");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/repo/dom/csda");
     await view.waitForSelector(".catalogue-results .entry-card");
     if (await view.locator("#fairsharing-load").count()) fail("repositories: FAIRsharing still offers an on-demand load");
     const card = view.locator(".catalogue-results .entry-card");
@@ -1014,7 +817,7 @@ sections.push(["page", async () => {
   // chosen; a helper page says when its helper is not there yet; on a phone the language switch shares the logo's row.
   {
     const view = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    await view.goto(pageUrl + "#/cs/V/catalogue/k!resources");
+    await gotoView(view, pageUrl + "#/cs/V/catalogue/k!resources");
     await view.waitForSelector(".cards .card");
     const gap = await view.locator(".cards .card").first().evaluate((card) => {
       const last = card.lastElementChild.getBoundingClientRect();
@@ -1022,19 +825,19 @@ sections.push(["page", async () => {
       return { bottom: Math.round(box.bottom - last.bottom), top: Math.round(card.firstElementChild.getBoundingClientRect().top - box.top) };
     });
     if (Math.abs(gap.bottom - gap.top) > 4) fail("cards: the space below the content differs from the space above it: " + JSON.stringify(gap));
-    await view.goto(pageUrl + "#/cs/V/explorer");
+    await gotoView(view, pageUrl + "#/cs/V/explorer");
     await view.waitForSelector("#main h1");
     const rows = await view.locator(".explorer-overview tbody tr").count();
     const caption = await view.locator(".explorer-overview caption").textContent().catch(() => "");
     if (rows !== 4 || !/^\d+ požadav/.test(caption)) fail("explorer: no overview of the requirements before a principle is chosen: " + caption);
     for (const [id, expected] of [["identifiers", false], ["citation", false], ["live-check", false], ["about", false]]) {
-      await view.goto(pageUrl + "#/cs/V/page/" + id);
+      await gotoView(view, pageUrl + "#/cs/V/page/" + id);
       await view.waitForSelector("#main h1");
       const coming = await view.locator(".helper-coming").count();
       if (Boolean(coming) !== expected) fail(`page ${id}: the note that the helper is coming is ${coming ? "shown" : "missing"}`);
     }
     await view.setViewportSize({ width: 390, height: 800 });
-    await view.goto(pageUrl + "#/cs/V/page/about");
+    await gotoView(view, pageUrl + "#/cs/V/page/about");
     await view.waitForSelector("#main h1");
     const logo = await view.locator(".brand > a").first().boundingBox();
     const language = await view.locator(".site-header .header-lang").boundingBox();
@@ -1062,7 +865,7 @@ sections.push(["page", async () => {
   const typeQuery = async (text) => {
     await page.fill("#search-input", "");
     await page.locator("#search-input").pressSequentially(text);
-    await page.waitForFunction((query) => document.querySelector("#search-results").dataset.query === query, text);
+    await searchReady(page, text);
     return page.locator("#search-results").textContent();
   };
   const search = async (text) => {
@@ -1135,7 +938,7 @@ sections.push(["page", async () => {
   await page.locator("#search-results .result-primary").click();
   await page.waitForFunction(() => location.hash.endsWith("/check/maturity") && document.getElementById("prefill-status") && document.getElementById("prefill-status").textContent.includes("Hotovo"));
   if (!(await page.locator(".target-card").textContent()).includes("LINDAT")) fail("search: the maturity check from a re3data identifier does not say which repository it is");
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
 
   // Task shortcuts change with the lens, chosen in the band under the main menu.
@@ -1149,26 +952,26 @@ sections.push(["page", async () => {
 }]);
 
 // 2. Every station in every lens and language, then the other views.
-sections.push(["views", async () => {
+for (let shard = 0; shard < 4; shard++) sections.push([`views:${shard + 1}`, async () => {
   const views = [];
   for (const lang of ["cs", "en"]) {
-    for (const lens of lenses) for (const station of stations) views.push(`#/${lang}/${lens}/path/${station}`);
+    // Station states belong to station_matrix.mjs, executed by the final-candidate sweep.
     for (const view of ["explorer", "catalogue", "tools", "selfcheck"]) views.push(`#/${lang}/V/${view}`);
     for (const tab of ["sources", "terms", "fips", "tests", "lifecycle", "life/rdm/reuse", "k!resources~f.use!knav", "res/tool/archaeological-information-system", "actions"]) views.push(`#/${lang}/V/catalogue/${tab}`);
     for (const check of checks) views.push(`#/${lang}/${check.lens}/check/${check.id}`);
     for (const principle of principles.slice(0, 3)) views.push(`#/${lang}/K/explorer/${principle}`);
     for (const id of pages) views.push(`#/${lang}/V/page/${id}`);
   }
-  // Several pages at once, each taking every fourth view in order.
-  const PAGES = 4;
-  await Promise.all(Array.from({ length: PAGES }, (_, part) => checkViews(views.filter((_, index) => index % PAGES === part))));
-  console.log(`checked ${views.length} views`);
+  // This section owns one worker; nested work must not multiply the shared browser budget.
+  const assigned = views.filter((_, index) => index % 4 === shard);
+  await checkViews(assigned);
+  console.log(`checked ${assigned.length} views (shard ${shard + 1}/4 of ${views.length})`);
 }]);
 
 /** Open the guide in one page and check each view in turn. */
 async function checkViews(views) {
   const { context, page, external, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   for (const hash of views) {
     await page.evaluate((value) => { document.getElementById("main").dataset.previousView = "true"; window.location.hash = value; }, hash);
@@ -1177,19 +980,6 @@ async function checkViews(views) {
     if (!headingText) fail(`${hash}: the main heading is empty`);
     const lang = await page.evaluate(() => document.documentElement.lang);
     if (lang !== hash.split("/")[1]) fail(`${hash}: html lang is ${lang}`);
-    if (hash.includes("/path/")) {
-      const now = await page.locator(".now").count();
-      if (!now) fail(`${hash}: no L0 block`);
-      // Every station offers AI tips, each with what to check, a prompt and its copy button. Opened once in a page, the
-      // block stays open in the views that follow, so the alignment and spacing checks below measure it.
-      const tips = await page.evaluate(() => {
-        const block = document.querySelector('#main details[data-key="ai"]');
-        if (!block) return null;
-        block.open = true;
-        return [...block.querySelectorAll(".ai-tip")].map((tip) => Boolean(tip.querySelector("p > strong") && tip.querySelector(".ai-prompt pre")?.textContent.trim() && tip.querySelector(".ai-prompt button .copy-label")));
-      });
-      if (!tips || !tips.length || !tips.every(Boolean)) fail(`${hash}: no AI tip, or one without what to check, a prompt and its copy button`);
-    }
     await axe(page, hash);
     // The page shell holds elements only; a view part that is absent leaves no stray text.
     if (await page.evaluate(() => [...document.getElementById("app").childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim()))) fail(`${hash}: stray text in the page shell`);
@@ -1221,7 +1011,7 @@ sections.push(["reflow", async () => {
   const { context, page } = await openPage({ width: 320, height: 800 });
   const narrow = ["#/cs/V/path/start", "#/cs/SR/path/publication", "#/en/DS/catalogue/k!resources", "#/cs/V/catalogue/clauses", "#/cs/K/explorer/F1", "#/cs/V/selfcheck", "#/cs/V/check/dataset", "#/cs/V/tools", "#/cs/V/page/machines", "#/en/V/page/about"];
   for (const hash of narrow) {
-    await page.goto(pageUrl + hash);
+    await gotoView(page, pageUrl + hash);
     await rendered(page);
     // A station's AI block, opened, so its prompts and copy buttons are measured too.
     await page.evaluate(() => document.querySelectorAll('#main details[data-key="ai"]').forEach((block) => { block.open = true; }));
@@ -1263,7 +1053,7 @@ sections.push(["self-check", async () => {
     await navigationRendered(page, () => page.evaluate((value) => window.FairGuide.navigate(value), hash));
   };
   const checked = (id) => page.locator("#" + id).isChecked();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
 
   // A check reads as three parts, each with its own address; the check's own address opens the evidence, and the
@@ -1545,7 +1335,7 @@ sections.push(["self-check", async () => {
   // callout stays closed until the reader opens it.
   {
     const view = await browser.newPage();
-    await view.goto(pageUrl + "#/cs/V/path/licence");
+    await gotoView(view, pageUrl + "#/cs/V/path/licence");
     await view.waitForSelector(".station");
     const keys = await view.locator(".station > details").evaluateAll((all) => all.map((part) => part.dataset.key));
     if (keys.join(",") !== "L1,L2,ai,L3") fail("station: the parts are not in the order how, why, AI, sources: " + keys.join(","));
@@ -1624,13 +1414,13 @@ sections.push(["self-check", async () => {
   {
     const other = await browser.newContext();
     const view = await other.newPage();
-    await view.goto(pageUrl + shared.slice(shared.indexOf("#")));
+    await gotoView(view, pageUrl + shared.slice(shared.indexOf("#")));
     await view.waitForSelector(".notice.shared");
     if (!(await numbersIn(view.locator(".gaps").first())).includes("04")) fail("share link: the preview does not show the dataset.04 gap");
     await view.getByRole("button", { name: "Použít odpovědi z odkazu" }).click();
     await view.waitForSelector("#answer-dataset-04-no");
     if (!(await view.locator("#answer-dataset-04-no").isChecked())) fail("share link: adopting the answers did not store them");
-    await view.goto(pageUrl + "#/cs/V/check/dataset/a2.after._.99q");
+    await gotoView(view, pageUrl + "#/cs/V/check/dataset/a2.after._.99q");
     await view.waitForSelector(".notice");
     if (!(await view.locator(".notice", { hasText: "nepodařilo přečíst" }).count())) fail("share link: an invalid link is not reported");
     await other.close();
@@ -1825,7 +1615,7 @@ sections.push(["self-check", async () => {
   // and not repeated among the saving controls.
   for (const [hash, label] of [["#/cs/V/check/dataset", "before the mode"], ["#/cs/SR/check/maturity", "with public records"], ["#/cs/DS/check/institution", "without public records"]]) {
     const view = await browser.newPage();
-    await view.goto(pageUrl + hash);
+    await gotoView(view, pageUrl + hash);
     await view.waitForSelector("#main h1");
     if (!(await view.locator(".prefill #load-file").count())) fail(`start (${label}): loading a saved result is not offered at the top of the check`);
     if (await view.locator(".export #load-file, .export .load-file").count()) fail(`start (${label}): loading is repeated among the saving controls`);
@@ -1875,7 +1665,7 @@ sections.push(["self-check", async () => {
   {
     const other = await browser.newContext();
     const view = await other.newPage();
-    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await gotoView(view, pageUrl + "#/cs/K/selfcheck");
     await view.waitForSelector("#load-file-overview");
     const foreign = resolve(root, ".cache", "not-a-result.md");
     writeFileSync(foreign, "# Notes\n\nNothing from the guide.\n");
@@ -1907,7 +1697,7 @@ sections.push(["self-check", async () => {
     await view.locator("#load-file-overview").setInputFiles(variant("unknown-item.jsonld", (data) => { data.items["fip.99"] = { value: "yes", origin: "user", prefill: null }; }));
     await view.waitForSelector(".notice.shared");
     if (!(await view.locator(".notice.shared").textContent()).includes("vynechali: 1")) fail("load: a question this version does not know is not skipped with a note");
-    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await gotoView(view, pageUrl + "#/cs/K/selfcheck");
     await view.waitForSelector("#load-file-overview");
     await view.locator("#load-file-overview").setInputFiles(await ldDownload.path());
     await view.waitForSelector(".notice.shared");
@@ -1919,13 +1709,13 @@ sections.push(["self-check", async () => {
     const loaded = await view.locator("#origin-fip-01").textContent();
     if (!loaded.includes("Převzato ze sdíleného výsledku") || !loaded.includes("se liší od návrhu")) fail("load: the adopted fip.01 lost its evidence or is mislabelled: " + loaded);
     const restored = async (format) => {
-      await view.goto(pageUrl + "#/cs/K/check/fip/evidence");
+      await gotoView(view, pageUrl + "#/cs/K/check/fip/evidence");
       await view.waitForSelector("#prefill-fip");
       if ((await view.locator("#prefill-fip").inputValue()) !== "ndi-baseline") fail(`load (${format}): the profile chosen for pre-fill is not restored`);
       if (!(await view.locator(".target-card").count())) fail(`load (${format}): what the identifier is does not show after loading`);
     };
     await restored("JSON-LD");
-    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await gotoView(view, pageUrl + "#/cs/K/selfcheck");
     await view.waitForSelector("#load-file-overview");
     await view.locator("#load-file-overview").setInputFiles(await mdDownload.path());
     await view.waitForSelector(".notice.shared");
@@ -1938,13 +1728,13 @@ sections.push(["self-check", async () => {
     // A summary from before the state was carried still loads its answers.
     const older = resolve(root, ".cache", "older-summary.md");
     writeFileSync(older, md.replace(/<!-- fair-guide-state[\s\S]*?-->\n?/, ""));
-    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await gotoView(view, pageUrl + "#/cs/K/selfcheck");
     await view.waitForSelector("#load-file-overview");
     await view.locator("#load-file-overview").setInputFiles(older);
     await view.waitForSelector(".notice.shared");
     const broken = resolve(root, ".cache", "broken-state.md");
     writeFileSync(broken, md.replace(/(<!-- fair-guide-state\n)[A-Za-z0-9]{8}/, "$1@@@@@@@@"));
-    await view.goto(pageUrl + "#/cs/K/selfcheck");
+    await gotoView(view, pageUrl + "#/cs/K/selfcheck");
     await view.waitForSelector("#load-file-overview");
     await tryLoad(broken, "poškozený", "load: a summary with a damaged state is not reported as damaged");
     await other.close();
@@ -1985,7 +1775,7 @@ sections.push(["funded output", async () => {
   const { context, page, external, problems } = await openPage();
   const checked = (id) => page.locator("#" + id).isChecked();
   const part = (name) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, "#/cs/V/check/dataset/" + name));
-  await page.goto(pageUrl + "#/cs/V/check/dataset");
+  await gotoView(page, pageUrl + "#/cs/V/check/dataset");
   await rendered(page);
   await page.waitForSelector("#mode-after");
   const programmeItems = graph.filter((e) => e["@type"] === "Question" && [].concat(e.appliesTo || []).some((ref) => String(ref["@id"]).startsWith("#profile-"))).map((e) => e.identifier.replace(".", "-"));
@@ -2110,7 +1900,7 @@ sections.push(["research practice", async () => {
       if (/%|celkové skóre|overall score/i.test(overview.replace(/žádné celkové skóre|no overall score/gi, ""))) fail(`${id}: result shows an overall score`);
     }
     for (const id of ["software", "notebooks", "provenance", "fdo"]) {
-      await page.goto(pageUrl + `#/${lang}/V/page/${id}`);
+      await gotoView(page, pageUrl + `#/${lang}/V/page/${id}`);
       await page.waitForSelector("#main #start");
       const details = page.locator("#main article > details");
       if (!(await details.count()) || await details.first().getAttribute("open")) fail(`${id}: deeper guidance is not disclosed on request`);
@@ -2131,10 +1921,10 @@ sections.push(["research practice", async () => {
       }
     }
   }
-  await page.goto(pageUrl + "#/en/V/check/software/answers");
+  await gotoView(page, pageUrl + "#/en/V/check/software/answers");
   await page.waitForSelector("#item-software-01");
   await page.locator("#answer-software-01-no").check();
-  await page.goto(pageUrl + "#/en/V/path/publication");
+  await gotoView(page, pageUrl + "#/en/V/path/publication");
   await page.waitForFunction(() => window.FairGuide.partsLoaded.has("questions"));
   if (!(await page.locator('.rail-desktop a[href="#/en/V/path/publication"] .rail-mark[data-state="gap"]').count())) fail("software: saved gap is lost after reloading the path");
   if (external.length) fail("research practice: external requests without a lookup: " + external.join(", "));
@@ -2207,9 +1997,9 @@ sections.push(["published health and documentation links", async () => {
 // names: a named catalogue entry opens alone, a topic opens the catalogue narrowed to it with entries, and no link
 // opens the catalogue's bare default list of resources.
 sections.push(["targets", async () => {
-  await Promise.all(["cs", "en"].map(async (lang) => {
+  await mapLimit(["cs", "en"], async (lang) => {
     const { context, page, problems } = await openPage();
-    await page.goto(pageUrl);
+    await gotoView(page, pageUrl);
     await rendered(page);
     const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
     /* A link to the view already open would not navigate; leave it first. */
@@ -2245,14 +2035,14 @@ sections.push(["targets", async () => {
     }
     for (const problem of problems) fail(`targets ${lang}: ${problem}`);
     await context.close();
-  }));
+  }, 1);
 }]);
 
 // Controls that cannot act yet wait: in each empty check, helper and filtered-out list, every control that needs an
 // identifier, records, text or an answer is inactive and names a visible reason; given what it needs, it acts.
 sections.push(["inactive", async () => {
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   const go = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const state = (selector) => page.locator(selector).first().evaluate((element) => {
@@ -2317,9 +2107,9 @@ sections.push(["life cycle", async () => {
   const stageCount = graph.filter((e) => /^#lifecycle-[^.]+\./.test(e["@id"])).length;
   const citing = graph.filter((e) => e["@type"] === "HowToSection" && e.lifecycleStage && e.lifecycleStage["@id"] === "#lifecycle-rdmkit.reuse").map((e) => e.identifier);
   if (!stageCount || !citing.length) fail("life cycle: the crate has no life-cycle stages or no station in the reuse stage");
-  await Promise.all(["cs", "en"].map(async (lang) => {
+  await mapLimit(["cs", "en"], async (lang) => {
     const { context, page, problems } = await openPage();
-    await page.goto(pageUrl);
+    await gotoView(page, pageUrl);
     await rendered(page);
     const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
     const card = page.locator(".catalogue-results .entry-card");
@@ -2356,17 +2146,17 @@ sections.push(["life cycle", async () => {
     if ((lang === "cs") !== (marked === 1)) fail(`life cycle ${lang}: the guide's translated name is ${marked ? "" : "not "}marked`);
     for (const problem of problems) fail(`life cycle ${lang}: ${problem}`);
     await context.close();
-  }));
+  }, 1);
 }]);
 
 // A stage chosen and stored by an earlier version of the guide is ignored: the path's start shows the journey with no
 // stage marked, and the next save drops the stored choice.
 sections.push(["stored stage", async () => {
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   await page.evaluate(() => localStorage.setItem("eosc-fair-guide", JSON.stringify({ lang: "cs", lens: "V", started: true, entryStation: "repository" })));
-  await page.goto(pageUrl + "#/cs/V/path");
+  await gotoView(page, pageUrl + "#/cs/V/path");
   await page.reload();
   await rendered(page);
   if (!(await page.locator("#journey-title").count())) fail("stored stage: the path does not open its start for a visitor who has read no step");
@@ -2387,7 +2177,7 @@ sections.push(["knav catalogue", async () => {
   const unlinked = tools.filter((e) => !e.sameAs);
   if (!tools.length || tools.length === unlinked.length) fail("knav catalogue: the crate has no tools, or none an entry stands for");
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const cards = page.locator(".catalogue-results .entry-card");
@@ -2430,7 +2220,7 @@ sections.push(["visual system", async () => {
   const kinds = ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "lifecycle", "model", "actions"];
   const ROW_ORDER = ["Principy", "Pro koho", "Provozovatel", "Vyvinuli", "Provozuje", "Národní uzel", "Členství v ERIC", "Profil FIP komunity", "Vychází z", "V Průvodci", "Identifikátory", "Vrstvy implementace", "Návaznosti"];
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const marks = new Map();
@@ -2521,7 +2311,7 @@ sections.push(["visual system", async () => {
 // The glossary carries licensed original descriptions, and phrases in them find the term in both search views.
 sections.push(["glossary definitions", async () => {
   const { context, page, problems, external } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   const terms = graph.filter((node) => node.inDefinedTermSet?.["@id"] === "#glossary");
@@ -2570,7 +2360,7 @@ sections.push(["check parts", async () => {
   const { context, page, problems } = await openPage();
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto(pageUrl + "#/en/SR/check/maturity/answers");
+    await gotoView(page, pageUrl + "#/en/SR/check/maturity/answers");
     await rendered(page);
     await page.evaluate(() => { window.FairGuide.clearStoredData(); window.FairGuide.rerender(); });
     await page.waitForSelector("#main .item");
@@ -2687,7 +2477,7 @@ sections.push(["node and infrastructures", async () => {
 // Hiding path badges is a local display preference; it never changes answers or step navigation.
 sections.push(["rail check visibility", async () => {
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl + "#/cs/SR/check/maturity/answers");
+  await gotoView(page, pageUrl + "#/cs/SR/check/maturity/answers");
   await rendered(page);
   await page.locator('input[type="radio"][value="no"]').first().check();
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
@@ -2724,7 +2514,7 @@ sections.push(["rail check visibility", async () => {
 // Kind radios share the middle line of the icon, label and count, including wrapped labels.
 sections.push(["facet alignment", async () => {
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   for (const language of ["cs", "en"]) {
     await navigationRendered(page, () => page.evaluate((code) => { window.location.hash = `#/${code}/V/catalogue/k!questions`; }, language));
@@ -2754,7 +2544,7 @@ sections.push(["facet alignment", async () => {
 // directories, and the KNAV catalogue's record of the Marketplace opens the Guide's entry.
 sections.push(["linked catalogues", async () => {
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl);
+  await gotoView(page, pageUrl);
   await rendered(page);
   const visit = (hash) => navigationRendered(page, () => page.evaluate((target) => { window.location.hash = target; }, hash));
   await visit("#/cs/V/path/analyse");
@@ -2899,7 +2689,7 @@ sections.push(["Infrastructure marks", async () => {
 
 sections.push(["catalogue text reference", async () => {
   const { context, page, problems } = await openPage();
-  await page.goto(pageUrl + "#/en/V/path/plan");
+  await gotoView(page, pageUrl + "#/en/V/path/plan");
   await rendered(page);
   // A borrowed tool need not have loaded yet: referenceHref reads the build's emitted address.
   await page.evaluate(() => {
@@ -2928,29 +2718,16 @@ sections.push(["catalogue text reference", async () => {
   await context.close();
 }]);
 
-// Every section at once; one that throws fails on its own and the others still report. While working on some of
-// them, CHECK_PAGE_SECTIONS names the ones to run, separated by commas; the full run is the check.
+// Named sections retain individual verdicts, timings and failure artifacts; selected runs remain partial.
 const only = (process.env.CHECK_PAGE_SECTIONS || "").split(",").map((name) => name.trim()).filter(Boolean);
-const timings = [];
-await Promise.all(
-  sections.filter(([name]) => !only.length || only.includes(name)).map(async ([name, run]) => {
-    const start = Date.now();
-    try {
-      await run();
-    } catch (error) {
-      /* Playwright names the awaited locator on the third line of its message. */
-      const location = String(error.stack).split("\n").find((line) => line.includes("check_page.mjs:")) || "";
-      fail(`${name}: stopped: ${String(error.message).split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 3).join(" | ")}${location ? " | " + location.trim() : ""}`);
-    }
-    timings.push(`${name} ${((Date.now() - start) / 1000).toFixed(1)}s`);
-  })
-);
-console.log("sections: " + timings.join(", "));
-
+const results = await runCases(sections, only);
+for (const result of results.filter((item) => item.status === "failed")) {
+  for (const problem of result.problems) if (!failures.includes(problem)) failures.push(`${result.name}: ${problem}`);
+}
+console.log("sections: " + results.map((item) => `${item.name} ${item.seconds.toFixed(1)}s`).join(", "));
 await browser.close();
 if (failures.length) {
   console.error(failures.map((failure) => "FAIL " + failure).join("\n"));
   console.error(`${failures.length} problem(s)`);
-  process.exit(1);
-}
-console.log("page checks passed");
+  process.exitCode = 1;
+} else console.log(only.length ? "selected page checks passed (partial coverage)" : "page checks passed");

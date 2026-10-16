@@ -3,7 +3,7 @@
 // (accTitle, accDescr). Approved authored SVG adaptations retain accessible alternatives and are copied exactly.
 // Usage: npm run check:diagrams   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
 
-import { chromium } from "playwright";
+import { chromium } from "./browser.mjs";
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -17,7 +17,8 @@ const mermaidScript = createRequire(import.meta.url).resolve("mermaid/dist/merma
 function diagrams() {
   const tracked = execFileSync("git", ["ls-files", "--", "*.md", "*.mmd"], { cwd: root, encoding: "utf8" }).split("\n").filter(Boolean);
   const authored = existsSync(resolve(root, "diagrams")) ? readdirSync(resolve(root, "diagrams")).filter((file) => file.endsWith(".mmd")).map((file) => "diagrams/" + file) : [];
-  const files = [...new Set(tracked.concat(authored))];
+  /* A tracked file may be absent from the working tree (a deletion not yet staged); it holds no diagram. */
+  const files = [...new Set(tracked.concat(authored))].filter((file) => existsSync(resolve(root, file)));
   const found = [];
   for (const file of files) {
     const text = readFileSync(resolve(root, file), "utf8");

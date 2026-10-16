@@ -6,8 +6,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 // The connector tables use only JSON-compatible TOML scalars and arrays. Read the committed configuration
 // without a site build or another interpreter; fail if a relevant field gains an unsupported value shape.
 const sections = readFileSync(resolve(root, "content/live.toml"), "utf8").split(/(?=^\[)/m);

@@ -8,8 +8,7 @@ const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.argv[2] || "_site");
 const file = pathToFileURL(resolve(site, "index.html")).href;
 const crate = JSON.parse(readFileSync(resolve(site, "ro-crate-metadata.json"), "utf8"));
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 
 async function rendered(page, lang, id) {

@@ -47,13 +47,18 @@ obnovení snímku pull requestem, když se data dashboardu změní. Až API adre
 
 ## Jak průvodce spustit
 
-Při prvním spuštění nainstalujte připnuté závislosti Node.js pro přibalenou dokumentaci API.
-S Pythonem 3.11 nebo novějším pak sestavte web a otevřete `_site/index.html`:
+Při prvním spuštění nainstalujte připnuté závislosti Node.js pro přibalenou dokumentaci API a Chromium,
+které používají kontroly stránky — do vlastní mezipaměti repozitáře, kde je kontroly hledají. S Pythonem
+3.11 nebo novějším pak sestavte web a otevřete `_site/index.html`:
 
 ```bash
 npm ci
+npm run browsers
 python scripts/build_site.py
 ```
+
+Instalace i kontroly automaticky používají `.cache/ms-playwright` ve Windows i Unixu.
+Proměnnou `PLAYWRIGHT_BROWSERS_PATH` nastavte jen pro jinou instalaci; vývojový kontejner má vlastní nastavení.
 
 Generátor používá standardní knihovnu Pythonu; upravené obrázky SVG jsou místní soubory.
 Hotová stránka funguje i bez připojení; jen živé

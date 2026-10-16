@@ -6,16 +6,19 @@ import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium, runCases } = await import("./browser.mjs");
+const { gotoView } = await import("./navigation.mjs");
+const { stationMatrix, checkStation } = await import("./station_matrix.mjs");
 const file = pathToFileURL(resolve(root, "_site/index.html")).href;
 const screenshots = resolve(root, ".cache/screenshots/final");
 mkdirSync(screenshots, { recursive: true });
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
+const matrix = stationMatrix(graph);
+const coverage = [];
+const uiStrings = JSON.parse(readFileSync(resolve(root, "_site/assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).ui;
 const browser = await chromium.launch();
 try {
-  for (const lang of ["cs", "en"]) {
-    await Promise.all([320, 390, 1280].map(async (width) => {
+  const cases = ["cs", "en"].flatMap((lang) => [320, 390, 1280].map((width) => [`${lang}/${width}`, async () => {
       const context = await browser.newContext({ viewport: { width, height: 900 } });
       const page = await context.newPage();
       const errors = [], external = [];
@@ -77,24 +80,29 @@ try {
       assert.deepEqual((await audit(page)).violations, []);
       assert.deepEqual(errors, []);
       assert.deepEqual(external, []);
-      for (const lens of ["V", "DS", "SR", "K"]) {
-        for (const station of graph.filter((entity) => entity["@type"] === "HowToSection")) {
-          await page.evaluate(() => { document.querySelector("#main").dataset.previousView = "true"; });
-          await page.goto(file + `#/${lang}/${lens}/path/${station.identifier}`);
-          await page.waitForFunction(() => !document.querySelector("#main")?.dataset.previousView && document.querySelector(".station h1"));
-          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false,
-            `${lang}/${lens}/${station.identifier} reflows at ${width}px`);
-          assert.deepEqual((await audit(page)).violations, [], `${lang}/${lens}/${station.identifier} at ${width}px`);
-        }
+      for (const item of matrix.filter((item) => item.lang === lang && item.width === width)) {
+        const receipt = { ...item, status: "failed" };
+        try {
+          if (item.state === "closed") await gotoView(page, file + item.hash);
+          await checkStation(page, item, uiStrings);
+          receipt.status = "passed";
+        } finally { coverage.push(receipt); }
       }
       assert.deepEqual(errors, []);
       assert.deepEqual(external, []);
       await context.close();
-    }));
-  }
+  }]));
+  const results = await runCases(cases);
+  const { writeFileSync } = await import("node:fs");
+  writeFileSync(resolve(screenshots, "station-coverage.json"), JSON.stringify({
+    planned: matrix.map((item) => item.key), executed: coverage,
+    skipped: matrix.filter((item) => !coverage.some((done) => done.key === item.key)).map((item) => item.key),
+  }, null, 2) + "\n");
+  assert(results.every((item) => item.status === "passed"), results.filter((item) => item.status === "failed").map((item) => item.problems).flat().join("\n"));
+  assert.equal(coverage.length, matrix.length);
   assert(!existsSync(resolve(root, "_site/api/resources/knav.github.json")), "no unreleased compatibility API document");
   assert(graph.every((entry) => !entry.catalogueAddress || entry.catalogueAddress.split("/").at(-1).length <= 32));
-  console.log("check_final_candidate: compact identity, coverage, mobile menus, complete catalogues, originals and all 264 step/role/language/width accessibility states pass");
+  console.log("check_final_candidate: compact identity, coverage, mobile menus, complete catalogues, originals and the complete closed/expanded station accessibility matrix pass");
 } finally {
   await browser.close();
 }

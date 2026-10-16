@@ -105,16 +105,16 @@ rocrate-validator validate --extra-profiles-path _site/profile -p fair-guide-0.1
 ```
 
 Page checks need Node.js and Chromium (installed into the gitignored `.cache/`) and run on the built site; their
-independent sections, and the sweep of every view in several pages, run at once:
+independent sections use a bounded worker pool; the exhaustive station matrix also covers closed and expanded guidance:
 
 ```bash
 npm ci
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run browsers
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:api    # OpenAPI 3.1, every API file against its schema, links, the documentation page
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:live   # real lookups (DataCite, resolvers, nanopublication); needs network
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright npm run check:diagrams   # every Mermaid diagram renders and has accTitle and accDescr
-PLAYWRIGHT_BROWSERS_PATH=.cache/ms-playwright node tests/page/screenshots.mjs .cache/screenshots
+npm run browsers
+npm run check:page   # rendering, axe (WCAG 2.2 A/AA), reflow, iframe, self-check
+npm run check:api    # OpenAPI 3.1, every API file against its schema, links, the documentation page
+npm run check:live   # real lookups (DataCite, resolvers, nanopublication); needs network
+npm run check:diagrams   # every Mermaid diagram renders and has accTitle and accDescr
+node tests/page/screenshots.mjs .cache/screenshots
 ```
 
 ## GUI and UX principles

@@ -930,11 +930,26 @@ def dashboard(report: dict[str, Any], *, site: bool = False) -> str:
             )
         parts.append("</tbody></table>")
         for job in report["run"]["jobs"]:
-            if job.get("status") == "failed":
+            if job.get("output"):
                 parts.append(
-                    f"<details open><summary>{esc(job['name'])} failure output</summary>"
+                    f"<details{' open' if job.get('status') == 'failed' else ''}>"
+                    f"<summary>{esc(job['name'])} "
+                    f"{'failure' if job.get('status') == 'failed' else 'diagnostic'} output</summary>"
                     f"<pre>{esc(job.get('output', ''))}</pre></details>"
                 )
+            for script in job.get("scripts", []):
+                parts.append(
+                    f"<details><summary>{esc(script['name'])}: {esc(script['status'])}, "
+                    f"{esc(script['seconds'])}s; {len(script['executed'])}/{script['planned']} cases executed</summary>"
+                    f"<p>Skipped: {esc(', '.join(script['skipped']))}. "
+                    f"Pending: {esc(', '.join(script['pending']))}.</p><ul>"
+                )
+                for case in script["executed"]:
+                    parts.append(
+                        f"<li>{esc(case['name'])}: {esc(case['status'])}, {esc(case.get('seconds', ''))}s"
+                        f"{' (aborted)' if case.get('aborted') else ''}</li>"
+                    )
+                parts.append("</ul></details>")
     parts += [
         "<h2>Offline integrity by item type</h2>",
         "<p>These checks cover the recorded structure and references. "
@@ -1110,6 +1125,19 @@ def markdown(report: dict[str, Any]) -> str:
     lines += ["", "| Check | Result | Seconds |", "| --- | --- | ---: |"]
     for job in report["run"].get("jobs", []):
         lines.append(f"| {job['name']} | {job['status']} | {job.get('seconds', '')} |")
+    nested = [script for job in report["run"].get("jobs", []) for script in job.get("scripts", [])]
+    if nested:
+        lines += [
+            "",
+            "| Script | Result | Seconds | Executed / planned cases | Skipped | Pending |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+        for script in nested:
+            lines.append(
+                f"| {script['name']} | {script['status']} | {script['seconds']} | "
+                f"{len(script['executed'])} / {script['planned']} | "
+                f"{len(script['skipped'])} | {len(script['pending'])} |"
+            )
     lines += [
         "",
         f"Live availability: **{report['live_availability']['status']}**. {report['live_availability']['reason']} "

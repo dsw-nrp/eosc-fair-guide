@@ -809,6 +809,31 @@ def health_schemas() -> dict[str, Any]:
                 "status": {"enum": ["passed", "failed", "blocked", "not_run"]},
                 "seconds": {"type": ["number", "null"], "minimum": 0},
                 "output": {"type": "string"},
+                "partial": {"type": "boolean"},
+                "scripts": {"type": "array", "items": ref("HealthScript")},
+            },
+        },
+        "HealthScript": {
+            "type": "object",
+            "required": ["name", "status", "seconds", "planned", "executed", "skipped", "pending"],
+            "properties": {
+                "name": {"type": "string"},
+                "status": {"enum": ["passed", "failed", "partial"]},
+                "seconds": {"type": "number", "minimum": 0},
+                "planned": count,
+                "executed": {"type": "array", "items": ref("HealthCase")},
+                "skipped": {"type": "array", "items": {"type": "string"}},
+                "pending": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+        "HealthCase": {
+            "type": "object",
+            "required": ["name", "status"],
+            "properties": {
+                "name": {"type": "string"},
+                "status": {"enum": ["passed", "failed"]},
+                "seconds": {"type": "number", "minimum": 0},
+                "aborted": {"type": "boolean"},
             },
         },
         "HealthGroup": {

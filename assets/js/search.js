@@ -302,6 +302,8 @@
     const show = (confirmed) => {
       const value = input.value;
       const found = S.classify(value);
+      // Focus loads these parts and calls show again; a partial language graph cannot be indexed yet.
+      if (found.type === "text" && !["standards", "questions"].every((part) => FG.partHasLanguage(part, FG.state.lang))) return;
       let content = [];
       let message = "";
       if (found.type === "text" && (confirmed || found.value.length >= MIN_TYPED)) {

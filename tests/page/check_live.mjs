@@ -10,7 +10,7 @@
 // These checks need the network and depend on outside services, so they are not part of the pull-request gate.
 // Usage: python scripts/build_site.py && npm run check:live   (set PLAYWRIGHT_BROWSERS_PATH if the browser lives outside the default cache)
 
-import { chromium } from "playwright";
+import { chromium } from "./browser.mjs";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";

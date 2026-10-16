@@ -23,8 +23,7 @@ const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.jso
 for (const id of ["dataset.01", "dataset.13", "maturity.01", "maturity.05", "maturity.11"]) {
   assert.equal(graph.find((entry) => entry.identifier === id)?.championEvidenceOnly, true, "evidence-only policy travels with the question");
 }
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 const page = await browser.newPage();
 const requests = [], errors = [];

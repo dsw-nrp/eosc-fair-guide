@@ -6,11 +6,10 @@ import { pathToFileURL } from "node:url";
 import { assertNoBlankPages } from "./pdf_checks.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
-process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, ".cache/ms-playwright");
 const temporary = resolve(root, ".cache/browser-temp");
 mkdirSync(temporary, { recursive: true });
 process.env.TEMP = temporary; process.env.TMP = temporary;
-const { chromium } = await import("playwright");
+const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const file = pathToFileURL(resolve(root, "_site/index.html")).href;

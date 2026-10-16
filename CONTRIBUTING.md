@@ -58,6 +58,18 @@ python scripts/check_all.py        # before a pull request: build, then every ch
 ```
 
 `check_all.py` needs `npm ci` and the tools from `requirements-dev.txt`, and reports each check's result and time.
+Use `--jobs` for outer work and `--browser-workers` for the shared browser budget. Local and CI defaults live in
+[`scripts/check_policy.json`](scripts/check_policy.json); `CI=true` selects the conservative CI profile.
+Defaults are capped by the available CPU count. `--browser-workers` overrides `CHECK_BROWSER_WORKERS`, which
+overrides the profile; npm and direct Node checks use the same policy. Browser groups
+share atomic case slots across Node processes, so inner pools cannot multiply the global limit. `.cache/health/details/` and `logs/` retain timings, complete output,
+case coverage and failure artifacts; `execution.json` records the actual profile, budgets, machine and built-input
+hashes. The health report marks selected browser subsets as partial. Compare complete runs with identical
+coverage and inputs when tuning budgets; a faster selected case does not establish a full-suite improvement.
+Stop a benchmark after a failed run, retain its evidence and diagnose it before a corrected verification run.
+`npm run check:runtime` checks the launcher, worker policy, partial reporting and actual browser failure artifacts.
+Default traces retain actions; a failed case adds a PNG and an HTML snapshot. Set `CHECK_TRACE_SNAPSHOTS=1`
+for full trace snapshots when investigating a difficult case.
 It includes strict OpenSpec validation and public-source hygiene. Install the pinned dependencies rather than
 depending on a global OpenSpec command. Generated `_site/`, local caches and environments are never committed.
 
@@ -88,8 +100,10 @@ reuse lint                 # every file has a declared licence and copyright
 cffconvert --validate      # CITATION.cff is valid
 ```
 
-Page checks (rendering, accessibility, reflow, embedding) and diagram checks run in Chromium; the commands are listed in
-[AGENTS.md](AGENTS.md), and CI runs them on every pull request.
+Page checks (rendering, accessibility, reflow, embedding) and diagram checks run in Chromium, which the checks read
+from the repository's own cache (`.cache/ms-playwright`, a git-ignored directory). Install it there with
+`npm run browsers`; `npm ci` alone installs the driver, not the browser.
+The commands are listed in [AGENTS.md](AGENTS.md), and CI runs them on every pull request.
 
 ## Review
 

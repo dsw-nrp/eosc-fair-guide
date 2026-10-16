@@ -155,6 +155,12 @@ in each affected lens, in both languages, at phone width and in print. Before th
 once with `python scripts/check_all.py` (after `npm ci` and installing `requirements-dev.txt`); `--only <check>`
 runs selected checks after the build. Page checks are npm scripts such as `npm run check:assessment` (which
 includes `check_providers`) and `npm run check:model` (which includes `check_visuals`).
+Install Chromium with `npm run browsers`; installation and checks share the repository cache by default and
+respect an explicit `PLAYWRIGHT_BROWSERS_PATH` (including the container override). Use `--browser-workers` for
+the bounded browser budget. Shared local/CI defaults live in `scripts/check_policy.json`; the CLI overrides
+`CHECK_BROWSER_WORKERS`, then profile defaults. Inspect `execution.json` for actual budgets/resources/build hashes
+and the health artifact's `details/` and `logs/` for individual script/case timings,
+selected/skipped coverage and failure screenshots/traces. A selected subset is partial, even when it passes.
 
 ## 9. Snapshots and automation
 
