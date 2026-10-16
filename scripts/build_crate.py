@@ -113,9 +113,6 @@ LICENSES = {
 
 # The guide's own vocabulary: term -> definition. Each term is defined in the graph as an rdf:Property.
 MODEL_TERMS = {
-    "alternateIdentifier": (
-        "A genuine source identifier typed by its issuing scheme, distinct from the Guide primary identifier."
-    ),
     "preparationStatus": "Preparation status of the approved conceptual-model manuscript, not a published requirement.",
     "modelKind": "Kind of a Layers-and-Seams model record: layer, seam, or implementation example.",
     "implementationLayers": (
@@ -170,6 +167,8 @@ TERMS = MODEL_TERMS | {
     "prefillLevel": "Highest answer that live evidence can pre-fill for a self-check item that it only partly proves.",
     "championEvidenceOnly": "Champion tests cover part of a question: Partly when that part is met, No when it fails.",
     "lookup": "Service where a user can find out the answer to a self-check item.",
+    "guideState": "The reader's saved state for one check, carried in an exported result crate.",
+    "guideSources": "The provenance of the evaluator sources an exported result retains, as JSON.",
     "mappingCoverage": (
         "Part of a self-check question that an external evaluator's native criterion supports: whole or partial. "
         "Only whole coverage may suggest an answer, and only from a native pass."
@@ -181,10 +180,8 @@ TERMS = MODEL_TERMS | {
     "lifecycleStage": "Stage of the RDMkit research data life cycle that a path step belongs to.",
     "dataciteRepository": "The repository's ID in DataCite (its DataCite client), as the maintainer reviewed it.",
     "abbreviation": "The abbreviation of a name in each language, such as ČSDA in Czech and CSDA in English (D-173).",
-    "operatorName": "Who operates a service or repository, as the source in operatorSource states it.",
     "operatorSource": "The published page or document that states who operates a service or repository.",
     "operatedBy": "The large research infrastructure operating a catalogue entry, where a source says so (D-174).",
-    "hostingInstitution": "The hosting institution (coordinator) of a large research infrastructure, per its roadmap.",
     "researchField": "The science-disciplinary domain of a large research infrastructure in the national roadmap.",
     "infrastructurePhase": "The life-cycle phase of a large research infrastructure in the national roadmap.",
     "infrastructureCharacter": "Whether an infrastructure is single-sited, multi-sited, distributed or virtual.",
@@ -199,7 +196,6 @@ TERMS = MODEL_TERMS | {
     "nodeStateSince": "The date the EOSC CZ Node reached its state, such as its approval as a candidate node.",
     "operatedBySource": "The published page or document that states which infrastructure operates an entry.",
     "operates": "Catalogue entries a large research infrastructure operates, where a source states it (D-174).",
-    "developerName": "Who developed a repository, as developerSource states it, where no operator is stated.",
     "developerSource": "The published page that states who developed a repository.",
     "mappingBasis": (
         "Basis of a correspondence between life-cycle stages: published by its source, reviewed by the guide, or "
@@ -213,6 +209,173 @@ TERMS = MODEL_TERMS | {
     "trainingSearch": "Training materials about this tool, searched in ELIXIR TeSS.",
     "sourceLocator": "The section or page in the cited version supporting this clause or original definition.",
 }
+
+# Established vocabularies the guide reuses (design: *Established vocabularies, term mapping and the guide's
+# address*). A property key listed here carries the established IRI in the emitted graph and defines no term of its
+# own; the key stays the graph's storage name. docs/content-model.md records the classification an editor reads.
+SCHEMA = "http://schema.org/"
+DCTERMS = "http://purl.org/dc/terms/"
+DCAT = "http://www.w3.org/ns/dcat#"
+ADMS = "http://www.w3.org/ns/adms#"
+SKOS = "http://www.w3.org/2004/02/skos/core#"
+XSD = "http://www.w3.org/2001/XMLSchema#"
+RDF_LANG = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+ESTABLISHED_TERMS: dict[str, str] = {
+    "identifier": SCHEMA + "identifier",
+    "alternateIdentifier": SCHEMA + "identifier",
+    "dataciteRepository": SCHEMA + "identifier",
+    "catalogueAddress": DCTERMS + "identifier",
+    "supersededBy": DCTERMS + "isReplacedBy",
+    "relatedTo": DCTERMS + "relation",
+    "operatorSource": DCTERMS + "source",
+    "operatedBySource": DCTERMS + "source",
+    "developerSource": DCTERMS + "source",
+    "sourceLocator": DCTERMS + "references",
+    "roadmapLocator": DCTERMS + "references",
+    "abbreviation": SCHEMA + "alternateName",
+}
+
+# The guide's own vocabulary: the terms the guide keeps in its namespace. Each declares the broader established
+# term it specializes (empty where none exists, with the reason in GUIDE_TERM_REASONS), its domain and its range.
+# The typing and status slots specialize their established parent rather than replacing it, because they are
+# several distinct slots over one property that the profile targets individually (design: group 21).
+GUIDE_TERMS: dict[str, str] = {term: definition for term, definition in TERMS.items() if term not in ESTABLISHED_TERMS}
+GUIDE_TERM_SHAPES: dict[str, tuple[str, str, str]] = {
+    "preparationStatus": ("", SCHEMA + "ScholarlyArticle", XSD + "string"),
+    "modelKind": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "implementationLayers": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "implementationSeams": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "introduction": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "ordering": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "feedback": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "transfer": ("", SCHEMA + "DefinedTerm", RDF_LANG),
+    "sender": ("", SCHEMA + "DefinedTerm", RDF_LANG),
+    "recipient": ("", SCHEMA + "DefinedTerm", RDF_LANG),
+    "carrier": ("", SCHEMA + "DefinedTerm", RDF_LANG),
+    "maintainers": ("", SCHEMA + "DefinedTerm", RDF_LANG),
+    "scope": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "disclosureLevel": (SCHEMA + "position", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "adviceKind": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "checkAfter": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "promptSample": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "block": ("", SCHEMA + "Question", SCHEMA + "DefinedTermSet"),
+    "defaultProfile": ("", SCHEMA + "Quiz", SCHEMA + "DefinedTerm"),
+    "tier": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
+    "fixAt": ("", SCHEMA + "Question", SCHEMA + "HowToSection"),
+    "fixedBy": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
+    "appliesTo": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
+    "providedByNrpFor": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
+    "allowsNotApplicable": ("", SCHEMA + "Question", XSD + "boolean"),
+    "serviceStatus": (ADMS + "status", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "statusAsOf": (DCTERMS + "date", SCHEMA + "CreativeWork", XSD + "date"),
+    "healthStatus": (ADMS + "status", SCHEMA + "CreativeWork", XSD + "string"),
+    "resourceType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "guideType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "catalogueType": (DCTERMS + "type", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "repositoryKind": (DCTERMS + "type", SCHEMA + "DataCatalog", SCHEMA + "DefinedTerm"),
+    "repositoryFunction": (DCTERMS + "subject", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "clauseKind": (DCTERMS + "type", SCHEMA + "CreativeWork", XSD + "string"),
+    "lensOrder": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "note": (SKOS + "note", SCHEMA + "CreativeWork", RDF_LANG),
+    "guidance": (DCTERMS + "description", SCHEMA + "CreativeWork", RDF_LANG),
+    "assessmentContext": (DCTERMS + "description", SCHEMA + "CreativeWork", RDF_LANG),
+    "disclaimer": (SKOS + "note", SCHEMA + "CreativeWork", RDF_LANG),
+    "prefillLevel": ("", SCHEMA + "Question", SCHEMA + "DefinedTerm"),
+    "championEvidenceOnly": ("", SCHEMA + "Question", XSD + "boolean"),
+    "lookup": ("", SCHEMA + "Question", SCHEMA + "CreativeWork"),
+    "guideState": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "guideSources": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "mappingCoverage": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "reviewedVersion": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "lifecycleStage": (DCAT + "theme", SCHEMA + "CreativeWork", SCHEMA + "DefinedTerm"),
+    "operatedBy": ("", SCHEMA + "CreativeWork", SCHEMA + "Organization"),
+    "researchField": (DCTERMS + "subject", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
+    "infrastructurePhase": (ADMS + "status", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
+    "infrastructureCharacter": ("", SCHEMA + "Organization", XSD + "string"),
+    "roadmapSince": ("", SCHEMA + "Organization", XSD + "gYear"),
+    "esfriStatus": (ADMS + "status", SCHEMA + "Organization", SCHEMA + "DefinedTerm"),
+    "nationalNodeOf": ("", SCHEMA + "Organization", SCHEMA + "Organization"),
+    "czechMembershipSince": ("", SCHEMA + "Organization", XSD + "string"),
+    "nodeMembership": ("", SCHEMA + "Organization", RDF_LANG),
+    "nodeMilestone": ("", SCHEMA + "Organization", XSD + "string"),
+    "nodeState": (ADMS + "status", SCHEMA + "Organization", XSD + "string"),
+    "nodeStateSince": ("", SCHEMA + "Organization", XSD + "date"),
+    "operates": ("", SCHEMA + "Organization", SCHEMA + "CreativeWork"),
+    "mappingBasis": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "nameTranslation": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "descriptionTranslation": ("", SCHEMA + "CreativeWork", XSD + "string"),
+    "quotedDefinition": ("", SCHEMA + "CreativeWork", RDF_LANG),
+    "discipline": (DCTERMS + "subject", SCHEMA + "CreativeWork", XSD + "string"),
+    "rdmkitRecord": ("", SCHEMA + "CreativeWork", SCHEMA + "CreativeWork"),
+    "trainingSearch": ("", SCHEMA + "CreativeWork", SCHEMA + "CreativeWork"),
+}
+GUIDE_TERM_REASONS: dict[str, str] = {
+    term: reason
+    for reason, terms in {
+        "The guide's Layers-and-Seams conceptual model has no established equivalent.": [
+            "preparationStatus",
+            "modelKind",
+            "introduction",
+            "ordering",
+            "feedback",
+            "transfer",
+            "sender",
+            "recipient",
+            "carrier",
+            "maintainers",
+            "scope",
+        ],
+        "The guide's self-check machinery is its own; no established property expresses it.": [
+            "disclosureLevel",
+            "adviceKind",
+            "checkAfter",
+            "promptSample",
+            "block",
+            "defaultProfile",
+            "tier",
+            "fixAt",
+            "fixedBy",
+            "appliesTo",
+            "providedByNrpFor",
+            "allowsNotApplicable",
+            "prefillLevel",
+            "championEvidenceOnly",
+            "lookup",
+        ],
+        "The infrastructure that operates an entry, and the entries it operates, are entity references; no single "
+        "established property expresses the relation (D-174).": [
+            "operatedBy",
+            "operates",
+        ],
+        "A national-roadmap or EOSC CZ Node fact the guide records; no established parent.": [
+            "infrastructureCharacter",
+            "roadmapSince",
+            "nationalNodeOf",
+            "czechMembershipSince",
+            "nodeMembership",
+            "nodeMilestone",
+            "nodeStateSince",
+        ],
+        "Reviewed mapping lineage the guide records over native results; no established parent.": [
+            "mappingCoverage",
+            "reviewedVersion",
+            "mappingBasis",
+        ],
+        "The guide's translation or quotation provenance.": [
+            "nameTranslation",
+            "descriptionTranslation",
+            "quotedDefinition",
+        ],
+        "A join to a source's own record and search.": ["rdmkitRecord", "trainingSearch"],
+        "A source's own remark, kept distinct from the guide's description.": ["disclaimer", "lensOrder"],
+        "The exported result crate's own state and source provenance are the guide's.": ["guideState", "guideSources"],
+    }.items()
+    for term in terms
+}
+
+# The guide's own terms the exported result crate carries: the build owns their IRIs and the export reads them from
+# the page configuration rather than declaring its own (design: one shared term context, group 21).
+EXPORT_GUIDE_TERMS = ("guideState", "guideSources", "implementationLayers", "implementationSeams")
 
 # Sources are contextual entities. Cited datasets and software are typed through additionalType: as Dataset or
 # SoftwareSourceCode entities, RO-Crate would treat them as data entities or scripts that belong inside the crate.
@@ -570,18 +733,28 @@ def link_texts(graph: Graph, targets: dict[str, str]) -> None:
 
 
 def defined_terms(graph: Graph, set_id: str, set_name: str, prefix: str, items: list[dict[str, Any]]) -> list[str]:
-    """Add a DefinedTermSet and its terms; return the term IDs."""
+    """Add a named term set and its terms; return the term IDs. A set names its scheme both as a schema.org
+    DefinedTermSet and as a SKOS ConceptScheme, and each term is a DefinedTerm and a SKOS Concept, so the typing
+    sets are one vocabulary over named schemes (design: group 21)."""
     term_ids = [f"#{prefix}-{item['id']}" for item in items]
-    graph.add({"@id": f"#{set_id}", "@type": "DefinedTermSet", "name": set_name, "hasDefinedTerm": refs(term_ids)})
+    graph.add(
+        {
+            "@id": f"#{set_id}",
+            "@type": ["DefinedTermSet", "skos:ConceptScheme"],
+            "name": set_name,
+            "hasDefinedTerm": refs(term_ids),
+        }
+    )
     for item, term_id in zip(items, term_ids, strict=True):
         graph.add(
             {
                 "@id": term_id,
-                "@type": "DefinedTerm",
+                "@type": ["DefinedTerm", "skos:Concept"],
                 "termCode": item["id"],
                 "name": text(item.get("name") or item.get("label")),
                 "description": text(item.get("description")),
                 "inDefinedTermSet": ref(f"#{set_id}"),
+                "skos:inScheme": ref(f"#{set_id}"),
             }
         )
     return term_ids
@@ -641,6 +814,33 @@ def organization_ref(graph: Graph, organizations: dict[str, str], name: str | No
     entity_id = f"#org-{slug(name)}"
     graph.add({"@id": entity_id, "@type": "Organization", "name": name})
     return ref(entity_id)
+
+
+def name_text(value: Any) -> str | None:
+    """A literal name from the content or the graph, whether it is a plain string or a language-tagged value."""
+    if isinstance(value, str):
+        return value.strip() or None
+    if isinstance(value, dict):
+        return name_text(value.get("@value"))
+    if isinstance(value, list):
+        return next((name_text(item) for item in value if name_text(item)), None)
+    return None
+
+
+def agent_ref(graph: Graph, name: str) -> str:
+    """The entity for a named agent (an operating, hosting or developing organisation): an existing organisation
+    with the same name where there is one, a new one otherwise. An agent is named by reference, not by a literal."""
+    folded = unicodedata.normalize("NFKD", name).casefold()
+    for entity_id, entity in graph.entities.items():
+        if entity_id.startswith("#org-") and "Organization" in as_list(entity.get("@type")):
+            existing = name_text(entity.get("name"))
+            if existing and unicodedata.normalize("NFKD", existing).casefold() == folded:
+                return entity_id
+    entity_id = f"#org-{slug(name)}"
+    if entity_id in graph.entities:
+        return entity_id
+    graph.add({"@id": entity_id, "@type": "Organization", "name": name})
+    return entity_id
 
 
 def build_instruments(graph: Graph, guide: dict[str, Any]) -> None:
@@ -706,10 +906,23 @@ def build_vocabularies(graph: Graph, guide: dict[str, Any]) -> None:
 
 
 def build_terms(graph: Graph, vocabulary_base: str) -> None:
-    for term, definition in TERMS.items():
-        graph.add(
-            {"@id": vocabulary_base + term, "@type": "rdf:Property", "rdfs:label": term, "rdfs:comment": definition}
-        )
+    """The guide's own vocabulary: one rdf:Property per term, each declaring the broader established term it
+    specializes where one exists, its domain and its range."""
+    for term, definition in GUIDE_TERMS.items():
+        broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
+        entity: dict[str, Any] = {
+            "@id": vocabulary_base + term,
+            "@type": "rdf:Property",
+            "rdfs:label": term,
+            "rdfs:comment": definition,
+        }
+        if broader:
+            entity["rdfs:subPropertyOf"] = {"@id": broader}
+        if domain:
+            entity["rdfs:domain"] = {"@id": domain}
+        if range_:
+            entity["rdfs:range"] = {"@id": range_}
+        graph.add(entity)
 
 
 def build_principles(graph: Graph, principles: list[dict[str, Any]]) -> None:
@@ -2560,12 +2773,47 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
                     )
                 )
             entity["alternateIdentifier"] = refs(identifiers)
+        # A DataCite repository ID is one genuine source identifier like any other: it becomes a typed value under
+        # the one identifier property rather than a separate field (design: *one identifier property, typed by its
+        # scheme*). The scheme keeps it distinct from the record's other source identifiers.
+        if isinstance(entity.get("dataciteRepository"), str) and entity["dataciteRepository"]:
+            if "datacite" not in {item["scheme"] for item in row.get("alternateIds", [])}:
+                datacite_entity = "#alternate-" + entity_id.lstrip("#") + "-datacite"
+                graph.add(
+                    {
+                        "@id": datacite_entity,
+                        "@type": "PropertyValue",
+                        "propertyID": "datacite",
+                        "value": entity["dataciteRepository"],
+                    }
+                )
+                append_ref(entity, "alternateIdentifier", datacite_entity)
+            entity.pop("dataciteRepository", None)
+    # An agent (an operating, hosting or developing organisation) is named by reference to an entity, not by a
+    # literal name: one way to name an agent and its source (design: group 21).
+    for entity in list(graph.entities.values()):
+        for name_key, agent_key in (
+            ("operatorName", "publisher"),
+            ("developerName", "attributedTo"),
+            ("hostingInstitution", "publisher"),
+        ):
+            name = name_text(entity.get(name_key))
+            if name:
+                append_ref(entity, agent_key, agent_ref(graph, name))
+            entity.pop(name_key, None)
     link_texts(graph, reference_targets(content, graph))
     for entity_id, address in catalogue_addresses(graph.entities, content).items():
         graph.entities[entity_id]["catalogueAddress"] = address
 
-    context: dict[str, Any] = {term: vocabulary_base + term for term in TERMS}
+    context: dict[str, Any] = {
+        term: ESTABLISHED_TERMS.get(term, vocabulary_base + term) for term in [*ESTABLISHED_TERMS, *GUIDE_TERMS]
+    }
     context["isImplementationOf"] = "https://semanticscience.org/resource/SIO_000233"
+    context["skos:Concept"] = SKOS + "Concept"
+    context["skos:ConceptScheme"] = SKOS + "ConceptScheme"
+    context["skos:inScheme"] = {"@id": SKOS + "inScheme", "@type": "@id"}
+    context["publisher"] = DCTERMS + "publisher"
+    context["attributedTo"] = PROV + "wasAttributedTo"
     return {"@context": [f"{RO_CRATE}/context", context], "@graph": list(graph.entities.values())}
 
 
@@ -3131,6 +3379,7 @@ def page_config(
                 "prov": PROV,
                 "fipTerms": FIP_TERMS,
                 "guide": guide["vocabularyBase"],
+                "guideTerms": {term: guide["vocabularyBase"] + term for term in EXPORT_GUIDE_TERMS},
                 "webApplication": WEB_APPLICATION,
             },
             "favicons": {
@@ -3517,9 +3766,12 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
     ui["config"]["languages"] = dict(LANGUAGE_SCRIPTS)
     ui["config"]["partLanguages"] = dict(PART_LANGUAGE_SCRIPTS)
     # Helper labels belong with the pages that use them, not the initial download.
-    if "helper" in ui["ui"]:
-        parts["pages"]["ui"] = {"helper": ui["ui"]["helper"]}
-        ui["ui"] = {key: value for key, value in ui["ui"].items() if key != "helper"}
+    # Helper and machine-data labels belong with the pages that use them: they load with the pages part rather
+    # than the initial download, which stays within its budget.
+    page_labels = {key: ui["ui"][key] for key in ("helper", "machines") if key in ui["ui"]}
+    if page_labels:
+        parts["pages"]["ui"] = page_labels
+        ui["ui"] = {key: value for key, value in ui["ui"].items() if key not in page_labels}
     # The self-check's own label groups (answers, evidence, results, evaluators) load with the questions, which every
     # view showing them needs; its top-level strings, which the path's rail also uses, stay in the initial download.
     selfcheck = ui["ui"].get("selfcheck", {})
@@ -3573,10 +3825,220 @@ def outputs(root: Path = ROOT) -> dict[str, str]:
         }
         | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
         | profile_page(root, content["guide"]["guide"])
+        | vocabulary_page(root, content["guide"]["guide"])
     )
 
 
 PROFILE_PAGE = re.compile(r"^profile/[^/]+/index\.html$")
+VOCABULARY_FILE = "terms/fair-guide.ttl"
+
+
+def turtle_text(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+def vocabulary_base(guide: dict[str, Any]) -> str:
+    """The vocabulary IRI base, from the derived value or, for a caller that has not applied the base URL, the
+    content's own `baseUrl`, so the check reads the same address the build writes."""
+    if guide.get("vocabularyBase"):
+        return str(guide["vocabularyBase"])
+    base = (os.environ.get(BASE_URL_ENV) or guide.get("baseUrl") or "").rstrip("/") + "/"
+    return base + "terms#"
+
+
+def vocabulary_document(guide: dict[str, Any]) -> str:
+    """The guide's vocabulary in Turtle, served at the guide's address (`<address>terms`), so a consumer
+    dereferencing a guide term IRI receives its definition. Derived from the one declaration `GUIDE_TERMS`."""
+    base = vocabulary_base(guide)
+    lines = [
+        "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .",
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .",
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .",
+        "",
+        f"<{base.rstrip('#')}> a owl:Ontology ;",
+        '    rdfs:label "EOSC CZ FAIR guide vocabulary"@en ;',
+        '    rdfs:comment "The guide\'s own terms, with the established term each specializes."@en .',
+        "",
+    ]
+    for term, definition in GUIDE_TERMS.items():
+        broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
+        lines.append(f"<{base}{term}> a rdf:Property ;")
+        lines.append(f'    rdfs:label "{term}"@en ;')
+        lines.append(f'    rdfs:comment "{turtle_text(definition)}"@en ;')
+        if broader:
+            lines.append(f"    rdfs:subPropertyOf <{broader}> ;")
+        if domain:
+            lines.append(f"    rdfs:domain <{domain}> ;")
+        if range_:
+            lines.append(f"    rdfs:range <{range_}> ;")
+        lines[-1] = lines[-1].rstrip(" ;") + " ."
+        lines.append("")
+    return "\n".join(lines) + "\n"
+
+
+# The vocabulary page groups the terms by what they are for, in this order, so it reads as a reference rather
+# than a list. Every guide term appears in exactly one group; vocabulary_errors refuses one that does not.
+GUIDE_TERM_GROUPS: list[tuple[str, list[str]]] = [
+    (
+        "Catalogue typing and status",
+        [
+            "resourceType",
+            "guideType",
+            "catalogueType",
+            "repositoryKind",
+            "repositoryFunction",
+            "clauseKind",
+            "discipline",
+            "researchField",
+            "lifecycleStage",
+            "serviceStatus",
+            "healthStatus",
+            "infrastructurePhase",
+            "esfriStatus",
+            "nodeState",
+        ],
+    ),
+    ("Descriptions and notes", ["guidance", "assessmentContext", "note", "disclaimer"]),
+    (
+        "Dated and reviewed status",
+        ["statusAsOf", "reviewedVersion", "mappingCoverage", "mappingBasis", "championEvidenceOnly", "prefillLevel"],
+    ),
+    (
+        "Self-check machinery",
+        [
+            "block",
+            "disclosureLevel",
+            "defaultProfile",
+            "tier",
+            "fixAt",
+            "fixedBy",
+            "appliesTo",
+            "providedByNrpFor",
+            "allowsNotApplicable",
+            "lookup",
+            "adviceKind",
+            "checkAfter",
+            "promptSample",
+            "guideState",
+            "guideSources",
+        ],
+    ),
+    ("Roles and relations", ["operatedBy", "operates"]),
+    (
+        "Layers-and-Seams model",
+        [
+            "preparationStatus",
+            "modelKind",
+            "implementationLayers",
+            "implementationSeams",
+            "introduction",
+            "ordering",
+            "feedback",
+            "transfer",
+            "sender",
+            "recipient",
+            "carrier",
+            "maintainers",
+            "scope",
+        ],
+    ),
+    (
+        "National infrastructures and the EOSC CZ Node",
+        [
+            "infrastructureCharacter",
+            "roadmapSince",
+            "nationalNodeOf",
+            "czechMembershipSince",
+            "nodeMembership",
+            "nodeMilestone",
+            "nodeStateSince",
+            "lensOrder",
+        ],
+    ),
+    (
+        "Translation, quotation and source joins",
+        ["nameTranslation", "descriptionTranslation", "quotedDefinition", "rdmkitRecord", "trainingSearch"],
+    ),
+]
+
+
+def vocabulary_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
+    """The vocabulary document and its landing page at the guide's address: the terms the guide introduces, grouped
+    by what they are for, each anchored at `<address>terms#<term>` so a term IRI opens its entry, with the broader
+    established term it specializes (or the reason none exists), its domain and its range."""
+    escape = html.escape
+
+    def link(iri: str) -> str:
+        return f'<a href="{escape(iri, quote=True)}"><code>{escape(iri)}</code></a>' if iri else ""
+
+    sections = []
+    for heading, terms in GUIDE_TERM_GROUPS:
+        blocks = []
+        for term in terms:
+            if term not in GUIDE_TERMS:
+                continue
+            broader, domain, range_ = GUIDE_TERM_SHAPES.get(term, ("", "", ""))
+            relation = f"specializes {link(broader)}" if broader else escape(GUIDE_TERM_REASONS.get(term, ""))
+            blocks.append(
+                f'\n      <article class="detail-entry" id="{escape(term, quote=True)}">'
+                f'<h3><a href="#{escape(term, quote=True)}"><code>{escape(term)}</code></a></h3>'
+                f"<p>{escape(GUIDE_TERMS[term])}</p>"
+                f'<p class="detail-meta">{relation}</p>'
+                f'<p class="detail-meta">Domain {link(domain)} · Range {link(range_)}</p></article>'
+            )
+        sections.append(
+            f'\n    <section class="detail-group">\n      <h2>{escape(heading)}</h2>{"".join(blocks)}\n    </section>'
+        )
+    page = f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self'">
+    <title>EOSC CZ FAIR guide vocabulary</title>
+    <link rel="alternate" type="text/turtle" href="{VOCABULARY_FILE}">
+    <link rel="stylesheet" href="../assets/css/tokens.css">
+    <link rel="stylesheet" href="../assets/css/app.css">
+  </head>
+  <body>
+    <main class="wrap profile-page">
+      <h1>EOSC CZ FAIR guide vocabulary</h1>
+      <p class="detail-intro">The guide reuses an established vocabulary wherever one expresses a fact, so the
+      terms below are the ones it introduces itself. Each has its own address here —
+      <code>&lt;address&gt;terms#&lt;term&gt;</code> — which opens its entry, and declares the broader established
+      term it specializes (or why none exists), the domain it is used on and its range. Machine readers use the
+      <a href="{VOCABULARY_FILE}" type="text/turtle">Turtle document</a>.</p>{"".join(sections)}
+      <p><a href="../">The FAIR Data Guide</a></p>
+    </main>
+  </body>
+</html>
+"""
+    return {"terms/index.html": page, VOCABULARY_FILE: vocabulary_document(guide)}
+
+
+def vocabulary_errors(
+    guide: dict[str, Any],
+    terms: dict[str, str] | None = None,
+    reasons: dict[str, str] | None = None,
+    document: str | None = None,
+) -> list[str]:
+    """Refuse a guide-specific term with no declared broader term and no recorded reason, and a published guide
+    term absent from the vocabulary document. `terms`/`reasons`/`document` allow a planted regression."""
+    terms = GUIDE_TERMS if terms is None else terms
+    reasons = GUIDE_TERM_REASONS if reasons is None else reasons
+    document = vocabulary_document(guide) if document is None else document
+    base = vocabulary_base(guide)
+    grouped = {term for _, group in GUIDE_TERM_GROUPS for term in group}
+    errors = []
+    for term in terms:
+        broader = GUIDE_TERM_SHAPES.get(term, ("", "", ""))[0]
+        if not broader and term not in reasons:
+            errors.append(f"guide term '{term}' declares no broader established term and no recorded reason")
+        if term not in grouped:
+            errors.append(f"guide term '{term}' is not in a vocabulary-page group")
+        if f"<{base}{term}>" not in document:
+            errors.append(f"published guide term '{term}' is absent from the vocabulary document")
+    return errors
 
 
 def profile_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
@@ -3588,15 +4050,36 @@ def profile_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
     label = (re.search(r'rdfs:label "([^"]+)"', description) or [None, "EOSC CZ FAIR guide profile"])[1]
     comment = (re.search(r'rdfs:comment "([^"]+)"', description) or [None, ""])[1]
     specification = (re.search(r"prof:hasArtifact <([^>]+)>", description) or [None, ""])[1]
+    publisher = (re.search(r"dct:publisher <([^>]+)>", description) or [None, ""])[1]
+    token = (re.search(r'prof:hasToken "([^"]+)"', description) or [None, ""])[1]
     up = "../../"
     escape = html.escape
+
+    def link(iri: str, text: str | None = None) -> str:
+        return f'<a href="{escape(iri, quote=True)}">{escape(text or iri)}</a>' if iri else ""
+
+    def entry(heading: str, body: str) -> str:
+        return f'\n      <article class="detail-entry"><h3>{heading}</h3><p>{body}</p></article>'
+
+    profile_iri = guide.get("profile")
+    facts = [
+        entry("Profile of", f"{link(RO_CRATE, 'RO-Crate 1.2')} and its transitive profile"),
+    ]
+    if profile_iri:
+        identifier = f'<a href="{escape(profile_iri, quote=True)}"><code>{escape(profile_iri)}</code></a>'
+        facts.insert(0, entry("Identifier", identifier))
+    if publisher:
+        facts.append(entry("Publisher", link(publisher)))
+    if token:
+        facts.append(entry("Token", f"<code>{escape(token)}</code>"))
+    if specification:
+        facts.append(entry("Specification", link(specification, "The guide's content model")))
     files = sorted(path.relative_to(root).as_posix() for path in shapes.rglob("*.ttl"))
     items = "".join(
-        f'\n      <li><a href="{escape(up + urllib.parse.quote(name), quote=True)}" type="text/turtle">'
+        f'\n        <li><a href="{escape(up + urllib.parse.quote(name), quote=True)}" type="text/turtle">'
         f"{escape(name.removeprefix('profile/'))}</a></li>"
         for name in files
     )
-    specification_link = f'<a href="{escape(specification)}">Specification</a> · ' if specification else ""
     page = f"""<!doctype html>
 <html lang="en">
   <head>
@@ -3611,13 +4094,18 @@ def profile_page(root: Path, guide: dict[str, Any]) -> dict[str, str]:
   <body>
     <main class="wrap profile-page">
       <h1>{escape(label)}</h1>
-      <p>{escape(comment)}</p>
-      <p>It is a profile of <a href="{RO_CRATE}">RO-Crate 1.2</a>. Rules that its shapes cannot express are
-      checked by the guide's content checks.</p>
-      <h2>Files</h2>
-      <ul>{items}
-      </ul>
-      <p>{specification_link}<a href="{up}">The FAIR Data Guide</a></p>
+      <p class="detail-intro">{escape(comment)} The knowledge base is validated against it at every change, and the
+      rules its shapes cannot express are checked by the guide's content checks. Machine readers use the
+      <a href="{up}{PROFILE_DIR}/profile.ttl" type="text/turtle">Turtle document</a>.</p>
+      <section class="detail-group">
+        <h2>Profile</h2>{"".join(facts)}
+      </section>
+      <section class="detail-group">
+        <h2>Files</h2>
+        <ul class="detail-files">{items}
+        </ul>
+      </section>
+      <p><a href="{up}">The FAIR Data Guide</a></p>
     </main>
   </body>
 </html>

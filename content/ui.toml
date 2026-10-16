@@ -1049,6 +1049,8 @@ unavailable = { cs = "nefunguje", en = "unavailable" }
 [machines]
 preview = { cs = "Náhled znalostní báze", en = "Knowledge base preview" }
 profile = { cs = "Profil RO-Crate Průvodce", en = "The Guide's RO-Crate profile" }
+vocabulary = { cs = "Slovník pojmů Průvodce", en = "The Guide's vocabulary" }
+openspec = { cs = "Požadavky Průvodce (OpenSpec)", en = "The Guide's requirements (OpenSpec)" }
 testDocs = { cs = "Dokumentace testů Průvodce", en = "Guide test documentation" }
 example = { cs = "například", en = "for example" }
 headLinks = { cs = "odkazy v hlavičce stránky", en = "links in the page head" }
@@ -1070,6 +1072,14 @@ record = { cs = "Záznam", en = "Record" }
 want = { cs = "celou znalostní bázi i s paradaty", en = "the whole knowledge base with its paradata" }
 what = { cs = "Jeden soubor JSON-LD ve formátu RO-Crate 1.2, ověřený proti profilu Průvodce.", en = "One JSON-LD file in RO-Crate 1.2, validated against the Guide's profile." }
 
+[machines.task.profile]
+want = { cs = "profil, podle kterého je báze postavená", en = "the profile the knowledge base follows" }
+what = { cs = "Profil RO-Crate Průvodce na vlastní adrese: jeho popis a pravidla, proti kterým se báze ověřuje (Turtle).", en = "The Guide's RO-Crate profile at its own address: its description and the rules the knowledge base is validated against (Turtle)." }
+
+[machines.task.vocabulary]
+want = { cs = "význam vlastních pojmů Průvodce", en = "the meaning of the Guide's own terms" }
+what = { cs = "Slovník pojmů, které Průvodce zavádí sám, každý s širším zavedeným pojmem, doménou a oborem hodnot (stránka i Turtle).", en = "The vocabulary of the terms the Guide introduces itself, each with its broader established term, domain and range (a page and Turtle)." }
+
 [machines.task.record]
 want = { cs = "údaje o jednom principu, kroku, požadavku nebo pojmu", en = "the data on one principle, step, requirement or term" }
 what = { cs = "Záznam API v JSON s kontextem JSON-LD; texty česky i anglicky a odkazy na související záznamy.", en = "An API record in JSON with a JSON-LD context; texts in Czech and English and links to related records." }
@@ -1081,6 +1091,10 @@ what = { cs = "Popis API ve formátu OpenAPI 3.1 a jeho interaktivní dokumentac
 [machines.task.harvest]
 want = { cs = "aby Průvodce harvester našel sám", en = "a harvester to find the Guide on its own" }
 what = { cs = "FAIR Signposting: typované odkazy v hlavičce každé stránky a linkset, který je vypisuje v jednom souboru.", en = "FAIR Signposting: typed links in the head of every page and a linkset that lists them in one file." }
+
+[machines.task.requirements]
+want = { cs = "podle čeho je Průvodce postavený", en = "what the Guide is built to" }
+what = { cs = "Vlastní požadavky na Průvodce (chování, data, API, kontroly) jsou udržované jako specifikace OpenSpec v repozitáři; každá změna projde návrhem, ověřením a archivací.", en = "The Guide's own requirements (behaviour, data, API, checks) are maintained as OpenSpec specs in the repository; every change goes through a proposal, validation and archive." }
 
 [machines.task.health]
 want = { cs = "výsledky kontrol Průvodce", en = "the Guide's check results" }

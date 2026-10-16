@@ -2422,9 +2422,9 @@
           TestResultSet: vocab.ftr + "TestResultSet",
           TestResult: vocab.ftr + "TestResult",
           TestExecutionActivity: vocab.ftr + "TestExecutionActivity",
-          guideState: vocab.guide + "guideState",
-          implementationLayers: { "@id": vocab.guide + "implementationLayers", "@type": "@id" },
-          implementationSeams: { "@id": vocab.guide + "implementationSeams", "@type": "@id" },
+          guideState: vocab.guideTerms.guideState,
+          implementationLayers: { "@id": vocab.guideTerms.implementationLayers, "@type": "@id" },
+          implementationSeams: { "@id": vocab.guideTerms.implementationSeams, "@type": "@id" },
         },
       ],
       "@graph": graph,
@@ -2821,7 +2821,7 @@
     const root = crate["@graph"].find((entity) => entity["@id"] === "./");
     root.guideSources = JSON.stringify(providers ? providers.sources(st) : {});
     root.description = root.description + " " + FG.t("selfcheck.export.evidenceScope");
-    crate["@context"][1].guideSources = FG.config.vocab.guide + "guideSources";
+    crate["@context"][1].guideSources = FG.config.vocab.guideTerms.guideSources;
     return JSON.stringify(crate, null, 2) + "\n";
   }
 

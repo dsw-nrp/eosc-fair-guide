@@ -182,7 +182,7 @@
         entity: infra,
         name,
         export: { url: infra.url },
-        text: [FG.nameForms(infra), infra.hostingInstitution, nodes.map((ri) => ri.name).join(" "), erics.map((eric) => eric.name).join(" ")].join(" "),
+        text: [FG.nameForms(infra), FG.partyName(infra, "publisher"), nodes.map((ri) => ri.name).join(" "), erics.map((eric) => eric.name).join(" ")].join(" "),
         stations: [],
         principles: [],
         order: FG.fold(infra.abbreviation || FG.text(infra.name)),
@@ -194,7 +194,7 @@
             service: { identifier: "infrastructure-" + infra.identifier },
             what: [field, phase].filter(Boolean).map(categoryLabel),
             title: infra.url ? FG.external(infra.url, name) : name,
-            details: [otherName(infra), FG.t("infrastructure.host", { host: infra.hostingInstitution }), FG.t("infrastructure.since", { year: infra.roadmapSince }), character ? categoryLabel(character) : null],
+            details: [otherName(infra), FG.t("infrastructure.host", { host: FG.partyName(infra, "publisher") }), FG.t("infrastructure.since", { year: infra.roadmapSince }), character ? categoryLabel(character) : null],
             states: FG.refIds(infra, "esfriStatus").map((id) => h("span", { class: "badge" }, FG.termName(id))),
             relations: {
               operates: FG.refs(infra, "operates").map(entryLink),

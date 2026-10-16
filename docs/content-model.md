@@ -114,8 +114,10 @@ An identifier says where an entry belongs, not what it says:
 - **Genuine source alternatives.** Imported records store `alternateIds = [{ scheme = "knav", value = "github" }]`
   or the corresponding `heslar`, `re3data`, `nkr`, `fip-dashboard`, `fair-champion` or evaluator scheme. Values
   come directly from that source's identifier field. An obsolete Guide slug never becomes an alternate.
-  The build rejects missing, untyped, empty or competing source identifiers. Published records expose the
-  primary as `identifier` and typed source values as `alternateIdentifier` PropertyValues.
+  The build rejects missing, untyped, empty or competing source identifiers. Published records carry every
+  identifier as one `schema:identifier` value: the Guide primary as its own value and each genuine source
+  identifier as a `PropertyValue` typed by its issuing scheme (a DataCite repository ID included). The compact
+  catalogue address is a separate Guide-issued `dcterms:identifier`.
 - **Stable identity through refresh.** `guideRoute` stores the frozen compact kind/type prefix. Refresh joins
   through the typed source identifier or an unambiguous authoritative URL, retains `id` and `guideRoute`, and
   updates source metadata. Names alone never merge records; ambiguous joins and splits require review.
@@ -130,6 +132,20 @@ An identifier says where an entry belongs, not what it says:
   `core-system`, `live-check`, `zenodo`); lenses and levels short codes (`SR`, `L1`); provenance actions
   `<date>-<topic>`.
 - **No reuse.** A new entry takes the next free serial; a serial left by a retired entry stays unused.
+
+### Term classification
+
+Every fact the crate records uses an established vocabulary where one expresses it; a guide-specific term is
+introduced only for what no established term expresses. `scripts/build_crate.py` owns the one declaration:
+`ESTABLISHED_TERMS` names each property key the graph carries as an established IRI (Dublin Core, schema.org,
+DCAT, ADMS), and `GUIDE_TERMS` holds the terms the guide keeps in its own namespace, each with the broader
+established term it specializes, its domain and its range (`GUIDE_TERM_SHAPES`) or the recorded reason none
+exists (`GUIDE_TERM_REASONS`). The typing and status slots (`resourceType`, `repositoryKind`, `serviceStatus`
+and their kin) specialize `dcterms:type`, `dcterms:subject`, `dcat:theme` or `adms:status` rather than
+replacing it, because each is one slot of several over the same property that a shape targets individually. The
+guide publishes its own vocabulary at `<baseUrl>terms` (a landing page and a Turtle document), and
+`check_content` refuses a guide-specific term without a broader term or recorded reason and a published guide
+term absent from that document.
 
 ### One entry per thing
 

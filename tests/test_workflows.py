@@ -42,7 +42,7 @@ class WorkflowContracts(unittest.TestCase):
             steps = job["steps"]
             app = next(step for step in steps if step.get("id") == "app")
             self.assertEqual(app["with"]["permission-contents"], "write")
-            self.assertIn("SOURCE_REFRESH_APP_ID", app["with"]["app-id"])
+            self.assertIn("SOURCE_REFRESH_CLIENT_ID", app["with"]["client-id"])
             self.assertTrue(any("release_versions.py" in step.get("run", "") for step in steps))
             delivery = steps[-1]
             self.assertEqual(delivery["with"]["github-token"], "${{ steps.app.outputs.token }}")

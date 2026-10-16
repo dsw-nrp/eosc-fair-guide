@@ -671,6 +671,11 @@ sections.push(["page", async () => {
     // uses the same means: its signposts, read from the same list as the head and the linkset.
     const example = await view.locator(".machine-tasks a[href$='pr/R1.1.json']").getAttribute("href");
     if (!example || !existsSync(resolve(root, "_site", example)) || !(await view.locator(".machine-tasks code", { hasText: "<id>.json" }).count())) fail("machines: the task table does not show a record's pattern and a working example");
+    // The page offers every machine-facing surface the Guide publishes, one row each with its description, so
+    // nothing important is missing (crate, profile, vocabulary, record, service, health, tests, harvest,
+    // requirements, result, list).
+    const taskRows = await view.locator(".machine-tasks tbody tr").count();
+    if (taskRows !== 11) fail("machines: the task table offers " + taskRows + " surfaces, expected 11 (crate, profile, vocabulary, record, service, health, tests, harvest, requirements, result, list)");
     const shown = await view.locator(".signposts tbody tr").evaluateAll((rows) => rows.map((row) => row.querySelector("code").textContent + " " + row.querySelector("td a").getAttribute("href")).sort());
     const head = await view.locator("head link[rel]").evaluateAll((links) => links.filter((link) => !["stylesheet", "icon", "apple-touch-icon"].includes(link.rel)).map((link) => link.getAttribute("rel") + " " + link.getAttribute("href")).sort());
     if (shown.join("|") !== head.join("|")) fail("machines: the signposts the page shows differ from the head's: " + shown.join(", ") + " vs " + head.join(", "));
@@ -702,6 +707,19 @@ sections.push(["page", async () => {
       return [...api.collections.map((collection) => api.files.record.replace("{record}", collection)), api.files.meta, api.files.context, api.files.health];
     });
     if (endpoints.slice().sort().join("|") !== expectedEndpoints.sort().join("|") || !endpoints.every(inSite)) fail("machines: the endpoint list does not name every collection of the built API: " + endpoints.join(" "));
+    // The crate's HTML preview is the guide page: opened as the preview it shows the machine-readable data, not the
+    // path landing, so a reader following the crate's preview link sees the crate, not an unrelated view.
+    await view.goto(new URL("ro-crate-preview.html", pageUrl).href);
+    await view.waitForSelector("#main h1");
+    if ((await view.locator("#main h1").textContent()).trim() !== "Data pro stroje" || !(await view.locator(".machine-tasks").count())) fail("machines: the crate preview does not open the machine-readable data");
+    // The vocabulary page anchors every term, so its IRI (<address>terms#<term>) opens its own row, and lists them all.
+    const turtle = readFileSync(resolve(site, "terms/fair-guide.ttl"), "utf8");
+    const termCount = (turtle.match(/ a rdf:Property ;/g) || []).length;
+    await view.goto(new URL("terms/index.html", pageUrl).href);
+    await view.waitForSelector("main .detail-entry");
+    const anchors = await view.locator("main .detail-entry[id]").evaluateAll((rows) => rows.map((row) => row.id));
+    if (!termCount || anchors.length !== termCount) fail(`vocabulary: the page anchors ${anchors.length} terms, the Turtle defines ${termCount}`);
+    if (!anchors.includes("guidance")) fail("vocabulary: a term is not anchored by its own id");
     // Every catalogue entry links to its record in the API; the NKR samples are illustrations, not entries.
     for (const kind of ["resources", "repositories", "infrastructures", "clauses", "questions", "terms", "fips", "tests", "actions"]) {
       await view.goto(pageUrl + "#/cs/V/catalogue/" + kind);
@@ -2156,7 +2174,7 @@ sections.push(["research station links", async () => {
 sections.push(["published health and documentation links", async () => {
   const { context, page, external, problems } = await openPage();
   const health = JSON.parse(readFileSync(resolve(site, "api/health.json"), "utf8"));
-  const documents = ["health/index.html", "ro-crate-preview.html", "profile/0.1/index.html", "assets/js/tests/index.html"];
+  const documents = ["health/index.html", "ro-crate-preview.html", "profile/0.1/index.html", "profile/fair-guide/profile.ttl", "terms/index.html", "terms/fair-guide.ttl", "assets/js/tests/index.html"];
   for (const lang of ["cs", "en"]) {
     await navigationRendered(page, () => page.goto(pageUrl + `#/${lang}/K/page/machines`));
     const footerLink = page.locator('footer a[href="health/index.html"]');

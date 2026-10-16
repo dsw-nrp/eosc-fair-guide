@@ -9,9 +9,9 @@ plain file and iframe navigation still works without it.
 
 ```html
 <iframe id="fair-guide" title="Průvodce FAIR daty"
-  src="https://motyc.github.io/eosc-fair-guide/#/cs/DS/path/start"
+  src="https://fair.eosc.cz/#/cs/DS/path/start"
   style="width:100%;height:800px;border:0"></iframe>
-<script src="https://motyc.github.io/eosc-fair-guide/assets/js/embed.js"
+<script src="https://fair.eosc.cz/assets/js/embed.js"
   data-guide-frame="fair-guide" defer></script>
 ```
 

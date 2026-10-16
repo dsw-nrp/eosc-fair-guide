@@ -60,17 +60,42 @@ Czech name.
 
 ### Requirement: Published identifiers are reused
 
-FAIR principle records SHALL retain their published w3id IRIs as authoritative metadata alongside their
-Guide-owned primary identity. A resource SHALL link to its published
-FAIR-Enabling Resource nanopublication IRI or FAIRsharing DOI where one exists. Entities SHALL use
-established vocabularies (schema.org, DCAT, SKOS, Dublin Core terms, the FIP ontology) before any
-guide-specific term is introduced.
+FAIR principle records SHALL keep published w3id IRIs alongside their Guide-owned identity; a resource SHALL
+link its published FER IRI or FAIRsharing DOI. Entities SHALL use an established vocabulary before a
+guide-specific term. An identifier SHALL be one typed `identifier` value. A guide-specific term SHALL declare
+its broader term or a recorded reason, its domain and range, and a definition in a vocabulary document at the
+guide's address.
 
 #### Scenario: Resource with a published FER
 
 - **GIVEN** a resource such as DataCite that has a published FER nanopublication
 - **WHEN** the crate is generated
 - **THEN** the resource entity carries that FER IRI as an equivalent identifier
+
+#### Scenario: A fact an established term expresses
+
+- **GIVEN** a fact the guide records that an established vocabulary term already expresses
+- **WHEN** the crate is generated
+- **THEN** the entity uses the established term, and no guide-specific term is introduced for it
+
+#### Scenario: Identifier typed by its issuing scheme
+
+- **GIVEN** a repository the guide curates that a registry also lists
+- **WHEN** the crate is generated
+- **THEN** the record carries its Guide identity and the registry identifier as separate `identifier` values,
+  each naming the scheme that issued it
+
+#### Scenario: Guide-specific term without a declaration
+
+- **GIVEN** a guide-specific term proposed with neither a broader established term nor a recorded reason
+- **WHEN** the content checks run
+- **THEN** the check fails and names the term
+
+#### Scenario: Consumer dereferences a guide term
+
+- **GIVEN** the published guide address
+- **WHEN** a consumer dereferences one of the guide's own term IRIs
+- **THEN** it receives the vocabulary document that defines that term
 
 ### Requirement: Every statement traces to a published source
 
@@ -103,7 +128,7 @@ principle. The path MAY present a curated selection, provided the explorer keeps
 
 ### Requirement: Content changes record paradata
 
-Each change to advice, checks, resources, pages, curated repositories, sources or callouts SHALL record a Process Run Crate provenance action: person (ORCID where available), instrument (including the AI tool/model), consulted sources, produced entities and end time. AI SHALL be an instrument. Provenance coverage SHALL include exactly the kinds compared against the PR merge base.
+A pull request SHALL record one Process Run Crate provenance action by default: the person (ORCID where available), every instrument it used (including the AI tool/model), the consulted sources, the entities it produced or changed and the end time, with coverage naming every item it changed; a finer action per batch MAY replace it where a change genuinely needs its own. AI SHALL be an instrument. Provenance coverage SHALL include exactly the kinds compared against the PR merge base.
 
 #### Scenario: Changed advice without a newer action
 
@@ -116,6 +141,12 @@ Each change to advice, checks, resources, pages, curated repositories, sources o
 - **GIVEN** a pull request that changes a page's text
 - **WHEN** no provenance action newer than the previous release covers that page
 - **THEN** the content checks fail and name the page
+
+#### Scenario: A pull request records one action
+
+- **GIVEN** a pull request that changes several content items
+- **WHEN** one provenance action covers every item the pull request changed
+- **THEN** the content checks pass, and the action names every person and instrument the change used
 
 ### Requirement: Statuses are dated
 

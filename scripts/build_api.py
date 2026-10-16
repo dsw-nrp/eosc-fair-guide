@@ -581,7 +581,7 @@ REQUIRED = {
     "Change": ["name"],
     "Model": ["identifier", "name", "citation"],
     "Lifecycle": ["identifier", "name"],
-    "Infrastructure": ["identifier", "name", "abbreviation", "hostingInstitution", "roadmapLocator"],
+    "Infrastructure": ["identifier", "name", "abbreviation", "publisher", "roadmapLocator"],
     "Meta": ["name", "description", "version", "url", "isBasedOn", "hasPart"],
 }
 

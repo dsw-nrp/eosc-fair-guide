@@ -39,6 +39,7 @@ from build_crate import (  # noqa: E402
     is_generated,
     load_content,
     reference_targets,
+    vocabulary_errors,
 )
 from catalogue_identity import alternate_id
 
@@ -1802,6 +1803,10 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
             for prefix in re.findall(r"@prefix fg: <([^>]+)>", shape.read_text(encoding="utf-8")):
                 if not prefix.endswith("/terms#"):
                     report.error(str(shape.relative_to(root)), f"fg: prefix {prefix} is not <address>terms#")
+    # Every guide-specific term declares a broader established term or a recorded reason, and every published
+    # guide term is defined in the vocabulary document served at the guide's address (design: group 21).
+    for error in vocabulary_errors(guide):
+        report.error("vocabulary", error)
 
 
 def check_no_build_output(report: Report, root: Path) -> None:

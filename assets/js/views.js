@@ -1536,12 +1536,15 @@
     const link = (href, label, type) => h("a", { href, type: type || null }, label || href);
     const example = FG.config.api.records[FG.graph.find((entity) => entity.termCode === "R1.1")["@id"]];
     const rows = [
-      ["crate", [link("ro-crate-metadata.json", null, "application/ld+json"), " · ", link("ro-crate-preview.html", FG.t("machines.preview")), " · ", link("profile/0.1/index.html", FG.t("machines.profile"))]],
+      ["crate", [link("ro-crate-metadata.json", null, "application/ld+json"), " · ", link("ro-crate-preview.html", FG.t("machines.preview"))]],
+      ["profile", [link("profile/0.1/index.html", FG.t("machines.profile"), "text/html"), " · ", link("profile/fair-guide/profile.ttl", "Turtle", "text/turtle")]],
+      ["vocabulary", [link("terms/index.html", FG.t("machines.vocabulary"), "text/html"), " · ", link("terms/fair-guide.ttl", "Turtle", "text/turtle")]],
       ["record", [h("code", null, files.record.replace("{record}", "<kolekce>/<id>")), " · ", FG.t("machines.example") + ": ", link(files.record.replace("{record}", example), null, "application/json")]],
       ["service", [link(files.description, null, "application/vnd.oai.openapi+json"), " · ", link(files.docs, FG.t("api.docs"), "text/html")]],
       ["health", [link("health/index.html", FG.t("footer.health"), "text/html"), " · ", link(files.health, "JSON", "application/json")]],
       ["tests", [link("assets/js/tests/index.html" + (FG.state.lang === "en" ? "#english" : ""), FG.t("machines.testDocs"), "text/html"), " · ", link(FG.href("catalogue", "k!tests"), FG.t("catalogue.tab.tests"))]],
       ["harvest", [link("linkset.json", null, "application/linkset+json"), " · ", h("a", { href: "#signposts" }, FG.t("machines.headLinks"))]],
+      ["requirements", [FG.external(FG.root.url + "/tree/main/openspec/specs", FG.t("machines.openspec"))]],
       ["result", [link(FG.href("selfcheck"), FG.t("nav.selfcheck"))]],
       ["list", [link(FG.href("catalogue"), FG.t("nav.catalogue"))]],
     ];

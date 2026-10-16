@@ -200,7 +200,7 @@
   /** Who operates an entry, as its sources state it: the operator its own page names and the large research
       infrastructure that operates it, each with the source that says so (D-172, D-174). */
   const operatorRow = (entity) => [
-    entity.operatorName ? h("span", null, FG.text(entity.operatorName), entity.operatorSource ? [" (", FG.external(entity.operatorSource, FG.t("infrastructure.operatorSource")), ")"] : null) : null,
+    FG.partyName(entity, "publisher") ? h("span", null, FG.partyName(entity, "publisher"), entity.operatorSource ? [" (", FG.external(entity.operatorSource, FG.t("infrastructure.operatorSource")), ")"] : null) : null,
     FG.get(FG.id(entity.operatedBy))
       ? h("span", null, entryLink(FG.get(FG.id(entity.operatedBy))), entity.operatedBySource ? [" (", FG.external(entity.operatedBySource, FG.t("infrastructure.operatorSource")), ")"] : null)
       : null,
@@ -208,7 +208,7 @@
 
   /** Who developed an entry, where its sources name its developers rather than an operator (D-174). */
   const developerRow = (entity) =>
-    entity.developerName ? [h("span", null, FG.text(entity.developerName), entity.developerSource ? [" (", FG.external(entity.developerSource, FG.t("infrastructure.operatorSource")), ")"] : null)] : [];
+    FG.partyName(entity, "attributedTo") ? [h("span", null, FG.partyName(entity, "attributedTo"), entity.developerSource ? [" (", FG.external(entity.developerSource, FG.t("infrastructure.operatorSource")), ")"] : null)] : [];
   /** The audiences an entry is for, by icon and name. */
   const audiences = (lensIds) =>
     lensIds

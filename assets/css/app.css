@@ -1317,6 +1317,20 @@ details > summary .icon {
 }
 
 .credits,
+/* The guide's standalone pages (its vocabulary and its RO-Crate profile): a plain reading layout of grouped,
+   labelled entries. */
+.profile-page h2 { margin: 2rem 0 0.75rem; padding-bottom: 0.25rem; border-bottom: 2px solid var(--border); font-size: 1.2rem; }
+.profile-page code { overflow-wrap: anywhere; }
+.detail-intro, .detail-meta { color: var(--text-muted); }
+.detail-group { margin: 0 0 1.5rem; }
+.detail-entry { margin: 0 0 1rem; padding: 0 0 1rem; border-bottom: 1px solid var(--border); }
+.detail-entry:last-child { border-bottom: 0; }
+.detail-entry h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+.detail-entry h3 a { text-decoration: none; }
+.detail-entry p { margin: 0 0 0.35rem; }
+.detail-files { margin: 0; padding-left: 1.2rem; }
+.detail-files li { margin: 0 0 0.3rem; }
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

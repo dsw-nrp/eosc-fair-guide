@@ -232,6 +232,12 @@
   /** Every form of a name, in both languages with the abbreviations, for search to match. */
   FG.nameForms = (entity) => [FG.bothLanguages(entity.name), FG.bothLanguages(entity.abbreviation)].join(" ");
 
+  /** The name of the agent a property references (an operating, hosting or developing organisation), or null. */
+  FG.partyName = (entity, key) => {
+    const target = FG.get(FG.id(entity[key]));
+    return target ? FG.text(target.name) : null;
+  };
+
   /** An entity's name as nodes in the reader's language, marked with its language. A resource shows the guide's
       name for it; a work the guide only cites, written in another language and carrying a translated title, shows
       its original title followed by the translation in brackets, as a citation would. */
@@ -771,7 +777,15 @@
 
   FG.parseHash = function (hash) {
     const route = { lang: FG.state.lang, lens: FG.state.lens, view: "path", arg: null, extra: null };
-    if (!hash || hash === "#") return route;
+    if (!hash || hash === "#") {
+      // The page is also the crate's HTML preview; opened as the preview it shows the machine-readable data
+      // rather than the path landing, so a reader following the crate's preview link sees the crate, not a view
+      // unrelated to it.
+      if (/ro-crate-preview\.html$/.test(window.location.pathname)) {
+        return Object.assign(route, FG.parseHash(FG.href("page", "machines")));
+      }
+      return route;
+    }
     if (!hash.startsWith("#/")) {
       const target = FG.entityRoute(hash);
       return target ? Object.assign(route, target) : route;

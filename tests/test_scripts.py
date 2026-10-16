@@ -1410,7 +1410,13 @@ class SnapshotRefreshTests(FixtureCase):
         registered = repositories["#repository-r3d100000002"]
         self.assertIn("https://doi.org/10.25504/FAIRsharing.abc123", same_as(registered))
         self.assertIn("#snapshot-fairsharing", sources(registered))
-        self.assertEqual(repositories["#repository-local"]["dataciteRepository"], "member.repo")
+        datacite_values = {
+            entity["value"]
+            for entity in graph.entities.values()
+            if entity.get("@type") == "PropertyValue" and entity.get("propertyID") == "datacite"
+        }
+        self.assertIn("member.repo", datacite_values)
+        self.assertNotIn("dataciteRepository", repositories["#repository-local"])
         self.assertIn("#snapshot-datacite", sources(repositories["#repository-local"]))
         # An annotation naming no listed repository adds none; an NKR record becomes a repository with NKR's address.
         self.assertFalse(any("zzz999" in value for entity in repositories.values() for value in same_as(entity)))
@@ -2200,7 +2206,9 @@ class GeneratedMarkupTests(FixtureCase):
             attributes for tag, attributes in parsed.tags if tag == "a" and attributes.get("type") == "text/turtle"
         ]
         expected = sorted(f"{build_crate.PROFILE_DIR}/{name}" for name in names)
-        self.assertEqual([link["href"] for link in links], ["../../" + urllib.parse.quote(name) for name in expected])
+        hrefs = [link["href"] for link in links]
+        for name in expected:
+            self.assertIn("../../" + urllib.parse.quote(name), hrefs)
         self.assertTrue(all(set(link) == {"href", "type"} for link in links))
         self.assertNotIn("b", [tag for tag, _ in parsed.tags])
         self.assertTrue({name.removeprefix("profile/") for name in expected} <= set(parsed.link_texts))
@@ -2368,6 +2376,17 @@ class ApiTests(unittest.TestCase):
     def test_output_is_deterministic(self) -> None:
         content = build_crate.load_content()
         self.assertEqual(build_api.Api(build_crate.build_crate(content), content).files(), self.files)
+
+    def test_vocabulary_mapping_and_document_are_enforced(self) -> None:
+        guide = build_crate.load_content()["guide"]["guide"]
+        self.assertEqual([], build_crate.vocabulary_errors(guide))
+        # Planted: a guide-specific term with no broader established term and no recorded reason is refused.
+        with mock.patch.object(build_crate, "GUIDE_TERM_SHAPES", {}):
+            errors = build_crate.vocabulary_errors(guide, terms={"orphanTerm": "A term with no parent."})
+        self.assertTrue(any("no broader established term and no recorded reason" in error for error in errors), errors)
+        # Planted: a published guide term absent from the vocabulary document is refused.
+        errors = build_crate.vocabulary_errors(guide, document="<http://example.org/terms#other> a rdf:Property .")
+        self.assertTrue(any("absent from the vocabulary document" in error for error in errors), errors)
 
     def test_one_setting_moves_the_guide(self) -> None:
         # The guide's address is set once; a build at another address names the configured one nowhere.

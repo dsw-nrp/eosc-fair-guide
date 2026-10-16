@@ -70,16 +70,17 @@ in-preparation model citation remain legitimate public content.
   FAIR-Checker produced no attached native assessment within the 240-second browser wait; the live probe failed.
   The compact receipt is `.cache/live-release/receipt.json` (checked at 11:29:47 UTC). No successful twelve-metric
   live assessment is claimed; the deterministic evaluator fixtures remain independently checked.
-- Questions requiring outside authority and approved future work are enumerated in
-  [issue-handoff.md](issue-handoff.md), with owners, interim behaviour, acceptance and prepared issue bodies.
+- Questions requiring outside authority and approved future work are linked to existing issues or supplied
+  with remaining issue bodies in [issue-handoff.md](issue-handoff.md). Previously prepared issues and replies
+  have been posted; do not duplicate them.
 - The final production address, persistent namespace and eosc.cz embed origins require the service owner's
   decision. The current configured Pages testing address is not a claim of an agreed official production URL.
 
 ## Hand-off 1: accept the local candidate and remote payload
 
 Review the preview, the four-lens results, verification receipt and exceptions once as a complete candidate.
-Approve a specific remote payload: reviewed implementation PR, operator configuration below, issue replies and
-follow-up bodies in [issue-handoff.md](issue-handoff.md). Record any accepted external-service exception explicitly.
+Approve a specific remote payload: reviewed implementation PR, operator configuration below and remaining
+issue bodies in [issue-handoff.md](issue-handoff.md). Record any accepted external-service exception explicitly.
 No separate human approval is requested for each historical review checkpoint or lens.
 
 Local changes include pre-existing staged work and the final unstaged corrections. Review the complete combined
@@ -112,7 +113,7 @@ Complete these steps after local-candidate acceptance and remote-delivery author
    reviewers, require PR delivery to `main`, and preserve deletion/non-fast-forward protection. Record the
    effective rules response and reviewed merge commit.
 2. Install/confirm the repository-scoped App with Contents and Pull requests read/write, then configure repository
-   variable `SOURCE_REFRESH_APP_ID` and secret `SOURCE_REFRESH_APP_PRIVATE_KEY`. Narrow per-job tokens are already
+   variable `SOURCE_REFRESH_CLIENT_ID` and secret `SOURCE_REFRESH_APP_PRIVATE_KEY`. Narrow per-job tokens are already
    declared. Keep App credentials out of PR execution and the repository; do not paste them into review receipts.
 3. Verify Pages uses Actions and the `github-pages` environment admits the intended trusted deployment.
    Confirm the approved `baseUrl` and embed origins. Merge through human review, then verify `/next/` is built

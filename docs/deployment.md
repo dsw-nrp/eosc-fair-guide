@@ -95,7 +95,7 @@ moves an existing tag. If further commits landed after the release merge, reconc
 before tagging; the dispatch refuses to tag those different bytes. Tag creation starts the checked production
 build described above; publishing the resulting draft release is still a separate maintainer act.
 
-Both dispatches use the existing repository-scoped App (`SOURCE_REFRESH_APP_ID` and
+Both dispatches use the existing repository-scoped App (`SOURCE_REFRESH_CLIENT_ID` and
 `SOURCE_REFRESH_APP_PRIVATE_KEY`), with Contents and Pull requests read/write at installation and narrower tokens
 per job. The App's PR and tag events trigger normal checks and deployment. GitHub documents this distinction
 in [workflow triggering](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).

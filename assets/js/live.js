@@ -319,7 +319,8 @@
       entry's re3data record, by which DataCite records the repository it describes. Null when there is neither. */
   live.dataciteRoute = function (entity) {
     if (!entity) return null;
-    const id = String(entity.dataciteRepository || entity.datacite || "");
+    const typed = FG.refs(entity, "alternateIdentifier").find((item) => item && item.propertyID === "datacite");
+    const id = String((typed && typed.value) || entity.datacite || "");
     if (DATACITE_REPOSITORY.test(id)) return { id };
     const doi = FG.refIds(entity, "sameAs").concat(entity.doi ? ["https://doi.org/" + entity.doi] : [])
       .map((value) => live.parsePid(value)).find((pid) => pid && live.isRe3dataDoi(pid));
