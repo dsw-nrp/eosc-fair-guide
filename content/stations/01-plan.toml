@@ -31,15 +31,15 @@ sources = ["DSW-NRP.01", "A.K2.3.1"]
 id = "plan.03"
 lens = "V"
 level = "L1"
-text = { cs = "Zjistěte, zda a v jaké podobě DMP vyžaduje váš poskytovatel. [[dmp-eosc|DMP.eosc.cz]] nabízí šablony GA ČR, TA ČR, AZV ČR, MŠMT, Horizontu Evropa a Science Europe.", en = "Find out whether and in what form your funder requires a DMP. [[dmp-eosc|DMP.eosc.cz]] offers templates for GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe and Science Europe." }
+text = { cs = "Zjistěte, v jaké podobě DMP vyžaduje váš poskytovatel, a přihlaste se do [[dmp-eosc|DMP.eosc.cz]] účtem [[term/e-infra-cz|e-INFRA CZ]]: najdete tam šablony GA ČR, TA ČR, AZV ČR, MŠMT, Horizontu Evropa a Science Europe.", en = "Find out in what form your funder requires a DMP and log in to [[dmp-eosc|DMP.eosc.cz]] with your [[term/e-infra-cz|e-INFRA CZ]] account: it offers templates for GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe and Science Europe." }
 sources = ["DSW-NRP.01"]
 
 [[advice]]
 id = "plan.04"
 lens = "V"
 level = "L1"
-text = { cs = "Přihlaste se do [[dmp-eosc|DMP.eosc.cz]] účtem [[term/e-infra-cz|e-INFRA CZ]] a zvolte šablonu svého poskytovatele.", en = "Log in to [[dmp-eosc|DMP.eosc.cz]] with your [[term/e-infra-cz|e-INFRA CZ]] account and choose your funder's template." }
-sources = ["DSW-NRP.01"]
+text = { cs = "Rozdělte v týmu odpovědnost za jednotlivé kroky správy dat; při přípravě využijte [[rdmkit-dmp|obsah plánu podle RDMkit]] a přehledy rolí [[rdmkit-researcher|výzkumníka]] a [[rdmkit-pi|vedoucího projektu]].", en = "Divide responsibilities for data management in the team; use the [[rdmkit-dmp|RDMkit DMP guidance]] and the [[rdmkit-researcher|researcher]] and [[rdmkit-pi|principal investigator]] role pages." }
+sources = ["RDMKIT.tasks.01", "DSW-NRP.01"]
 
 [[advice]]
 id = "plan.05"
@@ -86,8 +86,8 @@ sources = ["DSW-NRP.01"]
 id = "plan.10"
 lens = "DS"
 level = "L1"
-text = { cs = "Seznamte se se šablonami poskytovatelů (GA ČR, TA ČR, AZV ČR, MŠMT, Horizont Evropa, Science Europe) a s národním znalostním modelem.", en = "Get to know the funder templates (GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe, Science Europe) and the national knowledge model." }
-sources = ["DSW-NRP.01"]
+text = { cs = "Vyberte s týmem vhodnou šablonu poskytovatele (GA ČR, TA ČR, AZV ČR, MŠMT, Horizont Evropa, Science Europe) a domluvte odpovědnost za jednotlivé kroky správy dat. Využijte popis role [[rdmkit-steward|data stewarda]], podklady pro [[rdmkit-policy|tvorbu politiky]] a [[rdmkit-trainer|školení týmu]] v [[res/doc/rdmkit|RDMkit]]; institucionální připravenost ověřte v kontrole [[check/institution|Instituce a správa dat]].", en = "Select the appropriate funder template (GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe, Science Europe) with the team and agree who is responsible for each data-management step. Use [[res/doc/rdmkit|RDMkit]]'s [[rdmkit-steward|data-steward role]], [[rdmkit-policy|policy-making guidance]] and [[rdmkit-trainer|trainer resources]]; check institutional readiness in [[check/institution|Institution and data management]]." }
+sources = ["DSW-NRP.01", "RDMKIT.tasks.01"]
 
 [[advice]]
 id = "plan.11"
@@ -221,20 +221,6 @@ text = { cs = "Při kontrole [[term/data-management-plan|plánů správy dat]] v
 check = { cs = "Každou výtku ověřte v plánu i v šabloně; o plánu nerozhoduje AI. Plán výzkumníka vkládejte jen do nástroje, který data neposílá mimo infrastrukturu.", en = "Verify each finding in the plan and in the template; the AI does not decide on the plan. Put a researcher's plan only into a tool that keeps it within the infrastructure." }
 prompt = { cs = "Porovnej plán správy dat níže se šablonou poskytovatele a vypiš části, které chybějí, jsou neúplné nebo si odporují; ke každé uveď místo v plánu. Nic nedoplňuj.\n\nŠablona: […]\n\nPlán: […]", en = "Compare the data management plan below with the funder's template and list the parts that are missing, incomplete or contradictory, each with its place in the plan. Do not fill anything in.\n\nTemplate: […]\n\nPlan: […]" }
 sources = ["EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04", "EC-GENAI-GUIDELINES.05"]
-
-[[advice]]
-id = "plan.28"
-lens = "V"
-level = "L1"
-text = { cs = "Při přípravě projektu projděte [[rdmkit-dmp|obsah plánu podle RDMkit]] a zkontrolujte požadavky svého poskytovatele; pro české šablony použijte [[dmp-eosc|DMP.eosc.cz]]. S rozdělením práce pomohou role [[rdmkit-researcher|výzkumníka]] a [[rdmkit-pi|vedoucího projektu]].", en = "When preparing a project, use the [[rdmkit-dmp|RDMkit DMP guidance]] and check your funder's requirements; use [[dmp-eosc|DMP.eosc.cz]] for Czech templates. The [[rdmkit-researcher|researcher]] and [[rdmkit-pi|principal investigator]] pages help divide responsibilities." }
-sources = ["RDMKIT.tasks.01", "DSW-NRP.01"]
-
-[[advice]]
-id = "plan.29"
-lens = "DS"
-level = "L1"
-text = { cs = "Domluvte s týmem, kdo odpovídá za jednotlivé kroky správy dat. Využijte popis role [[rdmkit-steward|data stewarda]], podklady pro [[rdmkit-policy|tvorbu politiky]] a pro [[rdmkit-trainer|školení týmu]] v [[res/doc/rdmkit|RDMkit]]; české institucionální požadavky ověřte v kontrole [[check/institution|Instituce a správa dat]].", en = "Agree who is responsible for each data-management step. Use [[res/doc/rdmkit|RDMkit]]'s [[rdmkit-steward|data-steward role]], [[rdmkit-policy|policy-making guidance]] and [[rdmkit-trainer|trainer resources]]; check the Czech institutional requirements in [[check/institution|Institution and data management]]." }
-sources = ["RDMKIT.tasks.01"]
 
 [[advice]]
 id = "plan.30"

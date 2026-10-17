@@ -1266,6 +1266,7 @@ repositories = [
 ]
 actions = [
   "2026-10-16-initial-state",
+  "2026-10-17-station-dedup",
 ]
 model = [
   "model:layers-seams",
@@ -1364,3 +1365,15 @@ lifecycle = [
 ]
 
 [retired]
+advice = [
+  "citation.13",
+  "citation.23",
+  "collect.21",
+  "licence.28",
+  "licence.29",
+  "licence.30",
+  "metadata.41",
+  "plan.28",
+  "plan.29",
+  "publication.29",
+]
