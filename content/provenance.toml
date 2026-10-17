@@ -12,6 +12,7 @@ instruments = [
   "claude-opus-5-5",
   "einfra-deepseek-4-1-ft",
   "einfra-glm-5-3",
+  "einfra-kimi-k3",
   "kilo-code",
   "openai-sol-6-1",
   "openai-luna-6",

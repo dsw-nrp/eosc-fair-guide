@@ -194,6 +194,13 @@ version = "glm-5.3"
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
 kind = "ai-model"
 
+[[instrument]]
+id = "einfra-kimi-k3"
+name = "Kimi K3 (Moonshot AI)"
+version = "kimi-k3"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+kind = "ai-model"
+
 [[repositoryFunction]]
 id = "deposit-data"
 name = { cs = "Uložit výzkumná data", en = "Deposit research data" }
