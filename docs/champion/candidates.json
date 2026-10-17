@@ -1,0 +1,482 @@
+[
+  {
+    "id": "fc_data_authorization",
+    "identifier": "https://tests.ostrails.eu/tests/fc_data_authorization",
+    "title": "OSTrails Core: Data Authorization",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_authorization",
+    "openapi": "https://tests.ostrails.eu/tests/fc_data_authorization/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+    "version": "Hvst-0.1.19:Tst-2.0.1"
+  },
+  {
+    "id": "fc_data_identifier_in_metadata",
+    "identifier": "https://tests.ostrails.eu/tests/fc_data_identifier_in_metadata",
+    "title": "OSTrails Core: Data Identifier in Metadata",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_identifier_in_metadata",
+    "openapi": "https://tests.ostrails.eu/tests/fc_data_identifier_in_metadata/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_DataIdent",
+    "version": "Hvst-0.1.19:Tst-2.0.2"
+  },
+  {
+    "id": "fc_data_kr_language_strong",
+    "identifier": "https://tests.ostrails.eu/tests/fc_data_kr_language_strong",
+    "title": "OSTrails Core: Data Knowlege Representation Language (Strict Test)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_strong",
+    "openapi": "https://tests.ostrails.eu/tests/fc_data_kr_language_strong/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSemantic",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_data_kr_language_weak",
+    "identifier": "https://tests.ostrails.eu/tests/fc_data_kr_language_weak",
+    "title": "OSTrails Core: Data Knowlege Representation Language (Weak Test)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_weak",
+    "openapi": "https://tests.ostrails.eu/tests/fc_data_kr_language_weak/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_data_protocol",
+    "identifier": "https://tests.ostrails.eu/tests/fc_data_protocol",
+    "title": "OSTrails Core: Data Protocol",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_protocol",
+    "openapi": "https://tests.ostrails.eu/tests/fc_data_protocol/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_grounded_metadata",
+    "identifier": "https://tests.ostrails.eu/tests/fc_grounded_metadata",
+    "title": "OSTrails Core: Grounded Metadata",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_grounded_metadata",
+    "openapi": "https://tests.ostrails.eu/tests/fc_grounded_metadata/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e05e98",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfTerms",
+    "version": "Hvst-0.1.19:Tst-2.0.2"
+  },
+  {
+    "id": "fc_metadata_authorization",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_authorization",
+    "title": "OSTrails Core: Metadata Authorization",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_authorization",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_authorization/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_metadata_identifier_in_metadata",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_identifier_in_metadata",
+    "title": "FAIR Champion: Metadata Identifier Explicitly In Metadata",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_in_metadata",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_identifier_in_metadata/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_MetaIdent",
+    "version": "Hvst-0.1.19:Tst-2.0.1"
+  },
+  {
+    "id": "fc_metadata_identifier_persistence",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_identifier_persistence",
+    "title": "OSTrails Core: Identifier Persistence",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_persistence",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_identifier_persistence/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e226cb",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentPersistent",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_metadata_includes_license",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_includes_license",
+    "title": "OSTrails Core: Metadata Includes License (strong)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_includes_license/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_metadata_includes_license_weak",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_includes_license_weak",
+    "title": "OSTrails Core: Metadata Includes License (weak)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license_weak",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_includes_license_weak/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.aff99f",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+    "version": "Hvst-0.1.19:Tst-2.0.1"
+  },
+  {
+    "id": "fc_metadata_kr_language_weak",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_weak",
+    "title": "OSTrails Core: Metadata Knowledge Representation Language (weak)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_weak",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_weak/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_metadata_outward_links",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_outward_links",
+    "title": "OSTrails Core: Metadata Contains Outward Links",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_outward_links",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_outward_links/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ae22b8",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I3_M_QualRef",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_metadata_persistence",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_persistence",
+    "title": "OSTrails Core: Metadata Persistence",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_persistence/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7c4d7f",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A2_M_MetaLong",
+    "version": "Hvst-0.1.19:Tst-2.0.2"
+  },
+  {
+    "id": "fc_metadata_protocol",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_protocol",
+    "title": "OSTrails Core: Uses open free protocol for metadata retrieval",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_protocol",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_protocol/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_metadata_uses_fair_vocabularies",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_uses_fair_vocabularies",
+    "title": "OSTrails Core: Metadata uses FAIR vocabularies (strong)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_uses_fair_vocabularies",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_uses_fair_vocabularies/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfTerms",
+    "version": "Hvst-0.1.19:Tst-2.0.2"
+  },
+  {
+    "id": "fc_searchable",
+    "identifier": "https://tests.ostrails.eu/tests/fc_searchable",
+    "title": "OSTrails Core: Searchable in major search engine",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_searchable",
+    "openapi": "https://tests.ostrails.eu/tests/fc_searchable/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.0c0d21",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F4_M_MetaIndexed",
+    "version": "Hvst-0.1.19:Tst-3.1.1"
+  },
+  {
+    "id": "fc_structured_metadata",
+    "identifier": "https://tests.ostrails.eu/tests/fc_structured_metadata",
+    "title": "OSTrails Core: Structured Metadata",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_structured_metadata",
+    "openapi": "https://tests.ostrails.eu/tests/fc_structured_metadata/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e05e98",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "fc_unique_identifier",
+    "identifier": "https://tests.ostrails.eu/tests/fc_unique_identifier",
+    "title": "OSTrails Core: Unique Identifier",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_unique_identifier",
+    "openapi": "https://tests.ostrails.eu/tests/fc_unique_identifier/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.b7f1ab",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentUnique",
+    "version": "Hvst-0.1.19:Tst-2.0.1"
+  },
+  {
+    "id": "fc_metadata_kr_language_strong",
+    "identifier": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_strong",
+    "title": "OSTrails Core: Metadata Knowledge Representation Language (strong)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_strong",
+    "openapi": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_strong/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSemantic",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "community_funding_information_registered",
+    "identifier": "https://tests.ostrails.eu/community-tests/community_funding_information_registered",
+    "title": "Funding information registered in metadata",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_funding_information_registered",
+    "openapi": "https://tests.ostrails.eu/community-tests/community_funding_information_registered/api",
+    "originalPrinciple": "https://placeholder.org",
+    "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1-2_M_Fund_ESRF",
+    "version": "Hvst-0.1.19:Tst-0.0.3"
+  },
+  {
+    "id": "community_license_information",
+    "identifier": "https://tests.ostrails.eu/community-tests/community_license_information",
+    "title": "License information found in DOI metadata",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_license_information",
+    "openapi": "https://tests.ostrails.eu/community-tests/community_license_information/api",
+    "originalPrinciple": "https://placeholder.org",
+    "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1-1_M_DOI_Lic_ESRF",
+    "version": "Hvst-0.1.19:Tst-0.0.3"
+  },
+  {
+    "id": "community_metadata_includes_author_affiliation",
+    "identifier": "https://tests.ostrails.eu/community-tests/community_metadata_includes_author_affiliation",
+    "title": "Metadata includes author affiliation",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation",
+    "openapi": "https://tests.ostrails.eu/community-tests/community_metadata_includes_author_affiliation/api",
+    "originalPrinciple": "https://placeholder.org",
+    "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1-2_M_Affil_ESRF",
+    "version": "Hvst-0.1.19:Tst-0.0.3"
+  },
+  {
+    "id": "community_open_access_publication",
+    "identifier": "https://tests.ostrails.eu/community-tests/community_open_access_publication",
+    "title": "Resource is Open-Access output",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_open_access_publication",
+    "openapi": "https://tests.ostrails.eu/community-tests/community_open_access_publication/api",
+    "originalPrinciple": "https://placeholder.org",
+    "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_F4_M_DOI_OA_ESRF",
+    "version": "Hvst-0.1.19:Tst-0.0.3"
+  },
+  {
+    "id": "erdera_core_vp_metadata",
+    "identifier": "https://tests.ostrails.eu/community-tests/erdera_core_vp_metadata",
+    "title": "ERDERA: Minimal VP Metadata for Level 1 Compliance",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_core_vp_metadata",
+    "openapi": "https://tests.ostrails.eu/community-tests/erdera_core_vp_metadata/api",
+    "originalPrinciple": "https://fairsharing.org/FAIRsharing.87d197",
+    "originalMetric": "https://w3id.org/fair-metrics/erdera/FM_R1-3_M_VP_L1",
+    "version": "Hvst-0.1.19:Tst-0.0.2"
+  },
+  {
+    "id": "erdera_vp_l2_metadata",
+    "identifier": "https://tests.ostrails.eu/community-tests/erdera_vp_l2_metadata",
+    "title": "ERDERA: Minimal VP Metadata for Level 2 Compliance",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_vp_l2_metadata",
+    "openapi": "https://tests.ostrails.eu/community-tests/erdera_vp_l2_metadata/api",
+    "originalPrinciple": "https://fairsharing.org/FAIRsharing.87d197",
+    "originalMetric": "https://w3id.org/fair-metrics/erdera/FM_R1-3_M_VP_L2",
+    "version": "Hvst-0.1.19:Tst-0.0.2"
+  },
+  {
+    "id": "community_data_cited_in_pub",
+    "identifier": "https://tests.ostrails.eu/community-tests/community_data_cited_in_pub",
+    "title": "FAIR Test - R1.2 - Dataset - The dataset is cited in a publication",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub",
+    "openapi": "https://tests.ostrails.eu/community-tests/community_data_cited_in_pub/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.3e9860",
+    "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1.2_D_CITED-BY-PUB_ESRF",
+    "version": "Hvst-0.1.19:Tst-0.0.2"
+  },
+  {
+    "id": "community_panet_vocabulary_in_metadata",
+    "identifier": "https://tests.ostrails.eu/community-tests/community_panet_vocabulary_in_metadata",
+    "title": "FAIR Test - I2 - Dataset - DOI metadata contains a link to a community ontology term - PaNET",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_panet_vocabulary_in_metadata",
+    "openapi": "https://tests.ostrails.eu/community-tests/community_panet_vocabulary_in_metadata/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+    "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_I2_M_VOC-PANET_DOI_ESRF",
+    "version": "Hvst-0.1.19:Tst-0.0.4"
+  },
+  {
+    "id": "fc_harvest_only",
+    "identifier": "https://tests.ostrails.eu/tests/fc_harvest_only",
+    "title": "OSTrails Core: Expose Harvester Raw Output",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_harvest_only",
+    "openapi": "https://tests.ostrails.eu/tests/fc_harvest_only/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e226cb",
+    "originalMetric": "https://doi.org/10.25504/FAIRsharing.VRo9Dl",
+    "version": "Hvst-0.1.19:Tst-2.0.0"
+  },
+  {
+    "id": "test_FM_A1_1_M_OpenProt",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt",
+    "title": "OSTrails Core: Uses open free protocol for metadata retrieval",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+    "version": "Hvst-0.1.19:Tst-3.0.0"
+  },
+  {
+    "id": "test_FM_A1_1_M_OpenProt_Data",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt_Data",
+    "title": "OSTrails Core: Data Protocol",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt_Data",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt_Data/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+    "version": "Hvst-0.1.19:Tst-3.1.0"
+  },
+  {
+    "id": "test_FM_A1_2_M_Auth",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_Auth",
+    "title": "OSTrails Core: Data Authorization",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_Auth",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_Auth/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+    "version": "Hvst-0.1.19:Tst-3.0.0"
+  },
+  {
+    "id": "test_FM_A1_2_M_DataAuth",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_DataAuth",
+    "title": "OSTrails Core: Data Authorization",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_DataAuth",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_DataAuth/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+    "version": "Hvst-0.1.19:Tst-3.1.0"
+  },
+  {
+    "id": "test_FM_A2_M_MetaLong",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_A2_M_MetaLong",
+    "title": "OSTrails Core: Metadata Persistence",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A2_M_MetaLong",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_A2_M_MetaLong/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7c4d7f",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_A2_M_MetaLong",
+    "version": "Hvst-0.1.19:Tst-3.0.1"
+  },
+  {
+    "id": "test_FM_F1_M_IdentPersistent",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentPersistent",
+    "title": "OSTrails Core: Identifier Persistence",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentPersistent",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentPersistent/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e226cb",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentPersistent",
+    "version": "Hvst-0.1.19:Tst-3.0.0"
+  },
+  {
+    "id": "test_FM_F1_M_IdentUnique",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentUnique",
+    "title": "OSTrails Core: Unique Identifier",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentUnique",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentUnique/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.b7f1ab",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentUnique",
+    "version": "Hvst-0.1.19:Tst-3.0.1"
+  },
+  {
+    "id": "test_FM_F3_M_DataIdent",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_F3_M_DataIdent",
+    "title": "OSTrails Core: Data Identifier in Metadata",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_DataIdent",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_F3_M_DataIdent/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_DataIdent",
+    "version": "Hvst-0.1.19:Tst-3.0.1"
+  },
+  {
+    "id": "test_FM_F3_M_MetaIdent",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_F3_M_MetaIdent",
+    "title": "OSTrails Core: Data Identifier in Metadata",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_MetaIdent",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_F3_M_MetaIdent/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_MetaIdent",
+    "version": "Hvst-0.1.19:Tst-4.0.1"
+  },
+  {
+    "id": "test_FM_F4_M_MetaIndexed",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_F4_M_MetaIndexed",
+    "title": "OSTrails Core: Searchable in major search engine",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F4_M_MetaIndexed",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_F4_M_MetaIndexed/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.0c0d21",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_F4_M_MetaIndexed",
+    "version": "Hvst-0.1.19:Tst-4.1.0"
+  },
+  {
+    "id": "test_FM_I1_M_FormLangSemantic_Data",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormLangSemantic_Data",
+    "title": "OSTrails Core: Data record is represented as Linked Data",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormLangSemantic_Data",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormLangSemantic_Data/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSemantic",
+    "version": "Hvst-0.1.19:Tst-3.0.0"
+  },
+  {
+    "id": "test_FM_I1_M_FormalLangSyntax",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormalLangSyntax",
+    "title": "OSTrails Core: Data Knowlege Representation Language (Weak Test)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormalLangSyntax",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormalLangSyntax/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+    "version": "Hvst-0.1.19:Tst-3.0.1"
+  },
+  {
+    "id": "test_FM_I3_M_QualRef",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_I3_M_QualRef",
+    "title": "OSTrails Core: Metadata Contains Outward Links",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I3_M_QualRef",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_I3_M_QualRef/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ae22b8",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I3_M_QualRef",
+    "version": "Hvst-0.1.19:Tst-3.0.0"
+  },
+  {
+    "id": "test_FM_R1_1_M_StdLic",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic",
+    "title": "OSTrails Core: Metadata Includes License",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.aff99f",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+    "version": "Hvst-0.1.19:Tst-3.0.2"
+  },
+  {
+    "id": "test_FM_R1_1_M_StdLic_strong",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic_strong",
+    "title": "OSTrails Core: Metadata Includes License (strong)",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic_strong",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic_strong/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+    "version": "Hvst-0.1.19:Tst-3.0.0"
+  },
+  {
+    "id": "dv_portugal_minimal_datacite",
+    "identifier": "https://tests.ostrails.eu/community-tests/dv_portugal_minimal_datacite",
+    "title": "Dataverse Portugal Minimal Datacite Provenance Metadata",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_minimal_datacite",
+    "openapi": "https://tests.ostrails.eu/community-tests/dv_portugal_minimal_datacite/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.9ca8a1",
+    "originalMetric": "https://ostrails.github.io/assessment-component-metadata-records/metric/FM_R1-2_M_PtDataProv.ttl",
+    "version": "Hvst-0.1.19:Tst-0.0.3"
+  },
+  {
+    "id": "dv_portugal_dv_controlled_vocabularies",
+    "identifier": "https://tests.ostrails.eu/community-tests/dv_portugal_dv_controlled_vocabularies",
+    "title": "Dataverse Portugal Uses Dataverse Controlled Vocabularies",
+    "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_dv_controlled_vocabularies",
+    "openapi": "https://tests.ostrails.eu/community-tests/dv_portugal_dv_controlled_vocabularies/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.9ca8a1",
+    "originalMetric": "https://ostrails.github.io/assessment-component-metadata-records/metric/FM_R1-3_M_PtDataContVoc.ttl",
+    "version": "Hvst-0.1.19:Tst-0.0.3"
+  },
+  {
+    "id": "test_FM_I2_M_ResolvabilityOfTerms",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfTerms",
+    "title": "OSTrails Core: Resolvability of metadata terms",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfTerms",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfTerms/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfTerms",
+    "version": "Hvst-0.1.19:Tst-3.0.1"
+  },
+  {
+    "id": "test_FM_I2_M_ResolvabilityOfValues",
+    "identifier": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfValues",
+    "title": "OSTrails Core: Resolvability of metadata values",
+    "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfValues",
+    "openapi": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfValues/api",
+    "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+    "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfValues",
+    "version": "Hvst-0.1.19:Tst-3.0.1"
+  }
+]

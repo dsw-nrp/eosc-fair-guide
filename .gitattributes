@@ -13,6 +13,5 @@
 *.pdf binary
 *.zip binary
 
-# Generated output: review the sources, not the diff.
-ro-crate-metadata.json linguist-generated=true
-assets/diagrams/*.svg linguist-generated=true
+# Build output is written to the ignored _site/ and never committed (the content checks refuse it), so no
+# generated-file attributes are needed; assets/diagrams/ holds the approved figure adaptations, which are authored.

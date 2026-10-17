@@ -1,0 +1,332 @@
+# Institution check for data stewards. The basic check is the research data strategy, which the Open Science III call
+# requires before it accepts outputs, and the obligations of the research act (section 83). The extended check adds
+# the minimum content the call sets for an action plan and a policy when an institution prepares them, with the
+# policy detailed by the EOSC CZ manual, and the national data infrastructure with the people it needs.
+# Field reference: docs/content-model.md.
+
+[check]
+id = "institution"
+name = { cs = "Instituce a správa dat", en = "Institution and data management" }
+icon = "building-columns"
+description = { cs = "Kontrola pro data stewardy: splňuje strategie vaší instituce minimum výzvy [[res/proj/os3|Open Science III]] a plní instituce povinnosti zákona o výzkumu? Rozšířená kontrola projde i akční plán, politiku a využití [[term/national-data-infrastructure|Národní datové infrastruktury]].", en = "A check for data stewards: does your institution's strategy meet the [[res/proj/os3|Open Science III]] minimum, and does the institution meet the research act's obligations? The extended check also covers the action plan, the policy and the use of the [[term/national-data-infrastructure|National Data Infrastructure]]." }
+lenses = ["DS"]
+minutes = 10
+
+[[block]]
+id = "law"
+icon = "section"
+name = { cs = "Povinnosti podle zákona o výzkumu", en = "Obligations under the research act" }
+description = { cs = "§ 83 zákona č. 328/2025 Sb., účinný od 1. ledna 2027.", en = "Section 83 of act No. 328/2025, in force from 1 January 2027." }
+
+[[block]]
+id = "strategy"
+icon = "compass"
+name = { cs = "Strategie pro nakládání s výzkumnými daty", en = "Research data strategy" }
+description = { cs = "Podmínka, bez které výzva [[res/proj/os3|Open Science III]] neakceptuje výstupy.", en = "The condition without which the [[res/proj/os3|Open Science III]] call accepts no outputs." }
+
+[[block]]
+id = "action-plan"
+icon = "list-check"
+name = { cs = "Akční plán", en = "Action plan" }
+description = { cs = "Minimální obsah, který výzva [[res/proj/os3|Open Science III]] stanoví, když instituce akční plán připravuje.", en = "The minimum content the [[res/proj/os3|Open Science III]] call sets when an institution prepares an action plan." }
+
+[[block]]
+id = "policy"
+icon = "file-contract"
+name = { cs = "Politika správy výzkumných dat", en = "Research data policy" }
+description = { cs = "Minimální obsah, který výzva [[res/proj/os3|Open Science III]] stanoví, když instituce politiku připravuje, rozpracovaný podle manuálu [[org/eosc-cz|EOSC CZ]].", en = "The minimum content the [[res/proj/os3|Open Science III]] call sets when an institution prepares a policy, detailed by the [[org/eosc-cz|EOSC CZ]] manual." }
+
+[[block]]
+id = "infrastructure"
+icon = "network-wired"
+name = { cs = "Národní datová infrastruktura a lidé", en = "National data infrastructure and people" }
+description = { cs = "Služby [[term/national-data-infrastructure|Národní datové infrastruktury]] a lidé, které jejich využití potřebuje.", en = "The services of the [[term/national-data-infrastructure|National Data Infrastructure]] and the people their use needs." }
+
+# Strategy
+
+# Obligations under the research act
+
+[[item]]
+id = "institution.01"
+block = "law"
+tier = "minimum"
+principles = ["F1", "A1", "R1"]
+statement = { cs = "Instituce spravuje údaje z výzkumu podpořeného z veřejných prostředků tak, aby byly dohledatelné, přístupné a opakovaně využitelné.", en = "The institution manages the data from publicly funded research so that they are findable, accessible and reusable." }
+help = { cs = "Údaji z výzkumu zákon rozumí elektronické dokumenty kromě odborných publikací, které při výzkumu vznikly a slouží jako doklad nebo k ověření jeho zjištění.", en = "The act means by research data the electronic documents, other than scientific publications, created in research and serving as evidence or to validate its findings." }
+sources = ["LAW-328-2025.83"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.02"
+block = "law"
+tier = "minimum"
+principles = ["A1"]
+statement = { cs = "Instituce bezplatně poskytuje třetím osobám již zveřejněné údaje z výzkumu, na které se vztahuje § 83 odst. 2, nebo odkaz na ně.", en = "The institution provides third parties, free of charge, with already published research data covered by section 83(2), or a link to them." }
+sources = ["LAW-328-2025.83.2"]
+fixAt = "publication"
+owner = ["data-steward"]
+help = { cs = "Ověřte podmínky § 83 odst. 2, zejména veřejné financování a ochranu práv. U údajů již zveřejněných pro bezplatný dálkový přístup postačuje odkaz (§ 83 odst. 4).", en = "Check the conditions of section 83(2), particularly public funding and protected rights. A link suffices for data already published with free remote access (section 83(4))." }
+
+[[item]]
+id = "institution.03"
+block = "law"
+tier = "minimum"
+principles = ["I1", "R1.1"]
+statement = { cs = "Údaje poskytuje v otevřeném a strojově čitelném formátu, za podmínek, které jejich další využití neomezují.", en = "It provides the data in an open, machine-readable format, on terms that do not restrict their further use." }
+sources = ["LAW-328-2025.83.3"]
+fixAt = "licence"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.04"
+block = "law"
+tier = "minimum"
+principles = []
+statement = { cs = "Instituce zná zákonné důvody, pro které může odmítnout poskytnutí údajů z výzkumu.", en = "The institution knows the legal grounds on which it may refuse to provide research data." }
+sources = ["LAW-328-2025.83.5", "POLICY-MANUAL.05"]
+fixAt = "licence"
+owner = ["data-steward"]
+
+# Strategy
+help = { cs = "§ 83 odst. 5 připouští odmítnutí k ochraně uvedených práv a oprávněných zájmů. Manuál ponechává instituci volbu, zda důvody výjimek evidovat; nejde o další povinnost stanovenou tímto odstavcem zákona.", en = "Section 83(5) permits refusal to protect the listed rights and legitimate interests. The manual leaves the institution a choice whether to record exception grounds; that paragraph of the act does not create an additional recording duty." }
+
+[[item]]
+id = "institution.05"
+block = "strategy"
+tier = "minimum"
+principles = []
+statement = { cs = "Instituce má strategii pro nakládání s výzkumnými daty, formálně přijatou statutárním orgánem pro celou instituci.", en = "The institution has a research data strategy, formally adopted by the statutory body for the whole institution." }
+help = { cs = "Stačí i strategický dokument jiného názvu se stejným obsahem.", en = "A strategic document under another name with the same content counts." }
+sources = ["OS3-RULES.01"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.06"
+block = "strategy"
+tier = "minimum"
+principles = []
+statement = { cs = "Strategie stanoví vizi a cíle správy výzkumných dat, například FAIR principy, otevřenost a etiku.", en = "The strategy sets the vision and goals of research data management, such as the FAIR principles, openness and ethics." }
+sources = ["OS3-RULES.02"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.07"
+block = "strategy"
+tier = "minimum"
+principles = []
+statement = { cs = "Strategie vymezuje, na jaká data, projekty, pracoviště a pracovníky se vztahuje.", en = "The strategy sets out which data, projects, departments and staff it covers." }
+sources = ["OS3-RULES.03"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.08"
+block = "strategy"
+tier = "minimum"
+principles = []
+statement = { cs = "Strategie řeší lidské zdroje: odpovědnosti aktérů, rozvoj kompetencí pro FAIR data a NDI a pozice data stewardů v organizační struktuře.", en = "The strategy covers people: the actors' responsibilities, developing competences for FAIR data and the NDI, and data steward positions in the organisational structure." }
+sources = ["OS3-RULES.04", "OS3-RULES.16"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.09"
+block = "strategy"
+tier = "minimum"
+principles = []
+statement = { cs = "Strategie popisuje potřebné služby, nástroje a podporu včetně využití Národní datové infrastruktury (NDI).", en = "The strategy describes the services, tools and support needed, including the use of the National Data Infrastructure (NDI)." }
+sources = ["OS3-RULES.05", "OS3-RULES.17"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+# Action plan
+
+[[item]]
+id = "institution.10"
+block = "action-plan"
+tier = "recommended"
+principles = []
+statement = { cs = "Akční plán obsahuje konkrétní opatření k naplnění strategie, například podpůrný tým, úložiště pro dlouhodobé uchování a školení.", en = "The action plan contains specific measures that implement the strategy, such as a support team, storage for long-term retention and training." }
+sources = ["OS3-RULES.06"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.11"
+block = "action-plan"
+tier = "recommended"
+principles = []
+statement = { cs = "Akční plán má harmonogram jednotlivých opatření.", en = "The action plan has a schedule for each measure." }
+sources = ["OS3-RULES.07"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.12"
+block = "action-plan"
+tier = "recommended"
+principles = []
+statement = { cs = "U každého opatření je určena odpovědná osoba nebo útvar.", en = "Each measure has a responsible person or unit." }
+sources = ["OS3-RULES.08"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.13"
+block = "action-plan"
+tier = "recommended"
+principles = []
+statement = { cs = "Akční plán vymezuje personální, finanční a technické zdroje a formálně ukotvuje, jak se bude plnit.", en = "The action plan sets out the staff, financial and technical resources and anchors formally how it is carried out." }
+sources = ["OS3-RULES.09"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.14"
+block = "action-plan"
+tier = "recommended"
+principles = []
+statement = { cs = "Akční plán stanoví indikátory, kdo a jak často jeho plnění vyhodnocuje a jak se aktualizuje.", en = "The action plan sets indicators, who reviews progress and how often, and how the plan is updated." }
+sources = ["OS3-RULES.10"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.15"
+block = "action-plan"
+tier = "recommended"
+principles = []
+statement = { cs = "Akční plán i politiku formálně schválil statutární orgán, u fakultních dokumentů děkan.", en = "The statutory body, or the dean for a faculty's documents, has formally approved the action plan and the policy." }
+sources = ["OS3-RULES.11"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+# Policy
+
+[[item]]
+id = "institution.16"
+block = "policy"
+tier = "recommended"
+principles = []
+statement = { cs = "Politika vymezuje, na koho se vztahuje, která výzkumná data pokrývá a jak zapadá do právního rámce.", en = "The policy sets out whom it applies to, which research data it covers and how it fits the legal framework." }
+help = { cs = "Má-li odrážet zákon o výzkumu, pokrývá nejméně data v elektronické podobě potřebná pro publikaci výsledků výzkumu z veřejných prostředků.", en = "To reflect the research act, it covers at least the electronic data needed to publish the results of publicly funded research." }
+sources = ["OS3-RULES.12", "POLICY-MANUAL.02", "LAW-328-2025.83"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.17"
+block = "policy"
+tier = "recommended"
+principles = ["R1"]
+statement = { cs = "Politika stanoví, jak se plánují a spravují data, včetně DMP ve schváleném nástroji dostupném všem výzkumníkům.", en = "The policy sets out how data are planned and managed, including DMPs in an approved tool open to every researcher." }
+sources = ["OS3-RULES.13", "POLICY-MANUAL.03"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.18"
+block = "policy"
+tier = "recommended"
+principles = []
+statement = { cs = "Politika stanoví minimální dobu uchování dat a pravidla pro výběr míst dlouhodobého uchovávání.", en = "The policy sets a minimum retention period and the rules for choosing where data are kept long-term." }
+help = { cs = "Běžné jsou 3–10 let od publikace nebo od konce projektu; zákon o výzkumu minimální dobu nestanovuje.", en = "3 to 10 years from publication or from the end of the project are common; the research act sets no minimum period." }
+sources = ["OS3-RULES.14", "POLICY-MANUAL.04"]
+fixAt = "repository"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.19"
+block = "policy"
+tier = "recommended"
+principles = []
+statement = { cs = "Politika vysvětluje odpovědnosti výzkumníků a instituce a uvádí kontakty na podporu.", en = "The policy explains the responsibilities of researchers and of the institution and lists support contacts." }
+sources = ["OS3-RULES.15", "POLICY-MANUAL.06"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.20"
+block = "policy"
+tier = "recommended"
+principles = ["R1.1"]
+statement = { cs = "Politika určuje, zda je sdílení dat povinné nebo doporučené, které licence jsou doporučené a jak se nakládá s přípustnými výjimkami.", en = "The policy states whether data sharing is required or recommended, which licences are recommended and how permitted exceptions are handled." }
+sources = ["POLICY-MANUAL.05", "LAW-328-2025.83.5"]
+fixAt = "licence"
+owner = ["data-steward"]
+help = { cs = "Rozlišujte zákonné či smluvní povinnosti od doporučení instituce. Manuál umožňuje evidenci důvodů výjimek do politiky zahrnout, ale výslovně připouští tento bod vypustit, pokud ji instituce nechce zavést.", en = "Distinguish legal or contractual duties from institutional recommendations. The manual allows exception recording to be included in the policy, but explicitly permits omitting that item when the institution does not choose to introduce it." }
+
+[[item]]
+id = "institution.21"
+block = "policy"
+tier = "recommended"
+principles = []
+statement = { cs = "Je určen tým, který politiku pravidelně vyhodnocuje a aktualizuje.", en = "A named team reviews and updates the policy regularly." }
+sources = ["POLICY-MANUAL.07"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+# National data infrastructure and people
+
+[[item]]
+id = "institution.22"
+block = "infrastructure"
+tier = "recommended"
+principles = []
+statement = { cs = "Instituce má data stewardy a výzkumníci vědí, jak je kontaktovat.", en = "The institution has data stewards, and researchers know how to reach them." }
+sources = ["OS3-RULES.16", "EOSC-DATA-STEWARDS.01"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.23"
+block = "infrastructure"
+tier = "recommended"
+principles = ["R1"]
+statement = { cs = "Výzkumníci mají podporu s plány správy dat ([[dmp-eosc|DMP.eosc.cz]] nebo institucionální nástroj).", en = "Researchers get support with data management plans ([[dmp-eosc|DMP.eosc.cz]] or an institutional tool)." }
+sources = ["DSW-NRP.01", "POLICY-MANUAL.03"]
+fixAt = "plan"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.24"
+block = "infrastructure"
+tier = "recommended"
+principles = ["A1.2"]
+statement = { cs = "Výzkumníci mají spravované a zálohované úložiště, i pro citlivá data.", en = "Researchers have managed, backed-up storage, also for sensitive data." }
+sources = ["EINFRA-DOCS.01"]
+fixAt = "collect"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.25"
+block = "infrastructure"
+tier = "recommended"
+principles = ["F1", "A1"]
+statement = { cs = "Data bez vhodného oborového repozitáře mohou výzkumníci uložit do repozitáře NRP, institucionálního nebo [[datarepo|Datového catch-all repozitáře NRP]].", en = "Researchers can deposit data that have no suitable domain repository in an NRP repository, an institutional one or the [[datarepo|NRP Data Catch-all Repository]]." }
+sources = ["DATAREPO.01", "OS3-RULES.17"]
+fixAt = "repository"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.26"
+block = "infrastructure"
+tier = "recommended"
+principles = ["F4"]
+statement = { cs = "Datové sady instituce mají záznam v [[nma|Národním metadatovém adresáři]].", en = "The institution's datasets have a record in the [[nma|National Metadata Directory]]." }
+sources = ["NMA.01", "OS3-RULES.17"]
+fixAt = "findability"
+owner = ["data-steward"]
+
+[[item]]
+id = "institution.27"
+block = "infrastructure"
+tier = "recommended"
+principles = []
+statement = { cs = "Zaměstnanci mají přístup ke školení ve správě výzkumných dat, například ke kurzům EOSC CZ.", en = "Staff have access to training in research data management, such as the EOSC CZ courses." }
+sources = ["OS3-RULES.18"]
+fixAt = "plan"
+owner = ["data-steward"]

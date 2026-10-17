@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" baseProfile="full" height="752" version="1.1" viewBox="0 0 518.4 752" width="518.4" role="img" lang="en" aria-labelledby="figure-title figure-description">
+  <title id="figure-title">Functions and instruments in the Czech NDI</title>
+  <desc id="figure-description">National implementation mapping, October 2026. Statuses refer to named functions rather than whole projects or organisations. 1 · Principles, policy and governance · Receives · FAIR Principles · European Open Science policy · Instruments in the Czech NDI · operational · EOSC CZ coordination · in development · EOSC Node Czechia (endorsed 2026) · operational · IPs EOSC-CZ · IPs CARDS · operational · Dataset as RIV result type T · operational · National FAIR analysis v1.2 · Hands on · Mandates · funded responsibilities · reporting rules · 2 · Community decision and implementation · Receives · Domain needs · CDIF · DCAT-AP · DataCite · Instruments in the Czech NDI · operational · 12 working groups, 487 members · operational · Czech Core Metadata Model 1.1.0 · operational · Profiles of pilot and LRI repositories · in development · Profiles for OS II disciplines · in development · FIPs for Czech communities · Hands on · Domain requirements · profiles · vocabularies · 3 · Infrastructure · Receives · Domain requirements · policy mandates · Instruments in the Czech NDI · operational · NRP platforms (three repository systems) · operational · LRI and institutional repositories · in development · OS II disciplinary repositories · operational · Metadata Directory · PID centre · AAI · pilot · National Catalogue of Repositories · Hands on · Repositories · identifiers · discovery · 4 · Research planning · Receives · Available options · repository requirements · Instruments in the Czech NDI · pilot · dmp.eosc.cz (Data Stewardship Wizard) · pilot · DSW bootstrapping tool · in development · FIP module · training instance · planned · Actionable DMP exchange with NRP · Hands on · Plans · repository choice · access conditions · 5 · Operational support · Receives · Requirements and gaps from every other layer · Instruments in the Czech NDI · operational · Institutional data stewards · operational · National data steward community · operational · EOSC CZ Training Centre · operational · NRP service desk (L1–L3) · planned · OS III institutional projects · Hands on · Guided curation · evidence of gaps · 6 · Evaluation · Receives · Published records · repository configuration · Instruments in the Czech NDI · operational · RDA maturity model · FAIRsFAIR metrics · operational · F-UJI · FAIR-Checker · CoreTrustSeal · operational · Assessment cases, national FAIR analysis · planned · FAIR checks built into NRP · prospective · Routine return of findings to curation · Hands on · Diagnosis · remediation targets · As of October 2026. · operational · pilot · in development · planned · prospective</desc>
+  <defs></defs>
+  <rect fill="#FFFFFF" height="752" width="518.4" x="0" y="0"></rect>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#334D80" stroke-width="1.15" width="245.0" x="9.5" y="13"></rect>
+  <rect fill="#E8EDF7" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="9.5" y="13"></rect>
+  <rect fill="#E8EDF7" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="9.5" y="37"></rect>
+  <line stroke="#334D80" stroke-linecap="round" stroke-width="0.75" x1="9.5" x2="254.5" y1="41" y2="41"></line>
+  <circle cx="26.5" cy="27.0" fill="#334D80" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="26.5" y="30.8">1</text>
+  <text fill="#334D80" font-family="Arial, Helvetica, sans-serif" font-size="10.45" font-weight="bold" text-anchor="start" x="41.5" y="31.0">Principles, policy and governance</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="59">Receives</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="19.5" y="74">FAIR Principles · European Open Science policy</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="98">Instruments in the Czech NDI</text>
+  <circle cx="23.6" cy="121.0" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="111.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="121.41600000000001">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="124.0">EOSC CZ coordination</text>
+  <circle cx="23.6" cy="139.3" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="177.22490234375" y="129.3"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="211.862451171875" y="139.716">in development</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="142.3">EOSC Node Czechia (endorsed 2026)</text>
+  <circle cx="23.6" cy="157.6" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="147.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="158.016">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="160.6">IPs EOSC-CZ · IPs CARDS</text>
+  <circle cx="23.6" cy="175.9" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="165.9"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="176.316">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="178.9">Dataset as RIV result type T</text>
+  <circle cx="23.6" cy="194.2" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="184.2"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="194.61599999999999">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="197.2">National FAIR analysis v1.2</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="18.5" x2="245.5" y1="205" y2="205"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="19.5" y="220">Hands on</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="19.5" y="232">Mandates · funded responsibilities · reporting rules</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#247A50" stroke-width="1.15" width="245.0" x="263.9" y="13"></rect>
+  <rect fill="#E6F3EC" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="263.9" y="13"></rect>
+  <rect fill="#E6F3EC" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="263.9" y="37"></rect>
+  <line stroke="#247A50" stroke-linecap="round" stroke-width="0.75" x1="263.9" x2="508.9" y1="41" y2="41"></line>
+  <circle cx="280.9" cy="27.0" fill="#247A50" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="280.9" y="30.8">2</text>
+  <text fill="#247A50" font-family="Arial, Helvetica, sans-serif" font-size="10.45" font-weight="bold" text-anchor="start" x="295.9" y="31.0">Community decision and implementation</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="59">Receives</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="273.9" y="74">Domain needs · CDIF · DCAT-AP · DataCite</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="98">Instruments in the Czech NDI</text>
+  <circle cx="278.0" cy="121.0" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="111.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="121.41600000000001">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="124.0">12 working groups, 487 members</text>
+  <circle cx="278.0" cy="139.3" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="129.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="139.716">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="142.3">Czech Core Metadata Model 1.1.0</text>
+  <circle cx="278.0" cy="157.6" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="147.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="158.016">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="160.6">Profiles of pilot and LRI repositories</text>
+  <circle cx="278.0" cy="175.9" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="431.62490234374997" y="165.9"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="466.262451171875" y="176.316">in development</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="178.9">Profiles for OS II disciplines</text>
+  <circle cx="278.0" cy="194.2" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="431.62490234374997" y="184.2"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="466.262451171875" y="194.61599999999999">in development</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="197.2">FIPs for Czech communities</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="272.9" x2="499.9" y1="205" y2="205"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="273.9" y="220">Hands on</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="273.9" y="232">Domain requirements · profiles · vocabularies</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#226FA7" stroke-width="1.15" width="245.0" x="9.5" y="248"></rect>
+  <rect fill="#E4F0F9" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="9.5" y="248"></rect>
+  <rect fill="#E4F0F9" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="9.5" y="272"></rect>
+  <line stroke="#226FA7" stroke-linecap="round" stroke-width="0.75" x1="9.5" x2="254.5" y1="276" y2="276"></line>
+  <circle cx="26.5" cy="262.0" fill="#226FA7" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="26.5" y="265.8">3</text>
+  <text fill="#226FA7" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="41.5" y="266.0">Infrastructure</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="294">Receives</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="19.5" y="309">Domain requirements · policy mandates</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="333">Instruments in the Czech NDI</text>
+  <circle cx="23.6" cy="356.0" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="346.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="356.416">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="359.0">NRP platforms (three repository systems)</text>
+  <circle cx="23.6" cy="374.3" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="364.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="374.716">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="377.3">LRI and institutional repositories</text>
+  <circle cx="23.6" cy="392.6" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="177.22490234375" y="382.6"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="211.862451171875" y="393.016">in development</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="395.6">OS II disciplinary repositories</text>
+  <circle cx="23.6" cy="410.9" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="400.9"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="411.316">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="413.9">Metadata Directory · PID centre · AAI</text>
+  <circle cx="23.6" cy="429.2" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF0E2" height="15.8" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="30.6166015625" x="215.8833984375" y="419.2"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="231.19169921875002" y="429.616">pilot</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="432.2">National Catalogue of Repositories</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="18.5" x2="245.5" y1="440" y2="440"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="19.5" y="455">Hands on</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="19.5" y="467">Repositories · identifiers · discovery</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#B95A16" stroke-width="1.15" width="245.0" x="263.9" y="248"></rect>
+  <rect fill="#FCEDE4" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="263.9" y="248"></rect>
+  <rect fill="#FCEDE4" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="263.9" y="272"></rect>
+  <line stroke="#B95A16" stroke-linecap="round" stroke-width="0.75" x1="263.9" x2="508.9" y1="276" y2="276"></line>
+  <circle cx="280.9" cy="262.0" fill="#B95A16" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="280.9" y="265.8">4</text>
+  <text fill="#B95A16" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="295.9" y="266.0">Research planning</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="294">Receives</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="273.9" y="309">Available options · repository requirements</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="333">Instruments in the Czech NDI</text>
+  <circle cx="278.0" cy="356.0" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF0E2" height="15.8" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="30.6166015625" x="470.28339843749995" y="346.0"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="485.59169921874997" y="356.416">pilot</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="359.0">dmp.eosc.cz (Data Stewardship Wizard)</text>
+  <circle cx="278.0" cy="374.3" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF0E2" height="15.8" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="30.6166015625" x="470.28339843749995" y="364.3"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="485.59169921874997" y="374.716">pilot</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="377.3">DSW bootstrapping tool</text>
+  <circle cx="278.0" cy="392.6" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="431.62490234374997" y="382.6"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="466.262451171875" y="393.016">in development</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="395.6">FIP module · training instance</text>
+  <circle cx="278.0" cy="410.9" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#EDF1F6" height="15.8" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="43.36787109375" x="457.53212890624997" y="400.9"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="479.21606445312494" y="411.316">planned</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="413.9">Actionable DMP exchange with NRP</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="272.9" x2="499.9" y1="440" y2="440"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="273.9" y="455">Hands on</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="273.9" y="467">Plans · repository choice · access conditions</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#70499A" stroke-width="1.15" width="245.0" x="9.5" y="483"></rect>
+  <rect fill="#F0E9F8" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="9.5" y="483"></rect>
+  <rect fill="#F0E9F8" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="9.5" y="507"></rect>
+  <line stroke="#70499A" stroke-linecap="round" stroke-width="0.75" x1="9.5" x2="254.5" y1="511" y2="511"></line>
+  <circle cx="26.5" cy="497.0" fill="#70499A" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="26.5" y="500.8">5</text>
+  <text fill="#70499A" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="41.5" y="501.0">Operational support</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="529">Receives</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="19.5" y="544">Requirements and gaps from every other layer</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="568">Instruments in the Czech NDI</text>
+  <circle cx="23.6" cy="591.0" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="581.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="591.4159999999999">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="594.0">Institutional data stewards</text>
+  <circle cx="23.6" cy="609.3" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="599.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="609.7159999999999">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="612.3">National data steward community</text>
+  <circle cx="23.6" cy="627.6" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="617.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="628.016">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="630.6">EOSC CZ Training Centre</text>
+  <circle cx="23.6" cy="645.9" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="635.9"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="646.3159999999999">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="648.9">NRP service desk (L1–L3)</text>
+  <circle cx="23.6" cy="664.2" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#EDF1F6" height="15.8" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="43.36787109375" x="203.13212890625" y="654.2"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="224.816064453125" y="664.616">planned</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="667.2">OS III institutional projects</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="18.5" x2="245.5" y1="675" y2="675"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="19.5" y="690">Hands on</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="19.5" y="702">Guided curation · evidence of gaps</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#A9363C" stroke-width="1.15" width="245.0" x="263.9" y="483"></rect>
+  <rect fill="#F9E7E8" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="263.9" y="483"></rect>
+  <rect fill="#F9E7E8" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="263.9" y="507"></rect>
+  <line stroke="#A9363C" stroke-linecap="round" stroke-width="0.75" x1="263.9" x2="508.9" y1="511" y2="511"></line>
+  <circle cx="280.9" cy="497.0" fill="#A9363C" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="280.9" y="500.8">6</text>
+  <text fill="#A9363C" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="295.9" y="501.0">Evaluation</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="529">Receives</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="273.9" y="544">Published records · repository configuration</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="568">Instruments in the Czech NDI</text>
+  <circle cx="278.0" cy="591.0" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="581.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="591.4159999999999">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="594.0">RDA maturity model · FAIRsFAIR metrics</text>
+  <circle cx="278.0" cy="609.3" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="599.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="609.7159999999999">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="612.3">F-UJI · FAIR-Checker · CoreTrustSeal</text>
+  <circle cx="278.0" cy="627.6" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="617.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="628.016">operational</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="630.6">Assessment cases, national FAIR analysis</text>
+  <circle cx="278.0" cy="645.9" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#EDF1F6" height="15.8" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="43.36787109375" x="457.53212890624997" y="635.9"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="479.21606445312494" y="646.3159999999999">planned</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="648.9">FAIR checks built into NRP</text>
+  <circle cx="278.0" cy="664.2" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFFFFF" height="15.8" rx="6" ry="6" stroke="#6D7584" stroke-dasharray="3,2" stroke-width="0.78" width="52.84189453125" x="448.05810546875" y="654.2"></rect>
+  <text fill="#6D7584" font-family="Arial, Helvetica, sans-serif" font-size="7.4" text-anchor="middle" x="474.479052734375" y="664.616">prospective</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="667.2">Routine return of findings to curation</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="272.9" x2="499.9" y1="675" y2="675"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="273.9" y="690">Hands on</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="273.9" y="702">Diagnosis · remediation targets</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="7.9" text-anchor="start" x="11" y="725">As of October 2026.</text>
+  <rect fill="#E6F5E9" height="14.5" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="57.230810546875006" x="11" y="733"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="39.6154052734375" y="742.851">operational</text>
+  <rect fill="#FFF0E2" height="14.5" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="32.144189453125" x="75.730810546875" y="733"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="91.8029052734375" y="742.851">pilot</text>
+  <rect fill="#FFF5CC" height="14.5" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="72.10871582031251" x="115.375" y="733"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="151.42935791015626" y="742.851">in development</text>
+  <rect fill="#EDF1F6" height="14.5" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="45.3262451171875" x="194.9837158203125" y="733"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="217.64683837890627" y="742.851">planned</text>
+  <rect fill="#FFFFFF" height="14.5" rx="6" ry="6" stroke="#6D7584" stroke-dasharray="3,2" stroke-width="0.78" width="55.120336914062506" x="247.80996093750002" y="733"></rect>
+  <text fill="#6D7584" font-family="Arial, Helvetica, sans-serif" font-size="7.65" text-anchor="middle" x="275.37012939453126" y="742.851">prospective</text>
+</svg>

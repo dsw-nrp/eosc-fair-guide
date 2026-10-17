@@ -1,3 +1,6 @@
 # Tools for repository checks. The generator and content checks need only the Python standard library.
 reuse[charset-normalizer]==6.2.0
 cffconvert==2.0.0
+roc-validator==0.12.2
+ruff==0.16.6
+PyYAML==6.0.3

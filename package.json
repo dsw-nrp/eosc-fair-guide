@@ -1,0 +1,38 @@
+{
+  "name": "eosc-fair-guide",
+  "version": "1.0.0-alpha.1",
+  "private": true,
+  "description": "Page checks for the EOSC CZ FAIR Data Guide: rendering, accessibility, links and diagrams.",
+  "license": "MIT",
+  "scripts": {
+    "browsers": "node scripts/install_browsers.mjs",
+    "check:page": "node scripts/run_checks.mjs page",
+    "check:embed": "node scripts/run_checks.mjs embed",
+    "check:deployment": "node scripts/run_checks.mjs deployment",
+    "check:discovery": "node scripts/run_checks.mjs discovery",
+    "check:helpers": "node scripts/run_checks.mjs helpers",
+    "check:model": "node scripts/run_checks.mjs model",
+    "check:visuals": "node scripts/run_checks.mjs visuals",
+    "check:assessment": "node scripts/run_checks.mjs assessment",
+    "check:providers": "node scripts/run_checks.mjs providers",
+    "check:live": "node scripts/run_checks.mjs live",
+    "check:diagrams": "node scripts/run_checks.mjs diagrams",
+    "check:api": "node scripts/run_checks.mjs api",
+    "check:live-release": "node scripts/run_checks.mjs live-release",
+    "openspec:cli": "node node_modules/@fission-ai/openspec/bin/openspec.js",
+    "openspec:validate": "npm run -s openspec:cli -- validate --all --strict",
+    "check:final": "node scripts/run_checks.mjs final",
+    "check:runtime": "node --test tests/runtime.test.mjs"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "13.1.0",
+    "@axe-core/playwright": "4.13.0",
+    "@fission-ai/openspec": "1.14.1",
+    "@fontsource/plus-jakarta-sans": "5.3.0",
+    "@fortawesome/fontawesome-free": "7.3.1",
+    "ajv": "8.20.0",
+    "mermaid": "11.16.1",
+    "playwright": "1.63.0",
+    "swagger-ui-dist": "5.33.0"
+  }
+}

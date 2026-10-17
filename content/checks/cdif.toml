@@ -1,0 +1,379 @@
+# CDIF readiness, for repository administrators and communities: one question per content requirement of the CDIF
+# basic discovery metadata content model and one per CDIF profile, each naming the record it asks about.
+
+[check]
+id = "cdif"
+name = { cs = "Připravenost metadat na CDIF", en = "CDIF readiness of metadata" }
+icon = "circle-nodes"
+description = { cs = "Odpovídají metadata repozitáře rámci CDIF pro [[term/interoperability|interoperabilitu]] napříč obory? Otázky sledují obsahové požadavky CDIF 1.1 na metadata pro vyhledávání a profily CDIF; u každé najdete text CDIF, jak ho kniha CDIF zveřejňuje. Základní kontrola má povinné a podmíněné prvky, rozšířená přidává doporučené prvky, správu metadat a profily.", en = "Do the repository's metadata follow CDIF, the framework for [[term/interoperability|interoperability]] across domains? The questions follow the CDIF 1.1 content requirements for discovery metadata and the CDIF profiles, each with CDIF's text as the CDIF book publishes it. The basic check covers the required and conditional elements; the extended check adds the recommended elements, metadata management and the profiles." }
+lenses = ["SR", "K"]
+minutes = 20
+
+[[block]]
+id = "required"
+icon = "asterisk"
+name = { cs = "Povinné a podmíněné prvky", en = "Required and conditional elements" }
+description = { cs = "Bez povinných prvků metadata neposlouží ani nejzákladnějšímu vyhledávání; podmíněné jsou povinné tam, kde se zdroje týkají.", en = "Without the required elements, metadata do not serve even the most rudimentary discovery; conditional ones are required where they apply." }
+
+[[block]]
+id = "recommended"
+icon = "thumbs-up"
+name = { cs = "Doporučené prvky", en = "Recommended elements" }
+description = { cs = "Uvádějte je, kde je to možné a smysluplné.", en = "Give them where possible and relevant." }
+
+[[block]]
+id = "management"
+icon = "gears"
+name = { cs = "Správa metadat", en = "Metadata management" }
+description = { cs = "Pro [[term/harvesting|sklizeň]] mezi katalogy; nástroje je obvykle vyplňují samy.", en = "For [[term/harvesting|harvesting]] between catalogues; tools usually fill them in." }
+
+[[block]]
+id = "profiles"
+icon = "layer-group"
+name = { cs = "Profily CDIF", en = "CDIF profiles" }
+description = { cs = "Pro funkce nad rámec vyhledávání: popis a struktura dat, slovníky, balíčky, přístup a univerzální veličiny.", en = "For functions beyond discovery: data description and structure, vocabularies, packages, access and universals." }
+
+[[item]]
+id = "cdif.01"
+principles = ["F1", "A1"]
+requirement = "CDIF.REQ1"
+statement = { cs = "Metadata uvádějí globálně jedinečný a rozřešitelný identifikátor zdroje.", en = "The metadata give a globally unique, resolvable identifier for the resource." }
+tier = "standard"
+block = "required"
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.02"
+principles = ["F2"]
+requirement = "CDIF.REQ2"
+statement = { cs = "Metadata uvádějí stručný název, podle kterého člověk zdroj jednoznačně pozná.", en = "The metadata give a succinct title that lets a person identify the resource uniquely." }
+tier = "standard"
+block = "required"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.03"
+principles = ["A1"]
+requirement = "CDIF.REQ3"
+statement = { cs = "Metadata uvádějí, jak zdroj získat: URL, popis distribucí, nebo návod k přístupu.", en = "The metadata say how to obtain the resource: a URL, a description of its distributions, or access instructions." }
+tier = "standard"
+block = "required"
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.04"
+principles = ["A1.2", "R1.1"]
+requirement = "CDIF.REQ4"
+statement = { cs = "Metadata uvádějí práva: licence, přístupová oprávnění, smluvní a bezpečnostní omezení a omezení použití.", en = "The metadata state the rights: licences, access permissions, contractual and security constraints and use constraints." }
+tier = "standard"
+block = "required"
+fixAt = "licence"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.05"
+principles = ["I1", "R1.3"]
+requirement = "CDIF.REQ5"
+statement = { cs = "Metadata uvádějí identifikátor profilu, podle kterého záznam vznikl.", en = "The metadata give the identifier of the profile the record was created with." }
+tier = "standard"
+block = "required"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.06"
+principles = ["F2", "I2"]
+requirement = "CDIF.REQ6"
+statement = { cs = "Metadata uvádějí typ zdroje jako označení s uvedeným klasifikačním schématem.", en = "The metadata give the resource type as a label with its classification scheme." }
+tier = "standard"
+block = "required"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.07"
+principles = ["F2", "I2"]
+requirement = "CDIF.CON1"
+statement = { cs = "U datových sad metadata uvádějí seznam proměnných, ideálně s odkazem na řízený slovník.", en = "For datasets, the metadata list the variables, ideally linked to a controlled vocabulary." }
+tier = "standard"
+block = "required"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.08"
+principles = ["F2"]
+requirement = "CDIF.CON2"
+statement = { cs = "Týká-li se zdroj určitého časového intervalu, metadata ho uvádějí.", en = "If the resource concerns a time interval, the metadata give it." }
+tier = "standard"
+block = "required"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.09"
+principles = ["F2"]
+requirement = "CDIF.CON3"
+statement = { cs = "Má-li zdroj geografický rozsah, metadata ho uvádějí, souřadnice v desetinných stupních WGS 84.", en = "If the resource has a geographic extent, the metadata give it, with coordinates in WGS 84 decimal degrees." }
+tier = "standard"
+block = "required"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.10"
+principles = ["F2", "R1", "R1.2"]
+requirement = "CDIF.REC1"
+statement = { cs = "Metadata obsahují popis obsahu, kontextu a původu zdroje.", en = "The metadata describe the resource's content, context and provenance." }
+tier = "recommended"
+block = "recommended"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.11"
+principles = ["F2", "R1.2"]
+requirement = "CDIF.REC2"
+statement = { cs = "Metadata uvádějí původce (osoby či organizace) se jménem a identifikátorem.", en = "The metadata name the originators (people or organisations) with a name and an identifier." }
+tier = "recommended"
+block = "recommended"
+fixAt = "citation"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.12"
+principles = ["F2", "R1.2"]
+requirement = "CDIF.REC3"
+statement = { cs = "Metadata uvádějí datum poslední změny zdroje ve strojově čitelném formátu.", en = "The metadata give the date of the resource's last change in a machine-readable format." }
+tier = "recommended"
+block = "recommended"
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.13"
+principles = ["A1"]
+requirement = "CDIF.REC4"
+statement = { cs = "Metadata uvádějí kontakt pro přístup ke zdroji.", en = "The metadata give a contact for access to the resource." }
+tier = "recommended"
+block = "recommended"
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.14"
+principles = ["R1"]
+requirement = "CDIF.REC5"
+statement = { cs = "Metadata uvádějí kontrolní součty souborů i použitý algoritmus.", en = "The metadata give the files' checksums and the algorithm used." }
+tier = "recommended"
+block = "recommended"
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.15"
+principles = ["F2", "R1.2"]
+requirement = "CDIF.REC6"
+statement = { cs = "Metadata uvádějí financování s identifikátorem grantu či smlouvy a poskytovatelem.", en = "The metadata cite the funding, with the grant or contract identifier and the funder." }
+tier = "recommended"
+block = "recommended"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.16"
+principles = ["F2", "I2"]
+requirement = "CDIF.REC7"
+statement = { cs = "Metadata uvádějí klíčová slova a termíny z řízených slovníků rozlišují od volných štítků.", en = "The metadata give keywords, distinguishing terms from controlled vocabularies from free tags." }
+tier = "recommended"
+block = "recommended"
+fixAt = "findability"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.17"
+principles = ["R1"]
+requirement = "CDIF.REC8"
+statement = { cs = "Metadata uvádějí zásady správy zdroje: změny, aktualizace, dobu dostupnosti, údržbu a verzování.", en = "The metadata state the resource's management policies: changes, updates, availability lifetime, maintenance and versioning." }
+tier = "recommended"
+block = "recommended"
+fixAt = "repository"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.18"
+principles = ["F2"]
+requirement = "CDIF.REC9"
+statement = { cs = "Metadata uvádějí datum zveřejnění zdroje.", en = "The metadata give the resource's publication date." }
+tier = "recommended"
+block = "recommended"
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.19"
+principles = ["F2", "R1.2"]
+requirement = "CDIF.REC10"
+statement = { cs = "Metadata uvádějí další strany, které se na vzniku zdroje podílely, s jejich rolí.", en = "The metadata name other parties who contributed to the resource, with their roles." }
+tier = "recommended"
+block = "recommended"
+fixAt = "citation"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.20"
+principles = ["I3"]
+requirement = "CDIF.REC11"
+statement = { cs = "Metadata odkazují na související zdroje s typem vztahu a rozřešitelným identifikátorem.", en = "The metadata link related resources, with the type of relationship and a resolvable identifier." }
+tier = "recommended"
+block = "recommended"
+fixAt = "findability"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.21"
+principles = ["F2", "R1.2"]
+requirement = "CDIF.REC12"
+statement = { cs = "U verzovaných zdrojů metadata uvádějí označení verze, které se řadí podle pořadí vydání.", en = "For versioned resources, the metadata give a version label that sorts in release order." }
+tier = "recommended"
+block = "recommended"
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.22"
+principles = ["R1.2"]
+requirement = "CDIF.REC13"
+statement = { cs = "Metadata uvádějí, z jakých dat a jakými přístroji, softwarem či postupy zdroj vznikl.", en = "The metadata say which data, and which instruments, software or procedures, the resource was created from." }
+tier = "recommended"
+block = "recommended"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.23"
+principles = ["R1"]
+requirement = "CDIF.REC14"
+statement = { cs = "Metadata uvádějí údaje o kvalitě zdroje a o tom, jak se kvalita měřila.", en = "The metadata give information on the resource's quality and how it was measured." }
+tier = "recommended"
+block = "recommended"
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.24"
+principles = ["F2", "R1.2"]
+requirement = "CDIF.MET1"
+statement = { cs = "Metadata uvádějí datum svého vytvoření nebo poslední aktualizace (ISO 8601).", en = "The metadata give the date of their creation or last update (ISO 8601)." }
+tier = "recommended"
+block = "management"
+fixAt = "findability"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.25"
+principles = ["R1.2"]
+requirement = "CDIF.MET2"
+statement = { cs = "Metadata uvádějí, kdo odpovídá za jejich obsah a správnost.", en = "The metadata name who is responsible for their content and accuracy." }
+tier = "recommended"
+block = "management"
+fixAt = "findability"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.26"
+principles = ["F1"]
+requirement = "CDIF.MET3"
+statement = { cs = "Metadata mají vlastní identifikátor.", en = "The metadata have an identifier of their own." }
+tier = "recommended"
+block = "management"
+fixAt = "findability"
+owner = ["repository-admin"]
+
+[[item]]
+id = "cdif.27"
+requirement = "CDIF.Core"
+statement = { cs = "Metadata jsou vyjádřena jako JSON-LD podle profilu CDIF Core.", en = "The metadata are expressed as JSON-LD following the CDIF Core profile." }
+tier = "advanced"
+block = "profiles"
+fixAt = "findability"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.28"
+principles = ["F2", "I1", "R1.3"]
+requirement = "CDIF.Discovery"
+statement = { cs = "Metadata popisují prostorový a časový rozsah a proměnné podle profilu CDIF Discovery.", en = "The metadata describe spatial and temporal extent and variables following the CDIF Discovery profile." }
+tier = "advanced"
+block = "profiles"
+fixAt = "findability"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.29"
+principles = ["I1", "R1", "R1.3"]
+requirement = "CDIF.DataDescription"
+statement = { cs = "Metadata popisují obory hodnot, statistiky, uspořádání souborů a role proměnných podle profilu CDIF Data Description.", en = "The metadata describe value domains, statistics, file layout and the roles of variables following the CDIF Data Description profile." }
+tier = "advanced"
+block = "profiles"
+fixAt = "metadata"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.30"
+principles = ["I1", "I2"]
+requirement = "CDIF.Codelist"
+statement = { cs = "Číselníky a klasifikace, jejichž kódy jsou v datech, se zveřejňují jako SKOS podle profilu CDIF Codelist.", en = "Codelists and classifications whose codes appear in the data are published as SKOS following the CDIF Codelist profile." }
+tier = "advanced"
+block = "profiles"
+fixAt = "metadata"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.31"
+requirement = "CDIF.DataStructure"
+statement = { cs = "Opakovaně použitelné datové struktury a jejich proměnné se popisují podle profilu CDIF Data Structure (DDI-CDI).", en = "Reusable data structures and their variables are described following the CDIF Data Structure profile (DDI-CDI)." }
+tier = "advanced"
+block = "profiles"
+fixAt = "metadata"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.32"
+requirement = "CDIF.ConceptScheme"
+statement = { cs = "Pojmové systémy oboru se zveřejňují jako SKOS podle profilu CDIF Concept Scheme.", en = "The domain's concept systems are published as SKOS following the CDIF Concept Scheme profile." }
+tier = "advanced"
+block = "profiles"
+fixAt = "metadata"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.33"
+principles = ["I1", "I3", "R1.3"]
+requirement = "CDIF.Manifest"
+statement = { cs = "Balíčky dat a metadat se popisují podle profilu CDIF Manifest (RO-Crate).", en = "Packages of data and metadata are described following the CDIF Manifest profile (RO-Crate)." }
+tier = "advanced"
+block = "profiles"
+fixAt = "publication"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.34"
+requirement = "CDIF.Access"
+statement = { cs = "Podmínky přístupu a použití se popisují strojově jazykem ODRL podle doporučení CDIF.", en = "Access and use conditions are described machine-actionably in ODRL following the CDIF guidance." }
+tier = "advanced"
+block = "profiles"
+fixAt = "licence"
+owner = ["repository-admin", "community"]
+
+[[item]]
+id = "cdif.35"
+requirement = "CDIF.Universals"
+statement = { cs = "Čas, místo a jednotky se uvádějí podle doporučení CDIF pro univerzální veličiny.", en = "Time, place and units are given following the CDIF guidance on universals." }
+tier = "advanced"
+block = "profiles"
+fixAt = "metadata"
+owner = ["repository-admin", "community"]

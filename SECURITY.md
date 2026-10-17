@@ -7,6 +7,8 @@ browser. It sends requests to external services only when the user starts a live
 to an allowlist of hosts. Security-relevant parts are:
 
 - the connectors in `assets/js/` that call external services and render their responses;
+- local files the user loads, which are untrusted: evaluator reports (`assets/js/providers.js`) and saved
+  results, including the original reports a complete evidence file carries;
 - the Content Security Policy and other page headers;
 - the content checks and generator in `scripts/`;
 - the CI workflows in `.github/workflows/`.

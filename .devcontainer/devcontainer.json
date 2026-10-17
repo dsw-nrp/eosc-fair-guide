@@ -1,0 +1,20 @@
+{
+  "name": "EOSC CZ FAIR Guide",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "workspaceFolder": "/workspaces/eosc-fair-guide",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/eosc-fair-guide,type=bind",
+  "mounts": ["type=volume,target=/workspaces/eosc-fair-guide/node_modules"],
+  "postCreateCommand": "npm ci",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "FAIR Guide preview", "onAutoForward": "notify" }
+  },
+  "customizations": {
+    "vscode": {
+      "settings": { "python.defaultInterpreterPath": "/usr/local/bin/python" }
+    }
+  }
+}

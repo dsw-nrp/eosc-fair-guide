@@ -1,0 +1,13 @@
+[[callout]]
+id = "note"
+title = { cs = "Poznámka", en = "Note" }
+stations = ["one"]
+order = { SR = ["b", "a"] }
+
+[[callout.item]]
+id = "a"
+text = { cs = "První.", en = "First." }
+
+[[callout.item]]
+id = "b"
+text = { cs = "Druhá.", en = "Second." }

@@ -1,0 +1,132 @@
+# The FAIR Guiding Principles (Wilkinson et al. 2016, https://doi.org/10.1038/sdata.2016.18).
+# CoreTrustSeal links name the 2026-2028 requirements (ledger clauses CTS.R01-CTS.R16). The analysis numbers them
+# mostly by the 2020-2022 edition (R10 preservation plan, R11 data quality, R13 discovery, R14 reuse), F1's R12 by
+# the 2023 one; each link follows what the analysis says the requirement is about, not its number.
+# CDIF links name the profiles of CDIF 1.1 (ledger clauses CDIF.<profile>), from the analysis's CDIF recommendations,
+# which use the names of the 2023 CDIF; each follows what the recommendation is about.
+# Czech statements and CoreTrustSeal links follow the FAIR analysis v1.2, chapter 3 (source analyza-fair-1.2);
+# the Czech I3 statement adds "kvalifikované" to match the original principle.
+
+[[principle]]
+id = "F1"
+
+iri = "https://w3id.org/fair/principles/terms/F1"
+label = { cs = "Trvalý identifikátor", en = "Persistent identifier" }
+statement = { cs = "(Meta)datům je přiřazen globálně jedinečný a trvalý identifikátor.", en = "(Meta)data are assigned a globally unique and persistent identifier." }
+cts = ["R12"]
+
+[[principle]]
+id = "F2"
+
+iri = "https://w3id.org/fair/principles/terms/F2"
+label = { cs = "Bohatá metadata", en = "Rich metadata" }
+statement = { cs = "Data jsou popsána bohatými metadaty.", en = "Data are described with rich metadata." }
+cts = ["R08", "R10", "R12", "R13"]
+cdif = ["Core", "ConceptScheme"]
+
+[[principle]]
+id = "F3"
+
+iri = "https://w3id.org/fair/principles/terms/F3"
+label = { cs = "Identifikátor dat v metadatech", en = "Data identifier in metadata" }
+statement = { cs = "Metadata jasně a explicitně uvádějí identifikátor dat, která popisují.", en = "Metadata clearly and explicitly include the identifier of the data they describe." }
+cts = ["R08", "R12"]
+
+[[principle]]
+id = "F4"
+
+iri = "https://w3id.org/fair/principles/terms/F4"
+label = { cs = "Registrace a indexace", en = "Registered and indexed" }
+statement = { cs = "(Meta)data jsou registrována nebo indexována v prohledávatelných zdrojích.", en = "(Meta)data are registered or indexed in a searchable resource." }
+cts = ["R08", "R12"]
+
+[[principle]]
+id = "A1"
+
+iri = "https://w3id.org/fair/principles/terms/A1"
+label = { cs = "Dostupnost přes standardní protokol", en = "Retrievable by a standard protocol" }
+statement = { cs = "(Meta)data jsou dostupná pomocí identifikátoru prostřednictvím standardizovaného komunikačního protokolu.", en = "(Meta)data are retrievable by their identifier using a standardised communications protocol." }
+cts = ["R15"]
+
+[[principle]]
+id = "A1.1"
+
+iri = "https://w3id.org/fair/principles/terms/A1.1"
+label = { cs = "Otevřený protokol", en = "Open protocol" }
+statement = { cs = "Protokol je otevřený, zdarma k dispozici a univerzálně použitelný.", en = "The protocol is open, free, and universally implementable." }
+cts = ["R15"]
+
+[[principle]]
+id = "A1.2"
+
+iri = "https://w3id.org/fair/principles/terms/A1.2"
+label = { cs = "Ověřování a autorizace", en = "Authentication and authorisation" }
+statement = { cs = "Protokol v případě potřeby umožňuje postup ověřování a autorizace.", en = "The protocol allows for an authentication and authorisation procedure, where necessary." }
+cts = ["R15"]
+
+[[principle]]
+id = "A2"
+
+iri = "https://w3id.org/fair/principles/terms/A2"
+label = { cs = "Trvalost metadat", en = "Persistent metadata" }
+statement = { cs = "Metadata jsou přístupná, i když data již nejsou k dispozici.", en = "Metadata are accessible, even when the data are no longer available." }
+cts = ["R08", "R09"]
+
+[[principle]]
+id = "I1"
+
+iri = "https://w3id.org/fair/principles/terms/I1"
+label = { cs = "Formální jazyk", en = "Formal language" }
+statement = { cs = "(Meta)data používají pro reprezentaci znalostí jazyk, který je formální, dostupný, sdílený a široce aplikovatelný.", en = "(Meta)data use a formal, accessible, shared, and broadly applicable language for knowledge representation." }
+cts = ["R13", "R15"]
+cdif = ["ConceptScheme", "Universals"]
+
+[[principle]]
+id = "I2"
+
+iri = "https://w3id.org/fair/principles/terms/I2"
+label = { cs = "FAIR slovníky", en = "FAIR vocabularies" }
+statement = { cs = "(Meta)data používají slovníky, které se řídí zásadami FAIR.", en = "(Meta)data use vocabularies that follow FAIR principles." }
+cts = ["R13"]
+
+[[principle]]
+id = "I3"
+
+iri = "https://w3id.org/fair/principles/terms/I3"
+label = { cs = "Kvalifikované odkazy", en = "Qualified references" }
+statement = { cs = "(Meta)data obsahují kvalifikované odkazy na další (meta)data.", en = "(Meta)data include qualified references to other (meta)data." }
+cts = ["R10", "R13"]
+
+[[principle]]
+id = "R1"
+
+iri = "https://w3id.org/fair/principles/terms/R1"
+label = { cs = "Bohatý popis", en = "Richly described" }
+statement = { cs = "(Meta)data jsou bohatě popsána množstvím přesných a relevantních atributů.", en = "(Meta)data are richly described with a plurality of accurate and relevant attributes." }
+cts = ["R08", "R10", "R13"]
+
+[[principle]]
+id = "R1.1"
+
+iri = "https://w3id.org/fair/principles/terms/R1.1"
+label = { cs = "Licence", en = "Licence" }
+statement = { cs = "(Meta)data jsou zveřejněna s jasnou a přístupnou licencí na používání dat.", en = "(Meta)data are released with a clear and accessible data usage licence." }
+cts = ["R02"]
+cdif = ["Access"]
+
+[[principle]]
+id = "R1.2"
+
+iri = "https://w3id.org/fair/principles/terms/R1.2"
+label = { cs = "Provenience", en = "Provenance" }
+statement = { cs = "(Meta)data jsou spjata s podrobnou proveniencí.", en = "(Meta)data are associated with detailed provenance." }
+cts = ["R07", "R13"]
+cdif = ["DataStructure"]
+
+[[principle]]
+id = "R1.3"
+
+iri = "https://w3id.org/fair/principles/terms/R1.3"
+label = { cs = "Komunitní standardy", en = "Community standards" }
+statement = { cs = "(Meta)data splňují komunitní standardy relevantní pro danou oblast.", en = "(Meta)data meet domain-relevant community standards." }
+cts = ["R13"]

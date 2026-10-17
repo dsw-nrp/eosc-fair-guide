@@ -1,0 +1,19 @@
+[[connector]]
+id = "api"
+name = "Test API"
+origin = "https://api.example.org"
+purpose = "Testing"
+
+[champion]
+endpoint = "https://api.example.org/tests"
+maxParallel = 4
+timeoutSeconds = 60
+
+[[champion.test]]
+id = "test_one"
+alternateIds = [{ scheme = "fair-champion", value = "test_one" }]
+principle = "F1"
+label = { cs = "Test", en = "Test" }
+
+[links]
+search = "https://example.org/search"

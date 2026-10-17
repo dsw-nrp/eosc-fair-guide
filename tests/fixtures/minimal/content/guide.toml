@@ -1,0 +1,93 @@
+# Minimal complete content for the script tests.
+
+[guide]
+version = "0.0.1"
+testingNotice = { cs = "Testování.", en = "Testing." }
+datePublished = 2026-01-01
+name = { cs = "Test", en = "Test" }
+description = { cs = "Testovací obsah.", en = "Test content." }
+url = "https://example.org/guide"
+baseUrl = "https://example.org/guide/"
+profileVersion = "0.1"
+freshnessDays = 180
+editors = ["tester"]
+publisher = "org"
+acknowledgement = { cs = "Poděkování.", en = "Acknowledgement." }
+aiStatement = { cs = "Prohlášení o AI.", en = "AI statement." }
+
+[[person]]
+id = "tester"
+name = "Test Person"
+
+[[organization]]
+id = "org"
+name = "Test Organisation"
+
+[[instrument]]
+id = "model"
+name = "Test model"
+version = "1"
+kind = "ai-model"
+
+[[lens]]
+id = "V"
+name = { cs = "Výzkumník", en = "Researcher" }
+
+[[lens]]
+id = "SR"
+name = { cs = "Správce", en = "Administrator" }
+
+[[level]]
+id = "L0"
+name = { cs = "Teď", en = "Now" }
+
+[[level]]
+id = "L1"
+name = { cs = "Jak", en = "How" }
+
+[[stage]]
+id = "publish"
+label = { cs = "Zveřejnit", en = "Publish" }
+station = "one"
+
+[[actor]]
+id = "repository"
+name = { cs = "Repozitář", en = "Repository" }
+role = "clause"
+
+[[actor]]
+id = "nrp"
+name = { cs = "NRP", en = "NRP" }
+role = "clause"
+
+[[actor]]
+id = "user"
+name = { cs = "vy", en = "you" }
+role = "owner"
+
+[[status]]
+id = "pilot"
+name = { cs = "pilotní", en = "pilot" }
+
+[[tier]]
+id = "required"
+name = { cs = "Povinné", en = "Required" }
+
+[[resourceType]]
+id = "service"
+name = { cs = "služba", en = "service" }
+fipDashboard = ["identifier-service"]
+
+# Every citation form belongs to one resource type; the fixture needs only one to cover them.
+[[resourceType]]
+id = "document"
+name = { cs = "dokument", en = "document" }
+citation = ["report", "article", "dataset", "webpage", "document", "standard", "software", "presentation"]
+
+[[repositoryFunction]]
+id = "deposit-data"
+name = { cs = "Uložit data", en = "Deposit data" }
+
+[[repositoryKind]]
+id = "general"
+name = { cs = "obecný", en = "general" }

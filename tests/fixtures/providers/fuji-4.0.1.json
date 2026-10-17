@@ -1,0 +1,46 @@
+{
+  "test_id": "a9b8c7d6e5f4031201f0e9d8c7b6a59483726150",
+  "request": {
+    "object_identifier": "https://doi.org/10.1234/example",
+    "metadata_service_endpoint": "",
+    "metadata_service_type": "oai_pmh",
+    "test_debug": true,
+    "use_datacite": true,
+    "use_headless": true,
+    "metric_version": "metrics_v0.8",
+    "normalized_object_identifier": "10.1234/example"
+  },
+  "resolved_url": "https://archive.example/datasets/example",
+  "start_timestamp": "2026-10-04T06:34:17Z",
+  "end_timestamp": "2026-10-04T06:34:21Z",
+  "metric_specification": "https://doi.org/10.5281/zenodo.15045911",
+  "metric_version": "0.8",
+  "software_version": "4.0.1",
+  "total_metrics": 17,
+  "summary": {
+    "score_earned": { "F": 6, "A": 4, "I": 4, "R": 4, "FAIR": 18 },
+    "score_total": { "F": 7, "A": 4, "I": 6, "R": 6, "FAIR": 23 }
+  },
+  "results": [
+    { "id": 1, "metric_identifier": "FsF-F1-01MD", "metric_name": "Metadata and data are assigned a globally unique identifier.", "metric_tests": { "FsF-F1-01MD-1": { "metric_test_name": "Metadata identifier follows a defined unique identifier syntax or scheme (IRI, URL, UUID, HASH or PID)", "metric_test_score": { "earned": 1, "total": 1 }, "metric_test_maturity": 3, "metric_test_status": "pass" } }, "test_status": "pass", "score": { "earned": 1, "total": 1 }, "maturity": 3 },
+    { "id": 2, "metric_identifier": "FsF-F1-02MD", "metric_name": "Metadata and data are assigned a persistent identifier.", "metric_tests": { "FsF-F1-02MD-1": { "metric_test_name": "Metadata identifier follows a defined persistent identifier syntax", "metric_test_score": { "earned": 0.5, "total": 0.5 }, "metric_test_maturity": 1, "metric_test_status": "pass" }, "FsF-F1-02MD-2": { "metric_test_name": "Persistent identifier for metadata is registered and maintained by a PID authority", "metric_test_score": { "earned": 0.5, "total": 0.5 }, "metric_test_maturity": 3, "metric_test_status": "pass" }, "FsF-F1-02MD-4": { "metric_test_name": "Data identifier follows a defined persistent identifier syntax", "metric_test_score": { "earned": 0, "total": 0 }, "metric_test_maturity": 0, "metric_test_status": "fail" }, "FsF-F1-02MD-5": { "metric_test_name": "Persistent identifier for data is registered and maintained by a PID authority", "metric_test_score": { "earned": 0, "total": 0 }, "metric_test_maturity": 0, "metric_test_status": "fail" } }, "test_status": "fail", "score": { "earned": 1, "total": 1 }, "maturity": 3, "test_debug": ["WARNING: Landing page seems to be CAPTCHA protected, probably could not detect enough content", "SUCCESS: Found persistence identifier scheme -: doi"] },
+    { "id": 5, "metric_identifier": "FsF-F2-01M", "metric_name": "Metadata includes descriptive core elements (creator, title, data identifier, publisher, publication date, summary and keywords) to support data findability.", "metric_tests": { "FsF-F2-01M-2": { "metric_test_name": "Core data citation metadata is available", "metric_test_score": { "earned": 1, "total": 1 }, "metric_test_maturity": 2, "metric_test_status": "pass" } }, "test_status": "pass", "score": { "earned": 2, "total": 2 }, "maturity": 3 },
+    { "id": 6, "metric_identifier": "FsF-F3-01M", "metric_name": "Metadata includes the identifier of the data it describes.", "metric_tests": { "FsF-F3-01M-2": { "metric_test_name": "Metadata contains a PID or URL which indicates the location of the downloadable data content", "metric_test_score": { "earned": 0, "total": 1 }, "metric_test_maturity": 0, "metric_test_status": "fail" } }, "test_status": "fail", "score": { "earned": 0, "total": 1 }, "maturity": 0 },
+    { "id": 7, "metric_identifier": "FsF-F4-01M", "metric_name": "Metadata is offered in such a way that it can be registered or indexed by search engines.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 2, "total": 2 }, "maturity": 3 },
+    { "id": 8, "metric_identifier": "FsF-A1-01M", "metric_name": "Metadata contains access level and access conditions of the data.", "metric_tests": { "FsF-A1-01M-1": { "metric_test_name": "Information about access restrictions or rights can be identified in metadata", "metric_test_score": { "earned": 1, "total": 1 }, "metric_test_maturity": 3, "metric_test_status": "pass" } }, "test_status": "pass", "score": { "earned": 1, "total": 1 }, "maturity": 3, "output": { "access_level": "public", "access_details": { "access_condition": "info:eu-repo/semantics/openAccess" } } },
+    { "id": 9, "metric_identifier": "FsF-A1-02MD", "metric_name": "Metadata and data are retrievable by their identifier", "metric_tests": {}, "test_status": "pass", "score": { "earned": 1, "total": 2 }, "maturity": 1 },
+    { "id": 10, "metric_identifier": "FsF-A1.1-01MD", "metric_name": "A standardized communication protocol is used to access metadata and data.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 1, "total": 1 }, "maturity": 3 },
+    { "id": 11, "metric_identifier": "FsF-A1.2-01MD", "metric_name": "Metadata and data are accessible through a standardized communication protocol which supports authentication.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 1, "total": 1 }, "maturity": 3 },
+    { "id": 12, "metric_identifier": "FsF-I1-01M", "metric_name": "Metadata is represented using a formal knowledge representation language.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 2, "total": 2 }, "maturity": 3 },
+    { "id": 13, "metric_identifier": "FsF-I2-01M", "metric_name": "Metadata uses registered semantic resources", "metric_tests": {}, "test_status": "fail", "score": { "earned": 0, "total": 2 }, "maturity": 0 },
+    { "id": 14, "metric_identifier": "FsF-I3-01M", "metric_name": "Metadata includes qualified references between the data and its related entities.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 2, "total": 2 }, "maturity": 3 },
+    { "id": 15, "metric_identifier": "FsF-R1-01M", "metric_name": "Metadata specifies the content of the data.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 1, "total": 3 }, "maturity": 1 },
+    { "id": 17, "metric_identifier": "FsF-R1.1-01M", "metric_name": "Metadata includes license information under which data can be reused.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 1, "total": 1 }, "maturity": 3, "output": [{ "license": "https://creativecommons.org/licenses/by/4.0/legalcode", "osi_approved": true, "details_url": "https://creativecommons.org/licenses/by/4.0/legalcode" }] },
+    { "id": 18, "metric_identifier": "FsF-R1.2-01M", "metric_name": "Metadata includes provenance information about data creation or generation.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 1, "total": 2 }, "maturity": 2 },
+    { "id": 19, "metric_identifier": "FsF-R1.3-01M", "metric_name": "Metadata follows a standard recommended by the target research community of the data.", "metric_tests": {}, "test_status": "pass", "score": { "earned": 1, "total": 2 }, "maturity": 2 },
+    { "id": 20, "metric_identifier": "FsF-R1.3-02D", "metric_name": "Data is available in a file format recommended by the target research community.", "metric_tests": {}, "test_status": "fail", "score": { "earned": 0, "total": 1 }, "maturity": 0 }
+  ],
+  "harvested_metadata": [
+    { "method": "json_in_html", "url": "https://archive.example/datasets/example", "format": "json-ld", "schema": "http://schema.org", "metadata": { "object_type": ["Dataset"], "license": ["https://creativecommons.org/licenses/by/4.0/legalcode"] } }
+  ]
+}

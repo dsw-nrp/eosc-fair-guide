@@ -1,0 +1,10 @@
+[[resource]]
+id = "service"
+name = "Test service"
+description = { cs = "Služba.", en = "Service." }
+url = "https://example.org/service"
+type = "service"
+fipClass = ["Registry"]
+status = "pilot"
+asOf = 2026-01-01
+stations = ["one"]

@@ -1,0 +1,231 @@
+# FAIR maturity of a repository, for repository administrators and curators. Field reference: docs/content-model.md.
+
+[check]
+id = "maturity"
+name = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR maturity" }
+icon = "chart-simple"
+description = { cs = "Jak dobře repozitář naplňuje FAIR principy? Výsledek ukáže stav podle principů a co chybí; žádné celkové skóre. Část odpovědí lze předvyplnit ze záznamu repozitáře v re3data, z testů [[res/tool/fair-champion|FAIR Champion]] nad vzorkem jeho záznamů a ze záznamu v [[repo/reg/nkr|NKR]], až v něm budou repozitáře.", en = "How well does the repository meet the FAIR principles? The result shows the state per principle and a list of gaps, with no overall score. Some answers can be pre-filled from the repository's re3data record, from [[res/tool/fair-champion|FAIR Champion]] tests over a sample of its records, and from its [[repo/reg/nkr|NKR]] record once NKR lists repositories." }
+lenses = ["SR"]
+minutes = 15
+
+[[item]]
+id = "maturity.01"
+tier = "minimum"
+principles = ["F1"]
+statement = { cs = "Každá zveřejněná datová sada dostane PID; převzaté záznamy bez PID mají aspoň stabilní URL a plán doplnění.", en = "Every published dataset gets a PID; imported records without one have at least a stable URL and a plan to add it." }
+sources = ["A.MIN1", "A.F1.R1", "A.F1.N1"]
+fixAt = "publication"
+owner = ["repository-admin"]
+prefill = { nkr = ["pidType"], re3data = ["pidTypes"], champion = ["fc_unique_identifier", "test_FM_F1_M_IdentPersistent"] }
+championEvidenceOnly = true
+help = { cs = "Testy zkoumají schémata identifikátorů ve vzorku záznamů. Zda PID dostávají všechny zveřejněné datové sady, ověřte v pravidlech a praxi repozitáře.", en = "The tests examine identifier schemes in the sample records. Check the repository's rules and practice to establish whether every published dataset receives a PID." }
+
+[[item]]
+id = "maturity.02"
+tier = "minimum"
+principles = ["F1", "A1"]
+statement = { cs = "PID vždy vede na platnou landing page; při změnách infrastruktury se cíle aktualizují.", en = "The PID always leads to a valid landing page; targets are updated when the infrastructure changes." }
+sources = ["A.F1.R2", "A.F1.R3"]
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "maturity.03"
+tier = "minimum"
+principles = ["F3", "F4"]
+statement = { cs = "Landing page obsahuje strojově čitelná metadata (JSON-LD, Schema.org), včetně PID jako explicitního identifikátoru a odkazů na distribuce.", en = "The landing page carries machine-readable metadata (JSON-LD, Schema.org), including the PID as an explicit identifier and links to distributions." }
+sources = ["A.MIN1", "A.MIN3", "A.F1.N4", "A.F3.N1", "A.F3.N2", "A.F4.R2", "OSTRAILS-CZ-PILOT.01"]
+fixAt = "publication"
+owner = ["repository-admin"]
+prefill = { champion = ["fc_data_identifier_in_metadata", "fc_structured_metadata"] }
+
+[[item]]
+id = "maturity.04"
+tier = "minimum"
+principles = ["F2", "R1"]
+statement = { cs = "Každá datová sada má minimální záznam podle [[ccmm|CCMM]].", en = "Every dataset has a minimum record following [[ccmm|CCMM]]." }
+sources = ["A.MIN2", "A.F2.R1", "A.R1.R1"]
+fixAt = "metadata"
+owner = ["repository-admin", "curator"]
+prefill = { nkr = ["metadataSchema"], re3data = ["metadataStandards"] }
+
+[[item]]
+id = "maturity.05"
+tier = "minimum"
+principles = ["F4", "A1", "A1.1"]
+statement = { cs = "Metadata jsou dostupná přes [[oai-pmh|OAI-PMH]] (CCMM-XML, Dublin Core) a endpoint je uveden v [[nkr|NKR]].", en = "Metadata are available through [[oai-pmh|OAI-PMH]] (CCMM-XML, Dublin Core), and the endpoint is given in [[nkr|NKR]]." }
+sources = ["A.F4.R1", "A.A1.N2", "A.A1.R1", "A.A1.1.R1"]
+fixAt = "findability"
+owner = ["repository-admin"]
+prefill = { nkr = ["oaipmhEndpoint"], re3data = ["apis=OAI-PMH"], champion = ["fc_metadata_protocol"] }
+championEvidenceOnly = true
+help = { cs = "Test zjišťuje protokol, kterým se ve vzorku rozlišují identifikátory. Neověřuje [[res/std/oai-pmh|OAI-PMH]], formáty metadat ani registraci v [[repo/reg/nkr|NKR]]. Ty ověřte na endpointu repozitáře a v jeho záznamu v NKR.", en = "The test identifies the protocol used to resolve the sample identifiers. It does not verify [[res/std/oai-pmh|OAI-PMH]], metadata formats or [[repo/reg/nkr|NKR]] registration. Check these at the repository endpoint and in its NKR record." }
+
+[[item]]
+id = "maturity.06"
+tier = "minimum"
+principles = ["R1.1"]
+statement = { cs = "Licence je u každé datové sady povinná, vybírá se z doporučených a je uvedena jako URI.", en = "Every dataset must have a licence, chosen from the recommended ones and given as a URI." }
+sources = ["A.MIN3", "A.R1.1.R1"]
+fixAt = "licence"
+owner = ["repository-admin"]
+prefill = { nkr = ["license"], champion = ["fc_metadata_includes_license"], re3data = ["dataLicenses"] }
+
+[[item]]
+id = "maturity.07"
+tier = "recommended"
+principles = ["F3"]
+statement = { cs = "Repozitář podporuje [[fair-signposting|FAIR Signposting]] (hlavičky Link).", en = "The repository supports [[fair-signposting|FAIR Signposting]] (Link headers)." }
+sources = ["A.REC2", "A.F3.R1", "FAIR-SIGNPOSTING.01"]
+fixAt = "publication"
+owner = ["repository-admin"]
+
+[[item]]
+id = "maturity.08"
+tier = "recommended"
+principles = ["F2", "R1.3"]
+statement = { cs = "Vedle [[ccmm|CCMM]] je k dispozici oborový metadatový profil (podle FIP).", en = "Alongside [[ccmm|CCMM]], a domain metadata profile (following the FIP) is available." }
+sources = ["A.REC3", "A.F2.R2"]
+fixAt = "metadata"
+owner = ["repository-admin", "curator"]
+prefill = { nkr = ["metadataSchema"], re3data = ["metadataStandards"] }
+prefillLevel = "partly"
+
+[[item]]
+id = "maturity.09"
+tier = "recommended"
+principles = ["F4", "R1.3"]
+statement = { cs = "Metadata se před uložením validují vůči [[ccmm|CCMM]] i komunitnímu schématu.", en = "Metadata are validated against [[ccmm|CCMM]] and the community schema before they are stored." }
+sources = ["A.F4.R3", "A.R1.3.R2"]
+fixAt = "metadata"
+owner = ["repository-admin", "curator"]
+
+[[item]]
+id = "maturity.10"
+tier = "recommended"
+principles = ["A1.2"]
+statement = { cs = "Omezený přístup je řešen autentizací a autorizací; úrovně oprávnění jsou definovány.", en = "Restricted access is handled through authentication and authorisation; permission levels are defined." }
+sources = ["A.A1.2.R1", "A.A1.2.R2"]
+fixAt = "licence"
+owner = ["repository-admin"]
+prefill = { nkr = ["aaiIntegration", "sensitiveData"] }
+
+[[item]]
+id = "maturity.11"
+tier = "recommended"
+principles = ["A2"]
+statement = { cs = "Po odstranění dat zůstávají metadata: tombstone s PID, citací a důvodem a PID přesměrovaný na něj.", en = "After data removal the metadata remain: a tombstone with the PID, the citation and the reason, and the PID redirected to it." }
+help = { cs = "Test u DOI zachování metadat předpokládá; sám tím neověří tombstone ani chování po odstranění dat. Projděte příklady odstraněných záznamů a pravidla repozitáře.", en = "For a DOI the test assumes metadata persistence; this does not verify a tombstone or behaviour after data removal. Review examples of withdrawn records and the repository's rules." }
+sources = ["A.A2.R1", "A.A2.R2", "A.A2.R3"]
+fixAt = "findability"
+owner = ["repository-admin"]
+prefill = { champion = ["fc_metadata_persistence"] }
+championEvidenceOnly = true
+
+[[item]]
+id = "maturity.12"
+tier = "recommended"
+principles = ["I1"]
+statement = { cs = "Metadata jsou dostupná ve strojově čitelných, ideálně sémantických formátech (JSON-LD, RDF).", en = "Metadata are available in machine-readable, ideally semantic formats (JSON-LD, RDF)." }
+sources = ["A.I1.R1", "A.I1.R2"]
+fixAt = "metadata"
+owner = ["repository-admin"]
+prefill = { champion = ["fc_structured_metadata"] }
+
+[[item]]
+id = "maturity.13"
+tier = "recommended"
+principles = ["I2"]
+statement = { cs = "Repozitář podporuje řízené slovníky, i komunitní, a eviduje je v [[nkr|NKR]].", en = "The repository supports controlled vocabularies, community ones included, and records them in [[nkr|NKR]]." }
+sources = ["A.I2.R1", "A.I2.N1"]
+fixAt = "metadata"
+owner = ["repository-admin", "curator"]
+prefill = { nkr = ["controlledVocabulary"], champion = ["fc_metadata_uses_fair_vocabularies"] }
+
+[[item]]
+id = "maturity.14"
+tier = "recommended"
+principles = ["I2", "I3"]
+statement = { cs = "Metadata obsahují [[orcid|ORCID]] a [[ror|ROR]].", en = "Metadata include [[orcid|ORCID]] and [[ror|ROR]]." }
+sources = ["A.I2.R2", "A.I3.R2"]
+fixAt = "metadata"
+owner = ["repository-admin"]
+prefill = { nkr = ["pidPerson"] }
+
+[[item]]
+id = "maturity.15"
+tier = "recommended"
+principles = ["I3"]
+statement = { cs = "Metadata obsahují kvalifikované vazby ([[datacite|DataCite]], PROV-O, DCAT-AP) na publikace a související data.", en = "Metadata include qualified relations ([[datacite|DataCite]], PROV-O, DCAT-AP) to publications and related data." }
+sources = ["A.I3.R1", "A.I3.R3"]
+fixAt = "metadata"
+owner = ["repository-admin"]
+prefill = { nkr = ["relatedPublication"], champion = ["fc_metadata_outward_links"] }
+
+[[item]]
+id = "maturity.16"
+tier = "recommended"
+principles = ["R1", "R1.2"]
+statement = { cs = "Data i metadata se verzují; nová verze má nový PID propojený s předchozí.", en = "Data and metadata are versioned; a new version gets a new PID linked to the previous one." }
+sources = ["A.R1.R3", "A.R1.2.R2", "A.I3.R5"]
+fixAt = "publication"
+owner = ["repository-admin"]
+prefill = { nkr = ["versioning"], re3data = ["versioning"] }
+
+[[item]]
+id = "maturity.17"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "Metadata obsahují základní provenienci (původ, verze, historie), alespoň v rozsahu [[ccmm|CCMM]].", en = "Metadata include basic provenance (origin, version, history), at least to the extent of [[ccmm|CCMM]]." }
+sources = ["A.R1.2.R1"]
+fixAt = "metadata"
+owner = ["repository-admin", "curator"]
+
+[[item]]
+id = "maturity.18"
+tier = "advanced"
+principles = ["F4"]
+statement = { cs = "Repozitář je registrován v [[re3data|re3data]] a [[fairsharing|FAIRsharing]].", en = "The repository is registered in [[re3data|re3data]] and [[fairsharing|FAIRsharing]]." }
+sources = ["NKR-SCHEMA.01"]
+fixAt = "repository"
+owner = ["repository-admin"]
+prefill = { nkr = ["relatedRegistry", "indexedIn"], re3data = ["registries=re3data", "registries=FAIRsharing"] }
+
+[[item]]
+id = "maturity.19"
+tier = "advanced"
+principles = []
+statement = { cs = "Repozitář má certifikaci [[coretrustseal|CoreTrustSeal]] nebo se na ni připravuje.", en = "The repository holds [[coretrustseal|CoreTrustSeal]] certification or is preparing for it." }
+sources = ["CORETRUSTSEAL.01", "A.F1.X2"]
+fixAt = "repository"
+owner = ["repository-admin"]
+prefill = { nkr = ["certificate"], re3data = ["certificates"] }
+
+[[item]]
+id = "maturity.20"
+tier = "recommended"
+principles = ["F2", "I2", "R1.3"]
+statement = { cs = "Jazyk je uveden kódem ISO 639 a typ zdroje z řízeného slovníku (například COAR).", en = "The language is given as an ISO 639 code and the resource type from a controlled vocabulary (for example COAR)." }
+sources = ["OSTRAILS-CZ-PILOT.01"]
+fixAt = "metadata"
+owner = ["repository-admin"]
+
+[[item]]
+id = "maturity.21"
+tier = "recommended"
+principles = ["A2"]
+statement = { cs = "Politika uchování je zveřejněna a odkazována z metadat, takže je strojově dohledatelná.", en = "The retention policy is published and linked from the metadata, so machines can find it." }
+sources = ["A.A2.R1", "OSTRAILS-CZ-PILOT.01"]
+fixAt = "findability"
+owner = ["repository-admin"]
+prefill = { nkr = ["policy"], re3data = ["policies"] }
+
+[[item]]
+id = "maturity.22"
+tier = "recommended"
+principles = ["F4"]
+statement = { cs = "Stránky záznamů jsou indexovatelné vyhledávači (sitemap, pravidla robots).", en = "Record pages can be indexed by search engines (sitemap, robots rules)." }
+sources = ["A.F4.N4", "OSTRAILS-CZ-PILOT.01"]
+fixAt = "findability"
+owner = ["repository-admin"]
+prefill = { champion = ["fc_searchable"] }

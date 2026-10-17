@@ -1,459 +1,592 @@
 # Design
 
-This document holds the design of the FAIR data guide: its goals, architecture, the decisions behind it with
-the alternatives considered, and the dated decision log. The behaviour is specified in the planning record, the
-OpenSpec change `eosc-fair-guide` in the AIS CR management hub; this document is the guide's own, maintained
-copy of the design. Content rules are in [content-model.md](content-model.md).
+This document describes the current FAIR Data Guide and the principles that govern changes to it.
+Each system area states its responsibility and the reason for its design. [AGENTS.md](../AGENTS.md)
+sets editing invariants, [content-model.md](content-model.md) owns field-level contracts, and
+[CONTRIBUTING.md](../CONTRIBUTING.md) owns contribution and review procedures. Source wording and
+service observation dates belong in content records, rather than in an architectural history.
 
-## Goals
+## Purpose and boundaries
 
-- A self-explanatory Czech and English guide that leads each role from its current stage to the next concrete
-  action.
-- Current, sourced advice, with every statement traceable to a published source.
-- A self-check that tells repositories what NRP requires and tells everyone where their FAIR gaps are.
-- Live checks that help without overstating what automated tests can prove.
-- A repository the team can maintain through reviewed pull requests.
+The Guide turns published FAIR guidance into concrete actions along the research data life cycle,
+in Czech and equivalent English. Researchers, data stewards, repository administrators or curators,
+and communities see the same path through their responsibilities. The Guide advises; NRP admission,
+certification and institutional decisions remain with their responsible bodies. Readiness checks
+are neither certification nor an overall FAIR score.
 
-## Non-goals
+**Published sources control meaning.** The FAIR analysis and other cited standards retain their
+conditions, scope and recommendation strength. Planned national capabilities are distinct from
+currently available tools. NRP obligations are named as such; other advice remains advisory.
+DOI is an instructive recommended PID, while other persistent, resolvable, managed identifiers are
+acceptable. Open access is distinct from FAIRness and from permission to reuse.
 
-- Certifying FAIRness or NRP compliance: the guide advises, and NRP decides.
-- A backend, proxy or user accounts.
-- Replacing the FAIR analysis as the normative reference: the guide cites it.
-- A national FIP authoring tool or FER catalogue: planned national services cover these.
+**Stable practices belong on public pages.** Development plans, assessment preparation and temporary
+verification commentary belong in maintainer documents. Software preservation can use suitable
+repositories or code archives; Software Heritage and its SWHID apply when that archive is chosen.
+The first official prerelease is the Guide's software-practice baseline.
+[software-practice.md](software-practice.md) distinguishes available evidence from release,
+preservation and voluntary self-certification still to be completed. No archive PID or badge is invented.
 
-## Architecture
+## Static architecture
 
-Every diagram is paired with prose that states the same meaning; the prose is normative and the diagrams
-support it.
+The application is static HTML, CSS and vanilla JavaScript, with no backend, accounts, analytics or
+proxy. It runs on GitHub Pages, in an iframe or as a local file. Browser requests require an explicit
+reader action. This keeps deployment portable and avoids sending content or answers by opening a view.
+Static API retrieval and Swagger documentation require HTTP hosting; the application also works from files.
+[scripts/serve.py](../scripts/serve.py) serves a local build for these HTTP features.
 
-### At a glance
+**The page and machine data share one model.** The complete RO-Crate 1.2 JSON-LD serves harvesters;
+generated classic scripts serve the page and support file and iframe operation without fetching JSON.
+The page is also `ro-crate-preview.html`. A short schema.org description in its head supports discovery.
+`baseUrl` in Guide metadata, optionally overridden by `FAIR_GUIDE_BASE_URL`, owns the publication address,
+vocabulary and profile IRIs; profile shapes derive from it. Relocation must leave no stale publication
+address in generated records. Production and preview share canonical entity identities.
 
-- A **static page** (HTML, CSS, light vanilla JS, no backend) that can be embedded in eosc.cz, hosted on GitHub Pages, or opened as a file.
-- Content is an **RO-Crate 1.2 knowledge base** with **paradata**; the page itself is the crate's HTML preview.
-- The main view is a **path of nine stations** seen through **four role lenses**, with detail revealed on demand in levels L0–L3.
-- A **self-check** keeps two axes apart, the NRP onboarding gate and FAIR maturity, and never shows an overall score.
-- **Live checks** are two-stage: a quick deterministic check, then an opt-in FAIR Champion deep check with coverage shown.
-- Every change arrives as a **pull request** through layered CI checks and a code-owner review; scheduled jobs refresh snapshots by PR.
-- **Two homes:** the OpenSpec change and working notes live in the hub; the product lives in this repository.
+**The first download is bounded.** The build measures gzip bytes from the actual script and stylesheet
+tags and selected-language data against the 300 KB budget. Neutral structure and one language load first.
+Requirements, FIP records, page texts, detailed advice, provenance and language patches load when needed;
+glossary source identifiers load with their definitions while primary IDs remain available for navigation.
+Together they reconstruct the complete crate. Language changes preserve answers and view state.
+Missing language files leave the usable view in place with retry. Originals, published titles and
+vocabulary labels retain their languages. Compact aliases support local cross-language search.
+L1-L3 advice text uses property patches; station views and the AI advice page wait for it. Text search waits
+for requirements, questions and advice in the selected language before publishing a complete index.
 
-### System context
+## Authoring and build
 
-People in four roles use one static page. The page calls a few open APIs, but only when the user clicks:
-DataCite, the DOI and Handle resolvers, ORCID, ROR, the NKR catalogue, the nanopublication query service
-(published FIPs), FAIR Champion and the DMP status feed. National services such as NMA, DMP.eosc.cz and identifikatory.cz are linked, not called. Sources
-that a browser cannot reach (re3data, Heslář, FER nanopublications, NMA facets, test health) are captured as
-snapshots by a scheduled CI job that opens a pull request.
-
-```mermaid
-flowchart LR
-  accTitle: System context
-  accDescr: Four kinds of users open the static guide page. The page calls a small set of open APIs only on click, links out to national services, and reads snapshots that a scheduled CI job refreshes.
-  subgraph PEOPLE[People]
-    direction TB
-    V([Researcher])
-    DS([Data steward])
-    SR([Repository admin or curator])
-    K([Community and FIP])
-  end
-  G["FAIR guide<br/>static page"]
-  subgraph LIVE[Called live, on click]
-    direction TB
-    DC[DataCite REST]
-    RES[doi.org and hdl.handle.net]
-    OR[ORCID and ROR]
-    NKR[NKR Cordra API]
-    NPQ[Nanopub query, published FIPs]
-    FC[FAIR Champion, opt-in]
-    UP[DMP status feed]
-  end
-  subgraph LINK[Linked, not called]
-    direction TB
-    NMA[NMA search and RIV link]
-    DMP[DMP.eosc.cz]
-    PID[identifikatory.cz]
-    MORE[FAIRsharing, FAIR-IMPACT,<br/>CERIT AI, NRP and e-INFRA docs]
-  end
-  subgraph SNAP[Snapshots by scheduled CI]
-    direction TB
-    R3[re3data]
-    HES[Heslář]
-    FER[FER nanopublications]
-    NMAF[NMA facets]
-    FCH[FAIR Champion test health]
-  end
-  PEOPLE --> G
-  G -- fetch on click --> LIVE
-  G -. link .-> LINK
-  SNAP -- refresh by PR --> G
-```
-
-### Where things live
-
-The management hub holds the OpenSpec change (proposal, design, specs, tasks) together with the working
-notes: decision log, clause ledger, station inventory, self-check design and source inventory. Implementation
-follows the hub's OpenSpec workflow and lands in this repository. The notes migrate into this
-repository's content and design documents during the build-out, and the open questions become issues there.
-
-```mermaid
-flowchart LR
-  accTitle: Where things live
-  accDescr: The hub holds the OpenSpec change and the working notes. Implementation lands in this repository, where the notes become content sources and the open questions become issues.
-  subgraph HUB["aiscr-management (hub)"]
-    direction TB
-    CH["OpenSpec change<br/>proposal, design, specs, tasks"]
-    NOTES["working notes<br/>decisions, ledger, stations, F3, sources"]
-    CH --- NOTES
-  end
-  subgraph TOOL["eosc-cz-fair-docs-testing (tool)"]
-    direction TB
-    SRC[content sources]
-    PAGE[page and crate]
-    CIX[CI checks]
-    ISS[issues]
-  end
-  CH -- implemented via apply --> TOOL
-  NOTES -- migrate --> SRC
-  NOTES -- open questions --> ISS
-```
-
-### Authoring and build
-
-Editors change small content source files: stations, checks, resources, sources, glossary and callouts. A
-generator that needs only the Python standard library turns them into the RO-Crate knowledge base and inlines
-the same crate into the page. Mermaid sources render to SVG. CI regenerates both and fails if the committed
-output differs, so the browser never needs a build step and pull-request diffs stay readable.
+Editors change small content source files under `content/`: stations, checks, resources, sources, the model,
+live connectors and evaluators, provenance and interface strings. `build_crate.py`, which needs only the Python
+standard library, turns them into the RO-Crate knowledge base and writes the same crate, with the interface
+strings, as classic scripts the page loads: a core and parts loaded when a view first needs them, with language
+values apart. `build_site.py` writes the page, those scripts, the static API (`build_api.py`), the published health
+report (`check_health.py`) and the approved SVG figures into `_site/`, which is not committed. The page then runs
+from the site directory, a web host or a local file without a build step. `check_all.py` runs the same build and
+every check locally and in CI; Mermaid diagrams in the Markdown documents are checked to render.
 
 ```mermaid
 flowchart LR
   accTitle: Authoring and build
-  accDescr: Content sources feed a standard-library generator that writes the RO-Crate and the page with the crate inlined. Mermaid sources render to SVG. The browser runs the committed output without a build.
-  subgraph AUTH[Authoring time]
+  accDescr: Content sources feed the standard-library crate generator. The site build writes the page, the crate and its data scripts, the static API, the health report and the approved figures into the uncommitted site directory, which the browser runs as it is. The check runner builds once and runs every check.
+  subgraph AUTH[Authored and committed]
     direction TB
-    C1["content/*.toml<br/>stations, checks, resources,<br/>sources, glossary, callouts"]
-    C2["diagrams/*.mmd"]
-    GEN["build_crate.py<br/>standard library only"]
-    MMDC[mermaid-cli]
-    C1 --> GEN
-    C2 --> MMDC
+    C1["content/*.toml"]
+    JS["assets/js, assets/css"]
+    FIG["assets/diagrams/*.svg<br/>approved figures"]
   end
-  subgraph OUT[Committed output]
+  GEN["build_crate.py<br/>standard library only"]
+  SITE["build_site.py"]
+  subgraph OUT["_site/ (not committed)"]
     direction TB
-    CRATE["ro-crate-metadata.json<br/>knowledge base and paradata"]
-    HTML["index.html<br/>the crate's HTML preview,<br/>crate inlined"]
-    SVG["assets/diagrams/*.svg"]
+    CRATE["ro-crate-metadata.json"]
+    DATA["assets/data: kb.js, parts,<br/>language values, ui.js"]
+    API["api/ and openapi.json"]
+    HEALTH["health/ report"]
+    PAGE["index.html and assets"]
   end
-  subgraph RUN[Browser]
-    direction TB
-    JS["app.js, live.js, i18n"]
-    CSS["tokens.css, app.css"]
-  end
-  GEN --> CRATE
-  GEN --> HTML
-  MMDC --> SVG
-  HTML --> RUN
+  CHK["check_all.py<br/>build once, every check"]
+  C1 --> GEN --> SITE
+  JS --> SITE
+  FIG --> SITE
+  SITE --> CRATE & DATA & API & HEALTH & PAGE
+  CHK -. runs .-> SITE
 ```
 
-### Content model
+**Generated output is replaceable; authored content is not.** `_site/` and its generated files are
+not committed. Build replacement is limited to a validated site directory and refuses authored trees,
+links and the repository root. A failed build does not relabel stale site health as a new successful run.
 
-A station contains advice items; each item belongs to one lens and one disclosure level and cites
-source clauses from the ledger. Clauses serve FAIR principles, identified by their published w3id IRIs.
-Checks test a principle, derive from clauses and point to the station where a gap is fixed. Resources are
-offered at stations for given lenses and carry a status, an as-of date and links to published FER or
-FAIRsharing identifiers. Glossary terms come from Heslář. Paradata actions record who produced or verified
-an item, with which tool and from which sources.
+## Runtime responsibilities
 
-```mermaid
-erDiagram
-  STATION ||--o{ ADVICE : contains
-  LENS ||--o{ ADVICE : "seen through"
-  ADVICE }o--o{ CLAUSE : cites
-  CLAUSE }o--o{ PRINCIPLE : serves
-  CHECK }o--|| PRINCIPLE : tests
-  CHECK }o--o{ CLAUSE : "derived from"
-  CHECK }o--|| STATION : "fixed at"
-  RESOURCE }o--o{ STATION : "offered at"
-  RESOURCE }o--o{ LENS : "aimed at"
-  GLOSSARY_TERM }o--o{ ADVICE : explains
-  ACTION }o--o{ ADVICE : produced
-  ACTION }o--o{ RESOURCE : verified
-  ADVICE {
-    string level "L0 to L3"
-    string text "cs and en"
-  }
-  CLAUSE {
-    string id "A, K, C, DOC or E"
-  }
-  PRINCIPLE {
-    string iri "w3id FAIR principle"
-  }
-  CHECK {
-    string id "D, P, G, S, K or I"
-    string tier "Minimum, Doporučeno, Pokročilé"
-  }
-  RESOURCE {
-    string status "five-level vocabulary"
-    date asOf
-    string sameAs "FER or FAIRsharing IRI"
-  }
-  ACTION {
-    string agent "person, ORCID"
-    string instrument "tool or AI model"
-    date endTime
-  }
-```
-
-### Runtime structure
-
-The shell provides routing by language, lens and station, the language switch, the lens picker, the
-disclosure levels and the theme. Six features sit inside it: the path, the principle explorer, the
-self-check, the resource finder, the live check and the freshness badges. They share four services: an
-index over the crate, connectors limited to an allowlist of hosts, a state store (local storage plus a
-shareable link) and export. Self-check gaps link back into the path, and the live check pre-fills
-self-check answers.
+`core.js` holds the crate index, interface strings, safe DOM building, browser storage and routing; `app.js` renders
+a route once the knowledge-base parts it needs have loaded. The views are `views.js` (landing, path, stations and
+pages, including the model and the reader visuals), `catalogue.js`, `search.js` and `selfcheck.js`. Code that only
+some readers need loads on first use: `inspection.js` and `providers.js` when a check opens, `discovery.js`,
+`assess.js` and `tests/*.js` on a lookup, and `helpers.js` on the identifier and citation pages. Every connector call
+goes through `live.js`, limited to the allowlisted origins, and starts from a reader action. Self-check gaps mark
+the path's stations, and pre-fill, tests and evaluators add evidence to the self-check.
 
 ```mermaid
 flowchart TB
   accTitle: Runtime structure of the page
-  accDescr: A shell hosts six features that share four services. Self-check gaps link back to path stations, and the live check pre-fills the self-check.
-  subgraph SHELL["F0 Shell"]
+  accDescr: The core and the renderer serve the views. Self-check controls and evaluators load when a check opens, discovery and assessments on a lookup, and helpers on their pages. Every external call goes through the allowlisted connectors after a reader action.
+  CORE["core.js<br/>index, strings, storage, routing"]
+  APP["app.js<br/>render when parts arrive"]
+  subgraph VIEWS[Views]
     direction LR
-    ROUTER["router<br/>language, lens, station"]
-    I18N["CZ and EN"]
-    LENSSEL["lens picker"]
-    DISC["L0 to L3 disclosure"]
+    V1["views.js<br/>path, stations, pages, visuals"]
+    V2["catalogue.js and search.js"]
+    V3["selfcheck.js<br/>answers, results, exports"]
   end
-  subgraph FEAT[Features]
+  subgraph LATER[Loaded on first use]
     direction LR
-    F1["F1 Path<br/>stations by lens"]
-    F2["F2 Principle explorer<br/>every clause"]
-    F3["F3 Self-check<br/>gate and maturity"]
-    F4["F4 Resource finder<br/>incl. repositories"]
-    F5["F5 Live check<br/>two-stage"]
-    F6["F6 Freshness<br/>status and as-of"]
+    L1["inspection.js and providers.js<br/>when a check opens"]
+    L2["discovery.js, assess.js, tests/*.js<br/>on a lookup"]
+    L3["helpers.js<br/>identifier and citation pages"]
   end
-  subgraph SVC[Shared services]
-    direction LR
-    KB["KB index<br/>crate graph by id"]
-    CONN["connectors<br/>allowlisted hosts"]
-    STATE["state<br/>local storage and link"]
-    EXP["export<br/>Markdown and FTR JSON-LD"]
-  end
-  SHELL --> FEAT
-  FEAT --> SVC
-  F3 -. gaps .-> F1
-  F5 -. pre-fill .-> F3
+  LIVE["live.js<br/>allowlisted connectors"]
+  CORE --> APP --> VIEWS
+  V3 --> L1
+  L1 --> L2
+  V1 --> L3
+  L1 & L2 & L3 -- reader action --> LIVE
 ```
 
-### Two-stage live check
+**A view is addressable state.** Language, role, route, catalogue filters/ordering and a check's report
+can be reopened from their addresses. Entity links
+open that entity; topic links open a narrowed catalogue. Unknown entities receive an explanation.
+Reader data enter public addresses only through explicit result sharing.
 
-The user enters a DOI, Handle or URL. The page resolves it and reads DataCite, ORCID and ROR, which takes
-seconds and pre-fills answers. Only when the user asks for the deep check does the page call the curated
-FAIR Champion core tests, a few at a time. A test that times out or errors is shown as "bez výsledku" and never
-counts as a failure. Results come grouped by principle, with the coverage stated.
+**Embedding exchanges only view and size.** Dependency-free host and child code in `assets/js/embed.js`
+accepts configured exact origins and the expected sending window, bounds messages, reports height growth
+and shrink, and mirrors the view into the host address so shared host links reopen it. Answers and
+reports do not travel in this protocol. [embedding.md](embedding.md) owns the host snippet and contract.
 
-```mermaid
-sequenceDiagram
-  accTitle: Two-stage live check
-  accDescr: A quick deterministic check resolves the identifier and reads DataCite, ORCID and ROR. An opt-in deep check calls curated FAIR Champion tests a few at a time and reports coverage, never counting a service failure as a failed requirement.
-  actor U as User
-  participant P as Guide page
-  participant R as DOI and Handle resolvers
-  participant D as DataCite, ORCID, ROR
-  participant C as FAIR Champion
-  U->>P: enter DOI, Handle or URL
-  P->>R: resolve the identifier
-  R-->>P: landing page URL
-  P->>D: read metadata and identifiers
-  D-->>P: licence, creators, relations
-  P-->>U: quick check and pre-filled answers
-  U->>P: run deep check
-  loop curated core tests, three or four at a time
-    P->>C: POST test with resource_identifier
-    alt verdict returned
-      C-->>P: pass, fail or indeterminate
-    else timeout or service error
-      P->>P: mark as bez výsledku
-    end
-  end
-  P-->>U: results by principle with coverage
-```
+## Reader navigation and presentation
 
-### Change delivery
+**Start with the reader's task.** Labels, defaults and relations make sense without knowing files,
+registries or implementation. Source, recommendation, service availability and verification are separate
+facts. Catalogue inclusion implies no NRP or EOSC CZ qualification. Shared cards and relation labels
+keep the same meaning across stations, requirements, questions and catalogue entries.
 
-Every change arrives as a pull request: text polishing by the team, edits by a maintainer working with the
-editing skill, or a scheduled data refresh. Seven check layers run in parallel and feed one summary with
-previews, and a code owner approves before merge and deployment. Scheduled health checks for links, statuses
-and external services open issues instead of changing anything.
+The landing leads with local search, the RDMkit life-cycle journey, role-specific task shortcuts and
+resume. Local results appear while typing; nothing is sent externally. Identifiers route by what they
+denote: repositories to maturity, FIPs to their check, institutions to the institution check, ORCID to
+verification. A generic DOI or Handle offers an explicit lookup that names its object and source;
+other suitable helpers remain available. The catalogue is the complete search-results view. Source
+and privacy information remain visible without dominating entry.
+
+The journey draws seven life-cycle stages as a cycle, reuse returning to planning, with a numbered
+list of the same steps. Order and membership derive from content. No stage is chosen before the reader
+acts. The last visited step supports resume. **Read marks belong to the reader:** each step in the
+journey and rail has an independent keyboard-operable toggle; opening a step marks nothing. Marks can
+be removed and survive navigation and role/language changes. Read marks, chosen stage and self-check
+results are separate states. The rail can hide check badges without discarding answers. Phone navigation and role selection collapse above content, naming the current page/role. Stage names and definitions retain their stated RDMkit/KNAV source and translation.
+
+**One path, four responsibilities, detail on demand.** Role switching preserves useful disclosure and
+position. A station shows stage/title, key point, immediate action and at most one related tool,
+glossary terms, how-to, reasons, AI advice, closed callouts, source/provenance details, related catalogue
+records and next step. L0–L3 distinguish immediate action, practical steps, reasons and traceability.
+Reasons do not repeat principle tiles. Read the whole station in each role: generic topic bullets are
+not added where that role has no useful action. Each control acts or visibly explains what it needs first.
+
+Home, Path to FAIR, Self-check, Principles, Catalogue, Tools and guidance, and About make every page
+discoverable. Pages declare menu membership; Data for machines has its own header control. Explicit
+`[[id|phrase]]` references link the words each language uses. Requirements show explanation before
+quiet linked identifiers and sources, with originals in padded disclosures. External links open a new
+tab and say so to assistive technology. Refused URLs are never replaced by `href="#"`.
+
+## Knowledge base, identity and traceability
+
+[content-model.md](content-model.md#entities) owns entity definitions and the one entity-relationship
+diagram. Advice/questions cite ledger clauses, clauses cite published sources and FAIR principles,
+and the explorer keeps every clause so condensing the path loses no requirement. Questions name where
+gaps can be addressed. Tests and provider criteria record actual question coverage rather than inheriting
+all citations. Standards retain native labels, conditions, ordering and recommendation strength.
+FAIR links relate topics without renaming FAIR4RS or FDO requirements as FAIR-data requirements.
+
+**One entry per thing, locally owned identities.** Records declare short Guide IDs. Imported rows retain
+one primary `id` and the issued `guideRoute` across refresh independently of source IDs, names and URLs.
+Genuine source identifiers live in typed `alternateIds`; obsolete Guide IDs are discarded before release. One build
+projection emits compact catalogue/API addresses for all consumers; there is no parallel full-address register.
+Chips display the compact record ID. Published source labels and authoritative IRIs remain metadata with their
+actual roles. Before the first official release, IDs may change in place without compatibility routes or duplicate
+API documents. After issue, names/classification may change while the address remains fixed. Reviewed joins
+identify one described thing; ambiguous changes require review. Duplicate checks retain their current reasons.
+
+**Originals and translations have separate purposes.** Permitted originals are attributed once on
+clauses, with language, version, locator and reuse terms, and reused by stations, checks and catalogue.
+Authored Czech and English remain equivalent and separate from quotations. No original is manufactured
+to fill coverage. Published-source licensing governs excerpts when registry metadata differ. Reviewed
+question omissions and their reasons are declared in the content contract, not silent blanket exemptions.
+
+**Paradata records authorship and consequential changes.** Every compared content kind has an action
+covering it, and changes against the PR merge base need fresh coverage. Actions identify responsible
+person, instruments (actual AI tools when used), sources, results and end time. Generating the crate
+does not make the generator the author. Reviewed identities, GitHub accounts and optional ORCID iDs
+support credit; declined identifiers stay hidden and bots are not authors. Contributor suggestions do
+not guess identities. Stations show a quiet source/date line; full people/tool detail stays in the crate
+and About. The footer cites the Guide with its compiler as editor and credits analysis authors.
+`CITATION.cff` credits software authors, points to the editor citation and keeps the analysis as a reference.
+
+## Catalogue and infrastructure
+
+The catalogue is one faceted list. Kind is a single choice with counts; search, station and principle
+are shared facets, and kind-specific facets reset on kind change. Dimensions/orders apply only where
+meaningful; absent dimensions are explained instead of showing all-zero controls. FIP principles derive
+from declarations, change associations from their results. Ordering controls grouping, filters travel
+in the address, and an entry link shows that entry with a route back to its kind. Phone filters sit in
+a closed disclosure. Every matching card is present without a Show more step, and print lays all cards out. Long original definitions use disclosures,
+with complete text retained in search and exports. One resource-type vocabulary classifies recommendations, citations and Dashboard
+records rather than parallel taxonomies. Records expose source, use, qualification and identifiers separately.
+
+**Registries keep their facts.** The Guide and FIP Dashboard are complementary facets: the Guide
+explains what to do and why; the Dashboard owns profiles and FAIR-enabling-resource facts. They share
+principle IDs and link to each other. Snapshots carry actual source/date and Dashboard disclaimer.
+Configured live access retains snapshots as fallback without redating them on failure. FIP pre-fill
+uses Dashboard profiles first and published nanopublications as fallback, preserving resource and
+use/planning/replacement status. No declaration leaves a question open, not a proven gap.
+
+Repository discovery combines curated entries with NKR, re3data, FAIRsharing and DataCite snapshots,
+deduplicated through reviewed links. FAIRsharing uses DataCite DOI metadata, not its credentialed API;
+not finding a record is not proof of non-registration. DataCite figures are requested only for reviewed
+repository identities and are dated with record links. Samples expose titles, allow editing/replacement
+and exclude subordinate file records; usage-count zero is not interpreted as measured quality.
+
+**Empty and planned infrastructure is stated honestly.** Empty NKR results carry check time and a
+catalogue link; sample records are not real NKR pre-fill. Available records retain only reviewed
+identity, classification and check-relevant fields; personal contacts are never copied, only presence.
+Czech names/abbreviations and English counterparts follow reviewed sources. Node membership, service
+roles/milestones, operators, roadmap nodes and ERIC memberships remain separate source-scoped relations.
+Operators are not inferred from developers, hosting or membership. Own service marks are preferred;
+kind icons are the fallback. Funding/programme administrative detail belongs in source records while
+public pages explain practical contributions.
+
+## Self-checks and evidence
+
+**Different checks answer different questions.** NRP conditions and FAIR maturity remain separate.
+Dataset modes/funded-output programmes apply requirements in their stated context. Institution blocks
+distinguish legal obligations, strategy and extended policy/action-plan/infrastructure work. Standards
+retain required, conditional and recommended scope. Context-only or NRP-provided items keep help
+without editable answers. Purpose and responsibility appear before answering. There is no overall score.
+
+Each check has three named parts: evidence sources, answers and an addressable report. Evidence cards
+state what leaves the browser, destination and duration. Question cards put criterion/help before native
+answers, responsibility, path and source links. Technical detail/originals are disclosed. Basic/extended
+scope and grouping by principle, step or declared block stay explicit. The short sticky running result
+mirrors groups and links to items, never scrolls independently, and collapses compactly. Answers and Report
+expose the same saved grouping choice per check, including native blocks where present. The report shows the
+selected state breakdown and detailed groups; FAIR counts explain overlaps, while path/block views retain
+unmapped questions under Other. The report includes the selected basic/extended scope, retains other saved
+answers separately, names the object, separates gaps from unknowns and
+links each gap to useful action or a responsible person.
+
+**The reader owns an answer.** Manual answers survive pre-fill, new evidence, retry, import, attachment
+and withdrawal. Imported answers retain their origin without saying the current reader authored them.
+Observations keep source, target, subject, representation, date and scope; software reads also name an
+immutable commit. Sources remain visible, newest useful first; bounded values/logs disclose limits.
+Resolved identifiers say what they denote and link records; absent names/titles are stated, not invented.
+Positive discovery suggests only what the observed fact proves; an absent field does not prove failure.
+Whole-question evidence outranks partial evidence, while contradictions remain for the reader to settle.
+Changing a target discards old-target evidence; a changed in-flight target/state stops further requests.
+Clearing an identifier withdraws only its dependent evidence/suggestions, preserving manual answers.
+
+## Champion selection and observation scope
+
+The [selection record](champion/selection.md) documents the candidate inventory, three-record browser
+measurement, original test/metric identities and the reasons for each association. The reusable probe
+measures the core and candidates without editing the curated set. Service health is independent of
+criterion validity. Questions with `championEvidenceOnly` treat the tests as covering only part of the
+question: they suggest Partly when that part is met and No when it fails, and evidence about the whole question
+from other sources outranks them; manual answers continue normally. Source descriptions and
+question help identify the specific limit. Signposting remains a manual criterion because the reviewed
+registry offers no suitable conformance test. Selection and health edits carry their own fresh provenance.
+
+## Optional evaluators
+
+Repository samples retain quick discovery and the existing FAIR Champion tests. FAIR-Checker and F-UJI
+assess one object at a time; running them over every sample record is explicitly deferred follow-up work
+. The maturity check's evidence cards describe the supported sample
+checks and do not promise that deferred batch evaluation.
+
+An object check offers an external evaluator only when its reviewed mappings cover at least one question in the
+selected mode and tier scope. The current mappings support published-dataset questions; CDIF and FDO retain their
+local checks without unrelated evaluator inputs. Accepted reports remain inspectable and exportable independently
+of whether their input control is currently offered. Each offered choice
+states what the service assesses, which identifier it receives and where, and starts only when the reader chooses
+it; nothing runs on entry, while typing, on quick lookup or on a report preview. FAIR-Checker runs from the browser
+through its anonymous REST API (`api/check/metric_<id>?url=`), at most three of its twelve metrics at a time,
+each response bounded in time and size. Its public check page is also linked; whether that page accepts a prefilled
+identifier is not established, so the identifier is offered for copying. F-UJI is linked as its public form without
+the `?pid` parameter, which starts an assessment, and its JSON report is loaded locally. The guide never uses
+F-UJI's authenticated API, credentials, a proxy or a cross-origin download of the report.
+
+One assessment record keeps each accepted assessment: provider, target, inspected subject and representation,
+assessment and retrieval dates, supplied software, API, metric and specification versions, and every native result
+with its identifier, wording, verdict, score, maturity, subtests, recommendation, comment and log. Questions refer
+to the record by its identity instead of copying it. A F-UJI report's identity is the SHA-256 digest of its text, so
+a duplicate is refused and two assessments of one object stay distinguishable by date and content. A FAIR-Checker
+response does not always repeat its metric, so the requested metric is the identity; a different echoed metric is
+recorded. FAIR-Checker's outcome is a score on its own 0 to 2 scale, which its interface shows in green (2), orange
+(1) and red (0).
+
+Recognised report structures and reviewed metric/API/specification combinations are owned by
+`content/live.toml`; fixtures preserve these structures without real subject metadata.
+
+The reviewed F-UJI specifications list the same seventeen metric identifiers and names. A report with another
+specification or metric version is recognised, kept with its complete native results and shown as unreviewed; it
+suggests no answer. The test fixtures in `tests/fixtures/providers/` follow the structure of public reports for
+both reviewed specifications without copying their subjects' metadata.
+
+Each result is read as its provider presents it, with the reviewed interpretation embodied in the mappings and tests.
+F-UJI's client (`simpleclient/index.php`) shows a metric as passed at its FAIR level from level 1 and as unknown at
+level 0, whatever the report's `test_status`, which stays `fail` when unscored subtests fail; a subtest shows passed
+or unknown by its own status. The guide reads level 3 (`maturityMax`) as met, levels 1 and 2 as partly met and level
+0 as not established, names the levels as F-UJI does (incomplete, initial, moderate, advanced) and shows the
+report's status where it differs. FAIR-Checker's check view colours 2, 1 and 0 green, orange and red; its metrics
+give 2 for their strong evaluation, 1 for a weak one (only F1B has one) and 0 otherwise, and the guide reads them as
+met, partly met and not met. An assessment in which every metric scored 0 decides nothing, since that usually means
+the service read no metadata from the page.
+
+A mapping (`live.toml`, `[[provider.mapping]]`) states whether a criterion covers a whole question or part of it.
+For a reviewed version, whole coverage answers as the reading (Yes, Partly or No); partial coverage answers Partly
+when its part is met, even in part, and No when it fails. A reading that is not established, an unavailable result
+or an unreviewed version suggests nothing and says why. The same partial-evidence rule holds for FAIR Champion tests
+that cover only part of a question and for samples in which some records gave no result. Evidence about the whole
+question outranks partial evidence whatever their order; Yes against No, or No about the whole question against a
+part found met, is a disagreement the reader settles. Each attached assessment is applied again once per visit and
+after answers are adopted, so a result saved under an earlier reading follows the current one; the reader's own
+answers stay. Evidence harvested by F-UJI is attributed to F-UJI and its assessment date, never to the browser. Licence statements stay with the harvested source that gave
+them; no effective licence is derived from a combination.
+
+Answers follow one ownership rule for every source. A reader's answer stays theirs through new observations,
+completed or retried assessments, attachment, duplicate import and removal, and the result names the reader, not a
+source, as its origin. Observations stay visible per source, newest useful first, so a later source never hides an
+earlier fact. A run whose target or check state changes before it ends is discarded and sends no further request;
+a retry asks only for the metrics without a result. Removing an assessment withdraws only its observations and the
+suggestions that rested on it alone.
+
+In the visible evidence panel, a source's attribution and observation share one badge when they name the same
+source; different sources retain separate badges. Sources without a vendored favicon use the existing resource
+icon, including resolver results and observations that suggest no answer. Decorative badges accompany source
+names and never change who owns a manual answer.
+
+Original reports are kept once per digest in browser storage apart from the answers, all together within 4 MB, and
+native logs are read from them rather than copied into the answers. The answers are saved before a report is kept.
+When the browser refuses to save the answers, retained reports give way first: they are dropped from storage, kept
+for the visit, and the overview says so; if the answers still cannot be saved, the local-data note says that too.
+Deleting all local data also forgets the reports held for the visit. The summary and the JSON-LD result carry
+assessments compactly, without logs, within the existing 384 KB portable budget. The complete evidence download adds
+every retained original report unchanged and loads back like any saved result. An assessment read from a file is the
+file's claim: a report it carries is kept only when its SHA-256 digest matches the record's identity, the record is
+then rebuilt from that report, and a claim without a verified report is marked as such and never blocks importing the
+real report. Report identity needs SubtleCrypto; without it the guide refuses the import instead of using a weaker
+hash. A result with assessments is written as format revision 3; a result without them is still written as
+revision 2, so earlier versions of the guide keep reading it, and revisions 1 and 2 remain readable here.
+
+## Identifier verification
+
+The identifier helper loads its local script only when opened. It finds candidates in pasted text and
+checks ORCID's MOD 11-2 checksum and ROR's Crockford/MOD 97-10 checksum locally, following the
+[ORCID identifier documentation](https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier)
+and the [ROR identifier pattern](https://ror.readme.io/docs/identifier). It keeps pasted text in memory,
+outside saved guide state, and sends only selected identifiers to the existing public connectors after
+an explicit lookup action. Search links carry the selected identifier into the helper without starting
+a request. The helper recognises resolver links and bare ORCID/ROR/DOI candidates; Handle candidates
+require their resolver link or an explicit `hdl:` prefix to avoid guessing fractions or paths. Text extraction is
+bounded and cannot disambiguate every punctuation mark or Handle-like value in prose.
+
+Checksum validity, record existence and correct attribution are separate. Results show the public name
+or available resolver, DataCite or Crossref title and a record link; DOI metadata titles are used only
+when their stated DOI matches the requested identifier. A record without a public name or title remains
+resolved with that limitation stated. Network and service errors remain unavailable, with manual retry.
+The shared lookup queue admits at most four simultaneous identifiers. Limits and resolver addresses
+live in `content/live.toml`; bilingual interface strings live in `content/ui.toml`. The dataset-check
+page opens the existing dataset self-check, where quick inspection and the separately requested FAIR
+Champion tests share answers and evidence.
+
+## DOI citation helper
+
+The helper accepts DataCite and Crossref DOIs, including the DOI handed over from search. Entry and
+editing remain local; an explicit action retrieves the agency and matching metadata, then independently
+requests APA, Czech ISO 690 author–date, BibTeX and RIS. The DOI Foundation formatter's published style
+list confirms `apa` and `iso690-author-date-cs` before either is labelled. An unknown-style fallback is unsuitable for the Czech style. The supported formatter removes
+the need for a local ISO template.
+
+The agency's documented direct representations supply BibTeX and RIS. All responses are anonymous,
+bounded by time and size, and read without redirects through enrolled connectors. Export syntax and
+DOI identity are checked. Outputs remain plain text with their exact response links, copy/download
+controls and retrieval time; a failed format does not erase successful formats. The reader compares
+authors, year, version and publisher with the landing page. No missing bibliographic field is invented.
+Helper labels load with page data, preserving the initial-download budget and local-file operation.
+
+Detailed provenance descriptions load with the catalogue's existing requirements part; the initial
+data retains action identities, names, dates and links needed by credits. The complete crate and
+API keep every description. The blocked-service suite covers every enrolled host under standalone
+HTTP and local-file hosting in both languages, checking partial results, manual answers, retry and
+honest failure states. A failed live FIP Dashboard request retains the snapshot's source and date.
+
+## Layers-and-Seams integration
+
+The updated manuscript may be cited as **in preparation** for its
+conceptual model and scoped implementation examples. It creates no ledger requirements and receives
+no invented DOI, publication date, publisher or licence. This is the sole exception to the published-source rule.
+
+The approved adaptations of the manuscript's Figures 1–3 preserve its geometry, labels,
+layer colours and status/arrow distinctions remain consistent with the paper. Bilingual local SVG assets
+add web fonts, accessible descriptions and equivalent adjacent prose. Source-scoped catalogue observations retain their documented dates.
+This is an explicit exception to the Mermaid-only diagram convention.
+
+`content/model.toml` maintains the six functional layers, the registered information hand-offs,
+reviewed item associations and role-specific station explanations. A seam crosses a responsibility
+boundary, including distinct functions within a layer. The layer order expresses a functional rationale;
+planning, support and evaluation feed back throughout. Actors may work across several layers.
+Reader lenses, disclosure levels and existing FAIR principles keep their separate purposes.
+
+The catalogue reuses its card presentation and shared facets for model layers and connections. Tags
+are linked to their definitions and shown on records as well as in filters. An explicit seam association
+reuses its endpoint layers; associations are never propagated through broad citations or automatically
+from questions to tests. A test is mapped according to its own observable scope. Definitions and full
+associations load on demand and remain available in the complete crate, exports and static model API.
+
+Station explanations appear in **Proč**, alongside the existing source requirements. Practical actions
+remain in their current steps. Detailed schema requirements stay in profiles and schemas; a FIP records
+selected FAIR-enabling resources and can refer to those profiles. Original source wording and issued
+question identifiers remain intact.
+
+Implementation examples carry their own precise scope, evidence and observation date. A component's
+status does not establish the status of a connection or a later reuse step. Month-only observations
+retain that precision. Maintaining actors are not silently presented as formally assigned interface
+owners. An unavailable live response limits the inspection and does not prove a broken connection.
+Assessment hand-over reuses the existing target, criterion, evidence, invocation, date and actor;
+the guide's source-to-question-to-test-to-revision example demonstrates these transfers in practice.
+
+## Local storage, portability and deletion
+
+Answers, modes/profiles, identifiers and evidence stay in this browser's storage for this site;
+other browsers/devices do not see them and private windows may forget them. Checks and About state
+this plainly, with deletion at hand. Only chosen identifiers go to named services after a lookup.
+Pasted helper text stays in memory outside saved state.
+
+JSON-LD/FTR RO-Crate and Markdown exports carry reloadable state, Guide version, check, modes/profiles,
+targets and evidence. Markdown's hidden comment restores full state; earlier answer-only summaries
+remain readable. Shared links carry compact answers and open as previews. Files also preview before
+replacing that check's answers on request. Foreign, damaged, newer-format and unknown-check files get
+different explanations; unknown historical question IDs are skipped with notice. Public share links use
+the publication address, never local files. Result reuse licensing is chosen by the person exporting,
+not assigned by the Guide. Delete-all removes saved state and visit-only reports after confirmation.
+
+## Visuals, accessibility and machine interfaces
+
+**Visuals answer reader questions from maintained facts.** Journey navigation, PID/landing/metadata/files,
+publication hand-over, software version/release/archive/citation, and evidence-to-answer sequences
+reuse content records or `visual.*` labels. Semantic ordered lists reflow, print and read in order
+without a diagram runtime. Approved manuscript SVGs preserve geometry, terms, colours and status/arrow
+meanings, attribution, bilingual descriptions and adjacent equivalent prose. Maintainer Mermaid diagrams
+have accessible titles/descriptions and equivalent prose; the entity diagram has one definition.
+
+**Accessibility is correctness.** The app targets WCAG 2.2 AA with native keyboard controls, visible
+focus, text/icon state cues, names, contrast and 320 px reflow. EOSC CZ brand colours are accents;
+darker tints carry body text. The light theme, local fonts, vendored Font Awesome icons and reviewed
+marks avoid external page-load requests. Funder/brand logos remain legible, linked and attributed.
+Controls act or visibly say what they need, through the shared gate. Ordinary actions use the 44 px
+minimum; inline chips and reader-owned read toggles have explicit compact sizes with at least 24 px
+targets, and compact toggles stay square. Alignment, padding, separation and long identifiers are
+checked across views. Measured rules need planted-regression proof and a visual pass through empty,
+partial, complete, expanded and imported states in both languages at desktop/phone widths.
+
+**The static API is a crate view.** `build_api.py` emits collection/entity JSON with language maps,
+JSON-LD context, OpenAPI 3.1 and pinned local Swagger UI. Records link relatively. Checks are FTR
+benchmarks, questions metrics, and named manual tests link exports to definitions. Paths align with
+the Dashboard's published vocabulary. Data for machines teaches from real task-to-data links, FAIR
+Signposting, profile, licensing, paradata and result examples. Head and linkset share one discovery list.
+Views offer their own data, cards their record, checks their result; filtered exports retain order/filters.
+Print exposes closed content and relevant addresses. Swagger UI is the explicit scoped accessibility
+exception named in the public statement; the accessible machines page lists the same endpoints.
+
+## Checks, automation and delivery
+
+**PR code receives read-only checks.** `check_all.py` builds once and runs deterministic content,
+fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, API, diagrams, licensing,
+assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
+blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
+completed runs expose their actual revision and outcomes through the dashboard and `api/health.json`.
+PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane and two balanced browser
+lanes. The command inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
+Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,
+duplicate, incomplete or mismatched work, reconciles station/PDF inventories and publishes one health snapshot.
+It runs after failed lanes too. Source revision means the checked commit; trusted PR comments separately verify
+the PR head. The local full-run command and all validator profiles remain available unchanged.
+Three validation passes cover RO-Crate 1.2, Process Run Crate and the Guide profile; inheritance is
+disabled where an older crate descriptor would conflict. Known subclass inference, action-status IRI
+and RDF-property recommendations do not waive required profile checks.
+
+Browser installation and checks share `scripts/browser_env.mjs`: an explicit `PLAYWRIGHT_BROWSERS_PATH`
+wins, otherwise the browser lives in the repository's `.cache/ms-playwright`. The runner separates its outer
+job count from `--browser-workers`; browser groups share atomic case slots across Node processes, so inner pools cannot multiply the global limit. Station coverage
+has one matrix over language, role, width and disclosure state. Closed guidance and expanded AI tips remain
+distinct audit states. Navigation checks wait for the requested view's replacement and data; search waits for
+the complete index before publishing results.
+Frame-free whole-document accessibility checks reuse the pinned axe engine after completed layout, preserving
+the same shared policy and full context. Frames and scoped checks retain the established Playwright adapter.
+`CHECK_AXE_MODE=compare` verifies normalized rule/check/node outcomes against that adapter; `reference` selects
+the reference throughout. A parity failure retains its diagnostic and fails verification.
+
+The health artifact includes complete successful/failing logs, individual script and case timings, explicit
+selected/skipped/aborted cases, unit-test timings and failure screenshots, route/heading/error records and traces.
+A selected subset remains partial even when its executed cases pass. Reruns are separate attempts and never
+erase an earlier failure. These checks establish their recorded scope, not complete visual or FAIR-semantic
+correctness. Performance comparisons name their revision, environment, coverage and concurrency; local elapsed
+time is not presented as measured hosted-runner cost.
+
+A separate trusted `workflow_run` posts the PR summary from bounded JSON artifacts without executing
+their code. It verifies current PR head/source repo, escapes Markdown and updates only its own bot
+comment with narrow PR write access. The first-page summary states the true total and links the complete
+changed-item list. PR execution has no secrets or delivery token. Dependency/action pins use Dependabot.
+Human/code-owner review follows CONTRIBUTING; automated jobs never merge their own proposals.
+
+### Snapshot refresh and source watch
+
+`refresh_snapshots.py` serves sources the browser cannot read or should not query on entry. It checks
+shape, completeness, pagination totals, response bounds and removal thresholds before replacing a file;
+interdependent Dashboard collections move together. Invalid responses retain the old snapshot. Date-only
+changes produce no PR. Reports distinguish changed, unchanged, empty, rejected and failed outcomes.
+
+`source-refresh.yml` runs weekly, on dispatch or for an exact `/refresh <source>` PR comment from a
+currently authorized writer. Trusted default-branch code parses the command and proposes one reserved
+`refresh/<source>` branch per source through the repository-scoped App. Identical proposals are reused,
+rejected content is not repeatedly proposed and human-edited branches are left for reconciliation.
+App settings and narrower per-job tokens are in [deployment.md](deployment.md#release-preparation-and-tagging).
+Nothing writes the default branch or merges; fixtures do not establish remote activation.
+
+`health-watch.yml` checks links, connectors, stale dates and watched EOSC CZ page content, excluding
+navigation/header/footer. Champion remeasurement is monthly or requested. Repeated failures precede
+issues; recovery closes them. Changed page items and core-test health changes have stable issue keys.
+Candidates are proposed for review, never selected automatically. The issue publisher has narrow issue
+write access and a per-run bound. Historical observations keep their source dates.
+
+### Production, preview and release
+
+[deployment.md](deployment.md) owns workflow details, local assembly and recovery. Production comes
+only from a release tag's checked artifact. Every default-branch push rebuilds `/next/` in the same
+Pages deployment while retaining production bytes. Every preview HTML page has `noindex` and a
+prerelease notice; discovery introduces no preview URLs. Entity identity stays canonical while preview
+Swagger uses its own relative API. Before a verified first release, the root explains that state and
+links to the preview instead of presenting default-branch work as production.
 
 ```mermaid
 flowchart LR
-  accTitle: Change delivery
-  accDescr: Team edits, maintainer edits with the editing skill and scheduled refreshes all arrive as pull requests. Seven check layers run in parallel, feed a summary with previews, and a code owner approves before merge and deploy. Scheduled health checks open issues.
-  T([Team: text polishing]) --> PR
-  M([Maintainer with editing skill]) --> PR
-  S([Scheduled data refresh]) --> PR
-  PR[Pull request] --> CHK
-  subgraph CHK[Checks in parallel]
-    direction TB
-    a[Structure: RO-Crate and SHACL]
-    b[Content: CZ and EN, sources, paradata]
-    c[Page: HTML, CSP, size budget]
-    d[Accessibility: axe, contrast]
-    e[Links]
-    f[Diagrams re-render]
-    g[Hygiene: REUSE, citation file, skill mirror]
-  end
-  CHK --> SUM[Summary and previews]
-  SUM --> REV{Code-owner review}
-  REV -->|approved| DEP[Merge and deploy]
-  H([Scheduled health checks]) --> ISS[Issues]
+  accTitle: Production and preview delivery
+  accDescr: Default-branch work builds a preview. A separate release tag checks and packages production once. Assembly combines checked production and the preview into one Pages deployment, and the draft release reuses production bytes.
+  M[Default-branch push] --> N[Check preview]
+  R[Merged release PR] --> T[Separate tag dispatch] --> P[Check and package tagged source]
+  P --> A[Assemble production and next]
+  N --> A --> D[One Pages deployment]
+  P --> F[Draft release with same artifact]
 ```
 
-### Traceability from source to screen
+`release_versions.py` is the standard-library owner of Guide/citation/npm/lockfile/Python versions and
+release dates, and of the merged-PR changelog. Crate/API values derive from the Guide. Prose links to
+metadata rather than restating a version. Prepare release opens a reviewed PR; Tag release is a separate
+manual action after merge. A tag checks/packages once and its draft release attaches that same artifact
+with health receipts. Failed new tags leave previous verified production available. Partial uploads
+and same-run retries reuse checked bytes without overwriting assets or human edits. The testing notice
+is driven by Guide release status until EOSC CZ agreement, independently of the preview notice.
 
-Published sources get ledger IDs: the report, the NRP conditions, the NRP documentation and published
-papers. Advice items and checks cite those IDs, and the principle explorer shows every clause, so condensing
-the path loses nothing. Each content change records a paradata action naming the person, the tool and the
-sources, and the page shows it at level L3.
+**Delivery remains a maintainer act.** Prepared workflows and local fixtures do not establish App/Pages
+configuration, dispatch authorization or published releases. Capability specs and archived planning
+are intended for `openspec/` after authorized transfer; that transfer and CLI integration remain release
+preparation, not installed functionality. Minimal agent tooling uses AGENTS and one editing skill with
+an identical Claude copy. Behavior/data/API/CI changes follow the accepted planning contract.
 
-```mermaid
-flowchart LR
-  accTitle: Traceability from source to screen
-  accDescr: Published sources receive ledger IDs. Advice items and checks cite them, and the principle explorer shows every clause. Content changes record paradata, which the page shows at disclosure level L3.
-  SRC["Published sources<br/>report, NRP conditions,<br/>NRP docs, papers"] --> LED["Clause ledger<br/>A, K, C, DOC, E"]
-  LED --> ADV["Advice items<br/>station, lens, level"]
-  LED --> CHKS["Checks<br/>D, P, G, S, K, I"]
-  LED --> F2X["F2 explorer<br/>every clause"]
-  ADV --> ACT["Paradata<br/>agent, instrument, sources"]
-  CHKS --> ACT
-  ACT --> L3["Shown at L3<br/>Jak tento obsah vznikl"]
-```
+## Final candidate maintenance
 
-## Design decisions
+Run the final review through architecture/data representation, bilingual text/source fidelity, UX/GUI/design
+and code hygiene. Fix bounded defects and obsolete behaviour; module size alone does not justify a rewrite.
+Evidence cards count potential coverage from registered mappings/local tests for the current scope; observed
+results and reader answers remain separate. Advisory linking ranks specific names and authored language variants,
+uses context and ambiguity checks, and provides an excerpt, location, proposed reference and reason without
+rewriting prose or failing integrity checks. Document titles name the current page or entry.
 
-1. **Static page, no backend.** It is portable to an eosc.cz page whose embedding rules are unknown, to GitHub
-   Pages and to a local file, and nothing needs operating.
-   *Alternatives:* a plugin for the eosc.cz CMS (MuniWeb; unknown and editor-dependent); a framework single-page
-   app (a heavier build and harder for the team to maintain); a server application (needs an operator).
-2. **The knowledge base is an RO-Crate 1.2, and the page is its HTML preview.** The content becomes a FAIR
-   digital object itself, harvestable and standards-based, and provenance has a standard home.
-   *Alternatives:* plain JSON (not linked data); a Markdown static-site generator (no machine-readable content
-   model); a database (needs a backend).
-3. **Content authored in TOML, crate generated by a standard-library script.** TOML is readable in
-   pull-request diffs for the team's text work, is read by Python's standard library, and matches the hub's
-   registry style. CI regenerates the crate and compares.
-   *Alternatives:* hand-editing the JSON-LD crate (unreadable diffs, easy to break); YAML (needs a third-party
-   parser); Markdown with front matter (structured fields such as tiers and prefill mappings become awkward).
-4. **The crate is delivered standalone and inlined.** The inlined copy keeps the page working from a file and
-   in an iframe; the standalone file serves harvesters.
-   *Alternatives:* fetch only (breaks `file://` and some embeddings); inline only (not harvestable).
-5. **The backbone is a stage-aware path with four role lenses and levels L0–L3; a principle explorer keeps
-   every clause.** People think in their work stage, not in principles. Lenses let one path serve
-   researchers, data stewards, repository administrators and communities. The explorer guarantees that
-   condensing loses nothing.
-   *Alternatives:* principle-first navigation (abstract for researchers); separate tools per role (duplicated
-   content); a questionnaire first (no orientation before judgement).
-6. **A clause ledger with a published-sources rule.** Every statement cites ledger IDs that point to published
-   sources. Unpublished working material is never cited; its facts are traced to the published sources it relies on.
-   *Alternatives:* free-form references (not checkable); citing unpublished working material.
-7. **Paradata through Process Run Crate actions.** Who produced or verified content, with which tool
-   (including AI), and from which sources is recorded per content batch and shown at level L3.
-   *Alternatives:* git history only (not visible to readers and not linked to sources); a changelog (too coarse).
-8. **The self-check keeps two axes (NRP gate, FAIR maturity) and shows no overall score.** The analysis warns
-   that automated scores mainly reflect repository configuration and move a lot with small changes.
-   *Alternatives:* one FAIR score or percentage (misleading); a maturity scale only (hides the binary NRP conditions).
-9. **Live checks are two-stage, with FAIR Champion opt-in and governed by reliability rules.** The OSTrails CZ
-   pilot (<https://doi.org/10.5281/zenodo.21726258>) found many calls without a verdict, a large share of
-   indeterminate results and families that fail by construction. A quick deterministic stage gives instant
-   value; the deep check reports coverage and never counts a service failure as a failed requirement.
-   *Alternatives:* F-UJI (no browser access); always running the full Champion battery (slow, unreliable, heavy
-   load); no live checks (loses a concrete, motivating feature).
-10. **Sources a browser cannot reach enter as reviewed snapshots.** re3data, Heslář, FER lookups, NMA facets
-    and test health refresh through scheduled pull requests.
-    *Alternatives:* a proxy backend (contradicts decision 1); waiting for providers to enable CORS (tracked as
-    issues, not relied on).
-11. **The repository finder combines NKR live data, a re3data snapshot and a curated list.** NKR is the
-    national source but has no registered repositories yet; its published schema maps onto FAIR principles,
-    which also lets the repository-administrator self-check be pre-filled from an NKR record.
-    *Alternatives:* NKR only (currently empty); re3data only (misses NRP pilot repositories).
-12. **Diagrams are Mermaid sources pre-rendered to SVG,** following
-    the AIS CR documentation visual conventions, paired with prose.
-    *Alternative:* the Mermaid runtime in the browser (heavy JavaScript, flash of code).
-13. **Layered pull-request checks plus code-owner review; scheduled jobs never commit.** Checks make an edit
-    safe for the page and the data; humans judge correctness and tone.
-    *Alternative:* lint only (does not protect content integrity or accessibility).
-14. **Licensing: MIT for code, CC BY 4.0 for content, REUSE layout.** This matches EOSC CZ outputs.
-    *Alternatives:* a single licence (wrong fit for code or for content); EUPL-1.2 (considered; MIT chosen).
-15. **Planning lives in the AIS CR management hub; this repository has no OpenSpec tree.** The build-out
-    followed the hub's OpenSpec change `eosc-fair-guide`; this repository keeps this design document and an
-    agent guide.
-    *Alternative:* OpenSpec in this repository (duplicates tooling for a small project).
-16. **Visual identity: EOSC CZ, light theme, accessible tints.** Brand teal and pink are kept for accents and
-    large text; darker tints carry body text to meet 4.5:1 contrast. The official logo packages are used.
-    *Alternative:* raw brand colours for text (fails WCAG AA).
-17. **AI tooling: `AGENTS.md` plus one editing skill mirrored for Claude Code.** It is enough for a future
-    administrator to edit in line with the decisions.
-    *Alternative:* the hub's generated multi-vendor trees (too much for this repository).
-18. **The FIP completeness check is pre-filled from the community's published FIP.** FIP Wizard publishes a FIP
-    as nanopublications that declare, per FIP question, which FAIR-enabling resources the community uses, and
-    the nanopublication query service is callable from a browser. Reading a published FIP reuses the
-    community's own declarations without a national FIP Wizard. Only declared resources pre-fill an answer; a
-    question with no declaration stays open with a note, because a missing declaration does not prove a gap.
-    *Alternatives:* manual answers only (ignores published work); a snapshot of all FIPs through scheduled CI
-    (stale, and FIPs are few and changing).
-
-## Decision log
-
-Source: **U** = decision of the maintainer, **S** = proposal from analysis, agreed by the maintainer.
-
-| ID | Date | Decision | Src |
-| --- | --- | --- | --- |
-| D-01 | 2026-10-07 | Refresh *Analýza FAIR NRP/NDI v1.2* into an interactive, self-explanatory CZ+EN guide for an eosc.cz page. Live demo, then handover to the team for polishing. | U |
-| D-02 | 2026-10-07 | Backbone is a **stage-aware lifecycle path**: PLÁN → PRÁCE → REPOZITÁŘ → POPIS → LICENCE A PŘÍSTUP → PUBLIKACE → DOHLEDATELNOST → CITACE A UZNÁNÍ → KONTROLA. A one-question stage entry opens the path; earlier stations are collapsed, not hidden. | U |
-| D-03 | 2026-10-07 | **Four role lenses** on the same path: researcher, data steward, repository admin/curator, community/FIP. The path is the most desired feature; data stewards and repository admins are the most common users and translators. | U |
-| D-04 | 2026-10-07 | "Rich, but on demand": disclosure levels L0 (what to do now), L1 (how), L2 (why: principles, CTS, CDIF 1.1, NRP rules), L3 (sources, FER IRIs, paradata). | U |
-| D-05 | 2026-10-07 | Features: F0 shell · F1 path · F2 principle explorer · F3 self-check per role (incl. NRP onboarding gate) · F4 resource finder · F5 live check · F6 freshness. Discussed one feature at a time. | U |
-| D-06 | 2026-10-07 | Stack: static HTML + CSS + light, safe vanilla JS. No backend, no build step for the page. Portable to an iframe, an inline block or a standalone page (target page unknown). | U |
-| D-07 | 2026-10-07 | Knowledge base is an **RO-Crate 1.2** (`ro-crate-metadata.json`); `index.html` doubles as `ro-crate-preview.html`. **Paradata** follows Process Run Crate (CreateAction: agent, instrument, object, result, endTime). | U+S |
-| D-08 | 2026-10-07 | Reuse standard IRIs: FAIR principles `w3id.org/fair/principles/terms/*`, published FER nanopub IRIs, FAIRsharing DOIs, FIP ontology classes, schema.org / DCAT / SKOS / dcterms. | U |
-| D-09 | 2026-10-07 | Live calls only on user action, with graceful fallback. OK: DataCite REST (metadata, citation), FAIR Champion, nanopub query, Upptime JSON. Not usable from a browser: FAIRsharing API (login), Heslář API (no CORS), F-UJI (no CORS). | S |
-| D-10 | 2026-10-07 | No built-in NRP FAIR check. Use external tools, with **FAIR Champion preferred**. Present scores as feedback on repository setup, not as a judgement of the author (report §5.2.1). | U |
-| D-11 | 2026-10-07 | Tone is advisory and matches EOSC CZ materials; no enforcement wording beyond the actual NRP conditions (v3.4). | U |
-| D-12 | 2026-10-07 | Sensitive data gets a short callout ("FAIR ≠ otevřená") with a combination of pointers; the user chooses the target. | U |
-| D-13 | 2026-10-07 | Station "CITACE A UZNÁNÍ" leads with citation practice. RIV result type T is a factual note, never hype. Includes a citation helper from a PID. | U |
-| D-14 | 2026-10-07 | PIDs: DOI is the recommended, most instructive option, **not the only valid one**. Handle, ARK, URN:NBN and others are acceptable if persistent, resolvable and managed. | U |
-| D-15 | 2026-10-07 | CCMM wording: NMA works with **1.1.0**; "podpora 2.0.0 se připravuje (2027)" (likely a v2→v1 XSLT; meeting info, not guaranteed). Forward-looking advice may reference 2.0.0. | U |
-| D-16 | 2026-10-07 | FIP/FER: no separate national FIP Wizard. The FER catalogue is a closed pilot, so keep a **placeholder** (user will supply a link). NKR will host approved qualified FERs; each repository is described by its FIP. | U |
-| D-17 | 2026-10-07 | **No licence-selector placeholder**; the DSW plugin in dmp.eosc.cz is the deliverable. | U |
-| D-18 | 2026-10-07 | DMP is a cornerstone: dmp.eosc.cz with funder templates (GA ČR, TA ČR, AZV ČR, MŠMT, Horizon Europe, Science Europe) and the CCMM export template. | U+S |
-| D-19 | 2026-10-07 | AI transparency in a footer, an "O průvodci" page and per-item paradata. "AI ve FAIRifikaci" is an overlay per station plus an overview page linking CERIT AIaaS. Guardrails: keep unpublished data on-premise, verify every identifier, declare AI use. | U |
-| D-20 | 2026-10-07 | Accessibility: EU Web Accessibility Directive (EN 301 549 / WCAG 2.1 AA; CZ zákon 99/2019 Sb.); target **WCAG 2.2 AA**; publish an accessibility statement. | U |
-| D-21 | 2026-10-07 | UX is critical. Anti-dropout patterns: one-question entry, next best action, one concrete action per station, time estimates, glossary popovers, an escape hatch, remembered progress. Test with EOSC CZ personas. | U |
-| D-22 | 2026-10-07 | Visual identity: brand teal #008691 and pink #EB5D81 only for accents and large text; text tints #00737D and #C2264F (both ≥ 5.6:1 on white). Muni font only inside eosc.cz pages; Arial/Helvetica fallback. | S |
-| D-23 | 2026-10-07 | Diagrams in **Mermaid**, and they must look good. Adopt the hub visual conventions: approved families only, every diagram paired with prose (doubles as the text alternative). | U |
-| D-24 | 2026-10-07 | Paradata agents: David Novák (ORCID 0000-0001-6592-6291) as implementing author, others as contributors; reviewed later. Text polishing goes to the team. | U |
-| D-25 | 2026-10-07 | Repo `github.com/motyc/eosc-cz-fair-docs-testing`: private now, public later. Admin waiver granted. Best-practice contents (README, licences, CITATION.cff, CONTRIBUTING, CHANGELOG…). Minimal hub-style AI tooling plus **one dedicated editing skill**; keep it light. | U |
-| D-26 | 2026-10-07 | Not hosted on third-party AI artifact hosting (EOSC CZ branding). Preview locally until the repository is public, then use GitHub Pages or the target page. | S |
-| D-27 | 2026-10-07 | Glossary source: **heslar.openscience.cz** (NTK), snapshotted at authoring time and linked back (licence to check). PID hub: **identifikatory.cz**. | U+S |
-| D-28 | 2026-10-07 | Draft checklists and handbooks for repository administrators are supportive input only, not decisions. JSON-LD (schema.org) landing pages are desirable. | U |
-| D-29 | 2026-10-08 | **CI must validate PR contents** so an edit is safe to accept once checks pass. Layers: structure, content contract, page integrity, accessibility, links, diagrams, repo hygiene, review aids. Hardened workflows. | U |
-| D-30 | 2026-10-08 | Licences: **MIT** (code) + **CC BY 4.0** (content), REUSE layout. | U |
-| D-31 | 2026-10-08 | README follows the hub pattern: Czech `README.md` + English operational `README_en.md`. | U |
-| D-32 | 2026-10-08 | Light theme only for v1. | U |
-| D-33 | 2026-10-08 | Sensitive-data callout uses **all five pointers** (data steward/DPO, Etické sedmero, Sensitive Cloud, sensitive-data AAI architecture, EOSC CZ WG), ordered as steps and filtered by lens, so it reads easily. | U |
-| D-34 | 2026-10-08 | Repository discovery: **NKR connector** (Cordra REST at repo.cz, CORS ok, Repository schema published, no repositories registered yet) + **re3data** snapshot (no CORS; 14 CZ entries via `api/beta/repositories?countries[]=CZE`) + a curated layer (MBDB, datarepo…). Deduplicate via `relatedRegistry` and URL. | U+S |
-| D-35 | 2026-10-08 | Branding from <https://www.eosc.cz/o-nas/sablony-eosc-cz> (logo zips, EU+MŠMT logolink; no design manual). Acknowledgement text from <https://www.eosc.cz/o-nas/acknowledgement> in the footer / about page. | U+S |
-| D-36 | 2026-10-08 | Non-CORS sources (re3data, Heslář, FER lookups) and link health are refreshed by **scheduled CI jobs that open a PR** for human review, never by silently committing. | S |
-| D-37 | 2026-10-08 | NKR Repository fields map onto FAIR principles, so the repository-admin lens can **pre-fill a self-check from the repository's NKR record** and show what is missing in that record. | S |
-| D-38 | 2026-10-08 | The guide is an official **NRP KA 5.1** output, so the mandatory NRP acknowledgement (CZ/EN, CZ.02.01.01/00/23_014/0008787) goes in the footer and the "O průvodci" page. | U |
-| D-39 | 2026-10-08 | Inventory method: a clause ledger (`content/ledger.toml`). The principle explorer (F2) is the lossless home for every report clause; path stations cite clause IDs; L2 is generated from the ledger. Report chapter IDs use a `K` prefix so they cannot be mistaken for principle names. | S |
-| D-40 | 2026-10-08 | **Published sources only.** Unpublished working material is never cited or referenced; every fact taken from it is traced to the published source it relies on (ledger section `E.*`). | U |
-| D-41 | 2026-10-08 | Outstanding open questions become **issues in this repository**, filed as one of the last steps, so they can be resolved there. | U |
-| D-42 | 2026-10-08 | The AI warning is made helpful through a shared "Ověřte identifikátory" callout plus a light on-demand helper. The helper resolves ORCID, ROR, DOI and Handle in the browser and shows the name or title. Kept light; drop it if it grows. | U+S |
-| D-43 | 2026-10-08 | NMA: the public REST API has no CORS, so "is my dataset in NMA?" is a pre-filled deep link into NMA search. The station explains the "Získat odkaz pro RIV" flow and states that **the RIV link never replaces the PID** (NRP docs). Anyone can create a manual NMA record. | U+S |
-| D-44 | 2026-10-08 | The final text polishing is done by the team **via PRs on the live page**, after everything else is finished. | U |
-| D-45 | 2026-10-08 | Live checks are **two-stage**. A deterministic quick check (DataCite, doi.org / hdl.handle.net, ORCID, ROR) comes first; FAIR Champion is an opt-in deep check limited to a curated core set, with gentle load, four outcome states and coverage always shown. A service failure never counts as a failed requirement. Grounded in the OSTrails CZ pilot (E.OSTRAILS-CZ). | U+S |
-| D-46 | 2026-10-08 | F3 design: two axes (Brána NRP × Zralost FAIR), no overall score, gaps route back into path stations; pre-fill from NKR (repositories) and DataCite (datasets) with visible source chips; export as Markdown, print and an FTR `TestResultSet` in a small RO-Crate. | S |
-| D-47 | 2026-10-08 | Gate profile (a), core NRP systems: G09 (security monitoring) and G10 (central logging) show as **„zajišťuje NRP“**. Confirmed by the user; the NRP repositories page states that NRP provides storage, repository software and the operating environment. | U |
-| D-48 | 2026-10-08 | An optional **institution check** (data policy, DMP support, storage, OS III strategy) is included if it fits the scope; it is lower priority than the four lens checks. | U |
-| D-49 | 2026-10-08 | **FIP pre-fill is in the first release:** the FIP completeness check (K) reads the community's published FIP nanopublication through the nanopub query service. Declared FERs pre-fill "ano"; questions with no declaration stay open with a note. | U |
+Repository-owned OpenSpec contracts support team contributions. See [deployment guidance](deployment.md) for
+publication rules. Track temporary implementation state and release-specific decisions in issues and OpenSpec
+changes, keeping this document focused on the resulting design.

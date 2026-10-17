@@ -1,0 +1,88 @@
+/* Design tokens of the FAIR data guide: EOSC CZ palette with accessible text tints, type scale and spacing.
+   Brand teal and pink are used for accents and large text only; body text uses the darker tints, which reach a
+   contrast of at least 5.6:1 on white. */
+
+:root {
+  /* EOSC CZ brand */
+  --brand-teal: #008691;
+  --brand-pink: #eb5d81;
+  /* Accessible text tints of the brand colours */
+  --tint-teal: #00737d;
+  --tint-pink: #c2264f;
+
+  /* Neutrals */
+  --text: #1d2a30;
+  --text-muted: #4b5a61;
+  --background: #ffffff;
+  --surface: #f2f7f8;
+  --surface-strong: #e3eff1;
+  --border: #c5d5d8;
+  --focus: #c2264f;
+
+  /* F/A/I/R colours of the FIP Dashboard; F and R darkened slightly so white letters reach 4.5:1 */
+  --fair-f: #00818c;
+  --fair-a: #2f6f9f;
+  --fair-i: #9f0d54;
+  --fair-r: #9e6b09;
+
+  /* The seven stages of the research data life cycle, in order: one turn of the colour wheel from the EOSC CZ teal,
+     at one lightness and chroma (OKLCH 0.52, 0.12), so the ring reads as a cycle; white text reaches 5:1 on each */
+  --stage-1: #007b89;
+  --stage-2: #286cab;
+  --stage-3: #6f59a6;
+  --stage-4: #984979;
+  --stage-5: #a24b36;
+  --stage-6: #905d00;
+  --stage-7: #287c42;
+
+  /* The kinds of catalogue entries, each always shown with its icon; white icons reach at least 4.5:1 on each */
+  --kind-resources: #00737d;
+  --kind-repositories: #2f6f9f;
+  --kind-clauses: #5b4b9e;
+  --kind-questions: #c2264f;
+  --kind-terms: #8a5d07;
+  --kind-fips: #9f0d54;
+  --kind-tests: #2f7a3a;
+  --kind-lifecycle: #b04a0e;
+  --kind-model: #4b5a61;
+  --kind-actions: #6b4f2a;
+  --kind-infrastructures: #7a2e8e;
+
+  /* Answer states, solid in bars and distributions; Yes and Don't know differ clearly in hue; always with a label */
+  --state-met: #2f7a3a;
+  --state-partly: #a86400;
+  --state-gap: #c2264f;
+  --state-unknown: #4a5c9a;
+  --state-na: #66737a;
+  --state-open: #c5d5d8;
+
+  /* Status (always shown with a text label and an icon, never by colour alone) */
+  --status-operational: #dff1e6;
+  --status-pilot: #fff1cc;
+  --status-in-development: #e6e9fb;
+  --status-planned: #eeeeee;
+  --status-prospective: #f6eef8;
+  --notice: #fff4d6;
+  --notice-border: #b98a00;
+
+  /* Type */
+  --font: "Muni", Arial, Helvetica, sans-serif;
+  --size-small: 0.875rem;
+  --size-base: 1rem;
+  --size-lead: 1.125rem;
+  --size-h3: 1.25rem;
+  --size-h2: 1.5rem;
+  --size-h1: 1.875rem;
+  --line: 1.55;
+
+  /* Space and shape */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --radius: 0.5rem;
+  --width: 72rem;
+}

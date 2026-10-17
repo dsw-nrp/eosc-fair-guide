@@ -11,4 +11,4 @@ All notable changes to this guide are recorded here. The format follows
 
 - Repository scaffold: bilingual README, MIT and CC BY 4.0 licensing in a REUSE layout, citation file,
   contribution, conduct and security policies, agent guide and the `fair-guide-editor` skill.
-- Design document with the architecture, design decisions and decision log, and the content model.
+- Design document with the current architecture and binding principles, and the content model.

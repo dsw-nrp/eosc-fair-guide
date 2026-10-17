@@ -1,7 +1,10 @@
 cff-version: 1.2.0
-message: "If you use this guide, please cite it as below."
+message: >-
+  This file credits the guide's software. To cite the guide itself, use the citation given in its footer, which
+  names its compiler as editor. The guide's content builds on the FAIR analysis for NRP/NDI listed under
+  references; please credit its authors when you use the content.
 type: software
-title: "Průvodce FAIR daty / FAIR data guide (EOSC CZ)"
+title: "Průvodce FAIR daty / FAIR Data Guide (EOSC CZ)"
 abstract: >-
   An interactive Czech and English guide that leads researchers, data stewards, repository administrators
   and research communities along the path to FAIR data. It builds on the FAIR analysis for the National
@@ -11,11 +14,13 @@ authors:
   - family-names: "Novák"
     given-names: "David"
     orcid: "https://orcid.org/0000-0001-6592-6291"
-version: "0.1.0-dev"
+    affiliation: "Knihovna AV ČR, v. v. i.; Archeologický ústav AV ČR, Praha, v. v. i."
+version: "1.0.0-alpha.1"
+date-released: "2026-10-08"
 license:
   - MIT
   - CC-BY-4.0
-repository-code: "https://github.com/motyc/eosc-cz-fair-docs-testing"
+repository-code: "https://github.com/dsw-nrp/eosc-fair-guide"
 keywords:
   - FAIR
   - research data

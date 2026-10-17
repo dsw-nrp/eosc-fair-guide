@@ -1,0 +1,18 @@
+{
+  "addresses": [
+    [" HTTPS://WWW.Example.org/Path/// ", "example.org/path"],
+    ["www.Example.org/", "example.org"],
+    ["http://example.org/", "example.org"],
+    ["example.org", "example.org"],
+    ["https://example.org/path?x=1#part", "example.org/path?x=1#part"],
+    ["https://other.example.org/path", "other.example.org/path"],
+    ["https://www2.example.org", "www2.example.org"],
+    ["ftp://www.example.org/", "ftp://www.example.org"],
+    ["", ""],
+    [null, ""]
+  ],
+  "versions": {
+    "valid": ["0.0.0", "1.2.3", "1.0.0-alpha.1", "1.0.0-0", "2.0.0-alpha-beta.10", "1.0.0-01a"],
+    "invalid": ["v1.0.0", "01.0.0", "1.01.0", "1.0.01", "1.0.0-01", "1.0.0-alpha..1", "1.0.0-", "1.0.0+build", "1.2", "1.0.0\n"]
+  }
+}

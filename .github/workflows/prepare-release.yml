@@ -1,0 +1,67 @@
+name: Prepare release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: SemVer version without the leading v
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: release-preparation
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Collect merged pull requests
+        id: collect
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await require('./.github/scripts/prepare-release.cjs').collect({github, context, core});
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install the locally built API documentation
+        run: npm ci
+      - name: Prepare the release files
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_ACTOR: ${{ github.actor }}
+          RELEASE_TIMESTAMP: ${{ steps.collect.outputs.timestamp }}
+          RELEASE_DATE: ${{ steps.collect.outputs.date }}
+        run: |
+          python scripts/release_versions.py prepare --version "$RELEASE_VERSION" --date "$RELEASE_DATE" --timestamp "$RELEASE_TIMESTAMP" --prs .cache/release/prs.json --actor "$RELEASE_ACTOR"
+          python scripts/build_crate.py --out .cache/release-site
+          python scripts/release_versions.py check --site .cache/release-site
+      - id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.SOURCE_REFRESH_CLIENT_ID }}
+          private-key: ${{ secrets.SOURCE_REFRESH_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Open the release pull request
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          github-token: ${{ steps.app.outputs.token }}
+          script: |
+            await require('./.github/scripts/prepare-release.cjs').propose({github, context, core});

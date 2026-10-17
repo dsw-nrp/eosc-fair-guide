@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" baseProfile="full" height="651" version="1.1" viewBox="0 0 518.4 651" width="518.4" role="img" lang="en" aria-labelledby="figure-title figure-description">
+  <title id="figure-title">Layers and seams of FAIR implementation</title>
+  <desc id="figure-description">Six functional layers, information transfers and feedback. Numbers identify layers; the order is neither a timeline nor a maturity scale. From purpose to practice · Mandates · resources · expectations · Domain requirements · metadata profiles · Available options · repository requirements · Intended practice · Deposited and curated records · Feedback: findings and recurrent problems · 1 · Principles, policy and governance · Strategy · mandates · responsibilities · funding · Access and licensing expectations · reporting rules · Why, and under which · obligations? · 2 · Community decision and implementation · Metadata profiles · vocabularies · formats · licences · Working groups · FAIR Implementation Profiles · Scales: national core · domain profiles · method-specific models · What must data carry to · be meaningful in a field? · 3 · Infrastructure · Repositories · storage · identifiers · authentication · Aggregation · registries · APIs · preservation · Nested: e-infrastructure → platform → repository · With which means is · it realised? · 4 · Research planning · Data management plans · machine-actionable DMPs · Repository selection · declared choices · How does one project · apply it? · 5 · Operational support · Data stewards · curation · repository onboarding · Training · documentation · service desk · Who helps, day · to day? · 6 · Evaluation · Self-assessment · maturity models · certification · Automated tools · domain review · What actually · resulted? · Seam: information that must reach the next actor in a form it can act on · Feedback. Layer numbers are identifiers; the order is not a sequence in time or a maturity scale</desc>
+  <defs></defs>
+  <rect fill="#FFFFFF" height="651" width="518.4" x="0" y="0"></rect>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold" text-anchor="start" x="13" y="18">From purpose to practice</text>
+  <polyline fill="none" points="19,34 19,579" stroke="#566275" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.85"></polyline>
+  <polygon fill="#566275" points="19,579 21.15,574.7 16.85,574.7"></polygon>
+  <polyline fill="none" points="182,102 182,126" stroke="#253348" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.05"></polyline>
+  <polygon fill="#253348" points="182,126 184.1,121.8 179.9,121.8"></polygon>
+  <polyline fill="none" points="182,208 182,231" stroke="#253348" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.05"></polyline>
+  <polygon fill="#253348" points="182,231 184.1,226.8 179.9,226.8"></polygon>
+  <polyline fill="none" points="182,313 182,336" stroke="#253348" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.05"></polyline>
+  <polygon fill="#253348" points="182,336 184.1,331.8 179.9,331.8"></polygon>
+  <polyline fill="none" points="182,404 182,427" stroke="#253348" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.05"></polyline>
+  <polygon fill="#253348" points="182,427 184.1,422.8 179.9,422.8"></polygon>
+  <polyline fill="none" points="182,495 182,518" stroke="#253348" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.05"></polyline>
+  <polygon fill="#253348" points="182,518 184.1,513.8 179.9,513.8"></polygon>
+  <polygon fill="#DEA415" points="204,110.1 209.5,115.6 204,121.1 198.5,115.6" stroke="#805800" stroke-width="0.8"></polygon>
+  <text fill="#805800" font-family="Arial, Helvetica, sans-serif" font-size="9.15" font-weight="bold" text-anchor="start" x="218" y="118.94999999999999">Mandates · resources · expectations</text>
+  <polygon fill="#DEA415" points="204,215.0 209.5,220.5 204,226.0 198.5,220.5" stroke="#805800" stroke-width="0.8"></polygon>
+  <text fill="#805800" font-family="Arial, Helvetica, sans-serif" font-size="9.15" font-weight="bold" text-anchor="start" x="218" y="223.85">Domain requirements · metadata profiles</text>
+  <polygon fill="#DEA415" points="204,320.0 209.5,325.5 204,331.0 198.5,325.5" stroke="#805800" stroke-width="0.8"></polygon>
+  <text fill="#805800" font-family="Arial, Helvetica, sans-serif" font-size="9.15" font-weight="bold" text-anchor="start" x="218" y="328.85">Available options · repository requirements</text>
+  <polygon fill="#DEA415" points="204,410.5 209.5,416.0 204,421.5 198.5,416.0" stroke="#805800" stroke-width="0.8"></polygon>
+  <text fill="#805800" font-family="Arial, Helvetica, sans-serif" font-size="9.15" font-weight="bold" text-anchor="start" x="218" y="419.35">Intended practice</text>
+  <polygon fill="#DEA415" points="204,501.5 209.5,507.0 204,512.5 198.5,507.0" stroke="#805800" stroke-width="0.8"></polygon>
+  <text fill="#805800" font-family="Arial, Helvetica, sans-serif" font-size="9.15" font-weight="bold" text-anchor="start" x="218" y="510.35">Deposited and curated records</text>
+  <line stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-width="1.0" x1="490" x2="490" y1="70" y2="556"></line>
+  <polyline fill="none" points="490,63 472.0,63" stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.0"></polyline>
+  <polygon fill="#9B454A" points="472.0,63 476.3,65.15 476.3,60.85"></polygon>
+  <polyline fill="none" points="490,171 472.0,171" stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.0"></polyline>
+  <polygon fill="#9B454A" points="472.0,171 476.3,173.15 476.3,168.85"></polygon>
+  <polyline fill="none" points="490,276 472.0,276" stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.0"></polyline>
+  <polygon fill="#9B454A" points="472.0,276 476.3,278.15 476.3,273.85"></polygon>
+  <polyline fill="none" points="490,365 472.0,365" stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.0"></polyline>
+  <polygon fill="#9B454A" points="472.0,365 476.3,367.15 476.3,362.85"></polygon>
+  <polyline fill="none" points="490,456 472.0,456" stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.0"></polyline>
+  <polygon fill="#9B454A" points="472.0,456 476.3,458.15 476.3,453.85"></polygon>
+  <polyline fill="none" points="490,547 472.0,547" stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.0"></polyline>
+  <polygon fill="#9B454A" points="472.0,547 476.3,549.15 476.3,544.85"></polygon>
+  <text fill="#9B454A" font-family="Arial, Helvetica, sans-serif" font-size="8.7" text-anchor="start" transform="rotate(-90,506,399)" x="506" y="399">Feedback: findings and recurrent problems</text>
+  <rect fill="#FFFFFF" height="65" rx="6" ry="6" stroke="#334D80" stroke-width="1.15" width="326.5" x="142.5" y="37"></rect>
+  <rect fill="#E8EDF7" height="27.5" rx="6" ry="6" stroke="none" stroke-width="1" width="326.5" x="142.5" y="37"></rect>
+  <rect fill="#E8EDF7" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="326.5" x="142.5" y="58.5"></rect>
+  <line stroke="#334D80" stroke-linecap="round" stroke-width="0.75" x1="142.5" x2="469.0" y1="62.5" y2="62.5"></line>
+  <circle cx="159.5" cy="49.75" fill="#334D80" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="159.5" y="53.55">1</text>
+  <text fill="#334D80" font-family="Arial, Helvetica, sans-serif" font-size="11.2" font-weight="bold" text-anchor="start" x="174.5" y="53.75">Principles, policy and governance</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="82.0">Strategy · mandates · responsibilities · funding</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="95.7">Access and licensing expectations · reporting rules</text>
+  <text fill="#334D80" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="65.5">Why, and under which</text>
+  <text fill="#334D80" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="77.5">obligations?</text>
+  <line stroke="#D6DDE5" stroke-dasharray="1.5,2" stroke-linecap="round" stroke-width="0.9" x1="129" x2="139" y1="69.5" y2="69.5"></line>
+  <rect fill="#FFFFFF" height="79" rx="6" ry="6" stroke="#247A50" stroke-width="1.15" width="326.5" x="142.5" y="129"></rect>
+  <rect fill="#E6F3EC" height="27.5" rx="6" ry="6" stroke="none" stroke-width="1" width="326.5" x="142.5" y="129"></rect>
+  <rect fill="#E6F3EC" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="326.5" x="142.5" y="150.5"></rect>
+  <line stroke="#247A50" stroke-linecap="round" stroke-width="0.75" x1="142.5" x2="469.0" y1="154.5" y2="154.5"></line>
+  <circle cx="159.5" cy="141.75" fill="#247A50" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="159.5" y="145.55">2</text>
+  <text fill="#247A50" font-family="Arial, Helvetica, sans-serif" font-size="11.2" font-weight="bold" text-anchor="start" x="174.5" y="145.75">Community decision and implementation</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="174.0">Metadata profiles · vocabularies · formats · licences</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="187.7">Working groups · FAIR Implementation Profiles</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="9.35" font-style="italic" text-anchor="start" x="155.5" y="201.4">Scales: national core · domain profiles · method-specific models</text>
+  <text fill="#247A50" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="164.5">What must data carry to</text>
+  <text fill="#247A50" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="176.5">be meaningful in a field?</text>
+  <line stroke="#D6DDE5" stroke-dasharray="1.5,2" stroke-linecap="round" stroke-width="0.9" x1="129" x2="139" y1="168.5" y2="168.5"></line>
+  <rect fill="#FFFFFF" height="79" rx="6" ry="6" stroke="#226FA7" stroke-width="1.15" width="326.5" x="142.5" y="234"></rect>
+  <rect fill="#E4F0F9" height="27.5" rx="6" ry="6" stroke="none" stroke-width="1" width="326.5" x="142.5" y="234"></rect>
+  <rect fill="#E4F0F9" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="326.5" x="142.5" y="255.5"></rect>
+  <line stroke="#226FA7" stroke-linecap="round" stroke-width="0.75" x1="142.5" x2="469.0" y1="259.5" y2="259.5"></line>
+  <circle cx="159.5" cy="246.75" fill="#226FA7" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="159.5" y="250.55">3</text>
+  <text fill="#226FA7" font-family="Arial, Helvetica, sans-serif" font-size="11.2" font-weight="bold" text-anchor="start" x="174.5" y="250.75">Infrastructure</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="279.0">Repositories · storage · identifiers · authentication</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="292.7">Aggregation · registries · APIs · preservation</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="9.35" font-style="italic" text-anchor="start" x="155.5" y="306.4">Nested: e-infrastructure → platform → repository</text>
+  <text fill="#226FA7" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="269.5">With which means is</text>
+  <text fill="#226FA7" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="281.5">it realised?</text>
+  <line stroke="#D6DDE5" stroke-dasharray="1.5,2" stroke-linecap="round" stroke-width="0.9" x1="129" x2="139" y1="273.5" y2="273.5"></line>
+  <rect fill="#FFFFFF" height="65" rx="6" ry="6" stroke="#B95A16" stroke-width="1.15" width="326.5" x="142.5" y="339"></rect>
+  <rect fill="#FCEDE4" height="27.5" rx="6" ry="6" stroke="none" stroke-width="1" width="326.5" x="142.5" y="339"></rect>
+  <rect fill="#FCEDE4" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="326.5" x="142.5" y="360.5"></rect>
+  <line stroke="#B95A16" stroke-linecap="round" stroke-width="0.75" x1="142.5" x2="469.0" y1="364.5" y2="364.5"></line>
+  <circle cx="159.5" cy="351.75" fill="#B95A16" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="159.5" y="355.55">4</text>
+  <text fill="#B95A16" font-family="Arial, Helvetica, sans-serif" font-size="11.2" font-weight="bold" text-anchor="start" x="174.5" y="355.75">Research planning</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="384.0">Data management plans · machine-actionable DMPs</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="397.7">Repository selection · declared choices</text>
+  <text fill="#B95A16" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="367.5">How does one project</text>
+  <text fill="#B95A16" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="379.5">apply it?</text>
+  <line stroke="#D6DDE5" stroke-dasharray="1.5,2" stroke-linecap="round" stroke-width="0.9" x1="129" x2="139" y1="371.5" y2="371.5"></line>
+  <rect fill="#FFFFFF" height="65" rx="6" ry="6" stroke="#70499A" stroke-width="1.15" width="326.5" x="142.5" y="430"></rect>
+  <rect fill="#F0E9F8" height="27.5" rx="6" ry="6" stroke="none" stroke-width="1" width="326.5" x="142.5" y="430"></rect>
+  <rect fill="#F0E9F8" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="326.5" x="142.5" y="451.5"></rect>
+  <line stroke="#70499A" stroke-linecap="round" stroke-width="0.75" x1="142.5" x2="469.0" y1="455.5" y2="455.5"></line>
+  <circle cx="159.5" cy="442.75" fill="#70499A" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="159.5" y="446.55">5</text>
+  <text fill="#70499A" font-family="Arial, Helvetica, sans-serif" font-size="11.2" font-weight="bold" text-anchor="start" x="174.5" y="446.75">Operational support</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="475.0">Data stewards · curation · repository onboarding</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="488.7">Training · documentation · service desk</text>
+  <text fill="#70499A" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="458.5">Who helps, day</text>
+  <text fill="#70499A" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="470.5">to day?</text>
+  <line stroke="#D6DDE5" stroke-dasharray="1.5,2" stroke-linecap="round" stroke-width="0.9" x1="129" x2="139" y1="462.5" y2="462.5"></line>
+  <rect fill="#FFFFFF" height="65" rx="6" ry="6" stroke="#A9363C" stroke-width="1.15" width="326.5" x="142.5" y="521"></rect>
+  <rect fill="#F9E7E8" height="27.5" rx="6" ry="6" stroke="none" stroke-width="1" width="326.5" x="142.5" y="521"></rect>
+  <rect fill="#F9E7E8" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="326.5" x="142.5" y="542.5"></rect>
+  <line stroke="#A9363C" stroke-linecap="round" stroke-width="0.75" x1="142.5" x2="469.0" y1="546.5" y2="546.5"></line>
+  <circle cx="159.5" cy="533.75" fill="#A9363C" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="159.5" y="537.55">6</text>
+  <text fill="#A9363C" font-family="Arial, Helvetica, sans-serif" font-size="11.2" font-weight="bold" text-anchor="start" x="174.5" y="537.75">Evaluation</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="566.0">Self-assessment · maturity models · certification</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="9.75" text-anchor="start" x="155.5" y="579.7">Automated tools · domain review</text>
+  <text fill="#A9363C" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="549.5">What actually</text>
+  <text fill="#A9363C" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-style="italic" text-anchor="start" x="31" y="561.5">resulted?</text>
+  <line stroke="#D6DDE5" stroke-dasharray="1.5,2" stroke-linecap="round" stroke-width="0.9" x1="129" x2="139" y1="553.5" y2="553.5"></line>
+  <polygon fill="#DEA415" points="20,603.4 25.6,609 20,614.6 14.4,609" stroke="#805800" stroke-width="0.8"></polygon>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.55" text-anchor="start" x="33" y="613">Seam: information that must reach the next actor in a form it can act on</text>
+  <line stroke="#9B454A" stroke-dasharray="4,3" stroke-linecap="round" stroke-width="1.1" x1="13" x2="29" y1="631" y2="631"></line>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.1" text-anchor="start" x="34" y="634">Feedback. Layer numbers are identifiers; the order is not a sequence in time or a maturity scale</text>
+</svg>

@@ -1,0 +1,142 @@
+# FIP completeness for communities. Pre-fill comes from the community's profile in the FIP Dashboard first and from
+# a published FIP nanopublication as the fallback; `prefill.fip` lists the FIP ontology questions an item maps to.
+# Field reference: docs/content-model.md.
+
+[check]
+id = "fip"
+name = { cs = "Úplnost FIP", en = "FIP completeness" }
+icon = "people-group"
+description = { cs = "Co už FIP vašeho oboru určuje a co v něm chybí? Odpovědi lze předvyplnit z profilu komunity ve [[repo/reg/fip-dashboard|FIP Dashboardu]] nebo z publikované nanopublikace FIP.", en = "What does your domain's FIP already set, and what is missing? Answers can be pre-filled from the community's profile in the [[repo/reg/fip-dashboard|FIP Dashboard]] or from a published FIP nanopublication." }
+lenses = ["K"]
+minutes = 10
+
+[[item]]
+id = "fip.01"
+tier = "minimum"
+principles = ["F1"]
+statement = { cs = "FIP vašeho oboru určuje preferované typy PID a jejich správu.", en = "Your domain's FIP sets the preferred PID types and how they are managed." }
+sources = ["A.F1.F1", "A.F1.F2"]
+fixAt = "publication"
+owner = ["community"]
+prefill = { fip = ["F1-D", "F1-MD"] }
+
+[[item]]
+id = "fip.02"
+prefillLevel = "partly"
+help = { cs = "FIP uvádí vybrané metadatové profily. Povinné a doporučené atributy ověřte v jejich schématech a popisech; samotná deklarace zdroje neukazuje, zda jsou všechny tyto požadavky určeny.", en = "A FIP lists selected metadata profiles. Check their schemas and descriptions for mandatory and recommended attributes; a resource declaration alone does not show whether all these requirements are defined." }
+tier = "minimum"
+principles = ["F2", "R1"]
+statement = { cs = "FIP vašeho oboru určuje povinné a doporučené metadatové profily a atributy.", en = "Your domain's FIP sets the mandatory and recommended metadata profiles and attributes." }
+sources = ["A.F2.F1", "A.R1.F1"]
+fixAt = "metadata"
+owner = ["community"]
+prefill = { fip = ["F2"] }
+
+[[item]]
+id = "fip.03"
+tier = "recommended"
+principles = ["F3"]
+statement = { cs = "FIP vašeho oboru určuje standardní pole pro identifikátor dat.", en = "Your domain's FIP sets the standard field for the data identifier." }
+sources = ["A.F3.F1"]
+fixAt = "publication"
+owner = ["community"]
+prefill = { fip = ["F3"] }
+
+[[item]]
+id = "fip.04"
+tier = "recommended"
+principles = ["F4"]
+statement = { cs = "FIP vašeho oboru určuje minimální metadata pro indexaci a mapování pro vyhledávače.", en = "Your domain's FIP sets the minimum metadata for indexing and the mappings for search services." }
+sources = ["A.F4.F1", "A.F4.F2"]
+fixAt = "findability"
+owner = ["community"]
+prefill = { fip = ["F4-D", "F4-MD"] }
+
+[[item]]
+id = "fip.05"
+tier = "recommended"
+principles = ["A1"]
+statement = { cs = "FIP vašeho oboru určuje podporované protokoly.", en = "Your domain's FIP sets the supported protocols." }
+sources = ["A.A1.F1"]
+fixAt = "publication"
+owner = ["community"]
+prefill = { fip = ["A1.1-D", "A1.1-MD"] }
+
+[[item]]
+id = "fip.06"
+tier = "recommended"
+principles = ["A1.2"]
+statement = { cs = "FIP vašeho oboru určuje pravidla přístupu (etická, právní a bezpečnostní omezení).", en = "Your domain's FIP sets the access rules (ethical, legal and security restrictions)." }
+sources = ["A.A1.2.F2"]
+fixAt = "licence"
+owner = ["community"]
+prefill = { fip = ["A1.2-D", "A1.2-MD"] }
+
+[[item]]
+id = "fip.07"
+tier = "recommended"
+principles = ["I1"]
+statement = { cs = "FIP vašeho oboru určuje sémantické zdroje a serializace.", en = "Your domain's FIP sets the semantic resources and serialisations." }
+sources = ["A.I1.F1"]
+fixAt = "metadata"
+owner = ["community"]
+prefill = { fip = ["I1-D", "I1-MD"] }
+
+[[item]]
+id = "fip.08"
+tier = "recommended"
+principles = ["I2"]
+statement = { cs = "FIP vašeho oboru určuje doporučené slovníky a ontologie.", en = "Your domain's FIP sets the recommended vocabularies and ontologies." }
+sources = ["A.I2.F1"]
+fixAt = "metadata"
+owner = ["community"]
+prefill = { fip = ["I2-D", "I2-MD"] }
+
+[[item]]
+id = "fip.09"
+tier = "recommended"
+principles = ["I3"]
+statement = { cs = "FIP vašeho oboru určuje povinné a doporučené vztahy mezi záznamy.", en = "Your domain's FIP sets the mandatory and recommended relations between records." }
+sources = ["A.I3.F1"]
+fixAt = "metadata"
+owner = ["community"]
+prefill = { fip = ["I3-D", "I3-MD"] }
+
+[[item]]
+id = "fip.10"
+tier = "minimum"
+principles = ["R1.1"]
+statement = { cs = "FIP vašeho oboru určuje doporučené licence a jejich strojové vyjádření.", en = "Your domain's FIP sets the recommended licences and how to express them in machine-readable form." }
+sources = ["A.R1.1.F1"]
+fixAt = "licence"
+owner = ["community"]
+prefill = { fip = ["R1.1-D", "R1.1-MD"] }
+
+[[item]]
+id = "fip.11"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "FIP vašeho oboru určuje minimální rozsah provenience.", en = "Your domain's FIP sets the minimum provenance." }
+sources = ["A.R1.2.F1"]
+fixAt = "metadata"
+owner = ["community"]
+prefill = { fip = ["R1.2-D", "R1.2-MD"] }
+
+[[item]]
+id = "fip.12"
+tier = "recommended"
+principles = ["R1.3"]
+statement = { cs = "FIP vašeho oboru určuje doporučené metadatové a datové standardy.", en = "Your domain's FIP sets the recommended metadata and data standards." }
+note = { cs = "Ontologie FIP pro R1.3 samostatnou otázku nemá; předvyplní se jen z [[repo/reg/fip-dashboard|FIP Dashboardu]].", en = "The FIP ontology has no separate question for R1.3; this item is pre-filled only from the [[repo/reg/fip-dashboard|FIP Dashboard]]." }
+sources = ["A.R1.3.F1"]
+fixAt = "metadata"
+owner = ["community"]
+
+[[item]]
+id = "fip.13"
+tier = "recommended"
+principles = []
+statement = { cs = "FIP je publikován (ve [[fip-dashboard|FIP Dashboardu]] nebo jako nanopublikace) a jeho FER jsou dohledatelné.", en = "The FIP is published (in the [[fip-dashboard|FIP Dashboard]] or as a nanopublication), and its FERs are findable." }
+sources = ["A.K4.1", "FIP-DASHBOARD.01"]
+fixAt = "plan"
+owner = ["community"]

@@ -1,0 +1,15 @@
+[[source]]
+id = "report"
+code = "A"
+type = "report"
+title = "Test report"
+url = "https://example.org/report"
+datePublished = 2026-01-01
+
+[[source]]
+id = "cts-test"
+code = "CTS"
+type = "standard"
+title = "Test standard"
+url = "https://example.org/standard"
+datePublished = 2026-01-01

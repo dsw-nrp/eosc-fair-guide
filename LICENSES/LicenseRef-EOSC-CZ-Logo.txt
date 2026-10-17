@@ -1,0 +1,11 @@
+EOSC CZ logos
+
+The files assets/img/eosc-cz-logo.svg, assets/img/logolink-cs.svg and assets/img/logolink-en.svg are official
+logos of the EOSC CZ initiative and the logolink of the European Union and the Ministry of Education, Youth and
+Sports of the Czech Republic (MŠMT). They are taken unchanged from the official packages published at
+https://www.eosc.cz/o-nas/sablony-eosc-cz.
+
+They are not covered by the MIT License or by Creative Commons Attribution 4.0. They are used to identify the
+guide as an output of the EOSC CZ initiative and of the National Repository Platform project, as the
+acknowledgement rules at https://www.eosc.cz/o-nas/acknowledgement ask. Any other use is subject to the rules of
+their owners.

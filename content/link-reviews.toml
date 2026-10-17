@@ -1,0 +1,555 @@
+# Exact editorial decisions from the complete 16 October 2026 missing-link review.
+# A decision expires when the field text or suggested target changes; no wildcard omissions.
+
+[[review]]
+path = "stations[assessment].advice[assessment.20].text.cs"
+address = "pr/F3"
+sha256 = "31e36ae985bce57d9e9299cebebaa922f974943d25e4c88f84b4e801121bb69a"
+reviewed = 2026-10-16
+reason = "The sentence describes a metadata failure in a case study; it does not cite this FAIR principle as its assessment source."
+
+[[review]]
+path = "pages[identifiers].description.cs"
+address = "res/srv/handle"
+sha256 = "48ddca73f6e00bc5eed3601585e0e8875d876e1743d56753dc52cdb588b2f25b"
+reviewed = 2026-10-16
+reason = "This is a concise helper-card description. The card links to the helper, whose body already links Handle; no additional glossary or service detour is needed here."
+
+[[review]]
+path = "pages[live-check].description.cs"
+address = "res/srv/handle"
+sha256 = "8dd39c1ecf961a4b979862e0ca193dd4b1dfc88fc9e07f6d301d38fcaad8f624"
+reviewed = 2026-10-16
+reason = "This is a concise helper-card description. The card links to the helper, whose body already links Handle; no additional glossary or service detour is needed here."
+
+[[review]]
+path = "pages[live-check].description.en"
+address = "res/srv/handle"
+sha256 = "f71e30c61f1ecd36b952eec825b5f910f7695c2e7d520c148eadeda4e53d074c"
+reviewed = 2026-10-16
+reason = "This is a concise helper-card description. The card links to the helper, whose body already links Handle; no additional glossary or service detour is needed here."
+
+[[review]]
+path = "pages[notebooks].section[examples].body.en"
+address = "res/srv/handle"
+sha256 = "947b9773600c7775ef28a8f597b42a84c705e273adcf121c70d02be2eded88d5"
+reviewed = 2026-10-16
+reason = "This is the ordinary English verb handle, not the Handle identifier system."
+
+[[review]]
+path = "pages[software].section[preserve].body.en"
+address = "step/citation"
+sha256 = "dccf1f8263aa3de7643695d5e61ae40e96c3b98751e26d309b6d657e48cc1db3"
+reviewed = 2026-10-16
+reason = "Citation and reuse describe the purpose of preservation here, rather than an explicit instruction to visit that station."
+
+[[review]]
+path = "resources[rdmkit-metadata].description.cs"
+address = "res/guide/cookbook-dictionary"
+sha256 = "bf173e3fec5964338c2fed4398e38118a700a230642916741a6c18b0c41779ef"
+reviewed = 2026-10-16
+reason = "The text names FAIR Cookbook recipes generally, not its single data-dictionary recipe. The RDMkit source already provides the relevant recipe links."
+
+[[review]]
+path = "resources[rdmkit-metadata].description.en"
+address = "res/guide/cookbook-dictionary"
+sha256 = "098d13b60b6ce508d25697715813b69c44dc4e87376757a0ce84e61a4149fd26"
+reviewed = 2026-10-16
+reason = "The text names FAIR Cookbook recipes generally, not its single data-dictionary recipe. The RDMkit source already provides the relevant recipe links."
+
+[[review]]
+path = "stations[citation].advice[citation.14].text.cs"
+address = "step/findability"
+sha256 = "0260a6f1a53ddc3239e2dad7620961146ce28ff1094d05d93067cc8597b26fa6"
+reviewed = 2026-10-16
+reason = "Findability describes a benefit of connected identifiers here, not an instruction to visit the station."
+
+[[review]]
+path = "stations[citation].advice[citation.14].text.en"
+address = "step/findability"
+sha256 = "30114dfeac12f8f1634b4448071619f2b8d7d98260c9d3e050ec62b92cbd20e9"
+reviewed = 2026-10-16
+reason = "Findability describes a benefit of connected identifiers here, not an instruction to visit the station."
+
+[[review]]
+path = "stations[process].advice[process.09].text.en"
+address = "res/srv/handle"
+sha256 = "c054cdf7fc42626dc077772866267c9a4312ba512f455c6d7f57d1b9894c75be"
+reviewed = 2026-10-16
+reason = "This is the ordinary English verb handle, not the Handle identifier system."
+
+[[review]]
+path = "resources[aai-nrp].description.en"
+address = "pr/A1.2"
+sha256 = "a83cfd63ba577634446fc0bf0c26ed4269ffac194c4974a755a909eb051630aa"
+reviewed = 2026-10-16
+reason = "This names an authentication architecture, not the FAIR A1.2 criterion; a criterion link would imply an unsupported relationship."
+
+[[review]]
+path = "resources[ssh-open-marketplace].description.cs"
+address = "res/doc/ri-portal"
+sha256 = "961eb5b167ea89209294ae7c3f35c5fac795bda45edcd89bbb14a74326b64867"
+reviewed = 2026-10-16
+reason = "The phrase denotes research infrastructures generally, not this particular portal. Specific infrastructure records and the infrastructure catalogue are linked where relevant."
+
+[[review]]
+path = "resources[ssh-open-marketplace].description.en"
+address = "res/doc/ri-portal"
+sha256 = "dbbb15a55b33310e10269bc55aa8b879d990467bd8beed90c01bf043f21e64f3"
+reviewed = 2026-10-16
+reason = "The phrase denotes research infrastructures generally, not this particular portal. Specific infrastructure records and the infrastructure catalogue are linked where relevant."
+
+[[review]]
+path = "stations[metadata].advice[metadata.39].text.cs"
+address = "res/doc/ri-portal"
+sha256 = "099494ff415e7af2d1fea52ac49ff3ffaa67d2d05db268d45f5da89bbfd0e926"
+reviewed = 2026-10-16
+reason = "The phrase denotes research infrastructures generally, not this particular portal. Specific infrastructure records and the infrastructure catalogue are linked where relevant."
+
+[[review]]
+path = "stations[repository].advice[repository.23].text.cs"
+address = "res/doc/ri-portal"
+sha256 = "2e9ed4b9fc2e03212549ec4076ecd41812aa6253827fa33cd92cad5eb6fbf487"
+reviewed = 2026-10-16
+reason = "The phrase denotes research infrastructures generally, not this particular portal. Specific infrastructure records and the infrastructure catalogue are linked where relevant."
+
+[[review]]
+path = "resources[dmponline].description.en"
+address = "term/curation"
+sha256 = "2927fa3f97abecec5017e4c7edfdeb933ed51a44ba0d145089e885734d4a71f3"
+reviewed = 2026-10-16
+reason = "Curation occurs inside the proper name Digital Curation Centre; linking that word would misidentify the organisation as a process."
+
+[[review]]
+path = "checks[fdo].item[fdo.33].help.en"
+address = "term/accessibility"
+sha256 = "ec97fe306c311ba42d421c396171b500c7ece32a6aaa9a7acc07f166ff48151e"
+reviewed = 2026-10-16
+reason = "The glossary entry only refers the reader back to FAIR principles. It adds no explanation to this sentence, which already distinguishes a working link from full FAIR compliance."
+
+[[review]]
+path = "checks[fip].item[fip.12].note.en"
+address = "term/ontology"
+sha256 = "8e59402b0f6230d26a87fb6200122d2117e93e6242d1850e4a3e2acc0138c25a"
+reviewed = 2026-10-16
+reason = "This names the particular FIP ontology. The linked FIP source is relevant; a generic ontology definition adds no evidence for the stated R1.3 limitation."
+
+[[review]]
+path = "checks[gate].item[gate.05].help.cs"
+address = "term/national-repository-catalogue"
+sha256 = "03c0dce0313013fc2e3b61e0ecafee95eedc03021ef7e191fa61862d635f8022"
+reviewed = 2026-10-16
+reason = "The same sentence already links NKR itself and explains its function; a second glossary link would duplicate that explanation."
+
+[[review]]
+path = "checks[institution].item[institution.01].help.en"
+address = "term/research-data"
+sha256 = "c8636a23180ad2d6b37963d19375b50db02d6f18919eb54ec64c4714752255ef"
+reviewed = 2026-10-16
+reason = "This sentence gives the research act's own definition of research data; a glossary destination could blur the distinction between that statutory scope and general terminology."
+
+[[review]]
+path = "checks[maturity].check.description.cs"
+address = "term/fair-principles"
+sha256 = "48c9b00ff749b965f1fd26d7318a8d2fadddd272d031237e0155c7d3487ee626"
+reviewed = 2026-10-16
+reason = "FAIR is the subject of this Guide and this passage already explains or links its relevant assessment source; an additional generic glossary link adds no action."
+
+[[review]]
+path = "checks[maturity].check.description.en"
+address = "term/fair-principles"
+sha256 = "cf85968fd165ec75a6299b4959d2b34a108a99be80035c5c503ed0be305d6d85"
+reviewed = 2026-10-16
+reason = "FAIR is the subject of this Guide and this passage already explains or links its relevant assessment source; an additional generic glossary link adds no action."
+
+[[review]]
+path = "pages[about].section[support-route].body.en"
+address = "term/data-steward"
+sha256 = "964ceb8899d2d9f843c3eccf2b5b23ff679c05c99f23644ef6be6b8eaa6b590f"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "pages[about].section[why].body.cs"
+address = "term/fair-data"
+sha256 = "18c652b4fc9317065b7e6922b77a9f9d92e379465bbb412f963f6c1de600cb6e"
+reviewed = 2026-10-16
+reason = "This is the core subject of the introductory context; the paragraph already links the national initiative, architecture and supporting sources."
+
+[[review]]
+path = "pages[about].section[why].body.en"
+address = "term/fair-data"
+sha256 = "ed44da2cf6aae612aa6cbc8680f3a82d4ee332f705ec6842973d3e61b482d69b"
+reviewed = 2026-10-16
+reason = "This is the core subject of the introductory context; the paragraph already links the national initiative, architecture and supporting sources."
+
+[[review]]
+path = "pages[about].section[why].body.en"
+address = "term/fair-principles"
+sha256 = "ed44da2cf6aae612aa6cbc8680f3a82d4ee332f705ec6842973d3e61b482d69b"
+reviewed = 2026-10-16
+reason = "FAIR is the subject of this Guide and this passage already explains or links its relevant assessment source; an additional generic glossary link adds no action."
+
+[[review]]
+path = "pages[ai].description.en"
+address = "term/fairification"
+sha256 = "e05c4218bf821206c0b566e775777e2bbb2be4c416ba1281f738a20048f2de69"
+reviewed = 2026-10-16
+reason = "This is a concise navigation-card summary, not explanatory prose. The card leads to the relevant guide or helper; adding a glossary detour would compete with that action."
+
+[[review]]
+path = "pages[fdo].section[infrastructure].body.en"
+address = "term/fair-principles"
+sha256 = "9fda303f4f115794766f4cf085dcab8d2a3b5b826f6b84fead8da83df67757d5"
+reviewed = 2026-10-16
+reason = "FAIR is the subject of this Guide and this passage already explains or links its relevant assessment source; an additional generic glossary link adds no action."
+
+[[review]]
+path = "pages[fdo].section[start].body.cs"
+address = "term/digital-object"
+sha256 = "0a5219011d97908c045b50463923f5c56e2d243f192c7d6dcac7b4fdcf2dec95"
+reviewed = 2026-10-16
+reason = "The paragraph immediately explains an FDO and links the FDO Forum introduction; a generic digital-object definition would distract from that specific explanation."
+
+[[review]]
+path = "pages[fdo].section[start].body.en"
+address = "term/digital-object"
+sha256 = "49d571485d6e959a203209e937bdab5aa34fbbbc08d7c94c32802076628dedb3"
+reviewed = 2026-10-16
+reason = "The paragraph immediately explains an FDO and links the FDO Forum introduction; a generic digital-object definition would distract from that specific explanation."
+
+[[review]]
+path = "pages[model].description.en"
+address = "term/data-management"
+sha256 = "11a4a640a5f515d13e584a4f7cd05c6df9e708ddb11120f6585fbb9283e1f5c8"
+reviewed = 2026-10-16
+reason = "This is a concise navigation-card summary, not explanatory prose. The card leads to the relevant guide or helper; adding a glossary detour would compete with that action."
+
+[[review]]
+path = "pages[model].section[metadata-architecture].body.cs"
+address = "term/research-data"
+sha256 = "1590d06a2f4f8962807bd05bad0e20bd5447602e329a4edf8d4c82908029d799"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "pages[model].section[metadata-architecture].body.en"
+address = "term/research-data"
+sha256 = "e84d0074510ca7e50203bac8f8c4b76ae61791de9b4af6a1874bef8e2ef0d5d6"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "pages[notebooks].section[examples].body.en"
+address = "term/data-steward"
+sha256 = "947b9773600c7775ef28a8f597b42a84c705e273adcf121c70d02be2eded88d5"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "pages[software].section[practice].body.en"
+address = "term/fair-principles"
+sha256 = "f19bd8cc6abe62796eefef0ec4bcbe13daa47df0b149d53457ac242d9cbf2566"
+reviewed = 2026-10-16
+reason = "FAIR is the subject of this Guide and this passage already explains or links its relevant assessment source; an additional generic glossary link adds no action."
+
+[[review]]
+path = "pages[software].section[start].body.cs"
+address = "term/data-steward"
+sha256 = "4528624157a62824325e8f6582b33b6a49448546de53dd4457d91ab1de6a8ff3"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "pages[software].section[start].body.en"
+address = "term/data-steward"
+sha256 = "31b92f2a431899724e7eb9d9a1a7dcd3dbd1e4aa4265d9f10a27a8bd2ca953ed"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[cdsc-eln].description.en"
+address = "term/data-steward"
+sha256 = "ad8f71c003205c9577fb8fc1683831762f6dfe59bdf79b2ea2c75fb69e867619"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[cesnet-storage].description.cs"
+address = "term/research-data"
+sha256 = "42766efe925e2d0e1488dd0d1860efe3bb8033e49f1d2c142d608befd9cdb1d3"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[cesnet-storage].description.en"
+address = "term/research-data"
+sha256 = "558cb06ca6c09c9d3655c85ae33d3e290bac5f4e43ef4accceb7c3f4ce9bcb50"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[copyright-licences].description.en"
+address = "term/research-data"
+sha256 = "02aa03afb73e845af5df6fe643ddb11eeae1d6bca41df01dcc4c98a15f59b75c"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[data-europa].description.en"
+address = "term/open-data"
+sha256 = "570523a734faea7f70c31dfe7a46d18d7d79edbdd07112d3c166f3de7d3f6e37"
+reviewed = 2026-10-16
+reason = "The passage describes a portal or gives the local licensing choice directly; an additional generic open-data definition does not help complete that action."
+
+[[review]]
+path = "resources[data-gov-cz].description.en"
+address = "term/open-data"
+sha256 = "b52282de68390d3bb8e798c8346ac508ce1ad92fe7fc2230989fb9c342a362e5"
+reviewed = 2026-10-16
+reason = "The passage describes a portal or gives the local licensing choice directly; an additional generic open-data definition does not help complete that action."
+
+[[review]]
+path = "resources[datacite].description.cs"
+address = "term/research-data"
+sha256 = "6959334e33d028f7106cf940e32c009a64e27f7fd9b39ebd642c49f67cd2637d"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[datacite].description.en"
+address = "term/research-data"
+sha256 = "5821b81eff0e52bbf811e4e43efc80611d4222627f04984f0356db50cfa48427"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[datasteward-cz].description.en"
+address = "term/data-steward"
+sha256 = "14d61cc1179e9653bc7d29d623a867cbfc0e2e379826cbbb3bec3b09ea4940ed"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[ds-handbook].description.en"
+address = "term/fair-principles"
+sha256 = "6c069357d8ab3a757b9a478d1461f00e746291848c3f295a833f78ccdd5bfa55"
+reviewed = 2026-10-16
+reason = "FAIR is the subject of this Guide and this passage already explains or links its relevant assessment source; an additional generic glossary link adds no action."
+
+[[review]]
+path = "resources[ds-manual].description.en"
+address = "term/data-steward"
+sha256 = "126709b730a0f7d636db81f6edfe20480be61fb743780e83ff3efd84c4b04045"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[ds-personas].description.en"
+address = "term/data-steward"
+sha256 = "af295d8c54c891714021c34e6fa697dcab4e4388262c37d82d5e8710c135aa92"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[eosc-training].description.en"
+address = "term/research-data-management"
+sha256 = "8a7dff0522a79c4cf5a6e34b767127928038421aa2c4df459dbb2e6f20348c97"
+reviewed = 2026-10-16
+reason = "This describes the subject of the linked training or survey. A glossary link would add a second general destination without helping choose that resource."
+
+[[review]]
+path = "resources[ethical-seven].description.en"
+address = "term/research-data"
+sha256 = "f674b01ca61e6df3449e9bf575161c3027518b7b556b25e1e74bf4a54712d350"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[fair4rs].description.en"
+address = "term/fair-principles"
+sha256 = "fca4f7fe370da89c56d465d4651e01491cb4b390e7d7e490eb8ca99205513dd2"
+reviewed = 2026-10-16
+reason = "FAIR is the subject of this Guide and this passage already explains or links its relevant assessment source; an additional generic glossary link adds no action."
+
+[[review]]
+path = "resources[kadi4mat].description.cs"
+address = "term/data-management"
+sha256 = "ec176dc2520d5d70c8e58d64abba49a45654edec09af1a6f93daebec966f6f2e"
+reviewed = 2026-10-16
+reason = "This is ordinary task scope in a short tool or role description; the actual planning concepts and tools are linked where introduced."
+
+[[review]]
+path = "resources[lexis].description.en"
+address = "term/data-management"
+sha256 = "c0536cddd458465642da9771c3035638cc2ea405d3861fc921d261fd7c76e82d"
+reviewed = 2026-10-16
+reason = "This is ordinary task scope in a short tool or role description; the actual planning concepts and tools are linked where introduced."
+
+[[review]]
+path = "resources[nma].description.en"
+address = "term/research-data"
+sha256 = "f26dedd5c5338d6085050b843a39ba0cd7b2cacf01074a15446f3f4668533fcb"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[onedata].description.cs"
+address = "term/data-management"
+sha256 = "e941196ba3f9ad225c8c30f9b70eae60263f61e74a0619e39352bc6dd70f820b"
+reviewed = 2026-10-16
+reason = "This is ordinary task scope in a short tool or role description; the actual planning concepts and tools are linked where introduced."
+
+[[review]]
+path = "resources[os3].description.en"
+address = "term/data-steward"
+sha256 = "b722e01fbfc6e96de69e0240ffb2a4a0b50369db3a69c7ae9869036978158e98"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[rdmkit-pi].description.en"
+address = "term/data-management"
+sha256 = "64dcfb0c242b09bf97a4fbed8c2344ac73bfafa21439037bd390c99d2219b958"
+reviewed = 2026-10-16
+reason = "This is ordinary task scope in a short tool or role description; the actual planning concepts and tools are linked where introduced."
+
+[[review]]
+path = "resources[rdmkit-researcher].description.en"
+address = "term/researcher"
+sha256 = "303845761e3c469f7bc35362e7b50432a3777a35c29c024971da4f57cc8956ef"
+reviewed = 2026-10-16
+reason = "This is the reader or collaborator role in an instruction, not a technical concept needing a glossary detour."
+
+[[review]]
+path = "resources[re3data].description.en"
+address = "term/research-data-registry"
+sha256 = "24b891077da884a3e4faa93ba6d3e17efdaaa72849f559aca6e90a23d6809970"
+reviewed = 2026-10-16
+reason = "The description already explains re3data's registry function; an additional generic registry definition would add no practical destination here."
+
+[[review]]
+path = "resources[ro-crate].description.cs"
+address = "term/research-data"
+sha256 = "d71159f1e60775004923ab4c91e30c79a7a8af387f97ff099e8dd5c2c9d5d914"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[ro-crate].description.en"
+address = "term/research-data"
+sha256 = "f0a0cf22e5dfa0539aede8c0b1fa6fffb680c35a64ff933fda9dd6874694e799"
+reviewed = 2026-10-16
+reason = "Research data are the core subject of the Guide; this short passage describes a service or practical task rather than introducing the term."
+
+[[review]]
+path = "resources[strazci-dat].description.en"
+address = "term/data-steward"
+sha256 = "a1dd86bea0e8515864913f16a69c6de90e1c211ffb2c0d91a93e231226720209"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[training-overview].description.en"
+address = "term/research-data-management"
+sha256 = "0e14c3cb93b0882eec63bcee50fbd1f624c40990408136887129f8117d4e43a2"
+reviewed = 2026-10-16
+reason = "This describes the subject of the linked training or survey. A glossary link would add a second general destination without helping choose that resource."
+
+[[review]]
+path = "stations[analyse].advice[analyse.12].text.en"
+address = "term/researcher"
+sha256 = "dcd04ede006d05301b10d37eefde1b749331e944387919ee8cc92e5a1934c73b"
+reviewed = 2026-10-16
+reason = "This is the reader or collaborator role in an instruction, not a technical concept needing a glossary detour."
+
+[[review]]
+path = "stations[assessment].advice[assessment.07].text.en"
+address = "term/researcher"
+sha256 = "2fc583f0dda68be1704b53eb53498c2575cee076ca2d3716de9f4e10b6ad01c5"
+reviewed = 2026-10-16
+reason = "This is the reader or collaborator role in an instruction, not a technical concept needing a glossary detour."
+
+[[review]]
+path = "stations[citation].advice[citation.11].text.cs"
+address = "term/data-steward"
+sha256 = "8aee50b56aa782ab499a4b6904de0b56d9a66cd01e88288d69cf08f013e186b8"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "stations[citation].advice[citation.11].text.en"
+address = "term/data-steward"
+sha256 = "21d4c65505857cd49624793b82fcd4c17d7e44e55f51e78aa329c1323b2e5053"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "stations[collect].advice[collect.13].text.en"
+address = "term/research-data-management"
+sha256 = "41e3b3eb3aa8e7c50cdc503b0d7d7ced189fdb75e8e3480c2ceff9833b1bcb40"
+reviewed = 2026-10-16
+reason = "This describes the subject of the linked training or survey. A glossary link would add a second general destination without helping choose that resource."
+
+[[review]]
+path = "stations[collect].advice[collect.14].text.en"
+address = "term/research-data-management"
+sha256 = "430af670ac09647e7aadf9c5d2a5897ec868fc04ab3c2b3ac8041fcec50a2a5f"
+reviewed = 2026-10-16
+reason = "Research data management is part of the survey title here; the cited survey is the relevant destination, not a general definition."
+
+[[review]]
+path = "stations[licence].advice[licence.02].text.cs"
+address = "term/open-data"
+sha256 = "a9320f8a68067fa37b7aff5ec178da0fe1753573b96e597e22bfe3e81fb8d9a0"
+reviewed = 2026-10-16
+reason = "The passage describes a portal or gives the local licensing choice directly; an additional generic open-data definition does not help complete that action."
+
+[[review]]
+path = "stations[licence].advice[licence.02].text.en"
+address = "term/open-data"
+sha256 = "9290a15cba8deec2e8a94b5a4b78c0d4f3592b46b992bc82d3255a94414f74f0"
+reviewed = 2026-10-16
+reason = "The passage describes a portal or gives the local licensing choice directly; an additional generic open-data definition does not help complete that action."
+
+[[review]]
+path = "stations[licence].advice[licence.25].text.en"
+address = "term/data-steward"
+sha256 = "c028db589f3949f82d75b9bd44cd41f3fb4c6abe0e6554f12216ef8c557bb1ac"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "stations[licence].advice[licence.29].text.en"
+address = "term/researcher"
+sha256 = "ba9bd37729dc52bb753825e884bfd03b26c3d0a1e43cbbc49c2f818c6ae1611d"
+reviewed = 2026-10-16
+reason = "This is the reader or collaborator role in an instruction, not a technical concept needing a glossary detour."
+
+[[review]]
+path = "stations[repository].advice[repository.02].text.en"
+address = "term/data-steward"
+sha256 = "b4c5108eda906c11c5fcbe39e2b1e4447f4fe1e81d18c6233bdc2c1bd7cfbb3b"
+reviewed = 2026-10-16
+reason = "This identifies a person or community in an established role, not a new technical concept. Introductory contact advice already links the role definition; this passage links practical support where relevant."
+
+[[review]]
+path = "resources[infra-finder].description.en"
+address = "term/research-infrastructure"
+sha256 = "62ffc9e50aacdcd40d01567d61f1c54a6f2f5079a673c4ba1877c31637f836ac"
+reviewed = 2026-10-16
+reason = "Two glossary entries share this name. The passage concerns infrastructure services or names actual nodes already linked; neither generic entry is a uniquely intended target."
+
+[[review]]
+path = "stations[metadata].advice[metadata.39].text.en"
+address = "term/research-infrastructure"
+sha256 = "65d3b67c990a4da9837bb37beb75cf7ed81289eea39e19519454880b1f87abe5"
+reviewed = 2026-10-16
+reason = "Two glossary entries share this name. The passage concerns infrastructure services or names actual nodes already linked; neither generic entry is a uniquely intended target."
+
+[[review]]
+path = "stations[repository].advice[repository.23].text.en"
+address = "term/research-infrastructure"
+sha256 = "c542609c8f7f4822204e39f6ea99e661d6c19d27b5f88e703d001d3bda622f9e"
+reviewed = 2026-10-16
+reason = "Two glossary entries share this name. The passage concerns infrastructure services or names actual nodes already linked; neither generic entry is a uniquely intended target."

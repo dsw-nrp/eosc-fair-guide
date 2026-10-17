@@ -1,0 +1,2299 @@
+{
+  "generatedAt": "2026-10-11T19:02:59.370Z",
+  "origin": "https://tests.ostrails.eu",
+  "candidates": [
+    {
+      "id": "fc_data_authorization",
+      "identifier": "https://tests.ostrails.eu/tests/fc_data_authorization",
+      "title": "OSTrails Core: Data Authorization",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_authorization",
+      "openapi": "https://tests.ostrails.eu/tests/fc_data_authorization/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+      "version": "Hvst-0.1.19:Tst-2.0.1"
+    },
+    {
+      "id": "fc_data_identifier_in_metadata",
+      "identifier": "https://tests.ostrails.eu/tests/fc_data_identifier_in_metadata",
+      "title": "OSTrails Core: Data Identifier in Metadata",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_identifier_in_metadata",
+      "openapi": "https://tests.ostrails.eu/tests/fc_data_identifier_in_metadata/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_DataIdent",
+      "version": "Hvst-0.1.19:Tst-2.0.2"
+    },
+    {
+      "id": "fc_data_kr_language_strong",
+      "identifier": "https://tests.ostrails.eu/tests/fc_data_kr_language_strong",
+      "title": "OSTrails Core: Data Knowlege Representation Language (Strict Test)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_strong",
+      "openapi": "https://tests.ostrails.eu/tests/fc_data_kr_language_strong/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSemantic",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_data_kr_language_weak",
+      "identifier": "https://tests.ostrails.eu/tests/fc_data_kr_language_weak",
+      "title": "OSTrails Core: Data Knowlege Representation Language (Weak Test)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_weak",
+      "openapi": "https://tests.ostrails.eu/tests/fc_data_kr_language_weak/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_data_protocol",
+      "identifier": "https://tests.ostrails.eu/tests/fc_data_protocol",
+      "title": "OSTrails Core: Data Protocol",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_protocol",
+      "openapi": "https://tests.ostrails.eu/tests/fc_data_protocol/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_grounded_metadata",
+      "identifier": "https://tests.ostrails.eu/tests/fc_grounded_metadata",
+      "title": "OSTrails Core: Grounded Metadata",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_grounded_metadata",
+      "openapi": "https://tests.ostrails.eu/tests/fc_grounded_metadata/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e05e98",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfTerms",
+      "version": "Hvst-0.1.19:Tst-2.0.2"
+    },
+    {
+      "id": "fc_metadata_authorization",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_authorization",
+      "title": "OSTrails Core: Metadata Authorization",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_authorization",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_authorization/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_metadata_identifier_in_metadata",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_identifier_in_metadata",
+      "title": "FAIR Champion: Metadata Identifier Explicitly In Metadata",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_in_metadata",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_identifier_in_metadata/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_MetaIdent",
+      "version": "Hvst-0.1.19:Tst-2.0.1"
+    },
+    {
+      "id": "fc_metadata_identifier_persistence",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_identifier_persistence",
+      "title": "OSTrails Core: Identifier Persistence",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_persistence",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_identifier_persistence/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e226cb",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentPersistent",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_metadata_includes_license",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_includes_license",
+      "title": "OSTrails Core: Metadata Includes License (strong)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_includes_license/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_metadata_includes_license_weak",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_includes_license_weak",
+      "title": "OSTrails Core: Metadata Includes License (weak)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license_weak",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_includes_license_weak/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.aff99f",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+      "version": "Hvst-0.1.19:Tst-2.0.1"
+    },
+    {
+      "id": "fc_metadata_kr_language_weak",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_weak",
+      "title": "OSTrails Core: Metadata Knowledge Representation Language (weak)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_weak",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_weak/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_metadata_outward_links",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_outward_links",
+      "title": "OSTrails Core: Metadata Contains Outward Links",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_outward_links",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_outward_links/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ae22b8",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I3_M_QualRef",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_metadata_persistence",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_persistence",
+      "title": "OSTrails Core: Metadata Persistence",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_persistence/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7c4d7f",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A2_M_MetaLong",
+      "version": "Hvst-0.1.19:Tst-2.0.2"
+    },
+    {
+      "id": "fc_metadata_protocol",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_protocol",
+      "title": "OSTrails Core: Uses open free protocol for metadata retrieval",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_protocol",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_protocol/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_metadata_uses_fair_vocabularies",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_uses_fair_vocabularies",
+      "title": "OSTrails Core: Metadata uses FAIR vocabularies (strong)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_uses_fair_vocabularies",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_uses_fair_vocabularies/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfTerms",
+      "version": "Hvst-0.1.19:Tst-2.0.2"
+    },
+    {
+      "id": "fc_searchable",
+      "identifier": "https://tests.ostrails.eu/tests/fc_searchable",
+      "title": "OSTrails Core: Searchable in major search engine",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_searchable",
+      "openapi": "https://tests.ostrails.eu/tests/fc_searchable/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.0c0d21",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F4_M_MetaIndexed",
+      "version": "Hvst-0.1.19:Tst-3.1.1"
+    },
+    {
+      "id": "fc_structured_metadata",
+      "identifier": "https://tests.ostrails.eu/tests/fc_structured_metadata",
+      "title": "OSTrails Core: Structured Metadata",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_structured_metadata",
+      "openapi": "https://tests.ostrails.eu/tests/fc_structured_metadata/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e05e98",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "fc_unique_identifier",
+      "identifier": "https://tests.ostrails.eu/tests/fc_unique_identifier",
+      "title": "OSTrails Core: Unique Identifier",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_unique_identifier",
+      "openapi": "https://tests.ostrails.eu/tests/fc_unique_identifier/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.b7f1ab",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentUnique",
+      "version": "Hvst-0.1.19:Tst-2.0.1"
+    },
+    {
+      "id": "fc_metadata_kr_language_strong",
+      "identifier": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_strong",
+      "title": "OSTrails Core: Metadata Knowledge Representation Language (strong)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_strong",
+      "openapi": "https://tests.ostrails.eu/tests/fc_metadata_kr_language_strong/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSemantic",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "community_funding_information_registered",
+      "identifier": "https://tests.ostrails.eu/community-tests/community_funding_information_registered",
+      "title": "Funding information registered in metadata",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_funding_information_registered",
+      "openapi": "https://tests.ostrails.eu/community-tests/community_funding_information_registered/api",
+      "originalPrinciple": "https://placeholder.org",
+      "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1-2_M_Fund_ESRF",
+      "version": "Hvst-0.1.19:Tst-0.0.3"
+    },
+    {
+      "id": "community_license_information",
+      "identifier": "https://tests.ostrails.eu/community-tests/community_license_information",
+      "title": "License information found in DOI metadata",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_license_information",
+      "openapi": "https://tests.ostrails.eu/community-tests/community_license_information/api",
+      "originalPrinciple": "https://placeholder.org",
+      "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1-1_M_DOI_Lic_ESRF",
+      "version": "Hvst-0.1.19:Tst-0.0.3"
+    },
+    {
+      "id": "community_metadata_includes_author_affiliation",
+      "identifier": "https://tests.ostrails.eu/community-tests/community_metadata_includes_author_affiliation",
+      "title": "Metadata includes author affiliation",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation",
+      "openapi": "https://tests.ostrails.eu/community-tests/community_metadata_includes_author_affiliation/api",
+      "originalPrinciple": "https://placeholder.org",
+      "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1-2_M_Affil_ESRF",
+      "version": "Hvst-0.1.19:Tst-0.0.3"
+    },
+    {
+      "id": "community_open_access_publication",
+      "identifier": "https://tests.ostrails.eu/community-tests/community_open_access_publication",
+      "title": "Resource is Open-Access output",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_open_access_publication",
+      "openapi": "https://tests.ostrails.eu/community-tests/community_open_access_publication/api",
+      "originalPrinciple": "https://placeholder.org",
+      "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_F4_M_DOI_OA_ESRF",
+      "version": "Hvst-0.1.19:Tst-0.0.3"
+    },
+    {
+      "id": "erdera_core_vp_metadata",
+      "identifier": "https://tests.ostrails.eu/community-tests/erdera_core_vp_metadata",
+      "title": "ERDERA: Minimal VP Metadata for Level 1 Compliance",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_core_vp_metadata",
+      "openapi": "https://tests.ostrails.eu/community-tests/erdera_core_vp_metadata/api",
+      "originalPrinciple": "https://fairsharing.org/FAIRsharing.87d197",
+      "originalMetric": "https://w3id.org/fair-metrics/erdera/FM_R1-3_M_VP_L1",
+      "version": "Hvst-0.1.19:Tst-0.0.2"
+    },
+    {
+      "id": "erdera_vp_l2_metadata",
+      "identifier": "https://tests.ostrails.eu/community-tests/erdera_vp_l2_metadata",
+      "title": "ERDERA: Minimal VP Metadata for Level 2 Compliance",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_vp_l2_metadata",
+      "openapi": "https://tests.ostrails.eu/community-tests/erdera_vp_l2_metadata/api",
+      "originalPrinciple": "https://fairsharing.org/FAIRsharing.87d197",
+      "originalMetric": "https://w3id.org/fair-metrics/erdera/FM_R1-3_M_VP_L2",
+      "version": "Hvst-0.1.19:Tst-0.0.2"
+    },
+    {
+      "id": "community_data_cited_in_pub",
+      "identifier": "https://tests.ostrails.eu/community-tests/community_data_cited_in_pub",
+      "title": "FAIR Test - R1.2 - Dataset - The dataset is cited in a publication",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub",
+      "openapi": "https://tests.ostrails.eu/community-tests/community_data_cited_in_pub/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.3e9860",
+      "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_R1.2_D_CITED-BY-PUB_ESRF",
+      "version": "Hvst-0.1.19:Tst-0.0.2"
+    },
+    {
+      "id": "community_panet_vocabulary_in_metadata",
+      "identifier": "https://tests.ostrails.eu/community-tests/community_panet_vocabulary_in_metadata",
+      "title": "FAIR Test - I2 - Dataset - DOI metadata contains a link to a community ontology term - PaNET",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_panet_vocabulary_in_metadata",
+      "openapi": "https://tests.ostrails.eu/community-tests/community_panet_vocabulary_in_metadata/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+      "originalMetric": "https://w3id.org/fair-metrics/esrf/FM_I2_M_VOC-PANET_DOI_ESRF",
+      "version": "Hvst-0.1.19:Tst-0.0.4"
+    },
+    {
+      "id": "fc_harvest_only",
+      "identifier": "https://tests.ostrails.eu/tests/fc_harvest_only",
+      "title": "OSTrails Core: Expose Harvester Raw Output",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_harvest_only",
+      "openapi": "https://tests.ostrails.eu/tests/fc_harvest_only/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e226cb",
+      "originalMetric": "https://doi.org/10.25504/FAIRsharing.VRo9Dl",
+      "version": "Hvst-0.1.19:Tst-2.0.0"
+    },
+    {
+      "id": "test_FM_A1_1_M_OpenProt",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt",
+      "title": "OSTrails Core: Uses open free protocol for metadata retrieval",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+      "version": "Hvst-0.1.19:Tst-3.0.0"
+    },
+    {
+      "id": "test_FM_A1_1_M_OpenProt_Data",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt_Data",
+      "title": "OSTrails Core: Data Protocol",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt_Data",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_1_M_OpenProt_Data/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7612c1",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-1_M_OpenProt",
+      "version": "Hvst-0.1.19:Tst-3.1.0"
+    },
+    {
+      "id": "test_FM_A1_2_M_Auth",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_Auth",
+      "title": "OSTrails Core: Data Authorization",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_Auth",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_Auth/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+      "version": "Hvst-0.1.19:Tst-3.0.0"
+    },
+    {
+      "id": "test_FM_A1_2_M_DataAuth",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_DataAuth",
+      "title": "OSTrails Core: Data Authorization",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_DataAuth",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_A1_2_M_DataAuth/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A1-2_M_Auth",
+      "version": "Hvst-0.1.19:Tst-3.1.0"
+    },
+    {
+      "id": "test_FM_A2_M_MetaLong",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_A2_M_MetaLong",
+      "title": "OSTrails Core: Metadata Persistence",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A2_M_MetaLong",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_A2_M_MetaLong/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.7c4d7f",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_A2_M_MetaLong",
+      "version": "Hvst-0.1.19:Tst-3.0.1"
+    },
+    {
+      "id": "test_FM_F1_M_IdentPersistent",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentPersistent",
+      "title": "OSTrails Core: Identifier Persistence",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentPersistent",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentPersistent/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.e226cb",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentPersistent",
+      "version": "Hvst-0.1.19:Tst-3.0.0"
+    },
+    {
+      "id": "test_FM_F1_M_IdentUnique",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentUnique",
+      "title": "OSTrails Core: Unique Identifier",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentUnique",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_F1_M_IdentUnique/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.b7f1ab",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F1_M_IdentUnique",
+      "version": "Hvst-0.1.19:Tst-3.0.1"
+    },
+    {
+      "id": "test_FM_F3_M_DataIdent",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_F3_M_DataIdent",
+      "title": "OSTrails Core: Data Identifier in Metadata",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_DataIdent",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_F3_M_DataIdent/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_DataIdent",
+      "version": "Hvst-0.1.19:Tst-3.0.1"
+    },
+    {
+      "id": "test_FM_F3_M_MetaIdent",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_F3_M_MetaIdent",
+      "title": "OSTrails Core: Data Identifier in Metadata",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_MetaIdent",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_F3_M_MetaIdent/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.820324",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F3_M_MetaIdent",
+      "version": "Hvst-0.1.19:Tst-4.0.1"
+    },
+    {
+      "id": "test_FM_F4_M_MetaIndexed",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_F4_M_MetaIndexed",
+      "title": "OSTrails Core: Searchable in major search engine",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F4_M_MetaIndexed",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_F4_M_MetaIndexed/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.0c0d21",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_F4_M_MetaIndexed",
+      "version": "Hvst-0.1.19:Tst-4.1.0"
+    },
+    {
+      "id": "test_FM_I1_M_FormLangSemantic_Data",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormLangSemantic_Data",
+      "title": "OSTrails Core: Data record is represented as Linked Data",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormLangSemantic_Data",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormLangSemantic_Data/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSemantic",
+      "version": "Hvst-0.1.19:Tst-3.0.0"
+    },
+    {
+      "id": "test_FM_I1_M_FormalLangSyntax",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormalLangSyntax",
+      "title": "OSTrails Core: Data Knowlege Representation Language (Weak Test)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormalLangSyntax",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_I1_M_FormalLangSyntax/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ec5648",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I1_M_FormLangSyntax",
+      "version": "Hvst-0.1.19:Tst-3.0.1"
+    },
+    {
+      "id": "test_FM_I3_M_QualRef",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_I3_M_QualRef",
+      "title": "OSTrails Core: Metadata Contains Outward Links",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I3_M_QualRef",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_I3_M_QualRef/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.ae22b8",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I3_M_QualRef",
+      "version": "Hvst-0.1.19:Tst-3.0.0"
+    },
+    {
+      "id": "test_FM_R1_1_M_StdLic",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic",
+      "title": "OSTrails Core: Metadata Includes License",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.aff99f",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+      "version": "Hvst-0.1.19:Tst-3.0.2"
+    },
+    {
+      "id": "test_FM_R1_1_M_StdLic_strong",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic_strong",
+      "title": "OSTrails Core: Metadata Includes License (strong)",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic_strong",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_R1_1_M_StdLic_strong/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.8e0027",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_R1-1_M_StdLic",
+      "version": "Hvst-0.1.19:Tst-3.0.0"
+    },
+    {
+      "id": "dv_portugal_minimal_datacite",
+      "identifier": "https://tests.ostrails.eu/community-tests/dv_portugal_minimal_datacite",
+      "title": "Dataverse Portugal Minimal Datacite Provenance Metadata",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_minimal_datacite",
+      "openapi": "https://tests.ostrails.eu/community-tests/dv_portugal_minimal_datacite/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.9ca8a1",
+      "originalMetric": "https://ostrails.github.io/assessment-component-metadata-records/metric/FM_R1-2_M_PtDataProv.ttl",
+      "version": "Hvst-0.1.19:Tst-0.0.3"
+    },
+    {
+      "id": "dv_portugal_dv_controlled_vocabularies",
+      "identifier": "https://tests.ostrails.eu/community-tests/dv_portugal_dv_controlled_vocabularies",
+      "title": "Dataverse Portugal Uses Dataverse Controlled Vocabularies",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_dv_controlled_vocabularies",
+      "openapi": "https://tests.ostrails.eu/community-tests/dv_portugal_dv_controlled_vocabularies/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.9ca8a1",
+      "originalMetric": "https://ostrails.github.io/assessment-component-metadata-records/metric/FM_R1-3_M_PtDataContVoc.ttl",
+      "version": "Hvst-0.1.19:Tst-0.0.3"
+    },
+    {
+      "id": "test_FM_I2_M_ResolvabilityOfTerms",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfTerms",
+      "title": "OSTrails Core: Resolvability of metadata terms",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfTerms",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfTerms/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfTerms",
+      "version": "Hvst-0.1.19:Tst-3.0.1"
+    },
+    {
+      "id": "test_FM_I2_M_ResolvabilityOfValues",
+      "identifier": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfValues",
+      "title": "OSTrails Core: Resolvability of metadata values",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfValues",
+      "openapi": "https://tests.ostrails.eu/tests/test_FM_I2_M_ResolvabilityOfValues/api",
+      "originalPrinciple": "https://doi.org/10.25504/FAIRsharing.96d4af",
+      "originalMetric": "https://w3id.org/fair-metrics/general/FM_I2_M_ResolvabilityOfValues",
+      "version": "Hvst-0.1.19:Tst-3.0.1"
+    }
+  ],
+  "records": [
+    {
+      "id": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "landingPage": "https://zenodo.org/records/21726259",
+      "basis": "OSTrails CZ pilot deposit"
+    },
+    {
+      "id": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "basis": "LINDAT public language-resource record"
+    },
+    {
+      "id": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "landingPage": "https://dspace.vut.cz/items/70afe85f-0b38-4438-9796-c1efd48dc0b3",
+      "basis": "Brno University of Technology DSpace thesis record"
+    }
+  ],
+  "unresolved": [],
+  "results": [
+    {
+      "test": "fc_data_authorization",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_authorization",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10341,
+      "seconds": 14.331300000011922
+    },
+    {
+      "test": "fc_data_authorization",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_authorization",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 15.45530000001192
+    },
+    {
+      "test": "fc_data_identifier_in_metadata",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_identifier_in_metadata",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10879,
+      "seconds": 0.8817999999821186
+    },
+    {
+      "test": "fc_data_kr_language_strong",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_strong",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.454
+    },
+    {
+      "test": "fc_data_identifier_in_metadata",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_identifier_in_metadata",
+      "value": "fail",
+      "status": 200,
+      "bytes": 12519,
+      "seconds": 29.08229999998212
+    },
+    {
+      "test": "fc_data_kr_language_strong",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_strong",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 12617,
+      "seconds": 28.01609999999404
+    },
+    {
+      "test": "fc_data_kr_language_weak",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_weak",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.46409999999403956
+    },
+    {
+      "test": "fc_data_kr_language_strong",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_strong",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 11030,
+      "seconds": 3.405700000017881
+    },
+    {
+      "test": "fc_data_kr_language_weak",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_weak",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 10759,
+      "seconds": 0.901800000011921
+    },
+    {
+      "test": "fc_data_protocol",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_protocol",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3197999999821186
+    },
+    {
+      "test": "fc_data_authorization",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_authorization",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11520,
+      "seconds": 48.3175
+    },
+    {
+      "test": "fc_data_protocol",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_protocol",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 11026,
+      "seconds": 7.5462000000178815
+    },
+    {
+      "test": "fc_grounded_metadata",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_grounded_metadata",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3088000000119209
+    },
+    {
+      "test": "fc_data_protocol",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_protocol",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 11843,
+      "seconds": 9.38870000001788
+    },
+    {
+      "test": "fc_grounded_metadata",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_grounded_metadata",
+      "value": "pass",
+      "status": 200,
+      "bytes": 9427,
+      "seconds": 1.9603000000119208
+    },
+    {
+      "test": "fc_metadata_authorization",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_authorization",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3944,
+      "seconds": 0.23959999999403953
+    },
+    {
+      "test": "fc_metadata_authorization",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_authorization",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3940,
+      "seconds": 0.24340000000596046
+    },
+    {
+      "test": "fc_data_identifier_in_metadata",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_identifier_in_metadata",
+      "error": "Timeout",
+      "seconds": 60.0065
+    },
+    {
+      "test": "fc_metadata_authorization",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_authorization",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3939,
+      "seconds": 0.23890000000596046
+    },
+    {
+      "test": "fc_metadata_identifier_in_metadata",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_in_metadata",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3192999999821186
+    },
+    {
+      "test": "fc_metadata_identifier_in_metadata",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_in_metadata",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 9436,
+      "seconds": 0.8753000000119209
+    },
+    {
+      "test": "fc_metadata_identifier_persistence",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_persistence",
+      "value": "pass",
+      "status": 200,
+      "bytes": 4341,
+      "seconds": 0.2492000000178814
+    },
+    {
+      "test": "fc_metadata_identifier_persistence",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_persistence",
+      "value": "fail",
+      "status": 200,
+      "bytes": 4335,
+      "seconds": 0.24240000000596046
+    },
+    {
+      "test": "fc_metadata_identifier_persistence",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_persistence",
+      "value": "fail",
+      "status": 200,
+      "bytes": 4334,
+      "seconds": 0.25439999997615814
+    },
+    {
+      "test": "fc_metadata_includes_license",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.4576000000238419
+    },
+    {
+      "test": "fc_grounded_metadata",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_grounded_metadata",
+      "value": "pass",
+      "status": 200,
+      "bytes": 10694,
+      "seconds": 9.48690000000596
+    },
+    {
+      "test": "fc_metadata_includes_license",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10023,
+      "seconds": 1.2243000000119209
+    },
+    {
+      "test": "fc_metadata_includes_license_weak",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license_weak",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3575999999940395
+    },
+    {
+      "test": "fc_metadata_identifier_in_metadata",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_identifier_in_metadata",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11163,
+      "seconds": 9.48280000001192
+    },
+    {
+      "test": "fc_metadata_includes_license_weak",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license_weak",
+      "value": "fail",
+      "status": 200,
+      "bytes": 9433,
+      "seconds": 0.8823999999761581
+    },
+    {
+      "test": "fc_metadata_kr_language_weak",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_weak",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.4905
+    },
+    {
+      "test": "fc_metadata_includes_license",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11160,
+      "seconds": 10.02540000000596
+    },
+    {
+      "test": "fc_metadata_kr_language_weak",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_weak",
+      "value": "fail",
+      "status": 200,
+      "bytes": 9276,
+      "seconds": 1.1370999999940394
+    },
+    {
+      "test": "fc_metadata_outward_links",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_outward_links",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3234000000059605
+    },
+    {
+      "test": "fc_metadata_includes_license_weak",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_includes_license_weak",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11440,
+      "seconds": 9.7715
+    },
+    {
+      "test": "fc_metadata_outward_links",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_outward_links",
+      "value": "fail",
+      "status": 200,
+      "bytes": 8903,
+      "seconds": 0.9252999999821186
+    },
+    {
+      "test": "fc_data_kr_language_weak",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_data_kr_language_weak",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 12719,
+      "seconds": 32.858
+    },
+    {
+      "test": "fc_metadata_persistence",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.36669999998807906
+    },
+    {
+      "test": "fc_metadata_kr_language_weak",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_weak",
+      "value": "pass",
+      "status": 200,
+      "bytes": 10698,
+      "seconds": 9.393300000011921
+    },
+    {
+      "test": "fc_metadata_protocol",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_protocol",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3980,
+      "seconds": 0.2432000000178814
+    },
+    {
+      "test": "fc_metadata_protocol",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_protocol",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3972,
+      "seconds": 0.35619999998807905
+    },
+    {
+      "test": "fc_metadata_protocol",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_protocol",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3970,
+      "seconds": 0.24480000001192093
+    },
+    {
+      "test": "fc_metadata_uses_fair_vocabularies",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_uses_fair_vocabularies",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.342
+    },
+    {
+      "test": "fc_metadata_outward_links",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_outward_links",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10415,
+      "seconds": 9.29240000000596
+    },
+    {
+      "test": "fc_metadata_persistence",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 4136,
+      "seconds": 8.779200000017882
+    },
+    {
+      "test": "fc_metadata_persistence",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_persistence",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 4137,
+      "seconds": 9.265199999988079
+    },
+    {
+      "test": "fc_searchable",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_searchable",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3575
+    },
+    {
+      "test": "fc_searchable",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_searchable",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 9017,
+      "seconds": 0.9373000000119209
+    },
+    {
+      "test": "fc_structured_metadata",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_structured_metadata",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3842000000178814
+    },
+    {
+      "test": "fc_metadata_uses_fair_vocabularies",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_uses_fair_vocabularies",
+      "value": "pass",
+      "status": 200,
+      "bytes": 9790,
+      "seconds": 6.277300000011921
+    },
+    {
+      "test": "fc_structured_metadata",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_structured_metadata",
+      "value": "pass",
+      "status": 200,
+      "bytes": 9097,
+      "seconds": 1.7925
+    },
+    {
+      "test": "fc_metadata_uses_fair_vocabularies",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_uses_fair_vocabularies",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10306,
+      "seconds": 9.73690000000596
+    },
+    {
+      "test": "fc_unique_identifier",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_unique_identifier",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3975,
+      "seconds": 0.24389999997615813
+    },
+    {
+      "test": "fc_unique_identifier",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_unique_identifier",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3971,
+      "seconds": 0.2395
+    },
+    {
+      "test": "fc_unique_identifier",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_unique_identifier",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3970,
+      "seconds": 0.24290000000596046
+    },
+    {
+      "test": "fc_metadata_kr_language_strong",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_strong",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.31490000000596047
+    },
+    {
+      "test": "fc_metadata_kr_language_strong",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_strong",
+      "value": "fail",
+      "status": 200,
+      "bytes": 9618,
+      "seconds": 0.9782999999821186
+    },
+    {
+      "test": "fc_searchable",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_searchable",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 10620,
+      "seconds": 9.55029999998212
+    },
+    {
+      "test": "fc_structured_metadata",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_structured_metadata",
+      "value": "pass",
+      "status": 200,
+      "bytes": 10364,
+      "seconds": 9.393700000017882
+    },
+    {
+      "test": "community_funding_information_registered",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_funding_information_registered",
+      "value": "fail",
+      "status": 200,
+      "bytes": 6221,
+      "seconds": 1.6354000000059605
+    },
+    {
+      "test": "fc_metadata_kr_language_strong",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_metadata_kr_language_strong",
+      "value": "pass",
+      "status": 200,
+      "bytes": 11012,
+      "seconds": 9.2765
+    },
+    {
+      "test": "community_funding_information_registered",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_funding_information_registered",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11307,
+      "seconds": 19.917
+    },
+    {
+      "test": "community_license_information",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_license_information",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 5089,
+      "seconds": 0.24559999999403953
+    },
+    {
+      "test": "community_license_information",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_license_information",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 10475,
+      "seconds": 16.33139999997616
+    },
+    {
+      "test": "community_license_information",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_license_information",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 23.83640000000596
+    },
+    {
+      "test": "community_metadata_includes_author_affiliation",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 5333,
+      "seconds": 0.25119999998807907
+    },
+    {
+      "test": "community_open_access_publication",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_open_access_publication",
+      "value": "pass",
+      "status": 200,
+      "bytes": 4558,
+      "seconds": 0.941199999988079
+    },
+    {
+      "test": "community_open_access_publication",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_open_access_publication",
+      "value": "fail",
+      "status": 200,
+      "bytes": 3772,
+      "seconds": 0.24690000000596046
+    },
+    {
+      "test": "community_open_access_publication",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_open_access_publication",
+      "value": "fail",
+      "status": 200,
+      "bytes": 3771,
+      "seconds": 0.24190000000596046
+    },
+    {
+      "test": "community_metadata_includes_author_affiliation",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 10559,
+      "seconds": 9.57259999999404
+    },
+    {
+      "test": "erdera_core_vp_metadata",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_core_vp_metadata",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 1.6810999999940395
+    },
+    {
+      "test": "erdera_core_vp_metadata",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_core_vp_metadata",
+      "value": "fail",
+      "status": 200,
+      "bytes": 6256,
+      "seconds": 0.43790000000596047
+    },
+    {
+      "test": "community_metadata_includes_author_affiliation",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_metadata_includes_author_affiliation",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 10.3535
+    },
+    {
+      "test": "erdera_vp_l2_metadata",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_vp_l2_metadata",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.7298000000119209
+    },
+    {
+      "test": "erdera_vp_l2_metadata",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_vp_l2_metadata",
+      "value": "fail",
+      "status": 200,
+      "bytes": 5773,
+      "seconds": 0.25830000001192094
+    },
+    {
+      "test": "community_data_cited_in_pub",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub",
+      "value": "fail",
+      "status": 200,
+      "bytes": 5232,
+      "seconds": 1.3115999999940395
+    },
+    {
+      "test": "community_data_cited_in_pub",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub",
+      "value": "pass",
+      "status": 200,
+      "bytes": 5240,
+      "seconds": 1.3509000000059606
+    },
+    {
+      "test": "community_data_cited_in_pub",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_data_cited_in_pub",
+      "value": "fail",
+      "status": 200,
+      "bytes": 5222,
+      "seconds": 0.888
+    },
+    {
+      "test": "community_panet_vocabulary_in_metadata",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_panet_vocabulary_in_metadata",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 1.0117999999821186
+    },
+    {
+      "test": "erdera_core_vp_metadata",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_core_vp_metadata",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11482,
+      "seconds": 9.626200000017882
+    },
+    {
+      "test": "community_panet_vocabulary_in_metadata",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_panet_vocabulary_in_metadata",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 5950,
+      "seconds": 0.24490000000596046
+    },
+    {
+      "test": "fc_harvest_only",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_harvest_only",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.31909999999403954
+    },
+    {
+      "test": "erdera_vp_l2_metadata",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/erdera_vp_l2_metadata",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10999,
+      "seconds": 9.731699999988079
+    },
+    {
+      "test": "fc_harvest_only",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_harvest_only",
+      "status": 200,
+      "error": "no verdict",
+      "seconds": 0.8912999999821186
+    },
+    {
+      "test": "test_FM_A1_1_M_OpenProt",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3998,
+      "seconds": 0.3165
+    },
+    {
+      "test": "test_FM_A1_1_M_OpenProt",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3990,
+      "seconds": 0.2422000000178814
+    },
+    {
+      "test": "test_FM_A1_1_M_OpenProt",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3988,
+      "seconds": 0.24340000000596046
+    },
+    {
+      "test": "test_FM_A1_1_M_OpenProt_Data",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt_Data",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3418000000119209
+    },
+    {
+      "test": "community_panet_vocabulary_in_metadata",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_panet_vocabulary_in_metadata",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 11176,
+      "seconds": 9.7995
+    },
+    {
+      "test": "test_FM_A1_1_M_OpenProt_Data",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt_Data",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 10637,
+      "seconds": 0.957300000011921
+    },
+    {
+      "test": "test_FM_A1_2_M_Auth",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_Auth",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3664,
+      "seconds": 0.25130000001192093
+    },
+    {
+      "test": "test_FM_A1_2_M_Auth",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_Auth",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3656,
+      "seconds": 0.24719999998807907
+    },
+    {
+      "test": "test_FM_A1_2_M_Auth",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_Auth",
+      "value": "pass",
+      "status": 200,
+      "bytes": 3654,
+      "seconds": 0.24730000001192093
+    },
+    {
+      "test": "test_FM_A1_2_M_DataAuth",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_DataAuth",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3255
+    },
+    {
+      "test": "fc_harvest_only",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/fc_harvest_only",
+      "status": 200,
+      "error": "no verdict",
+      "seconds": 9.921100000023841
+    },
+    {
+      "test": "test_FM_A1_2_M_DataAuth",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_DataAuth",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 8888,
+      "seconds": 0.9181999999880791
+    },
+    {
+      "test": "test_FM_A2_M_MetaLong",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A2_M_MetaLong",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.32639999997615815
+    },
+    {
+      "test": "test_FM_A1_1_M_OpenProt_Data",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_1_M_OpenProt_Data",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 12117,
+      "seconds": 9.3125
+    },
+    {
+      "test": "test_FM_A2_M_MetaLong",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A2_M_MetaLong",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 4019,
+      "seconds": 0.9719000000059604
+    },
+    {
+      "test": "test_FM_F1_M_IdentPersistent",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentPersistent",
+      "value": "pass",
+      "status": 200,
+      "bytes": 4361,
+      "seconds": 0.27359999999403956
+    },
+    {
+      "test": "test_FM_F1_M_IdentPersistent",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentPersistent",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 4370,
+      "seconds": 0.2585
+    },
+    {
+      "test": "test_FM_F1_M_IdentPersistent",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentPersistent",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 4369,
+      "seconds": 0.2445
+    },
+    {
+      "test": "test_FM_F1_M_IdentUnique",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentUnique",
+      "value": "pass",
+      "status": 200,
+      "bytes": 4051,
+      "seconds": 0.25439999997615814
+    },
+    {
+      "test": "test_FM_F1_M_IdentUnique",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentUnique",
+      "value": "pass",
+      "status": 200,
+      "bytes": 4047,
+      "seconds": 0.24619999998807907
+    },
+    {
+      "test": "test_FM_F1_M_IdentUnique",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F1_M_IdentUnique",
+      "value": "pass",
+      "status": 200,
+      "bytes": 4046,
+      "seconds": 0.24269999998807906
+    },
+    {
+      "test": "test_FM_F3_M_DataIdent",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_DataIdent",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.44780000001192094
+    },
+    {
+      "test": "community_funding_information_registered",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/community_funding_information_registered",
+      "error": "Timeout",
+      "seconds": 60.00819999998808
+    },
+    {
+      "test": "test_FM_A1_2_M_DataAuth",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A1_2_M_DataAuth",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 10368,
+      "seconds": 9.47290000000596
+    },
+    {
+      "test": "test_FM_F3_M_DataIdent",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_DataIdent",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11166,
+      "seconds": 1.7599000000059604
+    },
+    {
+      "test": "test_FM_F3_M_MetaIdent",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_MetaIdent",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.41219999998807905
+    },
+    {
+      "test": "test_FM_F3_M_MetaIdent",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_MetaIdent",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10031,
+      "seconds": 1.253800000011921
+    },
+    {
+      "test": "test_FM_F4_M_MetaIndexed",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F4_M_MetaIndexed",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.33330000001192095
+    },
+    {
+      "test": "test_FM_A2_M_MetaLong",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_A2_M_MetaLong",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 4125,
+      "seconds": 9.36390000000596
+    },
+    {
+      "test": "test_FM_F4_M_MetaIndexed",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F4_M_MetaIndexed",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11014,
+      "seconds": 1.0661999999880791
+    },
+    {
+      "test": "test_FM_I1_M_FormLangSemantic_Data",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormLangSemantic_Data",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3965
+    },
+    {
+      "test": "test_FM_F3_M_DataIdent",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_DataIdent",
+      "value": "fail",
+      "status": 200,
+      "bytes": 12433,
+      "seconds": 9.471299999982119
+    },
+    {
+      "test": "test_FM_I1_M_FormLangSemantic_Data",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormLangSemantic_Data",
+      "value": "pass",
+      "status": 200,
+      "bytes": 9278,
+      "seconds": 1.237100000023842
+    },
+    {
+      "test": "test_FM_I1_M_FormalLangSyntax",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormalLangSyntax",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3382000000178814
+    },
+    {
+      "test": "test_FM_F3_M_MetaIdent",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F3_M_MetaIdent",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11168,
+      "seconds": 9.511700000017882
+    },
+    {
+      "test": "test_FM_I1_M_FormalLangSyntax",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormalLangSyntax",
+      "value": "fail",
+      "status": 200,
+      "bytes": 9834,
+      "seconds": 1.1565999999940395
+    },
+    {
+      "test": "test_FM_I3_M_QualRef",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I3_M_QualRef",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.4260999999940395
+    },
+    {
+      "test": "test_FM_I1_M_FormLangSemantic_Data",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormLangSemantic_Data",
+      "value": "pass",
+      "status": 200,
+      "bytes": 10545,
+      "seconds": 9.247199999988078
+    },
+    {
+      "test": "test_FM_I1_M_FormalLangSyntax",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I1_M_FormalLangSyntax",
+      "value": "pass",
+      "status": 200,
+      "bytes": 11209,
+      "seconds": 9.26890000000596
+    },
+    {
+      "test": "test_FM_R1_1_M_StdLic",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3523999999761581
+    },
+    {
+      "test": "test_FM_F4_M_MetaIndexed",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_F4_M_MetaIndexed",
+      "value": "fail",
+      "status": 200,
+      "bytes": 12411,
+      "seconds": 16.76540000000596
+    },
+    {
+      "test": "test_FM_I3_M_QualRef",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I3_M_QualRef",
+      "value": "fail",
+      "status": 200,
+      "bytes": 9495,
+      "seconds": 4.995399999976158
+    },
+    {
+      "test": "test_FM_R1_1_M_StdLic_strong",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic_strong",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.48590000000596045
+    },
+    {
+      "test": "test_FM_R1_1_M_StdLic",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10529,
+      "seconds": 0.9290999999940396
+    },
+    {
+      "test": "test_FM_R1_1_M_StdLic_strong",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic_strong",
+      "value": "fail",
+      "status": 200,
+      "bytes": 10502,
+      "seconds": 0.8971999999880791
+    },
+    {
+      "test": "test_FM_I3_M_QualRef",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I3_M_QualRef",
+      "value": "fail",
+      "status": 200,
+      "bytes": 11007,
+      "seconds": 9.378
+    },
+    {
+      "test": "dv_portugal_minimal_datacite",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_minimal_datacite",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3206999999880791
+    },
+    {
+      "test": "dv_portugal_minimal_datacite",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_minimal_datacite",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 6220,
+      "seconds": 0.4332999999821186
+    },
+    {
+      "test": "dv_portugal_dv_controlled_vocabularies",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_dv_controlled_vocabularies",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.495
+    },
+    {
+      "test": "test_FM_R1_1_M_StdLic",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic",
+      "value": "fail",
+      "status": 200,
+      "bytes": 12538,
+      "seconds": 9.93780000001192
+    },
+    {
+      "test": "dv_portugal_dv_controlled_vocabularies",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_dv_controlled_vocabularies",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 6969,
+      "seconds": 0.28320000001788137
+    },
+    {
+      "test": "test_FM_I2_M_ResolvabilityOfTerms",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfTerms",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3889000000059605
+    },
+    {
+      "test": "test_FM_R1_1_M_StdLic_strong",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_R1_1_M_StdLic_strong",
+      "value": "fail",
+      "status": 200,
+      "bytes": 13096,
+      "seconds": 10.0695
+    },
+    {
+      "test": "dv_portugal_minimal_datacite",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_minimal_datacite",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 11446,
+      "seconds": 10.48540000000596
+    },
+    {
+      "test": "test_FM_I2_M_ResolvabilityOfValues",
+      "record": "zenodo-doi",
+      "identifier": "https://doi.org/10.5281/zenodo.21726258",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfValues",
+      "status": 500,
+      "error": "HTTP 500",
+      "seconds": 0.3543000000119209
+    },
+    {
+      "test": "dv_portugal_dv_controlled_vocabularies",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/community-tests/assess/test/dv_portugal_dv_controlled_vocabularies",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 12195,
+      "seconds": 10.07590000000596
+    },
+    {
+      "test": "test_FM_I2_M_ResolvabilityOfTerms",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfTerms",
+      "value": "pass",
+      "status": 200,
+      "bytes": 11051,
+      "seconds": 2.917300000011921
+    },
+    {
+      "test": "test_FM_I2_M_ResolvabilityOfValues",
+      "record": "dspace-handle",
+      "identifier": "https://hdl.handle.net/11012/82536",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfValues",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 10433,
+      "seconds": 0.9002999999821186
+    },
+    {
+      "test": "test_FM_I2_M_ResolvabilityOfTerms",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfTerms",
+      "value": "indeterminate",
+      "status": 200,
+      "bytes": 12063,
+      "seconds": 9.17959999999404
+    },
+    {
+      "test": "test_FM_I2_M_ResolvabilityOfValues",
+      "record": "lindat-handle",
+      "identifier": "https://hdl.handle.net/11234/1-5787",
+      "endpoint": "https://tests.ostrails.eu/tests/assess/test/test_FM_I2_M_ResolvabilityOfValues",
+      "value": "fail",
+      "status": 200,
+      "bytes": 12492,
+      "seconds": 9.8075
+    }
+  ],
+  "summary": [
+    {
+      "id": "fc_data_authorization",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_data_identifier_in_metadata",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_data_kr_language_strong",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_data_kr_language_weak",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_data_protocol",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_grounded_metadata",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_metadata_authorization",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "fc_metadata_identifier_in_metadata",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 1,
+      "indeterminate": 1,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_metadata_identifier_persistence",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "fc_metadata_includes_license",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_metadata_includes_license_weak",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_metadata_kr_language_weak",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_metadata_outward_links",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_metadata_persistence",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_metadata_protocol",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "fc_metadata_uses_fair_vocabularies",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_searchable",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_structured_metadata",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_unique_identifier",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "fc_metadata_kr_language_strong",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "community_funding_information_registered",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "community_license_information",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "community_metadata_includes_author_affiliation",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "community_open_access_publication",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "erdera_core_vp_metadata",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "erdera_vp_l2_metadata",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "community_data_cited_in_pub",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "community_panet_vocabulary_in_metadata",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "fc_harvest_only",
+      "attempted": 3,
+      "verdicts": 0,
+      "definitive": 0,
+      "indeterminate": 0,
+      "health": "unavailable"
+    },
+    {
+      "id": "test_FM_A1_1_M_OpenProt",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "test_FM_A1_1_M_OpenProt_Data",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_A1_2_M_Auth",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "test_FM_A1_2_M_DataAuth",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_A2_M_MetaLong",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_F1_M_IdentPersistent",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 1,
+      "indeterminate": 2,
+      "health": "available"
+    },
+    {
+      "id": "test_FM_F1_M_IdentUnique",
+      "attempted": 3,
+      "verdicts": 3,
+      "definitive": 3,
+      "indeterminate": 0,
+      "health": "available"
+    },
+    {
+      "id": "test_FM_F3_M_DataIdent",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_F3_M_MetaIdent",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_F4_M_MetaIndexed",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_I1_M_FormLangSemantic_Data",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_I1_M_FormalLangSyntax",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_I3_M_QualRef",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_R1_1_M_StdLic",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_R1_1_M_StdLic_strong",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 2,
+      "indeterminate": 0,
+      "health": "degraded"
+    },
+    {
+      "id": "dv_portugal_minimal_datacite",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "dv_portugal_dv_controlled_vocabularies",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 0,
+      "indeterminate": 2,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_I2_M_ResolvabilityOfTerms",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 1,
+      "indeterminate": 1,
+      "health": "degraded"
+    },
+    {
+      "id": "test_FM_I2_M_ResolvabilityOfValues",
+      "attempted": 3,
+      "verdicts": 2,
+      "definitive": 1,
+      "indeterminate": 1,
+      "health": "degraded"
+    }
+  ],
+  "registry": {
+    "url": "https://tools.ostrails.eu/champion/tests/",
+    "retrievedAt": "2026-10-11",
+    "total": 210,
+    "reviewedOriginCandidates": 48,
+    "otherOriginsNotInvoked": 162
+  }
+}

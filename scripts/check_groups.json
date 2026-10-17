@@ -1,0 +1,16 @@
+{
+  "page": ["page", "embed"],
+  "embed": ["embed"],
+  "deployment": ["deployment"],
+  "discovery": ["discovery"],
+  "helpers": ["accessibility", "safety", "helpers", "citation", "datacite", "services", "champion_probe", "pr_comment", "source_publisher", "health_issues", "release", "deployment", "prepare_release", "navigation"],
+  "model": ["model", "visuals"],
+  "visuals": ["visuals"],
+  "assessment": ["assess", "questions", "sources", "languages", "tests", "providers"],
+  "providers": ["providers"],
+  "live": ["live"],
+  "diagrams": ["diagrams"],
+  "api": ["../api/check_api"],
+  "live-release": ["live_release"],
+  "final": ["final_candidate", "repairs", "print"]
+}

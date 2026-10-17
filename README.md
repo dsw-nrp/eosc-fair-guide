@@ -5,53 +5,165 @@ cestou k FAIR datům: od plánu projektu přes výběr repozitáře, popis a lic
 kontrolu. Vychází z *Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI* (verze 1.2,
 NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>) a doplňuje ji o současný stav národních služeb.
 
-> **Stav:** rozpracovaná verze. Texty jsou pracovní a před zveřejněním je projde redakce týmu.
-
 English version: [README_en.md](README_en.md).
+
+Změny chování, datových a API smluv, uložených formátů, CI a pravidel práce se plánují pomocí OpenSpec přímo
+v tomto repozitáři. Drobné jazykové a formátovací opravy a běžné obnovy zdrojů používají obvyklé kontroly.
+Postup přispívání je v [CONTRIBUTING.md](CONTRIBUTING.md); pravidla zveřejnění a náhledu popisuje
+[dokumentace nasazení](docs/deployment.md). Plánované změny a jejich stav patří do issues a změn OpenSpec.
 
 ## Co průvodce nabízí
 
-- **Cesta v devíti zastávkách:** Plán → Práce → Repozitář → Popis → Licence a přístup → Publikace →
-  Dohledatelnost → Citace a uznání → Kontrola. Začíná tam, kde se právě nacházíte.
+- **Cesta po životním cyklu výzkumných dat:** zastávky sledují sedm fází životního cyklu podle RDMkit (plánování,
+  vznik, zpracování a analýza dat, uchovávání, sdílení a opakované užití) a končí kontrolou. Začíná tam, kde se
+  právě nacházíte.
 - **Čtyři pohledy na stejnou cestu:** výzkumník, data steward, správce repozitáře či kurátor, komunita a FIP.
 - **Podrobnosti na vyžádání:** nejdřív jedna věta a jeden konkrétní krok, postup, zdůvodnění a zdroje až
-  po rozbalení.
+  po rozbalení (úrovně L0–L3).
 - **Průzkumník principů:** každý požadavek analýzy pod svým FAIR principem.
-- **Sebehodnocení:** brána NRP a zralost FAIR zvlášť, bez celkového skóre.
-- **Živá kontrola identifikátoru:** rychlá kontrola a na vyžádání hloubková kontrola nástrojem FAIR Champion.
+- **Sebehodnocení:** podmínky NRP a zralost FAIR zvlášť, bez celkového skóre.
+- **Hodnocení, která spouštíte sami:** rychlé vyhledání ve veřejných záznamech, vybrané testy FAIR Champion,
+  metriky FAIR-Checkeru a zpráva F-UJI načtená přímo v prohlížeči, vždy s rozsahem, verzemi a pokrytím; vaše
+  vlastní odpovědi zůstávají vaše.
 - **Katalog zdrojů a repozitářů** se stavem služby a datem ověření.
+- **Vrstvy a návaznosti FAIR implementace:** přehled modelu a souvislosti v katalogu propojují pokyny
+  s odpovědnostmi a předáváním informací, včetně předání uvnitř jedné vrstvy.
+
+### Průvodce a FIP Dashboard
+
+[FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) je národní katalog zdrojů umožňujících FAIR a komunitních
+profilů; jejich záznamy spravuje on a odpovídá na otázku „které zdroje a profily“. Průvodce odpovídá na otázku „co
+udělat a proč“ a na záznamy dashboardu odkazuje jejich identifikátory, místo aby je kopíroval. Kontrolu úplnosti FIP
+průvodce předvyplní z profilu v dashboardu, nebo z publikované nanopublikace FIP, pokud profil v dashboardu není.
+
+API dashboardu zatím z prohlížeče nepřijímá požadavky z adresy průvodce, proto průvodce čte datovaný snímek jeho
+profilů a zdrojů a všude, kde je používá, to uvádí i s upozorněním samotného dashboardu. Plánovaná úloha navrhne
+obnovení snímku pull requestem, když se data dashboardu změní. Až API adresu průvodce přijme, nastavení konektoru
+`browserAccess` umožní číst je živě a snímek ponechat jako zálohu. Podrobnosti popisuje
+[návrh katalogu a infrastruktury](docs/design.md#catalogue-and-infrastructure) a
+[obnovování snímků](docs/design.md#snapshot-refresh-and-source-watch).
 
 ## Jak průvodce spustit
 
-Otevřete soubor `index.html` v prohlížeči. Nic se neinstaluje a stránka funguje i bez připojení; jen živé
+Při prvním spuštění nainstalujte připnuté závislosti Node.js pro přibalenou dokumentaci API a Chromium,
+které používají kontroly stránky — do vlastní mezipaměti repozitáře, kde je kontroly hledají. S Pythonem
+3.11 nebo novějším pak sestavte web a otevřete `_site/index.html`:
+
+```bash
+npm ci
+npm run browsers
+python scripts/build_site.py
+```
+
+Instalace i kontroly automaticky používají `.cache/ms-playwright` ve Windows i Unixu.
+Proměnnou `PLAYWRIGHT_BROWSERS_PATH` nastavte jen pro jinou instalaci; vývojový kontejner má vlastní nastavení.
+
+Generátor používá standardní knihovnu Pythonu; upravené obrázky SVG jsou místní soubory.
+Hotová stránka funguje i bez připojení; jen živé
 kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) nebo zveřejnit samostatně.
+Pro automatickou výšku rámce a sdílení adresy hostitelské stránky slouží [ukázka vložení a protokol zpráv](docs/embedding.md).
+
+Připravené prostředí nabízí [vývojový kontejner](CONTRIBUTING.md#development-container). Po otevření repozitáře
+v kontejneru jsou Python, Node.js, kontrolní nástroje i Chromium nainstalované; kontroly spustíte příkazem
+`python scripts/check_all.py --jobs 4`.
+
+Pro místní server, který některé prohlížeče potřebují pro práci se schránkou:
+
+```bash
+python scripts/serve.py --build
+```
+
+Průvodce ukazuje vlastní praxi pro výzkumný software. Výchozím bodem bude první oficiální předběžné
+vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zatím čekají na provedení.
 
 ## Struktura repozitáře
 
 | Cesta | Obsah |
 | --- | --- |
-| `content/` | Zdrojové texty a data průvodce v souborech TOML |
-| `scripts/` | Generátor znalostní báze a kontroly obsahu (Python, jen standardní knihovna) |
-| `profile/` | Profil SHACL pro kontrolu struktury znalostní báze |
-| `index.html` | Stránka průvodce, zároveň náhled RO-Crate |
-| `ro-crate-metadata.json` | Znalostní báze jako RO-Crate 1.2 (generovaná) |
+| `content/` | Obsah v TOML: zastávky, rady, kontroly, zdroje, registr požadavků, slovníček, upozornění a provenience |
+| `scripts/` | Generátor znalostní báze, sestavení API a kontroly obsahu (Python, jen standardní knihovna) |
+| `tests/` | Testy skriptů s minimální ukázkou obsahu |
+| `profile/` | Profil RO-Crate (SHACL) pro kontrolu struktury znalostní báze |
+| `index.html` | Stránka průvodce s prázdnými bloky, které doplní sestavení |
+| `_site/` | Sestavený web, který se necommituje: stránka s datovými skripty, znalostní báze jako RO-Crate 1.2 s náhledem a API |
 | `assets/` | Styly, skripty, obrázky a vykreslené diagramy |
-| `diagrams/` | Zdroje diagramů v Mermaid |
+| `api/` | Stránka dokumentace API; samotné API vytvoří sestavení |
+| `assets/diagrams/` | Dvojjazyčné úpravy schválených obrázků rukopisu |
 | `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
+| `.github/` | CI, šablony a odpovědní recenzenti |
+
+[Příklad softwarové praxe](docs/software-practice.md) přiřazuje podklady aplikace a ověřované doklady vydání
+k příslušným softwarovým pokynům.
+
+[Příklad použití modelu](docs/model-practice.md) sleduje skutečný požadavek, otázku, test a záznam revize.
+Koncepční model odkazuje na rukopis v přípravě; požadavky kontrol si zachovávají své publikované zdroje.
 
 ## Jak upravovat obsah
 
-Obsah se píše v souborech TOML ve složce `content/`, nikdy přímo v `index.html` ani
-v `ro-crate-metadata.json`. Každý text je česky i anglicky, cituje publikovaný zdroj z registru požadavků
-a každá změna zaznamená, kdo ji provedl a s jakým nástrojem. Po úpravě spusťte:
+Obsah se píše v souborech TOML ve složce `content/`, nikdy v tom, co vytvoří sestavení. Pravidla popisuje
+[docs/content-model.md](docs/content-model.md):
+
+- každý text pro uživatele existuje česky i anglicky;
+- každá rada a otázka kontroly cituje alespoň jeden požadavek z registru a každý požadavek odkazuje na
+  publikovaný zdroj;
+- každá změna obsahu zaznamená autora, použitý nástroj (včetně modelu AI) a zdroje;
+- stavy používají pětistupňový slovník a uvádějí datum ověření.
+
+Po úpravě sestavte web a zkontrolujte jej; pak otevřete `_site/index.html`:
 
 ```bash
-python scripts/build_crate.py
+python scripts/build_site.py
 python scripts/check_content.py
 ```
 
-Změny přicházejí jako pull request a před sloučením je zkontroluje CI i člověk. Podrobný postup je
-v [CONTRIBUTING.md](CONTRIBUTING.md) a v [README_en.md](README_en.md).
+Všechny kontroly najednou spustí `python scripts/check_all.py` (po `npm ci` a instalaci
+nástrojů z `requirements-dev.txt`).
+Po spuštění najdete v `.cache/health/` přehled výsledků, JSON a shrnutí: stav kontrol a pokrytí otázek,
+rad a požadavků původními texty. CI je připojí k běhu jako artefakt a shrnutí. Přepínač `--live`
+přidá kontroly externích služeb; bez něj se jejich dostupnost neposuzuje.
+Pro porovnání dvou uložených přehledů použijte `--previous-report path/to/health.json`.
+Stejný přehled poskytuje API na `api/health.json`, zdokumentované v `api/openapi.json`;
+samotné sestavení uvádí, že kontroly dosud neproběhly,
+a jejich spouštěč poté zveřejní skutečný výsledek běhu.
+Web zveřejňuje také přehled `health/index.html` v angličtině, dostupný z patičky
+a ze stránky Data pro stroje. JSON i přehled se aktualizují stejným výsledkem běhu.
+
+Průvodce i s jeho API, jak bude zveřejněn, si spustíte na svém počítači (dokumentace API potřebuje jednou
+`npm ci`) a otevřete <http://127.0.0.1:8000/> a <http://127.0.0.1:8000/api/>:
+
+```bash
+python scripts/serve.py --build
+```
+
+Pravidla pro editaci s AI jsou v dovednosti `fair-guide-editor`
+(`.agents/skills/fair-guide-editor/SKILL.md`) a v [AGENTS.md](AGENTS.md); provozní pokyny pro agenty
+jsou v [README_en.md](README_en.md).
+
+## Jak přispívat
+
+Změny přicházejí jako pull request do `main`. CI kontroluje strukturu, obsah, funkčnost a přístupnost
+stránek, odkazy, diagramy a čistotu repozitáře. Odpovědný recenzent kontroluje správnost a styl.
+Podrobný postup je v [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Workflow kontrol pull requestu má pouze oprávnění ke čtení. Samostatný důvěryhodný workflow přidá
+dvojjazyčný komentář s přehledem změn a odkazy na kontroly a náhledy. Čte jen omezené podklady z
+dokončeného běhu, používá kód z výchozí větve a před zveřejněním ověřuje aktuální commit pull requestu.
+
+[Záznam výběru testů Champion](docs/champion/selection.md) vysvětluje jejich rozsah a datované měření
+dostupnosti. Po sestavení webu změříte všechny posouzené kandidáty i základní sadu příkazem
+`node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. Výběr testů se tím nemění.
+
+Připravené jsou dva plánované workflow, které poběží, až budou ve výchozí větvi. `source-refresh.yml`
+každý týden obnoví snímky Hesláře, re3data, FIP Dashboardu a NKR, ponechá snímek beze změny, když odpověď neprojde
+kontrolou, a každý změněný zdroj navrhne jako samostatný pull request přes GitHub App repozitáře.
+`health-watch.yml` každý týden kontroluje odkazy, služby, zastaralá data a stránky EOSC CZ, na kterých průvodce
+stojí, jednou měsíčně znovu změří testy FAIR Champion a pro každý trvající problém otevře jedno issue. Žádný z nich
+necommituje ani neslučuje; nastavení aplikace popisuje [konfigurace vydání](docs/deployment.md#release-preparation-and-tagging).
+
+Verzi vydání určuje [content/guide.toml](content/guide.toml). Postup popisuje
+[příprava a označení vydání](docs/deployment.md#release-preparation-and-tagging). Každé označené vydání zároveň
+zveřejní kontejnerový obraz ověřeného webu v `ghcr.io/dsw-nrp/eosc-fair-guide`; v zápatí je verze sestavení, revize
+a datum a neoznačené sestavení je označeno jako náhled `next`.
 
 ## Licence
 
@@ -60,13 +172,14 @@ v [REUSE.toml](REUSE.toml), plné texty ve složce [LICENSES/](LICENSES/).
 
 ## Autoři a citace
 
-Průvodce připravil David Novák (<https://orcid.org/0000-0001-6592-6291>). Odborným základem je analýza
+Průvodce připravil David Novák (Knihovna AV ČR a Archeologický ústav AV ČR, Praha; <https://orcid.org/0000-0001-6592-6291>). Odborným základem je analýza
 autorů Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák a
 Tomáš Čížek. Jak průvodce citovat, uvádí [CITATION.cff](CITATION.cff).
 
 ## Využití umělé inteligence
 
-Na přípravě obsahu a kódu se podílel AI asistent (Claude, Anthropic). Každá změna obsahu je zaznamenána
+Na přípravě obsahu a kódu se podíleli AI asistenti Claude (Anthropic) a Codex (OpenAI).
+Každá změna obsahu je zaznamenána
 v paradatech znalostní báze, včetně použitého nástroje, a průvodce ji ukazuje u každé položky. Texty
 kontrolují lidé.
 

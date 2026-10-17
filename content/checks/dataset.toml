@@ -1,0 +1,352 @@
+# Dataset check for researchers and data stewards, in a before-publication and an after-publication mode.
+# Field reference: docs/content-model.md.
+
+[check]
+id = "dataset"
+name = { cs = "Kontrola datové sady", en = "Dataset check" }
+icon = "magnifying-glass-chart"
+description = { cs = "Jak FAIR je vaše datová sada? Před zveřejněním projdete otázky k plánu, po zveřejnění otázky k hotovému záznamu. Odpovědi zůstávají ve vašem prohlížeči a Průvodce nepočítá žádné skóre.", en = "How FAIR is your dataset? Before publication you go through questions about the plan, after publication questions about the published record. Your answers stay in your browser, and the Guide computes no score." }
+lenses = ["V", "DS"]
+minutes = 5
+modes = ["before", "after"]
+defaultProfile = "none"
+
+# A dataset funded as a programme output: its requirements show when the programme is picked.
+
+[[check.profile]]
+id = "none"
+label = { cs = "Bez programu", en = "No programme" }
+
+[[check.profile]]
+id = "os3"
+label = { cs = "Open Science III: FAIR dataset", en = "Open Science III: FAIR dataset" }
+
+[[check.profile]]
+id = "minizamer"
+label = { cs = "Open Science II: minizáměr", en = "Open Science II: mini-project" }
+
+[[item]]
+id = "dataset.15"
+tier = "minimum"
+principles = ["R1"]
+statement = { cs = "Máte plán správy dat (DMP).", en = "You have a data management plan (DMP)." }
+help = { cs = "Plán popisuje, jaká data vzniknou, jak je popíšete, kam je uložíte a za jakých podmínek je zpřístupníte.", en = "The plan describes which data you will create, how you will describe them, where you will deposit them and on what terms you will make them available." }
+sources = ["A.K2.3.1", "DSW-NRP.01"]
+fixAt = "plan"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "dataset.16"
+tier = "minimum"
+principles = ["F1", "F4"]
+statement = { cs = "Víte, do kterého repozitáře data uložíte, a ten přiděluje trvalý identifikátor.", en = "You know which repository you will deposit the data in, and it assigns a persistent identifier." }
+sources = ["A.R1.3.X1", "A.F1.R1"]
+fixAt = "repository"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "dataset.17"
+tier = "minimum"
+principles = ["R1.1", "A1.2"]
+statement = { cs = "Máte rozmyšlenou licenci a režim přístupu.", en = "You have decided on the licence and the access mode." }
+sources = ["A.R1.1.R1", "A.A1.2.R2"]
+fixAt = "licence"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "dataset.18"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "Data průběžně dokumentujete (README, záznam postupu).", en = "You document the data as you go (README, a record of how they were made)." }
+sources = ["A.R1.2.X1", "CESSDA-DMEG.01"]
+fixAt = "collect"
+owner = ["user"]
+modes = ["before"]
+
+[[item]]
+id = "dataset.19"
+tier = "recommended"
+principles = ["A1.2"]
+statement = { cs = "Pokud pracujete s citlivými daty, víte, kdo vám poradí.", en = "If you work with sensitive data, you know who can advise you." }
+sources = ["EOSC-DATA-STEWARDS.01", "ETHICAL-SEVEN.01"]
+fixAt = "plan"
+owner = ["user", "data-steward"]
+modes = ["before"]
+allowNotApplicable = true
+
+[[item]]
+id = "dataset.01"
+tier = "minimum"
+principles = ["F1"]
+statement = { cs = "Datová sada má trvalý identifikátor (DOI, Handle nebo jiný).", en = "The dataset has a persistent identifier (DOI, Handle or another)." }
+sources = ["A.MIN1", "A.F1.R1"]
+fixAt = "publication"
+owner = ["repository-admin"]
+modes = ["after"]
+prefill = { resolver = true, datacite = ["doi"], champion = ["fc_unique_identifier", "test_FM_F1_M_IdentPersistent"] }
+championEvidenceOnly = true
+help = { cs = "Testy porovnají identifikátor se známými schématy, a když projdou, navrhnou jen Částečně: kdo identifikátor spravuje a zajišťuje jeho trvalost, neověřují, to zkontrolujte sami. U [[res/srv/handle|Handle]] může test vrátit neurčitý výsledek.", en = "The tests compare the identifier with known schemes, and when they pass they suggest only Partly: they do not check who manages the identifier and maintains its persistence, so check that yourself. For a [[res/srv/handle|Handle]], the test may return an indeterminate result." }
+
+[[item]]
+id = "dataset.02"
+tier = "minimum"
+principles = ["F1", "A1"]
+statement = { cs = "Identifikátor vede na stránku datové sady (landing page).", en = "The identifier leads to the dataset's page (landing page)." }
+sources = ["A.F1.R2"]
+fixAt = "publication"
+owner = ["repository-admin"]
+modes = ["after"]
+prefill = { resolver = true }
+
+[[item]]
+id = "dataset.03"
+tier = "minimum"
+principles = ["F3"]
+statement = { cs = "Ze stránky datové sady vedou odkazy na soubory nebo jiný přístup k datům.", en = "The dataset's page links to the files or to another way of accessing the data." }
+sources = ["A.MIN3", "A.F3.N1"]
+fixAt = "publication"
+owner = ["repository-admin"]
+modes = ["after"]
+prefill = { champion = ["fc_data_identifier_in_metadata"] }
+
+[[item]]
+id = "dataset.04"
+tier = "minimum"
+principles = ["R1.1"]
+statement = { cs = "Licence je uvedena odkazem (URI), ne jen názvem.", en = "The licence is given as a link (URI), not only by name." }
+sources = ["A.MIN3", "A.R1.1.X1"]
+fixAt = "licence"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+prefill = { datacite = ["rightsList[].rightsUri"], champion = ["fc_metadata_includes_license"] }
+
+[[item]]
+id = "dataset.05"
+tier = "minimum"
+principles = ["F4"]
+statement = { cs = "Datová sada je v Národním metadatovém adresáři ([[nma|NMA]]).", en = "The dataset is in the [[nma|National Metadata Directory (NMA)]]." }
+help = { cs = "Vyhledejte ji v [[repo/reg/nma|NMA]] podle PID; pokud tam není, můžete záznam založit sami.", en = "Search for it in [[repo/reg/nma|NMA]] by its PID; if it is not there, you can create the record yourself." }
+note = { cs = "Potřebné pro vykázání datové sady v RIV jako výsledku typu T.", en = "Needed for reporting the dataset in RIV as a result of type T." }
+sources = ["NMA-RIV-DOCS.01", "A.MIN2"]
+fixAt = "findability"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+allowNotApplicable = true
+lookup = "nmaSearch"
+
+[[item]]
+id = "dataset.06"
+tier = "recommended"
+principles = ["F2", "I2"]
+statement = { cs = "Popis obsahuje název, abstrakt a klíčová slova; odborná hesla jsou z řízeného slovníku.", en = "The description includes a title, an abstract and keywords; subject terms come from a controlled vocabulary." }
+sources = ["A.F2.N2", "A.I2.R1"]
+fixAt = "metadata"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["descriptions", "subjects[].subjectScheme"] }
+
+[[item]]
+id = "dataset.07"
+tier = "recommended"
+principles = ["I2", "I3"]
+statement = { cs = "Autoři mají [[orcid|ORCID]] a instituce [[ror|ROR]].", en = "Authors have [[orcid|ORCID]] iDs and institutions have [[ror|ROR]] IDs." }
+sources = ["A.I2.R2"]
+fixAt = "metadata"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["creators[].nameIdentifiers", "creators[].affiliation"], champion = ["community_metadata_includes_author_affiliation"] }
+
+[[item]]
+id = "dataset.08"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "Je popsáno, jak data vznikla (metoda, přístroje, software).", en = "It is described how the data were made (method, instruments, software)." }
+sources = ["A.R1.2.X1"]
+fixAt = "metadata"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["descriptions[descriptionType=Methods]"] }
+
+[[item]]
+id = "dataset.09"
+tier = "recommended"
+principles = ["I3", "R1.2"]
+statement = { cs = "Vazby na články, zdrojová data a předchozí verze jsou uvedeny pomocí trvalých identifikátorů.", en = "Links to articles, source data and previous versions are given through persistent identifiers." }
+sources = ["A.I3.R3", "A.R1.2.N3"]
+fixAt = "metadata"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["relatedIdentifiers"], champion = ["fc_metadata_outward_links"] }
+
+[[item]]
+id = "dataset.10"
+tier = "recommended"
+principles = ["A1.2"]
+statement = { cs = "Podmínky přístupu jsou popsané (otevřený, embargo, omezený).", en = "The access conditions are described (open, embargoed, restricted)." }
+sources = ["A.A1.2.R2"]
+fixAt = "licence"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+prefill = { datacite = ["rightsList"] }
+
+[[item]]
+id = "dataset.11"
+tier = "recommended"
+principles = ["I1", "R1"]
+statement = { cs = "Soubory jsou v otevřených nebo rozšířených formátech a mají README nebo datový slovník.", en = "The files are in open or widely used formats and have a README or a data dictionary." }
+sources = ["A.I1.X1", "CESSDA-DMEG.01"]
+fixAt = "process"
+owner = ["user"]
+modes = ["after"]
+prefill = { datacite = ["formats"] }
+prefillLevel = "partly"
+
+[[item]]
+id = "dataset.12"
+tier = "recommended"
+principles = ["R1"]
+statement = { cs = "Verze datové sady je označena.", en = "The dataset's version is stated." }
+sources = ["A.R1.R3"]
+fixAt = "publication"
+owner = ["user", "repository-admin"]
+modes = ["after"]
+prefill = { datacite = ["version"] }
+
+[[item]]
+id = "dataset.13"
+tier = "recommended"
+principles = ["R1.2"]
+statement = { cs = "Datová sada je citována v článku nebo uvedena v prohlášení o dostupnosti dat.", en = "The dataset is cited in an article or listed in a data availability statement." }
+sources = ["A.R1.2.N3", "FORCE11-CITATION.01"]
+fixAt = "citation"
+owner = ["user"]
+modes = ["after"]
+allowNotApplicable = true
+prefill = { datacite = ["relatedIdentifiers[relationType=IsCitedBy]"], champion = ["community_data_cited_in_pub"] }
+championEvidenceOnly = true
+help = { cs = "Test hledá odkazy na identifikátor v OpenAlex a OpenCitations. Když citaci najde, navrhne Částečně; když nenajde nic, navrhne Ne, ale citace může být mimo jejich záběr. Odpověď ověřte přímo v článku nebo v prohlášení o dostupnosti dat.", en = "The test searches OpenAlex and OpenCitations for references to the identifier. When it finds a citation it suggests Partly; when it finds nothing it suggests No, but a citation may fall outside their coverage. Verify the answer in the article or its data availability statement." }
+
+[[item]]
+id = "dataset.14"
+tier = "advanced"
+principles = ["R1.3"]
+statement = { cs = "Použili jste oborový metadatový standard, pokud ve vašem oboru existuje.", en = "You used a domain metadata standard, if your field has one." }
+sources = ["A.R1.3.X2"]
+fixAt = "metadata"
+owner = ["user", "community"]
+modes = ["after"]
+allowNotApplicable = true
+
+# Funded output: requirements both programmes share, then those only Open Science III sets.
+
+[[item]]
+id = "dataset.20"
+tier = "minimum"
+principles = ["F2", "R1"]
+statement = { cs = "Metadata datové sady jsou volně dostupná, strojově zpracovatelná a odpovídají FAIR principům.", en = "The dataset's metadata are freely available, machine-readable and follow the FAIR principles." }
+sources = ["OS3-RULES.20", "MINIZAMER-CATALOGUE.01"]
+fixAt = "metadata"
+owner = ["user", "data-steward"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+prefill = { datacite = ["descriptions", "subjects"] }
+prefillLevel = "partly"
+
+[[item]]
+id = "dataset.21"
+tier = "minimum"
+principles = ["F1"]
+statement = { cs = "Datová sada má mezinárodně uznávaný perzistentní identifikátor, například DOI.", en = "The dataset has an internationally recognised persistent identifier, such as a DOI." }
+sources = ["OS3-RULES.21", "MINIZAMER-CATALOGUE.01"]
+fixAt = "publication"
+owner = ["user"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+prefill = { resolver = true, datacite = ["doi"] }
+
+[[item]]
+id = "dataset.22"
+tier = "minimum"
+principles = ["A1"]
+statement = { cs = "Datová sada je uložená v repozitáři a odkaz na ni funguje.", en = "The dataset is deposited in a repository, and the link to it works." }
+sources = ["MINIZAMER-CATALOGUE.01", "OS3-RULES.23"]
+fixAt = "repository"
+owner = ["user"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+prefill = { resolver = true }
+
+[[item]]
+id = "dataset.23"
+tier = "minimum"
+principles = ["F4"]
+statement = { cs = "Datová sada má kompletní záznam v [[nma|Národním metadatovém adresáři]].", en = "The dataset has a complete record in the [[nma|National Metadata Directory]]." }
+help = { cs = "Záznam založíte v [[repo/reg/nma|NMA]] zadáním DOI nebo [[res/srv/handle|Handle]]; metadata z [[res/srv/datacite|DataCite]] se načtou sama.", en = "You create the record in [[repo/reg/nma|NMA]] by entering the DOI or [[res/srv/handle|Handle]]; the metadata from [[res/srv/datacite|DataCite]] load by themselves." }
+sources = ["OS3-RULES.25", "MINIZAMER-CATALOGUE.01", "OS3-FAQ.03"]
+fixAt = "findability"
+owner = ["user", "data-steward"]
+modes = ["after"]
+profiles = ["os3", "minizamer"]
+lookup = "nmaSearch"
+
+[[item]]
+id = "dataset.24"
+tier = "minimum"
+principles = []
+statement = { cs = "Datová sada vznikla netriviální FAIRifikací, například lepšími metadaty, dokumentací nebo převodem do standardních formátů, ne jen přeuložením už zveřejněných dat.", en = "The dataset results from non-trivial FAIRification, such as better metadata, documentation or conversion to standard formats, not just from re-depositing data already published." }
+sources = ["OS3-RULES.19", "OS3-FAQ.01"]
+fixAt = "metadata"
+owner = ["data-steward"]
+modes = ["after"]
+profiles = ["os3"]
+
+[[item]]
+id = "dataset.25"
+tier = "minimum"
+principles = ["R1.1"]
+statement = { cs = "Datová sada má licenci nebo podmínky dalšího užití.", en = "The dataset has a licence or terms of further use." }
+sources = ["OS3-RULES.22"]
+fixAt = "licence"
+owner = ["user"]
+modes = ["after"]
+profiles = ["os3"]
+prefill = { datacite = ["rightsList[].rightsUri"] }
+
+[[item]]
+id = "dataset.26"
+tier = "minimum"
+principles = ["A1"]
+statement = { cs = "Repozitář je veřejně dostupný a důvěryhodný nebo oborově certifikovaný, vybraný podle zvyklostí oboru.", en = "The repository is publicly available and trustworthy or domain-certified, chosen by the domain's practice." }
+help = { cs = "Nejdřív oborový repozitář v re3data s certifikací, například [[res/std/coretrustseal|CoreTrustSeal]]; jinak [[repo/gen/zenodo|Zenodo]] nebo [[repo/gen/datarepo|Datový catch-all repozitář NRP]].", en = "First a domain repository in re3data with a certification such as [[res/std/coretrustseal|CoreTrustSeal]]; otherwise [[repo/gen/zenodo|Zenodo]] or the [[repo/gen/datarepo|NRP Data Catch-all Repository]]." }
+sources = ["OS3-RULES.23", "OS3-FAQ.02"]
+fixAt = "repository"
+owner = ["user", "data-steward"]
+modes = ["after"]
+profiles = ["os3"]
+
+[[item]]
+id = "dataset.27"
+tier = "minimum"
+principles = []
+statement = { cs = "Data steward, který se na datové sadě podílel, je v metadatech uveden jako autor nebo přispěvatel.", en = "The data steward who worked on the dataset is named in the metadata as a creator or contributor." }
+help = { cs = "Zadejte jeho [[res/srv/orcid|ORCID]] iD u předvyplnění a Průvodce ho v metadatech [[res/srv/datacite|DataCite]] vyhledá.", en = "Enter their [[res/srv/orcid|ORCID]] iD with the pre-fill, and the Guide looks for it in the [[res/srv/datacite|DataCite]] metadata." }
+sources = ["OS3-RULES.24"]
+fixAt = "citation"
+owner = ["data-steward"]
+modes = ["after"]
+profiles = ["os3"]
+prefill = { datacite = ["@steward"] }
+
+[[item]]
+id = "dataset.28"
+tier = "minimum"
+principles = []
+statement = { cs = "Datová sada splňuje klíčové parametry, ke kterým se projekt zavázal.", en = "The dataset meets the key parameters the project committed to." }
+sources = ["OS3-RULES.26"]
+fixAt = "plan"
+owner = ["data-steward"]
+modes = ["after"]
+profiles = ["os3"]

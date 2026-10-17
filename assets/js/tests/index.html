@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Jak fungují místní poradní testy FAIR průvodce / How the FAIR guide's local advisory tests work">
+    <title>Místní testy / Local tests — FAIR průvodce</title>
+    <link rel="stylesheet" href="../../css/tokens.css">
+    <link rel="stylesheet" href="../../css/app.css">
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>Místní testy FAIR průvodce</h1>
+      <p><a href="#english" lang="en">English</a> · <a href="../../../index.html#/cs/K/catalogue/k!tests">Testy v katalogu</a></p>
+      <p>Každý test má vlastní identifikátor, popis a odkaz na otázku, kterou může předvyplnit. Popis v katalogu uvádí, co test hledá a co z nalezeného podkladu nelze dovodit. Testy nenahrazují původní požadavky citovaných standardů.</p>
+      <section id="object" aria-labelledby="object-title">
+        <h2 id="object-title">PID a metadata digitálního objektu</h2>
+        <p>Testy přijímají podklady, které kontrola již načetla: výsledek rozlišení PID a reprezentace metadat přiřazené tomuto objektu. Čtou podporovaná pole DataCite a Schema.org i výslovné deklarace profilů. Samy nic nestahují.</p>
+        <p>Každá reprezentace se posuzuje samostatně. Neúplná pole z různých záznamů se neskládají do úplné odpovědi. Nerozpoznaný slovník, odlišný objekt, chybějící pole nebo nedostupný záznam nevedou k záporné odpovědi. Není-li dost podkladů, otázka zůstane otevřená.</p>
+        <p>Testy CDIF a FDO sledují jen jednotlivé doložitelné prvky. Rozlišený PID, běžná metadata ani deklarace profilu samy neprokazují shodu s celým standardem. Vzorek záznamů neprokazuje vlastnosti celého repozitáře.</p>
+        <p>Implementace: <a href="object.js">object.js</a>. Sdílené čtení polí a registr funkcí: <a href="../assess.js">assess.js</a>.</p>
+      </section>
+      <section id="software" aria-labelledby="software-title">
+        <h2 id="software-title">Veřejný softwarový repozitář</h2>
+        <p>Testy přijímají veřejná metadata repozitáře a vybrané textové soubory k jednomu úplnému identifikátoru commitu. Bez rozlišeného commitu se nevytváří žádné předvyplnění.</p>
+        <p>Podporují vybraná pole CodeMeta, autory v nejvyšší úrovni CITATION.cff, závislosti v package.json, requirements*.txt a pyproject.toml, neprázdný licenční soubor a vybrané zápisy definic testů. CodeMeta musí označovat právě posuzovaný repozitář. Identifikátor článku v preferred-citation se nepovažuje za identifikátor softwaru.</p>
+        <p>Nalezená deklarace je obvykle jen částečný podklad. Kontrola neinstaluje závislosti, nespouští cizí kód ani testy a neověřuje archivaci, funkčnost nebo správnost licencí. Nečtené či zkrácené soubory nepodporují odpověď.</p>
+        <p>Implementace: <a href="software.js">software.js</a>. Sdílené čtení polí a registr funkcí: <a href="../assess.js">assess.js</a>.</p>
+      </section>
+      <h2>Identita a volání</h2>
+      <p>Identifikátor má tvar <code>guide-cdif-01</code> nebo <code>guide-software-14</code>. Funkce <code>FairGuide.selfcheck.localTests["guide-cdif-01"](observations)</code> vybere podklady pro danou otázku a připojí identitu testu. Volání <code>assessObject(check, result, sample)</code> a <code>assessSoftware(check, repository)</code> nejprve vyhodnotí načtené podklady a poté zavolají jednotlivé registrované funkce.</p>
+      <p>V API je každý test popsaný v <code>api/tests/&lt;identifikátor&gt;.json</code>. Záznam obsahuje vazbu na otázku, popis, funkci, implementaci a dokumentaci. Přílohy jsou součástí RO-Crate průvodce. <a href="../../../api/tests.json">Seznam testů v API</a> vyžaduje otevření průvodce přes HTTP.</p>
+      <h2>Jednotlivé testy</h2>
+      <!-- generated:testscs --><!-- /generated:testscs -->
+      <section id="english" lang="en" aria-labelledby="english-title">
+        <h1 id="english-title">Local tests in the FAIR guide</h1>
+        <p><a href="../../../index.html#/en/K/catalogue/k!tests">Tests in the catalogue</a></p>
+        <p>Each test has its own identifier, description and link to the question it can prefill. Its catalogue description explains the observed condition and the limits of the evidence. These tests do not replace the original requirements of the cited standards.</p>
+        <h2>PID and digital-object metadata</h2>
+        <p>Tests consume evidence already retrieved by the check: PID-resolution results and metadata representations matched to the object. They read supported DataCite and Schema.org fields and explicit profile declarations. They make no requests themselves.</p>
+        <p>Each representation is assessed separately. Incomplete fields from different records are never combined into a complete answer. Unknown vocabularies, a different object, missing fields and unavailable records never produce negative answers. A question remains open when evidence is insufficient.</p>
+        <p>CDIF and FDO tests cover individual observable elements. A resolved PID, ordinary metadata or a profile declaration alone does not establish conformance to the whole standard. A sample does not establish repository-wide properties.</p>
+        <p>Implementation: <a href="object.js">object.js</a>. Shared field readers and function registry: <a href="../assess.js">assess.js</a>.</p>
+        <h2>Public software repository</h2>
+        <p>Tests consume public repository metadata and selected text files at one full commit identifier. No prefill is produced without a resolved commit.</p>
+        <p>Supported evidence includes selected CodeMeta fields, top-level CITATION.cff authors, dependencies in package.json, requirements*.txt and pyproject.toml, a non-empty licence file and selected test-definition syntax. CodeMeta must identify the repository being assessed. An article identifier in preferred-citation is not treated as a software identifier.</p>
+        <p>A declaration usually provides only partial evidence. The check never installs dependencies, runs inspected code or tests, or verifies preservation, functionality or licence validity. Unread or truncated files do not support answers.</p>
+        <p>Implementation: <a href="software.js">software.js</a>. Shared field readers and function registry: <a href="../assess.js">assess.js</a>.</p>
+        <h2>Identity and invocation</h2>
+        <p>Identifiers follow the form <code>guide-cdif-01</code> or <code>guide-software-14</code>. The function <code>FairGuide.selfcheck.localTests["guide-cdif-01"](observations)</code> selects evidence for that question and adds the test identity. Calls to <code>assessObject(check, result, sample)</code> and <code>assessSoftware(check, repository)</code> first evaluate retrieved evidence and then call the registered functions.</p>
+        <p>Each test has a record at <code>api/tests/&lt;identifier&gt;.json</code>, linking its question, description, function, implementation and documentation. Attachments belong to the guide's RO-Crate. The <a href="../../../api/tests.json">API test list</a> requires opening the guide over HTTP.</p>
+        <h2>Individual tests</h2>
+        <!-- generated:testsen --><!-- /generated:testsen -->
+      </section>
+      <p><small>© EOSC CZ. <a href="https://spdx.org/licenses/CC-BY-4.0">CC BY 4.0</a>; JavaScript: <a href="https://spdx.org/licenses/MIT">MIT</a>.</small></p>
+    </main>
+  </body>
+</html>
