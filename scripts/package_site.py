@@ -27,6 +27,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_crate  # noqa: E402
+import build_identity  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 HEALTH = "api/health.json"
@@ -79,6 +80,14 @@ def package(site: Path, commit: str, output: Path, root: Path = ROOT) -> dict[st
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise PackageError("the commit must be a full SHA-1")
     report = verified_health(site)
+    try:
+        built = build_identity.config_identity((Path(site) / "assets/data/ui.js").read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError, KeyError) as error:
+        raise PackageError(f"required page identity is unreadable: {error}") from error
+    if report.get("build") != built or report.get("revision") != commit:
+        raise PackageError("page/health identity or checked commit disagree")
+    if built["commit"] and not commit.startswith(built["commit"]):
+        raise PackageError("page build commit differs from the checked commit")
     version = tomllib.loads((root / "content" / "guide.toml").read_text(encoding="utf-8"))["guide"]["version"]
     name = f"eosc-fair-guide-site-{version}-{commit[:12]}"
     data = archive(Path(site))
@@ -90,6 +99,7 @@ def package(site: Path, commit: str, output: Path, root: Path = ROOT) -> dict[st
         "name": name,
         "version": version,
         "commit": commit,
+        "build": built,
         "archive": f"{name}.tar.gz",
         "sha256": digest,
         "health": {

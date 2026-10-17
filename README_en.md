@@ -6,8 +6,6 @@ licensing the data, to publication, citation and checking. It builds on the *Ana
 procedures for implementing the FAIR principles in NRP/NDI* (version 1.2, NRP KA 5.1,
 <https://doi.org/10.71495/5dv6-v116>) and brings it up to date with the current state of national services.
 
-> **Status:** work in progress. Texts are drafts; the team edits them before the guide is announced.
-
 This file is the operational README for maintainers and agents. The Czech [README.md](README.md) is the
 human-facing overview.
 
@@ -15,7 +13,8 @@ Behaviour, data/API contract, stored-format, CI and governance changes use the r
 [OpenSpec contracts](openspec/specs/) and an approved change under `openspec/changes/`. The pinned CLI is
 `npm run openspec:cli -- <command>` after `npm ci`; `npm run openspec:validate` validates all contracts and changes.
 Routine wording/formatting corrections and source refreshes use ordinary editing checks. Follow
-[CONTRIBUTING.md](CONTRIBUTING.md) and the [release hand-off](docs/release-handoff.md) for the remaining alpha gates.
+[CONTRIBUTING.md](CONTRIBUTING.md) for contribution procedures and the [deployment guidance](docs/deployment.md)
+for publication and preview rules. Planned changes and their status belong in issues and OpenSpec changes.
 
 ## What the guide offers
 
@@ -98,7 +97,7 @@ the baseline; archiving the public code and any OpenSSF self-certification remai
 | `docs/` | Design and decisions (`design.md`), content model (`content-model.md`) |
 | `.github/` | CI workflows, templates and code owners |
 
-The [software practice example](docs/software-practice.md) maps the app's evidence and remaining release
+The [software practice example](docs/software-practice.md) maps the app's evidence and release verification
 steps to its software guidance.
 
 The [model practice example](docs/model-practice.md) follows an actual requirement, question, test and
@@ -168,7 +167,9 @@ FAIR Champion tests monthly and opens one issue per persistent problem. Neither 
 [deployment configuration](docs/deployment.md#release-preparation-and-tagging) for the App settings.
 
 The release version comes from [content/guide.toml](content/guide.toml). See
-[release preparation and tagging](docs/deployment.md#release-preparation-and-tagging).
+[release preparation and tagging](docs/deployment.md#release-preparation-and-tagging). Each tagged release also
+publishes a container image of the verified site to `ghcr.io/dsw-nrp/eosc-fair-guide`; the footer shows the build's
+version, commit and date, and marks an untagged build as the `next` preview.
 
 ## Licence
 

@@ -51,6 +51,8 @@ jobs:
       FAIR_GUIDE_CHECK_REVISION: ${{ needs.sources.outputs.production }}
       PRODUCTION_SHA: ${{ needs.sources.outputs.production }}
       PRODUCTION_TAG: ${{ needs.sources.outputs.tag }}
+      FAIR_GUIDE_BUILD_CHANNEL: production
+      FAIR_GUIDE_RELEASE_TAG: ${{ needs.sources.outputs.tag }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -112,6 +114,7 @@ jobs:
     env:
       PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
       FAIR_GUIDE_CHECK_REVISION: ${{ needs.sources.outputs.staging }}
+      FAIR_GUIDE_BUILD_CHANNEL: preview
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:

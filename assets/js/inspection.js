@@ -454,45 +454,15 @@
           h("ul", { class: "small" }, list.map((fer) => h("li", null, fer.url ? FG.external(fer.url, String(fer.name)) : String(fer.name),
             FIP_RANK.includes(fer.status) ? " (" + FG.t("selfcheck.fipStatus." + fer.status) + ")" : null)))]
         : null,
-      h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody)),
+      evidenceDetails(entry),
     ];
   }
 
-  /** The evidence beside an item, in reading order: who owns the answer; the useful facts each source observed,
-      with its date and what it suggests; what remains uncertain; then the complete technical details. */
-  function origin(st, item) {
-    const entry = record(st, item);
-    if (!entry) return null;
-    const value = answerOf(st, item);
-    const parts = [];
-    const pre = entry.prefill && typeof entry.prefill === "object" ? entry.prefill : null;
-    const owner = ownership(entry, value, pre);
-    if (owner) parts.push(ownershipLine(owner));
-    if (pre) {
-      parts.push(readable(entry).slice(0, 4).map(observationLine));
-      const list = FG.list(pre.list).filter((entryItem) => entryItem && entryItem.name);
-      if (list.length) {
-        parts.push(
-          h("p", { class: "small" }, FG.t("selfcheck.note.declared") + ":"),
-          h(
-            "ul",
-            { class: "small" },
-            list.map((fer) =>
-              h(
-                "li",
-                null,
-                fer.url ? FG.external(fer.url, String(fer.name)) : String(fer.name),
-                FIP_RANK.includes(fer.status) ? " (" + FG.t("selfcheck.fipStatus." + fer.status) + ")" : null
-              )
-            )
-          )
-        );
-      }
-      parts.push(h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody)));
-    }
-    return parts;
+  /** Shared technical evidence disclosure used by questions and reports. */
+  function evidenceDetails(entry) {
+    return h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody));
   }
 
-    return { pidControl, testState, boundedPortable, prefillFromPid, softwareControl, inspectionDetails, inspectSample, re3dataControl, nkrControl, fipControl, observationBody, origin, originLine, originRest, sourceBadge, localTestLine };
+    return { pidControl, testState, boundedPortable, prefillFromPid, softwareControl, inspectionDetails, inspectSample, re3dataControl, nkrControl, fipControl, observationBody, evidenceDetails, originLine, originRest, sourceBadge, localTestLine };
   };
 })();

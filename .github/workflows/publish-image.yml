@@ -1,0 +1,200 @@
+name: Publish the Guide image
+
+# Called from the release after the tag's deployment. It serves the exact verified release artifact — the
+# digest-checked `guide-site-<sha>.tar.gz` — as a container, signed and attested; nothing is rebuilt here beyond
+# the thin image around the artifact. The image carries the release tag, `latest` on every release and `stable`
+# on every non-prerelease. The base image is Digest-pinned and Dependabot keeps it current.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag (with the leading v).
+        type: string
+        required: true
+      commit:
+        description: The full SHA the release artifact was built from.
+        type: string
+        required: true
+      artifact-run-id:
+        description: The run that holds the `guide-site-<sha>` release artifact.
+        type: string
+        required: true
+      latest:
+        description: Move the `latest` tag to this release.
+        type: boolean
+        required: true
+      stable:
+        description: Move the `stable` tag to this release (non-prereleases only).
+        type: boolean
+        required: true
+    outputs:
+      digest:
+        description: The published image's manifest digest.
+        value: ${{ jobs.image.outputs.digest }}
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  IMAGE: ghcr.io/dsw-nrp/eosc-fair-guide
+
+jobs:
+  image:
+    if: startsWith(inputs.tag, 'v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+      id-token: write
+      attestations: write
+      security-events: write
+    outputs:
+      digest: ${{ steps.digest.outputs.digest }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Download the verified release artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: guide-site-${{ inputs.commit }}
+          path: .cache/release
+          run-id: ${{ inputs.artifact-run-id }}
+          github-token: ${{ github.token }}
+      - name: Verify and prepare the exact artifact
+        id: identity
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        run: |
+          python scripts/image_release.py prepare --artifact .cache/release --output .cache/image --tag "$RELEASE_TAG" --commit "$RELEASE_COMMIT" > identity.json
+          for key in version commit status date; do echo "$key=$(jq -r ".$key" identity.json)" >> "$GITHUB_OUTPUT"; done
+          echo "epoch=$(date -u -d "$(jq -r .date identity.json)" +%s)" >> "$GITHUB_OUTPUT"
+      - name: Compose an isolated candidate tag
+        id: tags
+        env:
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        run: echo "tags=$IMAGE:candidate-$RELEASE_COMMIT-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push the image
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .cache/image
+          file: .cache/image/Dockerfile
+          push: true
+          provenance: mode=max
+          sbom: true
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            BUILD_VERSION=${{ steps.identity.outputs.version }}
+            BUILD_COMMIT=${{ steps.identity.outputs.commit }}
+            BUILD_STATUS=${{ steps.identity.outputs.status }}
+            BUILD_CREATED=${{ steps.identity.outputs.date }}T00:00:00Z
+            SOURCE_DATE_EPOCH=${{ steps.identity.outputs.epoch }}
+      - name: Keep the immutable build digest
+        id: digest
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+      - name: Run the candidate image and check its identity
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        run: |
+          trap 'docker rm -f guide >/dev/null 2>&1 || true' EXIT
+          docker run --rm -d --name guide -p 8080:8080 "$IMAGE@$DIGEST"
+          HEALTH=""
+          for attempt in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8080/api/health.json -o health.json; then HEALTH=1; break; fi
+            sleep 2
+          done
+          test -n "$HEALTH"
+          curl -fsS http://127.0.0.1:8080/assets/data/ui.js -o image-ui.js
+          python scripts/image_release.py verify --health health.json --identity .cache/image/identity.json --config image-ui.js --commit "$RELEASE_COMMIT"
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Sign the image
+        run: cosign sign --yes "$IMAGE@${{ steps.digest.outputs.digest }}"
+      - name: Attest the build provenance
+        uses: actions/attest-build-provenance@8beda2b7ed98355c0e97c0a63bec38ae472e66c4 # v4
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.digest.outputs.digest }}
+          push-to-registry: true
+      - name: Generate an SBOM
+        id: sbom
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ steps.digest.outputs.digest }}
+          format: spdx-json
+          output: sbom.json
+      - name: Attest the SBOM
+        if: steps.sbom.outcome == 'success'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ${{ env.IMAGE }}
+          subject-digest: ${{ steps.digest.outputs.digest }}
+          predicate-path: sbom.json
+          predicate-type: https://spdx.dev/Document
+          push-to-registry: true
+      - name: Scan the image
+        id: scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}@${{ steps.digest.outputs.digest }}
+          format: sarif
+          output: trivy.sarif
+      - name: Upload the scan to code scanning
+        if: steps.scan.outcome == 'success'
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@b8bb9f28b8d3f992092362369c57161b755dea45 # v4.35.0
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-image
+      - name: Recheck production eligibility before promotion
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_COMMIT: ${{ inputs.commit }}
+        with:
+          script: |
+            const { assertPromotion } = require('./.github/scripts/release-artifact.cjs');
+            await assertPromotion({ github, context: { ...context, ref: 'refs/tags/' + process.env.RELEASE_TAG, sha: process.env.RELEASE_COMMIT } });
+      - name: Promote the audited digest
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          MOVE_LATEST: ${{ inputs.latest }}
+          MOVE_STABLE: ${{ inputs.stable }}
+        run: |
+          args=(--prefer-index=false --tag "$IMAGE:$RELEASE_TAG")
+          if [ "$MOVE_LATEST" = true ]; then args+=(--tag "$IMAGE:latest"); fi
+          if [ "$MOVE_STABLE" = true ]; then args+=(--tag "$IMAGE:stable"); fi
+          docker buildx imagetools create "${args[@]}" "$IMAGE@$DIGEST"
+          test "$(docker buildx imagetools inspect "$IMAGE:$RELEASE_TAG" --format '{{json .Manifest.Digest}}' | tr -d '\"')" = "$DIGEST"
+      - name: Report the image
+        run: |
+          {
+            echo "### Guide image"
+            echo ""
+            echo '```'
+            echo "$IMAGE@${{ steps.digest.outputs.digest }}"
+            echo '```'
+            echo ""
+            echo "Tags: \`${{ steps.tags.outputs.tags }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"

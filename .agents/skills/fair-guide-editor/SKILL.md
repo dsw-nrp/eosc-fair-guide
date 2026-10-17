@@ -195,3 +195,10 @@ the review gates in `CONTRIBUTING.md`. Do not merge your own pull request.
 4. Check consistency with `python scripts/release_versions.py check --site _site`; `check_all.py` includes it.
    Do not restate the Guide version in prose. For configuration, held activation and recovery, read
    [deployment.md](../../../docs/deployment.md#release-preparation-and-tagging).
+
+Release identity is frozen by the producer: choose `release_status` (`testing` by default, or `production`)
+in **Tag release**. It is recorded in the annotated tag, as defined in `docs/deployment.md`; only a clean
+tagged production build may retain `production`;
+local, dirty and preview builds remain testing. Package/config/health/image metadata must agree. Image publishing
+uses the verified artifact identity, an isolated candidate digest and required smoke/signature/SBOM/scan gates
+before moving release/latest/stable tags. Remote publication remains a separately authorized operation.

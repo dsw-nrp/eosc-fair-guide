@@ -29,12 +29,25 @@ class PackageTests(unittest.TestCase):
         build_crate.replace_site(self.site, self.root)
         (self.site / "api").mkdir()
         (self.site / "index.html").write_text("<!doctype html>", encoding="utf-8")
+        self.built = {
+            "version": "v0.0.1",
+            "commit": COMMIT[:7],
+            "date": "2026-10-17",
+            "channel": "release",
+            "dirty": False,
+            "base": "v0.0.1",
+            "status": "testing",
+        }
+        config = self.site / "assets/data/ui.js"
+        config.parent.mkdir(parents=True)
+        config.write_text("window.FairGuideData.ui = " + json.dumps({"config": {"build": self.built}}) + ";\n")
         self.health({"generated_at": "2026-10-12T00:00:00Z", "run": {"status": "passed"}, "revision": COMMIT})
 
     def tearDown(self) -> None:
         self.temp.cleanup()
 
     def health(self, report: dict) -> None:
+        report = {"build": self.built, **report}
         (self.site / package_site.HEALTH).write_text(json.dumps(report), encoding="utf-8")
 
     def test_a_verified_site_becomes_one_labelled_reproducible_archive(self) -> None:
@@ -47,7 +60,11 @@ class PackageTests(unittest.TestCase):
         with tarfile.open(output / manifest["archive"]) as tar:
             names = tar.getnames()
             self.assertTrue(all(member.mtime == 0 and member.uid == 0 for member in tar.getmembers()))
-        self.assertEqual(sorted(names), ["api/health.json", "index.html"], "the site's own files, not the marker")
+        self.assertEqual(
+            sorted(names),
+            ["api/health.json", "assets/data/ui.js", "index.html"],
+            "the site's own files, not the marker",
+        )
         again = package_site.package(self.site, COMMIT, Path(self.temp.name) / "again", self.root)
         self.assertEqual(again["sha256"], manifest["sha256"], "the same site gives the same bytes")
         self.assertEqual(json.loads((output / "manifest.json").read_text())["health"]["run"], "passed")

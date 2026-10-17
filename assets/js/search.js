@@ -62,7 +62,7 @@
   }
 
   /** What the query is: an identifier for a tool, or text for the knowledge base. */
-  const bare = (url) => String(url || "").toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/\/+$/, "");
+  const bare = (url) => FG.bareUrl(url);
 
   /** An identifier of the guide's own: a requirement (A.F1.N1) or a check question (maturity.18). */
   function guideEntry(value) {
@@ -116,7 +116,7 @@
 
   /** Matches in the knowledge base, grouped by kind; every word of the query must occur. */
   S.find = function (query) {
-    const current = FG.state.lang + "/" + FG.state.lens + "/" + FG.partsLoaded.size;
+    const current = FG.state.lang + "/" + FG.state.lens + "/" + FG.partsLoaded.size + "/" + FG.dataRevision;
     if (!index || indexFor !== current) {
       index = buildIndex();
       indexFor = current;
@@ -255,8 +255,7 @@
     return h("p", { class: "catalogue-handoff" }, h("a", { href: FG.catalogueSearchHref(query, first ? kinds[first.kind] : "resources") }, FG.t("search.inCatalogueAll", { q: query })));
   }
 
-  function textResults(query) {
-    const groups = S.find(query);
+  function textResults(query, groups) {
     if (!groups.length) return [h("p", null, FG.t("search.none")), handOff(query, groups)];
     const icons = { station: "now", check: "check", principle: "why", resource: "sources", repository: "sources", term: "info", page: "info", clause: "sources" };
     return [
@@ -307,8 +306,9 @@
       let content = [];
       let message = "";
       if (found.type === "text" && (confirmed || found.value.length >= MIN_TYPED)) {
-        content = textResults(found.value);
-        const count = S.find(found.value).reduce((sum, group) => sum + group.items.length, 0);
+        const groups = S.find(found.value);
+        content = textResults(found.value, groups);
+        const count = groups.reduce((sum, group) => sum + group.items.length, 0);
         message = count ? FG.t("search.found", { n: count }) : FG.t("search.none");
       } else if (found.type !== "text" && found.type !== "empty") {
         const ready = confirmed || LOCAL.includes(found.type);

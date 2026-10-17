@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_crate  # noqa: E402
+import build_identity  # noqa: E402
 import release_versions as release  # noqa: E402
 
 
@@ -104,6 +105,15 @@ class ReleaseVersions(unittest.TestCase):
         expected, released, _ = release.metadata(self.root)
         nodes = [{"@id": name, "version": expected} for name in ("./", "#guide-source", "#guide-software")]
         nodes[0]["datePublished"] = released
+        built = build_identity.identity(self.root)
+        for node in nodes:
+            node["creativeWorkStatus"] = built["status"]
+        ui = site / release.BUILD_UI
+        ui.parent.mkdir(parents=True)
+        ui.write_text("window.FairGuideData.ui = " + json.dumps({"config": {"build": built}}) + ";\n")
+        health = site / "api/health.json"
+        health.parent.mkdir()
+        health.write_text(json.dumps({"build": built}))
         path = site / "ro-crate-metadata.json"
         path.write_text(json.dumps({"@graph": nodes}))
         self.assertEqual(release.check(self.root, site), [])
@@ -128,6 +138,33 @@ class ReleaseVersions(unittest.TestCase):
         path.write_text("Use v1.0.0-alpha.1.\n")
         self.assertIn("guide.md:1", "\n".join(release.check(self.root)))
 
+    def test_the_built_page_identity_is_checked_against_git(self) -> None:
+        site = self.root / "_site"
+        _, missing = release.built_identity(site, self.root)
+        self.assertTrue(any("required page configuration" in error for error in missing))
+        script = site / release.BUILD_UI
+        script.parent.mkdir(parents=True, exist_ok=True)
+        expected = build_identity.identity(self.root)
+        script.write_text(
+            'window.FairGuideData.ui = {"config":{"build":' + json.dumps(expected) + "}};\n", encoding="utf-8"
+        )
+        _, errors = release.built_identity(site, self.root)
+        self.assertEqual(errors, [])
+
+        wrong_commit = {**expected, "commit": "deadbee"}
+        script.write_text(
+            'window.FairGuideData.ui = {"config":{"build":' + json.dumps(wrong_commit) + "}};\n", encoding="utf-8"
+        )
+        _, errors = release.built_identity(site, self.root)
+        self.assertTrue(any("build.commit" in error for error in errors))
+
+        preview = {**expected, "channel": "next", "status": "production"}
+        script.write_text(
+            'window.FairGuideData.ui = {"config":{"build":' + json.dumps(preview) + "}};\n", encoding="utf-8"
+        )
+        _, errors = release.built_identity(site, self.root)
+        self.assertTrue(any("must report the testing status" in error for error in errors))
+
     @patch.object(release, "history", return_value=("v0.9.0", {"a", "b"}))
     def test_prepare_synchronizes_files_and_preserves_bibliography(self, _history) -> None:
         citation_reference = (self.root / "CITATION.cff").read_text(encoding="utf-8").split("references:", 1)[1]
@@ -139,7 +176,7 @@ class ReleaseVersions(unittest.TestCase):
             (self.root / "CITATION.cff").read_text(encoding="utf-8").split("references:", 1)[1], citation_reference
         )
         guide = tomllib.loads((self.root / release.FILES[0]).read_text(encoding="utf-8"))["guide"]
-        self.assertEqual(guide["releaseStatus"], "testing")
+        self.assertNotIn("releaseStatus", guide)
         log = (self.root / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertIn("[#2]", log)
         self.assertIn("[#3]", log)
@@ -216,6 +253,13 @@ class ReleaseVersions(unittest.TestCase):
         site = self.root / "site"
         site.mkdir()
         (site / "ro-crate-metadata.json").write_text(json.dumps(crate, ensure_ascii=False), encoding="utf-8")
+        built = build_identity.identity(self.root)
+        ui = site / release.BUILD_UI
+        ui.parent.mkdir(parents=True)
+        ui.write_text("window.FairGuideData.ui = " + json.dumps({"config": {"build": built}}) + ";\n")
+        health = site / "api/health.json"
+        health.parent.mkdir()
+        health.write_text(json.dumps({"build": built}))
         self.assertEqual(release.check(self.root, site), [])
 
 

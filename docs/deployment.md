@@ -41,12 +41,40 @@ An interrupted upload resumes on the existing draft and uploads only missing ass
 assets have exactly the same bytes. A complete existing release is unchanged. Conflicting assets or missing
 assets on a published release are refused; human changes are not overwritten or deleted.
 
-The prepared workflows are inactive until delivered to the default branch, Pages is configured and the
-maintainer authorizes deployment. Local fixture checks do not establish remote activation. Creating a tag and
-publishing a release remain explicit maintainer actions.
+Activation requires delivery to the default branch, Pages configuration and maintainer authorization.
+Local fixture checks do not establish remote activation. Creating a tag and publishing a release remain explicit
+maintainer actions; track activation state and outstanding operator work in issues or an OpenSpec change.
 
 GitHub's [workflow-run documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run)
 describes the completed-run trigger and its security boundary.
+
+## Release status
+
+Choose `release_status` in the **Tag release** (`tag-release.yml`) manual workflow alongside the merged version.
+It is a required choice with default `testing` and these case-sensitive values:
+
+| Value | Meaning | Published behaviour |
+| --- | --- | --- |
+| `testing` | Evaluation or editorial testing; the default workflow choice. | The bilingual testing notice is visible. |
+| `production` | The responsible maintainer has approved the Guide for public use. | The testing notice is hidden on the clean tagged production build. |
+
+The dispatch rejects missing or unrecognized values; `released` is not supported. Selecting `production`
+requires the responsible maintainer's approval. Record that approval in the release issue or OpenSpec change.
+
+The workflow creates an annotated tag with `Fair-Guide-Release-Status: testing` or
+`Fair-Guide-Release-Status: production` and never moves an existing tag. Deployment selects that exact tag through
+`FAIR_GUIDE_RELEASE_TAG`, verifies its commit and reads its annotation, with full tag history and
+`FAIR_GUIDE_BUILD_CHANNEL=production`. No repository status variable is used. An unmarked manual/lightweight tag
+defaults to `testing`; malformed or duplicate status markers fail the build.
+
+Local, dirty and `/next/` builds always resolve to `testing`, even at a tag annotated `production`.
+The build freezes the resolved value in UI configuration, health and
+RO-Crate `creativeWorkStatus`; the manifest and image reuse it. Build channel (`release`, `next`, `local`)
+describes source identity and is separate from release status (`testing`, `production`).
+
+Existing tags, verified artifacts and images retain their recorded status; retries reuse their exact bytes.
+A status change requires a new version and tag selected through **Tag release**, followed by a newly checked
+artifact. It never relabels an existing release or changes a moving repository setting.
 
 ## Local assembly check
 
@@ -100,7 +128,7 @@ Both dispatches use the existing repository-scoped App (`SOURCE_REFRESH_CLIENT_I
 per job. The App's PR and tag events trigger normal checks and deployment. GitHub documents this distinction
 in [workflow triggering](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
 Default-branch-only jobs and checkout credentials disabled keep the App token out of PR execution. These
-prepared workflows have not been activated or dispatched remotely.
+workflows require activation through the approved deployment procedure.
 
 `python scripts/release_versions.py check --site _site` checks all versions and dates, the built crate and
 documentation that restates the Guide version. `check_all.py` runs it with the other deterministic checks.

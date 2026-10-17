@@ -105,7 +105,8 @@ def ids(value: Any) -> list[str]:
 class Api:
     """The API's files, built from the crate."""
 
-    def __init__(self, crate: dict[str, Any], content: dict[str, Any]) -> None:
+    def __init__(self, crate: dict[str, Any], content: dict[str, Any], *, graph: kb.Graph | None = None) -> None:
+        self.graph = graph
         self.crate = crate
         self.content = content
         self.strings = content["ui"]["api"]
@@ -350,7 +351,11 @@ class Api:
             str(action["endTime"])[:10] for action in self.content["provenance"] if action.get("endTime")
         ]
         as_of = max(date.fromisoformat(value) for value in dates)
-        result = copy.deepcopy(report) if report is not None else check_health.make_report(self.content, today=as_of)
+        result = (
+            copy.deepcopy(report)
+            if report is not None
+            else check_health.make_report(self.content, today=as_of, graph=self.graph)
+        )
         result["content_as_of"] = as_of.isoformat()
         if report is None:
             result["generated_at"] = None

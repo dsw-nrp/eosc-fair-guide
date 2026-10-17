@@ -656,7 +656,10 @@
       });
   }
 
+  let entriesCache = null;
   function allEntries() {
+    if (entriesCache && entriesCache.revision === FG.dataRevision && entriesCache.graph === FG.graph &&
+        entriesCache.size === FG.graph.length && entriesCache.lang === FG.state.lang) return entriesCache.entries;
     const { bySource, byClause } = citations();
     const kinds = {
       resources: resourceEntries(bySource),
@@ -682,6 +685,7 @@
     }
     const grouped = Object.fromEntries(KINDS.map((kind) => [kind, []]));
     for (const entry of Object.values(kinds).flat()) grouped[entry.kind].push(entry);
+    entriesCache = { revision: FG.dataRevision, graph: FG.graph, size: FG.graph.length, lang: FG.state.lang, entries: grouped };
     return grouped;
   }
 

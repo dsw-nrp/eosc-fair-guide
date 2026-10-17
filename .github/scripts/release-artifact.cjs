@@ -4,15 +4,14 @@ const { readFileSync } = require("node:fs");
 const { mkdirSync, writeFileSync } = require("node:fs");
 const { createHash } = require("node:crypto");
 
-const TAG = /^v((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?)$/;
+const { validVersion } = require('./release-version.cjs');
 const DIR = ".cache/release";
 
 function tagOf(context) {
   const tag = String(context.ref || "").replace(/^refs\/tags\//, "");
-  const match = TAG.exec(tag);
-  if (!match || tag.split("-").slice(1).join("-").split(".").some((part) => /^0\d+$/.test(part))) throw Error(`Not a release tag: ${tag}`);
+  if (!tag.startsWith('v') || !validVersion(tag.slice(1))) throw Error(`Not a release tag: ${tag}`);
   if (!/^[0-9a-f]{40}$/.test(context.sha)) throw Error("The tagged commit is not a full SHA");
-  return { tag, version: match[1] };
+  return { tag, version: tag.slice(1) };
 }
 
 /** The successful deployment triggered by this exact release tag and commit. */
@@ -79,7 +78,18 @@ async function available({ github, context }) {
   const release = await releaseOf(github, context);
   if (release && expectedAssets(context).every((name) => release.assets.some((asset) => asset.name === name))) return true;
   try { await verifiedRun({ github, context }); return true; }
-  catch (error) { if (error.code !== "not-verified") throw error; return false; }
+  catch (error) {
+    if (error.code !== "not-verified") throw error;
+    if (release && !release.draft) throw Error(`Published release ${tagOf(context).tag} has incomplete assets and no verified fallback`);
+    return false;
+  }
+}
+
+/** Serialized image publishers recheck the newest verified production source immediately before moving aliases. */
+async function assertPromotion({ github, context }) {
+  const { tag } = tagOf(context);
+  const selected = await sources({ github, context: { ...context, ref: 'refs/heads/' + context.payload.repository.default_branch } });
+  if (selected.tag !== tag || selected.production !== context.sha) throw Error('A newer verified production release superseded this image');
 }
 
 async function assetBytes(github, repo, asset) {
@@ -125,6 +135,7 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   if (manifest.version !== version) throw Error(`The artifact is version ${manifest.version}, the tag says ${version}`);
   if (manifest.archive !== expectedAssets(context)[1]) throw Error("The artifact archive name does not match the tag and commit");
   if (manifest.health?.run !== "passed" || !manifest.health?.generated_at) throw Error("The artifact's check run did not pass");
+  if (!['testing', 'production'].includes(manifest.build?.status)) throw Error('The artifact carries no valid release status');
   const archive = read(`${DIR}/${manifest.archive}`);
   const digest = createHash("sha256").update(archive).digest("hex");
   const declared = String(read(`${DIR}/${manifest.archive}.sha256`, "utf8")).split(/\s+/)[0];
@@ -132,7 +143,10 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   const body = [
     `Site of commit \`${context.sha}\`, version ${version}, checked on ${manifest.health.generated_at}.`, "",
     `The attached \`${manifest.archive}\` is the site that passed the checks and was deployed (SHA-256 \`${digest}\`).`,
-    "The guide remains in testing until EOSC CZ agrees it.",
+    ...(process.env.RELEASE_IMAGE
+      ? ["", `Container image: \`${process.env.RELEASE_IMAGE}\`, signed and attested against its digest.`]
+      : []),
+    `Release status: ${manifest.build.status} (recorded by Tag release).`,
   ].join("\n");
   let release = await releaseOf(github, context);
   const documents = [manifest.archive, `${manifest.archive}.sha256`, "manifest.json"].map((name) => [name, Buffer.from(read(`${DIR}/${name}`))]);
@@ -153,4 +167,4 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   return release.id;
 }
 
-module.exports = { verifiedRun, draftRelease, tagOf, compareTags, sources, reuse, completedTag };
+module.exports = { verifiedRun, draftRelease, tagOf, compareTags, sources, reuse, completedTag, assertPromotion };

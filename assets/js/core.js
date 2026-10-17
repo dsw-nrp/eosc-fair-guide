@@ -7,6 +7,10 @@
   const STORAGE_KEY = "eosc-fair-guide";
   const SOURCE_KEY = STORAGE_KEY + ":source:";
   const LANGS = ["cs", "en"];
+  let sourceIndex = null;
+  FG.dataRevision = 0;
+  /** Loaders call this after neutral data, reference patches or translations change the graph. */
+  FG.invalidateData = () => { FG.dataRevision += 1; sourceIndex = null; };
 
   /* ---------------------------------------------------------------- knowledge base */
 
@@ -21,13 +25,31 @@
     FG.config = page.config;
     FG.root = FG.byId.get("./");
     FG.DASHBOARD = FG.config.links.fipDashboard;
+    FG.invalidateData();
   };
 
   /** A genuine upstream identifier, kept separate from the Guide-owned primary. */
   FG.sourceIdentifier = (entity, scheme) => FG.refs(entity, "alternateIdentifier")
     .find((item) => item && item.propertyID === scheme)?.value || null;
   FG.sourceEntity = (scheme, value, prefix = "") => {
-    const matches = FG.graph.filter((entity) => entity["@id"].startsWith(prefix) && FG.sourceIdentifier(entity, scheme) === value);
+    if (!sourceIndex || sourceIndex.graph !== FG.graph || sourceIndex.size !== FG.graph.length) {
+      const schemes = new Map();
+      for (const entity of FG.graph) {
+        const seen = new Set();
+        for (const alternate of FG.refs(entity, "alternateIdentifier")) {
+          if (seen.has(alternate.propertyID)) continue;
+          seen.add(alternate.propertyID);
+          if (!schemes.has(alternate.propertyID)) schemes.set(alternate.propertyID, new Map());
+          const values = schemes.get(alternate.propertyID), key = alternate.value || null;
+          if (!values.has(key)) values.set(key, []);
+          values.get(key).push(entity);
+        }
+      }
+      sourceIndex = { graph: FG.graph, size: FG.graph.length, schemes };
+    }
+    const candidates = value === null ? FG.graph.filter((entity) => FG.sourceIdentifier(entity, scheme) === null)
+      : sourceIndex.schemes.get(scheme)?.get(value) || [];
+    const matches = candidates.filter((entity) => entity["@id"].startsWith(prefix));
     return matches.length === 1 ? matches[0] : null;
   };
 
@@ -89,6 +111,7 @@
     mergeData(window.FairGuideData.ui, values.ui);
     bindSearch(window.FairGuideData.kb, values.search);
     FG.languagesLoaded.add(lang);
+    FG.invalidateData();
   };
 
   /* Views load their neutral part and selected language only. Switching language fills translations of the parts
@@ -107,6 +130,7 @@
           FG.byId.set(entity["@id"], entity);
         }
         FG.partsLoaded.add(name);
+        FG.invalidateData();
         return part;
       }).catch((error) => {
         delete partLoads[name];
@@ -115,6 +139,7 @@
     }
     const part = await partLoads[name];
     const language = lang || FG.state.lang;
+    let translated = false;
     if (!FG.partHasLanguage(name, language)) {
       await loadScript(FG.config.partLanguages[name][language]);
       const values = ((window.FairGuideData.partLanguages || {})[name] || {})[language];
@@ -122,10 +147,14 @@
       mergeData(part, values.values);
       bindSearch(part, values.search);
       partLanguagesLoaded.add(name + "/" + language);
+      translated = true;
     }
-    for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
-    if (part.ui) mergeData(FG.ui, part.ui);
-    if (part.config) mergeData(FG.config, part.config);
+    if (translated) {
+      for (const [id, properties] of Object.entries(part.properties || {})) Object.assign(FG.byId.get(id) || {}, properties);
+      if (part.ui) mergeData(FG.ui, part.ui);
+      if (part.config) mergeData(FG.config, part.config);
+      FG.invalidateData();
+    }
   };
 
   /** Explicit data exports keep bilingual API-style records. Reading a view does not require this load. */
@@ -133,6 +162,8 @@
     ...[...FG.partsLoaded].map((name) => FG.loadPart(name, lang))]));
 
   FG.list = (value) => (value == null ? [] : Array.isArray(value) ? value : [value]);
+  /** Address identity shared with catalogue_identity.bare_url through tests/fixtures/normalization.json. */
+  FG.bareUrl = (value) => String(value || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
   FG.id = (value) => (typeof value === "string" ? value : value && value["@id"]);
   FG.get = (value) => FG.byId.get(FG.id(value));
   FG.refs = (entity, prop) => FG.list(entity && entity[prop]).map(FG.get).filter(Boolean);

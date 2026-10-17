@@ -789,7 +789,7 @@
   const valueNode = (value, shorten) => webUrl(value) ? FG.external(value, shorten ? licenceName(value) || brief(value) : value) : shorten ? brief(value) : value;
 
   const observationBody = (...args) => inspection.observationBody(...args);
-  const origin = (...args) => inspection.origin(...args);
+  const evidenceDetails = (...args) => inspection.evidenceDetails(...args);
   const originLine = (...args) => inspection.originLine(...args);
   const originRest = (...args) => inspection.originRest(...args);
 
@@ -1892,7 +1892,7 @@
         h("span", { class: "answer-question" }, h("span", { class: "item-id" }, numberOf(item)), " ", FG.span(item.text))
       ),
       meta.length ? h("p", { class: "answer-meta" }, meta.map((part, index) => [index ? " · " : "", part])) : null,
-      pre ? h("details", { class: "evidence-details" }, h("summary", null, FG.t("selfcheck.evidence.details")), observationsOf(entry).map(observationBody)) : null
+      pre ? evidenceDetails(entry) : null
     );
   }
 

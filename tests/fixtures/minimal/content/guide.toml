@@ -2,7 +2,6 @@
 
 [guide]
 version = "0.0.1"
-releaseStatus = "testing"
 testingNotice = { cs = "Testování.", en = "Testing." }
 datePublished = 2026-01-01
 name = { cs = "Test", en = "Test" }

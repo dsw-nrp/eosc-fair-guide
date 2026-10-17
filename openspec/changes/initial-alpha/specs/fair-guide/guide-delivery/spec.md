@@ -361,11 +361,10 @@ a separate dispatch after the release pull request is merged, never automaticall
 
 ### Requirement: First official prerelease is the software example baseline
 
-The app's software-practice worked example SHALL assess the first official prerelease. Development-stage
-preparation SHALL be distinguished from published release evidence. Public preservation identifiers and
-OpenSSF badges SHALL be stated only when actually issued. Remaining preparation steps SHALL be recorded
-with their evidence in maintainer documentation. Public pages SHALL explain stable practices without
-temporary development or future-assessment commentary.
+The app's software-practice worked example SHALL assess the first official prerelease. Development preparation
+SHALL be distinguished from published evidence. Preservation identifiers and badges SHALL be stated only when
+issued. Remaining work and its evidence SHALL live in issues or the relevant OpenSpec change. Public pages
+SHALL explain stable practices without temporary development or future-assessment commentary.
 
 #### Scenario: Private development checkout
 
@@ -597,3 +596,85 @@ coverage. Runtime targets SHALL NOT justify fewer cases, ignored initial failure
 - **GIVEN** a previous full-run baseline and a partitioned candidate
 - **WHEN** their performance is reported
 - **THEN** revision/build identity, case coverage, elapsed time and runner cost accompany the result, and any initial failure remains recorded rather than counted as a successful retry
+
+### Requirement: The footer shows the build's git identity
+
+The footer SHALL show the Guide's version derived from the release tag, not from an authored copy, together with the
+short commit the build was made from and a build date. A build not exactly at a release tag SHALL identify itself as
+the unreleased `next` preview with the last tag, its distance ahead and its commit; a local build SHALL be
+distinguishable from a published one.
+
+#### Scenario: A tagged release
+
+- **GIVEN** a build made from a release tag
+- **WHEN** the footer is read
+- **THEN** it shows the tag's version and the build's short commit
+
+#### Scenario: The default branch is ahead of the last tag
+
+- **GIVEN** a `/next/` build several commits after the last tag
+- **WHEN** its footer is read
+- **THEN** it is marked as the unreleased preview with the last tag, the number of commits ahead and its commit, and does not present itself as that tag
+
+### Requirement: The build identity is carried by machine surfaces and checked
+
+The same build identity SHALL agree across UI, health, crate and release manifest. Tag release SHALL accept
+`release_status` as `testing` (default) or `production` and record it in an immutable annotated tag. A clean
+exact-tag production build SHALL read that decision; local, dirty and preview builds SHALL use `testing`.
+Documentation SHALL define the choices, notice behaviour and frozen-artifact semantics. CI SHALL reject
+identity/revision mismatches.
+
+#### Scenario: The approved production status is explicit
+
+- **GIVEN** a clean exact-tag production build whose tag records `release_status=production`
+- **WHEN** its verified artifact is produced
+- **THEN** the UI, health, crate, manifest and image retain `production`, the testing notice is hidden, and retrying the tag workflow cannot relabel those bytes
+
+#### Scenario: Missing or malformed tag status
+
+- **GIVEN** a manually created tag without a status marker, or a tag with malformed or duplicate markers
+- **WHEN** production is built
+- **THEN** an unmarked tag defaults to `testing`, malformed or duplicate markers fail, and a repository variable cannot override the decision
+
+#### Scenario: A release differs from the built page
+
+- **GIVEN** a built page whose footer identity does not match the checked revision
+- **WHEN** the checks run
+- **THEN** they fail and name the page and the expected identity
+
+#### Scenario: A preview build must not claim a release
+
+- **GIVEN** a `/next/` build whose resolved status is `testing`
+- **WHEN** its footer, health result and crate status are read
+- **THEN** none of them claims a released Guide
+
+### Requirement: Each release publishes a runnable container image
+
+Each release SHALL publish a container image that serves that release's verified site artifact unchanged, assembled
+from the digest-checked artifact rather than rebuilt from source. It SHALL be published to the GitHub container
+registry and carry the release tag, a moving `latest` on every release and a moving `stable` on every non-prerelease.
+
+#### Scenario: Running a published release in a container
+
+- **GIVEN** a reader with a container runtime
+- **WHEN** they run the image for a release tag
+- **THEN** the guide is served locally and its footer shows the same version and commit as the release
+
+#### Scenario: A prerelease is tagged
+
+- **GIVEN** a prerelease tag such as `v1.0.0-alpha.1`
+- **WHEN** its image is published
+- **THEN** `latest` moves to it, `stable` does not, and the image carries that release's tag
+
+### Requirement: A published image is signed, attested and reproducible
+
+The image SHALL carry the build identity as OCI labels, be built reproducibly from the release date, and be published
+with a vulnerability scan, an SBOM and a build-provenance attestation bound to its digest. The release SHALL record
+the image reference and digest, and a check SHALL run the published image and confirm it serves the expected version
+and commit.
+
+#### Scenario: The image does not match the release
+
+- **GIVEN** a published image whose served version or commit differs from its release
+- **WHEN** the smoke check runs
+- **THEN** it fails and reports the image digest and the mismatch

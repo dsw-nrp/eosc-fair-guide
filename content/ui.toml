@@ -853,6 +853,9 @@ record = { cs = "Záznam v API", en = "Record in the API" }
 [footer]
 health = { cs = "Výsledky kontrol (EN)", en = "Healthcheck results" }
 version = { cs = "Verze {version} ze dne {date}", en = "Version {version} of {date}" }
+channelNext = { cs = "Náhled další verze", en = "Unreleased preview" }
+channelLocal = { cs = "Místní sestavení", en = "Local build" }
+commit = { cs = "Sestaveno z revize", en = "Built from commit" }
 cite = { cs = "Jak citovat Průvodce", en = "How to cite the Guide" }
 basis = { cs = "Obsah vychází z", en = "The content builds on" }
 credits = { cs = "Kdo se podílel", en = "Who contributed" }

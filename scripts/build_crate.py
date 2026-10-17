@@ -33,12 +33,14 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
+import build_identity
 from catalogue_identity import (
     KIND_CODES,
     MAX_ID,
     SAFE_ID,
     TYPE_CODES,
     alternate_id,
+    bare_url,
     has_particles,
     source_scheme,
     validate_identity,
@@ -48,6 +50,27 @@ ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 # The record of the favicons the page shows for tools and services, relative to the checkout (D-183).
 FAVICONS = Path("assets") / "favicons" / "sources.toml"
+
+# The build's own git-derived identity, computed once per process (see build_identity).
+_BUILD_IDENTITY: dict[str, Any] | None = None
+_BUILD_ROOT = ROOT
+
+
+def build_identity_facts() -> dict[str, Any]:
+    """The version, commit, date, channel and resolved status of this build, memoized for the process."""
+    global _BUILD_IDENTITY
+    if _BUILD_IDENTITY is None:
+        _BUILD_IDENTITY = build_identity.identity(_BUILD_ROOT)
+    return _BUILD_IDENTITY
+
+
+def reset_build_identity(root: Path = ROOT) -> None:
+    """Drop the memoized identity when a new build selects its checkout and release tag."""
+    global _BUILD_IDENTITY, _BUILD_ROOT
+    _BUILD_IDENTITY = None
+    _BUILD_ROOT = root
+
+
 CRATE_FILE = "ro-crate-metadata.json"
 PAGE_FILE = "index.html"
 PREVIEW_FILE = "ro-crate-preview.html"
@@ -1358,12 +1381,6 @@ def repository_key(repository: dict[str, Any]) -> str:
 
 def snapshot_id(snapshot: dict[str, Any]) -> str:
     return f"#snapshot-{slug(snapshot['snapshot']['source'])}"
-
-
-def bare_url(url: str) -> str:
-    """An address without its scheme, "www." and trailing slashes, as addresses are matched across sources."""
-    value = re.sub(r"^https?://", "", str(url).strip().lower())
-    return re.sub(r"^www\.", "", value).rstrip("/")
 
 
 def nkr_repositories(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
@@ -2692,7 +2709,7 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
             "description": "The guide software; its content knowledge base is a separately described dataset.",
             "softwareVersion": guide["version"],
             "version": guide["version"],
-            "creativeWorkStatus": guide.get("releaseStatus"),
+            "creativeWorkStatus": build_identity_facts()["status"],
             "url": guide.get("url"),
             "license": ref(LICENSES["MIT"][0]),
             "author": refs([people[person] for person in guide.get("editors", [])]),
@@ -2711,9 +2728,9 @@ def build_crate(content: dict[str, Any], graph: Graph | None = None) -> dict[str
         "name": text(guide["name"]),
         "description": text(guide["description"]),
         "version": guide["version"],
-        "creativeWorkStatus": guide.get("releaseStatus"),
+        "creativeWorkStatus": build_identity_facts()["status"],
         "disambiguatingDescription": text(guide.get("testingNotice"))
-        if guide.get("releaseStatus") == "testing"
+        if build_identity_facts()["status"] == "testing"
         else None,
         "datePublished": iso(guide["datePublished"]),
         "inLanguage": list(LANGS),
@@ -3102,6 +3119,7 @@ PROTECTED_TREES = frozenset(
         "assets",
         "content",
         "diagrams",
+        "docker",
         "docs",
         "node_modules",
         "openspec",
@@ -3344,13 +3362,15 @@ def page_config(
 ) -> dict[str, Any]:
     guide = content["guide"]["guide"]
     live = content["live"]
+    status = build_identity_facts()["status"]
     champion = {key: value for key, value in live.get("champion", {}).items() if key != "test"}
     return {
         "ui": content["ui"],
         "config": {
             "version": guide["version"],
-            "releaseStatus": guide.get("releaseStatus"),
-            "testingNotice": guide.get("testingNotice") if guide.get("releaseStatus") == "testing" else None,
+            "build": build_identity_facts(),
+            "releaseStatus": status,
+            "testingNotice": guide.get("testingNotice") if status == "testing" else None,
             "datePublished": iso(guide["datePublished"]),
             "freshnessDays": guide.get("freshnessDays", 180),
             "pageUrl": guide.get("pageUrl"),
@@ -3647,7 +3667,11 @@ def split_languages(value: Any) -> tuple[Any, dict[str, Any], list[dict[str, Any
                 if path and path[-1] in {"name", "headline", "text", "description", "abstract", "keywords"}:
                     words = {}
                     for lang in LANGS:
-                        other = " ".join(str(item.get("@value", "")) for item in node if item.get("@language") != lang)
+                        other = " ".join(
+                            str(item.get("@value", "")) if isinstance(item, dict) else str(item)
+                            for item in node
+                            if not isinstance(item, dict) or item.get("@language") != lang
+                        )
                         folded = unicodedata.normalize("NFD", other)
                         folded = "".join(char for char in folded if not unicodedata.combining(char)).lower()
                         words[lang] = " ".join(dict.fromkeys(re.findall(r"[\w-]+", folded)))
@@ -3749,10 +3773,16 @@ def render_page(page: str, content: dict[str, Any], crate: dict[str, Any], sprit
 # Entry point
 
 
-def outputs(root: Path = ROOT) -> dict[str, str]:
-    content = load_content(root / "content")
-    graph = Graph()
-    crate = build_crate(content, graph)
+def outputs(
+    root: Path = ROOT,
+    *,
+    content: dict[str, Any] | None = None,
+    graph: Graph | None = None,
+    crate: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    content = load_content(root / "content") if content is None else content
+    graph = Graph() if graph is None else graph
+    crate = build_crate(content, graph) if crate is None else crate
     links = signposts(content, crate)
     page = render_page(
         (root / PAGE_FILE).read_text(encoding="utf-8"), content, crate, icon_sprite(root / "assets" / "icons")

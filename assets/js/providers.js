@@ -961,7 +961,7 @@
       return out;
     }
 
-    return { panel, overview, markdownLines, crateMembers, runService, forget, refresh, withdraw, restoreSources, sources, applyAssessment, previewFile, attach, running: (check) => runs.has(check.identifier) };
+    return { panel, overview, markdownLines, crateMembers, runService, forget, refresh, withdraw, restoreSources, sources, applyAssessment, previewFile, attach };
   };
 
   /* The marks of the answer states, so a provider's outcome reads like an answer: met, partly met, not met, unknown. */

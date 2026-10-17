@@ -3,8 +3,7 @@
 const {readFileSync, mkdirSync, writeFileSync} = require('node:fs');
 const FILES = ['content/guide.toml', 'CITATION.cff', 'package.json', 'package-lock.json',
   'pyproject.toml', 'CHANGELOG.md', 'content/provenance.toml', 'content/identifiers.toml'];
-const validVersion = value => /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.test(value)
-  && !(value.split('-').slice(1).join('-').split('.').some(part => /^0\d+$/.test(part)));
+const { validVersion } = require('./release-version.cjs');
 function dispatch(context) {
   const base = context.payload.repository.default_branch;
   const version = context.payload.inputs.version;
@@ -69,6 +68,8 @@ async function propose({github, context, core}, read = readFileSync) {
 }
 async function tag({github, context, core}, read = readFileSync) {
   const {base, version, branch} = dispatch(context);
+  const status = context.payload.inputs.release_status;
+  if (!['testing', 'production'].includes(status)) throw Error('Choose release_status testing or production');
   await current(github, context, base);
   if (JSON.parse(read('package.json', 'utf8')).version !== version) throw Error('The merged metadata has another version');
   const prs = await github.paginate(github.rest.pulls.list,
@@ -76,7 +77,13 @@ async function tag({github, context, core}, read = readFileSync) {
   if (!prs.some(pr => pr.merged_at && pr.merge_commit_sha === context.sha && pr.head?.repo?.full_name === `${context.repo.owner}/${context.repo.repo}`))
     throw Error('Tag only the current default-branch commit that merged this release pull request');
   // No updateRef: an existing tag is never moved, even on a dispatch retry.
-  const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: context.sha});
-  core.info(`Created ${data.ref} at ${context.sha}`);
+  try {
+    await github.rest.git.getRef({...context.repo, ref: `tags/v${version}`});
+    throw Error('The release tag already exists; its status cannot be changed');
+  } catch (error) { if (error.status !== 404) throw error; }
+  const {data: annotated} = await github.rest.git.createTag({...context.repo, tag: `v${version}`,
+    message: `Release v${version}\n\nFair-Guide-Release-Status: ${status}\n`, object: context.sha, type: 'commit'});
+  const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: annotated.sha});
+  core.info(`Created ${data.ref} at ${context.sha} with status ${status}`);
 }
 module.exports = {FILES, validVersion, dispatch, collect, propose, tag};

@@ -19,22 +19,13 @@ import tomllib
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+import build_identity
 from register_ids import render
+from release_version import version
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = re.compile(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z.-]+))?")
+BUILD_UI = "assets/data/ui.js"
 FILES = ("content/guide.toml", "CITATION.cff", "package.json", "package-lock.json", "pyproject.toml")
-
-
-def version(value: str) -> str:
-    match = VERSION.fullmatch(value)
-    if not match or any(
-        not part or (part.isdigit() and len(part) > 1 and part[0] == "0")
-        for part in (match[4] or "").split(".")
-        if match[4] is not None
-    ):
-        raise ValueError("version must be a SemVer release or prerelease without a leading v or build suffix")
-    return value
 
 
 def git(root: Path, *args: str) -> str:
@@ -88,6 +79,27 @@ def metadata(root: Path) -> tuple[str, str, list[str]]:
     return expected, released, errors
 
 
+def built_identity(site: Path, root: Path) -> tuple[dict, list[str]]:
+    """The identity a build baked into the page configuration, checked against this checkout's git state."""
+    try:
+        text = (site / BUILD_UI).read_text(encoding="utf-8")
+    except OSError as error:
+        return {}, [f"{site}/{BUILD_UI}: required page configuration is unreadable ({error})"]
+    try:
+        built = build_identity.config_identity(text)
+    except (ValueError, TypeError, KeyError) as error:
+        return {}, [f"{site}/{BUILD_UI}: the page configuration is unreadable ({error})"]
+    expected = build_identity.identity(root)
+    errors = [
+        f"{site}/{BUILD_UI}: build.{key} is {built.get(key)!r}; expected {expected[key]!r}"
+        for key in ("version", "commit", "channel", "status", "date")
+        if built.get(key) != expected[key]
+    ]
+    if built.get("channel") != "release" and built.get("status") != "testing":
+        errors.append(f"{site}/{BUILD_UI}: a build that is not a release must report the testing status")
+    return built, errors
+
+
 def check(root: Path, site: Path | None = None) -> list[str]:
     expected, released, errors = metadata(root)
     # Historical versions belong only in the script-owned changelog. Source/runtime
@@ -112,6 +124,22 @@ def check(root: Path, site: Path | None = None) -> list[str]:
                 errors.append(f"{site}/ro-crate-metadata.json {identifier}: version differs from {expected}")
         if nodes.get("./", {}).get("datePublished") != released:
             errors.append(f"{site}/ro-crate-metadata.json: datePublished differs from {released}")
+        built, build_errors = built_identity(site, root)
+        errors.extend(build_errors)
+        if built:
+            try:
+                health = json.loads((site / "api/health.json").read_text(encoding="utf-8"))
+                if health.get("build") != built:
+                    errors.append(f"{site}/api/health.json: build identity differs from the page")
+            except (OSError, ValueError) as error:
+                errors.append(f"{site}/api/health.json: required health identity is unreadable ({error})")
+        for identifier in ("./", "#guide-software") if built else ():
+            status = nodes.get(identifier, {}).get("creativeWorkStatus")
+            if status != built.get("status"):
+                errors.append(
+                    f"{site}/ro-crate-metadata.json {identifier}: status is {status!r}; "
+                    f"expected {built.get('status')!r}"
+                )
     return errors
 
 

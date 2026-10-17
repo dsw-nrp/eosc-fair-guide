@@ -10,7 +10,7 @@
   const CANDIDATE = /(?<![\w./:@-])(?:(?:https?:\/\/)?(?:(?:www\.)?orcid\.org|(?:www\.)?ror\.org|(?:dx\.)?doi\.org|hdl\.handle\.net)\/[^\s<>"']+|\d{4}-\d{4}-\d{4}-\d{3}[\dX]|0[a-z0-9]{6}\d{2}|(?:doi|hdl):\s*\d[\w.-]*\/[^\s<>"']+|10\.\d{4,9}\/[^\s<>"']+)/gi;
 
   H.validOrcid = function (value) {
-    if (!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/.test(value)) return false;
+    if (FG.live.parseOrcid(value) !== value) return false;
     const digits = value.replace(/-/g, "");
     let total = 0;
     for (const digit of digits.slice(0, 15)) total = (total + Number(digit)) * 2;
@@ -19,7 +19,7 @@
   };
 
   H.validRor = function (value) {
-    if (!/^0[a-hj-km-np-tv-z0-9]{6}\d{2}$/.test(value)) return false;
+    if (FG.live.parseRor(value) !== value) return false;
     let number = 0;
     for (const letter of value.slice(0, 7)) number = number * 32 + BASE32.indexOf(letter);
     return Number(value.slice(7)) === 98 - (number * 100) % 97;

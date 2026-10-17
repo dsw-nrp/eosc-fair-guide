@@ -7,6 +7,12 @@ on:
         description: Merged release version without the leading v
         required: true
         type: string
+      release_status:
+        description: Intended use of this release (production requires maintainer approval)
+        required: true
+        default: testing
+        type: choice
+        options: [testing, production]
 
 permissions:
   contents: read

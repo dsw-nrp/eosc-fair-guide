@@ -28,6 +28,13 @@ stage,prod,out=map(Path,sys.argv[1:])
 for site,sha in [(stage,'b'*40),(prod,'a'*40)]:
     path=site/'api/health.json'
     report=json.loads(path.read_text(encoding='utf-8'))
+    config_path=site/'assets/data/ui.js'
+    prefix='window.FairGuideData.ui = '
+    text=config_path.read_text(encoding='utf-8')
+    config=json.loads(next(line for line in text.splitlines() if line.startswith(prefix))[len(prefix):].removesuffix(';'))
+    config['config']['build']['commit']=sha[:7]
+    config_path.write_text('\\n'.join(prefix+json.dumps(config)+';' if line.startswith(prefix) else line for line in text.splitlines())+'\\n',encoding='utf-8')
+    report['build']=config['config']['build']
     report.update(revision=sha,generated_at='2026-10-14T12:00:00Z')
     report['run']['status']='passed'
     path.write_text(json.dumps(report),encoding='utf-8')

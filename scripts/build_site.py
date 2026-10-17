@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import os
 import posixpath
 import shutil
@@ -36,7 +37,7 @@ STATIC = ("assets/css", "assets/js", "assets/img", "assets/fonts")
 LOCAL_TEST_DOC = "assets/js/tests/index.html"
 
 
-def render_test_docs(template: str, content: dict[str, Any]) -> str:
+def render_test_docs(template: str, content: dict[str, Any], crate: dict[str, Any] | None = None) -> str:
     """Fill the two empty documentation blocks from the local-test registry; prose is authored only in TOML."""
     labels = {
         "cs": {"code": "Kód testu", "function": "Volaná funkce", "question": "Otázka", "record": "Test v katalogu"},
@@ -48,7 +49,7 @@ def render_test_docs(template: str, content: dict[str, Any]) -> str:
         },
     }
     blocks = {}
-    crate = kb.build_crate(content)
+    crate = kb.build_crate(content) if crate is None else crate
     addresses = {
         entity["@id"]: entity["catalogueAddress"] for entity in crate["@graph"] if entity.get("catalogueAddress")
     }
@@ -125,11 +126,14 @@ def build(out: Path = SITE, root: Path = kb.ROOT) -> dict[str, str]:
     """
     require_prerequisites()
     kb.site_directory(out, root)
-    generated = kb.outputs(root)
+    kb.reset_build_identity(root)
     content = kb.load_content(root / "content")
+    graph = kb.Graph()
+    crate = kb.build_crate(content, graph)
+    generated = kb.outputs(root, content=content, graph=graph, crate=crate)
     documentation = root / LOCAL_TEST_DOC
     if documentation.is_file():
-        generated[LOCAL_TEST_DOC] = render_test_docs(documentation.read_text(encoding="utf-8"), content)
+        generated[LOCAL_TEST_DOC] = render_test_docs(documentation.read_text(encoding="utf-8"), content, crate)
     out = kb.replace_site(out, root)
     for name in STATIC:
         shutil.copytree(root / name, out / name)
@@ -142,9 +146,10 @@ def build(out: Path = SITE, root: Path = kb.ROOT) -> dict[str, str]:
         target = out / name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8", newline="\n")
-    api = build_api.Api(kb.build_crate(content), content)
-    build_api.write_site(out, api.files())
-    check_health.write_site_dashboard(api.health(), out)
+    api = build_api.Api(crate, content, graph=graph)
+    files = api.files()
+    build_api.write_site(out, files)
+    check_health.write_site_dashboard(json.loads(files[build_api.HEALTH_FILE]), out)
     return generated
 
 

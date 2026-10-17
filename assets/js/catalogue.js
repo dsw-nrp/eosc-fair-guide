@@ -282,7 +282,8 @@
   /* Where sources are cited, worked out once for the parts of the knowledge base loaded so far. */
   let citedCache = null;
   const citedSources = () => {
-    if (!citedCache || citedCache.parts !== FG.partsLoaded.size) citedCache = { parts: FG.partsLoaded.size, bySource: citations().bySource };
+    if (!citedCache || citedCache.revision !== FG.dataRevision || citedCache.graph !== FG.graph)
+      citedCache = { revision: FG.dataRevision, graph: FG.graph, bySource: citations().bySource };
     return citedCache.bySource;
   };
 

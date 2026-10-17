@@ -14,6 +14,13 @@ import unicodedata
 from typing import Any
 from urllib.parse import unquote, urlsplit
 
+
+def bare_url(value: Any) -> str:
+    """Match addresses by the shared normalization fixture, without discarding query or fragment identity."""
+    address = re.sub(r"^https?://", "", str(value or "").strip().lower())
+    return re.sub(r"^www\.", "", address).rstrip("/")
+
+
 KIND_CODES = {
     "resources": "res",
     "repositories": "repo",

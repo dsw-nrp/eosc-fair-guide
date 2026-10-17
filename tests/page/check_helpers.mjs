@@ -10,6 +10,9 @@ const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
 const config = { api: { records: {} }, helpers: { maxCharacters: 100000, maxItems: 40 }, links: { fipDashboard: "https://fip-dashboard.dmp.eosc.cz/", nkr: "https://nkr.example/" } };
 const FG = { config, list: (value) => value == null ? [] : Array.isArray(value) ? value : [value], graph: [], get: () => null, refs: () => [] };
+const sharedCore = {};
+runInNewContext(readFileSync(resolve(root, "assets/js/core.js"), "utf8"), { window: { FairGuide: sharedCore }, URL });
+FG.bareUrl = sharedCore.bareUrl;
 for (const script of ["live.js", "helpers.js", "search.js"]) runInNewContext(readFileSync(resolve(root, "assets/js", script), "utf8"), { window: { FairGuide: FG }, URL });
 const H = FG.helpers;
 const plain = (value) => JSON.parse(JSON.stringify(value)); // values from the script context, compared by content

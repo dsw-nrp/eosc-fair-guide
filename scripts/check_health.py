@@ -76,10 +76,11 @@ def source_entries(content: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return entries
 
 
-def missing_links(content: dict[str, Any]) -> list[dict[str, str]]:
+def missing_links(content: dict[str, Any], graph: build_crate.Graph | None = None) -> list[dict[str, str]]:
     """Rank useful editorial hints, retaining originals and never changing prose or integrity outcomes."""
-    graph = build_crate.Graph()
-    build_crate.build_crate(content, graph)
+    if graph is None:
+        graph = build_crate.Graph()
+        build_crate.build_crate(content, graph)
     targets = build_crate.reference_targets(content, graph)
     addresses = {
         key: entity["catalogueAddress"] for key, entity in graph.entities.items() if entity.get("catalogueAddress")
@@ -774,8 +775,9 @@ def make_report(
     today: date | None = None,
     run: dict[str, Any] | None = None,
     previous: dict[str, Any] | None = None,
+    graph: build_crate.Graph | None = None,
 ) -> dict[str, Any]:
-    link_review = review_links(content, missing_links(content))
+    link_review = review_links(content, missing_links(content, graph))
     report = {
         "format_version": FORMAT_VERSION,
         "generated_at": datetime.now(UTC).isoformat(),
@@ -784,6 +786,7 @@ def make_report(
             "no live requests or conformance verdict."
         ),
         "revision": os.environ.get("FAIR_GUIDE_CHECK_REVISION") or os.environ.get("GITHUB_SHA"),
+        "build": build_crate.build_identity_facts(),
         "run_url": os.environ.get("GITHUB_SERVER_URL", "https://github.com")
         + "/"
         + os.environ["GITHUB_REPOSITORY"]
@@ -835,6 +838,7 @@ def unreadable_report(error: str, run: dict[str, Any]) -> dict[str, Any]:
     return {
         "format_version": FORMAT_VERSION,
         "generated_at": datetime.now(UTC).isoformat(),
+        "build": build_crate.build_identity_facts(),
         "scope": "Content could not be inventoried; no content integrity or original-coverage claim is available.",
         "live_availability": {"status": "unchecked", "reason": "No live requests were made."},
         "integrity": [

@@ -5,14 +5,12 @@ cestou k FAIR datům: od plánu projektu přes výběr repozitáře, popis a lic
 kontrolu. Vychází z *Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI* (verze 1.2,
 NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>) a doplňuje ji o současný stav národních služeb.
 
-> **Stav:** rozpracovaná verze. Texty jsou pracovní a před zveřejněním je projde redakce týmu.
-
 English version: [README_en.md](README_en.md).
 
 Změny chování, datových a API smluv, uložených formátů, CI a pravidel práce se plánují pomocí OpenSpec přímo
 v tomto repozitáři. Drobné jazykové a formátovací opravy a běžné obnovy zdrojů používají obvyklé kontroly.
-Postup je v [CONTRIBUTING.md](CONTRIBUTING.md); [předání první alfy](docs/release-handoff.md) uvádí zbývající kroky
-a rozhodnutí správce před zveřejněním.
+Postup přispívání je v [CONTRIBUTING.md](CONTRIBUTING.md); pravidla zveřejnění a náhledu popisuje
+[dokumentace nasazení](docs/deployment.md). Plánované změny a jejich stav patří do issues a změn OpenSpec.
 
 ## Co průvodce nabízí
 
@@ -94,7 +92,7 @@ vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zat�
 | `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
 | `.github/` | CI, šablony a odpovědní recenzenti |
 
-[Příklad softwarové praxe](docs/software-practice.md) přiřazuje podklady aplikace a zbývající kroky k vydání
+[Příklad softwarové praxe](docs/software-practice.md) přiřazuje podklady aplikace a ověřované doklady vydání
 k příslušným softwarovým pokynům.
 
 [Příklad použití modelu](docs/model-practice.md) sleduje skutečný požadavek, otázku, test a záznam revize.
@@ -163,7 +161,9 @@ stojí, jednou měsíčně znovu změří testy FAIR Champion a pro každý trva
 necommituje ani neslučuje; nastavení aplikace popisuje [konfigurace vydání](docs/deployment.md#release-preparation-and-tagging).
 
 Verzi vydání určuje [content/guide.toml](content/guide.toml). Postup popisuje
-[příprava a označení vydání](docs/deployment.md#release-preparation-and-tagging).
+[příprava a označení vydání](docs/deployment.md#release-preparation-and-tagging). Každé označené vydání zároveň
+zveřejní kontejnerový obraz ověřeného webu v `ghcr.io/dsw-nrp/eosc-fair-guide`; v zápatí je verze sestavení, revize
+a datum a neoznačené sestavení je označeno jako náhled `next`.
 
 ## Licence
 

@@ -140,9 +140,9 @@ try {
     // Plant a blind propagation defect: an unrelated question is wrongly classified by a broadly cited source.
     const unrelated = questionEntries.find((item) => !refs(item, "implementationSeams").includes("#seam-repository-nma"));
     await page.evaluate((id) => { const FG = window.FairGuide; const item = FG.get(id); window.modelSavedRefs = item.implementationSeams;
-      item.implementationSeams = [{ "@id": "#seam-repository-nma" }]; FG.render(); }, unrelated["@id"]);
+      item.implementationSeams = [{ "@id": "#seam-repository-nma" }]; FG.invalidateData(); FG.render(); }, unrelated["@id"]);
     await assert.rejects(() => expectedQuestions(["#seam-repository-nma"]), "the regression check rejects blind propagation");
-    await page.evaluate((id) => { window.FairGuide.get(id).implementationSeams = window.modelSavedRefs; window.FairGuide.render(); }, unrelated["@id"]);
+    await page.evaluate((id) => { const FG = window.FairGuide; FG.get(id).implementationSeams = window.modelSavedRefs; FG.invalidateData(); FG.render(); }, unrelated["@id"]);
     await expectedQuestions(["#seam-repository-nma"]);
     await visit(`#/${lang}/K/catalogue/model/seam/repository-nma`, ".entry-card");
     assert.equal(await page.locator(".entry-card").count(), 1, "a direct definition link clears unrelated filters");

@@ -21,14 +21,38 @@
   /** Whether the service's API admits the guide's origin; a service that does not is used through its snapshot. */
   live.available = (id) => connector(id).browserAccess !== false;
 
+  /** One byte-counting reader for JSON connectors and reviewed discovery, including chunked responses. */
+  live.responseText = async function (response, maxBytes) {
+    if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) throw new Error("response byte limit must be a positive integer");
+    const tooLarge = () => Object.assign(new Error("response exceeds byte limit"), { code: "size-limit" });
+    if (Number(response.headers.get("content-length")) > maxBytes) {
+      if (response.body) await response.body.cancel();
+      throw tooLarge();
+    }
+    if (!response.body?.getReader) {
+      const text = await response.text();
+      if (new TextEncoder().encode(text).byteLength > maxBytes) throw tooLarge();
+      return text;
+    }
+    const reader = response.body.getReader(), decoder = new TextDecoder();
+    let bytes = 0, text = "";
+    try {
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        bytes += chunk.value.byteLength;
+        if (bytes > maxBytes) { await reader.cancel(); throw tooLarge(); }
+        text += decoder.decode(chunk.value, { stream: true });
+      }
+      return text + decoder.decode();
+    } finally { reader.releaseLock(); }
+  };
+
   /** Fetch JSON from an allowlisted connector; rejects on timeout, HTTP errors and non-JSON answers. With
       `allowNotFound`, a 404 answer gives null instead of an error. */
-  live.fetchJson = async function (connectorId, path, options) {
-    if (options && options.maxBytes) {
-      await loadDiscovery();
-      const result = await live.readPublic(connectorId, path, options);
-      return result ? JSON.parse(result.text) : null;
-    }
+  live.fetchJson = async function (connectorId, path, options = {}) {
+    const maxBytes = options.maxBytes ?? 4 * 1024 * 1024;
+    if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) throw new Error("response byte limit must be a positive integer");
     const target = connector(connectorId);
     const url = new URL(path, target.origin + "/");
     if (url.origin !== target.origin) throw new Error("refusing a URL outside " + target.origin);
@@ -37,7 +61,7 @@
     try {
       const response = await fetch(url.href, {
         method: (options && options.method) || "GET",
-        headers: Object.assign({ Accept: "application/json" }, (options && options.headers) || {}),
+        headers: Object.assign({ Accept: options.accept || "application/json" }, options.headers || {}),
         body: options && options.body,
         signal: controller.signal,
         credentials: "omit",
@@ -45,7 +69,7 @@
       });
       if (response.status === 404 && options && options.allowNotFound) return null;
       if (!response.ok) throw new Error(target.name + ": HTTP " + response.status);
-      return await response.json();
+      return JSON.parse(await live.responseText(response, maxBytes));
     } finally {
       clearTimeout(timer);
     }
@@ -98,7 +122,7 @@
      and the connectors accept the same forms: the bare identifier, or its registry address with or without the scheme,
      "www." and a closing slash. Recognition reads the form; the identifier helper verifies ORCID and ROR checksums. */
   const ORCID_FORM = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
-  const ROR_FORM = /^0[a-z0-9]{6}\d{2}$/;
+  const ROR_FORM = /^0[a-hj-km-np-tv-z0-9]{6}\d{2}$/;
   const RE3DATA_FORM = /^r3d\d{9}$/;
   const registryValue = (input, address) =>
     String(input || "").trim().replace(address, "").replace(/[?#].*$/, "").replace(/\/$/, "");

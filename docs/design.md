@@ -587,5 +587,6 @@ results and reader answers remain separate. Advisory linking ranks specific name
 uses context and ambiguity checks, and provides an excerpt, location, proposed reference and reason without
 rewriting prose or failing integrity checks. Document titles name the current page or entry.
 
-Repository-owned OpenSpec contracts and the portable active change support team contributions. See
-[release-handoff.md](release-handoff.md) for the candidate, dispositions and explicit operator/release gates.
+Repository-owned OpenSpec contracts support team contributions. See [deployment guidance](deployment.md) for
+publication rules. Track temporary implementation state and release-specific decisions in issues and OpenSpec
+changes, keeping this document focused on the resulting design.

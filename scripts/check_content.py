@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from build_crate import (  # noqa: E402
     BLOCK,
+    LANGS,
     PAGE_FILE,
     PATH_LIFECYCLE,
     REFERENCE,
@@ -35,6 +36,7 @@ from build_crate import (  # noqa: E402
     SOURCE_TYPES,
     ContentError,
     Graph,
+    as_list,
     build_crate,
     is_generated,
     load_content,
@@ -43,7 +45,6 @@ from build_crate import (  # noqa: E402
 )
 from catalogue_identity import alternate_id
 
-LANGS = ("cs", "en")
 LEVELS = ("L0", "L1", "L2")
 CLAUSE_KINDS = ("requirement", "recommendation", "fulfilment", "statement")
 CLAUSE_STATUSES = ("current", "refresh", "superseded")
@@ -51,7 +52,6 @@ HEALTH = ("available", "degraded", "unavailable")
 PREFILL_SOURCES = ("datacite", "nkr", "champion", "fip", "resolver", "re3data")
 ACTION_TYPES = ("create", "update")
 LIFECYCLE_BASES = ("published", "reviewed", "unconfirmed")
-RELEASE_STATUSES = ("testing", "released")
 # The checks the guide knows; a question's ID is its check's ID and a serial number (docs/content-model.md,
 # Identifiers).
 CHECKS = ("dataset", "gate", "maturity", "fip", "institution", "coretrustseal", "cdif", "software", "fdo")
@@ -150,12 +150,6 @@ class Report:
 
 # ---------------------------------------------------------------------------
 # Helpers
-
-
-def as_list(value: Any) -> list[Any]:
-    if value is None:
-        return []
-    return value if isinstance(value, list) else [value]
 
 
 def walk(value: Any, path: str = "") -> Iterator[tuple[str, str, Any]]:
@@ -1414,11 +1408,6 @@ def check_provenance(report: Report, content: dict[str, Any], vocab: dict[str, s
             report.error(f"{kind}:{item_id}", "no provenance action covers this item")
 
 
-def bare_url(url: Any) -> str:
-    """An address without its scheme, "www." and trailing slashes, for telling whether two entries name one thing."""
-    return re.sub(r"^https?://(www\.)?", "", str(url or "").strip().lower()).rstrip("/")
-
-
 def check_coherence(report: Report, content: dict[str, Any], graph: Graph, build_error: Exception | None) -> None:
     """The crate's identifiers hold together: one content ID names one entity (R1), references to snapshot records
     resolve (R4), and entries nothing uses are reported (R5). That no two entries describe one thing (R2, R3) is
@@ -1759,10 +1748,10 @@ def check_guide(report: Report, content: dict[str, Any], vocab: dict[str, set[st
     guide = guide_file["guide"]
     for field in ("name", "description", "acknowledgement", "aiStatement"):
         require_text(report, "guide", guide.get(field), field)
-    if guide.get("releaseStatus") not in RELEASE_STATUSES:
-        report.error("guide", f"releaseStatus must be one of {', '.join(RELEASE_STATUSES)}")
-    if guide.get("releaseStatus") == "testing":
-        require_text(report, "guide", guide.get("testingNotice"), "testingNotice")
+    # The build reads the Tag release decision from the release tag, not authored content.
+    if guide.get("releaseStatus") is not None:
+        report.error("guide", "releaseStatus is not authored in content; the build derives it from the release tag")
+    require_text(report, "guide", guide.get("testingNotice"), "testingNotice")
     for help_route in guide_file.get("help", []):
         for lens in help_route.get("lenses", []):
             if lens not in vocab["lenses"]:

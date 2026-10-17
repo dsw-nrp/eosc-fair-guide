@@ -139,6 +139,9 @@ def execution_defaults(env: dict[str, str], cpus: int) -> dict:
 
 def run(job: Job, env: dict[str, str]) -> Result:
     start = time.monotonic()
+    if job.name == "unit":
+        # Fixture repositories select their own tags; keep the producer context on actual site validators.
+        env = {**env, "FAIR_GUIDE_BUILD_CHANNEL": "local", "FAIR_GUIDE_RELEASE_TAG": ""}
     try:
         done = subprocess.run(
             job.command,

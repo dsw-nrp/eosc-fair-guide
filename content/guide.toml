@@ -2,7 +2,6 @@
 
 [guide]
 version = "1.0.0-alpha.1"
-releaseStatus = "testing"
 testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This Guide is in testing. Its content may change, and the EOSC CZ initiative has not approved it yet." }
 datePublished = 2026-10-08
 # Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case (D-177; content check).

@@ -400,7 +400,7 @@ publisher named like a curated organisation.
 | --- | --- | --- | --- |
 | `[guide]` | `version` | string | Semantic version, the same as in `CHANGELOG.md` and `CITATION.cff` |
 | `[guide]` | `genericGuideUses` | list of strings | Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case; the content check accepts a lower-case form only inside one of them |
-| | `releaseStatus` | string | `testing` until EOSC CZ agrees the guide, then `released`; drives the testing-phase notice |
+| | `releaseStatus` | — | Not authored. The build reads the Tag release input `release_status` recorded in the annotated tag under the [deployment status contract](deployment.md#release-status); local/dirty/preview builds always use `testing` |
 | | `testingNotice` | text | The notice shown on every view while the status is `testing` |
 | | `datePublished` | date | Date of the version |
 | | `name`, `description` | text | Name and description of the guide |

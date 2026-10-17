@@ -5,7 +5,7 @@ import {createRequire} from 'node:module';
 const {dispatch, validVersion, collect, propose, tag, FILES} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
 const sha = 'a'.repeat(40);
 const context = {eventName: 'workflow_dispatch', ref: 'refs/heads/main', sha, runId: 12,
-  repo: {owner: 'example', repo: 'guide'}, payload: {repository: {default_branch: 'main'}, inputs: {version: '1.2.3-alpha.1'}}};
+  repo: {owner: 'example', repo: 'guide'}, payload: {repository: {default_branch: 'main'}, inputs: {version: '1.2.3-alpha.1', release_status: 'testing'}}};
 for (const value of ['1.2.3', '0.0.0', '1.2.3-alpha.1', '1.2.3-rc-2']) assert(validVersion(value));
 for (const value of ['v1.2.3', '01.2.3', '1.2.3-alpha.01', '1.2.3-a..b', '1.2.3+build', '$(id)']) assert(!validVersion(value));
 assert.throws(() => dispatch({...context, ref: 'refs/heads/feature'}), /default branch/);
@@ -13,13 +13,14 @@ assert.throws(() => dispatch({...context, eventName: 'push'}), /dispatch/);
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture() {
   const state = {refs: new Map([['heads/main', sha]]), commits: new Map([[sha, {tree: {sha: 'base'}}]]), prs: [],
-    creates: [], failPR: false, reads: [], outputs: {}};
+    creates: [], tags: new Map(), failPR: false, reads: [], outputs: {}};
   const github = {rest: {git: {
     getRef: async ({ref}) => {if (!state.refs.has(ref)) throw Object.assign(Error('missing'), {status: 404}); return {data: {object: {sha: state.refs.get(ref)}}};},
     getCommit: async ({commit_sha}) => ({data: state.commits.get(commit_sha)}),
     createBlob: async args => ({data: {sha: hash(args)}}),
     createTree: async args => ({data: {sha: hash(args)}}),
     createCommit: async args => {const id = hash(args); state.commits.set(id, {message: args.message, tree: {sha: args.tree}, parents: args.parents.map(sha => ({sha}))}); return {data: {sha: id}};},
+    createTag: async args => {const id = hash(args); state.tags.set(id, args); return {data: {sha: id}};},
     createRef: async ({ref, sha}) => {const key = ref.slice(5); if (state.refs.has(key)) throw Error('already exists'); state.refs.set(key, sha); state.creates.push(ref); return {data: {ref}};},
   }, pulls: {list: 'pulls.list', create: async args => {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
@@ -64,8 +65,26 @@ function fixture() {
   state.prs = [{merged_at: '2026-10-14', merge_commit_sha: sha, head: {repo: {full_name: 'example/guide'}}}];
   await tag({github, core, context}, read);
   assert.deepEqual(state.creates, ['refs/tags/v1.2.3-alpha.1']);
-  assert.equal(state.refs.get('tags/v1.2.3-alpha.1'), sha);
+  const annotated = state.tags.get(state.refs.get('tags/v1.2.3-alpha.1'));
+  assert.equal(annotated.object, sha);
+  assert.equal(annotated.type, 'commit');
+  assert.equal(annotated.message, 'Release v1.2.3-alpha.1\n\nFair-Guide-Release-Status: testing\n');
   await assert.rejects(tag({github, core, context}, read), /already exists/);
+  const production = {...context, payload: {...context.payload, inputs: {...context.payload.inputs, release_status: 'production'}}};
+  await assert.rejects(tag({github, core, context: production}, read), /already exists/);
+  assert.equal(state.tags.size, 1, 'retry cannot change the tag decision or create another annotation');
+}
+{
+  const {state, github, core, read} = fixture();
+  state.prs = [{merged_at: '2026-10-14', merge_commit_sha: sha, head: {repo: {full_name: 'example/guide'}}}];
+  for (const status of [undefined, '', 'released', 'Production', 'production\nextra']) {
+    const invalid = {...context, payload: {...context.payload, inputs: {...context.payload.inputs, release_status: status}}};
+    await assert.rejects(tag({github, core, context: invalid}, read), /Choose release_status/);
+    assert.equal(state.tags.size, 0); assert.equal(state.creates.length, 0);
+  }
+  const production = {...context, payload: {...context.payload, inputs: {...context.payload.inputs, release_status: 'production'}}};
+  await tag({github, core, context: production}, read);
+  assert([...state.tags.values()][0].message.endsWith('Fair-Guide-Release-Status: production\n'));
 }
 {
   const {state, github, core, read} = fixture();

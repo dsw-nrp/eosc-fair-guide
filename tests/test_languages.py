@@ -25,6 +25,25 @@ def merge_patch(target, patch):
 
 
 class LanguageTests(unittest.TestCase):
+    def test_mixed_bilingual_keywords_preserve_scalars_order_and_search(self) -> None:
+        value = {
+            "keywords": [
+                "neutral",
+                {"@language": "cs", "@value": "český"},
+                {"@language": "en", "@value": "English"},
+                17,
+            ]
+        }
+        for order in (("cs", "en"), ("en", "cs")):
+            common, languages, search = build_crate.split_languages(copy.deepcopy(value))
+            for lang in order:
+                merge_patch(common, languages[lang])
+            self.assertEqual(common, value)
+            self.assertIn("neutral", search[0]["words"]["cs"])
+            self.assertIn("english", search[0]["words"]["cs"])
+            self.assertIn("cesky", search[0]["words"]["en"])
+            self.assertIn("17", search[0]["words"]["en"])
+
     def test_advice_details_are_deferred_but_structure_and_l0_remain(self) -> None:
         crate = json.loads(self.generated[build_crate.CRATE_FILE])
         core, parts = build_crate.split_crate(crate)

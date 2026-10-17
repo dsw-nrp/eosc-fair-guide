@@ -1,7 +1,7 @@
 // Shared safe rendering on the built page: addresses as the browser reads them, event attributes and data merges.
 // Each unsafe address is first shown to be unsafe when set raw, so the case is one a browser would actually follow.
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -138,6 +138,70 @@ for (const lang of ["cs", "en"]) {
   await page.evaluate((value) => { location.hash = `#/${value}/V/path/start`; }, lang);
   await page.waitForFunction((value) => document.documentElement.lang === value && document.querySelector("#main h1"), lang);
   assert(await page.locator("#main a[href]").count(), `no links render in ${lang}`);
+}
+// Real catalogue interactions reuse derivations while every render owns fresh interactive nodes.
+await page.goto(base + "#/en/V/catalogue");
+await page.waitForSelector(".catalogue-results");
+const reused = await page.evaluate(async () => {
+  const FG = window.FairGuide;
+  await Promise.all(Object.keys(FG.config.parts).map((name) => FG.loadPart(name, "en")));
+  const route = FG.parseHash(location.hash), original = FG.ofType;
+  let scans = 0;
+  FG.ofType = (type) => { if (type === "Quiz") scans++; return original(type); };
+  try {
+    FG.invalidateData();
+    const start = performance.now(), first = FG.views.catalogue(route);
+    const firstCard = first.querySelector(".catalogue-results li"), firstScans = scans;
+    const firstMs = performance.now() - start;
+    const again = performance.now(), second = FG.views.catalogue(route);
+    const secondMs = performance.now() - again, repeatedScans = scans - firstScans;
+    const secondCard = second.querySelector(".catalogue-results li");
+    FG.invalidateData(); FG.views.catalogue(route);
+    return { firstScans, repeatedScans, changedScans: scans - firstScans, fresh: Boolean(firstCard && secondCard && firstCard !== secondCard), firstMs, secondMs };
+  } finally { FG.ofType = original; }
+});
+assert(reused.firstScans > 0 && reused.changedScans > 0, "initial and invalidated catalogue derive their questions");
+assert.equal(reused.repeatedScans, 0, "unchanged filters do not rebuild catalogue entries");
+assert(reused.fresh, "cached descriptors must not reuse live card nodes");
+console.log("catalogue reuse measurement: " + JSON.stringify(reused));
+const searches = await page.evaluate(() => {
+  const FG = window.FairGuide, original = FG.search.find;
+  let calls = 0;
+  FG.search.find = (...args) => { calls++; return original(...args); };
+  try {
+    const form = FG.search.form();
+    form.querySelector("input").value = "metadata";
+    form.dispatchEvent(new Event("submit", { cancelable: true }));
+    return { calls, rendered: Boolean(form.querySelector("#search-results").childElementCount) };
+  } finally { FG.search.find = original; }
+});
+assert.equal(searches.calls, 1, "result rendering and the announced count share one search");
+assert(searches.rendered);
+const screenshotDir = resolve(root, ".cache/screenshots/review");
+mkdirSync(screenshotDir, { recursive: true });
+for (const lang of ["cs", "en"]) {
+  await page.goto(base + `#/${lang}/V/path/start`);
+  await page.waitForFunction((value) => document.documentElement.lang === value && window.FairGuide.state.lang === value, lang);
+  const notices = await page.evaluate(() => {
+    const FG = window.FairGuide, saved = FG.config.releaseStatus;
+    try {
+      FG.config.releaseStatus = "testing";
+      const testing = FG.views.notice();
+      FG.config.releaseStatus = "production";
+      return { testing: Boolean(testing?.querySelector("p")?.textContent), production: FG.views.notice() };
+    } finally { FG.config.releaseStatus = saved; }
+  });
+  assert(notices.testing && notices.production === null, `${lang}: testing notice follows the documented status`);
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    const footer = await page.evaluate(() => {
+      const built = window.FairGuide.config.build, element = document.querySelector(".build-identity");
+      return { matches: ["version", "commit", "date", "channel", "status"].every((key) => element.dataset["build" + key[0].toUpperCase() + key.slice(1)] === built[key]),
+        testing: built.channel === "release" || built.status === "testing", fits: document.documentElement.scrollWidth <= innerWidth + 1 };
+    });
+    assert(footer.matches && footer.testing && footer.fits, `${lang}/${width}: footer identity and reflow`);
+    await page.locator("footer").screenshot({ path: resolve(screenshotDir, `${lang}-footer-${width}.png`) });
+  }
 }
 assert.deepEqual(errors, []);
 await browser.close();

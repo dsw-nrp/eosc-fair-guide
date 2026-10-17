@@ -24,32 +24,7 @@
       if (response.type === "opaque" || response.type === "opaqueredirect" || (response.url && new URL(response.url).origin !== target.origin)) {
         throw Object.assign(new Error("unreadable response or redirect"), { code: "unreadable-response" });
       }
-      if (Number(response.headers.get("content-length")) > options.maxBytes) {
-        if (response.body) await response.body.cancel();
-        throw Object.assign(new Error("response exceeds byte limit"), { code: "size-limit" });
-      }
-      let text = "";
-      if (response.body && response.body.getReader) {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let bytes = 0;
-        try {
-          while (true) {
-            const chunk = await reader.read();
-            if (chunk.done) break;
-            bytes += chunk.value.byteLength;
-            if (bytes > options.maxBytes) {
-              await reader.cancel();
-              throw Object.assign(new Error("response exceeds byte limit"), { code: "size-limit" });
-            }
-            text += decoder.decode(chunk.value, { stream: true });
-          }
-          text += decoder.decode();
-        } finally { reader.releaseLock(); }
-      } else {
-        text = await response.text();
-        if (new TextEncoder().encode(text).byteLength > options.maxBytes) throw Object.assign(new Error("response exceeds byte limit"), { code: "size-limit" });
-      }
+      const text = await live.responseText(response, options.maxBytes);
       return { text, url: url.href, headers: response.headers, format: String(response.headers.get("content-type") || "").split(";")[0].toLowerCase() };
     } finally { clearTimeout(timer); }
   }

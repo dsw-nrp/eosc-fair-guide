@@ -28,8 +28,8 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from build_crate import ROOT, ContentError, load_content  # noqa: E402
-from catalogue_identity import alternate_id
-from check_content import Report, bare_url  # noqa: E402
+from catalogue_identity import alternate_id, bare_url
+from check_content import Report  # noqa: E402
 
 ACCEPTED_FILE = "duplicates.toml"
 # Keys that state two entries are the same thing; every other key only suggests it.

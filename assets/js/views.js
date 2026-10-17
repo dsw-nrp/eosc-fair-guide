@@ -350,13 +350,40 @@
   FG.views.footer = function () {
     const root = FG.root;
     const analysis = FG.refs(root, "isBasedOn")[0];
+    const build = FG.config.build || {
+      version: FG.config.version,
+      commit: "",
+      channel: "local",
+      date: FG.config.datePublished,
+      status: FG.config.releaseStatus
+    };
+    const commit = build.commit
+      ? FG.external(
+          (root.url || "").replace(/\/?$/, "") + "/commit/" + build.commit,
+          build.commit + (build.dirty ? "-dirty" : ""),
+          { class: "build-commit", title: FG.t("footer.commit") }
+        )
+      : null;
+    const channel =
+      build.channel === "release"
+        ? null
+        : h("span", { class: "build-channel" }, FG.t("footer." + (build.channel === "next" ? "channelNext" : "channelLocal")));
     return h(
       "footer",
       { class: "site-footer" },
       h(
         "div",
         { class: "wrap" },
-        h("p", null, FG.t("footer.version", { version: FG.config.version, date: FG.formatDate(FG.config.datePublished) })),
+        h(
+          "p",
+          { class: "build-identity", "data-build-channel": build.channel, "data-build-version": build.version,
+            "data-build-commit": build.commit, "data-build-date": build.date, "data-build-status": build.status },
+          channel,
+          channel ? " · " : null,
+          FG.t("footer.version", { version: build.version, date: FG.formatDate(build.date) }),
+          commit ? " · " : null,
+          commit
+        ),
         analysis ? h("p", null, h("strong", null, FG.t("footer.basis") + ": "), citeWork(analysis)) : null,
         h("p", null, h("strong", null, FG.t("footer.cite") + ": "), citeGuide(root), " · ", h("a", { href: FG.href("page", "about") + "/credits" }, FG.t("footer.credits"))),
         h("p", null, FG.t("footer.licence")),

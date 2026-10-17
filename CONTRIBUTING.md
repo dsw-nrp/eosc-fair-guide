@@ -45,8 +45,8 @@ npm run openspec:validate
 
 Complete proposal/design/specs/tasks and obtain explicit approval before implementation. Typos, wording,
 formatting, behaviour-neutral dependency updates and routine source refreshes can use ordinary editing checks;
-a semantic change is not a wording-only correction. Archive after delivery under fresh approval. The active
-`initial-alpha` package and its [task list](openspec/changes/initial-alpha/tasks.md) state the remaining gates.
+a semantic change is not a wording-only correction. Archive after delivery under fresh approval. Keep temporary
+implementation status, remaining work and release-specific decisions in issues and the relevant OpenSpec change.
 
 ```bash
 python scripts/build_site.py       # build the site into _site/: the crate, the page with its data, the API
@@ -120,14 +120,13 @@ collaborators, never a team that does not exist.
 
 The gates that can be enforced depend on who can review:
 
-- **During the alpha, the code owners are the maintainer and a second owner.** `main` accepts changes only through
-  pull requests, the required check "Guide checks and health report" must pass, and nothing is force-pushed or
-  deleted. Code-owner approval is not required while the review rules await re-verification after the repository
-  transfer, because GitHub does not let an author approve their own pull request; a release candidate instead needs
-  the maintainer's explicit acceptance before it is tagged.
-- **When an eligible content reviewer joins**, add them to `CODEOWNERS` for the content they review
-  (`content/`, the stations and checks) and require one approving review from a code owner on `main`. From then
-  on, nobody approves their own change.
+- `main` accepts changes only through pull requests; the required check "Guide checks and health report" must
+  pass, and nothing is force-pushed or deleted.
+- Keep `CODEOWNERS` aligned with eligible reviewers for `content/`, the stations and checks. Require one
+  approving code-owner review when an independent eligible reviewer is available. GitHub does not let an
+  author approve their own pull request; without an eligible independent reviewer, a release candidate needs
+  the maintainer's explicit acceptance before tagging. Track changes to reviewer coverage and branch settings
+  in an issue or OpenSpec change.
 
 Automated refreshes and agents never merge their own pull requests.
 
@@ -155,6 +154,24 @@ checks; review and merge it before using the separate **Tag release** dispatch o
 restates the Guide version. Tags use `vX.Y.Z` (or a SemVer prerelease suffix). The tag checks and packages the site;
 production and the draft release receive those same verified bytes. See [deployment](docs/deployment.md) for
 configuration, local fixtures and recovery. These workflows never merge a pull request or publish a release.
+
+The footer shows the build's own identity, derived from git rather than an authored field: the version from the
+release tag (an untagged build shows the last tag plus its distance and commit, and is marked as the unreleased
+`next` preview), the short commit and a date. A machine-readable copy travels in the health result and the release
+manifest. The **Tag release** input `release_status` selects `testing` (the default) or `production` (approved
+public use). The [deployment status contract](docs/deployment.md#release-status) defines the recorded decision.
+Only the clean tagged production job may use that status; local,
+dirty and `/next/` builds stay `testing`, even at a release tag. Image metadata comes from the verified artifact,
+not from a later checkout or workflow input.
+
+### Release container image
+
+Every tagged release also publishes a container image to the GitHub container registry, assembled from that
+release's verified site artifact — never rebuilt from source — so a reader can run the published page locally with
+`docker run --rm -p 8080:8080 ghcr.io/dsw-nrp/eosc-fair-guide:latest`. It carries the release tag, a moving
+`latest` on every release and a moving `stable` on every non-prerelease. It is signed (cosign, keyless) and attested
+against its digest and scanned with Trivy; the release notes record that digest. Its `nginx-unprivileged` base is
+digest-pinned and the `docker` Dependabot entry keeps it current.
 
 ## Conduct
 

@@ -798,8 +798,8 @@ class ContentCheckTests(FixtureCase):
         self.assertError("name the Guide with a capital letter: 'průvodcem'")
         self.edit(
             "guide.toml",
-            'releaseStatus = "testing"\n',
-            'releaseStatus = "testing"\ngenericGuideUses = ["průvodcem licencemi"]\n',
+            'version = "0.0.1"\n',
+            'version = "0.0.1"\ngenericGuideUses = ["průvodcem licencemi"]\n',
         )
         self.assertFalse(any("D-177" in error for error in self.errors()))
 
@@ -2240,6 +2240,17 @@ class CheckAllTests(unittest.TestCase):
         result = check_all.run(check_all.Job("missing", ["no-such-tool-for-the-guide"]), dict(os.environ))
         self.assertFalse(result.ok)
         self.assertIn("no-such-tool-for-the-guide", result.output)
+
+    def test_only_unit_fixtures_are_isolated_from_the_production_tag(self) -> None:
+        producer = {"FAIR_GUIDE_BUILD_CHANNEL": "production", "FAIR_GUIDE_RELEASE_TAG": "v1.0.0"}
+        completed = mock.Mock(returncode=0, stdout="", stderr="")
+        with mock.patch.object(check_all.subprocess, "run", return_value=completed) as called:
+            self.assertTrue(check_all.run(check_all.Job("unit", ["fixture"]), producer).ok)
+            self.assertEqual(called.call_args.kwargs["env"]["FAIR_GUIDE_BUILD_CHANNEL"], "local")
+            self.assertEqual(called.call_args.kwargs["env"]["FAIR_GUIDE_RELEASE_TAG"], "")
+            self.assertTrue(check_all.run(check_all.Job("versions", ["fixture"]), producer).ok)
+            self.assertEqual(called.call_args.kwargs["env"], producer)
+        self.assertEqual(producer["FAIR_GUIDE_RELEASE_TAG"], "v1.0.0")
 
     def test_live_checks_run_only_on_request(self) -> None:
         self.assertNotIn("live", [job.name for job in check_all.jobs("HEAD", live=False)])
