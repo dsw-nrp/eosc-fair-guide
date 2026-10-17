@@ -55,7 +55,7 @@
     if (!Number.isSafeInteger(maxBytes) || maxBytes <= 0) throw new Error("response byte limit must be a positive integer");
     const target = connector(connectorId);
     const url = new URL(path, target.origin + "/");
-    if (url.origin !== target.origin) throw new Error("refusing a URL outside " + target.origin);
+    if (url.origin !== target.origin || url.username || url.password) throw new Error("refusing a URL outside " + target.origin);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ((options && options.timeoutSeconds) || 20) * 1000);
     try {
@@ -66,9 +66,14 @@
         signal: controller.signal,
         credentials: "omit",
         referrerPolicy: "no-referrer",
+        redirect: "error",
       });
       if (response.status === 404 && options && options.allowNotFound) return null;
       if (!response.ok) throw new Error(target.name + ": HTTP " + response.status);
+      if (response.type === "opaque" || response.type === "opaqueredirect" ||
+          (response.url && new URL(response.url).origin !== target.origin)) {
+        throw new Error(target.name + ": unreadable response or redirect");
+      }
       return JSON.parse(await live.responseText(response, maxBytes));
     } finally {
       clearTimeout(timer);

@@ -59,6 +59,9 @@ test("JSON connectors bound every body and preserve request options, cancellatio
   assert.equal(request.method, "POST"); assert.equal(request.body, "payload");
   assert.equal(request.headers["X-Fixture"], "yes"); assert.equal(request.headers.Accept, "application/example+json");
   assert.equal(request.credentials, "omit"); assert.equal(request.referrerPolicy, "no-referrer");
+  assert.equal(request.redirect, "error", "connector reads never follow redirects");
+  for (const outside of ["//evil.test/x", "//user@example.test/x", "https://example.test@evil.test/x"])
+    await assert.rejects(FG.live.fetchJson("fixture", outside), /refusing a URL outside/);
   for (const maxBytes of [0, -1, NaN, Infinity, 1.5]) await assert.rejects(FG.live.fetchJson("fixture", "/test", { maxBytes }), /positive integer/);
   let cancelled = false;
   context.fetch = async () => new Response(new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array(4 * 1024 * 1024 + 1)); }, cancel() { cancelled = true; } }));
@@ -68,6 +71,8 @@ test("JSON connectors bound every body and preserve request options, cancellatio
   await assert.rejects(FG.live.fetchJson("fixture", "/test", { maxBytes: 32 }), (error) => error.code === "size-limit");
   context.fetch = async () => new Response('{"ok":true}', { headers: { "content-length": "1" } });
   await assert.rejects(FG.live.fetchJson("fixture", "/test", { maxBytes: 3 }), (error) => error.code === "size-limit");
+  context.fetch = async () => ({ ok: true, status: 200, type: "opaqueredirect", headers: new Headers(), url: "", body: null });
+  await assert.rejects(FG.live.fetchJson("fixture", "/test"), /unreadable response or redirect/);
   context.fetch = async () => new Response("absent", { status: 404 });
   assert.equal(await FG.live.fetchJson("fixture", "/test", { allowNotFound: true }), null);
   context.fetch = async (_url, options) => new Promise((_resolve, reject) => options.signal.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))));
