@@ -35,8 +35,8 @@ ROOT = Path(__file__).resolve().parent.parent
 # Assistants that sign commits as co-authors, by the address their tools use, and the instrument each one is.
 AI_ADDRESSES = {
     "noreply@anthropic.com": "claude-opus-5-5",
-    "noreply@openai.com": "openai-codex",
-    "codex@openai.com": "openai-codex",
+    "noreply@openai.com": "openai-sol-6-1",
+    "codex@openai.com": "openai-sol-6-1",
     "kilo@kilo.ai": "kilo-code",
 }
 SNAPSHOT_PATHS = ("content/snapshots/", "content/glossary.toml")

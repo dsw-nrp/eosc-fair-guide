@@ -10,10 +10,11 @@ agent = "david-novak"
 instruments = [
   "claude-code",
   "claude-opus-5-5",
+  "deepseek-v4.1-flash-thinking",
   "kilo-code",
+  "openai-sol-6-1",
+  "openai-luna-6",
   "openai-codex",
-  "openai-codex-luna",
-  "openai-codex-runtime",
 ]
 objects = [
   "A.I1.X1",

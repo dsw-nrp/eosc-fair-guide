@@ -146,21 +146,21 @@ url = "https://claude.com/claude-code"
 kind = "software"
 
 [[instrument]]
-id = "openai-codex"
+id = "openai-sol-6-1"
 name = "OpenAI Codex / GPT-6.1 Sol"
-version = "GPT-6.1 Sol (user-confirmed)"
+version = "gpt-6-1-sol"
 url = "https://openai.com/codex/"
 kind = "ai-model"
 
 [[instrument]]
-id = "openai-codex-luna"
+id = "openai-luna-6"
 name = "OpenAI Codex / GPT-6 Luna"
-version = "gpt-6-luna (requested)"
+version = "gpt-6-luna"
 url = "https://openai.com/codex/"
 kind = "ai-model"
 
 [[instrument]]
-id = "openai-codex-runtime"
+id = "openai-codex"
 name = "OpenAI Codex"
 version = "not exposed by the runtime"
 url = "https://openai.com/codex/"
@@ -179,6 +179,13 @@ name = "Kilo Code"
 version = "not exposed by the runtime"
 url = "https://kilo.ai/"
 kind = "software"
+
+[[instrument]]
+id = "deepseek-v4.1-flash-thinking"
+name = "DeepSeek V4.1 Flash (Thinking)"
+version = "deepseek-v4.1-flash-thinking"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+kind = "ai-model"
 
 [[repositoryFunction]]
 id = "deposit-data"
