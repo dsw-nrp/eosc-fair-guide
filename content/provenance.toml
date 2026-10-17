@@ -1550,3 +1550,32 @@ results = [
   "zenodo-software-guide",
 ]
 endTime = 2026-10-16T19:35:35+00:00
+
+[[action]]
+id = "2026-10-17-consent-appraisal"
+type = "update"
+name = { cs = "Doplnění praxe v Zastávce 1 a 2: informovaný souhlas, výběr dat a kontinuita v týmu", en = "Practical guidance in Stations 1 and 2: informed consent, data appraisal and team continuity" }
+agent = "david-novak"
+instruments = [
+  "claude-code",
+  "claude-opus-5-5",
+]
+description = { cs = "Doplnění rad k formulaci informovaného souhlasu před sběrem dat od lidí, k výběru dat pro dlouhodobé uchování a k předávání dat při odchodu člena týmu.", en = "Added guidance on informed consent wording before human data collection, data selection for long-term preservation, and data handover when team members leave." }
+objects = [
+  "CESSDA-DMEG.01",
+  "EINFRA-DOCS.01",
+  "ETHICAL-SEVEN.01",
+  "LAW-328-2025.83",
+  "POLICY-MANUAL.02",
+  "POLICY-MANUAL.04",
+  "POLICY-MANUAL.06",
+  "RDMKIT.collect.02",
+  "SURVEY-2025.01",
+]
+results = [
+  "collect.22",
+  "collect.23",
+  "plan.31",
+  "plan.32",
+]
+endTime = 2026-10-17T10:25:00+00:00

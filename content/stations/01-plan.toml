@@ -242,3 +242,17 @@ lens = "K"
 level = "L1"
 text = { cs = "V biologických vědách porovnejte svůj postup s [[rdmkit-domains|oborovými stránkami RDMkit]], například pro [[rdmkit-bioimaging|obrazová]] nebo [[rdmkit-human-data|lidská data]]. Pro jiné obory vycházejte z vlastních komunitních standardů a příslušné národní infrastruktury; biologický příklad není obecný požadavek.", en = "In the life sciences, compare your practices with [[rdmkit-domains|RDMkit's domain pages]], for example for [[rdmkit-bioimaging|imaging]] or [[rdmkit-human-data|human data]]. Other fields should use their own community standards and national infrastructure; a life-science example is not a general requirement." }
 sources = ["RDMKIT.tasks.01"]
+
+[[advice]]
+id = "plan.31"
+lens = "V"
+level = "L1"
+text = { cs = "Sbíráte-li data od lidí, pohlídejte formulaci informovaného souhlasu a podkladů pro etickou komisi ještě před zahájením sběru: vyvarujte se slibu, že data po projektu smažete nebo že je nikdo mimo tým neuvidí, a výslovně v nich počítejte s archivací a dalším výzkumným využitím v anonymizované podobě nebo v režimu řízeného přístupu (viz [[ethical-seven|Etické sedmero]]).", en = "If you collect data from human participants, check the wording of the informed consent and ethics submission before collection starts: avoid promising to delete the data after the project or to restrict them forever to the original team, and explicitly cover archiving and future research reuse in anonymised form or under controlled access (see [[ethical-seven|The Ethical Seven]])." }
+sources = ["RDMKIT.collect.02", "ETHICAL-SEVEN.01"]
+
+[[advice]]
+id = "plan.32"
+lens = "V"
+level = "L1"
+text = { cs = "Rozmyslete výběr dat k dlouhodobému uchování: uchovávejte neopakovatelná primární měření a pozorování, [[term/underlying-data|podkladová data]] k publikovaným výsledkům a skripty potřebné k jejich ověření; objemné mezivýsledky, které lze ze vstupů a skriptu spolehlivě znovu spočítat, v repozitáři archivovat netřeba.", en = "Plan which data to preserve long-term: keep irreplaceable primary measurements and observations, [[term/underlying-data|underlying data]] behind published findings, and the scripts needed to verify them; bulky intermediate files that can be reliably recomputed from the inputs and script need not be archived in a repository." }
+sources = ["POLICY-MANUAL.02", "POLICY-MANUAL.04", "LAW-328-2025.83"]
