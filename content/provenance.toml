@@ -1550,3 +1550,35 @@ results = [
   "zenodo-software-guide",
 ]
 endTime = 2026-10-16T19:35:35+00:00
+
+[[action]]
+id = "2026-10-17-ip-errata-samples"
+type = "update"
+name = { cs = "Doplnění praxe v Zastávce 6, 7 a 8: identifikace vzorků a grantů, patenty a oprava chyb po publikaci", en = "Practical guidance in Stations 6, 7 and 8: sample and grant identifiers, patents and post-publication errata" }
+agent = "david-novak"
+instruments = [
+  "claude-code",
+  "claude-opus-5-5",
+]
+description = { cs = "Rozšíření vazeb v metadatech o identifikátory fyzických vzorků, přístrojů a projektů (metadata.05), doplnění postupu při patentování a průmyslové spolupráci podle § 83 odst. 5 zákona č. 328/2025 Sb. (licence.31) a zpřesnění postupu výzkumníka při opravě chyb po zveřejnění dat (publication.05).", en = "Expanded metadata links with physical sample, instrument and project identifiers (metadata.05), added patenting and industrial collaboration guidance under Section 83(5) of Act No. 328/2025 Sb. (licence.31), and detailed researcher steps for handling post-publication errors (publication.05)." }
+objects = [
+  "A.A2.R2",
+  "A.I3.R3",
+  "A.I3.R5",
+  "A.R1.2.N3",
+  "A.R1.R3",
+  "CDIF.REC6",
+  "COPYRIGHT-LICENCES.04",
+  "DDRAPP.01",
+  "LAW-328-2025.83.5",
+  "NRP.M1",
+  "NRP.M3",
+  "POLICY-MANUAL.05",
+  "RDMKIT.collect.02",
+]
+results = [
+  "licence.31",
+  "metadata.05",
+  "publication.05",
+]
+endTime = 2026-10-17T10:45:00+00:00
