@@ -51,8 +51,8 @@ sources = ["A.I3.R3", "A.R1.2.N3"]
 id = "metadata.06"
 lens = "V"
 level = "L1"
-text = { cs = "K souborům přidejte README nebo datový slovník, například podle [[cdsc-readme|šablony komunity data stewardů]].", en = "Add a README or a data dictionary to the files, for example following the [[cdsc-readme|Czech data steward community's template]]." }
-sources = ["CESSDA-DMEG.01", "CDSC-README.01"]
+text = { cs = "K souborům přidejte README a datový slovník podle [[cdsc-readme|šablony komunity data stewardů]], [[rdmkit-metadata|doporučení RDMkit pro metadata]] nebo [[cookbook-dictionary|receptu ve FAIR Cookbook]]; oborový profil slaďte se společným modelem [[res/std/ccmm|CCMM]].", en = "Add a README and a data dictionary to the files following the [[cdsc-readme|Czech data steward community's template]], [[rdmkit-metadata|RDMkit's metadata guidance]] or the [[cookbook-dictionary|FAIR Cookbook recipe]]; align any domain profile with [[res/std/ccmm|CCMM]]." }
+sources = ["CESSDA-DMEG.01", "CDSC-README.01", "RDMKIT.tasks.01"]
 
 [[advice]]
 id = "metadata.07"
@@ -293,9 +293,9 @@ id = "metadata.37"
 lens = "*"
 level = "L1"
 kind = "ai"
-text = { cs = "AI pomůže s návrhem abstraktu, README a datového slovníku, s překladem metadat mezi češtinou a angličtinou a s návrhy klíčových slov.", en = "AI can help draft the abstract, the README and the data dictionary, translate metadata between Czech and English, and suggest keywords." }
-check = { cs = "Popis musí odpovídat datům, ne tomu, co zní dobře. Identifikátory a hesla ověřte strojem, například v pomocníkovi [[page:identifiers|Ověřit identifikátory]]; AI je umí vymyslet.", en = "The description must match the data, not what sounds good. Verify identifiers and terms by machine, for example in the [[page:identifiers|Verify identifiers]] helper; AI can make them up." }
-prompt = { cs = "Z tabulky níže navrhni datový slovník: pro každý sloupec název, popis, jednotku, datový typ a povolené hodnoty. Co z dat nepoznáš, označ otazníkem a nedomýšlej.\n\nTabulka (záhlaví a několik řádků): […]", en = "From the table below, draft a data dictionary: for each column its name, description, unit, data type and allowed values. Mark what you cannot tell from the data with a question mark and do not guess.\n\nTable (header and a few rows): […]" }
+text = { cs = "AI pomůže z poznámek nebo README navrhnout dvojjazyčný abstrakt, shrnutí způsobu vzniku dat a kandidátní odborná hesla a klíčová slova pro formulář repozitáře.", en = "AI can help draft a bilingual abstract, a summary of how the data were produced, and candidate subject terms and keywords for the repository form from your notes or README." }
+check = { cs = "Ověřte, že popis odpovídá skutečným datům, ne tomu, co jen dobře zní. Identifikátory a hesla z řízených slovníků zkontrolujte strojem, například v pomocníkovi [[page:identifiers|Ověřit identifikátory]]; AI je umí vymyslet.", en = "Make sure the description matches the actual data, not just what sounds good. Verify identifiers and controlled-vocabulary terms by machine, for example in the [[page:identifiers|Verify identifiers]] helper; AI can make them up." }
+prompt = { cs = "Z poznámek k výzkumu a souboru README níže navrhni dvojjazyčný popis datové sady (česky a anglicky) pro uložení do repozitáře: výstižný název, strukturovaný abstrakt (účel, metoda a přístroje, rozsah dat), shrnutí původu a zpracování dat a 5–8 návrhů odborných hesel a klíčových slov. Co z podkladů nevyplývá, označ otazníkem a nedomýšlej.\n\nPodklady (README / poznámky k metodě): […]", en = "From the research notes and README below, draft a bilingual dataset description (in Czech and English) for repository deposit: a clear title, a structured abstract (purpose, method and instruments, data coverage), a summary of provenance and processing, and 5–8 candidate subject terms and keywords. Mark anything not stated in the notes with a question mark and do not guess.\n\nNotes / README: […]" }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.02"]
 
 [[advice]]
@@ -307,10 +307,3 @@ text = { cs = "AI vám pomůže navrhnout mapování polí vašeho metadatového
 check = { cs = "Mapování ověřte proti specifikaci schématu, ne proti paměti modelu, a vyzkoušejte ho na několika skutečných záznamech.", en = "Check the mapping against the schema's specification, not the model's memory, and try it on a few real records." }
 prompt = { cs = "Navrhni mapování polí našeho metadatového schématu (níže) na pole schématu DataCite podle specifikace, kterou vložím. U každého pole uveď, zda je mapování úplné, částečné, nebo chybí, a co se při převodu ztratí.\n\nNaše schéma: […]\n\nSpecifikace DataCite: […]", en = "Draft a mapping of our metadata schema's fields (below) to the fields of the DataCite schema, following the specification I paste. For each field say whether the mapping is complete, partial or missing, and what is lost in conversion.\n\nOur schema: […]\n\nDataCite specification: […]" }
 sources = ["EC-GENAI-GUIDELINES.01"]
-
-[[advice]]
-id = "metadata.41"
-lens = "*"
-level = "L1"
-text = { cs = "Pro popis souborů využijte [[rdmkit-metadata|dokumentaci a metadata v RDMkit]] a [[cookbook-dictionary|recept na datový slovník]]. Oborový profil slaďte s požadavky svého repozitáře; mezinárodní příklad automaticky nedokládá shodu s [[res/std/ccmm|CCMM]].", en = "Use [[rdmkit-metadata|RDMkit's documentation and metadata guidance]] and the [[cookbook-dictionary|data-dictionary recipe]] to describe files. Align a domain profile with your repository's requirements; an international example does not establish [[res/std/ccmm|CCMM]] conformance." }
-sources = ["RDMKIT.tasks.01"]

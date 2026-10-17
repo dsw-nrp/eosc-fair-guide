@@ -16,7 +16,7 @@ id = "analyse.01"
 lens = "*"
 level = "L1"
 kind = "key"
-text = { cs = "Analýzu veďte tak, aby ji jiní mohli zopakovat: kód, verzi softwaru, parametry a výpočetní prostředí ukládejte spolu s výsledky.", en = "Run your analysis so that others can repeat it: keep the code, software version, parameters and computing environment together with the results." }
+text = { cs = "Samotná tabulka výsledků bez postupu nestačí k ověření ani navázání: reprodukovatelná analýza propojuje vstupní data, skript a výpočetní prostředí.", en = "A table of results without the procedure cannot be verified or built upon: reproducible analysis links the input data, the script and the computing environment." }
 sources = ["RDMKIT.analyse.01", "RDMKIT.analyse.02"]
 
 [[advice]]
@@ -93,7 +93,7 @@ sources = ["RDMKIT.tasks.01"]
 id = "analyse.11"
 lens = "V"
 level = "L1"
-text = { cs = "K analýze přiložte definici prostředí [[conda|Conda]] a postup jeho [[conda-environments|exportu a obnovy]], případně recept kontejneru s [[container-images|digestem obrazu]]. Kroky a vstupy popište například v [[cwl|CWL]], [[nextflow|Nextflow]] nebo [[snakemake|Snakemake]] a ověřte je na malém příkladu. V ČR můžete podle potřeb využít [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] nebo [[lexis|LEXIS]]. Zveřejnění kódu řeší stránka [[page:software|Výzkumný software]].", en = "Keep a [[conda|Conda]] environment definition with the analysis and describe how to [[conda-environments|export and recreate it]], or provide a container recipe and [[container-images|image digest]]. Describe steps and inputs in, for example, [[cwl|CWL]], [[nextflow|Nextflow]] or [[snakemake|Snakemake]], and test them on a small example. Czech options include [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] and [[lexis|LEXIS]], according to your needs. See [[page:software|Research software]] for publishing the code." }
+text = { cs = "K analýze přiložte definici prostředí [[conda|Conda]] a postup jeho [[conda-environments|exportu a obnovy]], případně recept kontejneru s [[container-images|digestem obrazu]]. Vícekrokový postup popište například v [[cwl|CWL]], [[nextflow|Nextflow]] nebo [[snakemake|Snakemake]]; v ČR lze využít [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] nebo [[lexis|LEXIS]]. Zveřejnění kódu shrnuje stránka [[page:software|Výzkumný software]].", en = "Keep a [[conda|Conda]] environment definition with the analysis and describe how to [[conda-environments|export and recreate it]], or provide a container recipe and [[container-images|image digest]]. Describe multi-step workflows in, for example, [[cwl|CWL]], [[nextflow|Nextflow]] or [[snakemake|Snakemake]]; Czech options include [[galaxy-cz|Galaxy]], [[jupyterhub-cerit|JupyterHub CERIT]] and [[lexis|LEXIS]]. See [[page:software|Research software]] for publishing the code." }
 sources = ["CONDAENV.01", "WFCRATE.01", "CONTAINER.01"]
 
 [[advice]]
