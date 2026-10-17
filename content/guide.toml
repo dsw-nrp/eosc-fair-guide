@@ -181,9 +181,16 @@ url = "https://kilo.ai/"
 kind = "software"
 
 [[instrument]]
-id = "deepseek-v4.1-flash-thinking"
+id = "einfra-deepseek-4-1-ft"
 name = "DeepSeek V4.1 Flash (Thinking)"
 version = "deepseek-v4.1-flash-thinking"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+kind = "ai-model"
+
+[[instrument]]
+id = "einfra-glm-5-3"
+name = "GLM 5.3 (Z.ai)"
+version = "glm-5.3"
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
 kind = "ai-model"
 
