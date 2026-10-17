@@ -358,6 +358,7 @@ advice = [
   "assessment.27",
   "assessment.28",
   "assessment.29",
+  "publication.30",
 ]
 questions = [
   "cdif.01",
@@ -1266,6 +1267,7 @@ repositories = [
 ]
 actions = [
   "2026-10-16-initial-state",
+  "2026-10-17-formats-packaging",
 ]
 model = [
   "model:layers-seams",

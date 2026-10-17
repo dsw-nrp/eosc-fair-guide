@@ -1550,3 +1550,33 @@ results = [
   "zenodo-software-guide",
 ]
 endTime = 2026-10-16T19:35:35+00:00
+
+[[action]]
+id = "2026-10-17-formats-packaging"
+type = "update"
+name = { cs = "Doplnění praxe v Zastávce 2, 3 a 8: struktura složek, otevřené formáty, syntetická data a balíčkování", en = "Practical guidance in Stations 2, 3 and 8: folder structure, open formats, synthetic data and packaging" }
+agent = "david-novak"
+instruments = [
+  "claude-code",
+  "claude-opus-5-5",
+]
+description = { cs = "Doplnění konkrétního vzoru struktury složek a pojmenování souborů (collect.04), přehledu otevřených formátů podle typu dat (process.03), doporučení k syntetickému vzorku u citlivých dat (process.04) a praktické přípravy archivů a kontrolních součtů před publikací (publication.30).", en = "Added concrete folder layout and file-naming examples (collect.04), open format examples by data type (process.03), synthetic sample dataset guidance for restricted sensitive data (process.04), and archive packaging with checksum verification before publication (publication.30)." }
+objects = [
+  "A.A1.2.R2",
+  "A.F3.N2",
+  "A.I1.X1",
+  "CDIF.Manifest",
+  "CDIF.REC5",
+  "CDSC-README.01",
+  "CESSDA-DMEG.01",
+  "LAW-328-2025.83.3",
+  "MBDB-2026.01",
+  "RDMKIT.process.02",
+]
+results = [
+  "collect.04",
+  "process.03",
+  "process.04",
+  "publication.30",
+]
+endTime = 2026-10-17T10:35:00+00:00

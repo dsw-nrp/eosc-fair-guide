@@ -228,3 +228,10 @@ lens = "*"
 level = "L1"
 text = { cs = "Před zveřejněním projděte [[rdmkit-publication|kontrolní body RDMkit k publikaci]]: popis, licenci, verzi a [[term/persistent-identifier|trvalý identifikátor]]. V českém prostředí navazují [[step/findability|kroky Průvodce pro dohledatelnost]] v [[repo/reg/nma|NMA]] a odkaz pro RIV.", en = "Before publication, follow [[rdmkit-publication|RDMkit's publication considerations]] for documentation, licensing, version and a [[term/persistent-identifier|persistent identifier]]. In the Czech setting, continue with the [[step/findability|Guide's steps]] for [[repo/reg/nma|NMA]] discovery and the RIV link." }
 sources = ["RDMKIT.tasks.01"]
+
+[[advice]]
+id = "publication.30"
+lens = "V"
+level = "L1"
+text = { cs = "Obsahuje-li datová sada tisíce drobných souborů, zabalte je před vkladem do jednoho archivu (`.zip`, `.tar.gz`) a přiložte seznam souborů (manifest), aby stahování i správa v repozitáři proběhly spolehlivě. Po nahrání zkontrolujte kontrolní součty souborů (`SHA-256` nebo `MD5`).", en = "If a dataset contains thousands of small files, pack them into a single archive (`.zip`, `.tar.gz`) before deposit and attach a file list (manifest) so downloading and repository storage remain reliable. After upload, verify the file checksums (`SHA-256` or `MD5`)." }
+sources = ["CDIF.REC5", "CDIF.Manifest", "A.F3.N2"]
