@@ -228,3 +228,10 @@ lens = "SR"
 level = "L1"
 text = { cs = "Oddělte dvě oprávnění: depoziční podmínky zajišťují repozitáři uložení a zpřístupnění, uživatelská licence určuje další užití obsahu. Podmínky zpřístupněte před vkladem a zaznamenejte souhlas. Práva k databázi provozovatele neznamenají práva ke všem uloženým dílům; pro výklad a vzory použijte [[copyright-licences|příručku NRP]] a [[deposit-licence|vzor depoziční licence]]. Při zpracování více licencovaných vstupů pomůže [[page:licence-compatibility|tabulka slučitelnosti CC]].", en = "Separate two permissions: deposit conditions authorize repository storage and access, while the user licence governs further use of the content. Make conditions available before deposit and record acceptance. Rights in the repository database do not confer rights in every deposited work; use the [[copyright-licences|NRP handbook]] and [[deposit-licence|deposit licence template]]. For adaptation of several licensed inputs, use the [[page:licence-compatibility|CC compatibility table]]." }
 sources = ["COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "COPYRIGHT-LICENCES.05"]
+
+[[advice]]
+id = "licence.31"
+lens = "V"
+level = "L1"
+text = { cs = "Plánujete-li patentovou přihlášku nebo pracujete s obchodním tajemstvím průmyslového partnera, konzultujte postup s pracovištěm transferu technologií před zveřejněním: do podání přihlášky využijte časově omezené [[term/embargoed-access|embargo]] a u trvale chráněných podkladů zveřejněte metadatový záznam s odůvodněním zákonné výjimky podle [[law-328-2025|§ 83 odst. 5 zákona č. 328/2025 Sb.]]", en = "If you plan a patent application or work with an industrial partner's trade secrets, consult your technology transfer office before publishing: use a time-limited [[term/embargoed-access|embargo]] until the patent is filed, and for permanently protected material publish a metadata record stating the legal exception under [[law-328-2025|Section 83(5) of Act No. 328/2025 Sb.]]" }
+sources = ["LAW-328-2025.83.5", "POLICY-MANUAL.05", "COPYRIGHT-LICENCES.04"]
