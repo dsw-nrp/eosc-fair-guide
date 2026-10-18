@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Merged release version without the leading v
+        description: Committed release version without the leading v
         required: true
         type: string
       release_status:
@@ -16,7 +16,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
 
 concurrency:
   group: release-preparation
@@ -35,16 +34,20 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
-      - name: Check the merged metadata
-        run: python scripts/release_versions.py check
+      - name: Validate committed release and citation metadata
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python scripts/release_versions.py check --version "$RELEASE_VERSION"
+          python scripts/check_citation_metadata.py
       - id: app
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           client-id: ${{ vars.SOURCE_REFRESH_CLIENT_ID }}
           private-key: ${{ secrets.SOURCE_REFRESH_APP_PRIVATE_KEY }}
           permission-contents: write
-          permission-pull-requests: read
-      - name: Tag the merged release pull request
+      - name: Tag the validated current default-branch commit
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           github-token: ${{ steps.app.outputs.token }}

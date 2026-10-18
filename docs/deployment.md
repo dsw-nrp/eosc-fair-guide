@@ -98,17 +98,19 @@ both the production root and `/next/`; this command does not change `_site/`.
 
 Run **Prepare release** (`prepare-release.yml`) on the default branch with a SemVer version without `v`.
 The standard-library owner `scripts/release_versions.py` writes the Guide's version and `datePublished`, the
-root `CITATION.cff` version and `date-released`, npm's manifest and both lockfile root versions, and the Python
-project version. The build derives the crate and API values from the Guide; generated files are never patched.
+root `CITATION.cff` version and `date-released`, `.zenodo.json` version and `publication_date`, npm's manifest and
+both lockfile root versions, and the Python project version. The build derives the crate and API values from
+the Guide; generated files are never patched.
 The citation's referenced works retain their original versions and dates. No release status or testing notice
 changes automatically.
 
 The workflow retrieves every page of closed pull requests for the default branch. The script finds the nearest
 reachable release tag and selects merged PRs whose merge commits belong to that tag-to-HEAD ancestry (all HEAD
-ancestry for the first release). It writes the complete PR list into the release's changelog section, preserving
-earlier released sections. Unmerged PRs and changes outside this history are excluded; an empty list is refused.
-This includes squash and rebase merges through GitHub's recorded `merge_commit_sha`. Direct commits have no PR
-entry and should be reviewed before preparation. A release can collect several merged PRs.
+ancestry for the first release). It also collects every page of GitHub PR associations for first-parent commits
+in that history. Notes list merged PRs once and include linked, escaped subjects for direct commits; merge,
+squash and rebase PR commits are not listed again as direct changes. Earlier release sections are preserved.
+Unmerged PRs and changes outside this history are excluded. Commit-only and mixed releases are supported;
+an empty Git history or failed/incomplete collection is refused. A release can collect several merged PRs.
 
 Preparation records the dispatcher using a reviewed `person.github` identity and the deterministic script as
 instrument. Add a new dispatcher's reviewed identity and citation credit through an ordinary content PR first.
@@ -117,23 +119,26 @@ produces the same proposed bytes. The dispatch opens `release/<version>` with ju
 changelog, provenance and identifier register. It refuses an edited or outdated release branch and never moves
 it or reopens a closed proposal. A retry can finish opening a PR after branch creation was interrupted.
 
-Review and merge that release PR, then run **Tag release** (`tag-release.yml`) on its current default-branch
-merge commit with the same version. It checks the metadata and the merged PR, creates `v<version>` once and never
-moves an existing tag. If further commits landed after the release merge, reconcile the release through review
-before tagging; the dispatch refuses to tag those different bytes. Tag creation starts the checked production
-build described above; publishing the resulting draft release is still a separate maintainer act.
+The default path is to review and merge that release PR, then run **Tag release** (`tag-release.yml`) on the
+current default-branch commit with the same version. A maintainer may also use valid release metadata committed
+directly to the default branch through an explicitly authorized process. The dispatch checks all owning versions
+and dates, citation/Zenodo metadata and exactly one nonempty changelog section for the requested version with
+the matching date. No release PR or merge-commit ancestry is required. If further commits landed, reconcile
+the notes and metadata for the selected current commit before tagging. The final branch-head check rejects a
+stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
+checked production build; publishing the resulting draft release is still a separate maintainer act.
 
-When a deployment of a freshly created tag fails and the tag is removed, a repair merged afterwards moves the
-default-branch head, so the dispatch refuses to recreate the tag. The maintainer may then create the annotated tag
-directly for the same release merge commit: confirm the tag target is that merge commit, use the same
-`Fair-Guide-Release-Status` marker, and never move an existing tag. The deployment and draft release then follow
-from that commit's verified build exactly as for a dispatched tag.
+For an unchanged historical release whose failed-deployment tag was removed before a released artifact was
+published, the maintainer may recreate the annotated tag directly at the original release merge commit. Confirm
+that original target, use the same `Fair-Guide-Release-Status` marker and never move an existing tag. The normal
+dispatch selects the current default-branch commit and does not select historical targets. Corrected metadata
+belongs in a new version; editing `main` cannot repair bytes frozen at an existing tag.
 
 `.github/release.yml` groups GitHub-generated notes into Breaking changes (`breaking-change`, reserved
 for breaking PRs), Features (`enhancement`), Bug fixes (`bug`) and Other (all remaining PRs). It keeps
 dependency and bot changes visible. Check this configuration with
 `python .agents/scripts/validate_release_yml.py --root . --skip-reports` using Python with PyYAML.
-This config does not replace Prepare release's whole-PR changelog or the artifact-bound draft body.
+This config does not replace Prepare release's complete PR/direct-commit changelog or the artifact-bound draft body.
 For curated notes, follow the release-notes skill and validate its recommended report copy as instructed;
 publishing notes still needs separate approval.
 
@@ -148,6 +153,45 @@ workflows require activation through the approved deployment procedure.
 documentation that restates the Guide version. `check_all.py` runs it with the other deterministic checks.
 Run `python -m unittest discover -s tests -p test_release_versions.py` and
 `node tests/page/check_prepare_release.mjs` for offline metadata, history, identity and delivery fixtures.
+
+## Citation and Zenodo metadata
+
+Install the pinned `requirements-dev.txt` and run `python scripts/check_citation_metadata.py`. This read-only
+check runs in local `check_all` and the CPU CI lane, and both release dispatches run it before delivery or
+tagging. CFF is validated against its declared schema; the Zenodo import profile and shared citation fields
+are checked separately. `python scripts/release_versions.py check --version <version>` additionally requires
+matching committed release metadata and dated, nonempty notes for that requested version.
+
+The Guide owns release version/date, and CFF owns software authors, ORCIDs, title, abstract, keywords and license.
+Zenodo uses the equivalent values, including bare ORCIDs and the lowercase MIT license identifier. Its description
+is the CFF abstract, optionally followed by the guide/source links. Other shared-field changes need a matching
+Zenodo edit; the checker reports drift. Structured creator affiliations retain their reviewed ROR IDs and names
+from `content/guide.toml`. Do not also set a scalar `affiliation`, which overrides structured affiliations in
+Zenodo's importer. The release owner changes only version/date in `.zenodo.json`, preserving curated references,
+relations, funding/licensing notes and other supported archive fields. The permitted-file policy and emitted
+digests include the Zenodo file. Cited-report authors and licensing remain attached to that report; file-level
+licensing remains in `REUSE.toml`.
+
+[Zenodo selects `.zenodo.json` exclusively](https://help.zenodo.org/docs/github/describe-software/) when both files
+exist. Its [linked legacy schema](https://developers.zenodo.org/#github) omits `version` and structured affiliations,
+although the [reviewed importer](https://github.com/zenodo/zenodo-rdm/blob/1fab575d6b7eea09e5ebef5329ee366efbddc802/site/zenodo_rdm/legacy/deserializers/metadata.py)
+supports both. The repository's offline profile explicitly accepts those fields and rejects unsupported shapes;
+it does not fetch a changing schema during checks or claim remote vocabulary/archival acceptance.
+
+The previous rejected archive used a CFF license list that was valid CFF, while Zenodo's CFF import subset
+expected a string. The MIT software-license correction addresses that incompatibility; the actual remote error
+payload was not inspected. Keep regression coverage for both general CFF validity and the effective Zenodo
+import format. Run `python -m unittest discover -s tests -p test_citation_metadata.py` for those fixtures.
+
+After reviewed delivery, confirm the Zenodo integration is enabled, publish the corrected next release under
+maintainer authorization and check its actual archive result. Once the real concept DOI is issued, add its
+badge/link to both `README.md` and `README_en.md` through the normal documentation route and verify the destination.
+The [concept DOI covers all versions](https://support.zenodo.org/help/en-gb/25-citations/234-how-to-share-or-cite-a-zenodo-record);
+retain version-specific DOI distinctions for reproducible citations. Do not add placeholder badges, guess a DOI
+or claim successful archiving while the record is pending or failed. The GitHub integration does not support
+[DOI pre-reservation](https://support.zenodo.org/help/en-gb/24-github-integration/73-can-i-pre-reserved-a-doi-before-a-github-release).
+
+## Live release probes
 
 For the opt-in acceptance probes, run `npm run check:live-release`. It requests the four citation formats for
 one DataCite and one Crossref DOI, verifies that Czech ISO differs from APA, then runs the Guide's twelve

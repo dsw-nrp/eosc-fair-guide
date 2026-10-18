@@ -9,8 +9,9 @@ workflow. [AGENTS.md](AGENTS.md) supplies the runtime instructions the assistant
 
 ## Branches and pull requests
 
-- `main` supplies the `/next/` preview; production comes from checked release artifacts. Nobody pushes to `main`
-  directly; every change arrives as a pull request.
+- `main` supplies the `/next/` preview; production comes from checked release artifacts. Pull requests are the
+  default delivery path. Explicitly authorized maintainer direct commits remain releasable after the same
+  metadata and release checks; this grants agents no permission to push directly or bypass branch protection.
 - Name branches by purpose: `content/<topic>` for texts and data, `fix/<topic>` for defects,
   `feature/<topic>` for new behaviour, and `agents/<agent>/<topic>` for work done by an AI agent.
 - Keep a pull request to one purpose. Text polishing of one station is a good size.
@@ -148,15 +149,24 @@ followed by a body when the reason is not obvious. Mention AI assistance in the 
 ## Releases
 
 Use the **Prepare release** manual workflow on the default branch. `scripts/release_versions.py` sets the version
-and release dates in `content/guide.toml`, `CITATION.cff`, `package.json`, `package-lock.json` and `pyproject.toml`,
-records the reviewed dispatcher's provenance, and writes `CHANGELOG.md` from all pull requests merged since the
-previous tag. The crate and API derive their metadata from the Guide. The release pull request runs ordinary
-checks; review and merge it before using the separate **Tag release** dispatch on that merged commit.
+and release dates in `content/guide.toml`, `CITATION.cff`, `.zenodo.json`, `package.json`, `package-lock.json` and
+`pyproject.toml`, records the reviewed dispatcher's provenance, and writes `CHANGELOG.md` from merged PRs and
+direct default-branch commits since the previous reachable tag, without duplicate PR entries. The crate and API
+derive their metadata from the Guide. The default release PR runs ordinary checks; review and merge it before
+using the separate **Tag release** dispatch. Valid metadata committed directly through an authorized maintainer
+process is also accepted: tagging checks the current default-branch source, every version/date and nonempty
+dated release notes, without requiring a release PR. Preparation and ordinary pushes never create a release tag.
 
 `python scripts/release_versions.py check --site _site` refuses metadata/date disagreements and prose that
 restates the Guide version. Tags use `vX.Y.Z` (or a SemVer prerelease suffix). The tag checks and packages the site;
 production and the draft release receive those same verified bytes. See [deployment](docs/deployment.md) for
 configuration, local fixtures and recovery. These workflows never merge a pull request or publish a release.
+
+`python scripts/check_citation_metadata.py` validates CFF, supported Zenodo import fields and shared software
+credit. Keep curated Zenodo references, notes and ROR affiliations; see [metadata ownership](docs/deployment.md#citation-and-zenodo-metadata).
+After a corrected new release is successfully archived in Zenodo, add its actual concept-DOI badge to both
+README languages and verify the all-versions destination. This is a post-release follow-up; no DOI is invented
+or prefilled while archiving is pending.
 
 The footer shows the build's own identity, derived from git rather than an authored field: the version from the
 release tag (an untagged build shows the last tag plus its distance and commit, and is marked as the unreleased
