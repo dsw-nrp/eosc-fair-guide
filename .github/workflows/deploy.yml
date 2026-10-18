@@ -182,6 +182,7 @@ jobs:
 
   deploy:
     needs: assemble
+    if: ${{ !cancelled() && needs.assemble.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

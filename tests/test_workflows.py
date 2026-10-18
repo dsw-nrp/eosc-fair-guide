@@ -20,6 +20,17 @@ def load(path: str) -> dict:
 
 
 class WorkflowContracts(unittest.TestCase):
+    def test_pages_publication_tolerates_the_optional_production_skip(self) -> None:
+        publication = load(".github/workflows/deploy.yml")["jobs"]["deploy"]
+        self.assertEqual(publication["needs"], "assemble")
+        condition = publication.get("if", "")
+        self.assertRegex(
+            condition, r"\b(?:always|cancelled)\s*\(", "override implicit success() after a skipped ancestor"
+        )
+        self.assertRegex(condition, r"needs\.assemble\.result\s*==\s*(['\"])success\1", "require the checked assembly")
+        self.assertIn("!cancelled()", condition, "a cancelled workflow must not publish")
+        self.assertNotIn("needs.production", condition, "a first preview does not require a production release")
+
     def test_copilot_setup_uses_the_locked_workspace_cli(self) -> None:
         job = load(".github/workflows/copilot-setup-steps.yml")["jobs"]["copilot-setup-steps"]
         self.assertEqual(job["permissions"], {"contents": "read"})
