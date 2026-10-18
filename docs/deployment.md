@@ -123,6 +123,12 @@ moves an existing tag. If further commits landed after the release merge, reconc
 before tagging; the dispatch refuses to tag those different bytes. Tag creation starts the checked production
 build described above; publishing the resulting draft release is still a separate maintainer act.
 
+When a deployment of a freshly created tag fails and the tag is removed, a repair merged afterwards moves the
+default-branch head, so the dispatch refuses to recreate the tag. The maintainer may then create the annotated tag
+directly for the same release merge commit: confirm the tag target is that merge commit, use the same
+`Fair-Guide-Release-Status` marker, and never move an existing tag. The deployment and draft release then follow
+from that commit's verified build exactly as for a dispatched tag.
+
 `.github/release.yml` groups GitHub-generated notes into Breaking changes (`breaking-change`, reserved
 for breaking PRs), Features (`enhancement`), Bug fixes (`bug`) and Other (all remaining PRs). It keeps
 dependency and bot changes visible. Check this configuration with

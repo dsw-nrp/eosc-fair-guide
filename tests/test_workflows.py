@@ -292,6 +292,22 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn("workflow_run.event == 'push'", release["jobs"]["bind"]["if"])
         self.assertIn("workflow_run.head_repository.full_name == github.repository", release["jobs"]["bind"]["if"])
 
+    def test_release_helpers_never_spread_the_workflow_context(self) -> None:
+        pattern = re.compile(r"\{\s*\.\.\.context\s*[,}]")
+        for path in [*ROOT.glob(".github/workflows/*.yml"), *ROOT.glob(".github/scripts/*.cjs")]:
+            self.assertNotRegex(
+                path.read_text(encoding="utf-8"),
+                pattern,
+                f"{path.name} spreads the @actions/github context, which drops its repo getter",
+            )
+        for name, helper in (
+            ("deploy.yml", "reuse"),
+            ("release.yml", "draftRelease"),
+            ("publish-image.yml", "assertPromotion"),
+        ):
+            text = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
+            self.assertIn("refContext", text, f"{name} derives the {helper} context through refContext")
+
     def test_code_owners_and_the_template_name_real_people_and_the_required_parts(self) -> None:
         owners = [
             line.split()

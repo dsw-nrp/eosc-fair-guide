@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-const { verifiedRun, draftRelease, tagOf, compareTags, sources, reuse, completedTag, assertPromotion } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
+const { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
 const { validVersion } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
 const cases = JSON.parse(readFileSync(new URL("../fixtures/normalization.json", import.meta.url), "utf8"));
 for (const value of cases.versions.valid) assert(validVersion(value), value);
@@ -12,7 +12,18 @@ for (const value of cases.versions.invalid) assert(!validVersion(value), JSON.st
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const sha = "a".repeat(40);
-const context = (ref = "refs/tags/v1.0.0-alpha.1", commit = sha) => ({ repo, ref, sha: commit, payload: { repository: { default_branch: "main" } } });
+class FakeContext {
+  constructor(ref = "refs/tags/v1.0.0-alpha.1", commit = sha) {
+    this.ref = ref;
+    this.sha = commit;
+    this.payload = { repository: { default_branch: "main" } };
+  }
+  get repo() { return repo; }
+}
+const context = (ref, commit) => new FakeContext(ref, commit);
+assert.equal({ ...context() }.repo, undefined, "@actions/github keeps repo on the context prototype");
+assert.deepEqual(refContext(context(), "refs/tags/v1.0.0-alpha.1", sha).repo, repo, "the carrier carries the repository");
+assert.throws(() => refContext({ payload: {} }, "refs/tags/v1.0.0-alpha.1", sha), /carries no repository/);
 const core = { info() {} };
 const archive = Buffer.from("site bytes");
 const digest = createHash("sha256").update(archive).digest("hex");
@@ -125,7 +136,8 @@ github.rest.repos.getReleaseByTag = async () => ({ data: { assets: [{ id: 2, nam
 assert.deepEqual(await reuse({ github, context: context() }), { run: 5 }, "a partial draft falls back to the checked artifact");
 
 const completed = { ...goodRun, path: ".github/workflows/deploy.yml", head_repository: { full_name: "dsw-nrp/eosc-fair-guide" } };
-const eventContext = { ...context(), payload: { workflow_run: { id: 5 } } };
+const eventContext = context();
+eventContext.payload = { workflow_run: { id: 5 } };
 ({ github } = fake([completed]));
 assert.deepEqual(await completedTag({ github, context: eventContext }), { tag: "v1.0.0-alpha.1", sha, run: 5 });
 for (const changed of [{ event: "pull_request" }, { conclusion: "failure" }, { head_branch: "main" }, { path: ".github/workflows/checks.yml" }, { head_repository: { full_name: "foreign/fork" } }]) {

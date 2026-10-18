@@ -83,6 +83,6 @@ jobs:
           RELEASE_IMAGE: ghcr.io/dsw-nrp/eosc-fair-guide@${{ needs.publish.outputs.digest }}
         with:
           script: |
-            const { draftRelease } = require('./.github/scripts/release-artifact.cjs');
-            const selected = { ...context, ref: 'refs/tags/' + process.env.RELEASE_TAG, sha: process.env.RELEASE_SHA };
+            const { draftRelease, refContext } = require('./.github/scripts/release-artifact.cjs');
+            const selected = refContext(context, 'refs/tags/' + process.env.RELEASE_TAG, process.env.RELEASE_SHA);
             await draftRelease({ github, context: selected, core });

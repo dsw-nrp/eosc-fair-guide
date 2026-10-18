@@ -14,6 +14,13 @@ function tagOf(context) {
   return { tag, version: tag.slice(1) };
 }
 
+/** Another tag/commit of the same run. @actions/github exposes `repo` as a getter, which object spread drops. */
+function refContext(context, ref, sha) {
+  const repo = context.repo;
+  if (!repo?.owner || !repo?.repo) throw Error("The release context carries no repository");
+  return { repo, payload: context.payload, ref, sha };
+}
+
 /** The successful deployment triggered by this exact release tag and commit. */
 async function verifiedRun({ github, context }) {
   tagOf(context);
@@ -54,7 +61,7 @@ async function sources({ github, context }) {
   if (isTag && (!latest || tagOf(context).tag !== latest.name || context.sha !== latest.commit.sha)) throw Error("Only the newest release tag can replace production");
   let production = null;
   for (const entry of isTag ? tags.slice(0, 1) : tags) {
-    const selected = { ...context, ref: "refs/tags/" + entry.name, sha: entry.commit.sha };
+    const selected = refContext(context, "refs/tags/" + entry.name, entry.commit.sha);
     if (await available({ github, context: selected })) { production = entry; break; }
   }
   const stage = isTag ? (await github.rest.repos.getBranch({ ...context.repo, branch })).data.commit.sha : context.sha;
@@ -88,7 +95,7 @@ async function available({ github, context }) {
 /** Serialized image publishers recheck the newest verified production source immediately before moving aliases. */
 async function assertPromotion({ github, context }) {
   const { tag } = tagOf(context);
-  const selected = await sources({ github, context: { ...context, ref: 'refs/heads/' + context.payload.repository.default_branch } });
+  const selected = await sources({ github, context: refContext(context, 'refs/heads/' + context.payload.repository.default_branch, context.sha) });
   if (selected.tag !== tag || selected.production !== context.sha) throw Error('A newer verified production release superseded this image');
 }
 
@@ -120,7 +127,7 @@ async function completedTag({ github, context }) {
   const run = (await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: context.payload.workflow_run.id })).data;
   if (run.conclusion !== "success" || run.event !== "push" || run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}` ||
       String(run.path).split("@")[0] !== ".github/workflows/deploy.yml") throw Error("Not a successful repository deployment");
-  const result = { ...context, ref: "refs/tags/" + run.head_branch, sha: run.head_sha };
+  const result = refContext(context, "refs/tags/" + run.head_branch, run.head_sha);
   const { tag } = tagOf(result);
   const commit = (await github.rest.repos.getCommit({ ...context.repo, ref: tag })).data.sha;
   if (commit !== result.sha) throw Error("Release tag moved after verification");
@@ -167,4 +174,4 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   return release.id;
 }
 
-module.exports = { verifiedRun, draftRelease, tagOf, compareTags, sources, reuse, completedTag, assertPromotion };
+module.exports = { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion };

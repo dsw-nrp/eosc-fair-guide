@@ -173,8 +173,8 @@ jobs:
           RELEASE_COMMIT: ${{ inputs.commit }}
         with:
           script: |
-            const { assertPromotion } = require('./.github/scripts/release-artifact.cjs');
-            await assertPromotion({ github, context: { ...context, ref: 'refs/tags/' + process.env.RELEASE_TAG, sha: process.env.RELEASE_COMMIT } });
+            const { assertPromotion, refContext } = require('./.github/scripts/release-artifact.cjs');
+            await assertPromotion({ github, context: refContext(context, 'refs/tags/' + process.env.RELEASE_TAG, process.env.RELEASE_COMMIT) });
       - name: Promote the audited digest
         env:
           DIGEST: ${{ steps.digest.outputs.digest }}

@@ -407,14 +407,27 @@ without rebuilding away its recorded health outcomes.
 ### Requirement: Releases are prepared and tagged by dispatch
 
 A prepare-release dispatch SHALL write the version, the dates and a changelog of the pull requests merged since the
-last tag into a release pull request; one release MAY collect many pull requests. The tag SHALL be created only by
-a separate dispatch after the release pull request is merged, never automatically.
+last tag into a release pull request; one release MAY collect many pull requests. The tag SHALL be created by a
+separate dispatch after the release pull request is merged, never automatically.
 
 #### Scenario: Preparing a release from several merged pull requests
 
 - **GIVEN** three pull requests merged since the last tag
 - **WHEN** the maintainer runs the prepare-release dispatch for `1.0.0-alpha.2`
 - **THEN** a release pull request sets that version and today's release date in every owning file and lists the three pull requests in the changelog, and no tag exists until the maintainer runs the tag dispatch after merging it
+
+### Requirement: An unchanged release may be re-issued by a direct annotated tag
+
+When the default branch has advanced past the release merge commit and the dispatch would refuse the re-issue, the
+maintainer MAY create the annotated tag directly for that same commit, provided no released artifact has been
+published for that tag. The tag SHALL name that merge commit, carry the release-status marker, and never move an
+existing tag. Deployment and release SHALL follow from that commit's verified build.
+
+#### Scenario: Re-issuing an unchanged release after a repair
+
+- **GIVEN** a merged release pull request at a known commit, its tag removed after a failed deployment, and a repair merged to the default branch
+- **WHEN** the maintainer creates the annotated tag for that release merge commit because the dispatch refuses the moved branch
+- **THEN** the tag names the release merge commit and carries its status marker, and the deployment and draft release still follow from that commit's verified build
 
 ### Requirement: First official prerelease is the software example baseline
 
