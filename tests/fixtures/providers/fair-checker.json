@@ -1,0 +1,17 @@
+{
+  "swagger": { "info": { "version": "1.0", "title": "FAIR-Checker API" } },
+  "responses": {
+    "F1A": { "metric": "F1A", "score": "2", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.000301", "recommendation": "No recommendation, metric validated", "comment": "INFO - Evaluating metrics Unique IDs\n" },
+    "F1B": { "metric": "F1B", "score": "2", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.000238", "recommendation": "No recommendation, metric validated", "comment": "INFO - Evaluating metrics Persistent IDs\n" },
+    "F2A": { "metric": null, "score": "2", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:01.204113", "recommendation": "No recommendation, metric validated", "comment": "INFO - Evaluating metrics Structured metadata\nINFO - 42 RDF triples were found\n" },
+    "F2B": { "metric": "F2B", "score": "1", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:02.511000", "recommendation": "Use terms from shared vocabularies <b>registered</b> in ontology registries", "comment": "INFO - Evaluating metrics Shared vocabularies for metadata\nWARNING - Some properties were not found in LOV or OLS\n" },
+    "A11": { "metric": "A11", "score": "2", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.000190", "recommendation": "No recommendation, metric validated", "comment": "INFO - Evaluating metrics Open resolution protocol\n" },
+    "A12": { "metric": "A12", "score": "0", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.912000", "recommendation": "Describe access rights or the authorisation procedure in the metadata", "comment": "INFO - Evaluating metrics Authorisation procedure or access rights\nWARNING - No access rights property found\n" },
+    "I1": { "metric": "I1", "score": "2", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.401000", "recommendation": "No recommendation, metric validated", "comment": "INFO - Evaluating metrics Machine readable format\n" },
+    "I2": { "metric": "I2", "score": "1", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:03.002000", "recommendation": "Reuse classes and properties from shared ontologies", "comment": "INFO - Evaluating metrics Use shared ontologies\n" },
+    "I3": { "metric": "I3", "score": "0", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.611000", "recommendation": "Link the resource to other resources with resolvable identifiers", "comment": "INFO - Evaluating metrics External links\n" },
+    "R11": { "metric": "R11", "score": "2", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.320000", "recommendation": "No recommendation, metric validated", "comment": "INFO - Evaluating metrics Metadata includes license\nINFO - Found license https://creativecommons.org/licenses/by/4.0/\n" },
+    "R12": { "metric": "R12", "score": "1", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:00.700000", "recommendation": "Describe who created the resource and when", "comment": "INFO - Evaluating metrics Metadata includes provenance\n" },
+    "R13": { "metric": "R13", "score": "0", "target_uri": "https://doi.org/10.1234/example", "eval_time": "0:00:04.100000", "recommendation": "Validate metadata against a community profile such as a Bioschemas profile", "comment": "INFO - Evaluating metrics Community standards\nWARNING - No profile matched the resource types\n" }
+  }
+}

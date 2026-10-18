@@ -1,0 +1,5408 @@
+/* Layout and components of the FAIR data guide. Light theme only; reflows down to 320 CSS pixels. */
+
+/* Plus Jakarta Sans (SIL OFL 1.1) for the life cycle's stage names, in the Latin and Latin Extended subsets Czech and
+   English need; vendored by scripts/vendor_fonts.py, loaded only where it is used. */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-ext-700-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-800-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../fonts/plus-jakarta-sans-latin-ext-800-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--size-base);
+  line-height: var(--line);
+  overflow-wrap: anywhere;
+}
+
+a {
+  color: var(--tint-teal);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--tint-pink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.25;
+  margin: var(--space-5) 0 var(--space-3);
+}
+
+h1 {
+  font-size: var(--size-h1);
+}
+
+h2 {
+  font-size: var(--size-h2);
+}
+
+h3 {
+  font-size: var(--size-h3);
+}
+
+p,
+ul,
+ol {
+  margin: 0 0 var(--space-3);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -3rem;
+  padding: var(--space-2) var(--space-3);
+  background: var(--background);
+  border: 2px solid var(--focus);
+  z-index: 10;
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+.wrap {
+  max-width: var(--width);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+/* Header */
+
+.site-header {
+  border-bottom: 4px solid var(--brand-teal);
+  background: var(--background);
+}
+
+.site-header .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-5);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text);
+  text-decoration: none;
+  flex: 1 1 18rem;
+}
+
+.brand img {
+  width: 12rem;
+  flex: none;
+}
+
+@media (min-width: 40rem) {
+  .brand img {
+    width: 17rem;
+  }
+}
+
+/* On phones the logo and the language switch share the first row, the title takes the second, and the guide's data
+   and source the third. */
+@media (max-width: 39.99rem) {
+  .site-header .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .brand {
+    display: contents;
+  }
+
+  .brand > a:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .site-header .controls {
+    display: contents;
+  }
+
+  .site-header .header-lang {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .site-header .header-links {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .brand-title {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .header-page span {
+    display: none;
+  }
+}
+
+.responsive-menu {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+.responsive-menu > summary {
+  display: none;
+}
+
+.role-menu {
+  flex: 1;
+}
+
+@media (max-width: 39.99rem) {
+  .responsive-menu > summary {
+    display: list-item;
+    padding: var(--space-3) 0;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .lens-band-label {
+    display: none;
+  }
+}
+
+.brand-title {
+  font-size: var(--size-lead);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand-title:hover {
+  color: var(--tint-teal);
+  text-decoration: underline;
+}
+
+.controls,
+.header-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+select,
+input[type="text"],
+input[type="search"],
+input[type="url"],
+textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--background);
+  border: 1px solid var(--text-muted);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-2);
+  min-height: 2.5rem;
+  max-width: 100%;
+}
+
+/* A hidden element stays hidden whatever display its component sets; the browser's own rule loses to any author
+   rule, such as the inline-flex of a button. */
+[hidden] {
+  display: none !important;
+}
+
+/* The reason a control is inactive, shown beside it while it waits. */
+.control-reason {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+button,
+.button {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  border: 2px solid var(--tint-teal);
+  background: var(--background);
+  color: var(--tint-teal);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button:hover,
+.button:hover {
+  background: var(--surface);
+  color: var(--tint-teal);
+}
+
+.button-primary {
+  background: var(--tint-teal);
+  color: #ffffff;
+}
+
+.button-primary:hover {
+  background: #005a62;
+  color: #ffffff;
+}
+
+.button-link {
+  border: 0;
+  padding: 0;
+  min-height: 0;
+  background: none;
+  text-decoration: underline;
+  font-weight: 400;
+}
+
+/* An icon-only button, such as the GitHub link in the header; its name is in visually hidden text. */
+.button-icon {
+  justify-content: center;
+  min-width: 2.75rem;
+  padding: var(--space-2);
+}
+
+.button-icon .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.header-page[aria-current="page"] {
+  background: var(--tint-teal);
+  color: #ffffff;
+}
+
+/* Testing notice */
+
+.testing-notice {
+  background: var(--notice);
+  border-bottom: 1px solid var(--notice-border);
+}
+
+.testing-notice p {
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+
+.testing-notice strong {
+  margin-right: var(--space-2);
+}
+
+/* Main navigation */
+
+.main-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+
+.main-nav a {
+  display: inline-block;
+  padding: var(--space-1) 0;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+
+.main-nav a[aria-current="page"] {
+  color: var(--text);
+  border-bottom-color: var(--brand-pink);
+}
+
+/* Lens band: under the main menu on the views the lens changes; it stays in view on wider screens so roles can be
+   compared at the same position. */
+
+.lens-band {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.lens-band .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+.lens-band-label {
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.lens-band ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lens-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--text);
+  font-size: var(--size-small);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lens-option:hover {
+  border-color: var(--tint-teal);
+  color: var(--text);
+}
+
+.lens-option[aria-current="true"] {
+  border-color: var(--tint-teal);
+  background: var(--tint-teal);
+  color: #fff;
+}
+
+.lens-option .icon-large {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.lens-option[aria-current="true"] .icon-large {
+  color: inherit;
+}
+
+@media (min-width: 40rem) {
+  .lens-band {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  html {
+    scroll-padding-top: 4.5rem;
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .lens-band ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .lens-option {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+  }
+}
+
+/* Layout */
+
+.layout {
+  display: grid;
+  gap: var(--space-5);
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-7);
+}
+
+.layout > article { min-width: 0; }
+
+@media (min-width: 60rem) {
+  .layout-path {
+    grid-template-columns: 18rem minmax(0, 1fr);
+  }
+}
+
+/* Path rail */
+
+/* A distinct menu panel, grouped by life-cycle stage, with each step a full-width navigation target. */
+.rail {
+  --rail-icon: 1.1rem;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.rail ol {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+  display: grid;
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.rail-title {
+  margin: 0 0 var(--space-3);
+  font-weight: 700;
+}
+
+.compatibility-cell {
+  white-space: nowrap;
+}
+
+.compatibility-icon {
+  color: var(--state-gap);
+  font-size: var(--size-lead);
+  font-weight: 700;
+}
+
+[data-compatible="true"] .compatibility-icon {
+  color: var(--state-met);
+}
+
+@media (min-width: 60rem) {
+
+  /* Below the lens band, which stays in view on the path. */
+  .path-side {
+    position: sticky;
+    top: 4.5rem;
+    align-self: start;
+  }
+}
+
+.path-side {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.rail a {
+  display: grid;
+  grid-template-columns: var(--rail-icon) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  background: var(--background);
+  border: 1px solid var(--border);
+  min-height: 2.75rem;
+}
+
+/* A step's row: its link and the reader's own read control beside it. The control is a sibling of the link, never
+   inside it, so a button is not nested in a link (D-190). */
+.rail .rail-step,
+.journey-steps .journey-step {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.rail .rail-step:hover > a {
+  background: var(--surface);
+}
+
+.rail a:hover {
+  border-color: var(--tint-teal);
+  text-decoration: underline;
+}
+
+.rail a .icon {
+  color: var(--tint-teal);
+}
+
+.rail a[aria-current="step"] {
+  background: var(--surface-strong);
+  border-color: var(--tint-teal);
+  font-weight: 700;
+}
+
+/* The steps under their numbered life-cycle stages; the stage of the step being read is marked in its colour. */
+.rail .rail-stages {
+  gap: var(--space-2);
+}
+
+.rail .rail-stage ol {
+  padding: 0;
+  border: 0;
+}
+
+.rail-stage {
+  border-left: 3px solid transparent;
+}
+
+.rail-stage-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  padding: 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.rail-stage-number,
+.journey-number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: var(--stage);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.rail-stage-number {
+  width: 1.35rem;
+  height: 1.35rem;
+  font-size: 0.75rem;
+}
+
+.rail .current-stage {
+  border-left-color: var(--stage);
+}
+
+.rail .current-stage > .rail-stage-name {
+  color: var(--text);
+}
+
+.rail-mobile {
+  margin: 0;
+}
+
+.rail-mobile nav {
+  padding: 0;
+}
+
+@media (min-width: 60rem) {
+  .rail-mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 59.99rem) {
+  .rail-desktop {
+    display: none;
+  }
+}
+
+/* The self-check's marks at a step: one per open answer state, in the self-check's icon and colour, on their own
+   line under the step's name, so several checks' marks never squeeze the name. */
+.rail-marks {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 2 / -1;
+  gap: 0.25rem;
+  margin-top: -0.15rem;
+}
+
+.rail-hide-checks .rail-marks {
+  display: none;
+}
+
+.rail-checks-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  min-height: 1.5rem;
+  font-size: var(--size-small);
+}
+
+.rail-checks-toggle input {
+  margin: 0;
+  flex: none;
+}
+
+.rail-mark {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0 0.35rem;
+  border-radius: 1rem;
+  background: var(--state-unknown);
+  color: #ffffff;
+  font-size: var(--size-small);
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.rail-mark[data-state="gap"] {
+  background: var(--state-gap);
+}
+
+.rail-mark[data-state="partly"] {
+  background: var(--state-partly);
+}
+
+/* The rail's legend, always below it. */
+.rail-legend {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-2) 0;
+  border-top: 1px solid var(--border);
+  font-size: var(--size-small);
+}
+
+.rail-legend-title {
+  margin: 0 0 var(--space-1);
+  font-weight: 700;
+}
+
+.rail-legend ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.rail-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rail-legend li > :first-child {
+  flex: none;
+}
+
+.legend-current {
+  width: 1.5rem;
+  height: 1.1rem;
+  border-radius: 3px;
+  background: var(--surface-strong);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.rail-legend-note {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.rail-legend a {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tint-teal);
+  text-decoration: underline;
+}
+
+/* The life cycle on the path's start: a ring of the stages and, beside it, the same stages as a numbered list. */
+.journey {
+  margin-top: var(--space-6);
+}
+
+.journey-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 52rem) {
+  .journey-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.journey-ring {
+  margin: 0;
+  container: ring / inline-size;
+}
+
+.journey-ring svg {
+  display: block;
+  width: 100%;
+  max-width: 46rem;
+  height: auto;
+  margin: 0 auto;
+}
+
+.ring-stage {
+  cursor: pointer;
+}
+
+/* Each segment in its stage's colour, parted from the next by a thin white line, with a sheen towards the outer
+   edge; the name beside it in the same colour. */
+.ring-segment path {
+  fill: var(--stage);
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.ring-segment .ring-sheen {
+  stroke: none;
+  pointer-events: none;
+}
+
+/* Copies of the stage read last and of the stage pointed at are drawn above the whole ring, so each lies over both
+   its neighbours; the pointer passes through them to the segment they copy. */
+.ring-top {
+  pointer-events: none;
+}
+
+.ring-top-last {
+  filter: url(#ring-lift);
+}
+
+/* The segment under the pointer, or whose stage has focus in the list, grows in place over its neighbours with a
+   deeper shadow. */
+.ring-top-hover {
+  transform-box: view-box;
+  transform: scale(1.1);
+  filter: url(#ring-pop) brightness(1.06);
+}
+
+/* The ring's text in Plus Jakarta Sans, falling back to the page's font until it has loaded. Set by class, so the
+   copy of a segment drawn above the ring keeps it too. */
+.ring-number,
+.ring-label,
+.ring-note,
+.ring-center,
+.ring-basis {
+  font-family: "Plus Jakarta Sans", var(--font);
+}
+
+.ring-number {
+  fill: #ffffff;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.ring-label {
+  fill: var(--stage);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.ring-note {
+  fill: var(--text-muted);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* The middle: a quiet disc with the cycle's mark, the title and the model it follows. */
+.ring-disc {
+  fill: var(--surface);
+}
+
+.ring-cycle {
+  color: var(--brand-teal);
+}
+
+.ring-center {
+  fill: var(--text);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.ring-basis {
+  fill: var(--text-muted);
+  font-size: 14px;
+}
+
+/* In a narrow column the names would be too small to read or crowd the ring; the list beside or below the ring
+   names every stage, so the names leave as soon as the ring's own width is under 36rem. */
+@container ring (max-width: 36rem) {
+  .ring-label,
+  .ring-note {
+    display: none;
+  }
+}
+
+.journey-stages {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each stage reads as a row: its number and name centred on the left, its steps listed on the right behind a rule. */
+.journey-stages > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--stage);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+
+.journey-stages > .journey-last {
+  background: var(--surface-strong);
+  box-shadow: inset 0 0 0 2px var(--stage);
+}
+
+.journey-stage-head {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: start;
+}
+
+.journey-stage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.journey-stage:hover strong {
+  text-decoration: underline;
+}
+
+.journey-number {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: var(--size-small);
+}
+
+.journey-steps {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 1px solid var(--border);
+  list-style: none;
+  font-size: var(--size-small);
+}
+
+.journey-steps .icon {
+  color: var(--stage);
+}
+
+.journey-steps a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.read-mark {
+  flex-shrink: 0;
+}
+
+/* The reader's read mark on a step: a small control beside the step that the reader sets and clears (D-190). */
+.read-toggle {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.read-toggle[data-state="read"] {
+  border-color: var(--tint-teal);
+  color: var(--tint-teal);
+}
+
+.read-toggle:hover {
+  background: var(--surface);
+}
+
+.read-toggle-glyph {
+  font-size: var(--size-small);
+}
+
+.text-table-scroll { overflow-x: auto; margin-block: var(--space-3); }
+.text-table { width: 100%; border-collapse: collapse; }
+.text-table th, .text-table td { padding: var(--space-2); border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap; }
+.text-table th:first-child { text-align: left; }
+
+.stage-1 { --stage: var(--stage-1); }
+.stage-2 { --stage: var(--stage-2); }
+.stage-3 { --stage: var(--stage-3); }
+.stage-4 { --stage: var(--stage-4); }
+.stage-5 { --stage: var(--stage-5); }
+.stage-6 { --stage: var(--stage-6); }
+.stage-7 { --stage: var(--stage-7); }
+
+.resume {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--brand-pink);
+  background: var(--surface);
+}
+
+/* Station */
+
+.station-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.station-header h1 {
+  margin-top: 0;
+}
+
+.station-header .muted {
+  margin: 0 0 var(--space-1);
+}
+
+.station-header .station-icon {
+  width: 3rem;
+  height: 3rem;
+  margin-top: var(--space-1);
+  color: var(--tint-teal);
+}
+
+@media (max-width: 39.99rem) {
+  .station-header .station-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* Principle tiles: the F/A/I/R letter on its colour, then the code and the short title. */
+.principle-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+
+.principle-tile {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--background);
+  color: var(--text);
+  font-size: var(--size-small);
+  text-decoration: none;
+}
+
+.principle-tile > span:last-child {
+  padding: var(--space-1) var(--space-3);
+}
+
+.principle-tile:hover {
+  border-color: var(--tint-teal);
+  color: var(--text);
+}
+
+.principle-tile[aria-current="true"] {
+  border-color: var(--tint-teal);
+  box-shadow: inset 0 0 0 1px var(--tint-teal);
+  font-weight: 700;
+}
+
+.principle-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.9em;
+  padding: 0 var(--space-2);
+  background: var(--fair-f);
+  color: #fff;
+  font-weight: 700;
+}
+
+[data-letter="A"] > .principle-letter,
+.principle-letter[data-letter="A"] {
+  background: var(--fair-a);
+}
+
+[data-letter="I"] > .principle-letter,
+.principle-letter[data-letter="I"] {
+  background: var(--fair-i);
+}
+
+[data-letter="R"] > .principle-letter,
+.principle-letter[data-letter="R"] {
+  background: var(--fair-r);
+}
+
+h2 > .principle-letter {
+  margin-right: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: var(--size-small);
+  color: var(--text);
+  text-decoration: none;
+}
+
+a.chip:hover {
+  border-color: var(--tint-teal);
+}
+
+/* "What to do now": a framed block with its actions on the right. */
+.now {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3) var(--space-5);
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+@media (max-width: 39.99rem) {
+  .now {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+}
+
+.now .level {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--size-small);
+  font-weight: 700;
+  color: var(--tint-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 var(--space-1);
+}
+
+.now .now-text {
+  font-size: var(--size-lead);
+  margin: 0;
+}
+
+/* A station's key point, first under its title. */
+.key-point {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--brand-teal);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+  font-size: var(--size-lead);
+}
+
+.key-point p {
+  margin: 0;
+}
+
+.key-point-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1) !important;
+  color: var(--tint-teal);
+  font-size: var(--size-small);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* The Heslář terms of a station, in one row under "do now". */
+.station-terms {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.inline-heading {
+  margin: 0;
+  font-size: var(--size-small);
+}
+
+.station-terms > .chips {
+  flex: 1 1 20rem;
+}
+
+/* What a disclosure holds, after its title. */
+.summary-note {
+  float: right;
+  margin-left: var(--space-3);
+  font-weight: 400;
+}
+
+/* An explanation that names a service not yet in full operation, set apart with its icon. */
+.status-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--notice-border);
+  background: var(--notice);
+}
+
+.status-note .icon {
+  margin-top: 0.25em;
+  color: var(--notice-border);
+}
+
+.why-note {
+  margin: 0 0 var(--space-3);
+}
+
+/* A step's resources as compact cards side by side; each leads to its whole entry in the catalogue. */
+.cards-compact {
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  align-items: start;
+}
+
+.entry-more {
+  margin: var(--space-2) 0 0;
+}
+
+.entry-compact .entry-head {
+  align-items: flex-start;
+}
+
+.station-help p {
+  margin: var(--space-1) 0;
+}
+
+.station-help .icon {
+  color: var(--tint-teal);
+}
+
+/* The next step, and a related tool under it as a quieter button. */
+.now-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+@media (max-width: 39.99rem) {
+  .now-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+}
+
+.button-small {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--size-small);
+}
+
+details > summary .icon {
+  margin-right: var(--space-2);
+  color: var(--tint-teal);
+}
+
+/* The quiet line under a station's levels on what its content is based on. */
+/* The icon stays beside the line, which wraps as text on narrow screens. */
+.provenance-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--size-small);
+}
+
+.provenance-line .icon {
+  flex: none;
+  margin-top: 0.2em;
+}
+
+.provenance-line .button-link {
+  font-size: inherit;
+}
+
+/* The guide's standalone pages (its vocabulary and its RO-Crate profile): a plain reading layout of grouped,
+   labelled entries. */
+.profile-page h2 { margin: 2rem 0 0.75rem; padding-bottom: 0.25rem; border-bottom: 2px solid var(--border); font-size: 1.2rem; }
+.profile-page code { overflow-wrap: anywhere; }
+.detail-intro, .detail-meta { color: var(--text-muted); }
+.detail-group { margin: 0 0 1.5rem; }
+.detail-entry { margin: 0 0 1rem; padding: 0 0 1rem; border-bottom: 1px solid var(--border); }
+.detail-entry:last-child { border-bottom: 0; }
+.detail-entry h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+.detail-entry h3 a { text-decoration: none; }
+.detail-entry p { margin: 0 0 0.35rem; }
+.detail-files { margin: 0; padding-left: 1.2rem; }
+.detail-files li { margin: 0 0 0.3rem; }
+
+.credits,
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-3) 0;
+  font-size: var(--size-small);
+}
+
+.credits th,
+.credits td,
+.data-table th,
+.data-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.credits tbody th,
+.data-table tbody th {
+  font-weight: 600;
+  width: 40%;
+}
+
+/* Links in running text: dotted underline, solid on hover. */
+main :is(p, li, td) > a:not([class]) {
+  text-decoration-style: dotted;
+  text-underline-offset: 0.15em;
+}
+
+main :is(p, li, td) > a:not([class]):hover {
+  text-decoration-style: solid;
+}
+
+details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: var(--space-3) 0;
+  background: var(--background);
+}
+
+details > summary {
+  cursor: pointer;
+  padding: var(--space-3) var(--space-4);
+  font-weight: 700;
+  list-style-position: inside;
+}
+
+details[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+details > .content {
+  padding: var(--space-3) var(--space-4) var(--space-2);
+}
+
+.steps > li {
+  margin-bottom: var(--space-3);
+}
+
+.tip {
+  border-left: 4px solid var(--brand-pink);
+  padding-left: var(--space-4);
+}
+
+/* A catalogue entry's persistent identifiers, shown in full so they can be read and copied. */
+.pid-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+/* An identifier chip may hold a whole address, so it wraps where the address allows. */
+.pid-chip {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+button.id-chip {
+  /* Inline question references keep the chip's size rather than the action button's 44px minimum. */
+  min-height: 1.5rem;
+  cursor: pointer;
+}
+
+.pid-scheme {
+  font-weight: 700;
+}
+
+/* A station or a check named by a catalogue entry, with its icon as in the path menu. */
+.holder-link .icon {
+  margin-right: 0.3em;
+  color: var(--tint-teal);
+}
+
+/* A requirement's guidance as published, behind a disclosure. */
+.clause-guidance {
+  margin: var(--space-2) 0;
+}
+
+.clause-guidance > summary {
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
+/* The identifier helper keeps each returned record with its local check and explicit lookup action. */
+.identifier-helper form {
+  margin-bottom: var(--space-3);
+}
+
+.identifier-helper textarea {
+  display: block;
+  width: 100%;
+  padding-right: 2.75rem;
+  margin: 0;
+}
+
+.identifier-helper .field-clearable {
+  display: block;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.identifier-helper .field-clear {
+  top: var(--space-1);
+  transform: none;
+}
+
+.identifier-helper .identifier-list {
+  list-style: none;
+  padding: 0;
+}
+
+.identifier-helper .identifier-list > li {
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--border);
+}
+
+.identifier-helper .identifier-list > li > :last-child {
+  margin-bottom: 0;
+}
+
+/* A page section's action, below its text. */
+.section-action {
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+/* The AI page's tips, grouped under the station they belong to. */
+.ai-station-tips > section + section {
+  margin-top: var(--space-5);
+}
+
+.ai-station-tips h3 {
+  margin-bottom: var(--space-3);
+}
+
+/* A list in authored text: its items spaced like short paragraphs. */
+.text-list > li {
+  margin-bottom: var(--space-2);
+}
+
+/* An AI tip: the tip, what to check, and its prompt to copy, kept together by the tip's line. */
+.ai-tip {
+  margin-bottom: var(--space-4);
+}
+
+.ai-tip > p {
+  margin: 0 0 var(--space-2);
+}
+
+.ai-prompt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.ai-prompt pre {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.callout {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  margin: var(--space-4) 0;
+  background: var(--background);
+}
+
+/* The callout's frame is the disclosure's frame. */
+.callout > details {
+  border: 0;
+  margin: 0;
+  background: none;
+}
+
+.callout-sensitive-data {
+  border-color: var(--tint-pink);
+}
+
+.code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--size-small);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: var(--size-small);
+}
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+/* Lists of resources and repositories */
+
+/* Headings and regions that take focus for screen readers after navigation show no frame; keyboard focus on
+   controls keeps its outline. */
+#main h1:focus,
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* The self-check overview: three steps, a grid of check cards, and saved results at the bottom. */
+.how-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  margin: var(--space-4) 0 var(--space-5);
+  padding: 0;
+}
+
+.how-steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: var(--size-small);
+}
+
+.how-steps .icon {
+  color: var(--tint-teal);
+}
+
+.how-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--tint-teal);
+  color: #fff;
+  font-weight: 700;
+}
+
+.check-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-3);
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+}
+
+.check-card {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+}
+
+.check-card p {
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-small);
+}
+
+.check-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.check-card-head h3 {
+  margin: 0;
+  font-size: var(--size-base);
+}
+
+.check-card-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: var(--tint-teal);
+}
+
+.check-card-meta {
+  color: var(--text-muted);
+}
+
+.check-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-small);
+}
+
+.check-progress progress {
+  flex: 1;
+  height: 0.5rem;
+  accent-color: var(--tint-teal);
+}
+
+.check-card .check-card-action {
+  display: flex;
+  justify-content: flex-end;
+  margin: auto 0 0;
+  padding-top: var(--space-2);
+}
+
+.check-card-action .button {
+  justify-content: center;
+  min-width: 9rem;
+  padding-left: var(--space-5);
+  padding-right: var(--space-5);
+}
+
+.saved-results {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.cards {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  background: var(--background);
+}
+
+.card h3,
+.card h4 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-base);
+}
+
+.card p {
+  margin: 0 0 var(--space-2);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--size-small);
+}
+
+.card .badges {
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.card > :last-child {
+  margin-bottom: 0;
+}
+
+main p > .button,
+main p > button {
+  margin-block: var(--space-1);
+}
+
+.badge {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Long node facts wrap as phrases, instead of competing flex columns inside a narrow card. */
+.node-badge {
+  max-width: 100%;
+}
+
+.node-badge a {
+  overflow-wrap: normal;
+}
+
+.badge[data-status="operational"] {
+  background: var(--status-operational);
+}
+
+.badge[data-status="pilot"] {
+  background: var(--status-pilot);
+}
+
+.badge[data-status="in-development"] {
+  background: var(--status-in-development);
+}
+
+.badge[data-status="planned"] {
+  background: var(--status-planned);
+}
+
+.badge[data-status="prospective"] {
+  background: var(--status-prospective);
+}
+
+.badge[data-verification="verified"] {
+  border-color: var(--tint-teal);
+}
+
+/* A life-cycle stage's definition, quoted as its source publishes it, and the stages it corresponds to. */
+.stage-definition {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--border);
+}
+
+.crosswalk {
+  margin: var(--space-1) 0 var(--space-3);
+  padding-left: var(--space-4);
+}
+
+.crosswalk li {
+  margin: var(--space-1) 0;
+}
+
+.badge[data-basis] {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.badge[data-basis="published"] {
+  border-color: var(--tint-teal);
+  background: var(--status-operational);
+}
+
+.badge[data-basis="reviewed"] {
+  background: var(--status-in-development);
+}
+
+.badge[data-basis="unconfirmed"] {
+  border-style: dashed;
+  border-color: var(--notice-border);
+  background: var(--notice);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  align-items: flex-end;
+  margin: var(--space-4) 0;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+.notice {
+  background: var(--notice);
+  border: 1px solid var(--notice-border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Explorer */
+
+.explorer {
+  padding-top: var(--space-4);
+}
+
+@media (min-width: 60rem) {
+  .layout-explorer {
+    grid-template-columns: 17rem minmax(0, 1fr);
+  }
+
+  .principle-menu {
+    position: sticky;
+    top: var(--space-4);
+    align-self: start;
+  }
+}
+
+.principle-menu {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.principle-group-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-small);
+  font-weight: 700;
+}
+
+.principle-group-name .principle-letter {
+  border-radius: var(--radius);
+  min-height: 1.6em;
+}
+
+.principle-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.principle-group .principle-tile {
+  display: flex;
+}
+
+.clauses {
+  list-style: none;
+  padding: 0;
+}
+
+.clauses > .clause {
+  padding: var(--space-3) 0;
+  margin: 0;
+}
+
+.clause + .clause {
+  border-top: 1px solid var(--border);
+}
+
+/* Cited statements keep their source on a quieter line. */
+.clause > p {
+  margin: 0;
+}
+
+.clause > .clause-title {
+  margin-bottom: var(--space-1);
+}
+
+/* The identifier and source stay apart when their line wraps. */
+.clause .clause-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 var(--space-2);
+  color: var(--text-muted);
+}
+
+.clause .clause-note,
+.clause .clause-source {
+  margin-top: var(--space-2);
+}
+
+/* Keep the principle's statement at a readable line length. */
+.principle-detail > .lead {
+  max-width: 65ch;
+}
+
+.clause > :last-child {
+  margin-bottom: 0;
+}
+
+/* Identifier links wrap whole, except when wider than their column. */
+.id-chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0 var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--tint-teal);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--size-small);
+  line-height: 1.6;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+a.id-chip:hover,
+a.id-chip:focus-visible {
+  border-color: var(--tint-teal);
+  text-decoration: underline;
+}
+
+.id-chip-static {
+  color: var(--text);
+}
+
+.catalogue-group > h3 {
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+/* Footer */
+
+.site-footer {
+  border-top: 4px solid var(--brand-teal);
+  background: var(--surface);
+  padding: var(--space-5) 0 var(--space-6);
+  font-size: var(--size-small);
+}
+
+.site-footer ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* The logolink is one published image, shown through two windows: the EU and MŠMT pair (left of the split) and the
+   EOSC CZ logo (right of it). Side by side they reproduce the image exactly; on a narrow screen the EOSC CZ logo
+   moves below at the same scale. Measures are in the image's own units (Czech 2034.16 wide with the split at 1061,
+   English 2094.02 with the split at 1125, both 310.52 high). */
+.logolink {
+  display: flex;
+  max-width: 60rem;
+  margin: var(--space-5) 0 var(--space-4);
+}
+
+.logolink-crop {
+  position: relative;
+  overflow: hidden;
+}
+
+.logolink-crop img {
+  position: absolute;
+  top: 0;
+  max-width: none;
+  height: auto;
+}
+
+.logolink-cs .logolink-funding {
+  flex: 0 0 52.16%;
+  aspect-ratio: 1061 / 310.52;
+}
+
+.logolink-cs .logolink-funding img {
+  left: 0;
+  width: 191.72%;
+}
+
+.logolink-cs .logolink-initiative {
+  flex: 0 0 47.84%;
+  aspect-ratio: 973.16 / 310.52;
+}
+
+.logolink-cs .logolink-initiative img {
+  left: -109.03%;
+  width: 209.02%;
+}
+
+.logolink-en .logolink-funding {
+  flex: 0 0 53.72%;
+  aspect-ratio: 1125 / 310.52;
+}
+
+.logolink-en .logolink-funding img {
+  left: 0;
+  width: 186.14%;
+}
+
+.logolink-en .logolink-initiative {
+  flex: 0 0 46.28%;
+  aspect-ratio: 969.02 / 310.52;
+}
+
+.logolink-en .logolink-initiative img {
+  left: -116.1%;
+  width: 216.1%;
+}
+
+@media (max-width: 39.99rem) {
+  .logolink {
+    flex-direction: column;
+  }
+
+  .logolink .logolink-crop {
+    flex: none;
+  }
+
+  .logolink-funding {
+    width: 100%;
+  }
+
+  .logolink-cs .logolink-initiative {
+    width: 91.72%;
+  }
+
+  .logolink-en .logolink-initiative {
+    width: 86.14%;
+  }
+}
+
+.logolink-part {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: var(--radius);
+}
+
+.logolink-part:hover {
+  box-shadow: inset 0 0 0 2px var(--tint-teal);
+}
+
+.logolink-eu {
+  left: 0;
+  width: 65.5%;
+}
+
+.logolink-ministry {
+  left: 65.5%;
+  right: 0;
+}
+
+.logolink-eosc {
+  left: 0;
+  right: 0;
+}
+
+/* Icons */
+
+.sprite {
+  display: none;
+}
+
+.icon {
+  width: 1.1em;
+  height: 1.1em;
+  fill: currentColor;
+  vertical-align: -0.15em;
+  flex: none;
+}
+
+.icon-large {
+  width: 1.6em;
+  height: 1.6em;
+  color: var(--tint-teal);
+}
+
+/* Landing */
+
+.landing .lead {
+  font-size: var(--size-lead);
+  margin-top: 0;
+}
+
+.search {
+  background: var(--surface-strong);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  margin: var(--space-5) 0;
+}
+
+.search label {
+  display: block;
+  font-weight: 700;
+  font-size: var(--size-h3);
+  margin-bottom: var(--space-2);
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.search-row input {
+  flex: 1 1 16rem;
+  min-width: 0;
+  font-size: var(--size-lead);
+  padding: var(--space-3);
+  border-width: 2px;
+}
+
+.search-results h3 {
+  font-size: var(--size-base);
+  color: var(--text-muted);
+  margin: var(--space-4) 0 var(--space-1);
+}
+
+.results-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.result:hover {
+  border-color: var(--tint-teal);
+  color: var(--text);
+  background: var(--background);
+}
+
+.result-primary {
+  border: 2px solid var(--tint-teal);
+  font-weight: 700;
+}
+
+.tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.task:hover {
+  border-color: var(--tint-teal);
+  color: var(--text);
+}
+
+.routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-5);
+  font-size: var(--size-small);
+}
+
+.search-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+
+.search-basis {
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.catalogue-handoff {
+  margin: var(--space-5) 0 var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.search-results .button-link {
+  margin-top: var(--space-2);
+}
+
+.trust {
+  margin-top: var(--space-6);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+  font-size: var(--size-small);
+  color: var(--text-muted);
+}
+
+/* Self-check */
+
+.choice,
+.item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  margin: 0 0 var(--space-4);
+  min-width: 0;
+}
+
+.choice legend,
+.item legend {
+  font-weight: 600;
+  padding: 0 var(--space-1);
+}
+
+.item-provided {
+  background: var(--surface);
+}
+
+.item-statement {
+  font-weight: 600;
+  margin-top: 0;
+}
+
+.item-id {
+  color: var(--tint-teal);
+  font-variant-numeric: tabular-nums;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.option input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--tint-teal);
+}
+
+/* A compact question card: its state along the left edge; the answers as pills, each with its state's icon. A
+   suggestion is drawn dashed in its state's colour; the reader's own answer is filled. */
+.question-card {
+  border-left: 4px solid var(--state-open);
+}
+
+.question-card[data-state="met"] { border-left-color: var(--state-met); }
+.question-card[data-state="partly"] { border-left-color: var(--state-partly); }
+.question-card[data-state="gap"] { border-left-color: var(--state-gap); }
+.question-card[data-state="unknown"] { border-left-color: var(--state-unknown); }
+
+.option[data-value="yes"] { --state: var(--state-met); }
+.option[data-value="partly"] { --state: var(--state-partly); }
+.option[data-value="no"] { --state: var(--state-gap); }
+.option[data-value="unknown"] { --state: var(--state-unknown); }
+.option[data-value="na"] { --state: var(--state-na); }
+
+.question-card .options {
+  gap: var(--space-2);
+}
+
+.question-card .option {
+  position: relative;
+  min-height: 2.5rem;
+  padding: 0 var(--space-3);
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  font-weight: 600;
+}
+
+.question-card .option .icon {
+  color: var(--state);
+}
+
+/* The radio stays for keyboard and assistive technology; the pill shows its state and its focus. */
+.question-card .option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.question-card .option:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.question-card .option:hover {
+  border-color: var(--state);
+}
+
+.question-card .option:has(input:checked) {
+  border-color: var(--state);
+  background: var(--state);
+  color: #ffffff;
+}
+
+.question-card .option:has(input:checked) .icon {
+  color: #ffffff;
+}
+
+.question-card[data-origin="suggestion"] .option:has(input:checked) {
+  border-style: dashed;
+  background: var(--background);
+  color: var(--state);
+}
+
+.question-card[data-origin="suggestion"] .option:has(input:checked) .icon {
+  color: var(--state);
+}
+
+/* One evidence line in a quiet box: who owns the answer, then the most useful observation with its source's badge. */
+.question-card .origin {
+  border-left: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* The source's badge sits on the middle of the observation's first line, however many lines follow. */
+.evidence-first {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-1) 0;
+  line-height: 1.55;
+}
+
+.evidence-first > .evidence-observation,
+.evidence-first .evidence-observation > :first-child,
+.evidence-source-body > :first-child {
+  margin-top: 0;
+}
+
+.evidence-source-body {
+  min-width: 0;
+}
+
+/* The badge is 1.25rem high on a first line of 1.55 times the small text size. */
+.evidence-first > .service-badge {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: calc((var(--size-small) * 1.55 - 1.25rem) / 2);
+  font-size: 0.6rem;
+}
+
+.evidence-none {
+  color: var(--text-muted);
+}
+
+.withdraw {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-size: var(--size-small);
+}
+
+.question-details {
+  margin: var(--space-2) 0 0;
+  border: 0;
+  background: none;
+}
+
+.question-details > summary {
+  padding: var(--space-1) 0;
+  color: var(--tint-teal);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.question-details[open] > summary {
+  border-bottom: 0;
+}
+
+.question-details > .content {
+  padding: var(--space-2) 0 0;
+}
+
+/* A distribution of answer states: solid segments in the states' colours, the counts named in text beside or
+   below. */
+[data-state="met"] { --state-color: var(--state-met); }
+[data-state="partly"] { --state-color: var(--state-partly); }
+[data-state="gap"] { --state-color: var(--state-gap); }
+[data-state="unknown"] { --state-color: var(--state-unknown); }
+[data-state="open"] { --state-color: var(--state-open); }
+
+.distribution-bar {
+  display: flex;
+  overflow: hidden;
+  min-height: 1.5rem;
+  border-radius: 0.25rem;
+  background: var(--surface);
+}
+
+.distribution-bar > span {
+  display: grid;
+  place-items: center;
+  min-width: 1.25rem;
+  background: var(--state-color);
+  color: #ffffff;
+  font-size: var(--size-small);
+  font-weight: 700;
+}
+
+.distribution-bar > span + span {
+  border-left: 2px solid #ffffff;
+}
+
+.distribution-bar > [data-state="open"] {
+  color: var(--text);
+}
+
+.distribution-text {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.distribution-compact .distribution-bar {
+  min-height: 0.6rem;
+}
+
+.distribution-compact .distribution-text {
+  font-size: 0.8rem;
+}
+
+.principle-distributions {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+/* A block's row: its icon and name above its bar, since block names are long. */
+.block-distribution,
+.path-distribution {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-3);
+}
+
+.block-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+}
+
+.principle-distribution {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.distribution-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.distribution-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.legend-swatch {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 0.2rem;
+  background: var(--state-color);
+}
+
+/* The gaps in one card per actor who fixes them, side by side where there is room. */
+.gap-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.gap-group {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.gap-group h4 {
+  margin: 0 0 var(--space-2);
+}
+
+.gap-rule {
+  margin: 0 0 var(--space-3);
+}
+
+/* The role the reader chose: its group first, set apart by its rule. */
+.gap-group-mine {
+  padding-left: var(--space-3);
+  border-left: 4px solid var(--tint-teal);
+}
+
+/* A response in the table leads to its row below; it reads as the state it shows. */
+.agreement-link {
+  text-align: left;
+}
+
+/* The answers beside the evaluators; a result opens on the spot to its run's details. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.agreement td,
+.agreement th {
+  vertical-align: top;
+}
+
+/* The question column reads as a list of questions: number, then wording, left-aligned and wrapping. */
+.agreement-question {
+  min-width: 14rem;
+  max-width: 28rem;
+  font-weight: 400;
+  text-align: left;
+}
+
+.agreement-question .button-link {
+  display: inline;
+  text-align: left;
+}
+
+.agreement-question .item-id {
+  font-weight: 700;
+}
+
+.agreement .run-details {
+  margin: 0;
+  border: 0;
+  background: none;
+}
+
+.agreement .run-details > summary {
+  padding: 0;
+  font-weight: 400;
+}
+
+.agreement .run-details > .content {
+  padding: var(--space-2) 0 0;
+  min-width: 16rem;
+}
+
+.agreement [data-agreement="differ"] .agreement-verdict {
+  color: var(--state-gap);
+  font-weight: 700;
+}
+
+.selfcheck article {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The evidence beside an item: the verdict with the values found, then the source, date and record. */
+.origin {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border);
+  background: var(--background);
+  font-size: var(--size-small);
+}
+
+.origin:empty {
+  display: none;
+}
+
+.origin p {
+  margin: var(--space-1) 0;
+}
+
+.origin li {
+  margin: var(--space-1) 0;
+  line-height: 1.6;
+}
+
+.question-help {
+  margin: var(--space-2) 0;
+  line-height: 1.65;
+}
+
+.question-relations {
+  margin: var(--space-3) 0;
+}
+
+.evidence-readable {
+  display: block;
+  margin: var(--space-1) 0;
+}
+
+.evidence-details,
+.inspection-details,
+.probe-log,
+.historical-answer {
+  margin: var(--space-2) 0;
+  font-size: var(--size-small);
+}
+
+.evidence-details > .content,
+.inspection-details > .content,
+.probe-log > .content,
+.historical-answer > .content,
+.test-records > .content {
+  padding: var(--space-2) var(--space-3);
+  color: var(--text);
+}
+
+.evidence-details > .content + .content,
+.probe-record + .probe-record {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-3);
+}
+
+.probe-log pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 0.9em;
+  max-height: 24rem;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.evidence-value {
+  max-height: 24rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.evidence-value > p { margin: 0; }
+.evidence-value > p + p { margin-top: var(--space-2); }
+.test-invocation { overflow-wrap: anywhere; }
+.test-invocation code { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.evidence-details summary,
+.inspection-details summary,
+.probe-log summary {
+  padding: var(--space-2) var(--space-3);
+}
+
+/* In evidence the field name is a small technical label; the value found reads as text. */
+.evidence-field code:first-child {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.evidence-field code + code,
+.evidence-field code:last-child:not(:first-child) {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.verdict[data-kind="changed"] {
+  color: var(--tint-pink);
+  font-weight: 700;
+}
+
+.verdict[data-kind="changed"]::before {
+  content: "✎ ";
+}
+
+.verdict[data-kind="none"] {
+  font-weight: 700;
+}
+
+.verdict[data-kind="none"]::before {
+  content: "? ";
+}
+
+.source-chip {
+  color: var(--text-muted);
+}
+
+.source-chip[data-origin="changed"] {
+  color: var(--text);
+}
+
+/* Local data: a small framed note. The sentence on where answers are kept, then the "how it works" toggle on the
+   left and the delete control on the right; the explanation opens below the toggle. */
+.local-data {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0 var(--space-2);
+  align-items: start;
+  margin: var(--space-3) 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: var(--size-small);
+}
+
+.local-data-icon {
+  margin-top: 0.2em;
+  color: var(--tint-teal);
+}
+
+.local-data-line {
+  margin: 0;
+}
+
+.local-data-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-1);
+}
+
+.local-data .local-data-how {
+  flex: 1 1 14rem;
+  margin: 0;
+  border: 0;
+  background: none;
+}
+
+.local-data-how > summary {
+  display: inline-flex;
+  align-items: center;
+  list-style: none;
+  min-height: 1.9rem;
+  padding: 0;
+  color: var(--tint-teal);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.local-data-how > summary:hover {
+  text-decoration: underline;
+}
+
+.local-data-how > summary::-webkit-details-marker {
+  display: none;
+}
+
+.local-data-how > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  text-decoration: none;
+}
+
+.local-data-how[open] > summary::before {
+  content: "▾";
+}
+
+.local-data-how[open] > summary {
+  border-bottom: 0;
+}
+
+.local-data-how > .content {
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border);
+  background: var(--background);
+  color: var(--text);
+}
+
+.local-data-how > .content ul {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+.local-data-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 1.9rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--tint-pink);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--tint-pink);
+  font-size: inherit;
+  font-weight: 600;
+}
+
+.local-data-delete:hover {
+  background: #fdf0f3;
+  color: var(--tint-pink);
+}
+
+.local-data-delete .icon {
+  margin: 0;
+}
+
+.local-data #local-data-status {
+  margin: var(--space-1) 0 0;
+}
+
+.local-data #local-data-status:empty {
+  display: none;
+}
+
+/* A file control that looks like the other actions; the input stays focusable for keyboards. */
+.load-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.file-input:focus-visible + label {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.load-file [role="status"] {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.export-actions,
+.export-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.export-more {
+  margin-top: var(--space-4);
+}
+
+.export-format {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-4);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  border: 0;
+}
+
+.export-format legend {
+  float: left;
+  margin-right: var(--space-2);
+  padding: 0;
+  font-weight: 600;
+}
+
+.export .export-preview {
+  margin: var(--space-3) 0;
+}
+
+.export-preview textarea {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius) var(--radius);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: var(--size-small);
+}
+
+/* The result: a headline with counts per state, cards for what is missing and what to find out, then all answers
+   with the answer first as a coloured mark. */
+.result-headline {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.result-headline p {
+  margin: var(--space-1) 0;
+}
+
+.result-progress {
+  font-size: var(--size-lead);
+  font-weight: 600;
+}
+
+.result-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-2) 0;
+  padding: 0;
+}
+
+.result-counts li,
+.answer-pill,
+.principle-state a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  font-size: var(--size-small);
+  white-space: nowrap;
+}
+
+.result-counts li {
+  min-height: 1.9rem;
+  font-weight: 600;
+}
+
+[data-state="met"].answer-pill,
+.result-counts [data-state="met"],
+.principle-state[data-state="met"] a {
+  border-color: var(--tint-teal);
+  color: var(--tint-teal);
+}
+
+[data-state="gap"].answer-pill,
+.result-counts [data-state="gap"],
+.principle-state[data-state="gap"] a {
+  border: 2px solid var(--tint-pink);
+  color: var(--tint-pink);
+}
+
+[data-state="partly"].answer-pill,
+[data-state="unknown"].answer-pill,
+.result-counts [data-state="partly"],
+.result-counts [data-state="unknown"],
+.principle-state[data-state="partly"] a,
+.principle-state[data-state="unknown"] a {
+  border-style: dashed;
+  border-color: var(--text-muted);
+}
+
+[data-state="open"].answer-pill,
+.result-counts [data-state="open"],
+.principle-state[data-state="open"] a {
+  color: var(--text-muted);
+}
+
+.gaps {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.action-card {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--tint-pink);
+  border-radius: var(--radius);
+}
+
+.action-card[data-state="unknown"],
+.action-card[data-state="partly"] {
+  border-left-color: var(--text-muted);
+  border-left-style: dashed;
+}
+
+.action-title {
+  margin: 0;
+}
+
+.action-title .badge {
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+.action-meta {
+  margin: var(--space-1) 0 0;
+  font-size: var(--size-small);
+}
+
+.action-label {
+  color: var(--text-muted);
+}
+
+/* A step named in running text: the icon sits on the text's line, so the link reads on the same baseline as the
+   label before it. */
+.step-link .icon {
+  margin-right: var(--space-1);
+  color: var(--tint-teal);
+  vertical-align: -0.125em;
+}
+
+.result-all {
+  margin-top: var(--space-6);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.principle-state a {
+  min-height: 1.75rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.answer-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+/* On a phone the evidence starts under the mark rather than beside it. */
+@media (max-width: 39.99rem) {
+  .answer-line {
+    flex-wrap: wrap;
+  }
+
+  .answer-row .answer-meta {
+    margin-left: 0;
+  }
+
+  .answer-row .answer-pill {
+    min-width: 0;
+  }
+}
+
+.answer-pill {
+  flex: none;
+  min-width: 8.25rem;
+  min-height: 1.75rem;
+  font-weight: 600;
+}
+
+/* The result's overview in the list's groups. */
+.result-group h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.result-group h3 .principle-letter,
+.item-group h2 .group-icon,
+.result-group h3 .group-icon {
+  flex: none;
+}
+
+.group-icon {
+  width: 1.4em;
+  height: 1.4em;
+  color: var(--tint-teal);
+}
+
+.group-other {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  border: 1px dashed var(--text-muted);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.summary-group-label .group-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.principle-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  font-size: var(--size-small);
+}
+
+.principle-states a {
+  color: var(--text);
+}
+
+/* Your answers: each question with its answer, then where the answer came from and what supports it. */
+.answers-list {
+  margin: 0;
+  padding: var(--space-2) 0;
+  list-style: none;
+}
+
+.answer-row {
+  margin: 0 0 var(--space-3);
+}
+
+.answer-line {
+  margin: 0;
+}
+
+.answer-value {
+  white-space: nowrap;
+}
+
+.answer-value[data-answer="none"] {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.answer-meta {
+  margin: var(--space-1) 0 0 calc(8.25rem + var(--space-2));
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  overflow-wrap: anywhere;
+}
+
+/* The control row of a check: the extended switch and the grouping. */
+.check-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  margin: var(--space-3) 0 var(--space-4);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.check-toolbar .grouping {
+  margin: 0;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 2.75rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* Off: a light track with the knob on the left; on: a teal track with the knob on the right; the state is also
+   written next to the label. */
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 2.75rem;
+  height: 1.5rem;
+  border: 2px solid var(--text-muted);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.switch-track::after {
+  content: "";
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.switch input:checked + .switch-track {
+  border-color: var(--tint-teal);
+  background: var(--tint-teal);
+}
+
+.switch input:checked + .switch-track::after {
+  background: #fff;
+  transform: translateX(1.25rem);
+}
+
+.switch input:focus-visible + .switch-track {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Inside a check: a compact mode question, a calmer pre-fill heading and light item details. */
+.selfcheck .choice {
+  padding: var(--space-3) var(--space-4);
+}
+
+/* The question sits inside its box, so the box's top edge lines up with the summary beside it. */
+.selfcheck .choice > legend {
+  float: left;
+  width: 100%;
+  margin: 0 0 var(--space-1);
+  padding: 0;
+}
+
+.selfcheck .choice > legend + * {
+  clear: both;
+}
+
+.selfcheck .choice .options {
+  margin: var(--space-2) 0 0;
+}
+
+.item .item-basis {
+  margin: var(--space-2) 0 0;
+  border: 0;
+  background: none;
+}
+
+.item-basis > summary {
+  padding: 0;
+  color: var(--tint-teal);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
+.item-basis[open] > summary {
+  border-bottom: 0;
+}
+
+.item-basis > .content {
+  margin: var(--space-2) 0 0;
+  font-size: var(--size-small);
+}
+
+/* What a resolved identifier is, in one line. */
+.target-card {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--tint-teal);
+  background: var(--background);
+  font-size: var(--size-small);
+}
+
+.target-card .icon {
+  flex: none;
+  color: var(--tint-teal);
+}
+
+/* The explorer before a principle is chosen: requirements by FAIR group and by whom they address. */
+.explorer-overview {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-3) 0;
+  font-size: var(--size-small);
+}
+
+.explorer-overview caption {
+  text-align: left;
+  font-weight: 700;
+  font-size: var(--size-base);
+  margin-bottom: var(--space-2);
+}
+
+.explorer-overview th,
+.explorer-overview td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.explorer-overview td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.explorer-overview thead th:not(:first-child) {
+  text-align: right;
+}
+
+.explorer-overview tbody th {
+  font-weight: 600;
+}
+
+.explorer-overview .principle-letter {
+  margin-right: var(--space-2);
+}
+
+.explorer-overview thead th {
+  white-space: nowrap;
+}
+
+/* On phones the rows show the principle's letter; the group's name stays for screen readers. */
+@media (max-width: 39.99rem) {
+  .explorer-overview th,
+  .explorer-overview td {
+    padding: var(--space-2) var(--space-1);
+  }
+
+  .explorer-overview .group-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* The finder's live sources side by side. */
+.filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.filter-status p {
+  margin: 0 0 var(--space-2);
+}
+
+.badges .fairsharing-record {
+  align-self: center;
+  font-size: var(--size-small);
+}
+
+/* The catalogue: the facets beside the results on wide screens, a disclosure above them on phones. */
+.catalogue,
+.explorer {
+  padding-bottom: var(--space-7);
+}
+
+.catalogue-layout {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 60rem) {
+  .catalogue-layout {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.catalogue-facets {
+  margin: 0;
+  background: var(--surface);
+  border: 0;
+}
+
+.catalogue-facets > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.facet-panel {
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.facet-search label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.facet-search input {
+  width: 100%;
+}
+
+.facet {
+  border: 0;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+}
+
+.facet legend {
+  padding: 0;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.facet ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.facet li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--space-2);
+  padding: 2px 0;
+}
+
+.facet li label {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--size-small);
+}
+
+.facet li input {
+  margin-top: 0.2em;
+}
+
+.facet-note {
+  grid-column: 2;
+}
+
+.facet-empty label {
+  color: var(--text-muted);
+}
+
+.facet-count {
+  flex: none;
+  min-width: 1.6em;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--text-muted);
+  font-size: var(--size-small);
+  text-align: center;
+}
+
+.facet-kind {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.facet-kind-name {
+  margin: 0;
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+.catalogue-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.catalogue-count {
+  margin: 0;
+  font-weight: 700;
+}
+
+.catalogue-order {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+
+.active-filters ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.filter-chip {
+  min-height: 2rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--tint-teal);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--tint-teal);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.catalogue-group > h2 {
+  margin: var(--space-5) 0 var(--space-2);
+  font-size: var(--size-h3);
+}
+
+.catalogue-group + .catalogue-group {
+  margin-top: var(--space-4);
+}
+
+.group-count {
+  font-weight: 400;
+}
+
+.kind-intro p {
+  margin: 0 0 var(--space-3);
+}
+
+.kind-intro .filter-actions {
+  margin-bottom: var(--space-3);
+}
+
+/* A sample drawn from DataCite: each record's title, its DOI and the button that replaces it. */
+.datacite-sample-row {
+  margin: var(--space-2) 0;
+}
+
+.datacite-sample {
+  margin: var(--space-1) 0 var(--space-2);
+  padding-left: var(--space-5);
+}
+
+.datacite-sample li {
+  margin: var(--space-1) 0;
+}
+
+.datacite-sample-title {
+  font-weight: 600;
+}
+
+/* What DataCite reports about a repository, framed apart from the entry's own rows. */
+.datacite-read {
+  margin: var(--space-2) 0;
+}
+
+section.datacite-read {
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--kind-repositories);
+  background: var(--surface);
+}
+
+section.datacite-read p {
+  margin: 0 0 var(--space-1);
+}
+
+.datacite-facts {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-1);
+}
+
+.datacite-facts dt {
+  color: var(--text-muted);
+}
+
+.datacite-facts dd {
+  margin: 0;
+}
+
+@media (max-width: 39.99rem) {
+  .datacite-facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
+
+/* One card for every catalogue entry: its kind's mark with its identifier and what it is, its title with a
+   service's badge, a quiet line of details, its text, badges for its state, then its relations, one row each with
+   its icon. The kind's colour runs along the top of the card. */
+.kind-resources { --kind: var(--kind-resources); }
+.kind-repositories { --kind: var(--kind-repositories); }
+.kind-clauses { --kind: var(--kind-clauses); }
+.kind-questions { --kind: var(--kind-questions); }
+.kind-terms { --kind: var(--kind-terms); }
+.kind-fips { --kind: var(--kind-fips); }
+.kind-tests { --kind: var(--kind-tests); }
+.kind-lifecycle { --kind: var(--kind-lifecycle); }
+.kind-infrastructures { --kind: var(--kind-infrastructures); }
+.kind-model { --kind: var(--kind-model); }
+.kind-actions { --kind: var(--kind-actions); }
+
+.entry-card[data-kind] {
+  border-top: 4px solid var(--kind);
+}
+
+.kind-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--kind, var(--text-muted));
+  color: #ffffff;
+}
+
+.kind-mark .icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  vertical-align: 0;
+}
+
+/* The same marks label the kinds to choose from. */
+.facet-kinds li {
+  align-items: center;
+}
+
+.facet-kinds li input {
+  margin: 0;
+}
+
+.facet-kinds li label {
+  align-items: center;
+}
+
+.facet-kinds .facet-label {
+  flex: 1;
+}
+
+.facet-kinds .kind-mark {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.facet-kinds .kind-mark .icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* An external tool or service, beside its name: its favicon, or its kind's icon on the kind's colour. */
+.service-badge {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  background: var(--kind, var(--text-muted));
+  color: #ffffff;
+}
+
+.service-placeholder .icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* A service's own favicon in place of the monogram, as the service shows it: no frame, the badge's full size. */
+.service-favicon {
+  background: none;
+}
+
+.service-favicon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-small);
+}
+
+.entry-what {
+  color: var(--text-muted);
+}
+
+.entry-head > .id-chip {
+  flex-shrink: 0;
+}
+
+/* A filled-in check's result on its card: the report's chips, a little smaller. */
+.check-card-counts {
+  flex-basis: 100%;
+  margin: var(--space-1) 0 0;
+  font-size: var(--size-small);
+}
+
+/* An index's letters: one row of compact jumps above its groups, wrapping on a narrow screen. */
+.letter-index ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.letter-jump {
+  display: grid;
+  place-items: center;
+  justify-content: center;
+  line-height: 1;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+.letter-jump:hover {
+  border-color: var(--tint-teal);
+}
+
+.term-definition {
+  margin: var(--space-1) 0 0;
+}
+
+.term-card details > summary {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.entry-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-base);
+}
+
+.entry-byline,
+.card-details {
+  margin: 0 0 var(--space-2);
+}
+
+.entry-card .badges {
+  margin-top: var(--space-2);
+}
+
+/* One label width on every card, so the rows of cards in a list line up; each row on its text's baseline. */
+.relations {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-3) 0 0;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  font-size: var(--size-small);
+}
+
+.relations dt {
+  color: var(--text-muted);
+}
+
+.relations dt .icon {
+  margin-right: 0.4em;
+  color: var(--tint-teal);
+}
+
+.relations dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  min-width: 0;
+}
+
+.relations .audience {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.relations .audience .icon {
+  color: var(--tint-teal);
+}
+
+/* On a phone each relation's label sits above it. */
+@media (max-width: 39.99rem) {
+  .relations {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .relations dd {
+    margin-bottom: var(--space-2);
+  }
+}
+
+/* A link to one catalogue entry: what is shown, and the way to the whole kind. */
+.single-entry {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--tint-teal);
+  background: var(--surface);
+}
+
+.single-all {
+  font-weight: 700;
+}
+
+/* An entry's record in the API: the same small link in the corner of every card that has one, outside its badges. */
+.card:has(.json-link) {
+  position: relative;
+}
+
+.json-link {
+  position: absolute;
+  right: var(--space-4);
+  font-family: ui-monospace, monospace;
+  font-size: var(--size-small);
+}
+
+/* Beside the first row on wider screens; on phones in the bottom corner, so a long identifier keeps the width. */
+@media (min-width: 40rem) {
+  .card:has(.json-link) > :first-child {
+    padding-right: 4.5rem;
+  }
+
+  .json-link {
+    top: var(--space-3);
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .card:has(.json-link) {
+    padding-bottom: calc(var(--space-3) + 1.75rem);
+  }
+
+  .json-link {
+    bottom: var(--space-3);
+  }
+}
+
+.json-link::before {
+  content: "{ }";
+  display: inline-block;
+  margin-right: 0.4em;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+/* The page for machines: what a reader wants and where it is, the guide's own signposts, the endpoints. */
+.data-table code {
+  overflow-wrap: anywhere;
+}
+
+.machine-tasks tbody th,
+.endpoints tbody th {
+  width: 32%;
+}
+
+.signposts tbody th {
+  width: 18%;
+}
+
+.endpoint-description {
+  display: block;
+  font-weight: 400;
+}
+
+.data-table caption {
+  text-align: left;
+  font-weight: 600;
+  padding-bottom: var(--space-2);
+}
+
+/* On a phone each row of these tables is a block: what is wanted, then where it is; the header stays for screen
+   readers. */
+@media (max-width: 40rem) {
+  .data-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .data-table tr {
+    display: block;
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table tbody th,
+  .data-table tbody td {
+    display: block;
+    width: auto;
+    padding: var(--space-1) 0;
+    border-bottom: 0;
+  }
+}
+
+/* The tools view: one card per tool, its icon beside the name and what it does. */
+.tool-cards {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-5) 0 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.tool-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+}
+
+.tool-card-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--tint-teal);
+}
+
+.tool-group {
+  margin: 0 0 var(--space-6);
+}
+
+.tool-group > h2 {
+  margin-bottom: var(--space-1);
+}
+
+.tool-card h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-h3);
+}
+
+.tool-card p {
+  margin: 0;
+}
+
+.tool-card .tool-coming {
+  display: inline-block;
+  margin-top: var(--space-2);
+}
+
+.helper-coming {
+  margin-top: var(--space-4);
+}
+
+.fix-at {
+  margin: var(--space-2) 0 0;
+}
+
+/* The check: the questions with the full result below them, and beside them on wide screens a short, sticky
+   result so far that never needs its own scrollbar. */
+.check-view {
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-7);
+}
+
+/* The check's three parts as numbered steps; the current one is framed in the brand colour. */
+.check-parts ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check-part {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.check-part:hover {
+  border-color: var(--tint-teal);
+}
+
+.check-part[aria-current="step"] {
+  border-color: var(--brand-teal);
+  background: var(--surface);
+}
+
+.check-part-number {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--brand-teal);
+  border-radius: 50%;
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+/* The digit is trimmed to its cap height, so it sits in the middle of the circle whatever the font's line box. */
+.check-part-number > span {
+  display: block;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+}
+
+.check-part[aria-current="step"] .check-part-number {
+  background: var(--brand-teal);
+  color: #ffffff;
+}
+
+.check-part-text {
+  display: grid;
+}
+
+.check-part-text .small {
+  color: var(--text-muted);
+}
+
+@media (max-width: 39.99rem) {
+  .check-parts ol {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+}
+
+.part-next {
+  margin: var(--space-5) 0;
+}
+
+/* The answers' status line stays at the top of the column while it has something to say. */
+.part-status:empty {
+  display: none;
+}
+
+.part-status:not(:empty) {
+  position: sticky;
+  top: calc(var(--lens-band-height, 0px) + var(--space-2));
+  z-index: 2;
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--notice-border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--notice);
+}
+
+.check-split {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.check-main {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The result so far: beside the questions on wide screens, and after them on narrow ones. */
+.check-summary {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  font-size: var(--size-small);
+}
+
+@media (min-width: 60rem) {
+  .check-split {
+    grid-template-columns: minmax(0, 1fr) 16.5rem;
+    align-items: start;
+  }
+
+  .check-split.result-collapsed {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .check-summary {
+    position: sticky;
+    top: calc(var(--lens-band-height, 0px) + var(--space-4));
+  }
+
+  /* Collapsed, only the control remains, in exactly the place it had. */
+  .result-collapsed .check-summary {
+    border-color: transparent;
+    background: none;
+  }
+}
+
+.summary-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.summary-head h2 {
+  margin: 0;
+  font-size: var(--size-base);
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--tint-teal);
+}
+
+.icon-button:hover {
+  border-color: var(--tint-teal);
+  background: var(--surface);
+  color: var(--tint-teal);
+}
+
+.summary-progress {
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+/* The check's controls in the summary: the extended switch and the grouping, compact. */
+.summary-controls {
+  margin: var(--space-2) 0 var(--space-1);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.summary-controls .switch {
+  min-height: 2rem;
+  gap: var(--space-2);
+  font-size: var(--size-small);
+  white-space: nowrap;
+}
+
+/* In the narrow summary the label takes its own line, so the two segments stay together. */
+.summary-controls .grouping.segmented legend {
+  float: none;
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--space-1);
+}
+
+/* The grouping as a one-row segmented control. */
+.grouping.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  margin: var(--space-2) 0 0;
+}
+
+.grouping.segmented legend {
+  float: left;
+  margin: 0 var(--space-2) 0 0;
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.segmented .option {
+  min-height: 0;
+  gap: 0;
+}
+
+.segmented .option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.segmented .option span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.9rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--text-muted);
+  background: var(--background);
+  font-size: var(--size-small);
+}
+
+.segmented .option + .option span {
+  border-left: 0;
+}
+
+.segmented .option:first-of-type span {
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.segmented .option:last-of-type span {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.segmented .option input:checked + span {
+  background: var(--tint-teal);
+  border-color: var(--tint-teal);
+  color: #fff;
+  font-weight: 600;
+}
+
+.segmented .option input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.summary-group {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 0 var(--space-1);
+}
+
+/* The group's bar and its question chips share the column beside the group's mark. */
+.summary-group > .distribution,
+.summary-group > .summary-chips {
+  grid-column: 2;
+}
+
+.summary-group > .summary-group-label {
+  grid-row: span 2;
+}
+
+.summary-group-label {
+  min-height: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.summary-group-label .principle-letter {
+  min-width: 1.6rem;
+  min-height: 1.6rem;
+  border-radius: var(--radius);
+}
+
+.summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.summary-chip,
+.summary-count {
+  min-height: 1.6rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.summary-chip[data-state="met"] {
+  border-color: var(--tint-teal);
+  color: var(--tint-teal);
+}
+
+.summary-chip[data-state="gap"] {
+  border: 2px solid var(--tint-pink);
+  color: var(--tint-pink);
+}
+
+.summary-chip[data-state="open"] {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.summary-chip[data-state="partly"],
+.summary-chip[data-state="unknown"] {
+  border-style: dashed;
+  border-color: var(--text-muted);
+}
+
+.summary-chip:hover,
+.summary-count:hover:not(:disabled) {
+  background: var(--surface);
+}
+
+.summary-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+}
+
+.summary-count[data-kind="gaps"]:not(:disabled) {
+  border-color: var(--tint-pink);
+}
+
+.summary-count:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.summary-full {
+  margin: 0;
+}
+
+.summary-full .button {
+  min-height: 2rem;
+  margin: 0;
+}
+
+.summary-count-none {
+  display: inline-flex;
+  align-items: center;
+  border-style: dashed;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.jumped,
+[tabindex="-1"].jumped:focus {
+  outline: 3px solid var(--tint-teal);
+  outline-offset: 4px;
+  transition: outline-color 1.5s ease-in;
+}
+
+.results {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 2px solid var(--border);
+}
+
+.tier-info {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.grouping {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-4);
+  border: 0;
+  margin: var(--space-3) 0;
+  padding: 0;
+  font-size: var(--size-small);
+}
+
+.grouping legend {
+  float: left;
+  margin-right: var(--space-3);
+  padding: 0;
+}
+
+.item-group h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--size-h3);
+}
+
+.item-group h2 .principle-letter {
+  border-radius: var(--radius);
+  min-height: 1.6em;
+}
+
+/* The state per principle as a grid of cells. */
+.principle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+}
+
+.principle-cell {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  align-items: start;
+  gap: 2px;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: var(--size-small);
+}
+
+.principle-cell[data-state="met"] {
+  border-color: var(--tint-teal);
+}
+
+.principle-cell[data-state="gap"] {
+  border-color: var(--tint-pink);
+  border-width: 2px;
+}
+
+.principle-cell a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* An identifier field with its clear control inside. */
+.field-clearable {
+  position: relative;
+  display: inline-flex;
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.field-clearable input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-right: 2.75rem;
+}
+
+.field-clear {
+  position: absolute;
+  top: 50%;
+  right: var(--space-1);
+  transform: translateY(-50%);
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+}
+
+.field-clear:hover {
+  color: var(--tint-pink);
+  background: none;
+}
+
+.citation-helper form > .field-clearable {
+  display: flex;
+}
+
+.citation-helper label {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.citation-format {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.citation-format pre {
+  max-height: 24rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: var(--space-3);
+  background: var(--surface);
+}
+
+.citation-format pre.citation-text {
+  font: inherit;
+}
+
+.prefill {
+  margin: var(--space-5) 0;
+}
+
+/* One card per evidence source, one under another, each a whole row: on a wide screen the source's name and what it
+   sends stand on the left and its controls on the right, so no card is squeezed into a narrow column. */
+.evidence-cards {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+@media (min-width: 52rem) {
+  .evidence-card {
+    display: grid;
+    grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    column-gap: var(--space-5);
+    align-items: start;
+  }
+
+  .evidence-card > .evidence-title,
+  .evidence-card > .evidence-facts {
+    grid-column: 1;
+  }
+
+  .evidence-card > .evidence-body {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .evidence-card .evidence-body > :first-child,
+  .evidence-card .evidence-body > :first-child > :first-child {
+    margin-top: 0;
+  }
+}
+
+.evidence-card {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+}
+
+.prefill .evidence-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: var(--size-lead);
+}
+
+.evidence-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  background: var(--surface-strong);
+  color: var(--tint-teal);
+}
+
+.evidence-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-3);
+}
+
+.evidence-facts dt {
+  color: var(--text-muted);
+}
+
+.evidence-facts dd {
+  margin: 0;
+}
+
+.evidence-card .prefill-row:first-of-type {
+  margin-top: 0;
+}
+
+.prefill h2 {
+  margin-top: 0;
+  font-size: var(--size-h3);
+}
+
+.prefill-row {
+  margin: var(--space-4) 0;
+}
+
+.prefill h3 {
+  margin: var(--space-3) 0 var(--space-1);
+  font-size: var(--size-base);
+}
+
+.prefill-file {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.prefill-file .load-file,
+.prefill > .load-file {
+  margin-bottom: 0;
+}
+
+.prefill-row label {
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.prefill-row textarea {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.prefill-row h3 {
+  margin-top: 0;
+}
+
+.prefill-progress:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0 0 var(--space-3);
+}
+
+.prefill-progress progress {
+  flex: 1 1 12rem;
+  max-width: 24rem;
+  height: 0.75rem;
+  accent-color: var(--tint-teal);
+}
+
+/* A question's FAIR Champion tests where it is asked: each test, its state, and a run of this question alone. */
+.test-line {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border);
+  background: var(--surface);
+  font-size: var(--size-small);
+}
+
+.test-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0 0 var(--space-1);
+}
+
+.test-label {
+  font-weight: 700;
+}
+
+.test-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.test-row + .test-row {
+  margin-top: var(--space-1);
+}
+
+.test-row > a {
+  display: inline-block;
+  min-height: 1.5rem;
+  line-height: 1.5rem;
+}
+
+.test-state {
+  display: inline;
+}
+
+.test-state[data-state="pass"] {
+  color: var(--tint-teal);
+}
+
+.test-state[data-state="fail"] {
+  color: var(--tint-pink);
+}
+
+/* A sample's verdicts record by record: a plain disclosure inside the line, not a boxed one. */
+.test-records {
+  display: block;
+  margin: var(--space-1) 0 0;
+  border: 0;
+  background: none;
+}
+
+.test-records > summary {
+  padding: 0;
+  font-weight: 400;
+}
+
+.test-records[open] > summary {
+  border-bottom: 0;
+}
+
+.test-records ul {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-4);
+}
+
+.champion-all {
+  margin: var(--space-3) 0;
+}
+
+.inline,
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.inline input[type="text"],
+.inline input[type="url"],
+.inline select {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.share-output textarea {
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-2);
+}
+
+.share-output label {
+  display: block;
+  margin: var(--space-4) 0 var(--space-1);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin: var(--space-4) 0;
+}
+
+.result-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.result-table caption {
+  text-align: left;
+  font-weight: 600;
+  padding-bottom: var(--space-2);
+}
+
+.result-table th,
+.result-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.result-table tbody th {
+  font-weight: 400;
+}
+
+.state {
+  white-space: nowrap;
+}
+
+.state[data-state="met"] {
+  color: var(--tint-teal);
+  font-weight: 600;
+}
+
+.state[data-state="gap"] {
+  color: var(--tint-pink);
+  font-weight: 600;
+}
+
+.gaps > li {
+  margin-bottom: var(--space-3);
+}
+
+.gaps p {
+  margin: 0 0 var(--space-1);
+}
+
+.results {
+  border-top: 2px solid var(--border);
+  margin-top: var(--space-6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Orientation tags on a card: principle tiles and lens icons. */
+.orientation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.lens-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  color: var(--text-muted);
+}
+
+/* A relation's note, under its links. */
+.relation-note {
+  flex-basis: 100%;
+}
+
+/* A phrase the text names an entry by: a link that does not interrupt reading. */
+.text-ref {
+  color: inherit;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--tint-teal);
+  text-underline-offset: 0.2em;
+}
+
+.text-ref:hover,
+.text-ref:focus-visible {
+  color: var(--tint-teal);
+  text-decoration-style: solid;
+}
+
+.model-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.page-model > article {
+  min-width: 0;
+}
+
+#model-seam {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-1);
+}
+
+.model-tag {
+  font-size: var(--size-small);
+}
+
+.model-context {
+  margin-bottom: var(--space-5);
+}
+
+.model-context p:first-child {
+  margin-top: 0;
+}
+
+.model-layers {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+}
+
+.model-layers h3 {
+  margin-top: 0;
+}
+
+.model-layers .model-tag {
+  font-size: inherit;
+}
+
+.model-diagram {
+  margin: var(--space-5) 0;
+}
+
+.model-diagram img {
+  display: block;
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
+  min-width: 40rem;
+}
+
+.diagram-scroll {
+  overflow-x: auto;
+}
+
+.model-diagram figcaption {
+  margin-top: var(--space-2);
+}
+
+.model-connection {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.model-examples,
+.result-handover {
+  margin-top: var(--space-3);
+}
+
+.model-example + .model-example {
+  border-top: 1px solid var(--border);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+}
+
+.export-bar {
+  margin-top: var(--space-7);
+  margin-bottom: var(--space-6);
+}
+
+.export-bar-inner {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.export-bar-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--size-base);
+}
+
+.export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.export-actions .button-small {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Reader visuals: labelled steps in order, one maintained definition each. The arrow between steps is decoration;
+   the ordered list carries the sequence for every reader and in print. */
+.flow {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.flow-title {
+  margin: 0 0 var(--space-2);
+  font-weight: 700;
+}
+
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: flow;
+}
+
+.flow-step {
+  position: relative;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--brand-teal);
+  background: var(--background);
+  counter-increment: flow;
+  font-size: var(--size-small);
+  line-height: 1.5;
+}
+
+.flow-step::before {
+  content: counter(flow) ". ";
+  font-weight: 700;
+  color: var(--tint-teal);
+}
+
+.flow-step:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  top: 50%;
+  right: calc(-1 * var(--space-5) + 0.15rem);
+  transform: translateY(-50%);
+  color: var(--tint-teal);
+  font-weight: 700;
+}
+
+.flow-label,
+.flow-text,
+.flow-carrier,
+.flow-record {
+  display: block;
+}
+
+.flow-carrier,
+.flow-note {
+  color: var(--text-muted);
+}
+
+.flow-note {
+  margin: var(--space-2) 0 0;
+}
+
+.flow-details {
+  margin: var(--space-3) 0;
+}
+
+@media (max-width: 40rem) {
+  .flow-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: "↓";
+    top: auto;
+    right: auto;
+    bottom: calc(-1 * var(--space-3) - 0.1rem);
+    left: var(--space-3);
+    transform: none;
+  }
+}
+
+/* What a check is for, ahead of its description. */
+.check-card-purpose {
+  margin: var(--space-1) 0;
+  font-size: var(--size-small);
+}
+
+.check-card-purpose-label {
+  color: var(--text-muted);
+}
+
+/* The result leads with what remains to do. */
+.result-lead {
+  font-weight: 700;
+}
+
+/* Evidence beside a question: one line per source, newest useful first. */
+.evidence-observation {
+  margin: var(--space-1) 0;
+}
+
+.evidence-source {
+  color: var(--text-muted);
+}
+
+.evidence-note {
+  margin-left: var(--space-3);
+}
+
+.answer-observation,
+.answer-owner {
+  white-space: normal;
+}
+
+/* Optional evaluators: explicit choices, a local report preview, and the native results of each assessment.
+   Native verdicts and scores use their own labelled marks, apart from answer states and retrieval health. */
+.evaluators {
+  margin: 0;
+}
+
+/* An evaluator's name, with its service badge before it. */
+.evaluator-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* What an evaluator's card holds once a result is read or attached, set apart so it is seen where it was loaded. */
+.attached,
+.import-read {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--state-met);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--status-operational);
+}
+
+.attached p {
+  margin: var(--space-1) 0;
+}
+
+.attached .icon {
+  color: var(--state-met);
+}
+
+.import-read {
+  border-left-color: var(--tint-teal);
+  background: var(--surface-strong);
+}
+
+.evaluator-choices {
+  margin: var(--space-2) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evaluator-choices > li {
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.evaluator-target code {
+  overflow-wrap: anywhere;
+}
+
+/* What a run reports, and its progress, under the controls that started it. */
+.evidence-status:not(:empty) {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid var(--notice-border);
+  background: var(--notice);
+}
+
+.evidence-body > .prefill-progress,
+.evidence-body > .target-card {
+  margin: var(--space-2) 0 0;
+}
+
+.import-preview {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--notice-border);
+  background: var(--notice);
+}
+
+.import-facts dd,
+.assessment-facts dd {
+  overflow-wrap: anywhere;
+}
+
+.assessment {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.assessment-group h5 {
+  margin: var(--space-3) 0 var(--space-1);
+}
+
+.criteria {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.criterion {
+  margin: var(--space-2) 0;
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 3px solid var(--border);
+}
+
+.criterion-head {
+  margin: 0;
+}
+
+.criterion-name,
+.criterion-questions {
+  margin: var(--space-1) 0;
+}
+
+.criterion-id {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.criterion-outcome {
+  display: block;
+  font-weight: 700;
+}
+
+/* A provider's outcome takes the colour of the answer state it reads as: met, partly met, not met, or unknown, which
+   is how F-UJI shows level 0. */
+.criterion[data-verdict="pass"],
+.criterion[data-verdict="top"] {
+  border-left-color: var(--state-met);
+}
+
+.criterion[data-verdict="fail"],
+.criterion[data-verdict="bottom"] {
+  border-left-color: var(--state-gap);
+}
+
+.criterion[data-verdict="middle"] {
+  border-left-color: var(--state-partly);
+}
+
+.criterion[data-verdict="indeterminate"] {
+  border-left-color: var(--state-unknown);
+}
+
+.criterion-outcome[data-verdict="pass"],
+.criterion-outcome[data-verdict="top"],
+.subtests td[data-verdict="pass"] {
+  color: var(--state-met);
+}
+
+.criterion-outcome[data-verdict="fail"],
+.criterion-outcome[data-verdict="bottom"],
+.subtests td[data-verdict="fail"] {
+  color: var(--state-gap);
+}
+
+.criterion-outcome[data-verdict="middle"] {
+  color: var(--state-partly);
+}
+
+.criterion-outcome[data-verdict="indeterminate"],
+.subtests td[data-verdict="indeterminate"] {
+  color: var(--state-unknown);
+}
+
+.badge[data-reviewed="false"] {
+  background: var(--notice);
+}
+
+.provider-text {
+  max-height: 16rem;
+  overflow-y: auto;
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.9em;
+}
+
+.subtests th,
+.subtests td {
+  overflow-wrap: anywhere;
+}
+
+.harvest-list {
+  padding-left: var(--space-4);
+}
+
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  .wrap {
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  /* Bar counts remain legible when the printer omits background colours. Text below names every state. */
+  .distribution-bar > span[data-state] {
+    color: #000;
+    background: color-mix(in srgb, var(--state-color) 20%, white);
+    border: 1px solid #66737a;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .principle-distribution,
+  .block-distribution,
+  .path-distribution,
+  .result-headline,
+  .action-card,
+  .answer-row {
+    break-inside: avoid;
+  }
+
+  .check-report .check-head > p,
+  .check-view .check-parts,
+  .check-view .back,
+  .site-footer {
+    display: none;
+  }
+
+  .results {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .check-view {
+    padding-bottom: 0;
+  }
+
+  .no-print,
+  .catalogue-facets,
+  .catalogue-toolbar,
+  .active-filters,
+  .site-header .controls,
+  .main-nav,
+  .lens-band,
+  .rail,
+  .skip-link,
+  .pager,
+  button {
+    display: none !important;
+  }
+
+  details {
+    border: 0;
+  }
+
+  details > .content {
+    display: block;
+  }
+
+  /* Chromium can paginate newly opened native disclosures while keeping their contents unpainted.
+     Make the print content box explicit so later answer/evidence pages contain their actual text. */
+  details::details-content {
+    display: block;
+    content-visibility: visible;
+  }
+
+  .catalogue-layout {
+    display: block;
+  }
+
+  /* A criterion's question references print as plain identifiers. */
+  .criterion-questions button {
+    display: inline !important;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+  }
+
+  .agreement .button-link {
+    display: inline !important;
+    padding: 0;
+    border: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .table-scroll,
+  .text-table-scroll {
+    overflow: visible;
+  }
+
+  .agreement {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.75rem;
+  }
+
+  .agreement-question {
+    width: 30%;
+    min-width: 0;
+  }
+
+  .agreement .run-details > .content {
+    min-width: 0;
+  }
+
+  .flow-step {
+    break-inside: avoid;
+  }
+
+  /* Only addresses outside the guide, in the content, are worth printing; the guide's own links lead within the
+     page, and the header and footer logos would only repeat their sites. */
+  main a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: var(--size-small);
+  }
+}

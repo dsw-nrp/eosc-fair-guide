@@ -1,0 +1,15 @@
+{
+  "formatVersion": 1,
+  "metadata": [
+    "content/guide.toml",
+    "CITATION.cff",
+    "package.json",
+    "package-lock.json",
+    "pyproject.toml"
+  ],
+  "additional": [
+    "CHANGELOG.md",
+    "content/provenance.toml",
+    "content/identifiers.toml"
+  ]
+}

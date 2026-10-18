@@ -1,0 +1,74 @@
+# Shared callouts: defined once, shown on several stations, item order adapted to the lens.
+# Field reference: docs/content-model.md.
+
+[[callout]]
+id = "sensitive-data"
+title = { cs = "Pracujete s osobními nebo jinak citlivými daty?", en = "Working with personal or otherwise sensitive data?" }
+intro = { cs = "FAIR neznamená otevřená. Popis dat může být veřejný, i když data samotná zpřístupníte jen oprávněným lidem.", en = "FAIR does not mean open. The description of the data can be public even when the data themselves are available only to authorised people." }
+stations = ["plan", "collect", "process", "repository", "licence"]
+order = { SR = ["aai", "cloud", "steward", "rights", "principles", "community"], K = ["community", "steward", "rights", "principles", "cloud", "aai"] }
+
+[[callout.item]]
+id = "steward"
+text = { cs = "Poraďte se včas s data stewardem vaší instituce, u osobních údajů také s pověřencem pro ochranu osobních údajů.", en = "Talk early to your institution's data steward and, for personal data, to the data protection officer." }
+url = "https://www.eosc.cz/komunity/data-stewardi"
+
+[[callout.item]]
+id = "principles"
+text = { cs = "Zásady: Etické sedmero pro práci s výzkumnými daty.", en = "Principles: the Ethical Seven for working with research data." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#sedmoro"
+
+[[callout.item]]
+id = "cloud"
+text = { cs = "Bezpečné zpracování: Sensitive Cloud v e-INFRA CZ.", en = "Secure processing: Sensitive Cloud in e-INFRA CZ." }
+url = "https://docs.cerit.io/en/docs/sensitivecloud/account"
+
+[[callout.item]]
+id = "community"
+text = { cs = "Komunita: pracovní skupina EOSC CZ pro citlivá data.", en = "Community: the EOSC CZ working group on sensitive data." }
+url = "https://www.eosc.cz/pracovni-skupiny/citliva-data"
+
+[[callout.item]]
+id = "aai"
+text = { cs = "Pro správce repozitářů: Initial AAI architecture for sensitive data in NRP.", en = "For repository administrators: Initial AAI architecture for sensitive data in NRP." }
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz#AAI_NRP_SD"
+lenses = ["SR", "DS"]
+
+[[callout.item]]
+id = "rights"
+text = { cs = "Otevřená licence nenahrazuje právní důvod ke zveřejnění osobních, smluvně omezených nebo jinak chráněných dat. Příručka NRP Autorská práva a licence vysvětluje jednotlivé režimy i rozdíl mezi autorskými a databázovými právy.", en = "An open licence does not replace the legal grounds for disclosing personal, contractually restricted or otherwise protected data. The NRP copyright handbook explains these regimes and the distinction between copyright and database rights." }
+url = "https://www.eosc.cz/media/4233522/faq-licence_final-ver.pdf#page=6"
+
+[[callout]]
+id = "verify-identifiers"
+title = { cs = "AI pomůže s texty, identifikátory si ale ověřte", en = "AI helps with texts, but verify the identifiers" }
+intro = { cs = "Jazykové modely umějí vytvořit [[res/srv/orcid|ORCID]], DOI nebo odkaz na heslo, které vypadá věrohodně, ale neexistuje, nebo patří někomu jinému. Neposuzujte je odhadem: nechte je rozřešit strojem a výsledek porovnejte.", en = "Language models can produce an [[res/srv/orcid|ORCID]], a DOI or a link to a vocabulary term that looks plausible but does not exist, or belongs to someone else. Do not judge them by eye: have a machine resolve them and compare the result." }
+stations = ["metadata", "citation"]
+
+[[callout.item]]
+id = "helper"
+text = { cs = "Vložte text do pomocníka Ověřit identifikátory: najde [[res/srv/orcid|ORCID]], DOI, [[res/srv/handle|Handle]] a [[res/srv/ror|ROR]], ověří kontrolní číslice a ukáže, komu nebo čemu identifikátor patří.", en = "Paste the text into the Verify identifiers helper: it finds [[res/srv/orcid|ORCID]] iDs, DOIs, [[res/srv/handle|Handle]]s and [[res/srv/ror|ROR]] IDs, checks their check digits and shows whom or what each belongs to." }
+
+[[callout.item]]
+id = "script"
+text = { cs = "Pracujete-li s AI v kódu nebo v tabulce, nechte ji napsat a spustit skript, který každý identifikátor rozřeší přes doi.org, [[res/srv/orcid|ORCID]] a [[res/srv/ror|ROR]] a vypíše jméno nebo název; výpis porovnejte s tím, co čekáte.", en = "When you work with AI on code or a spreadsheet, have it write and run a script that resolves every identifier through doi.org, [[res/srv/orcid|ORCID]] and [[res/srv/ror|ROR]] and prints the name or title; compare the output with what you expect." }
+
+[[callout.item]]
+id = "orcid"
+text = { cs = "Jednotlivý ORCID otevřete a zkontrolujte jméno; afiliaci ověřte v registru ROR.", en = "To check a single ORCID, open the record and check the name; verify the affiliation in the ROR registry." }
+url = "https://orcid.org/"
+
+[[callout.item]]
+id = "pid"
+text = { cs = "DOI a Handle otevřete přes doi.org nebo hdl.handle.net a zkontrolujte název záznamu.", en = "Open DOIs and Handles through doi.org or hdl.handle.net and check the record's title." }
+url = "https://doi.org/"
+
+[[callout.item]]
+id = "terms"
+text = { cs = "Hesla vybírejte přímo v [[term/controlled-vocabulary|řízeném slovníku]], ne z odpovědi AI.", en = "Pick subject terms directly in the [[term/controlled-vocabulary|controlled vocabulary]], not from an AI answer." }
+
+[[callout.item]]
+id = "private"
+text = { cs = "Nepublikovaná a citlivá data vkládejte jen do služeb, které je neposílají mimo infrastrukturu, například AI v e-INFRA CZ (CERIT).", en = "Put unpublished and sensitive data only into services that keep them within the infrastructure, such as AI in e-INFRA CZ (CERIT)." }
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/introduction"
+

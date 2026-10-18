@@ -4,6 +4,9 @@ node_modules/
 __pycache__/
 *.pyc
 
+# The built site (scripts/build_api.py writes the API into it)
+_site/
+
 # Local caches and check output
 .cache/
 previews/
@@ -17,5 +20,10 @@ playwright-report/
 .DS_Store
 Thumbs.db
 
-# Machine-local assistant settings
+# Machine-local assistant settings under the delivered roots
 .claude/settings.local.json
+.claude/*.local.json
+.cursor/*.local.json
+.codex/*.local.toml
+.gemini/*.local.json
+.kilo/*.local.json

@@ -1,0 +1,40 @@
+{
+  "formatVersion": 1,
+  "sources": [
+    {
+      "key": "heslar",
+      "label": "Heslář",
+      "files": ["content/glossary.toml"]
+    },
+    {
+      "key": "re3data",
+      "label": "re3data",
+      "files": ["content/snapshots/re3data.toml"]
+    },
+    {
+      "key": "fip-dashboard",
+      "label": "FIP Dashboard",
+      "files": ["content/snapshots/fip-dashboard.toml"]
+    },
+    {
+      "key": "nkr",
+      "label": "NKR",
+      "files": ["content/snapshots/nkr.toml"]
+    },
+    {
+      "key": "knav-tools",
+      "label": "KNAV",
+      "files": ["content/snapshots/knav-tools.toml"]
+    },
+    {
+      "key": "fairsharing",
+      "label": "FAIRsharing",
+      "files": ["content/snapshots/fairsharing.toml"]
+    },
+    {
+      "key": "datacite",
+      "label": "DataCite",
+      "files": ["content/snapshots/datacite.toml"]
+    }
+  ]
+}

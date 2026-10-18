@@ -1,0 +1,9 @@
+[[action]]
+id = "create"
+type = "create"
+name = "Create the test content"
+agent = "tester"
+instruments = ["model"]
+objects = ["report"]
+results = ["guide", "organization:org", "one.*", "gate.01", "service", "A.*", "CTS.*", "report", "cts-test", "callout:note", "callout.note.*", "test:test_one"]
+endTime = 2026-01-01T12:00:00+01:00

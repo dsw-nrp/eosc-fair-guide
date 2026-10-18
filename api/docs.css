@@ -1,0 +1,13 @@
+/* The header above Swagger UI: where the guide, the description and the accessible list are. */
+.api-header {
+  max-width: 1460px;
+  margin: 0 auto;
+  padding: 0.75rem 20px;
+  font-family: sans-serif;
+  font-size: 14px;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.api-header a {
+  color: #00737c;
+}

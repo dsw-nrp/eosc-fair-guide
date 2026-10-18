@@ -1,0 +1,29 @@
+{
+  "fairsharing": {
+    "valid": [
+      "10.25504/FAIRsharing.abc123",
+      "10.25504/fairsharing.ABC123"
+    ],
+    "invalid": [
+      "10.25504/FAIRsharing.",
+      "https://doi.org/10.25504/FAIRsharing.abc",
+      "10.25504/Other.abc",
+      "10.25504/FAIRsharing.abc-def"
+    ]
+  },
+  "datacite": {
+    "valid": [
+      "abc.def",
+      "10.1234.abc",
+      "abc.def-ghi"
+    ],
+    "invalid": [
+      "ABC.def",
+      "abc",
+      "abc.",
+      ".abc",
+      "abc..def",
+      "abc.def!"
+    ]
+  }
+}

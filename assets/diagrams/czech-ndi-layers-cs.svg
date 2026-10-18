@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" baseProfile="full" height="752" version="1.1" viewBox="0 0 518.4 752" width="518.4" role="img" lang="cs" aria-labelledby="figure-title figure-description">
+  <title id="figure-title">Funkce a nástroje české NDI</title>
+  <desc id="figure-description">Mapování národní implementace, říjen 2026. Stavy se vztahují k uvedeným funkcím, nikoli k celým projektům nebo organizacím. 1 · Principy, politika a řízení · Přijímá · Principy FAIR · evropská politika otevřené vědy · Nástroje v české NDI · v provozu · Koordinace EOSC CZ · ve vývoji · EOSC Node Czechia (schváleno 2026) · v provozu · IPs EOSC-CZ · IPs CARDS · v provozu · Datová sada jako výsledek RIV typu T · v provozu · Národní analýza FAIR v1.2 · Předává dál · Pověření · financované úkoly · pravidla vykazování · 2 · Rozhodování a implementace v komunitě · Přijímá · Potřeby oborů · CDIF · DCAT-AP · DataCite · Nástroje v české NDI · v provozu · 12 pracovních skupin, 487 členů · v provozu · Český základní metadatový model 1.1.0 · v provozu · Profily pilotních repozitářů a VVI · ve vývoji · Profily pro obory OS II · ve vývoji · FIP českých komunit · Předává dál · Oborové požadavky · profily · slovníky · 3 · Infrastruktura · Přijímá · Oborové požadavky · pověření z politik · Nástroje v české NDI · v provozu · Platformy NRP (tři repozitářové systémy) · v provozu · Repozitáře VVI a institucí · ve vývoji · Oborové repozitáře OS II · v provozu · NMA · centrum PID · AAI · pilotní · Národní katalog repozitářů · Předává dál · Repozitáře · identifikátory · vyhledávání · 4 · Plánování výzkumu · Přijímá · Dostupné možnosti · požadavky repozitáře · Nástroje v české NDI · pilotní · dmp.eosc.cz (Data Stewardship Wizard) · pilotní · Nástroj pro počáteční nastavení DSW · ve vývoji · Modul FIP · výuková instance · plánováno · Strojová výměna DMP s NRP · Předává dál · Plány · výběr repozitáře · podmínky přístupu · 5 · Provozní podpora · Přijímá · Požadavky a nedostatky z ostatních vrstev · Nástroje v české NDI · v provozu · Institucionální data stewardi · v provozu · Národní komunita data stewardů · v provozu · Vzdělávací centrum EOSC CZ · v provozu · Uživatelská podpora NRP (L1–L3) · plánováno · Institucionální projekty OS III · Předává dál · Podpora správy dat · podklady o nedostatcích · 6 · Hodnocení · Přijímá · Zveřejněné záznamy · nastavení repozitářů · Nástroje v české NDI · v provozu · Model zralosti RDA · metriky FAIRsFAIR · v provozu · F-UJI · FAIR-Checker · CoreTrustSeal · v provozu · Příklady posouzení, národní analýza FAIR · plánováno · Kontroly FAIR začleněné do NRP · možný rozvoj · Pravidelné předávání zjištění kurátorům · Předává dál · Diagnostika · podklady pro nápravu · Stav k říjnu 2026. · v provozu · pilotní · ve vývoji · plánováno · možný rozvoj</desc>
+  <defs></defs>
+  <rect fill="#FFFFFF" height="752" width="518.4" x="0" y="0"></rect>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#334D80" stroke-width="1.15" width="245.0" x="9.5" y="13"></rect>
+  <rect fill="#E8EDF7" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="9.5" y="13"></rect>
+  <rect fill="#E8EDF7" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="9.5" y="37"></rect>
+  <line stroke="#334D80" stroke-linecap="round" stroke-width="0.75" x1="9.5" x2="254.5" y1="41" y2="41"></line>
+  <circle cx="26.5" cy="27.0" fill="#334D80" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="26.5" y="30.8">1</text>
+  <text fill="#334D80" font-family="Arial, Helvetica, sans-serif" font-size="10.45" font-weight="bold" text-anchor="start" x="41.5" y="31.0">Principy, politika a řízení</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="59">Přijímá</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="19.5" y="74">Principy FAIR · evropská politika otevřené vědy</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="98">Nástroje v české NDI</text>
+  <circle cx="23.6" cy="121.0" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="111.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="121.41600000000001">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="124.0">Koordinace EOSC CZ</text>
+  <circle cx="23.6" cy="139.3" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="177.22490234375" y="129.3"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="211.862451171875" y="139.716">ve vývoji</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="142.3" textLength="139.72" lengthAdjust="spacingAndGlyphs">EOSC Node Czechia (schváleno 2026)</text>
+  <circle cx="23.6" cy="157.6" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="147.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="158.016">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="160.6">IPs EOSC-CZ · IPs CARDS</text>
+  <circle cx="23.6" cy="175.9" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="165.9"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="176.316">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="178.9">Datová sada jako výsledek RIV typu T</text>
+  <circle cx="23.6" cy="194.2" fill="#334D80" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="184.2"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="194.61599999999999">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="197.2">Národní analýza FAIR v1.2</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="18.5" x2="245.5" y1="205" y2="205"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="19.5" y="220">Předává dál</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="19.5" y="232">Pověření · financované úkoly · pravidla vykazování</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#247A50" stroke-width="1.15" width="245.0" x="263.9" y="13"></rect>
+  <rect fill="#E6F3EC" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="263.9" y="13"></rect>
+  <rect fill="#E6F3EC" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="263.9" y="37"></rect>
+  <line stroke="#247A50" stroke-linecap="round" stroke-width="0.75" x1="263.9" x2="508.9" y1="41" y2="41"></line>
+  <circle cx="280.9" cy="27.0" fill="#247A50" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="280.9" y="30.8">2</text>
+  <text fill="#247A50" font-family="Arial, Helvetica, sans-serif" font-size="10.45" font-weight="bold" text-anchor="start" x="295.9" y="31.0">Rozhodování a implementace v komunitě</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="59">Přijímá</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="273.9" y="74">Potřeby oborů · CDIF · DCAT-AP · DataCite</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="98">Nástroje v české NDI</text>
+  <circle cx="278.0" cy="121.0" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="111.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="121.41600000000001">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="124.0">12 pracovních skupin, 487 členů</text>
+  <circle cx="278.0" cy="139.3" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="129.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="139.716">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="142.3">Český základní metadatový model 1.1.0</text>
+  <circle cx="278.0" cy="157.6" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="147.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="158.016">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="160.6">Profily pilotních repozitářů a VVI</text>
+  <circle cx="278.0" cy="175.9" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="431.62490234374997" y="165.9"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="466.262451171875" y="176.316">ve vývoji</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="178.9">Profily pro obory OS II</text>
+  <circle cx="278.0" cy="194.2" fill="#247A50" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="431.62490234374997" y="184.2"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="466.262451171875" y="194.61599999999999">ve vývoji</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="197.2">FIP českých komunit</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="272.9" x2="499.9" y1="205" y2="205"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="273.9" y="220">Předává dál</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="273.9" y="232">Oborové požadavky · profily · slovníky</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#226FA7" stroke-width="1.15" width="245.0" x="9.5" y="248"></rect>
+  <rect fill="#E4F0F9" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="9.5" y="248"></rect>
+  <rect fill="#E4F0F9" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="9.5" y="272"></rect>
+  <line stroke="#226FA7" stroke-linecap="round" stroke-width="0.75" x1="9.5" x2="254.5" y1="276" y2="276"></line>
+  <circle cx="26.5" cy="262.0" fill="#226FA7" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="26.5" y="265.8">3</text>
+  <text fill="#226FA7" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="41.5" y="266.0">Infrastruktura</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="294">Přijímá</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="19.5" y="309">Oborové požadavky · pověření z politik</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="333">Nástroje v české NDI</text>
+  <circle cx="23.6" cy="356.0" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="346.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="356.416">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="359.0">Platformy NRP (tři repozitářové systémy)</text>
+  <circle cx="23.6" cy="374.3" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="364.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="374.716">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="377.3">Repozitáře VVI a institucí</text>
+  <circle cx="23.6" cy="392.6" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="177.22490234375" y="382.6"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="211.862451171875" y="393.016">ve vývoji</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="395.6">Oborové repozitáře OS II</text>
+  <circle cx="23.6" cy="410.9" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="400.9"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="411.316">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="413.9">NMA · centrum PID · AAI</text>
+  <circle cx="23.6" cy="429.2" fill="#226FA7" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF0E2" height="15.8" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="30.6166015625" x="215.8833984375" y="419.2"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="231.19169921875002" y="429.616">pilotní</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="432.2">Národní katalog repozitářů</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="18.5" x2="245.5" y1="440" y2="440"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="19.5" y="455">Předává dál</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="19.5" y="467">Repozitáře · identifikátory · vyhledávání</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#B95A16" stroke-width="1.15" width="245.0" x="263.9" y="248"></rect>
+  <rect fill="#FCEDE4" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="263.9" y="248"></rect>
+  <rect fill="#FCEDE4" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="263.9" y="272"></rect>
+  <line stroke="#B95A16" stroke-linecap="round" stroke-width="0.75" x1="263.9" x2="508.9" y1="276" y2="276"></line>
+  <circle cx="280.9" cy="262.0" fill="#B95A16" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="280.9" y="265.8">4</text>
+  <text fill="#B95A16" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="295.9" y="266.0">Plánování výzkumu</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="294">Přijímá</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="273.9" y="309">Dostupné možnosti · požadavky repozitáře</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="333">Nástroje v české NDI</text>
+  <circle cx="278.0" cy="356.0" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF0E2" height="15.8" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="30.6166015625" x="470.28339843749995" y="346.0"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="485.59169921874997" y="356.416">pilotní</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="359.0">dmp.eosc.cz (Data Stewardship Wizard)</text>
+  <circle cx="278.0" cy="374.3" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF0E2" height="15.8" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="30.6166015625" x="470.28339843749995" y="364.3"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="485.59169921874997" y="374.716">pilotní</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="377.3">Nástroj pro počáteční nastavení DSW</text>
+  <circle cx="278.0" cy="392.6" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFF5CC" height="15.8" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="69.27509765625001" x="431.62490234374997" y="382.6"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="466.262451171875" y="393.016">ve vývoji</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="395.6">Modul FIP · výuková instance</text>
+  <circle cx="278.0" cy="410.9" fill="#B95A16" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#EDF1F6" height="15.8" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="43.36787109375" x="457.53212890624997" y="400.9"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="479.21606445312494" y="411.316" textLength="35.37" lengthAdjust="spacingAndGlyphs">plánováno</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="413.9">Strojová výměna DMP s NRP</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="272.9" x2="499.9" y1="440" y2="440"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="273.9" y="455">Předává dál</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="273.9" y="467">Plány · výběr repozitáře · podmínky přístupu</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#70499A" stroke-width="1.15" width="245.0" x="9.5" y="483"></rect>
+  <rect fill="#F0E9F8" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="9.5" y="483"></rect>
+  <rect fill="#F0E9F8" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="9.5" y="507"></rect>
+  <line stroke="#70499A" stroke-linecap="round" stroke-width="0.75" x1="9.5" x2="254.5" y1="511" y2="511"></line>
+  <circle cx="26.5" cy="497.0" fill="#70499A" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="26.5" y="500.8">5</text>
+  <text fill="#70499A" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="41.5" y="501.0">Provozní podpora</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="529">Přijímá</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="19.5" y="544">Požadavky a nedostatky z ostatních vrstev</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="19.5" y="568">Nástroje v české NDI</text>
+  <circle cx="23.6" cy="591.0" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="581.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="591.4159999999999">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="594.0">Institucionální data stewardi</text>
+  <circle cx="23.6" cy="609.3" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="599.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="609.7159999999999">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="612.3">Národní komunita data stewardů</text>
+  <circle cx="23.6" cy="627.6" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="617.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="628.016">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="630.6">Vzdělávací centrum EOSC CZ</text>
+  <circle cx="23.6" cy="645.9" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="191.6166015625" y="635.9"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="219.05830078124998" y="646.3159999999999">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="648.9">Uživatelská podpora NRP (L1–L3)</text>
+  <circle cx="23.6" cy="664.2" fill="#70499A" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#EDF1F6" height="15.8" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="43.36787109375" x="203.13212890625" y="654.2"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="224.816064453125" y="664.616" textLength="35.37" lengthAdjust="spacingAndGlyphs">plánováno</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="32.5" y="667.2">Institucionální projekty OS III</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="18.5" x2="245.5" y1="675" y2="675"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="19.5" y="690">Předává dál</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="19.5" y="702">Podpora správy dat · podklady o nedostatcích</text>
+  <rect fill="#FFFFFF" height="225" rx="6" ry="6" stroke="#A9363C" stroke-width="1.15" width="245.0" x="263.9" y="483"></rect>
+  <rect fill="#F9E7E8" height="30" rx="6" ry="6" stroke="none" stroke-width="1" width="245.0" x="263.9" y="483"></rect>
+  <rect fill="#F9E7E8" height="5" rx="0" ry="0" stroke="none" stroke-width="1" width="245.0" x="263.9" y="507"></rect>
+  <line stroke="#A9363C" stroke-linecap="round" stroke-width="0.75" x1="263.9" x2="508.9" y1="511" y2="511"></line>
+  <circle cx="280.9" cy="497.0" fill="#A9363C" r="10" stroke="none" stroke-width="0"></circle>
+  <text fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" x="280.9" y="500.8">6</text>
+  <text fill="#A9363C" font-family="Arial, Helvetica, sans-serif" font-size="10.8" font-weight="bold" text-anchor="start" x="295.9" y="501.0">Hodnocení</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="529">Přijímá</text>
+  <text fill="#5E6A7E" font-family="Arial, Helvetica, sans-serif" font-size="8.6" text-anchor="start" x="273.9" y="544">Zveřejněné záznamy · nastavení repozitářů</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.3" font-weight="bold" text-anchor="start" x="273.9" y="568">Nástroje v české NDI</text>
+  <circle cx="278.0" cy="591.0" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="581.0"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="591.4159999999999">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="594.0">Model zralosti RDA · metriky FAIRsFAIR</text>
+  <circle cx="278.0" cy="609.3" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="599.3"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="609.7159999999999">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="612.3">F-UJI · FAIR-Checker · CoreTrustSeal</text>
+  <circle cx="278.0" cy="627.6" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#E6F5E9" height="15.8" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="54.8833984375" x="446.0166015625" y="617.6"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="473.45830078125" y="628.016">v provozu</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="630.6">Příklady posouzení, národní analýza FAIR</text>
+  <circle cx="278.0" cy="645.9" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#EDF1F6" height="15.8" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="43.36787109375" x="457.53212890624997" y="635.9"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.4" font-weight="bold" text-anchor="middle" x="479.21606445312494" y="646.3159999999999" textLength="35.37" lengthAdjust="spacingAndGlyphs">plánováno</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="648.9">Kontroly FAIR začleněné do NRP</text>
+  <circle cx="278.0" cy="664.2" fill="#A9363C" r="2.8" stroke="none" stroke-width="0"></circle>
+  <rect fill="#FFFFFF" height="15.8" rx="6" ry="6" stroke="#6D7584" stroke-dasharray="3,2" stroke-width="0.78" width="52.84189453125" x="448.05810546875" y="654.2"></rect>
+  <text fill="#6D7584" font-family="Arial, Helvetica, sans-serif" font-size="7.4" text-anchor="middle" x="474.479052734375" y="664.616">možný rozvoj</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.15" text-anchor="start" x="286.9" y="667.2">Pravidelné předávání zjištění kurátorům</text>
+  <line stroke="#D6DDE5" stroke-linecap="round" stroke-width="0.7" x1="272.9" x2="499.9" y1="675" y2="675"></line>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="8.25" font-weight="bold" text-anchor="start" x="273.9" y="690">Předává dál</text>
+  <text fill="#1F2C3A" font-family="Arial, Helvetica, sans-serif" font-size="8.25" text-anchor="start" x="273.9" y="702">Diagnostika · podklady pro nápravu</text>
+  <text fill="#8994A5" font-family="Arial, Helvetica, sans-serif" font-size="7.9" text-anchor="start" x="11" y="725">Stav k říjnu 2026.</text>
+  <rect fill="#E6F5E9" height="14.5" rx="6" ry="6" stroke="#1F743C" stroke-width="0.78" width="57.230810546875006" x="11" y="733"></rect>
+  <text fill="#1F743C" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="39.6154052734375" y="742.851">v provozu</text>
+  <rect fill="#FFF0E2" height="14.5" rx="6" ry="6" stroke="#A95800" stroke-width="0.78" width="32.144189453125" x="75.730810546875" y="733"></rect>
+  <text fill="#A95800" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="91.8029052734375" y="742.851">pilotní</text>
+  <rect fill="#FFF5CC" height="14.5" rx="6" ry="6" stroke="#806300" stroke-width="0.78" width="72.10871582031251" x="115.375" y="733"></rect>
+  <text fill="#806300" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="151.42935791015626" y="742.851">ve vývoji</text>
+  <rect fill="#EDF1F6" height="14.5" rx="6" ry="6" stroke="#48566B" stroke-width="0.78" width="45.3262451171875" x="194.9837158203125" y="733"></rect>
+  <text fill="#48566B" font-family="Arial, Helvetica, sans-serif" font-size="7.65" font-weight="bold" text-anchor="middle" x="217.64683837890627" y="742.851" textLength="37.33" lengthAdjust="spacingAndGlyphs">plánováno</text>
+  <rect fill="#FFFFFF" height="14.5" rx="6" ry="6" stroke="#6D7584" stroke-dasharray="3,2" stroke-width="0.78" width="55.120336914062506" x="247.80996093750002" y="733"></rect>
+  <text fill="#6D7584" font-family="Arial, Helvetica, sans-serif" font-size="7.65" text-anchor="middle" x="275.37012939453126" y="742.851">možný rozvoj</text>
+</svg>

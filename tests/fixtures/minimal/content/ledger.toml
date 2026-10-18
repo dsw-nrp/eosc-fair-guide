@@ -1,0 +1,29 @@
+[[clause]]
+id = "A.F1.R1"
+source = "report"
+principles = ["F1"]
+actor = "repository"
+kind = "requirement"
+text = { cs = "Repozitář přiděluje PID.", en = "The repository assigns PIDs." }
+
+[[clause]]
+id = "A.F1.X1"
+source = "report"
+principles = ["F1"]
+actor = "nrp"
+kind = "fulfilment"
+text = { cs = "NRP zajišťuje DOI.", en = "NRP provides DOIs." }
+
+[[clause]]
+id = "CTS.R12"
+source = "cts-test"
+principles = []
+actor = "repository"
+kind = "requirement"
+title = { cs = "Vyhledávání a identifikace", en = "Discovery and Identification" }
+text = { cs = "Repozitář umožňuje objekty vyhledat a citovat.", en = "The repository enables discovery and citation." }
+guidance = '''
+Guidance as the standard publishes it.
+
+- One item.
+'''

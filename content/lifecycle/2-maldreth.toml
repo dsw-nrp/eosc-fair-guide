@@ -1,0 +1,104 @@
+# Field reference: docs/content-model.md, Life-cycle models.
+
+[lifecycle]
+id = "maldreth"
+position = 2
+source = "maldreth"
+name = { cs = "Harmonizovaný životní cyklus výzkumných dat MaLDReTH", en = "MaLDReTH harmonised research data lifecycle" }
+
+[[stage]]
+guideRoute = "life/mld"
+id = "conceptualise"
+name = { cs = "Konceptualizace", en = "Conceptualise" }
+translated = "cs"
+definition = "To formulate the initial research idea or hypothesis, and define the scope of the research project and the data component/requirements of that project."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "plan"
+name = { cs = "Plánování", en = "Plan" }
+translated = "cs"
+definition = "To establish a structured strategic framework for management of the research project, outlining aims, objectives, methodologies, and resources required for data collection, management and analysis. Data management plans (DMP) should be established for this phase of the lifecycle."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "fund"
+name = { cs = "Financování", en = "Fund" }
+translated = "cs"
+definition = "To identify and acquire financial resources to support the research project, including data collection, management, analysis, sharing, publishing and preservation."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "collect"
+name = { cs = "Sběr", en = "Collect" }
+translated = "cs"
+definition = "To use predefined procedures, methodologies and instruments to acquire and store data that is reliable, fit for purpose and of sufficient quality to test the research hypothesis."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "process"
+name = { cs = "Zpracování", en = "Process" }
+translated = "cs"
+definition = "To make new and existing data analysis-ready. This may involve standardised pre-processing, cleaning, reformatting, structuring, filtering, and performing quality control checks on data. It may also involve the creation and definition of metadata for use during analysis, such as acquiring provenance from instruments and tools used during data collection."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "analyse"
+name = { cs = "Analýza", en = "Analyse" }
+translated = "cs"
+definition = "To derive insights, knowledge, and understanding from processed data. Data analysis involves iterative exploration and interpretation of experimental or computational results, often utilising mathematical models and formulae to investigate relationships between experimental variables. Distinct data analysis techniques and methodologies are applied according to the data type (quantitative vs qualitative)."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "store"
+name = { cs = "Ukládání", en = "Store" }
+translated = "cs"
+definition = "To record data using technological media appropriate for processing and analysis whilst maintaining data integrity and security."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+note = "Note COLLECT > PROCESS > ANALYSE > STORE may be a repeating cycle."
+
+[[stage]]
+guideRoute = "life/mld"
+id = "publish"
+name = { cs = "Publikace", en = "Publish" }
+translated = "cs"
+definition = "To release research data in published form for use by others with appropriate metadata for citation (including a unique persistent identifier) based on FAIR principles."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "preserve"
+name = { cs = "Uchovávání", en = "Preserve" }
+translated = "cs"
+definition = "To ensure the safety, integrity, and accessibility of data for as long as necessary so that data is as FAIR as possible. Data preservation is more than data storage and backup, since data can be stored and backed up without being preserved. Preservation should include curation activities such as data cleaning, validation, assigning preservation metadata, assigning representation information, and ensuring acceptable data structures and file formats. At a minimum, data and associated metadata should be published in a trustworthy digital repository and clearly cited in the accompanying journal article unless this is not possible (e.g. due to the privacy or safety concerns)."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "share"
+name = { cs = "Sdílení", en = "Share" }
+translated = "cs"
+definition = "To make data available and accessible to humans and/or machines. Data may be shared with project collaborators or published to share it with the wider research community and society at large. Data sharing is not limited to open data or public data, and can be done during various stages of the research data lifecycle. At a minimum, data and associated metadata should be published in a trustworthy digital repository and clearly cited in the accompanying journal article."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "access"
+name = { cs = "Přístup", en = "Access" }
+translated = "cs"
+definition = "To control and manage data access by designated users and reusers. This may be in the form of publicly available published information. Necessary access control and authentication methods are applied."
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"
+
+[[stage]]
+guideRoute = "life/mld"
+id = "transform"
+name = { cs = "Transformace", en = "Transform" }
+translated = "cs"
+definition = "To create new data from the original, for example: (i) by migration into a different format; (ii) by creating a subset, by selection or query, to create newly derived results, perhaps for publication; or, iii) combining or appending with other data"
+locator = "Deliverable 1, MaLDReTH Research Data Lifecycle (RDL) Stages and Definitions; PDF pp. 21–22"

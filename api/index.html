@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Its own policy: Swagger UI needs nothing beyond this site, and every request it makes stays on it. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+    <meta name="referrer" content="no-referrer">
+    <title>API | FAIR Data Guide | EOSC CZ</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg">
+    <link rel="service-desc" type="application/vnd.oai.openapi+json;version=3.1" href="../openapi.json">
+    <link rel="stylesheet" href="swagger-ui/swagger-ui.css">
+    <link rel="stylesheet" href="docs.css">
+  </head>
+  <body>
+    <header class="api-header">
+      <p>
+        <a href="../">FAIR Data Guide</a> ·
+        <a href="../openapi.json">OpenAPI 3.1 description</a> ·
+        <a href="../#/en/V/page/machines">The same endpoints as an accessible list</a>
+      </p>
+    </header>
+    <main id="swagger-ui"></main>
+    <script src="swagger-ui/swagger-ui-bundle.js"></script>
+    <script src="init.js"></script>
+  </body>
+</html>

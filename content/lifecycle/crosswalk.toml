@@ -1,0 +1,164 @@
+# Correspondences between the stages of the life-cycle models: published by a source, reviewed by the guide, or
+# unconfirmed. Field reference: docs/content-model.md, Life-cycle models.
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-plan-mld-plan"
+stages = ["rdmkit.plan", "maldreth.plan"]
+basis = "published"
+source = "maldreth"
+locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-collect-mld-collect"
+stages = ["rdmkit.collect", "maldreth.collect"]
+basis = "published"
+source = "maldreth"
+locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-process-mld-process"
+stages = ["rdmkit.process", "maldreth.process"]
+basis = "published"
+source = "maldreth"
+locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-analyse-mld-analyse"
+stages = ["rdmkit.analyse", "maldreth.analyse"]
+basis = "published"
+source = "maldreth"
+locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-preserve-mld-preserve"
+
+stages = ["rdmkit.preserve", "maldreth.preserve"]
+basis = "published"
+source = "maldreth"
+locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-share-mld-share"
+stages = ["rdmkit.share", "maldreth.share"]
+basis = "published"
+source = "maldreth"
+locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-reuse-mld-access"
+stages = ["rdmkit.reuse", "maldreth.access"]
+basis = "unconfirmed"
+source = "maldreth"
+locator = "Deliverable 1, Figure 2 (crosswalk to existing models); PDF p. 18"
+note = { cs = "Obrázek 2 označuje dva sloupce MaLDReTH jako SHARE; pořadí fází na obrázku 3 ukazuje na Access.", en = "Figure 2 labels two MaLDReTH columns SHARE; the order of stages in Figure 3 indicates Access." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-plan-mld-conceptualise"
+
+stages = ["rdmkit.plan", "maldreth.conceptualise"]
+basis = "reviewed"
+note = { cs = "Plánování v RDMkit znamená promyslet správu dat předem, ještě před jejich vznikem.", en = "RDMkit's planning means thinking data management through upfront, before the data exist." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-plan-mld-fund"
+stages = ["rdmkit.plan", "maldreth.fund"]
+basis = "reviewed"
+note = { cs = "Podle RDMkit plán správy dat pomáhá naplánovat a rozpočtovat potřebné zdroje a vybavení.", en = "RDMkit says a data management plan helps to plan and budget necessary resources and equipment." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-collect-mld-store"
+stages = ["rdmkit.collect", "maldreth.store"]
+basis = "reviewed"
+note = { cs = "Úvahy RDMkit při sběru dat zahrnují, jak data ukládat, například jejich formát a objem.", en = "RDMkit's considerations for collecting data include how to store them, for example format and volume." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-share-mld-publish"
+stages = ["rdmkit.share", "maldreth.publish"]
+basis = "reviewed"
+note = { cs = "RDMkit u sdílení radí data zveřejnit v repozitáři s vhodným typem přístupu a licencí.", en = "For sharing, RDMkit advises publishing data in a repository with the appropriate access type and licence." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-share-mld-access"
+stages = ["rdmkit.share", "maldreth.access"]
+basis = "reviewed"
+note = { cs = "RDMkit u sdílení radí zvolit typ přístupu k datům: otevřený, po registraci nebo řízený.", en = "For sharing, RDMkit advises choosing the type of access to the data: open, registered or controlled." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-reuse-mld-transform"
+stages = ["rdmkit.reuse", "maldreth.transform"]
+basis = "reviewed"
+note = { cs = "RDMkit u opakovaného užití zdůrazňuje propojení s jinými zdroji dat, které umožňuje nová užití.", en = "For reuse, RDMkit stresses integration with other data sources, which enables new uses of the data." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-plan-knav-planning"
+stages = ["rdmkit.plan", "knav-tools.planning"]
+basis = "reviewed"
+note = { cs = "Krok katalogu KNAV popisuje stejnou činnost jako fáze RDMkit.", en = "The KNAV catalogue step describes the same activity as the RDMkit stage." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-collect-knav-collecting"
+
+stages = ["rdmkit.collect", "knav-tools.collecting"]
+basis = "reviewed"
+note = { cs = "Krok katalogu KNAV popisuje stejnou činnost jako fáze RDMkit.", en = "The KNAV catalogue step describes the same activity as the RDMkit stage." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-collect-knav-organizing"
+
+stages = ["rdmkit.collect", "knav-tools.organizing-collaborating"]
+basis = "reviewed"
+note = { cs = "RDMkit řadí organizaci dat mezi úkoly fáze Vznik dat.", en = "RDMkit lists data organisation among the tasks of the Collect stage." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-process-knav-processing"
+
+stages = ["rdmkit.process", "knav-tools.processing"]
+basis = "reviewed"
+note = { cs = "Krok katalogu KNAV popisuje stejnou činnost jako fáze RDMkit.", en = "The KNAV catalogue step describes the same activity as the RDMkit stage." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-analyse-knav-analyzing"
+
+stages = ["rdmkit.analyse", "knav-tools.analyzing"]
+basis = "reviewed"
+note = { cs = "Krok katalogu KNAV popisuje stejnou činnost jako fáze RDMkit.", en = "The KNAV catalogue step describes the same activity as the RDMkit stage." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-preserve-knav-storing"
+
+stages = ["rdmkit.preserve", "knav-tools.storing-archiving"]
+basis = "reviewed"
+note = { cs = "Krok katalogu KNAV popisuje stejnou činnost jako fáze RDMkit.", en = "The KNAV catalogue step describes the same activity as the RDMkit stage." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-share-knav-sharing"
+stages = ["rdmkit.share", "knav-tools.sharing"]
+basis = "reviewed"
+note = { cs = "Krok katalogu KNAV popisuje stejnou činnost jako fáze RDMkit.", en = "The KNAV catalogue step describes the same activity as the RDMkit stage." }
+
+[[correspondence]]
+guideRoute = "life/xw"
+id = "rdm-reuse-knav-reusing"
+stages = ["rdmkit.reuse", "knav-tools.reusing"]
+basis = "reviewed"
+note = { cs = "Krok katalogu KNAV popisuje stejnou činnost jako fáze RDMkit.", en = "The KNAV catalogue step describes the same activity as the RDMkit stage." }

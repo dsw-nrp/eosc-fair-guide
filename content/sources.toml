@@ -1,0 +1,837 @@
+# Published sources that the guide cites but does not recommend as a resource; a cited resource carries its
+# citation in resources.toml. Assessment clauses use published sources. The approved in-preparation manuscript
+# supplies the conceptual model only; it introduces no assessment requirement.
+# Field reference: docs/content-model.md.
+
+[[source]]
+guideRoute = "res/pub"
+
+id = "layers-seams-manuscript"
+type = "article"
+title = "Layers and seams of FAIR implementation in the Czech national research data infrastructure"
+short = { cs = "Vrstvy a návaznosti FAIR implementace", en = "Layers and seams of FAIR implementation" }
+inLanguage = "en"
+preparationStatus = "in-preparation"
+authors = ["Lada Biedermannová", "David Novák", "Lukáš Najdekr", "Karel Berka", "Robert Pergl", "Marek Suchánek", "Michal Růžička", "Jindřich Fejfar", "Ilona Trtíková"]
+dateAccessed = 2026-10-11
+
+[[source]]
+guideRoute = "res/doc"
+id = "rdmkit"
+knav = "rdmkit"
+code = "RDMKIT"
+type = "webpage"
+title = "RDMkit: The ELIXIR Research Data Management toolkit for Life Sciences"
+short = { cs = "RDMkit", en = "RDMkit" }
+inLanguage = "en"
+url = "https://rdmkit.elixir-europe.org/"
+publisher = "ELIXIR"
+version = "73476cbd558ae263e155884af0333537c74c982e"
+dateModified = 2026-03-27
+dateAccessed = 2026-10-13
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "maldreth"
+type = "report"
+title = "Mapping the Landscape of Digital Research Tools"
+short = { cs = "MaLDReTH", en = "MaLDReTH" }
+version = "1"
+inLanguage = "en"
+doi = "10.15497/RDA00125"
+url = "https://doi.org/10.15497/RDA00125"
+publisher = "Research Data Alliance"
+authors = ["Adam Vials Moore", "Rory Macneil", "Connie Clare", "Marcelo Garcia", "Richard Pitts", "RDA OfR Mapping the Landscape of Digital Research Tools WG"]
+datePublished = 2024-11-26
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "knav-life-cycle"
+type = "webpage"
+title = { cs = "Životní cyklus dat", en = "Data life cycle" }
+short = { cs = "Životní cyklus dat KNAV", en = "KNAV data life cycle" }
+inLanguage = "cs"
+url = "https://openscience.lib.cas.cz/fair-data/life_cycle/"
+publisher = "knav"
+dateModified = 2025-07-11
+dateAccessed = 2026-10-13
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/tool"
+id = "knav-dm-tools-catalogue"
+type = "software"
+title = "Catalogue of Data Management Tools"
+short = { cs = "Katalog nástrojů pro správu dat KNAV", en = "KNAV Data Management Tools Catalogue" }
+inLanguage = "en"
+url = "https://github.com/Open-Science-Department-KNAV/Data-Management-Tools-Catalogue"
+publisher = "knav"
+version = "c6094e625dd9d2cc7d272658e4f63ac7a4636bae"
+dateModified = 2026-04-25
+dateAccessed = 2026-10-13
+license = "https://www.gnu.org/licenses/gpl-3.0.html"
+
+[[source]]
+guideRoute = "res/doc"
+id = "orcid-identifier-pattern"
+type = "webpage"
+title = "Structure of the ORCID Identifier"
+short = { cs = "Struktura identifikátoru ORCID", en = "ORCID identifier structure" }
+inLanguage = "en"
+url = "https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier"
+publisher = "ORCID"
+dateAccessed = 2026-10-11
+
+[[source]]
+guideRoute = "res/doc"
+id = "ror-identifier-pattern"
+type = "webpage"
+title = "Identifier pattern"
+short = { cs = "Formát identifikátoru ROR", en = "ROR identifier pattern" }
+inLanguage = "en"
+url = "https://ror.readme.io/docs/identifier"
+publisher = "Research Organization Registry"
+dateAccessed = 2026-10-11
+
+[[source]]
+guideRoute = "res/doc"
+id = "crossref-rest-api"
+type = "webpage"
+title = "REST API"
+short = { cs = "Dokumentace Crossref REST API", en = "Crossref REST API documentation" }
+inLanguage = "en"
+url = "https://www.crossref.org/documentation/retrieve-metadata/rest-api/"
+publisher = "Crossref"
+dateAccessed = 2026-10-11
+
+[[source]]
+id = "analyza-fair-1.2"
+code = "A"
+type = "report"
+title = { cs = "Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI", en = "Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI" }
+short = { cs = "Analýza FAIR pro NRP/NDI", en = "FAIR analysis for NRP/NDI" }
+inLanguage = "cs"
+doi = "10.71495/5dv6-v116"
+url = "https://doi.org/10.71495/5dv6-v116"
+publisher = "cesnet"
+version = "1.2"
+authors = ["ilona-trtikova", "petra-bartkova", "lada-biedermannova", "jindrich-fejfar", "robert-pergl", "david-novak", "tomas-cizek"]
+datePublished = 2026-02-15
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "openssf-criteria-2024"
+code = "OPENSSF"
+type = "document"
+title = "OpenSSF Best Practices criteria: introduction"
+short = { cs = "Úvod ke kritériím OpenSSF Best Practices", en = "OpenSSF Best Practices criteria introduction" }
+version = "2024-08-16"
+inLanguage = "en"
+url = "https://github.com/coreinfrastructure/best-practices-badge/blob/84c188ef9dbee4c7ca839382a7feb5245035fdad/config/locales/en.yml"
+publisher = "OpenSSF"
+authors = ["OpenSSF Best Practices badge contributors"]
+datePublished = 2024-08-16
+dateAccessed = 2026-10-11
+license = "https://creativecommons.org/licenses/by/3.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "nrp-docs-nma-introduction"
+type = "webpage"
+title = "National Metadata Directory: introduction (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-introduction"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+guideRoute = "res/doc"
+id = "nrp-docs-nma-access"
+type = "webpage"
+title = "National Metadata Directory: access (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/end_users/national-metadata-directory/national-metadata-directory-access"
+publisher = "nrp"
+dateAccessed = 2026-10-08
+
+[[source]]
+guideRoute = "res/doc"
+id = "nkr-schema"
+type = "webpage"
+title = { cs = "Národní katalog repozitářů (NKR): schéma záznamu Repository", en = "National Repository Catalogue (NKR): the Repository record schema" }
+inLanguage = "cs"
+url = "https://repo.cz/schemas/Repository"
+publisher = "cesnet"
+dateAccessed = 2026-10-08
+
+[[source]]
+guideRoute = "res/doc"
+id = "survey-2025"
+type = "presentation"
+title = { cs = "Stav správy výzkumných dat v České republice 2025", en = "State of research data management in the Czech Republic 2025" }
+inLanguage = "cs"
+url = "https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf"
+publisher = "eosc-cz"
+authors = ["M. Vávra", "T. Čížek", "J. Klusáček"]
+datePublished = 2026-04-01
+license = "https://creativecommons.org/licenses/by/"
+
+
+[[source]]
+id = "mbdb-2026"
+type = "article"
+title = "Molecular Biophysics Database (MBDB) makes raw measurements findable and reusable"
+inLanguage = "en"
+doi = "10.1007/s00249-025-01789-1"
+url = "https://doi.org/10.1007/s00249-025-01789-1"
+publisher = "European Biophysics Journal"
+authors = ["E. D. Agerschou", "et al."]
+datePublished = 2025-08-10
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+
+[[source]]
+guideRoute = "res/doc"
+id = "ncdoi-2023"
+type = "webpage"
+title = "NTK establishes two new national centres that can help Czech scientists with bureaucracy"
+inLanguage = "en"
+url = "https://identifikatory.cz/en/ntk-establishes-two-new-national-centres-that-can-help-czech-scientists-with-bureaucracy/"
+publisher = "ntk"
+datePublished = 2023-06-02
+
+[[source]]
+guideRoute = "res/doc"
+id = "os-linkages-1.1"
+type = "document"
+title = { cs = "Výstupy a provazby projektů Open Science, verze 1.1", en = "Outputs and linkages of Open Science projects, version 1.1" }
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/vystupy-iniciativy-eosc-cz"
+publisher = "eosc-cz"
+authors = ["Michaela Capandová", "et al."]
+datePublished = 2024-09-26
+
+[[source]]
+guideRoute = "res/tool"
+id = "ccmm-releases"
+type = "software"
+title = "Czech Core Metadata Model (CCMM): releases"
+inLanguage = "en"
+url = "https://github.com/techlib/CCMM/releases"
+publisher = "ntk"
+dateAccessed = 2026-10-08
+
+[[source]]
+guideRoute = "res/doc"
+id = "einfra-docs"
+type = "webpage"
+title = "e-INFRA CZ documentation"
+inLanguage = "en"
+url = "https://docs.e-infra.cz/"
+publisher = "e-INFRA CZ"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "re3data-schema-3.1"
+type = "standard"
+title = "Metadata Schema for the Description of Research Data Repositories, version 3.1"
+version = "3.1"
+inLanguage = "en"
+doi = "10.48440/re3.010"
+url = "https://doi.org/10.48440/re3.010"
+publisher = "re3data"
+datePublished = 2021-08-09
+license = "https://creativecommons.org/publicdomain/zero/1.0/"
+
+[[source]]
+guideRoute = "res/tool"
+id = "fip-wizard-templates"
+type = "software"
+title = "FIP Wizard: nanopublication templates"
+inLanguage = "en"
+url = "https://github.com/fip-wizard"
+publisher = "GitHub"
+dateAccessed = 2026-10-08
+
+[[source]]
+guideRoute = "res/std"
+id = "fip-ontology"
+type = "standard"
+title = "FAIR Implementation Profile ontology"
+inLanguage = "en"
+url = "https://w3id.org/fair/fip/terms/"
+publisher = "GO FAIR Foundation"
+dateAccessed = 2026-10-08
+
+[[source]]
+id = "fair-principles-2016"
+type = "article"
+title = "The FAIR Guiding Principles for scientific data management and stewardship"
+inLanguage = "en"
+doi = "10.1038/sdata.2016.18"
+url = "https://doi.org/10.1038/sdata.2016.18"
+publisher = "Scientific Data"
+authors = ["Mark D. Wilkinson", "et al."]
+datePublished = 2016-03-15
+
+[[source]]
+id = "survey-2025-data"
+type = "dataset"
+title = { cs = "Průzkum správy výzkumných dat v České republice 2025", en = "Survey of research data management in the Czech Republic 2025" }
+inLanguage = "cs"
+doi = "10.14473/CSDA/OJTMJF"
+url = "https://doi.org/10.14473/CSDA/OJTMJF"
+publisher = "csda"
+dateAccessed = 2026-10-08
+
+[[source]]
+guideRoute = "res/doc"
+id = "os3-rules"
+type = "document"
+title = { cs = "Pravidla pro žadatele a příjemce – specifická část pro výzvu Open Science III", en = "Rules for applicants and beneficiaries – specific part for the Open Science III call" }
+short = { cs = "Pravidla výzvy Open Science III", en = "Open Science III call rules" }
+inLanguage = "cs"
+version = "1"
+url = "https://opjak.cz/wp-content/uploads/2026/06/PpZP_specificka_cast_vyzva_Open_Science_III_web.pdf"
+publisher = "msmt"
+dateAccessed = 2026-10-09
+
+[[source]]
+guideRoute = "res/doc"
+id = "law-328-2025"
+type = "document"
+title = { cs = "Zákon č. 328/2025 Sb., o výzkumu, vývoji, inovacích a transferu znalostí", en = "Act No. 328/2025 Coll., on research, development, innovation and knowledge transfer" }
+short = { cs = "Zákon č. 328/2025 Sb.", en = "Act No. 328/2025 Coll." }
+inLanguage = "cs"
+url = "https://e-sbirka.gov.cz/sb/2025/328"
+datePublished = 2025-09-09
+dateAccessed = 2026-10-09
+version = "2025-09-09"
+
+[[source]]
+guideRoute = "res/doc"
+id = "os3-faq"
+type = "webpage"
+title = { cs = "Open Science III: časté dotazy", en = "Open Science III: frequently asked questions" }
+inLanguage = "cs"
+url = "https://www.eosc.cz/projekty/open-science-iii/faq"
+publisher = "eosc-cz"
+dateAccessed = 2026-10-09
+
+[[source]]
+guideRoute = "res/doc"
+id = "minizamer-catalogue"
+type = "document"
+title = { cs = "Minizáměry Open Science II, výzva č. 2: Katalog výstupů", en = "Open Science II mini-projects, call no. 2: catalogue of outputs" }
+inLanguage = "cs"
+version = "1.0"
+url = "https://www.eosc.cz/media/4219027/priloha_c_2_katalog_vystupu.pdf"
+publisher = "cuni"
+datePublished = 2026-09-01
+dateAccessed = 2026-10-09
+
+[[source]]
+guideRoute = "res/pub"
+id = "ec-genai-guidelines"
+type = "report"
+title = "Living guidelines on the responsible use of generative AI in research"
+short = { cs = "Pokyny EK k generativní AI ve výzkumu", en = "EC guidelines on generative AI in research" }
+inLanguage = "en"
+url = "https://research-and-innovation.ec.europa.eu/document/download/2b6cf7e5-36ac-41cb-aab5-0d32050143dc_en"
+publisher = "European Commission, Directorate-General for Research and Innovation"
+version = "3"
+datePublished = "2026-05"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "iap-cas-readme"
+type = "document"
+title = "Readme template of IAP-CAS"
+inLanguage = "en"
+doi = "10.5281/zenodo.20624364"
+url = "https://doi.org/10.5281/zenodo.20624364"
+publisher = "Zenodo"
+authors = ["T. Kolmačka"]
+version = "1.0.0"
+datePublished = 2026-06-10
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "cerit-chat-ai"
+type = "webpage"
+title = "Chat AI (LLM models)"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09
+
+[[source]]
+guideRoute = "res/doc"
+id = "cerit-ai-api"
+type = "webpage"
+title = "OpenAI API"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/ai-api"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09
+
+[[source]]
+guideRoute = "res/doc"
+id = "cerit-ai-coding"
+type = "webpage"
+title = "AI Coding Assistants Integration"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/llm-integration"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09
+
+[[source]]
+guideRoute = "res/doc"
+id = "cerit-ai-privacy"
+type = "webpage"
+title = "AI Data Privacy Policy"
+inLanguage = "en"
+url = "https://docs.cerit.io/en/docs/ai-as-a-service/ai-data-privacy"
+publisher = "CERIT-SC"
+dateAccessed = 2026-10-09
+
+[[source]]
+guideRoute = "res/pub"
+id = "os2-kb1"
+type = "report"
+title = { cs = "Technická zpráva: Sběr požadavků a návrh architektury systému bezpečnostního monitoringu", en = "Technical report: requirements and architecture design of the security monitoring system" }
+short = { cs = "Zpráva o bezpečnostním monitoringu (Open Science II)", en = "Security monitoring report (Open Science II)" }
+inLanguage = "cs"
+url = "https://www.eosc.cz/media/4204147/kb_1-poz-adavky-a-na-vrh-architektury-syste-mu-bezpec-nostni-ho-monitoringu-v20.pdf"
+publisher = "cesnet"
+authors = ["V. Bartoš", "L. Huták"]
+version = "2"
+datePublished = 2026-07-24
+license = "https://creativecommons.org/licenses/by-sa/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "nrp-aai-integration"
+type = "webpage"
+title = "Integrating a repository system with AAI (NRP documentation)"
+inLanguage = "en"
+url = "https://docs.nrp.eosc.cz/en/docs/repo_admins/user_management_system/integrating-repo-systems"
+publisher = "nrp"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "eosc-cz-vision"
+type = "article"
+title = "EOSC CZ: Towards the development of Czech national ecosystem for FAIR research data"
+inLanguage = "en"
+doi = "10.48550/arXiv.2402.13343"
+url = "https://doi.org/10.48550/arXiv.2402.13343"
+publisher = "arXiv"
+authors = ["M. Antol", "J. Marek", "M. Capandova", "J. Juracek", "L. Matyska"]
+datePublished = 2024-02-20
+
+[[source]]
+id = "ercim-community"
+type = "article"
+title = "Shaping the Czech National Infrastructure for Research Data through Community Consensus"
+inLanguage = "en"
+doi = "10.71495/a7hs-fs41"
+url = "https://doi.org/10.71495/a7hs-fs41"
+publisher = "ERCIM News"
+authors = ["M. Dvořák", "P. Špringerová", "M. Antol"]
+datePublished = "2026"
+
+[[source]]
+guideRoute = "res/doc"
+id = "ndi-architecture"
+type = "document"
+title = { cs = "Architektura implementace iniciativy EOSC v ČR", en = "Architecture of the implementation of the EOSC initiative in the Czech Republic" }
+inLanguage = "cs"
+url = "https://www.eosc.cz/media/3517655/eosc_architektura-implementace.pdf"
+publisher = "eosc-cz"
+dateAccessed = 2026-10-09
+
+[[source]]
+id = "nrp-roadmap-2025"
+type = "report"
+title = { cs = "Roadmapa služeb NRP pro 2025", en = "NRP service roadmap for 2025" }
+inLanguage = "cs"
+doi = "10.71495/h2rx-bd32"
+url = "https://doi.org/10.71495/h2rx-bd32"
+publisher = "nrp"
+authors = ["M. Růžička"]
+version = "1.0.1"
+datePublished = 2025-03-27
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+id = "cts-2026"
+code = "CTS"
+type = "standard"
+title = "CoreTrustSeal Trustworthy Digital Repositories Requirements 2026-2028"
+short = "CoreTrustSeal 2026–2028"
+inLanguage = "en"
+doi = "10.5281/zenodo.17660462"
+url = "https://doi.org/10.5281/zenodo.17660462"
+publisher = "CoreTrustSeal Standards and Certification Board"
+version = "01.00"
+datePublished = 2025-11-20
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/std"
+id = "cdif-core-1.1.1"
+code = "CDIF"
+type = "standard"
+title = "CDIF Core profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-core/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+guideRoute = "res/std"
+id = "cdif-discovery-1.1.1"
+code = "CDIF"
+type = "standard"
+title = "CDIF Data Discovery profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-discovery/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+guideRoute = "res/std"
+id = "cdif-datadescription-1.1.1"
+code = "CDIF"
+type = "standard"
+title = "CDIF Data Description profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-datadescription/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+guideRoute = "res/std"
+id = "cdif-codelist-1.1.1"
+code = "CDIF"
+type = "standard"
+title = "CDIF Codelist profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-codelist/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+guideRoute = "res/std"
+id = "cdif-datastructure-1.1.1"
+code = "CDIF"
+type = "standard"
+title = "CDIF Data Structure profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-datastructure/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+guideRoute = "res/std"
+id = "cdif-conceptscheme-1.1.1"
+code = "CDIF"
+type = "standard"
+title = "CDIF Concept Scheme profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-conceptscheme/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+guideRoute = "res/std"
+id = "cdif-manifest-1.1.1"
+code = "CDIF"
+type = "standard"
+title = "CDIF Manifest profile, release 1.1.1"
+inLanguage = "en"
+url = "https://github.com/Cross-Domain-Interoperability-Framework/profile-manifest/blob/v1.1.1/README.md"
+publisher = "CODATA"
+version = "1.1.1"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-10
+
+[[source]]
+guideRoute = "res/doc"
+id = "doi-citation-service"
+type = "webpage"
+title = "DOI Foundation citation formatter: content negotiation documentation"
+short = { cs = "Citační služba DOI Foundation", en = "DOI Foundation citation service" }
+inLanguage = "en"
+url = "https://citation.doi.org/docs.html"
+publisher = "International DOI Foundation"
+license = "https://creativecommons.org/licenses/by/4.0/"
+dateAccessed = 2026-10-11
+
+[[source]]
+guideRoute = "res/tool"
+id = "csl-iso690-cs"
+type = "software"
+title = { cs = "ISO-690 (author-date, Čeština): styl Citation Style Language", en = "Czech ISO 690 author–date: Citation Style Language style" }
+short = { cs = "Český styl ČSN ISO 690 v CSL", en = "Czech ISO 690 CSL style" }
+inLanguage = "cs"
+url = "https://github.com/citation-style-language/styles/blob/master/iso690-author-date-cs.csl"
+publisher = "Citation Style Language"
+license = "https://creativecommons.org/licenses/by-sa/3.0/"
+dateAccessed = 2026-10-11
+
+[[source]]
+id = "frsm-report-1.1"
+code = "FRSM"
+type = "report"
+title = "D5.2 - Metrics for automated FAIR software assessment in a disciplinary context"
+short = { cs = "Zpráva D5.2 o metrikách softwaru, verze 1.1", en = "D5.2 software metrics report, version 1.1" }
+version = "1.1"
+inLanguage = "en"
+doi = "10.5281/zenodo.15535629"
+url = "https://zenodo.org/records/15535629"
+publisher = "FAIR-IMPACT"
+authors = ["Neil Chue Hong", "Elena Breitmoser", "Mario Antonioletti", "Joy Davidson", "Daniel Garijo", "Alejandra Gonzalez-Beltran", "Morane Gruenpeter", "Robert Huber", "Clement Jonquet", "Mike Priddy", "John Shepherdson", "Maaike Verburg", "Chris Wood"]
+datePublished = 2025-05-28
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-mrm-ssh-open-marketplace"
+type = "document"
+title = "SSH Open Marketplace: EOSC Macro-Roadmap case study"
+short = { cs = "Případová studie SSH Open Marketplace", en = "SSH Open Marketplace case study" }
+inLanguage = "en"
+url = "https://eosc.eu/wp-content/uploads/2025/02/EOSC-MRM_SSH-Open-Marketplace.pdf"
+publisher = "EOSC Association"
+dateAccessed = 2026-10-13
+
+[[source]]
+guideRoute = "res/doc"
+id = "opendoar-inclusion-criteria"
+type = "webpage"
+title = "OpenDOAR inclusion criteria"
+inLanguage = "en"
+url = "https://opendoar.ac.uk/help/inclusion-criteria"
+publisher = "Jisc"
+dateAccessed = 2026-10-13
+
+[[source]]
+guideRoute = "res/doc"
+id = "sherpa-object-retrieval-api"
+type = "webpage"
+title = "Object Retrieval API - Sherpa Services"
+short = { cs = "API služeb Sherpa", en = "Sherpa services API" }
+inLanguage = "en"
+url = "https://v2.sherpa.ac.uk/api/object-retrieval.html"
+publisher = "Jisc"
+dateAccessed = 2026-10-13
+
+[[source]]
+id = "infra-finder-paper"
+type = "article"
+title = "Infra Finder: A new tool to enhance transparency, discoverability, and trust in open infrastructure"
+short = { cs = "Článek o nástroji Infra Finder", en = "Infra Finder paper" }
+inLanguage = "en"
+doi = "10.5281/zenodo.10913249"
+url = "https://zenodo.org/records/10913249"
+authors = ["Lauren Collister", "Emmy Tsang", "Chrys Wu"]
+datePublished = 2024-04-03
+license = "https://creativecommons.org/licenses/by/4.0/"
+
+[[source]]
+guideRoute = "res/doc"
+id = "datacite-rest-api"
+type = "webpage"
+title = "DataCite REST API"
+short = { cs = "REST API služby DataCite", en = "DataCite REST API" }
+inLanguage = "en"
+url = "https://support.datacite.org/docs/api"
+publisher = "DataCite"
+dateAccessed = 2026-10-13
+
+[[source]]
+guideRoute = "res/doc"
+id = "datacite-data-file-use-policy"
+type = "webpage"
+title = "DataCite Data File Use Policy"
+short = { cs = "Podmínky užití dat DataCite", en = "DataCite data use policy" }
+inLanguage = "en"
+url = "https://support.datacite.org/docs/datacite-data-file-use-policy"
+publisher = "DataCite"
+dateAccessed = 2026-10-13
+
+[[source]]
+guideRoute = "res/tool"
+id = "fuji-simpleclient"
+type = "software"
+title = "F-UJI simple client: assessment result page"
+short = { cs = "Klient F-UJI: stránka výsledku", en = "F-UJI client: result page" }
+inLanguage = "en"
+url = "https://github.com/pangaea-data-publisher/fuji/blob/0847e65b5cf760e03b2973ba7d819e3a3a477178/simpleclient/index.php"
+publisher = "PANGAEA"
+version = "0847e65b5cf760e03b2973ba7d819e3a3a477178"
+dateModified = 2024-05-02
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/tool"
+id = "fuji-metrics-v0-8"
+type = "software"
+title = "F-UJI metric definitions, version 0.8"
+short = { cs = "Metriky F-UJI 0.8", en = "F-UJI metrics 0.8" }
+inLanguage = "en"
+url = "https://github.com/pangaea-data-publisher/fuji/blob/b5a908bbb41b522a8835756c061f9cec15b3037a/fuji_server/yaml/metrics_v0.8.yaml"
+publisher = "PANGAEA"
+version = "b5a908bbb41b522a8835756c061f9cec15b3037a"
+dateModified = 2025-09-01
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/tool"
+id = "fair-checker-check-view"
+type = "software"
+title = "FAIR-Checker check view"
+short = { cs = "FAIR-Checker: zobrazení kontroly", en = "FAIR-Checker check view" }
+inLanguage = "en"
+url = "https://github.com/IFB-ElixirFr/FAIR-checker/blob/2425050a6cad0967895f9d07a22fe1857157ea7c/templates/check.html"
+publisher = "Institut Français de Bioinformatique"
+version = "2425050a6cad0967895f9d07a22fe1857157ea7c"
+dateModified = 2026-09-30
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/tool"
+id = "fair-checker-metrics"
+type = "software"
+title = "FAIR-Checker metric implementations"
+short = { cs = "FAIR-Checker: implementace metrik", en = "FAIR-Checker metric implementations" }
+inLanguage = "en"
+url = "https://github.com/IFB-ElixirFr/FAIR-checker/tree/0b21c44c6d66644ac8c283e2e3277dfd5b070482/metrics"
+publisher = "Institut Français de Bioinformatique"
+version = "0b21c44c6d66644ac8c283e2e3277dfd5b070482"
+dateModified = 2026-10-01
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-cz-node-charter"
+type = "document"
+title = "EOSC Federation Build-Up Phase Project Charter: EOSC CZ National Node"
+short = { cs = "Charta EOSC CZ Node", en = "EOSC CZ Node charter" }
+inLanguage = "en"
+url = "https://eosc.eu/wp-content/uploads/2026/06/EOSC_CZ_National_Node_Charter_Revised_Public.pdf"
+publisher = "e-INFRA CZ consortium"
+dateModified = 2025-10-10
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-cz-node-announcement"
+type = "webpage"
+title = "EOSC CZ Node Joins the EOSC Federation"
+short = { cs = "Oznámení o EOSC CZ Node", en = "EOSC CZ Node announcement" }
+inLanguage = "en"
+url = "https://www.eosc.cz/en/news-and-events/news/eosc-cz-node-joins-the-eosc-federation"
+publisher = "eosc-cz"
+datePublished = 2026-04-29
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-federation-second-wave-mou"
+type = "webpage"
+title = "Three second-wave EOSC Nodes sign EOSC Federation's Memorandum of Understanding"
+short = { cs = "Tři uzly druhé vlny podepsaly memorandum Federace EOSC", en = "Second-wave EOSC Nodes sign the Federation's MoU" }
+inLanguage = "en"
+url = "https://eosc.eu/news/three-second-wave-eosc-nodes-sign-eosc-federations-memorandum-of-understanding"
+publisher = "EOSC Association"
+datePublished = 2026-10-05
+dateAccessed = 2026-10-16
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-federation-production"
+type = "webpage"
+title = "EOSC Federation moves into production, beginning a new phase for European science"
+short = { cs = "Federace EOSC vstupuje do produkce", en = "EOSC Federation moves into production" }
+inLanguage = "en"
+url = "https://eosc.eu/news/eosc-federation-moves-into-production-beginning-a-new-phase-for-european-science"
+publisher = "EOSC Association"
+datePublished = 2026-10-08
+dateAccessed = 2026-10-16
+
+[[source]]
+guideRoute = "res/doc"
+id = "eosc-cz-node-page"
+type = "webpage"
+title = "EOSC CZ Node (Czechia)"
+short = { cs = "Uzel EOSC CZ (Czechia)", en = "EOSC CZ Node (Czechia)" }
+inLanguage = "en"
+url = "https://www.eosc.cz/o-nas/eosc-node-czechia"
+publisher = "eosc-cz"
+dateAccessed = 2026-10-16
+
+[[source]]
+guideRoute = "res/pub"
+id = "lri-roadmap-2023"
+code = "LRI"
+type = "report"
+title = "Roadmap of Large Research Infrastructures of the Czech Republic for the years 2023–2026"
+short = { cs = "Cestovní mapa velkých výzkumných infrastruktur 2023–2026", en = "Roadmap of Large Research Infrastructures 2023–2026" }
+inLanguage = "en"
+url = "https://www.vyzkumne-infrastruktury.cz/wp-content/uploads/2025/01/Mapa_VV_2023_EN_aktualizace2024.pdf"
+publisher = "msmt"
+version = "2024 update"
+datePublished = "2024"
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/doc"
+id = "ri-portal"
+type = "webpage"
+title = { cs = "Výzkumné infrastruktury", en = "Research Infrastructures" }
+short = { cs = "Portál výzkumných infrastruktur", en = "Research infrastructures portal" }
+inLanguage = "cs"
+url = "https://www.vyzkumne-infrastruktury.cz/"
+publisher = "msmt"
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/doc"
+id = "isvavai-infrastructures"
+type = "webpage"
+title = { cs = "IS VaVaI: výzkumné infrastruktury", en = "IS VaVaI: research infrastructures" }
+short = { cs = "Výzkumné infrastruktury v IS VaVaI", en = "Research infrastructures in IS VaVaI" }
+inLanguage = "cs"
+url = "https://www.isvavai.cz/cep?s=vyzkumne-infrastruktury"
+publisher = "Research, Development and Innovation Council"
+dateAccessed = 2026-10-14
+
+[[source]]
+guideRoute = "res/doc"
+id = "ggp-cz-project"
+type = "webpage"
+title = { cs = "Český národní uzel pro výzkum rodiny (GGP-CZ)", en = "Czech National Cluster for Family Research (GGP-CZ)" }
+short = { cs = "GGP-CZ: projekt LM2024074", en = "GGP-CZ: project LM2024074" }
+inLanguage = "cs"
+url = "https://www.fss.muni.cz/vyzkum/resene-projekty/72431"
+publisher = "Masaryk University"
+dateAccessed = 2026-10-14

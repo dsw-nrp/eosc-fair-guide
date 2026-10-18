@@ -1,0 +1,195 @@
+name: Deploy the verified site
+
+# A tag builds production once. Default-branch pushes reuse that checked release's bytes.
+# Both events build the default-branch preview and deploy the combined tree.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      staging: ${{ steps.sources.outputs.staging }}
+      production: ${{ steps.sources.outputs.production }}
+      tag: ${{ steps.sources.outputs.tag }}
+      build: ${{ steps.sources.outputs.build }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - id: sources
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { sources } = require('./.github/scripts/release-artifact.cjs');
+            for (const [key, value] of Object.entries(await sources({ github, context }))) core.setOutput(key, value);
+
+  production:
+    needs: sources
+    if: needs.sources.outputs.tag != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
+      FAIR_GUIDE_CHECK_REVISION: ${{ needs.sources.outputs.production }}
+      PRODUCTION_SHA: ${{ needs.sources.outputs.production }}
+      PRODUCTION_TAG: ${{ needs.sources.outputs.tag }}
+      FAIR_GUIDE_BUILD_CHANNEL: production
+      FAIR_GUIDE_RELEASE_TAG: ${{ needs.sources.outputs.tag }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ needs.sources.outputs.build == 'true' && needs.sources.outputs.production || github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - if: needs.sources.outputs.build == 'true'
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - if: needs.sources.outputs.build == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - if: needs.sources.outputs.build == 'true'
+        name: Install release check tools
+        run: |
+          python -m pip install -r requirements-dev.txt
+          npm ci
+          npx playwright install --with-deps chromium
+      - if: needs.sources.outputs.build == 'true'
+        name: Check and package the tagged source once
+        run: |
+          python -u scripts/check_all.py --jobs 4 --report-dir .cache/health
+          python scripts/package_site.py --commit "$PRODUCTION_SHA" --output .cache/release
+      - id: reuse
+        if: needs.sources.outputs.build != 'true'
+        name: Reuse the release assets or their verified deployment artifact
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const { reuse } = require('./.github/scripts/release-artifact.cjs');
+            const selected = { ...context, ref: 'refs/tags/' + process.env.PRODUCTION_TAG, sha: process.env.PRODUCTION_SHA };
+            core.setOutput('run', (await reuse({ github, context: selected })).run);
+      - if: steps.reuse.outputs.run != ''
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: guide-site-${{ needs.sources.outputs.production }}
+          path: .cache/release/
+          run-id: ${{ steps.reuse.outputs.run }}
+          github-token: ${{ github.token }}
+      - name: Keep the exact release artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: guide-site-${{ needs.sources.outputs.production }}
+          path: .cache/release/
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 90
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: production-site
+          path: .cache/release/
+          if-no-files-found: error
+          overwrite: true
+
+  staging:
+    needs: sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
+      FAIR_GUIDE_CHECK_REVISION: ${{ needs.sources.outputs.staging }}
+      FAIR_GUIDE_BUILD_CHANNEL: preview
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ needs.sources.outputs.staging }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install preview check tools
+        run: |
+          python -m pip install -r requirements-dev.txt
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Check the default branch
+        run: python -u scripts/check_all.py --jobs 4 --report-dir .cache/health
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: staging-site
+          path: _site/
+          include-hidden-files: true
+          if-no-files-found: error
+          overwrite: true
+
+  assemble:
+    needs: [sources, production, staging]
+    if: always() && needs.sources.result == 'success' && needs.staging.result == 'success' && (needs.production.result == 'success' || needs.sources.outputs.tag == '')
+    runs-on: ubuntu-latest
+    env:
+      STAGING_SHA: ${{ needs.sources.outputs.staging }}
+      PRODUCTION_SHA: ${{ needs.sources.outputs.production }}
+      PRODUCTION_TAG: ${{ needs.sources.outputs.tag }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: staging-site
+          path: .cache/staging/
+      - if: needs.sources.outputs.tag != ''
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: production-site
+          path: .cache/release/
+      - name: Assemble without rebuilding either site
+        run: |
+          args=(--staging .cache/staging --staging-commit "$STAGING_SHA" --out .cache/pages)
+          if [ -n "$PRODUCTION_TAG" ]; then
+            args+=(--production .cache/release --production-tag "$PRODUCTION_TAG" --production-commit "$PRODUCTION_SHA")
+          fi
+          python scripts/assemble_pages.py "${args[@]}"
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: .cache/pages/
+
+  deploy:
+    needs: assemble
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

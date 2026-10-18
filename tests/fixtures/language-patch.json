@@ -1,0 +1,35 @@
+{
+  "description": "Expected results of applying a language patch, shared by build_crate.apply_language_patch (tests/test_languages.py) and the page's mergeData (tests/page/check_safety.mjs).",
+  "cases": [
+    {
+      "name": "a null position leaves structure and the other language alone",
+      "target": { "id": "x", "name": [{ "@language": "cs" }, { "@language": "en" }] },
+      "patch": { "name": [{ "@value": "Název" }, null] },
+      "expected": { "id": "x", "name": [{ "@language": "cs", "@value": "Název" }, { "@language": "en" }] }
+    },
+    {
+      "name": "a missing or scalar value becomes a container of the patch's kind",
+      "target": { "a": "scalar" },
+      "patch": { "a": { "b": 1 }, "c": [null, "z"] },
+      "expected": { "a": { "b": 1 }, "c": [null, "z"] }
+    },
+    {
+      "name": "an array extends past its end",
+      "target": { "list": ["a"] },
+      "patch": { "list": [null, "b", null, "d"] },
+      "expected": { "list": ["a", "b", null, "d"] }
+    },
+    {
+      "name": "keys that would reach a prototype are skipped",
+      "target": {},
+      "patch": { "__proto__": { "polluted": 1 }, "constructor": { "prototype": { "polluted": 1 } }, "prototype": { "polluted": 1 }, "kept": true },
+      "expected": { "kept": true }
+    },
+    {
+      "name": "both languages applied in either order rebuild the original",
+      "target": { "text": [{ "@language": "cs" }, { "@language": "en" }] },
+      "patch": { "text": [null, { "@value": "Text" }] },
+      "expected": { "text": [{ "@language": "cs" }, { "@language": "en", "@value": "Text" }] }
+    }
+  ]
+}

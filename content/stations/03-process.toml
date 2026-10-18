@@ -1,0 +1,97 @@
+# Station 3: cleaning, converting and checking data (RDMkit Process). Field reference: docs/content-model.md.
+
+[station]
+id = "process"
+position = 3
+lifecycleStage = "process"
+name = { cs = "Čištění a převod", en = "Cleaning and conversion" }
+title = { cs = "Zpracování: čištění, převod a kontrola dat", en = "Processing: cleaning, converting and checking data" }
+icon = "gears"
+principles = ["I1", "R1.2"]
+minutes = 3
+glossary = ["anonymisation-research-data", "machine-readable-document-format", "human-readable-document"]
+
+[[advice]]
+id = "process.01"
+lens = "*"
+level = "L1"
+kind = "key"
+text = { cs = "Každý krok zpracování, tedy čištění, převod formátu i kontrolu kvality, zaznamenejte tak, aby ho šlo zopakovat. Původní data přitom nepřepisujte.", en = "Record every processing step, from cleaning and format conversion to quality checks, so that it can be repeated. Never overwrite the original data." }
+sources = ["RDMKIT.process.01", "MBDB-2026.01"]
+
+[[advice]]
+id = "process.02"
+lens = "V"
+level = "L0"
+text = { cs = "Než data vyčistíte nebo převedete, uložte původní soubory beze změny a každý krok zpracování zapisujte do skriptu nebo do deníku.", en = "Before you clean or convert data, keep the original files unchanged and write every processing step into a script or a notebook." }
+action = [{ label = { cs = "Záznam postupu a rozhodnutí", en = "Recording methods and decisions" }, href = "#page-provenance" }, { label = { cs = "Laboratorní a terénní deníky", en = "Laboratory and field notebooks" }, href = "#page-notebooks" }]
+sources = ["RDMKIT.process.01", "MBDB-2026.01"]
+
+[[advice]]
+id = "process.03"
+lens = "V"
+level = "L1"
+text = { cs = "Původní soubory z přístrojů uchovejte; pro sdílení přidejte otevřené a rozšířené formáty, pokud existují.", en = "Keep the original instrument files; for sharing, add open and widely used formats where they exist." }
+sources = ["A.I1.X1", "MBDB-2026.01"]
+
+[[advice]]
+id = "process.04"
+lens = "V"
+level = "L1"
+text = { cs = "[[term/sensitive-data|Citlivá data]] co nejdřív pseudonymizujte nebo anonymizujte a zaznamenejte, jak jste to udělali. Nestačí odstranit jména a rodná čísla; pozor i na identifikující údaje jinde, například jména na fotografiích.", en = "Pseudonymise or anonymise [[term/sensitive-data|sensitive data]] as early as you can, and record how you did it. Removing names and personal ID numbers is not enough; watch for identifying details elsewhere too, such as names on photographs." }
+sources = ["RDMKIT.process.02"]
+
+[[advice]]
+id = "process.05"
+lens = "V"
+level = "L1"
+text = { cs = "V datovém slovníku popište i kódování polí, význam prázdných a zvláštních hodnot (například −99 pro chybějící měření) a vztahy mezi poli.", en = "In the data dictionary, also describe how fields are encoded, what empty and special values mean (for example −99 for a missing measurement) and how fields relate to each other." }
+sources = ["RDMKIT.process.02"]
+
+[[advice]]
+id = "process.06"
+lens = "DS"
+level = "L0"
+text = { cs = "Pomozte týmu převést ruční úpravy dat do skriptu nebo pracovního postupu, který jde spustit opakovaně, a nastavit kontrolu kvality dat.", en = "Help the team turn manual data edits into a script or workflow that can be run again, and set up data quality checks." }
+action = [{ label = { cs = "Úložiště a výpočty v e-INFRA CZ", en = "Storage and computing in e-INFRA CZ" }, href = "https://docs.e-infra.cz/" }]
+sources = ["RDMKIT.process.01", "EINFRA-DOCS.01"]
+
+[[advice]]
+id = "process.07"
+lens = "DS"
+level = "L1"
+text = { cs = "Pro zpracování [[term/sensitive-data|citlivých dat]] doporučte pseudonymizaci před sdílením v týmu a zabezpečené prostředí, například [[sensitive-cloud|Sensitive Cloud]].", en = "For processing [[term/sensitive-data|sensitive data]], recommend pseudonymisation before the data are shared in the team and a secure environment such as [[sensitive-cloud|Sensitive Cloud]]." }
+sources = ["RDMKIT.process.02", "EINFRA-DOCS.01"]
+
+[[advice]]
+id = "process.08"
+lens = "SR"
+level = "L0"
+text = { cs = "Zveřejněte seznam podporovaných formátů, ideálně strojově čitelně.", en = "Publish the list of supported formats, ideally in machine-readable form." }
+action = [{ label = { cs = "Podmínky NRP pro repozitáře", en = "NRP conditions for repositories" }, href = "https://docs.nrp.eosc.cz/en/docs/repo_admins/operating-repositories-in-the-nrp/conditions-for-creating-repositories" }]
+sources = ["A.K2.3.2c", "NRP.CS"]
+
+[[advice]]
+id = "process.09"
+lens = "K"
+level = "L0"
+text = { cs = "Doporučte komunitě, jak zacházet s formáty: originální formáty z přístrojů uchovat, jejich popis sjednotit a doporučené formáty zapsat do FIP.", en = "Advise the community how to handle formats: keep the original instrument formats, harmonise their description and record the recommended formats in the FIP." }
+action = [{ label = { cs = "Standardy ve FIP Dashboardu", en = "Standards in the FIP Dashboard" }, href = "https://fip-dashboard.dmp.eosc.cz/resources" }]
+sources = ["MBDB-2026.01", "A.R1.3.F1"]
+
+[[advice]]
+id = "process.10"
+lens = "*"
+level = "L1"
+kind = "ai"
+text = { cs = "Skripty pro zpracování dat napíšete s [[res/doc/cerit-ai-coding|asistenty pro programování]] nebo v JupyterHubu v [[cerit-aiaas|prostředí CERIT]], kde nepublikovaná data zůstávají v infrastruktuře.", en = "Write data-processing scripts with [[res/doc/cerit-ai-coding|coding assistants]] or in JupyterHub in [[cerit-aiaas|the CERIT environment]], where unpublished data stay within the infrastructure." }
+check = { cs = "Skript nejdřív spusťte na kopii dat a výsledek porovnejte s očekáváním (počty řádků, součty, rozsahy hodnot). Skript uložte k datům, aby se zpracování dalo zopakovat.", en = "Run the script on a copy of the data first and compare the result with what you expect (row counts, totals, value ranges). Keep the script with the data so the processing can be repeated." }
+prompt = { cs = "Napiš skript v Pythonu, který načte všechny soubory CSV ve složce data/, převede kódování na UTF-8 a oddělovač na čárku, zachová názvy sloupců a pro každý soubor vypíše počet řádků před převodem a po něm. Každý krok okomentuj a nic nemaž.", en = "Write a Python script that reads every CSV file in the data/ folder, converts the encoding to UTF-8 and the separator to a comma, keeps the column names, and prints each file's row count before and after the conversion. Comment every step and delete nothing." }
+sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
+
+[[advice]]
+id = "process.11"
+lens = "*"
+level = "L1"
+text = { cs = "Při čištění postupujte podle [[rdmkit-quality|plánu kontrol kvality]] a zachovejte [[rdmkit-provenance|záznam jednotlivých změn]]. Pro tabulky lze použít [[openrefine|OpenRefine]]; jeho historii úprav uložte vedle původních dat a datového slovníku.", en = "When cleaning data, follow your [[rdmkit-quality|quality-check plan]] and retain [[rdmkit-provenance|a record of changes]]. For tables, [[openrefine|OpenRefine]] is one option; save its transformation history beside the original data and data dictionary." }
+sources = ["RDMKIT.tasks.01"]

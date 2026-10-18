@@ -1,0 +1,18 @@
+# aiscr:canonical=
+description = "Develop a GitHub issue description into the structured, machine-readable shape the ecosystem uses, absorbing the reporter's draft and thread rather than appending to them, and capture external input such as review findings as new issues. Every write is verified against a disposition ledger so nothing is lost silently, attended or not."
+prompt = """
+<!-- aiscr:stop-anchor -->
+**Entry scope**
+
+- Stay in this `.gemini/commands/aiscr/` surface and its same-vendor pointers first.
+- Do not open parallel vendor trees by default just in case.
+- Cross into another vendor tree only for explicit parity checks, generator work, or governance maintenance.
+
+Develop a GitHub issue description into the structured, machine-readable shape the ecosystem uses, absorbing the reporter's draft and thread rather than appending to them, and capture external input such as review findings as new issues. Every write is verified against a disposition ledger so nothing is lost silently, attended or not.
+
+Execute the AIS CR workflow `aiscr-plan-issue`. The full workflow body for this command is the repository-local skill included below; follow it as the authoritative procedure, guardrails, and verification requirements.
+
+@{.agents/skills/aiscr-plan-issue/SKILL.md}
+
+If the skill inclusion above did not expand — the paired skill file is missing or excluded by repository ignore rules — stop and report that `/aiscr-plan-issue` cannot run in this checkout instead of improvising the workflow.
+"""

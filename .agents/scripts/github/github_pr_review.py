@@ -1,0 +1,3099 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
+# SPDX-License-Identifier: MIT
+
+"""Gather, render, and post governed GitHub PR reviews.
+
+``gather`` is read-only and acquires the pull-request diff. ``render`` creates a
+canonical review bundle and an approval view without contacting GitHub, and
+refuses when coverage is incomplete or a finding is unplaced. ``post`` accepts
+only that bundle, re-verifies the findings ledger, and enforces the selected
+identity mode before any GitHub write. ``repair`` posts standalone inline roots
+and amends a submitted review body under its own approval digest.
+``post-summary`` posts the exact approved PR summary file to the explicitly
+selected surface. ``cleanup`` removes only the prescribed artifacts from one
+bounded review run directory after the workflow reaches a terminal outcome.
+
+Contract: review/pr-review, workflow/github-write-fidelity
+Class: tool
+Exit codes: 0 success; 1 findings, refused write, or error; 2 usage error
+"""
+
+from __future__ import annotations
+
+# The deterministic CLI intentionally keeps its tightly coupled command boundary
+# in one auditable module.
+# pylint: disable=too-many-lines
+import argparse
+import json
+import os
+import re
+import stat
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+_SCRIPTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
+from lib.log_utils import log_warn  # noqa: E402
+from lib.proc_utils import configure_stdout_utf8, run_exact, utf8_child_env  # noqa: E402
+
+from github import github_utils  # noqa: E402
+from github.github_utils import PostingContract  # noqa: E402
+
+REVIEW_MARKER = "<!-- aiscr-review-pr:v1 -->"
+SUMMARY_MARKER = "<!-- aiscr-review-pr:summary -->"
+INTERACTIVE_REVIEW_DISCLOSURE = (
+    "Review conducted with AI assistance through the AIS CR review workflow; "
+    "the posting reviewer reviewed and approved these findings."
+)
+INTERACTIVE_SUMMARY_DISCLOSURE = (
+    "This PR summary was prepared with AI assistance through the AIS CR review "
+    "workflow; the posting reviewer reviewed and approved it for posting."
+)
+AUTOMATED_DISCLOSURE = (
+    "Automated review conducted with AI assistance through the AIS CR review "
+    "workflow; this review is non-blocking and remains subject to human disposition."
+)
+BUNDLE_SCHEMA = "aiscr-review-pr-bundle-v1"
+REPAIR_BUNDLE_SCHEMA = "aiscr-review-pr-repair-bundle-v2"
+COVERAGE_SCHEMA = "aiscr-review-pr-coverage-v1"
+FINDINGS_LEDGER_SCHEMA = "aiscr-review-pr-findings-ledger-v2"
+FILE_STATE_AVAILABLE = "available"
+FILE_STATE_UNAVAILABLE = "unavailable"
+PLACEMENT_INLINE_ROOT = "inline-root"
+PLACEMENT_REPLY = "reply"
+PLACEMENT_BODY_ONLY = "body-only"
+PLACEMENTS = (PLACEMENT_INLINE_ROOT, PLACEMENT_REPLY, PLACEMENT_BODY_ONLY)
+BODY_ONLY_REASONS = frozenset(
+    {
+        "off-diff",
+        "cross-cutting",
+        "process",
+        "needs-verification",
+    }
+)
+OUTSTANDING_DISPOSITIONS = frozenset({"resolved", "disputed", "not-addressed"})
+COMMUNICATION_REPLY = "reply"
+COMMUNICATION_NO_REPLY = "no-reply"
+THREAD_COMMUNICATIONS = frozenset({COMMUNICATION_REPLY, COMMUNICATION_NO_REPLY})
+SILENCE_RESOLUTION_REASONS = frozenset({"silence", "no-reply", "no-author-reply"})
+DIFF_SOURCES = ("local-diff", "pull-files", "compare", "pr-diff", "git-diff")
+REVIEW_ONLY_BODY_FINDINGS = {
+    "limb": "review-only",
+    "holder": "session agent",
+    "scope": (
+        "Findings that exist only as prose in another reviewer's review body "
+        "are supplied by the session agent at reconciliation. Completeness of "
+        "that limb is never inferred from an empty outstanding list."
+    ),
+}
+MODES = github_utils.MODES
+REVIEW_EVENTS = ("COMMENT", "REQUEST_CHANGES", "APPROVE")
+SUMMARY_TARGETS = ("comment", "description")
+SUMMARY_TITLE_PATTERN = re.compile(r"^# PR summary — [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[1-9][0-9]*$")
+SUMMARY_METADATA_FIELDS = (
+    "Title",
+    "URL",
+    "Referenced items",
+    "Author",
+    "Base ← head",
+    "Head SHA",
+    "Size",
+    "State",
+    "Marked AIS CR review baseline",
+    "Prior PR summary",
+)
+SUMMARY_SECTION_HEADINGS = (
+    "## Purpose and scope",
+    "## Change map by area",
+    "## Change walkthrough",
+    "## Attention hints (summary only)",
+    "## Validation / test surfaces visible in the PR",
+    "## Author context",
+    "## Lineage",
+)
+AUTHOR_CONTEXT_OPEN = "<!-- aiscr-review-pr:author-context -->"
+AUTHOR_CONTEXT_CLOSE = "<!-- /aiscr-review-pr:author-context -->"
+DESCRIPTION_ARCHIVE_MARKER = "<!-- aiscr-review-pr:description-archive -->"
+LEDGER_MARKER = "<!-- aiscr-review-pr:ledger -->"
+PROVENANCE_ORIGINAL_OPEN = "<!-- aiscr-review-pr:original -->"
+PROVENANCE_ORIGINAL_CLOSE = "<!-- /aiscr-review-pr:original -->"
+# The posted marker carries a digest of the body as approved, so a later round can
+# tell "nobody touched this since we posted it" from "the author edited it".
+SUMMARY_MARKER_PATTERN = re.compile(r"<!-- aiscr-review-pr:summary(?: digest=([0-9a-f]{64}))? -->")
+# Reference extraction, one-hop traversal, and the load-bearing set are shared with the
+# issue engine: both reconcile GitHub bodies, so the mechanism has one home.
+LOAD_BEARING_PATTERNS = github_utils.LOAD_BEARING_PATTERNS
+# Single owning definition for every name a review run may write. Cleanup
+# enforcement and the workflow procedure both resolve this set; they must not
+# encode it independently. ``list-run-artifacts`` prints it.
+PRESCRIBED_RUN_ARTIFACTS = frozenset(
+    {
+        "pr-context.json",
+        "pr-summary.md",
+        "review-payload.json",
+        "review-replies.json",
+        "review-bundle.json",
+        "review-approval.md",
+        "ledger.json",
+        "sources.json",
+        "findings-ledger.json",
+        "pr-diff.patch",
+        "repair-payload.json",
+        "repair-reopen.json",
+        "repair-body.md",
+        "repair-bundle.json",
+        "repair-approval.md",
+    }
+)
+ALLOWED_REVIEW_ARTIFACTS = PRESCRIBED_RUN_ARTIFACTS
+_DIFF_GIT_RE = re.compile(r"^diff --git a/(.*) b/(.*)$")
+_HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+_THREAD_FINDING_ID_RE = re.compile(r"^thread:([1-9][0-9]*)$")
+REVIEW_RUN_DIR_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+-pr-[1-9][0-9]*-[0-9a-fA-F]{7,40}$")
+REPO_ROOT = Path(_SCRIPTS_DIR).parents[1]
+# The multi-repository acquisition extension is hub-side tooling; a delivered copy may not carry
+# it, so the producer checks for it before invoking anything.
+_BRIDGE_SCRIPT = Path(_SCRIPTS_DIR) / "sibling" / "sibling_git_read.py"
+REVIEW_SCRATCH_ROOT = REPO_ROOT / ".venv" / ".cache" / "aiscr-review-pr"
+
+
+# ---------------------------------------------------------------------------
+# General helpers
+#
+# The process funnel, file helpers, identity gate, approval digest, and
+# marker/disclosure contract live in ``github_utils`` so the issue engine shares
+# one write model with this one.
+# ---------------------------------------------------------------------------
+
+_abort = github_utils.abort
+_run = github_utils.run
+_gh = github_utils.gh
+_resolve_repo = github_utils.resolve_repo
+_load_json = github_utils.load_json
+_write_json = github_utils.write_json
+_write_text = github_utils.write_text
+_temporary_json = github_utils.temporary_json
+_env_is_set = github_utils.env_is_set
+_try_run = github_utils.try_run
+_try_run_tolerant = github_utils.try_run_tolerant
+_validate_write_environment = github_utils.validate_write_environment
+_paginated_rest_items = github_utils.paginated_rest_items
+_paginated_graphql_nodes = github_utils.paginated_graphql_nodes
+detect_load_bearing = github_utils.detect_load_bearing
+_extract_references = github_utils.extract_references
+_dedupe_by_target = github_utils.dedupe_by_target
+
+
+# ---------------------------------------------------------------------------
+# Diff acquisition, coverage, and findings-ledger validation
+# ---------------------------------------------------------------------------
+
+
+def _anchors_from_patch(path: str, patch: str) -> list[dict[str, Any]]:
+    """Return every diff line a new inline comment may legally target."""
+    anchors: list[dict[str, Any]] = []
+    old_line = 0
+    new_line = 0
+    for raw in patch.splitlines():
+        hunk = _HUNK_RE.match(raw)
+        if hunk:
+            old_line = int(hunk.group(1))
+            new_line = int(hunk.group(3))
+            continue
+        if raw.startswith("\\") or raw.startswith("diff ") or raw.startswith("index "):
+            continue
+        if raw.startswith("+++") or raw.startswith("---"):
+            continue
+        if raw.startswith("+"):
+            anchors.append({"path": path, "line": new_line, "side": "RIGHT"})
+            new_line += 1
+        elif raw.startswith("-"):
+            anchors.append({"path": path, "line": old_line, "side": "LEFT"})
+            old_line += 1
+        elif raw.startswith(" "):
+            anchors.append({"path": path, "line": new_line, "side": "RIGHT"})
+            anchors.append({"path": path, "line": old_line, "side": "LEFT"})
+            old_line += 1
+            new_line += 1
+    return anchors
+
+
+def _parse_unified_diff(text: str) -> dict[str, str]:
+    """Map new-file paths to their unified-diff hunk text."""
+    patches: dict[str, str] = {}
+    current_path: str | None = None
+    current_lines: list[str] = []
+
+    def flush() -> None:
+        if current_path and current_lines:
+            patches[current_path] = "\n".join(current_lines)
+
+    for raw in text.splitlines():
+        git_header = _DIFF_GIT_RE.match(raw)
+        if git_header:
+            flush()
+            current_path = git_header.group(2)
+            current_lines = [raw]
+            continue
+        if raw.startswith("+++ "):
+            plus_path = raw[4:]
+            if plus_path.startswith("b/"):
+                plus_path = plus_path[2:]
+            if plus_path not in {"/dev/null", "nul"}:
+                current_path = plus_path
+            if current_path is None:
+                current_lines = [raw]
+            else:
+                current_lines.append(raw)
+            continue
+        if current_path is None:
+            continue
+        current_lines.append(raw)
+    flush()
+    return patches
+
+
+def _file_record(
+    path: str,
+    additions: int,
+    deletions: int,
+    patch: str,
+    source: str | None,
+) -> dict[str, Any]:
+    available = bool(patch.strip())
+    changed_lines = additions + deletions
+    if not available and changed_lines == 0:
+        available = True
+    return {
+        "path": path,
+        "additions": additions,
+        "deletions": deletions,
+        "changed_lines": changed_lines,
+        "state": FILE_STATE_AVAILABLE if available else FILE_STATE_UNAVAILABLE,
+        "source": source if available else None,
+        "anchors": _anchors_from_patch(path, patch) if available and patch.strip() else [],
+    }
+
+
+def _recompute_coverage(
+    files: list[dict[str, Any]],
+    *,
+    base_sha: str,
+    head_sha: str,
+    sources_attempted: list[str],
+    unreviewable: bool,
+) -> dict[str, Any]:
+    unread = [item for item in files if item["state"] == FILE_STATE_UNAVAILABLE]
+    return {
+        "schema": COVERAGE_SCHEMA,
+        "base_sha": base_sha,
+        "head_sha": head_sha,
+        "sources_attempted": sources_attempted,
+        "unreviewable": unreviewable,
+        "files": files,
+        "unread_files": len(unread),
+        "unread_changed_lines": sum(int(item["changed_lines"]) for item in unread),
+    }
+
+
+def _github_changed_files(items: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    if not items:
+        return records
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        path = str(item.get("filename") or "")
+        if not path:
+            continue
+        additions = int(item.get("additions") or 0)
+        deletions = int(item.get("deletions") or 0)
+        patch = item.get("patch") if isinstance(item.get("patch"), str) else ""
+        source = "pull-files" if patch.strip() else None
+        records.append(_file_record(path, additions, deletions, patch or "", source))
+    return records
+
+
+def _fill_missing_patches(
+    files: list[dict[str, Any]],
+    patches: dict[str, str],
+    source: str,
+) -> None:
+    for item in files:
+        if item["state"] == FILE_STATE_AVAILABLE:
+            continue
+        patch = patches.get(item["path"])
+        if not patch:
+            continue
+        filled = _file_record(item["path"], item["additions"], item["deletions"], patch, source)
+        item.update(filled)
+
+
+def _commit_reachable_locally(sha: str) -> bool:
+    ok, _stdout = _try_run(["git", "cat-file", "-e", f"{sha}^{{commit}}"])
+    return ok
+
+
+def _commit_reachable_on_platform(owner_repo: str, sha: str) -> bool:
+    ok, _stdout = _try_run(["gh", "api", f"repos/{owner_repo}/commits/{sha}", "-q", ".sha"])
+    return ok
+
+
+def _load_local_diff(path: str) -> dict[str, str]:
+    """Parse a supplied patch, substituting bytes that are not valid UTF-8.
+
+    A patch is parsed structurally — changed-line coverage and inline anchors, never
+    published text — and the documented remedy writes it with ``git diff --output=``,
+    whose bytes are raw, so an undecodable byte must not abort the read.
+    """
+    try:
+        raw = Path(path).read_bytes()
+    except OSError as exc:
+        _abort(f"cannot read local diff '{path}': {exc}")
+    text = raw.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
+    return _parse_unified_diff(text)
+
+
+def _compare_files(owner_repo: str, base_sha: str, head_sha: str) -> list[dict[str, Any]] | None:
+    ok, stdout = _try_run(["gh", "api", f"repos/{owner_repo}/compare/{base_sha}...{head_sha}"])
+    if not ok:
+        return None
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError:
+        return None
+    files = payload.get("files") if isinstance(payload, dict) else None
+    if not isinstance(files, list):
+        return None
+    return [item for item in files if isinstance(item, dict)]
+
+
+def _unified_diff_from_pr(owner_repo: str, pr_number: int) -> dict[str, str]:
+    ok, stdout = _try_run_tolerant(["gh", "pr", "diff", str(pr_number), "--repo", owner_repo])
+    if not ok or not stdout.strip():
+        return {}
+    return _parse_unified_diff(stdout)
+
+
+def _unified_diff_from_git(base_sha: str, head_sha: str) -> dict[str, str]:
+    ok, stdout = _try_run_tolerant(["git", "diff", f"{base_sha}...{head_sha}"])
+    if not ok or not stdout.strip():
+        return {}
+    return _parse_unified_diff(stdout)
+
+
+def _declared_files_from_patches(patches: dict[str, str], source: str) -> list[dict[str, Any]]:
+    files: list[dict[str, Any]] = []
+    for path, patch in patches.items():
+        additions = sum(1 for line in patch.splitlines() if line.startswith("+") and not line.startswith("+++"))
+        deletions = sum(1 for line in patch.splitlines() if line.startswith("-") and not line.startswith("---"))
+        files.append(_file_record(path, additions, deletions, patch, source))
+    return files
+
+
+def _merge_local_onto_declared(
+    declared: list[dict[str, Any]],
+    local_files: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    local_by_path = {item["path"]: item for item in local_files}
+    merged: list[dict[str, Any]] = []
+    for item in declared:
+        local = local_by_path.get(item["path"])
+        if local and local["state"] == FILE_STATE_AVAILABLE:
+            record = dict(item)
+            record["state"] = FILE_STATE_AVAILABLE
+            record["source"] = "local-diff"
+            record["anchors"] = local["anchors"]
+            merged.append(record)
+        else:
+            merged.append(item)
+    return merged
+
+
+def _patches_from_compare(compared: list[dict[str, Any]]) -> dict[str, str]:
+    patches: dict[str, str] = {}
+    for item in compared:
+        path = item.get("filename")
+        patch = item.get("patch")
+        if isinstance(path, str) and path and isinstance(patch, str) and patch.strip():
+            patches[path] = patch
+    return patches
+
+
+def _fill_from_remaining_sources(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    files: list[dict[str, Any]],
+    attempted: list[str],
+    owner_repo: str,
+    pr_number: int,
+    base_sha: str,
+    head_sha: str,
+) -> None:
+    if any(item["state"] == FILE_STATE_UNAVAILABLE for item in files):
+        attempted.append("compare")
+        compared = _compare_files(owner_repo, base_sha, head_sha)
+        if compared is not None:
+            _fill_missing_patches(files, _patches_from_compare(compared), "compare")
+    if any(item["state"] == FILE_STATE_UNAVAILABLE for item in files):
+        attempted.append("pr-diff")
+        _fill_missing_patches(files, _unified_diff_from_pr(owner_repo, pr_number), "pr-diff")
+    if any(item["state"] == FILE_STATE_UNAVAILABLE for item in files):
+        attempted.append("git-diff")
+        _fill_missing_patches(files, _unified_diff_from_git(base_sha, head_sha), "git-diff")
+
+
+def _acquire_without_declared_list(
+    attempted: list[str],
+    owner_repo: str,
+    pr_number: int,
+    base_sha: str,
+    head_sha: str,
+) -> list[dict[str, Any]]:
+    attempted.extend(source for source in DIFF_SOURCES[2:] if source not in attempted)
+    compared = _compare_files(owner_repo, base_sha, head_sha)
+    if compared is not None:
+        files = _github_changed_files(compared)
+        for item in files:
+            if item["source"] is None and item["state"] == FILE_STATE_AVAILABLE:
+                item["source"] = "compare"
+        if files:
+            return files
+    pr_patches = _unified_diff_from_pr(owner_repo, pr_number)
+    if pr_patches:
+        return _declared_files_from_patches(pr_patches, "pr-diff")
+    git_patches = _unified_diff_from_git(base_sha, head_sha)
+    if git_patches:
+        return _declared_files_from_patches(git_patches, "git-diff")
+    return []
+
+
+def _acquire_coverage(
+    owner_repo: str,
+    pr_number: int,
+    base_sha: str,
+    head_sha: str,
+    local_diff_path: str | None = None,
+) -> dict[str, Any]:
+    """Acquire declared changed files and fill patches from the fallback chain."""
+    attempted: list[str] = []
+    local_files: list[dict[str, Any]] = []
+    if local_diff_path:
+        attempted.append("local-diff")
+        local_files = _declared_files_from_patches(_load_local_diff(local_diff_path), "local-diff")
+
+    attempted.append("pull-files")
+    listed = _paginated_rest_items(
+        f"repos/{owner_repo}/pulls/{pr_number}/files",
+        runner=_try_run,
+    )
+    if listed is not None:
+        files = _github_changed_files(listed)
+        if local_files:
+            files = _merge_local_onto_declared(files, local_files)
+        _fill_from_remaining_sources(files, attempted, owner_repo, pr_number, base_sha, head_sha)
+    elif local_files:
+        files = local_files
+        _fill_from_remaining_sources(files, attempted, owner_repo, pr_number, base_sha, head_sha)
+    else:
+        files = _acquire_without_declared_list(attempted, owner_repo, pr_number, base_sha, head_sha)
+
+    unreviewable = False
+    if not files:
+        platform_ok = _commit_reachable_on_platform(owner_repo, base_sha) and _commit_reachable_on_platform(
+            owner_repo,
+            head_sha,
+        )
+        local_ok = _commit_reachable_locally(base_sha) and _commit_reachable_locally(head_sha)
+        unreviewable = not platform_ok and not local_ok
+
+    return _recompute_coverage(
+        files,
+        base_sha=base_sha,
+        head_sha=head_sha,
+        sources_attempted=attempted,
+        unreviewable=unreviewable,
+    )
+
+
+def _apply_local_diff(coverage: dict[str, Any], local_diff_path: str) -> dict[str, Any]:
+    """Fill unavailable files from a locally produced unified diff."""
+    patches = _load_local_diff(local_diff_path)
+    files = [dict(item) for item in coverage.get("files") or []]
+    _fill_missing_patches(files, patches, "local-diff")
+    attempted = list(coverage.get("sources_attempted") or [])
+    if "local-diff" not in attempted:
+        attempted.append("local-diff")
+    return _recompute_coverage(
+        files,
+        base_sha=str(coverage.get("base_sha") or ""),
+        head_sha=str(coverage.get("head_sha") or ""),
+        sources_attempted=attempted,
+        unreviewable=False,
+    )
+
+
+def _coverage_refusal_message(coverage: dict[str, Any]) -> str:
+    if coverage.get("unreviewable"):
+        return (
+            "Pull request is unreviewable: base commit "
+            f"{coverage.get('base_sha')} and/or head commit {coverage.get('head_sha')} "
+            "are unreachable from the platform and from the local checkout."
+        )
+    unread_files = int(coverage.get("unread_files") or 0)
+    unread_lines = int(coverage.get("unread_changed_lines") or 0)
+    base = coverage.get("base_sha")
+    head = coverage.get("head_sha")
+    return (
+        f"Coverage incomplete: {unread_files} unread file(s), "
+        f"{unread_lines} unread changed line(s). Content unavailable from the "
+        "platform interface is resolved by a local checkout. Supply a locally "
+        f"produced diff for base {base} and head {head}: "
+        f"`git diff {base}...{head} > pr-diff.patch`, then re-run render with "
+        "`--local-diff pr-diff.patch`."
+    )
+
+
+def _refuse_incomplete_coverage(coverage: dict[str, Any]) -> None:
+    if coverage.get("unreviewable"):
+        _abort(_coverage_refusal_message(coverage))
+    if int(coverage.get("unread_files") or 0) or int(coverage.get("unread_changed_lines") or 0):
+        _abort(_coverage_refusal_message(coverage))
+
+
+def _anchor_set(coverage: dict[str, Any]) -> set[tuple[str, int, str]]:
+    anchors: set[tuple[str, int, str]] = set()
+    for item in coverage.get("files") or []:
+        for anchor in item.get("anchors") or []:
+            path = anchor.get("path")
+            line = anchor.get("line")
+            side = anchor.get("side")
+            if (
+                isinstance(path, str)
+                and isinstance(line, int)
+                and not isinstance(line, bool)
+                and side in {"LEFT", "RIGHT"}
+            ):
+                anchors.add((path, line, side))
+    return anchors
+
+
+def _is_vendor_bot(login: str | None) -> bool:
+    if not login:
+        return False
+    lowered = login.lower()
+    return lowered.endswith("[bot]") or lowered.endswith("-bot")
+
+
+def _thread_roots_from_conversation(conversation: dict[str, Any]) -> list[dict[str, Any]]:
+    roots: list[dict[str, Any]] = []
+    for thread in conversation.get("review_threads") or []:
+        comments = thread.get("comments") or []
+        if not comments:
+            continue
+        root = comments[0]
+        roots.append(
+            {
+                "id": root.get("id"),
+                "node_id": thread.get("node_id") or "",
+                "path": thread.get("path"),
+                "line": thread.get("line"),
+                "body": root.get("body") or "",
+                "outdated": bool(thread.get("outdated")),
+                "resolved": bool(thread.get("resolved")),
+            }
+        )
+    return roots
+
+
+def _occupied_thread_locations(existing_threads: list[dict[str, Any]]) -> set[tuple[str, int]]:
+    """Path and line pairs that already have a thread root.
+
+    Reply matching uses path and line, not side. A new inline root at one of
+    these locations is a duplicate thread, not a new finding.
+    """
+    occupied: set[tuple[str, int]] = set()
+    for thread in existing_threads:
+        path = thread.get("path")
+        line = thread.get("line")
+        if not isinstance(path, str) or not path.strip():
+            continue
+        if isinstance(line, bool) or not isinstance(line, int):
+            continue
+        occupied.add((path, line))
+    return occupied
+
+
+def _enumerate_outstanding_findings(
+    conversation: dict[str, Any],
+    lineage: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Enumerate every mechanically visible inline thread with its reviewer history.
+
+    ``prior_review_reply`` records whether the thread already carries a reply from an
+    author of a marked AIS CR review: at gather time every such reply is from a prior
+    round, so it is the mechanical basis a standing dispute rests on when a later round
+    records the dispute without replying again.
+    """
+    marked_ids: set[int] = set()
+    for comment in lineage.get("last_review_comments") or []:
+        comment_id = comment.get("id")
+        if isinstance(comment_id, int) and not isinstance(comment_id, bool):
+            marked_ids.add(comment_id)
+    reviewer_logins = {
+        login for login in lineage.get("reviewer_logins") or [] if isinstance(login, str) and login.strip()
+    }
+    findings: list[dict[str, Any]] = []
+    for thread in conversation.get("review_threads") or []:
+        comments = thread.get("comments") or []
+        if not comments:
+            continue
+        root = comments[0]
+        root_id = root.get("id")
+        login = root.get("author")
+        if isinstance(root_id, int) and root_id in marked_ids:
+            kind = "aiscr"
+        elif _is_vendor_bot(login if isinstance(login, str) else None):
+            kind = "vendor-bot"
+        else:
+            kind = "human"
+        prior_review_reply = any(comment.get("author") in reviewer_logins for comment in comments[1:])
+        findings.append(
+            {
+                "id": f"thread:{root_id}",
+                "root_comment_id": root_id,
+                "path": thread.get("path"),
+                "line": thread.get("line"),
+                "author": login,
+                "author_kind": kind,
+                "platform_resolved": bool(thread.get("resolved")),
+                "platform_outdated": bool(thread.get("outdated")),
+                "prior_review_reply": prior_review_reply,
+                "body": root.get("body") or "",
+            }
+        )
+    return findings
+
+
+def _emit_json(payload: Any, output_path: str | None) -> None:
+    """Emit JSON to stdout, or to an explicit UTF-8 destination.
+
+    A shell redirect is not a safe substitute: Windows PowerShell 5.1 writes UTF-16 for ``>``,
+    which every UTF-8 reader in this workflow rejects. Writing the file here keeps the encoding
+    a property of the producer rather than of the operator's shell.
+    """
+    rendered = json.dumps(payload, ensure_ascii=False, indent=2)
+    if output_path is None:
+        print(rendered)
+        return
+    Path(output_path).write_text(rendered + "\n", encoding="utf-8", newline="\n")
+    print(f"Wrote {output_path}")
+
+
+def _validate_findings_ledger(ledger: Any) -> dict[str, Any]:  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    if not isinstance(ledger, dict):
+        _abort("findings ledger must be a JSON object.")
+    if ledger.get("schema") != FINDINGS_LEDGER_SCHEMA:
+        _abort(f"findings ledger schema must be '{FINDINGS_LEDGER_SCHEMA}'.")
+    new_findings = ledger.get("new_findings")
+    outstanding = ledger.get("outstanding")
+    if not isinstance(new_findings, list):
+        _abort("findings ledger new_findings must be a JSON array.")
+    if not isinstance(outstanding, list):
+        _abort("findings ledger outstanding must be a JSON array.")
+    seen_ids: set[str] = set()
+    for index, finding in enumerate(new_findings, start=1):
+        if not isinstance(finding, dict):
+            _abort(f"new finding {index} must be a JSON object.")
+        finding_id = finding.get("id")
+        if not isinstance(finding_id, str) or not finding_id.strip():
+            _abort(f"new finding {index} is missing a non-empty id.")
+        if finding_id in seen_ids:
+            _abort(f"finding '{finding_id}' is placed more than once.")
+        seen_ids.add(finding_id)
+        placement = finding.get("placement")
+        if placement not in PLACEMENTS:
+            if placement in {None, ""}:
+                _abort(f"finding '{finding_id}' has no declared placement.")
+            _abort(f"finding '{finding_id}' placement must be one of: {', '.join(PLACEMENTS)}.")
+        # A declared placement is exactly one kind. Carrying another kind's key alongside it
+        # is a second placement, so a comment_id outside a reply placement is refused.
+        if "comment_id" in finding and placement != PLACEMENT_REPLY:
+            _abort(f"finding '{finding_id}' is placed more than once.")
+        if placement == PLACEMENT_BODY_ONLY:
+            reason = finding.get("reason")
+            if reason not in BODY_ONLY_REASONS:
+                _abort(
+                    f"finding '{finding_id}' body-only reason must be one of: {', '.join(sorted(BODY_ONLY_REASONS))}."
+                )
+        if placement == PLACEMENT_INLINE_ROOT:
+            for key in ("path", "line", "side"):
+                if key not in finding:
+                    _abort(f"finding '{finding_id}' inline-root placement is missing '{key}'.")
+        if placement == PLACEMENT_REPLY:
+            comment_id = finding.get("comment_id")
+            if isinstance(comment_id, bool) or not isinstance(comment_id, int) or comment_id <= 0:
+                _abort(f"finding '{finding_id}' reply placement needs a positive comment_id.")
+    outstanding_ids: set[str] = set()
+    for index, item in enumerate(outstanding, start=1):
+        if not isinstance(item, dict):
+            _abort(f"outstanding finding {index} must be a JSON object.")
+        item_id = item.get("id")
+        if not isinstance(item_id, str) or not item_id.strip():
+            _abort(f"outstanding finding {index} is missing a non-empty id.")
+        if item_id in outstanding_ids:
+            _abort(f"outstanding finding '{item_id}' is listed more than once.")
+        outstanding_ids.add(item_id)
+        disposition = item.get("disposition")
+        if disposition not in OUTSTANDING_DISPOSITIONS:
+            if disposition in {None, ""}:
+                _abort(f"outstanding finding '{item_id}' has no disposition.")
+            _abort(
+                f"outstanding finding '{item_id}' disposition must be one of: "
+                f"{', '.join(sorted(OUTSTANDING_DISPOSITIONS))}."
+            )
+        reason = str(item.get("reason") or "").strip()
+        if not reason:
+            _abort(f"outstanding finding '{item_id}' is missing a non-empty disposition reason.")
+        if disposition == "resolved" and reason in SILENCE_RESOLUTION_REASONS:
+            _abort(
+                f"outstanding finding '{item_id}' cannot be resolved from silence; "
+                "absence of an author reply is not resolution."
+            )
+        if disposition == "resolved" and item.get("platform_resolved") and not item.get("confirmed_against_diff"):
+            _abort(
+                f"outstanding finding '{item_id}' treats a platform-resolved thread "
+                "as a claim; record confirmed_against_diff after checking the current diff."
+            )
+        if _THREAD_FINDING_ID_RE.fullmatch(item_id):
+            _validate_thread_communication(item, item_id, str(disposition))
+        else:
+            # A review-body finding has no thread, so it has no closure to reverse.
+            _validate_reopen_decision(item, item_id, False, "")
+    return ledger
+
+
+def _no_reply_refusal(item_id: str, disposition: str, platform_resolved: bool) -> str:
+    """Explain why this disposition owes a reply, so the refusal names the combination that failed."""
+    if disposition == "disputed":
+        return (
+            f"outstanding inline thread '{item_id}' is disputed on a thread the platform does "
+            "not mark resolved; a disputed disposition is always communicated by reply."
+        )
+    if platform_resolved:
+        return (
+            f"outstanding inline thread '{item_id}' is {disposition} on a thread the platform marks "
+            "resolved; that contradicts a closure the reader can see and must be communicated by reply."
+        )
+    return (
+        f"outstanding inline thread '{item_id}' is resolved on an unresolved thread; confirming a fix "
+        "the reader cannot see must be communicated by reply."
+    )
+
+
+def _validate_thread_communication(item: dict[str, Any], item_id: str, disposition: str) -> None:
+    """Refuse a mechanically enumerated thread whose disposition is not visibly communicated.
+
+    A reply is owed where the disposition changes what a reader of the thread's current state would
+    conclude. Only agreed closure (a platform-resolved thread confirmed resolved), unchanged open
+    work (an unresolved thread left not-addressed), and a standing dispute (a platform-resolved
+    thread whose earlier reviewer reply the gathered state carries, checked where that state is
+    available) may take no-reply.
+    """
+    communication = item.get("communication")
+    if communication not in THREAD_COMMUNICATIONS:
+        _abort(
+            f"outstanding inline thread '{item_id}' communication must be one of: "
+            f"{', '.join(sorted(THREAD_COMMUNICATIONS))}."
+        )
+    platform_resolved = item.get("platform_resolved")
+    if not isinstance(platform_resolved, bool):
+        _abort(f"outstanding inline thread '{item_id}' must declare platform_resolved as a boolean.")
+    no_reply_reason = str(item.get("no_reply_reason") or "").strip()
+    agreed_closure = platform_resolved and disposition == "resolved"
+    unchanged_open_work = not platform_resolved and disposition == "not-addressed"
+    standing_dispute = platform_resolved and disposition == "disputed"
+    if agreed_closure and communication != COMMUNICATION_NO_REPLY:
+        _abort(
+            f"outstanding inline thread '{item_id}' confirms a closure the platform already shows; "
+            "an agreed closure must use no-reply rather than adding noise to a collapsed thread."
+        )
+    if communication == COMMUNICATION_NO_REPLY:
+        if not agreed_closure and not unchanged_open_work and not standing_dispute:
+            _abort(_no_reply_refusal(item_id, disposition, bool(platform_resolved)))
+        if not no_reply_reason:
+            _abort(f"outstanding inline thread '{item_id}' uses no-reply without a non-empty no_reply_reason.")
+    elif no_reply_reason:
+        _abort(f"outstanding inline thread '{item_id}' communicates by reply and must not carry no_reply_reason.")
+    _validate_reopen_decision(item, item_id, bool(platform_resolved), str(communication))
+
+
+def _validate_reopen_decision(item: dict[str, Any], item_id: str, platform_resolved: bool, communication: str) -> None:
+    """Require an explicit reopen decision wherever a reply would otherwise land out of view.
+
+    Replying to a resolved thread does not reopen it, so the reply stays collapsed. That
+    makes the decision to leave it collapsed a real choice, and one that reverses nothing;
+    the decision to reopen reverses a participant's closure. Both are recorded per thread
+    and both carry a rationale, so neither happens by default.
+    """
+    decision_owed = platform_resolved and communication == COMMUNICATION_REPLY
+    reopen = item.get("reopen")
+    reopen_reason = str(item.get("reopen_reason") or "").strip()
+    if not decision_owed:
+        if reopen is not None or reopen_reason:
+            _abort(
+                f"outstanding inline thread '{item_id}' carries a reopen decision, but only a reply "
+                "to a platform-resolved thread can reopen one."
+            )
+        return
+    if not isinstance(reopen, bool):
+        _abort(
+            f"outstanding inline thread '{item_id}' replies to a platform-resolved thread and must "
+            "declare reopen as a boolean; a reply to a resolved thread stays collapsed unless it reopens."
+        )
+    if not reopen_reason:
+        _abort(f"outstanding inline thread '{item_id}' declares reopen without a non-empty reopen_reason.")
+
+
+def _comment_key(comment: dict[str, Any]) -> tuple[str, int, str]:
+    return (str(comment["path"]), int(comment["line"]), str(comment["side"]))
+
+
+def _validate_placements(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches
+    ledger: dict[str, Any],
+    review: dict[str, Any],
+    replies: list[dict[str, Any]],
+    coverage: dict[str, Any],
+    outstanding: list[dict[str, Any]],
+    existing_threads: list[dict[str, Any]],
+) -> None:
+    comments = review.get("comments") or []
+    if not isinstance(comments, list):
+        comments = []
+    comment_keys = [_comment_key(comment) for comment in comments]
+    reply_ids = [int(reply["comment_id"]) for reply in replies]
+    used_comments: list[tuple[str, int, str]] = []
+    used_replies: set[int] = set()
+    anchors = _anchor_set(coverage)
+    threads_by_id = {
+        int(thread["id"]): thread
+        for thread in existing_threads
+        if isinstance(thread.get("id"), int) and not isinstance(thread.get("id"), bool)
+    }
+    occupied_locations = _occupied_thread_locations(existing_threads)
+
+    for finding in ledger["new_findings"]:
+        finding_id = finding["id"]
+        placement = finding["placement"]
+        if placement == PLACEMENT_INLINE_ROOT:
+            key = (str(finding["path"]), int(finding["line"]), str(finding["side"]))
+            if key not in comment_keys:
+                _abort(f"finding '{finding_id}' inline-root placement is not present in the review payload.")
+            if key in used_comments:
+                _abort(f"finding '{finding_id}' is placed more than once.")
+            used_comments.append(key)
+            if (key[0], key[1]) in occupied_locations:
+                _abort(
+                    f"finding '{finding_id}' inline-root placement {key[0]}:{key[1]} "
+                    "matches an existing thread; post a reply to that thread instead of a new root."
+                )
+            if key not in anchors:
+                _abort(
+                    f"finding '{finding_id}' inline placement {key[0]}:{key[1]} {key[2]} "
+                    "is not present in the acquired diff; unverifiable placements are refused."
+                )
+        elif placement == PLACEMENT_REPLY:
+            comment_id = int(finding["comment_id"])
+            if comment_id not in reply_ids:
+                _abort(f"finding '{finding_id}' reply placement is not present in the replies file.")
+            if comment_id in used_replies:
+                _abort(f"finding '{finding_id}' is placed more than once.")
+            used_replies.add(comment_id)
+            thread = threads_by_id.get(comment_id)
+            if thread and (thread.get("outdated") or thread.get("resolved")):
+                reason = finding.get("stale_thread_reuse_reason")
+                if not isinstance(reason, str) or not reason.strip():
+                    _abort(
+                        f"finding '{finding_id}' reuses an outdated or resolved thread "
+                        "without an explicit stale_thread_reuse_reason."
+                    )
+        elif placement == PLACEMENT_BODY_ONLY and finding.get("reason") not in BODY_ONLY_REASONS:
+            _abort(f"finding '{finding_id}' body-only reason is outside the closed set.")
+
+    for key in comment_keys:
+        if key not in used_comments:
+            _abort(f"inline comment {key[0]}:{key[1]} {key[2]} has no matching findings-ledger placement.")
+    _validate_outstanding_communication(ledger, outstanding, reply_ids, used_replies, threads_by_id)
+    for comment_id in reply_ids:
+        if comment_id not in used_replies:
+            _abort(f"reply to comment {comment_id} has no matching findings-ledger placement or disposition.")
+
+
+def _validate_outstanding_communication(
+    ledger: dict[str, Any],
+    outstanding: list[dict[str, Any]],
+    reply_ids: list[int],
+    used_replies: set[int],
+    threads_by_id: dict[int, dict[str, Any]] | None = None,
+) -> None:
+    """Check every enumerated outstanding finding against its recorded disposition and reply decision."""
+    threads_by_id = threads_by_id or {}
+    outstanding_by_id = {item["id"]: item for item in ledger["outstanding"]}
+    for item in outstanding:
+        item_id = item["id"]
+        if item_id not in outstanding_by_id:
+            _abort(f"outstanding finding '{item_id}' has no disposition.")
+        recorded = outstanding_by_id[item_id]
+        if item.get("platform_resolved") and recorded.get("disposition") == "resolved":
+            if not recorded.get("confirmed_against_diff"):
+                _abort(
+                    f"outstanding finding '{item_id}' treats a platform-resolved thread "
+                    "as a claim; record confirmed_against_diff after checking the current diff."
+                )
+        thread_match = _THREAD_FINDING_ID_RE.fullmatch(item_id)
+        if not thread_match:
+            continue
+        declared_resolved = bool(recorded.get("platform_resolved"))
+        gathered_resolved = bool(item.get("platform_resolved"))
+        if declared_resolved != gathered_resolved:
+            _abort(
+                f"outstanding inline thread '{item_id}' declares platform_resolved="
+                f"{str(declared_resolved).lower()}, but the gathered thread state is "
+                f"{str(gathered_resolved).lower()}; reconcile the ledger against the acquired threads."
+            )
+        if (
+            recorded.get("disposition") == "disputed"
+            and recorded.get("communication") == COMMUNICATION_NO_REPLY
+            and not item.get("prior_review_reply")
+        ):
+            _abort(
+                f"outstanding inline thread '{item_id}' takes a standing-dispute no-reply, "
+                "but the gathered thread state carries no prior reviewer reply; a dispute "
+                "raised or changed this round is communicated by reply."
+            )
+        root_comment_id = int(thread_match.group(1))
+        if recorded.get("reopen") is True and not str(threads_by_id.get(root_comment_id, {}).get("node_id") or ""):
+            _abort(
+                f"outstanding inline thread '{item_id}' declares reopen, but the acquired threads carry "
+                "no node id for it; re-gather so the reopen target is resolvable before posting."
+            )
+        if recorded.get("communication") == COMMUNICATION_REPLY:
+            if root_comment_id not in reply_ids:
+                _abort(
+                    f"outstanding inline thread '{item_id}' requires a reply, "
+                    "but its root comment id is absent from the replies file."
+                )
+            used_replies.add(root_comment_id)
+        elif root_comment_id in reply_ids:
+            _abort(
+                f"outstanding inline thread '{item_id}' declares no-reply, "
+                "but the replies file contains that root comment id."
+            )
+
+
+def cmd_list_run_artifacts() -> None:
+    """Print the prescribed run-artifact names, one per line, sorted."""
+    for name in sorted(PRESCRIBED_RUN_ARTIFACTS):
+        print(name)
+
+
+# ---------------------------------------------------------------------------
+# Review bundle validation and rendering
+# ---------------------------------------------------------------------------
+
+
+def _validate_inline_comment(comment: Any, index: int) -> None:
+    if not isinstance(comment, dict):
+        _abort(f"inline comment {index} must be a JSON object.")
+    for key in ("path", "line", "side", "body"):
+        if key not in comment:
+            _abort(f"inline comment {index} is missing required key '{key}'.")
+    if not isinstance(comment["path"], str) or not comment["path"].strip():
+        _abort(f"inline comment {index} path must be a non-empty string.")
+    if isinstance(comment["line"], bool) or not isinstance(comment["line"], int):
+        _abort(f"inline comment {index} line must be an integer.")
+    if comment["side"] not in {"LEFT", "RIGHT"}:
+        _abort(f"inline comment {index} side must be LEFT or RIGHT.")
+    if not isinstance(comment["body"], str) or not comment["body"].strip():
+        _abort(f"inline comment {index} body must be a non-empty string.")
+
+
+def _validate_review_payload(payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        _abort("review payload must be a JSON object.")
+
+    required = {"body", "event", "commit_id"}
+    missing = sorted(required - payload.keys())
+    if missing:
+        _abort(f"review payload is missing required keys: {', '.join(missing)}. Required: body, event, commit_id.")
+
+    if not isinstance(payload["body"], str) or not payload["body"].strip():
+        _abort("review payload body must be a non-empty string.")
+    if payload["event"] not in REVIEW_EVENTS:
+        _abort(f"review event must be one of: {', '.join(REVIEW_EVENTS)}.")
+    if not isinstance(payload["commit_id"], str) or not payload["commit_id"].strip():
+        _abort("review payload commit_id must be a non-empty string.")
+
+    comments = payload.get("comments", [])
+    if not isinstance(comments, list):
+        _abort("review payload comments must be a JSON array when present.")
+    for index, comment in enumerate(comments, start=1):
+        _validate_inline_comment(comment, index)
+
+    return payload
+
+
+def _validate_replies(replies: Any) -> list[dict[str, Any]]:
+    if not isinstance(replies, list):
+        _abort("replies file must contain a JSON array.")
+    seen_comment_ids: set[int] = set()
+    for index, reply in enumerate(replies, start=1):
+        if not isinstance(reply, dict):
+            _abort(f"reply {index} must be a JSON object.")
+        comment_id = reply.get("comment_id")
+        if isinstance(comment_id, bool) or not isinstance(comment_id, int) or comment_id <= 0:
+            _abort(f"reply {index} comment_id must be a positive integer.")
+        if comment_id in seen_comment_ids:
+            _abort(f"reply target {comment_id} is listed more than once.")
+        seen_comment_ids.add(comment_id)
+        if not isinstance(reply.get("body"), str) or not reply["body"].strip():
+            _abort(f"reply {index} body must be a non-empty string.")
+    return replies
+
+
+REVIEW_CONTRACT = PostingContract(
+    marker=REVIEW_MARKER,
+    interactive_disclosure=INTERACTIVE_REVIEW_DISCLOSURE,
+    automated_disclosure=AUTOMATED_DISCLOSURE,
+)
+
+
+def _inject_review_contract(body: str, mode: str) -> str:
+    return github_utils.inject_contract(body, mode, REVIEW_CONTRACT)
+
+
+def _validate_review_contract(body: str, mode: str) -> None:
+    github_utils.validate_contract(body, mode, REVIEW_CONTRACT)
+
+
+_bundle_digest = github_utils.canonical_digest
+
+
+def _validate_bundle(bundle: Any, mode: str) -> dict[str, Any]:
+    if not isinstance(bundle, dict):
+        _abort("review bundle must be a JSON object.")
+    expected_keys = {"schema", "mode", "review", "replies", "findings_ledger", "coverage"}
+    if set(bundle) != expected_keys:
+        _abort("review bundle must contain exactly: schema, mode, review, replies, findings_ledger, coverage.")
+    if bundle.get("schema") != BUNDLE_SCHEMA:
+        _abort(f"review bundle schema must be '{BUNDLE_SCHEMA}'.")
+    if bundle.get("mode") != mode:
+        _abort(f"review bundle mode '{bundle.get('mode')}' does not match requested mode '{mode}'.")
+
+    review = _validate_review_payload(bundle.get("review"))
+    _validate_replies(bundle.get("replies"))
+    _validate_review_contract(review["body"], mode)
+    if mode == "automated" and review["event"] != "COMMENT":
+        _abort("automated review bundles must use the non-blocking COMMENT event.")
+    coverage = bundle.get("coverage")
+    if not isinstance(coverage, dict) or coverage.get("schema") != COVERAGE_SCHEMA:
+        _abort(f"review bundle coverage schema must be '{COVERAGE_SCHEMA}'.")
+    _validate_findings_ledger(bundle.get("findings_ledger"))
+    return bundle
+
+
+def _enforce_review_gates(
+    bundle: dict[str, Any],
+    outstanding: list[dict[str, Any]],
+    existing_threads: list[dict[str, Any]],
+) -> None:
+    _refuse_incomplete_coverage(bundle["coverage"])
+    _validate_placements(
+        bundle["findings_ledger"],
+        bundle["review"],
+        bundle["replies"],
+        bundle["coverage"],
+        outstanding,
+        existing_threads,
+    )
+
+
+def _outstanding_disposition_lines(item: dict[str, Any]) -> list[str]:
+    """Render one outstanding disposition with its reason and communication decision."""
+    lines = [
+        f"### Outstanding `{item.get('id')}`",
+        "",
+        f"- Disposition: `{item.get('disposition')}`",
+        f"- Reason: {item.get('reason', '')}",
+        f"- Author kind: `{item.get('author_kind', '')}`",
+    ]
+    if _THREAD_FINDING_ID_RE.fullmatch(str(item.get("id") or "")):
+        lines.append(f"- Platform resolved: `{bool(item.get('platform_resolved'))}`")
+        lines.append(f"- Communication: `{item.get('communication', '')}`")
+        if item.get("communication") == COMMUNICATION_NO_REPLY:
+            lines.append(f"- No-reply reason: {item.get('no_reply_reason', '')}")
+        if isinstance(item.get("reopen"), bool):
+            lines.append(f"- Reopen thread: `{item['reopen']}`")
+            lines.append(f"- Reopen reason: {item.get('reopen_reason', '')}")
+    lines.append("")
+    return lines
+
+
+def _approval_view(bundle: dict[str, Any], digest: str) -> str:
+    review = bundle["review"]
+    comments = review.get("comments", [])
+    replies = bundle["replies"]
+    lines = [
+        "# AIS CR PR review approval view",
+        "",
+        f"- Mode: `{bundle['mode']}`",
+        f"- Target commit: `{review['commit_id']}`",
+        f"- Review event: `{review['event']}`",
+        "",
+        "## Exact grouped review body",
+        "",
+        review["body"],
+        "",
+        "## New inline comments",
+        "",
+    ]
+    if not comments:
+        lines.append("None.")
+    for index, comment in enumerate(comments, start=1):
+        lines.extend(
+            [
+                f"### Inline comment {index}",
+                "",
+                f"- Path: `{comment['path']}`",
+                f"- Line: `{comment['line']}`",
+                f"- Side: `{comment['side']}`",
+                "",
+                "Exact body:",
+                "",
+                comment["body"],
+                "",
+            ]
+        )
+    lines.extend(["", "## Existing-thread replies", ""])
+    if not replies:
+        lines.append("None.")
+    for index, reply in enumerate(replies, start=1):
+        lines.extend(
+            [
+                f"### Reply {index}",
+                "",
+                f"- Comment ID: `{reply['comment_id']}`",
+                "",
+                "Exact body:",
+                "",
+                reply["body"],
+                "",
+            ]
+        )
+    ledger = bundle.get("findings_ledger") or {}
+    lines.extend(["", "## Findings ledger placements", ""])
+    new_findings = ledger.get("new_findings") or []
+    if not new_findings:
+        lines.append("(none declared.)")
+    for finding in new_findings:
+        placement = finding.get("placement")
+        lines.extend([f"### Finding `{finding.get('id')}`", "", f"- Placement: `{placement}`"])
+        if placement == PLACEMENT_INLINE_ROOT:
+            lines.extend(
+                [
+                    f"- Path: `{finding.get('path')}`",
+                    f"- Line: `{finding.get('line')}`",
+                    f"- Side: `{finding.get('side')}`",
+                ]
+            )
+        elif placement == PLACEMENT_REPLY:
+            lines.append(f"- Reply to comment: `{finding.get('comment_id')}`")
+            if finding.get("stale_thread_reuse_reason"):
+                lines.append(f"- Stale-thread reuse reason: `{finding['stale_thread_reuse_reason']}`")
+        elif placement == PLACEMENT_BODY_ONLY:
+            lines.append(f"- Body-only reason: `{finding.get('reason')}`")
+        lines.append("")
+    lines.extend(["", "## Outstanding finding dispositions", ""])
+    outstanding = ledger.get("outstanding") or []
+    if not outstanding:
+        lines.append("(none declared.)")
+    for item in outstanding:
+        lines.extend(_outstanding_disposition_lines(item))
+    lines.extend(["", "## Canonical bundle digest", "", f"`{digest}`", ""])
+    return "\n".join(lines)
+
+
+def cmd_render(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+    mode: str,
+    review_payload_path: str,
+    replies_path: str | None,
+    bundle_path: str,
+    approval_view_path: str,
+    pr_context_path: str,
+    findings_ledger_path: str,
+    local_diff_path: str | None = None,
+) -> None:
+    """Create the canonical bundle and exact approval presentation."""
+    review = _validate_review_payload(_load_json(review_payload_path, "review payload"))
+    replies = _validate_replies(_load_json(replies_path, "replies file")) if replies_path else []
+    context = _load_json(pr_context_path, "PR context")
+    if not isinstance(context, dict):
+        _abort("PR context must be a JSON object.")
+    coverage = context.get("coverage")
+    if not isinstance(coverage, dict):
+        _abort("PR context is missing coverage.")
+    if local_diff_path:
+        coverage = _apply_local_diff(coverage, local_diff_path)
+    _refuse_incomplete_coverage(coverage)
+    ledger = _validate_findings_ledger(_load_json(findings_ledger_path, "findings ledger"))
+    outstanding = context.get("outstanding_findings") or []
+    if not isinstance(outstanding, list):
+        _abort("PR context outstanding_findings must be a JSON array when present.")
+    existing_threads = context.get("existing_threads") or []
+    if not isinstance(existing_threads, list):
+        _abort("PR context existing_threads must be a JSON array when present.")
+    rendered_review = dict(review)
+    rendered_review["body"] = _inject_review_contract(review["body"], mode)
+    if mode == "automated" and rendered_review["event"] != "COMMENT":
+        _abort("automated review bundles must use the non-blocking COMMENT event.")
+    _validate_placements(ledger, rendered_review, replies, coverage, outstanding, existing_threads)
+
+    bundle = {
+        "schema": BUNDLE_SCHEMA,
+        "mode": mode,
+        "review": rendered_review,
+        "replies": replies,
+        "findings_ledger": ledger,
+        "coverage": coverage,
+    }
+    _validate_bundle(bundle, mode)
+    _enforce_review_gates(bundle, outstanding, existing_threads)
+    digest = _bundle_digest(bundle)
+    _write_json(bundle_path, bundle)
+    _write_text(approval_view_path, _approval_view(bundle, digest), "approval view")
+    print(f"Review bundle: {os.path.abspath(bundle_path)}")
+    print(f"Approval view: {os.path.abspath(approval_view_path)}")
+    print(f"Bundle digest (SHA-256): {digest}")
+
+
+# ---------------------------------------------------------------------------
+# Gather
+# ---------------------------------------------------------------------------
+
+
+def _rest_items(endpoint: str, collection_key: str | None = None) -> list[dict[str, Any]]:
+    items = _paginated_rest_items(
+        endpoint,
+        collection_key=collection_key,
+        runner=lambda command: (True, _gh(*command[1:])),
+    )
+    if items is None:
+        _abort(f"cannot read every GitHub REST page for '{endpoint}'.")
+    return items
+
+
+def _fetch_review_details(
+    owner_repo: str,
+    pr_number: int,
+    review_id: int,
+) -> tuple[str, list[dict[str, Any]]]:
+    body = _gh(
+        "api",
+        f"repos/{owner_repo}/pulls/{pr_number}/reviews/{review_id}",
+        "--jq",
+        ".body",
+    )
+    comments = _rest_items(f"repos/{owner_repo}/pulls/{pr_number}/reviews/{review_id}/comments")
+    return body, [
+        {
+            "id": item.get("id"),
+            "path": item.get("path"),
+            "line": item.get("line"),
+            "side": item.get("side"),
+            "body": item.get("body"),
+        }
+        for item in comments
+    ]
+
+
+def _fetch_issue_comments(owner_repo: str, pr_number: int) -> list[dict[str, Any]]:
+    comments = _rest_items(f"repos/{owner_repo}/issues/{pr_number}/comments")
+    return [
+        {
+            "id": item.get("id"),
+            "body": item.get("body"),
+            "html_url": item.get("html_url"),
+            "created_at": item.get("created_at"),
+            "updated_at": item.get("updated_at"),
+            "user": ((item.get("user") or {}).get("login") if isinstance(item.get("user"), dict) else item.get("user")),
+        }
+        for item in comments
+    ]
+
+
+def _latest_by(items: list[dict[str, Any]], field: str) -> dict[str, Any] | None:
+    if not items:
+        return None
+    return max(items, key=lambda item: str(item.get(field) or ""))
+
+
+def _find_summary_comment(
+    issue_comments: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    marked = [comment for comment in issue_comments if SUMMARY_MARKER_PATTERN.search(str(comment.get("body") or ""))]
+    if not marked:
+        return None
+    return max(
+        marked,
+        key=lambda item: str(item.get("updated_at") or item.get("created_at") or ""),
+    )
+
+
+def _fetch_pr_identity(pr_number: int, owner_repo: str) -> dict[str, str]:
+    raw = _gh(
+        "pr",
+        "view",
+        str(pr_number),
+        "--repo",
+        owner_repo,
+        "--json",
+        "headRefOid,baseRefOid,author",
+    )
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        _abort(f"cannot parse pull request identity: {exc}")
+    if not isinstance(payload, dict):
+        _abort("pull request identity must be a JSON object.")
+    author = payload.get("author") if isinstance(payload.get("author"), dict) else {}
+    head_sha = str(payload.get("headRefOid") or "").strip()
+    base_sha = str(payload.get("baseRefOid") or "").strip()
+    pr_author = str(author.get("login") or "").strip()
+    if not head_sha or not base_sha:
+        _abort("pull request identity is missing base or head commit SHAs.")
+    return {"head_sha": head_sha, "base_sha": base_sha, "pr_author": pr_author}
+
+
+def _fetch_pr_description(pr_number: int, owner_repo: str) -> str:
+    return _gh(
+        "pr",
+        "view",
+        str(pr_number),
+        "--repo",
+        owner_repo,
+        "--json",
+        "body",
+        "-q",
+        ".body",
+    )
+
+
+def _fetch_review_lineage(owner_repo: str, pr_number: int) -> dict[str, Any]:
+    reviews = [
+        {
+            "id": item.get("id"),
+            "body": item.get("body"),
+            "state": item.get("state"),
+            "submitted_at": item.get("submitted_at"),
+            "user": ((item.get("user") or {}).get("login") if isinstance(item.get("user"), dict) else item.get("user")),
+            "html_url": item.get("html_url"),
+        }
+        for item in _rest_items(f"repos/{owner_repo}/pulls/{pr_number}/reviews")
+        if item.get("state") != "PENDING"
+    ]
+    marked_reviews = [review for review in reviews if REVIEW_MARKER in str(review.get("body") or "")]
+    reviewer_logins = sorted(
+        {
+            str(review.get("user"))
+            for review in marked_reviews
+            if isinstance(review.get("user"), str) and review.get("user").strip()
+        }
+    )
+    last_review = _latest_by(marked_reviews, "submitted_at")
+    last_review_id = last_review.get("id") if last_review else None
+    last_review_body = None
+    last_review_comments = None
+    if isinstance(last_review_id, int):
+        last_review_body, last_review_comments = _fetch_review_details(
+            owner_repo,
+            pr_number,
+            last_review_id,
+        )
+    return {
+        "last_review_id": last_review_id,
+        "last_review_body": last_review_body,
+        "last_review_comments": last_review_comments,
+        "reviewer_logins": reviewer_logins,
+        "auxiliary_reviews": [review for review in reviews if review not in marked_reviews],
+    }
+
+
+def _issue_comment_context(
+    issue_comments: list[dict[str, Any]],
+    pr_author: str,
+) -> dict[str, Any]:
+    author_comments = [comment for comment in issue_comments if comment.get("user") == pr_author]
+    author_comment = _latest_by(author_comments, "created_at")
+    return {
+        "author_response": author_comment.get("body") if author_comment else None,
+        "summary_comment": _find_summary_comment(issue_comments),
+    }
+
+
+PR_COMMENTS_QUERY = """
+query($owner:String!, $name:String!, $number:Int!, $endCursor:String) {
+  repository(owner:$owner, name:$name) {
+    pullRequest(number:$number) {
+      comments(first:100, after:$endCursor) {
+        nodes { databaseId body createdAt url isMinimized minimizedReason author { login } }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}
+"""
+
+UNRESOLVE_THREAD_MUTATION = """
+mutation($threadId:ID!) {
+  unresolveReviewThread(input:{threadId:$threadId}) {
+    thread { id isResolved }
+  }
+}
+"""
+
+PR_THREADS_QUERY = """
+query($owner:String!, $name:String!, $number:Int!, $endCursor:String) {
+  repository(owner:$owner, name:$name) {
+    pullRequest(number:$number) {
+      reviewThreads(first:100, after:$endCursor) {
+        nodes {
+          id
+          isResolved isOutdated isCollapsed path line
+          comments(first:100) {
+            nodes { databaseId body createdAt url isMinimized minimizedReason author { login } }
+            pageInfo { hasNextPage endCursor }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}
+"""
+
+THREAD_COMMENTS_QUERY = """
+query($thread:ID!, $endCursor:String) {
+  node(id:$thread) {
+    ... on PullRequestReviewThread {
+      comments(first:100, after:$endCursor) {
+        nodes { databaseId body createdAt url isMinimized minimizedReason author { login } }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}
+"""
+
+
+def _graphql(query: str, **variables: str) -> dict[str, Any]:
+    return github_utils.graphql(query, runner=_gh, **variables)
+
+
+def _comment_record(node: dict[str, Any], source: str) -> dict[str, Any]:
+    """Normalize one comment, carrying where it came from and when."""
+    author = node.get("author") or {}
+    return {
+        "source": source,
+        "id": node.get("databaseId"),
+        "author": author.get("login"),
+        "created_at": node.get("createdAt"),
+        "url": node.get("url"),
+        "hidden": bool(node.get("isMinimized")),
+        "hidden_reason": node.get("minimizedReason"),
+        "body": node.get("body") or "",
+    }
+
+
+def _pr_connection(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    query: str,
+    key: str,
+    owner: str,
+    name: str,
+    number: int,
+    cursor: str | None,
+) -> dict[str, Any]:
+    variables = {"owner": owner, "name": name, "number": str(number)}
+    if cursor is not None:
+        variables["endCursor"] = cursor
+    payload = _graphql(query, **variables)
+    pull = (((payload.get("data") or {}).get("repository") or {}).get("pullRequest")) or {}
+    return pull.get(key) or {}
+
+
+def _thread_comment_connection(thread_id: str, cursor: str | None) -> dict[str, Any]:
+    variables = {"thread": thread_id}
+    if cursor is not None:
+        variables["endCursor"] = cursor
+    payload = _graphql(THREAD_COMMENTS_QUERY, **variables)
+    thread = (payload.get("data") or {}).get("node") or {}
+    return thread.get("comments") or {}
+
+
+def _fetch_conversation(owner_repo: str, pr_number: int) -> dict[str, Any]:
+    """Gather every comment on the PR, including hidden, resolved, and outdated.
+
+    A resolved thread usually holds the reasoning behind the current state, and a
+    minimized comment is hidden from the reader rather than from the record, so
+    neither is skipped. REST exposes neither flag; GraphQL is the only surface that
+    does, which is why these connections are read through paginated GraphQL rather
+    than flattened into REST records that lose thread state.
+    """
+    owner, _, name = owner_repo.partition("/")
+    discussion_nodes = _paginated_graphql_nodes(
+        lambda cursor: _pr_connection(PR_COMMENTS_QUERY, "comments", owner, name, pr_number, cursor)
+    )
+    thread_nodes = _paginated_graphql_nodes(
+        lambda cursor: _pr_connection(PR_THREADS_QUERY, "reviewThreads", owner, name, pr_number, cursor)
+    )
+    discussion = [_comment_record(node, "pr-comment") for node in discussion_nodes]
+    threads: list[dict[str, Any]] = []
+    for thread in thread_nodes:
+        initial_comments = thread.get("comments") or {}
+        thread_id = str(thread.get("id") or "")
+        if initial_comments.get("pageInfo", {}).get("hasNextPage") and not thread_id:
+            _abort("GitHub review thread has paginated comments but no node id.")
+        comment_nodes = _paginated_graphql_nodes(
+            lambda cursor, node_id=thread_id: _thread_comment_connection(node_id, cursor),
+            initial_comments,
+        )
+        threads.append(
+            {
+                "node_id": thread_id,
+                "path": thread.get("path"),
+                "line": thread.get("line"),
+                "resolved": bool(thread.get("isResolved")),
+                "outdated": bool(thread.get("isOutdated")),
+                "collapsed": bool(thread.get("isCollapsed")),
+                "comments": [_comment_record(node, "review-thread") for node in comment_nodes],
+            }
+        )
+    return {"discussion_comments": discussion, "review_threads": threads}
+
+
+def _conversation_text(conversation: dict[str, Any]) -> list[str]:
+    """Every comment body in the conversation, for reference extraction."""
+    bodies = [comment["body"] for comment in conversation["discussion_comments"]]
+    for thread in conversation["review_threads"]:
+        bodies.extend(comment["body"] for comment in thread["comments"])
+    return bodies
+
+
+def _fetch_closing_references(owner_repo: str, pr_number: int) -> list[str]:
+    """Issues GitHub itself links to this PR, independent of body text."""
+    ok, stdout = _try_run(
+        [
+            "gh",
+            "pr",
+            "view",
+            str(pr_number),
+            "--repo",
+            owner_repo,
+            "--json",
+            "closingIssuesReferences",
+            "-q",
+            ".closingIssuesReferences[].number",
+        ]
+    )
+    if not ok:
+        return []
+    return [f"{owner_repo}#{line.strip()}" for line in stdout.splitlines() if line.strip()]
+
+
+def _fetch_referenced_item(ref: str) -> dict[str, Any] | None:
+    """Fetch one referenced issue or pull request with its comment thread."""
+    target_repo, _, number = ref.partition("#")
+    ok, stdout = _try_run(["gh", "api", f"repos/{target_repo}/issues/{number}"])
+    if not ok:
+        return None
+    try:
+        item = json.loads(stdout)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(item, dict):
+        return None
+    issue_comments = _paginated_rest_items(
+        f"repos/{target_repo}/issues/{number}/comments",
+        runner=_try_run,
+    )
+    if issue_comments is None:
+        return None
+    comments = [
+        {
+            "source": f"{ref} comment",
+            "id": node.get("id"),
+            "author": (node.get("user") or {}).get("login"),
+            "created_at": node.get("created_at"),
+            "url": node.get("html_url"),
+            "hidden": False,
+            "hidden_reason": None,
+            "body": node.get("body") or "",
+        }
+        for node in issue_comments
+    ]
+    if item.get("pull_request"):
+        review_comments = _paginated_rest_items(
+            f"repos/{target_repo}/pulls/{number}/comments",
+            runner=_try_run,
+        )
+        if review_comments is None:
+            return None
+        comments.extend(
+            {
+                "source": f"{ref} review comment",
+                "id": node.get("id"),
+                "author": (node.get("user") or {}).get("login"),
+                "created_at": node.get("created_at"),
+                "url": node.get("html_url"),
+                "hidden": False,
+                "hidden_reason": None,
+                "body": node.get("body") or "",
+            }
+            for node in review_comments
+        )
+    return {
+        "ref": ref,
+        "title": item.get("title"),
+        "state": item.get("state"),
+        "url": item.get("html_url"),
+        "created_at": item.get("created_at"),
+        "body": item.get("body") or "",
+        "comments": comments,
+    }
+
+
+def _fetch_check_runs(owner_repo: str, head_sha: str) -> list[dict[str, Any]]:
+    """Check runs for the head commit; test evidence often lives here."""
+    runs = _paginated_rest_items(
+        f"repos/{owner_repo}/commits/{head_sha}/check-runs",
+        collection_key="check_runs",
+        runner=_try_run,
+    )
+    if runs is None:
+        return []
+    return [
+        {
+            "source": "check-run",
+            "name": run.get("name"),
+            "status": run.get("status"),
+            "conclusion": run.get("conclusion"),
+            "completed_at": run.get("completed_at"),
+            "url": run.get("details_url"),
+        }
+        for run in runs
+    ]
+
+
+def _gather_neighbourhood(
+    owner_repo: str,
+    pr_number: int,
+    texts: list[str],
+    seed_refs: list[str],
+) -> dict[str, Any]:
+    """One hop of referenced issues and pull requests, with their comment threads."""
+    return github_utils.gather_neighbourhood(
+        owner_repo,
+        f"{owner_repo}#{pr_number}",
+        texts,
+        seed_refs,
+        _fetch_referenced_item,
+    )
+
+
+def _produce_sibling_local_diff(sibling: str, base_sha: str, head_sha: str, dest_path: str) -> bool:
+    """Produce the local diff for a registered repository through the acquisition bridge.
+
+    The engine is the producer: it invokes the bridge, pins the child's pipe encoding
+    through the environment, and writes the patch file itself, so no operator shell
+    redirect can re-encode content this engine later reads back as strict UTF-8. The
+    merge-base is resolved first, so the patch carries the same scope as the in-repo
+    three-dot comparison.
+
+    Returns ``False`` when the bridge is not part of this copy, or reports an absent or
+    failed outcome; the caller then leaves coverage incomplete rather than consuming a
+    destination file left by an earlier round, because a stale patch would fabricate
+    complete coverage.
+    """
+    if not _BRIDGE_SCRIPT.is_file():
+        log_warn(
+            "a multi-repository local diff needs the acquisition extension, which this copy "
+            "does not include; leaving coverage incomplete"
+        )
+        return False
+    bridge = [sys.executable, str(_BRIDGE_SCRIPT)]
+    env = utf8_child_env()
+
+    def run_bridge(*git_args: str) -> subprocess.CompletedProcess:
+        return run_exact([*bridge, "--repo", sibling, "--", *git_args], env=env)
+
+    merge = run_bridge("merge-base", base_sha, head_sha)
+    if merge.returncode != 0:
+        log_warn(
+            f"repository bridge merge-base failed for {sibling}: "
+            f"{merge.stderr.strip() or f'exit {merge.returncode}'}; "
+            "leaving coverage incomplete"
+        )
+        return False
+    merge_base = merge.stdout.strip()
+    diff = run_bridge("diff", merge_base, head_sha, "--")
+    if diff.returncode != 0:
+        log_warn(
+            f"repository bridge diff failed for {sibling}: "
+            f"{diff.stderr.strip() or f'exit {diff.returncode}'}; "
+            "leaving coverage incomplete"
+        )
+        return False
+    Path(dest_path).write_text(diff.stdout, encoding="utf-8", newline="\n")
+    return True
+
+
+def cmd_gather(  # pylint: disable=too-many-locals
+    pr_number: int,
+    repo: str | None,
+    local_diff: str | None = None,
+    output_path: str | None = None,
+    sibling: str | None = None,
+) -> None:
+    """Fetch PR context and print JSON for use in the review workflow."""
+    if sibling and not local_diff:
+        _abort("--sibling requires --local-diff naming the patch file the engine writes.")
+    owner_repo = _resolve_repo(repo)
+    identity = _fetch_pr_identity(pr_number, owner_repo)
+    head_sha = identity["head_sha"]
+    pr_author = identity["pr_author"]
+    pr_description = _fetch_pr_description(pr_number, owner_repo)
+    lineage = _fetch_review_lineage(owner_repo, pr_number)
+    issue_comments = _fetch_issue_comments(owner_repo, pr_number)
+    conversation = _fetch_conversation(owner_repo, pr_number)
+    neighbourhood = _gather_neighbourhood(
+        owner_repo,
+        pr_number,
+        [pr_description, *_conversation_text(conversation)],
+        _fetch_closing_references(owner_repo, pr_number),
+    )
+    existing_threads = _thread_roots_from_conversation(conversation)
+    outstanding = _enumerate_outstanding_findings(conversation, lineage)
+    if sibling:
+        if not _produce_sibling_local_diff(sibling, str(identity["base_sha"]), head_sha, local_diff):
+            local_diff = None
+    coverage = _acquire_coverage(
+        owner_repo,
+        pr_number,
+        identity["base_sha"],
+        head_sha,
+        local_diff,
+    )
+    output = {
+        "owner_repo": owner_repo,
+        "pr_number": pr_number,
+        "head_sha": head_sha,
+        "base_sha": identity["base_sha"],
+        "pr_author": pr_author,
+        "pr_description": pr_description,
+        "pr_description_has_summary_marker": SUMMARY_MARKER_PATTERN.search(pr_description) is not None,
+        "pr_description_state": _description_state(pr_description),
+        **lineage,
+        **_issue_comment_context(issue_comments, pr_author),
+        "existing_threads": existing_threads,
+        **conversation,
+        **neighbourhood,
+        "check_runs": _fetch_check_runs(owner_repo, head_sha),
+        "coverage": coverage,
+        "outstanding_findings": outstanding,
+        "review_only_body_findings": REVIEW_ONLY_BODY_FINDINGS,
+    }
+    _emit_json(output, output_path)
+
+
+# ---------------------------------------------------------------------------
+# Posting
+# ---------------------------------------------------------------------------
+
+
+def _reopen_threads(targets: list[tuple[str, str]]) -> None:
+    """Unresolve each approved thread so the reply it just received is visible.
+
+    Runs after the replies, not before: a reply that lands and then fails to reopen leaves a
+    recoverable collapsed comment, while a reopen that lands and then fails to reply leaves a
+    thread reopened with nothing explaining why.
+    """
+    for item_id, node_id in targets:
+        payload = _graphql(UNRESOLVE_THREAD_MUTATION, threadId=node_id)
+        thread = ((payload.get("data") or {}).get("unresolveReviewThread") or {}).get("thread") or {}
+        if thread.get("isResolved") is False:
+            print(f"Thread reopened for {item_id}: {node_id}")
+        else:
+            print(f"Thread reopen did not take effect for {item_id}: {node_id}")
+
+
+def _approved_reopen_targets(ledger: dict[str, Any], existing_threads: list[dict[str, Any]]) -> list[tuple[str, str]]:
+    """Resolve the approved reopen decisions to their thread node ids."""
+    nodes = {
+        int(thread["id"]): str(thread.get("node_id") or "")
+        for thread in existing_threads
+        if isinstance(thread.get("id"), int) and not isinstance(thread.get("id"), bool)
+    }
+    targets: list[tuple[str, str]] = []
+    for item in ledger.get("outstanding") or []:
+        if item.get("reopen") is not True:
+            continue
+        match = _THREAD_FINDING_ID_RE.fullmatch(str(item.get("id") or ""))
+        if not match:
+            continue
+        node_id = nodes.get(int(match.group(1)), "")
+        if not node_id:
+            _abort(f"approved reopen for '{item['id']}' has no thread node id; no thread was reopened.")
+        targets.append((str(item["id"]), node_id))
+    return targets
+
+
+def _post_replies(
+    owner_repo: str,
+    pr_number: int,
+    replies: list[dict[str, Any]],
+) -> None:
+    if not replies:
+        return
+    existing_comments = _paginated_rest_items(f"repos/{owner_repo}/pulls/{pr_number}/comments?per_page=100")
+    if existing_comments is None:
+        _abort("cannot verify existing pull-request replies before posting; no reply was written.")
+    existing_exact = {
+        (int(comment["in_reply_to_id"]), str(comment.get("body") or "").strip()): str(comment.get("html_url") or "")
+        for comment in existing_comments
+        if isinstance(comment.get("in_reply_to_id"), int) and not isinstance(comment.get("in_reply_to_id"), bool)
+    }
+    for reply in replies:
+        exact_key = (int(reply["comment_id"]), str(reply["body"]).strip())
+        if exact_key in existing_exact:
+            print(f"Reply already present: {existing_exact[exact_key]}")
+            continue
+        payload_path = _temporary_json({"body": reply["body"]})
+        try:
+            reply_url = _gh(
+                "api",
+                f"repos/{owner_repo}/pulls/{pr_number}/comments/{reply['comment_id']}/replies",
+                "--method",
+                "POST",
+                "--input",
+                payload_path,
+                "--jq",
+                ".html_url",
+            )
+            print(f"Reply posted: {reply_url}")
+            existing_exact[exact_key] = reply_url
+        finally:
+            os.unlink(payload_path)
+
+
+def _payloads_match(left: Any, right: Any) -> bool:
+    return json.dumps(left, ensure_ascii=False, sort_keys=True, separators=(",", ":")) == json.dumps(
+        right,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
+def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+    pr_number: int,
+    mode: str,
+    review_bundle_path: str,
+    approved_digest: str | None,
+    repo: str | None,
+    findings_ledger_path: str,
+    pr_context_path: str,
+) -> None:
+    """Post a validated canonical bundle and its existing-thread replies."""
+    bundle = _validate_bundle(
+        _load_json(review_bundle_path, "review bundle"),
+        mode,
+    )
+    ledger = _validate_findings_ledger(_load_json(findings_ledger_path, "findings ledger"))
+    context = _load_json(pr_context_path, "PR context")
+    if not isinstance(context, dict):
+        _abort("PR context must be a JSON object.")
+    if not _payloads_match(ledger, bundle["findings_ledger"]):
+        _abort("findings ledger was altered after approval; re-render and approve the exact current artefacts.")
+    coverage = context.get("coverage")
+    if not _payloads_match(coverage, bundle["coverage"]):
+        _abort("coverage was altered after approval; re-render and approve the exact current artefacts.")
+    outstanding = context.get("outstanding_findings") or []
+    existing_threads = context.get("existing_threads") or []
+    if not isinstance(outstanding, list) or not isinstance(existing_threads, list):
+        _abort("PR context outstanding_findings and existing_threads must be JSON arrays.")
+    _enforce_review_gates(bundle, outstanding, existing_threads)
+    digest = _bundle_digest(bundle)
+    if mode == "interactive":
+        if not approved_digest:
+            _abort("interactive posting requires --approved-digest from the approval view.")
+        if approved_digest != digest:
+            _abort(
+                "approved digest does not match the review bundle; render and approve "
+                "the exact current bundle before posting."
+            )
+
+    _validate_write_environment(mode, "post")
+    owner_repo = _resolve_repo(repo)
+    review_payload_path = _temporary_json(bundle["review"])
+    try:
+        review_url = _gh(
+            "api",
+            f"repos/{owner_repo}/pulls/{pr_number}/reviews",
+            "--method",
+            "POST",
+            "--input",
+            review_payload_path,
+            "--jq",
+            ".html_url",
+        )
+        print(f"Review posted: {review_url}")
+    finally:
+        os.unlink(review_payload_path)
+
+    reopen_targets = _approved_reopen_targets(ledger, existing_threads)
+    _post_replies(owner_repo, pr_number, bundle["replies"])
+    _reopen_threads(reopen_targets)
+
+
+def _validate_repair_reopen(reopen: Any, replies: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Check reopen targets, which may only accompany a reply that explains the reopening."""
+    if reopen is None:
+        return []
+    if not isinstance(reopen, list):
+        _abort("repair bundle reopen must be a JSON array.")
+    reply_ids = {int(reply["comment_id"]) for reply in replies}
+    seen: set[int] = set()
+    for index, entry in enumerate(reopen, start=1):
+        if not isinstance(entry, dict) or set(entry) != {"comment_id", "thread_node_id"}:
+            _abort(f"repair reopen {index} must contain exactly: comment_id, thread_node_id.")
+        comment_id = entry.get("comment_id")
+        if isinstance(comment_id, bool) or not isinstance(comment_id, int) or comment_id <= 0:
+            _abort(f"repair reopen {index} comment_id must be a positive integer.")
+        if not isinstance(entry.get("thread_node_id"), str) or not entry["thread_node_id"].strip():
+            _abort(f"repair reopen {index} thread_node_id must be a non-empty string.")
+        if comment_id in seen:
+            _abort(f"repair reopen target {comment_id} is listed more than once.")
+        seen.add(comment_id)
+        if comment_id not in reply_ids:
+            _abort(
+                f"repair reopen target {comment_id} has no reply in this repair; a reopened thread "
+                "must carry the reply that explains why it was reopened."
+            )
+    return reopen
+
+
+def _validate_repair_bundle(bundle: Any, mode: str) -> dict[str, Any]:
+    if not isinstance(bundle, dict):
+        _abort("repair bundle must be a JSON object.")
+    expected_keys = {"schema", "mode", "review_id", "commit_id", "comments", "replies", "reopen", "body"}
+    if set(bundle) != expected_keys:
+        _abort(
+            "repair bundle must contain exactly: schema, mode, review_id, commit_id, comments, replies, reopen, body."
+        )
+    if bundle.get("schema") != REPAIR_BUNDLE_SCHEMA:
+        _abort(f"repair bundle schema must be '{REPAIR_BUNDLE_SCHEMA}'.")
+    if bundle.get("mode") != mode:
+        _abort(f"repair bundle mode '{bundle.get('mode')}' does not match requested mode '{mode}'.")
+    review_id = bundle.get("review_id")
+    if isinstance(review_id, bool) or not isinstance(review_id, int) or review_id <= 0:
+        _abort("repair bundle review_id must be a positive integer.")
+    if not isinstance(bundle.get("commit_id"), str) or not bundle["commit_id"].strip():
+        _abort("repair bundle commit_id must be a non-empty string.")
+    comments = bundle.get("comments")
+    if not isinstance(comments, list):
+        _abort("repair bundle comments must be a JSON array.")
+    for index, comment in enumerate(comments, start=1):
+        _validate_inline_comment(comment, index)
+    replies = _validate_replies(bundle.get("replies"))
+    _validate_repair_reopen(bundle.get("reopen"), replies)
+    body = bundle.get("body")
+    if body is not None:
+        if not isinstance(body, str) or not body.strip():
+            _abort("repair bundle body must be a non-empty string when present.")
+        _validate_review_contract(body, mode)
+    if not comments and not replies and body is None:
+        _abort("repair bundle must include at least one standalone inline root, thread reply, or body amendment.")
+    return bundle
+
+
+def _repair_approval_view(bundle: dict[str, Any], digest: str) -> str:
+    lines = [
+        "# AIS CR PR review repair approval view",
+        "",
+        f"- Mode: `{bundle['mode']}`",
+        f"- Target review: `{bundle['review_id']}`",
+        f"- Target commit: `{bundle['commit_id']}`",
+        "",
+        "## Standalone inline comment roots",
+        "",
+    ]
+    comments = bundle["comments"]
+    if not comments:
+        lines.append("(none.)")
+    for index, comment in enumerate(comments, start=1):
+        lines.extend(
+            [
+                f"### Repair comment {index}",
+                "",
+                f"- Path: `{comment['path']}`",
+                f"- Line: `{comment['line']}`",
+                f"- Side: `{comment['side']}`",
+                "",
+                "Exact body:",
+                "",
+                comment["body"],
+                "",
+            ]
+        )
+    lines.extend(["", "## Existing-thread replies", ""])
+    replies = bundle["replies"]
+    if not replies:
+        lines.append("(none.)")
+    for index, reply in enumerate(replies, start=1):
+        lines.extend(
+            [
+                f"### Repair reply {index}",
+                "",
+                f"- Reply to comment: `{reply['comment_id']}`",
+                "",
+                "Exact body:",
+                "",
+                reply["body"],
+                "",
+            ]
+        )
+    lines.extend(["", "## Threads to reopen", ""])
+    reopen = bundle["reopen"]
+    if not reopen:
+        lines.append("(none.)")
+    for entry in reopen:
+        lines.append(f"- Reply to comment `{entry['comment_id']}` reopens thread `{entry['thread_node_id']}`")
+    lines.extend(["", "## Amended review body", ""])
+    if bundle["body"] is None:
+        lines.append("(unchanged.)")
+    else:
+        lines.extend([bundle["body"], ""])
+    lines.extend(["", "## Canonical repair digest", "", f"`{digest}`", ""])
+    return "\n".join(lines)
+
+
+def cmd_repair_render(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+    mode: str,
+    review_id: int,
+    commit_id: str,
+    comments_path: str | None,
+    body_path: str | None,
+    bundle_path: str,
+    approval_view_path: str,
+    replies_path: str | None = None,
+    reopen_path: str | None = None,
+) -> None:
+    """Render a repair bundle and its exact approval view (local only)."""
+    comments: list[dict[str, Any]] = []
+    if comments_path:
+        loaded = _load_json(comments_path, "repair comments")
+        if not isinstance(loaded, list):
+            _abort("repair comments file must contain a JSON array.")
+        for index, comment in enumerate(loaded, start=1):
+            _validate_inline_comment(comment, index)
+        comments = loaded
+    replies = _validate_replies(_load_json(replies_path, "repair replies")) if replies_path else []
+    reopen = _validate_repair_reopen(_load_json(reopen_path, "repair reopen"), replies) if reopen_path else []
+    body: str | None = None
+    if body_path:
+        try:
+            raw_body = Path(body_path).read_text(encoding="utf-8")
+        except OSError as exc:
+            _abort(f"cannot read repair body '{body_path}': {exc}")
+        body = _inject_review_contract(raw_body, mode)
+    bundle = {
+        "schema": REPAIR_BUNDLE_SCHEMA,
+        "mode": mode,
+        "review_id": review_id,
+        "commit_id": commit_id,
+        "comments": comments,
+        "replies": replies,
+        "reopen": reopen,
+        "body": body,
+    }
+    _validate_repair_bundle(bundle, mode)
+    digest = _bundle_digest(bundle)
+    _write_json(bundle_path, bundle)
+    _write_text(approval_view_path, _repair_approval_view(bundle, digest), "repair approval view")
+    print(f"Repair bundle: {os.path.abspath(bundle_path)}")
+    print(f"Repair approval view: {os.path.abspath(approval_view_path)}")
+    print(f"Repair digest (SHA-256): {digest}")
+
+
+def cmd_repair_post(
+    pr_number: int,
+    mode: str,
+    repair_bundle_path: str,
+    approved_digest: str | None,
+    repo: str | None,
+) -> None:
+    """Post approved standalone inline roots, thread replies, and/or a body amendment."""
+    bundle = _validate_repair_bundle(_load_json(repair_bundle_path, "repair bundle"), mode)
+    digest = _bundle_digest(bundle)
+    if mode == "interactive":
+        if not approved_digest:
+            _abort("interactive repair posting requires --approved-digest from the repair approval view.")
+        if approved_digest != digest:
+            _abort(
+                "approved digest does not match the repair bundle; render and approve "
+                "the exact current repair artefacts before posting."
+            )
+    _validate_write_environment(mode, "post")
+    owner_repo = _resolve_repo(repo)
+    for comment in bundle["comments"]:
+        payload = {
+            "body": comment["body"],
+            "commit_id": bundle["commit_id"],
+            "path": comment["path"],
+            "line": comment["line"],
+            "side": comment["side"],
+        }
+        payload_path = _temporary_json(payload)
+        try:
+            comment_url = _gh(
+                "api",
+                f"repos/{owner_repo}/pulls/{pr_number}/comments",
+                "--method",
+                "POST",
+                "--input",
+                payload_path,
+                "--jq",
+                ".html_url",
+            )
+            print(f"Repair inline comment posted: {comment_url}")
+        finally:
+            os.unlink(payload_path)
+    if bundle["body"] is not None:
+        payload_path = _temporary_json({"body": bundle["body"]})
+        try:
+            review_url = _gh(
+                "api",
+                f"repos/{owner_repo}/pulls/{pr_number}/reviews/{bundle['review_id']}",
+                "--method",
+                "PUT",
+                "--input",
+                payload_path,
+                "--jq",
+                ".html_url",
+            )
+            print(f"Repair body amendment posted: {review_url}")
+        finally:
+            os.unlink(payload_path)
+    _post_replies(owner_repo, pr_number, bundle["replies"])
+    _reopen_threads([(f"comment {entry['comment_id']}", entry["thread_node_id"]) for entry in bundle["reopen"]])
+
+
+def _normalized_marker_body(body: str) -> str:
+    """Return the body with any stamped digest reduced to the plain marker."""
+    return SUMMARY_MARKER_PATTERN.sub(SUMMARY_MARKER, body)
+
+
+def _generated_portion(body: str) -> str:
+    """Return the body outside the delimited author region.
+
+    Scoping the digest here is what lets the two kinds of hand edit resolve without
+    arbitration: an edit to a generated section trips the digest and is surfaced as a
+    ``description edit`` source the ledger must account for before the write, and only
+    then is that section regenerated, because the surface belongs to the workflow; an
+    edit the author makes inside their own region never trips it and is carried forward.
+    Tripping the digest is therefore not a licence to overwrite — it is what forces the
+    edit through the dispositions instead of discarding it silently.
+    """
+    normalized = _normalized_marker_body(body)
+    start = normalized.find(AUTHOR_CONTEXT_OPEN)
+    end = normalized.find(AUTHOR_CONTEXT_CLOSE)
+    if start == -1 or end == -1 or end < start:
+        return normalized
+    return normalized[:start] + normalized[end + len(AUTHOR_CONTEXT_CLOSE) :]
+
+
+def _summary_digest(body: str) -> str:
+    """Digest the generated portion, independently of the stamp in its marker."""
+    return github_utils.text_digest(_generated_portion(body))
+
+
+def _stamp_summary_digest(body: str) -> str:
+    """Replace the plain marker with one carrying the digest of the approved body."""
+    digest = _summary_digest(body)
+    return SUMMARY_MARKER_PATTERN.sub(f"<!-- aiscr-review-pr:summary digest={digest} -->", body, count=1)
+
+
+def _posted_digest(body: str) -> str | None:
+    match = SUMMARY_MARKER_PATTERN.search(body or "")
+    if not match:
+        return None
+    return match.group(1)
+
+
+def _author_context_region(body: str) -> str | None:
+    """Return the delimited author-context payload, or None when absent."""
+    start = body.find(AUTHOR_CONTEXT_OPEN)
+    end = body.find(AUTHOR_CONTEXT_CLOSE)
+    if start == -1 or end == -1 or end < start:
+        return None
+    return body[start + len(AUTHOR_CONTEXT_OPEN) : end].strip()
+
+
+def _description_state(description: str) -> dict[str, Any]:
+    """Classify the current description for the reconciliation decision."""
+    posted_digest = _posted_digest(description)
+    workflow_owned = SUMMARY_MARKER_PATTERN.search(description or "") is not None
+    edited_since_post: bool | None = None
+    if workflow_owned and posted_digest:
+        edited_since_post = _summary_digest(description) != posted_digest
+    return {
+        "workflow_owned": workflow_owned,
+        "posted_digest": posted_digest,
+        "edited_since_post": edited_since_post,
+        "author_context": _author_context_region(description or ""),
+        "load_bearing": detect_load_bearing(description or ""),
+        "is_empty": not (description or "").strip(),
+    }
+
+
+def _reconciliation_sources(
+    description: str,
+    state: dict[str, Any],
+    owner_repo: str,
+    pr_number: int,
+) -> tuple[list[tuple[str, str]], bool]:
+    """Return the archived original plus any externally edited hunks, under one vocabulary.
+
+    A first takeover's source is the author's own description, labelled ``description``. On a
+    later round the source is this body's carried ``Author context`` region, which is a
+    different thing: carrying it forward verbatim is required, where reproducing the author's
+    narrative in that region is not. The labels differ so the shared verifier can tell them
+    apart instead of guessing from shape.
+    """
+    if not state["workflow_owned"]:
+        return [("description", description)], False
+    original = state["author_context"] or ""
+    sources = [(github_utils.CARRIED_REGION_SOURCE, original)] if original else []
+    degraded = False
+    if state["edited_since_post"] is True:
+        prior, degraded = _resolve_pr_comparison_base(state, owner_repo, pr_number)
+        base = prior if prior is not None else original
+        if description != base:
+            sources.extend(github_utils.description_edit_sources(base, description, _generated_portion))
+    return sources, degraded
+
+
+def _resolve_pr_comparison_base(
+    state: dict[str, Any],
+    owner_repo: str,
+    pr_number: int,
+) -> tuple[str | None, bool]:
+    """Return ``(base, degraded)`` selected by the stamped digest, never by recency."""
+    stamped = state["posted_digest"]
+    if not stamped:
+        return None, True
+    bodies = github_utils.fetch_content_edit_bodies(owner_repo, pr_number, subject="pullRequest")
+    match = github_utils.select_body_by_digest(bodies, stamped, _summary_digest)
+    if match is None:
+        archive = _find_description_archive(_fetch_issue_comments(owner_repo, pr_number))
+        original = _archived_original(str(archive.get("body") or "")) if archive else ""
+        return original, True
+    return match, False
+
+
+def cmd_reconciliation_sources(pr_number: int, repo: str | None, output_path: str | None = None) -> None:
+    """Emit the labelled source list verification and the write both consume."""
+    owner_repo = _resolve_repo(repo)
+    description = _fetch_pr_description(pr_number, owner_repo)
+    state = _description_state(description)
+    sources, degraded = _reconciliation_sources(description, state, owner_repo, pr_number)
+    _emit_json(github_utils.source_list_payload(sources, degraded=degraded), output_path)
+
+
+def cmd_inspect_description(pr_number: int, repo: str | None, output_path: str | None = None) -> None:
+    """Report what a description takeover must carry, without writing anything."""
+    owner_repo = _resolve_repo(repo)
+    description = _fetch_pr_description(pr_number, owner_repo)
+    archive = _find_description_archive(_fetch_issue_comments(owner_repo, pr_number))
+    state = _description_state(description)
+    state["repo"] = owner_repo
+    state["pr_number"] = pr_number
+    state["description"] = description
+    state["archive_url"] = archive.get("html_url") if archive else None
+    _emit_json(state, output_path)
+
+
+def _find_description_archive(
+    issue_comments: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    marked = [c for c in issue_comments if DESCRIPTION_ARCHIVE_MARKER in str(c.get("body") or "")]
+    if not marked:
+        return None
+    return marked[0]
+
+
+def _render_ledger(ledger: dict[str, Any]) -> str:
+    """Render the disposition ledger for the provenance comment."""
+    return github_utils.render_disposition_ledger(ledger, LEDGER_MARKER)
+
+
+def _archived_original(body: str) -> str:
+    original = github_utils.read_region(body, PROVENANCE_ORIGINAL_OPEN, PROVENANCE_ORIGINAL_CLOSE)
+    if original is None:
+        _abort("the marked PR provenance comment has no delimited original description.")
+    return original
+
+
+def cmd_archive_description(
+    pr_number: int,
+    mode: str,
+    repo: str | None,
+    ledger_path: str | None = None,
+) -> None:
+    """Keep the provenance record: the verbatim original plus the current ledger.
+
+    The original is written once and never rewritten, so the pre-takeover state stays
+    recoverable and attributed. The ledger is replaced each round, so an unattended
+    reconciliation remains auditable by someone who never watched the run.
+    """
+    _validate_write_environment(mode, "archive-description")
+    owner_repo = _resolve_repo(repo)
+    ledger = _load_json(ledger_path, "disposition ledger") if ledger_path else {}
+    existing = _find_description_archive(_fetch_issue_comments(owner_repo, pr_number))
+
+    if existing:
+        url = _post_comment_body(
+            f"repos/{owner_repo}/issues/comments/{existing['id']}",
+            "PATCH",
+            github_utils.replace_after_region(
+                str(existing.get("body") or ""),
+                PROVENANCE_ORIGINAL_CLOSE,
+                _render_ledger(ledger),
+            ),
+        )
+        print(f"Provenance record updated: {url}")
+        return
+
+    description = _fetch_pr_description(pr_number, owner_repo)
+    if not description.strip():
+        _abort("refusing to archive an empty PR description; there is nothing to preserve.")
+    archive_url = _post_comment_body(
+        f"repos/{owner_repo}/issues/{pr_number}/comments",
+        "POST",
+        _initial_provenance_body(owner_repo, pr_number, description, ledger),
+    )
+    print(f"Original description archived: {archive_url}")
+
+
+def _post_comment_body(endpoint: str, method: str, body: str) -> str:
+    payload_path = _temporary_json({"body": body})
+    try:
+        return _gh("api", endpoint, "--method", method, "--input", payload_path, "--jq", ".html_url")
+    finally:
+        os.unlink(payload_path)
+
+
+def _initial_provenance_body(
+    owner_repo: str,
+    pr_number: int,
+    description: str,
+    ledger: dict[str, Any],
+) -> str:
+    identity = _fetch_pr_identity(pr_number, owner_repo)
+    head_sha = identity["head_sha"]
+    pr_author = identity["pr_author"]
+    source, author = github_utils.provenance_source_and_author(
+        github_utils.fetch_issue_payload(owner_repo, pr_number, runner=_gh)
+    )
+    if not author:
+        author = github_utils.github_mention(pr_author)
+    return "\n".join(
+        [
+            DESCRIPTION_ARCHIVE_MARKER,
+            "",
+            "# Original PR description (archived)",
+            "",
+            f"- Source: {source}",
+            f"- Author: {author}",
+            f"- Head SHA at archive time: `{head_sha}`",
+            "",
+            "This is the verbatim description as written before the AIS CR review workflow",
+            "took over that surface. It is preserved here for attribution and reference.",
+            "",
+            "---",
+            "",
+            github_utils.wrap_region(PROVENANCE_ORIGINAL_OPEN, description, PROVENANCE_ORIGINAL_CLOSE),
+            "",
+            _render_ledger(ledger),
+        ]
+    )
+
+
+def cmd_verify_composition(
+    sources_path: str, summary_path: str, ledger_path: str | None, output_path: str | None = None
+) -> None:
+    """Check a composition's accounting locally: no network, no write."""
+    sources = github_utils.load_source_list(sources_path)
+    summary = _load_summary(summary_path)
+    ledger = _load_json(ledger_path, "disposition ledger") if ledger_path else {}
+    load_bearing = [item["fragment"] for _, text in sources for item in detect_load_bearing(text)]
+    findings = github_utils.verify_composition(
+        sources,
+        summary,
+        ledger,
+        load_bearing,
+        github_utils.SurfaceVocabulary(declared_section_names(), (AUTHOR_CONTEXT_OPEN, AUTHOR_CONTEXT_CLOSE)),
+    )
+    _emit_json({"findings": findings}, output_path)
+    if findings:
+        raise SystemExit(1)
+
+
+def declared_section_names() -> frozenset[str]:
+    """Section names a ledger may route an absorbed segment to on this surface.
+
+    The shared verifier resolves a disposition target against whichever vocabulary the
+    surface declares, so this derives from the same heading tuple the shape check uses
+    rather than repeating it.
+    """
+    return frozenset(heading.removeprefix("## ") for heading in SUMMARY_SECTION_HEADINGS)
+
+
+def _load_summary(path: str) -> str:
+    """Read the authored summary and normalise its line breaks before anything digests it.
+
+    GitHub renders a single newline inside a paragraph as a line break, so a hand-wrapped
+    summary would post with a break mid-sentence. Normalising here — the one funnel local
+    verification and the write both read through — keeps the approved bytes and the posted
+    bytes identical, and leaves fenced evidence and machine markers untouched.
+    """
+    try:
+        with open(path, encoding="utf-8", newline="") as handle:
+            return github_utils.normalize_posted_line_breaks(handle.read())
+    except OSError as exc:
+        _abort(f"cannot read PR summary '{path}': {exc}")
+
+
+def _single_line_index(lines: list[str], expected: str, label: str) -> int:
+    indexes = [index for index, line in enumerate(lines) if line.strip() == expected]
+    if len(indexes) != 1:
+        _abort(f"PR summary must contain exactly one {label}: '{expected}'.")
+    return indexes[0]
+
+
+def _section_has_content(lines: list[str], start: int, end: int) -> bool:
+    return any(line.strip() for line in lines[start + 1 : end])
+
+
+def _validate_summary_preamble(summary: str) -> tuple[list[str], int, list[int]]:
+    if summary.count(SUMMARY_MARKER) != 1:
+        _abort("PR summary must contain exactly one AIS CR summary marker.")
+    if INTERACTIVE_REVIEW_DISCLOSURE in summary:
+        _abort("PR summary contains the formal-review findings disclosure.")
+    if summary.count(INTERACTIVE_SUMMARY_DISCLOSURE) != 1:
+        _abort("PR summary must contain exactly one summary-specific AI-assistance disclosure.")
+
+    normalized = summary.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.splitlines()
+    marker_index = _single_line_index(lines, SUMMARY_MARKER, "AIS CR summary marker line")
+    first_content_index = next(
+        (index for index, line in enumerate(lines) if line.strip()),
+        None,
+    )
+    if marker_index != first_content_index:
+        _abort("PR summary marker must be the first non-empty line.")
+
+    title_indexes = [index for index, line in enumerate(lines) if SUMMARY_TITLE_PATTERN.fullmatch(line.strip())]
+    if len(title_indexes) != 1:
+        _abort("PR summary must contain exactly one '# PR summary — OWNER/REPO#NUMBER' title.")
+    title_index = title_indexes[0]
+
+    section_indexes = [
+        _single_line_index(lines, heading, "required section heading") for heading in SUMMARY_SECTION_HEADINGS
+    ]
+    if section_indexes != sorted(section_indexes):
+        _abort("PR summary required section headings are out of order.")
+    purpose_index = section_indexes[0]
+    if purpose_index <= title_index:
+        _abort("PR summary metadata table must appear before 'Purpose and scope'.")
+    return lines, title_index, section_indexes
+
+
+def _validate_summary_metadata(lines: list[str], title_index: int, purpose_index: int) -> None:
+    table_header_index = _single_line_index(lines, "| Field | Value |", "metadata table header")
+    table_separator_indexes = [
+        index for index, line in enumerate(lines) if re.fullmatch(r"\|\s*---\s*\|\s*---\s*\|", line.strip())
+    ]
+    if len(table_separator_indexes) != 1:
+        _abort("PR summary must contain exactly one two-column metadata table separator.")
+    table_separator_index = table_separator_indexes[0]
+    if not title_index < table_header_index < table_separator_index < purpose_index:
+        _abort("PR summary metadata table is not positioned directly after the title.")
+
+    metadata_indexes: list[int] = []
+    for field in SUMMARY_METADATA_FIELDS:
+        pattern = re.compile(rf"^\|\s*{re.escape(field)}\s*\|\s*(\S.*?)\s*\|$")
+        matches = [index for index, line in enumerate(lines) if pattern.fullmatch(line.strip())]
+        if len(matches) != 1:
+            _abort(f"PR summary metadata must contain exactly one non-empty '{field}' row.")
+        metadata_indexes.append(matches[0])
+    if metadata_indexes != sorted(metadata_indexes):
+        _abort("PR summary metadata rows are out of order.")
+    if not all(table_separator_index < index < purpose_index for index in metadata_indexes):
+        _abort("PR summary metadata rows must remain inside the metadata table.")
+
+
+def _validate_summary_mermaid(lines: list[str], section_indexes: list[int]) -> None:
+    mermaid_starts = [index for index, line in enumerate(lines) if line.strip().lower() == "```mermaid"]
+    if len(mermaid_starts) != 1:
+        _abort("PR summary must contain exactly one fenced Mermaid diagram.")
+    mermaid_start = mermaid_starts[0]
+    mermaid_end = next(
+        (index for index in range(mermaid_start + 1, len(lines)) if lines[index].strip() == "```"),
+        None,
+    )
+    if mermaid_end is None:
+        _abort("PR summary Mermaid diagram is missing its closing fence.")
+    diagram_lines = [line.strip() for line in lines[mermaid_start + 1 : mermaid_end] if line.strip()]
+    if not diagram_lines:
+        _abort("PR summary Mermaid diagram must not be empty.")
+    refusal = github_utils.unsupported_mermaid_family("\n".join(lines[mermaid_start + 1 : mermaid_end]))
+    if refusal is not None:
+        _abort(refusal)
+
+    walkthrough_index = section_indexes[2]
+    attention_index = section_indexes[3]
+    if not walkthrough_index < mermaid_start < mermaid_end < attention_index:
+        _abort("PR summary Mermaid diagram must follow the walkthrough and precede attention hints.")
+    if not _section_has_content(lines, walkthrough_index, mermaid_start):
+        _abort("PR summary walkthrough must contain prose before the Mermaid diagram.")
+
+
+def _validate_summary_section_bodies(lines: list[str], section_indexes: list[int]) -> None:
+    section_ranges = (
+        (section_indexes[0], section_indexes[1]),
+        (section_indexes[1], section_indexes[2]),
+        (section_indexes[3], section_indexes[4]),
+        (section_indexes[4], section_indexes[5]),
+        (section_indexes[5], section_indexes[6]),
+    )
+    for start, end in section_ranges:
+        if not _section_has_content(lines, start, end):
+            _abort(f"PR summary section '{lines[start].strip()}' must not be empty.")
+
+
+def _validate_author_context_region(lines: list[str], section_indexes: list[int]) -> None:
+    """Return the carried-fragment region is delimited so regeneration stays deterministic."""
+    open_index = _single_line_index(lines, AUTHOR_CONTEXT_OPEN, "author-context opening marker")
+    close_index = _single_line_index(lines, AUTHOR_CONTEXT_CLOSE, "author-context closing marker")
+    author_index = section_indexes[5]
+    lineage_index = section_indexes[6]
+    if not author_index < open_index < close_index < lineage_index:
+        _abort("PR summary author-context markers must sit inside the 'Author context' section.")
+    if not _section_has_content(lines, open_index, close_index):
+        _abort(
+            "PR summary author-context region must state the carried content, or say so explicitly when there is none."
+        )
+
+
+def _validate_summary_footer(lines: list[str], lineage_index: int) -> None:
+    disclosure_index = _single_line_index(
+        lines,
+        INTERACTIVE_SUMMARY_DISCLOSURE,
+        "summary-specific AI-assistance disclosure",
+    )
+    thematic_breaks = [index for index in range(lineage_index + 1, disclosure_index) if lines[index].strip() == "---"]
+    if len(thematic_breaks) != 1:
+        _abort("PR summary must contain one thematic break before its disclosure.")
+    thematic_break_index = thematic_breaks[0]
+    if not _section_has_content(lines, lineage_index, thematic_break_index):
+        _abort("PR summary lineage section must not be empty.")
+    if any(line.strip() for line in lines[thematic_break_index + 1 : disclosure_index]):
+        _abort("PR summary disclosure must immediately follow the thematic break.")
+    last_content_index = max(index for index, line in enumerate(lines) if line.strip())
+    if disclosure_index != last_content_index:
+        _abort("PR summary disclosure must be the final non-empty line.")
+
+
+def _validate_summary(summary: str) -> None:
+    lines, title_index, section_indexes = _validate_summary_preamble(summary)
+    _validate_summary_metadata(lines, title_index, section_indexes[0])
+    _validate_summary_mermaid(lines, section_indexes)
+    _validate_summary_section_bodies(lines, section_indexes)
+    _validate_author_context_region(lines, section_indexes)
+    _validate_summary_footer(lines, section_indexes[6])
+
+
+def _post_summary_comment(owner_repo: str, pr_number: int, payload_path: str) -> None:
+    existing = _find_summary_comment(_fetch_issue_comments(owner_repo, pr_number))
+    if existing:
+        summary_url = _gh(
+            "api",
+            f"repos/{owner_repo}/issues/comments/{existing['id']}",
+            "--method",
+            "PATCH",
+            "--input",
+            payload_path,
+            "--jq",
+            ".html_url",
+        )
+        print(f"PR summary comment updated: {summary_url}")
+    else:
+        summary_url = _gh(
+            "api",
+            f"repos/{owner_repo}/issues/{pr_number}/comments",
+            "--method",
+            "POST",
+            "--input",
+            payload_path,
+            "--jq",
+            ".html_url",
+        )
+        print(f"PR summary comment posted: {summary_url}")
+
+
+def _post_summary_description(owner_repo: str, pr_number: int, payload_path: str) -> None:
+    summary_url = _gh(
+        "api",
+        f"repos/{owner_repo}/pulls/{pr_number}",
+        "--method",
+        "PATCH",
+        "--input",
+        payload_path,
+        "--jq",
+        ".html_url",
+    )
+    print(f"PR description replaced with approved summary: {summary_url}")
+
+
+def _render_findings(findings: list[dict[str, Any]]) -> str:
+    return "\n".join(f"  - {item['kind']}: {item.get('detail', '')}" for item in findings)
+
+
+def _prepare_description_takeover(
+    owner_repo: str,
+    pr_number: int,
+    summary: str,
+    ledger: dict[str, Any],
+) -> str | None:
+    """Enforce the takeover preconditions and stamp the posted digest.
+
+    Returns the body to write, or ``None`` when the generated portion is unchanged and
+    there is nothing to post.
+    """
+    description = _fetch_pr_description(pr_number, owner_repo)
+    state = _description_state(description)
+    if not state["is_empty"] and not state["workflow_owned"]:
+        if _find_description_archive(_fetch_issue_comments(owner_repo, pr_number)) is None:
+            _abort(
+                "refusing a first description takeover before the original is archived. "
+                "Run 'archive-description' first so the author's text is preserved."
+            )
+
+    sources, degraded = _reconciliation_sources(description, state, owner_repo, pr_number)
+    findings = github_utils.verify_composition(
+        sources,
+        summary,
+        ledger,
+        [item["fragment"] for _, text in sources for item in detect_load_bearing(text)],
+        github_utils.SurfaceVocabulary(declared_section_names(), (AUTHOR_CONTEXT_OPEN, AUTHOR_CONTEXT_CLOSE)),
+    )
+    if findings:
+        prefix = ""
+        if state["edited_since_post"] is True:
+            prefix = (
+                "refusing to overwrite a pull-request description that has been edited since "
+                "the workflow last posted it. Run 'reconciliation-sources' and reconcile the "
+                "emitted description-edit sources into the ledger, then verify-composition "
+                "against that list. "
+            )
+        suffix = (
+            " operating degraded: content-edit history yielded no body matching the stamped digest." if degraded else ""
+        )
+        _abort(
+            prefix
+            + "refusing to write an unverified composition; every finding is repairable"
+            + f"{suffix}:\n"
+            + _render_findings(findings)
+        )
+
+    if state["posted_digest"] and state["posted_digest"] == _summary_digest(summary):
+        return None
+    return _stamp_summary_digest(summary)
+
+
+def cmd_post_summary(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    pr_number: int,
+    mode: str,
+    summary_path: str,
+    target: str,
+    repo: str | None,
+    ledger_path: str | None = None,
+) -> None:
+    """Post the marked PR summary to the explicitly selected surface.
+
+    Reconciliation runs in both modes; what differs is the supervision. A reviewer reads
+    the dispositions in interactive mode, and the same dispositions are verified
+    mechanically here, so an unattended run carries every obligation an attended one does.
+    """
+    if target not in SUMMARY_TARGETS:
+        _abort("post-summary requires --target comment or --target description.")
+    summary = _load_summary(summary_path)
+    _validate_summary(summary)
+    _validate_write_environment(mode, "post-summary")
+
+    owner_repo = _resolve_repo(repo)
+    if target == "description":
+        ledger = _load_json(ledger_path, "disposition ledger") if ledger_path else {}
+        prepared = _prepare_description_takeover(owner_repo, pr_number, summary, ledger)
+        if prepared is None:
+            print("PR description already carries this summary; nothing to post.")
+            return
+        summary = prepared
+
+    payload_path = _temporary_json({"body": summary})
+    try:
+        if target == "comment":
+            _post_summary_comment(owner_repo, pr_number, payload_path)
+        else:
+            _post_summary_description(owner_repo, pr_number, payload_path)
+    finally:
+        os.unlink(payload_path)
+
+
+def _is_link_or_reparse(path: Path) -> bool:
+    try:
+        metadata = path.lstat()
+    except OSError as exc:
+        _abort(f"cannot inspect cleanup path '{path}': {exc}")
+    if path.is_symlink():
+        return True
+    is_junction = getattr(os.path, "isjunction", None)
+    if is_junction is not None and is_junction(path):
+        return True
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    return bool(getattr(metadata, "st_file_attributes", 0) & reparse_flag)
+
+
+def _cleanup_candidate(work_dir: str) -> tuple[Path, Path]:
+    scratch_root = REVIEW_SCRATCH_ROOT.absolute()
+    candidate = Path(work_dir)
+    if not candidate.is_absolute():
+        candidate = REPO_ROOT / candidate
+    candidate = candidate.absolute()
+
+    if candidate == scratch_root:
+        _abort("cleanup refuses to remove the PR-review scratch root itself.")
+    if candidate.parent != scratch_root:
+        _abort(f"cleanup work directory must be a direct child of '{scratch_root}'.")
+    if not REVIEW_RUN_DIR_PATTERN.fullmatch(candidate.name):
+        _abort("cleanup work directory name must identify repository, PR number, and head SHA.")
+    return scratch_root, candidate
+
+
+def _validated_cleanup_entries(scratch_root: Path, candidate: Path) -> list[Path]:
+    if not scratch_root.exists() or not scratch_root.is_dir():
+        _abort(f"PR-review scratch root does not exist: '{scratch_root}'.")
+    if not candidate.exists() or not candidate.is_dir():
+        _abort(f"cleanup work directory does not exist or is not a directory: '{candidate}'.")
+    if _is_link_or_reparse(scratch_root) or _is_link_or_reparse(candidate):
+        _abort("cleanup refuses symlink or reparse-point roots and work directories.")
+
+    root_resolved = scratch_root.resolve(strict=True)
+    candidate_resolved = candidate.resolve(strict=True)
+    if candidate_resolved.parent != root_resolved:
+        _abort("cleanup work directory resolves outside the PR-review scratch root.")
+
+    entries = sorted(candidate.iterdir(), key=lambda entry: entry.name)
+    return entries
+
+
+def _preflight_cleanup_entries(entries: list[Path]) -> None:
+    for entry in entries:
+        if entry.name not in ALLOWED_REVIEW_ARTIFACTS:
+            _abort(f"cleanup found unexpected entry '{entry.name}'; nothing was removed.")
+        if _is_link_or_reparse(entry) or not entry.is_file():
+            _abort(f"cleanup entry '{entry.name}' is not an ordinary file; nothing was removed.")
+
+
+def _remove_cleanup_entries(candidate: Path, entries: list[Path]) -> None:
+    for entry in entries:
+        try:
+            entry.unlink()
+        except OSError as exc:
+            _abort(f"cannot remove review artifact '{entry}': {exc}")
+        print(f"Removed review artifact: {entry}")
+    try:
+        candidate.rmdir()
+    except OSError as exc:
+        _abort(f"cannot remove empty review work directory '{candidate}': {exc}")
+    print(f"Removed review work directory: {candidate}")
+
+
+def cmd_cleanup(work_dir: str, approve: bool) -> None:
+    """Remove allowlisted artifacts from one bounded PR-review work directory."""
+    if not approve:
+        _abort("cleanup requires --approve after the review workflow reaches a terminal outcome.")
+
+    scratch_root, candidate = _cleanup_candidate(work_dir)
+    entries = _validated_cleanup_entries(scratch_root, candidate)
+    _preflight_cleanup_entries(entries)
+    _remove_cleanup_entries(candidate, entries)
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+
+def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-locals,too-many-statements
+    """Build and return the CLI argument parser."""
+    parser = argparse.ArgumentParser(
+        prog="github_pr_review.py",
+        description=(
+            "Gather PR context and diff coverage, render exact approval artifacts, "
+            "post governed GitHub PR reviews, repair a submitted review, and clean "
+            "bounded run artifacts. Summary target, posting mode, and cleanup "
+            "approval are always explicit."
+        ),
+    )
+    subparsers = parser.add_subparsers(dest="subcommand", required=True)
+
+    gather = subparsers.add_parser(
+        "gather",
+        help="Fetch marked lineage and PR context (read-only).",
+    )
+    gather.add_argument("pr_number", type=int, metavar="PR_NUMBER")
+    gather.add_argument("--repo", metavar="OWNER/REPO")
+    gather.add_argument(
+        "--local-diff",
+        metavar="FILE",
+        help="Locally produced unified diff for the pull request's base and head.",
+    )
+    gather.add_argument(
+        "--sibling",
+        metavar="NAME",
+        help=(
+            "Registered repository name (multi-repository acquisition): produce the local diff "
+            "through the acquisition bridge and write it to --local-diff, so no shell "
+            "redirect can re-encode it."
+        ),
+    )
+    gather.add_argument(
+        "--output-path",
+        metavar="FILE",
+        help="Write JSON to this UTF-8 file instead of stdout, so a shell redirect cannot re-encode it.",
+    )
+
+    render = subparsers.add_parser(
+        "render",
+        help="Create a canonical bundle and its exact approval view (local only).",
+    )
+    render.add_argument("--mode", required=True, choices=MODES)
+    render.add_argument("--review-payload", required=True, metavar="FILE")
+    render.add_argument("--replies", metavar="FILE")
+    render.add_argument("--bundle", required=True, metavar="FILE")
+    render.add_argument("--approval-view", required=True, metavar="FILE")
+    render.add_argument("--pr-context", required=True, metavar="FILE")
+    render.add_argument("--findings-ledger", required=True, metavar="FILE")
+    render.add_argument("--local-diff", metavar="FILE")
+
+    post = subparsers.add_parser(
+        "post",
+        help="Post a canonical review bundle using an explicit identity mode.",
+    )
+    post.add_argument("pr_number", type=int, metavar="PR_NUMBER")
+    post.add_argument("--mode", required=True, choices=MODES)
+    post.add_argument("--review-bundle", required=True, metavar="FILE")
+    post.add_argument("--approved-digest", metavar="SHA256")
+    post.add_argument("--repo", metavar="OWNER/REPO")
+    post.add_argument("--findings-ledger", required=True, metavar="FILE")
+    post.add_argument("--pr-context", required=True, metavar="FILE")
+
+    inspect_description = subparsers.add_parser(
+        "inspect-description",
+        help="Report what a description takeover must carry (read-only).",
+    )
+    inspect_description.add_argument("pr_number", type=int, metavar="PR_NUMBER")
+    inspect_description.add_argument("--repo", metavar="OWNER/REPO")
+    inspect_description.add_argument(
+        "--output-path",
+        metavar="FILE",
+        help="Write JSON to this UTF-8 file instead of stdout, so a shell redirect cannot re-encode it.",
+    )
+
+    emit_sources = subparsers.add_parser(
+        "reconciliation-sources",
+        help="Emit the labelled reconciliation source list (read-only).",
+    )
+    emit_sources.add_argument("pr_number", type=int, metavar="PR_NUMBER")
+    emit_sources.add_argument("--repo", metavar="OWNER/REPO")
+    emit_sources.add_argument(
+        "--output-path",
+        metavar="FILE",
+        help="Write JSON to this UTF-8 file instead of stdout, so a shell redirect cannot re-encode it.",
+    )
+
+    archive_description = subparsers.add_parser(
+        "archive-description",
+        help="Archive the current PR description once, before a first takeover.",
+    )
+    archive_description.add_argument("pr_number", type=int, metavar="PR_NUMBER")
+    archive_description.add_argument("--mode", required=True, choices=MODES)
+    archive_description.add_argument("--repo", metavar="OWNER/REPO")
+    archive_description.add_argument("--ledger", metavar="FILE")
+
+    verify_composition = subparsers.add_parser(
+        "verify-composition",
+        help="Check a composition's accounting against the emitted source list (local only).",
+    )
+    verify_composition.add_argument("--sources", required=True, metavar="FILE")
+    verify_composition.add_argument("--summary", required=True, metavar="FILE")
+    verify_composition.add_argument("--ledger", metavar="FILE")
+    verify_composition.add_argument(
+        "--output-path",
+        metavar="FILE",
+        help="Write JSON to this UTF-8 file instead of stdout, so a shell redirect cannot re-encode it.",
+    )
+
+    post_summary = subparsers.add_parser(
+        "post-summary",
+        help="Post the exact marked PR summary file to an explicitly selected surface.",
+    )
+    post_summary.add_argument("pr_number", type=int, metavar="PR_NUMBER")
+    post_summary.add_argument("--mode", required=True, choices=MODES)
+    post_summary.add_argument("--summary", required=True, metavar="FILE")
+    post_summary.add_argument("--target", required=True, choices=SUMMARY_TARGETS)
+    post_summary.add_argument("--repo", metavar="OWNER/REPO")
+    post_summary.add_argument("--ledger", metavar="FILE")
+
+    repair = subparsers.add_parser(
+        "repair",
+        help="Render or post an inline, reply, or body repair under the approval digest.",
+    )
+    repair_sub = repair.add_subparsers(dest="repair_command", required=True)
+    repair_render = repair_sub.add_parser(
+        "render",
+        help="Create an inline, reply, and/or body repair bundle with its exact approval view (local only).",
+    )
+    repair_render.add_argument("--mode", required=True, choices=MODES)
+    repair_render.add_argument("--review-id", required=True, type=int, metavar="ID")
+    repair_render.add_argument("--commit-id", required=True, metavar="SHA")
+    repair_render.add_argument("--inline-comments", metavar="FILE")
+    repair_render.add_argument("--replies", metavar="FILE")
+    repair_render.add_argument("--reopen", metavar="FILE")
+    repair_render.add_argument("--body", metavar="FILE")
+    repair_render.add_argument("--bundle", required=True, metavar="FILE")
+    repair_render.add_argument("--approval-view", required=True, metavar="FILE")
+    repair_post = repair_sub.add_parser(
+        "post",
+        help="Post an approved repair bundle using an explicit identity mode.",
+    )
+    repair_post.add_argument("pr_number", type=int, metavar="PR_NUMBER")
+    repair_post.add_argument("--mode", required=True, choices=MODES)
+    repair_post.add_argument("--repair-bundle", required=True, metavar="FILE")
+    repair_post.add_argument("--approved-digest", metavar="SHA256")
+    repair_post.add_argument("--repo", metavar="OWNER/REPO")
+
+    list_artifacts = subparsers.add_parser(
+        "list-run-artifacts",
+        help="Print the prescribed review run-artifact names (the cleanup allowlist).",
+    )
+    list_artifacts.set_defaults(subcommand="list-run-artifacts")
+
+    cleanup = subparsers.add_parser(
+        "cleanup",
+        help="Remove allowlisted artifacts from one approved PR-review run directory.",
+    )
+    cleanup.add_argument(
+        "--work-dir",
+        required=True,
+        metavar="DIR",
+        help="Direct-child PR-review run directory beneath the repository scratch root.",
+    )
+    cleanup.add_argument(
+        "--approve",
+        action="store_true",
+        help="Confirm removal after all posting decisions reach a terminal outcome.",
+    )
+
+    return parser
+
+
+def main() -> None:  # pylint: disable=too-many-branches
+    """Parse CLI arguments and dispatch to the selected subcommand."""
+    configure_stdout_utf8()
+    args = build_parser().parse_args()
+    if args.subcommand == "gather":
+        cmd_gather(args.pr_number, args.repo, args.local_diff, args.output_path, args.sibling)
+    elif args.subcommand == "render":
+        cmd_render(
+            args.mode,
+            args.review_payload,
+            args.replies,
+            args.bundle,
+            args.approval_view,
+            args.pr_context,
+            args.findings_ledger,
+            args.local_diff,
+        )
+    elif args.subcommand == "post":
+        cmd_post(
+            args.pr_number,
+            args.mode,
+            args.review_bundle,
+            args.approved_digest,
+            args.repo,
+            args.findings_ledger,
+            args.pr_context,
+        )
+    elif args.subcommand == "repair":
+        if args.repair_command == "render":
+            cmd_repair_render(
+                args.mode,
+                args.review_id,
+                args.commit_id,
+                args.inline_comments,
+                args.body,
+                args.bundle,
+                args.approval_view,
+                replies_path=args.replies,
+                reopen_path=args.reopen,
+            )
+        else:
+            cmd_repair_post(
+                args.pr_number,
+                args.mode,
+                args.repair_bundle,
+                args.approved_digest,
+                args.repo,
+            )
+    elif args.subcommand == "list-run-artifacts":
+        cmd_list_run_artifacts()
+    elif args.subcommand == "inspect-description":
+        cmd_inspect_description(args.pr_number, args.repo, args.output_path)
+    elif args.subcommand == "reconciliation-sources":
+        cmd_reconciliation_sources(args.pr_number, args.repo, args.output_path)
+    elif args.subcommand == "archive-description":
+        cmd_archive_description(args.pr_number, args.mode, args.repo, args.ledger)
+    elif args.subcommand == "verify-composition":
+        cmd_verify_composition(args.sources, args.summary, args.ledger, args.output_path)
+    elif args.subcommand == "post-summary":
+        cmd_post_summary(args.pr_number, args.mode, args.summary, args.target, args.repo, args.ledger)
+    else:
+        cmd_cleanup(args.work_dir, args.approve)
+
+
+if __name__ == "__main__":  # pragma: no cover -- exercised through main()
+    main()

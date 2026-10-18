@@ -1,0 +1,241 @@
+"""Partition evidence must fail closed when a lane, job, script, case or build is missing/wrong."""
+
+import copy
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import check_all  # noqa: E402
+import check_ci  # noqa: E402
+
+
+class PartitionTests(unittest.TestCase):
+    def fixture(self, root):
+        manifest = {
+            "source": {"revision": "checked", "files": {"input": "sha"}},
+            "build": {"site": "sha"},
+            "coverage": {
+                "stations": ["station-1", "station-2"],
+                "pdfs": ["pdf-1", "pdf-2"],
+                "browser_source_digest": "browser-sha",
+            },
+        }
+        jobs = [check_all.Job(name, []) for name in ("content", "page", "final-candidate")]
+        groups = {"page": ["page"], "final": ["final_candidate"]}
+        for lane, owned in check_ci.partition(jobs).items():
+            directory = root / lane
+            rows = [
+                {"name": job.name, "returncode": 0, "seconds": 1, "output": "retained", "partial": False}
+                for job in owned
+            ]
+            check_ci.write_json(
+                directory / "lane.json",
+                {"lane": lane, "source": manifest["source"], "build": manifest["build"], "results": rows},
+            )
+            for job in owned:
+                if job.name == "content":
+                    continue
+                group = "final" if job.name == "final-candidate" else job.name
+                name = groups[group][0]
+                check_ci.write_json(
+                    directory / "details" / group / "scripts.json",
+                    {
+                        "status": "passed",
+                        "scripts": [
+                            {
+                                "file": f"tests/page/check_{name}.mjs",
+                                "status": "passed",
+                                "returncode": 0,
+                                "cases": {
+                                    "status": "passed",
+                                    "revision": "checked",
+                                    "source_digest": "browser-sha",
+                                    "planned": ["case"],
+                                    "executed": [{"name": "case", "status": "passed"}],
+                                    "skipped": [],
+                                    "pending": [],
+                                },
+                            }
+                        ],
+                    },
+                )
+        for filename, key in (("station-coverage.json", "stations"), ("print-coverage.json", "pdfs")):
+            check_ci.write_json(
+                root / "browser-b/coverage" / filename,
+                {
+                    "planned": manifest["coverage"][key],
+                    "executed": [{"key": key, "status": "passed"} for key in manifest["coverage"][key]],
+                    "skipped": [],
+                },
+            )
+        return manifest, jobs, groups
+
+    def test_real_inventory_has_exactly_one_owner_and_retains_all_profiles(self):
+        available = check_all.jobs(None, True)
+        lanes = check_ci.partition(available)
+        names = [job.name for jobs in lanes.values() for job in jobs]
+        self.assertEqual(sorted(names), sorted(job.name for job in available if job.name != "live"))
+        self.assertEqual(len(names), len(set(names)))
+        self.assertTrue({"crate", "process-run", "profile", "unit"} <= {job.name for job in lanes["cpu"]})
+        self.assertTrue(all(lanes[lane] for lane in check_ci.LANES))
+
+    def test_complete_evidence_is_accepted_without_losing_output(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest, jobs, groups = self.fixture(root)
+            results, lanes, _ = check_ci.reconcile(manifest, root, jobs, groups)
+            self.assertEqual(len(results), 3)
+            self.assertTrue(all(result.ok and result.output == "retained" for result in results))
+            self.assertEqual(set(lanes), set(check_ci.LANES))
+
+    def test_incomplete_or_wrong_evidence_never_becomes_a_complete_pass(self):
+        faults = (
+            "missing-lane",
+            "duplicate-lane",
+            "wrong-revision",
+            "wrong-build",
+            "missing-job",
+            "duplicate-job",
+            "failed-job",
+            "partial-job",
+            "missing-script",
+            "duplicate-script",
+            "missing-case-report",
+            "wrong-case-revision",
+            "wrong-case-source",
+            "missing-case",
+            "duplicate-case",
+            "failed-case",
+            "pending-case",
+            "missing-station",
+            "duplicate-pdf",
+            "wrong-inventory",
+        )
+        for fault in faults:
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                manifest, jobs, groups = self.fixture(root)
+                lane_path = root / "browser-a/lane.json"
+                script_path = root / "browser-a/details/page/scripts.json"
+                data = check_ci.read_json(lane_path)
+                scripts = check_ci.read_json(script_path)
+                case = scripts["scripts"][0]["cases"]
+                if fault == "missing-lane":
+                    lane_path.unlink()
+                elif fault == "duplicate-lane":
+                    check_ci.write_json(root / "duplicate/lane.json", data)
+                elif fault == "wrong-revision":
+                    data["source"]["revision"] = "other"
+                elif fault == "wrong-build":
+                    data["build"]["site"] = "different"
+                elif fault == "missing-job":
+                    data["results"] = []
+                elif fault == "duplicate-job":
+                    data["results"] *= 2
+                elif fault == "failed-job":
+                    data["results"][0]["returncode"] = 1
+                elif fault == "partial-job":
+                    data["results"][0]["partial"] = True
+                elif fault == "missing-script":
+                    scripts["scripts"] = []
+                elif fault == "duplicate-script":
+                    scripts["scripts"] *= 2
+                elif fault == "missing-case-report":
+                    scripts["scripts"][0]["cases"] = None
+                elif fault == "wrong-case-revision":
+                    case["revision"] = "other"
+                elif fault == "wrong-case-source":
+                    case["source_digest"] = "other"
+                elif fault == "missing-case":
+                    case["executed"] = []
+                elif fault == "duplicate-case":
+                    case["executed"] *= 2
+                elif fault == "failed-case":
+                    case["executed"][0]["status"] = "failed"
+                elif fault == "pending-case":
+                    case["pending"] = ["another"]
+                else:
+                    path = (
+                        root
+                        / "browser-b/coverage"
+                        / ("print-coverage.json" if fault == "duplicate-pdf" else "station-coverage.json")
+                    )
+                    evidence = check_ci.read_json(path)
+                    if fault == "missing-station":
+                        evidence["executed"].pop()
+                    elif fault == "duplicate-pdf":
+                        evidence["executed"].append(copy.deepcopy(evidence["executed"][0]))
+                    else:
+                        evidence["planned"][0] = "unexpected"
+                    check_ci.write_json(path, evidence)
+                if fault != "missing-lane":
+                    check_ci.write_json(lane_path, data)
+                check_ci.write_json(script_path, scripts)
+                with self.assertRaises((ValueError, OSError)):
+                    check_ci.reconcile(manifest, root, jobs, groups)
+
+    def test_site_modification_is_rejected_before_lane_execution(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "_site").mkdir()
+            page = root / "_site/index.html"
+            page.write_text("checked", encoding="utf-8")
+            manifest = {"source": {}, "build": check_ci.build_identity(root)}
+            with mock.patch.object(check_ci, "source_identity", return_value={}):
+                check_ci.verify_build(manifest, root)
+                page.write_text("changed", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "site files"):
+                    check_ci.verify_build(manifest, root)
+
+    def test_setup_failure_emits_failed_aggregate_and_blocked_jobs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            args = SimpleNamespace(
+                base=None, manifest=Path(temporary) / "missing.json", incoming=Path(temporary), output=Path(temporary)
+            )
+            with mock.patch.object(check_all, "emit_report") as emit:
+                self.assertEqual(check_ci.collect(args), 1)
+            initial, results, _, _ = emit.call_args.args
+            self.assertFalse(initial.ok)
+            self.assertFalse(results[0].ok)
+            self.assertEqual(results[0].job.name, "aggregate")
+
+    def test_source_identity_covers_working_files_as_well_as_revision(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "input").write_text("before", encoding="utf-8")
+            with mock.patch.object(
+                check_ci.subprocess, "check_output", side_effect=[b"input\0", "head", b"input\0", "head"]
+            ):
+                before = check_ci.source_identity(root)
+                (root / "input").write_text("after", encoding="utf-8")
+                after = check_ci.source_identity(root)
+            self.assertEqual(before["revision"], after["revision"])
+            self.assertNotEqual(before["files"], after["files"])
+
+    def test_collection_reports_build_through_publication_time(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest, jobs, groups = self.fixture(root)
+            manifest.update(started=100, result={"returncode": 0, "seconds": 2, "output": "built"})
+            results, lanes, directories = check_ci.reconcile(manifest, root, jobs, groups)
+            for lane in lanes.values():
+                lane.update(started=110, finished=140)
+            args = SimpleNamespace(base=None, manifest=root / "manifest.json", incoming=root, output=root / "out")
+            with (
+                mock.patch.object(check_ci, "read_json", side_effect=[manifest, groups]),
+                mock.patch.object(check_ci, "verify_build"),
+                mock.patch.object(check_ci, "reconcile", return_value=(results, lanes, directories)),
+                mock.patch.object(check_ci.time, "monotonic", return_value=900),
+                mock.patch.object(check_ci.time, "time", side_effect=[150, 150, 170]),
+                mock.patch.object(check_all, "publish_results", return_value=0) as publish,
+                mock.patch.dict(check_ci.os.environ),
+            ):
+                self.assertEqual(check_ci.collect(args), 0)
+            self.assertEqual(publish.call_args.kwargs["start"], 850, "include build/lane time before collection")
+            metadata = check_ci.read_json(root / "out/execution.json")
+            self.assertEqual(metadata["elapsed_seconds"], 70, "include final health publication")
+            self.assertEqual(metadata["lane_seconds"], 90, "lane effort remains separate from elapsed time")
