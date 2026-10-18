@@ -165,3 +165,17 @@ lens = "*"
 level = "L1"
 text = { cs = "Před sběrem dohodněte [[rdmkit-organisation|strukturu a pojmenování souborů]], [[rdmkit-quality|kontroly kvality]] a [[rdmkit-security|zabezpečení dat]]. Názvy proměnných, jednotky a chybějící hodnoty popište v datovém slovníku; praktický postup nabízí [[cookbook-dictionary|FAIR Cookbook]].", en = "Before collection, agree [[rdmkit-organisation|file naming and organisation]], [[rdmkit-quality|quality checks]] and [[rdmkit-security|data security]]. Describe variable names, units and missing values in a data dictionary; [[cookbook-dictionary|FAIR Cookbook]] offers a practical recipe." }
 sources = ["RDMKIT.tasks.01"]
+
+[[advice]]
+id = "collect.22"
+lens = "V"
+level = "L1"
+text = { cs = "Zajistěte kontinuitu v týmu: data, README i skripty ukládejte do sdíleného prostoru instituce nebo [[term/e-infra-cz|e-INFRA CZ]], aby nezůstala uzamčená na osobním notebooku. Před odchodem studenta či kolegy z projektu projděte předávací seznam: kde leží surová a vyčištěná data, co znamenají proměnné a kdo přebírá správu přístupů.", en = "Ensure team continuity: store data, README files and scripts in shared institutional or [[term/e-infra-cz|e-INFRA CZ]] storage so they do not stay locked on a personal laptop. Before a student or colleague leaves the project, go through a handover checklist: where raw and cleaned data sit, what variables mean, and who takes over access management." }
+sources = ["EINFRA-DOCS.01", "POLICY-MANUAL.06", "SURVEY-2025.01"]
+
+[[advice]]
+id = "collect.23"
+lens = "DS"
+level = "L1"
+text = { cs = "Nabídněte týmům stručný kontrolní seznam pro předání dat při odchodu člena týmu nebo ukončení etapy projektu (umístění dat, úplnost README a datového slovníku, předání přístupových práv podle [[policy-manual|institucionální datové politiky]]).", en = "Provide teams with a short data handover checklist for when a team member leaves or a project phase ends (data location, completeness of the README and data dictionary, and transfer of access rights in line with the [[policy-manual|institutional data policy]])." }
+sources = ["POLICY-MANUAL.06", "CESSDA-DMEG.01"]
