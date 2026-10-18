@@ -92,7 +92,9 @@ try {
   await page.locator(selector + " .opblock-summary").first().click();
   await page.locator(selector + " .try-out__btn").click();
   const requested = page.waitForResponse(origin + "/next/api/health.json");
-  await page.locator(selector + " .execute").click();
+  // Swagger's Execute is a submit control; Playwright 1.64 can report a scheduled navigation that never
+  // clears. The response assertion below is the contract, so do not wait for that navigation.
+  await page.locator(selector + " .execute").click({ noWaitAfter: true });
   const response = await requested;
   assert.equal((await response.json()).revision, "b".repeat(40), "Swagger reads the preview's API, not production");
   assert.equal(response.status(), 200);
