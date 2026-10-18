@@ -27,7 +27,27 @@ from release_version import version
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD_UI = "assets/data/ui.js"
-FILES = ("content/guide.toml", "CITATION.cff", "package.json", "package-lock.json", "pyproject.toml")
+PATH_POLICY = ".github/release-prepared-files.json"
+FILES = tuple(json.loads((ROOT / PATH_POLICY).read_text(encoding="utf-8"))["metadata"])
+
+
+def prepared_paths(root: Path) -> set[str]:
+    """Read the same permitted-set owner as the dispatcher, independently of a prepared manifest."""
+    policy = json.loads((root / PATH_POLICY).read_text(encoding="utf-8"))
+    if policy.get("formatVersion") != 1 or not all(
+        isinstance(policy.get(key), list) for key in ("metadata", "additional")
+    ):
+        raise ValueError("invalid release path policy")
+    paths = [*policy["metadata"], *policy["additional"]]
+    if not all(isinstance(path, str) and path for path in paths) or len(paths) != len(set(paths)):
+        raise ValueError("invalid release path policy")
+    resolved = root.resolve()
+    for path in paths:
+        if "\\" in path or ":" in path or path.startswith("/") or any(p in ("", ".", "..") for p in path.split("/")):
+            raise ValueError(f"unsafe release path: {path}")
+        if (resolved / path).resolve() != resolved / path:
+            raise ValueError(f"release path escapes or aliases another file: {path}")
+    return set(paths)
 
 
 def git(root: Path, *args: str) -> str:
@@ -203,6 +223,7 @@ def changelog(
 def prepare(
     root: Path, target: str, released: str, prs: list[dict], actor: str, *, now: datetime | None = None
 ) -> dict[str, object]:
+    permitted = prepared_paths(root)
     version(target)
     date.fromisoformat(released)
     _, _, errors = metadata(root)
@@ -267,6 +288,8 @@ endTime = {timestamp}
     texts["content/identifiers.toml"] = render(registry["register"]["prepared"], issued, registry.get("retired", {}))
     # All parsing and refusals above happen before the first write. The generated
     # crate is rebuilt, never patched; its consistency is checked with --site.
+    if set(texts) != permitted:
+        raise ValueError("prepared files differ from the shared release path policy")
     for path, text in texts.items():
         (root / path).write_text(text, encoding="utf-8", newline="\n")
     return {

@@ -20,6 +20,10 @@
       "asset": "aiscr-plan-from-issue",
       "sha256": "f25457fa072be1d7894448dd1027df3cfba6b457ba8e3590e4398c7d5f940d28"
     },
+    ".agents/scripts/validate_release_yml.py": {
+      "asset": "aiscr-write-release-notes",
+      "sha256": "ecc8257442ed68e29766fff66e415cce0e51f4800d6e76a69d58102a905af1c1"
+    },
     ".agents/skills/_dispatch/common.md": {
       "asset": "aiscr-dispatch-library",
       "sha256": "c0075cc7e0a26bc19b61b1411521d81b9f8ef310b580153f65ec5e961e518a91"
@@ -98,11 +102,11 @@
     },
     ".agents/skills/aiscr-plan-issue/SKILL.md": {
       "asset": "aiscr-plan-issue",
-      "sha256": "a51bc30b67a58d6e95a397736b501fda1711331a6695bb95215f173fe0890d27"
+      "sha256": "167f6509a2c0e0b39deaeb9f70de43c857206cd4e23a7087b6b92dfc5b5eb6a4"
     },
     ".agents/skills/aiscr-review-pr/SKILL.md": {
       "asset": "aiscr-review-pr",
-      "sha256": "ab9bfcc7197d8dab231db09217bfdf9e4f5911c9317d8be2906f6b84da4a1910"
+      "sha256": "b7b17c7c1e9cf48ff636ff1ada6a1edc838dadfc01866c7871a247ade3bfa503"
     },
     ".agents/skills/aiscr-review-pr/review-formats.md": {
       "asset": "aiscr-review-pr",
@@ -114,7 +118,7 @@
     },
     ".agents/skills/aiscr-write-release-notes/SKILL.md": {
       "asset": "aiscr-write-release-notes",
-      "sha256": "7e96764aab5427d60b3d4d959ef4cfc6b5e4c3a23a949d14ca419e5897d984d9"
+      "sha256": "def4f10b2153bec6764d4c9941af2fb76e7308e36ebe1fc1a1d2dd3e3e8a3edd"
     },
     ".claude/agents/aiscr-analyse-correctness.md": {
       "asset": "aiscr-analyse-correctness",
@@ -174,11 +178,11 @@
     },
     ".claude/rules/aiscr-planning-core.md": {
       "asset": "step-sibling-rules",
-      "sha256": "29a3de50a151210f22645aee261330e45bd77c0c1c95432909603e28ba8f882b"
+      "sha256": "5d0d6308fd6f823633a2159c1031b7a7e4c030a1caf860005ab98dd70ffb847c"
     },
     ".claude/rules/aiscr-quality-first-execution.md": {
       "asset": "step-sibling-rules",
-      "sha256": "846f76df1cece124c8995ff7c0feccf8f40d7db108a135fb503f8e192aaff86d"
+      "sha256": "ea8df1f54fc52f2868aebe0d64a5197214e5bba41e2413cc1f5c1ff9ab69e44b"
     },
     ".claude/rules/aiscr-review-conduct.md": {
       "asset": "step-sibling-rules",
@@ -194,11 +198,11 @@
     },
     ".claude/skills/aiscr-plan-issue/SKILL.md": {
       "asset": "aiscr-plan-issue",
-      "sha256": "5f79e1bfef51ffec6beb9b6af7011c3f5de9792e391c5e3353deff96a5b6ef39"
+      "sha256": "114b2cea94efec559ea4b49b2ad7c7f008d8a6b155e8ba684d4cad7b7aac882a"
     },
     ".claude/skills/aiscr-review-pr/SKILL.md": {
       "asset": "aiscr-review-pr",
-      "sha256": "4eef4fb59b178c297b16c52b9092ea43c050a52e376e30ea4167060cd29a513d"
+      "sha256": "dfcfadf3c28fae8f2211a513f14678dbc5d3840a88db7aaf2a17bbf678162370"
     },
     ".claude/skills/aiscr-review-pr/review-formats.md": {
       "asset": "aiscr-review-pr",
@@ -210,7 +214,7 @@
     },
     ".claude/skills/aiscr-write-release-notes/SKILL.md": {
       "asset": "aiscr-write-release-notes",
-      "sha256": "c08f3a9dd306b9171f4950566bf13af22fb70d9efabc5e98d9d57b8de9d4fe65"
+      "sha256": "6426d1a9691ec108036523844572f3106a420a603c089ea150dc7c4898548833"
     },
     ".codex/agents/aiscr-analyse-correctness.toml": {
       "asset": "aiscr-analyse-correctness",
@@ -314,11 +318,11 @@
     },
     ".cursor/rules/aiscr-planning-core.mdc": {
       "asset": "step-sibling-rules",
-      "sha256": "ab4d2a18a39ca3227b5649f6f0b759b878b0d4e7fc35762959b2bd9acde1bf58"
+      "sha256": "d117664e7a9ef07c44f29ef88c103909c5c4255f39f65e7002e72ecad16caf03"
     },
     ".cursor/rules/aiscr-quality-first-execution.mdc": {
       "asset": "step-sibling-rules",
-      "sha256": "b714152989b54cd251b4d33c5ddb71037bf0ea8a9524727bc507c5cd2a8a680b"
+      "sha256": "c329eb2b0258a3ca49208607c3d2d7eae0acaf47a4f1a3eb1b25ff5c83b199da"
     },
     ".cursor/rules/aiscr-review-conduct.mdc": {
       "asset": "step-sibling-rules",
@@ -402,11 +406,11 @@
     },
     ".gemini/context/aiscr-planning-core.md": {
       "asset": "step-sibling-rules",
-      "sha256": "06e6289bb5b3a52614674fa432b6a85c4806f6a850ebd15dda5a4f3545d38286"
+      "sha256": "c7c99f6e78e304ee729c080c68c995fb5b28db4954143ecd62b8ce4e3a264cf8"
     },
     ".gemini/context/aiscr-quality-first-execution.md": {
       "asset": "step-sibling-rules",
-      "sha256": "542e5dc207aef9ed0582c1892fe75adae050cd629ba0d97240860aaa30b12209"
+      "sha256": "a3c9acab726a5355ce5710d3dd6e31242c776f46d24020048a6b198222c965d5"
     },
     ".gemini/context/aiscr-review-conduct.md": {
       "asset": "step-sibling-rules",
@@ -430,11 +434,11 @@
     },
     ".github/instructions/aiscr-planning-core.instructions.md": {
       "asset": "step-sibling-rules",
-      "sha256": "9f4ca5ffa0e408062794dd1f1cb74e0b94de611eb3fcbd2347a95f3f8a9a829b"
+      "sha256": "53b279de00ce12b8d5ddc352b4535434dc77a33add74d2c6d1b37097f4c46093"
     },
     ".github/instructions/aiscr-quality-first-execution.instructions.md": {
       "asset": "step-sibling-rules",
-      "sha256": "c98584378d11915251be51e8b133f6e0133217359db3b76e681f35b416921c6f"
+      "sha256": "5573fe5ea6a49f94e42cd626a5fe1ee7e012b96af4cf3cbcb0bcbbfc55a188c9"
     },
     ".github/instructions/aiscr-review-conduct.instructions.md": {
       "asset": "step-sibling-rules",
@@ -502,11 +506,11 @@
     },
     ".kilo/rules/aiscr-planning-core.md": {
       "asset": "step-sibling-rules",
-      "sha256": "f6930846d87d61af81a9b49e62e7a3dd2d68db445eae6a2cdc6ba9ba0c51aa5d"
+      "sha256": "39a0baf6b9e63444382ab5e71f309420213066049c5e36367cac11d5ca0a752c"
     },
     ".kilo/rules/aiscr-quality-first-execution.md": {
       "asset": "step-sibling-rules",
-      "sha256": "99a15587d28242f768383b65bd2d4e5ecd760fd19fdda46cacaa0fd4384eb09b"
+      "sha256": "aa05cc83edf4f188f02bceb429ea2cc946575ae91e0d8d19687f34c7a18433ff"
     },
     ".kilo/rules/aiscr-review-conduct.md": {
       "asset": "step-sibling-rules",
@@ -538,11 +542,11 @@
       },
       "aiscr-planning-core": {
         "asset": "step-sibling-rules",
-        "sha256": "8204963c40bf7f50ff0a07ec22c8cf74b40513ab202865a8755ef6349e1cb258"
+        "sha256": "f9d6d3def09ac9d6e30d5dd5f9a49b68438b6612b9cff8aba772420706b9578d"
       },
       "aiscr-quality-first-execution": {
         "asset": "step-sibling-rules",
-        "sha256": "d6a21a17fa6d7f98935b86aae937556ab785d95edc229c7af6e202ac915ec306"
+        "sha256": "1a297486be9fd69cc6bcf413efdab7c9c1ce9e0957e85e8fe3065abcf22fc255"
       },
       "aiscr-review-conduct": {
         "asset": "step-sibling-rules",

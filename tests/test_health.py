@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 import unittest
 from datetime import date
 from hashlib import sha256
@@ -522,6 +523,34 @@ class HealthTests(unittest.TestCase):
                 build_api.publish_health(site, self.report(), self.content)
             self.assertEqual((site / build_api.HEALTH_FILE).read_text(encoding="utf-8"), "authored")
             self.assertFalse((site / "health").exists())
+
+    def test_publication_reuses_one_content_and_crate_for_success_and_failure(self) -> None:
+        for final_code in (0, 7):
+            with self.subTest(final_code=final_code):
+                job = check_all.health_api_job()
+                build = check_all.Result(check_all.Job("build", []), 0, 0.1, "")
+                candidate = check_all.Result(job, 0, 0.1, "")
+                final = check_all.Result(job, final_code, 0.1, "final result")
+                with (
+                    mock.patch.object(build_crate, "load_content", wraps=build_crate.load_content) as parse,
+                    mock.patch.object(build_crate, "build_crate", wraps=build_crate.build_crate) as construct,
+                    mock.patch.object(check_health, "write_report") as write,
+                    mock.patch.object(build_api, "publish_health") as publish,
+                    mock.patch.object(check_all, "run", side_effect=[candidate, final]),
+                    mock.patch("builtins.print"),
+                ):
+                    result = check_all.publish_results(
+                        build, [], [job], [job], env={}, output=Path("unused"), previous=None, start=time.monotonic()
+                    )
+                self.assertEqual(result, int(bool(final_code)))
+                self.assertEqual(parse.call_count, 1)
+                self.assertEqual(construct.call_count, 1)
+                reports = [call.args[0] for call in write.call_args_list]
+                self.assertEqual(len(reports), 3 if final_code else 2)
+                self.assertEqual(reports[0]["run"]["status"], "partial")
+                self.assertEqual(reports[-1]["run"]["status"], "failed" if final_code else "passed")
+                crates = [call.kwargs["crate"] for call in publish.call_args_list]
+                self.assertTrue(all(crate is crates[0] for crate in crates))
 
     def test_final_api_validation_failure_is_retained_and_fails_the_runner(self) -> None:
         build = check_all.Result(check_all.Job("build", []), 0, 0.1, "")

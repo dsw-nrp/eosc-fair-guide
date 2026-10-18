@@ -1,5 +1,8 @@
 # Agent tooling
 
+Start here when choosing an AI-assisted workflow for the Guide. The task table below gives the appropriate
+entry and its prerequisites; the vendor table explains how to invoke it in your client.
+
 [AGENTS.md](../AGENTS.md) is the runtime entry. `CLAUDE.md`, the Copilot entry and `CODEX.md` point to it.
 The authored rules and routing skill are under `.agents/guide/`; `surfaces.toml` owns their mirrors and the
 protection map. The generated inventory below describes the current receipt, including command, dispatch and
@@ -29,7 +32,7 @@ live in `.agents/guide/rules/fair-guide-surfaces.md`. Release procedures remain 
 | Shape a GitHub issue | `aiscr-plan-issue` | Read the workflow; authenticated GitHub access for authorized writes |
 | Plan from a shaped issue | `aiscr-plan-from-issue` | Ready issue; planning stops at its implementation boundary |
 | Review a PR or local Git scope | `aiscr-review-pr` | Git baseline and guide review facts; authenticated GitHub for remote scope; posting requires approval |
-| Draft release notes | `aiscr-write-release-notes` | Reviewed release scope and GitHub lineage; publication is opt-in |
+| Draft release notes | `aiscr-write-release-notes` | Reviewed release scope and GitHub lineage; Python with PyYAML; prepare the release configuration and reports before validation; publication is opt-in |
 | Draft, investigate or verify within a workflow | Enrolled `aiscr-*` agents and dispatch | Follow the calling workflow's delegation stance; the drafter is `aiscr-draft` |
 | Validate the Guide | `python scripts/check_all.py` | Python dev requirements, pinned Node dependencies and Chromium; `--live` additionally needs network |
 
@@ -58,11 +61,15 @@ is the fallback for every client. No personal or machine-local configuration is 
 | Cursor | Read AGENTS; `.cursor/rules/*.mdc` native rules declare `alwaysApply: true` | Read `.agents/skills/<name>/SKILL.md` when no matching discovery is available; use registered agent definitions only when supported |
 | Kilo | Read AGENTS and `.kilo/rules/` | Read the selected `.agents/skills/` workflow; `.kilo/agents/` definitions require compatible client support |
 | Gemini CLI | Read AGENTS and explicitly include `.gemini/context/` rules, unless context configuration already loads them | Enrolled commands live in `.gemini/commands/`; OpenSpec uses `opsx`; read the native skill directly |
-| GitHub Copilot | `.github/copilot-instructions.md` points to AGENTS; native `.instructions.md` files use `applyTo: "**"` | Enrolled prompts live in `.github/prompts/` and agents in `.github/agents/`; skill discovery depends on the client, so read the native skill when needed |
+| GitHub Copilot | `.github/copilot-instructions.md` points to AGENTS; delivered and native rules use `.github/instructions/` | Enrolled workflows use the shared `.agents/skills/` tree; discovery depends on client support, so read the selected skill when needed. `.github/prompts/opsx-*` and `.github/agents/openspec.agent.md` are tool-generated OpenSpec surfaces; no enrolled `aiscr-*` prompts or agents are delivered there |
 
 GitHub workflows that use local scripts require their documented interpreter and `gh` authentication where
 applicable. A command or agent being installed does not authorize remote writes, staging, commits, merges,
 publication or changes to permissions. Workflow approval gates and repository contribution rules still apply.
+
+The bundled release-notes validator is `.agents/scripts/validate_release_yml.py`. It checks the prepared
+`.github/release.yml` and report files; absent inputs are reported as failures. The Guide has no generated
+release-notes reports merely because the workflow is installed. Follow the skill to prepare them first.
 
 ## Ownership, integrity and regeneration
 
@@ -92,8 +99,9 @@ and sections, extra sections, unmarked mixed-reader text and unclassified manage
 owned, generated, runtime and tool-generated content. The three tooling checks run in `check_all` and its CI
 partition. A check failure is reported, never automatically repaired by the checker.
 
-Keep one rolling entry per significant uncommitted change set in `.agents/reports/usage/`, using the native
-surfaces rule's required fields. A content change also records its own content paradata.
+The guide owns `.agents/reports/usage/`; the delivered `aiscr-usage-logging` and `aiscr-model-logging` rules
+own notability and exact fields. Follow those owners through the native surfaces rule. A content change also
+records its own content paradata.
 
 ## Generated inventory
 
@@ -116,7 +124,7 @@ surfaces rule's required fields. A content change also records its own content p
 | Delivered | `aiscr-review-pr` | `.agents/scripts/github/github_pr_review.py`, `.agents/skills/aiscr-review-pr/SKILL.md`, `.agents/skills/aiscr-review-pr/review-formats.md`, `.agents/skills/aiscr-review-pr/review-tracks.md`, `.claude/skills/aiscr-review-pr/SKILL.md`, `.claude/skills/aiscr-review-pr/review-formats.md`, `.claude/skills/aiscr-review-pr/review-tracks.md`, `.gemini/commands/aiscr/aiscr-review-pr.toml` |
 | Delivered | `aiscr-survey` | `.claude/agents/aiscr-survey.md`, `.codex/agents/aiscr-survey.toml`, `.cursor/agents/aiscr-survey.md`, `.gemini/agents/aiscr-survey.md`, `.kilo/agents/aiscr-survey.md` |
 | Delivered | `aiscr-verify` | `.claude/agents/aiscr-verify.md`, `.codex/agents/aiscr-verify.toml`, `.cursor/agents/aiscr-verify.md`, `.gemini/agents/aiscr-verify.md`, `.kilo/agents/aiscr-verify.md` |
-| Delivered | `aiscr-write-release-notes` | `.agents/skills/aiscr-write-release-notes/SKILL.md`, `.claude/skills/aiscr-write-release-notes/SKILL.md`, `.gemini/commands/aiscr/aiscr-write-release-notes.toml` |
+| Delivered | `aiscr-write-release-notes` | `.agents/scripts/validate_release_yml.py`, `.agents/skills/aiscr-write-release-notes/SKILL.md`, `.claude/skills/aiscr-write-release-notes/SKILL.md`, `.gemini/commands/aiscr/aiscr-write-release-notes.toml` |
 | Delivered | `step-sibling-rules` | `.claude/rules/aiscr-delivered-assets.md`, `.claude/rules/aiscr-model-logging.md`, `.claude/rules/aiscr-openspec-posture.md`, `.claude/rules/aiscr-planning-core.md`, `.claude/rules/aiscr-quality-first-execution.md`, `.claude/rules/aiscr-review-conduct.md`, `.claude/rules/aiscr-usage-logging.md`, `.cursor/rules/aiscr-delivered-assets.mdc`, `.cursor/rules/aiscr-model-logging.mdc`, `.cursor/rules/aiscr-openspec-posture.mdc`, `.cursor/rules/aiscr-planning-core.mdc`, `.cursor/rules/aiscr-quality-first-execution.mdc`, `.cursor/rules/aiscr-review-conduct.mdc`, `.cursor/rules/aiscr-usage-logging.mdc`, `.gemini/context/aiscr-delivered-assets.md`, `.gemini/context/aiscr-model-logging.md`, `.gemini/context/aiscr-openspec-posture.md`, `.gemini/context/aiscr-planning-core.md`, `.gemini/context/aiscr-quality-first-execution.md`, `.gemini/context/aiscr-review-conduct.md`, `.gemini/context/aiscr-usage-logging.md`, `.github/instructions/aiscr-delivered-assets.instructions.md`, `.github/instructions/aiscr-model-logging.instructions.md`, `.github/instructions/aiscr-openspec-posture.instructions.md`, `.github/instructions/aiscr-planning-core.instructions.md`, `.github/instructions/aiscr-quality-first-execution.instructions.md`, `.github/instructions/aiscr-review-conduct.instructions.md`, `.github/instructions/aiscr-usage-logging.instructions.md`, `.kilo/rules/aiscr-delivered-assets.md`, `.kilo/rules/aiscr-model-logging.md`, `.kilo/rules/aiscr-openspec-posture.md`, `.kilo/rules/aiscr-planning-core.md`, `.kilo/rules/aiscr-quality-first-execution.md`, `.kilo/rules/aiscr-review-conduct.md`, `.kilo/rules/aiscr-usage-logging.md` |
 | Delivered section | `step-sibling-rules` | `CODEX.md:aiscr-delivered-assets`, `CODEX.md:aiscr-entry`, `CODEX.md:aiscr-model-logging`, `CODEX.md:aiscr-openspec-posture`, `CODEX.md:aiscr-planning-core`, `CODEX.md:aiscr-quality-first-execution`, `CODEX.md:aiscr-review-conduct`, `CODEX.md:aiscr-usage-logging` |
 | Native generated | `fair-guide-content` | `.claude/rules/fair-guide-content.md`, `.cursor/rules/fair-guide-content.mdc`, `.gemini/context/fair-guide-content.md`, `.github/instructions/fair-guide-content.instructions.md`, `.kilo/rules/fair-guide-content.md` |

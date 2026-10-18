@@ -9,6 +9,9 @@ procedures for implementing the FAIR principles in NRP/NDI* (version 1.2, NRP KA
 This file is the operational README for maintainers and agents. The Czech [README.md](README.md) is the
 human-facing overview.
 
+**Using an AI assistant:** Start with the [agent tooling guide](docs/agent-tooling.md) to choose a tool and
+workflow. [AGENTS.md](AGENTS.md) supplies the runtime instructions the assistant must read.
+
 Behaviour, data/API contract, stored-format, CI and governance changes use the repository-owned
 [OpenSpec contracts](openspec/specs/) and an approved change under `openspec/changes/`. The pinned CLI is
 `npm run openspec:cli -- <command>` after `npm ci`; `npm run openspec:validate` validates all contracts and changes.

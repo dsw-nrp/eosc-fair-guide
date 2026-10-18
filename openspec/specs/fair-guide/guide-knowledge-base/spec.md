@@ -195,12 +195,19 @@ and links are kept.
 A local correction to a reviewed snapshot SHALL be recorded separately with the source, exact finding,
 replacement, reason and tracking issue. The build SHALL apply it to the in-memory content, the snapshot SHALL
 remain the source's text, and a missing or ambiguous finding SHALL refuse the content load.
+An exactly-once correction SHALL remain valid when its replacement contains the original finding.
 
 #### Scenario: Correcting an upstream typo
 
 - **GIVEN** a snapshot with a typo in a quoted definition
 - **WHEN** a reviewed correction names the term and the exact finding
 - **THEN** the built glossary shows the replacement, the snapshot file is unchanged, and the correction links to its source and issue
+
+#### Scenario: A replacement contains the original finding
+
+- **GIVEN** one original occurrence of `archiv` and a reviewed replacement `archivace`
+- **WHEN** the correction and content checks run
+- **THEN** the corrected text SHALL pass without changing the snapshot
 
 ### Requirement: Snapshots keep their source's licence
 
@@ -690,3 +697,14 @@ The health report SHALL separate unresolved link suggestions from reviewed unlin
 - **GIVEN** a decision scoped to one occurrence of a term
 - **WHEN** the term occurs in a new field
 - **THEN** that occurrence is eligible for a suggestion and the older decision does not hide it
+
+### Requirement: Correction failures use the shared content-loading diagnostic
+
+Invalid correction fields and missing or ambiguous findings SHALL use the shared content-loading
+diagnostic and failure exit contract across content validation, site/API builds and duplicate checks.
+
+#### Scenario: A correction cannot be applied
+
+- **GIVEN** invalid correction fields or an absent or ambiguous original finding
+- **WHEN** a content-loading entrypoint runs
+- **THEN** it SHALL report the established content diagnostic and exit code 2 without an uncaught traceback

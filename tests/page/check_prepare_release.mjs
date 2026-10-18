@@ -2,7 +2,9 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
-const {dispatch, validVersion, collect, propose, tag} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
+import {copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync} from 'node:fs';
+import {resolve, dirname} from 'node:path';
+const {dispatch, validVersion, collect, propose, tag, preparedFiles} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
 const sha = 'a'.repeat(40);
 const PREPARED = '.cache/release/prepared.json';
 const PREPARED_PATHS = ['content/guide.toml', 'CITATION.cff', 'package.json', 'package-lock.json',
@@ -16,11 +18,11 @@ assert.throws(() => dispatch({...context, eventName: 'push'}), /dispatch/);
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture() {
   const state = {refs: new Map([['heads/main', sha]]), commits: new Map([[sha, {tree: {sha: 'base'}}]]), prs: [],
-    creates: [], tags: new Map(), failPR: false, reads: [], outputs: {}};
+    creates: [], blobs: [], tags: new Map(), failPR: false, reads: [], outputs: {}};
   const github = {rest: {git: {
     getRef: async ({ref}) => {if (!state.refs.has(ref)) throw Object.assign(Error('missing'), {status: 404}); return {data: {object: {sha: state.refs.get(ref)}}};},
     getCommit: async ({commit_sha}) => ({data: state.commits.get(commit_sha)}),
-    createBlob: async args => ({data: {sha: hash(args)}}),
+    createBlob: async args => {state.blobs.push(args); return {data: {sha: hash(args)}};},
     createTree: async args => ({data: {sha: hash(args)}}),
     createCommit: async args => {const id = hash(args); state.commits.set(id, {message: args.message, tree: {sha: args.tree}, parents: args.parents.map(sha => ({sha}))}); return {data: {sha: id}};},
     createTag: async args => {const id = hash(args); state.tags.set(id, args); return {data: {sha: id}};},
@@ -73,6 +75,48 @@ function fixture() {
   const changed = (path, encoding) => path === PREPARED ? JSON.stringify(corrupted) : read(path, encoding);
   await assert.rejects(propose({github, core, context}, changed), /changed after preparation/);
   assert.equal(state.creates.length, 0);
+  assert.equal(state.blobs.length, 0);
+}
+for (const mutate of [
+  files => files.slice(1),
+  files => [...files, {path: 'SECURITY.md', sha256: '0'.repeat(64)}],
+  files => files.map((item, i) => i === files.length - 1 ? {...item, path: '../outside'} : item),
+  files => files.map((item, i) => i === files.length - 1 ? {...item, path: '/absolute'} : item),
+  files => files.map((item, i) => i === files.length - 1 ? {...item, path: 'C:\\outside'} : item),
+  files => files.map((item, i) => i === files.length - 1 ? {...item, path: 'content/../content/identifiers.toml'} : item),
+  files => files.map((item, i) => i === files.length - 1 ? {...item, path: 'content\\identifiers.toml'} : item),
+]) {
+  const {state, github, core, read, manifest} = fixture();
+  const malformed = {...manifest, files: mutate(manifest.files)};
+  const fileReads = [];
+  const changed = (path, encoding) => {
+    if (path === PREPARED) return JSON.stringify(malformed);
+    fileReads.push(path); return read(path, encoding);
+  };
+  await assert.rejects(propose({github, core, context}, changed), /Invalid prepared-file manifest/);
+  assert.deepEqual(fileReads, [], 'validate every selected path before any prepared file read');
+  assert.equal(state.blobs.length, 0, 'invalid selections cause no GitHub writes');
+}
+{
+  mkdirSync('.cache', {recursive: true});
+  const temporary = mkdtempSync(resolve('.cache/release-paths-'));
+  const root = resolve(temporary, 'repo'), outside = resolve(temporary, 'outside');
+  try {
+    const {manifest} = fixture();
+    for (const name of PREPARED_PATHS) {
+      mkdirSync(dirname(resolve(root, name)), {recursive: true});
+      copyFileSync(name, resolve(root, name));
+    }
+    assert.equal(preparedFiles(manifest, context.payload.inputs.version, root).length, 8);
+    rmSync(resolve(root, 'content'), {recursive: true});
+    mkdirSync(outside);
+    for (const name of PREPARED_PATHS.filter(name => name.startsWith('content/')))
+      copyFileSync(name, resolve(outside, name.slice('content/'.length)));
+    symlinkSync(outside, resolve(root, 'content'), 'junction');
+    assert.throws(() => preparedFiles(manifest, context.payload.inputs.version, root), /escapes or aliases/);
+  } finally {
+    rmSync(temporary, {recursive: true, force: true});
+  }
 }
 {
   const {state, github, core, read, manifest} = fixture();

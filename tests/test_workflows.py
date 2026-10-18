@@ -20,6 +20,16 @@ def load(path: str) -> dict:
 
 
 class WorkflowContracts(unittest.TestCase):
+    def test_copilot_setup_uses_the_locked_workspace_cli(self) -> None:
+        job = load(".github/workflows/copilot-setup-steps.yml")["jobs"]["copilot-setup-steps"]
+        self.assertEqual(job["permissions"], {"contents": "read"})
+        steps = job["steps"]
+        self.assertEqual(steps[0]["with"]["persist-credentials"], "false")
+        commands = [step.get("run", "") for step in steps]
+        self.assertIn("npm ci", commands)
+        self.assertIn("npm run openspec:cli -- --version", commands)
+        self.assertFalse(any("npm install -g" in command for command in commands))
+
     def test_image_aliases_follow_every_required_audit_with_bounded_artifact_access(self) -> None:
         release = load(".github/workflows/release.yml")
         image = load(".github/workflows/publish-image.yml")

@@ -35,6 +35,15 @@ actual runtime identities and source preservation, rather than merely comparing 
 
 ## Delivery
 
+The automation and tooling review follow-up protects authored/runtime paths from native generation, uses
+locked Copilot dependencies, validates exactly-once snapshot corrections through the shared content error
+contract, and validates release-file selection against one shared structured policy before reads or writes.
+Health publication reuses one content/crate context while retaining each snapshot's actual outcomes. The
+tooling guide is the visible human entrypoint from both README languages and CONTRIBUTING. Delivered
+workflow corrections arrive through approved upstream delivery; native sources retain separate ownership.
+The local build marker remains a repeat-build guard; the pinned Pages archive excludes hidden files by
+default. Hosted artifact inspection and publication remain separately authorized acceptance work.
+
 The candidate and exact remote payload are reviewed together. An operator checklist covers reviewed PR merges
 and privileged App/settings work; a deployed-candidate acceptance explicitly authorizes alpha tagging and
 publication. Verify source commit, artifact digest, versions, dates, production, preview and release assets.

@@ -17,11 +17,11 @@ Delivered membership is defined by `.agents/delivery-manifest.json`, including t
 `python scripts/generate_agent_surfaces.py`; `--check`, `scripts/check_agent_surfaces.py` and
 `scripts/check_sibling_delivery.py` are included in `python scripts/check_all.py`.
 
-Keep one rolling entry under `.agents/reports/usage/` for significant uncommitted implementation, investigation,
-planning, governance or review work. Record date, scope, request/approval, assistant/runtime, actual backend model
-id (or that it is not exposed), work, validation outcomes and remaining limits. Trivial typos and routine reads
-need no new entry. Content paradata remains separate. Before review, read the guide-owned
-`.agents/config/review_config.toml`; the native surfaces rule owns the detailed usage and review-fact contract.
+Keep the guide's rolling usage entry under `.agents/reports/usage/`. Follow the delivered
+`aiscr-usage-logging` and `aiscr-model-logging` rules for notability, exact field labels and runtime/backend
+metadata; both are included in `CODEX.md` and the delivered vendor readers. Content paradata remains separate.
+Before review, read the guide-owned `.agents/config/review_config.toml`; the native surfaces rule identifies
+the usage owners and review facts.
 
 ## Purpose
 

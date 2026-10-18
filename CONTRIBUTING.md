@@ -4,8 +4,8 @@ Thank you for helping improve the FAIR Data Guide. This file describes how chang
 rules are in [docs/content-model.md](docs/content-model.md); design decisions are in
 [docs/design.md](docs/design.md).
 
-For AI-assisted work start at [AGENTS.md](AGENTS.md) and the [agent tooling guide](docs/agent-tooling.md),
-which lists native sources, delivered tools, invocation and ownership checks.
+**Using an AI assistant:** Start with the [agent tooling guide](docs/agent-tooling.md) to choose a tool and
+workflow. [AGENTS.md](AGENTS.md) supplies the runtime instructions the assistant must read.
 
 ## Branches and pull requests
 

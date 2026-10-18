@@ -1,7 +1,9 @@
 // Trusted default-branch dispatch code. Metadata, changelog writing and the prepared-file set belong to
 // scripts/release_versions.py; this module consumes that manifest and owns only GitHub reads and delivery.
-const {readFileSync, mkdirSync, writeFileSync} = require('node:fs');
+const {readFileSync, mkdirSync, writeFileSync, realpathSync} = require('node:fs');
 const {createHash} = require('node:crypto');
+const {resolve, relative, isAbsolute} = require('node:path');
+const policy = require('../release-prepared-files.json');
 const MANIFEST = '.cache/release/prepared.json';
 const { validVersion } = require('./release-version.cjs');
 function dispatch(context) {
@@ -33,23 +35,42 @@ async function collect({github, context, core}, write = writeFileSync) {
   core.setOutput('timestamp', run.created_at);
   core.setOutput('date', run.created_at.slice(0, 10));
 }
-async function propose({github, context, core}, read = readFileSync) {
+function preparedFiles(manifest, version, root = resolve(__dirname, '../..')) {
+  if (policy.formatVersion !== 1 || !Array.isArray(policy.metadata) || !Array.isArray(policy.additional))
+    throw Error('Invalid release path policy');
+  const expected = [...policy.metadata, ...policy.additional];
+  if (!expected.length || new Set(expected).size !== expected.length ||
+      manifest.formatVersion !== 1 || manifest.version !== version || !Array.isArray(manifest.files) ||
+      manifest.files.length !== expected.length) throw Error('Invalid prepared-file manifest');
+  const seen = new Set();
+  const canonicalRoot = realpathSync(root);
+  for (const item of manifest.files) {
+    const name = item?.path;
+    if (typeof name !== 'string' || !expected.includes(name) || /[\\:]/.test(name) ||
+        name.split('/').some(part => ['', '.', '..'].includes(part)) ||
+        isAbsolute(name) || typeof item?.sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(item.sha256) ||
+        seen.has(name)) throw Error('Invalid prepared-file manifest');
+    const candidate = resolve(canonicalRoot, name);
+    const actual = realpathSync(candidate);
+    const local = relative(canonicalRoot, actual);
+    if (actual !== candidate || isAbsolute(local) || local === '..' || local.startsWith('../') || local.startsWith('..\\'))
+      throw Error(`Prepared path escapes or aliases another file: ${name}`);
+    seen.add(name);
+  }
+  return manifest.files;
+}
+async function propose({github, context, core}, read = readFileSync, root) {
   const {base, version, branch} = dispatch(context);
   const parent = await current(github, context, base);
   const manifest = JSON.parse(read(MANIFEST, 'utf8'));
-  if (manifest.formatVersion !== 1 || manifest.version !== version ||
-      !Array.isArray(manifest.files) || !manifest.files.length) throw Error('Invalid prepared-file manifest');
+  const files = preparedFiles(manifest, version, root).map(item => {
+    const content = read(item.path);
+    if (createHash('sha256').update(content).digest('hex') !== item.sha256)
+      throw Error(`Prepared file changed after preparation: ${item.path}`);
+    return {path: item.path, content};
+  });
   const tree = [];
-  const seen = new Set();
-  for (const item of manifest.files) {
-    const path = item?.path;
-    const expected = item?.sha256;
-    if (typeof path !== 'string' || !path || typeof expected !== 'string' ||
-        !/^[0-9a-f]{64}$/.test(expected) || seen.has(path)) throw Error('Invalid prepared-file manifest');
-    seen.add(path);
-    const content = read(path);
-    if (createHash('sha256').update(content).digest('hex') !== expected)
-      throw Error(`Prepared file changed after preparation: ${path}`);
+  for (const {path, content} of files) {
     const {data} = await github.rest.git.createBlob({...context.repo, content: content.toString('base64'), encoding: 'base64'});
     tree.push({path, mode: '100644', type: 'blob', sha: data.sha});
   }
@@ -97,4 +118,4 @@ async function tag({github, context, core}, read = readFileSync) {
   const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: annotated.sha});
   core.info(`Created ${data.ref} at ${context.sha} with status ${status}`);
 }
-module.exports = {validVersion, dispatch, collect, propose, tag};
+module.exports = {validVersion, dispatch, collect, propose, tag, preparedFiles};

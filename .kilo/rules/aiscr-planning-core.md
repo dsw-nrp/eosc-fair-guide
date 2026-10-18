@@ -123,7 +123,7 @@ The mode-transfer gating rules in this section are enforced at the skill level t
 
 ### 1.1 Single-loop planning model
 
-The following flowchart summarizes the expected loop for a significant task. The prose list below the diagram is normative; the diagram is a supporting aid and must stay aligned with it (see).
+The following flowchart summarizes the expected loop for a significant task. The prose list below the diagram is normative; the diagram is a supporting aid and must stay aligned with it.
 
 ```mermaid
 flowchart TD

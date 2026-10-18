@@ -26,6 +26,8 @@ class ReleaseVersions(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        (self.root / ".github").mkdir()
+        shutil.copyfile(ROOT / release.PATH_POLICY, self.root / release.PATH_POLICY)
         for name in (*release.FILES, "CHANGELOG.md", "content/provenance.toml", "content/identifiers.toml"):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -63,6 +65,20 @@ class ReleaseVersions(unittest.TestCase):
             self.pr(1, "old", "Before the tag"),
             {**self.pr(4, "a", "Closed only"), "merged_at": None},
         ]
+
+    def test_shared_policy_rejects_missing_and_extra_prepared_files_before_writes(self) -> None:
+        policy = json.loads((self.root / release.PATH_POLICY).read_text(encoding="utf-8"))
+        for additional in (policy["additional"][:-1], [*policy["additional"], "SECURITY.md"]):
+            with self.subTest(additional=additional):
+                (self.root / release.PATH_POLICY).write_text(json.dumps({**policy, "additional": additional}))
+                before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+                with (
+                    patch.object(release, "history", return_value=(None, {"a", "b"})),
+                    self.assertRaisesRegex(ValueError, "shared release path policy"),
+                ):
+                    release.prepare(self.root, "1.2.3", "2026-10-18", self.prs, "motyc")
+                after = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+                self.assertEqual(after, before)
 
     @staticmethod
     def pr(number: int, sha: str, title: str) -> dict:

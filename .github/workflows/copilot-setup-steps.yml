@@ -28,7 +28,7 @@ jobs:
           persist-credentials: false
 
       - name: Install OpenSpec CLI
-        run: npm install -g @fission-ai/openspec
+        run: npm ci
 
       - name: Verify OpenSpec CLI
-        run: openspec --version
+        run: npm run openspec:cli -- --version

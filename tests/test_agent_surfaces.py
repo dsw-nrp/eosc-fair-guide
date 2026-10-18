@@ -28,6 +28,14 @@ from generate_agent_surfaces import generate  # noqa: E402
 
 
 class AgentSurfaceTests(unittest.TestCase):
+    def test_human_tooling_entrypoints_are_in_every_introduction(self):
+        for name in ("README.md", "README_en.md", "CONTRIBUTING.md"):
+            with self.subTest(name=name):
+                introduction = (ROOT / name).read_text(encoding="utf-8").split("\n## ", 1)[0]
+                self.assertRegex(introduction, r"\[[^\]]+\]\(docs/agent-tooling\.md\)")
+                self.assertIn("[AGENTS.md](AGENTS.md)", introduction)
+                self.assertTrue((ROOT / "docs/agent-tooling.md").is_file())
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -75,6 +83,44 @@ class AgentSurfaceTests(unittest.TestCase):
         self.assertIn(missing, changed)
         self.assertEqual(text_at(self.root, output), "planted drift\n")
         self.assertFalse((self.root / missing).exists())
+
+    def test_generated_outputs_cannot_overwrite_other_owners(self):
+        original = text_at(self.root, ".agents/guide/surfaces.toml")
+        output = self.config["rules"][0]["outputs"][0]
+        for target in (
+            "AGENTS.md",
+            "agents.MD",
+            self.config["rules"][1]["source"],
+            self.config["skills"][0]["source"],
+            ".agents/skills/openspec-explore/SKILL.md",
+            ".codex/settings.local.toml",
+        ):
+            with self.subTest(target=target):
+                self.write(".agents/guide/surfaces.toml", original.replace(output, target, 1))
+                before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+                with self.assertRaisesRegex(ValueError, "conflicting generated ownership"):
+                    generate(self.root)
+                after = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
+                self.assertEqual(after, before)
+
+    def test_case_only_reserved_output_is_refused(self):
+        source = text_at(self.root, ".agents/guide/surfaces.toml")
+        self.write(".agents/guide/surfaces.toml", source.replace(self.config["rules"][0]["outputs"][0], "codex.MD", 1))
+        with self.assertRaisesRegex(ValueError, "reserved output"):
+            generate(self.root)
+
+    def test_outputs_cannot_target_a_source_declared_in_a_later_row(self):
+        config_path = ".agents/guide/surfaces.toml"
+        original = text_at(self.root, config_path)
+        source = self.config["rules"][1]["source"]
+        external_source = "scripts/native-rule.md"
+        self.write(external_source, text_at(self.root, source))
+        changed = original.replace(source, external_source).replace(
+            self.config["rules"][0]["outputs"][0], external_source, 1
+        )
+        self.write(config_path, changed)
+        with self.assertRaisesRegex(ValueError, "conflicting generated ownership"):
+            load(self.root)
 
     def test_native_generation_preserves_delivered_bytes_and_preamble(self):
         before = sections(text_at(self.root, "CODEX.md"), "generated")

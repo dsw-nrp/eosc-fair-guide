@@ -39,7 +39,11 @@ items.
 ## Context to load first
 
 1. `AGENTS.md` — governance and scope
-2. `.agents/README.md` — structure of the .agents directory
+
+Use the repository's Python environment with PyYAML installed for the bundled
+`.agents/scripts/validate_release_yml.py` validator. Its `lib/log_utils.py` and
+`lib/proc_utils.py` helpers are bundled with it. Resolve report paths from the
+invoking checkout, separately from the target repository's release configuration.
 
 ## Steps
 
@@ -164,7 +168,7 @@ Tag-based runs emit **two** report files: a **publishable** body (`<repo>_<tag>.
 
 #### Step 7 — Validate and hand off
 
-- Validate: publishable file(s) exist; tag-based runs also have a working companion; Markdown is valid; links point to the target repo. Run `validate_release_yml.py` (structure, populated sections, publishable-vs-working heading rules); optionally `--check-git-count` for date-based reports.
+- Validate: publishable file(s) exist; tag-based runs also have a working companion; Markdown is valid; links point to the target repo. Run `python .agents/scripts/validate_release_yml.py --root <report-checkout>` with the repository interpreter (structure, populated sections, publishable-vs-working heading rules); optionally `--check-git-count` for date-based reports. If release configuration lives in a different checkout, validate that checkout with `--root <target-checkout> --skip-reports` as well.
 - Confirm the recommended `.github/release.yml` in reports; when target-repo propagation was approved, confirm the target file.
 - Hand off: wiki copying is **manual**; release body updated only when the user opted in (Step 5b), using the **publishable** file only.
 
@@ -239,4 +243,12 @@ Before claiming this workflow complete, confirm:
 
 - Hand the prepared **publishable** release notes to their owner; publishing is outside this skill.
 - `/aiscr-write-release-notes` — re-run this workflow for the next release.
-- Read `.agents/canonical_workflows_context.md` and follow the **Usage** section before loading a different workflow's context.
+- Before using another installed workflow, read its skill and load the context its own instructions require.
+
+## Bundled scripts
+
+The enrollment bundle installs these repository-local runtime scripts:
+
+- `.agents/scripts/validate_release_yml.py`
+- `.agents/scripts/lib/log_utils.py`
+- `.agents/scripts/lib/proc_utils.py`

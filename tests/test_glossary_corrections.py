@@ -4,12 +4,19 @@ from __future__ import annotations
 
 import sys
 import unittest
+from contextlib import redirect_stderr
+from io import StringIO
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import build_api  # noqa: E402
 import build_crate  # noqa: E402
+import build_site  # noqa: E402
+import check_content  # noqa: E402
+import check_duplicates  # noqa: E402
 import corrections  # noqa: E402
 
 
@@ -36,6 +43,33 @@ class GlossaryCorrectionTests(unittest.TestCase):
         glossary = self.glossary()
         corrections.apply([self.correction()], glossary)
         self.assertEqual(glossary["term"][0]["definition"], "A correct in the source.")
+
+    def test_replacement_may_contain_the_original_finding(self) -> None:
+        glossary = {"term": [{"id": "term", "definition": "archiv"}]}
+        correction = self.correction(find="archiv", replace="archivace")
+        corrections.apply([correction], glossary)
+        report = check_content.Report()
+        check_content.check_corrections(report, {"glossary": glossary, "corrections": [correction]})
+        self.assertEqual(report.errors, [])
+        self.assertEqual(glossary["term"][0]["definition"], "archivace")
+
+    def test_loader_translates_invalid_absent_and_ambiguous_corrections_for_every_entrypoint(self) -> None:
+        for correction in (self.correction(field="wrong"), self.correction(find="absent"), self.correction()):
+            for module in (check_content, check_duplicates, build_api, build_site):
+                with self.subTest(correction=correction, entrypoint=module.__name__):
+                    invalid = {"term": [{"id": "term", "definition": "typo typo"}]}
+
+                    def fail_load(*_args, selected=correction, glossary=invalid):
+                        corrections.apply([selected], glossary)
+
+                    with mock.patch.object(build_crate, "apply_corrections", side_effect=fail_load):
+                        with self.assertRaises(build_crate.ContentError):
+                            build_crate.load_content()
+                        error = StringIO()
+                        with redirect_stderr(error):
+                            self.assertEqual(module.main([]), 2)
+                        self.assertIn(module.__name__, error.getvalue())
+                        self.assertNotIn("Traceback", error.getvalue())
 
     def test_a_missing_or_ambiguous_finding_is_refused(self) -> None:
         with self.assertRaisesRegex(ValueError, "occurs 0 times"):

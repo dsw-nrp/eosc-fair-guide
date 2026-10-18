@@ -351,7 +351,6 @@ Before claiming this workflow complete:
 - `/aiscr-plan-from-issue <ISSUE_NUMBER>` -- promote a described issue into an OpenSpec change when you are ready to implement
 - `/aiscr-plan-issue <ISSUE_NUMBER>` -- run another round after the thread moves on
 - End the session — the developed issue is the durable output.
-utput.
 
 ## Bundled scripts
 

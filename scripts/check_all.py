@@ -196,6 +196,25 @@ def tail(text: str, lines: int = 40) -> str:
     )
 
 
+@dataclass(frozen=True)
+class PublicationContext:
+    content: dict | None
+    crate: dict | None
+    graph: check_health.build_crate.Graph | None
+    error: str | None = None
+
+    @classmethod
+    def load(cls) -> PublicationContext:
+        """Load once per publication, including a stable failure diagnostic when content is unreadable."""
+        try:
+            content = check_health.build_crate.load_content(ROOT / "content")
+            graph = check_health.build_crate.Graph()
+            crate = check_health.build_crate.build_crate(content, graph)
+        except (OSError, ValueError, KeyError, check_health.build_crate.ContentError) as error:
+            return cls(None, None, None, str(error))
+        return cls(content, crate, graph)
+
+
 def emit_report(
     build: Result,
     results: list[Result],
@@ -206,6 +225,7 @@ def emit_report(
     previous: Path | None,
     site: Path | None = None,
     pending_api: bool = False,
+    context: PublicationContext | None = None,
 ) -> None:
     """Retain failures and unrun jobs; a partial run never reports the whole suite as passed."""
     completed = {result.job.name: result for result in [build, *results]}
@@ -272,14 +292,9 @@ def emit_report(
     }
     if pending_api:
         run["reason"] += " Final health API validation is pending."
-    content = None
-    crate = None
-    try:
-        content = check_health.build_crate.load_content(ROOT / "content")
-        graph = check_health.build_crate.Graph()
-        crate = check_health.build_crate.build_crate(content, graph)
-    except (OSError, ValueError, KeyError, check_health.build_crate.ContentError) as error:
-        report = check_health.unreadable_report(str(error), run)
+    context = context or PublicationContext.load()
+    if context.error is not None:
+        report = check_health.unreadable_report(context.error, run)
     else:
         previous_error = None
         try:
@@ -287,12 +302,12 @@ def emit_report(
         except (OSError, ValueError) as error:
             baseline = None
             previous_error = str(error)
-        report = check_health.make_report(content, ROOT, run=run, previous=baseline, graph=graph)
+        report = check_health.make_report(context.content, ROOT, run=run, previous=baseline, graph=context.graph)
         if previous_error:
             report["trend"] = {"available": False, "reason": f"Previous report could not be read: {previous_error}"}
     check_health.write_report(report, output)
     if site is not None and build.ok:
-        build_api.publish_health(site, report, content, crate=crate)
+        build_api.publish_health(site, report, context.content, crate=context.crate)
     print(f"Health dashboard: {output / 'index.html'}")
 
 
@@ -374,6 +389,7 @@ def health_api_job() -> Job:
 def publish_results(build, results, available, selected, *, env, output, previous, start) -> int:
     """Publish and verify the same final health snapshot for local and partitioned runs."""
     health_api = health_api_job()
+    context = PublicationContext.load()
     if health_api not in selected:
         # The published-health validation was not asked for: the report says so instead of running it anyway.
         emit_report(
@@ -384,6 +400,7 @@ def publish_results(build, results, available, selected, *, env, output, previou
             output=output,
             previous=previous,
             site=ROOT / "_site",
+            context=context,
         )
         return finish(results, start)
     emit_report(
@@ -395,11 +412,14 @@ def publish_results(build, results, available, selected, *, env, output, previou
         previous=previous,
         site=ROOT / "_site",
         pending_api=True,
+        context=context,
     )
     candidate_api = run(health_api, env)
     print(f"{'ok  ' if candidate_api.ok else 'FAIL'} {candidate_api.seconds:6.1f}s  health-api (publication)")
     results.append(candidate_api)
-    emit_report(build, results, available, selected, output=output, previous=previous, site=ROOT / "_site")
+    emit_report(
+        build, results, available, selected, output=output, previous=previous, site=ROOT / "_site", context=context
+    )
     final_api = run(health_api, env)
     print(f"{'ok  ' if final_api.ok else 'FAIL'} {final_api.seconds:6.1f}s  health-api (final snapshot)")
     if not final_api.ok:
@@ -414,6 +434,7 @@ def publish_results(build, results, available, selected, *, env, output, previou
             output=output,
             previous=previous,
             site=ROOT / "_site",
+            context=context,
         )
     return finish(results, start)
 

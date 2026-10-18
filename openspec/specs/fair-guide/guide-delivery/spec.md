@@ -99,17 +99,24 @@ redelivery SHALL preserve native sections.
 
 ### Requirement: Tooling documentation describes the current compatible set
 
-`docs/agent-tooling.md` SHALL generate its inventory from the receipt and carry a task-to-tool matrix, vendor
-invocation, prerequisites, limits, read-only protection and compatibility decisions. `AGENTS.md`, `README_en.md`
-and `CONTRIBUTING.md` SHALL link it. Compatibility SHALL cover retained/dropped workflows, `aiscr-draft`,
-unavailable `--sibling`, native `check_all` close-out and Git baseline discovery.
+`docs/agent-tooling.md` SHALL render its current bundle inventory from the delivery manifest, with an
+authored task-to-tool matrix, vendor invocation, prerequisites, limits and read-only protection.
+It SHALL describe each client's actual instructions, shared skills and tool-generated OpenSpec surfaces
+without promising absent assets. The native editing skill and tooling document SHALL require the
+OpenSpec lifecycle before implementation of a triggering change.
 
 #### Scenario: A contributor chooses an editing workflow
 
 - **GIVEN** the contributor reaches the native editing skill or tooling document
 - **WHEN** their change triggers OpenSpec
-- **THEN** both require the OpenSpec lifecycle before implementation
+- **THEN** both SHALL require the OpenSpec lifecycle before implementation
 
+#### Scenario: A contributor checks workflow compatibility
+
+- **GIVEN** the current curated bundle and guide review facts
+- **WHEN** the tooling document describes the installed set
+- **THEN** it SHALL record the four retained workflows, `aiscr-draft`, dropped live/translation workflows, unavailable `--sibling`, native `check_all` close-out and Git baseline mapping
+- **AND** review facts SHALL declare no database and a deployment pipeline, public API and first-party frontend
 
 ### Requirement: Guide-owned usage and review facts
 
@@ -722,3 +729,94 @@ and commit.
 - **GIVEN** a published image whose served version or commit differs from its release
 - **WHEN** the smoke check runs
 - **THEN** it fails and reports the image digest and the mismatch
+
+### Requirement: Native generation cannot overwrite another owner
+
+Native generation SHALL reject any declared output overlapping an owned, tool-generated or runtime
+path or any native source before writing an output. Existing reserved-path and alias protections
+SHALL remain in force.
+
+#### Scenario: A generated output targets an authored source
+
+- **GIVEN** an output targets AGENTS, a native source, a tool-generated wrapper or a runtime path
+- **WHEN** native generation validates the ownership map
+- **THEN** it SHALL refuse before any write and leave every existing surface unchanged
+
+### Requirement: Human tooling entrypoints are visible in contribution documents
+
+`AGENTS.md` SHALL link `docs/agent-tooling.md`. Both `README.md` and `README_en.md` SHALL link it as
+the human starting point near the beginning, and `CONTRIBUTING.md` SHALL do so in its introductory
+section. The tooling document SHALL distinguish human onboarding from runtime `AGENTS.md`.
+
+#### Scenario: A human opens a contribution entry document
+
+- **GIVEN** either README language or CONTRIBUTING
+- **WHEN** a contributor reads its introductory material
+- **THEN** a labelled link SHALL lead to the human tooling guide and explain the runtime entry separately
+
+### Requirement: Native usage logging follows delivered field owners
+
+Native usage guidance SHALL refer to the delivered notability, runtime/backend and field owners rather
+than define a competing field set. Guide usage entries SHALL use the owners' exact labels while keeping
+the guide-owned usage location.
+
+#### Scenario: A native log uses different field labels
+
+- **GIVEN** a guide usage entry with labels that differ from the delivered field contract
+- **WHEN** usage compliance is checked
+- **THEN** it SHALL require the canonical labels and the native guidance SHALL point to their owner
+
+### Requirement: Agent setup uses pinned repository dependencies
+
+Copilot setup SHALL install the repository's locked dependencies and invoke the pinned local OpenSpec
+CLI. It SHALL NOT install an unversioned global CLI. Setup SHALL retain read-only repository permissions
+and nonpersisted checkout credentials, and regeneration checks SHALL detect a return to an unpinned route.
+
+#### Scenario: Setup is regenerated with an unpinned install
+
+- **GIVEN** a setup workflow installs OpenSpec without the repository lockfile pin
+- **WHEN** workflow validation runs
+- **THEN** it SHALL fail and identify the unpinned installation route
+
+### Requirement: Release preparation validates the complete permitted file set
+
+Release preparation SHALL obtain its expected file set from one shared structured owner, independent of
+the emitted digest manifest. The publisher SHALL reject missing, extra, duplicate or noncanonical paths,
+absolute paths, traversal and filesystem escapes before reading prepared files or making GitHub writes.
+It SHALL bind each accepted file to its prepared digest and preserve reviewed retry recovery.
+
+#### Scenario: A manifest selects an extra file with a matching digest
+
+- **GIVEN** a manifest names a file outside the shared permitted set and supplies its correct digest
+- **WHEN** the publisher validates the manifest
+- **THEN** it SHALL refuse without reading that file or making a GitHub write
+
+#### Scenario: An allowed path escapes through a filesystem link
+
+- **GIVEN** an otherwise allowed relative path resolves outside the repository or aliases another path
+- **WHEN** the publisher validates prepared paths
+- **THEN** it SHALL refuse before reading prepared file bytes or making a GitHub write
+
+### Requirement: Health publication reuses its content context
+
+One publication run SHALL reuse its loaded content and constructed crate/graph across pending, final
+and failure report emissions, including partitioned CI collection. Each emission SHALL retain its
+current outcomes; reuse SHALL NOT suppress failure reporting or change API/dashboard semantics.
+
+#### Scenario: A publication run emits several health snapshots
+
+- **GIVEN** a successful build followed by pending, final and optional failure health publication
+- **WHEN** the runner publishes those snapshots
+- **THEN** it SHALL parse content and construct the publication crate once and report each actual outcome
+
+### Requirement: Later review rounds retain summary-only observations
+
+Later review rounds SHALL retain summary-only observations alongside inline findings, with a disposition,
+owning repair location and verification or dispute evidence. Existing closures SHALL remain historical
+receipts unless current evidence requires reopening them.
+
+#### Scenario: A later review records an upstream source observation
+
+- **GIVEN** a review summary identifies a defect faithfully copied from an upstream workflow
+- **WHEN** the follow-up ledger is captured
+- **THEN** it SHALL retain that observation, route correction to its authored source and require verified redelivery

@@ -34,7 +34,7 @@ Execution boundaries: review only — do not merge, do not modify or deliver cod
 
 ## Context to load first
 
-1. Load first: for durable behavior and the write-fidelity obligations it owns, plus the target repository's `AGENTS.md` and contribution guidance.
+1. Read the target repository's `AGENTS.md` and contribution guidance.
 
 ## Steps
 

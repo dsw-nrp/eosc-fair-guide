@@ -1090,8 +1090,6 @@ def check_corrections(report: Report, content: dict[str, Any]) -> None:
             continue
         where = f"correction:{correction.get('id')}"
         text = term.get(correction.get("field"), "")
-        if correction.get("find") in text:
-            report.error(where, "the recorded finding is still present")
         if correction.get("replace") not in text:
             report.error(where, "the recorded replacement is absent")
 

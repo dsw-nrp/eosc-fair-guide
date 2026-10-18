@@ -48,11 +48,10 @@ generates the Content Security Policy. Follow the content rule for identifiers, 
 
 ## Usage and review facts
 
-Keep one rolling Markdown entry under `.agents/reports/usage/` for each significant uncommitted change set:
-substantive implementation, investigation, governance, planning or review. Routine reads and trivial typos do
-not need a new entry. Record date, scope, request/approval, assistant/runtime, actual backend model id (or that
-the runtime does not expose it), work performed, validation outcomes and remaining limits. Update that entry
-through close-out; keep content paradata in its own content-owned source. Never include secrets or private paths.
+The guide owns its rolling usage entry under `.agents/reports/usage/`. The delivered `aiscr-usage-logging`
+rule owns notability, entry lifecycle and exact field labels; `aiscr-model-logging` owns runtime/backend
+metadata. Read those delivered rules in your client or their sections in `CODEX.md` and use their field
+labels verbatim. Keep content paradata in its own content-owned source. Never include secrets or private paths.
 
 `.agents/config/review_config.toml` is guide-owned. Its `review_facts` describe this static application:
 no database; a deployment pipeline, public API and first-party frontend are present. Read those facts before

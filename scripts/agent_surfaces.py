@@ -103,6 +103,9 @@ def load(root: Path) -> tuple[dict, dict]:
         path_at(root, config[field])
     outputs: set[str] = set()
     ids: set[str] = set()
+    # Case-only aliases must be safe on every supported filesystem, including Windows.
+    sources = {row["source"].casefold() for row in [*config["rules"], *config["skills"]]}
+    protected = [pattern.casefold() for pattern in config["owned"] + config["tool_generated"] + config["runtime"]]
     for row in [*config["rules"], *config["skills"]]:
         if not re.fullmatch(r"fair-guide-[a-z0-9-]+", row["id"]) or row["id"] in ids:
             raise ValueError("duplicate or invalid native identity")
@@ -110,9 +113,12 @@ def load(root: Path) -> tuple[dict, dict]:
         path_at(root, row["source"])
         for relative in row["outputs"]:
             path_at(root, relative)
-            if relative in {CONFIG, config["manifest"], config["mixed"], config["inventory"]}:
+            key = relative.casefold()
+            if key in {path.casefold() for path in (CONFIG, config["manifest"], config["mixed"], config["inventory"])}:
                 raise ValueError(f"reserved output: {relative}")
-            if relative in outputs:
+            if key in sources or matches(key, protected):
+                raise ValueError(f"conflicting generated ownership: {relative}")
+            if key in {path.casefold() for path in outputs}:
                 raise ValueError(f"duplicate output: {relative}")
             outputs.add(relative)
     receipt = json.loads(text_at(root, config["manifest"]))
