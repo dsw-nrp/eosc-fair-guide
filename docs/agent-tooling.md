@@ -68,8 +68,12 @@ applicable. A command or agent being installed does not authorize remote writes,
 publication or changes to permissions. Workflow approval gates and repository contribution rules still apply.
 
 The bundled release-notes validator is `.agents/scripts/validate_release_yml.py`. It checks the prepared
-`.github/release.yml` and report files; absent inputs are reported as failures. The Guide has no generated
-release-notes reports merely because the workflow is installed. Follow the skill to prepare them first.
+`.github/release.yml` and report files; absent inputs are reported as failures. The Guide's committed config
+can be checked with `python .agents/scripts/validate_release_yml.py --root . --skip-reports`.
+For report-only validation, select the recommended config using
+`--release-config .agents/reports/release-notes/eosc-fair-guide_release.yml`.
+Prepare the reports and recommended copy first, then run that option with `--root .` and without
+`--skip-reports`; a config-only pass does not establish report validity.
 
 ## Ownership, integrity and regeneration
 

@@ -123,6 +123,14 @@ moves an existing tag. If further commits landed after the release merge, reconc
 before tagging; the dispatch refuses to tag those different bytes. Tag creation starts the checked production
 build described above; publishing the resulting draft release is still a separate maintainer act.
 
+`.github/release.yml` groups GitHub-generated notes into Breaking changes (`breaking-change`, reserved
+for breaking PRs), Features (`enhancement`), Bug fixes (`bug`) and Other (all remaining PRs). It keeps
+dependency and bot changes visible. Check this configuration with
+`python .agents/scripts/validate_release_yml.py --root . --skip-reports` using Python with PyYAML.
+This config does not replace Prepare release's whole-PR changelog or the artifact-bound draft body.
+For curated notes, follow the release-notes skill and validate its recommended report copy as instructed;
+publishing notes still needs separate approval.
+
 Both dispatches use the existing repository-scoped App (`SOURCE_REFRESH_CLIENT_ID` and
 `SOURCE_REFRESH_APP_PRIVATE_KEY`), with Contents and Pull requests read/write at installation and narrower tokens
 per job. The App's PR and tag events trigger normal checks and deployment. GitHub documents this distinction

@@ -5,6 +5,7 @@
 
 Runs without an agent or the GitHub API.
 Optional --check-git-count: sanity check for date-based reports (if there were commits that day, at least one note).
+Optional --release-config: validate a recommended report copy instead of `.github/release.yml`.
 
 Contract: documentation/release-documentation, documentation/docs-language-quality
 Class: script
@@ -101,11 +102,12 @@ def _load_yaml(path: Path) -> Any:
 
 def validate_release_yml(
     root: Path,
+    release_config: Path | None = None,
 ) -> list[tuple[Path, str]]:
     # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
-    """Step 2: validate .github/release.yml YAML structure and changelog categories."""
+    """Validate the selected release config; relative paths resolve from root."""
     errors: list[tuple[Path, str]] = []
-    path = root / ".github" / "release.yml"
+    path = root / (release_config if release_config is not None else Path(".github/release.yml"))
     if not path.exists():
         errors.append((path, "file does not exist"))
         return errors
@@ -408,9 +410,15 @@ def main(argv: list[str] | None = None) -> int:
         help="Repo root (default: derived from script location).",
     )
     parser.add_argument(
+        "--release-config",
+        type=Path,
+        default=None,
+        help="Release config to validate instead of .github/release.yml; relative to --root, or absolute.",
+    )
+    parser.add_argument(
         "--skip-reports",
         action="store_true",
-        help="Validate only .github/release.yml and report copy YAML; skip report dir and .md checks.",
+        help="Validate only the selected release config and report copy YAML; skip report dir and .md checks.",
     )
     parser.add_argument(
         "--check-git-count",
@@ -421,7 +429,7 @@ def main(argv: list[str] | None = None) -> int:
     root = (args.root or _default_root()).resolve()
 
     all_errors: list[tuple[Path, str]] = []
-    all_errors.extend(validate_release_yml(root))
+    all_errors.extend(validate_release_yml(root, args.release_config))
     all_errors.extend(validate_report_copy_yml(root))
     all_errors.extend(validate_reports_dir(root, args.skip_reports))
     if args.check_git_count:

@@ -1,0 +1,12 @@
+# Canonical English release-note categories; keep maintenance and dependency PRs visible.
+# Reserve breaking-change for breaking PRs; enhancement and bug are existing repository labels.
+changelog:
+  categories:
+    - title: Breaking changes
+      labels: [breaking-change]
+    - title: Features
+      labels: [enhancement]
+    - title: Bug fixes
+      labels: [bug]
+    - title: Other
+      labels: ['*']

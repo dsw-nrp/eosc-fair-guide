@@ -1,5 +1,19 @@
 ## ADDED Requirements
 
+### Requirement: Release-note configuration is ready for validation
+
+The Guide SHALL provide `.github/release.yml` with English semantic categories, mappings for its feature
+and bug labels, and a final catch-all retaining maintenance changes. Release-note report validation SHALL
+support the explicitly selected recommended config without requiring propagation to a target checkout.
+This configuration SHALL NOT replace the artifact-bound draft body or the release-preparation changelog.
+
+#### Scenario: A maintainer prepares release notes locally
+
+- **GIVEN** the Guide checkout and the delivered release-note tools
+- **WHEN** the maintainer validates configuration only or prepares a report-only run
+- **THEN** the actual config or explicitly selected report copy SHALL validate through the documented command
+- **AND** report-only validation SHALL retain report language and working-companion checks
+
 ### Requirement: Repository carries best-practice files
 
 The tool repository SHALL contain:
@@ -123,7 +137,6 @@ pipeline, public API and first-party frontend.
 - **GIVEN** a significant review of the Guide
 - **WHEN** the reviewer starts work
 - **THEN** they read the guide-owned review facts and maintain a rolling usage entry
-
 
 ### Requirement: Content checks gate pull requests
 

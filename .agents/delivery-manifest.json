@@ -22,7 +22,7 @@
     },
     ".agents/scripts/validate_release_yml.py": {
       "asset": "aiscr-write-release-notes",
-      "sha256": "ecc8257442ed68e29766fff66e415cce0e51f4800d6e76a69d58102a905af1c1"
+      "sha256": "19ad056d1d93f55de79e76046c75a9b6d55d21242e70d422a4f25be515ba8336"
     },
     ".agents/skills/_dispatch/common.md": {
       "asset": "aiscr-dispatch-library",
@@ -118,7 +118,7 @@
     },
     ".agents/skills/aiscr-write-release-notes/SKILL.md": {
       "asset": "aiscr-write-release-notes",
-      "sha256": "def4f10b2153bec6764d4c9941af2fb76e7308e36ebe1fc1a1d2dd3e3e8a3edd"
+      "sha256": "69b14ae2b3e6b9557bac2d9c3c29195d0e7430a61eefc81009e5c2538149f62f"
     },
     ".claude/agents/aiscr-analyse-correctness.md": {
       "asset": "aiscr-analyse-correctness",
@@ -214,7 +214,7 @@
     },
     ".claude/skills/aiscr-write-release-notes/SKILL.md": {
       "asset": "aiscr-write-release-notes",
-      "sha256": "6426d1a9691ec108036523844572f3106a420a603c089ea150dc7c4898548833"
+      "sha256": "58c69bf4ebb5b083a711255dee70f48c615d20f008c9163318624c35e7f335b7"
     },
     ".codex/agents/aiscr-analyse-correctness.toml": {
       "asset": "aiscr-analyse-correctness",
