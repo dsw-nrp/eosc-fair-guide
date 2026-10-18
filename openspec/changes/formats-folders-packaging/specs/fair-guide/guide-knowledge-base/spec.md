@@ -1,5 +1,3 @@
-# Guide knowledge base
-
 ## ADDED Requirements
 
 ### Requirement: Actionable conventions for file organisation, open formats, synthetic samples, and archive packaging
@@ -25,3 +23,4 @@ The knowledge base SHALL provide concrete recommendations specifying directory c
 - **GIVEN** a dataset comprising thousands of individual files
 - **WHEN** publishing to a repository in Station 8
 - **THEN** the guide recommends bundling the files into an archive with an explicit manifest and verifying checksums.
+
