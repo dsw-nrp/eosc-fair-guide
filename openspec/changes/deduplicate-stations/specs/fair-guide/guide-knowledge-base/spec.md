@@ -1,5 +1,3 @@
-# Guide knowledge base
-
 ## ADDED Requirements
 
 ### Requirement: Station advice is non-repetitive and concise
@@ -15,3 +13,4 @@ Advice items within a life cycle station SHALL present distinct recommendations 
 - **GIVEN** AI assistance advice items across different stations
 - **WHEN** prompts are provided for different life cycle tasks (such as data collection vs. metadata creation)
 - **THEN** the prompts SHALL differ materially in objective, instructions, and target output.
+
