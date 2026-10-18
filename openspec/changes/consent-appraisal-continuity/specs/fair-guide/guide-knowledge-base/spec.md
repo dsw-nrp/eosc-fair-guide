@@ -1,5 +1,3 @@
-# Guide knowledge base
-
 ## ADDED Requirements
 
 ### Requirement: Practical guidance for human consent, data appraisal, and team handover
@@ -20,3 +18,4 @@ The knowledge base SHALL contain explicit operational recommendations addressing
 - **GIVEN** research staff or students concluding their work on a project
 - **WHEN** consulting Station 2 (Collect)
 - **THEN** recommendations provide handover checklists and advise using institutional or e-INFRA shared storage rather than personal local drives.
+
