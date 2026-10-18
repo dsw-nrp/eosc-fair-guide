@@ -6,7 +6,7 @@
 # and `site/`) and passes the build identity that also appears in the page footer.
 #
 # The base is digest-pinned; Dependabot's `docker` ecosystem keeps the digest current.
-FROM nginxinc/nginx-unprivileged:alpine@sha256:826d5972d5e54e527a4a749fdf1e3db9a115319adb084c92acbc60ef91e19931
+FROM nginxinc/nginx-unprivileged:alpine@sha256:378d0c32f6562f7fd9629170797f57d2b953aa09be983b3daaf4809bb039ca00
 
 USER root
 RUN rm -f /usr/share/nginx/html/index.html /usr/share/nginx/html/50x.html
