@@ -5,7 +5,7 @@
 ### Requirement: Releases are versioned consistently
 
 A release SHALL keep the Guide, `CITATION.cff`, `.zenodo.json`, npm manifest and lockfile, `pyproject.toml`, crate
-metadata and release tag consistent. One script SHALL own the version and the release dates in all of them;
+metadata and release tag consistent. One script SHALL own their version and release dates;
 prose SHALL NOT restate the version. The first official prerelease tag SHALL be `v1.0.0-alpha.1`. Each release
 SHALL attach the verified built site from its source commit as an asset; deployment SHALL publish that same
 checked artifact without rebuilding away its recorded health outcomes.
@@ -47,6 +47,25 @@ through a release PR or direct commits. Preparation and default-branch pushes SH
 - **WHEN** the maintainer runs Tag release with that version and a valid release status
 - **THEN** the workflow creates the annotated release tag at that exact commit without requiring PR ancestry
 - **AND** successful verified deployment feeds the existing image and draft-release chain, with publication remaining a separate maintainer action
+
+### Requirement: An unchanged release may be re-issued by a direct annotated tag
+
+Tag release SHALL select the current default-branch commit, never a historical target. After the branch advances,
+an unchanged release MAY be re-issued manually at its original release merge commit only if no released artifact was
+published for the removed tag. Its annotated tag SHALL carry the release-status marker and never move an existing
+tag. Deployment and release SHALL use that commit's verified build.
+
+#### Scenario: Re-issuing an unchanged release after a repair
+
+- **GIVEN** a merged release pull request at a known commit, its tag removed after a failed deployment before any released artifact was published, and a repair merged to the default branch
+- **WHEN** the maintainer manually recreates the annotated tag for that original release merge commit
+- **THEN** the tag names that historical commit and carries the same status marker, and deployment and the draft release follow from that commit's verified build
+
+#### Scenario: Dispatching after a repair with valid committed metadata
+
+- **GIVEN** the default branch has advanced beyond the original release merge commit and its current head passes all requested-release checks with no existing requested tag
+- **WHEN** the maintainer runs Tag release
+- **THEN** the dispatch tags that current head, including the repair, rather than selecting the historical merge commit or refusing solely because the branch advanced
 
 ## ADDED Requirements
 

@@ -16,6 +16,8 @@ deployment repair while adding reviewed archive metadata and release-time valida
   release tag, with commit links and no duplicate entries for changes already represented by a PR.
 - Permit the manual tag dispatch to tag the current default-branch commit when its committed version,
   release dates and changelog are valid, without requiring release-PR ancestry.
+- Reconcile the historical recovery contract: the dispatch selects the current head, while re-issuing an
+  unchanged historical release remains a manual operation at its original release merge commit.
 - Preserve the existing repository-context repair and MIT software-license correction, including their
   regression coverage. Deliver this change through a normal commit and PR with the published history intact.
 - Adopt the staged `CITATION.cff` additions and `.zenodo.json`; keep their shared software citation metadata,
@@ -44,11 +46,13 @@ None.
 
 Implementation affects `scripts/release_versions.py`, `.github/scripts/prepare-release.cjs`, their workflow
 steps and tests, `.github/release-prepared-files.json`, `CITATION.cff`, `.zenodo.json`, `docs/deployment.md`,
-`CONTRIBUTING.md`, and guide-owned release guidance. Both READMEs receive the badge only after an actual DOI
-is issued. The existing deployment repair, published commits, archive and release tag stay in place.
+`CONTRIBUTING.md`, and guide-owned release guidance. Both READMEs describe the PR default and authorized
+maintainer direct-commit exception; they receive the badge only after an actual DOI is issued. The existing
+deployment repair, published commits, archive and release tag stay in place.
 
 No new application runtime dependency or public data/API change is needed. Use the existing pinned check
-tools for metadata validation. No automatic direct push of prepared metadata, release on every push,
+tools for metadata validation and declare the checker's direct `jsonschema` dependency compatibly with
+`cffconvert`. No automatic direct push of prepared metadata, release on every push,
 automatic draft publication, automatic protection relaxation or tag movement is proposed.
 
 Validate with real Git-history fixtures and mocked GitHub delivery fixtures, strict OpenSpec validation,

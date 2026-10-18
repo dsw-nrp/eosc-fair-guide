@@ -111,8 +111,13 @@ Both PR and direct-commit releases use the same validation; there is no bypass f
 If commits land after a release PR merge, the maintainer must reconcile notes and metadata for the selected
 current commit before tagging; the presence of the old PR alone grants no exception to content checks.
 
-The existing recovery requirement for manually re-issuing an unchanged historical release merge remains
-intact. This change does not enlarge that recovery route to arbitrary historical targets. There is still no
+Update the durable recovery requirement and its delta to distinguish the dispatch's current-head selection
+from manually re-issuing an unchanged historical release at its original release merge commit. After a repair
+advances the default branch, the dispatch can tag that repaired head if the committed metadata still validates;
+it does not refuse merely because the head is no longer the release-PR merge. It cannot select the historical
+merge commit. Manual recovery remains limited to that original commit, after its failed-deployment tag was
+removed and before any released artifact was published, with the same status marker and no existing-tag move.
+This change does not enlarge that recovery route to arbitrary historical targets. There is still no
 atomic GitHub operation tying a branch-head check and a new tag ref together; keep the final check close to the
 create operation and never claim stronger atomicity than the API provides.
 
@@ -143,6 +148,8 @@ Introduce a read-only citation/Zenodo checker, with matching tests, and register
 the normal CPU lane and local close-out both execute it. Use the already pinned `cffconvert` and check-tool
 dependencies in `requirements-dev.txt`. Prepare release and Tag release must install those tools and run the
 same checker before metadata delivery or tag creation; keep workflow code and credentials on the trusted route.
+Pin the checker's direct dependency to `jsonschema==3.2.0` in `requirements-dev.txt`, within
+`cffconvert==2.0.0`'s `>=3.0,<4` constraint, rather than relying on its transitive installation.
 
 The checker validates CFF against its declared schema, validates a documented offline Zenodo-import profile,
 and checks shared values. The profile must explicitly support the current importer's `version` and structured

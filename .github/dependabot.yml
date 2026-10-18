@@ -4,19 +4,39 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 30
+    groups:
+      patch-updates:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["patch"]
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 30
+    groups:
+      patch-updates:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["patch"]
   - package-ecosystem: pip
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 30
+    groups:
+      patch-updates:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["patch"]
   - package-ecosystem: docker
     directory: /docker
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 30
+    groups:
+      patch-updates:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["patch"]

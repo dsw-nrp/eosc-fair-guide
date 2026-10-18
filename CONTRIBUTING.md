@@ -124,8 +124,8 @@ collaborators, never a team that does not exist.
 
 The gates that can be enforced depend on who can review:
 
-- `main` accepts changes only through pull requests; the required check "Guide checks and health report" must
-  pass, and nothing is force-pushed or deleted.
+- Pull requests into `main` require the check "Guide checks and health report" to pass. Explicitly authorized
+  maintainer direct commits remain subject to configured branch protection; nothing is force-pushed or deleted.
 - Keep `CODEOWNERS` aligned with eligible reviewers for `content/`, the stations and checks. Require one
   approving code-owner review when an independent eligible reviewer is available. GitHub does not let an
   author approve their own pull request; without an eligible independent reviewer, a release candidate needs

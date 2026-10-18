@@ -131,8 +131,11 @@ checked production build; publishing the resulting draft release is still a sepa
 For an unchanged historical release whose failed-deployment tag was removed before a released artifact was
 published, the maintainer may recreate the annotated tag directly at the original release merge commit. Confirm
 that original target, use the same `Fair-Guide-Release-Status` marker and never move an existing tag. The normal
-dispatch selects the current default-branch commit and does not select historical targets. Corrected metadata
-belongs in a new version; editing `main` cannot repair bytes frozen at an existing tag.
+dispatch selects the current default-branch commit and does not select historical targets. If that current head
+still passes the requested-release checks and the tag is absent, the dispatch tags it, including later repairs;
+branch advancement alone does not cause a refusal. Use manual recovery only when the intended target is the
+unchanged original release merge commit. Corrected metadata belongs in a new version; editing `main` cannot
+repair bytes frozen at an existing tag.
 
 `.github/release.yml` groups GitHub-generated notes into Breaking changes (`breaking-change`, reserved
 for breaking PRs), Features (`enhancement`), Bug fixes (`bug`) and Other (all remaining PRs). It keeps

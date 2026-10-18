@@ -29,7 +29,13 @@
 ## 5. Validate the integrated release change
 
 - [x] 5.1 Run the focused citation-metadata, release-version and workflow Python tests plus `node tests/page/check_prepare_release.mjs` and `node tests/page/check_release.mjs`; verify the original failures and new stale-metadata cases are detected against the prior behavior, while context preservation, permitted-file/digest and interrupted-PR recovery fixtures pass with the implementation.
-- [ ] 5.2 Run the repository's Python lint, CFF/Zenodo checker and `npm run openspec:validate`, then `python scripts/check_all.py` for full native close-out. Record actual coverage, the scoped commit diff and environmental limitations in the existing change records; verify offline fixtures create no real tag, release or default-branch commit.
+- [x] 5.2 Run the repository's Python lint, CFF/Zenodo checker and `npm run openspec:validate`, then `python scripts/check_all.py` for full native close-out. Record actual coverage, the scoped commit diff and environmental limitations in the existing change records; verify offline fixtures create no real tag, release or default-branch commit.
+
+## 6. Address PR 68 review 5564997969
+
+- [x] 6.1 Reconcile the durable unchanged-release recovery requirement, its delta and design with current-head dispatch selection and manual-only historical recovery; clarify `docs/deployment.md`. Verify strict OpenSpec validation and the existing immutable-tag, current-head and stale-source JavaScript fixtures.
+- [x] 6.2 Pin the citation checker's direct dependency to `jsonschema==3.2.0`, compatible with `cffconvert==2.0.0`. Verify the installed check environment satisfies both declarations, the offline citation checker and its focused tests pass, and dependency metadata are consistent.
+- [x] 6.3 Reconcile both README contribution sections with PR-default delivery and explicitly authorized maintainer direct commits under the same release checks. Keep agent permissions and branch protection intact; check bilingual equivalence, contribution guidance and whitespace.
 
 ## Workflow follow-up
 
