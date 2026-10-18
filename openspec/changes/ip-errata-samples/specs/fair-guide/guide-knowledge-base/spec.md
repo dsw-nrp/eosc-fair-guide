@@ -1,6 +1,6 @@
 # Guide knowledge base
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Practical guidance for physical sample links, patent/commercial exceptions, and immutable errata handling
 
