@@ -1,5 +1,3 @@
-# Guide knowledge base
-
 ## ADDED Requirements
 
 ### Requirement: Practical guidance for physical sample links, patent/commercial exceptions, and immutable errata handling
@@ -20,3 +18,4 @@ The knowledge base SHALL provide actionable guidance on linking research dataset
 - **GIVEN** an error discovered in published dataset files
 - **WHEN** resolving the error in Station 8 (Publication)
 - **THEN** the guide prohibits silent replacement or deletion, directing researchers to metadata correction, version incrementation with linked PIDs, or tombstone withdrawal as appropriate.
+
