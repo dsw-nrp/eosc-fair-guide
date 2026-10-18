@@ -1555,13 +1555,13 @@ endTime = 2026-10-18T11:22:56+00:00
 [[action]]
 id = "2026-10-18-station-dedup"
 type = "update"
-name = { cs = "Redakční zeštíhlení zastávek a odstranění duplicitních rad", en = "Editorial streamlining of stations and removal of duplicate advice items" }
+name = "Editorial streamlining of stations and removal of duplicate advice items"
 agent = "david-novak"
 instruments = [
   "claude-code",
   "claude-opus-5-5",
 ]
-description = { cs = "Sloučení dodatečně připojených duplicitních položek (RDMkit a příručka k licencím) s hlavními radami zastávek, odlišení klíčových myšlenek od úvodních shrnutí a rozlišení AI šablon v zastávkách 2 a 6.", en = "Merged appended duplicate advice items (RDMkit and licensing handbook) into core station advice, differentiated key insights from introductory summaries, and separated AI prompts in stations 2 and 6." }
+description = "Merged appended duplicate advice items (RDMkit and licensing handbook) into core station advice, differentiated key insights from introductory summaries, and separated AI prompts in stations 2 and 6."
 objects = [
   "A.F1.X2",
   "A.F2.N2",
