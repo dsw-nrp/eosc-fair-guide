@@ -1,0 +1,5 @@
+[review_facts]
+database = false
+deployment_pipeline = true
+public_api = true
+first_party_frontend = true

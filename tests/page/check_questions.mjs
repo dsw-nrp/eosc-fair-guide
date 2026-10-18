@@ -4,6 +4,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
@@ -11,12 +12,10 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
 const base = pathToFileURL(resolve(root, "_site/index.html")).href;
-const problems = [];
-const external = [];
-let axeRunning = false;
-page.on("pageerror", (error) => problems.push(error.message));
-page.on("console", (message) => { if (message.type() === "error" && !axeRunning) problems.push(message.text()); });
-page.on("request", (request) => { if (!/^(?:file|data):/.test(request.url()) && !axeRunning) external.push(request.url()); });
+const {state, problems, external} = installGuards(page, {
+  allowed: (url) => /^(?:file|data):/.test(url),
+  consoleErrors: true,
+});
 const screenshots = resolve(root, ".cache/screenshots/questions");
 mkdirSync(screenshots, { recursive: true });
 let current = null;
@@ -49,9 +48,9 @@ const finished = () => page.waitForFunction(() => {
   return text && !/Načítám|Loading|Pracuji|Working/.test(text);
 });
 async function checkAccess() {
-  axeRunning = true;
+  state.axeRunning = true;
   const result = await audit(page);
-  axeRunning = false;
+  state.axeRunning = false;
   assert.deepEqual(result.violations.map((entry) => entry.id), []);
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "no horizontal overflow");
 }

@@ -1,9 +1,27 @@
 # Agent guide
 
-This is the single guide for AI agents working in this repository. `CLAUDE.md` and
-`.github/copilot-instructions.md` only point here. For any change to the guide's content, page or release,
-use the editing skill `fair-guide-editor` (`.agents/skills/fair-guide-editor/SKILL.md`, mirrored in
-`.claude/skills/`).
+This is the runtime entry for AI agents. `CLAUDE.md`, `.github/copilot-instructions.md` and `CODEX.md` point here.
+Use `fair-guide-editor` (`.agents/skills/fair-guide-editor/SKILL.md`, mirrored in `.claude/skills/`). Its authored
+source and the standing rules live under `.agents/guide/`: read `rules/fair-guide-content.md` and
+`rules/fair-guide-surfaces.md`. [Agent tooling](docs/agent-tooling.md) documents ownership, vendor invocation,
+compatibility and the generated inventory.
+
+The native skill MUST delegate every behaviour, data/API contract, stored-format, CI or governance change to
+the OpenSpec lifecycle through delivered `aiscr-planning-core` and `openspec-*` surfaces **before implementation**.
+Complete the planning artifacts and required approval first; resume native execution through approved apply.
+Never implement first and maintain specs later. Routine wording/formatting corrections, behaviour-neutral
+dependency updates and source refreshes preserve the existing contract and use ordinary editing checks.
+
+Delivered membership is defined by `.agents/delivery-manifest.json`, including the delivered sections of
+`CODEX.md`. These assets are read-only; propose corrections upstream. Edit guide-owned sources, then run
+`python scripts/generate_agent_surfaces.py`; `--check`, `scripts/check_agent_surfaces.py` and
+`scripts/check_sibling_delivery.py` are included in `python scripts/check_all.py`.
+
+Keep one rolling entry under `.agents/reports/usage/` for significant uncommitted implementation, investigation,
+planning, governance or review work. Record date, scope, request/approval, assistant/runtime, actual backend model
+id (or that it is not exposed), work, validation outcomes and remaining limits. Trivial typos and routine reads
+need no new entry. Content paradata remains separate. Before review, read the guide-owned
+`.agents/config/review_config.toml`; the native surfaces rule owns the detailed usage and review-fact contract.
 
 ## Purpose
 
@@ -54,9 +72,10 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 12. **Snapshots by pull request.** Sources a browser cannot reach enter as dated snapshots. The scheduled workflows
     (`source-refresh.yml`, `health-watch.yml`) open pull requests or issues and never commit to `main`; they run
     only once they are on the default branch, and source refresh also needs the configured App (`docs/design.md`).
-13. **Diagrams.** Mermaid sources in `diagrams/`, rendered to SVG in `assets/diagrams/`, or explicitly approved
-    source SVG adaptations. Each has an accessible title and description and equivalent adjacent prose.
-    The three approved manuscript figures retain their structure, terminology and scoped status/arrow meanings.
+13. **Diagrams.** Published figures and their reviewed SVG adaptations live under `assets/diagrams/` with
+    the accompanying `README.md`; diagrams authored for documentation use Mermaid fences. Each has an
+    accessible title and description and equivalent adjacent prose. The three approved manuscript figures
+    retain their structure, terminology and scoped status/arrow meanings.
 
 ## Layout
 
@@ -74,8 +93,7 @@ Do not break these without an explicit decision recorded in `docs/design.md`.
 | `assets/icons/` | Vendored Font Awesome Free icons (CC BY 4.0); written by `scripts/vendor_icons.py`, never by hand |
 | `assets/fonts/` | Plus Jakarta Sans (OFL 1.1) for the life cycle's stage names; written by `scripts/vendor_fonts.py`, never by hand |
 | `assets/favicons/` | Tools' and services' own favicons, normalised to 48-pixel PNGs, with their sources; written by `scripts/vendor_favicons.py`, never by hand |
-| `assets/diagrams/` | Rendered SVG diagrams |
-| `diagrams/` | Mermaid sources |
+| `assets/diagrams/` | Reviewed figure SVGs and their source guidance |
 | `docs/` | `design.md`, `content-model.md` |
 | `.github/` | Workflows, templates, `CODEOWNERS` |
 
@@ -89,7 +107,7 @@ python scripts/check_content.py         # content contract and no build output i
 python scripts/check_duplicates.py      # one entry per thing: no two entries share an address, an identifier, a name or a text
 python scripts/register_ids.py          # register the identifiers of new entries in content/identifiers.toml
 python -m unittest discover -s tests    # tests of the generator, the checks and the snapshot script
-python scripts/refresh_snapshots.py     # refresh the Heslář, re3data, FIP Dashboard, NKR, FAIRsharing and DataCite snapshots; a response that fails validation leaves the snapshot unchanged (--report writes each outcome)
+python scripts/refresh_snapshots.py     # refresh the Heslář, re3data, FIP Dashboard, NKR, KNAV, FAIRsharing and DataCite snapshots; a response that fails validation leaves the snapshot unchanged (--report writes each outcome)
 python scripts/vendor_icons.py          # copy the icons the content names from node_modules (after npm ci); --check fails on drift
 python scripts/vendor_fonts.py          # copy the web fonts from node_modules (after npm ci); --check fails on drift
 python scripts/vendor_favicons.py       # take and normalise tools' favicons (network, Node, Playwright); --check fails on drift

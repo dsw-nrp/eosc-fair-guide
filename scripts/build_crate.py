@@ -45,6 +45,7 @@ from catalogue_identity import (
     source_scheme,
     validate_identity,
 )
+from corrections import apply as apply_corrections
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
@@ -510,6 +511,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         "node": optional("eosc-node.toml"),
         "snapshots": snapshots,
         "glossary": optional("glossary.toml"),
+        "corrections": optional("corrections.toml").get("correction", []),
         "callouts": optional("callouts.toml").get("callout", []),
         "live": optional("live.toml"),
         "provenance": optional("provenance.toml").get("action", []),
@@ -524,6 +526,7 @@ def load_content(content_dir: Path = CONTENT) -> dict[str, Any]:
         # The normalised favicons kept with the page (scripts/vendor_favicons.py), beside the content they serve.
         "favicons": load_toml(path).get("favicon", []) if (path := content_dir.parent / FAVICONS).is_file() else [],
     }
+    apply_corrections(content["corrections"], content["glossary"])
     resolve_requirements(content)
     return content
 
@@ -3110,9 +3113,13 @@ PROTECTED_TREES = frozenset(
     {
         ".agents",
         ".claude",
+        ".codex",
+        ".cursor",
         ".devcontainer",
+        ".gemini",
         ".git",
         ".github",
+        ".kilo",
         ".venv",
         "LICENSES",
         "api",

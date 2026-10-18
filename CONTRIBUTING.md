@@ -4,6 +4,9 @@ Thank you for helping improve the FAIR Data Guide. This file describes how chang
 rules are in [docs/content-model.md](docs/content-model.md); design decisions are in
 [docs/design.md](docs/design.md).
 
+For AI-assisted work start at [AGENTS.md](AGENTS.md) and the [agent tooling guide](docs/agent-tooling.md),
+which lists native sources, delivered tools, invocation and ownership checks.
+
 ## Branches and pull requests
 
 - `main` supplies the `/next/` preview; production comes from checked release artifacts. Nobody pushes to `main`
@@ -170,8 +173,9 @@ Every tagged release also publishes a container image to the GitHub container re
 release's verified site artifact — never rebuilt from source — so a reader can run the published page locally with
 `docker run --rm -p 8080:8080 ghcr.io/dsw-nrp/eosc-fair-guide:latest`. It carries the release tag, a moving
 `latest` on every release and a moving `stable` on every non-prerelease. It is signed (cosign, keyless) and attested
-against its digest and scanned with Trivy; the release notes record that digest. Its `nginx-unprivileged` base is
-digest-pinned and the `docker` Dependabot entry keeps it current.
+against its digest and scanned with Trivy; a failed scan operation blocks publication, while vulnerability
+findings are advisory. The release notes record that digest. Its `nginx-unprivileged` base is digest-pinned and
+the `docker` Dependabot entry keeps it current.
 
 ## Conduct
 

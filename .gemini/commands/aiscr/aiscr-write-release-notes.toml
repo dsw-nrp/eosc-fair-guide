@@ -1,0 +1,18 @@
+# aiscr:canonical=
+description = "Generate semantic, issue/PR-aligned release notes for a target AIS CR repository. Stores output in .agents/reports/release-notes/. Optionally updates the GitHub release body (opt-in, requires user approval)."
+prompt = """
+<!-- aiscr:stop-anchor -->
+**Entry scope**
+
+- Stay in this `.gemini/commands/aiscr/` surface and its same-vendor pointers first.
+- Do not open parallel vendor trees by default just in case.
+- Cross into another vendor tree only for explicit parity checks, generator work, or governance maintenance.
+
+Generate semantic, issue/PR-aligned release notes for a target AIS CR repository. Stores output in .agents/reports/release-notes/. Optionally updates the GitHub release body (opt-in, requires user approval).
+
+Execute the AIS CR workflow `aiscr-write-release-notes`. The full workflow body for this command is the repository-local skill included below; follow it as the authoritative procedure, guardrails, and verification requirements.
+
+@{.agents/skills/aiscr-write-release-notes/SKILL.md}
+
+If the skill inclusion above did not expand — the paired skill file is missing or excluded by repository ignore rules — stop and report that `/aiscr-write-release-notes` cannot run in this checkout instead of improvising the workflow.
+"""

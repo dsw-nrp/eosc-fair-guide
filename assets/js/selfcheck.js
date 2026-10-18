@@ -765,7 +765,6 @@
 
   /** The fields and values an answer was taken from, as "field = value" pairs. */
   const foundFields = (pre) => FG.list(pre.fields).filter((field) => field && FG.list(field.values).length);
-  const fieldText = (field) => field.path + " = " + field.values.join(", ") + (field.more ? " (+" + field.more + ")" : "");
 
   const FIELD_LABELS = {
     "rightsList[].rightsUri": "licence", "rightsList[].rights": "licence", "license": "licence", "licence": "licence",

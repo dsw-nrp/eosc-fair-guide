@@ -4,19 +4,16 @@
 const { readFileSync, existsSync } = require("node:fs");
 const { createHash } = require("node:crypto");
 
-// The reviewed source keys and the files each refresh may change (scripts/refresh_snapshots.py). The FIP Dashboard's
-// interdependent collections are one file, so one commit replaces them together.
-const SOURCES = Object.freeze({
-  heslar: ["content/glossary.toml"],
-  re3data: ["content/snapshots/re3data.toml"],
-  "fip-dashboard": ["content/snapshots/fip-dashboard.toml"],
-  nkr: ["content/snapshots/nkr.toml"],
-  "knav-tools": ["content/snapshots/knav-tools.toml"],
-  // FAIRsharing and DataCite read the repositories the catalogue lists, the re3data snapshot included, so they run
-  // after it.
-  fairsharing: ["content/snapshots/fairsharing.toml"],
-  datacite: ["content/snapshots/datacite.toml"],
-});
+// The reviewed source keys and the files each refresh may change are authored once in
+// `.github/source-registry.json` and read by `scripts/refresh_snapshots.py` too. The FIP Dashboard's interdependent
+// collections are one file, so one commit replaces them together; FAIRsharing and DataCite read the repositories
+// the catalogue lists, the re3data snapshot included, so they run after it.
+const { sources: SOURCE_REGISTRY } = require("../source-registry.json");
+if (!Array.isArray(SOURCE_REGISTRY) || SOURCE_REGISTRY.some((entry) =>
+  !entry || typeof entry.key !== "string" || !Array.isArray(entry.files) || !entry.files.length)) {
+  throw Error("Invalid source registry");
+}
+const SOURCES = Object.freeze(Object.fromEntries(SOURCE_REGISTRY.map(({ key, files }) => [key, files])));
 const PREFIX = "refresh/";
 const MARKER = "<!-- fair-guide-source-refresh ";
 const WRITERS = ["admin", "maintain", "write"];

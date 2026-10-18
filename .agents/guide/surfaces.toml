@@ -1,0 +1,25 @@
+format = 1
+manifest = ".agents/delivery-manifest.json"
+mixed = "CODEX.md"
+inventory = "docs/agent-tooling.md"
+managed = [".agents", ".claude", ".cursor", ".kilo", ".gemini", ".codex", ".github/instructions", ".github/prompts", ".github/agents", "AGENTS.md", "CLAUDE.md", "CODEX.md", ".github/copilot-instructions.md"]
+owned = [".agents/guide/**", ".agents/reports/usage/**", ".agents/config/review_config.toml", "AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md", ".kilo/.gitignore"]
+tool_generated = [".agents/skills/.openspec-target", ".agents/skills/openspec-*/**", ".claude/skills/openspec-*/**", ".gemini/commands/opsx/**", ".github/prompts/opsx-*.prompt.md", ".github/agents/openspec.agent.md"]
+runtime = ["**/__pycache__/**", "**/*.pyc", ".claude/settings.local.json", ".claude/*.local.json", ".cursor/*.local.json", ".codex/*.local.toml", ".gemini/*.local.json", ".kilo/*.local.json"]
+
+[[rules]]
+id = "fair-guide-content"
+description = "Guide content, sources, evidence, tone, accessibility and paradata"
+source = ".agents/guide/rules/fair-guide-content.md"
+outputs = [".claude/rules/fair-guide-content.md", ".cursor/rules/fair-guide-content.mdc", ".kilo/rules/fair-guide-content.md", ".gemini/context/fair-guide-content.md", ".github/instructions/fair-guide-content.instructions.md"]
+
+[[rules]]
+id = "fair-guide-surfaces"
+description = "Guide planning boundary, tooling ownership, execution and usage logging"
+source = ".agents/guide/rules/fair-guide-surfaces.md"
+outputs = [".claude/rules/fair-guide-surfaces.md", ".cursor/rules/fair-guide-surfaces.mdc", ".kilo/rules/fair-guide-surfaces.md", ".gemini/context/fair-guide-surfaces.md", ".github/instructions/fair-guide-surfaces.instructions.md"]
+
+[[skills]]
+id = "fair-guide-editor"
+source = ".agents/guide/skills/fair-guide-editor/SKILL.md"
+outputs = [".agents/skills/fair-guide-editor/SKILL.md", ".claude/skills/fair-guide-editor/SKILL.md"]

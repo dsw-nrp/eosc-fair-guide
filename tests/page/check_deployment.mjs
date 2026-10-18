@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 import { extname, resolve, sep } from "node:path";
 import { spawnSync } from "node:child_process";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const cache = resolve(root, ".cache");
@@ -56,10 +57,9 @@ const origin = `http://127.0.0.1:${server.address().port}`;
 const { chromium } = await import("./browser.mjs");
 const browser = await chromium.launch();
 const page = await (await browser.newContext()).newPage();
-const problems = [];
-const external = [];
-page.on("pageerror", (error) => problems.push(error.message));
-page.on("request", (request) => { if (!request.url().startsWith(origin + "/") && !/^(data|blob):/.test(request.url())) external.push(request.url()); });
+const {problems, external} = installGuards(page, {
+  allowed: (url) => url.startsWith(origin + "/") || /^(data|blob):/.test(url),
+});
 const screenshots = resolve(cache, "screenshots/deployment");
 mkdirSync(screenshots, { recursive: true });
 try {

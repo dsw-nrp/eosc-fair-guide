@@ -34,8 +34,8 @@ The worked example follows existing records:
 2. Question `dataset.01` turns that requirement into an assessment criterion.
 3. Test `guide-dataset-01` inspects supported PID resolution. Its record, implementation and documentation
    state that this does not establish long-term data availability.
-4. Provenance action `2026-10-11-test-definitions-and-health` records the revision that made the test
-   implementation and its limits inspectable.
+4. Provenance action `2026-10-16-initial-state` records the revision that made the test implementation
+   and its limits inspectable.
 
 This chain demonstrates how source meaning, assessment scope and revision information travel between
 functions. It does not invent a test run. Actual saved results additionally carry their target, observation,

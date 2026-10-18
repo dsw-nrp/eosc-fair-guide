@@ -4,6 +4,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.env.FAIR_GUIDE_SITE || "_site");
@@ -24,11 +25,9 @@ function principlesOf(entity) {
   const about = Array.isArray(entity.about) ? entity.about : [entity.about];
   return [...new Set(about.map((reference) => graph.find((entry) => entry["@id"] === reference?.["@id"])?.termCode).filter(Boolean))];
 }
-const errors = [];
-const requests = [];
-let axeRunning = false;
-page.on("pageerror", (error) => errors.push(error.message));
-page.on("request", (request) => { if (!/^(?:file|data):/.test(request.url()) && !axeRunning) requests.push(request.url()); });
+const {state, problems: errors, external: requests} = installGuards(page, {
+  allowed: (url) => /^(?:file|data):/.test(url),
+});
 
 async function visit(hash) {
   if (page.url() === base + hash) return;
@@ -132,9 +131,9 @@ try {
       await page.goto(base + `#/${lang}/K/catalogue/test/guide/guide-software-14`);
       await page.waitForSelector('[id="item-guide/guide-software-14"]');
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-      axeRunning = true;
+      state.axeRunning = true;
       const result = await audit(page);
-      axeRunning = false;
+      state.axeRunning = false;
       assert.deepEqual(result.violations.map((violation) => violation.id), []);
       await page.locator('[id="item-guide/guide-software-14"]').scrollIntoViewIfNeeded();
       await page.screenshot({ path: resolve(screenshots, `${lang}-software-14-${width}.png`) });
@@ -163,9 +162,9 @@ try {
     await page.screenshot({ path: resolve(screenshots, `${lang}-documentation-${id}-${width}.png`) });
   }
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-  axeRunning = true;
+  state.axeRunning = true;
   const docs = await audit(page);
-  axeRunning = false;
+  state.axeRunning = false;
   assert.deepEqual(docs.violations.map((violation) => violation.id), []);
   assert.deepEqual(errors, []);
   assert.deepEqual(requests, [], "browsing test definitions makes no external request");

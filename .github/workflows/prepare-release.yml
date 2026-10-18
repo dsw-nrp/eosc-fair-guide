@@ -49,7 +49,7 @@ jobs:
           RELEASE_TIMESTAMP: ${{ steps.collect.outputs.timestamp }}
           RELEASE_DATE: ${{ steps.collect.outputs.date }}
         run: |
-          python scripts/release_versions.py prepare --version "$RELEASE_VERSION" --date "$RELEASE_DATE" --timestamp "$RELEASE_TIMESTAMP" --prs .cache/release/prs.json --actor "$RELEASE_ACTOR"
+          python scripts/release_versions.py prepare --version "$RELEASE_VERSION" --date "$RELEASE_DATE" --timestamp "$RELEASE_TIMESTAMP" --prs .cache/release/prs.json --actor "$RELEASE_ACTOR" --manifest .cache/release/prepared.json
           python scripts/build_crate.py --out .cache/release-site
           python scripts/release_versions.py check --site .cache/release-site
       - id: app

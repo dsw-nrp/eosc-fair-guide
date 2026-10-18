@@ -122,7 +122,7 @@ Po spuštění najdete v `.cache/health/` přehled výsledků, JSON a shrnutí: 
 rad a požadavků původními texty. CI je připojí k běhu jako artefakt a shrnutí. Přepínač `--live`
 přidá kontroly externích služeb; bez něj se jejich dostupnost neposuzuje.
 Pro porovnání dvou uložených přehledů použijte `--previous-report path/to/health.json`.
-Stejný přehled poskytuje API na `api/health.json`, zdokumentované v `api/openapi.json`;
+Stejný přehled poskytuje API na `api/health.json`, zdokumentované v `openapi.json`;
 samotné sestavení uvádí, že kontroly dosud neproběhly,
 a jejich spouštěč poté zveřejní skutečný výsledek běhu.
 Web zveřejňuje také přehled `health/index.html` v angličtině, dostupný z patičky
@@ -138,6 +138,7 @@ python scripts/serve.py --build
 Pravidla pro editaci s AI jsou v dovednosti `fair-guide-editor`
 (`.agents/skills/fair-guide-editor/SKILL.md`) a v [AGENTS.md](AGENTS.md); provozní pokyny pro agenty
 jsou v [README_en.md](README_en.md).
+Přehled nástrojů, vlastnictví zdrojů a kontrol je v [dokumentaci nástrojů pro agenty](docs/agent-tooling.md).
 
 ## Jak přispívat
 
@@ -154,8 +155,9 @@ dostupnosti. Po sestavení webu změříte všechny posouzené kandidáty i zák
 `node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. Výběr testů se tím nemění.
 
 Připravené jsou dva plánované workflow, které poběží, až budou ve výchozí větvi. `source-refresh.yml`
-každý týden obnoví snímky Hesláře, re3data, FIP Dashboardu a NKR, ponechá snímek beze změny, když odpověď neprojde
-kontrolou, a každý změněný zdroj navrhne jako samostatný pull request přes GitHub App repozitáře.
+každý týden obnoví snímky Hesláře, re3data, FIP Dashboardu, NKR, nástrojů KNAV, FAIRsharing a DataCite, ponechá
+snímek beze změny, když odpověď neprojde kontrolou, a každý změněný zdroj navrhne jako samostatný pull request přes
+GitHub App repozitáře.
 `health-watch.yml` každý týden kontroluje odkazy, služby, zastaralá data a stránky EOSC CZ, na kterých průvodce
 stojí, jednou měsíčně znovu změří testy FAIR Champion a pro každý trvající problém otevře jedno issue. Žádný z nich
 necommituje ani neslučuje; nastavení aplikace popisuje [konfigurace vydání](docs/deployment.md#release-preparation-and-tagging).

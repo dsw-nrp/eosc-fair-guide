@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { assertNoBlankPages } from "./pdf_checks.mjs";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const temporary = resolve(root, ".cache/browser-temp");
@@ -21,9 +22,9 @@ try {
     for (const width of [320, 1280]) {
       const context = await browser.newContext({ viewport: { width, height: 1000 } });
       const page = await context.newPage();
-      const errors = [], external = [];
-      page.on("pageerror", (error) => errors.push(error.message));
-      page.on("request", (request) => { if (/^https?:/.test(request.url())) external.push(request.url()); });
+      const {problems: errors, external} = installGuards(page, {
+        allowed: (url) => !/^https?:/.test(url),
+      });
       const visit = async (route, selector) => {
         await page.goto(base + `#/${lang}/V/${route}`);
         await page.waitForSelector(selector);

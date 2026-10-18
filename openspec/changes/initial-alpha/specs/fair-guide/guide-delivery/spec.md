@@ -66,21 +66,57 @@ placeholder in its place.
 
 ### Requirement: Minimal AI tooling with one editing skill
 
-`AGENTS.md` SHALL be the single agent guide. `CLAUDE.md` and the GitHub Copilot instructions SHALL only point
-to it. One editing skill SHALL exist in `.agents/skills/`, with an identical copy in `.claude/skills/`. The
-skill SHALL cover:
-
-- first, whether work needs an OpenSpec change;
-- the content model and how to add or change advice, checks and resources;
-- the tone and accessibility rules;
-- the paradata obligation;
-- the validation commands and release steps.
+`AGENTS.md` SHALL be the runtime entry; `CLAUDE.md`, Copilot and mixed `CODEX.md` SHALL point to it.
+`.agents/guide/` SHALL own native rules and a thin editing skill, with generated vendor readers and identical
+skill copies in `.agents/skills/` and `.claude/skills/`. The skill SHALL route content, tone, accessibility,
+paradata, validation and release execution to their maintained owners after the required planning boundary.
 
 #### Scenario: Skill copies drift
 
 - **GIVEN** a pull request that changes only one of the two skill copies
 - **WHEN** the hygiene check runs
 - **THEN** it fails and names both paths
+
+### Requirement: Native ownership and delivered integrity are checked
+
+`.agents/guide/surfaces.toml` SHALL classify owned, generated, delivered, tool-generated and mixed surfaces,
+including guide-owned `.agents/reports/usage/` and `.agents/config/review_config.toml`. `check_all` SHALL run
+native generation, ownership and delivery-integrity checks, failing on unclassified paths or missing, modified
+or extra delivered content. Native generation SHALL preserve delivered Codex sections and the supplied preamble;
+redelivery SHALL preserve native sections.
+
+#### Scenario: A delivered rule is modified locally
+
+- **GIVEN** the manifest records a delivered rule or Codex section
+- **WHEN** it is modified and `check_all` runs
+- **THEN** delivery integrity fails while ignoring separately declared owned and tool-generated paths
+
+### Requirement: Tooling documentation describes the current compatible set
+
+`docs/agent-tooling.md` SHALL generate its inventory from the receipt and carry a task-to-tool matrix, vendor
+invocation, prerequisites, limits, read-only protection and compatibility decisions. `AGENTS.md`, `README_en.md`
+and `CONTRIBUTING.md` SHALL link it. Compatibility SHALL cover retained/dropped workflows, `aiscr-draft`,
+unavailable `--sibling`, native `check_all` close-out and Git baseline discovery.
+
+#### Scenario: A contributor chooses an editing workflow
+
+- **GIVEN** the contributor reaches the native editing skill or tooling document
+- **WHEN** their change triggers OpenSpec
+- **THEN** both require the OpenSpec lifecycle before implementation
+
+
+### Requirement: Guide-owned usage and review facts
+
+Usage logging SHALL adopt the delivered notability and runtime/backend fields under `.agents/reports/usage/`.
+Guide-owned `.agents/config/review_config.toml` SHALL declare no database and the presence of a deployment
+pipeline, public API and first-party frontend.
+
+#### Scenario: Preparing an agent review
+
+- **GIVEN** a significant review of the Guide
+- **WHEN** the reviewer starts work
+- **THEN** they read the guide-owned review facts and maintain a rolling usage entry
+
 
 ### Requirement: Content checks gate pull requests
 
@@ -244,7 +280,8 @@ the OpenSpec tree on every pull request.
 
 The editing skill SHALL route work that changes behaviour, a data or API contract, a stored format, CI or repository
 governance through an OpenSpec change before implementation. It SHALL let typo, wording and formatting fixes,
-behaviour-neutral dependency updates and source data refreshes proceed without one.
+behaviour-neutral dependency updates and source data refreshes proceed without one. It SHALL delegate to the
+delivered planning and OpenSpec lifecycle before implementation and SHALL NOT implement first and maintain specs later.
 
 #### Scenario: A content fix needs no change
 
@@ -669,7 +706,8 @@ registry and carry the release tag, a moving `latest` on every release and a mov
 ### Requirement: A published image is signed, attested and reproducible
 
 The image SHALL carry the build identity as OCI labels, be built reproducibly from the release date, and be published
-with a vulnerability scan, an SBOM and a build-provenance attestation bound to its digest. The release SHALL record
+with a vulnerability scan, an SBOM and a build-provenance attestation bound to its digest. The scan SHALL execute;
+a failed scan operation SHALL stop publication, while vulnerability findings are advisory. The release SHALL record
 the image reference and digest, and a check SHALL run the published image and confirm it serves the expected version
 and commit.
 

@@ -219,8 +219,8 @@ dataciteMetadata = "https://metadata.datacite.org/"
 fairsharing = "https://fairsharing.org/"
 re3dataRecord = "https://www.re3data.org/repository/"
 
-# Declarations of a published FIP nanopublication (spike in docs/design.md, "Spikes and findings"). The page puts
-# the FIP's IRIs, in every published form, in place of {fips}; {code} is the nanopublication's trusty URI code.
+# Declarations of a published FIP nanopublication. The page puts the FIP's IRIs, in every published form, in place
+# of {fips}; {code} is the nanopublication's trusty URI code.
 [nanopub]
 path = "repo/full"
 fipIri = ["https://w3id.org/np/{code}#fip", "https://w3id.org/np/{code}/fip", "http://purl.org/np/{code}#fip"]

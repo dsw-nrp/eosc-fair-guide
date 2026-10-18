@@ -170,7 +170,12 @@ class ReleaseVersions(unittest.TestCase):
         citation_reference = (self.root / "CITATION.cff").read_text(encoding="utf-8").split("references:", 1)[1]
         stamp = datetime(2026, 10, 14, 12, 0, tzinfo=UTC)
         changed = release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", self.prs, "motyc", now=stamp)
-        self.assertEqual(len(changed), 8)
+        self.assertEqual(len(changed["files"]), 8)
+        self.assertEqual(
+            {item["path"] for item in changed["files"]},
+            set(release.FILES) | {"CHANGELOG.md", "content/provenance.toml", "content/identifiers.toml"},
+        )
+        self.assertTrue(all(len(item["sha256"]) == 64 for item in changed["files"]))
         self.assertEqual(release.check(self.root), [])
         self.assertEqual(
             (self.root / "CITATION.cff").read_text(encoding="utf-8").split("references:", 1)[1], citation_reference

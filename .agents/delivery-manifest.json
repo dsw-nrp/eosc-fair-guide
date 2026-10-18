@@ -1,0 +1,557 @@
+{
+  "files": {
+    ".agents/scripts/github/github_issues.py": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "a15f6435b0d160c31d583d6df41518596c4586f6b0d8d776ac50a2efdaad020c"
+    },
+    ".agents/scripts/github/github_pr_review.py": {
+      "asset": "aiscr-review-pr",
+      "sha256": "9b5ba616c8d711f5cf7f2fa82da36211525140ce43627523abc9f2532b0296f6"
+    },
+    ".agents/scripts/github/github_utils.py": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "cf00d398ab405f32a6b155fddc9eeb34be71b36d708befd631cc720de1b8cfd8"
+    },
+    ".agents/scripts/lib/log_utils.py": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "554e834e3948fd8d16a74f2506d8934fb66900be9e93377ed21c0df4839a6355"
+    },
+    ".agents/scripts/lib/proc_utils.py": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "f25457fa072be1d7894448dd1027df3cfba6b457ba8e3590e4398c7d5f940d28"
+    },
+    ".agents/skills/_dispatch/common.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "c0075cc7e0a26bc19b61b1411521d81b9f8ef310b580153f65ec5e961e518a91"
+    },
+    ".agents/skills/_dispatch/contract-drafting.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "c47c7d3d94074009291108907f1448e56216b62b218c1e18d5418d09b1a66a2f"
+    },
+    ".agents/skills/_dispatch/contract-findings.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "76d55ba009ce7d7dc94ca08015be147220d13ef002db2c8045544cb40081af86"
+    },
+    ".agents/skills/_dispatch/contract-investigation.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "392bd3834caa124dd31c0001817b8cbed4af063c8b99f2907037c20d821b03dc"
+    },
+    ".agents/skills/_dispatch/contract-survey.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "2975b9e26b0bf1f8ea627afb07f886dc1692af7f646d3c43d545198ce8dfe535"
+    },
+    ".agents/skills/_dispatch/contract-verification.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "6ec9d1e0946c7ad4fc0ed0bc0235254c60be490dceb012b1bd9be415d3588bfb"
+    },
+    ".agents/skills/_dispatch/lens-correctness.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "5f50d0d9c28abe186c7c67c232753e89e1c0cf4b692c86416d5a51240100ec0c"
+    },
+    ".agents/skills/_dispatch/lens-dead-code.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "2af937af1b8a9faeb03a91e4c057ee3a1a4296695dfe6752f99365dd448a15e7"
+    },
+    ".agents/skills/_dispatch/lens-deploy-safety.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "cec59939d1f0636aa1690a7172c0122813a059f61658a32cf6e3ad726cca8a67"
+    },
+    ".agents/skills/_dispatch/lens-draft.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "9c2ef0d49fec7a016598004edf10168234e8edcfef66533d72ab15d9d77047d0"
+    },
+    ".agents/skills/_dispatch/lens-duplication.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "251ee6716fdc08f4c3529395437072d0d07f94426d392af1695aa44574af8678"
+    },
+    ".agents/skills/_dispatch/lens-integration.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "942d930a55dcf3a25994c2ca507724fe026584be67cb4623618867f16797b5cc"
+    },
+    ".agents/skills/_dispatch/lens-investigate.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "230107f5d1813bf8e2a45f27ab5f1af0a4210e24f3baafe07290f6b1848b296a"
+    },
+    ".agents/skills/_dispatch/lens-language.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "1f62dd931caa65d39351a4f21c0d2efb33f69cf989cb08d8159d43ae928e9891"
+    },
+    ".agents/skills/_dispatch/lens-performance.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "d49ddf6d10dffe42212f10eb765841b573705e6a57c9fdebd5a13370a7380901"
+    },
+    ".agents/skills/_dispatch/lens-security.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "4114624898230dfe96a86b7f76cc5cb51feb3a88de48941cd82a52ad9b479fe4"
+    },
+    ".agents/skills/_dispatch/lens-survey.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "e4c03442c64424b596e7046cdb4fb9ebd526636f90fb64a8c53b92a209a46bae"
+    },
+    ".agents/skills/_dispatch/lens-verify.md": {
+      "asset": "aiscr-dispatch-library",
+      "sha256": "4d0c17939c2fcfe23d191859da711d9804c74e778465feba802553b1a433fb38"
+    },
+    ".agents/skills/aiscr-plan-from-issue/SKILL.md": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "6c117985a43562d6f0f06d4b2f4e4369b0e0f26a4272a20d76560ae1390b916c"
+    },
+    ".agents/skills/aiscr-plan-issue/SKILL.md": {
+      "asset": "aiscr-plan-issue",
+      "sha256": "a51bc30b67a58d6e95a397736b501fda1711331a6695bb95215f173fe0890d27"
+    },
+    ".agents/skills/aiscr-review-pr/SKILL.md": {
+      "asset": "aiscr-review-pr",
+      "sha256": "ab9bfcc7197d8dab231db09217bfdf9e4f5911c9317d8be2906f6b84da4a1910"
+    },
+    ".agents/skills/aiscr-review-pr/review-formats.md": {
+      "asset": "aiscr-review-pr",
+      "sha256": "a66c382fc82d358a2427097c8a8571e8b4d91ab8c104640c211925c60618bf2e"
+    },
+    ".agents/skills/aiscr-review-pr/review-tracks.md": {
+      "asset": "aiscr-review-pr",
+      "sha256": "0ee4a034a65310556aa0680c12e0371d6de59a7d96857a9f408624f5aea6b482"
+    },
+    ".agents/skills/aiscr-write-release-notes/SKILL.md": {
+      "asset": "aiscr-write-release-notes",
+      "sha256": "7e96764aab5427d60b3d4d959ef4cfc6b5e4c3a23a949d14ca419e5897d984d9"
+    },
+    ".claude/agents/aiscr-analyse-correctness.md": {
+      "asset": "aiscr-analyse-correctness",
+      "sha256": "8b0cd6a234ac27a1ab43712e34aaaf95f89e647274141a1ed5afaa654678509c"
+    },
+    ".claude/agents/aiscr-analyse-dead-code.md": {
+      "asset": "aiscr-analyse-dead-code",
+      "sha256": "59a6fec699aa919a21205da3ba421c118923b1d109e23de9ceb5bc3ba21956b5"
+    },
+    ".claude/agents/aiscr-analyse-deploy-safety.md": {
+      "asset": "aiscr-analyse-deploy-safety",
+      "sha256": "5f537c6a13e21a3665db168ad71576133f9cfe315d4594758575117a36ae150e"
+    },
+    ".claude/agents/aiscr-analyse-duplication.md": {
+      "asset": "aiscr-analyse-duplication",
+      "sha256": "d2ca202a967bd836d6aa227f52f913282d60b58144ae7a850cf7a9ab0097b9fb"
+    },
+    ".claude/agents/aiscr-analyse-integration.md": {
+      "asset": "aiscr-analyse-integration",
+      "sha256": "7ea70e364d6568b4ec4464a60a4b78dcb400612ec02283326cc1d587486b9039"
+    },
+    ".claude/agents/aiscr-analyse-performance.md": {
+      "asset": "aiscr-analyse-performance",
+      "sha256": "5877c8d88dd4e492bb4e0a24ab363caaea04e3b3bb2d3438387a545aeb7f5e9b"
+    },
+    ".claude/agents/aiscr-analyse-security.md": {
+      "asset": "aiscr-analyse-security",
+      "sha256": "ee8f2770acdcc44417c31a20c52fcd602e86e58edd475284c1493d4f7c550fd1"
+    },
+    ".claude/agents/aiscr-draft.md": {
+      "asset": "aiscr-draft",
+      "sha256": "b854410327b92ef82459df092b052a559ec20e74cbfdc970f9d9a7c9b73d866d"
+    },
+    ".claude/agents/aiscr-investigate.md": {
+      "asset": "aiscr-investigate",
+      "sha256": "71a583259e1e5291640eb02051a6f44ec432a4bc0bc0e9c6e3abf233746a53a5"
+    },
+    ".claude/agents/aiscr-survey.md": {
+      "asset": "aiscr-survey",
+      "sha256": "775cfbd3c02e1d5b86a1b9419033b37c879e5eca5859999091adfa3cc87d3ad1"
+    },
+    ".claude/agents/aiscr-verify.md": {
+      "asset": "aiscr-verify",
+      "sha256": "14b150faae9fc46ed6d777802298aeff353bd25d1920d9b70e08f1fc830f8d1b"
+    },
+    ".claude/rules/aiscr-delivered-assets.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "6b63edf9ef5712b9d5a5013c9bda4fcf4bf6d9122b8d98649fe8ad596529d827"
+    },
+    ".claude/rules/aiscr-model-logging.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "991bce5d10f1f7374b31835db4ee398d54d7b9977700b64f8ede5b325d319030"
+    },
+    ".claude/rules/aiscr-openspec-posture.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "29b857abe09177589cf8ad192d3990adab7da195767b8569a469d7efdff7791b"
+    },
+    ".claude/rules/aiscr-planning-core.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "29a3de50a151210f22645aee261330e45bd77c0c1c95432909603e28ba8f882b"
+    },
+    ".claude/rules/aiscr-quality-first-execution.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "846f76df1cece124c8995ff7c0feccf8f40d7db108a135fb503f8e192aaff86d"
+    },
+    ".claude/rules/aiscr-review-conduct.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "100469bd2836d8fee6d45161d3e8bbb6c20e45906f4793055664bbab2d062107"
+    },
+    ".claude/rules/aiscr-usage-logging.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "5372d717650603b4a309309602385ddc7835c83e7d65d0e337f626d977ab7d83"
+    },
+    ".claude/skills/aiscr-plan-from-issue/SKILL.md": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "07ca1acc93511659fea2bd466890a730d6b6c13c802dc7b696a02b00c83e7954"
+    },
+    ".claude/skills/aiscr-plan-issue/SKILL.md": {
+      "asset": "aiscr-plan-issue",
+      "sha256": "5f79e1bfef51ffec6beb9b6af7011c3f5de9792e391c5e3353deff96a5b6ef39"
+    },
+    ".claude/skills/aiscr-review-pr/SKILL.md": {
+      "asset": "aiscr-review-pr",
+      "sha256": "4eef4fb59b178c297b16c52b9092ea43c050a52e376e30ea4167060cd29a513d"
+    },
+    ".claude/skills/aiscr-review-pr/review-formats.md": {
+      "asset": "aiscr-review-pr",
+      "sha256": "a66c382fc82d358a2427097c8a8571e8b4d91ab8c104640c211925c60618bf2e"
+    },
+    ".claude/skills/aiscr-review-pr/review-tracks.md": {
+      "asset": "aiscr-review-pr",
+      "sha256": "0ee4a034a65310556aa0680c12e0371d6de59a7d96857a9f408624f5aea6b482"
+    },
+    ".claude/skills/aiscr-write-release-notes/SKILL.md": {
+      "asset": "aiscr-write-release-notes",
+      "sha256": "c08f3a9dd306b9171f4950566bf13af22fb70d9efabc5e98d9d57b8de9d4fe65"
+    },
+    ".codex/agents/aiscr-analyse-correctness.toml": {
+      "asset": "aiscr-analyse-correctness",
+      "sha256": "6a94405484de0a7ddcccd77749176372167942d06c9f54f5c25b351d204fe673"
+    },
+    ".codex/agents/aiscr-analyse-dead-code.toml": {
+      "asset": "aiscr-analyse-dead-code",
+      "sha256": "7cb677f0449d2710104b2bae0df5ccdf9725a54294d117739b91d1512ce28a91"
+    },
+    ".codex/agents/aiscr-analyse-deploy-safety.toml": {
+      "asset": "aiscr-analyse-deploy-safety",
+      "sha256": "b9b7725707008038879442e5d2609e5dc8668a148c072e00903143ea7dc679c2"
+    },
+    ".codex/agents/aiscr-analyse-duplication.toml": {
+      "asset": "aiscr-analyse-duplication",
+      "sha256": "d8029fd08c4ea314eecc85e1d3125bdccda00c20ac2dfb10bffb208014042f66"
+    },
+    ".codex/agents/aiscr-analyse-integration.toml": {
+      "asset": "aiscr-analyse-integration",
+      "sha256": "3add059b967a6678d06c70c1f40194521fe33f710411c15c16e1fc968b851bfc"
+    },
+    ".codex/agents/aiscr-analyse-performance.toml": {
+      "asset": "aiscr-analyse-performance",
+      "sha256": "ae321dd924f646b221322cf6090aaa46680a405e530e24a4ba90d2992aaca3ba"
+    },
+    ".codex/agents/aiscr-analyse-security.toml": {
+      "asset": "aiscr-analyse-security",
+      "sha256": "78b33bbefde28acc7738de9c7951dfc62edf782144fc067df5a5b768443af4de"
+    },
+    ".codex/agents/aiscr-draft.toml": {
+      "asset": "aiscr-draft",
+      "sha256": "97907c1f420e6476a8aea55eeb5dfbff6319dbb99b368441071062beec931de4"
+    },
+    ".codex/agents/aiscr-investigate.toml": {
+      "asset": "aiscr-investigate",
+      "sha256": "eccdb234d4e594ac1051878317d4b4bdcf75c729ea58784dadb53dab417c7f32"
+    },
+    ".codex/agents/aiscr-survey.toml": {
+      "asset": "aiscr-survey",
+      "sha256": "4105e25b0eca888a8ea603ec3f8f2b686845df4c6a1dc459bdf6918b2fb62441"
+    },
+    ".codex/agents/aiscr-verify.toml": {
+      "asset": "aiscr-verify",
+      "sha256": "8e0756c9b75475acc6afe2a739ac64e7afa995ea91674677c65a4c4397210431"
+    },
+    ".cursor/agents/aiscr-analyse-correctness.md": {
+      "asset": "aiscr-analyse-correctness",
+      "sha256": "97534d53911ffa3bc1cce46270361e9a8be4817199d7706b02830b95ed39ea75"
+    },
+    ".cursor/agents/aiscr-analyse-dead-code.md": {
+      "asset": "aiscr-analyse-dead-code",
+      "sha256": "e13eef1e8808c743ff75c0153b9d956ca4e227cfbccfa2671a77e92ac3957779"
+    },
+    ".cursor/agents/aiscr-analyse-deploy-safety.md": {
+      "asset": "aiscr-analyse-deploy-safety",
+      "sha256": "6ae3bbd53dba24f9a975c95a8c715b729b0ed861d50b811e713dd8c5e3ee24bd"
+    },
+    ".cursor/agents/aiscr-analyse-duplication.md": {
+      "asset": "aiscr-analyse-duplication",
+      "sha256": "481d140681cc5f0a34a5e621c340ef59f6d6f25158d4b47e4c74de1b3dbd4432"
+    },
+    ".cursor/agents/aiscr-analyse-integration.md": {
+      "asset": "aiscr-analyse-integration",
+      "sha256": "9fb052def5151734e99e8c596cbf29bcf9aa3195c5d0f956eb01d5aceb850e98"
+    },
+    ".cursor/agents/aiscr-analyse-performance.md": {
+      "asset": "aiscr-analyse-performance",
+      "sha256": "4b7fd4eca29100cbcd9b626f78a39ee9213c875f5fc8a8fb5cc506608edba7d7"
+    },
+    ".cursor/agents/aiscr-analyse-security.md": {
+      "asset": "aiscr-analyse-security",
+      "sha256": "23ae86b7d3af962779fa1a7bf42140673f127dfbdaff241ab4a8f413b4872b22"
+    },
+    ".cursor/agents/aiscr-draft.md": {
+      "asset": "aiscr-draft",
+      "sha256": "3e4ea077267759e12c02f678f50e3426608bf6d61ac84cb4082d10736e3c5150"
+    },
+    ".cursor/agents/aiscr-investigate.md": {
+      "asset": "aiscr-investigate",
+      "sha256": "bc653d6c7c51ed9ce491b8d2cb087463db76e5d49f293dd0f117bac153aa6740"
+    },
+    ".cursor/agents/aiscr-survey.md": {
+      "asset": "aiscr-survey",
+      "sha256": "06914139ba2af183c5fb5e03686f0b49ba302cc0797b8bef6de8de4ef2c7d187"
+    },
+    ".cursor/agents/aiscr-verify.md": {
+      "asset": "aiscr-verify",
+      "sha256": "33358cd1ebcf4ac1b0c9423fb2913d6c953ecdccc45a6b41fc490971b8df5615"
+    },
+    ".cursor/rules/aiscr-delivered-assets.mdc": {
+      "asset": "step-sibling-rules",
+      "sha256": "5e9b5ce192ccc7e90bd24721b3d1a7224439f144a7187f916f47520c3b528963"
+    },
+    ".cursor/rules/aiscr-model-logging.mdc": {
+      "asset": "step-sibling-rules",
+      "sha256": "ca6b9d7bcaee5531c6b4088e1a6ff3de61c3e6f2882e9451d6f8cd62d2581057"
+    },
+    ".cursor/rules/aiscr-openspec-posture.mdc": {
+      "asset": "step-sibling-rules",
+      "sha256": "ab842fb819932fd4cf43826ce791ac6a9bb47d470e41c901891bbe0a6e48671e"
+    },
+    ".cursor/rules/aiscr-planning-core.mdc": {
+      "asset": "step-sibling-rules",
+      "sha256": "ab4d2a18a39ca3227b5649f6f0b759b878b0d4e7fc35762959b2bd9acde1bf58"
+    },
+    ".cursor/rules/aiscr-quality-first-execution.mdc": {
+      "asset": "step-sibling-rules",
+      "sha256": "b714152989b54cd251b4d33c5ddb71037bf0ea8a9524727bc507c5cd2a8a680b"
+    },
+    ".cursor/rules/aiscr-review-conduct.mdc": {
+      "asset": "step-sibling-rules",
+      "sha256": "63d39011325203ff015def808df6a7c33aec97651fb0bf935046174a10fa0090"
+    },
+    ".cursor/rules/aiscr-usage-logging.mdc": {
+      "asset": "step-sibling-rules",
+      "sha256": "de8995841468262cfa64b11c67a33553f5361eb2935426794d33c0da63794e9f"
+    },
+    ".gemini/agents/aiscr-analyse-correctness.md": {
+      "asset": "aiscr-analyse-correctness",
+      "sha256": "632765b2da2c59143ff051bfecf6145adbb04dc5bdc954dadc52615ba1db4f27"
+    },
+    ".gemini/agents/aiscr-analyse-dead-code.md": {
+      "asset": "aiscr-analyse-dead-code",
+      "sha256": "5f1fd264032db774bf128f98c58e3fa2d055b5109976bb1ab676d23b2fbaf2d3"
+    },
+    ".gemini/agents/aiscr-analyse-deploy-safety.md": {
+      "asset": "aiscr-analyse-deploy-safety",
+      "sha256": "a4c42bccb5b23f05d313007775bf2184fcdb93831fa35107ac57bad4adc55914"
+    },
+    ".gemini/agents/aiscr-analyse-duplication.md": {
+      "asset": "aiscr-analyse-duplication",
+      "sha256": "f0d290688fb8c0a0c43dcf1c8ef323825462841f3fcd767b3a2c47f58e65c857"
+    },
+    ".gemini/agents/aiscr-analyse-integration.md": {
+      "asset": "aiscr-analyse-integration",
+      "sha256": "0cda62186b85efe95a280342cdc29d03abfc87c8f2392867bc83538d53889e35"
+    },
+    ".gemini/agents/aiscr-analyse-performance.md": {
+      "asset": "aiscr-analyse-performance",
+      "sha256": "3a3c6cc1d04fd233d58fa273f4655d6f0959af2f07874444e75542a62c3c4d30"
+    },
+    ".gemini/agents/aiscr-analyse-security.md": {
+      "asset": "aiscr-analyse-security",
+      "sha256": "ff4d12971a187de0f88908d653b76f7eb3d8dca4409c66723ad455daa58e3727"
+    },
+    ".gemini/agents/aiscr-draft.md": {
+      "asset": "aiscr-draft",
+      "sha256": "28958adb76c363d9d91e76f237e67674d47f4af97223ca2e64ad4968582e18ec"
+    },
+    ".gemini/agents/aiscr-investigate.md": {
+      "asset": "aiscr-investigate",
+      "sha256": "fea4ffd66fd6e16a46dce68880b0e15bdaf5ed08a608844420100e6bccecf167"
+    },
+    ".gemini/agents/aiscr-survey.md": {
+      "asset": "aiscr-survey",
+      "sha256": "6a8032a17369d1257c84a2a0a05b28083eeb49ad52dd931d50b037f1af464b4c"
+    },
+    ".gemini/agents/aiscr-verify.md": {
+      "asset": "aiscr-verify",
+      "sha256": "ee96ef27579e0b3d65deaf901854d52f7d99f2509a97b7156fa95c7562262398"
+    },
+    ".gemini/commands/aiscr/aiscr-plan-from-issue.toml": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "25d32c6f5a0c37f233a178828dc4fae68266f3f85d7cd719a9c4b88fb8d6277c"
+    },
+    ".gemini/commands/aiscr/aiscr-plan-issue.toml": {
+      "asset": "aiscr-plan-issue",
+      "sha256": "8d474f7eebc2ee24bbd7a89e6d7ef7c8c19e1dfc694f7be76bc6fabf4eb0ca6c"
+    },
+    ".gemini/commands/aiscr/aiscr-review-pr.toml": {
+      "asset": "aiscr-review-pr",
+      "sha256": "8a75ad92c999e1ef19b86e71e32833cd45d98f8d0eff40e9f02593376cc89c5a"
+    },
+    ".gemini/commands/aiscr/aiscr-write-release-notes.toml": {
+      "asset": "aiscr-write-release-notes",
+      "sha256": "4a198cc84ab58e42ed2be3a945f5a61cf0c3121e03a73afa6c9e30e481f76bac"
+    },
+    ".gemini/context/aiscr-delivered-assets.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "9e68d7284909b4edbfc9f4f2d3aa0d3219726a39abc408b6c12f05ddc0fc78b6"
+    },
+    ".gemini/context/aiscr-model-logging.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "f0f3678d2e31b21aaaf03490135caa494340340c9131c71ba0d022672bc83144"
+    },
+    ".gemini/context/aiscr-openspec-posture.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "71ccfd0e99112e0c67ce9ad3d0dab514fe317120f91226812049a373f6416f28"
+    },
+    ".gemini/context/aiscr-planning-core.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "06e6289bb5b3a52614674fa432b6a85c4806f6a850ebd15dda5a4f3545d38286"
+    },
+    ".gemini/context/aiscr-quality-first-execution.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "542e5dc207aef9ed0582c1892fe75adae050cd629ba0d97240860aaa30b12209"
+    },
+    ".gemini/context/aiscr-review-conduct.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "6172a85e4f6ea01bbae06e142f451b59f6909496b3a7d122a50826c2b7dc4a86"
+    },
+    ".gemini/context/aiscr-usage-logging.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "06984ff0e46d64511ec532a9c84cfbe214afbbfc9dbda6c7f80b87be56853d62"
+    },
+    ".github/instructions/aiscr-delivered-assets.instructions.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "4979d474ffced4c81ccc1b9e26435cb3c817ac22072f3e27c756c31b138f565f"
+    },
+    ".github/instructions/aiscr-model-logging.instructions.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "461e6b5502c37912b82e758cb3c403dcf4b4e8c9f24482f916c788d3bad16629"
+    },
+    ".github/instructions/aiscr-openspec-posture.instructions.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "c8e6b037827679f8c92ef03b0422adb3969232116cadee42dc6ea4ed9a2e6021"
+    },
+    ".github/instructions/aiscr-planning-core.instructions.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "9f4ca5ffa0e408062794dd1f1cb74e0b94de611eb3fcbd2347a95f3f8a9a829b"
+    },
+    ".github/instructions/aiscr-quality-first-execution.instructions.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "c98584378d11915251be51e8b133f6e0133217359db3b76e681f35b416921c6f"
+    },
+    ".github/instructions/aiscr-review-conduct.instructions.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "60654b3233756b6a28b03b518d7ad7752c7ca5dd158969cae9207a57a8839365"
+    },
+    ".github/instructions/aiscr-usage-logging.instructions.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "fabb933c3d7e7512fe04b049ac7eca559a564e7927898582d46991fc3d3bdc90"
+    },
+    ".kilo/agents/aiscr-analyse-correctness.md": {
+      "asset": "aiscr-analyse-correctness",
+      "sha256": "7c1dc62de555a4c6bb22ec21cd512ab8e36ce7b95154aa4061949fea68a21c18"
+    },
+    ".kilo/agents/aiscr-analyse-dead-code.md": {
+      "asset": "aiscr-analyse-dead-code",
+      "sha256": "051f9e160b82ebdde75dadcfb1607504304daad38bfd81a6557c2c96ec376fcc"
+    },
+    ".kilo/agents/aiscr-analyse-deploy-safety.md": {
+      "asset": "aiscr-analyse-deploy-safety",
+      "sha256": "3dbbaa506079c35f0311d232b2fcfbe836241b5902d25cacc6cd4fb88e5fab85"
+    },
+    ".kilo/agents/aiscr-analyse-duplication.md": {
+      "asset": "aiscr-analyse-duplication",
+      "sha256": "74d88ae92ec4de28fc6f1f6f0008ee4cecbe0836ffd6b148067526bb1feb5e6d"
+    },
+    ".kilo/agents/aiscr-analyse-integration.md": {
+      "asset": "aiscr-analyse-integration",
+      "sha256": "ee1d77be6cb8a8de16bbd7b10533c7e2dad8dedcb3782bbc08442521a0654e9a"
+    },
+    ".kilo/agents/aiscr-analyse-performance.md": {
+      "asset": "aiscr-analyse-performance",
+      "sha256": "f38d248b91349ca148147cd0b6a2aad004742af8200293480fa1391eb1720233"
+    },
+    ".kilo/agents/aiscr-analyse-security.md": {
+      "asset": "aiscr-analyse-security",
+      "sha256": "dc56c991bf8a03efc33901426185cda6c51889760bf0647da3e630787e790cd2"
+    },
+    ".kilo/agents/aiscr-draft.md": {
+      "asset": "aiscr-draft",
+      "sha256": "9ccd13cf45f25939e0f11a561998153df65b9e74f15715ddf0cbe0017cb80cad"
+    },
+    ".kilo/agents/aiscr-investigate.md": {
+      "asset": "aiscr-investigate",
+      "sha256": "2f54d0ea18ef20ccb149080a092a0d98e8414f7b1be758674de148fdaa70de20"
+    },
+    ".kilo/agents/aiscr-survey.md": {
+      "asset": "aiscr-survey",
+      "sha256": "8c115d4bb9e80c4e7344cd870dc716e4d89e21763b22d1cc1d0851827c06d069"
+    },
+    ".kilo/agents/aiscr-verify.md": {
+      "asset": "aiscr-verify",
+      "sha256": "042d3d6b0d566ad9d144ab93a150d845cd5c0174794671b09430a440552e0670"
+    },
+    ".kilo/rules/aiscr-delivered-assets.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "265b31861312d8342170ce64d0c0a388ffa8f7a2e6788275d41672774dcf90e7"
+    },
+    ".kilo/rules/aiscr-model-logging.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "49dcdd50f9d395a63bc19b1c889389da8168562e895613c7d098f008dc0e3eed"
+    },
+    ".kilo/rules/aiscr-openspec-posture.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "5afe6972e8e6c72f70e42cf3a09202b166a8456b00bc890e361beac40397d9c3"
+    },
+    ".kilo/rules/aiscr-planning-core.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "f6930846d87d61af81a9b49e62e7a3dd2d68db445eae6a2cdc6ba9ba0c51aa5d"
+    },
+    ".kilo/rules/aiscr-quality-first-execution.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "99a15587d28242f768383b65bd2d4e5ecd760fd19fdda46cacaa0fd4384eb09b"
+    },
+    ".kilo/rules/aiscr-review-conduct.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "9c094d65a350df3202704e46bcf3e66834beacbbb2fa0316c758d142b4132414"
+    },
+    ".kilo/rules/aiscr-usage-logging.md": {
+      "asset": "step-sibling-rules",
+      "sha256": "d97ab6d44666097069abfc036587a3201f8c451c304847e4ffc0d7e1171ee5dc"
+    }
+  },
+  "format": 1,
+  "sections": {
+    "CODEX.md": {
+      "aiscr-delivered-assets": {
+        "asset": "step-sibling-rules",
+        "sha256": "b584d9dcae1eafa56166c9824de3502a01190d9fbfd0efe6f38c7a2379651e1a"
+      },
+      "aiscr-entry": {
+        "asset": "step-sibling-rules",
+        "sha256": "da6a18fe2eb863b3a18d48f2f03a88d5edbb421f55ef2acf5bdc2f82cddea2b8"
+      },
+      "aiscr-model-logging": {
+        "asset": "step-sibling-rules",
+        "sha256": "4bd624cf42fe0fbad876c9a4ef214204c9336b40f83ee0d765a93d87f52299e3"
+      },
+      "aiscr-openspec-posture": {
+        "asset": "step-sibling-rules",
+        "sha256": "64594c6f93add91f9f1c366ae83d038c039dc8d7c73fc892a6eedcfe22027902"
+      },
+      "aiscr-planning-core": {
+        "asset": "step-sibling-rules",
+        "sha256": "8204963c40bf7f50ff0a07ec22c8cf74b40513ab202865a8755ef6349e1cb258"
+      },
+      "aiscr-quality-first-execution": {
+        "asset": "step-sibling-rules",
+        "sha256": "d6a21a17fa6d7f98935b86aae937556ab785d95edc229c7af6e202ac915ec306"
+      },
+      "aiscr-review-conduct": {
+        "asset": "step-sibling-rules",
+        "sha256": "e6e8234e9df90a05196e9d323c06b7f778bd5666a29cf145999e095a10db1e6d"
+      },
+      "aiscr-usage-logging": {
+        "asset": "step-sibling-rules",
+        "sha256": "14f83487c12445d1b7cc7404ff906c06fba2fe911ecf7704a67e59b3c2c6852d"
+      }
+    }
+  }
+}

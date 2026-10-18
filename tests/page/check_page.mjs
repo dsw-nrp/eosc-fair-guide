@@ -13,6 +13,7 @@ import { chromium, recordFailure, runCases } from "./browser.mjs";
 import { mapLimit } from "../../scripts/browser_env.mjs";
 import { rendered, navigationRendered, gotoView, searchReady } from "./navigation.mjs";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 import { compactControlProblems } from "./compact_controls.mjs";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -103,18 +104,12 @@ const sections = [];
 async function openPage(viewport) {
   const context = await browser.newContext({ viewport: viewport || { width: 1280, height: 900 } });
   const page = await context.newPage();
-  const external = [];
-  const problems = [];
-  const state = { axeRunning: false };
-  page.on("request", (request) => {
-    const url = request.url();
-    if (!url.startsWith("file:") && !url.startsWith("data:")) external.push(url);
+  const {state, problems, external} = installGuards(page, {
+    allowed: (url) => url.startsWith("file:") || url.startsWith("data:"),
+    consoleErrors: true,
+    consolePrefix: "console: ",
+    errorPrefix: "page error: ",
   });
-  page.on("console", (message) => {
-    // axe fetches stylesheets to inspect them; the page's own CSP blocks that, which is the page working.
-    if (message.type() === "error" && !state.axeRunning) problems.push("console: " + message.text());
-  });
-  page.on("pageerror", (error) => problems.push("page error: " + error.message));
   page.axeState = state;
   return { context, page, external, problems };
 }

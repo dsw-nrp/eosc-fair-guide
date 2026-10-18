@@ -1,8 +1,8 @@
-// Trusted default-branch dispatch code. Metadata and changelog writing belongs to
-// scripts/release_versions.py; this module owns only GitHub reads and delivery.
+// Trusted default-branch dispatch code. Metadata, changelog writing and the prepared-file set belong to
+// scripts/release_versions.py; this module consumes that manifest and owns only GitHub reads and delivery.
 const {readFileSync, mkdirSync, writeFileSync} = require('node:fs');
-const FILES = ['content/guide.toml', 'CITATION.cff', 'package.json', 'package-lock.json',
-  'pyproject.toml', 'CHANGELOG.md', 'content/provenance.toml', 'content/identifiers.toml'];
+const {createHash} = require('node:crypto');
+const MANIFEST = '.cache/release/prepared.json';
 const { validVersion } = require('./release-version.cjs');
 function dispatch(context) {
   const base = context.payload.repository.default_branch;
@@ -36,10 +36,21 @@ async function collect({github, context, core}, write = writeFileSync) {
 async function propose({github, context, core}, read = readFileSync) {
   const {base, version, branch} = dispatch(context);
   const parent = await current(github, context, base);
+  const manifest = JSON.parse(read(MANIFEST, 'utf8'));
+  if (manifest.formatVersion !== 1 || manifest.version !== version ||
+      !Array.isArray(manifest.files) || !manifest.files.length) throw Error('Invalid prepared-file manifest');
   const tree = [];
-  for (const path of FILES) {
-    const content = read(path).toString('base64');
-    const {data} = await github.rest.git.createBlob({...context.repo, content, encoding: 'base64'});
+  const seen = new Set();
+  for (const item of manifest.files) {
+    const path = item?.path;
+    const expected = item?.sha256;
+    if (typeof path !== 'string' || !path || typeof expected !== 'string' ||
+        !/^[0-9a-f]{64}$/.test(expected) || seen.has(path)) throw Error('Invalid prepared-file manifest');
+    seen.add(path);
+    const content = read(path);
+    if (createHash('sha256').update(content).digest('hex') !== expected)
+      throw Error(`Prepared file changed after preparation: ${path}`);
+    const {data} = await github.rest.git.createBlob({...context.repo, content: content.toString('base64'), encoding: 'base64'});
     tree.push({path, mode: '100644', type: 'blob', sha: data.sha});
   }
   const {data: built} = await github.rest.git.createTree({...context.repo, base_tree: parent.tree.sha, tree});
@@ -86,4 +97,4 @@ async function tag({github, context, core}, read = readFileSync) {
   const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: annotated.sha});
   core.info(`Created ${data.ref} at ${context.sha} with status ${status}`);
 }
-module.exports = {FILES, validVersion, dispatch, collect, propose, tag};
+module.exports = {validVersion, dispatch, collect, propose, tag};

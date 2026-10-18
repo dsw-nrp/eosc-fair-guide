@@ -7,6 +7,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 import { compactControlProblems } from "./compact_controls.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -19,12 +20,10 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
 const page = await context.newPage();
 const base = pathToFileURL(resolve(root, "_site/index.html")).href;
-const problems = [];
-const external = [];
-let axeRunning = false;
-page.on("pageerror", (error) => problems.push(error.message));
-page.on("console", (message) => { if (message.type() === "error" && !axeRunning) problems.push(message.text()); });
-page.on("request", (request) => { if (!/^(?:file|data|blob):/.test(request.url()) && !axeRunning) external.push(request.url()); });
+const {state, problems, external} = installGuards(page, {
+  allowed: (url) => /^(?:file|data|blob):/.test(url),
+  consoleErrors: true,
+});
 page.on("dialog", (dialog) => dialog.accept());
 const screenshots = resolve(root, ".cache/screenshots/providers");
 mkdirSync(screenshots, { recursive: true });
@@ -57,9 +56,9 @@ async function part(name) {
   await page.waitForSelector(`.check-parts [aria-current="step"][href$="/${name}"]`);
 }
 async function checkAccess(label) {
-  axeRunning = true;
+  state.axeRunning = true;
   const result = await audit(page);
-  axeRunning = false;
+  state.axeRunning = false;
   assert.deepEqual(result.violations.map((entry) => entry.id), [], label + ": accessibility");
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), label + ": no horizontal overflow");
 }

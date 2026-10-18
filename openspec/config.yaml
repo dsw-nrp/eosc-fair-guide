@@ -13,10 +13,16 @@ context: |
 
 rules:
   proposal:
-    - State the concrete reader or maintainer problem, scope, exclusions and validation.
+    - State the concrete reader or maintainer problem, scope, exclusions and
+      validation.
   specs:
-    - Preserve source meanings and current capability contracts; give observable acceptance scenarios.
+    - Preserve source meanings and current capability contracts; give observable
+      acceptance scenarios.
   design:
-    - Explain identity, data/runtime boundaries, failure handling, accessibility and migration where affected.
+    - Explain identity, data/runtime boundaries, failure handling, accessibility
+      and migration where affected.
   tasks:
-    - Use executable checkboxes, meaningful verification and explicit human hand-offs.
+    - Use executable checkboxes, meaningful verification and explicit human
+      hand-offs.
+githubCopilot:
+  cloudAgent: true

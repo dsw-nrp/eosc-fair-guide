@@ -4,6 +4,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const site = resolve(root, process.env.FAIR_GUIDE_SITE || "_site");
@@ -21,11 +22,9 @@ const terms = graph.filter((entry) => ["layer", "seam"].includes(entry.modelKind
 const refs = (entry, property) => [].concat(entry?.[property] || []).map((reference) => reference["@id"]);
 const get = (id) => graph.find((entry) => entry["@id"] === id);
 const questionEntries = graph.filter((entry) => entry["@type"] === "Question");
-const errors = [];
-const external = [];
-let axeRunning = false;
-page.on("pageerror", (error) => errors.push(error.message));
-page.on("request", (request) => { if (!/^(?:file|data):/.test(request.url()) && !axeRunning) external.push(request.url()); });
+const {state, problems: errors, external} = installGuards(page, {
+  allowed: (url) => /^(?:file|data):/.test(url),
+});
 const screenshots = resolve(root, ".cache/screenshots/model");
 mkdirSync(screenshots, { recursive: true });
 
@@ -42,9 +41,9 @@ async function choose(selector) {
 }
 async function accessible() {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), "the model reflows");
-  axeRunning = true;
+  state.axeRunning = true;
   const result = await audit(page);
-  axeRunning = false;
+  state.axeRunning = false;
   assert.deepEqual(result.violations.map((violation) => ({ id: violation.id, targets: violation.nodes.map((node) => node.target) })), []);
 }
 async function download(selector) {

@@ -7,6 +7,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
@@ -15,12 +16,10 @@ const page = await (await browser.newContext({ viewport: { width: 1280, height: 
 const base = pathToFileURL(resolve(root, "_site/index.html")).href;
 const graph = JSON.parse(readFileSync(resolve(root, "_site/ro-crate-metadata.json"), "utf8"))["@graph"];
 const seam = (id) => graph.find((entity) => entity["@id"] === "#seam-" + id);
-const problems = [];
-const external = [];
-let axeRunning = false;
-page.on("pageerror", (error) => problems.push(error.message));
-page.on("console", (message) => { if (message.type() === "error" && !axeRunning) problems.push(message.text()); });
-page.on("request", (request) => { if (!/^(?:file|data):/.test(request.url()) && !axeRunning) external.push(request.url()); });
+const {state, problems, external} = installGuards(page, {
+  allowed: (url) => /^(?:file|data):/.test(url),
+  consoleErrors: true,
+});
 const screenshots = resolve(root, ".cache/screenshots/visuals");
 mkdirSync(screenshots, { recursive: true });
 
@@ -35,9 +34,9 @@ async function openWhy() {
   assert(await why.evaluate((details) => details.open));
 }
 async function checkAccess(label) {
-  axeRunning = true;
+  state.axeRunning = true;
   const result = await audit(page);
-  axeRunning = false;
+  state.axeRunning = false;
   assert.deepEqual(result.violations.map((entry) => entry.id), [], label + ": accessibility");
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), label + ": no horizontal overflow");
 }

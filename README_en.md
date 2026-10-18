@@ -144,6 +144,7 @@ python scripts/serve.py --build
 
 Agents and maintainers who edit with an AI assistant use the `fair-guide-editor` skill
 (`.agents/skills/fair-guide-editor/SKILL.md`); the agent guide is [AGENTS.md](AGENTS.md).
+The [agent tooling guide](docs/agent-tooling.md) lists installed tools, native source ownership and validation.
 
 ## Contributing
 
@@ -160,8 +161,9 @@ measurement. To remeasure all reviewed candidates and the core after building th
 `node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. This does not edit the selection.
 
 Two scheduled workflows are prepared and run once they are on the default branch. `source-refresh.yml`
-refreshes the Heslář, re3data, FIP Dashboard and NKR snapshots weekly, keeps a snapshot unchanged when a response
-fails validation and proposes each changed source as its own pull request through the repository's GitHub App.
+refreshes the Heslář, re3data, FIP Dashboard, NKR, KNAV, FAIRsharing and DataCite snapshots weekly, keeps a
+snapshot unchanged when a response fails validation and proposes each changed source as its own pull request
+through the repository's GitHub App.
 `health-watch.yml` checks links, services, stale dates and the EOSC CZ pages the guide depends on weekly, remeasures
 FAIR Champion tests monthly and opens one issue per persistent problem. Neither commits or merges; see
 [deployment configuration](docs/deployment.md#release-preparation-and-tagging) for the App settings.

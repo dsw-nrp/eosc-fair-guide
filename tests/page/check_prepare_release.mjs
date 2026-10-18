@@ -2,8 +2,11 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
-const {dispatch, validVersion, collect, propose, tag, FILES} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
+const {dispatch, validVersion, collect, propose, tag} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
 const sha = 'a'.repeat(40);
+const PREPARED = '.cache/release/prepared.json';
+const PREPARED_PATHS = ['content/guide.toml', 'CITATION.cff', 'package.json', 'package-lock.json',
+  'pyproject.toml', 'CHANGELOG.md', 'content/provenance.toml', 'content/identifiers.toml'];
 const context = {eventName: 'workflow_dispatch', ref: 'refs/heads/main', sha, runId: 12,
   repo: {owner: 'example', repo: 'guide'}, payload: {repository: {default_branch: 'main'}, inputs: {version: '1.2.3-alpha.1', release_status: 'testing'}}};
 for (const value of ['1.2.3', '0.0.0', '1.2.3-alpha.1', '1.2.3-rc-2']) assert(validVersion(value));
@@ -28,8 +31,12 @@ function fixture() {
   }}, actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}})}},
   paginate: async (_method, args) => {state.reads.push(args); return state.prs;}};
   const core = {info() {}, setOutput: (key, value) => {state.outputs[key] = value;}};
-  const read = (path, encoding) => path === 'package.json' && encoding ? JSON.stringify({version: context.payload.inputs.version}) : Buffer.from(path);
-  return {state, github, core, read};
+  const manifest = {formatVersion: 1, version: context.payload.inputs.version,
+    files: PREPARED_PATHS.map(path => ({path, sha256: createHash('sha256').update(Buffer.from(path)).digest('hex')}))};
+  const read = (path, encoding) => path === PREPARED ? JSON.stringify(manifest)
+    : path === 'package.json' && encoding ? JSON.stringify({version: context.payload.inputs.version})
+    : Buffer.from(path);
+  return {state, github, core, read, manifest};
 }
 {
   const {state, github, core} = fixture();
@@ -44,7 +51,7 @@ function fixture() {
   await assert.rejects(collect({github, core, context}), /already tagged/);
 }
 {
-  const {state, github, core, read} = fixture();
+  const {state, github, core, read, manifest} = fixture();
   state.failPR = true;
   await assert.rejects(propose({github, core, context}, read), /interrupted/);
   assert.equal(state.creates.length, 1);
@@ -53,11 +60,36 @@ function fixture() {
   assert.equal(state.prs.length, 1);
   await propose({github, core, context}, read);
   assert.equal(state.prs.length, 1);
-  assert.equal(FILES.length, 8);
+  assert.equal(manifest.files.length, 8);
   assert(!state.creates.some(ref => ref.includes('/tags/')));
   const branch = state.refs.get('heads/release/1.2.3-alpha.1');
   state.commits.get(branch).tree.sha = 'human edit';
   await assert.rejects(propose({github, core, context}, read), /different content/);
+}
+{
+  const {state, github, core, read, manifest} = fixture();
+  const corrupted = {...manifest, files: manifest.files.map((item, index) =>
+    index ? item : {...item, sha256: '0'.repeat(64)})};
+  const changed = (path, encoding) => path === PREPARED ? JSON.stringify(corrupted) : read(path, encoding);
+  await assert.rejects(propose({github, core, context}, changed), /changed after preparation/);
+  assert.equal(state.creates.length, 0);
+}
+{
+  const {state, github, core, read, manifest} = fixture();
+  const duplicated = {...manifest, files: [...manifest.files, manifest.files[0]]};
+  const duplicate = (path, encoding) => path === PREPARED ? JSON.stringify(duplicated) : read(path, encoding);
+  await assert.rejects(propose({github, core, context}, duplicate), /Invalid prepared-file manifest/);
+  assert.equal(state.creates.length, 0);
+}
+{
+  const {state, github, core, read, manifest} = fixture();
+  const missing = manifest.files[0].path;
+  const absent = (path, encoding) => {
+    if (path === missing) throw Object.assign(Error(`missing ${path}`), {code: 'ENOENT'});
+    return read(path, encoding);
+  };
+  await assert.rejects(propose({github, core, context}, absent), /ENOENT|missing/);
+  assert.equal(state.creates.length, 0);
 }
 {
   const {state, github, core, read} = fixture();

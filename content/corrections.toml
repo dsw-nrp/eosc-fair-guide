@@ -1,0 +1,13 @@
+# Reviewed local corrections to verbatim snapshots. The snapshot keeps its source text; the build applies
+# these corrections to the in-memory content. Each entry names its source, exact finding, replacement,
+# reason and tracking issue. Remove an entry when the upstream source is corrected.
+[[correction]]
+id = "heslar-415-ovarlay"
+source = "https://heslar.openscience.cz/heslo.php?id=415"
+term = "overlay-journal"
+field = "definition"
+language = "cs"
+find = "Ovarlay Journal"
+replace = "Overlay Journal"
+reason = "Heslář record 415 contains a typo in its Czech definition; the Guide shows the corrected spelling while the snapshot keeps the source text."
+issue = "https://github.com/dsw-nrp/eosc-fair-guide/issues/43"

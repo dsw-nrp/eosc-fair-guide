@@ -4,6 +4,7 @@ import { readFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium } = await import("./browser.mjs");
@@ -16,11 +17,9 @@ const page = await context.newPage();
 const base = pathToFileURL(resolve(root, "_site/index.html")).href;
 const screenshots = resolve(root, ".cache/screenshots/sources");
 mkdirSync(screenshots, { recursive: true });
-const problems = [];
-const external = [];
-let axeRunning = false;
-page.on("pageerror", (error) => problems.push(error.message));
-page.on("request", (request) => { if (!/^(?:file|data):/.test(request.url()) && !axeRunning) external.push(request.url()); });
+const {state, problems, external} = installGuards(page, {
+  allowed: (url) => /^(?:file|data):/.test(url),
+});
 
 async function visit(hash) {
   const previous = await page.$("#main");
@@ -131,9 +130,9 @@ try {
       await page.setViewportSize({ width, height: 900 });
       await original.scrollIntoViewIfNeeded();
       await page.screenshot({ path: resolve(screenshots, `${lang}-principle-original-${width}.png`) });
-      axeRunning = true;
+      state.axeRunning = true;
       const access = await audit(page);
-      axeRunning = false;
+      state.axeRunning = false;
       assert.deepEqual(access.violations, [], "expanded principles remain accessible");
     }
     await visit(`#/${lang}/V/catalogue/cl/A.F1.N3`);

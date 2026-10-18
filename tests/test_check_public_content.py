@@ -25,6 +25,40 @@ class PublicContentTests(unittest.TestCase):
             {rule for _, rule in public.violations(value)}, {"personal workstation path", "private planning extracts"}
         )
 
+    def test_delivered_tooling_is_scanned_and_private_references_are_refused(self):
+        paths = (
+            ".agents/skills/example/SKILL.md",
+            ".agents/scripts/example.py",
+            ".agents/canonical_configs/templates/example.md",
+            ".claude/skills/example/SKILL.md",
+            ".claude/rules/example.md",
+            ".claude/agents/example.md",
+            ".cursor/rules/example.mdc",
+            ".kilo/rules/example.md",
+            ".kilo/kilo.jsonc",
+            ".codex/agents/example.toml",
+            ".codex/rules/example.rules",
+            ".gemini/agents/example.md",
+            ".gemini/context/example.md",
+            ".gemini/commands/example.toml",
+            ".github/instructions/example.instructions.md",
+            "CODEX.md",
+        )
+        portable = "AIS CR attribution <https://ror.org/01a7rqj69>; aiscr-example tooling.\n"
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for rel in paths:
+                path = root / rel
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(portable, encoding="utf-8")
+            self.assertEqual(public.inspect(root), [])
+            for rel in paths:
+                with self.subTest(path=rel):
+                    path = root / rel
+                    path.write_text("aiscr-" + "management\n", encoding="utf-8")
+                    self.assertEqual(public.inspect(root), [f"{rel}:1: private planning repository"])
+                    path.write_text(portable, encoding="utf-8")
+
     def test_ignored_generated_tree_is_not_scanned_and_report_is_redacted(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

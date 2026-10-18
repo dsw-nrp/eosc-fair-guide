@@ -93,6 +93,9 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("versions", [python, "scripts/release_versions.py", "check", "--site", "_site"]),
         Job("openspec", [npm, "run", "-s", "openspec:validate"]),
         Job("public-content", [python, "scripts/check_public_content.py"]),
+        Job("agent-generation", [python, "scripts/generate_agent_surfaces.py", "--check"]),
+        Job("agent-ownership", [python, "scripts/check_agent_surfaces.py"]),
+        Job("sibling-delivery", [python, "scripts/check_sibling_delivery.py"]),
         Job("health", [python, "scripts/check_health.py", "--output", ".cache/health-inventory"]),
         Job("unit", [python, "scripts/profile_checks.py"]),
         Job("runtime", [shutil.which("node") or "node", "--test", "tests/runtime.test.mjs"]),
@@ -270,9 +273,12 @@ def emit_report(
     if pending_api:
         run["reason"] += " Final health API validation is pending."
     content = None
+    crate = None
     try:
         content = check_health.build_crate.load_content(ROOT / "content")
-    except (OSError, ValueError, check_health.build_crate.ContentError) as error:
+        graph = check_health.build_crate.Graph()
+        crate = check_health.build_crate.build_crate(content, graph)
+    except (OSError, ValueError, KeyError, check_health.build_crate.ContentError) as error:
         report = check_health.unreadable_report(str(error), run)
     else:
         previous_error = None
@@ -281,12 +287,12 @@ def emit_report(
         except (OSError, ValueError) as error:
             baseline = None
             previous_error = str(error)
-        report = check_health.make_report(content, ROOT, run=run, previous=baseline)
+        report = check_health.make_report(content, ROOT, run=run, previous=baseline, graph=graph)
         if previous_error:
             report["trend"] = {"available": False, "reason": f"Previous report could not be read: {previous_error}"}
     check_health.write_report(report, output)
     if site is not None and build.ok:
-        build_api.publish_health(site, report, content)
+        build_api.publish_health(site, report, content, crate=crate)
     print(f"Health dashboard: {output / 'index.html'}")
 
 

@@ -6,7 +6,7 @@
   const version = 1;
   const parameter = "fair-guide-view";
   const validView = (view) => typeof view === "string" && view.length <= 2 * 1024 * 1024 &&
-    /^#\/(cs|en)\/(V|DS|SR|K)\/(path|check|explorer|catalogue|resources|repositories|tools|page|selfcheck)(\/[^\s\u0000-\u001f]*)?$/.test(view);
+    /^#\/(cs|en)\/(V|DS|SR|K)\/(path|check|explorer|catalogue|tools|page|selfcheck)(\/[^\s\u0000-\u001f]*)?$/.test(view);
   const isMessage = (data, type) => data && typeof data === "object" && data.type === type && data.version === version;
 
   if (script.dataset.guideFrame) {

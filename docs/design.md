@@ -573,10 +573,11 @@ and same-run retries reuse checked bytes without overwriting assets or human edi
 is driven by Guide release status until EOSC CZ agreement, independently of the preview notice.
 
 **Delivery remains a maintainer act.** Prepared workflows and local fixtures do not establish App/Pages
-configuration, dispatch authorization or published releases. Capability specs and archived planning
-are intended for `openspec/` after authorized transfer; that transfer and CLI integration remain release
-preparation, not installed functionality. Minimal agent tooling uses AGENTS and one editing skill with
-an identical Claude copy. Behavior/data/API/CI changes follow the accepted planning contract.
+configuration, dispatch authorization or published releases. The capability contracts and change artifacts
+live under `openspec/` and are validated by the complete check (`npm run openspec:validate`); they are
+installed repository functionality, not release preparation. Minimal agent tooling uses AGENTS and one
+editing skill with an identical Claude copy. Behavior/data/API/CI changes follow the accepted planning
+contract.
 
 ## Final candidate maintenance
 

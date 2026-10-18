@@ -46,6 +46,15 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn("candidate-", candidate)
         self.assertNotIn(":latest", candidate)
         self.assertNotIn(":stable", candidate)
+        promotion_run = next(step for step in steps if step.get("name") == "Promote the audited digest")["run"]
+        release_move = promotion_run.index('--tag "$IMAGE:$RELEASE_TAG"')
+        release_assert = promotion_run.index('test "$(digest_of "$IMAGE:$RELEASE_TAG")"')
+        latest_move = promotion_run.index('--tag "$IMAGE:latest"')
+        self.assertLess(release_move, release_assert, "the release tag is promoted before it is verified")
+        self.assertLess(release_assert, latest_move, "no moving alias is touched before the release digest is verified")
+        self.assertIn("--raw", promotion_run)
+        self.assertNotIn("--prefer-index=false", promotion_run)
+        self.assertNotIn(".Manifest.Digest", promotion_run)
         self.assertIn(
             "steps.build.outputs.digest", next(step for step in steps if step.get("id") == "digest")["env"]["DIGEST"]
         )
@@ -92,11 +101,15 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(env["FAIR_GUIDE_RELEASE_TAG"], "${{ needs.sources.outputs.tag }}")
         self.assertNotIn("vars.RELEASE_STATUS", (ROOT / ".github/workflows/deploy.yml").read_text())
 
-    def test_the_editing_skills_are_identical_and_name_every_release_fact(self) -> None:
+    def test_identical_thin_skills_route_to_the_release_owners(self) -> None:
         shared = (ROOT / ".agents/skills/fair-guide-editor/SKILL.md").read_text(encoding="utf-8")
         claude = (ROOT / ".claude/skills/fair-guide-editor/SKILL.md").read_text(encoding="utf-8")
         self.assertEqual(shared, claude, "the Claude Code copy mirrors the shared editing skill")
-        release = shared.split("## 11. Release", 1)[1]
+        self.assertIn("CONTRIBUTING.md", shared)
+        self.assertIn("docs/deployment.md", shared)
+        self.assertIn("before implementation", shared)
+        release = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        release += (ROOT / "docs/deployment.md").read_text(encoding="utf-8")
         for fact in (
             "content/guide.toml",
             "datePublished",
@@ -105,9 +118,8 @@ class WorkflowContracts(unittest.TestCase):
             "package.json",
             "package-lock.json",
             "CHANGELOG.md",
-            "whole pull request",
             "vX.Y.Z",
-            "same artifact",
+            "same verified bytes",
         ):
             self.assertIn(fact, release, f"the release steps name {fact}")
 
@@ -228,6 +240,21 @@ class WorkflowContracts(unittest.TestCase):
         self.assertNotIn("check_all.py", " ".join(step.get("run", "") for step in assemble["steps"]))
         marker = next(step for step in staging["steps"] if step.get("with", {}).get("name") == "staging-site")
         self.assertEqual(marker["with"]["include-hidden-files"], "true", "the checked site marker travels with staging")
+        uploads = [
+            step
+            for job in ("production", "staging")
+            for step in deploy["jobs"][job]["steps"]
+            if step.get("uses", "").startswith("actions/upload-artifact@")
+        ]
+        self.assertEqual(len(uploads), 3)
+        for step in uploads:
+            self.assertEqual(step["with"].get("overwrite"), "true", f"{step['with']['name']} is re-run safe")
+        production_upload = next(step for step in uploads if step["with"]["name"].startswith("guide-site-"))
+        self.assertEqual(
+            production_upload["with"]["name"],
+            "guide-site-${{ needs.sources.outputs.production }}",
+            "the cross-run release name stays stable",
+        )
         self.assertEqual(deploy["jobs"]["deploy"]["permissions"], {"pages": "write", "id-token": "write"})
         release = load(".github/workflows/release.yml")
         self.assertEqual(
@@ -239,6 +266,8 @@ class WorkflowContracts(unittest.TestCase):
         self.assertNotIn("build_site", text)
         self.assertNotIn("check_all", text)
         self.assertIn("guide-site-${{ needs.bind.outputs.sha }}", text)
+        image = (ROOT / ".github/workflows/publish-image.yml").read_text(encoding="utf-8")
+        self.assertIn("guide-site-${{ inputs.commit }}", image)
         self.assertIn("workflow_run.event == 'push'", release["jobs"]["bind"]["if"])
         self.assertIn("workflow_run.head_repository.full_name == github.repository", release["jobs"]["bind"]["if"])
 

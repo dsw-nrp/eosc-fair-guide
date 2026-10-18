@@ -943,13 +943,15 @@ def health_schemas() -> dict[str, Any]:
     }
 
 
-def publish_health(out: Path, report: dict[str, Any], content: dict[str, Any] | None) -> None:
+def publish_health(
+    out: Path, report: dict[str, Any], content: dict[str, Any] | None, crate: dict[str, Any] | None = None
+) -> None:
     """Replace only the health snapshot of an already built site; callers require a successful fresh build."""
     target = out / HEALTH_FILE
     if not target.is_file() or not (out / OPENAPI_FILE).is_file():
         raise kb.ContentError("health publication requires an existing built API")
     out = kb.require_site(out)
-    document = Api(kb.build_crate(content), content).health(report) if content is not None else report
+    document = Api(crate or kb.build_crate(content), content).health(report) if content is not None else report
     (out / HEALTH_FILE).write_text(
         json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
     )

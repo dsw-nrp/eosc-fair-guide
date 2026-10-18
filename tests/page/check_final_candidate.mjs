@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { audit } from "./accessibility.mjs";
+import { installGuards } from "./guards.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const { chromium, runCases } = await import("./browser.mjs");
@@ -21,9 +22,9 @@ try {
   const cases = ["cs", "en"].flatMap((lang) => [320, 390, 1280].map((width) => [`${lang}/${width}`, async () => {
       const context = await browser.newContext({ viewport: { width, height: 900 } });
       const page = await context.newPage();
-      const errors = [], external = [];
-      page.on("pageerror", (error) => errors.push(error.message));
-      page.on("request", (request) => { if (/^https?:/.test(request.url())) external.push(request.url()); });
+      const {problems: errors, external} = installGuards(page, {
+        allowed: (url) => !/^https?:/.test(url),
+      });
       await page.goto(file + `#/${lang}/V/path/licence`);
       await page.waitForSelector(".station h1");
       assert((await page.title()).includes(lang === "cs" ? "Licence" : "Licence"));

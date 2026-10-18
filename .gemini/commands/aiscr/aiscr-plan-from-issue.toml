@@ -1,0 +1,18 @@
+# aiscr:canonical=
+description = "Promote a fully described GitHub issue into an OpenSpec change in the repository that owns the issue, on the branch its implementation will use, ending in a draft pull request and a hard stop at the implementation boundary. Readiness is gated on the declared issue shape, so an issue that does not satisfy it is refused with its missing sections named and routed back to issue shaping."
+prompt = """
+<!-- aiscr:stop-anchor -->
+**Entry scope**
+
+- Stay in this `.gemini/commands/aiscr/` surface and its same-vendor pointers first.
+- Do not open parallel vendor trees by default just in case.
+- Cross into another vendor tree only for explicit parity checks, generator work, or governance maintenance.
+
+Promote a fully described GitHub issue into an OpenSpec change in the repository that owns the issue, on the branch its implementation will use, ending in a draft pull request and a hard stop at the implementation boundary. Readiness is gated on the declared issue shape, so an issue that does not satisfy it is refused with its missing sections named and routed back to issue shaping.
+
+Execute the AIS CR workflow `aiscr-plan-from-issue`. The full workflow body for this command is the repository-local skill included below; follow it as the authoritative procedure, guardrails, and verification requirements.
+
+@{.agents/skills/aiscr-plan-from-issue/SKILL.md}
+
+If the skill inclusion above did not expand — the paired skill file is missing or excluded by repository ignore rules — stop and report that `/aiscr-plan-from-issue` cannot run in this checkout instead of improvising the workflow.
+"""

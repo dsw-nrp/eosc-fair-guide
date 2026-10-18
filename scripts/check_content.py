@@ -44,6 +44,8 @@ from build_crate import (  # noqa: E402
     vocabulary_errors,
 )
 from catalogue_identity import alternate_id
+from corrections import validate_fields
+from registry_identifiers import DATACITE_REPOSITORY, FAIRSHARING_DOI, canonical_fairsharing_doi
 
 LEVELS = ("L0", "L1", "L2")
 CLAUSE_KINDS = ("requirement", "recommendation", "fulfilment", "statement")
@@ -1019,16 +1021,18 @@ def check_repositories(report: Report, content: dict[str, Any], vocab: dict[str,
             here = f"{where}:annotation {number}"
             if bool(row.get("re3data")) == bool(row.get("url")):
                 report.error(here, "an annotation names its repository by re3data or by url, one of them")
-            if row.get("fairsharing") and not FAIRSHARING_DOI.fullmatch(str(row["fairsharing"])):
-                report.error(here, f"fairsharing is not a FAIRsharing DOI ('{row['fairsharing']}')")
+            if row.get("fairsharing"):
+                value = str(row["fairsharing"])
+                if not FAIRSHARING_DOI.fullmatch(value):
+                    report.error(here, f"fairsharing is not a FAIRsharing DOI ('{value}')")
+                elif value != canonical_fairsharing_doi(value):
+                    report.error(here, f"fairsharing must use the published case ('{value}')")
             if row.get("datacite") and not DATACITE_REPOSITORY.fullmatch(str(row["datacite"])):
                 report.error(here, f"datacite is not a DataCite repository ID ('{row['datacite']}')")
             if not row.get("fairsharing") and not row.get("datacite"):
                 report.error(here, "an annotation adds a fairsharing record or a datacite repository")
 
 
-DATACITE_REPOSITORY = re.compile(r"[a-z0-9]+\.[a-z0-9][a-z0-9.-]*")
-FAIRSHARING_DOI = re.compile(r"10\.25504/FAIRsharing\.[A-Za-z0-9]+")
 VERIFICATION_LEVELS = ("verified", "self-declared", "under-review")
 DECLARATION_STATUSES = ("in-use", "planned", "under-consideration", "to-be-replaced")
 
@@ -1073,6 +1077,23 @@ def check_glossary(report: Report, content: dict[str, Any]) -> None:
             report.error(where, "definitions may be copied only when the glossary's licence permits it")
         if "definitionLanguage" in term and term["definitionLanguage"] not in LANGS:
             report.error(where, "definitionLanguage must name a supported source language")
+
+
+def check_corrections(report: Report, content: dict[str, Any]) -> None:
+    corrections = content.get("corrections", [])
+    for error in validate_fields(corrections, content["glossary"]):
+        report.error("corrections", error)
+    terms = {term.get("id"): term for term in content["glossary"].get("term", [])}
+    for correction in corrections:
+        term = terms.get(correction.get("term"))
+        if term is None:
+            continue
+        where = f"correction:{correction.get('id')}"
+        text = term.get(correction.get("field"), "")
+        if correction.get("find") in text:
+            report.error(where, "the recorded finding is still present")
+        if correction.get("replace") not in text:
+            report.error(where, "the recorded replacement is absent")
 
 
 def check_callouts(report: Report, content: dict[str, Any], vocab: dict[str, set[str]]) -> None:
@@ -1888,6 +1909,7 @@ def check(content: dict[str, Any], root: Path, today: date | None = None) -> Rep
     check_resources(report, content, vocab, today or date.today())
     check_repositories(report, content, vocab, today or date.today())
     check_glossary(report, content)
+    check_corrections(report, content)
     check_infrastructures(report, content)
     check_fip_dashboard(report, content, vocab)
     check_callouts(report, content, vocab)

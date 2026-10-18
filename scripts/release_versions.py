@@ -2,15 +2,17 @@
 """Own release metadata and the merged-PR changelog; no third-party dependencies.
 
 `check [--site DIR]` checks authored metadata, prose and an optional built crate.
-`prepare --version VERSION --date YYYY-MM-DD --prs FILE --actor LOGIN` updates
-metadata and the changelog from a complete GitHub closed-PR listing. It neither
-commits nor tags. The dispatch supplies that listing and opens the release PR.
+`prepare --version VERSION --date YYYY-MM-DD --prs FILE --actor LOGIN [--manifest FILE]`
+updates metadata and the changelog from a complete GitHub closed-PR listing and
+reports the prepared paths and their digests. It neither commits nor tags. The
+dispatch supplies that listing and opens the release PR.
 The crate derives its version and date from content/guide.toml at build time.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
@@ -200,7 +202,7 @@ def changelog(
 
 def prepare(
     root: Path, target: str, released: str, prs: list[dict], actor: str, *, now: datetime | None = None
-) -> list[str]:
+) -> dict[str, object]:
     version(target)
     date.fromisoformat(released)
     _, _, errors = metadata(root)
@@ -267,7 +269,13 @@ endTime = {timestamp}
     # crate is rebuilt, never patched; its consistency is checked with --site.
     for path, text in texts.items():
         (root / path).write_text(text, encoding="utf-8", newline="\n")
-    return list(texts)
+    return {
+        "formatVersion": 1,
+        "version": target,
+        "files": [
+            {"path": path, "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest()} for path, text in texts.items()
+        ],
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -281,6 +289,7 @@ def main(argv: list[str] | None = None) -> int:
     preparing.add_argument("--prs", required=True, type=Path)
     preparing.add_argument("--actor", required=True)
     preparing.add_argument("--timestamp", type=datetime.fromisoformat)
+    preparing.add_argument("--manifest", type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "check":
@@ -289,7 +298,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise ValueError("\n".join(errors))
             print("release_versions: metadata, dates and prose agree")
         else:
-            paths = prepare(
+            manifest = prepare(
                 ROOT,
                 args.version,
                 args.date,
@@ -297,6 +306,12 @@ def main(argv: list[str] | None = None) -> int:
                 args.actor,
                 now=args.timestamp,
             )
+            if args.manifest:
+                args.manifest.parent.mkdir(parents=True, exist_ok=True)
+                args.manifest.write_text(
+                    json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
+                )
+            paths = [item["path"] for item in manifest["files"]]
             print("Prepared for review: " + ", ".join(paths))
     except (ValueError, KeyError, OSError, subprocess.CalledProcessError) as error:
         print(f"release_versions: {error}", file=sys.stderr)

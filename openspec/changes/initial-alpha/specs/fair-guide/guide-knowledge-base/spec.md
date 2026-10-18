@@ -184,6 +184,18 @@ and links are kept.
 - **WHEN** it completes
 - **THEN** it opens a pull request with the updated snapshot and its retrieval date, and commits nothing directly
 
+### Requirement: Reviewed local corrections keep a snapshot verbatim
+
+A local correction to a reviewed snapshot SHALL be recorded separately with the source, exact finding,
+replacement, reason and tracking issue. The build SHALL apply it to the in-memory content, the snapshot SHALL
+remain the source's text, and a missing or ambiguous finding SHALL refuse the content load.
+
+#### Scenario: Correcting an upstream typo
+
+- **GIVEN** a snapshot with a typo in a quoted definition
+- **WHEN** a reviewed correction names the term and the exact finding
+- **THEN** the built glossary shows the replacement, the snapshot file is unchanged, and the correction links to its source and issue
+
 ### Requirement: Snapshots keep their source's licence
 
 A snapshot whose source licence differs from the guide's content licence SHALL declare the source's licence on its

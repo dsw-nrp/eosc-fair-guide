@@ -62,6 +62,11 @@ class FixtureCase(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name) / "guide"
         shutil.copytree(FIXTURE, self.root)
+        (self.root / ".github").mkdir()
+        shutil.copy(
+            refresh_snapshots.ROOT / ".github/source-registry.json",
+            self.root / ".github/source-registry.json",
+        )
 
     def tearDown(self) -> None:
         self.temp.cleanup()
