@@ -17,9 +17,7 @@ authors:
     affiliation: "Knihovna AV ČR, v. v. i.; Archeologický ústav AV ČR, Praha, v. v. i."
 version: "1.0.0-alpha.1"
 date-released: "2026-10-18"
-license:
-  - MIT
-  - CC-BY-4.0
+license: "MIT"
 repository-code: "https://github.com/dsw-nrp/eosc-fair-guide"
 keywords:
   - FAIR
