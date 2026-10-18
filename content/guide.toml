@@ -3,7 +3,7 @@
 [guide]
 version = "1.0.0-alpha.1"
 testingNotice = { cs = "Průvodce je ve fázi testování. Obsah se může měnit a zatím jej neschválila iniciativa EOSC CZ.", en = "This Guide is in testing. Its content may change, and the EOSC CZ initiative has not approved it yet." }
-datePublished = 2026-10-08
+datePublished = 2026-10-18
 # Uses of "průvodce" and "guide" that do not mean this Guide and stay in lower case (D-177; content check).
 genericGuideUses = ["průvodce licencemi", "průvodcem licencemi", "praktický průvodce", "interaktivní průvodce", "interaktivního průvodce", "an interactive guide"]
 name = { cs = "Průvodce FAIR daty", en = "FAIR Data Guide" }

@@ -1550,3 +1550,14 @@ results = [
   "zenodo-software-guide",
 ]
 endTime = 2026-10-16T19:35:35+00:00
+
+[[action]]
+id = "release-1.0.0-alpha.1"
+type = "update"
+name = "Prepare release metadata"
+description = "Release metadata and merged-pull-request changelog prepared for human review."
+agent = "david-novak"
+instruments = ["release-automation"]
+objects = []
+results = ["guide"]
+endTime = 2026-10-18T11:22:56+00:00
