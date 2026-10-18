@@ -4,7 +4,7 @@
 source = "FIP Dashboard"
 url = "https://fip-dashboard.dmp.eosc.cz/"
 api = "https://fip-dashboard.dmp.eosc.cz/api"
-retrieved = 2026-10-08
+retrieved = 2026-10-18
 datasetName = { cs = "Dashboard FIP NRP — ukázková datová sada", en = "NRP FIP Dashboard — example dataset" }
 datasetVersion = "0.1.0"
 datasetUpdated = "2026-09-23"
@@ -55,10 +55,9 @@ id = "vocabulary"
 label = { cs = "Slovník nebo ontologie", en = "Vocabulary or ontology" }
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cesnet" }]
-
-guideRoute = "org"
 id = "cesnet"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cesnet" }]
+guideRoute = "org"
 name = { cs = "CESNET", en = "CESNET" }
 acronym = "CESNET"
 url = "https://www.cesnet.cz/"
@@ -66,50 +65,45 @@ ror = "https://ror.org/050dkka69"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cessda" }]
-
-guideRoute = "org"
 id = "cessda-eric"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cessda" }]
+guideRoute = "org"
 name = { cs = "CESSDA ERIC", en = "CESSDA ERIC" }
 acronym = "CESSDA ERIC"
 url = "https://www.cessda.eu/"
 scope = "european"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "clarin" }]
-
-guideRoute = "org"
 id = "clarin-eric"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "clarin" }]
+guideRoute = "org"
 name = { cs = "CLARIN ERIC", en = "CLARIN ERIC" }
 acronym = "CLARIN ERIC"
 url = "https://www.clarin.eu/"
 scope = "european"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "creative-commons" }]
-
-guideRoute = "org"
 id = "cc"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "creative-commons" }]
+guideRoute = "org"
 name = { cs = "Creative Commons", en = "Creative Commons" }
 acronym = "CC"
 url = "https://creativecommons.org/"
 scope = "global"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "csda" }]
-
-guideRoute = "org"
 id = "csda-2"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "csda" }]
+guideRoute = "org"
 name = { cs = "Český sociálněvědní datový archiv", en = "Czech Social Science Data Archive" }
 acronym = "ČSDA"
 url = "https://archiv.soc.cas.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "datacite" }]
-
-guideRoute = "org"
 id = "datacite"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "datacite" }]
+guideRoute = "org"
 name = { cs = "DataCite", en = "DataCite" }
 acronym = "DataCite"
 url = "https://datacite.org/"
@@ -117,150 +111,135 @@ ror = "https://ror.org/04wxnsj81"
 scope = "global"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dia" }]
-
-guideRoute = "org"
 id = "dia"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dia" }]
+guideRoute = "org"
 name = { cs = "Digitální a informační agentura", en = "Digital and Information Agency" }
 acronym = "DIA"
 url = "https://www.dia.gov.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ds-wizard" }]
-
-guideRoute = "org"
 id = "dsw-2"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ds-wizard" }]
+guideRoute = "org"
 name = { cs = "Data Stewardship Wizard", en = "Data Stewardship Wizard" }
 acronym = "DSW"
 url = "https://ds-wizard.org/"
 scope = "global"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "e-infra-cz" }]
-
-guideRoute = "org"
 id = "e-infra-cz"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "e-infra-cz" }]
+guideRoute = "org"
 name = { cs = "e-INFRA CZ", en = "e-INFRA CZ" }
 acronym = "e-INFRA CZ"
 url = "https://www.e-infra.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "elixir-cz" }]
-
-guideRoute = "org"
 id = "elixir-cz-2"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "elixir-cz" }]
+guideRoute = "org"
 name = { cs = "ELIXIR CZ", en = "ELIXIR CZ" }
 acronym = "ELIXIR CZ"
 url = "https://www.elixir-czech.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "eosc-cz" }]
-
-guideRoute = "org"
 id = "eosc-cz"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "eosc-cz" }]
+guideRoute = "org"
 name = { cs = "Iniciativa EOSC CZ", en = "EOSC CZ initiative" }
 acronym = "EOSC CZ"
 url = "https://www.eosc.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "fairsharing-org" }]
-
-guideRoute = "org"
 id = "fairsharing-2"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "fairsharing-org" }]
+guideRoute = "org"
 name = { cs = "FAIRsharing", en = "FAIRsharing" }
 acronym = "FAIRsharing"
 url = "https://fairsharing.org/"
 scope = "global"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "go-fair" }]
-
-guideRoute = "org"
 id = "go-fair"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "go-fair" }]
+guideRoute = "org"
 name = { cs = "GO FAIR", en = "GO FAIR" }
 acronym = "GO FAIR"
 url = "https://www.go-fair.org/"
 scope = "global"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "knav" }]
-
-guideRoute = "org"
 id = "knav"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "knav" }]
+guideRoute = "org"
 name = { cs = "Knihovna Akademie věd ČR", en = "Library of the Czech Academy of Sciences" }
 acronym = "KNAV"
 url = "https://www.lib.cas.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "lindat" }]
-
-guideRoute = "org"
 id = "lindat-clariah-cz"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "lindat" }]
+guideRoute = "org"
 name = { cs = "LINDAT/CLARIAH-CZ", en = "LINDAT/CLARIAH-CZ" }
 acronym = "LINDAT/CLARIAH-CZ"
 url = "https://lindat.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp" }]
-
-guideRoute = "org"
 id = "nrp-2"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp" }]
+guideRoute = "org"
 name = { cs = "Národní repozitářová platforma pro výzkumná data", en = "National Repository Platform for Research Data" }
 acronym = "NRP"
 url = "https://www.eosc.cz/projekty/narodni-repozitarova-platforma-pro-vyzkumna-data"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ntk" }]
-
-guideRoute = "org"
 id = "ntk"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ntk" }]
+guideRoute = "org"
 name = { cs = "Národní technická knihovna", en = "National Library of Technology" }
 acronym = "NTK"
 url = "https://www.techlib.cz/"
 scope = "national"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "openaire" }]
-
-guideRoute = "org"
 id = "openaire"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "openaire" }]
+guideRoute = "org"
 name = { cs = "OpenAIRE", en = "OpenAIRE" }
 acronym = "OpenAIRE"
 url = "https://www.openaire.eu/"
 scope = "european"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "orcid-org" }]
-
-guideRoute = "org"
 id = "orcid-2"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "orcid-org" }]
+guideRoute = "org"
 name = { cs = "ORCID", en = "ORCID" }
 acronym = "ORCID"
 url = "https://orcid.org/"
 scope = "global"
 
 [[organization]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "w3c" }]
-
-guideRoute = "org"
 id = "w3c"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "w3c" }]
+guideRoute = "org"
 name = { cs = "World Wide Web Consortium", en = "World Wide Web Consortium" }
 acronym = "W3C"
 url = "https://www.w3.org/"
 scope = "global"
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "asep-arl" }]
-
-guideRoute = "res/reg"
 id = "asep"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "asep-arl" }]
+guideRoute = "res/reg"
 name = "ASEP / ARL"
 type = "repository"
 scope = "national"
@@ -271,10 +250,9 @@ principles = ["F4", "A2", "I3"]
 verification = [{ verifier = "knav", level = "self-declared", date = "2026-02-19" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "bioschemas" }]
-
-guideRoute = "res/std"
 id = "bioschemas"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "bioschemas" }]
+guideRoute = "res/std"
 name = "Bioschemas"
 type = "metadata-schema"
 scope = "global"
@@ -284,10 +262,9 @@ principles = ["F2", "F4", "I1", "I3"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-03-18" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cc-by-40" }]
-
-guideRoute = "res/lic"
 id = "cc-by-4-0"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cc-by-40" }]
+guideRoute = "res/lic"
 name = "Creative Commons Attribution 4.0"
 acronym = "CC BY 4.0"
 type = "license"
@@ -299,10 +276,9 @@ principles = ["R1.1"]
 verification = []
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cc0" }]
-
-guideRoute = "res/lic"
 id = "cc0-1-0"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cc0" }]
+guideRoute = "res/lic"
 name = "Creative Commons Zero 1.0"
 acronym = "CC0 1.0"
 type = "license"
@@ -314,10 +290,9 @@ principles = ["R1.1"]
 verification = []
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cessda-trust-requirements" }]
-
-guideRoute = "res/pol"
 id = "cessda-trust"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cessda-trust-requirements" }]
+guideRoute = "res/pol"
 name = "CESSDA trust and service requirements"
 type = "policy"
 scope = "european"
@@ -328,10 +303,9 @@ principles = ["A2", "R1.3"]
 verification = [{ verifier = "cessda", level = "verified", date = "2026-03-25" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "clarin-dspace" }]
-
-guideRoute = "res/reg"
 id = "clarin-dspace"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "clarin-dspace" }]
+guideRoute = "res/reg"
 name = "CLARIN DSpace"
 type = "repository"
 scope = "national"
@@ -342,10 +316,9 @@ principles = ["F4", "A1", "A2", "R1.3"]
 verification = [{ verifier = "clarin", level = "verified", date = "2026-04-22", note = { cs = "Certifikované centrum CLARIN typu B, přehodnocované každé tři roky.", en = "Certified CLARIN B-centre, re-assessed every three years." } }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "clarin-longevity" }]
-
-guideRoute = "res/pol"
 id = "clarin-longevity"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "clarin-longevity" }]
+guideRoute = "res/pol"
 name = "CLARIN centre longevity commitment"
 type = "longevity-plan"
 scope = "european"
@@ -356,10 +329,9 @@ principles = ["A2"]
 verification = [{ verifier = "clarin", level = "verified", date = "2026-04-22" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cmdi" }]
-
-guideRoute = "res/std"
 id = "cmdi"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "cmdi" }]
+guideRoute = "res/std"
 name = "Component MetaData Infrastructure"
 acronym = "CMDI"
 type = "metadata-schema"
@@ -371,10 +343,9 @@ principles = ["F2", "I1", "R1", "R1.3"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2025-12-02" }, { verifier = "clarin", level = "verified", date = "2026-04-22", note = { cs = "Spravováno a verzováno registrem komponent CLARIN.", en = "Maintained and version-controlled by the CLARIN component registry." } }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "datacite-schema" }]
-
-guideRoute = "res/std"
 id = "datacite-metadata-schema"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "datacite-schema" }]
+guideRoute = "res/std"
 name = "DataCite Metadata Schema"
 type = "metadata-schema"
 scope = "global"
@@ -386,10 +357,9 @@ principles = ["F2", "F3", "I1", "I3", "R1"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-03-04" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dcat-ap-cz" }]
-
-guideRoute = "res/std"
 id = "dcat-ap-cz"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dcat-ap-cz" }]
+guideRoute = "res/std"
 name = "DCAT-AP-CZ"
 type = "metadata-schema"
 scope = "national"
@@ -400,10 +370,9 @@ principles = ["F2", "F4", "I1", "I3"]
 verification = [{ verifier = "dia", level = "verified", date = "2026-02-05" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ddi" }]
-
-guideRoute = "res/std"
 id = "ddi"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ddi" }]
+guideRoute = "res/std"
 name = "DDI (Data Documentation Initiative)"
 acronym = "DDI"
 type = "metadata-schema"
@@ -414,10 +383,9 @@ principles = ["F2", "I1", "R1", "R1.2", "R1.3"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-02-27" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "doi-datacite" }]
-
-guideRoute = "res/srv"
 id = "doi"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "doi-datacite" }]
+guideRoute = "res/srv"
 name = "DOI (DataCite)"
 acronym = "DOI"
 type = "identifier-service"
@@ -430,10 +398,9 @@ principles = ["F1", "F3", "A1", "I3"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-02-11" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dsw-tool" }]
-
-guideRoute = "res/tool"
 id = "dsw"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dsw-tool" }]
+guideRoute = "res/tool"
 name = "Data Stewardship Wizard"
 acronym = "DSW"
 type = "tool"
@@ -445,10 +412,9 @@ principles = ["R1.2", "R1.3"]
 verification = [{ verifier = "ds-wizard", level = "self-declared", date = "2026-07-01" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dublin-core" }]
-
-guideRoute = "res/std"
 id = "dcterms"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "dublin-core" }]
+guideRoute = "res/std"
 name = "Dublin Core Terms"
 acronym = "DCTERMS"
 type = "metadata-schema"
@@ -459,10 +425,9 @@ principles = ["F2", "I1", "R1"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2025-09-30" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "e-infra-aai" }]
-
-guideRoute = "res/srv"
 id = "e-infra-cz-aai"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "e-infra-aai" }]
+guideRoute = "res/srv"
 name = "e-INFRA CZ AAI (Perun)"
 type = "authentication-service"
 scope = "national"
@@ -473,10 +438,9 @@ principles = ["A1.2"]
 verification = [{ verifier = "e-infra-cz", level = "verified", date = "2026-03-11" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "edam" }]
-
-guideRoute = "res/vocab"
 id = "edam"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "edam" }]
+guideRoute = "res/vocab"
 name = "EDAM ontology"
 acronym = "EDAM"
 type = "vocabulary"
@@ -487,10 +451,9 @@ principles = ["I2", "R1.3"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-04-09" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "edugain" }]
-
-guideRoute = "res/srv"
 id = "edugain"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "edugain" }]
+guideRoute = "res/srv"
 name = "eduGAIN"
 type = "authentication-service"
 scope = "global"
@@ -500,10 +463,9 @@ principles = ["A1.2"]
 verification = []
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "eduid-cz" }]
-
-guideRoute = "res/srv"
 id = "eduid-cz"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "eduid-cz" }]
+guideRoute = "res/srv"
 name = "eduID.cz federation"
 acronym = "eduID.cz"
 type = "authentication-service"
@@ -515,10 +477,9 @@ principles = ["A1.2"]
 verification = [{ verifier = "cesnet", level = "verified", date = "2026-03-11" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "elsst" }]
-
-guideRoute = "res/vocab"
 id = "elsst"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "elsst" }]
+guideRoute = "res/vocab"
 name = "ELSST thesaurus"
 acronym = "ELSST"
 type = "vocabulary"
@@ -530,10 +491,9 @@ principles = ["I2", "R1.3"]
 verification = [{ verifier = "cessda", level = "verified", date = "2026-03-25" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "fairsharing" }]
-
-guideRoute = "res/reg"
 id = "fairsharing"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "fairsharing" }]
+guideRoute = "res/reg"
 name = "FAIRsharing"
 type = "repository"
 scope = "global"
@@ -543,10 +503,9 @@ principles = ["F4", "I2", "R1.3"]
 verification = []
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "fip-wizard" }]
-
-guideRoute = "res/tool"
 id = "fip-wizard"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "fip-wizard" }]
+guideRoute = "res/tool"
 name = "FIP Wizard"
 type = "tool"
 scope = "global"
@@ -557,10 +516,9 @@ principles = ["R1.3"]
 verification = [{ verifier = "go-fair", level = "self-declared", date = "2026-07-01" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "handle" }]
-
-guideRoute = "res/srv"
 id = "handle"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "handle" }]
+guideRoute = "res/srv"
 name = "Handle System"
 acronym = "Handle"
 type = "identifier-service"
@@ -571,10 +529,9 @@ principles = ["F1", "F3", "A1"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2025-11-20" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "https-rest-api" }]
-
-guideRoute = "res/std"
 id = "https-rest-api"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "https-rest-api" }]
+guideRoute = "res/std"
 name = "HTTPS REST API"
 type = "access-protocol"
 scope = "global"
@@ -583,10 +540,9 @@ principles = ["A1", "A1.1", "A1.2"]
 verification = [{ verifier = "eosc-cz", level = "self-declared", date = "2026-04-14" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "madmp-standard" }]
-
-guideRoute = "res/tool"
 id = "rda-dmp-common-standard"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "madmp-standard" }]
+guideRoute = "res/tool"
 name = "RDA maDMP Common Standard"
 type = "tool"
 scope = "global"
@@ -596,10 +552,9 @@ principles = ["R1.2", "R1.3", "I1"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-02-27" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ndi-data-policy" }]
-
-guideRoute = "res/pol"
 id = "ndi-data-policy"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ndi-data-policy" }]
+guideRoute = "res/pol"
 name = "National Data Infrastructure data policy"
 type = "policy"
 scope = "national"
@@ -610,10 +565,9 @@ principles = ["R1.3", "A2", "R1.1"]
 verification = [{ verifier = "eosc-cz", level = "verified", date = "2026-04-14" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nma" }]
-
-guideRoute = "res/reg"
 id = "nma"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nma" }]
+guideRoute = "res/reg"
 name = "National Metadata Directory"
 acronym = "NMA"
 type = "repository"
@@ -624,10 +578,9 @@ principles = ["F4", "I3", "A2"]
 verification = [{ verifier = "eosc-cz", level = "under-review", date = "2026-09-02", note = { cs = "Specifikace zveřejněna; služba zatím není v produkčním provozu.", en = "Specification published; the service is not in production yet." } }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-invenio" }]
-
-guideRoute = "repo"
 id = "cesnet-invenio"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-invenio" }]
+guideRoute = "repo"
 name = "CESNET Invenio repository"
 type = "repository"
 scope = "national"
@@ -638,10 +591,9 @@ principles = ["F4", "A1", "A2", "R1.3"]
 verification = [{ verifier = "eosc-cz", level = "verified", date = "2026-06-30" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-licence-service" }]
-
-guideRoute = "res/lic"
 id = "nrp-licence-management-service"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-licence-service" }]
+guideRoute = "res/lic"
 name = "NRP licence management service"
 type = "license"
 scope = "national"
@@ -651,10 +603,9 @@ principles = ["R1.1", "A1.2"]
 verification = [{ verifier = "nrp", level = "under-review", date = "2026-08-18" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-longevity-plan" }]
-
-guideRoute = "res/pol"
 id = "nrp-metadata-longevity-plan"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-longevity-plan" }]
+guideRoute = "res/pol"
 name = "NRP metadata longevity plan"
 type = "longevity-plan"
 scope = "national"
@@ -664,10 +615,9 @@ principles = ["A2"]
 verification = [{ verifier = "nrp", level = "verified", date = "2026-05-29" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-metadata-profile" }]
-
-guideRoute = "res/std"
 id = "nrp-common-metadata-profile"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-metadata-profile" }]
+guideRoute = "res/std"
 name = "NRP common metadata profile"
 type = "metadata-schema"
 scope = "national"
@@ -677,10 +627,9 @@ principles = ["F2", "F3", "I1", "R1", "R1.3"]
 verification = [{ verifier = "eosc-cz", level = "verified", date = "2026-07-15", note = { cs = "Před vydáním posouzeno oproti národním metadatovým požadavkům.", en = "Reviewed against the national metadata requirements before release." } }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-pid-service" }]
-
-guideRoute = "res/srv"
 id = "nrp-pid-service"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-pid-service" }]
+guideRoute = "res/srv"
 name = "NRP PID service"
 type = "identifier-service"
 scope = "national"
@@ -690,10 +639,9 @@ principles = ["F1", "F3", "A1"]
 verification = [{ verifier = "nrp", level = "under-review", date = "2026-08-18", note = { cs = "Návrh služby schválen; implementace se stále posuzuje.", en = "Service design accepted; the implementation is still being reviewed." } }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-repository-policy" }]
-
-guideRoute = "res/pol"
 id = "nrp-repository-policy"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-repository-policy" }]
+guideRoute = "res/pol"
 name = "NRP repository policy"
 type = "policy"
 scope = "national"
@@ -703,10 +651,9 @@ principles = ["A2", "R1.1", "R1.3"]
 verification = [{ verifier = "nrp", level = "verified", date = "2026-05-29" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nusl" }]
-
-guideRoute = "repo"
 id = "nusl"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nusl" }]
+guideRoute = "repo"
 name = "National Repository of Grey Literature"
 acronym = "NUŠL"
 type = "repository"
@@ -718,10 +665,9 @@ principles = ["F4", "A1", "A2"]
 verification = [{ verifier = "ntk", level = "verified", date = "2026-01-28" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "oai-pmh" }]
-
-guideRoute = "res/std"
 id = "oai-pmh"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "oai-pmh" }]
+guideRoute = "res/std"
 name = "OAI-PMH"
 type = "access-protocol"
 scope = "global"
@@ -731,10 +677,9 @@ principles = ["A1", "A1.1", "F4"]
 verification = []
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "openaire-guidelines" }]
-
-guideRoute = "res/std"
 id = "openaire-guidelines"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "openaire-guidelines" }]
+guideRoute = "res/std"
 name = "OpenAIRE Guidelines for Data Archives"
 type = "metadata-schema"
 scope = "european"
@@ -745,10 +690,9 @@ principles = ["F2", "F4", "I3", "R1.3"]
 verification = [{ verifier = "openaire", level = "verified", date = "2026-05-06" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "orcid" }]
-
-guideRoute = "res/srv"
 id = "orcid"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "orcid" }]
+guideRoute = "res/srv"
 name = "ORCID iD"
 acronym = "ORCID"
 type = "identifier-service"
@@ -760,10 +704,9 @@ principles = ["F1", "I3", "R1.2"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-01-15" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "prov-o" }]
-
-guideRoute = "res/std"
 id = "prov-o"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "prov-o" }]
+guideRoute = "res/std"
 name = "PROV-O"
 type = "provenance-model"
 scope = "global"
@@ -774,10 +717,9 @@ principles = ["R1.2", "I1"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2025-10-08" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "psh" }]
-
-guideRoute = "res/vocab"
 id = "psh"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "psh" }]
+guideRoute = "res/vocab"
 name = "Polythematic Structured Subject Heading System"
 acronym = "PSH"
 type = "vocabulary"
@@ -789,10 +731,9 @@ principles = ["I2", "R1.3"]
 verification = [{ verifier = "ntk", level = "verified", date = "2026-01-28" }, { verifier = "eosc-cz", level = "verified", date = "2026-06-02", note = { cs = "Přijato jako národní věcný slovník pro metadatový adresář.", en = "Accepted as a national subject vocabulary for the metadata directory." } }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ro-crate" }]
-
-guideRoute = "res/std"
 id = "ro-crate"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ro-crate" }]
+guideRoute = "res/std"
 name = "RO-Crate"
 type = "provenance-model"
 scope = "global"
@@ -802,10 +743,9 @@ principles = ["R1.2", "I1", "I3"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-06-17" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ror" }]
-
-guideRoute = "res/srv"
 id = "ror"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ror" }]
+guideRoute = "res/srv"
 name = "Research Organization Registry"
 acronym = "ROR"
 type = "identifier-service"
@@ -816,10 +756,9 @@ principles = ["F1", "I3", "R1.2"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2026-01-15" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "signposting" }]
-
-guideRoute = "res/std"
 id = "fair-signposting"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "signposting" }]
+guideRoute = "res/std"
 name = "FAIR Signposting"
 type = "access-protocol"
 scope = "global"
@@ -829,10 +768,9 @@ principles = ["A1", "F3", "I3"]
 verification = [{ verifier = "eosc-cz", level = "under-review", date = "2026-08-06", note = { cs = "Posuzuje se jako národní doporučení pro repozitáře.", en = "Being evaluated as a national recommendation for repositories." } }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "skos" }]
-
-guideRoute = "res/vocab"
 id = "skos"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "skos" }]
+guideRoute = "res/vocab"
 name = "SKOS"
 type = "vocabulary"
 scope = "global"
@@ -843,10 +781,9 @@ principles = ["I1", "I2"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2025-10-08" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "spdx" }]
-
-guideRoute = "res/vocab"
 id = "spdx"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "spdx" }]
+guideRoute = "res/vocab"
 name = "SPDX Licence List"
 acronym = "SPDX"
 type = "vocabulary"
@@ -857,10 +794,9 @@ principles = ["I2", "R1.1"]
 verification = [{ verifier = "fairsharing-org", level = "verified", date = "2025-11-05" }]
 
 [[resource]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "zenodo" }]
-
-guideRoute = "res/reg"
 id = "zenodo"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "zenodo" }]
+guideRoute = "res/reg"
 name = "Zenodo"
 type = "repository"
 scope = "european"
@@ -870,10 +806,9 @@ principles = ["F4", "A1", "A2"]
 verification = [{ verifier = "openaire", level = "self-declared", date = "2025-12-12" }]
 
 [[fip]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "csda-social" }]
-
-guideRoute = "fip"
 id = "csda"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "csda-social" }]
+guideRoute = "fip"
 title = { cs = "Profil Českého sociálněvědního datového archivu", en = "Czech Social Science Data Archive profile" }
 acronym = "ČSDA"
 community = "csda"
@@ -906,10 +841,9 @@ declarations = [
 ]
 
 [[fip]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "elixir-cz-life" }]
-
-guideRoute = "fip"
 id = "elixir-cz"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "elixir-cz-life" }]
+guideRoute = "fip"
 title = { cs = "ELIXIR CZ — profil dat věd o živé přírodě", en = "ELIXIR CZ — life-science data profile" }
 acronym = "ELIXIR CZ"
 community = "elixir-cz"
@@ -947,10 +881,9 @@ declarations = [
 ]
 
 [[fip]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "lindat-clariah" }]
-
-guideRoute = "fip"
 id = "lindat"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "lindat-clariah" }]
+guideRoute = "fip"
 title = { cs = "LINDAT/CLARIAH-CZ — profil jazykových zdrojů", en = "LINDAT/CLARIAH-CZ — language resources profile" }
 acronym = "LINDAT"
 community = "lindat"
@@ -987,10 +920,9 @@ declarations = [
 ]
 
 [[fip]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ndi-baseline" }]
-
-guideRoute = "fip"
 id = "ndi"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "ndi-baseline" }]
+guideRoute = "fip"
 title = { cs = "Národní datová infrastruktura — základní profil", en = "National Data Infrastructure — baseline profile" }
 acronym = "NDI"
 community = "eosc-cz"
@@ -1033,10 +965,9 @@ declarations = [
 ]
 
 [[fip]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-platform" }]
-
-guideRoute = "fip"
 id = "nrp"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nrp-platform" }]
+guideRoute = "fip"
 title = { cs = "Národní repozitářová platforma — profil univerzálního repozitáře", en = "National Repository Platform — generic repository profile" }
 acronym = "NRP"
 community = "nrp"
@@ -1078,10 +1009,9 @@ declarations = [
 ]
 
 [[fip]]
-alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nusl-grey" }]
-
-guideRoute = "fip"
 id = "nusl"
+alternateIds = [{ "scheme" = "fip-dashboard", "value" = "nusl-grey" }]
+guideRoute = "fip"
 title = { cs = "Profil Národního úložiště šedé literatury", en = "National Repository of Grey Literature profile" }
 acronym = "NUŠL"
 community = "ntk"
