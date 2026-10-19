@@ -1,5 +1,7 @@
 # FAIR Data Guide (EOSC CZ)
 
+[![DOI](https://zenodo.org/badge/1409358632.svg)](https://zenodo.org/badge/latestdoi/1409358632) [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/dsw-nrp/eosc-fair-guide)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/dsw-nrp/eosc-fair-guide) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+
 An interactive guide that takes researchers, data stewards, repository administrators and research
 communities along the path to FAIR data: from the project plan through choosing a repository, describing and
 licensing the data, to publication, citation and checking. It builds on the *Analysis and proposal of
