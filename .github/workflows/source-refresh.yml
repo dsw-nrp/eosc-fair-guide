@@ -38,7 +38,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
       - id: select
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const { select } = require('./.github/scripts/source-publisher.cjs');
@@ -83,7 +83,7 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
       - name: Publish changed sources as pull requests
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           SOURCE_BOT_LOGIN: ${{ steps.app.outputs.app-slug }}[bot]
         with:
