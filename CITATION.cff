@@ -22,6 +22,7 @@ date-released: "2026-10-19"
 license: "MIT"
 repository-code: "https://github.com/dsw-nrp/eosc-fair-guide"
 url: "https://dsw-nrp.github.io/eosc-fair-guide/"
+doi: 10.5281/zenodo.23468794
 keywords:
   - FAIR
   - research data
