@@ -3,5 +3,5 @@ reuse[charset-normalizer]==6.2.0
 cffconvert==2.0.0
 jsonschema==3.2.0
 roc-validator==0.12.2
-ruff==0.17.0
+ruff==0.17.1
 PyYAML==6.0.3
