@@ -17,8 +17,8 @@ authors:
     affiliation: >-
       Czech Academy of Sciences, Library;
       Czech Academy of Sciences, Institute of Archaeology, Prague
-version: "1.0.0-alpha.1"
-date-released: "2026-10-18"
+version: "1.0.0-alpha.2"
+date-released: "2026-10-19"
 license: "MIT"
 repository-code: "https://github.com/dsw-nrp/eosc-fair-guide"
 url: "https://dsw-nrp.github.io/eosc-fair-guide/"
