@@ -1566,10 +1566,11 @@ endTime = 2026-10-18T11:22:56+00:00
 id = "2026-10-18-consent-appraisal"
 type = "update"
 name = "Practical guidance in Stations 1 and 2: informed consent, data appraisal and team continuity"
-agent = "david-novak"
+agent = "karel-berka"
 instruments = [
-  "claude-code",
-  "claude-opus-5-5",
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
 ]
 description = "Added guidance on informed consent wording before human data collection, data selection for long-term preservation, and data handover when team members leave."
 objects = [
@@ -1588,5 +1589,6 @@ results = [
   "collect.23",
   "plan.31",
   "plan.32",
+  "organization:upol",
 ]
 endTime = 2026-10-18T18:45:00+00:00
