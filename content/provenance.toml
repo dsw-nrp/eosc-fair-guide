@@ -1556,10 +1556,11 @@ endTime = 2026-10-18T11:22:56+00:00
 id = "2026-10-18-station-dedup"
 type = "update"
 name = "Editorial streamlining of stations and removal of duplicate advice items"
-agent = "david-novak"
+agent = "karel-berka"
 instruments = [
-  "claude-code",
-  "claude-opus-5-5",
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
 ]
 description = "Merged appended duplicate advice items (RDMkit and licensing handbook) into core station advice, differentiated key insights from introductory summaries, and separated AI prompts in stations 2 and 6."
 objects = [
@@ -1606,5 +1607,6 @@ results = [
   "plan.04",
   "plan.10",
   "publication.03",
+  "organization:upol",
 ]
 endTime = 2026-10-18T18:35:00+00:00
