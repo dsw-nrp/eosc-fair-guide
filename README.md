@@ -145,7 +145,9 @@ Přehled nástrojů, vlastnictví zdrojů a kontrol je v [dokumentaci nástrojů
 
 ## Jak přispívat
 
-Změny přicházejí jako pull request do `main`. CI kontroluje strukturu, obsah, funkčnost a přístupnost
+Výchozí cestou pro změny je pull request do `main`. Výslovně schválené přímé commity správce lze také vydat
+po stejných kontrolách metadat a vydání; agentům to nedává oprávnění zapisovat přímo ani obcházet ochranu větve.
+CI kontroluje strukturu, obsah, funkčnost a přístupnost
 stránek, odkazy, diagramy a čistotu repozitáře. Odpovědný recenzent kontroluje správnost a styl.
 Podrobný postup je v [CONTRIBUTING.md](CONTRIBUTING.md).
 

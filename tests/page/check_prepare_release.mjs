@@ -8,7 +8,7 @@ const {dispatch, validVersion, collect, propose, tag, preparedFiles} = createReq
 const sha = 'a'.repeat(40);
 const PREPARED = '.cache/release/prepared.json';
 const PREPARED_PATHS = ['content/guide.toml', 'CITATION.cff', 'package.json', 'package-lock.json',
-  'pyproject.toml', 'CHANGELOG.md', 'content/provenance.toml', 'content/identifiers.toml'];
+  'pyproject.toml', '.zenodo.json', 'CHANGELOG.md', 'content/provenance.toml', 'content/identifiers.toml'];
 const context = {eventName: 'workflow_dispatch', ref: 'refs/heads/main', sha, runId: 12,
   repo: {owner: 'example', repo: 'guide'}, payload: {repository: {default_branch: 'main'}, inputs: {version: '1.2.3-alpha.1', release_status: 'testing'}}};
 for (const value of ['1.2.3', '0.0.0', '1.2.3-alpha.1', '1.2.3-rc-2']) assert(validVersion(value));
@@ -18,7 +18,7 @@ assert.throws(() => dispatch({...context, eventName: 'push'}), /dispatch/);
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture() {
   const state = {refs: new Map([['heads/main', sha]]), commits: new Map([[sha, {tree: {sha: 'base'}}]]), prs: [],
-    creates: [], blobs: [], tags: new Map(), failPR: false, reads: [], outputs: {}};
+    creates: [], blobs: [], tags: new Map(), failPR: false, reads: [], outputs: {}, associations: [], failAssociations: false};
   const github = {rest: {git: {
     getRef: async ({ref}) => {if (!state.refs.has(ref)) throw Object.assign(Error('missing'), {status: 404}); return {data: {object: {sha: state.refs.get(ref)}}};},
     getCommit: async ({commit_sha}) => ({data: state.commits.get(commit_sha)}),
@@ -30,27 +30,52 @@ function fixture() {
   }, pulls: {list: 'pulls.list', create: async args => {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
-  }}, actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}})}},
-  paginate: async (_method, args) => {state.reads.push(args); return state.prs;}};
+  }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls'},
+  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}})}},
+  paginate: async (method, args) => {
+    state.reads.push(args);
+    if (method === 'commit.pulls') {
+      if (state.failAssociations) throw Error('Association page failed');
+      return state.associations;
+    }
+    return state.prs;
+  }};
   const core = {info() {}, setOutput: (key, value) => {state.outputs[key] = value;}};
   const manifest = {formatVersion: 1, version: context.payload.inputs.version,
     files: PREPARED_PATHS.map(path => ({path, sha256: createHash('sha256').update(Buffer.from(path)).digest('hex')}))};
+  const history = {formatVersion: 1, source: sha, previousTag: 'v1.0.0', commits: [sha], firstParent: [{sha, subject: 'A direct commit'}]};
   const read = (path, encoding) => path === PREPARED ? JSON.stringify(manifest)
+    : path === '.cache/release/history.json' ? JSON.stringify(history)
     : path === 'package.json' && encoding ? JSON.stringify({version: context.payload.inputs.version})
     : Buffer.from(path);
-  return {state, github, core, read, manifest};
+  return {state, github, core, read, manifest, history};
 }
 {
-  const {state, github, core} = fixture();
+  const {state, github, core, read} = fixture();
   state.prs = Array.from({length: 205}, (_, number) => ({number}));
-  let written;
-  await collect({github, core, context}, (_path, bytes) => {written = JSON.parse(bytes);});
-  assert.equal(written.length, 205);
+  state.associations = Array.from({length: 205}, (_, index) => ({number: index + 1}));
+  const written = new Map();
+  await collect({github, core, context}, (path, bytes) => {written.set(path, JSON.parse(bytes));}, read);
+  assert.equal(written.get('.cache/release/prs.json').length, 205);
+  assert.equal(written.get('.cache/release/associations.json').associations[sha].length, 205);
   assert.equal(state.reads[0].state, 'closed');
   assert.equal(state.reads[0].base, 'main');
   assert.equal(state.outputs.date, '2026-10-14');
+  assert.equal(state.reads[1].commit_sha, sha);
+  assert.equal(state.creates.length, 0);
   state.refs.set('tags/v1.2.3-alpha.1', sha);
   await assert.rejects(collect({github, core, context}), /already tagged/);
+}
+{
+  const {state, github, core, read, history} = fixture();
+  for (const value of [{...history, source: 'b'.repeat(40)}, {...history, firstParent: [...history.firstParent, ...history.firstParent]},
+    {...history, commits: [], firstParent: []}]) {
+    await assert.rejects(collect({github, core, context}, () => assert.fail('Must not write partial collection'), () => JSON.stringify(value)), /history|No commits/);
+  }
+  state.failAssociations = true;
+  await assert.rejects(collect({github, core, context}, () => assert.fail('Must not write partial collection'), read), /Association page failed/);
+  assert.equal(state.creates.length, 0);
+  assert.equal(state.tags.size, 0);
 }
 {
   const {state, github, core, read, manifest} = fixture();
@@ -62,7 +87,7 @@ function fixture() {
   assert.equal(state.prs.length, 1);
   await propose({github, core, context}, read);
   assert.equal(state.prs.length, 1);
-  assert.equal(manifest.files.length, 8);
+  assert.equal(manifest.files.length, PREPARED_PATHS.length);
   assert(!state.creates.some(ref => ref.includes('/tags/')));
   const branch = state.refs.get('heads/release/1.2.3-alpha.1');
   state.commits.get(branch).tree.sha = 'human edit';
@@ -107,7 +132,7 @@ for (const mutate of [
       mkdirSync(dirname(resolve(root, name)), {recursive: true});
       copyFileSync(name, resolve(root, name));
     }
-    assert.equal(preparedFiles(manifest, context.payload.inputs.version, root).length, 8);
+    assert.equal(preparedFiles(manifest, context.payload.inputs.version, root).length, PREPARED_PATHS.length);
     rmSync(resolve(root, 'content'), {recursive: true});
     mkdirSync(outside);
     for (const name of PREPARED_PATHS.filter(name => name.startsWith('content/')))
@@ -137,8 +162,7 @@ for (const mutate of [
 }
 {
   const {state, github, core, read} = fixture();
-  await assert.rejects(tag({github, core, context}, read), /merged this release/);
-  state.prs = [{merged_at: '2026-10-14', merge_commit_sha: sha, head: {repo: {full_name: 'example/guide'}}}];
+  assert.deepEqual(state.prs, [], 'Direct metadata commits need no merged release PR');
   await tag({github, core, context}, read);
   assert.deepEqual(state.creates, ['refs/tags/v1.2.3-alpha.1']);
   const annotated = state.tags.get(state.refs.get('tags/v1.2.3-alpha.1'));
@@ -149,6 +173,20 @@ for (const mutate of [
   const production = {...context, payload: {...context.payload, inputs: {...context.payload.inputs, release_status: 'production'}}};
   await assert.rejects(tag({github, core, context: production}, read), /already exists/);
   assert.equal(state.tags.size, 1, 'retry cannot change the tag decision or create another annotation');
+}
+{
+  const {state, github, core, read} = fixture();
+  const wrongVersion = (path, encoding) => path === 'package.json' ? JSON.stringify({version: '9.9.9'}) : read(path, encoding);
+  await assert.rejects(tag({github, core, context}, wrongVersion), /another version/);
+  assert.equal(state.tags.size, 0);
+  const original = github.rest.git.getRef;
+  let headReads = 0;
+  github.rest.git.getRef = async args => {
+    if (args.ref === 'heads/main' && ++headReads === 2) state.refs.set('heads/main', 'b'.repeat(40));
+    return original(args);
+  };
+  await assert.rejects(tag({github, core, context}, read), /moved/);
+  assert.equal(state.tags.size, 0, 'final head recheck precedes even the annotation write');
 }
 {
   const {state, github, core, read} = fixture();

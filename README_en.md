@@ -151,7 +151,9 @@ The [agent tooling guide](docs/agent-tooling.md) lists installed tools, native s
 
 ## Contributing
 
-Every change arrives as a pull request into `main`. CI checks structure, content, page integrity,
+Pull requests into `main` are the default delivery path. Explicitly authorized maintainer direct commits also
+remain releasable after the same metadata and release checks; this grants agents no permission to push directly
+or bypass branch protection. CI checks structure, content, page integrity,
 accessibility, links, diagrams and repository hygiene; a code owner reviews correctness and tone. See
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
