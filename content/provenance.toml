@@ -1566,10 +1566,11 @@ endTime = 2026-10-18T11:22:56+00:00
 id = "2026-10-18-ip-errata-samples"
 type = "update"
 name = "Practical guidance in Stations 6, 7 and 8: sample identifiers, patent/IP exceptions and error handling"
-agent = "david-novak"
+agent = "karel-berka"
 instruments = [
-  "claude-code",
-  "claude-opus-5-5",
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
 ]
 description = "Expanded metadata linkages to physical sample, instrument and grant identifiers, added patent and commercial embargo procedures under Act No. 328/2025 Sb., and defined immutable error remediation steps."
 objects = [
@@ -1591,5 +1592,6 @@ results = [
   "licence.31",
   "metadata.05",
   "publication.05",
+  "organization:upol",
 ]
 endTime = 2026-10-18T19:05:00+00:00
