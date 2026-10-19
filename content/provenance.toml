@@ -1566,10 +1566,11 @@ endTime = 2026-10-18T11:22:56+00:00
 id = "2026-10-18-formats-packaging"
 type = "update"
 name = "Practical guidance in Stations 2, 3 and 8: folder structure, open formats, synthetic samples and packaging"
-agent = "david-novak"
+agent = "karel-berka"
 instruments = [
-  "claude-code",
-  "claude-opus-5-5",
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
 ]
 description = "Added concrete examples of folder structure and file naming, open formats across data domains, synthetic samples for sensitive data, and packaging large collections into archives with manifests and checksums."
 objects = [
@@ -1589,5 +1590,6 @@ results = [
   "process.03",
   "process.04",
   "publication.30",
+  "organization:upol",
 ]
 endTime = 2026-10-18T18:55:00+00:00
