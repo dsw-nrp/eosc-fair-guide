@@ -33,7 +33,7 @@ jobs:
           persist-credentials: false
       - id: source
         name: Bind the completed deployment to its current release tag
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const { completedTag } = require('./.github/scripts/release-artifact.cjs');
@@ -76,7 +76,7 @@ jobs:
           run-id: ${{ needs.bind.outputs.run }}
           github-token: ${{ github.token }}
       - name: Create the draft release with the same artifact
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           RELEASE_TAG: ${{ needs.bind.outputs.tag }}
           RELEASE_SHA: ${{ needs.bind.outputs.sha }}
