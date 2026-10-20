@@ -326,11 +326,14 @@ def reconcile(manifest, incoming: Path, available, groups):
             job = expected[row["name"]]
             result = check_all.Result(job, row["returncode"], row["seconds"], row["output"], row["partial"])
             if result.partial:
+                output = result.output
+                if output and not output.endswith("\n"):
+                    output += "\n"
                 result = check_all.Result(
                     job,
                     result.returncode or 1,
                     result.seconds,
-                    "Incomplete required check coverage (partial result).\n" + result.output,
+                    output + "Incomplete required check coverage (partial result).",
                     True,
                 )
             results.append(result)

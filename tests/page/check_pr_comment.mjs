@@ -43,6 +43,14 @@ const reasonCode = body(run, report, "dsw-nrp/eosc-fair-guide", { ...suggestions
   suggestions: [{ ...suggestion, reason: "https://example.test @org/team `escape`\n![image](evil)" }] });
 assert(reasonCode.includes(": `https://example.test"), "reason URLs are inert code text");
 assert(!reasonCode.includes("`escape`"), "reason backticks cannot escape the code span");
+const entryCode = body(run, report, "dsw-nrp/eosc-fair-guide", { ...suggestions,
+  suggestions: [{ ...suggestion, entry: "resource:x`https://example.test" }] });
+assert(entryCode.includes("- `resource:x https://example.test` ← "), "entry backticks are removed inside the code span");
+assert(!entryCode.includes("x`https://example.test"), "entry text cannot close the code span");
+const recordCode = body(run, report, "dsw-nrp/eosc-fair-guide", { ...suggestions,
+  suggestions: [{ ...suggestion, record: "re3data:x`https://example.test" }] });
+assert(recordCode.includes("`re3data:x https://example.test`: "), "record backticks are removed inside the code span");
+assert(!recordCode.includes("x`https://example.test"), "record text cannot close the code span");
 assert(!body(run, report, "dsw-nrp/eosc-fair-guide", { ...suggestions,
   suggestions: [{ ...suggestion, table: "" }] }).includes('re3data = "r3d1"'), "invalid placement combinations are dropped");
 const manySuggestions = {

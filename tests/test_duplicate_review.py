@@ -567,14 +567,19 @@ class CollectorTests(unittest.TestCase):
             _, jobs, groups, args = self.setup_collector(root)
             path = args.incoming / "cpu/lane.json"
             data = check_ci.read_json(path)
-            data["results"][0].update(returncode=0, partial=True, output="pending cases")
+            data["results"][0].update(
+                returncode=0, partial=True, output="\n".join(f"pending case {index}" for index in range(60))
+            )
             check_ci.write_json(path, data)
             self.assertEqual(self.run_collect(args, jobs, groups), 1)
             health = check_ci.read_json(args.output / "health.json")
             row = next(x for x in health["run"]["jobs"] if x["name"] == "content")
             self.assertEqual(row["status"], "failed")
             self.assertTrue(row["partial"])
-            self.assertIn("pending cases", (args.output / "summary.md").read_text(encoding="utf-8"))
+            summary = (args.output / "summary.md").read_text(encoding="utf-8")
+            self.assertIn("pending case 59", summary)
+            self.assertIn("Incomplete required check coverage", summary)
+            self.assertIn("Incomplete required check coverage", row["output"])
 
 
 class BotOutputTests(unittest.TestCase):

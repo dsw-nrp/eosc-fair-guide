@@ -45,7 +45,7 @@ function suggestionLines(run, suggestions, repository) {
   if (!items.length) return dropped ? ["", "### Suggested fixes", "", `${dropped} malformed suggestion(s) were omitted.`] : [];
   const lines = ["", "### Suggested fixes", ""];
   for (const item of items) {
-    lines.push(`- \`${escape(item.entry)}\` ← \`${escape(item.record)}\`: \`${codeText(item.reason)}\``);
+    lines.push(`- \`${codeText(item.entry)}\` ← \`${codeText(item.record)}\`: \`${codeText(item.reason)}\``);
     const table = item.table || "entry";
     lines.push("  ```diff", `  --- ${item.file}`, `  +++ ${item.file}`,
       `  @@ ${table} (${clean(item.entry)})`, `  +${item.field} = "${clean(item.value)}"`, "  ```");
