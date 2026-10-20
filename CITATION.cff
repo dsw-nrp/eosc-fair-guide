@@ -14,11 +14,15 @@ authors:
   - family-names: "Novák"
     given-names: "David"
     orcid: "https://orcid.org/0000-0001-6592-6291"
-    affiliation: "Knihovna AV ČR, v. v. i.; Archeologický ústav AV ČR, Praha, v. v. i."
-version: "1.0.0-alpha.1"
-date-released: "2026-10-18"
+    affiliation: >-
+      Czech Academy of Sciences, Library;
+      Czech Academy of Sciences, Institute of Archaeology, Prague
+version: "1.0.0-alpha.2"
+date-released: "2026-10-19"
 license: "MIT"
 repository-code: "https://github.com/dsw-nrp/eosc-fair-guide"
+url: "https://dsw-nrp.github.io/eosc-fair-guide/"
+doi: 10.5281/zenodo.23468794
 keywords:
   - FAIR
   - research data

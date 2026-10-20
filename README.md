@@ -1,5 +1,7 @@
 # Průvodce FAIR daty (EOSC CZ)
 
+[![DOI](https://zenodo.org/badge/1409358632.svg)](https://zenodo.org/badge/latestdoi/1409358632) [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/dsw-nrp/eosc-fair-guide)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/dsw-nrp/eosc-fair-guide) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+
 Interaktivní průvodce, který provede výzkumníky, datové stewardy, správce repozitářů a oborové komunity
 cestou k FAIR datům: od plánu projektu přes výběr repozitáře, popis a licenci až po publikaci, citaci a
 kontrolu. Vychází z *Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI* (verze 1.2,
@@ -145,7 +147,9 @@ Přehled nástrojů, vlastnictví zdrojů a kontrol je v [dokumentaci nástrojů
 
 ## Jak přispívat
 
-Změny přicházejí jako pull request do `main`. CI kontroluje strukturu, obsah, funkčnost a přístupnost
+Výchozí cestou pro změny je pull request do `main`. Výslovně schválené přímé commity správce lze také vydat
+po stejných kontrolách metadat a vydání; agentům to nedává oprávnění zapisovat přímo ani obcházet ochranu větve.
+CI kontroluje strukturu, obsah, funkčnost a přístupnost
 stránek, odkazy, diagramy a čistotu repozitáře. Odpovědný recenzent kontroluje správnost a styl.
 Podrobný postup je v [CONTRIBUTING.md](CONTRIBUTING.md).
 
