@@ -186,5 +186,7 @@
   its tests prove both directions of the narrowed rule. `python scripts/check_all.py --report-dir
   .cache/health-checks-fix` passes 30 of 30 in 179.3 seconds before the documentation edits, and
   `.cache/health-checks-fix-final` passes 30 of 30 in 200.6 seconds after them.
-- **Close-out:** The change is left unarchived for maintainer review as the OpenSpec lifecycle requires. The
-  failing checks were repaired in the branch that hosts them; hosted confirmation depends on the pushed run.
+- **Close-out:** The maintainer approved the spec sync and archive: the two added requirements and the ownership
+  modification now live in `openspec/specs/fair-guide/guide-delivery/spec.md`, and the change sits at
+  `openspec/changes/archive/2026-10-21-runtime-scratch-classification`. The failing checks were repaired in the
+  branch that hosts them; hosted confirmation depends on the pushed run.
