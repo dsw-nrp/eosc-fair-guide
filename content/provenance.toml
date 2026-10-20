@@ -1572,3 +1572,34 @@ instruments = ["release-automation"]
 objects = []
 results = ["guide"]
 endTime = 2026-10-19T07:34:34+00:00
+
+[[action]]
+id = "2026-10-18-consent-appraisal"
+type = "update"
+name = "Practical guidance in Stations 1 and 2: informed consent, data appraisal and team continuity"
+agent = "karel-berka"
+instruments = [
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
+]
+description = "Added guidance on informed consent wording before human data collection, data selection for long-term preservation, and data handover when team members leave."
+objects = [
+  "CESSDA-DMEG.01",
+  "EINFRA-DOCS.01",
+  "ETHICAL-SEVEN.01",
+  "LAW-328-2025.83",
+  "POLICY-MANUAL.02",
+  "POLICY-MANUAL.04",
+  "POLICY-MANUAL.06",
+  "RDMKIT.collect.02",
+  "SURVEY-2025.01",
+]
+results = [
+  "collect.22",
+  "collect.23",
+  "plan.31",
+  "plan.32",
+  "organization:upol",
+]
+endTime = 2026-10-20T21:00:00+00:00

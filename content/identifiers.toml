@@ -358,6 +358,10 @@ advice = [
   "assessment.27",
   "assessment.28",
   "assessment.29",
+  "plan.31",
+  "plan.32",
+  "collect.22",
+  "collect.23",
 ]
 questions = [
   "cdif.01",
@@ -1268,6 +1272,7 @@ actions = [
   "2026-10-16-initial-state",
   "release-1.0.0-alpha.1",
   "release-1.0.0-alpha.2",
+  "2026-10-18-consent-appraisal",
 ]
 model = [
   "model:layers-seams",
