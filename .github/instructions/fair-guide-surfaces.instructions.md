@@ -39,8 +39,10 @@ Install `requirements-dev.txt`, run `npm ci` and `npm run browsers`, then use `p
 close-out. A selected `--only` subset is partial; live checks additionally need `--live` and network access.
 Build with `python scripts/build_site.py` and inspect the changed view in both languages, at phone width and in
 print. `CONTRIBUTING.md` owns branch, pull-request and human review procedures; `docs/deployment.md` owns release
-preparation, tagging, immutable artifact identity and recovery. Release preparation collects the whole settled
-PR scope and all merged PRs since the last release. Publication remains a separately authorized operation.
+preparation, tagging, immutable artifact identity and recovery. Release preparation opens a PR by default and
+collects merged PRs and direct default-branch commits since the previous reachable release tag without duplication.
+Keep CFF and Zenodo metadata consistent and validated; both release routes require the same checks. Publication
+remains separately authorized. Add the real concept-DOI badge to both READMEs only after successful Zenodo archiving.
 
 Scheduled source refreshes propose validated snapshots as pull requests; health watch reports issues. Neither
 merges or writes the default branch. Connectors and their origins are reviewed in `content/live.toml`, which

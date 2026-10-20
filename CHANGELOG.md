@@ -7,6 +7,29 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.2] - 2026-10-19
+
+Since v1.0.0-alpha.1.
+
+### Merged pull requests
+
+- Archive initial OpenSpec change ([#67](https://github.com/dsw-nrp/eosc-fair-guide/pull/67))
+- Allow direct-main releases and maintain Zenodo metadata ([#68](https://github.com/dsw-nrp/eosc-fair-guide/pull/68))
+- chore\(deps\): Bump actions/upload-artifact from 4.6.2 to 7.0.2 ([#78](https://github.com/dsw-nrp/eosc-fair-guide/pull/78))
+- chore\(deps\): Bump actions/github-script from 7.1.0 to 9.0.0 ([#77](https://github.com/dsw-nrp/eosc-fair-guide/pull/77))
+- chore\(deps\): Bump actions/checkout from 4.3.1 to 7.0.1 ([#76](https://github.com/dsw-nrp/eosc-fair-guide/pull/76))
+- chore\(deps\): Bump actions/create-github-app-token from 3.2.0 to 3.3.0 ([#75](https://github.com/dsw-nrp/eosc-fair-guide/pull/75))
+- chore\(deps\): Bump actions/download-artifact from 4.3.0 to 8.0.2 ([#74](https://github.com/dsw-nrp/eosc-fair-guide/pull/74))
+- chore\(deps\): Bump actions/setup-node from 4.4.0 to 7.1.0 ([#73](https://github.com/dsw-nrp/eosc-fair-guide/pull/73))
+- chore\(deps-dev\): Bump @axe-core/playwright from 4.13.0 to 4.14.0 ([#72](https://github.com/dsw-nrp/eosc-fair-guide/pull/72))
+- chore\(deps-dev\): Bump swagger-ui-dist from 5.33.2 to 5.33.3 in the patch-updates group ([#71](https://github.com/dsw-nrp/eosc-fair-guide/pull/71))
+- chore\(deps-dev\): Bump ruff from 0.17.0 to 0.17.1 in the patch-updates group ([#69](https://github.com/dsw-nrp/eosc-fair-guide/pull/69))
+
+### Direct commits
+
+- fix: keep the release context repository-aware ([6d15974](https://github.com/dsw-nrp/eosc-fair-guide/commit/6d15974f1215103e5140c7957277e58ab60bbc50))
+- Fix licence in CITATION file ([ceb5f79](https://github.com/dsw-nrp/eosc-fair-guide/commit/ceb5f79008a26a86dd1bc150d226b7b45bb91c2b))
+
 ## [1.0.0-alpha.1] - 2026-10-18
 
 ### Merged pull requests

@@ -1,0 +1,49 @@
+{
+  "title": "Průvodce FAIR daty / FAIR Data Guide (EOSC CZ)",
+  "upload_type": "software",
+  "description": "An interactive Czech and English guide that leads researchers, data stewards, repository administrators and research communities along the path to FAIR data. It builds on the FAIR analysis for the National Repository Platform and the National Data Infrastructure (NRP/NDI, version 1.2) and reflects the current state of national services. Its content is published as an RO-Crate knowledge base with paradata.\n\nOnline guide: https://dsw-nrp.github.io/eosc-fair-guide/\nSource code: https://github.com/dsw-nrp/eosc-fair-guide",
+  "creators": [
+    {
+      "name": "Novák, David",
+      "orcid": "0000-0001-6592-6291",
+      "affiliations": [
+        {
+          "id": "028sgmw18",
+          "name": "Library of the Czech Academy of Sciences"
+        },
+        {
+          "id": "0287jta43",
+          "name": "Institute of Archaeology of the Czech Academy of Sciences, Prague"
+        }
+      ]
+    }
+  ],
+  "version": "1.0.0-alpha.2",
+  "publication_date": "2026-10-19",
+  "access_right": "open",
+  "license": "mit",
+  "keywords": [
+    "FAIR",
+    "research data",
+    "research data management",
+    "EOSC CZ",
+    "National Repository Platform",
+    "RO-Crate",
+    "data stewardship"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.71495/5dv6-v116",
+      "relation": "cites",
+      "resource_type": "publication-report"
+    },
+    {
+      "identifier": "https://dsw-nrp.github.io/eosc-fair-guide/",
+      "relation": "isSourceOf"
+    }
+  ],
+  "references": [
+    "Trtíková, I., Bártková, P., Biedermannová, L., Fejfar, J., Pergl, R., Novák, D., & Čížek, T. (2026). Analýza a návrh postupů k naplňování FAIR principů v rámci NRP/NDI (version 1.2, released 2026-02-15). CESNET. https://doi.org/10.71495/5dv6-v116 (CC BY 4.0)."
+  ],
+  "notes": "This record credits the guide's software. To cite the guide itself, use the citation given in its footer, which names its compiler as editor. The guide's content builds on the FAIR analysis for NRP/NDI cited under References; please credit that report's authors when reusing the content.\n\nLicensing: Software code and configuration are generally licensed under MIT; the guide's texts, data and documentation are generally licensed under CC BY 4.0. Some files and third-party assets have other licences; see REUSE.toml and applicable file notices for the authoritative file-level terms.\n\nFunding acknowledgement: This output was developed with financial contributions from the EOSC CZ initiative through the National Repository Platform for Research Data project (CZ.02.01.01/00/23_014/0008787), funded by the Programme Johannes Amos Comenius (P JAC) of the Ministry of Education, Youth and Sports of the Czech Republic (MEYS)."
+}

@@ -5,6 +5,7 @@ const {createHash} = require('node:crypto');
 const {resolve, relative, isAbsolute} = require('node:path');
 const policy = require('../release-prepared-files.json');
 const MANIFEST = '.cache/release/prepared.json';
+const HISTORY = '.cache/release/history.json';
 const { validVersion } = require('./release-version.cjs');
 function dispatch(context) {
   const base = context.payload.repository.default_branch;
@@ -18,20 +19,47 @@ async function current(github, context, base) {
   if (data.object.sha !== context.sha) throw Error('The default branch moved; rerun the dispatch on its current commit');
   return (await github.rest.git.getCommit({...context.repo, commit_sha: context.sha})).data;
 }
-async function collect({github, context, core}, write = writeFileSync) {
+async function collect({github, context, core}, write = writeFileSync, read = readFileSync) {
   const {base, version} = dispatch(context);
   await current(github, context, base);
   try {
     await github.rest.git.getRef({...context.repo, ref: `tags/v${version}`});
     throw Error('The requested release is already tagged');
   } catch (error) { if (error.status !== 404) throw error; }
+  const history = JSON.parse(read(HISTORY, 'utf8'));
+  if (history.formatVersion !== 1 || history.source !== context.sha ||
+      !(history.previousTag === null || (typeof history.previousTag === 'string' &&
+        history.previousTag.startsWith('v') && validVersion(history.previousTag.slice(1)))) ||
+      !Array.isArray(history.commits) || history.commits.some(sha => !/^[0-9a-f]{40}$/.test(sha)) ||
+      new Set(history.commits).size !== history.commits.length || !Array.isArray(history.firstParent))
+    throw Error('Invalid or stale release history export');
+  const seen = new Set();
+  for (const commit of history.firstParent) {
+    if (!commit || !history.commits.includes(commit.sha) || seen.has(commit.sha) ||
+        typeof commit.subject !== 'string' || !commit.subject.trim()) throw Error('Invalid release history export');
+    seen.add(commit.sha);
+  }
+  if (!history.commits.length || !history.firstParent.length) throw Error('No commits since the previous tag');
   // Pagination must complete; no search-result cap, timestamp cutoff or single
   // page. The Python script filters merged commits by actual local ancestry.
   const prs = await github.paginate(github.rest.pulls.list,
     {...context.repo, state: 'closed', base, per_page: 100});
+  const associations = {};
+  // Bound simultaneous API calls; paginate every candidate, including rebased PR commits.
+  for (let start = 0; start < history.firstParent.length; start += 4) {
+    await Promise.all(history.firstParent.slice(start, start + 4).map(async commit => {
+      const linked = await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit,
+        {...context.repo, commit_sha: commit.sha, per_page: 100});
+      if (linked.some(pr => !Number.isSafeInteger(pr.number) || pr.number < 1)) throw Error('Malformed commit-to-PR association');
+      associations[commit.sha] = [...new Set(linked.map(pr => pr.number))].sort((a, b) => a - b);
+    }));
+  }
+  const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: context.runId});
   mkdirSync('.cache/release', {recursive: true});
   write('.cache/release/prs.json', JSON.stringify(prs));
-  const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: context.runId});
+  write('.cache/release/associations.json', JSON.stringify({formatVersion: 1, source: context.sha,
+    previousTag: history.previousTag, repository: `${context.repo.owner}/${context.repo.repo}`, base,
+    associations: Object.fromEntries(history.firstParent.map(commit => [commit.sha, associations[commit.sha]]))}));
   core.setOutput('timestamp', run.created_at);
   core.setOutput('date', run.created_at.slice(0, 10));
 }
@@ -94,25 +122,22 @@ async function propose({github, context, core}, read = readFileSync, root) {
   if (previous.some(pr => pr.state === 'closed')) throw Error('This release proposal was closed; review it manually');
   if (previous.length) { core.info(previous[0].html_url); return; }
   const {data: pr} = await github.rest.pulls.create({...context.repo, base, head: branch, title: message,
-    body: 'Prepares the version, release dates and the complete merged-pull-request changelog.\n\nReview the metadata and required checks, then merge. Creating the tag requires the separate Tag release dispatch.\n\nPrepared by the repository release automation; no AI content generation.',
+    body: 'Prepares the version, release dates, citation/Zenodo metadata and the complete PR/direct-commit changelog.\n\nReview the metadata and required checks, then merge. Creating the tag requires the separate Tag release dispatch.\n\nPrepared by the repository release automation; no AI content generation.',
     maintainer_can_modify: true});
   core.info(pr.html_url);
 }
 async function tag({github, context, core}, read = readFileSync) {
-  const {base, version, branch} = dispatch(context);
+  const {base, version} = dispatch(context);
   const status = context.payload.inputs.release_status;
   if (!['testing', 'production'].includes(status)) throw Error('Choose release_status testing or production');
   await current(github, context, base);
-  if (JSON.parse(read('package.json', 'utf8')).version !== version) throw Error('The merged metadata has another version');
-  const prs = await github.paginate(github.rest.pulls.list,
-    {...context.repo, state: 'closed', base, head: `${context.repo.owner}:${branch}`, per_page: 100});
-  if (!prs.some(pr => pr.merged_at && pr.merge_commit_sha === context.sha && pr.head?.repo?.full_name === `${context.repo.owner}/${context.repo.repo}`))
-    throw Error('Tag only the current default-branch commit that merged this release pull request');
+  if (JSON.parse(read('package.json', 'utf8')).version !== version) throw Error('The committed metadata has another version');
   // No updateRef: an existing tag is never moved, even on a dispatch retry.
   try {
     await github.rest.git.getRef({...context.repo, ref: `tags/v${version}`});
     throw Error('The release tag already exists; its status cannot be changed');
   } catch (error) { if (error.status !== 404) throw error; }
+  await current(github, context, base);
   const {data: annotated} = await github.rest.git.createTag({...context.repo, tag: `v${version}`,
     message: `Release v${version}\n\nFair-Guide-Release-Status: ${status}\n`, object: context.sha, type: 'commit'});
   const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: annotated.sha});
