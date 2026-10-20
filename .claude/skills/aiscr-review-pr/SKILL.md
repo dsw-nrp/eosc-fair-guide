@@ -65,7 +65,7 @@ Interactive posting rejects any ambient `GH_TOKEN`, including a personal PAT, be
 
 ```powershell
 Remove-Item Env:GH_TOKEN
-python .agents/scripts/github/github_pr_review.py post 123 --mode interactive --review-bundle review-bundle.json --approved-digest <digest>
+python .agents/scripts/github/github_pr_review.py post 123 --mode interactive --review-bundle review-bundle.json --approval-view review-approval.md --approved-digest <digest>
 ```
 
 The interactive identity gate rejects an ambient `GH_TOKEN` and may not be bypassed by relocating it into another environment variable; a subshell may isolate the token only for other tooling.
@@ -132,24 +132,26 @@ Read the target repository's `AGENTS.md`, contribution rules, and PR-specific in
 
 #### 2. Gather PR context and lineage
 
-Read the PR metadata first to obtain the current head SHA without persisting the raw output. Then create one ignored run directory under `.venv/.cache/aiscr-review-pr/` named `<owner>-<repo>-pr-<number>-<short-sha>/`. Write only the artifact names the engine prescribes. List them with:
+Read the PR metadata first to obtain the current head SHA without persisting the raw output. Then create a bulk run directory under `.venv/.cache/aiscr-review-pr/` and a visible hand-off directory under `.agents/local_scratch/aiscr-review-pr/`, both named `<owner>-<repo>-pr-<number>-<short-sha>/` (referred to below as `<BULK_DIR>` and `<HANDOFF_DIR>`). Placement classification is owned by `workflow/artefact-placement`. Write only the artifact names the engine prescribes for each class. List them with:
 
 ```bash
-python .agents/scripts/github/github_pr_review.py list-run-artifacts
+python .agents/scripts/github/github_pr_review.py list-run-artifacts --class bulk
+python .agents/scripts/github/github_pr_review.py list-run-artifacts --class handoff
+python .agents/scripts/github/github_pr_review.py prepare-run --run <owner>-<repo>-pr-<number>-<short-sha>
 ```
 
-Do not invent additional names; cleanup enforces the same set. Do not write transient review artifacts to `.agents/reports/`.
+Do not invent additional names; cleanup enforces the same two sets. `prepare-run` creates both roots and `<HANDOFF_DIR>/POINTER.md` before the first summary or approval file is authored. The sidecar names `<BULK_DIR>` without adding local paths to posted bodies; machine artefacts are never copied into the hand-off directory. Do not write transient review artifacts to `.agents/reports/`.
 
-Run the gather command and write the output to the run directory; the engine acquires the pull-request diff through a fallback chain and records coverage in the gathered JSON. Pass `--output-path` for the JSON and produce the local diff without a shell redirect: a redirect re-encodes the file in the shell's encoding, and the engine reads strict UTF-8.
+Run the gather command and write the output to the bulk run directory; the engine acquires the pull-request diff through a fallback chain and records coverage in the gathered JSON. Pass `--output-path` for the JSON and produce the local diff without a shell redirect: a redirect re-encodes the file in the shell's encoding, and the engine reads strict UTF-8.
 
 ```bash
 gh pr view <PR_NUMBER>
 python .agents/scripts/github/github_pr_review.py gather <PR_NUMBER> \
-  --output-path <RUN_DIR>/pr-context.json
-git diff --output=<RUN_DIR>/pr-diff.patch <BASE_SHA>...<HEAD_SHA>
+  --output-path <BULK_DIR>/pr-context.json
+git diff --output=<BULK_DIR>/pr-diff.patch <BASE_SHA>...<HEAD_SHA>
 python .agents/scripts/github/github_pr_review.py gather <PR_NUMBER> \
-  --local-diff <RUN_DIR>/pr-diff.patch \
-  --output-path <RUN_DIR>/pr-context.json
+  --local-diff <BULK_DIR>/pr-diff.patch \
+  --output-path <BULK_DIR>/pr-context.json
 ```
 
 The gathered JSON includes the PR author, head SHA, base SHA, exact current PR description, whether that description carries `<!-- aiscr-review-pr:summary -->`, the newest review carrying `<!-- aiscr-review-pr:v1 -->`, its inline comments, unmarked auxiliary reviews, the latest author response, root inline threads, coverage of the acquired diff, outstanding findings from every author, and any issue comment carrying the summary marker.
@@ -158,19 +160,19 @@ The gathered JSON includes the PR author, head SHA, base SHA, exact current PR d
 
 Unreachable base or head commits make the pull request unreviewable; a local diff cannot synthesize missing commits.
 
-`existing_threads` carries each root's `outdated` and `resolved` platform signals. Reusing a thread that carries either signal requires an explicit `stale_thread_reuse_reason` on that finding in `<RUN_DIR>/findings-ledger.json`. Silent reuse is refused.
+`existing_threads` carries each root's `outdated` and `resolved` platform signals. Reusing a thread that carries either signal requires an explicit `stale_thread_reuse_reason` on that finding in `<BULK_DIR>/findings-ledger.json`. Silent reuse is refused.
 
 `outstanding_findings` enumerates every mechanically visible inline thread, including from a prior AIS CR round, a human reviewer, or a vendor bot; auxiliary status selects the baseline, not exemption from disposition. A platform-resolved thread is a claim, silence is not resolution, and findings only as prose in another review body are review-only, held by the session agent at reconciliation — record them in the ledger yourself and never infer completeness from an empty list.
 
 Enumeration includes threads an earlier round already dispositioned: each round re-derives from live state and carries nothing forward, so a prior disposition is not a record this round may rely on — that is what catches a regression a carried-forward `resolved` would hide. The disposition set grows with the pull request's thread count, not the current diff.
 
-Write the findings ledger to `<RUN_DIR>/findings-ledger.json` before rendering. Every new finding has exactly one placement: `inline-root`, `reply`, or `body-only` with a reason from the closed set `off-diff`, `cross-cutting`, `process`, `needs-verification`. An `inline-root` at a path and line that already has a thread is refused; place it as `reply` to that thread instead. Every outstanding finding has exactly one disposition: `resolved`, `disputed`, or `not-addressed`. A `resolved` disposition on a platform-resolved thread also requires `confirmed_against_diff: true` after you have checked the current diff. Every mechanically enumerated `thread:<root-comment-id>` also declares `platform_resolved: true|false` and `communication: reply|no-reply`. A reply is owed where the disposition changes what a reader of the thread's current state would conclude, so exactly three combinations take `no-reply`, each with a non-empty `no_reply_reason`:
+Write the findings ledger to `<BULK_DIR>/findings-ledger.json` before rendering. Every new finding has exactly one placement: `inline-root`, `reply`, or `body-only` with a reason from the closed set `off-diff`, `cross-cutting`, `process`, `needs-verification`. An `inline-root` at a path and line that already has a thread is refused; place it as `reply` to that thread instead. Every outstanding finding has exactly one disposition: `resolved`, `disputed`, or `not-addressed`. A `resolved` disposition on a platform-resolved thread also requires `confirmed_against_diff: true` after you have checked the current diff. Every mechanically enumerated `thread:<root-comment-id>` also declares `platform_resolved: true|false` and `communication: reply|no-reply`. A reply is owed where the disposition changes what a reader of the thread's current state would conclude, so exactly three combinations take `no-reply`, each with a non-empty `no_reply_reason`:
 
 - **Agreed closure** — `platform_resolved: true` with disposition `resolved` and `confirmed_against_diff: true`. The thread is already closed and this round only confirms it, so a reply adds noise to a collapsed thread. A reply to such a thread is refused. Silence is earned by the confirmation, not by the platform's claim.
 - **Unchanged open work** — `platform_resolved: false` with disposition `not-addressed` and nothing relevant changed.
 - **Standing dispute** — `platform_resolved: true` with disposition `disputed`, where the gathered thread already carries the reviewer's earlier reply and this round's grounds are materially unchanged. The reader already sees the dispute, so the review body still names it while the thread stays quiet.
 
-Every other combination requires an exact reply in `<RUN_DIR>/review-replies.json`: a `not-addressed` disposition on a platform-resolved thread always replies, and a `disputed` disposition there replies unless it is a standing dispute — a first-time dispute, or one whose grounds changed, always replies. Rendering refuses a missing reply, an unjustified no-reply, a standing-dispute no-reply with no prior reviewer reply, a reply that contradicts the ledger, and a misdeclared `platform_resolved`.
+Every other combination requires an exact reply in `<BULK_DIR>/review-replies.json`: a `not-addressed` disposition on a platform-resolved thread always replies, and a `disputed` disposition there replies unless it is a standing dispute — a first-time dispute, or one whose grounds changed, always replies. Rendering refuses a missing reply, an unjustified no-reply, a standing-dispute no-reply with no prior reviewer reply, a reply that contradicts the ledger, and a misdeclared `platform_resolved`.
 
 A reply to a platform-resolved thread does **not** reopen it: the thread stays resolved and collapsed, so the reply is invisible unless reopened. Every such thread therefore declares `reopen: true|false` with a non-empty `reopen_reason`. Ask the operator **before** recording it — reopening reverses a participant's action. A reopen is refused where no reply could reopen one (an unresolved thread, agreed closure, standing dispute without a reply, or review-body finding), and at render when the thread exposes no node id.
 
@@ -186,17 +188,17 @@ Match prior findings by `path` plus `line` first, normalized meaning second. Cla
 
 #### 3. Generate the PR summary
 
-Immediately after gather, prepare a concise Markdown summary artefact at `<RUN_DIR>/pr-summary.md` — navigation, not a review. Use this exact ordered skeleton, replacing every ellipsis and bracketed instruction with PR-specific content:
+Immediately after gather, prepare a concise Markdown summary artefact at `<HANDOFF_DIR>/pr-summary.md` — navigation, not a review. Use this exact ordered skeleton, replacing every ellipsis and bracketed instruction with PR-specific content:
 
 Reference format 1: [review-formats.md](../../../.agents/skills/aiscr-review-pr/review-formats.md).
 
 The summary file's heading levels are literal: its title is `# PR summary — OWNER/REPO#NUMBER`, and every named core section is `##`. Compiled skill wrappers may nest displayed headings; never apply that wrapper demotion inside the summary file.
 
-Every core section and metadata row must contain content; scale depth to the PR (a small PR may use one change-map row and one walkthrough theme). The `Referenced items` row is sourced from the gathered `referenced_items[].ref`: a single comma-separated list of `owner/repo#number` mentions in gather order, or `none` when the pull request references nothing readable. The walkthrough is prose-first with exactly one complete fenced Mermaid block from any core family GitHub renders; plugin-dependent families such as `zenuml` are unsupported, including after comments, front matter, or initialization directives. The diagram supports the walkthrough and never replaces it. The validation section distinguishes evidence from tests actually executed, may draw evidence from the whole gathered neighbourhood (a linked issue's test result or a head-commit check run counts), cites the source artifact when the evidence came from outside the PR, and never reports an absence of validation evidence without having gathered that neighbourhood.
+Every core section and metadata row must contain content; scale depth to the PR (a small PR may use one change-map row and one walkthrough theme). Keep the bulk location in the directory-level `POINTER.md`, outside the summary posted to GitHub. The `Referenced items` row is sourced from the gathered `referenced_items[].ref`: a single comma-separated list of `owner/repo#number` mentions in gather order, or `none` when the pull request references nothing readable. The walkthrough is prose-first with exactly one complete fenced Mermaid block from any core family GitHub renders; plugin-dependent families such as `zenuml` are unsupported, including after comments, front matter, or initialization directives. The diagram supports the walkthrough and never replaces it. The validation section distinguishes evidence from tests actually executed, may draw evidence from the whole gathered neighbourhood (a linked issue's test result or a head-commit check run counts), cites the source artifact when the evidence came from outside the PR, and never reports an absence of validation evidence without having gathered that neighbourhood.
 
 Do not include findings, severity labels, approval language, or a review verdict; the formal-review findings disclosure is invalid here.
 
-Validate the exact summary locally when the repository provides a Mermaid validator (for example `npm run validate:mermaid <RUN_DIR>/pr-summary.md`; npm forwards positional arguments, and a `--` separator followed by a dot-prefixed path is the glob-defeating shape on the Kilo bash namespace). A missing validator does not make the diagram optional: keep it minimal and verify rendering best-effort.
+Validate the exact summary locally when the repository provides a Mermaid validator (for example `npm run validate:mermaid <HANDOFF_DIR>/pr-summary.md`; npm forwards positional arguments, and a `--` separator followed by a dot-prefixed path is the glob-defeating shape on the Kilo bash namespace). A missing validator does not make the diagram optional: keep it minimal and verify rendering best-effort.
 
 #### 3a. Reconcile the current description
 
@@ -224,7 +226,7 @@ Obtain the labelled source list from the engine and reconcile against it; do not
 
 ```bash
 python .agents/scripts/github/github_pr_review.py reconciliation-sources <PR_NUMBER> \
-  --repo OWNER/REPO --output-path <RUN_DIR>/sources.json
+  --repo OWNER/REPO --output-path <BULK_DIR>/sources.json
 ```
 
 When `edited_since_post` is true the write refuses to overwrite the description until the emitted `description edit` sources are reconciled into the ledger and `verify-composition` passes against that list; following this prose without running those commands does not clear the block. If `degraded` is true, say so and compare against the preserved original, never the generated body.
@@ -242,9 +244,9 @@ Record the dispositions as a ledger file and check them mechanically. Verificati
 
 ```bash
 python .agents/scripts/github/github_pr_review.py verify-composition \
-  --sources <RUN_DIR>/sources.json \
-  --summary <RUN_DIR>/pr-summary.md \
-  --ledger <RUN_DIR>/ledger.json
+  --sources <BULK_DIR>/sources.json \
+  --summary <HANDOFF_DIR>/pr-summary.md \
+  --ledger <BULK_DIR>/ledger.json
 ```
 
 The ledger names a disposition for every segment and declares any anchor it dropped:
@@ -270,9 +272,9 @@ Ask the reviewer to choose `comment`, `description`, or no post; the recommendat
 ```bash
 python .agents/scripts/github/github_pr_review.py post-summary <PR_NUMBER> \
   --mode interactive \
-  --summary <RUN_DIR>/pr-summary.md \
+  --summary <HANDOFF_DIR>/pr-summary.md \
   --target <comment|description> \
-  --ledger <RUN_DIR>/ledger.json \
+  --ledger <BULK_DIR>/ledger.json \
   --repo OWNER/REPO
 ```
 
@@ -294,20 +296,20 @@ Rediscovery at the same path and line corroborates the existing thread: reply to
 
 #### 5. Render the mandatory approval artefact
 
-Write the draft grouped review payload and reply list as JSON. The payload contains `body`, `event`, `commit_id`, and optional `comments`; replies contain `comment_id` and `body`. The findings ledger at `<RUN_DIR>/findings-ledger.json` must already name a placement for every new finding, a reason for every outstanding finding, and a declared platform-resolved state plus a reply or justified no-reply communication decision for every mechanically enumerated inline thread, with a reopen decision on every platform-resolved thread it replies to.
+Write the draft grouped review payload and reply list as JSON. The payload contains `body`, `event`, `commit_id`, and optional `comments`; replies contain `comment_id` and `body`. The findings ledger at `<BULK_DIR>/findings-ledger.json` must already name a placement for every new finding, a reason for every outstanding finding, and a declared platform-resolved state plus a reply or justified no-reply communication decision for every mechanically enumerated inline thread, with a reopen decision on every platform-resolved thread it replies to.
 
-Render the exact post bundle and approval view. Rendering is local — no GitHub writes — but it refuses when coverage is incomplete or the ledger disagrees with the payload. A local diff supplied at render time fills unavailable files from `<RUN_DIR>/pr-diff.patch` without re-gathering:
+Render the exact post bundle and approval view. Rendering is local — no GitHub writes — but it refuses when coverage is incomplete or the ledger disagrees with the payload. A local diff supplied at render time fills unavailable files from `<BULK_DIR>/pr-diff.patch` without re-gathering:
 
 ```bash
 python .agents/scripts/github/github_pr_review.py render \
   --mode interactive \
-  --review-payload <RUN_DIR>/review-payload.json \
-  --replies <RUN_DIR>/review-replies.json \
-  --bundle <RUN_DIR>/review-bundle.json \
-  --approval-view <RUN_DIR>/review-approval.md \
-  --pr-context <RUN_DIR>/pr-context.json \
-  --findings-ledger <RUN_DIR>/findings-ledger.json \
-  --local-diff <RUN_DIR>/pr-diff.patch
+  --review-payload <BULK_DIR>/review-payload.json \
+  --replies <BULK_DIR>/review-replies.json \
+  --bundle <BULK_DIR>/review-bundle.json \
+  --approval-view <HANDOFF_DIR>/review-approval.md \
+  --pr-context <BULK_DIR>/pr-context.json \
+  --findings-ledger <BULK_DIR>/findings-ledger.json \
+  --local-diff <BULK_DIR>/pr-diff.patch
 ```
 
 The renderer injects the interactive disclosure and `<!-- aiscr-review-pr:v1 -->`, then prints a SHA-256 digest over the bundle including the ledger and coverage snapshots. The approval view exposes the exact body, review event, commit, every new inline placement, every exact reply body, every ledger placement, each outstanding disposition and reason, every reply/no-reply decision with the thread's platform-resolved state, each no-reply rationale, every reopen decision with its rationale, and the digest. Present that file to the reviewer. Do not post a paraphrase or reconstruct the payload afterward.
@@ -323,36 +325,38 @@ After explicit approval of the rendered artefact, post the same bundle and diges
 ```bash
 python .agents/scripts/github/github_pr_review.py post <PR_NUMBER> \
   --mode interactive \
-  --review-bundle <RUN_DIR>/review-bundle.json \
-  --findings-ledger <RUN_DIR>/findings-ledger.json \
-  --pr-context <RUN_DIR>/pr-context.json \
+  --review-bundle <BULK_DIR>/review-bundle.json \
+  --findings-ledger <BULK_DIR>/findings-ledger.json \
+  --pr-context <BULK_DIR>/pr-context.json \
   --approved-digest <digest> \
+  --approval-view <HANDOFF_DIR>/review-approval.md \
   --repo OWNER/REPO
 ```
 
-Before any GitHub mutation the script rejects a digest mismatch, a ledger or coverage altered after approval, a missing marker/disclosure, an invalid mode/environment combination, a disallowed event, a disposition/reply mismatch, or a misdeclared thread state. It posts the grouped review first, then replies to existing threads, then reopens exactly the approved threads; replies precede reopening so a failure leaves a recoverable comment. It never resolves a thread, skips an exact reply already present rather than duplicating it on retry, and never writes the run-local ledger to the pull request.
+Before any GitHub mutation the script compares the supplied approval file with its exact fresh rendering and rejects a missing or edited view, a digest mismatch, a ledger or coverage altered after approval, a missing marker/disclosure, an invalid mode/environment combination, a disallowed event, a disposition/reply mismatch, or a misdeclared thread state. It posts the grouped review first, then replies to existing threads, then reopens exactly the approved threads; replies precede reopening so a failure leaves a recoverable comment. It never resolves a thread, skips an exact reply already present rather than duplicating it on retry, and never writes the run-local ledger to the pull request.
 
 On GitHub HTTP 422 for an inline target, move the content into the review body, re-render, present the new approval view, obtain approval for its new digest, and post again — never silently retry a changed payload.
 
 #### 6a. Repair a submitted review
 
-Correcting a posted placement or disposition does not require another review round: render a repair bundle for standalone inline roots, replies, a reopened thread the repair replies to, and/or an amended body, present its approval view, and post under that digest. A repair never reopens a thread it does not reply to, and a reply-only repair posts no grouped review and carries no new verdict.
+Correcting a posted placement or disposition does not require another review round: render a repair bundle for standalone inline roots, replies, a reopened thread the repair replies to, and/or an amended body, present its approval view, and post under that digest. A repair never reopens a thread it does not reply to, and a reply-only repair posts no grouped review and carries no new verdict. Keep the bulk pointer in `POINTER.md`, outside the repair body posted to GitHub.
 
 ```bash
 python .agents/scripts/github/github_pr_review.py repair render \
   --mode interactive \
   --review-id <REVIEW_ID> \
   --commit-id <HEAD_SHA> \
-  --inline-comments <RUN_DIR>/repair-payload.json \
-  --replies <RUN_DIR>/review-replies.json \
-  --reopen <RUN_DIR>/repair-reopen.json \
-  --body <RUN_DIR>/repair-body.md \
-  --bundle <RUN_DIR>/repair-bundle.json \
-  --approval-view <RUN_DIR>/repair-approval.md
+  --inline-comments <BULK_DIR>/repair-payload.json \
+  --replies <BULK_DIR>/review-replies.json \
+  --reopen <BULK_DIR>/repair-reopen.json \
+  --body <HANDOFF_DIR>/repair-body.md \
+  --bundle <BULK_DIR>/repair-bundle.json \
+  --approval-view <HANDOFF_DIR>/repair-approval.md
 python .agents/scripts/github/github_pr_review.py repair post <PR_NUMBER> \
   --mode interactive \
-  --repair-bundle <RUN_DIR>/repair-bundle.json \
+  --repair-bundle <BULK_DIR>/repair-bundle.json \
   --approved-digest <digest> \
+  --approval-view <HANDOFF_DIR>/repair-approval.md \
   --repo OWNER/REPO
 ```
 
@@ -364,11 +368,11 @@ Run cleanup only after every posting decision is final and every approved GitHub
 
 ```bash
 python .agents/scripts/github/github_pr_review.py cleanup \
-  --work-dir <RUN_DIR> \
+  --work-dir <BULK_DIR> \
   --approve
 ```
 
-Retain the complete run directory when summary or approval validation, any GitHub API call, an inline placement, or any partial post fails, or while diagnosis or retry remains necessary. Cleanup fails closed before deletion if the target is not a real direct-child run directory or holds anything beyond the names printed by `list-run-artifacts`.
+Retain both run directories when summary or approval validation, any GitHub API call, an inline placement, or any partial post fails, or while diagnosis or retry remains necessary. Cleanup removes the allowlisted artefacts and the empty directory from both roots, and fails closed before deleting anything in either when a target is not a real direct-child run directory of its root or holds anything beyond the names its class prescribes. An absent hand-off directory is an empty class; a hand-off validation failure blocks the bulk removal too.
 
 ### Automated/CI interlock
 
@@ -391,7 +395,7 @@ Pass the ledger at post time so the write re-verifies instead of trusting the lo
 ```bash
 python .agents/scripts/github/github_pr_review.py post-summary <PR_NUMBER> \
   --mode automated --target description \
-  --summary <RUN_DIR>/pr-summary.md --ledger <RUN_DIR>/ledger.json \
+  --summary <HANDOFF_DIR>/pr-summary.md --ledger <BULK_DIR>/ledger.json \
   --repo OWNER/REPO
 ```
 
@@ -508,5 +512,7 @@ The enrollment bundle installs these repository-local runtime scripts:
 
 - `.agents/scripts/github/github_pr_review.py`
 - `.agents/scripts/github/github_utils.py`
+- `.agents/scripts/lib/local_scratch_paths.py`
 - `.agents/scripts/lib/log_utils.py`
 - `.agents/scripts/lib/proc_utils.py`
+- `.agents/scripts/lib/runtime_env.py`
