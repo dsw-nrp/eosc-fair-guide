@@ -26,13 +26,41 @@ const declared = body(run, { ...many, complete: "changes.json" }, "dsw-nrp/eosc-
 assert(declared.includes("Changed authored items: **250**") && declared.includes("of 250 changed items") && declared.includes("`changes.json`"));
 const undeclared = body(run, many, "dsw-nrp/eosc-fair-guide");
 assert(!undeclared.includes("changes.json") && undeclared.includes("Only the first 200 changed items are in the review artifact."), "no completeness claim without a complete list");
+const suggestion = {
+  entry: "resource:service", record: "re3data:r3d1", resolution: "link", safe: true,
+  file: "content/resources.toml", table: "resource.repository", field: "re3data",
+  value: "r3d1", reason: "shares <script> @team | [link](evil)",
+};
+const suggestions = { formatVersion: 1, head: run.head_sha, suggestions: [suggestion] };
+const fixed = body(run, report, "dsw-nrp/eosc-fair-guide", suggestions);
+assert(fixed.includes("### Suggested fixes"), "safe suggestions are shown");
+assert(fixed.includes('re3data = "r3d1"'), "the exact field and value are shown");
+assert(!fixed.includes("<script>") && !fixed.includes("@team") && !fixed.includes("[link](evil)"), "suggestion text stays escaped");
+assert(!body(run, report, "dsw-nrp/eosc-fair-guide", { ...suggestions, head: "b".repeat(40) }).includes("Suggested fixes"), "stale suggestions are omitted");
+assert(!body(run, report, "dsw-nrp/eosc-fair-guide", { ...suggestions, suggestions: [{ ...suggestion, file: "outside.toml" }] }).includes('re3data = "r3d1"'), "unknown files are dropped");
+assert(body(run, report, "dsw-nrp/eosc-fair-guide", { ...suggestions, suggestions: [{ ...suggestion, value: "x".repeat(129) }] }).includes("malformed suggestion"), "dropped suggestions are counted");
+const manySuggestions = {
+  formatVersion: 1, head: run.head_sha,
+  suggestions: Array(20).fill({ ...suggestion, reason: "x".repeat(400) }),
+};
+const boundedWithFixes = body(
+  run,
+  { ...report, total: 40, items: Array(40).fill(expanded), complete: "changes.json" },
+  "dsw-nrp/eosc-fair-guide",
+  manySuggestions,
+);
+assert(boundedWithFixes.length < 60000, "changed rows and suggestions together stay within the comment limit");
+assert(boundedWithFixes.includes("additional suggestion(s)"), "suggestions beyond the comment bound point to the artifact");
 const changes = [], marker = "<!-- fair-guide-review-summary -->";
 const existing = [{ id: 9, user: { login: "person" }, body: marker }, { id: 10, user: { login: "github-actions[bot]" }, body: marker }];
 const github = { rest: { pulls: { get: async ({ pull_number }) => ({ data: pull_number === 2 ? pr : { ...pr, head: { ...pr.head, sha: "b".repeat(40) } } }) },
   issues: { listComments() {}, updateComment: async (entry) => changes.push(entry), createComment: async (entry) => changes.push(entry) } },
   paginate: async () => existing };
-await comment({ github, context: { repo: { owner: "dsw-nrp", repo: "eosc-fair-guide" }, payload: { workflow_run: run } }, core: { info() {} } }, () => report);
+await comment(
+  { github, context: { repo: { owner: "dsw-nrp", repo: "eosc-fair-guide" }, payload: { workflow_run: run } }, core: { info() {} } },
+  (file) => (file.endsWith("suggestions.json") ? suggestions : report),
+);
 assert.equal(changes.length, 1, "stale PR head is skipped");
 assert.equal(changes[0].comment_id, 10, "only the action bot's own marked comment is updated");
-assert.equal(changes[0].body, text);
+assert.equal(changes[0].body, body(run, report, "dsw-nrp/eosc-fair-guide", suggestions));
 console.log("check_pr_comment: bounded escaped data, exact head/repository admission, trusted conclusion and bot-owned update pass");

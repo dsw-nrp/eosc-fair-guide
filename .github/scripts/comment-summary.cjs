@@ -4,6 +4,43 @@ const marker = "<!-- fair-guide-review-summary -->";
 const escape = (value) => String(value).replace(/\s+/g, " ").slice(0, 400)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
   .replace(/([\\`*_{}\[\]()#!|])/g, "\\$1").replace(/@/g, "@\u200b");
+const clean = (value, limit = 200) => String(value).replace(/[`\r\n]/g, " ").trim().slice(0, limit);
+const suggestionFiles = new Set(["content/resources.toml", "content/repositories.toml", "content/sources.toml"]);
+const suggestionFields = new Set(["re3data", "fipDashboard", "knav"]);
+const suggestionTables = new Set(["", "resource.repository"]);
+const COMMENT_LIMIT = 60000;
+const SUGGESTION_COMMENT_LIMIT = 12;
+
+function validSuggestion(item) {
+  return item && typeof item === "object" &&
+    typeof item.entry === "string" && item.entry.length <= 200 &&
+    typeof item.record === "string" && item.record.length <= 200 &&
+    item.resolution === "link" && item.safe === true &&
+    suggestionFiles.has(item.file) && suggestionFields.has(item.field) && suggestionTables.has(item.table) &&
+    typeof item.value === "string" && item.value.length > 0 && item.value.length <= 128 &&
+    typeof item.reason === "string" && item.reason.length <= 400;
+}
+
+function suggestionLines(run, suggestions, repository) {
+  if (!suggestions || suggestions.formatVersion !== 1 || suggestions.head !== run.head_sha ||
+      (suggestions.repository && suggestions.repository !== repository) ||
+      !Array.isArray(suggestions.suggestions) || suggestions.suggestions.length > 20) return [];
+  const valid = suggestions.suggestions.filter(validSuggestion);
+  const items = valid.slice(0, SUGGESTION_COMMENT_LIMIT);
+  const dropped = suggestions.suggestions.length - valid.length;
+  const omitted = valid.length - items.length;
+  if (!items.length) return dropped ? ["", "### Suggested fixes", "", `${dropped} malformed suggestion(s) were omitted.`] : [];
+  const lines = ["", "### Suggested fixes", ""];
+  for (const item of items) {
+    lines.push(`- \`${escape(item.entry)}\` ← \`${escape(item.record)}\`: ${escape(item.reason)}`);
+    const table = item.table || "entry";
+    lines.push("  ```diff", `  --- ${item.file}`, `  +++ ${item.file}`,
+      `  @@ ${table} (${clean(item.entry)})`, `  +${item.field} = "${clean(item.value)}"`, "  ```");
+  }
+  if (dropped) lines.push("", `${dropped} malformed suggestion(s) were omitted.`);
+  if (omitted) lines.push("", `${omitted} additional suggestion(s) are in the suggestions artifact.`);
+  return lines;
+}
 
 function matches(pr, run) {
   const source = run.head_repository?.full_name;
@@ -11,11 +48,13 @@ function matches(pr, run) {
     pr.state === "open" && pr.head?.sha === run.head_sha && pr.head.repo?.full_name === source;
 }
 
-function body(run, report, repository) {
+function body(run, report, repository, suggestions = null) {
   if (!/^[0-9a-f]{40}$/.test(run.head_sha) || report.formatVersion !== 1 || report.head !== run.head_sha || !Array.isArray(report.items) || report.items.length > 200 ||
       !Number.isSafeInteger(report.total) || report.total < report.items.length || !Number.isSafeInteger(run.id) ||
       !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) throw Error("Invalid review artifact identity or bounds");
   const candidates = report.items.slice(0, 40);
+  const suggestionText = suggestionLines(run, suggestions, repository).join("\n");
+  const reserved = suggestionText.length + 500;
   let shown = 0;
   const lines = [marker, "## Guide review", "", `Commit: \`${run.head_sha}\`. Run conclusion: **${escape(run.conclusion)}**.`, "",
     `[Checks, health report and desktop/mobile preview artifacts](https://github.com/${repository}/actions/runs/${run.id})`, "",
@@ -26,7 +65,7 @@ function body(run, report, repository) {
       if (typeof item.id !== "string" || !["added", "updated", "removed"].includes(item.change) ||
           typeof item.name?.cs !== "string" || typeof item.name?.en !== "string") throw Error("Invalid changed item");
       const row = `| ${escape(item.kind)}: ${escape(item.id)} | ${item.change} | ${escape(item.name.cs)} | ${escape(item.name.en)} |`;
-      if (lines.join("\n").length + row.length > 59000) break;
+      if (lines.join("\n").length + row.length + reserved > COMMENT_LIMIT) break;
       lines.push(row);
       shown++;
     }
@@ -38,7 +77,9 @@ function body(run, report, repository) {
       : ` Only the first ${report.items.length} changed items are in the review artifact.`;
     lines.push("", `The table shows ${shown} of ${report.total} changed items within the comment size limit.${complete}`);
   }
-  return lines.join("\n");
+  if (suggestionText) lines.push(suggestionText);
+  const text = lines.join("\n");
+  return text.length > COMMENT_LIMIT ? text.slice(0, COMMENT_LIMIT - 40) + "\n\n… comment truncated." : text;
 }
 
 function readReport(file) {
@@ -46,12 +87,21 @@ function readReport(file) {
   return JSON.parse(readFileSync(file, "utf8"));
 }
 
+function readOptional(file, read) {
+  try {
+    return read(file);
+  } catch {
+    return null;
+  }
+}
+
 async function comment({ github, context, core }, read = readReport) {
   const run = context.payload.workflow_run;
   if (run.event !== "pull_request" || run.status !== "completed") return;
   const repository = context.repo.owner + "/" + context.repo.repo;
   const file = ".cache/pr-review-incoming/summary.json";
-  const text = body(run, read(file), repository);
+  const suggestions = readOptional(".cache/pr-review-incoming/suggestions.json", read);
+  const text = body(run, read(file), repository, suggestions);
   const listed = run.pull_requests?.length ? run.pull_requests : await github.paginate(github.rest.pulls.list, { ...context.repo, state: "open", per_page: 100 });
   for (const candidate of listed) {
     if (!Number.isSafeInteger(candidate.number)) continue;

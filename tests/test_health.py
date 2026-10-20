@@ -192,6 +192,24 @@ class HealthTests(unittest.TestCase):
     def report(self, content=None, **kwargs) -> dict:
         return check_health.make_report(content or self.content, today=TODAY, **kwargs)
 
+    def test_summary_renders_every_failed_check_output(self) -> None:
+        report = self.report()
+        report["run"] = {
+            "status": "failed",
+            "reason": "",
+            "jobs": [
+                {"name": "content", "status": "failed", "seconds": 1, "output": "error: content failed"},
+                {"name": "duplicates", "status": "failed", "seconds": 1, "output": "error: duplicates failed"},
+                {"name": "crate", "status": "passed", "seconds": 1, "output": "ok"},
+            ],
+        }
+        summary = check_health.markdown(report)
+        self.assertIn("### Failed check output", summary)
+        self.assertIn("#### content", summary)
+        self.assertIn("#### duplicates", summary)
+        self.assertIn("error: content failed", summary)
+        self.assertNotIn("#### crate", summary)
+
     def test_checked_revision_can_differ_from_the_workflow_trigger(self) -> None:
         with mock.patch.dict(os.environ, {"GITHUB_SHA": "a" * 40, "FAIR_GUIDE_CHECK_REVISION": "b" * 40}, clear=True):
             self.assertEqual(self.report()["revision"], "b" * 40)

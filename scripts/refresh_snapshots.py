@@ -814,6 +814,40 @@ def counts_in(path: Path, keys: list[str]) -> dict[str, int]:
     return {key: len(data.get(key, [])) for key in keys}
 
 
+def _identifiers(value: Any):
+    if isinstance(value, dict):
+        identifier = value.get("id")
+        if isinstance(identifier, str) and identifier:
+            yield identifier
+        for item in value.values():
+            yield from _identifiers(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _identifiers(item)
+
+
+def reserved_identifiers(root: Path, target: Path) -> set[str]:
+    """Identifiers owned by authored content outside the snapshot being replaced.
+
+    A new snapshot row must not mint a slug already used by a resource, repository, source, person, organisation,
+    instrument or another snapshot. Retired identifiers stay reserved as well.
+    """
+    reserved: set[str] = set()
+    for path in sorted((root / "content").rglob("*.toml")):
+        if path.resolve() == target.resolve():
+            continue
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
+        reserved.update(_identifiers(data))
+        identity = data.get("identity")
+        if isinstance(identity, dict):
+            reserved.update(value for value in identity.get("retiredIds", []) if isinstance(value, str) and value)
+        if path.name == "identifiers.toml" and isinstance(data.get("retired"), dict):
+            for values in data["retired"].values():
+                if isinstance(values, list):
+                    reserved.update(value for value in values if isinstance(value, str) and value)
+    return reserved
+
+
 def without_date(value: str) -> str:
     return re.sub(r"(?m)^retrieved = .*$", "", value)
 
@@ -838,9 +872,15 @@ def commit(snapshot: Snapshot, root: Path) -> Outcome:
     resource_types = {
         native: row["id"] for row in vocabulary.get("resourceType", []) for native in row.get("fipDashboard", [])
     }
-    new_text = preserve_snapshot(
-        snapshot.text(), target.read_text(encoding="utf-8") if target.exists() else "", resource_types=resource_types
-    )
+    try:
+        new_text = preserve_snapshot(
+            snapshot.text(),
+            target.read_text(encoding="utf-8") if target.exists() else "",
+            reserved=reserved_identifiers(root, target),
+            resource_types=resource_types,
+        )
+    except ValueError as error:
+        raise RejectedError(f"{snapshot.path}: identity needs review: {error}") from error
     if target.exists() and without_date(target.read_text(encoding="utf-8")) == without_date(new_text):
         outcome.status, outcome.reason = "unchanged", "only the retrieval date would change"
         return outcome

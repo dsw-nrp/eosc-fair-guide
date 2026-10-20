@@ -1142,6 +1142,18 @@ def markdown(report: dict[str, Any]) -> str:
                 f"{len(script['executed'])} / {script['planned']} | "
                 f"{len(script['skipped'])} | {len(script['pending'])} |"
             )
+    failed = [
+        job
+        for job in report["run"].get("jobs", [])
+        if job.get("status") == "failed" and str(job.get("output", "")).strip()
+    ]
+    if failed:
+        lines += ["", "### Failed check output", "", "Full logs and details are in the uploaded health artifact.", ""]
+        for job in failed:
+            output = str(job["output"]).rstrip().replace("```", "'''")
+            if len(output) > 4000:
+                output = output[-4000:]
+            lines += [f"#### {job['name']}", "", "```text", output, "```", ""]
     lines += [
         "",
         f"Live availability: **{report['live_availability']['status']}**. {report['live_availability']['reason']} "

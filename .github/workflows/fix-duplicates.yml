@@ -1,0 +1,79 @@
+name: Fix duplicate records
+
+# Trusted maintainer command. Default-branch code reads the pull request's content as data, applies only the
+# duplicate check's safe link suggestions, records the commenting maintainer as the provenance agent and commits
+# through the repository-scoped App. It never runs pull-request code, schedules, forks or merges.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fix-duplicates-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/fix-duplicates')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - id: app
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.SOURCE_REFRESH_CLIENT_ID }}
+          private-key: ${{ secrets.SOURCE_REFRESH_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Extract the pull request content as data
+        env:
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || { echo "unexpected pull request number"; exit 1; }
+          git fetch --no-tags origin "pull/${PR_NUMBER}/head:refs/remotes/fix-pr-head"
+          archived_head="$(git rev-parse refs/remotes/fix-pr-head)"
+          mkdir -p .cache/fix-duplicates
+          printf '%s\n' "$archived_head" > .cache/fix-duplicates-head
+          git archive "$archived_head" content assets profile index.html | tar -x -C .cache/fix-duplicates
+      - name: Apply safe duplicate links
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          CHECK_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENTER: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || { echo "unexpected pull request number"; exit 1; }
+          python -u scripts/fix_duplicates.py \
+            --root .cache/fix-duplicates \
+            --pr "$PR_NUMBER" \
+            --commenter "$COMMENTER" \
+            --comment "$COMMENT_BODY" \
+            --check-token "$CHECK_TOKEN" \
+            --expected-head "$(cat .cache/fix-duplicates-head)" \
+            --repository "$GITHUB_REPOSITORY"
+      - name: Report an unexpected failure
+        if: failure() && steps.app.outputs.token != ''
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          github-token: ${{ steps.app.outputs.token }}
+          script: |
+            const pr = context.payload.issue?.number;
+            if (!Number.isSafeInteger(pr)) return;
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: pr,
+              body: "`/fix-duplicates` did not complete. No change is assumed; see the workflow run: " +
+                `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });

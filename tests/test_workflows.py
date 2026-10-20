@@ -231,6 +231,56 @@ class WorkflowContracts(unittest.TestCase):
         self.assertNotIn("git push", text)
         self.assertNotIn("merge", text.lower().replace("never merges", ""))
 
+    def test_fix_duplicates_command_is_trusted_and_same_repo_only(self) -> None:
+        text = (ROOT / ".github/workflows/fix-duplicates.yml").read_text(encoding="utf-8")
+        workflow = load(".github/workflows/fix-duplicates.yml")
+        self.assertEqual(set(workflow["on"]), {"issue_comment"})
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertNotIn("pull_request_target", text)
+        job = workflow["jobs"]["fix"]
+        self.assertIn("github.event.issue.pull_request", job["if"])
+        self.assertIn("/fix-duplicates", job["if"])
+        steps = job["steps"]
+        for step in steps:
+            if step.get("uses", "").startswith("actions/checkout@"):
+                self.assertEqual(step["with"]["ref"], "${{ github.event.repository.default_branch }}")
+                self.assertEqual(step["with"]["persist-credentials"], "false")
+        app = next(step for step in steps if step.get("uses", "").startswith("actions/create-github-app-token@"))
+        self.assertEqual(
+            {key: value for key, value in app["with"].items() if key.startswith("permission-")},
+            {"permission-contents": "write", "permission-pull-requests": "write"},
+        )
+        self.assertIn("SOURCE_REFRESH_CLIENT_ID", app["with"]["client-id"])
+        self.assertIn("SOURCE_REFRESH_APP_PRIVATE_KEY", app["with"]["private-key"])
+        handler = next(step for step in steps if "scripts/fix_duplicates.py" in step.get("run", ""))
+        self.assertNotIn("github.event.comment", handler["run"], "comment text never becomes shell text")
+        self.assertIn("COMMENT_BODY", handler["env"])
+        self.assertIn("CHECK_TOKEN", handler["env"])
+        self.assertIn("--comment", handler["run"])
+        self.assertIn("--check-token", handler["run"])
+        self.assertIn("--expected-head", handler["run"])
+        extract = next(step for step in steps if step.get("name") == "Extract the pull request content as data")
+        self.assertIn('git archive "$archived_head"', extract["run"])
+        self.assertIn('git archive "$archived_head" content assets profile index.html |', extract["run"])
+        self.assertIn('"$archived_head" > .cache/fix-duplicates-head', extract["run"])
+        failure = next(step for step in steps if step.get("name") == "Report an unexpected failure")
+        self.assertEqual(failure["with"]["github-token"], "${{ steps.app.outputs.token }}")
+        self.assertIn("createComment", failure["with"]["script"])
+        self.assertNotIn("git push", text)
+        self.assertNotIn("pulls.merge", text)
+        self.assertNotIn("merge_pull", text)
+        checks = load(".github/workflows/checks.yml")
+        review = next(
+            step
+            for step in checks["jobs"]["checks"]["steps"]
+            if step.get("with", {}).get("name", "").startswith("guide-review-")
+        )
+        self.assertIn(".cache/pr-review/suggestions.json", review["with"]["path"].split())
+        collector = next(
+            step for step in checks["jobs"]["checks"]["steps"] if "check_ci.py collect" in step.get("run", "")
+        )
+        self.assertEqual(collector["env"]["PR_HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")
+
     def test_live_watch_is_scheduled_trusted_and_writes_only_issues(self) -> None:
         text = (ROOT / ".github/workflows/health-watch.yml").read_text(encoding="utf-8")
         workflow = load(".github/workflows/health-watch.yml")

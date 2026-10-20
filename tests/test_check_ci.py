@@ -1,6 +1,8 @@
 """Partition evidence must fail closed when a lane, job, script, case or build is missing/wrong."""
 
 import copy
+import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -95,9 +97,10 @@ class PartitionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             manifest, jobs, groups = self.fixture(root)
-            results, lanes, _ = check_ci.reconcile(manifest, root, jobs, groups)
+            results, lanes, _, failures = check_ci.reconcile(manifest, root, jobs, groups)
             self.assertEqual(len(results), 3)
             self.assertTrue(all(result.ok and result.output == "retained" for result in results))
+            self.assertEqual(failures, [])
             self.assertEqual(set(lanes), set(check_ci.LANES))
 
     def test_incomplete_or_wrong_evidence_never_becomes_a_complete_pass(self):
@@ -108,8 +111,6 @@ class PartitionTests(unittest.TestCase):
             "wrong-build",
             "missing-job",
             "duplicate-job",
-            "failed-job",
-            "partial-job",
             "missing-script",
             "duplicate-script",
             "missing-case-report",
@@ -144,10 +145,6 @@ class PartitionTests(unittest.TestCase):
                     data["results"] = []
                 elif fault == "duplicate-job":
                     data["results"] *= 2
-                elif fault == "failed-job":
-                    data["results"][0]["returncode"] = 1
-                elif fault == "partial-job":
-                    data["results"][0]["partial"] = True
                 elif fault == "missing-script":
                     scripts["scripts"] = []
                 elif fault == "duplicate-script":
@@ -185,6 +182,145 @@ class PartitionTests(unittest.TestCase):
                 check_ci.write_json(script_path, scripts)
                 with self.assertRaises((ValueError, OSError)):
                     check_ci.reconcile(manifest, root, jobs, groups)
+
+    def test_failed_checks_are_returned_together(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest, jobs, groups = self.fixture(root)
+            for lane, name in (("cpu", "content"), ("browser-b", "final-candidate")):
+                path = root / lane / "lane.json"
+                data = check_ci.read_json(path)
+                for row in data["results"]:
+                    if row["name"] == name:
+                        row["returncode"] = 1
+                        row["output"] = f"{name} failed"
+                check_ci.write_json(path, data)
+            results, _, _, failures = check_ci.reconcile(manifest, root, jobs, groups)
+            self.assertEqual({result.job.name for result in failures}, {"content", "final-candidate"})
+            self.assertEqual(len(results), 3)
+            self.assertEqual(sorted(result.job.name for result in failures), ["content", "final-candidate"])
+
+    def test_failed_lane_diagnostics_are_copied(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            incoming = root / "incoming"
+            output = root / "output"
+            (incoming / "cpu/logs").mkdir(parents=True)
+            (incoming / "cpu/details").mkdir()
+            (incoming / "cpu/logs/content.log").write_text("exact failure", encoding="utf-8")
+            (incoming / "cpu/details/duplicates.json").write_text("{}", encoding="utf-8")
+            check_ci.copy_lane_diagnostics(incoming, output)
+            self.assertEqual((output / "logs/content.log").read_text(encoding="utf-8"), "exact failure")
+            self.assertEqual((output / "details/duplicates.json").read_text(encoding="utf-8"), "{}")
+
+    def test_suggestions_are_bounded_and_validated(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "cpu/details").mkdir(parents=True)
+            check_ci.write_json(
+                root / "cpu/details/duplicates.json",
+                {
+                    "formatVersion": 1,
+                    "suggestions": [
+                        {
+                            "entry": "resource:service",
+                            "record": "re3data:r3d1",
+                            "resolution": "link",
+                            "safe": True,
+                            "file": "content/resources.toml",
+                            "table": "resource.repository",
+                            "field": "re3data",
+                            "value": "r3d1",
+                            "reason": "shares address 'example.org/service'",
+                        },
+                        {
+                            "entry": "resource:other",
+                            "record": "re3data:r3d2",
+                            "safe": True,
+                            "file": "outside.toml",
+                            "table": "",
+                            "field": "re3data",
+                            "value": "r3d2",
+                            "reason": "unsafe file",
+                        },
+                    ],
+                },
+            )
+            with mock.patch.dict(check_ci.os.environ, {"GITHUB_REPOSITORY": "dsw-nrp/eosc-fair-guide"}):
+                payload = check_ci.load_suggestions(root, "a" * 40)
+            self.assertEqual(payload["head"], "a" * 40)
+            self.assertEqual(payload["repository"], "dsw-nrp/eosc-fair-guide")
+            self.assertEqual([item["value"] for item in payload["suggestions"]], ["r3d1"])
+
+    def test_suggestion_summary_is_appended(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary)
+            (output / "summary.md").write_text("# Summary\n", encoding="utf-8")
+            check_ci.append_suggestion_summary(
+                output,
+                {
+                    "suggestions": [
+                        {
+                            "entry": "resource:service",
+                            "record": "re3data:r3d1",
+                            "file": "content/resources.toml",
+                            "table": "resource.repository",
+                            "field": "re3data",
+                            "value": "r3d1",
+                            "reason": "shares address 'example.org/service'",
+                        }
+                    ]
+                },
+            )
+            summary = (output / "summary.md").read_text(encoding="utf-8")
+            self.assertIn("### Suggested fixes", summary)
+            self.assertIn('re3data = "r3d1"', summary)
+
+    def test_collected_suggestions_publish_with_distinct_merge_and_head_shas(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            incoming = Path(temporary)
+            check_ci.write_json(
+                incoming / "cpu/details/duplicates.json",
+                {
+                    "formatVersion": 1,
+                    "suggestions": [
+                        {
+                            "entry": "resource:service",
+                            "record": "re3data:r3d1",
+                            "resolution": "link",
+                            "safe": True,
+                            "file": "content/resources.toml",
+                            "table": "resource.repository",
+                            "field": "re3data",
+                            "value": "r3d1",
+                            "reason": "shared URL",
+                        }
+                    ],
+                },
+            )
+            with mock.patch.dict(
+                check_ci.os.environ, {"PR_HEAD_SHA": "a" * 40, "GITHUB_REPOSITORY": "dsw-nrp/eosc-fair-guide"}
+            ):
+                payload = check_ci.collect_suggestions(incoming, {"source": {"revision": "b" * 40}})
+            self.assertEqual(payload["head"], "a" * 40)
+            self.assertEqual(payload["checkedRevision"], "b" * 40)
+            published = subprocess.run(
+                [
+                    "node",
+                    "-e",
+                    "const {body}=require('./.github/scripts/comment-summary.cjs');"
+                    "const data=JSON.parse(require('node:fs').readFileSync(0,'utf8'));"
+                    "process.stdout.write(body({id:1,head_sha:'a'.repeat(40),conclusion:'failure'},"
+                    "{formatVersion:1,head:'a'.repeat(40),total:0,items:[]},data.repository,data));",
+                ],
+                input=json.dumps(payload),
+                text=True,
+                capture_output=True,
+                check=True,
+                cwd=check_ci.ROOT,
+            )
+            self.assertIn("### Suggested fixes", published.stdout)
+            self.assertIn('re3data = "r3d1"', published.stdout)
 
     def test_site_modification_is_rejected_before_lane_execution(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -229,14 +365,15 @@ class PartitionTests(unittest.TestCase):
             root = Path(temporary)
             manifest, jobs, groups = self.fixture(root)
             manifest.update(started=100, result={"returncode": 0, "seconds": 2, "output": "built"})
-            results, lanes, directories = check_ci.reconcile(manifest, root, jobs, groups)
+            results, lanes, directories, failures = check_ci.reconcile(manifest, root, jobs, groups)
+            self.assertEqual(failures, [])
             for lane in lanes.values():
                 lane.update(started=110, finished=140)
             args = SimpleNamespace(base=None, manifest=root / "manifest.json", incoming=root, output=root / "out")
             with (
                 mock.patch.object(check_ci, "read_json", side_effect=[manifest, groups]),
                 mock.patch.object(check_ci, "verify_build"),
-                mock.patch.object(check_ci, "reconcile", return_value=(results, lanes, directories)),
+                mock.patch.object(check_ci, "reconcile", return_value=(results, lanes, directories, [])),
                 mock.patch.object(check_ci.time, "monotonic", return_value=900),
                 mock.patch.object(check_ci.time, "time", side_effect=[150, 150, 170]),
                 mock.patch.object(check_all, "publish_results", return_value=0) as publish,

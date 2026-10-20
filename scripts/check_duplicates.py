@@ -18,6 +18,9 @@ standard library. The rule is documented in ``docs/content-model.md`` (One entry
 from __future__ import annotations
 
 import argparse
+import difflib
+import json
+import os
 import re
 import sys
 import tomllib
@@ -28,10 +31,10 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from build_crate import ROOT, ContentError, load_content  # noqa: E402
-from catalogue_identity import alternate_id, bare_url
-from check_content import Report  # noqa: E402
+from catalogue_identity import alternate_id, bare_url  # noqa: E402
 
 ACCEPTED_FILE = "duplicates.toml"
+AUTHORITATIVE_KEYS = ("url", "doi", "r3d", "fd", "knav")
 # Keys that state two entries are the same thing; every other key only suggests it.
 LINK_KEYS = ("fd", "fdorg", "r3d", "knav")
 KEY_NAMES = {
@@ -55,6 +58,22 @@ class Entry:
     group: str  # entries are compared within their group only
     curated: bool  # the guide's own entry, as opposed to a registry's record or a piece of text
     keys: set[str] = field(default_factory=set)
+    record: dict[str, Any] | None = None  # the authored or snapshot row, for an exact suggestion
+
+
+@dataclass(frozen=True)
+class Suggestion:
+    """A link the duplicate check can name without deciding that two records are one thing."""
+
+    entry: str
+    record: str
+    resolution: str
+    safe: bool
+    file: str
+    table: str
+    field_name: str
+    value: str
+    reason: str
 
 
 def words(value: Any) -> list[str]:
@@ -69,9 +88,9 @@ def words(value: Any) -> list[str]:
     return out
 
 
-def thing(label: str, curated: bool, /, **keys: Any) -> Entry:
+def thing(label: str, curated: bool, /, record: dict[str, Any] | None = None, **keys: Any) -> Entry:
     """A resource, repository, source or registry record, keyed by what identifies it."""
-    entry = Entry(label, "things", curated)
+    entry = Entry(label, "things", curated, record=record)
     for kind, values in keys.items():
         for value in values if isinstance(values, list) else [values]:
             if value:
@@ -95,6 +114,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
             thing(
                 f"resource:{resource['id']}",
                 True,
+                record=resource,
                 url=bare_url(resource.get("url")),
                 doi=citation.get("doi", "").lower(),
                 r3d=repository.get("re3data"),
@@ -109,6 +129,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
             thing(
                 f"repository:{repository['id']}",
                 True,
+                record=repository,
                 url=bare_url(repository.get("url")),
                 doi=(repository.get("fairsharing") or "").lower(),
                 r3d=repository.get("re3data"),
@@ -124,6 +145,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
             thing(
                 f"source:{source['id']}",
                 True,
+                record=source,
                 url=[bare_url(source.get("url")), bare_url("https://doi.org/" + doi) if doi else ""],
                 doi=doi,
                 knav=source.get("knav"),
@@ -136,6 +158,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 thing(
                     f"fip-dashboard:{record['id']}",
                     False,
+                    record=record,
                     url=bare_url(record.get("url")),
                     fd=alternate_id(record, "fip-dashboard"),
                     knav=joined.get("fd:" + str(alternate_id(record, "fip-dashboard")), {}).get("knav"),
@@ -148,6 +171,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 thing(
                     f"re3data:{record['re3data']}",
                     False,
+                    record=record,
                     url=bare_url(record.get("url")),
                     r3d=record["re3data"],
                     fd=joined.get(f"r3d:{record['re3data']}", {}).get("fd"),
@@ -160,6 +184,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
                 thing(
                     f"knav:{record['id']}",
                     False,
+                    record=record,
                     url=bare_url(record.get("url") or record.get("httpUrl")),
                     knav=alternate_id(record, "knav"),
                     name=words(record.get("name")),
@@ -169,6 +194,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
             entry = thing(
                 f"fip-dashboard-organisation:{record['id']}",
                 False,
+                record=record,
                 url=bare_url(record.get("url")),
                 ror=record.get("ror"),
                 fdorg=alternate_id(record, "fip-dashboard"),
@@ -184,6 +210,7 @@ def entries(content: dict[str, Any]) -> list[Entry]:
         entry = thing(
             f"organization:{organization['id']}",
             True,
+            record=organization,
             url=bare_url(organization.get("url")),
             ror=organization.get("ror"),
             fdorg=organization.get("fipDashboard"),
@@ -213,6 +240,104 @@ def entries(content: dict[str, Any]) -> list[Entry]:
             )
         )
     return out
+
+
+@dataclass
+class DuplicateReport:
+    errors: list[str] = field(default_factory=list)
+    suggestions: list[Suggestion] = field(default_factory=list)
+
+    def error(self, where: str, message: str) -> None:
+        self.errors.append(f"{where}: {message}")
+
+
+def entry_kind(entry: Entry) -> str:
+    return entry.name.split(":", 1)[0]
+
+
+def key_value(entry: Entry, prefix: str) -> str:
+    """The record's own value for one identity key, as stored in the entry keys."""
+    for key in entry.keys:
+        if key.startswith(prefix + ":"):
+            return key.split(":", 1)[1]
+    return ""
+
+
+def record_link(entry: Entry) -> tuple[str, str, str] | None:
+    """The link field a registry record can lend to a curated entry."""
+    kind = entry_kind(entry)
+    if kind == "re3data":
+        value = key_value(entry, "r3d") or str((entry.record or {}).get("re3data", ""))
+        return "r3d", "re3data", value
+    if kind == "fip-dashboard":
+        return "fd", "fipDashboard", key_value(entry, "fd")
+    if kind == "knav":
+        return "knav", "knav", key_value(entry, "knav")
+    return None
+
+
+def curated_target(entry: Entry, field_name: str) -> tuple[str, str] | None:  # noqa: PLR0911
+    """Where a curated entry stores one link field, or None when adding it needs review."""
+    kind = entry_kind(entry)
+    record = entry.record or {}
+    if kind == "resource":
+        if field_name == "re3data":
+            repository = record.get("repository")
+            if not isinstance(repository, dict) or "re3data" in repository:
+                return None
+            return "content/resources.toml", "resource.repository"
+        if field_name in ("fipDashboard", "knav"):
+            if field_name in record:
+                return None
+            return "content/resources.toml", ""
+        return None
+    if kind == "repository":
+        if field_name in record:
+            return None
+        return "content/repositories.toml", ""
+    if kind == "source" and field_name == "knav":
+        if "knav" in record:
+            return None
+        return "content/sources.toml", ""
+    return None
+
+
+def suggestion_for(group: list[Entry]) -> Suggestion | None:  # noqa: PLR0911
+    """A safe, exact link suggestion, or None when the group needs editorial judgement."""
+    curated = [entry for entry in group if entry.curated]
+    records = [entry for entry in group if not entry.curated]
+    if len(curated) != 1 or len(records) != 1:
+        return None
+    curated_entry, record_entry = curated[0], records[0]
+    if curated_entry.record is None or record_entry.record is None:
+        return None
+    link = record_link(record_entry)
+    if link is None:
+        return None
+    prefix, field_name, value = link
+    if not value:
+        return None
+    shared = {key for key in curated_entry.keys & record_entry.keys if key.split(":", 1)[0] in AUTHORITATIVE_KEYS}
+    if not shared:
+        return None
+    target = curated_target(curated_entry, field_name)
+    if target is None:
+        return None
+    file, table = target
+    order = {key: index for index, key in enumerate(AUTHORITATIVE_KEYS)}
+    reason_key = min(shared, key=lambda key: (order[key.split(":", 1)[0]], key))
+    reason_kind, reason_value = reason_key.split(":", 1)
+    return Suggestion(
+        entry=curated_entry.name,
+        record=record_entry.name,
+        resolution="link",
+        safe=True,
+        file=file,
+        table=table,
+        field_name=field_name,
+        value=value,
+        reason=f"shares {KEY_NAMES[reason_kind]} '{reason_value}'",
+    )
 
 
 class Components:
@@ -252,8 +377,8 @@ def remedy(group: list[Entry]) -> str:
     )
 
 
-def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> Report:
-    report = Report()
+def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> DuplicateReport:
+    report = DuplicateReport()
     found = entries(content)
     by_name = {entry.name: entry for entry in found}
     components = Components(list(by_name))
@@ -300,28 +425,202 @@ def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> Report:
             f"describes one thing with {', '.join(ordered[1:])} ({shared}); "
             + remedy([by_name[name] for name in ordered]),
         )
+        suggestion = suggestion_for([by_name[name] for name in ordered])
+        if suggestion is not None:
+            report.suggestions.append(suggestion)
+    targets: dict[tuple[str, str, str, str], set[str]] = {}
+    for suggestion in report.suggestions:
+        target = (suggestion.file, suggestion.table, suggestion.entry, suggestion.field_name)
+        targets.setdefault(target, set()).add(suggestion.value)
+    report.suggestions = [
+        suggestion
+        for suggestion in report.suggestions
+        if len(targets[(suggestion.file, suggestion.table, suggestion.entry, suggestion.field_name)]) == 1
+    ]
     for index, accepted_set in enumerate(accepted_sets):
         if accepted_set and accepted_set not in used:
             report.error(f"duplicates:{index + 1}", "the accepted group no longer occurs; remove it")
     return report
 
 
+def report_payload(report: DuplicateReport) -> dict[str, Any]:
+    return {
+        "formatVersion": 1,
+        "check": "duplicates",
+        "errors": list(report.errors),
+        "suggestions": [
+            {
+                "entry": suggestion.entry,
+                "record": suggestion.record,
+                "resolution": suggestion.resolution,
+                "safe": suggestion.safe,
+                "file": suggestion.file,
+                "table": suggestion.table,
+                "field": suggestion.field_name,
+                "value": suggestion.value,
+                "reason": suggestion.reason,
+            }
+            for suggestion in report.suggestions
+        ],
+    }
+
+
+def write_report(path: Path, report: DuplicateReport) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report_payload(report), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _is_table_header(line: str) -> bool:
+    stripped = line.strip()
+    return stripped.startswith("[") and stripped.endswith("]")
+
+
+def field_table(parsed: dict[str, Any], entry_header: str, entry_id: str, table: str) -> dict[str, Any] | None:
+    """Find the actual target table, including unusually formatted existing keys."""
+    row = next((item for item in parsed.get(entry_header.strip("[]"), []) if item.get("id") == entry_id), None)
+    if row is None:
+        return None
+    target = row
+    for part in table.split(".")[1:] if table else []:
+        target = target.get(part)
+        if not isinstance(target, dict):
+            return None
+    return target
+
+
+def insert_field(
+    path: Path, entry_header: str, entry_id: str, table: str, *, field_name: str, value: str
+) -> str | None:
+    """Insert one link into the exact entry and table, returning its unified diff."""
+    old = path.read_text(encoding="utf-8")
+    parsed = tomllib.loads(old)
+    target = field_table(parsed, entry_header, entry_id, table)
+    if target is None or field_name in target:
+        return None
+    lines = old.splitlines(keepends=True)
+    start = None
+    block_end = None
+    id_line = None
+    id_pattern = re.compile(rf'^\s*id\s*=\s*"{re.escape(entry_id)}"\s*$')
+    for index, line in enumerate(lines):
+        if line.strip() != entry_header:
+            continue
+        end = next((item for item in range(index + 1, len(lines)) if lines[item].lstrip().startswith("[[")), len(lines))
+        found = next((item for item in range(index, end) if id_pattern.match(lines[item])), None)
+        if found is not None:
+            start, block_end, id_line = index, end, found
+            break
+    if start is None or block_end is None or id_line is None:
+        return None
+    if table:
+        header = f"[{table}]"
+        header_line = next((item for item in range(start, block_end) if lines[item].strip() == header), None)
+        if header_line is None:
+            return None
+        insert_at = header_line + 1
+        while insert_at < block_end and not _is_table_header(lines[insert_at]):
+            insert_at += 1
+    else:
+        insert_at = id_line + 1
+    if insert_at > 0 and not lines[insert_at - 1].endswith(("\n", "\r")):
+        lines[insert_at - 1] += "\n"
+    lines.insert(insert_at, f"{field_name} = {json.dumps(value, ensure_ascii=False)}\n")
+    new = "".join(lines)
+    target[field_name] = value
+    try:
+        if tomllib.loads(new) != parsed:
+            return None
+    except tomllib.TOMLDecodeError:
+        return None
+    path.write_text(new, encoding="utf-8", newline="\n")
+    return "".join(
+        difflib.unified_diff(
+            old.splitlines(keepends=True),
+            new.splitlines(keepends=True),
+            fromfile=str(path),
+            tofile=str(path),
+        )
+    )
+
+
+def apply_suggestion(root: Path, suggestion: Suggestion) -> str | None:
+    kind = suggestion.entry.split(":", 1)[0]
+    header = {"resource": "[[resource]]", "repository": "[[repository]]", "source": "[[source]]"}.get(kind)
+    if header is None or ":" not in suggestion.entry:
+        return None
+    entry_id = suggestion.entry.split(":", 1)[1]
+    return insert_field(
+        root / suggestion.file,
+        header,
+        entry_id,
+        suggestion.table,
+        field_name=suggestion.field_name,
+        value=suggestion.value,
+    )
+
+
+def _accepted(root: Path) -> list[dict[str, Any]]:
+    path = root / "content" / ACCEPTED_FILE
+    return tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root (default: this repository)")
+    parser.add_argument("--report", type=Path, help="write the suggestion collection to this JSON file")
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="apply only safe link suggestions to the working tree; the person still adds provenance",
+    )
     args = parser.parse_args(argv)
     try:
         content = load_content(args.root / "content")
-        path = args.root / "content" / ACCEPTED_FILE
-        accepted = tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
+        accepted = _accepted(args.root)
     except (ContentError, KeyError, tomllib.TOMLDecodeError) as error:
         print(f"check_duplicates: cannot read the content: {error}", file=sys.stderr)
         return 2
     report = check(content, accepted)
     for error in report.errors:
         print(f"error: {error}")
+    for suggestion in report.suggestions:
+        table = f" [{suggestion.table}]" if suggestion.table else ""
+        print(
+            f'fix: {suggestion.entry}: add {suggestion.field_name} = "{suggestion.value}" '
+            f"to {suggestion.file}{table} ({suggestion.reason})"
+        )
+    applied = False
+    if args.fix:
+        if not report.suggestions:
+            if report.errors:
+                print("check_duplicates: no safe suggestion applies; review the errors above")
+            else:
+                print("check_duplicates: nothing to fix")
+        else:
+            diffs = [diff for suggestion in report.suggestions if (diff := apply_suggestion(args.root, suggestion))]
+            if not diffs:
+                print("check_duplicates: no safe suggestion could be applied")
+            else:
+                applied = True
+                print("".join(diffs), end="")
+                print(
+                    "check_duplicates: applied safe link suggestions. Add one provenance action naming the "
+                    "person, the consulted source/record and the changed result; this command does not write it."
+                )
+                try:
+                    report = check(load_content(args.root / "content"), _accepted(args.root))
+                except (ContentError, KeyError, tomllib.TOMLDecodeError) as error:
+                    print(f"check_duplicates: cannot read the fixed content: {error}", file=sys.stderr)
+                    return 2
+                for error in report.errors:
+                    print(f"error: {error}")
+    report_path = args.report
+    if report_path is None and os.environ.get("CHECK_REPORT_DIR"):
+        report_path = Path(os.environ["CHECK_REPORT_DIR"]) / "duplicates.json"
+    if report_path is not None:
+        write_report(report_path, report)
     print(f"check_duplicates: {len(report.errors)} errors")
-    return 1 if report.errors else 0
+    return 1 if report.errors or (args.fix and not applied) else 0
 
 
 if __name__ == "__main__":
