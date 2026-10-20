@@ -91,6 +91,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("content", [python, "scripts/check_content.py", *(["--base", base] if base else [])]),
         Job("duplicates", [python, "scripts/check_duplicates.py"]),
         Job("versions", [python, "scripts/release_versions.py", "check", "--site", "_site"]),
+        Job("citation-metadata", [python, "scripts/check_citation_metadata.py"]),
         Job("openspec", [npm, "run", "-s", "openspec:validate"]),
         Job("public-content", [python, "scripts/check_public_content.py"]),
         Job("agent-generation", [python, "scripts/generate_agent_surfaces.py", "--check"]),
