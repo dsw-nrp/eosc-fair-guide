@@ -490,6 +490,10 @@ fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, A
 assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
 blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
 completed runs expose their actual revision and outcomes through the dashboard and `api/health.json`.
+Repository hygiene scans the guide's own text and the delivered tooling: a machine-specific path, a hub-internal
+name or a private planning reference fails with its file and line, while the repository's own relative runtime
+scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and
+delivery integrity.
 PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane and two balanced browser
 lanes. The command inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
 Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,

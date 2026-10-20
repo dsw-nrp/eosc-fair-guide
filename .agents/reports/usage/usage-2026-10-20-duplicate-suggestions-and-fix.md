@@ -159,3 +159,32 @@
   the maintainer: decide whether the merged branch carries a fresh `datarepo` provenance action, resolve the
   `a38f70f` surface drift (`docs/agent-tooling.md` and the delivered skill text) on main, and treat or ignore the
   untracked Codex runtime scratch area outside the ownership map.
+
+## Kilo session: PR #102 failing-check repair
+
+- **When:** 2026-10-21
+- **Agent / runtime:** Kilo (VS Code extension)
+- **Model / backend:** e-infra-cz/deepseek-v4.1-flash-thinking
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** read the failing "Guide checks and health report" run and its CPU-lane artifact; new
+  OpenSpec change `runtime-scratch-classification` with proposal, design, spec delta and tasks; the native
+  `fair-guide-editor` routing, the delivered planning and quality rules, and `npm run -s openspec:validate`.
+- **What:** Diagnosed the five failing checks from the lane artifact and removed their causes. The ownership map now
+  declares the runtime scratch area as runtime, so its README and any hand-off are neither unclassified nor
+  delivered content. The scratch hygiene rule matches only absolute, machine-specific locations: delivered tooling
+  that documents the repository-relative layout passes, while a planted drive-qualified or rooted path still fails.
+  The tooling inventory was regenerated from the delivery manifest, which now lists the two delivered modules. The
+  pull request's provenance action was extended to record the re-verified `datarepo` link after integrating the
+  default branch.
+- **Impacted:** `.agents/guide/surfaces.toml` and its five regenerated vendor mirrors plus `CODEX.md`,
+  `docs/agent-tooling.md` (regenerated), `docs/design.md`, `scripts/check_public_content.py`,
+  `tests/test_check_public_content.py`, `content/provenance.toml`, `CHANGELOG.md`, the new OpenSpec change and this
+  entry.
+- **Verification:** Strict OpenSpec validation passes 6/6 including the new change; the generator, ownership and
+  delivery-integrity checks report no finding, and the public-content check reports none for the repository while
+  its tests prove both directions of the narrowed rule. `python scripts/check_all.py --report-dir
+  .cache/health-checks-fix` passes 30 of 30 in 179.3 seconds before the documentation edits, and
+  `.cache/health-checks-fix-final` passes 30 of 30 in 200.6 seconds after them.
+- **Close-out:** The change is left unarchived for maintainer review as the OpenSpec lifecycle requires. The
+  failing checks were repaired in the branch that hosts them; hosted confirmation depends on the pushed run.

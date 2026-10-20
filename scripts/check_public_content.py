@@ -50,7 +50,9 @@ TEXT = {
 RULES = {
     "private planning repository": re.compile("aiscr-" + "management", re.I),
     "private planning extracts": re.compile(r"notes[/\\]" + "extracted", re.I),
-    "local planning scratch": re.compile(r"\.agents[/\\]" + "local_scratch", re.I),
+    "local planning scratch": re.compile(
+        r"(?:[A-Za-z]:[/\\]|(?<![\w.:/])/)[^\s\"'`<>]*" + r"\.agents[/\\]" + "local_scratch", re.I
+    ),
     "personal workstation path": re.compile(r"(?:[A-Z]:[/\\](?:Users|David)[/\\]|/" + "Users" + r"/[^/]+/)", re.I),
 }
 

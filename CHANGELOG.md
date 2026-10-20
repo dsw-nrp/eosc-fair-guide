@@ -27,6 +27,10 @@ All notable changes to this guide are recorded here. The format follows
   an absent one only while it stays absent, so a branch that moves or appears mid-run keeps its newer head.
 - Fail a partial check in the local `check_all.py` job row and exit code as the aggregate does, while a deliberate
   `--only` subset whose selected checks complete stays partial and exits zero.
+- Classify the runtime scratch area as a runtime path and narrow the scratch hygiene rule to machine-specific
+  locations, so delivered tooling that documents the repository's own layout no longer fails every pull request.
+- Refresh the tooling inventory from the delivery manifest and re-verify the merged `datarepo` link, so the
+  generation and content checks pass after integrating the default branch.
 
 ## [1.0.0-alpha.2] - 2026-10-19
 
