@@ -16,7 +16,7 @@ id = "collect.01"
 lens = "*"
 level = "L1"
 kind = "key"
-text = { cs = "Dokumentaci je nejsnazší psát průběžně: názvy souborů, verze, README a záznam postupu, které vzniknou během výzkumu, jsou podkladem pro popis dat při zveřejnění.", en = "Documentation is easiest written as you go: the file names, versions, README and record of methods made during the research are what the data's description is built from when you publish." }
+text = { cs = "Kontext experimentu nebo terénního sběru nelze po měsících spolehlivě dopočítat: dokumentace a organizace dat proto vznikají přímo při měření a sběru.", en = "The context of an experiment or field survey cannot be reconstructed reliably months later: documentation and data organisation therefore happen as the data are collected." }
 sources = ["CESSDA-DMEG.01", "A.R1.2.X1"]
 
 [[advice]]
@@ -38,15 +38,15 @@ sources = ["EINFRA-DOCS.01", "CESSDA-DMEG.01"]
 id = "collect.04"
 lens = "V"
 level = "L1"
-text = { cs = "Dohodněte se v týmu na pojmenování souborů, struktuře složek a způsobu verzování.", en = "Agree as a team on file naming, folder structure and versioning." }
-sources = ["CESSDA-DMEG.01"]
+text = { cs = "Dohodněte se v týmu předem na [[rdmkit-organisation|struktuře složek a pojmenování souborů]], způsobu verzování, [[rdmkit-quality|kontrolách kvality]] a [[rdmkit-security|zabezpečení dat]].", en = "Agree as a team in advance on [[rdmkit-organisation|folder structure and file naming]], versioning, [[rdmkit-quality|quality checks]] and [[rdmkit-security|data security]]." }
+sources = ["CESSDA-DMEG.01", "RDMKIT.tasks.01"]
 
 [[advice]]
 id = "collect.05"
 lens = "V"
 level = "L1"
-text = { cs = "Průběžně pište README a datový slovník: co znamenají proměnné, jednotky a kódy. Začít můžete ze [[cdsc-readme|šablon README komunity data stewardů]].", en = "Write a README and a data dictionary as you go: what the variables, units and codes mean. You can start from the [[cdsc-readme|Czech data steward community's README templates]]." }
-sources = ["CESSDA-DMEG.01", "CDSC-README.01"]
+text = { cs = "Průběžně pište README a datový slovník: co znamenají proměnné, jednotky, povolené kódy a chybějící hodnoty. Začít můžete ze [[cdsc-readme|šablon README komunity data stewardů]] a postupu ve [[cookbook-dictionary|FAIR Cookbook]].", en = "Write a README and a data dictionary as you go: what the variables, units, allowed codes and missing values mean. You can start from the [[cdsc-readme|Czech data steward community's README templates]] and the [[cookbook-dictionary|FAIR Cookbook]] recipe." }
+sources = ["CESSDA-DMEG.01", "CDSC-README.01", "RDMKIT.tasks.01"]
 
 [[advice]]
 id = "collect.06"
@@ -158,10 +158,3 @@ text = { cs = "Návrh README nebo datového slovníku vám připraví AI asisten
 check = { cs = "Každou proměnnou, jednotku a kód porovnejte se skutečnými daty a s tím, jak data vznikla: AI může význam domyslet chybně. Co nevíte jistě, doplňte ručně.", en = "Compare every variable, unit and code with the actual data and with how the data were produced: AI may guess a meaning wrongly. Fill in by hand whatever you are not sure of." }
 prompt = { cs = "Z níže uvedeného seznamu proměnných připrav datový slovník jako tabulku v Markdownu se sloupci: název, popis, jednotka, povolené hodnoty nebo kódy, značka chybějící hodnoty. Co z popisu nevyplývá, označ „doplnit“ a nic nedomýšlej.\n\nProměnné: […]", en = "From the list of variables below, prepare a data dictionary as a Markdown table with the columns: name, description, unit, allowed values or codes, missing-value marker. Mark anything the description does not state as \"to fill in\" and do not guess.\n\nVariables: […]" }
 sources = ["CERIT-AIAAS.01", "EC-GENAI-GUIDELINES.01", "EC-GENAI-GUIDELINES.04"]
-
-[[advice]]
-id = "collect.21"
-lens = "*"
-level = "L1"
-text = { cs = "Před sběrem dohodněte [[rdmkit-organisation|strukturu a pojmenování souborů]], [[rdmkit-quality|kontroly kvality]] a [[rdmkit-security|zabezpečení dat]]. Názvy proměnných, jednotky a chybějící hodnoty popište v datovém slovníku; praktický postup nabízí [[cookbook-dictionary|FAIR Cookbook]].", en = "Before collection, agree [[rdmkit-organisation|file naming and organisation]], [[rdmkit-quality|quality checks]] and [[rdmkit-security|data security]]. Describe variable names, units and missing values in a data dictionary; [[cookbook-dictionary|FAIR Cookbook]] offers a practical recipe." }
-sources = ["RDMKIT.tasks.01"]

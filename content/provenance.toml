@@ -699,7 +699,6 @@ results = [
   "citation.10",
   "citation.11",
   "citation.12",
-  "citation.13",
   "citation.14",
   "citation.15",
   "citation.16",
@@ -709,7 +708,6 @@ results = [
   "citation.20",
   "citation.21",
   "citation.22",
-  "citation.23",
   "code-principles",
   "collect.01",
   "collect.02",
@@ -731,7 +729,6 @@ results = [
   "collect.18",
   "collect.19",
   "collect.20",
-  "collect.21",
   "conda",
   "conda-environments",
   "container-images",
@@ -1120,9 +1117,6 @@ results = [
   "licence.25",
   "licence.26",
   "licence.27",
-  "licence.28",
-  "licence.29",
-  "licence.30",
   "lifecycle:knav-tools",
   "lifecycle:maldreth",
   "lifecycle:rdmkit",
@@ -1206,7 +1200,6 @@ results = [
   "metadata.38",
   "metadata.39",
   "metadata.40",
-  "metadata.41",
   "metodika-2025",
   "minizamer-catalogue",
   "model:layers-seams",
@@ -1301,8 +1294,6 @@ results = [
   "plan.25",
   "plan.26",
   "plan.27",
-  "plan.28",
-  "plan.29",
   "plan.30",
   "policy-manual",
   "process-run-crate",
@@ -1374,7 +1365,6 @@ results = [
   "publication.26",
   "publication.27",
   "publication.28",
-  "publication.29",
   "rdmkit",
   "rdmkit-bioimaging",
   "rdmkit-dmp",
@@ -1572,3 +1562,62 @@ instruments = ["release-automation"]
 objects = []
 results = ["guide"]
 endTime = 2026-10-19T07:34:34+00:00
+
+[[action]]
+id = "2026-10-18-station-dedup"
+type = "update"
+name = "Editorial streamlining of stations and removal of duplicate advice items"
+agent = "karel-berka"
+instruments = [
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
+]
+description = "Merged appended duplicate advice items (RDMkit and licensing handbook) into core station advice, differentiated key insights from introductory summaries, and separated AI prompts in stations 2 and 6."
+objects = [
+  "A.F1.X2",
+  "A.F2.N2",
+  "A.MIN3",
+  "A.R1.1.R1",
+  "A.R1.2.X1",
+  "CDSC-README.01",
+  "CERIT-AIAAS.01",
+  "CESSDA-DMEG.01",
+  "CONDAENV.01",
+  "CONTAINER.01",
+  "COPYRIGHT-LICENCES.01",
+  "COPYRIGHT-LICENCES.02",
+  "COPYRIGHT-LICENCES.03",
+  "COPYRIGHT-LICENCES.04",
+  "COPYRIGHT-LICENCES.05",
+  "DEPOSIT-LICENCE.01",
+  "DSW-NRP.01",
+  "EC-GENAI-GUIDELINES.01",
+  "EC-GENAI-GUIDELINES.02",
+  "FORCE11-CITATION.01",
+  "RDMKIT.analyse.01",
+  "RDMKIT.analyse.02",
+  "RDMKIT.reuse.02",
+  "RDMKIT.tasks.01",
+  "WFCRATE.01",
+]
+results = [
+  "analyse.01",
+  "analyse.11",
+  "citation.01",
+  "citation.20",
+  "collect.01",
+  "collect.04",
+  "collect.05",
+  "licence.03",
+  "licence.09",
+  "licence.14",
+  "metadata.06",
+  "metadata.37",
+  "plan.03",
+  "plan.04",
+  "plan.10",
+  "publication.03",
+  "organization:upol",
+]
+endTime = 2026-10-20T21:00:00+00:00
