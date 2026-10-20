@@ -134,27 +134,29 @@ Validate the artifacts with this repository's OpenSpec tooling first: a draft pu
 
 ### 7. Commit on the branch, then open the draft pull request
 
-Present the commit and the exact pull-request body, and get approval for **that content** before the remote write: pushing a branch and opening a pull request are outward-facing, and neither is quietly undone.
+Present the commit and the exact pull-request body, and get approval for **that content** before the remote write: pushing a branch and opening a pull request are outward-facing, and neither is quietly undone. Before authoring the body, run `python .agents/scripts/github/github_issues.py prepare-handoff --workflow aiscr-plan-from-issue --run <run>`. It creates `<HANDOFF_DIR>` (`.agents/local_scratch/aiscr-plan-from-issue/<run>/`) and its `POINTER.md` naming `.venv/.cache/aiscr-plan-from-issue/<run>/`. Write the exact body to `<HANDOFF_DIR>/pr-body.md` and the approval view alongside it; keep the local bulk pointer outside posted bytes. Placement classification is owned by `workflow/artefact-placement`.
 
 ```bash
 python .agents/scripts/github/github_issues.py approval-view open-draft-pr <ISSUE_NUMBER> \
   --head <BRANCH> --base <BASE> --title "<TITLE>" \
-  --body <RUN_DIR>/pr-body.md
+  --body <HANDOFF_DIR>/pr-body.md --approval-view <HANDOFF_DIR>/draft-pr-approval.json
 
 python .agents/scripts/github/github_issues.py open-draft-pr <ISSUE_NUMBER> \
   --head <BRANCH> --base <BASE> --title "<TITLE>" \
-  --body <RUN_DIR>/pr-body.md --mode interactive \
-  --approved-digest <APPROVED_DIGEST>
+  --body <HANDOFF_DIR>/pr-body.md --mode interactive \
+  --approved-digest <APPROVED_DIGEST> --approval-view <HANDOFF_DIR>/draft-pr-approval.json
 ```
 
-The read-only `approval-view` prints the exact target and pull-request payload plus its
-canonical digest. Present that view, obtain approval of the digest, then pass the same
-value to `open-draft-pr`; any change to repository, branches, title, body, or draft flag
-causes the write to refuse.
+The read-only `approval-view` writes the exact target and pull-request payload plus its
+canonical digest to the hand-off file. Present that view, obtain approval of the digest, then
+pass the same value to `open-draft-pr`; any change to repository, branches, title, body, or
+draft flag causes the write to refuse.
 
 The pull request is a **draft** because the work is planned, not done — a ready pull request invites review of an implementation that has not happened. The body must reference the issue and must **not** carry an issue-closing keyword: promotion plans the work rather than resolving the issue, and a keyword would close it on merge. The command refuses both mistakes, and a re-run cites the existing pull request for the branch rather than opening a second one.
 
 ### 8. Stop
+
+Once all posting decisions are final and approved writes succeeded (or posting was declined), run `python .agents/scripts/github/github_issues.py cleanup-handoff --workflow aiscr-plan-from-issue --run <run> --kind draft-pr --approve`. Retain the hand-off on validation, posting, or retry failure. The write validates the exact approval file; editing it requires re-rendering and fresh approval.
 
 State that the change is ready, name the next step, and **do not begin it.** The draft pull request is where implementation will land, not a sign that it started.
 
@@ -235,5 +237,7 @@ The enrollment bundle installs these repository-local runtime scripts:
 
 - `.agents/scripts/github/github_issues.py`
 - `.agents/scripts/github/github_utils.py`
+- `.agents/scripts/lib/local_scratch_paths.py`
 - `.agents/scripts/lib/log_utils.py`
 - `.agents/scripts/lib/proc_utils.py`
+- `.agents/scripts/lib/runtime_env.py`

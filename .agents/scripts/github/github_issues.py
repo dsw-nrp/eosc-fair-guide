@@ -17,6 +17,10 @@ driving issue, in the issue's own language and under exact-content approval.
 
 Posting is supervised only. The command surface declares ``interactive`` as
 its one mode rather than accepting one it does not implement.
+``prepare-handoff`` creates a confined visible run directory and its bulk pointer
+before body authoring; ``cleanup-handoff --approve`` retires its allowlisted files
+after a successful terminal outcome. Approval views can still print to stdout,
+but posting also reads their rendered file and refuses missing or edited bytes.
 
 The write model — identity mode, machine marker, approval digest, and the
 accounting rules — is shared through ``github_utils`` rather than
@@ -37,16 +41,35 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
 from typing import Any
 
 _SCRIPTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, _SCRIPTS_DIR)
+from lib import local_scratch_paths  # noqa: E402
 from lib.proc_utils import configure_stdout_utf8  # noqa: E402
 
 from github import github_utils  # noqa: E402
 
 ISSUE_MARKER = "<!-- aiscr-plan-issue:body -->"
+REPO_ROOT = Path(_SCRIPTS_DIR).parents[1]
+HANDOFF_ARTIFACTS = {
+    "issue": frozenset(
+        {
+            "POINTER.md",
+            "original-description.md",
+            "archive-approval.json",
+            "stub.md",
+            "extract-approval.json",
+            "body.md",
+            "post-body-approval.json",
+            "create-approval.json",
+        }
+    ),
+    "draft-pr": frozenset({"POINTER.md", "pr-body.md", "draft-pr-approval.json"}),
+    "comment": frozenset({"POINTER.md", "comment.md", "comment-approval.json"}),
+}
 ISSUE_MARKER_PATTERN = re.compile(r"<!-- aiscr-plan-issue:body(?: digest=([0-9a-f]{64}))? -->")
 # One owning home for "what counts as the title": the shape check enforces exactly one
 # such heading and ``issue_title`` derives the GitHub title from the same pattern.
@@ -1262,7 +1285,17 @@ def _prepare_issue_comment(
     return owner_repo, body, approval
 
 
-def _require_approved_digest(approval: dict[str, Any], approved_digest: str | None) -> None:
+def _render_approval(approval: dict[str, Any]) -> str:
+    """Render exactly the file an operator approves, with deterministic LF endings."""
+    return (
+        json.dumps({"approval_digest": _canonical_digest(approval), "write": approval}, ensure_ascii=False, indent=2)
+        + "\n"
+    )
+
+
+def _require_approved_digest(
+    approval: dict[str, Any], approved_digest: str | None, body_path: str, approval_view_path: str | None
+) -> None:
     digest = _canonical_digest(approval)
     if not approved_digest:
         _abort("interactive GitHub writes require --approved-digest from the approval-view output.")
@@ -1271,6 +1304,31 @@ def _require_approved_digest(approval: dict[str, Any], approved_digest: str | No
             "approved digest does not match the exact GitHub payload; regenerate and approve "
             "the current approval view before writing."
         )
+    target = Path(approval_view_path) if approval_view_path else Path(body_path).parent / "approval.json"
+    try:
+        target = local_scratch_paths.checked_handoff_file(REPO_ROOT, target)
+        matches = target.read_bytes() == _render_approval(approval).encode("utf-8")
+    except (OSError, ValueError) as exc:
+        _abort(f"cannot read approval view '{target}'; re-render and approve again: {exc}")
+    if not matches:
+        _abort("approval view was edited; re-render and obtain fresh approval before writing.")
+
+
+def cmd_run_handoff(action: str, workflow: str, run: str, approve: bool = False, *, kind: str = "issue") -> None:
+    """Prepare a visible pointer before body authoring, or clean a completed run safely."""
+    if kind not in HANDOFF_ARTIFACTS:
+        _abort("unsupported hand-off artifact class")
+    if action not in ("prepare-handoff", "cleanup-handoff"):
+        _abort("unsupported hand-off action")
+    if action == "cleanup-handoff" and not approve:
+        _abort("hand-off cleanup requires --approve after every posting decision is terminal.")
+    try:
+        if action == "prepare-handoff":
+            print(local_scratch_paths.prepare_run_handoff(REPO_ROOT, workflow, run))
+        else:
+            local_scratch_paths.cleanup_run_handoff(REPO_ROOT, workflow, run, HANDOFF_ARTIFACTS[kind])
+    except (OSError, ValueError) as exc:
+        _abort(str(exc))
 
 
 def cmd_approval_view(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches
@@ -1283,8 +1341,9 @@ def cmd_approval_view(  # pylint: disable=too-many-arguments,too-many-positional
     head: str | None,
     base: str | None,
     ledger_path: str | None = None,
+    output_path: str | None = None,
 ) -> None:
-    """Print the exact canonical write envelope and its approval digest; never write."""
+    """Render the exact canonical write envelope and its approval digest; never write GitHub."""
     if operation == "create":
         if number is not None or not title or any((link, head, base, ledger_path)):
             _abort("create approval-view requires --title and no issue number, --link, --head, --base, or --ledger.")
@@ -1324,20 +1383,30 @@ def cmd_approval_view(  # pylint: disable=too-many-arguments,too-many-positional
                 "and does not accept --link or --ledger."
             )
         approval = _prepare_draft_pr(number, head, base, title, body_path, repo)[2]
-    print(json.dumps({"approval_digest": _canonical_digest(approval), "write": approval}, ensure_ascii=False, indent=2))
+    rendered = _render_approval(approval)
+    if output_path is None:
+        print(rendered, end="")
+        return
+    try:
+        target = local_scratch_paths.prepare_handoff_file(REPO_ROOT, Path(output_path))
+        target.write_text(rendered, encoding="utf-8", newline="\n")
+    except (OSError, ValueError) as exc:
+        _abort(str(exc))
+    print(os.path.abspath(target))
 
 
-def cmd_archive_description(
+def cmd_archive_description(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     number: int,
     body_path: str,
     mode: str,
     approved_digest: str | None,
     repo: str | None,
+    approval_view_path: str | None = None,
 ) -> None:
     """Preserve the reporter original or establish a workflow-owned baseline once."""
     _validate_write_environment(mode, "archive-description")
     owner_repo, current, approval = _prepare_archive_description(number, body_path, repo)
-    _require_approved_digest(approval, approved_digest)
+    _require_approved_digest(approval, approved_digest, body_path, approval_view_path)
     conversation = fetch_conversation(owner_repo, number)
     existing = _find_provenance_comment(conversation["comments"])
     if existing is not None:
@@ -1361,15 +1430,17 @@ def cmd_create(  # pylint: disable=too-many-arguments,too-many-positional-argume
     mode: str,
     approved_digest: str | None,
     repo: str | None,
+    approval_view_path: str | None = None,
 ) -> None:
     """Create one structured issue after re-verifying its source accounting."""
     _validate_write_environment(mode, "create")
     _, body, approval = _prepare_issue_creation(title, body_path, repo)
-    _require_approved_digest(approval, approved_digest)
+    _require_approved_digest(approval, approved_digest, body_path, approval_view_path)
     sources = github_utils.load_source_list(sources_path)
     ledger = _load_json(ledger_path, "disposition ledger")
-    load_bearing = [item["fragment"] for _, text in sources for item in detect_load_bearing(text)]
-    findings = _composition_findings(sources, body, ledger, load_bearing)
+    findings = _composition_findings(
+        sources, body, ledger, [item["fragment"] for _, text in sources for item in detect_load_bearing(text)]
+    )
     if findings:
         _abort(
             "refusing to create an unverified issue composition; every finding is repairable:\n"
@@ -1393,6 +1464,7 @@ def cmd_extract(  # pylint: disable=too-many-arguments,too-many-positional-argum
     mode: str,
     approved_digest: str | None,
     repo: str | None,
+    approval_view_path: str | None = None,
 ) -> None:
     """File the issue for extracted content, before a ledger can reference it.
 
@@ -1407,7 +1479,7 @@ def cmd_extract(  # pylint: disable=too-many-arguments,too-many-positional-argum
     """
     _validate_write_environment(mode, "extract")
     owner_repo, _, approval = _prepare_extraction(parent, link, title, body_path, repo)
-    _require_approved_digest(approval, approved_digest)
+    _require_approved_digest(approval, approved_digest, body_path, approval_view_path)
     request = approval["request"]
 
     created = _gh_with_payload(
@@ -1436,6 +1508,7 @@ def cmd_open_draft_pr(  # pylint: disable=too-many-arguments,too-many-positional
     mode: str,
     approved_digest: str | None,
     repo: str | None,
+    approval_view_path: str | None = None,
 ) -> None:
     """Open the draft pull request the promoted change will be implemented on.
 
@@ -1446,7 +1519,7 @@ def cmd_open_draft_pr(  # pylint: disable=too-many-arguments,too-many-positional
     """
     _validate_write_environment(mode, "open-draft-pr")
     owner_repo, _, approval = _prepare_draft_pr(number, head, base, title, body_path, repo)
-    _require_approved_digest(approval, approved_digest)
+    _require_approved_digest(approval, approved_digest, body_path, approval_view_path)
     owner, _, _ = owner_repo.partition("/")
     existing = _gh(
         "api",
@@ -1472,17 +1545,18 @@ def cmd_open_draft_pr(  # pylint: disable=too-many-arguments,too-many-positional
     print(f"Draft pull request opened: {url}")
 
 
-def cmd_post_comment(
+def cmd_post_comment(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     number: int,
     body_path: str,
     mode: str,
     approved_digest: str | None,
     repo: str | None,
+    approval_view_path: str | None = None,
 ) -> None:
     """Post the acceptance-verification comment under exact-content approval."""
     _validate_write_environment(mode, "post-comment")
     _, _, approval = _prepare_issue_comment(number, body_path, repo)
-    _require_approved_digest(approval, approved_digest)
+    _require_approved_digest(approval, approved_digest, body_path, approval_view_path)
     request = approval["request"]
     url = _gh_with_payload(request["endpoint"], request["method"], request["payload"], ".html_url")
     print(f"Issue comment posted: {url}")
@@ -1503,12 +1577,13 @@ def cmd_post_body(  # pylint: disable=too-many-arguments,too-many-positional-arg
     approved_digest: str | None,
     repo: str | None,
     ledger_path: str | None,
+    approval_view_path: str | None = None,
 ) -> None:
     """Write the developed description after its shape and accounting verify."""
     _validate_write_environment(mode, "post-body")
     ledger = _load_json(ledger_path, "disposition ledger") if ledger_path else {}
     owner_repo, body, approval, conversation = _prepare_post_body(number, body_path, repo, ledger)
-    _require_approved_digest(approval, approved_digest)
+    _require_approved_digest(approval, approved_digest, body_path, approval_view_path)
     state = body_state(conversation["body"])
     comparison_base, degraded = _resolve_comparison_base(conversation, owner_repo=owner_repo, number=number)
     sources = reconciliation_sources(conversation, comparison_base=comparison_base)
@@ -1560,6 +1635,17 @@ def cmd_reconciliation_sources(number: int, repo: str | None) -> None:
     print(json.dumps(github_utils.source_list_payload(sources, degraded=degraded), ensure_ascii=False, indent=2))
 
 
+def _add_handoff_commands(subparsers) -> None:
+    """Declare generic local lifecycle commands without requiring an optional workflow asset."""
+    for action in ("prepare-handoff", "cleanup-handoff"):
+        handoff = subparsers.add_parser(action, help="Prepare or safely clean a local run's visible hand-off.")
+        handoff.add_argument("--workflow", required=True, metavar="NAMESPACE")
+        handoff.add_argument("--run", required=True, metavar="RUN_NAME")
+        if action == "cleanup-handoff":
+            handoff.add_argument("--kind", required=True, choices=tuple(HANDOFF_ARTIFACTS))
+            handoff.add_argument("--approve", action="store_true")
+
+
 def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-statements
     """Build and return the CLI argument parser."""
     parser = argparse.ArgumentParser(
@@ -1605,6 +1691,13 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-state
     approval.add_argument("--head", metavar="BRANCH")
     approval.add_argument("--base", metavar="BRANCH")
     approval.add_argument("--ledger", metavar="FILE")
+    approval.add_argument(
+        "--approval-view",
+        dest="approval_view",
+        metavar="FILE",
+        default=None,
+        help="Write the approval view to this file instead of stdout (visible hand-off).",
+    )
 
     archive = subparsers.add_parser(
         "archive-description",
@@ -1662,6 +1755,10 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-state
     comment.add_argument("--approved-digest", required=True, metavar="SHA256")
     comment.add_argument("--repo", metavar="OWNER/REPO")
 
+    for writer in (archive, create, extract, draft, post, comment):
+        writer.add_argument("--approval-view", metavar="FILE", help="Exact rendered file to validate before writing.")
+    _add_handoff_commands(subparsers)
+
     return parser
 
 
@@ -1669,7 +1766,15 @@ def main() -> None:
     """Parse CLI arguments and dispatch to the selected subcommand."""
     configure_stdout_utf8()
     args = build_parser().parse_args()
-    if args.subcommand == "gather":
+    if args.subcommand in ("prepare-handoff", "cleanup-handoff"):
+        cmd_run_handoff(
+            args.subcommand,
+            args.workflow,
+            args.run,
+            getattr(args, "approve", False),
+            kind=getattr(args, "kind", "issue"),
+        )
+    elif args.subcommand == "gather":
         cmd_gather(args.number, args.repo)
     elif args.subcommand == "assess-readiness":
         cmd_assess_readiness(args.number, args.repo)
@@ -1688,9 +1793,10 @@ def main() -> None:
             args.head,
             args.base,
             args.ledger,
+            args.approval_view,
         )
     elif args.subcommand == "archive-description":
-        cmd_archive_description(args.number, args.body, args.mode, args.approved_digest, args.repo)
+        cmd_archive_description(args.number, args.body, args.mode, args.approved_digest, args.repo, args.approval_view)
     elif args.subcommand == "create":
         cmd_create(
             args.title,
@@ -1700,9 +1806,19 @@ def main() -> None:
             args.mode,
             args.approved_digest,
             args.repo,
+            args.approval_view,
         )
     elif args.subcommand == "extract":
-        cmd_extract(args.parent, args.link, args.title, args.body, args.mode, args.approved_digest, args.repo)
+        cmd_extract(
+            args.parent,
+            args.link,
+            args.title,
+            args.body,
+            args.mode,
+            args.approved_digest,
+            args.repo,
+            args.approval_view,
+        )
     elif args.subcommand == "open-draft-pr":
         cmd_open_draft_pr(
             args.number,
@@ -1713,11 +1829,14 @@ def main() -> None:
             args.mode,
             args.approved_digest,
             args.repo,
+            args.approval_view,
         )
     elif args.subcommand == "post-comment":
-        cmd_post_comment(args.number, args.body, args.mode, args.approved_digest, args.repo)
+        cmd_post_comment(args.number, args.body, args.mode, args.approved_digest, args.repo, args.approval_view)
     else:
-        cmd_post_body(args.number, args.mode, args.body, args.approved_digest, args.repo, args.ledger)
+        cmd_post_body(
+            args.number, args.mode, args.body, args.approved_digest, args.repo, args.ledger, args.approval_view
+        )
 
 
 if __name__ == "__main__":  # pragma: no cover -- exercised through main()

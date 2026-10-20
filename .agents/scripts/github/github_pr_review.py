@@ -8,11 +8,13 @@
 canonical review bundle and an approval view without contacting GitHub, and
 refuses when coverage is incomplete or a finding is unplaced. ``post`` accepts
 only that bundle, re-verifies the findings ledger, and enforces the selected
-identity mode before any GitHub write. ``repair`` posts standalone inline roots
+identity mode and the unchanged interactive approval file before any GitHub write.
+``repair`` posts standalone inline roots
 and amends a submitted review body under its own approval digest.
 ``post-summary`` posts the exact approved PR summary file to the explicitly
 selected surface. ``cleanup`` removes only the prescribed artifacts from one
-bounded review run directory after the workflow reaches a terminal outcome.
+bounded review run directory in each root after the workflow reaches a terminal outcome.
+``prepare-run`` creates the directories and sidecar pointer before body authoring.
 
 Contract: review/pr-review, workflow/github-write-fidelity
 Class: tool
@@ -37,6 +39,7 @@ from typing import Any
 _SCRIPTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, _SCRIPTS_DIR)
+from lib import local_scratch_paths, runtime_env  # noqa: E402
 from lib.log_utils import log_warn  # noqa: E402
 from lib.proc_utils import configure_stdout_utf8, run_exact, utf8_child_env  # noqa: E402
 
@@ -127,29 +130,36 @@ SUMMARY_MARKER_PATTERN = re.compile(r"<!-- aiscr-review-pr:summary(?: digest=([0
 # Reference extraction, one-hop traversal, and the load-bearing set are shared with the
 # issue engine: both reconcile GitHub bodies, so the mechanism has one home.
 LOAD_BEARING_PATTERNS = github_utils.LOAD_BEARING_PATTERNS
-# Single owning definition for every name a review run may write. Cleanup
-# enforcement and the workflow procedure both resolve this set; they must not
-# encode it independently. ``list-run-artifacts`` prints it.
-PRESCRIBED_RUN_ARTIFACTS = frozenset(
+# Single owning definition per class for every name a review run may write. Cleanup
+# enforcement and the workflow procedure both resolve these sets; they must not encode
+# them independently. ``list-run-artifacts`` prints the union, or one class with --class.
+BULK_RUN_ARTIFACTS = frozenset(
     {
         "pr-context.json",
-        "pr-summary.md",
         "review-payload.json",
         "review-replies.json",
         "review-bundle.json",
-        "review-approval.md",
         "ledger.json",
         "sources.json",
         "findings-ledger.json",
         "pr-diff.patch",
         "repair-payload.json",
         "repair-reopen.json",
-        "repair-body.md",
         "repair-bundle.json",
+    }
+)
+HANDOFF_RUN_ARTIFACTS = frozenset(
+    {
+        "POINTER.md",
+        "pr-summary.md",
+        "review-approval.md",
+        "repair-body.md",
         "repair-approval.md",
     }
 )
-ALLOWED_REVIEW_ARTIFACTS = PRESCRIBED_RUN_ARTIFACTS
+PRESCRIBED_RUN_ARTIFACTS = BULK_RUN_ARTIFACTS | HANDOFF_RUN_ARTIFACTS
+ALLOWED_BULK_ARTIFACTS = BULK_RUN_ARTIFACTS
+ALLOWED_HANDOFF_ARTIFACTS = HANDOFF_RUN_ARTIFACTS
 _DIFF_GIT_RE = re.compile(r"^diff --git a/(.*) b/(.*)$")
 _HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 _THREAD_FINDING_ID_RE = re.compile(r"^thread:([1-9][0-9]*)$")
@@ -158,7 +168,8 @@ REPO_ROOT = Path(_SCRIPTS_DIR).parents[1]
 # The multi-repository acquisition extension is hub-side tooling; a delivered copy may not carry
 # it, so the producer checks for it before invoking anything.
 _BRIDGE_SCRIPT = Path(_SCRIPTS_DIR) / "sibling" / "sibling_git_read.py"
-REVIEW_SCRATCH_ROOT = REPO_ROOT / ".venv" / ".cache" / "aiscr-review-pr"
+REVIEW_SCRATCH_ROOT = runtime_env.review_pr_cache_dir(REPO_ROOT)
+REVIEW_HANDOFF_ROOT = REPO_ROOT / ".agents" / "local_scratch" / "aiscr-review-pr"
 
 
 # ---------------------------------------------------------------------------
@@ -993,10 +1004,21 @@ def _validate_outstanding_communication(
             )
 
 
-def cmd_list_run_artifacts() -> None:
-    """Print the prescribed run-artifact names, one per line, sorted."""
-    for name in sorted(PRESCRIBED_RUN_ARTIFACTS):
+def cmd_list_run_artifacts(artifact_class: str | None = None) -> None:
+    """Print one artifact class's prescribed names, or both, one per line, sorted."""
+    selected = {"bulk": BULK_RUN_ARTIFACTS, "handoff": HANDOFF_RUN_ARTIFACTS}.get(artifact_class or "")
+    for name in sorted(PRESCRIBED_RUN_ARTIFACTS if selected is None else selected):
         print(name)
+
+
+def cmd_prepare_run(run: str) -> None:
+    """Prepare both local run roots before authoring the first summary or approval view."""
+    if not REVIEW_RUN_DIR_PATTERN.fullmatch(run):
+        _abort("run name must identify repository, PR number, and head SHA.")
+    try:
+        print(local_scratch_paths.prepare_run_handoff(REPO_ROOT, "aiscr-review-pr", run))
+    except (OSError, ValueError) as exc:
+        _abort(str(exc))
 
 
 # ---------------------------------------------------------------------------
@@ -1141,7 +1163,64 @@ def _outstanding_disposition_lines(item: dict[str, Any]) -> list[str]:
     return lines
 
 
-def _approval_view(bundle: dict[str, Any], digest: str) -> str:
+def _bulk_run_for_handoff(view_path: str) -> Path | None:
+    """Return the bulk run directory matching a visible hand-off view, else None.
+
+    The hand-off directory is a direct child of ``REVIEW_HANDOFF_ROOT`` with the same run
+    name as its bulk counterpart, so the pointer can be derived without a second argument.
+    A view written anywhere else is left without a pointer rather than guessing a target.
+    """
+    candidate = Path(view_path)
+    if not candidate.is_absolute():
+        candidate = REPO_ROOT / candidate
+    parent = candidate.absolute().parent
+    handoff_root = REVIEW_HANDOFF_ROOT.absolute()
+    if parent.parent != handoff_root or not REVIEW_RUN_DIR_PATTERN.fullmatch(parent.name):
+        return None
+    return REVIEW_SCRATCH_ROOT / parent.name
+
+
+def _handoff_pointer_lines(bulk_run: Path | None) -> list[str]:
+    """Return the pointer section naming the bulk run directory, when known."""
+    if bulk_run is None:
+        return []
+    return ["", "## Run location", "", f"Bulk machine artifacts: `{bulk_run}`", ""]
+
+
+def _write_approval_view(path: str, text: str) -> None:
+    """Prepare a confined hand-off before rendering its exact approval bytes."""
+    try:
+        target = local_scratch_paths.prepare_handoff_file(REPO_ROOT, Path(path))
+        _write_text(str(target), text, "approval view")
+    except (OSError, ValueError) as exc:
+        _abort(str(exc))
+
+
+def _checked_approval_view(bundle_path: str, explicit: str | None, *, repair: bool = False) -> Path:
+    """Resolve the mandatory interactive view, including the split run layout."""
+    parent = Path(bundle_path).absolute().parent
+    if parent.parent == REVIEW_SCRATCH_ROOT.absolute():
+        parent = REVIEW_HANDOFF_ROOT / parent.name
+    filename = "repair-approval.md" if repair else "review-approval.md"
+    try:
+        return local_scratch_paths.checked_handoff_file(REPO_ROOT, Path(explicit) if explicit else parent / filename)
+    except ValueError as exc:
+        _abort(str(exc))
+
+
+def _require_approval_view(path: Path, expected: str) -> None:
+    """Refuse missing or edited approval presentation before any remote write."""
+    try:
+        matches = path.read_bytes() == expected.encode("utf-8")
+    except OSError as exc:
+        _abort(f"cannot read approval view '{path}'; re-render and approve again: {exc}")
+    if not matches:
+        _abort("approval view was edited; re-render and obtain fresh approval before posting.")
+
+
+def _approval_view(  # pylint: disable=too-many-locals
+    bundle: dict[str, Any], digest: str, bulk_run: Path | None = None
+) -> str:
     review = bundle["review"]
     comments = review.get("comments", [])
     replies = bundle["replies"]
@@ -1221,7 +1300,8 @@ def _approval_view(bundle: dict[str, Any], digest: str) -> str:
         lines.append("(none declared.)")
     for item in outstanding:
         lines.extend(_outstanding_disposition_lines(item))
-    lines.extend(["", "## Canonical bundle digest", "", f"`{digest}`", ""])
+    lines.extend(["", "## Canonical bundle digest", "", f"`{digest}`"])
+    lines.extend(_handoff_pointer_lines(bulk_run))
     return "\n".join(lines)
 
 
@@ -1271,8 +1351,8 @@ def cmd_render(  # pylint: disable=too-many-arguments,too-many-positional-argume
     _validate_bundle(bundle, mode)
     _enforce_review_gates(bundle, outstanding, existing_threads)
     digest = _bundle_digest(bundle)
+    _write_approval_view(approval_view_path, _approval_view(bundle, digest, _bulk_run_for_handoff(approval_view_path)))
     _write_json(bundle_path, bundle)
-    _write_text(approval_view_path, _approval_view(bundle, digest), "approval view")
     print(f"Review bundle: {os.path.abspath(bundle_path)}")
     print(f"Approval view: {os.path.abspath(approval_view_path)}")
     print(f"Bundle digest (SHA-256): {digest}")
@@ -1913,6 +1993,7 @@ def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-argument
     repo: str | None,
     findings_ledger_path: str,
     pr_context_path: str,
+    approval_view_path: str | None = None,
 ) -> None:
     """Post a validated canonical bundle and its existing-thread replies."""
     bundle = _validate_bundle(
@@ -1943,6 +2024,9 @@ def cmd_post(  # pylint: disable=too-many-arguments,too-many-positional-argument
                 "the exact current bundle before posting."
             )
 
+    if mode == "interactive":
+        view = _checked_approval_view(review_bundle_path, approval_view_path)
+        _require_approval_view(view, _approval_view(bundle, digest, _bulk_run_for_handoff(str(view))))
     _validate_write_environment(mode, "post")
     owner_repo = _resolve_repo(repo)
     review_payload_path = _temporary_json(bundle["review"])
@@ -2027,7 +2111,7 @@ def _validate_repair_bundle(bundle: Any, mode: str) -> dict[str, Any]:
     return bundle
 
 
-def _repair_approval_view(bundle: dict[str, Any], digest: str) -> str:
+def _repair_approval_view(bundle: dict[str, Any], digest: str, bulk_run: Path | None = None) -> str:
     lines = [
         "# AIS CR PR review repair approval view",
         "",
@@ -2084,7 +2168,8 @@ def _repair_approval_view(bundle: dict[str, Any], digest: str) -> str:
         lines.append("(unchanged.)")
     else:
         lines.extend([bundle["body"], ""])
-    lines.extend(["", "## Canonical repair digest", "", f"`{digest}`", ""])
+    lines.extend(["", "## Canonical repair digest", "", f"`{digest}`"])
+    lines.extend(_handoff_pointer_lines(bulk_run))
     return "\n".join(lines)
 
 
@@ -2129,19 +2214,23 @@ def cmd_repair_render(  # pylint: disable=too-many-arguments,too-many-positional
     }
     _validate_repair_bundle(bundle, mode)
     digest = _bundle_digest(bundle)
+    _write_approval_view(
+        approval_view_path,
+        _repair_approval_view(bundle, digest, _bulk_run_for_handoff(approval_view_path)),
+    )
     _write_json(bundle_path, bundle)
-    _write_text(approval_view_path, _repair_approval_view(bundle, digest), "repair approval view")
     print(f"Repair bundle: {os.path.abspath(bundle_path)}")
     print(f"Repair approval view: {os.path.abspath(approval_view_path)}")
     print(f"Repair digest (SHA-256): {digest}")
 
 
-def cmd_repair_post(
+def cmd_repair_post(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     pr_number: int,
     mode: str,
     repair_bundle_path: str,
     approved_digest: str | None,
     repo: str | None,
+    approval_view_path: str | None = None,
 ) -> None:
     """Post approved standalone inline roots, thread replies, and/or a body amendment."""
     bundle = _validate_repair_bundle(_load_json(repair_bundle_path, "repair bundle"), mode)
@@ -2154,6 +2243,9 @@ def cmd_repair_post(
                 "approved digest does not match the repair bundle; render and approve "
                 "the exact current repair artefacts before posting."
             )
+    if mode == "interactive":
+        view = _checked_approval_view(repair_bundle_path, approval_view_path, repair=True)
+        _require_approval_view(view, _repair_approval_view(bundle, digest, _bulk_run_for_handoff(str(view))))
     _validate_write_environment(mode, "post")
     owner_repo = _resolve_repo(repo)
     for comment in bundle["comments"]:
@@ -2786,48 +2878,75 @@ def _is_link_or_reparse(path: Path) -> bool:
     return bool(getattr(metadata, "st_file_attributes", 0) & reparse_flag)
 
 
-def _cleanup_candidate(work_dir: str) -> tuple[Path, Path]:
-    scratch_root = REVIEW_SCRATCH_ROOT.absolute()
+def _cleanup_roots() -> tuple[Path, Path]:
+    """Return the bulk and hand-off roots cleanup is confined to."""
+    return REVIEW_SCRATCH_ROOT.absolute(), REVIEW_HANDOFF_ROOT.absolute()
+
+
+def _cleanup_candidate(work_dir: str) -> tuple[Path, Path, Path, Path]:
+    """Resolve one run's bulk and hand-off directories from either root's path."""
+    scratch_root, handoff_root = _cleanup_roots()
     candidate = Path(work_dir)
     if not candidate.is_absolute():
         candidate = REPO_ROOT / candidate
     candidate = candidate.absolute()
 
-    if candidate == scratch_root:
-        _abort("cleanup refuses to remove the PR-review scratch root itself.")
-    if candidate.parent != scratch_root:
-        _abort(f"cleanup work directory must be a direct child of '{scratch_root}'.")
+    if candidate in (scratch_root, handoff_root):
+        _abort("cleanup refuses to remove a PR-review root itself.")
+    if candidate.parent not in (scratch_root, handoff_root):
+        _abort(f"cleanup work directory must be a direct child of '{scratch_root}' or '{handoff_root}'.")
     if not REVIEW_RUN_DIR_PATTERN.fullmatch(candidate.name):
         _abort("cleanup work directory name must identify repository, PR number, and head SHA.")
-    return scratch_root, candidate
+    return scratch_root, handoff_root, scratch_root / candidate.name, handoff_root / candidate.name
 
 
-def _validated_cleanup_entries(scratch_root: Path, candidate: Path) -> list[Path]:
-    if not scratch_root.exists() or not scratch_root.is_dir():
-        _abort(f"PR-review scratch root does not exist: '{scratch_root}'.")
-    if not candidate.exists() or not candidate.is_dir():
-        _abort(f"cleanup work directory does not exist or is not a directory: '{candidate}'.")
-    if _is_link_or_reparse(scratch_root) or _is_link_or_reparse(candidate):
+def _validated_cleanup_entries(root: Path, candidate: Path, *, required: bool = True) -> list[Path]:
+    """Validate one root's run directory and return its entries.
+
+    An absent hand-off directory is an empty class, not a failure: a run that rendered no
+    hand-off has nothing to leak. The bulk directory identifies the run and must exist.
+    """
+    try:
+        local_scratch_paths.checked_handoff_file(REPO_ROOT, candidate)
+    except ValueError as exc:
+        _abort(str(exc))
+    if not root.exists() and not root.is_symlink():
+        if required:
+            _abort(f"PR-review cleanup root does not exist: '{root}'.")
+        return []
+    if _is_link_or_reparse(root):
         _abort("cleanup refuses symlink or reparse-point roots and work directories.")
+    if not root.is_dir():
+        _abort(f"PR-review cleanup root is not a directory: '{root}'.")
+    if not candidate.exists() and not candidate.is_symlink():
+        if required:
+            _abort(f"cleanup work directory does not exist or is not a directory: '{candidate}'.")
+        return []
+    if _is_link_or_reparse(candidate):
+        _abort("cleanup refuses symlink or reparse-point roots and work directories.")
+    if not candidate.is_dir():
+        _abort(f"cleanup work directory is not a directory: '{candidate}'.")
 
-    root_resolved = scratch_root.resolve(strict=True)
+    root_resolved = root.resolve(strict=True)
     candidate_resolved = candidate.resolve(strict=True)
     if candidate_resolved.parent != root_resolved:
-        _abort("cleanup work directory resolves outside the PR-review scratch root.")
+        _abort("cleanup work directory resolves outside its PR-review root.")
 
     entries = sorted(candidate.iterdir(), key=lambda entry: entry.name)
     return entries
 
 
-def _preflight_cleanup_entries(entries: list[Path]) -> None:
+def _preflight_cleanup_entries(entries: list[Path], allowed: frozenset[str]) -> None:
     for entry in entries:
-        if entry.name not in ALLOWED_REVIEW_ARTIFACTS:
+        if entry.name not in allowed:
             _abort(f"cleanup found unexpected entry '{entry.name}'; nothing was removed.")
         if _is_link_or_reparse(entry) or not entry.is_file():
             _abort(f"cleanup entry '{entry.name}' is not an ordinary file; nothing was removed.")
 
 
 def _remove_cleanup_entries(candidate: Path, entries: list[Path]) -> None:
+    if not candidate.exists():
+        return
     for entry in entries:
         try:
             entry.unlink()
@@ -2842,14 +2961,17 @@ def _remove_cleanup_entries(candidate: Path, entries: list[Path]) -> None:
 
 
 def cmd_cleanup(work_dir: str, approve: bool) -> None:
-    """Remove allowlisted artifacts from one bounded PR-review work directory."""
+    """Remove allowlisted artifacts from both roots of one bounded PR-review run."""
     if not approve:
         _abort("cleanup requires --approve after the review workflow reaches a terminal outcome.")
 
-    scratch_root, candidate = _cleanup_candidate(work_dir)
-    entries = _validated_cleanup_entries(scratch_root, candidate)
-    _preflight_cleanup_entries(entries)
-    _remove_cleanup_entries(candidate, entries)
+    scratch_root, handoff_root, bulk_run, handoff_run = _cleanup_candidate(work_dir)
+    bulk_entries = _validated_cleanup_entries(scratch_root, bulk_run)
+    handoff_entries = _validated_cleanup_entries(handoff_root, handoff_run, required=False)
+    _preflight_cleanup_entries(bulk_entries, ALLOWED_BULK_ARTIFACTS)
+    _preflight_cleanup_entries(handoff_entries, ALLOWED_HANDOFF_ARTIFACTS)
+    _remove_cleanup_entries(bulk_run, bulk_entries)
+    _remove_cleanup_entries(handoff_run, handoff_entries)
 
 
 # ---------------------------------------------------------------------------
@@ -2917,6 +3039,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     post.add_argument("--mode", required=True, choices=MODES)
     post.add_argument("--review-bundle", required=True, metavar="FILE")
     post.add_argument("--approved-digest", metavar="SHA256")
+    post.add_argument("--approval-view", metavar="FILE", help="Exact rendered view required for interactive posting.")
     post.add_argument("--repo", metavar="OWNER/REPO")
     post.add_argument("--findings-ledger", required=True, metavar="FILE")
     post.add_argument("--pr-context", required=True, metavar="FILE")
@@ -3004,11 +3127,22 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
     repair_post.add_argument("--mode", required=True, choices=MODES)
     repair_post.add_argument("--repair-bundle", required=True, metavar="FILE")
     repair_post.add_argument("--approved-digest", metavar="SHA256")
+    repair_post.add_argument("--approval-view", metavar="FILE", help="Exact rendered repair view.")
     repair_post.add_argument("--repo", metavar="OWNER/REPO")
+
+    prepare = subparsers.add_parser("prepare-run", help="Create the local run roots and visible bulk pointer.")
+    prepare.add_argument("--run", required=True, metavar="RUN_NAME")
 
     list_artifacts = subparsers.add_parser(
         "list-run-artifacts",
         help="Print the prescribed review run-artifact names (the cleanup allowlist).",
+    )
+    list_artifacts.add_argument(
+        "--class",
+        dest="artifact_class",
+        choices=("bulk", "handoff"),
+        default=None,
+        help="Print only one class's artifacts (default: both).",
     )
     list_artifacts.set_defaults(subcommand="list-run-artifacts")
 
@@ -3020,7 +3154,7 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-local
         "--work-dir",
         required=True,
         metavar="DIR",
-        help="Direct-child PR-review run directory beneath the repository scratch root.",
+        help="Direct-child PR-review run directory beneath either the bulk cache root or the visible hand-off root.",
     )
     cleanup.add_argument(
         "--approve",
@@ -3057,6 +3191,7 @@ def main() -> None:  # pylint: disable=too-many-branches
             args.repo,
             args.findings_ledger,
             args.pr_context,
+            args.approval_view,
         )
     elif args.subcommand == "repair":
         if args.repair_command == "render":
@@ -3078,9 +3213,12 @@ def main() -> None:  # pylint: disable=too-many-branches
                 args.repair_bundle,
                 args.approved_digest,
                 args.repo,
+                args.approval_view,
             )
+    elif args.subcommand == "prepare-run":
+        cmd_prepare_run(args.run)
     elif args.subcommand == "list-run-artifacts":
-        cmd_list_run_artifacts()
+        cmd_list_run_artifacts(args.artifact_class)
     elif args.subcommand == "inspect-description":
         cmd_inspect_description(args.pr_number, args.repo, args.output_path)
     elif args.subcommand == "reconciliation-sources":

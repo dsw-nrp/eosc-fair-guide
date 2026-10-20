@@ -55,6 +55,8 @@ target argument is added — the engine receives the designated repository throu
 `--repo OWNER/REPO` argument it already accepts, and every write lands in that
 repository's issue tracker.
 
+**Run layout.** Before authoring any hand-off, run `python .agents/scripts/github/github_issues.py prepare-handoff --workflow aiscr-plan-issue --run <run>`. It creates `<HANDOFF_DIR>` (`.agents/local_scratch/aiscr-plan-issue/<run>/`) and `POINTER.md`, which names the matching `<BULK_DIR>` (`.venv/.cache/aiscr-plan-issue/<run>/`). Keep machine inputs (`sources.json`, `ledger.json`) in bulk and exact bodies and approval views in the hand-off directory. The pointer stays outside posted bodies. Placement classification is owned by `workflow/artefact-placement`.
+
 ### 1. Gather the whole conversation
 
 ```bash
@@ -131,16 +133,17 @@ and fenced content keep their own lines untouched.
 
 The reporter original is durable input, not whatever body the workflow posted last.
 Before the first takeover of a non-empty reporter description, save the exact gathered
-body to `<RUN_DIR>/original-description.md`, render its canonical provenance write, and
+body to `<HANDOFF_DIR>/original-description.md`, render its canonical provenance write, and
 obtain approval for that digest:
 
 ```bash
 python .agents/scripts/github/github_issues.py approval-view archive-description \
-  <ISSUE_NUMBER> --body <RUN_DIR>/original-description.md --repo OWNER/REPO
+  <ISSUE_NUMBER> --body <HANDOFF_DIR>/original-description.md --repo OWNER/REPO \
+  --approval-view <HANDOFF_DIR>/archive-approval.json
 
 python .agents/scripts/github/github_issues.py archive-description <ISSUE_NUMBER> \
-  --body <RUN_DIR>/original-description.md --mode interactive \
-  --approved-digest <APPROVED_DIGEST> --repo OWNER/REPO
+  --body <HANDOFF_DIR>/original-description.md --mode interactive \
+  --approved-digest <APPROVED_DIGEST> --approval-view <HANDOFF_DIR>/archive-approval.json --repo OWNER/REPO
 ```
 
 The marked comment preserves that original verbatim and carries the current
@@ -156,7 +159,7 @@ python .agents/scripts/github/github_issues.py reconciliation-sources <ISSUE_NUM
   --repo OWNER/REPO
 ```
 
-Write stdout to `<RUN_DIR>/sources.json` and reconcile against that list. The original
+Write stdout to `<BULK_DIR>/sources.json` and reconcile against that list. The original
 is always labelled `description`. When someone edited the workflow-posted body, the
 list also includes synthesized `description edit` sources whose labels and indices
 only the engine can produce. Never feed unchanged workflow-generated sections back
@@ -187,17 +190,18 @@ Record a disposition for every segment in a ledger, citing the comment it came f
 
 ```bash
 python .agents/scripts/github/github_issues.py approval-view extract <ISSUE_NUMBER> \
-  --link sub-issue --title "<TITLE>" --body <RUN_DIR>/stub.md \
-  --repo OWNER/REPO
+  --link sub-issue --title "<TITLE>" --body <HANDOFF_DIR>/stub.md \
+  --repo OWNER/REPO --approval-view <HANDOFF_DIR>/extract-approval.json
 
 python .agents/scripts/github/github_issues.py extract <ISSUE_NUMBER> \
-  --link sub-issue --title "<TITLE>" --body <RUN_DIR>/stub.md \
-  --mode interactive --approved-digest <APPROVED_DIGEST> --repo OWNER/REPO
+  --link sub-issue --title "<TITLE>" --body <HANDOFF_DIR>/stub.md \
+  --mode interactive --approved-digest <APPROVED_DIGEST> --approval-view <HANDOFF_DIR>/extract-approval.json --repo OWNER/REPO
 ```
 
-The read-only `approval-view` prints the exact repository, relationship, title, body,
-and request payload plus their canonical digest. Present that view and obtain approval
-of its digest before running `extract`; the write refuses a missing or mismatched value.
+The read-only `approval-view` writes the exact repository, relationship, title, body,
+and request payload plus their canonical digest to the hand-off file. Present that view and
+obtain approval of its digest before running `extract`; the write refuses a missing or
+mismatched value.
 
 What is filed may be a short stub or a **fully developed body** — `--body` takes either, and a body carrying the marker is held to the issue shape and stamped workflow-owned like any other developed issue. **This is the only surface that establishes the parent link**, so a child that belongs to a program is filed here; `create` files a standalone issue and cannot parent one, leaving a program's child cross-referenced in prose but absent from the parent's sub-issue list. Extraction still does not recurse: developing a stub further is a separate invocation.
 
@@ -209,9 +213,9 @@ leaves without a trace.
 
 ```bash
 python .agents/scripts/github/github_issues.py verify-composition \
-  --sources <RUN_DIR>/sources.json \
-  --body <RUN_DIR>/body.md \
-  --ledger <RUN_DIR>/ledger.json
+  --sources <BULK_DIR>/sources.json \
+  --body <HANDOFF_DIR>/body.md \
+  --ledger <BULK_DIR>/ledger.json
 ```
 
 This checks two things. **Shape:** one marker first, one title, the declared metadata rows, the core sections in order, the type block matching the declared `Type`, no empty section, the reporter region delimited, any Mermaid block from a GitHub-renderable core family (plugin declarations rejected after comments, front matter, and directives), the disclosure last. **Accounting:** completeness — every segment carries a disposition — and anchor retention — every inline code span, URL, and issue reference present or explicitly dropped with a reason.
@@ -235,11 +239,12 @@ Present the exact body **and** the dispositions. The body alone is not enough �
 
 ```bash
 python .agents/scripts/github/github_issues.py approval-view post-body <ISSUE_NUMBER> \
-  --body <RUN_DIR>/body.md --ledger <RUN_DIR>/ledger.json --repo OWNER/REPO
+  --body <HANDOFF_DIR>/body.md --ledger <BULK_DIR>/ledger.json --repo OWNER/REPO \
+  --approval-view <HANDOFF_DIR>/post-body-approval.json
 
 python .agents/scripts/github/github_issues.py post-body <ISSUE_NUMBER> \
-  --mode interactive --body <RUN_DIR>/body.md --ledger <RUN_DIR>/ledger.json \
-  --approved-digest <APPROVED_DIGEST> --repo OWNER/REPO
+  --mode interactive --body <HANDOFF_DIR>/body.md --ledger <BULK_DIR>/ledger.json \
+  --approved-digest <APPROVED_DIGEST> --approval-view <HANDOFF_DIR>/post-body-approval.json --repo OWNER/REPO
 ```
 
 Present the approval view with the body and dispositions, and pass exactly the digest
@@ -268,16 +273,21 @@ Render the exact create envelope before asking for approval:
 
 ```bash
 python .agents/scripts/github/github_issues.py approval-view create \
-  --title "<TITLE>" --body <RUN_DIR>/body.md --repo OWNER/REPO
+  --title "<TITLE>" --body <HANDOFF_DIR>/body.md --repo OWNER/REPO \
+  --approval-view <HANDOFF_DIR>/create-approval.json
 
 python .agents/scripts/github/github_issues.py create \
-  --title "<TITLE>" --body <RUN_DIR>/body.md \
-  --sources <RUN_DIR>/sources.json --ledger <RUN_DIR>/ledger.json \
-  --mode interactive --approved-digest <APPROVED_DIGEST> --repo OWNER/REPO
+  --title "<TITLE>" --body <HANDOFF_DIR>/body.md \
+  --sources <BULK_DIR>/sources.json --ledger <BULK_DIR>/ledger.json \
+  --mode interactive --approved-digest <APPROVED_DIGEST> --approval-view <HANDOFF_DIR>/create-approval.json --repo OWNER/REPO
 ```
 
 The mutation re-runs structural and accounting verification and refuses a missing or
 mismatched approval digest.
+
+### Retire the hand-off after a terminal outcome
+
+When all posting decisions are final and every approved write succeeded (or posting was declined), run `python .agents/scripts/github/github_issues.py cleanup-handoff --workflow aiscr-plan-issue --run <run> --kind issue --approve`. It validates every entry against the engine's allowlist before removing the run's hand-off directory. Retain the directory when validation or posting failed or a retry remains necessary. Editing an approval view requires re-rendering and fresh approval; each write validates the supplied file's exact bytes.
 
 ### Execution using subagents
 
@@ -358,5 +368,7 @@ The enrollment bundle installs these repository-local runtime scripts:
 
 - `.agents/scripts/github/github_issues.py`
 - `.agents/scripts/github/github_utils.py`
+- `.agents/scripts/lib/local_scratch_paths.py`
 - `.agents/scripts/lib/log_utils.py`
 - `.agents/scripts/lib/proc_utils.py`
+- `.agents/scripts/lib/runtime_env.py`

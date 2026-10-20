@@ -2,15 +2,19 @@
   "files": {
     ".agents/scripts/github/github_issues.py": {
       "asset": "aiscr-plan-from-issue",
-      "sha256": "a15f6435b0d160c31d583d6df41518596c4586f6b0d8d776ac50a2efdaad020c"
+      "sha256": "63cc4a6fad5f16141ec127cddba431ea04ea8665b8b3e0bb236297b163247e28"
     },
     ".agents/scripts/github/github_pr_review.py": {
       "asset": "aiscr-review-pr",
-      "sha256": "9b5ba616c8d711f5cf7f2fa82da36211525140ce43627523abc9f2532b0296f6"
+      "sha256": "30535afbd60a0f53a08a0b999e32b8915d4bfd4615d98dae67e3fd8c4868d182"
     },
     ".agents/scripts/github/github_utils.py": {
       "asset": "aiscr-plan-from-issue",
       "sha256": "cf00d398ab405f32a6b155fddc9eeb34be71b36d708befd631cc720de1b8cfd8"
+    },
+    ".agents/scripts/lib/local_scratch_paths.py": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "c1f421f8f4c37667b5db965ad06d8ba3d7d0e6881ebc97d6b65bc87bce8abfe1"
     },
     ".agents/scripts/lib/log_utils.py": {
       "asset": "aiscr-plan-from-issue",
@@ -19,6 +23,10 @@
     ".agents/scripts/lib/proc_utils.py": {
       "asset": "aiscr-plan-from-issue",
       "sha256": "f25457fa072be1d7894448dd1027df3cfba6b457ba8e3590e4398c7d5f940d28"
+    },
+    ".agents/scripts/lib/runtime_env.py": {
+      "asset": "aiscr-plan-from-issue",
+      "sha256": "910f199f1aef4b4dc48821be3006f45cfed33da77cb4604a294b54f0119a25de"
     },
     ".agents/scripts/validate_release_yml.py": {
       "asset": "aiscr-write-release-notes",
@@ -98,15 +106,15 @@
     },
     ".agents/skills/aiscr-plan-from-issue/SKILL.md": {
       "asset": "aiscr-plan-from-issue",
-      "sha256": "6c117985a43562d6f0f06d4b2f4e4369b0e0f26a4272a20d76560ae1390b916c"
+      "sha256": "013faad985ff319c3bb63e8d8236b9c53d9290f31d1fde5058ab9be1e465de2a"
     },
     ".agents/skills/aiscr-plan-issue/SKILL.md": {
       "asset": "aiscr-plan-issue",
-      "sha256": "167f6509a2c0e0b39deaeb9f70de43c857206cd4e23a7087b6b92dfc5b5eb6a4"
+      "sha256": "e0ed8e769f51cfce56cd1c16d0c8acd18c828e674e2add5ae0f97c61172c4630"
     },
     ".agents/skills/aiscr-review-pr/SKILL.md": {
       "asset": "aiscr-review-pr",
-      "sha256": "b7b17c7c1e9cf48ff636ff1ada6a1edc838dadfc01866c7871a247ade3bfa503"
+      "sha256": "333693bb56de004f3f93262f5cf245c4810f2cdfe7900bdbbbde447a1e3aeffb"
     },
     ".agents/skills/aiscr-review-pr/review-formats.md": {
       "asset": "aiscr-review-pr",
@@ -194,15 +202,15 @@
     },
     ".claude/skills/aiscr-plan-from-issue/SKILL.md": {
       "asset": "aiscr-plan-from-issue",
-      "sha256": "07ca1acc93511659fea2bd466890a730d6b6c13c802dc7b696a02b00c83e7954"
+      "sha256": "c7ff5a4c8d1780ea9b0109f6083e4c929b2ea091aae86ca2dc6a4973e6854920"
     },
     ".claude/skills/aiscr-plan-issue/SKILL.md": {
       "asset": "aiscr-plan-issue",
-      "sha256": "114b2cea94efec559ea4b49b2ad7c7f008d8a6b155e8ba684d4cad7b7aac882a"
+      "sha256": "59255902ceddd35a2a16b5a6aa68161fcab53449c64f33f586ba3095fd6c6a9e"
     },
     ".claude/skills/aiscr-review-pr/SKILL.md": {
       "asset": "aiscr-review-pr",
-      "sha256": "dfcfadf3c28fae8f2211a513f14678dbc5d3840a88db7aaf2a17bbf678162370"
+      "sha256": "2a826bebbd07444a07709a77de1913dcf2c5e6b804dcbb705390aa100177b492"
     },
     ".claude/skills/aiscr-review-pr/review-formats.md": {
       "asset": "aiscr-review-pr",
