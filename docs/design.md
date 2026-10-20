@@ -495,11 +495,13 @@ lanes. The command inventory stays in `check_all.py`; nested scripts stay in `sc
 Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,
 duplicate, incomplete or mismatched work, reconciles station/PDF inventories and publishes one health snapshot.
 It runs after failed lanes too. Source revision means the checked commit; trusted PR comments separately verify
-the PR head. The local full-run command and all validator profiles remain available unchanged. On a failed
-aggregate the collector names every failed check, not only the first, and appends a bounded output tail for each
-to the CI summary. It copies the lane `logs/` and `details/` into the health artifact before publishing the
-failure report, so the artifact contains the same evidence the lane produced. The summary and artifact also
-carry the duplicate check's safe suggestions and point to `.cache/pr-review/suggestions.json`.
+the PR head. The local full-run command and all validator profiles remain available unchanged, and the local
+runner reads a partial child the way the collector does: the job row and the run fail and it exits non-zero,
+while an explicit `--only` subset whose selected checks all complete keeps a partial report and exits zero.
+On a failed aggregate the collector names every failed check, not only the first, and appends a bounded output
+tail for each to the CI summary. It copies the lane `logs/` and `details/` into the health artifact before
+publishing the failure report, so the artifact contains the same evidence the lane produced. The summary and
+artifact also carry the duplicate check's safe suggestions and point to `.cache/pr-review/suggestions.json`.
 The suggestion artifact identifies the PR source head separately from `checkedRevision`, the merge revision
 used for the build, so the trusted publisher can check freshness against the PR head.
 Suggestions are admitted only from the reconciled lane owning the duplicate check. Rejected identity or
@@ -527,7 +529,8 @@ the reference throughout. A parity failure retains its diagnostic and fails veri
 
 The health artifact includes complete successful/failing logs, individual script and case timings, explicit
 selected/skipped/aborted cases, unit-test timings and failure screenshots, route/heading/error records and traces.
-A selected subset remains partial even when its executed cases pass. Reruns are separate attempts and never
+A selected subset remains partial even when its executed cases pass, so a required job that reports partial
+coverage fails instead of passing with a note. Reruns are separate attempts and never
 erase an earlier failure. These checks establish their recorded scope, not complete visual or FAIR-semantic
 correctness. Performance comparisons name their revision, environment, coverage and concurrency; local elapsed
 time is not presented as measured hosted-runner cost.
@@ -558,8 +561,11 @@ currently authorized writer. Trusted default-branch code parses the command and 
 rejected content is not repeatedly proposed and human-edited branches are left for reconciliation.
 Automatic replacement requires a complete nonempty commit inventory, the configured refresh App as every
 author, and only the expected `Refresh the <source> snapshot` messages. Repairs made by the same App are
-therefore protected too. Missing inventory or unknown authors/messages leaves the branch intact and reports
-the need to reconcile it manually; the maintainer fix command remains available on eligible refresh PRs.
+therefore protected too. The branch head is read before that inventory and the new commit replaces it only when
+the head still matches, through one atomic ref update that creates an absent branch only while it stays absent;
+a branch that moves or appears mid-run keeps its newer head and the run says so. Missing inventory or unknown
+authors/messages leaves the branch intact and reports the need to reconcile it manually; the maintainer fix
+command remains available on eligible refresh PRs.
 App settings and narrower per-job tokens are in [deployment.md](deployment.md#release-preparation-and-tagging).
 Nothing writes the default branch or merges; fixtures do not establish remote activation.
 

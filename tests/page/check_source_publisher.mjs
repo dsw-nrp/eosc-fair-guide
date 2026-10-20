@@ -1,5 +1,6 @@
-// Source refresh publication: one bot-owned pull request per source, no default-branch writes, no automatic merge,
-// human edits kept, rejected content not proposed again, and commands only from accounts with write access.
+// Source refresh publication: one bot-owned pull request per source, a branch replaced only while it still points at
+// the inspected head, no default-branch writes, no automatic merge, human edits kept, rejected content not proposed
+// again, and commands only from accounts with write access.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const { SOURCES, parseCommand, select, publish, hashOf, markerOf } = createRequire(import.meta.url)("../../.github/scripts/source-publisher.cjs");
@@ -12,10 +13,22 @@ const read = (outcomes) => (path) => (path.endsWith("report.json") ? report(outc
 const exists = (path) => Object.hasOwn(files, path);
 const core = { info() {} };
 
-function fakeGithub({ open = [], closed = [], commits = [], branches = [], permission = "write" } = {}) {
+function fakeGithub({ open = [], closed = [], commits = [], branches = [], permission = "write", raced = null } = {}) {
   const writes = [];
+  const heads = new Map(branches.map((ref) => ["refs/" + ref, "b".repeat(40)]));
   const github = {
     paginate: async (method, options) => method(options),
+    // The atomic ref update GitHub applies: compare the expected head, then move the ref in one operation.
+    graphql: async (_query, { input }) => {
+      const [update] = input.refUpdates;
+      writes.push(["refUpdate", { ...update, repositoryId: input.repositoryId }]);
+      if (raced) heads.set(update.name, raced);
+      if ((heads.get(update.name) || "0".repeat(40)) !== (update.beforeOid || "0".repeat(40))) {
+        throw Error("UpdateRefs rejected: the ref does not match beforeOid");
+      }
+      heads.set(update.name, update.afterOid);
+      return { updateRefs: { clientMutationId: null } };
+    },
     rest: {
       pulls: {
         list: ({ state, head }) => (state === "open" ? open : closed).filter((pr) => pr.head === head),
@@ -28,33 +41,36 @@ function fakeGithub({ open = [], closed = [], commits = [], branches = [], permi
       git: {
         getRef: async ({ ref }) => {
           if (ref === "heads/main") return { data: { object: { sha: "m".repeat(40) } } };
-          if (branches.includes(ref)) return { data: { object: { sha: "b".repeat(40) } } };
+          if (heads.has("refs/" + ref)) return { data: { object: { sha: heads.get("refs/" + ref) } } };
           throw Object.assign(Error("Not Found"), { status: 404 });
         },
         getCommit: async () => ({ data: { tree: { sha: "t".repeat(40) } } }),
         createTree: async (options) => { writes.push(["tree", options]); return { data: { sha: "n".repeat(40) } }; },
         createCommit: async (options) => { writes.push(["commit", options]); return { data: { sha: "c".repeat(40) } }; },
-        createRef: async (options) => writes.push(["createRef", options]),
-        updateRef: async (options) => writes.push(["updateRef", options]),
       },
     },
   };
   return { github, writes };
 }
-const context = { repo, payload: { repository: { default_branch: "main" } } };
+const context = { repo, payload: { repository: { default_branch: "main", node_id: "R_eosc-fair-guide" } } };
 const changed = [{ source: "heslar", status: "changed" }];
 const marker = markerOf("heslar", hashOf([["content/glossary.toml", files["content/glossary.toml"]]]));
-const refs = (writes) => writes.filter(([kind]) => kind === "createRef" || kind === "updateRef").map(([, options]) => options.ref);
+const refMoves = (writes) => writes.filter(([kind]) => kind === "refUpdate").map(([, update]) => update.name);
 
 // A new change: a commit on the default branch's head, a reserved branch and one pull request; nothing merges.
 let { github, writes } = fakeGithub();
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "proposed" });
-assert.deepEqual(refs(writes), ["refs/heads/refresh/heslar"]);
+assert.deepEqual(refMoves(writes), ["refs/heads/refresh/heslar"]);
+const created = writes.find(([kind]) => kind === "refUpdate")[1];
+assert.equal(created.beforeOid, "0".repeat(40), "an absent branch is created only while it stays absent");
+assert.equal(created.afterOid, "c".repeat(40));
+assert.equal(created.force, true);
+assert.equal(created.repositoryId, "R_eosc-fair-guide");
 assert.deepEqual(writes.find(([kind]) => kind === "commit")[1].parents, ["m".repeat(40)], "refreshed from current main");
-const created = writes.find(([kind]) => kind === "createPull")[1];
-assert.equal(created.base, "main");
-assert(created.body.includes(marker));
-assert(!writes.some(([, options]) => String(options.ref || "").includes("heads/main")), "the default branch is never written");
+const pull = writes.find(([kind]) => kind === "createPull")[1];
+assert.equal(pull.base, "main");
+assert(pull.body.includes(marker));
+assert(!writes.some(([, value]) => String(value?.name || value?.ref || "").includes("main")), "the default branch is never written");
 
 // The same content already proposed, unchanged or rejected outcomes: nothing is written.
 ({ github, writes } = fakeGithub({ open: [{ number: 5, head: "dsw-nrp:refresh/heslar", body: marker }] }));
@@ -76,7 +92,23 @@ const older = { number: 6, head: "dsw-nrp:refresh/heslar", body: markerOf("hesla
 const refreshCommit = { author: { login: bot }, commit: { message: "Refresh the heslar snapshot" } };
 ({ github, writes } = fakeGithub({ open: [older], commits: [refreshCommit], branches: ["heads/refresh/heslar"] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "updated" });
-assert.deepEqual(writes.filter(([kind]) => kind === "updateRef").map(([, options]) => [options.ref, options.force]), [["heads/refresh/heslar", true]]);
+assert.deepEqual(
+  writes.filter(([kind]) => kind === "refUpdate").map(([, update]) => [update.name, update.beforeOid, update.afterOid]),
+  [["refs/heads/refresh/heslar", "b".repeat(40), "c".repeat(40)]],
+  "the inspected head is the one the update replaces",
+);
+// A branch another writer advanced after inspection keeps its newer head: the comparison refuses the replacement.
+({ github, writes } = fakeGithub({ open: [older], commits: [refreshCommit], branches: ["heads/refresh/heslar"], raced: "d".repeat(40) }));
+assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "moved" });
+assert.deepEqual(writes.map(([kind]) => kind), ["tree", "commit", "refUpdate"], "a moved branch gets no pull update or comment");
+assert.equal((await github.rest.git.getRef({ ref: "heads/refresh/heslar" })).data.object.sha, "d".repeat(40));
+await assert.rejects(
+  publish({ github: fakeGithub().github, core, context: { repo, payload: { repository: { default_branch: "main" } } } },
+    read(changed), exists, bot),
+  /repository identity/,
+  "the atomic mutation needs the repository it targets",
+);
+
 ({ github, writes } = fakeGithub({ open: [older], commits: [{ author: { login: bot } }, { author: { login: "maintainer" } }], branches: ["heads/refresh/heslar"] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "human-edits" });
 assert.deepEqual(writes.map(([kind]) => kind), ["comment"], "human edits are kept: no ref update, one explanation");
@@ -114,4 +146,4 @@ assert.equal(await select({ github, core, context: { repo, eventName: "issue_com
 assert.equal(await select({ github, core, context: { repo, eventName: "workflow_dispatch", payload: { inputs: { source: "re3data" } } } }), "re3data");
 assert.equal(await select({ github, core, context: { repo, eventName: "workflow_dispatch", payload: { inputs: { source: "x; y" } } } }), "");
 assert.equal(await select({ github, core, context: { repo, eventName: "schedule", payload: {} } }), Object.keys(SOURCES).join(" "));
-console.log("check_source_publisher: one bot-owned PR per source, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content and authorized exact commands pass");
+console.log("check_source_publisher: one bot-owned PR per source, an atomically guarded branch head, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content and authorized exact commands pass");

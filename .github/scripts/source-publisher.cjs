@@ -18,6 +18,11 @@ const PREFIX = "refresh/";
 const MARKER = "<!-- fair-guide-source-refresh ";
 const WRITERS = ["admin", "maintain", "write"];
 const REPORT = ".cache/refresh/report.json";
+// A refresh branch may only move when it still points at the head whose commits were inspected. The `updateRefs`
+// mutation compares `beforeOid` and applies its updates atomically, so an update cannot replace a head it never
+// saw; the all-zero value confirms that a branch was absent when an absent one is created.
+const ABSENT = "0".repeat(40);
+const REF_UPDATE = "mutation($input: UpdateRefsInput!) { updateRefs(input: $input) { clientMutationId } }";
 
 const branchOf = (source) => PREFIX + source;
 const markerOf = (source, hash) => `${MARKER}source=${source} sha256=${hash} -->`;
@@ -74,6 +79,23 @@ async function mainHead(github, repo, base) {
   return { sha: data.object.sha, tree: commit.tree.sha };
 }
 
+/** The commit a branch points at, or null when it does not exist. */
+async function branchHead(github, repo, ref) {
+  try {
+    return (await github.rest.git.getRef({ ...repo, ref })).data.object.sha;
+  } catch (error) {
+    if (error?.status === 404) return null;
+    throw error;
+  }
+}
+
+/** Move a refresh branch to the new snapshot commit only while it still points at the inspected commit. */
+async function replaceBranch(github, repositoryId, name, before, after) {
+  await github.graphql(REF_UPDATE, {
+    input: { repositoryId, refUpdates: [{ name, beforeOid: before, afterOid: after, force: true }] },
+  });
+}
+
 const refreshMessage = (source) => `Refresh the ${source} snapshot`;
 
 /** Publish each changed source. Returns what happened per source, for the run log and the tests. The App's bot
@@ -81,6 +103,8 @@ const refreshMessage = (source) => `Refresh the ${source} snapshot`;
 async function publish({ github, context, core }, read = readFileSync, exists = existsSync, bot = process.env.SOURCE_BOT_LOGIN) {
   const repo = context.repo;
   const base = context.payload.repository?.default_branch || "main";
+  const repositoryId = context.payload.repository?.node_id;
+  if (typeof repositoryId !== "string" || !repositoryId) throw Error("Missing repository identity");
   const results = {};
   for (const outcome of readReport(read).outcomes) {
     const source = outcome.source;
@@ -101,6 +125,10 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
       continue;
     }
     if (open && String(open.body || "").includes(marker)) { results[source] = "already-proposed"; continue; }
+    const ref = "heads/" + branch;
+    // The head is read before the inventory so an update is only allowed while the branch still points at the
+    // commits this run inspected; a branch that moves afterwards keeps its newer head.
+    const inspected = await branchHead(github, repo, ref);
     if (open) {
       let commits;
       try {
@@ -122,10 +150,16 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
       tree: files.map(([path, text]) => ({ path, mode: "100644", type: "blob", content: text })) });
     const commit = await github.rest.git.createCommit({ ...repo, message: refreshMessage(source),
       tree: tree.data.sha, parents: [current.sha] });
-    const ref = "heads/" + branch;
-    const known = await github.rest.git.getRef({ ...repo, ref }).then(() => true, () => false);
-    if (known) await github.rest.git.updateRef({ ...repo, ref, sha: commit.data.sha, force: true });
-    else await github.rest.git.createRef({ ...repo, ref: "refs/" + ref, sha: commit.data.sha });
+    try {
+      await replaceBranch(github, repositoryId, "refs/" + ref, inspected ?? ABSENT, commit.data.sha);
+    } catch (error) {
+      if ((await branchHead(github, repo, ref)) !== inspected) {
+        results[source] = "moved";
+        core.info(`${source}: the refresh branch moved after its commits were inspected; its current head is kept and the next run inspects it again.`);
+        continue;
+      }
+      throw error;
+    }
     const body = [`Validated refresh of the **${source}** snapshot from the default branch at \`${current.sha}\`.`, "",
       "The response passed the shape, completeness, size and removal checks of `scripts/refresh_snapshots.py`.",
       "Review the change as content; nothing merges automatically.", "", marker].join("\n");

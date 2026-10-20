@@ -4,7 +4,7 @@
 
 ### Requirement: Aggregate checks report every failure with diagnostics
 
-Required aggregate checks SHALL name every failed or partial check and include bounded diagnostics while preserving lane logs and details. Partial results SHALL fail even at native exit zero, retaining their partial flag and original evidence. Required diagnostics SHALL precede optional suggestions; optional processing errors SHALL be reported without hiding diagnostics or changing the required-check outcome. The gate SHALL remain failing when required checks fail.
+Required aggregate checks SHALL name every failed or partial check and include bounded diagnostics while preserving lane logs and details. Partial results SHALL fail even at native exit zero, locally as in CI, retaining their partial flag and original evidence. Required diagnostics SHALL precede optional suggestions; optional processing errors SHALL be reported without hiding diagnostics or changing the required-check outcome. The gate SHALL remain failing when required checks fail.
 
 #### Scenario: Two checks fail in one lane
 - **GIVEN** content and duplicates both fail in the CPU lane
@@ -21,6 +21,18 @@ Required aggregate checks SHALL name every failed or partial check and include b
 - **GIVEN** a required browser result with exit code zero, partial coverage and pending or skipped cases
 - **WHEN** the collector publishes the aggregate
 - **THEN** the aggregate and check row are failed, its output is shown, and the partial evidence remains inspectable
+
+#### Scenario: The local run meets a partial child
+
+- **GIVEN** a local full run whose browser check exits zero with partial case coverage
+- **WHEN** the local runner publishes its report and returns
+- **THEN** that row and the run are failed, its output is shown, and the run exits non-zero
+
+#### Scenario: A deliberate local subset completes
+
+- **GIVEN** a local `--only` run whose selected checks all complete
+- **WHEN** the run finishes
+- **THEN** the unselected checks stay not run, the report remains partial, and the run exits zero
 
 #### Scenario: Optional output cannot be written
 
@@ -157,3 +169,19 @@ A trusted fix command SHALL verify current writer access and apply only reviewed
 - **GIVEN** the App successfully updates the PR branch and the following comment request fails
 - **WHEN** the workflow reports the unexpected failure
 - **THEN** it points to the run and asks the maintainer to check the branch state without claiming no change occurred
+
+### Requirement: Refresh branches move only from the inspected head
+
+`source-refresh.yml` publication SHALL change a refresh branch only while it still points at the head whose commits were inspected, and create an absent branch only while it is still absent, through one atomic comparison with that update; a branch that moved is kept and the run reports why.
+
+#### Scenario: The branch moves after its commits were inspected
+
+- **GIVEN** an open refresh branch whose commits were inspected as replaceable
+- **WHEN** another writer advances the branch before the publisher replaces it
+- **THEN** the atomic comparison refuses the update, the newer head is kept, and the run reports why
+
+#### Scenario: The branch appears after it was read as absent
+
+- **GIVEN** no refresh branch at the time publication read it
+- **WHEN** another writer creates it before the publisher does
+- **THEN** the creation is refused rather than replacing the new branch, and the run reports why

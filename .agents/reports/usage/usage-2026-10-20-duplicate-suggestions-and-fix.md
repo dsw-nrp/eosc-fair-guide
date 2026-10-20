@@ -121,3 +121,41 @@
   Consolidation changes records/specs only and preserves original attribution, App
   constraints and the separately deferred hosted activation in task 7.4. No implementation edit, staging,
   commit, push, remote review write, merge or release is part of this consolidation.
+
+## Kilo session: atomic refresh branch and local partial parity
+
+- **When:** 2026-10-21
+- **Agent / runtime:** Kilo (VS Code extension)
+- **Model / backend:** e-infra-cz/deepseek-v4.1-flash-thinking
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** continued the interrupted Codex session from its local rollout transcript; the native
+  `fair-guide-editor` routing, the delivered `aiscr-planning-core`, `aiscr-quality-first-execution`,
+  `aiscr-usage-logging` and `aiscr-model-logging` rules, and `npm run -s openspec:validate` for the pinned CLI.
+- **What:** Fixed the two review findings the interrupted session had left unresolved, with direct edits as the
+  maintainer requested. `source-publisher.cjs` now reads the refresh branch head before the commit inventory and
+  moves the branch through one atomic GraphQL `updateRefs` call whose `beforeOid` is that head (all zeros for an
+  absent branch); a branch that moved or appeared is kept and reported as `moved` instead of being force-replaced.
+  `check_all.py` now treats a partial child as a failure in its job row, health report and exit code exactly as the
+  CI aggregate does, while an explicit `--only` subset whose selected checks complete stays partial and exits zero.
+- **Impacted:** `.github/scripts/source-publisher.cjs`, `scripts/check_all.py`, `tests/page/check_source_publisher.mjs`,
+  `tests/test_check_runner.py`, `docs/design.md`, `CHANGELOG.md`, the delivery spec and the archived change's
+  delta and task ledger (new requirement "Refresh branches move only from the inspected head" plus the local-runner
+  scenarios and tasks 8.10–8.11), and this usage entry.
+- **Verification:** `node tests/page/check_source_publisher.mjs` passes the new assertions that the creation
+  compares with the all-zero oid, that an update replaces exactly the inspected head, that a planted branch move
+  keeps the newer head with no pull update or comment, and that a missing repository identity is refused. Focused
+  Python suites pass: 49 runner/script/health tests, 27 duplicate-review tests and 13 CI tests. Strict OpenSpec
+  validation passes 5/5, and Ruff lint and format pass. `python scripts/check_all.py --report-dir
+  .cache/health-review-fixes-final` returns 25 of 30 in 166.7 seconds with `unit` and `helpers` (including the
+  publisher check) passing.
+  The five failures are not caused by these edits: `content` reports `datarepo` changed since the merge base
+  `a38f70f` (committed 2026-10-21T00:32:35+02:00, after this pull request's provenance action, so the merged main
+  requires a fresher paradata action); `agent-generation` and `public-content` report drift in files that are
+  identical to `origin/main` and unchanged by this branch; `agent-ownership` and `sibling-delivery` flag the
+  untracked Codex runtime scratch area in the workspace.
+- **Close-out:** No commit, push, merge, remote write or release was performed. Hosted behaviour was not exercised:
+  the App token path uses the documented `updateRefs`/`RefUpdate` contract against a local fake. Remaining items for
+  the maintainer: decide whether the merged branch carries a fresh `datarepo` provenance action, resolve the
+  `a38f70f` surface drift (`docs/agent-tooling.md` and the delivered skill text) on main, and treat or ignore the
+  untracked Codex runtime scratch area outside the ownership map.

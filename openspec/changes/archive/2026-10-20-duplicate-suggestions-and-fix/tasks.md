@@ -68,6 +68,8 @@
 - [x] 8.7 Run strict OpenSpec validation and complete local checks, reconcile the combined task ledger and original rolling usage entry, retain failure-before/success-after evidence in tests and usage without a standalone report, and keep hosted activation explicitly deferred under task 7.4.
 - [x] 8.8 Register the command-generated provenance action before validation and include only that identifier-register change in the same repair commit; prove the complete registered-content path passes, existing and retired IDs remain unchanged, and unrelated missing IDs are not silently registered.
 - [x] 8.9 Extract authored validation attachments from the same verified PR head alongside content without executing them; prove content-only extraction fails on missing attachments and the complete archived data validates before committing only the link, provenance and register.
+- [x] 8.10 Replace a refresh branch through one atomic ref update that compares the head read before the commit inventory, and create an absent branch only while it stays absent; prove a branch that moves or appears mid-run keeps its newer head with an explained result.
+- [x] 8.11 Fail a partial child result in the local runner's job row and exit code as the CI aggregate does, while an explicit `--only` subset whose selected checks all complete keeps its partial report and exits zero; prove both in the runner tests.
 
 ## Workflow follow-up
 

@@ -32,16 +32,33 @@ class CheckRunnerTests(unittest.TestCase):
             results = check_all.run_all(jobs, 3, env, report=lambda _: None)
         self.assertEqual([result.job for result in results], jobs)
 
-    def test_successful_selected_browser_cases_make_the_full_run_partial(self):
+    def test_a_partial_browser_result_fails_its_row_and_the_run(self):
         job = check_all.Job("page", [])
         build = check_all.Result(check_all.Job("build", []), 0, 0.01, "build diagnostic")
         result = check_all.Result(job, 0, 0.01, "selected cases only", partial=True)
         with mock.patch.object(check_all.check_health, "write_report") as write:
             check_all.emit_report(build, [result], [job], [job], output=Path("unused"), previous=None)
         run = write.call_args.args[0]["run"]
-        self.assertEqual(run["status"], "partial")
+        self.assertEqual(run["status"], "failed")
+        self.assertEqual(run["jobs"][1]["status"], "failed")
         self.assertEqual(run["jobs"][1]["output"], "selected cases only")
         self.assertTrue(run["jobs"][1]["partial"])
+        with mock.patch("builtins.print") as printed:
+            self.assertEqual(check_all.finish([result], 0.0), 1)
+        self.assertIn("Incomplete required check coverage (partial result).", str(printed.call_args_list))
+
+    def test_a_complete_explicit_subset_keeps_its_partial_report_and_passes(self):
+        job = check_all.Job("content", [])
+        unit = check_all.Job("unit", [])
+        build = check_all.Result(check_all.Job("build", []), 0, 0.01, "")
+        result = check_all.Result(job, 0, 0.01, "")
+        with mock.patch.object(check_all.check_health, "write_report") as write:
+            check_all.emit_report(build, [result], [job, unit], [job], output=Path("unused"), previous=None)
+        run = write.call_args.args[0]["run"]
+        self.assertEqual(run["status"], "partial")
+        self.assertEqual({item["name"]: item["status"] for item in run["jobs"]}["unit"], "not_run")
+        with mock.patch("builtins.print"):
+            self.assertEqual(check_all.finish([result], 0.0), 0)
 
     def test_successful_output_is_retained_in_full_logs(self):
         job = check_all.Job("content", [])

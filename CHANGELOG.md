@@ -23,6 +23,10 @@ All notable changes to this guide are recorded here. The format follows
   rollback on handled failures, preserve existing TOML keys, and reserve active and retired identifiers during refresh.
 - Keep authored Markdown inert in bot reasons and repair diffs, retain commit references within comment bounds,
   and explain uncertain branch state after a command failure. PR heads remain distinct from checked merge revisions.
+- Replace a refresh branch only through an atomic comparison with the head whose commits were inspected, and create
+  an absent one only while it stays absent, so a branch that moves or appears mid-run keeps its newer head.
+- Fail a partial check in the local `check_all.py` job row and exit code as the aggregate does, while a deliberate
+  `--only` subset whose selected checks complete stays partial and exits zero.
 
 ## [1.0.0-alpha.2] - 2026-10-19
 
