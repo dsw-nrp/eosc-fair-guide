@@ -90,3 +90,34 @@
   structure. Strict validation passes 7/7 after archival; ownership and delivered-integrity checks pass.
   Runtime verification remains the full 30/30 run recorded above. Hosted activation remains deferred
   under task 7.4. Separate planning drafts remain outside the implementation commit; no push authorized.
+
+
+## PR #102 review, verification and consolidation
+
+- **When:** 2026-10-20
+- **Agent / runtime:** OpenAI Codex
+- **Model / backend:** exact backend model id not exposed by the runtime
+- **What:** Implemented all eleven PR #102 review findings after approved apply: unique ownership and exact
+  placement parity, atomic rollback, validated CI evidence and partial failures, protected refresh PRs,
+  inert bot output and accurate post-commit failure guidance. Subsequent verification found two I/O gaps;
+  explicit follow-up authorization covered rollback registration before cleanup and current-run upload
+  admission. Strengthened success assertions cover the diff and complete provenance reminder.
+- **Impacted:** Duplicate checker/handler, CI collector/upload workflow, trusted publishers, regression tests,
+  maintainer documentation, settled changelog and this original OpenSpec change. The maintainer requested
+  one change and one usage record: review scope is integrated into the existing archive sections, six
+  requirement blocks and task ledger, with matching main specs; the redundant records are removed.
+- **Close-out:** Initial review repair passed 114 focused tests and 30/30 checks in 167.3 seconds with 465
+  unit tests; verification then passed 115 focused tests and reproduced the two I/O gaps. Both fixes passed
+  118 focused tests and the final 30/30 suite in 192.6 seconds, including 468 unit tests with one existing
+  skip. The success-assertion follow-up passed all 27 regression-file tests and rejected planted missing
+  diff/reminder output. Strict validation, Ruff, hygiene and ownership checks passed; native generation
+  changed zero files. Evidence remains in `.cache/health-harden-duplicate-repair-review/` and
+  `.cache/health-harden-duplicate-repair-review-final/`. Temporary sandbox artifacts were cleaned up.
+  All eleven findings and both later verification warnings are resolved; the combined ledger has 44
+  completed tasks. Consolidation validation passes all five main specs and four archived task ledgers;
+  direct strict validation of this archive's proposal and deltas has zero findings. All 44 scenario bodies
+  are preserved, main/archive blocks match and unrelated requirements are unchanged. Hygiene, ownership,
+  delivery integrity, REUSE and diff checks pass; runtime tests were not repeated for this record-only edit.
+  Consolidation changes records/specs only and preserves original attribution, App
+  constraints and the separately deferred hosted activation in task 7.4. No implementation edit, staging,
+  commit, push, remote review write, merge or release is part of this consolidation.

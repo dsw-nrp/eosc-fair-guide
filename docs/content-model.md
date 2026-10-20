@@ -174,9 +174,16 @@ is not accepted. Suggestions are written to `duplicates.json` under `CHECK_REPOR
 Different candidate values for one entry's link field make the target ambiguous, even when each pair shares an
 authoritative key. Existing keys, including empty values, require review. The fixer checks the whole parsed table
 and parses the proposed TOML before writing it; it returns nonzero when no safe change was applied.
+Ownership is checked across all curated entries: a record already linked by another entry, or proposed for
+several owners, cannot supply a safe link. The producer and Python consumers share exact entry/file/table/field
+placements; the independently trusted Node validator is checked against the same domain, including invalid
+combinations of individually known values. Ambiguous groups remain for manual review.
 
 `python scripts/check_duplicates.py --fix` applies only safe suggestions to the working tree and prints a unified
-diff. It does not commit and does not write provenance: the person running it adds one action naming themselves,
+diff only after a passing duplicate recheck. Each target is replaced atomically from a temporary sibling. A
+handled application or recheck failure restores earlier changes to their original bytes; a target changed
+concurrently is refused, and a restoration failure names the affected file. This is per-file atomicity, not a
+multi-file crash transaction. It does not commit and does not write provenance: the person running it adds one action naming themselves,
 the consulted source or record and the changed result, as the content rules require. For the PR 82 case, a new
 re3data record for `datarepo.eosc.cz` and the curated `datarepo` resource produce a suggestion for
 `content/resources.toml`, `[resource.repository]`, `re3data = "r3d100014970"`; applying it joins the records instead

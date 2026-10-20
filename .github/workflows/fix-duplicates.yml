@@ -74,6 +74,6 @@ jobs:
             await github.rest.issues.createComment({
               ...context.repo,
               issue_number: pr,
-              body: "`/fix-duplicates` did not complete. No change is assumed; see the workflow run: " +
+              body: "`/fix-duplicates` encountered an unexpected failure. Check the PR branch state; a commit may already exist. See the workflow run: " +
                 `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
             });

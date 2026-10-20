@@ -97,7 +97,16 @@ merges, never pushes the default branch, never runs on schedules or forks and ne
 `SOURCE_REFRESH_CLIENT_ID` and `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them the command is unavailable. Roll
 back by reverting its commit or removing the workflow. For a local edit, run
 `python scripts/check_duplicates.py --fix`; it applies only safe suggestions, prints the diff and leaves the
-provenance action for you to add.
+provenance action for you to add. Local repairs use atomic file replacement and restore original bytes on a
+handled application or recheck failure; restoration errors are reported explicitly. There is no multi-file
+crash-transaction guarantee. A clean no-op still returns nonzero.
+
+The command also works on eligible `refresh/<source>` pull requests. Once a repair or other unrecognized
+commit is present, source refresh leaves that branch intact and asks for manual reconciliation. Automatic
+replacement is allowed only for a nonempty, verified list of commits authored by the refresh App with that
+source's expected snapshot message. Reconcile a protected PR by hand or close it so the next refresh can start
+from the default branch. If the command reports an unexpected failure, check the branch and workflow run:
+the repair commit may already exist even if its success comment failed.
 
 ### Development container
 

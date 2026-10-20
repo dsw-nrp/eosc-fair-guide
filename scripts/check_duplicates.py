@@ -23,7 +23,9 @@ import json
 import os
 import re
 import sys
+import tempfile
 import tomllib
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -34,6 +36,25 @@ from build_crate import ROOT, ContentError, load_content  # noqa: E402
 from catalogue_identity import alternate_id, bare_url  # noqa: E402
 
 ACCEPTED_FILE = "duplicates.toml"
+# Exact reviewed placements, keyed by curated entry kind and registry link field.
+PLACEMENTS = {
+    ("resource", "re3data"): ("content/resources.toml", "resource.repository"),
+    ("resource", "fipDashboard"): ("content/resources.toml", ""),
+    ("resource", "knav"): ("content/resources.toml", ""),
+    ("repository", "re3data"): ("content/repositories.toml", ""),
+    ("repository", "fipDashboard"): ("content/repositories.toml", ""),
+    ("repository", "knav"): ("content/repositories.toml", ""),
+    ("source", "knav"): ("content/sources.toml", ""),
+}
+
+
+def valid_placement(entry: Any, file: Any, table: Any, field_name: Any) -> bool:
+    if not all(isinstance(value, str) for value in (entry, file, table, field_name)):
+        return False
+    kind, separator, identifier = entry.partition(":")
+    return bool(separator and identifier) and PLACEMENTS.get((kind, field_name)) == (file, table)
+
+
 AUTHORITATIVE_KEYS = ("url", "doi", "r3d", "fd", "knav")
 # Keys that state two entries are the same thing; every other key only suggests it.
 LINK_KEYS = ("fd", "fdorg", "r3d", "knav")
@@ -276,33 +297,17 @@ def record_link(entry: Entry) -> tuple[str, str, str] | None:
     return None
 
 
-def curated_target(entry: Entry, field_name: str) -> tuple[str, str] | None:  # noqa: PLR0911
+def curated_target(entry: Entry, field_name: str) -> tuple[str, str] | None:
     """Where a curated entry stores one link field, or None when adding it needs review."""
-    kind = entry_kind(entry)
-    record = entry.record or {}
-    if kind == "resource":
-        if field_name == "re3data":
-            repository = record.get("repository")
-            if not isinstance(repository, dict) or "re3data" in repository:
-                return None
-            return "content/resources.toml", "resource.repository"
-        if field_name in ("fipDashboard", "knav"):
-            if field_name in record:
-                return None
-            return "content/resources.toml", ""
+    placement = PLACEMENTS.get((entry_kind(entry), field_name))
+    if placement is None:
         return None
-    if kind == "repository":
-        if field_name in record:
-            return None
-        return "content/repositories.toml", ""
-    if kind == "source" and field_name == "knav":
-        if "knav" in record:
-            return None
-        return "content/sources.toml", ""
-    return None
+    record = entry.record or {}
+    target = record.get("repository") if placement[1] else record
+    return placement if isinstance(target, dict) and field_name not in target else None
 
 
-def suggestion_for(group: list[Entry]) -> Suggestion | None:  # noqa: PLR0911
+def suggestion_for(group: list[Entry], owners: dict[str, set[str]]) -> Suggestion | None:  # noqa: PLR0911
     """A safe, exact link suggestion, or None when the group needs editorial judgement."""
     curated = [entry for entry in group if entry.curated]
     records = [entry for entry in group if not entry.curated]
@@ -314,8 +319,10 @@ def suggestion_for(group: list[Entry]) -> Suggestion | None:  # noqa: PLR0911
     link = record_link(record_entry)
     if link is None:
         return None
-    prefix, field_name, value = link
+    _prefix, field_name, value = link
     if not value:
+        return None
+    if any(owners.get(key, set()) - {curated_entry.name} for key in record_entry.keys):
         return None
     shared = {key for key in curated_entry.keys & record_entry.keys if key.split(":", 1)[0] in AUTHORITATIVE_KEYS}
     if not shared:
@@ -387,6 +394,11 @@ def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> DuplicateR
     for entry in found:
         for key in entry.keys:
             holders.setdefault((entry.group, key), []).append(entry)
+    owners = {
+        key: {entry.name for entry in holding if entry.curated}
+        for (_group, key), holding in holders.items()
+        if key.split(":", 1)[0] in LINK_KEYS
+    }
     for (_group, key), holding in holders.items():
         if key.split(":", 1)[0] in LINK_KEYS:
             for entry in holding[1:]:
@@ -425,17 +437,25 @@ def check(content: dict[str, Any], accepted: list[dict[str, Any]]) -> DuplicateR
             f"describes one thing with {', '.join(ordered[1:])} ({shared}); "
             + remedy([by_name[name] for name in ordered]),
         )
-        suggestion = suggestion_for([by_name[name] for name in ordered])
+        suggestion = suggestion_for([by_name[name] for name in ordered], owners)
         if suggestion is not None:
             report.suggestions.append(suggestion)
     targets: dict[tuple[str, str, str, str], set[str]] = {}
+    proposed_owners: dict[str, set[str]] = {}
     for suggestion in report.suggestions:
         target = (suggestion.file, suggestion.table, suggestion.entry, suggestion.field_name)
         targets.setdefault(target, set()).add(suggestion.value)
+        proposed_owners.setdefault(components.find(suggestion.record), set()).add(suggestion.entry)
+    unique: dict[tuple[str, str, str, str, str], Suggestion] = {}
+    for suggestion in report.suggestions:
+        unique.setdefault(
+            (suggestion.entry, suggestion.file, suggestion.table, suggestion.field_name, suggestion.value), suggestion
+        )
     report.suggestions = [
         suggestion
-        for suggestion in report.suggestions
+        for suggestion in unique.values()
         if len(targets[(suggestion.file, suggestion.table, suggestion.entry, suggestion.field_name)]) == 1
+        and len(proposed_owners[components.find(suggestion.record)]) == 1
     ]
     for index, accepted_set in enumerate(accepted_sets):
         if accepted_set and accepted_set not in used:
@@ -475,6 +495,25 @@ def _is_table_header(line: str) -> bool:
     return stripped.startswith("[") and stripped.endswith("]")
 
 
+def atomic_replace(
+    path: Path, data: bytes, *, expected: bytes, on_replaced: Callable[[Path, bytes], None] | None = None
+) -> None:
+    """Prepare a sibling, then swap only if the target still has the inspected bytes."""
+    descriptor, name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    temporary = Path(name)
+    os.close(descriptor)
+    try:
+        temporary.write_bytes(data)
+        temporary.chmod(path.stat().st_mode)
+        if path.read_bytes() != expected:
+            raise OSError(f"target changed while preparing the repair: {path}")
+        os.replace(temporary, path)
+        if on_replaced is not None:
+            on_replaced(path, data)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def field_table(parsed: dict[str, Any], entry_header: str, entry_id: str, table: str) -> dict[str, Any] | None:
     """Find the actual target table, including unusually formatted existing keys."""
     row = next((item for item in parsed.get(entry_header.strip("[]"), []) if item.get("id") == entry_id), None)
@@ -489,10 +528,18 @@ def field_table(parsed: dict[str, Any], entry_header: str, entry_id: str, table:
 
 
 def insert_field(
-    path: Path, entry_header: str, entry_id: str, table: str, *, field_name: str, value: str
+    path: Path,
+    entry_header: str,
+    entry_id: str,
+    table: str,
+    *,
+    field_name: str,
+    value: str,
+    on_replaced: Callable[[Path, bytes], None] | None = None,
 ) -> str | None:
     """Insert one link into the exact entry and table, returning its unified diff."""
-    old = path.read_text(encoding="utf-8")
+    original = path.read_bytes()
+    old = original.decode("utf-8")
     parsed = tomllib.loads(old)
     target = field_table(parsed, entry_header, entry_id, table)
     if target is None or field_name in target:
@@ -532,8 +579,7 @@ def insert_field(
             return None
     except tomllib.TOMLDecodeError:
         return None
-    path.write_text(new, encoding="utf-8", newline="\n")
-    return "".join(
+    diff = "".join(
         difflib.unified_diff(
             old.splitlines(keepends=True),
             new.splitlines(keepends=True),
@@ -541,9 +587,19 @@ def insert_field(
             tofile=str(path),
         )
     )
+    atomic_replace(path, new.encode("utf-8"), expected=original, on_replaced=on_replaced)
+    return diff
 
 
-def apply_suggestion(root: Path, suggestion: Suggestion) -> str | None:
+def apply_suggestion(
+    root: Path, suggestion: Suggestion, *, on_replaced: Callable[[Path, bytes], None] | None = None
+) -> str | None:
+    if (
+        suggestion.safe is not True
+        or suggestion.resolution != "link"
+        or not valid_placement(suggestion.entry, suggestion.file, suggestion.table, suggestion.field_name)
+    ):
+        return None
     kind = suggestion.entry.split(":", 1)[0]
     header = {"resource": "[[resource]]", "repository": "[[repository]]", "source": "[[source]]"}.get(kind)
     if header is None or ":" not in suggestion.entry:
@@ -556,12 +612,55 @@ def apply_suggestion(root: Path, suggestion: Suggestion) -> str | None:
         suggestion.table,
         field_name=suggestion.field_name,
         value=suggestion.value,
+        on_replaced=on_replaced,
     )
 
 
 def _accepted(root: Path) -> list[dict[str, Any]]:
     path = root / "content" / ACCEPTED_FILE
     return tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
+
+
+def apply_local(root: Path, report: DuplicateReport) -> tuple[DuplicateReport, bool]:
+    """Apply a local batch with byte-preserving rollback for handled failures."""
+    originals: dict[Path, bytes] = {}
+    written: dict[Path, bytes] = {}
+    diffs = []
+
+    def restore() -> None:
+        for path, expected in written.items():
+            try:
+                atomic_replace(path, originals[path], expected=expected)
+            except OSError as error:
+                print(f"check_duplicates: cannot restore {path}: {error}", file=sys.stderr)
+
+    try:
+        for suggestion in report.suggestions:
+            if not valid_placement(suggestion.entry, suggestion.file, suggestion.table, suggestion.field_name):
+                continue
+            path = root / suggestion.file
+            if path not in originals:
+                originals[path] = path.read_bytes()
+            diff = apply_suggestion(root, suggestion, on_replaced=written.__setitem__)
+            if diff:
+                diffs.append(diff)
+        if not diffs:
+            print("check_duplicates: no safe suggestion could be applied")
+            return report, False
+        checked = check(load_content(root / "content"), _accepted(root))
+        if checked.errors:
+            restore()
+            print("check_duplicates: repair rejected; original files restored where possible")
+            return checked, False
+    except (OSError, ValueError, ContentError, KeyError):
+        restore()
+        raise
+    print("".join(diffs), end="")
+    print(
+        "check_duplicates: applied safe link suggestions. Add one provenance action naming the "
+        "person, the consulted source/record and the changed result; this command does not write it."
+    )
+    return checked, True
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -577,7 +676,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         content = load_content(args.root / "content")
         accepted = _accepted(args.root)
-    except (ContentError, KeyError, tomllib.TOMLDecodeError) as error:
+    except (OSError, ContentError, KeyError, ValueError) as error:
         print(f"check_duplicates: cannot read the content: {error}", file=sys.stderr)
         return 2
     report = check(content, accepted)
@@ -597,23 +696,13 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print("check_duplicates: nothing to fix")
         else:
-            diffs = [diff for suggestion in report.suggestions if (diff := apply_suggestion(args.root, suggestion))]
-            if not diffs:
-                print("check_duplicates: no safe suggestion could be applied")
-            else:
-                applied = True
-                print("".join(diffs), end="")
-                print(
-                    "check_duplicates: applied safe link suggestions. Add one provenance action naming the "
-                    "person, the consulted source/record and the changed result; this command does not write it."
-                )
-                try:
-                    report = check(load_content(args.root / "content"), _accepted(args.root))
-                except (ContentError, KeyError, tomllib.TOMLDecodeError) as error:
-                    print(f"check_duplicates: cannot read the fixed content: {error}", file=sys.stderr)
-                    return 2
-                for error in report.errors:
-                    print(f"error: {error}")
+            try:
+                report, applied = apply_local(args.root, report)
+            except (OSError, ContentError, KeyError, ValueError) as error:
+                print(f"check_duplicates: cannot apply the repair: {error}", file=sys.stderr)
+                return 2
+            for error in report.errors:
+                print(f"error: {error}")
     report_path = args.report
     if report_path is None and os.environ.get("CHECK_REPORT_DIR"):
         report_path = Path(os.environ["CHECK_REPORT_DIR"]) / "duplicates.json"

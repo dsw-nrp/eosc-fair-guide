@@ -5,9 +5,22 @@ const escape = (value) => String(value).replace(/\s+/g, " ").slice(0, 400)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
   .replace(/([\\`*_{}\[\]()#!|])/g, "\\$1").replace(/@/g, "@\u200b");
 const clean = (value, limit = 200) => String(value).replace(/[`\r\n]/g, " ").trim().slice(0, limit);
-const suggestionFiles = new Set(["content/resources.toml", "content/repositories.toml", "content/sources.toml"]);
-const suggestionFields = new Set(["re3data", "fipDashboard", "knav"]);
-const suggestionTables = new Set(["", "resource.repository"]);
+// Independent trusted validator; the Python/Node parity test covers this exact domain.
+const placements = {
+  resource: { re3data: ["content/resources.toml", "resource.repository"], fipDashboard: ["content/resources.toml", ""], knav: ["content/resources.toml", ""] },
+  repository: { re3data: ["content/repositories.toml", ""], fipDashboard: ["content/repositories.toml", ""], knav: ["content/repositories.toml", ""] },
+  source: { knav: ["content/sources.toml", ""] },
+};
+function validPlacement(item) {
+  if (![item.entry, item.file, item.table, item.field].every((value) => typeof value === "string")) return false;
+  const split = item.entry.indexOf(":");
+  if (split <= 0 || split === item.entry.length - 1) return false;
+  const kind = item.entry.slice(0, split);
+  const fields = Object.hasOwn(placements, kind) ? placements[kind] : null;
+  const target = fields && Object.hasOwn(fields, item.field) ? fields[item.field] : null;
+  return Boolean(target && target[0] === item.file && target[1] === item.table);
+}
+const codeText = (value) => escape(clean(value, 400));
 const COMMENT_LIMIT = 60000;
 const SUGGESTION_COMMENT_LIMIT = 12;
 
@@ -16,7 +29,7 @@ function validSuggestion(item) {
     typeof item.entry === "string" && item.entry.length <= 200 &&
     typeof item.record === "string" && item.record.length <= 200 &&
     item.resolution === "link" && item.safe === true &&
-    suggestionFiles.has(item.file) && suggestionFields.has(item.field) && suggestionTables.has(item.table) &&
+    validPlacement(item) &&
     typeof item.value === "string" && item.value.length > 0 && item.value.length <= 128 &&
     typeof item.reason === "string" && item.reason.length <= 400;
 }
@@ -32,7 +45,7 @@ function suggestionLines(run, suggestions, repository) {
   if (!items.length) return dropped ? ["", "### Suggested fixes", "", `${dropped} malformed suggestion(s) were omitted.`] : [];
   const lines = ["", "### Suggested fixes", ""];
   for (const item of items) {
-    lines.push(`- \`${escape(item.entry)}\` ← \`${escape(item.record)}\`: ${escape(item.reason)}`);
+    lines.push(`- \`${escape(item.entry)}\` ← \`${escape(item.record)}\`: \`${codeText(item.reason)}\``);
     const table = item.table || "entry";
     lines.push("  ```diff", `  --- ${item.file}`, `  +++ ${item.file}`,
       `  @@ ${table} (${clean(item.entry)})`, `  +${item.field} = "${clean(item.value)}"`, "  ```");
@@ -115,4 +128,4 @@ async function comment({ github, context, core }, read = readReport) {
   }
 }
 
-module.exports = { body, matches, comment };
+module.exports = { body, matches, comment, validSuggestion };

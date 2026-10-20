@@ -502,6 +502,14 @@ failure report, so the artifact contains the same evidence the lane produced. Th
 carry the duplicate check's safe suggestions and point to `.cache/pr-review/suggestions.json`.
 The suggestion artifact identifies the PR source head separately from `checkedRevision`, the merge revision
 used for the build, so the trusted publisher can check freshness against the PR head.
+Suggestions are admitted only from the reconciled lane owning the duplicate check. Rejected identity or
+required evidence yields an empty suggestion payload; other incoming directories cannot supply suggestions.
+The required report is emitted first; optional suggestion read/write/summary failures are warnings and do
+not hide required diagnostics or change their outcome. Previous suggestion output is invalidated before
+publication. A partial required result becomes a failed aggregate row with an incomplete-coverage explanation,
+while its partial flag and native lane evidence remain available.
+Suggestion upload uses the collector's successful current-run `suggestions_path` output. If invalidating a
+previous artifact fails, its presence on disk cannot admit it to the uploaded review data.
 Three validation passes cover RO-Crate 1.2, Process Run Crate and the Guide profile; inheritance is
 disabled where an older crate descriptor would conflict. Known subclass inference, action-status IRI
 and RDF-property recommendations do not waive required profile checks.
@@ -528,7 +536,9 @@ A separate trusted `workflow_run` posts the PR summary from bounded JSON artifac
 their code. It verifies current PR head/source repo, escapes Markdown and updates only its own bot
 comment with narrow PR write access. The first-page summary states the true total and links the complete
 changed-item list. When the duplicate check emitted a safe suggestion, the comment adds a bounded "Suggested
-fixes" section with the exact file, table, field, value and reason; it never edits the repository. PR execution
+fixes" section with the exact file, table, field, value and reason; it never edits the repository. Reasons
+render as inert code text in both the comment and CI summary. Artifact text cannot turn into
+links, images or notifications. PR execution
 has no secrets or delivery token. Dependency/action pins use Dependabot. Human/code-owner review follows
 CONTRIBUTING; automated jobs never merge their own proposals.
 
@@ -546,6 +556,10 @@ still needs review rejects the replacement instead of writing it.
 currently authorized writer. Trusted default-branch code parses the command and proposes one reserved
 `refresh/<source>` branch per source through the repository-scoped App. Identical proposals are reused,
 rejected content is not repeatedly proposed and human-edited branches are left for reconciliation.
+Automatic replacement requires a complete nonempty commit inventory, the configured refresh App as every
+author, and only the expected `Refresh the <source> snapshot` messages. Repairs made by the same App are
+therefore protected too. Missing inventory or unknown authors/messages leaves the branch intact and reports
+the need to reconcile it manually; the maintainer fix command remains available on eligible refresh PRs.
 App settings and narrower per-job tokens are in [deployment.md](deployment.md#release-preparation-and-tagging).
 Nothing writes the default branch or merges; fixtures do not establish remote activation.
 
@@ -557,6 +571,13 @@ conflicting link and no accepted exception. The suggestion names the file, table
 written to `duplicates.json` under `CHECK_REPORT_DIR` or `--report`. `--fix` applies only safe suggestions to
 the working tree, prints a unified diff and leaves the provenance action to the person running it. Neither path
 edits `content/duplicates.toml` or accepts a lookalike group.
+Safe ownership is checked across the full catalogue and suggestion set. Exact placement rules are shared by
+Python consumers and checked for parity with the independent Node validator. The local batch validates TOML,
+replaces targets atomically and rechecks duplicates before reporting success. Handled failures restore
+original bytes; concurrently changed targets are refused and restoration failures are reported by path.
+Rollback records the known replacement bytes immediately after the swap, before cleanup, without a
+post-write discovery read; a cleanup failure therefore also restores the edited target.
+Atomicity is per file; process termination is not a multi-file filesystem transaction.
 
 `/fix-duplicates` is a separate trusted `issue_comment` workflow. It checks the commenter's current write
 access, requires an open same-repository PR targeting the default branch with a non-default head, extracts the
@@ -573,6 +594,10 @@ unrelated missing IDs still fail validation. The App secrets are
 write. The command never runs on schedules or forks, never merges and never pushes the default branch. Rollback
 is a revert of its commit or removal of the workflow; a stale head is a no-op. The local `--fix` remains the
 fallback when the command is unavailable.
+The App's diff and content-error comments use bounded, safely closed fences that contain authored Markdown,
+including embedded fence delimiters; truncation retains the commit reference. An unexpected workflow failure
+directs the maintainer to inspect the branch and run because the commit may have landed before its comment
+failed. It does not imply an unchanged branch or automatically undo an already published repair.
 
 `health-watch.yml` checks links, connectors, stale dates and watched EOSC CZ page content, excluding
 navigation/header/footer. Champion remeasurement is monthly or requested. Repeated failures precede

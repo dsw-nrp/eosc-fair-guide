@@ -33,9 +33,6 @@ import register_ids  # noqa: E402
 COMMAND = "/fix-duplicates"
 INSTRUMENT = "duplicate-fix"
 COMMENT_LIMIT = 60000
-ALLOWED_FILES = {"content/resources.toml", "content/repositories.toml", "content/sources.toml"}
-ALLOWED_FIELDS = {"re3data", "fipDashboard", "knav"}
-ALLOWED_TABLES = {"", "resource.repository"}
 REGISTRY_OBJECTS = {"re3data": "re3data", "fip-dashboard": "fip-dashboard", "knav": "knav"}
 WRITERS = {"admin", "maintain", "write"}
 
@@ -162,10 +159,6 @@ def apply_safe_suggestions(root: Path, suggestions: list[check_duplicates.Sugges
     diffs = []
     changed = set()
     for suggestion in suggestions:
-        if not suggestion.safe or suggestion.file not in ALLOWED_FILES:
-            continue
-        if suggestion.field_name not in ALLOWED_FIELDS or suggestion.table not in ALLOWED_TABLES:
-            continue
         diff = check_duplicates.apply_suggestion(root, suggestion)
         if diff:
             diffs.append(diff)
@@ -175,20 +168,14 @@ def apply_safe_suggestions(root: Path, suggestions: list[check_duplicates.Sugges
 
 def load_fix_context(root: Path) -> tuple[dict[str, Any], list[check_duplicates.Suggestion]]:
     content = build_crate.load_content(root / "content")
-    accepted_path = root / "content" / check_duplicates.ACCEPTED_FILE
-    accepted = (
-        tomllib.loads(accepted_path.read_text(encoding="utf-8")).get("accepted", []) if accepted_path.exists() else []
-    )
+    accepted = check_duplicates._accepted(root)
     suggestions = [item for item in check_duplicates.check(content, accepted).suggestions if item.safe]
     return content, suggestions
 
 
 def content_errors(root: Path) -> list[str]:
     content = build_crate.load_content(root / "content")
-    accepted_path = root / "content" / check_duplicates.ACCEPTED_FILE
-    accepted = (
-        tomllib.loads(accepted_path.read_text(encoding="utf-8")).get("accepted", []) if accepted_path.exists() else []
-    )
+    accepted = check_duplicates._accepted(root)
     errors = list(check_duplicates.check(content, accepted).errors)
     errors += list(check_content.check(content, root).errors)
     return errors
@@ -294,10 +281,23 @@ class GitHub:
 def bounded_comment(prefix: str, diff: str, suffix: str) -> str:
     """Keep a pull-request comment below GitHub's limit without losing the commit reference."""
     marker = "\n… diff truncated; the complete change is in the commit."
-    available = max(COMMENT_LIMIT - len(prefix) - len(suffix) - len(marker), 0)
-    if len(diff) > available:
-        diff = diff[:available] + marker
-    return prefix + diff + suffix
+    budget = COMMENT_LIMIT - len(prefix) - len(suffix) - len(marker) - 14
+    if budget < 0:
+        raise ValueError("comment prefix and suffix exceed the size limit")
+    retained = diff[:budget]
+    while True:
+        fences = [
+            char * max(3, 1 + max((len(match[0]) for match in re.finditer(re.escape(char) + "+", retained)), default=0))
+            for char in ("`", "~")
+        ]
+        fence = min(fences, key=len)
+        content = retained + (marker if len(retained) < len(diff) else "")
+        text = prefix + fence + "diff\n" + content.rstrip("\n") + "\n" + fence + "\n" + suffix
+        if len(text) <= COMMENT_LIMIT:
+            return text
+        # Pathological runs of both delimiter characters can make the enclosure large.
+        # Shrink the retained content and recompute the fence within the same total budget.
+        retained = retained[: max(0, len(retained) - (len(text) - COMMENT_LIMIT))]
 
 
 def refusal(message: str) -> int:
@@ -382,7 +382,7 @@ def run_fix(  # noqa: PLR0911
     errors = content_errors(root)
     if errors:
         bounded = "\n".join(errors[:20])[:4000]
-        gh.comment(pr, "The fix would leave content errors; no file was changed:\n\n```text\n" + bounded + "\n```")
+        gh.comment(pr, bounded_comment("The fix would leave content errors; no file was changed:\n\n", bounded, ""))
         return 0
     current = gh.pull(pr)
     if current.get("head", {}).get("sha") != head:

@@ -3,7 +3,8 @@
 ## ADDED Requirements
 
 ### Requirement: Aggregate checks report every failure with diagnostics
-When required checks fail, the aggregate SHALL name every failed check, not only the first, and SHALL include a bounded tail of each failure's output in the CI summary. The collector SHALL preserve the lane logs and details in the uploaded health artifact on failure. A failed aggregate SHALL remain a failure; this requirement changes diagnostics, not the gate.
+
+Required aggregate checks SHALL name every failed or partial check and include bounded diagnostics while preserving lane logs and details. Partial results SHALL fail even at native exit zero, retaining their partial flag and original evidence. Required diagnostics SHALL precede optional suggestions; optional processing errors SHALL be reported without hiding diagnostics or changing the required-check outcome. The gate SHALL remain failing when required checks fail.
 
 #### Scenario: Two checks fail in one lane
 - **GIVEN** content and duplicates both fail in the CPU lane
@@ -15,8 +16,21 @@ When required checks fail, the aggregate SHALL name every failed check, not only
 - **WHEN** the collector rejects the aggregate
 - **THEN** the health artifact contains those logs and details
 
+#### Scenario: A browser check leaves pending cases
+
+- **GIVEN** a required browser result with exit code zero, partial coverage and pending or skipped cases
+- **WHEN** the collector publishes the aggregate
+- **THEN** the aggregate and check row are failed, its output is shown, and the partial evidence remains inspectable
+
+#### Scenario: Optional output cannot be written
+
+- **GIVEN** reconciled check results and an unwritable optional suggestion destination
+- **WHEN** optional publication fails
+- **THEN** the required report and its original pass/fail outcome remain available and the optional error is reported
+
 ### Requirement: The trusted review comment surfaces suggested fixes
-The review-comment publisher SHALL read bounded suggestion data from the check artifacts and SHALL add a "Suggested fixes" section to its own comment. It SHALL escape the text, state the reason, keep the PR check workflow read-only, and skip a stale head. It SHALL NOT apply the suggestion.
+
+The trusted publisher SHALL show bounded exact suggestions and reasons as inert text, never apply them, and keep PR checks read-only. Only reconciled duplicate-lane evidence SHALL supply suggestions, retaining checked revision separately from the current PR head and rejecting stale heads or repositories. Invalid artifacts SHALL be filtered safely. Required evidence rejection SHALL publish no suggestions; upload SHALL admit only successfully generated current-run output.
 
 #### Scenario: A duplicate suggestion is available
 - **GIVEN** a completed check run with a safe duplicate suggestion
@@ -33,8 +47,56 @@ The review-comment publisher SHALL read bounded suggestion data from the check a
 - **WHEN** the collector prepares suggestions for the trusted publisher
 - **THEN** it retains both identities and the publisher admits suggestions for the current PR source head
 
+#### Scenario: Wrong lane identity accompanies plausible suggestions
+
+- **GIVEN** a lane with a stale source revision or wrong build identity and a valid-looking duplicates artifact
+- **WHEN** the collector rejects the evidence
+- **THEN** no suggestion from that run is published under the current PR head
+
+#### Scenario: Required evidence is incomplete
+
+- **GIVEN** a missing lane, duplicated job or invalid required script/case evidence
+- **WHEN** aggregate reconciliation fails
+- **THEN** the failure diagnostics are retained but no suggestions are published
+
+#### Scenario: A valid duplicate failure produces suggestions
+
+- **GIVEN** reconciled lanes with a failing duplicate check and safe suggestions from its owning lane
+- **WHEN** the collector emits the failed aggregate
+- **THEN** those suggestions remain available with the checked revision and current PR source head kept separate
+
+#### Scenario: An unrelated directory carries suggestions
+
+- **GIVEN** valid required lanes and an extra directory with a duplicates artifact
+- **WHEN** the collector gathers suggestions
+- **THEN** it ignores the extra artifact
+
+#### Scenario: A suggestion field is an array or object
+
+- **GIVEN** an otherwise recognizable artifact with a non-string file, table, field or identity value
+- **WHEN** the collector validates it
+- **THEN** it drops the malformed suggestion and continues emitting required diagnostics
+
+#### Scenario: An earlier suggestions file exists
+
+- **GIVEN** a previous suggestions output and a newly rejected aggregate
+- **WHEN** the collector completes its failure path
+- **THEN** the previous suggestions are removed, replaced by an empty payload, or excluded from the uploaded review artifact rather than republished
+
+#### Scenario: Invalidating an earlier artifact fails
+
+- **GIVEN** a previous suggestions file and an I/O failure when invalidating it
+- **WHEN** the collector handles the optional error
+- **THEN** the required report retains its outcome and the upload receives no suggestion path for that run
+
+#### Scenario: A reason contains an external address or mention
+
+- **WHEN** a reason containing a bare URL, Markdown link, image, mention or backtick is rendered
+- **THEN** neither publication surface turns the reason into a clickable link, embedded image or notification
+
 ### Requirement: A maintainer can request a safe duplicate fix
-A trusted command SHALL allow a maintainer with current write access to apply only safe duplicate suggestions on a same-repository pull request. It SHALL verify the caller, reject forks and schedules, apply only the reviewed safe suggestions, add a provenance action naming the caller, commit to the PR branch with the repository-scoped App, and report the changed fields. It SHALL NOT merge, push to the default branch, or accept a duplicate.
+
+A trusted fix command SHALL verify current writer access and apply only reviewed safe links on eligible same-repository PRs with requester provenance and changed-field reporting. It SHALL reject forks and schedules, never merge, write the default branch or accept duplicates. Bot diffs SHALL be bounded inert text; uncertain failures SHALL require branch inspection. Refresh SHALL preserve repairs and replace only complete, nonempty lists of the configured App's expected snapshot commits.
 
 #### Scenario: An unauthorised caller requests the fix
 - **GIVEN** a comment from an account without current write access
@@ -65,3 +127,33 @@ A trusted command SHALL allow a maintainer with current write access to apply on
 - **GIVEN** content extracted from an earlier PR head
 - **WHEN** the first validated PR head read differs from the recorded extraction SHA
 - **THEN** the handler refuses before applying changes or creating a commit
+
+#### Scenario: A refresh PR contains a duplicate repair by the same App
+
+- **GIVEN** an open refresh PR with a snapshot commit followed by an App-authored duplicate repair
+- **WHEN** newer changed source content is published
+- **THEN** its link, provenance and registered identifier remain intact and the publisher explains the manual reconciliation
+
+#### Scenario: The branch contains only recognized refresh commits
+
+- **GIVEN** an open proposal whose commits all belong to the configured App and have the expected source-refresh message
+- **WHEN** newer changed source content is published
+- **THEN** the ordinary refresh update remains available
+
+#### Scenario: Branch ownership is unknown
+
+- **GIVEN** a missing bot identity, unavailable or empty commit inventory, different author, or unexpected message
+- **WHEN** publication evaluates whether it may replace the branch
+- **THEN** it preserves the branch and reports why automatic replacement was refused
+
+#### Scenario: A repair diff contains a fence and is truncated
+
+- **GIVEN** PR-authored diff context containing Markdown and fence delimiters and exceeding the comment budget
+- **WHEN** the success comment is formatted
+- **THEN** the diff stays inert inside a closed enclosure and the commit reference remains visible
+
+#### Scenario: Posting the success comment fails after committing
+
+- **GIVEN** the App successfully updates the PR branch and the following comment request fails
+- **WHEN** the workflow reports the unexpected failure
+- **THEN** it points to the run and asks the maintainer to check the branch state without claiming no change occurred

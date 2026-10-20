@@ -10,15 +10,19 @@ All notable changes to this guide are recorded here. The format follows
 ### Added
 
 - Exact duplicate-link suggestions in check artifacts and trusted PR comments, with an explicit local
-  `--fix` and maintainer `/fix-duplicates` command that records provenance, registers its ID and guards the PR head.
+  `--fix` and maintainer `/fix-duplicates` command that records provenance, registers its ID and guards the PR head;
+  repaired refresh pull requests remain protected for manual reconciliation.
 
 ### Fixed
 
 - Include the dated re3data snapshot from PR #82 and link the NRP Data Catch-all Repository to
   `r3d100014970`, keeping its curated resource and imported record as one repository entity.
-- Report every failed check with bounded diagnostics and retain lane logs and details in the health artifact.
-- Refuse competing duplicate links, preserve existing TOML keys, validate fixes before writing, distinguish
-  PR heads from checked merge revisions, and reserve active and retired content identifiers during refresh.
+- Report every failed or incomplete required check with bounded diagnostics, retain lane logs and details,
+  and publish suggestions only from validated evidence without allowing optional output errors to hide failures.
+- Refuse competing duplicate owners and invalid link placements, replace local repair files atomically with
+  rollback on handled failures, preserve existing TOML keys, and reserve active and retired identifiers during refresh.
+- Keep authored Markdown inert in bot reasons and repair diffs, retain commit references within comment bounds,
+  and explain uncertain branch state after a command failure. PR heads remain distinct from checked merge revisions.
 
 ## [1.0.0-alpha.2] - 2026-10-19
 

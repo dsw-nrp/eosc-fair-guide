@@ -8,13 +8,13 @@ The duplicate rule is correct and must stay a gate. The maintenance cost is in d
 
 ## What Changes
 
-- `check_duplicates` emits a structured, machine-readable suggestion beside its current human-readable error for groups it can resolve unambiguously: a curated entry and one registry record sharing an authoritative key, a known link field, no existing conflicting link.
-- The required `checks` job reports every failed check with a bounded output tail, not only the first one, and copies lane logs and details into the health artifact on failure so the summary and artifact agree.
-- The trusted PR comment adds a "Suggested fixes" section with a fenced patch and the reason. The PR check workflow stays read-only and never edits content.
-- A local `--fix` mode applies only `safe` suggestions, prints the diff, and leaves the commit and provenance action to the person running it.
-- A maintainer-triggered `/fix-duplicates` command on a same-repository PR applies only `safe` suggestions, records the commenting maintainer as the provenance agent, commits to the PR branch through the trusted App, and lets the checks rerun. It never runs on schedules, never runs for untrusted forks, and never auto-accepts a duplicate in `content/duplicates.toml`.
+- `check_duplicates` emits a structured, machine-readable suggestion beside its current human-readable error for groups it can resolve unambiguously: a curated entry and one registry record sharing an authoritative key, a reviewed exact link placement, no existing conflicting link and unique ownership across all entries and proposals.
+- The required `checks` job reports every failed check with a bounded output tail, not only the first one, and copies lane logs and details into the health artifact on failure so the summary and artifact agree. Partial required results are failures; optional suggestion errors cannot suppress required diagnostics.
+- The trusted PR comment adds a "Suggested fixes" section with a fenced patch and inert reason text from reconciled lane evidence. Upload uses only successfully generated current-run suggestions. The PR check workflow stays read-only and never edits content.
+- A local `--fix` mode applies only `safe` suggestions through validated atomic replacements, rolls back handled failures, prints the diff and provenance reminder only after a passing recheck, and leaves the commit and provenance action to the person running it.
+- A maintainer-triggered `/fix-duplicates` command on a same-repository PR applies only `safe` suggestions, records the commenting maintainer as the provenance agent, commits to the PR branch through the trusted App, and lets the checks rerun. It never runs on schedules, never runs for untrusted forks, and never auto-accepts a duplicate in `content/duplicates.toml`. Repair diffs are inert and bounded; uncertain post-commit failures require branch inspection. Repaired refresh PRs remain protected for manual reconciliation.
 - `refresh_snapshots` passes the Guide-owned identifiers already used in `content/` as reserved IDs, so a new snapshot row cannot silently mint an identifier owned by another entry.
-- Regression tests cover the PR 82 case (a new re3data record matching a curated resource), ambiguous groups that must not be auto-fixed, aggregate multi-failure reporting and the reserved-ID guard.
+- Regression tests cover the PR 82 case (a new re3data record matching a curated resource), ambiguous or competing owners, exact-placement parity, atomic rollback and post-swap cleanup, validated CI evidence and partial failures, inert bounded bot output, protected refresh branches and the reserved-ID guard.
 
 Excluded: automatic curated-content edits on schedules or ordinary PRs, auto-accepting lookalike records, changing the duplicate rule itself, and any new provider or registry integration.
 
@@ -38,6 +38,7 @@ None.
 - `scripts/refresh_snapshots.py` and `scripts/catalogue_identity.py`: reserved IDs and regression behaviour.
 - `.github/workflows/checks.yml`: summary and artifact changes only; read-only remains.
 - `.github/workflows/pr-summary.yml`, `.github/scripts/comment-summary.cjs`: trusted suggestion comment.
+- `.github/scripts/source-publisher.cjs`: preserve repair commits on refresh branches.
 - A maintainer-only fix workflow or an extension of the existing trusted publisher, with the repository-scoped App and current-permission checks.
 - Tests under `tests/`; `docs/design.md` and `docs/content-model.md` where the suggestion and fix boundaries are described.
 - No generated site output, API schema change or browser behaviour change.

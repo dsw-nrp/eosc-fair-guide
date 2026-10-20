@@ -73,7 +73,8 @@ assert.deepEqual(await publish({ github, context, core }, read(changed), exists,
 
 // An open bot proposal is updated from current main; one with a person's commit is left alone and explained.
 const older = { number: 6, head: "dsw-nrp:refresh/heslar", body: markerOf("heslar", "1".repeat(64)) };
-({ github, writes } = fakeGithub({ open: [older], commits: [{ author: { login: bot } }], branches: ["heads/refresh/heslar"] }));
+const refreshCommit = { author: { login: bot }, commit: { message: "Refresh the heslar snapshot" } };
+({ github, writes } = fakeGithub({ open: [older], commits: [refreshCommit], branches: ["heads/refresh/heslar"] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "updated" });
 assert.deepEqual(writes.filter(([kind]) => kind === "updateRef").map(([, options]) => [options.ref, options.force]), [["heads/refresh/heslar", true]]);
 ({ github, writes } = fakeGithub({ open: [older], commits: [{ author: { login: bot } }, { author: { login: "maintainer" } }], branches: ["heads/refresh/heslar"] }));
@@ -81,6 +82,22 @@ assert.deepEqual(await publish({ github, context, core }, read(changed), exists,
 assert.deepEqual(writes.map(([kind]) => kind), ["comment"], "human edits are kept: no ref update, one explanation");
 ({ github, writes } = fakeGithub({ open: [older], commits: [{ author: { login: bot } }], branches: ["heads/refresh/heslar"] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, undefined), { heslar: "human-edits" }, "an unknown bot identity cannot claim a branch");
+
+for (const commits of [
+  [refreshCommit, { author: { login: bot }, commit: { message: "Apply safe duplicate link from /fix-duplicates (PR #82)" } }],
+  [{ author: { login: bot }, commit: { message: "Refresh the re3data snapshot" } }],
+  [{ author: { login: bot } }], [{ author: null }], [],
+  [{ author: { login: "another[bot]" }, commit: refreshCommit.commit }],
+]) {
+  ({ github, writes } = fakeGithub({ open: [older], commits, branches: ["heads/refresh/heslar"] }));
+  await publish({ github, context, core }, read(changed), exists, bot);
+  assert.deepEqual(writes.map(([kind]) => kind), ["comment"], "repairs and unknown branch ownership are preserved");
+  assert(writes[0][1].body.includes("reconcile"), "protected branches explain manual reconciliation");
+}
+({ github, writes } = fakeGithub({ open: [older], commits: [refreshCommit] }));
+github.rest.pulls.listCommits = () => { throw Error("inventory unavailable"); };
+await publish({ github, context, core }, read(changed), exists, bot);
+assert.deepEqual(writes.map(([kind]) => kind), ["comment"], "failed inventory cannot replace a branch");
 
 // Commands: exactly "/refresh <reviewed key>", from a current writer, on a pull request.
 assert.equal(parseCommand("/refresh heslar"), "heslar");

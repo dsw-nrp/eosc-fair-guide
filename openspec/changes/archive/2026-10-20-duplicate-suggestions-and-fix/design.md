@@ -55,6 +55,13 @@ Safety is checked across the complete suggestion set: different values for the s
 make that target ambiguous. An existing key, including an empty value, is not a missing field. Consumers
 inspect the whole target table and parse the proposed TOML before replacing the original file.
 
+The registry-link owner index covers the full catalogue. A record already linked by another curated
+entry cannot supply a safe suggestion; competing proposed owners are excluded even across joined
+registries, and identical suggestions are deduplicated. One Python mapping owns exact entry-kind,
+file, table and field combinations, shared by producer, collector and both apply consumers. The
+independently trusted Node validator is checked against that domain, including invalid combinations.
+Both handler paths reuse the checker's accepted-group loader.
+
 Alternative considered: put the patch into the error string and parse it in CI. Rejected because it makes a display format a data contract and is unsafe to parse.
 
 ### 2. Suggestions are surfaced, not applied, by PR checks
@@ -66,11 +73,27 @@ The `checks` job summary renders the same suggestion text for a reader who does 
 The artifact's `head` is the PR source head supplied by the workflow, while `checkedRevision` retains the
 merge commit used for the build. These identities remain separate; publisher freshness uses the source head.
 
+Only the directory returned by successful reconciliation for the duplicate check's owning lane can
+supply suggestions; arbitrary incoming directories cannot. Identity or required-evidence rejection
+yields no suggestions. Required diagnostics are published before optional suggestion work, whose
+bounded errors remain warnings without changing the gate. The collector invalidates previous output
+and emits `suggestions_path` only after current-run generation and summary publication succeed; the
+upload uses that step output. A stale file that cannot be removed is therefore excluded from review
+artifacts. Reasons render as inert code text on both the bot comment and CI summary.
+
 Alternative considered: a GitHub inline suggested change. Rejected because the repaired file is usually not in the pull request's diff, so no inline position exists. A normal PR comment with a diff is reliable.
 
 ### 3. Local `--fix` is a convenience for a person, not a CI action
 
 `python scripts/check_duplicates.py --fix` applies only `safe` suggestions to the working tree, prints a unified diff, and exits non-zero if nothing was applicable. It does not add a provenance action and does not commit. The printed output names the provenance fields the person must complete, because the content rules require a person as the agent and a reviewable action for the changed entry.
+
+Prepare and parse edits before replacement, write and close temporary siblings, then use `os.replace`
+only if the target still has its inspected bytes. Preserve original bytes for affected targets and
+register known replacement bytes in the rollback map immediately after the swap, before cleanup;
+there is no post-write discovery read. Application, cleanup, content-loading or final duplicate-check
+failure restores earlier changes and returns nonzero. Concurrent changes are refused and restoration
+errors name the affected path. Print the exact unified diff, success message and complete provenance
+reminder only after a passing recheck. This is atomic per file, not a crash-atomic multi-file transaction.
 
 Alternative considered: `--fix` writes a provenance stub. Rejected because a stub would be a placeholder and the checker would either fail or accept an incomplete action.
 
@@ -97,11 +120,27 @@ The handler:
 9. Commits to the PR branch through the App without force-pushing, comments the applied diff and new head, and leaves the checks to rerun.
 10. Never merges, never pushes to the default branch, and never edits `content/duplicates.toml`.
 
+Repair diffs and PR-derived diagnostics use safely closed fences longer than any matching delimiter
+run in retained text; truncation budgets the enclosure and keeps the commit reference. If the success
+comment fails after committing, the workflow asks the maintainer to inspect the branch and run; it
+does not imply the branch stayed unchanged or automatically undo the commit.
+
+The command remains available on eligible `refresh/*` PRs. Source publication replaces an existing
+branch only when the complete nonempty inventory belongs to the configured App and every message is
+the expected `Refresh the <source> snapshot` message, allowing a terminal newline. The guard shares
+that message construction with publication. Same-App repairs, people, other bots, unknown authors or
+messages and missing/failed inventories protect the branch and explain manual reconciliation; no
+tree, commit or ref update occurs. This preserves repairs instead of removing the refresh-PR use case.
+
 Alternative considered: extend `source-refresh.yml`. Rejected because it would mix snapshot publication with curated-content edits and widen the command's trust surface.
 
 ### 5. The aggregate reports every failure and keeps the evidence
 
-`check_ci.reconcile` collects every failed row instead of raising on the first, and returns a structured failure carrying each check name and a bounded output tail. `collect` emits those rows in the report, so `check_health.markdown` lists every failed check. Before emitting a failure report, the collector copies the incoming lane `logs/` and `details/` directories into the output, so the health artifact contains the same evidence the lane produced. The aggregate still exits non-zero and still cannot publish a complete pass.
+`check_ci.reconcile` collects every failed row instead of raising on the first, and returns a structured failure carrying each check name and a bounded output tail. `collect` emits those rows in the report, so `check_health.markdown` lists every failed check. Before emitting a failure report, the collector copies the incoming lane `logs/` and `details/` directories into the output, so the health artifact contains the same evidence the lane produced. The aggregate still exits non-zero and still cannot publish a complete pass. Required partial rows
+become failed aggregate results even at native exit zero, with an incomplete-coverage explanation
+and their partial flag retained. Original lane exit codes and evidence remain available; console
+and health rendering consume the same normalized failure without changing the shared `Result.ok`
+meaning or health schema.
 
 The summary uses a fixed bound (for example, the last 40 lines or 4 KiB per failed check) and states that the full output is in the artifact. This avoids unbounded log volume while preserving the exact error text that PR 82 hid.
 
@@ -120,6 +159,9 @@ snapshot is preserved as reviewed source data; it and the curated resource build
 ### 7. Suggestion data is validated like any other artifact
 
 The publisher treats `suggestions.json` as untrusted data even though it comes from the repository's own checks. It validates the format version, the PR head and repository, the number and size of suggestions, and the file/table/field names against the allowed map before rendering. Unknown or malformed suggestions are dropped with a count in the comment, not rendered as Markdown.
+Require strings before membership or exact-placement lookup so arrays and objects cannot abort
+failure diagnostics. Python consumers use the canonical mapping; Node keeps an independent mapping
+whose accepted and rejected combinations are checked for parity.
 
 ## Risks / Trade-offs
 
@@ -131,6 +173,11 @@ The publisher treats `suggestions.json` as untrusted data even though it comes f
 - **Stale suggestions** → The handler re-reads the head and aborts if the target content changed; the comment publisher skips a stale head.
 - **Missing person mapping** → The command refuses rather than inventing an agent; the local `--fix` path prints the fields for the human to complete.
 - **Suggestion treated as a verdict** → `safe` is a boolean about mechanical applicability, not a claim that the two records are the same thing; the comment states the shared key and the remedy.
+
+- **Repair atomicity** -> Per-file swaps and handled-error rollback do not promise recovery after
+  process termination or total disk failure; restoration failures are explicit.
+- **Protected refresh PRs** -> A person reconciles new source content once a repair is present,
+  preserving its link, provenance and registered identifier.
 
 ## Migration Plan
 

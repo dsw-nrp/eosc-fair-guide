@@ -710,7 +710,8 @@ diagnostic and failure exit contract across content validation, site/API builds 
 - **THEN** it SHALL report the established content diagnostic and exit code 2 without an uncaught traceback
 
 ### Requirement: Duplicate groups carry an exact, unambiguous suggestion
-When the duplicate check reports a group it can resolve without editorial judgement, it SHALL also provide a machine-readable suggestion naming the curated entry, file, table, field and value, and SHALL keep the existing human-readable error. It SHALL mark a suggestion safe only when exactly one curated entry and one registry record share an authoritative key, the curated entry lacks the link, the field placement is known, and no accepted exception applies.
+
+The duplicate check SHALL retain existing human-readable errors and emit exact machine-readable links naming the curated entry, record, file, table, field and value. A safe link SHALL require one curated entry and one present registry record sharing an authoritative key, a missing link, a reviewed placement, no accepted exception and unique ownership across all entries and suggestions. Python consumers SHALL share exact placements, with independent Node-validator parity.
 
 #### Scenario: A new re3data record matches a curated resource
 - **GIVEN** a re3data snapshot record and a curated resource sharing an address, with no re3data link on the resource
@@ -722,8 +723,32 @@ When the duplicate check reports a group it can resolve without editorial judgem
 - **WHEN** the duplicate check runs
 - **THEN** it reports the group without marking any suggestion safe
 
+#### Scenario: A registry record already has an owner
+
+- **GIVEN** curated A links registry record R and curated B shares an authoritative key with R
+- **WHEN** the duplicate check considers adding the same registry link to B
+- **THEN** it reports the duplicate without suggesting that B safely acquire R
+
+#### Scenario: Two unlinked curated entries compete for one record
+
+- **GIVEN** different authoritative keys independently match two curated entries to one registry record
+- **WHEN** the complete suggestion set is checked
+- **THEN** neither assignment is marked safe and applying fixes changes neither entry
+
+#### Scenario: Individually allowed values form an invalid placement
+
+- **GIVEN** a suggestion contains a known file, table and field but their combination is not valid for its entry kind
+- **WHEN** a producer or consumer validates it
+- **THEN** it is not emitted, published or applied as a safe suggestion
+
+#### Scenario: An artifact validator drifts
+
+- **WHEN** the Node artifact validator accepts a placement the Python contract rejects, or rejects an allowed placement
+- **THEN** the parity check fails and identifies the disagreement
+
 ### Requirement: Safe duplicate suggestions are applied only by explicit human action
-A safe suggestion SHALL NOT be applied by scheduled jobs or ordinary pull-request checks. A local fix mode and a maintainer-triggered command MAY apply it, SHALL print or report the exact change, and SHALL require a provenance action naming the person who requested the fix. The duplicate rule and the accepted-group file SHALL NOT be changed automatically.
+
+Safe suggestions SHALL require explicit human action and provenance naming the requester; schedules and ordinary PR checks SHALL NOT apply them. Local repair SHALL validate TOML, replace each target atomically, restore original bytes on handled application or recheck failure, and report the exact diff and provenance reminder only after success. Failure or no-op SHALL return nonzero. The duplicate rule and accepted groups SHALL NOT change automatically.
 
 #### Scenario: Scheduled refresh meets a duplicate
 - **GIVEN** a scheduled source refresh adds a record that duplicates a curated entry
@@ -749,6 +774,35 @@ A safe suggestion SHALL NOT be applied by scheduled jobs or ordinary pull-reques
 - **GIVEN** a maintainer requests the fix on a same-repository pull request
 - **WHEN** the safe suggestion is applied
 - **THEN** the change is committed to that branch with a provenance action naming the maintainer, and the checks rerun
+
+#### Scenario: A replacement fails
+
+- **GIVEN** a safe link and a failure while writing its temporary replacement or replacing its target
+- **WHEN** the local repair handles the error
+- **THEN** the original target bytes are preserved, temporary files are cleaned up and the command reports failure
+
+#### Scenario: Rechecking the completed repair fails
+
+- **GIVEN** one or more files were changed by local duplicate repair
+- **WHEN** content loading fails or duplicate errors remain during the final recheck
+- **THEN** every changed target is restored to its original bytes and the command returns nonzero
+
+#### Scenario: A later target fails after an earlier target changed
+
+- **GIVEN** multiple safe links affect different files
+- **WHEN** applying a later link raises an error
+- **THEN** the earlier changes are also restored and no applied-success message is printed
+
+#### Scenario: Cleanup fails after a target was replaced
+
+- **GIVEN** a target was replaced successfully and the following temporary-file cleanup raises an error
+- **WHEN** the local repair handles the error
+- **THEN** the replaced target is already tracked for rollback and its original bytes are restored without a post-write discovery read
+
+#### Scenario: A valid local repair completes
+
+- **WHEN** all safe links are applied and the duplicate recheck passes
+- **THEN** the command prints the applied working-tree diff and the provenance reminder and returns zero
 
 ### Requirement: New snapshot identifiers are reserved across the Guide
 A snapshot refresh SHALL NOT assign a new record identifier that is already used by another Guide entry, and SHALL preserve existing local identifiers across refresh as before. A collision that cannot be resolved by an existing identity join SHALL be rejected for review rather than written.

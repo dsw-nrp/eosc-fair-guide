@@ -247,7 +247,7 @@ class PartitionTests(unittest.TestCase):
                 },
             )
             with mock.patch.dict(check_ci.os.environ, {"GITHUB_REPOSITORY": "dsw-nrp/eosc-fair-guide"}):
-                payload = check_ci.load_suggestions(root, "a" * 40)
+                payload = check_ci.load_suggestions(root / "cpu", "a" * 40)
             self.assertEqual(payload["head"], "a" * 40)
             self.assertEqual(payload["repository"], "dsw-nrp/eosc-fair-guide")
             self.assertEqual([item["value"] for item in payload["suggestions"]], ["r3d1"])
@@ -301,7 +301,7 @@ class PartitionTests(unittest.TestCase):
             with mock.patch.dict(
                 check_ci.os.environ, {"PR_HEAD_SHA": "a" * 40, "GITHUB_REPOSITORY": "dsw-nrp/eosc-fair-guide"}
             ):
-                payload = check_ci.collect_suggestions(incoming, {"source": {"revision": "b" * 40}})
+                payload = check_ci.collect_suggestions(incoming / "cpu", {"source": {"revision": "b" * 40}})
             self.assertEqual(payload["head"], "a" * 40)
             self.assertEqual(payload["checkedRevision"], "b" * 40)
             published = subprocess.run(

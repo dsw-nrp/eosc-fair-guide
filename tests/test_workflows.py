@@ -275,11 +275,13 @@ class WorkflowContracts(unittest.TestCase):
             for step in checks["jobs"]["checks"]["steps"]
             if step.get("with", {}).get("name", "").startswith("guide-review-")
         )
-        self.assertIn(".cache/pr-review/suggestions.json", review["with"]["path"].split())
+        self.assertIn("${{ steps.collect.outputs.suggestions_path }}", review["with"]["path"])
+        self.assertNotIn(".cache/pr-review/suggestions.json", review["with"]["path"].split())
         collector = next(
             step for step in checks["jobs"]["checks"]["steps"] if "check_ci.py collect" in step.get("run", "")
         )
         self.assertEqual(collector["env"]["PR_HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")
+        self.assertEqual(collector["id"], "collect")
 
     def test_live_watch_is_scheduled_trusted_and_writes_only_issues(self) -> None:
         text = (ROOT / ".github/workflows/health-watch.yml").read_text(encoding="utf-8")

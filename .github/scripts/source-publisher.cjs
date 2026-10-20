@@ -74,6 +74,8 @@ async function mainHead(github, repo, base) {
   return { sha: data.object.sha, tree: commit.tree.sha };
 }
 
+const refreshMessage = (source) => `Refresh the ${source} snapshot`;
+
 /** Publish each changed source. Returns what happened per source, for the run log and the tests. The App's bot
     login (`<app-slug>[bot]`) tells its own commits from people's; without it every existing branch counts as edited. */
 async function publish({ github, context, core }, read = readFileSync, exists = existsSync, bot = process.env.SOURCE_BOT_LOGIN) {
@@ -100,18 +102,25 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
     }
     if (open && String(open.body || "").includes(marker)) { results[source] = "already-proposed"; continue; }
     if (open) {
-      const commits = await github.paginate(github.rest.pulls.listCommits, { ...repo, pull_number: open.number, per_page: 100 });
-      if (!bot || commits.some((commit) => commit.author?.login !== bot)) {
+      let commits;
+      try {
+        commits = await github.paginate(github.rest.pulls.listCommits, { ...repo, pull_number: open.number, per_page: 100 });
+      } catch {
+        core.info(`${source}: unable to verify the branch commit inventory; preserving it.`);
+      }
+      if (!bot || !Array.isArray(commits) || !commits.length || commits.some((commit) =>
+        commit?.author?.login !== bot || typeof commit.commit?.message !== "string" ||
+        commit.commit.message.replace(/\n$/, "") !== refreshMessage(source))) {
         results[source] = "human-edits";
         await github.rest.issues.createComment({ ...repo, issue_number: open.number,
-          body: `A newer ${source} refresh is available, but this branch has commits from people. They are kept; reconcile the refresh by hand or close this pull request so the next refresh can start from the default branch.` });
+          body: `A newer ${source} refresh is available, but this branch cannot be verified as containing only the refresh App's expected snapshot commits. Its repairs and other changes are kept; reconcile the refresh by hand or close this pull request so the next refresh can start from the default branch.` });
         continue;
       }
     }
     const current = await mainHead(github, repo, base);
     const tree = await github.rest.git.createTree({ ...repo, base_tree: current.tree,
       tree: files.map(([path, text]) => ({ path, mode: "100644", type: "blob", content: text })) });
-    const commit = await github.rest.git.createCommit({ ...repo, message: `Refresh the ${source} snapshot`,
+    const commit = await github.rest.git.createCommit({ ...repo, message: refreshMessage(source),
       tree: tree.data.sha, parents: [current.sha] });
     const ref = "heads/" + branch;
     const known = await github.rest.git.getRef({ ...repo, ref }).then(() => true, () => false);
