@@ -1572,3 +1572,37 @@ instruments = ["release-automation"]
 objects = []
 results = ["guide"]
 endTime = 2026-10-19T07:34:34+00:00
+
+[[action]]
+id = "2026-10-18-ip-errata-samples"
+type = "update"
+name = "Practical guidance in Stations 6, 7 and 8: sample identifiers, patent/IP exceptions and error handling"
+agent = "karel-berka"
+instruments = [
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
+]
+description = "Expanded metadata linkages to physical sample, instrument and grant identifiers, added patent and commercial embargo procedures under Act No. 328/2025 Sb., and defined immutable error remediation steps."
+objects = [
+  "A.A2.R2",
+  "A.I3.R3",
+  "A.I3.R5",
+  "A.R1.2.N3",
+  "A.R1.R3",
+  "CDIF.REC6",
+  "COPYRIGHT-LICENCES.04",
+  "DDRAPP.01",
+  "LAW-328-2025.83.5",
+  "NRP.M1",
+  "NRP.M3",
+  "POLICY-MANUAL.05",
+  "RDMKIT.collect.02",
+]
+results = [
+  "licence.31",
+  "metadata.05",
+  "publication.05",
+  "organization:upol",
+]
+endTime = 2026-10-20T21:00:00+00:00
