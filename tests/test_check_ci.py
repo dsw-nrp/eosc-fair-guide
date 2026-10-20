@@ -14,6 +14,14 @@ import check_ci  # noqa: E402
 
 
 class PartitionTests(unittest.TestCase):
+    def test_citation_metadata_checker_has_one_cpu_owner(self):
+        inventory = check_all.jobs(None, False)
+        found = [job for job in inventory if job.name == "citation-metadata"]
+        self.assertEqual(len(found), 1)
+        owners = [lane for lane, jobs in check_ci.partition(inventory).items() if found[0] in jobs]
+        self.assertEqual(owners, ["cpu"])
+        self.assertIn("scripts/check_citation_metadata.py", found[0].command)
+
     def fixture(self, root):
         manifest = {
             "source": {"revision": "checked", "files": {"input": "sha"}},

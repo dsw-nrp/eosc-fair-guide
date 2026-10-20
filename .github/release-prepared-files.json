@@ -5,7 +5,8 @@
     "CITATION.cff",
     "package.json",
     "package-lock.json",
-    "pyproject.toml"
+    "pyproject.toml",
+    ".zenodo.json"
   ],
   "additional": [
     "CHANGELOG.md",

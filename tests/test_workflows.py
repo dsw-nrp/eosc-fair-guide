@@ -91,6 +91,9 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(load("CITATION.cff")["version"], expected)
         self.assertEqual(tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"], expected)
         self.assertEqual(load("CITATION.cff")["date-released"], str(guide["datePublished"]))
+        zenodo = json.loads((ROOT / ".zenodo.json").read_text(encoding="utf-8"))
+        self.assertEqual(zenodo["version"], expected)
+        self.assertEqual(zenodo["publication_date"], str(guide["datePublished"]))
 
     def test_release_dispatches_use_trusted_source_and_separate_app_delivery(self) -> None:
         for name in ("prepare-release", "tag-release"):
@@ -108,6 +111,14 @@ class WorkflowContracts(unittest.TestCase):
             delivery = steps[-1]
             self.assertEqual(delivery["with"]["github-token"], "${{ steps.app.outputs.token }}")
             self.assertIn(".propose(" if name == "prepare-release" else ".tag(", delivery["with"]["script"])
+            before_token = "\n".join(step.get("run", "") for step in steps[: steps.index(app)])
+            self.assertIn("pip install -r requirements-dev.txt", before_token)
+            self.assertIn("scripts/check_citation_metadata.py", before_token)
+            if name == "prepare-release":
+                self.assertIn("history --output .cache/release/history.json", before_token)
+                self.assertIn("--associations .cache/release/associations.json", before_token)
+            else:
+                self.assertIn('check --version "$RELEASE_VERSION"', before_token)
 
     def test_release_status_is_a_tag_input_and_never_a_repository_variable(self) -> None:
         tag = load(".github/workflows/tag-release.yml")

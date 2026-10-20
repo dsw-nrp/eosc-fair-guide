@@ -1563,6 +1563,17 @@ results = ["guide"]
 endTime = 2026-10-18T11:22:56+00:00
 
 [[action]]
+id = "release-1.0.0-alpha.2"
+type = "update"
+name = "Prepare release metadata"
+description = "Release metadata and complete PR/direct-commit changelog prepared for human review."
+agent = "david-novak"
+instruments = ["release-automation"]
+objects = []
+results = ["guide"]
+endTime = 2026-10-19T07:34:34+00:00
+
+[[action]]
 id = "2026-10-18-consent-appraisal"
 type = "update"
 name = "Practical guidance in Stations 1 and 2: informed consent, data appraisal and team continuity"
@@ -1591,4 +1602,4 @@ results = [
   "plan.32",
   "organization:upol",
 ]
-endTime = 2026-10-18T18:45:00+00:00
+endTime = 2026-10-20T21:00:00+00:00

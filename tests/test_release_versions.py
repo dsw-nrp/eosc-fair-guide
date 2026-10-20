@@ -43,12 +43,14 @@ class ReleaseVersions(unittest.TestCase):
         path = self.root / "CITATION.cff"
         text = release.scalar(path.read_text(encoding="utf-8"), "version", '"1.0.0-alpha.1"')
         path.write_text(release.scalar(text, "date-released", '"2026-10-08"'), encoding="utf-8")
-        for name in ("package.json", "package-lock.json"):
+        for name in ("package.json", "package-lock.json", ".zenodo.json"):
             path = self.root / name
             data = json.loads(path.read_text(encoding="utf-8"))
             data["version"] = "1.0.0-alpha.1"
             if name == "package-lock.json":
                 data["packages"][""]["version"] = data["version"]
+            if name == ".zenodo.json":
+                data["publication_date"] = "2026-10-08"
             path.write_text(json.dumps(data), encoding="utf-8")
         (self.root / "content/provenance.toml").write_text("", encoding="utf-8")
         (self.root / "CHANGELOG.md").write_text(
@@ -186,7 +188,8 @@ class ReleaseVersions(unittest.TestCase):
         citation_reference = (self.root / "CITATION.cff").read_text(encoding="utf-8").split("references:", 1)[1]
         stamp = datetime(2026, 10, 14, 12, 0, tzinfo=UTC)
         changed = release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", self.prs, "motyc", now=stamp)
-        self.assertEqual(len(changed["files"]), 8)
+        self.assertEqual(len(changed["files"]), len(release.FILES) + 3)
+        self.assertIn(".zenodo.json", {item["path"] for item in changed["files"]})
         self.assertEqual(
             {item["path"] for item in changed["files"]},
             set(release.FILES) | {"CHANGELOG.md", "content/provenance.toml", "content/identifiers.toml"},
@@ -206,6 +209,12 @@ class ReleaseVersions(unittest.TestCase):
         self.assertNotIn("Draft notes.", log)
         self.assertIn("Historical release text.", log)
         self.assertIn(r"One \[complete\]", log)
+        original_zenodo = json.loads((ROOT / ".zenodo.json").read_text(encoding="utf-8"))
+        prepared_zenodo = json.loads((self.root / ".zenodo.json").read_text(encoding="utf-8"))
+        self.assertEqual(prepared_zenodo["version"], "1.0.0-alpha.2")
+        self.assertEqual(prepared_zenodo["publication_date"], "2026-10-14")
+        for field in set(original_zenodo) - {"version", "publication_date"}:
+            self.assertEqual(prepared_zenodo[field], original_zenodo[field], field)
         actions = tomllib.loads((self.root / "content/provenance.toml").read_text(encoding="utf-8"))["action"]
         self.assertEqual(actions[-1]["agent"], "david-novak")
         self.assertEqual(actions[-1]["endTime"], stamp)
@@ -257,6 +266,115 @@ class ReleaseVersions(unittest.TestCase):
         self.assertNotIn("[#1]", log)
         self.assertNotIn("[#3]", log)
         self.assertTrue(log.endswith("## [0.9.0]\n\nOld text.\n"))
+
+    def git_history(self, *, tagged=True, direct=True):
+        def command(*args):
+            return subprocess.run(
+                ["git", *args], cwd=self.root, check=True, capture_output=True, encoding="utf-8"
+            ).stdout.strip()
+
+        command("init", "--initial-branch=main")
+        command("config", "user.name", "Test")
+        command("config", "user.email", "test@example.com")
+        command("add", ".")
+        command("commit", "-m", "Initial")
+        if tagged:
+            command("tag", "v0.9.0")
+        if direct:
+            (self.root / "direct").write_text("direct content", encoding="utf-8")
+            command("add", "direct")
+            command("commit", "-m", "Fix [direct] content")
+        return release.history_export(self.root)
+
+    def associations(self, local):
+        return {
+            "formatVersion": 1,
+            "source": local["source"],
+            "previousTag": local["previousTag"],
+            "repository": "dsw-nrp/eosc-fair-guide",
+            "base": "main",
+            "associations": {entry["sha"]: [] for entry in local["firstParent"]},
+        }
+
+    def test_direct_only_release_uses_real_history_and_preserves_zenodo_fields(self):
+        local = self.git_history()
+        self.assertEqual(len(local["commits"]), 1)
+        self.assertEqual(local["firstParent"][0]["sha"], local["source"])
+        release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", [], "motyc", associations=self.associations(local))
+        text = (self.root / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertIn("### Direct commits", text)
+        self.assertIn(r"Fix \[direct\] content", text)
+        self.assertIn("/commit/" + local["source"], text)
+        self.assertNotIn("### Merged pull requests", text)
+        self.assertEqual(release.check(self.root, requested="1.0.0-alpha.2"), [])
+
+    def test_first_release_uses_all_history_without_a_pr(self):
+        local = self.git_history(tagged=False, direct=False)
+        self.assertIsNone(local["previousTag"])
+        release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", [], "motyc", associations=self.associations(local))
+        self.assertIn("the beginning of the repository", (self.root / "CHANGELOG.md").read_text())
+
+    def test_empty_history_and_stale_or_incomplete_associations_never_write(self):
+        local = self.git_history(direct=False)
+        before = self.snapshot()
+        with self.assertRaisesRegex(ValueError, "no commits"):
+            release.prepare(self.root, "1.2.3", "2026-10-14", [], "motyc", associations=self.associations(local))
+        self.assertEqual(self.snapshot(), before)
+        local = {**local, "firstParent": [{"sha": "a" * 40, "subject": "Changed"}], "commits": ["a" * 40]}
+        for edit in ({"source": "b" * 40}, {"associations": {}}, {"associations": {"a" * 40: ["bad"]}}):
+            with patch.object(release, "history_export", return_value=local), self.assertRaises(ValueError):
+                release.release_changes(self.root, {**self.associations(local), **edit})
+        self.assertEqual(self.snapshot(), before)
+
+    def test_mixed_merge_squash_rebase_and_direct_commits_do_not_duplicate_pr_changes(self):
+        shas = [character * 40 for character in "abcde"]
+        changes = {
+            "repository": "dsw-nrp/eosc-fair-guide",
+            "base": "main",
+            "firstParent": [{"sha": sha, "subject": "Same [title]"} for sha in shas],
+            "associations": dict(zip(shas, [[1], [2], [3], [3], [99]], strict=True)),
+        }
+        prs = [
+            {
+                **self.pr(number, sha, "Same [title]"),
+                "base": {"ref": "main", "repo": {"full_name": changes["repository"]}},
+            }
+            for number, sha in [(1, shas[0]), (2, shas[1]), (3, shas[3])]
+        ]
+        text = release.changelog(
+            "## [Unreleased]\n\n## [0.9.0]\n\nOld.\n",
+            "1.2.3",
+            "2026-10-14",
+            prs,
+            set(shas),
+            previous="v0.9.0",
+            changes=changes,
+        )
+        for number in range(1, 4):
+            self.assertEqual(text.count(f"[#{number}]"), 1)
+        self.assertEqual(text.count("/commit/"), 1)
+        self.assertIn("/commit/" + shas[-1], text)
+        self.assertTrue(text.endswith("## [0.9.0]\n\nOld.\n"))
+        bad_prs = [{**prs[0], "base": {"ref": "other", "repo": {"full_name": changes["repository"]}}}]
+        with self.assertRaisesRegex(ValueError, "another repository or base"):
+            release.changelog(
+                "## [Unreleased]\n", "1.2.3", "2026-10-14", bad_prs, set(shas), previous=None, changes=changes
+            )
+
+    def test_requested_release_requires_matching_nonempty_unique_dated_notes(self):
+        target = "1.0.0-alpha.1"
+        path = self.root / "CHANGELOG.md"
+        for content in (
+            "## [Unreleased]\n",
+            f"## [{target}] - 2026-10-08\n\n### Notes\n",
+            f"## [{target}] - 2000-01-01\n\nA fix.\n",
+            f"## [{target}] - 2026-10-08\n\nA fix.\n## [{target}] - 2026-10-08\n\nAgain.\n",
+        ):
+            path.write_text(content, encoding="utf-8")
+            self.assertTrue(release.check(self.root, requested=target), content)
+        path.write_text(f"## [{target}] - 2026-10-08\n\n- A fix.\n", encoding="utf-8")
+        self.assertEqual(release.check(self.root, requested=target), [])
+        self.assertTrue(release.check(self.root, requested="2.0.0"))
 
     @patch.object(release, "history", return_value=(None, {"a", "b"}))
     def test_prepared_metadata_generates_the_same_crate_versions_and_date(self, _history) -> None:
