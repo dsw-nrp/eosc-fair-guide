@@ -1572,3 +1572,35 @@ instruments = ["release-automation"]
 objects = []
 results = ["guide"]
 endTime = 2026-10-19T07:34:34+00:00
+
+[[action]]
+id = "2026-10-18-formats-packaging"
+type = "update"
+name = "Practical guidance in Stations 2, 3 and 8: folder structure, open formats, synthetic samples and packaging"
+agent = "karel-berka"
+instruments = [
+  "antigravity",
+  "gemini-4-argon",
+  "gemini-3-8-flash",
+]
+description = "Added concrete examples of folder structure and file naming, open formats across data domains, synthetic samples for sensitive data, and packaging large collections into archives with manifests and checksums."
+objects = [
+  "A.A1.2.R2",
+  "A.F3.N2",
+  "A.I1.X1",
+  "CDIF.Manifest",
+  "CDIF.REC5",
+  "CDSC-README.01",
+  "CESSDA-DMEG.01",
+  "LAW-328-2025.83.3",
+  "MBDB-2026.01",
+  "RDMKIT.process.02",
+]
+results = [
+  "collect.04",
+  "process.03",
+  "process.04",
+  "publication.30",
+  "organization:upol",
+]
+endTime = 2026-10-20T21:00:00+00:00

@@ -71,6 +71,13 @@ id = "tomas-cizek"
 name = "Tomáš Čížek"
 orcid = "https://orcid.org/0000-0001-7734-2947"
 
+[[person]]
+id = "karel-berka"
+name = "Karel Berka"
+orcid = "https://orcid.org/0000-0001-9472-2589"
+affiliation = ["upol"]
+commitNames = ["Karel Berka"]
+
 [[organization]]
 id = "eosc-cz"
 fipDashboard = "eosc-cz"
@@ -122,6 +129,12 @@ id = "cuni"
 name = { cs = "Univerzita Karlova", en = "Charles University" }
 url = "https://www.cuni.cz/"
 ror = "https://ror.org/024d6js02"
+
+[[organization]]
+id = "upol"
+name = { cs = "Univerzita Palackého v Olomouci", en = "Palacký University Olomouc" }
+url = "https://www.upol.cz/"
+ror = "https://ror.org/04qxnmv42"
 
 [[organization]]
 id = "nrp"
@@ -199,6 +212,27 @@ id = "einfra-kimi-k3"
 name = "Kimi K3 (Moonshot AI)"
 version = "kimi-k3"
 url = "https://docs.cerit.io/en/docs/ai-as-a-service/chat-ai"
+kind = "ai-model"
+
+[[instrument]]
+id = "antigravity"
+name = "Antigravity"
+version = "not exposed by the runtime"
+url = "https://github.com/google-deepmind"
+kind = "software"
+
+[[instrument]]
+id = "gemini-4-argon"
+name = "Gemini 4 Argon (Google DeepMind)"
+version = "gemini-4-argon"
+url = "https://deepmind.google/technologies/gemini/"
+kind = "ai-model"
+
+[[instrument]]
+id = "gemini-3-8-flash"
+name = "Gemini 3.8 Flash (Google DeepMind)"
+version = "gemini-3.8-flash"
+url = "https://deepmind.google/technologies/gemini/"
 kind = "ai-model"
 
 [[repositoryFunction]]
