@@ -25,7 +25,9 @@ Edit native sources under `.agents/guide/`, then run `python scripts/generate_ag
 vendor mirrors or the generated inventory by hand. The generator replaces only the `guide:native` region of
 `CODEX.md`; delivered sections and its preamble remain byte-identical. OpenSpec owns its generated wrappers.
 `python scripts/check_agent_surfaces.py` reports any managed file that has no declared owner, and
-`python scripts/check_sibling_delivery.py` verifies the receipt without rewriting delivered content.
+`python scripts/check_sibling_delivery.py` verifies the receipt without rewriting delivered content. The
+repository's runtime scratch area is a declared runtime path: hand-offs there are neither owned nor delivered, and
+native generation never writes into it.
 
 ## Build, review and release
 

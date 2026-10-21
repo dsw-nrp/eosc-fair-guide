@@ -12,6 +12,11 @@ Complete the planning artifacts and required approval first; resume native execu
 Never implement first and maintain specs later. Routine wording/formatting corrections, behaviour-neutral
 dependency updates and source refreshes preserve the existing contract and use ordinary editing checks.
 
+OpenSpec is pinned in `package.json`; invoke it as `npx openspec <command>` (for example
+`npx openspec status --change <name>`) and validate with `npm run openspec:validate`. The equivalent
+`npm run -s openspec:cli -- <command>` remains available when `npx` is not. A bare `openspec` executable is
+not on the agent command allowlist.
+
 Delivered membership is defined by `.agents/delivery-manifest.json`, including the delivered sections of
 `CODEX.md`. These assets are read-only; propose corrections upstream. Edit guide-owned sources, then run
 `python scripts/generate_agent_surfaces.py`; `--check`, `scripts/check_agent_surfaces.py` and

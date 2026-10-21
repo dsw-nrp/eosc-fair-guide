@@ -125,9 +125,11 @@ jobs:
           path: .cache/screenshots/
           merge-multiple: true
       - name: Reconcile complete coverage and publish one verified health result
+        id: collect
         if: always()
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: python -u scripts/check_ci.py collect --base "$BASE_SHA"
       - name: Publish the run summary
         if: always()
@@ -177,5 +179,6 @@ jobs:
             .cache/pr-review/summary.json
             .cache/pr-review/changes.json
             .cache/pr-review/contributors.json
+            ${{ steps.collect.outputs.suggestions_path }}
           if-no-files-found: warn
           retention-days: 14

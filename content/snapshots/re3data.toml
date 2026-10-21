@@ -4,7 +4,7 @@
 [snapshot]
 source = "re3data"
 url = "https://www.re3data.org/"
-retrieved = 2026-10-18
+retrieved = 2026-10-19
 license = "https://creativecommons.org/publicdomain/zero/1.0/"
 
 [[repository]]
@@ -307,5 +307,24 @@ dataLicenses = ["CC"]
 certificates = []
 metadataStandards = []
 policies = ["Terms of service"]
+versioning = true
+qualityManagement = false
+
+[[repository]]
+id = "datarepo"
+alternateIds = [{ "scheme" = "re3data", "value" = "r3d100014970" }]
+guideRoute = "repo"
+name = "Data Catch-all Repository"
+namesCs = ["Datový catch-all repozitář"]
+url = "https://datarepo.eosc.cz"
+re3data = "r3d100014970"
+subjectsEn = []
+pidTypes = ["DOI"]
+languages = ["ces", "eng"]
+apis = ["OAI-PMH", "REST"]
+dataLicenses = ["CC"]
+certificates = []
+metadataStandards = []
+policies = ["Terms of Service"]
 versioning = true
 qualityManagement = false

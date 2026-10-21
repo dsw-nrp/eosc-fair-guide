@@ -25,6 +25,20 @@ class PublicContentTests(unittest.TestCase):
             {rule for _, rule in public.violations(value)}, {"personal workstation path", "private planning extracts"}
         )
 
+    def test_the_runtime_scratch_layout_is_allowed_but_machine_specific_paths_are_not(self):
+        relative = "A hand-off lives under ." + "agents/local_scratch/<workflow>/<run>/.\n"
+        self.assertEqual(public.violations(relative), [], "the repository-relative layout is not a local path")
+        for machine in (
+            "D:" + "\\work\\checkout\\.agents" + "\\local_scratch\\run\n",
+            "/" + "srv/guide/.agents" + "/local_scratch/run\n",
+        ):
+            with self.subTest(machine=machine):
+                self.assertEqual(
+                    {rule for _, rule in public.violations(machine)},
+                    {"local planning scratch"},
+                    "an absolute path to the same layout is still machine-specific",
+                )
+
     def test_delivered_tooling_is_scanned_and_private_references_are_refused(self):
         paths = (
             ".agents/skills/example/SKILL.md",

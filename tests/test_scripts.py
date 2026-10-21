@@ -31,6 +31,7 @@ import build_site  # noqa: E402
 import check_all  # noqa: E402
 import check_content  # noqa: E402
 import check_duplicates  # noqa: E402
+import fix_duplicates  # noqa: E402
 import refresh_snapshots  # noqa: E402
 import register_ids  # noqa: E402
 
@@ -1530,6 +1531,60 @@ class SnapshotRefreshTests(FixtureCase):
         self.re3data_inputs(3)
         self.assertEqual(self.refresh("re3data").status, "changed", "a quarter may go")
 
+    def test_reserved_identifier_prevents_a_new_snapshot_from_reusing_a_curated_id(self) -> None:
+        self.put(
+            "re3data-list.xml",
+            "<list><repository><id>r3d100000099</id></repository></list>",
+        )
+        self.put(
+            "re3data-r3d100000099.xml",
+            '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
+            "<r3d:repositoryName>Service repository</r3d:repositoryName>"
+            "<r3d:repositoryURL>https://service.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
+        )
+        outcome = self.refresh("re3data")
+        self.assertEqual(outcome.status, "changed", outcome.reason)
+        data = tomllib.loads((self.root / "content" / "snapshots" / "re3data.toml").read_text(encoding="utf-8"))
+        self.assertIn("service-2", [row["id"] for row in data["repository"]])
+        self.assertNotIn("service", [row["id"] for row in data["repository"]])
+
+    def test_identity_collision_that_needs_review_is_rejected(self) -> None:
+        self.re3data_inputs(1)
+        self.assertEqual(self.refresh("re3data").status, "changed")
+        target = self.root / "content" / "snapshots" / "re3data.toml"
+        before = target.read_bytes()
+        self.re3data_inputs(2)
+        with mock.patch.object(
+            refresh_snapshots, "preserve_snapshot", side_effect=ValueError("ambiguous Guide identity")
+        ):
+            outcome = self.refresh("re3data")
+        self.assertEqual(outcome.status, "rejected")
+        self.assertIn("identity needs review", outcome.reason)
+        self.assertEqual(target.read_bytes(), before)
+
+    def test_refresh_reserves_central_and_snapshot_retired_identifiers(self) -> None:
+        self.edit("resources.toml", 'id = "service"', 'id = "curated-service"')
+        (self.root / "content" / "identifiers.toml").write_text(
+            '[retired]\nresources = ["service"]\n', encoding="utf-8"
+        )
+        retired = self.root / "content" / "snapshots" / "retired.toml"
+        retired.parent.mkdir(exist_ok=True)
+        retired.write_text('[identity]\nretiredIds = ["service-2"]\n', encoding="utf-8")
+        target = self.root / "content" / "snapshots" / "re3data.toml"
+        reserved = refresh_snapshots.reserved_identifiers(self.root, target)
+        self.assertTrue({"service", "service-2"} <= reserved)
+        self.put("re3data-list.xml", "<list><repository><id>r3d100000099</id></repository></list>")
+        self.put(
+            "re3data-r3d100000099.xml",
+            '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
+            "<r3d:repositoryName>Service repository</r3d:repositoryName>"
+            "<r3d:repositoryURL>https://service.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
+        )
+        outcome = self.refresh("re3data")
+        self.assertEqual(outcome.status, "changed", outcome.reason)
+        rows = tomllib.loads(target.read_text(encoding="utf-8"))["repository"]
+        self.assertEqual(rows[0]["id"], "service-3")
+
     def test_identical_data_changes_nothing_not_even_the_date(self) -> None:
         self.re3data_inputs(2)
         self.refresh("re3data", "2026-02-01")
@@ -1545,6 +1600,12 @@ class SnapshotRefreshTests(FixtureCase):
         path = self.root / "content/snapshots/re3data.toml"
         before = path.read_bytes()
         self.re3data_inputs(3)
+        (self.inputs / "re3data-r3d100000002.xml").write_text(
+            '<r3d:re3data xmlns:r3d="http://www.re3data.org/schema/2-2"><r3d:repository>'
+            "<r3d:repositoryName>Third repository</r3d:repositoryName>"
+            "<r3d:repositoryURL>https://third.example.org/</r3d:repositoryURL></r3d:repository></r3d:re3data>",
+            encoding="utf-8",
+        )
         with mock.patch.object(refresh_snapshots.os, "replace", side_effect=OSError("disk full")):
             self.assertEqual(self.refresh("re3data").status, "failed")
         self.assertEqual(path.read_bytes(), before)
@@ -1771,11 +1832,14 @@ class DuplicateTests(FixtureCase):
         'sources = ["A.F1.X1"]\n'
     )
 
-    def duplicates(self) -> list[str]:
+    def report(self):
         content = build_crate.load_content(self.root / "content")
         path = self.root / "content" / check_duplicates.ACCEPTED_FILE
         accepted = tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
-        return check_duplicates.check(content, accepted).errors
+        return check_duplicates.check(content, accepted)
+
+    def duplicates(self) -> list[str]:
+        return self.report().errors
 
     def assertDuplicate(self, fragment: str) -> None:  # noqa: N802 - unittest naming
         errors = self.duplicates()
@@ -1793,6 +1857,11 @@ class DuplicateTests(FixtureCase):
         )
         self.assertDuplicate("knav:svc: describes one thing with resource:service")
         self.assertDuplicate("link the record with knav")
+        suggestion = self.report().suggestions[0]
+        self.assertEqual(
+            (suggestion.entry, suggestion.field_name, suggestion.file, suggestion.table, suggestion.value),
+            ("resource:service", "knav", "content/resources.toml", "", "svc"),
+        )
         self.edit("resources.toml", 'id = "service"\n', 'id = "service"\nknav = "svc"\n')
         self.assertEqual(self.duplicates(), [])
         # A curated entry names a tool the snapshot has.
@@ -1837,6 +1906,132 @@ class DuplicateTests(FixtureCase):
         self.assertDuplicate(
             "resource:service: describes one thing with source:copy (address 'example.org/service'); merge them"
         )
+        self.assertEqual(self.report().suggestions, [], "a name/address lookalike is not a safe link suggestion")
+
+    def test_re3data_record_suggests_the_curated_repository_link(self) -> None:
+        self.append(
+            "guide.toml",
+            '\n[[resourceType]]\nid = "registry"\nname = { cs = "Registr", en = "Registry" }\n',
+        )
+        self.edit("resources.toml", 'type = "service"', 'type = "registry"')
+        self.edit(
+            "resources.toml", 'stations = ["one"]\n', 'stations = ["one"]\n\n[resource.repository]\nkind = "general"\n'
+        )
+        snapshot = self.root / "content" / "snapshots" / "re3data.toml"
+        snapshot.parent.mkdir(exist_ok=True)
+        snapshot.write_text(
+            '[snapshot]\nsource = "re3data"\nurl = "https://www.re3data.org/"\nretrieved = 2026-01-01\n\n'
+            '[[repository]]\nalternateIds = [{ scheme = "re3data", value = "r3d100000001" }]\n'
+            'id = "service"\nname = "Test repository"\nurl = "https://example.org/service"\n'
+            're3data = "r3d100000001"\n',
+            encoding="utf-8",
+        )
+        self.assertDuplicate("re3data:r3d100000001: describes one thing with resource:service")
+        self.assertTrue(any("id:service: names several entities" in error for error in self.errors()))
+        suggestion = self.report().suggestions[0]
+        self.assertEqual(
+            (suggestion.entry, suggestion.field_name, suggestion.file, suggestion.table, suggestion.value),
+            ("resource:service", "re3data", "content/resources.toml", "resource.repository", "r3d100000001"),
+        )
+        report = self.root / ".cache" / "duplicates.json"
+        self.assertEqual(check_duplicates.main(["--root", str(self.root), "--report", str(report)]), 1)
+        data = json.loads(report.read_text(encoding="utf-8"))
+        self.assertEqual(data["formatVersion"], 1)
+        self.assertEqual(data["suggestions"][0]["field"], "re3data")
+        self.assertEqual(check_duplicates.main(["--root", str(self.root), "--fix"]), 0)
+        self.assertEqual(self.duplicates(), [])
+        self.assertEqual(self.errors(), [])
+        crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))
+        graph = {entity["@id"]: entity for entity in crate["@graph"]}
+        self.assertEqual(build_crate.as_list(graph["#repositories"]["hasPart"]), [{"@id": "#resource-service"}])
+        self.assertNotIn("#repository-service", graph)
+        self.assertIn(
+            're3data = "r3d100000001"',
+            (self.root / "content" / "resources.toml").read_text(encoding="utf-8"),
+        )
+
+    def test_fix_does_not_apply_an_ambiguous_group(self) -> None:
+        self.append(
+            "sources.toml",
+            '\n[[source]]\nid = "copy"\ntype = "webpage"\ntitle = "Copy"\n'
+            'url = "http://www.example.org/service/"\ndateAccessed = 2026-01-01\n',
+        )
+        before = (self.root / "content" / "resources.toml").read_text(encoding="utf-8")
+        self.assertEqual(check_duplicates.main(["--root", str(self.root), "--fix"]), 1)
+        self.assertEqual((self.root / "content" / "resources.toml").read_text(encoding="utf-8"), before)
+
+    def test_clean_fix_returns_nonzero_without_writing(self) -> None:
+        path = self.root / "content" / "resources.toml"
+        before = path.read_bytes()
+        self.assertNotEqual(check_duplicates.main(["--root", str(self.root), "--fix"]), 0)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_conflicting_authoritative_matches_are_not_safe(self) -> None:
+        self.edit("sources.toml", 'id = "report"', 'id = "report"\ndoi = "10.1234/example"')
+        snapshot = self.root / "content" / "snapshots" / "knav-tools.toml"
+        snapshot.parent.mkdir(exist_ok=True)
+        snapshot.write_text(
+            '[snapshot]\nsource = "KNAV"\nurl = "https://example.org/knav"\nretrieved = 2026-01-01\n'
+            '\n[[tool]]\nid = "a"\nalternateIds = [{scheme = "knav", value = "a"}]\n'
+            'name = "First tool"\nurl = "https://example.org/report"\n'
+            '\n[[tool]]\nid = "b"\nalternateIds = [{scheme = "knav", value = "b"}]\n'
+            'name = "Second tool"\nurl = "https://doi.org/10.1234/example"\n',
+            encoding="utf-8",
+        )
+        path = self.root / "content" / "sources.toml"
+        before = path.read_bytes()
+        self.assertTrue(self.report().errors)
+        self.assertEqual(self.report().suggestions, [])
+        self.assertNotEqual(check_duplicates.main(["--root", str(self.root), "--fix"]), 0)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_existing_empty_link_and_repeated_insertion_preserve_bytes(self) -> None:
+        self.dashboard('\nurl = "https://example.org/service"')
+        suggestion = self.report().suggestions[0]
+        path = self.root / "content" / "resources.toml"
+        self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = ""')
+        before = path.read_bytes()
+        self.assertEqual(self.report().suggestions, [])
+        self.assertIsNone(check_duplicates.apply_suggestion(self.root, suggestion))
+        self.assertEqual(path.read_bytes(), before)
+        self.edit("resources.toml", 'fipDashboard = ""\n', "")
+        self.assertIsNotNone(check_duplicates.apply_suggestion(self.root, suggestion))
+        linked = path.read_bytes()
+        self.assertIsNone(check_duplicates.apply_suggestion(self.root, suggestion))
+        self.assertEqual(path.read_bytes(), linked)
+        tomllib.loads(path.read_text(encoding="utf-8"))
+
+    def test_invalid_proposed_toml_is_not_written(self) -> None:
+        path = self.root / "content" / "resources.toml"
+        before = path.read_bytes()
+        self.assertIsNone(
+            check_duplicates.insert_field(path, "[[resource]]", "service", "", field_name="invalid key", value="record")
+        )
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_valid_toml_in_the_wrong_table_is_not_written(self) -> None:
+        self.append(
+            "resources.toml",
+            '\n[resource.repository]\nkind = "general"\n[resource.citation] # source\ntype = "webpage"\n',
+        )
+        path = self.root / "content" / "resources.toml"
+        before = path.read_bytes()
+        self.assertIsNone(
+            check_duplicates.insert_field(
+                path, "[[resource]]", "service", "resource.repository", field_name="re3data", value="r3d1"
+            )
+        )
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_duplicate_report_is_written_only_when_requested(self) -> None:
+        report_dir = self.root / ".cache" / "report"
+        with mock.patch.dict(os.environ, {"CHECK_REPORT_DIR": str(report_dir)}, clear=False):
+            self.assertEqual(check_duplicates.main(["--root", str(self.root)]), 0)
+        self.assertEqual(json.loads((report_dir / "duplicates.json").read_text(encoding="utf-8"))["formatVersion"], 1)
+        self.assertFalse((self.root / "content" / "duplicates.json").exists())
+        with mock.patch.dict(os.environ, {"CHECK_REPORT_DIR": ""}, clear=False):
+            self.assertEqual(check_duplicates.main(["--root", str(self.root)]), 0)
+        self.assertFalse((self.root / "content" / "duplicates.json").exists())
 
     def test_registry_record_needs_a_link(self) -> None:
         self.dashboard('\nurl = "https://example.org/service"')
@@ -1844,6 +2039,11 @@ class DuplicateTests(FixtureCase):
             "fip-dashboard:r1: describes one thing with resource:service (address 'example.org/service'"
         )
         self.assertDuplicate("link the record with fipDashboard")
+        suggestion = self.report().suggestions[0]
+        self.assertEqual(
+            (suggestion.entry, suggestion.field_name, suggestion.file, suggestion.table, suggestion.value),
+            ("resource:service", "fipDashboard", "content/resources.toml", "", "r1"),
+        )
         self.edit("resources.toml", 'fipClass = ["Registry"]', 'fipClass = ["Registry"]\nfipDashboard = "r1"')
         self.assertEqual(self.duplicates(), [])
 
@@ -2415,6 +2615,265 @@ class ApiTests(unittest.TestCase):
             self.assertNotIn(self.page_url, text, path)
         self.assertIn(moved + "terms#", outputs[build_crate.CRATE_FILE])
         self.assertIn(f"<{moved}profile/", outputs[build_crate.PROFILE_DIR + "/profile.ttl"])
+
+
+class FixDuplicateCommandTests(FixtureCase):
+    def duplicates(self) -> list[str]:
+        content = build_crate.load_content(self.root / "content")
+        accepted = (
+            tomllib.loads((self.root / "content" / check_duplicates.ACCEPTED_FILE).read_text(encoding="utf-8")).get(
+                "accepted", []
+            )
+            if (self.root / "content" / check_duplicates.ACCEPTED_FILE).exists()
+            else []
+        )
+        return check_duplicates.check(content, accepted).errors
+
+    def prepare(self) -> None:
+        self.edit("guide.toml", 'name = "Test Person"', 'name = "Test Person"\ngithub = "tester"')
+        self.append(
+            "guide.toml",
+            '\n[[instrument]]\nid = "duplicate-fix"\nname = "Duplicate fix command"\nversion = "1"\n'
+            'url = "https://example.org/fix"\nkind = "software"\n',
+        )
+        self.append(
+            "guide.toml",
+            '\n[[resourceType]]\nid = "registry"\nname = { cs = "Registr", en = "Registry" }\n',
+        )
+        self.edit("resources.toml", 'type = "service"', 'type = "registry"')
+        self.edit(
+            "resources.toml",
+            'stations = ["one"]\n',
+            'stations = ["one"]\n\n[resource.repository]\nkind = "general"\n',
+        )
+        snapshot = self.root / "content" / "snapshots" / "re3data.toml"
+        snapshot.parent.mkdir(exist_ok=True)
+        snapshot.write_text(
+            '[snapshot]\nsource = "re3data"\nurl = "https://www.re3data.org/"\nretrieved = 2026-01-01\n'
+            'license = "https://creativecommons.org/publicdomain/zero/1.0/"\n\n'
+            '[[repository]]\nalternateIds = [{ scheme = "re3data", value = "r3d100000001" }]\n'
+            'id = "r3d100000001"\nname = "Test repository"\nurl = "https://example.org/service"\n'
+            're3data = "r3d100000001"\n',
+            encoding="utf-8",
+        )
+
+        register_ids.register(self.root / "content")
+
+    def test_comment_body_is_bounded_and_keeps_the_commit(self) -> None:
+        text = fix_duplicates.bounded_comment("prefix\n\n", "x" * 70000, "\nCommit: `abc`.")
+        self.assertLessEqual(len(text), fix_duplicates.COMMENT_LIMIT)
+        self.assertIn("diff truncated", text)
+        self.assertTrue(text.endswith("Commit: `abc`."))
+
+    def test_command_is_exact(self) -> None:
+        self.assertTrue(fix_duplicates.parse_command("/fix-duplicates"))
+        self.assertTrue(fix_duplicates.parse_command("  /fix-duplicates\n"))
+        for body in ("/fix-duplicates now", "/refresh re3data", "please /fix-duplicates", ""):
+            self.assertFalse(fix_duplicates.parse_command(body))
+
+    def test_dry_run_applies_link_and_provenance(self) -> None:
+        self.prepare()
+        self.assertEqual(
+            fix_duplicates.main(["--root", str(self.root), "--pr", "82", "--commenter", "tester", "--dry-run"]),
+            0,
+        )
+        resources = (self.root / "content" / "resources.toml").read_text(encoding="utf-8")
+        self.assertIn('re3data = "r3d100000001"', resources)
+        provenance = (self.root / "content" / "provenance.toml").read_text(encoding="utf-8")
+        self.assertIn('agent = "tester"', provenance)
+        self.assertIn('instruments = ["duplicate-fix"]', provenance)
+        self.assertIn('results = ["service"]', provenance)
+        self.assertEqual(self.errors(), [])
+        self.assertEqual(self.duplicates(), [])
+
+    def test_unknown_commenter_is_refused_without_change(self) -> None:
+        self.prepare()
+        before = (self.root / "content" / "resources.toml").read_text(encoding="utf-8")
+        self.assertEqual(
+            fix_duplicates.main(["--root", str(self.root), "--pr", "82", "--commenter", "stranger", "--dry-run"]),
+            1,
+        )
+        self.assertEqual((self.root / "content" / "resources.toml").read_text(encoding="utf-8"), before)
+
+    class FakeGitHub:
+        def __init__(self, repository, token):
+            self.repository = repository
+            self.writer = True
+            self.pull_data = None
+            self.pull_queue = []
+            self.comments = []
+            self.commits = []
+
+        def can_write(self, login):
+            return self.writer
+
+        def pull(self, pr):
+            if self.pull_queue:
+                return self.pull_queue.pop(0)
+            return self.pull_data
+
+        def comment(self, pr, body):
+            self.comments.append(body)
+
+        def commit(self, pull, files, message):
+            self.commits.append((pull, files, message))
+            return "f" * 40
+
+    def github_pull(self, head="a" * 40, repo="dsw-nrp/eosc-fair-guide", base="main"):
+        return {
+            "state": "open",
+            "base": {"ref": base, "repo": {"default_branch": "main"}},
+            "head": {"sha": head, "ref": "agents/tester/fix", "repo": {"full_name": repo}},
+        }
+
+    def test_github_refuses_unauthorised_or_foreign_pull_requests(self) -> None:
+        self.prepare()
+        default_head = self.github_pull()
+        default_head["head"]["ref"] = "main"
+        for writer, pull in (
+            (False, self.github_pull()),
+            (True, self.github_pull(repo="fork/guide")),
+            (True, self.github_pull(base="release")),
+            (True, default_head),
+        ):
+            fake = self.FakeGitHub("dsw-nrp/eosc-fair-guide", "token")
+            fake.writer = writer
+            fake.pull_data = pull
+            before = (self.root / "content" / "resources.toml").read_text(encoding="utf-8")
+            with mock.patch.object(fix_duplicates, "GitHub", lambda repo, token, fake=fake: fake):
+                self.assertEqual(fix_duplicates.run_fix(self.root, 82, "tester", "dsw-nrp/eosc-fair-guide", "token"), 0)
+            self.assertEqual(fake.commits, [])
+            self.assertTrue(fake.comments)
+            self.assertEqual((self.root / "content" / "resources.toml").read_text(encoding="utf-8"), before)
+
+    def test_github_commits_only_after_the_head_is_rechecked(self) -> None:
+        self.prepare()
+        fake = self.FakeGitHub("dsw-nrp/eosc-fair-guide", "token")
+        fake.pull_data = self.github_pull()
+        fake.pull_queue = [self.github_pull(), self.github_pull(head="b" * 40)]
+        with mock.patch.object(fix_duplicates, "GitHub", lambda repo, token: fake):
+            self.assertEqual(
+                fix_duplicates.run_fix(
+                    self.root, 82, "tester", "dsw-nrp/eosc-fair-guide", "token", expected_head="a" * 40
+                ),
+                0,
+            )
+        self.assertEqual(fake.commits, [])
+        self.assertIn("head moved", fake.comments[-1])
+
+    def test_github_commits_the_link_and_provenance(self) -> None:
+        self.prepare()
+        register_path = self.root / "content" / "identifiers.toml"
+        original = tomllib.loads(register_path.read_text(encoding="utf-8"))
+        original["issued"]["actions"].append("retired-action")
+        original["retired"]["actions"] = ["retired-action"]
+        register_path.write_text(
+            "# Preserve the reviewed register.\n"
+            + register_ids.render(original["register"]["prepared"], original["issued"], original["retired"]),
+            encoding="utf-8",
+        )
+        fake = self.FakeGitHub("dsw-nrp/eosc-fair-guide", "token")
+        fake.pull_data = self.github_pull()
+        with mock.patch.object(fix_duplicates, "GitHub", lambda repo, token: fake):
+            self.assertEqual(
+                fix_duplicates.run_fix(
+                    self.root, 82, "tester", "dsw-nrp/eosc-fair-guide", "token", expected_head="a" * 40
+                ),
+                0,
+            )
+        self.assertEqual(len(fake.commits), 1)
+        files = fake.commits[0][1]
+        self.assertIn("content/resources.toml", files)
+        self.assertIn("content/provenance.toml", files)
+        self.assertIn("content/identifiers.toml", files)
+        self.assertIn('re3data = "r3d100000001"', files["content/resources.toml"])
+        self.assertIn('agent = "tester"', files["content/provenance.toml"])
+        action = tomllib.loads(files["content/provenance.toml"])["action"][-1]["id"]
+        original["issued"]["actions"].append(action)
+        self.assertEqual(tomllib.loads(files["content/identifiers.toml"]), original)
+        self.assertTrue(files["content/identifiers.toml"].startswith("# Preserve the reviewed register.\n"))
+        self.assertEqual(self.errors(), [])
+        self.assertIn("Applied the safe duplicate links", fake.comments[-1])
+
+    def test_github_does_not_register_unrelated_missing_identifiers(self) -> None:
+        self.prepare()
+        path = self.root / "content" / "identifiers.toml"
+        register = tomllib.loads(path.read_text(encoding="utf-8"))
+        register["issued"]["resources"].remove("service")
+        path.write_text(
+            register_ids.render(register["register"]["prepared"], register["issued"], register["retired"]),
+            encoding="utf-8",
+        )
+        fake = self.FakeGitHub("dsw-nrp/eosc-fair-guide", "token")
+        fake.pull_data = self.github_pull()
+        with mock.patch.object(fix_duplicates, "GitHub", lambda repo, token: fake):
+            fix_duplicates.run_fix(self.root, 82, "tester", fake.repository, "token", expected_head="a" * 40)
+        self.assertEqual(fake.commits, [])
+        self.assertIn("'service' is not registered", fake.comments[-1])
+        self.assertNotIn("service", tomllib.loads(path.read_text(encoding="utf-8"))["issued"]["resources"])
+
+    def test_workflow_extraction_can_validate_and_fix_real_registered_content(self) -> None:
+        repository = SCRIPTS.parent
+        extracted = self.root / "extracted"
+        shutil.copytree(repository / "content", extracted / "content")
+        self.assertTrue(
+            any("attachment does not exist" in error for error in fix_duplicates.content_errors(extracted)),
+            "content-only extraction misses authored validation attachments",
+        )
+        workflow = (repository / ".github/workflows/fix-duplicates.yml").read_text(encoding="utf-8")
+        archive = re.search(r'git archive "\$archived_head" ([^|\n]+)', workflow)
+        self.assertIsNotNone(archive)
+        for relative in archive.group(1).split():
+            if relative == "content":
+                continue
+            source = repository / relative
+            if source.is_dir():
+                shutil.copytree(source, extracted / relative)
+            else:
+                shutil.copyfile(source, extracted / relative)
+        resources = extracted / "content" / "resources.toml"
+        original = resources.read_text(encoding="utf-8")
+        self.assertIn('re3data = "r3d100014970"\n', original)
+        resources.write_text(original.replace('re3data = "r3d100014970"\n', "", 1), encoding="utf-8")
+        fake = self.FakeGitHub("dsw-nrp/eosc-fair-guide", "token")
+        fake.pull_data = self.github_pull()
+        with mock.patch.object(fix_duplicates, "GitHub", lambda repo, token: fake):
+            fix_duplicates.run_fix(extracted, 82, "motyc", fake.repository, "token", expected_head="a" * 40)
+        self.assertEqual(len(fake.commits), 1, fake.comments[-1])
+        self.assertEqual(
+            set(fake.commits[0][1]),
+            {"content/resources.toml", "content/provenance.toml", "content/identifiers.toml"},
+        )
+        self.assertEqual(fix_duplicates.content_errors(extracted), [])
+
+    def test_extracted_content_must_match_the_initial_head(self) -> None:
+        self.prepare()
+        fake = self.FakeGitHub("dsw-nrp/eosc-fair-guide", "token")
+        fake.pull_data = self.github_pull(head="b" * 40)
+        before = (self.root / "content" / "resources.toml").read_bytes()
+        for expected in ("a" * 40, ""):
+            with mock.patch.object(fix_duplicates, "GitHub", lambda repo, token: fake):
+                fix_duplicates.run_fix(self.root, 82, "tester", fake.repository, "token", expected_head=expected)
+            self.assertEqual(fake.commits, [])
+            self.assertEqual((self.root / "content" / "resources.toml").read_bytes(), before)
+        self.assertIn("head", fake.comments[-1])
+
+    def test_apply_safe_suggestions_ignores_unsafe_or_unknown_placements(self) -> None:
+        self.prepare()
+        before = (self.root / "content" / "resources.toml").read_text(encoding="utf-8")
+        suggestion = check_duplicates.Suggestion(
+            entry="resource:service",
+            record="re3data:r3d100000001",
+            resolution="link",
+            safe=False,
+            file="content/resources.toml",
+            table="resource.repository",
+            field_name="re3data",
+            value="r3d100000001",
+            reason="unsafe",
+        )
+        self.assertEqual(fix_duplicates.apply_safe_suggestions(self.root, [suggestion]), ([], set()))
+        self.assertEqual((self.root / "content" / "resources.toml").read_text(encoding="utf-8"), before)
 
 
 if __name__ == "__main__":

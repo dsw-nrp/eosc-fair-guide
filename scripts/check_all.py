@@ -6,11 +6,13 @@
 Builds the site into ``_site/``, then runs the content contract, the duplicates check, the unit tests, Ruff, the
 icon and licence checks, the three crate validations and the page, API and diagram checks, each in its own process
 with separate bounded local and CI defaults. Prints each check's result and time as it finishes, the output of
-the checks that failed, and exits with 1 if any did. ``--live`` adds the live checks, which need the network;
-``--only`` runs the named checks alone after the build, which every check depends on, and reports the others as not
-run; the published-health validation (``health-api``) runs in a full run or when named. ``--base`` passes a git
-reference to the content checks for paradata freshness, compared from where this branch left it exactly as a pull
-request is (the remote's default branch by default, so a local run reports what the pull request will).
+the checks that failed or reported partial coverage, and exits with 1 if any check failed or stayed partial, as the
+CI aggregate does. ``--live`` adds the live checks, which need the network; ``--only`` runs the named checks alone
+after the build, which every check depends on, reports the others as not run, and still exits 0 when every selected
+check completes, leaving the run's own report partial; the published-health validation (``health-api``) runs in a
+full run or when named. ``--base`` passes a git reference to the content checks for paradata freshness, compared
+from where this branch left it exactly as a pull request is (the remote's default branch by default, so a local run
+reports what the pull request will).
 
 Run it with the interpreter of the environment that has ``requirements-dev.txt`` installed, after ``npm ci``.
 Browser checks default to ``.cache/ms-playwright`` and respect an explicit ``PLAYWRIGHT_BROWSERS_PATH``.
@@ -70,7 +72,8 @@ class Result:
 
     @property
     def ok(self) -> bool:
-        return self.returncode == 0
+        """A partial result is a failure even at native exit zero, exactly as the CI aggregate reads it."""
+        return self.returncode == 0 and not self.partial
 
 
 def tool(name: str) -> str:
@@ -449,7 +452,10 @@ def selected_jobs(available: list[Job], only: list[str] | None) -> list[Job]:
 def finish(results: list[Result], start: float) -> int:
     failed = [result for result in results if not result.ok]
     for result in failed:
-        print(f"\n--- {result.job.name} ({' '.join(result.job.command[1:])})\n{tail(result.output)}")
+        print(f"\n--- {result.job.name} ({' '.join(result.job.command[1:])})")
+        if result.partial:
+            print("Incomplete required check coverage (partial result).")
+        print(tail(result.output))
     total = time.monotonic() - start
     print(f"\n{len(results) - len(failed)} of {len(results)} checks passed in {total:.1f}s")
     return 1 if failed else 0

@@ -1572,3 +1572,14 @@ instruments = ["release-automation"]
 objects = []
 results = ["guide"]
 endTime = 2026-10-19T07:34:34+00:00
+
+[[action]]
+id = "2026-10-20-duplicate-fix"
+type = "update"
+name = "Link the NRP Data Catch-all Repository to re3data"
+description = "Reviewed the dated re3data snapshot proposed in PR 82 and linked the existing curated datarepo resource to r3d100014970, preserving one repository entity. Implemented and verified explicit safe duplicate repairs and their CI diagnostics. After integrating the default branch, re-verified the same link against the dated snapshot, hardened refresh publication against a moving branch and made the local runner read a partial result as a failure."
+agent = "david-novak"
+instruments = ["openai-codex", "openai-sol-6-1", "kilo-code", "einfra-deepseek-4-1-ft", "duplicate-fix"]
+objects = ["re3data", "datarepo"]
+results = ["datarepo"]
+endTime = 2026-10-21T01:22:22+02:00

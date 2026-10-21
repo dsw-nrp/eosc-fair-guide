@@ -469,6 +469,7 @@ dateAccessed = 2026-10-08
 [resource.repository]
 kind = "general"
 datacite = "kdby.damqif"
+re3data = "r3d100014970"
 subjects = { cs = "všechny obory", en = "all fields" }
 pidTypes = ["DOI"]
 

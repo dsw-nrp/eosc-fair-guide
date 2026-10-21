@@ -490,12 +490,32 @@ fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, A
 assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
 blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
 completed runs expose their actual revision and outcomes through the dashboard and `api/health.json`.
+Repository hygiene scans the guide's own text and the delivered tooling: a machine-specific path, a hub-internal
+name or a private planning reference fails with its file and line, while the repository's own relative runtime
+scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and
+delivery integrity.
 PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane and two balanced browser
 lanes. The command inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
 Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,
 duplicate, incomplete or mismatched work, reconciles station/PDF inventories and publishes one health snapshot.
 It runs after failed lanes too. Source revision means the checked commit; trusted PR comments separately verify
-the PR head. The local full-run command and all validator profiles remain available unchanged.
+the PR head. The local full-run command and all validator profiles remain available unchanged, and the local
+runner reads a partial child the way the collector does: the job row and the run fail and it exits non-zero,
+while an explicit `--only` subset whose selected checks all complete keeps a partial report and exits zero.
+On a failed aggregate the collector names every failed check, not only the first, and appends a bounded output
+tail for each to the CI summary. It copies the lane `logs/` and `details/` into the health artifact before
+publishing the failure report, so the artifact contains the same evidence the lane produced. The summary and
+artifact also carry the duplicate check's safe suggestions and point to `.cache/pr-review/suggestions.json`.
+The suggestion artifact identifies the PR source head separately from `checkedRevision`, the merge revision
+used for the build, so the trusted publisher can check freshness against the PR head.
+Suggestions are admitted only from the reconciled lane owning the duplicate check. Rejected identity or
+required evidence yields an empty suggestion payload; other incoming directories cannot supply suggestions.
+The required report is emitted first; optional suggestion read/write/summary failures are warnings and do
+not hide required diagnostics or change their outcome. Previous suggestion output is invalidated before
+publication. A partial required result becomes a failed aggregate row with an incomplete-coverage explanation,
+while its partial flag and native lane evidence remain available.
+Suggestion upload uses the collector's successful current-run `suggestions_path` output. If invalidating a
+previous artifact fails, its presence on disk cannot admit it to the uploaded review data.
 Three validation passes cover RO-Crate 1.2, Process Run Crate and the Guide profile; inheritance is
 disabled where an older crate descriptor would conflict. Known subclass inference, action-status IRI
 and RDF-property recommendations do not waive required profile checks.
@@ -513,7 +533,8 @@ the reference throughout. A parity failure retains its diagnostic and fails veri
 
 The health artifact includes complete successful/failing logs, individual script and case timings, explicit
 selected/skipped/aborted cases, unit-test timings and failure screenshots, route/heading/error records and traces.
-A selected subset remains partial even when its executed cases pass. Reruns are separate attempts and never
+A selected subset remains partial even when its executed cases pass, so a required job that reports partial
+coverage fails instead of passing with a note. Reruns are separate attempts and never
 erase an earlier failure. These checks establish their recorded scope, not complete visual or FAIR-semantic
 correctness. Performance comparisons name their revision, environment, coverage and concurrency; local elapsed
 time is not presented as measured hosted-runner cost.
@@ -521,22 +542,72 @@ time is not presented as measured hosted-runner cost.
 A separate trusted `workflow_run` posts the PR summary from bounded JSON artifacts without executing
 their code. It verifies current PR head/source repo, escapes Markdown and updates only its own bot
 comment with narrow PR write access. The first-page summary states the true total and links the complete
-changed-item list. PR execution has no secrets or delivery token. Dependency/action pins use Dependabot.
-Human/code-owner review follows CONTRIBUTING; automated jobs never merge their own proposals.
+changed-item list. When the duplicate check emitted a safe suggestion, the comment adds a bounded "Suggested
+fixes" section with the exact file, table, field, value and reason; it never edits the repository. Reasons
+render as inert code text in both the comment and CI summary. Artifact text cannot turn into
+links, images or notifications. PR execution
+has no secrets or delivery token. Dependency/action pins use Dependabot. Human/code-owner review follows
+CONTRIBUTING; automated jobs never merge their own proposals.
 
 ### Snapshot refresh and source watch
 
 `refresh_snapshots.py` serves sources the browser cannot read or should not query on entry. It checks
 shape, completeness, pagination totals, response bounds and removal thresholds before replacing a file;
 interdependent Dashboard collections move together. Invalid responses retain the old snapshot. Date-only
-changes produce no PR. Reports distinguish changed, unchanged, empty, rejected and failed outcomes.
+changes produce no PR. Reports distinguish changed, unchanged, empty, rejected and failed outcomes. Before
+writing, a refresh reserves every primary and retired identifier owned outside the snapshot being replaced;
+a new row whose derived slug is already taken receives a non-colliding suffix, and an identity collision that
+still needs review rejects the replacement instead of writing it.
 
 `source-refresh.yml` runs weekly, on dispatch or for an exact `/refresh <source>` PR comment from a
 currently authorized writer. Trusted default-branch code parses the command and proposes one reserved
 `refresh/<source>` branch per source through the repository-scoped App. Identical proposals are reused,
 rejected content is not repeatedly proposed and human-edited branches are left for reconciliation.
+Automatic replacement requires a complete nonempty commit inventory, the configured refresh App as every
+author, and only the expected `Refresh the <source> snapshot` messages. Repairs made by the same App are
+therefore protected too. The branch head is read before that inventory and the new commit replaces it only when
+the head still matches, through one atomic ref update that creates an absent branch only while it stays absent;
+a branch that moves or appears mid-run keeps its newer head and the run says so. Missing inventory or unknown
+authors/messages leaves the branch intact and reports the need to reconcile it manually; the maintainer fix
+command remains available on eligible refresh PRs.
 App settings and narrower per-job tokens are in [deployment.md](deployment.md#release-preparation-and-tagging).
 Nothing writes the default branch or merges; fixtures do not establish remote activation.
+
+### Duplicate suggestions and the maintainer fix
+
+`check_duplicates.py` keeps its existing error text and adds a structured suggestion only for an unambiguous
+group: one curated entry and one registry record, an authoritative shared key, a known link placement, no
+conflicting link and no accepted exception. The suggestion names the file, table, field and value and is
+written to `duplicates.json` under `CHECK_REPORT_DIR` or `--report`. `--fix` applies only safe suggestions to
+the working tree, prints a unified diff and leaves the provenance action to the person running it. Neither path
+edits `content/duplicates.toml` or accepts a lookalike group.
+Safe ownership is checked across the full catalogue and suggestion set. Exact placement rules are shared by
+Python consumers and checked for parity with the independent Node validator. The local batch validates TOML,
+replaces targets atomically and rechecks duplicates before reporting success. Handled failures restore
+original bytes; concurrently changed targets are refused and restoration failures are reported by path.
+Rollback records the known replacement bytes immediately after the swap, before cleanup, without a
+post-write discovery read; a cleanup failure therefore also restores the edited target.
+Atomicity is per file; process termination is not a multi-file filesystem transaction.
+
+`/fix-duplicates` is a separate trusted `issue_comment` workflow. It checks the commenter's current write
+access, requires an open same-repository PR targeting the default branch with a non-default head, extracts the
+PR content and its authored assets, profile and HTML with `git archive` (never executing them), applies only
+safe suggestions, validates the fixed content,
+re-reads the head and commits through the same repository-scoped App used by source refresh. The workflow
+records the exact archived SHA before extraction and requires it to match the handler's first validated PR
+head read, as well as retaining the final head recheck. It resolves the
+commenter to an existing `[[person]]` by `github` and refuses if there is none; the action names that person,
+the `duplicate-fix` instrument, the consulted registry source and the changed entry. It registers only the
+new action ID before content validation and commits that register update with the link and provenance;
+unrelated missing IDs still fail validation. The App secrets are
+`SOURCE_REFRESH_CLIENT_ID` and `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them the workflow fails before any
+write. The command never runs on schedules or forks, never merges and never pushes the default branch. Rollback
+is a revert of its commit or removal of the workflow; a stale head is a no-op. The local `--fix` remains the
+fallback when the command is unavailable.
+The App's diff and content-error comments use bounded, safely closed fences that contain authored Markdown,
+including embedded fence delimiters; truncation retains the commit reference. An unexpected workflow failure
+directs the maintainer to inspect the branch and run because the commit may have landed before its comment
+failed. It does not imply an unchanged branch or automatically undo an already published repair.
 
 `health-watch.yml` checks links, connectors, stale dates and watched EOSC CZ page content, excluding
 navigation/header/footer. Champion remeasurement is monthly or requested. Repeated failures precede

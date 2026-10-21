@@ -19,6 +19,7 @@ from collections import Counter
 from pathlib import Path
 
 import check_all
+import check_duplicates
 
 ROOT = check_all.ROOT
 LANES = ("cpu", "browser-a", "browser-b")
@@ -197,11 +198,119 @@ def validate_scripts(job, directory: Path, groups: dict, manifest: dict) -> None
         complete_cases(cases["planned"], cases["executed"])
 
 
+FAILURE_TAIL_LINES = 40
+FAILURE_TAIL_CHARS = 4000
+SUGGESTION_LIMIT = 20
+
+
+def bounded_failure(text: str) -> str:
+    value = check_all.tail(text, FAILURE_TAIL_LINES)
+    return value[-FAILURE_TAIL_CHARS:] if len(value) > FAILURE_TAIL_CHARS else value
+
+
+def copy_lane_diagnostics(incoming: Path, output: Path) -> None:
+    """Keep lane logs and details even when the aggregate rejects the run."""
+    if not incoming.is_dir():
+        return
+    for directory in sorted(path for path in incoming.iterdir() if path.is_dir()):
+        for child in ("details", "logs", "coverage"):
+            if (directory / child).is_dir():
+                shutil.copytree(directory / child, output / child, dirs_exist_ok=True)
+
+
+def load_suggestions(incoming: Path | None, head: str, *, checked_revision: str = "") -> dict:
+    """Read the bounded, validated suggestion artifact from the duplicate check."""
+    suggestions = []
+    for path in [incoming / "details/duplicates.json"] if incoming is not None else []:
+        if not path.is_file():
+            continue
+        try:
+            data = read_json(path)
+        except (OSError, ValueError):
+            continue
+        if not isinstance(data, dict) or data.get("formatVersion") != 1:
+            continue
+        items = data.get("suggestions")
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict) or item.get("safe") is not True:
+                continue
+            if item.get("resolution") not in (None, "link"):
+                continue
+            if not check_duplicates.valid_placement(
+                item.get("entry"), item.get("file"), item.get("table"), item.get("field")
+            ):
+                continue
+            required = ("entry", "record", "value", "reason")
+            if not all(isinstance(item.get(key), str) and item.get(key) for key in required):
+                continue
+            if len(item["value"]) > 128 or len(item["reason"]) > 400:
+                continue
+            suggestions.append(
+                {
+                    "entry": item["entry"],
+                    "record": item["record"],
+                    "resolution": "link",
+                    "safe": True,
+                    "file": item["file"],
+                    "table": item.get("table", ""),
+                    "field": item["field"],
+                    "value": item["value"],
+                    "reason": item["reason"],
+                }
+            )
+            if len(suggestions) >= SUGGESTION_LIMIT:
+                break
+    return {
+        "formatVersion": 1,
+        "head": head,
+        "checkedRevision": checked_revision or head,
+        "repository": os.environ.get("GITHUB_REPOSITORY", ""),
+        "suggestions": suggestions,
+    }
+
+
+def collect_suggestions(incoming: Path | None, manifest: dict) -> dict:
+    revision = str(manifest.get("source", {}).get("revision", ""))
+    return load_suggestions(incoming, os.environ.get("PR_HEAD_SHA") or revision, checked_revision=revision)
+
+
+def write_suggestions(output: Path, payload: dict) -> Path:
+    target = output.parent / "pr-review" / "suggestions.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return target
+
+
+def summary_value(value: str) -> str:
+    return value.replace("`", "'").replace("\n", " ")[:400]
+
+
+def append_suggestion_summary(output: Path, payload: dict) -> None:
+    summary = output / "summary.md"
+    suggestions = payload.get("suggestions", [])
+    if not summary.is_file() or not suggestions:
+        return
+    lines = ["", "### Suggested fixes", ""]
+    for item in suggestions:
+        table = f" [{summary_value(item['table'])}]" if item.get("table") else ""
+        lines.append(
+            f"- `{summary_value(item['entry'])}` ← `{summary_value(item['record'])}`: "
+            f'add `{summary_value(item["field"])} = "{summary_value(item["value"])}"` to '
+            f"`{summary_value(item['file'])}`{table} (`{summary_value(item['reason'])}`)"
+        )
+    summary.write_text(
+        summary.read_text(encoding="utf-8").rstrip() + "\n" + "\n".join(lines).rstrip() + "\n", encoding="utf-8"
+    )
+
+
 def reconcile(manifest, incoming: Path, available, groups):
     """Validate evidence before publishing; do not infer completeness from equal totals."""
     owners = partition(available)
     found = {}
     results = []
+    failures = []
     directories = {}
     for path in sorted(incoming.glob("*/lane.json")):
         data = read_json(path)
@@ -215,21 +324,59 @@ def reconcile(manifest, incoming: Path, available, groups):
             raise ValueError(f"{name}: missing or duplicated jobs")
         for row in data["results"]:
             job = expected[row["name"]]
-            if row["returncode"] != 0 or row["partial"]:
-                raise ValueError(f"{job.name}: failed or partial result")
+            result = check_all.Result(job, row["returncode"], row["seconds"], row["output"], row["partial"])
+            if result.partial:
+                output = result.output
+                if output and not output.endswith("\n"):
+                    output += "\n"
+                result = check_all.Result(
+                    job,
+                    result.returncode or 1,
+                    result.seconds,
+                    output + "Incomplete required check coverage (partial result).",
+                    True,
+                )
+            results.append(result)
+            if not result.ok or result.partial:
+                failures.append(result)
+                continue
             validate_scripts(job, path.parent, groups, manifest)
-            results.append(check_all.Result(job, row["returncode"], row["seconds"], row["output"], row["partial"]))
         found[name] = data
         directories[name] = path.parent
     if set(found) != set(LANES):
         raise ValueError("missing required lanes: " + ", ".join(sorted(set(LANES) - set(found))))
+    if failures:
+        # A failed lane may not have produced final coverage; the failure already prevents a complete pass.
+        return results, found, directories, failures
     final_lane = next(name for name, jobs in owners.items() if any(job.name == "final-candidate" for job in jobs))
     for filename, key in (("station-coverage.json", "stations"), ("print-coverage.json", "pdfs")):
         coverage = read_json(directories[final_lane] / "coverage" / filename)
         if Counter(coverage["planned"]) != Counter(manifest["coverage"][key]) or coverage.get("skipped"):
             raise ValueError(f"{filename}: required inventory differs")
         complete_cases(manifest["coverage"][key], coverage["executed"], "key")
-    return results, found, directories
+    return results, found, directories, []
+
+
+def publish_suggestions(output: Path, manifest: dict, directories: dict, available) -> None:
+    """Optional data never replaces a required report or rescues rejected evidence."""
+    target = output.parent / "pr-review/suggestions.json"
+    try:
+        target.unlink(missing_ok=True)
+        lane = next(
+            (name for name, jobs in partition(available).items() if any(job.name == "duplicates" for job in jobs)), None
+        )
+        # Only the expected owner's directory, admitted by reconcile, may supply data.
+        directory = directories.get(lane)
+        payload = collect_suggestions(directory, manifest)
+        write_suggestions(output, payload)
+        append_suggestion_summary(output, payload)
+        # A stale file can survive a failed invalidation. Upload only the path successfully
+        # produced by this invocation, never an unconditional filename in the workflow.
+        if step_output := os.environ.get("GITHUB_OUTPUT"):
+            with Path(step_output).open("a", encoding="utf-8", newline="\n") as handle:
+                handle.write(f"suggestions_path={target.as_posix()}\n")
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print(f"WARNING: optional duplicate suggestions unavailable: {bounded_failure(str(error))}")
 
 
 def collect(args) -> int:
@@ -237,25 +384,31 @@ def collect(args) -> int:
     available = [*check_all.jobs(args.base, True), check_all.health_api_job()]
     selected = [job for job in available if job.name != "live"]
     initial = check_all.Result(check_all.Job("build", []), 1, 0, "Build or lane evidence unavailable")
+    manifest = {}
     try:
         manifest = read_json(args.manifest)
         verify_build(manifest, ROOT)
         row = manifest["result"]
         initial = check_all.Result(initial.job, row["returncode"], row["seconds"], row["output"])
-        results, lanes, directories = reconcile(
+        results, lanes, directories, failures = reconcile(
             manifest, args.incoming, available, read_json(ROOT / "scripts/check_groups.json")
         )
     except (OSError, ValueError, KeyError, TypeError) as error:
+        copy_lane_diagnostics(args.incoming, args.output)
         failed = check_all.Result(check_all.Job("aggregate", []), 1, 0, f"Aggregate rejected: {error}")
         check_all.emit_report(
             initial, [failed], [*available, failed.job], [*selected, failed.job], output=args.output, previous=None
         )
+        publish_suggestions(args.output, manifest, {}, available)
         print(failed.output)
         return 1
-    for directory in directories.values():
-        for child in ("details", "logs", "coverage"):
-            if (directory / child).is_dir():
-                shutil.copytree(directory / child, args.output / child, dirs_exist_ok=True)
+    copy_lane_diagnostics(args.incoming, args.output)
+    if failures:
+        check_all.emit_report(initial, results, available, selected, output=args.output, previous=None)
+        publish_suggestions(args.output, manifest, directories, available)
+        for result in failures:
+            print(f"FAILED {result.job.name}:\n{bounded_failure(result.output)}")
+        return 1
     # The collector can run on another machine; map the build's UTC start onto this process's
     # monotonic clock so the shared summary reports the whole run, not just publication.
     suite_started = started - (time.time() - manifest["started"])
@@ -277,6 +430,7 @@ def collect(args) -> int:
     status = check_all.publish_results(
         initial, results, available, selected, env=env, output=args.output, previous=None, start=suite_started
     )
+    publish_suggestions(args.output, manifest, directories, available)
     metadata["elapsed_seconds"] = time.time() - manifest["started"]
     write_json(args.output / "execution.json", metadata)
     return status

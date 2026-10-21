@@ -84,6 +84,30 @@ adapter. Performance receipts distinguish elapsed time and runner minutes; more 
 It includes strict OpenSpec validation and public-source hygiene. Install the pinned dependencies rather than
 depending on a global OpenSpec command. Generated `_site/`, local caches and environments are never committed.
 
+### Fixing a duplicate from a pull request
+
+When the duplicate check names a safe link, a maintainer with current write access can comment
+`/fix-duplicates` on an open same-repository pull request that targets the default branch. The trusted workflow
+reads that pull request's content and validation attachments as data, applies only safe link suggestions,
+adds a provenance action naming the commenter, registers its identifier, and commits the repair through the
+same repository-scoped App used by source refresh. It requires a
+reviewed `[[person]]` whose `github` is the commenter's login and the `duplicate-fix` instrument; it never
+merges, never pushes the default branch, never runs on schedules or forks and never edits
+`content/duplicates.toml`. A stale head makes it change nothing. The App secrets are
+`SOURCE_REFRESH_CLIENT_ID` and `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them the command is unavailable. Roll
+back by reverting its commit or removing the workflow. For a local edit, run
+`python scripts/check_duplicates.py --fix`; it applies only safe suggestions, prints the diff and leaves the
+provenance action for you to add. Local repairs use atomic file replacement and restore original bytes on a
+handled application or recheck failure; restoration errors are reported explicitly. There is no multi-file
+crash-transaction guarantee. A clean no-op still returns nonzero.
+
+The command also works on eligible `refresh/<source>` pull requests. Once a repair or other unrecognized
+commit is present, source refresh leaves that branch intact and asks for manual reconciliation. Automatic
+replacement is allowed only for a nonempty, verified list of commits authored by the refresh App with that
+source's expected snapshot message. Reconcile a protected PR by hand or close it so the next refresh can start
+from the default branch. If the command reports an unexpected failure, check the branch and workflow run:
+the repair commit may already exist even if its success comment failed.
+
 ### Development container
 
 With Docker and the Dev Containers extension, open this checkout and choose **Reopen in Container**. The image
