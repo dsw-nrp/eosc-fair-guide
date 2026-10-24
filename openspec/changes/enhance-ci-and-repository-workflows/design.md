@@ -60,22 +60,37 @@ Labels and templates precede the digest because "Track as task" uses them.
 
 Alternative rejected: one large PR. It would be too big to review and would delay the urgent correctness fixes.
 
-### 2. Changelog: strict structure, advisory notability
+### 2. Changelog from durable history; reviewed release bodies
 
 `scripts/check_changelog.py` joins the offline inventory and the CPU lane. It checks one `[Unreleased]` section,
 meaningful entries, unchanged released sections against the base and a complete release transition. It reads no
-PR body text. `release_versions.py` reuses its parser: the curated body moves unchanged into the new dated section,
-followed by the generated "Merged pull requests" and "Direct commits" lists. Curated notes that use those reserved
-headings are refused before any write.
+PR body text. `release_versions.py` reuses its parser: the `[Unreleased]` lines move unchanged into the new dated
+section, followed by the generated "Merged pull requests" and "Direct commits" lists. Lines that use those
+reserved headings are refused before any write.
 
-Whether a PR deserves a release note is a human judgement. The trusted review comment therefore shows an advisory
-line derived from the diff: "release note added", "covered by the generated lineage" for Dependabot and refresh
-PRs, or "consider a note if readers or maintainers would notice". The release PR is where the curated notes are
-reviewed as a whole. `docs/changelog.md` documents this.
+`CHANGELOG.md` is permanent, so it stays mechanical. The generated lineage is the record. `[Unreleased]` holds a
+single line only for a breaking change, a step people have to take or a security fix. Detail lives in commit
+messages: they are durable, and squash merges keep every branch commit's message in the default branch (the
+repository's `COMMIT_MESSAGES` squash setting). Pull-request descriptions are not a source, because review
+workflows edit them and their shape varies.
+
+The reader-facing account of a release belongs in its GitHub release body. The release workflow drafts the body
+with a link to the release's changelog section and one marked verification record (commit, archive digest, image,
+release status). At release time a maintainer runs the delivered `/aiscr-write-release-notes` in its report-only
+mode. It reads merged PRs, commit messages and issue threads and groups them by `.github/release.yml`. The native
+`scripts/release_body.py` then composes the body from the publishable report and the verification record, kept byte
+for byte. It shows the result, and only `--apply` writes that reviewed composition to an unpublished draft. The
+skill's own body update would replace the record, so it stays off; the skill itself is unchanged.
+
+The trusted review comment shows an advisory line derived from the diff: "unpublished line added", "covered by the
+generated lineage" for Dependabot and refresh PRs, or "commit messages feed the release notes; add a line only
+for a breaking change, a required step or a security fix". `docs/changelog.md` documents this.
 
 Alternatives rejected: a required note-or-reason gate read from the PR body. It reruns the full six-minute checks on
 every body edit, needs bot exemptions and turns untrusted text into a policy input. Changelog fragment files were
-also rejected; they add files without preventing the reproduced loss.
+also rejected; they add files without preventing the reproduced loss. Curated prose for every notable change was
+tried and dropped: it duplicated the commit history and froze verbose text into every release. Release notes
+built from PR descriptions were rejected because those descriptions are edited after merge.
 
 ### 3. Known failures survive incomplete evidence
 
@@ -126,8 +141,11 @@ Alternatives rejected: one workflow per command with workflow-level groups (the 
   setup, active time, slot waits). It suggests a lane assignment by longest-first packing. The assignment stays in
   its single committed owner and changes only through review. Expected outcome: three or four browser lanes of
   about 150 s each instead of two lanes of up to 226 s.
-- **Case splits.** Browser scripts longer than about 45 s (accessibility, sources, model, citation) become named
-  cases through the existing case mechanism, so slots fill evenly. The inventory still requires each case once.
+- **Case splits.** Browser scripts whose time excluding browser-slot waits exceeds about 45 s become named cases
+  through the existing case mechanism, so slots fill evenly, and cases start longest first. The inventory still
+  requires each case once. Case reports record a script's slot wait. Measured on 24 October 2026, accessibility,
+  sources, model and citation took 3.7–13.9 s alone but 37–68 s in run 40022072478: their CI time was slot
+  waiting, which separate lanes remove and splitting would not. No script currently qualifies.
 - **Unit shards.** `profile_checks.py` runs deterministic shards in parallel processes, locally and in CI, and
   merges one timing report. Tests already use temporary fixtures. A shuffled-order run guards against hidden
   shared state.
@@ -136,7 +154,10 @@ Alternatives rejected: one workflow per command with workflow-level groups (the 
   library; the apply task verifies the import graph first. The collector drops installs it does not use.
 - **Experiments kept only when measured.** One validator process for the three profiles, or keeping validators off
   the unit-shard cores. A Playwright browser cache, where restore plus system dependencies may cost as much as
-  today's install.
+  today's install. Outcome on 24 October 2026: the unit shards moved to a lane of their own, which took the CPU lane
+  off the critical path. A single validator process and a browser cache were not adopted. The validators no longer
+  set the elapsed time, and the browser download is 7.5 s of a 17.5 s install, a saving smaller than the reruns'
+  own 7 s spread.
 - **Acceptance.** Three reruns of a fixed PR commit before and after, reported by `ci_timings.py`: elapsed time,
   critical path, queue, setup and summed job time, with full case and validator coverage. Goals: full checks
   around 4–4.5 min and quick feedback around 1–1.5 min. Public-repository minutes are free; the real constraint is
@@ -326,7 +347,7 @@ procedures.
 
 All renderers share a "Next / If blocked / Done when" block: Python for the check summary and collector, JavaScript
 for the trusted publishers. Representative output tests fail when an element is removed. The PR template asks for a
-release-note decision and a planning link in plain words; nothing parses them.
+planning link and reminds authors that commit messages feed the release notes, in plain words; nothing parses it.
 
 ### 14. Crawler files (#83)
 
@@ -338,11 +359,11 @@ documents. Tests use the real build and assembled tree. DNS and canonical-addres
 
 ### 15. Permissions
 
-App registration target: `contents: write` and `pull_requests: write` (refresh, repair, release preparation, tag),
-`organization_projects: read` (audit) and `metadata: read`. `issues`, `merge_queues`, `repository_projects` and the
-read-only extras are removed by the owner. The public App endpoint lets the audit detect drift in this list. Every
-App token request names only the permissions its job uses. An offline workflow test compares each job's requested
-permissions with the reviewed list.
+The App's registration stays as it is: on 24 October 2026 the maintainer chose to keep its current permissions,
+which already include `organization_projects: read` for the audit. `.github/repository.toml` records them as the
+reviewed list, and the public App endpoint lets the audit detect drift from it. Every App token request names only
+the permissions its job uses, so no job holds the whole registration. An offline workflow test compares each job's
+requested permissions with the reviewed list and checks that the registration covers them.
 
 ### Issue dispositions (refreshed 24 October 2026)
 
@@ -404,11 +425,16 @@ human comments remain. Completed repairs, notes and published releases are never
 
 These can be answered during apply without changing the specs or the task breakdown:
 
-- Which API path and App permission read organization issue-field values (Priority, Effort)? Until confirmed,
-  the audit reports them as unavailable in CI.
+- Which API path and App permission read organization issue-field values (Priority, Effort)? Answered on
+  24 October 2026: `GET /orgs/{org}/issue-fields` needs the organization's Issue Fields read permission, and one
+  issue's values come from `GET /repos/{repo}/issues/{number}/issue-field-values` with Issues read. The maintainer
+  token received an empty list, so the audit reports the fields as unavailable until an owner confirms them.
 - Do Markdown issue templates apply their `type` front matter? If not, triage sets the type and the audit lists
   untyped issues.
 - Can prefilled new-issue links preset labels for all reporters? Adoption relies only on the finding key, so
   either answer works.
-- Can `GITHUB_TOKEN` read rulesets and environments? If not, those sections are audited locally only.
-- Do the validator and Playwright-cache experiments pay off? Each is measured and kept or dropped.
+- Can `GITHUB_TOKEN` read rulesets and environments? Answered on 24 October 2026: rulesets need only Metadata
+  read, but their bypass actors appear only with write access to the ruleset, and environments need Actions read.
+  `docs/maintenance.md` records the capability table.
+- Do the validator and Playwright-cache experiments pay off? Answered on 24 October 2026: neither was adopted
+  (see the experiments in decision 6).

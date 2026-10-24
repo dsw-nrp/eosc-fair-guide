@@ -1,0 +1,215 @@
+{
+ "profile": "ci-partitioned",
+ "lanes": {
+  "browser-a": {
+   "lane": "browser-a",
+   "started": 1792788596.9320905,
+   "finished": 1792788783.823563,
+   "execution": {
+    "jobs": 4,
+    "browser_workers": 2,
+    "cpus": 4
+   },
+   "results": [
+    {
+     "name": "page",
+     "returncode": 0,
+     "seconds": 171.354222049,
+     "partial": false
+    },
+    {
+     "name": "discovery",
+     "returncode": 0,
+     "seconds": 4.192179136999997,
+     "partial": false
+    },
+    {
+     "name": "assessment",
+     "returncode": 0,
+     "seconds": 185.231327856,
+     "partial": false
+    }
+   ]
+  },
+  "browser-b": {
+   "lane": "browser-b",
+   "started": 1792788618.241486,
+   "finished": 1792788843.9175375,
+   "execution": {
+    "jobs": 4,
+    "browser_workers": 2,
+    "cpus": 4
+   },
+   "results": [
+    {
+     "name": "runtime",
+     "returncode": 0,
+     "seconds": 37.52017678,
+     "partial": false
+    },
+    {
+     "name": "final-candidate",
+     "returncode": 0,
+     "seconds": 223.98064609099998,
+     "partial": false
+    },
+    {
+     "name": "helpers",
+     "returncode": 0,
+     "seconds": 184.968195762,
+     "partial": false
+    },
+    {
+     "name": "model",
+     "returncode": 0,
+     "seconds": 89.092034049,
+     "partial": false
+    },
+    {
+     "name": "api",
+     "returncode": 0,
+     "seconds": 36.68133285900001,
+     "partial": false
+    },
+    {
+     "name": "diagrams",
+     "returncode": 0,
+     "seconds": 21.93647383999999,
+     "partial": false
+    }
+   ]
+  },
+  "cpu": {
+   "lane": "cpu",
+   "started": 1792788566.955084,
+   "finished": 1792788685.5687454,
+   "execution": {
+    "jobs": 4,
+    "browser_workers": 2,
+    "cpus": 4
+   },
+   "results": [
+    {
+     "name": "content",
+     "returncode": 0,
+     "seconds": 2.270760097,
+     "partial": false
+    },
+    {
+     "name": "duplicates",
+     "returncode": 0,
+     "seconds": 0.3271989619999971,
+     "partial": false
+    },
+    {
+     "name": "versions",
+     "returncode": 0,
+     "seconds": 0.29723510899999894,
+     "partial": false
+    },
+    {
+     "name": "citation-metadata",
+     "returncode": 0,
+     "seconds": 0.3958614139999952,
+     "partial": false
+    },
+    {
+     "name": "openspec",
+     "returncode": 0,
+     "seconds": 0.6145783060000056,
+     "partial": false
+    },
+    {
+     "name": "public-content",
+     "returncode": 0,
+     "seconds": 0.9110648070000025,
+     "partial": false
+    },
+    {
+     "name": "agent-generation",
+     "returncode": 0,
+     "seconds": 0.10166772400000212,
+     "partial": false
+    },
+    {
+     "name": "agent-ownership",
+     "returncode": 0,
+     "seconds": 0.16464455300000225,
+     "partial": false
+    },
+    {
+     "name": "sibling-delivery",
+     "returncode": 0,
+     "seconds": 0.1844277179999949,
+     "partial": false
+    },
+    {
+     "name": "health",
+     "returncode": 0,
+     "seconds": 1.378697563000003,
+     "partial": false
+    },
+    {
+     "name": "unit",
+     "returncode": 0,
+     "seconds": 114.821385118,
+     "partial": false
+    },
+    {
+     "name": "ruff",
+     "returncode": 0,
+     "seconds": 0.06778420199999857,
+     "partial": false
+    },
+    {
+     "name": "format",
+     "returncode": 0,
+     "seconds": 0.07557102300000196,
+     "partial": false
+    },
+    {
+     "name": "icons",
+     "returncode": 0,
+     "seconds": 0.3021731640000027,
+     "partial": false
+    },
+    {
+     "name": "favicons",
+     "returncode": 0,
+     "seconds": 0.11921185399999956,
+     "partial": false
+    },
+    {
+     "name": "fonts",
+     "returncode": 0,
+     "seconds": 0.03292417099999767,
+     "partial": false
+    },
+    {
+     "name": "reuse",
+     "returncode": 0,
+     "seconds": 3.9037207890000047,
+     "partial": false
+    },
+    {
+     "name": "crate",
+     "returncode": 0,
+     "seconds": 115.43908208599998,
+     "partial": false
+    },
+    {
+     "name": "process-run",
+     "returncode": 0,
+     "seconds": 22.466613095999996,
+     "partial": false
+    },
+    {
+     "name": "profile",
+     "returncode": 0,
+     "seconds": 110.68884976799998,
+     "partial": false
+    }
+   ]
+  }
+ }
+}

@@ -494,8 +494,11 @@ Repository hygiene scans the guide's own text and the delivered tooling: a machi
 name or a private planning reference fails with its file and line, while the repository's own relative runtime
 scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and
 delivery integrity.
-PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane and two balanced browser
-lanes. The command inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
+PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane, a unit-test lane and four
+browser lanes, balanced from measured run timings (`scripts/ci_timings.py`) and assigned in `check_ci.BROWSER_LANES`.
+The unit shards have a runner of their own because, beside the validators, they made the CPU lane the critical path. A separate,
+non-required quick result runs the cheap offline checks beside the build; the CPU lane runs them again. The command
+inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
 Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,
 duplicate, incomplete or mismatched work, reconciles station/PDF inventories and publishes one health snapshot.
 It runs after failed lanes too. Source revision means the checked commit; trusted PR comments separately verify
@@ -525,8 +528,10 @@ and RDF-property recommendations do not waive required profile checks.
 Browser installation and checks share `scripts/browser_env.mjs`: an explicit `PLAYWRIGHT_BROWSERS_PATH`
 wins, otherwise the browser lives in the repository's `.cache/ms-playwright`. The runner separates its outer
 job count from `--browser-workers`; browser groups share atomic case slots across Node processes, so inner pools cannot multiply the global limit.
-`check_all.py` and the CI lanes in `check_ci.py` read both budgets from one owner, `scripts/check_policy.json`,
-with `CHECK_BROWSER_WORKERS` and explicit arguments taking precedence in that order. Station coverage
+`check_all.py` and the CI lanes in `check_ci.py` read their budgets from one owner, `scripts/check_policy.json`,
+with `CHECK_BROWSER_WORKERS` and explicit arguments taking precedence in that order. The same policy sets the
+number of unit-test shards; each shard is a process with a private report directory, packed from measured module
+times, and the merged report must contain every discovered test exactly once. Station coverage
 has one matrix over language, role, width and disclosure state. Closed guidance and expanded AI tips remain
 distinct audit states. Navigation checks wait for the requested view's replacement and data; search waits for
 the complete index before publishing results.

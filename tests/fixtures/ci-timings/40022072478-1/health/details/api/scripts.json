@@ -1,0 +1,27 @@
+{
+ "group": "api",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/api/check_api.mjs",
+   "seconds": 36.379554496,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_api.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_api.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}

@@ -11,6 +11,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Early feedback beside the build. Not required: the `checks` result runs the same checks with every other one.
+  quick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      # Ruff at its pinned version and OpenSpec are the only tools the quick checks use; the other checks use the
+      # standard library.
+      - name: Install the quick-check tools
+        run: |
+          python -m pip install "$(grep -E '^ruff==' requirements-dev.txt)"
+          npm ci
+      - name: Run the cheap offline checks
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python -u scripts/check_ci.py quick --base "$BASE_SHA"
+      - name: Publish the quick summary
+        if: always()
+        run: |
+          if [ -f .cache/quick/summary.md ]; then
+            cat .cache/quick/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf '%s\n' 'Quick result unavailable: setup did not reach the check runner. See the failed job step.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -25,6 +61,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - name: Build and record source, site and coverage identities
         run: python scripts/check_ci.py build
@@ -45,7 +83,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [cpu, browser-a, browser-b]
+        # The lanes of scripts/check_ci.py, which assigns their checks.
+        lane: [cpu, unit, browser-a, browser-b, browser-c, browser-d]
     env:
       PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
     steps:
@@ -53,18 +92,28 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - id: python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+          # Only the CPU and unit lanes install Python packages, the same set, so only they use the pip cache.
+          cache: ${{ (matrix.lane == 'cpu' || matrix.lane == 'unit') && 'pip' || '' }}
+          cache-dependency-path: requirements-dev.txt
+      - id: node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
-      - name: Install check tools
-        run: |
-          python -m pip install -r requirements-dev.txt
-          npm ci
+          cache: npm
+          cache-dependency-path: package-lock.json
+      # Browser lanes import only the standard library from Python (verified import graph), so they skip the
+      # validators, linters and their dependencies.
+      - name: Install the Python check tools in the CPU and unit lanes
+        if: matrix.lane == 'cpu' || matrix.lane == 'unit'
+        run: python -m pip install -r requirements-dev.txt
+      - name: Install the Node check tools
+        run: npm ci
       - name: Install browser only in browser lanes
-        if: matrix.lane != 'cpu'
+        if: startsWith(matrix.lane, 'browser-')
         run: npm run browsers -- --with-deps
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -74,6 +123,8 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           CHECK_LANE: ${{ matrix.lane }}
+          CHECK_CACHE_PIP: ${{ steps.python.outputs.cache-hit }}
+          CHECK_CACHE_NPM: ${{ steps.node.outputs.cache-hit }}
         run: python -u scripts/check_ci.py lane --name "$CHECK_LANE" --base "$BASE_SHA"
       - name: Save lane evidence even on failure
         if: always()
@@ -84,7 +135,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Save lane visuals
-        if: always() && matrix.lane != 'cpu'
+        if: always() && startsWith(matrix.lane, 'browser-')
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: check-visuals-${{ matrix.lane }}
@@ -97,8 +148,6 @@ jobs:
     needs: [build, lanes]
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -110,6 +159,8 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:

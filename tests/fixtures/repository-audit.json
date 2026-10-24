@@ -1,0 +1,1505 @@
+{
+ "GET repos/dsw-nrp/eosc-fair-guide": {
+  "allow_squash_merge": true,
+  "allow_merge_commit": true,
+  "allow_rebase_merge": false,
+  "allow_auto_merge": false,
+  "allow_update_branch": true,
+  "delete_branch_on_merge": true,
+  "squash_merge_commit_title": "COMMIT_OR_PR_TITLE",
+  "squash_merge_commit_message": "COMMIT_MESSAGES",
+  "merge_commit_title": "MERGE_MESSAGE",
+  "merge_commit_message": "PR_TITLE",
+  "has_discussions": true,
+  "has_projects": true,
+  "has_wiki": false
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/rulesets": [
+  {
+   "id": 24757722,
+   "name": "Main branch protection"
+  },
+  {
+   "id": 25342318,
+   "name": "Tag protection"
+  }
+ ],
+ "GET repos/dsw-nrp/eosc-fair-guide/rulesets/24757722": {
+  "id": 24757722,
+  "name": "Main branch protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+   "ref_name": {
+    "exclude": [],
+    "include": [
+     "~DEFAULT_BRANCH"
+    ]
+   }
+  },
+  "bypass_actors": [
+   {
+    "actor_id": 5,
+    "actor_type": "RepositoryRole",
+    "bypass_mode": "always"
+   }
+  ],
+  "rules": [
+   {
+    "type": "deletion"
+   },
+   {
+    "type": "non_fast_forward"
+   },
+   {
+    "type": "pull_request",
+    "parameters": {
+     "required_approving_review_count": 1,
+     "dismiss_stale_reviews_on_push": false,
+     "required_reviewers": [],
+     "require_code_owner_review": true,
+     "dismissal_restriction": {
+      "enabled": false,
+      "allowed_actors": []
+     },
+     "require_last_push_approval": false,
+     "required_review_thread_resolution": true,
+     "require_extra_approval_for_unattributed_changes": true,
+     "allowed_merge_methods": [
+      "squash"
+     ]
+    }
+   },
+   {
+    "type": "required_status_checks",
+    "parameters": {
+     "strict_required_status_checks_policy": true,
+     "do_not_enforce_on_create": false,
+     "required_status_checks": [
+      {
+       "context": "checks",
+       "integration_id": 15368
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/rulesets/25342318": {
+  "id": 25342318,
+  "name": "Tag protection",
+  "target": "tag",
+  "enforcement": "active",
+  "conditions": {
+   "ref_name": {
+    "exclude": [],
+    "include": [
+     "refs/tags/v*.*.*"
+    ]
+   }
+  },
+  "bypass_actors": [],
+  "rules": [
+   {
+    "type": "deletion"
+   },
+   {
+    "type": "non_fast_forward"
+   },
+   {
+    "type": "update"
+   },
+   {
+    "type": "required_deployments",
+    "parameters": {
+     "required_deployment_environments": [
+      "github-pages"
+     ]
+    }
+   }
+  ]
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/environments": {
+  "total_count": 2,
+  "environments": [
+   {
+    "name": "copilot",
+    "can_admins_bypass": true,
+    "protection_rules": [],
+    "deployment_branch_policy": null
+   },
+   {
+    "name": "github-pages",
+    "can_admins_bypass": true,
+    "protection_rules": [
+     {
+      "id": 68843531,
+      "type": "branch_policy"
+     },
+     {
+      "id": 69223319,
+      "type": "required_reviewers",
+      "prevent_self_review": false,
+      "reviewers": [
+       {
+        "type": "User",
+        "reviewer": {
+         "login": "motyc"
+        }
+       }
+      ]
+     }
+    ],
+    "deployment_branch_policy": {
+     "protected_branches": false,
+     "custom_branch_policies": true
+    }
+   }
+  ]
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/environments/github-pages/deployment-branch-policies": {
+  "total_count": 2,
+  "branch_policies": [
+   {
+    "name": "main",
+    "type": "branch"
+   },
+   {
+    "name": "v*.*.*",
+    "type": "tag"
+   }
+  ]
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/labels?per_page=100": [
+  {
+   "name": "accessibility",
+   "color": "f143ab",
+   "description": "Barrier affecting people with disabilities"
+  },
+  {
+   "name": "bug",
+   "color": "d73a4a",
+   "description": "Something isn't working"
+  },
+  {
+   "name": "dependencies",
+   "color": "0366d6",
+   "description": "Pull requests that update a dependency file"
+  },
+  {
+   "name": "docker",
+   "color": "21ceff",
+   "description": "Pull requests that update docker code"
+  },
+  {
+   "name": "documentation",
+   "color": "0075ca",
+   "description": "Improvements or additions to documentation"
+  },
+  {
+   "name": "duplicate",
+   "color": "cfd3d7",
+   "description": "This issue or pull request already exists"
+  },
+  {
+   "name": "enhancement",
+   "color": "a2eeef",
+   "description": "New feature or request"
+  },
+  {
+   "name": "github_actions",
+   "color": "000000",
+   "description": "Pull requests that update GitHub Actions code"
+  },
+  {
+   "name": "good first issue",
+   "color": "7057ff",
+   "description": "Good for newcomers"
+  },
+  {
+   "name": "guide-health",
+   "color": "ededed",
+   "description": null
+  },
+  {
+   "name": "help wanted",
+   "color": "008672",
+   "description": "Extra attention is needed"
+  },
+  {
+   "name": "invalid",
+   "color": "e4e669",
+   "description": "This doesn't seem right"
+  },
+  {
+   "name": "javascript",
+   "color": "168700",
+   "description": "Pull requests that update javascript code"
+  },
+  {
+   "name": "python",
+   "color": "2b67c6",
+   "description": "Pull requests that update python code"
+  },
+  {
+   "name": "question",
+   "color": "d876e3",
+   "description": "Further information is requested"
+  },
+  {
+   "name": "wontfix",
+   "color": "ffffff",
+   "description": "This will not be worked on"
+  }
+ ],
+ "GRAPHQL Project": {
+  "organization": {
+   "projectV2": {
+    "id": "PVT_kwDOCn_V-s4Bn8Gr",
+    "title": "EOSC CZ FAIR Guide",
+    "public": false,
+    "fields": {
+     "nodes": [
+      {
+       "name": "Title"
+      },
+      {
+       "name": "Assignees"
+      },
+      {
+       "name": "Status",
+       "options": [
+        {
+         "name": "Needs triage"
+        },
+        {
+         "name": "Ready"
+        },
+        {
+         "name": "In progress"
+        },
+        {
+         "name": "Review"
+        },
+        {
+         "name": "Done"
+        }
+       ]
+      },
+      {
+       "name": "Labels"
+      },
+      {
+       "name": "Linked pull requests"
+      },
+      {
+       "name": "Milestone"
+      },
+      {
+       "name": "Repository"
+      },
+      {
+       "name": "Reviewers"
+      },
+      {
+       "name": "Parent issue"
+      },
+      {
+       "name": "Sub-issues progress"
+      },
+      {
+       "name": "Created"
+      },
+      {
+       "name": "Updated"
+      },
+      {
+       "name": "Closed"
+      },
+      {
+       "name": "Priority",
+       "options": []
+      },
+      {
+       "name": "Effort",
+       "options": []
+      }
+     ]
+    },
+    "views": {
+     "nodes": [
+      {
+       "name": "Board",
+       "layout": "BOARD_LAYOUT",
+       "filter": "",
+       "groupByFields": {
+        "nodes": [
+         {
+          "name": "Priority"
+         }
+        ]
+       },
+       "sortByFields": {
+        "nodes": [
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Title"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "name": "Triage",
+       "layout": "TABLE_LAYOUT",
+       "filter": "is:issue status:\"Needs triage\"",
+       "groupByFields": {
+        "nodes": []
+       },
+       "sortByFields": {
+        "nodes": [
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Created"
+          }
+         },
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Title"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "name": "My work",
+       "layout": "TABLE_LAYOUT",
+       "filter": "assignee:@me -status:Done",
+       "groupByFields": {
+        "nodes": [
+         {
+          "name": "Milestone"
+         }
+        ]
+       },
+       "sortByFields": {
+        "nodes": [
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Status"
+          }
+         },
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Title"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "name": "Contributions",
+       "layout": "TABLE_LAYOUT",
+       "filter": "is:pr -label:dependencies,source-refresh",
+       "groupByFields": {
+        "nodes": [
+         {
+          "name": "Milestone"
+         }
+        ]
+       },
+       "sortByFields": {
+        "nodes": [
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Title"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "name": "Automated updates",
+       "layout": "TABLE_LAYOUT",
+       "filter": "is:pr label:dependencies,source-refresh",
+       "groupByFields": {
+        "nodes": [
+         {
+          "name": "Milestone"
+         }
+        ]
+       },
+       "sortByFields": {
+        "nodes": [
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Title"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "name": "Maintenance",
+       "layout": "TABLE_LAYOUT",
+       "filter": "label:area:maintenance",
+       "groupByFields": {
+        "nodes": [
+         {
+          "name": "Milestone"
+         }
+        ]
+       },
+       "sortByFields": {
+        "nodes": [
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Title"
+          }
+         }
+        ]
+       }
+      },
+      {
+       "name": "Release",
+       "layout": "TABLE_LAYOUT",
+       "filter": "",
+       "groupByFields": {
+        "nodes": [
+         {
+          "name": "Milestone"
+         }
+        ]
+       },
+       "sortByFields": {
+        "nodes": [
+         {
+          "direction": "ASC",
+          "field": {
+           "name": "Title"
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "workflows": {
+     "nodes": [
+      {
+       "name": "Auto-add sub-issues to project",
+       "enabled": true
+      },
+      {
+       "name": "Auto-add to project",
+       "enabled": true
+      },
+      {
+       "name": "Auto-archive items",
+       "enabled": true
+      },
+      {
+       "name": "Auto-close issue",
+       "enabled": false
+      },
+      {
+       "name": "Code changes requested",
+       "enabled": true
+      },
+      {
+       "name": "Item added to project",
+       "enabled": true
+      },
+      {
+       "name": "Item closed",
+       "enabled": true
+      },
+      {
+       "name": "Item reopened",
+       "enabled": true
+      },
+      {
+       "name": "Pull request linked to issue",
+       "enabled": true
+      },
+      {
+       "name": "Pull request merged",
+       "enabled": true
+      }
+     ]
+    }
+   }
+  }
+ },
+ "GRAPHQL ProjectItems": {
+  "organization": {
+   "projectV2": {
+    "items": {
+     "pageInfo": {
+      "hasNextPage": false,
+      "endCursor": "Y3Vyc29yOnYyOpK5MDAwMDAwMDAuMDE0MDg0NTA3MDQyMjUzNc4Qy8bZ"
+     },
+     "nodes": [
+      {
+       "content": {
+        "number": 98,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 97,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 96,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 95,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 94,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 93,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 92,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 80,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 91,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 90,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 89,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 88,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 87,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 86,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 85,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 84,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 83,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 65,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 64,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 63,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 62,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 61,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 104,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 105,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 106,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 99,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 100,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 101,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 16,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 17,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 18,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 19,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 20,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 21,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 22,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 23,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 24,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 25,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 26,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 27,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 28,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 29,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 30,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 31,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 32,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 33,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 35,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 36,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 37,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 38,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 103,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 39,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 40,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 41,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 42,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 43,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 59,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 60,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 5,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 6,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 7,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 8,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 9,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 10,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 11,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 12,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 13,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 14,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 15,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 70,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "content": {
+        "number": 107,
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/issues?state=open&per_page=100": [
+  {
+   "number": 107,
+   "node_id": "PR_kwDOVAEbKM8AAAABKbDvfg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/107"
+  },
+  {
+   "number": 103,
+   "node_id": "PR_kwDOVAEbKM8AAAABJqbAOA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/103"
+  },
+  {
+   "number": 101,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSWWg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/101"
+  },
+  {
+   "number": 100,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSV6A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/100"
+  },
+  {
+   "number": 99,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSViQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/99"
+  },
+  {
+   "number": 98,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSVIQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/98"
+  },
+  {
+   "number": 97,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSUtA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/97"
+  },
+  {
+   "number": 96,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSUXA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/96"
+  },
+  {
+   "number": 95,
+   "node_id": "I_kwDOVAEbKM8AAAABYgST_A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/95"
+  },
+  {
+   "number": 94,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSTcQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/94"
+  },
+  {
+   "number": 93,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSS3A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/93"
+  },
+  {
+   "number": 92,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSSdw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/92"
+  },
+  {
+   "number": 91,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSR-Q",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/91"
+  },
+  {
+   "number": 90,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSRhg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/90"
+  },
+  {
+   "number": 89,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSRJg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/89"
+  },
+  {
+   "number": 88,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSQtg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/88"
+  },
+  {
+   "number": 87,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSQYw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/87"
+  },
+  {
+   "number": 86,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSQHQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/86"
+  },
+  {
+   "number": 85,
+   "node_id": "I_kwDOVAEbKM8AAAABYgSPog",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/85"
+  },
+  {
+   "number": 84,
+   "node_id": "I_kwDOVAEbKM8AAAABYbV-3A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/84"
+  },
+  {
+   "number": 83,
+   "node_id": "I_kwDOVAEbKM8AAAABYUbJBw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/83"
+  },
+  {
+   "number": 80,
+   "node_id": "I_kwDOVAEbKM8AAAABYN4nwg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/80"
+  },
+  {
+   "number": 70,
+   "node_id": "PR_kwDOVAEbKM8AAAABJRZlCg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/70"
+  },
+  {
+   "number": 65,
+   "node_id": "I_kwDOVAEbKM8AAAABYC075w",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/65"
+  },
+  {
+   "number": 64,
+   "node_id": "I_kwDOVAEbKM8AAAABYC07qQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/64"
+  },
+  {
+   "number": 63,
+   "node_id": "I_kwDOVAEbKM8AAAABYC07YA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/63"
+  },
+  {
+   "number": 62,
+   "node_id": "I_kwDOVAEbKM8AAAABYC07Hw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/62"
+  },
+  {
+   "number": 61,
+   "node_id": "I_kwDOVAEbKM8AAAABYC069A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/61"
+  },
+  {
+   "number": 60,
+   "node_id": "I_kwDOVAEbKM8AAAABYC06pg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/60"
+  },
+  {
+   "number": 59,
+   "node_id": "I_kwDOVAEbKM8AAAABYC06Yg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/59"
+  },
+  {
+   "number": 43,
+   "node_id": "I_kwDOVAEbKM8AAAABX_sbwg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/43"
+  },
+  {
+   "number": 42,
+   "node_id": "PR_kwDOVAEbKM8AAAABJAtpWw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/42"
+  },
+  {
+   "number": 41,
+   "node_id": "PR_kwDOVAEbKM8AAAABJAtcig",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/41"
+  },
+  {
+   "number": 40,
+   "node_id": "PR_kwDOVAEbKM8AAAABJAtIKA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/40"
+  },
+  {
+   "number": 39,
+   "node_id": "PR_kwDOVAEbKM8AAAABJAsiaQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/39"
+  },
+  {
+   "number": 38,
+   "node_id": "I_kwDOVAEbKM8AAAABX4LB3A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/38"
+  },
+  {
+   "number": 37,
+   "node_id": "I_kwDOVAEbKM8AAAABX4LBdw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/37"
+  },
+  {
+   "number": 36,
+   "node_id": "I_kwDOVAEbKM8AAAABX4LBIw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/36"
+  },
+  {
+   "number": 35,
+   "node_id": "I_kwDOVAEbKM8AAAABX4LA1A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/35"
+  },
+  {
+   "number": 33,
+   "node_id": "I_kwDOVAEbKM8AAAABXoSexQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/33"
+  },
+  {
+   "number": 32,
+   "node_id": "I_kwDOVAEbKM8AAAABXnh8nA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/32"
+  },
+  {
+   "number": 31,
+   "node_id": "I_kwDOVAEbKM8AAAABXkAczA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/31"
+  },
+  {
+   "number": 30,
+   "node_id": "I_kwDOVAEbKM8AAAABXkAL0w",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/30"
+  },
+  {
+   "number": 29,
+   "node_id": "I_kwDOVAEbKM8AAAABXkAAYw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/29"
+  },
+  {
+   "number": 28,
+   "node_id": "I_kwDOVAEbKM8AAAABXj_4WQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/28"
+  },
+  {
+   "number": 27,
+   "node_id": "I_kwDOVAEbKM8AAAABXj_tLQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/27"
+  },
+  {
+   "number": 26,
+   "node_id": "I_kwDOVAEbKM8AAAABXj_ilQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/26"
+  },
+  {
+   "number": 25,
+   "node_id": "I_kwDOVAEbKM8AAAABXj_Z6Q",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/25"
+  },
+  {
+   "number": 24,
+   "node_id": "I_kwDOVAEbKM8AAAABXj_Khw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/24"
+  },
+  {
+   "number": 23,
+   "node_id": "I_kwDOVAEbKM8AAAABXj_B9A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/23"
+  },
+  {
+   "number": 22,
+   "node_id": "I_kwDOVAEbKM8AAAABXj-22A",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/22"
+  },
+  {
+   "number": 21,
+   "node_id": "I_kwDOVAEbKM8AAAABXj-oQA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/21"
+  },
+  {
+   "number": 20,
+   "node_id": "I_kwDOVAEbKM8AAAABXj-cLw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/20"
+  },
+  {
+   "number": 19,
+   "node_id": "I_kwDOVAEbKM8AAAABXj-RFg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/19"
+  },
+  {
+   "number": 18,
+   "node_id": "I_kwDOVAEbKM8AAAABXj-CRg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/18"
+  },
+  {
+   "number": 17,
+   "node_id": "I_kwDOVAEbKM8AAAABXj95FQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/17"
+  },
+  {
+   "number": 16,
+   "node_id": "I_kwDOVAEbKM8AAAABXj9vyg",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/16"
+  },
+  {
+   "number": 15,
+   "node_id": "I_kwDOVAEbKM8AAAABXjxsPQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/15"
+  },
+  {
+   "number": 14,
+   "node_id": "I_kwDOVAEbKM8AAAABXjxLiw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/14"
+  },
+  {
+   "number": 13,
+   "node_id": "I_kwDOVAEbKM8AAAABXjvyDQ",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/13"
+  },
+  {
+   "number": 12,
+   "node_id": "I_kwDOVAEbKM8AAAABXjvnnw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/12"
+  },
+  {
+   "number": 11,
+   "node_id": "I_kwDOVAEbKM8AAAABXjvfmA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/11"
+  },
+  {
+   "number": 10,
+   "node_id": "I_kwDOVAEbKM8AAAABXjvY5g",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/10"
+  },
+  {
+   "number": 9,
+   "node_id": "I_kwDOVAEbKM8AAAABXjvBiw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/9"
+  },
+  {
+   "number": 8,
+   "node_id": "I_kwDOVAEbKM8AAAABXju5fw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/8"
+  },
+  {
+   "number": 7,
+   "node_id": "I_kwDOVAEbKM8AAAABXjumAw",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/7"
+  },
+  {
+   "number": 6,
+   "node_id": "I_kwDOVAEbKM8AAAABXjuPeA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/6"
+  },
+  {
+   "number": 5,
+   "node_id": "I_kwDOVAEbKM8AAAABXjtvZA",
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/5"
+  }
+ ],
+ "GET orgs/dsw-nrp/issue-types": [
+  {
+   "name": "Task",
+   "is_enabled": true
+  },
+  {
+   "name": "Bug",
+   "is_enabled": true
+  },
+  {
+   "name": "Feature",
+   "is_enabled": true
+  }
+ ],
+ "GET orgs/dsw-nrp/issue-fields": [],
+ "GET apps/fair-guide-actions": {
+  "slug": "fair-guide-actions",
+  "permissions": {
+   "artifact_metadata": "read",
+   "attestations": "read",
+   "checks": "read",
+   "code_quality": "read",
+   "contents": "write",
+   "deployments": "read",
+   "discussions": "read",
+   "issues": "write",
+   "license_compliance_alerts": "read",
+   "merge_queues": "write",
+   "metadata": "read",
+   "organization_projects": "read",
+   "packages": "read",
+   "pages": "read",
+   "pull_requests": "write",
+   "repository_custom_properties": "read",
+   "repository_license_policy": "read",
+   "repository_projects": "read",
+   "statuses": "read"
+  }
+ }
+}

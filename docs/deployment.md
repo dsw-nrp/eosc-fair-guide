@@ -128,7 +128,10 @@ and dates, citation/Zenodo metadata and exactly one nonempty changelog section f
 the matching date. No release PR or merge-commit ancestry is required. If further commits landed, reconcile
 the notes and metadata for the selected current commit before tagging. The final branch-head check rejects a
 stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
-checked production build; publishing the resulting draft release is still a separate maintainer act.
+checked production build; publishing the resulting draft release is still a separate maintainer act. Before
+publishing, write the release notes with `/aiscr-write-release-notes` and apply them with
+`python scripts/release_body.py v<version> --apply` after reviewing its output; the draft's marked verification
+record stays unchanged (see the [changelog policy](changelog.md#write-the-release-body)).
 
 For an unchanged historical release whose failed-deployment tag was removed before a released artifact was
 published, the maintainer may recreate the annotated tag directly at the original release merge commit. Confirm

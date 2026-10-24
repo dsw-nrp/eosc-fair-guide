@@ -1,0 +1,327 @@
+{
+ "group": "helpers",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/page/check_accessibility.mjs",
+   "seconds": 68.364647354,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_accessibility.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_accessibility.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_safety.mjs",
+   "seconds": 23.047728442000007,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_safety.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_safety.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_guards.mjs",
+   "seconds": 0.04321397500000603,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": null,
+    "planned": [
+     "tests/page/check_guards.mjs"
+    ],
+    "executed": [
+     {
+      "name": "tests/page/check_guards.mjs",
+      "status": "passed",
+      "seconds": 0.04321397500000603
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_helpers.mjs",
+   "seconds": 7.471829467000004,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_helpers.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_helpers.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_citation.mjs",
+   "seconds": 37.492678830999985,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_citation.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_citation.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_datacite.mjs",
+   "seconds": 3.964034620999999,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_datacite.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_datacite.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_services.mjs",
+   "seconds": 11.155445336999982,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_services.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_services.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_champion_probe.mjs",
+   "seconds": 3.831239560999995,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_champion_probe.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_champion_probe.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_pr_comment.mjs",
+   "seconds": 0.05586584199999925,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": null,
+    "planned": [
+     "tests/page/check_pr_comment.mjs"
+    ],
+    "executed": [
+     {
+      "name": "tests/page/check_pr_comment.mjs",
+      "status": "passed",
+      "seconds": 0.05586584199999925
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_source_publisher.mjs",
+   "seconds": 0.06149116999999387,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": null,
+    "planned": [
+     "tests/page/check_source_publisher.mjs"
+    ],
+    "executed": [
+     {
+      "name": "tests/page/check_source_publisher.mjs",
+      "status": "passed",
+      "seconds": 0.06149116999999387
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_health_issues.mjs",
+   "seconds": 0.052956730000005336,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": null,
+    "planned": [
+     "tests/page/check_health_issues.mjs"
+    ],
+    "executed": [
+     {
+      "name": "tests/page/check_health_issues.mjs",
+      "status": "passed",
+      "seconds": 0.052956730000005336
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_release.mjs",
+   "seconds": 0.07245549100000062,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": null,
+    "planned": [
+     "tests/page/check_release.mjs"
+    ],
+    "executed": [
+     {
+      "name": "tests/page/check_release.mjs",
+      "status": "passed",
+      "seconds": 0.07245549100000062
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_deployment.mjs",
+   "seconds": 26.912751579000002,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_deployment.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_deployment.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_prepare_release.mjs",
+   "seconds": 0.06159679099998903,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": null,
+    "planned": [
+     "tests/page/check_prepare_release.mjs"
+    ],
+    "executed": [
+     {
+      "name": "tests/page/check_prepare_release.mjs",
+      "status": "passed",
+      "seconds": 0.06159679099998903
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_navigation.mjs",
+   "seconds": 2.126947252999991,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_navigation.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_navigation.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}

@@ -76,3 +76,109 @@
     unverified until hosted use after merge.
   - The OpenSpec wrapper refresh to 1.14.3, already staged by someone else, was left untouched.
   - Nothing was committed or pushed.
+
+## Claude Code session (apply group 2 and the release-notes follow-up)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` invoked by the maintainer for this change; the delivered planning,
+  quality-first and usage-logging rules; the delivered `aiscr-write-release-notes` skill, read but not run; pinned
+  `npx openspec` CLI; `gh` queries and artifact downloads; three approved reruns each of the baseline run
+  40022072478 and the candidate run 40085436997; the approved push of draft PR #107, stacked on #103.
+- **What:**
+  - Group 2:
+    - `scripts/ci_timings.py`, with a trimmed fixture of run 40022072478 and the three-rerun baseline in
+      `docs/ci.md`.
+    - Case reports record script-level browser-slot waits.
+    - The non-required `quick` job.
+    - Unit tests in measured, deterministic shards, each with a private report directory.
+    - Four browser lanes from the timing suggestion, with longest-first final-candidate cases, and a unit-test
+      lane of its own after candidate run 40084136770 showed the shards slowing the validators.
+    - npm and pip caches keyed on the lockfiles; browser lanes skip the Python validators, and the collector drops
+      its unused browser path.
+  - Group 1 follow-up (tasks 1.11 and 1.12): `CHANGELOG.md` keeps the generated lineage plus single lines for
+    breaking changes, required steps and security fixes, and detail lives in commit messages. Draft release bodies
+    carry a changelog link and a marked verification record, and `scripts/release_body.py` composes reviewed
+    `/aiscr-write-release-notes` reports with that record.
+- **Impacted:**
+  - New: `scripts/ci_timings.py`, `scripts/unit_shards.json`, `scripts/release_body.py`, `docs/ci.md`,
+    `tests/test_ci_timings.py`, `tests/test_release_body.py`, `tests/fixtures/ci-timings/40022072478-1/`.
+  - Changed: `scripts/check_ci.py`, `scripts/profile_checks.py`, `scripts/check_policy.json`,
+    `.github/workflows/checks.yml`, `.github/scripts/release-artifact.cjs`, `.agents/guide/surfaces.toml`, `.gitignore`, `tests/page/browser.mjs`,
+    `tests/page/check_final_candidate.mjs`, `tests/page/check_release.mjs`, CONTRIBUTING, `docs/design.md`,
+    `docs/changelog.md`, `docs/deployment.md`, `CHANGELOG.md`.
+  - Tests: `test_check_ci.py`, `test_check_runner.py`, `test_workflows.py`, `runtime.test.mjs`.
+  - Planning: the change's proposal, design, `guide-delivery` delta and tasks (1.11, 1.12, 2.1, 2.2, 2.4 and 2.5
+    checked, then 2.7 and 2.8; 2.5, 3.1 and 7.4 reworded).
+  - Commits `6848835`, `2534902` and `ae2e813` on `agents/claude/ci-faster-checks`, draft PR #107.
+- **Verification:**
+  - The timing tool reproduces the reference run's critical path: build, browser-b lane, collector; 6 min 19 s.
+    The reruns took 346, 347 and 262 s.
+  - A planted unknown clause fails both `check_ci.py quick` and the CPU lane with the same `advice:plan.01` error.
+  - The 511 unit tests run exactly once in 1, 4 and shuffled shards (99.6 s in one process, 29.3 s in four, locally).
+    A planted failure in any shard, or a dead shard, fails the check.
+  - Local `CI=true` simulations of build, lanes and collector pass 31 of 31 with five and with six lanes.
+  - Candidate run 40085436997 passed in all four attempts with 33 checks, 68 of 68 cases and identical validator
+    output. Its reruns' median elapsed time is 274 s against the baseline's 346 s; quick feedback takes 19–27 s.
+    pip missed in the branch's first run and hit in every candidate attempt. The collector artifacts keep
+    their names and inventories. The receipt is in `docs/ci.md`.
+  - The release-body tests cover the byte-exact record, review-before-apply and every refusal; `check_release.mjs`
+    passes with the marked record.
+  - Strict OpenSpec validation passes. The full `check_all.py` passes 31 of 31, and `git diff --check` reports
+    nothing.
+- **Corrections:**
+  - The maintainer chose to reword 2.5 to time excluding slot waits.
+  - The maintainer chose a mechanical changelog with single lines for breaking changes, required steps and security
+    fixes only.
+  - Detail is drawn from commit messages, not pull-request descriptions, which review workflows edit.
+  - The release-body helper was requested now.
+  - Finding: unit tests overwrote the CPU lane's `duplicates.json`, from which pull-request repair suggestions are
+    read. Fixed by private shard report directories.
+  - Finding: a rerun removes earlier attempts' artifacts, so attempts 2 and 3 keep job timings only.
+- **Close-out:** 19 of 61 tasks complete.
+  - 2.3 waits for the changed-lockfile evidence of the first Dependabot PR after this lands, as agreed.
+  - 2.6 kept the unit lane. With the maintainer's agreement, a single validator process and a Playwright browser
+    cache were not adopted: the validators are off the critical path, and downloads take about 7.5 s of a 17.5 s
+    install.
+
+## Claude Code session (apply group 3: repository settings audit)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` continued at the maintainer's request; the delivered planning,
+  quality-first and usage-logging rules; read-only `gh` REST and GraphQL queries of the repository, Project #1,
+  the organization's issue types and fields and the App registration; GitHub's permission reference.
+- **What:** Tasks 3.1–3.4.
+  - `.github/repository.toml` holds the reviewed settings, rulesets with the merge-queue target, environments,
+    labels, Project #1 configuration, issue types and fields, App permissions and per-job token requests. The
+    approved but unapplied targets are `[[pending]]` entries with their current values.
+  - `scripts/audit_repository.py` is read only, names the UI path and an equivalent command for each finding,
+    reports unreadable parts as unavailable, and limits `--fix` to declared labels and Project items.
+  - An offline token-permission test and the capability table in `docs/maintenance.md`.
+- **Impacted:**
+  - New: `.github/repository.toml`, `scripts/audit_repository.py`, `docs/maintenance.md`,
+    `tests/test_audit_repository.py`, `tests/fixtures/repository-audit.json`.
+  - Changed: `tests/test_workflows.py`, CONTRIBUTING, the change's design (open questions answered) and tasks
+    (3.1–3.4 checked), this entry.
+- **Verification:**
+  - A real read-only audit with the maintainer's token finds no drift and four pending targets, all task 4.8. One
+    declared label (`breaking-change`) is missing, and the organization issue fields are unavailable.
+  - Fixture tests cover planted drift in every section, unreadable sections, hidden bypass actors, reached
+    targets, the `--fix` write boundary (a planted deleting fix fails) and schema rejection.
+  - A planted extra token permission fails and names the job.
+  - The full `check_all.py` passes 31 of 31, and `git diff --check` reports nothing.
+- **Corrections:**
+  - The maintainer kept the App's current registration as the reviewed state. The design and task 5.8 no
+    longer trim it; each job's App token still requests only what that job uses.
+- **Findings:**
+  - The App registration already reads `organization_projects: read`, not write as planned.
+  - `.github/release.yml` and the changelog policy use a `breaking-change` label that did not exist.
+  - Bypass actors are hidden from tokens without write access to a ruleset.
+- **Close-out:** 23 of 61 tasks complete. With the maintainer's approval, `--fix` created the `breaking-change`
+  label; draft PR stacked on #107.

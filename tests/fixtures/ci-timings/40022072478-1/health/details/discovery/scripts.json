@@ -1,0 +1,27 @@
+{
+ "group": "discovery",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/page/check_discovery.mjs",
+   "seconds": 3.953330108,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_discovery.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_discovery.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}
