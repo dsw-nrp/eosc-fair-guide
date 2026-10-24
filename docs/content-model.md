@@ -179,12 +179,18 @@ several owners, cannot supply a safe link. The producer and Python consumers sha
 placements; the independently trusted Node validator is checked against the same domain, including invalid
 combinations of individually known values. Ambiguous groups remain for manual review.
 
-`python scripts/check_duplicates.py --fix` applies only safe suggestions to the working tree and prints a unified
-diff only after a passing duplicate recheck. Each target is replaced atomically from a temporary sibling. A
-handled application or recheck failure restores earlier changes to their original bytes; a target changed
-concurrently is refused, and a restoration failure names the affected file. This is per-file atomicity, not a
-multi-file crash transaction. It does not commit and does not write provenance: the person running it adds one action naming themselves,
-the consulted source or record and the changed result, as the content rules require. For the PR 82 case, a new
+`python scripts/check_duplicates.py --fix` applies only safe suggestions to the working tree together with one
+provenance action and that action's identifier registration, as the `/fix-duplicates` command does. The action
+names the responsible person, the `duplicate-fix` instrument, the consulted registry source and the linked
+results. The person is the reviewed `[[person]]` given with `--person <id>`, or else the single person whose
+`commitNames` or `github` matches `git config user.name`. The output says how the person was found. An unknown
+or ambiguous identity writes nothing and names both `--person` and the reviewed-identity procedure; the command
+never invents a person. After writing, it rechecks duplicates and the content contract. A repair that adds a
+content error, for example a missing registration, is rolled back, while errors that existed before it are left
+to the contributor. The unified diff is printed only after those rechecks pass. Each target is replaced atomically
+from a temporary sibling. A handled application or recheck failure restores earlier changes to their original
+bytes; a target changed concurrently is refused, and a restoration failure names the affected file. This is
+per-file atomicity, not a multi-file crash transaction. It does not commit. For the PR 82 case, a new
 re3data record for `datarepo.eosc.cz` and the curated `datarepo` resource produce a suggestion for
 `content/resources.toml`, `[resource.repository]`, `re3data = "r3d100014970"`; applying it joins the records instead
 of creating a second entry. A lookalike group, a group with several curated entries or records, an existing

@@ -209,8 +209,11 @@ class WorkflowContracts(unittest.TestCase):
     def test_source_refresh_runs_trusted_code_and_writes_only_through_the_scoped_app(self) -> None:
         text = (ROOT / ".github/workflows/source-refresh.yml").read_text(encoding="utf-8")
         workflow = load(".github/workflows/source-refresh.yml")
-        self.assertEqual(set(workflow["on"]), {"schedule", "workflow_dispatch", "issue_comment"})
+        self.assertEqual(set(workflow["on"]), {"schedule", "workflow_dispatch", "workflow_call"})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
+        # Interdependent sources share one queue; waiting requests are kept rather than replaced.
+        self.assertNotIn("concurrency", workflow)
+        self.assertEqual(workflow["jobs"]["refresh"]["concurrency"], {"group": "source-refresh", "queue": "max"})
         self.assertNotIn("pull_request_target", text)
         for job in workflow["jobs"].values():
             self.assertNotIn("permissions", job, "no job widens the read-only token")
@@ -228,18 +231,28 @@ class WorkflowContracts(unittest.TestCase):
         )
         publish = next(step for step in steps if "publish(" in step.get("with", {}).get("script", ""))
         self.assertEqual(publish["with"]["github-token"], "${{ steps.app.outputs.token }}")
+        answer = next(step for step in steps if step.get("name") == "Reply to the refresh command")
+        self.assertIn("always()", answer["if"])
+        self.assertIn("github.event_name == 'issue_comment'", answer["if"])
+        self.assertEqual(answer["with"]["github-token"], "${{ steps.app.outputs.token }}")
+        self.assertLess(
+            steps.index(answer), steps.index(next(s for s in steps if s.get("name", "").startswith("Report")))
+        )
         self.assertNotIn("git push", text)
         self.assertNotIn("merge", text.lower().replace("never merges", ""))
 
     def test_fix_duplicates_command_is_trusted_and_same_repo_only(self) -> None:
         text = (ROOT / ".github/workflows/fix-duplicates.yml").read_text(encoding="utf-8")
         workflow = load(".github/workflows/fix-duplicates.yml")
-        self.assertEqual(set(workflow["on"]), {"issue_comment"})
+        self.assertEqual(set(workflow["on"]), {"workflow_call"})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         self.assertNotIn("pull_request_target", text)
         job = workflow["jobs"]["fix"]
         self.assertIn("github.event.issue.pull_request", job["if"])
         self.assertIn("/fix-duplicates", job["if"])
+        self.assertEqual(
+            job["concurrency"], {"group": "fix-duplicates-${{ github.event.issue.number }}", "queue": "max"}
+        )
         steps = job["steps"]
         for step in steps:
             if step.get("uses", "").startswith("actions/checkout@"):
@@ -263,9 +276,6 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn('git archive "$archived_head"', extract["run"])
         self.assertIn('git archive "$archived_head" content assets profile index.html |', extract["run"])
         self.assertIn('"$archived_head" > .cache/fix-duplicates-head', extract["run"])
-        failure = next(step for step in steps if step.get("name") == "Report an unexpected failure")
-        self.assertEqual(failure["with"]["github-token"], "${{ steps.app.outputs.token }}")
-        self.assertIn("createComment", failure["with"]["script"])
         self.assertNotIn("git push", text)
         self.assertNotIn("pulls.merge", text)
         self.assertNotIn("merge_pull", text)
@@ -282,6 +292,48 @@ class WorkflowContracts(unittest.TestCase):
         )
         self.assertEqual(collector["env"]["PR_HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")
         self.assertEqual(collector["id"], "collect")
+
+    def test_comment_commands_filter_first_and_keep_every_accepted_request(self) -> None:
+        text = (ROOT / ".github/workflows/commands.yml").read_text(encoding="utf-8")
+        workflow = load(".github/workflows/commands.yml")
+        self.assertEqual(workflow["on"], {"issue_comment": {"types": ["created"]}})
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        # No workflow-level group: an ordinary comment cannot replace a command waiting for its resource.
+        self.assertNotIn("concurrency", workflow)
+        jobs = workflow["jobs"]
+        self.assertEqual(jobs["parse"]["if"], "startsWith(github.event.comment.body, '/')")
+        self.assertNotIn("permissions", jobs["parse"], "the filter runs with the read-only token")
+        for name in ("help", "outcome"):
+            self.assertEqual(
+                jobs[name]["permissions"], {"contents": "read", "issues": "write", "pull-requests": "write"}
+            )
+        # Acknowledgement also reads run state, to name an earlier run that holds the same resource.
+        self.assertEqual(
+            jobs["acknowledge"]["permissions"],
+            {"contents": "read", "actions": "read", "issues": "write", "pull-requests": "write"},
+        )
+        self.assertEqual(workflow["run-name"], "Comment on #${{ github.event.issue.number }}")
+        for name, called in (("fix-duplicates", "fix-duplicates.yml"), ("refresh", "source-refresh.yml")):
+            self.assertEqual(jobs[name]["uses"], f"./.github/workflows/{called}")
+            self.assertEqual(jobs[name]["secrets"], "inherit")
+            self.assertIn("needs.acknowledge.outputs.accepted == 'true'", jobs[name]["if"])
+        self.assertEqual(jobs["outcome"]["needs"], ["parse", "acknowledge", "fix-duplicates", "refresh"])
+        self.assertIn("always()", jobs["outcome"]["if"])
+        for job in jobs.values():
+            for step in job.get("steps", []):
+                if step.get("uses", "").startswith("actions/checkout@"):
+                    self.assertEqual(step["with"]["ref"], "${{ github.event.repository.default_branch }}")
+                    self.assertEqual(step["with"]["persist-credentials"], "false")
+                self.assertNotIn("github.event.comment", step.get("run", ""), "comment text never becomes shell text")
+        self.assertNotIn("pull_request_target", text)
+        self.assertNotIn("secrets.", text, "privileged credentials stay inside the called workflows")
+        # Nothing else in the repository is started by comments.
+        others = [
+            path.name
+            for path in (ROOT / ".github/workflows").glob("*.yml")
+            if path.name != "commands.yml" and "issue_comment" in load(f".github/workflows/{path.name}").get("on", {})
+        ]
+        self.assertEqual(others, [])
 
     def test_live_watch_is_scheduled_trusted_and_writes_only_issues(self) -> None:
         text = (ROOT / ".github/workflows/health-watch.yml").read_text(encoding="utf-8")

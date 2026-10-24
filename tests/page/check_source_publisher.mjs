@@ -3,7 +3,7 @@
 // again, and commands only from accounts with write access.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-const { SOURCES, parseCommand, select, publish, hashOf, markerOf } = createRequire(import.meta.url)("../../.github/scripts/source-publisher.cjs");
+const { SOURCES, parseCommand, select, publish, reply, hashOf, markerOf } = createRequire(import.meta.url)("../../.github/scripts/source-publisher.cjs");
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const bot = "fair-guide-refresh[bot]";
@@ -146,4 +146,17 @@ assert.equal(await select({ github, core, context: { repo, eventName: "issue_com
 assert.equal(await select({ github, core, context: { repo, eventName: "workflow_dispatch", payload: { inputs: { source: "re3data" } } } }), "re3data");
 assert.equal(await select({ github, core, context: { repo, eventName: "workflow_dispatch", payload: { inputs: { source: "x; y" } } } }), "");
 assert.equal(await select({ github, core, context: { repo, eventName: "schedule", payload: {} } }), Object.keys(SOURCES).join(" "));
+
+// A commanded refresh ends with one reply naming each source's result and the run, also when publication never ran.
+const commanded = { repo, serverUrl: "https://github.com", runId: 77, payload: { issue: { number: 9 } } };
+({ github, writes } = fakeGithub());
+const replied = await reply({ github, context: commanded }, JSON.stringify({ re3data: "proposed", heslar: "human-edits", other: "x" }), "0");
+assert.match(replied, /`re3data`: proposed as a new refresh pull request/);
+assert.match(replied, /`heslar`: kept on its branch.*reconcile it by hand/);
+assert(!replied.includes("`other`"), "only reviewed source keys are reported");
+assert.match(replied, /actions\/runs\/77/);
+assert.equal(writes.length, 1);
+({ github, writes } = fakeGithub());
+assert.match(await reply({ github, context: commanded }, "", "1"), /did not reach publication because a source was rejected or failed.*\*\*Next:\*\*/s);
+assert.match(await reply({ github, context: commanded }, "{not json", "0"), /did not reach publication; no pull request was changed/);
 console.log("check_source_publisher: one bot-owned PR per source, an atomically guarded branch head, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content and authorized exact commands pass");

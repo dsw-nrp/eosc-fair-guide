@@ -12,58 +12,92 @@ threshold SHALL be reported.
 
 - **GIVEN** a resource whose status as-of date is older than the freshness threshold
 - **WHEN** the scheduled health job runs
-- **THEN** it records the resource and its last verified date in the current maintenance digest for maintainer triage
+- **THEN** the maintenance digest lists the resource and its last verified date for maintainer triage
+
+### Requirement: Safe duplicate suggestions are applied only by explicit human action
+
+Safe suggestions SHALL require explicit human action and provenance naming the requester; schedules and ordinary PR checks SHALL NOT apply them. Local repair SHALL validate TOML, replace each target atomically, restore original bytes on handled application or recheck failure, and after success report the exact diff including its provenance action and identifier registration. Failure or no-op SHALL return nonzero. The duplicate rule and accepted groups SHALL NOT change automatically.
+
+#### Scenario: Scheduled refresh meets a duplicate
+
+- **GIVEN** a scheduled source refresh adds a record that duplicates a curated entry
+- **WHEN** the refresh completes
+- **THEN** the snapshot proposal is unchanged by automation and the suggestion is reported for human action
+
+#### Scenario: Authoritative matches compete for the same field
+
+- **GIVEN** two registry records match one curated entry through different authoritative keys
+- **WHEN** the duplicate check proposes links to the same target field
+- **THEN** it marks neither competing value safe and no fix changes that field
+
+#### Scenario: A target key already exists
+
+- **GIVEN** a target table already contains the suggested field, even with an empty value
+- **WHEN** a fix is considered
+- **THEN** no duplicate key is inserted and the original file remains valid TOML
+
+#### Scenario: No local safe change applies
+
+- **GIVEN** content with no applicable safe suggestion
+- **WHEN** the local fix command runs
+- **THEN** it leaves the content unchanged and returns nonzero
+
+#### Scenario: A maintainer applies the fix
+
+- **GIVEN** a maintainer requests the fix on a same-repository pull request
+- **WHEN** the safe suggestion is applied
+- **THEN** the change is committed to that branch with a provenance action naming the maintainer, and the checks rerun
+
+#### Scenario: A replacement fails
+
+- **GIVEN** a safe link and a failure while writing its temporary replacement or replacing its target
+- **WHEN** the local repair handles the error
+- **THEN** the original target bytes are preserved, temporary files are cleaned up and the command reports failure
+
+#### Scenario: Rechecking the completed repair fails
+
+- **GIVEN** one or more files were changed by local duplicate repair
+- **WHEN** content loading fails or duplicate errors remain during the final recheck
+- **THEN** every changed target is restored to its original bytes and the command returns nonzero
+
+#### Scenario: A later target fails after an earlier target changed
+
+- **GIVEN** multiple safe links affect different files
+- **WHEN** applying a later link raises an error
+- **THEN** the earlier changes are also restored and no applied-success message is printed
+
+#### Scenario: Cleanup fails after a target was replaced
+
+- **GIVEN** a target was replaced successfully and the following temporary-file cleanup raises an error
+- **WHEN** the local repair handles the error
+- **THEN** the replaced target is already tracked for rollback and its original bytes are restored without a post-write discovery read
+
+#### Scenario: A valid local repair completes
+
+- **WHEN** all safe links are applied and the content and duplicate rechecks pass, including the identifier register
+- **THEN** the command prints the applied working-tree diff, which contains the links, one provenance action naming the responsible person and that action's registration, and returns zero
 
 ## ADDED Requirements
 
-### Requirement: Safe duplicate repairs are prepared as complete bundles
+### Requirement: Local duplicate repair resolves a reviewed responsible person
 
-A safe duplicate suggestion SHALL prepare its intended link edits, provenance inputs and identifier-registration intent together as a bounded, versioned repair bundle. The bundle SHALL identify its repository, source head, checked revision and input fingerprints. Draft responsibility, action identity and completion time SHALL remain explicitly unresolved until actual application; preparation SHALL change no authored content.
+Local repair SHALL record as responsible the reviewed person given with `--person` or, without it, the single
+reviewed person whose GitHub account or commit name matches the local Git identity. An unknown or ambiguous identity
+SHALL write nothing, return nonzero and name both the `--person` option and the identity-review procedure. Repair
+SHALL never invent a person.
 
-#### Scenario: CI detects the original registry duplicate
-- **WHEN** a snapshot record unambiguously matches one curated entry
-- **THEN** the prepared bundle identifies the link edit, affected result IDs, consulted registry evidence, repair instrument, provenance draft and registration intent without asserting that the repair occurred
+#### Scenario: The local Git identity is reviewed
 
-#### Scenario: A suggestion remains ambiguous
-- **WHEN** competing records, existing keys or accepted exceptions prevent a safe repair
-- **THEN** no applicable bundle is offered for that group and the report retains the exact finding and human-review remedy
+- **GIVEN** a local Git user name listed in one person's reviewed `commitNames`
+- **WHEN** the contributor runs the local fix without `--person`
+- **THEN** the provenance action names that person and the output says how the person was resolved
 
-#### Scenario: A bundle is malformed or out of date
-- **WHEN** a bundle has an unsupported version, exceeds bounds, changes an unapproved path or no longer matches its input identity
-- **THEN** it cannot be applied and the diagnostic explains how to prepare current evidence
+#### Scenario: A person is named explicitly
 
-### Requirement: Duplicate repair application finalizes truthful provenance
+- **WHEN** the contributor runs the local fix with `--person` and a reviewed person ID
+- **THEN** that person is recorded regardless of the local Git identity
 
-Explicit local and trusted duplicate application SHALL use the same bundle semantics and finalize a reviewed responsible person, actual completion time and a nonconflicting action identity. It SHALL produce the required link, covering provenance and registration together. Unknown responsibility SHALL prevent writes and yield a concrete identity-resolution handoff. Existing unrelated provenance and issued or retired IDs SHALL be preserved.
+#### Scenario: The identity is unknown or ambiguous
 
-#### Scenario: A local contributor requests a repair
-- **WHEN** the contributor explicitly selects a reviewed responsible person and applies a safe repair
-- **THEN** the complete proposed diff includes the link, truthful provenance and only the required action-registration change, without a separate manual provenance assembly step
-
-#### Scenario: Local fix is invoked without a responsible person
-- **WHEN** local fix is requested without a reviewed person identity
-- **THEN** it returns nonzero, writes nothing and gives the exact complete-repair invocation and the procedure for obtaining a reviewed identity
-
-#### Scenario: An existing PR action might be reused
-- **WHEN** application considers extending existing provenance
-- **THEN** it requires explicit action selection and verifies responsibility and coverage rather than attributing unrelated work to the caller; a separately attributable repair can retain its own scoped action
-
-### Requirement: Complete repair validation precedes publication
-
-A prepared duplicate repair SHALL be finalized and validated against the real content, identifier register and authored validation attachments before any local replacement or remote commit. Application SHALL recheck source identity and preserve unrelated edits. A validation error or precondition failure SHALL publish no repair and leave local authored files unchanged. CI drafts SHALL never be executed as trusted code.
-
-#### Scenario: Provenance registration is omitted
-- **WHEN** a proposed repair contains a new action but omits its required registration
-- **THEN** the real content validation rejects the complete repair before any authored replacement or remote commit
-
-#### Scenario: Validation attachments are missing
-- **WHEN** the checked content references authored attachments absent from the validation input
-- **THEN** application stops with the missing-input remedy and does not claim the bundle is valid
-
-#### Scenario: A second contributor changes the input
-- **WHEN** the PR head or a relevant local file changes while the complete repair is prepared
-- **THEN** application refuses stale publication or replacement and explains how to refresh without overwriting the contributor's work
-
-#### Scenario: Applying an already completed repair
-- **WHEN** the intended links and matching provenance are already present
-- **THEN** no duplicate action or registration is added and the handoff states whether work remains, preserving the documented nonzero local no-change exit
+- **WHEN** the local Git identity matches no reviewed person or more than one
+- **THEN** the command writes nothing, returns nonzero and names the `--person` option and the procedure for adding a reviewed identity

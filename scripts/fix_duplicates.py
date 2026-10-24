@@ -10,12 +10,10 @@ from __future__ import annotations
 
 import argparse
 import base64
-import difflib
 import json
 import os
 import re
 import sys
-import tomllib
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -28,12 +26,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
 import check_duplicates  # noqa: E402
-import register_ids  # noqa: E402
+import duplicate_repairs  # noqa: E402
+from duplicate_repairs import INSTRUMENT, instrument_available, person_for  # noqa: E402
 
 COMMAND = "/fix-duplicates"
-INSTRUMENT = "duplicate-fix"
 COMMENT_LIMIT = 60000
-REGISTRY_OBJECTS = {"re3data": "re3data", "fip-dashboard": "fip-dashboard", "knav": "knav"}
 WRITERS = {"admin", "maintain", "write"}
 
 
@@ -42,61 +39,9 @@ def parse_command(body: str | None) -> bool:
     return str(body or "").strip() == COMMAND
 
 
-def person_for(content: dict[str, Any], login: str) -> str | None:
-    """Resolve the commenter to a reviewed person; never guess or create one."""
-    wanted = str(login or "").casefold()
-    for person in content["guide"].get("person", []):
-        if isinstance(person.get("github"), str) and person["github"].casefold() == wanted:
-            return str(person["id"])
-    return None
-
-
-def instrument_available(content: dict[str, Any]) -> bool:
-    return any(item.get("id") == INSTRUMENT for item in content["guide"].get("instrument", []))
-
-
-def cited_source(content: dict[str, Any], record_name: str) -> str | None:
-    """The consulted registry source, only when the content cites it."""
-    kind = record_name.split(":", 1)[0]
-    source_id = REGISTRY_OBJECTS.get(kind)
-    if source_id is None:
-        return None
-    cited = {item["id"] for item in content["sources"]}
-    cited |= {item["id"] for item in content["resources"] if item.get("citation")}
-    return source_id if source_id in cited else None
-
-
 def action_id(pr: int, head: str) -> str:
     day = datetime.now(UTC).date().isoformat()
     return f"{day}-dupfix-{pr}-{head[:7]}"
-
-
-def action_block(
-    identifier: str, person: str, suggestions: list[check_duplicates.Suggestion], content: dict[str, Any]
-) -> str:
-    results = sorted({suggestion.entry.split(":", 1)[1] for suggestion in suggestions})
-    sources = sorted(
-        {source for suggestion in suggestions if (source := cited_source(content, suggestion.record)) is not None}
-    )
-    description = (
-        f"Linked {', '.join(results)} to the registry record(s) the duplicate check named as a shared identity."
-    )
-    rows = [
-        "[[action]]",
-        f"id = {json.dumps(identifier)}",
-        'type = "update"',
-        'name = "Apply safe duplicate links"',
-        f"description = {json.dumps(description)}",
-        f"agent = {json.dumps(person)}",
-        f"instruments = {json.dumps([INSTRUMENT])}",
-    ]
-    if sources:
-        rows.append(f"objects = {json.dumps(sources)}")
-    rows += [
-        f"results = {json.dumps(results)}",
-        f"endTime = {datetime.now(UTC).replace(microsecond=0).isoformat()}",
-    ]
-    return "\n".join(rows) + "\n"
 
 
 def add_provenance(
@@ -111,47 +56,22 @@ def add_provenance(
     path = root / "content" / "provenance.toml"
     old = path.read_text(encoding="utf-8")
     identifier = action_id(pr, head)
-    if re.search(rf'(?m)^id\s*=\s*"{re.escape(identifier)}"\s*$', old):
+    new = duplicate_repairs.with_action(old, identifier, person, suggestions, content)
+    if new is None:
         return None, identifier
-    new = old.rstrip() + "\n\n" + action_block(identifier, person, suggestions, content)
     path.write_text(new, encoding="utf-8", newline="\n")
-    diff = "".join(
-        difflib.unified_diff(
-            old.splitlines(keepends=True), new.splitlines(keepends=True), fromfile=str(path), tofile=str(path)
-        )
-    )
-    return diff, identifier
+    return duplicate_repairs.unified_diff(path, old, new), identifier
 
 
 def register_action(root: Path, identifier: str) -> str | None:
     """Append only this action ID, preserving the rest of the reviewed register."""
     path = root / "content" / "identifiers.toml"
     old = path.read_text(encoding="utf-8")
-    expected = tomllib.loads(old)
-    actions = expected["issued"]["actions"]
-    if identifier in expected.get("retired", {}).get("actions", []):
-        raise ValueError(f"action identifier {identifier!r} is retired")
-    if identifier in actions:
+    new = duplicate_repairs.with_registration(old, identifier)
+    if new is None:
         return None
-    section = re.search(r"(?m)^\s*\[issued\][ \t]*(?:#[^\n]*)?$", old)
-    if section is None:
-        raise ValueError("identifier register has no supported [issued] table")
-    following = re.search(r"(?m)^[ \t]*\[", old[section.end() :])
-    stop = section.end() + following.start() if following else len(old)
-    array = re.search(r"(?m)^[ \t]*actions[ \t]*=[ \t]*(\[[^\]]*\])", old[section.end() : stop])
-    if array is None:
-        raise ValueError("identifier register has no supported issued actions array")
-    start, end = (section.end() + position for position in array.span(1))
-    actions.append(identifier)
-    new = old[:start] + register_ids.array(actions) + old[end:]
-    if tomllib.loads(new) != expected:
-        raise ValueError("registering the action would change unrelated identifier data")
     path.write_text(new, encoding="utf-8", newline="\n")
-    return "".join(
-        difflib.unified_diff(
-            old.splitlines(keepends=True), new.splitlines(keepends=True), fromfile=str(path), tofile=str(path)
-        )
-    )
+    return duplicate_repairs.unified_diff(path, old, new)
 
 
 def apply_safe_suggestions(root: Path, suggestions: list[check_duplicates.Suggestion]) -> tuple[list[str], set[str]]:
@@ -246,6 +166,11 @@ class GitHub:
         return self.request("GET", f"/repos/{self.repository}/pulls/{pr}")
 
     def comment(self, pr: int, body: str) -> None:
+        # Every reply names the run that produced it, so the result can be traced and retried from there.
+        run = os.environ.get("GITHUB_RUN_ID", "")
+        if re.fullmatch(r"[0-9]+", run):
+            server = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
+            body += f"\n\n[Run]({server}/{self.repository}/actions/runs/{run})"
         self.request("POST", f"/repos/{self.repository}/issues/{pr}/comments", {"body": body})
 
     def commit(self, pull: dict[str, Any], files: dict[str, str], message: str) -> str:

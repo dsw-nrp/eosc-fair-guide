@@ -10,6 +10,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 import check_all  # noqa: E402
+import check_ci  # noqa: E402
 from profile_checks import TimedResult  # noqa: E402
 
 
@@ -19,6 +20,38 @@ class CheckRunnerTests(unittest.TestCase):
         for env, profile in (({}, "local"), ({"CI": "true"}, "ci"), ({"CI": "false"}, "local")):
             self.assertEqual(check_all.execution_defaults(env, 16), {"profile": profile, **policy[profile]})
         self.assertEqual(check_all.execution_defaults({}, 1), {"profile": "local", "jobs": 1, "browser_workers": 1})
+
+    def test_local_and_partitioned_runners_share_one_budget_owner(self):
+        policy = json.loads((check_all.ROOT / "scripts/check_policy.json").read_text(encoding="utf-8"))
+
+        def budgets(module, argv, env):
+            parser = check_all.argparse.ArgumentParser()
+            with (
+                mock.patch.dict(check_all.os.environ, env, clear=True),
+                mock.patch.object(check_all.os, "cpu_count", return_value=16),
+            ):
+                if module is check_all:
+                    check_all.add_budget_arguments(parser)
+                    args = parser.parse_args(argv)
+                    return args.jobs, args.browser_workers
+                captured = {}
+                with mock.patch.object(check_ci, "collect", side_effect=lambda args: captured.update(vars(args)) or 0):
+                    check_ci.main(["collect", "--base", "main", *argv])
+                return captured["jobs"], captured["browser_workers"]
+
+        ci = (policy["ci"]["jobs"], policy["ci"]["browser_workers"])
+        for module in (check_all, check_ci):
+            with self.subTest(module=module.__name__):
+                self.assertEqual(budgets(module, [], {"CI": "true"}), ci, "the CI profile is the policy, not a copy")
+                self.assertEqual(budgets(module, [], {}), (policy["local"]["jobs"], policy["local"]["browser_workers"]))
+                self.assertEqual(budgets(module, [], {"CI": "true", "CHECK_BROWSER_WORKERS": "3"}), (ci[0], 3))
+                self.assertEqual(
+                    budgets(
+                        module, ["--jobs", "2", "--browser-workers", "5"], {"CI": "true", "CHECK_BROWSER_WORKERS": "3"}
+                    ),
+                    (2, 5),
+                    "explicit command-line budgets win",
+                )
 
     def test_every_child_receives_the_same_global_budget(self):
         jobs = [check_all.Job(name, []) for name in ["page", "model", "content"]]

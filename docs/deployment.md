@@ -108,7 +108,9 @@ The workflow retrieves every page of closed pull requests for the default branch
 reachable release tag and selects merged PRs whose merge commits belong to that tag-to-HEAD ancestry (all HEAD
 ancestry for the first release). It also collects every page of GitHub PR associations for first-parent commits
 in that history. Notes list merged PRs once and include linked, escaped subjects for direct commits; merge,
-squash and rebase PR commits are not listed again as direct changes. Earlier release sections are preserved.
+squash and rebase PR commits are not listed again as direct changes. The curated `[Unreleased]` notes lead the
+new release section unchanged, and `[Unreleased]` is left empty; notes that are malformed or use a reserved
+lineage heading stop preparation before any write ([changelog policy](changelog.md)). Earlier release sections are preserved.
 Unmerged PRs and changes outside this history are excluded. Commit-only and mixed releases are supported;
 an empty Git history or failed/incomplete collection is refused. A release can collect several merged PRs.
 

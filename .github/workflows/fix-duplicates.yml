@@ -1,25 +1,24 @@
 name: Fix duplicate records
 
-# Trusted maintainer command. Default-branch code reads the pull request's content as data, applies only the
-# duplicate check's safe link suggestions, records the commenting maintainer as the provenance agent and commits
-# through the repository-scoped App. It never runs pull-request code, schedules, forks or merges.
+# Trusted maintainer command, called by the comment-command workflow for an accepted `/fix-duplicates`.
+# Default-branch code reads the pull request's content as data, applies only the duplicate check's safe link
+# suggestions, records the commenting maintainer as the provenance agent and commits through the repository-scoped
+# App. It never runs pull-request code, schedules, forks or merges. Requests for one pull request wait in order.
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: fix-duplicates-${{ github.event.issue.number }}
-  cancel-in-progress: false
 
 jobs:
   fix:
     if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/fix-duplicates')
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: fix-duplicates-${{ github.event.issue.number }}
+      queue: max
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -63,17 +62,3 @@ jobs:
             --check-token "$CHECK_TOKEN" \
             --expected-head "$(cat .cache/fix-duplicates-head)" \
             --repository "$GITHUB_REPOSITORY"
-      - name: Report an unexpected failure
-        if: failure() && steps.app.outputs.token != ''
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          github-token: ${{ steps.app.outputs.token }}
-          script: |
-            const pr = context.payload.issue?.number;
-            if (!Number.isSafeInteger(pr)) return;
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: pr,
-              body: "`/fix-duplicates` encountered an unexpected failure. Check the PR branch state; a commit may already exist. See the workflow run: " +
-                `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-            });

@@ -12,9 +12,26 @@ All notable changes to this guide are recorded here. The format follows
 - Exact duplicate-link suggestions in check artifacts and trusted PR comments, with an explicit local
   `--fix` and maintainer `/fix-duplicates` command that records provenance, registers its ID and guards the PR head;
   repaired refresh pull requests remain protected for manual reconciliation.
+- A changelog check in local and pull-request runs: exactly one `[Unreleased]` section with real entries,
+  unchanged published releases and complete release transitions (`docs/changelog.md` explains the policy).
+- `/help` on any pull request lists the comment commands that apply there and whether you may use them, and a
+  mistyped command gets a "did you mean" answer.
+
+### Changed
+
+- All comment commands run through one workflow. An accepted command is acknowledged at once, waits its turn
+  behind an earlier run for the same resource and ends with a reaction or a reply naming its run.
+- Local `check_duplicates.py --fix` now writes the provenance action and its identifier registration along with
+  the safe links, for the reviewed person matched from `git config user.name` or named with `--person`. Without a
+  reviewed person it changes nothing.
 
 ### Fixed
 
+- Release preparation keeps the curated `[Unreleased]` notes in the new release ahead of the generated list of
+  merged pull requests and direct commits, instead of discarding them.
+- A missing or invalid CI lane no longer hides failures that the other lanes reported; both are shown, and the
+  check still fails.
+- An ordinary comment can no longer cancel a waiting `/refresh` or `/fix-duplicates` command.
 - Include the dated re3data snapshot from PR #82 and link the NRP Data Catch-all Repository to
   `r3d100014970`, keeping its curated resource and imported record as one repository entity.
 - Report every failed or incomplete required check with bounded diagnostics, retain lane logs and details,

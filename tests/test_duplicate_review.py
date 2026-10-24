@@ -6,6 +6,7 @@ import itertools
 import json
 import subprocess
 import tempfile
+import tomllib
 import unittest
 from dataclasses import replace
 from pathlib import Path
@@ -92,11 +93,110 @@ class LocalRepairTests(fixtures.FixtureCase):
         self.path = self.root / "content/resources.toml"
         self.before = self.path.read_bytes()
 
-    def run_local(self):
+    def run_local(self, *extra, git_name=None):
         output = io.StringIO()
-        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-            status = check_duplicates.main(["--root", str(self.root), "--fix"])
+        arguments = ["--root", str(self.root), "--fix", *(extra or ("--person", "tester"))]
+        with (
+            mock.patch.object(check_duplicates.duplicate_repairs, "git_user_name", return_value=git_name),
+            contextlib.redirect_stdout(output),
+            contextlib.redirect_stderr(output),
+        ):
+            status = check_duplicates.main(arguments)
         return status, output.getvalue()
+
+    def content_files(self):
+        return {path: path.read_bytes() for path in (self.root / "content").glob("*.toml")}
+
+    def test_local_repair_writes_link_provenance_and_registration(self):
+        status, output = self.run_local()
+        self.assertEqual(status, 0, output)
+        provenance = (self.root / "content/provenance.toml").read_text(encoding="utf-8")
+        action = tomllib.loads(provenance)["action"][-1]
+        self.assertEqual(
+            (action["agent"], action["instruments"], action["results"]), ("tester", ["duplicate-fix"], ["service"])
+        )
+        register = tomllib.loads((self.root / "content/identifiers.toml").read_text(encoding="utf-8"))
+        self.assertIn(action["id"], register["issued"]["actions"])
+        self.assertIn("recorded as tester (named with --person)", output)
+        self.assertIn('+re3data = "r3d100000001"', output)
+        self.assertIn(f'+id = "{action["id"]}"', output)
+        self.assertEqual(self.errors(), [])
+        self.assertEqual(fixtures.FixDuplicateCommandTests.duplicates(self), [])
+
+    def test_repeating_a_complete_repair_changes_nothing_and_exits_nonzero(self):
+        self.assertEqual(self.run_local()[0], 0)
+        repaired = self.content_files()
+        status, output = self.run_local()
+        self.assertNotEqual(status, 0)
+        self.assertEqual(self.content_files(), repaired)
+        self.assertIn("nothing to fix", output)
+
+    def test_git_identity_resolves_a_reviewed_person(self):
+        self.edit("guide.toml", 'github = "tester"', 'github = "tester"\ncommitNames = ["Test Committer"]')
+        status, output = self.run_local("--fix", git_name="Test Committer")
+        self.assertEqual(status, 0, output)
+        self.assertIn("matched git user.name 'Test Committer'", output)
+        self.assertIn('agent = "tester"', (self.root / "content/provenance.toml").read_text(encoding="utf-8"))
+
+    def test_unknown_or_ambiguous_identity_writes_nothing(self):
+        self.append("guide.toml", '\n[[person]]\nid = "twin"\nname = "Twin"\ncommitNames = ["Shared Name"]\n')
+        self.edit("guide.toml", 'github = "tester"', 'github = "tester"\ncommitNames = ["Shared Name"]')
+        for extra, git_name, expected in (
+            (("--fix",), "Nobody Known", "matches no reviewed person"),
+            (("--fix",), None, "git user.name is not set"),
+            (("--fix",), "Shared Name", "matches several people"),
+            (("--person", "invented"), None, "is not a reviewed [[person]] id"),
+        ):
+            with self.subTest(expected=expected):
+                before = self.content_files()
+                status, output = self.run_local(*extra, git_name=git_name)
+                self.assertNotEqual(status, 0)
+                self.assertEqual(self.content_files(), before)
+                self.assertIn(expected, output)
+                self.assertIn("--person", output)
+                self.assertIn("Credit and ORCID iDs", output)
+
+    def test_missing_instrument_writes_nothing(self):
+        self.edit("guide.toml", 'id = "duplicate-fix"', 'id = "other-fix"')
+        before = self.content_files()
+        status, output = self.run_local()
+        self.assertNotEqual(status, 0)
+        self.assertEqual(self.content_files(), before)
+        self.assertIn("'duplicate-fix' instrument is missing", output)
+
+    def test_registration_failure_restores_every_file(self):
+        before = self.content_files()
+        with mock.patch.object(
+            check_duplicates.duplicate_repairs, "with_registration", side_effect=ValueError("planted register error")
+        ):
+            status, output = self.run_local()
+        self.assertNotEqual(status, 0)
+        self.assertEqual(self.content_files(), before)
+        self.assertIn("planted register error", output)
+
+    def test_a_repair_that_adds_a_content_error_is_rejected(self):
+        before = self.content_files()
+        broken = check_duplicates.duplicate_repairs.with_action
+
+        def unregistered_instrument(old, identifier, person, applied, content):
+            return broken(old, identifier, person, applied, content).replace('"duplicate-fix"', '"unknown-tool"')
+
+        with mock.patch.object(check_duplicates.duplicate_repairs, "with_action", side_effect=unregistered_instrument):
+            status, output = self.run_local()
+        self.assertNotEqual(status, 0)
+        self.assertEqual(self.content_files(), before)
+        self.assertIn("repair rejected", output)
+        self.assertIn("unknown-tool", output)
+
+    def test_preexisting_content_errors_do_not_block_the_repair(self):
+        self.edit(
+            "guide.toml", 'name = "Test Organisation"', 'name = "Test Organisation"\nurl = "http://insecure.example"'
+        )
+        existing = self.errors()
+        self.assertTrue(existing, "the planted unrelated error must exist before the repair")
+        status, output = self.run_local()
+        self.assertEqual(status, 0, output)
+        self.assertEqual(self.errors(), existing)
 
     def test_apply_refuses_invalid_combinations_and_unsafe_suggestions(self):
         for item in (
@@ -156,12 +256,8 @@ class LocalRepairTests(fixtures.FixtureCase):
         self.assertNotEqual(self.path.read_bytes(), self.before)
         self.assertIn(f"--- {self.path}\n+++ {self.path}\n@@ ", output)
         self.assertIn('\n+re3data = "r3d100000001"\n', output)
-        self.assertIn("check_duplicates: applied safe link suggestions.", output)
-        self.assertIn(
-            "Add one provenance action naming the person, the consulted source/record and the changed result; "
-            "this command does not write it.",
-            output,
-        )
+        self.assertIn("check_duplicates: applied the safe links with provenance action", output)
+        self.assertIn("and its registration.", output)
 
     def test_post_swap_cleanup_failure_restores_the_replaced_file(self):
         swap = check_duplicates.os.replace
@@ -338,9 +434,28 @@ class LocalRepairTests(fixtures.FixtureCase):
         self.assertEqual(len(fake.commits), 1)
         self.assertEqual(fake.commits[0][0]["head"]["ref"], "refresh/re3data")
         self.assertIn("content/provenance.toml", fake.commits[0][1])
-        workflow = (check_ci.ROOT / ".github/workflows/fix-duplicates.yml").read_text(encoding="utf-8")
-        self.assertIn("Check the PR branch state; a commit may already exist", workflow)
-        self.assertNotIn("No change is assumed", workflow)
+        # The comment-command outcome explains an unexpected failure without assuming the branch is unchanged.
+        outcome = (check_ci.ROOT / ".github/scripts/commands.cjs").read_text(encoding="utf-8")
+        self.assertIn("Check the pull-request branch: a commit may already exist", outcome)
+        self.assertNotIn("No change is assumed", outcome)
+
+
+class CommandReplyTests(unittest.TestCase):
+    def test_handler_replies_name_their_run(self):
+        hub = fix_duplicates.GitHub("dsw-nrp/eosc-fair-guide", "token")
+        environment = {"GITHUB_RUN_ID": "123", "GITHUB_SERVER_URL": "https://github.com"}
+        with mock.patch.object(hub, "request") as request, mock.patch.dict(fix_duplicates.os.environ, environment):
+            hub.comment(5, "Result.")
+        self.assertEqual(
+            request.call_args.args[2]["body"],
+            "Result.\n\n[Run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/123)",
+        )
+        with (
+            mock.patch.object(hub, "request") as request,
+            mock.patch.dict(fix_duplicates.os.environ, {"GITHUB_RUN_ID": "x y"}),
+        ):
+            hub.comment(5, "Result.")
+        self.assertEqual(request.call_args.args[2]["body"], "Result.", "an unexpected run value is never rendered")
 
 
 class ArtifactTests(unittest.TestCase):

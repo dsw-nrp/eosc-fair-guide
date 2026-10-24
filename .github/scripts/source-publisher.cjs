@@ -171,4 +171,37 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
   return results;
 }
 
-module.exports = { SOURCES, parseCommand, authorized, select, publish, hashOf, markerOf, branchOf };
+// What each publication result means for the person who commanded the refresh, and what they can do next.
+const OUTCOMES = {
+  proposed: "proposed as a new refresh pull request; review it as content",
+  updated: "updated in its open refresh pull request; review the new commit",
+  "already-proposed": "already proposed with the same content; review the open refresh pull request",
+  unchanged: "unchanged; there is nothing to propose",
+  empty: "empty at the source, so the snapshot was kept; check the source before refreshing again",
+  rejected: "rejected by validation, so the snapshot was kept; the refresh report artifact names the reason",
+  failed: "not retrieved, so the snapshot was kept; retry later or check the refresh report artifact",
+  "rejected-before": "identical to a proposal that was closed without merging, so it was not proposed again",
+  "human-edits": "kept on its branch, which has commits other than the refresh App's; reconcile it by hand or close that pull request",
+  moved: "kept on its branch, which moved during the run; post the command again to retry",
+  missing: "not written, because the refresh produced no snapshot file",
+};
+
+/** Reply to a `/refresh` command with each source's result and the run, after the run, however it ended. */
+async function reply({ github, context }, results, code) {
+  let parsed = {};
+  try {
+    parsed = JSON.parse(results || "{}");
+  } catch {
+    parsed = {};
+  }
+  const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+  const rows = Object.entries(parsed).filter(([source]) => Object.hasOwn(SOURCES, source))
+    .map(([source, status]) => `- \`${source}\`: ${OUTCOMES[status] || "finished with an unrecognized result; see the run"}.`);
+  const body = rows.length
+    ? [`\`/refresh\` finished ([run](${run})):`, "", ...rows].join("\n")
+    : `\`/refresh\` did not reach publication${code && code !== "0" ? " because a source was rejected or failed" : ""}; no pull request was changed. [Run](${run}).\n\n**Next:** read the run's refresh report, then post the command again or ask a maintainer.`;
+  await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.issue.number, body });
+  return body;
+}
+
+module.exports = { SOURCES, parseCommand, authorized, select, publish, reply, hashOf, markerOf, branchOf, OUTCOMES };

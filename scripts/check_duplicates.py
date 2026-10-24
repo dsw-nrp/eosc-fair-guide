@@ -32,6 +32,8 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import check_content  # noqa: E402
+import duplicate_repairs  # noqa: E402
 from build_crate import ROOT, ContentError, load_content  # noqa: E402
 from catalogue_identity import alternate_id, bare_url  # noqa: E402
 
@@ -621,11 +623,14 @@ def _accepted(root: Path) -> list[dict[str, Any]]:
     return tomllib.loads(path.read_text(encoding="utf-8")).get("accepted", []) if path.exists() else []
 
 
-def apply_local(root: Path, report: DuplicateReport) -> tuple[DuplicateReport, bool]:
-    """Apply a local batch with byte-preserving rollback for handled failures."""
+def apply_local(
+    root: Path, report: DuplicateReport, *, person: str, content: dict[str, Any]
+) -> tuple[DuplicateReport, bool]:
+    """Apply the complete repair (links, provenance action, its registration) with byte-preserving rollback."""
     originals: dict[Path, bytes] = {}
     written: dict[Path, bytes] = {}
     diffs = []
+    applied = []
 
     def restore() -> None:
         for path, expected in written.items():
@@ -634,6 +639,16 @@ def apply_local(root: Path, report: DuplicateReport) -> tuple[DuplicateReport, b
             except OSError as error:
                 print(f"check_duplicates: cannot restore {path}: {error}", file=sys.stderr)
 
+    def write_text(relative: str, new: str | None) -> None:
+        if new is None:
+            return
+        path = root / relative
+        old = originals.setdefault(path, path.read_bytes())
+        diffs.append(duplicate_repairs.unified_diff(path, old.decode("utf-8"), new))
+        atomic_replace(path, new.encode("utf-8"), expected=old, on_replaced=written.__setitem__)
+
+    # Errors that predate the repair stay the contributor's own work; only errors the repair adds reject it.
+    existing = set(check_content.check(content, root).errors)
     try:
         for suggestion in report.suggestions:
             if not valid_placement(suggestion.entry, suggestion.file, suggestion.table, suggestion.field_name):
@@ -644,22 +659,33 @@ def apply_local(root: Path, report: DuplicateReport) -> tuple[DuplicateReport, b
             diff = apply_suggestion(root, suggestion, on_replaced=written.__setitem__)
             if diff:
                 diffs.append(diff)
+                applied.append(suggestion)
         if not diffs:
             print("check_duplicates: no safe suggestion could be applied")
             return report, False
-        checked = check(load_content(root / "content"), _accepted(root))
-        if checked.errors:
+        identifier = duplicate_repairs.local_action_id(applied)
+        provenance = (root / "content/provenance.toml").read_text(encoding="utf-8")
+        write_text(
+            "content/provenance.toml", duplicate_repairs.with_action(provenance, identifier, person, applied, content)
+        )
+        register = root / "content/identifiers.toml"
+        if register.is_file():
+            write_text(
+                "content/identifiers.toml",
+                duplicate_repairs.with_registration(register.read_text(encoding="utf-8"), identifier),
+            )
+        updated = load_content(root / "content")
+        checked = check(updated, _accepted(root))
+        added = [error for error in check_content.check(updated, root).errors if error not in existing]
+        if checked.errors or added:
             restore()
             print("check_duplicates: repair rejected; original files restored where possible")
-            return checked, False
+            return DuplicateReport(errors=[*checked.errors, *added], suggestions=checked.suggestions), False
     except (OSError, ValueError, ContentError, KeyError):
         restore()
         raise
     print("".join(diffs), end="")
-    print(
-        "check_duplicates: applied safe link suggestions. Add one provenance action naming the "
-        "person, the consulted source/record and the changed result; this command does not write it."
-    )
+    print(f"check_duplicates: applied the safe links with provenance action {identifier} and its registration.")
     return checked, True
 
 
@@ -670,7 +696,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--fix",
         action="store_true",
-        help="apply only safe link suggestions to the working tree; the person still adds provenance",
+        help="apply the safe link suggestions to the working tree with their provenance action and registration",
+    )
+    parser.add_argument(
+        "--person",
+        help="reviewed [[person]] id responsible for --fix (default: matched from git user.name)",
     )
     args = parser.parse_args(argv)
     try:
@@ -696,8 +726,23 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print("check_duplicates: nothing to fix")
         else:
+            # Responsibility and the instrument are settled before anything is written.
+            person, resolution = duplicate_repairs.local_person(
+                content, chosen=args.person, git_name=duplicate_repairs.git_user_name(args.root)
+            )
+            if person is None:
+                print(f"check_duplicates: no file was changed; {resolution}", file=sys.stderr)
+                return 2
+            if not duplicate_repairs.instrument_available(content):
+                print(
+                    f"check_duplicates: no file was changed; the {duplicate_repairs.INSTRUMENT!r} instrument is "
+                    "missing from content/guide.toml. Update the branch from the default branch first.",
+                    file=sys.stderr,
+                )
+                return 2
+            print(f"check_duplicates: {resolution}")
             try:
-                report, applied = apply_local(args.root, report)
+                report, applied = apply_local(args.root, report, person=person, content=content)
             except (OSError, ContentError, KeyError, ValueError) as error:
                 print(f"check_duplicates: cannot apply the repair: {error}", file=sys.stderr)
                 return 2

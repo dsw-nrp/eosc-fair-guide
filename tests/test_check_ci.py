@@ -1,11 +1,13 @@
 """Partition evidence must fail closed when a lane, job, script, case or build is missing/wrong."""
 
 import copy
+import io
 import json
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -199,6 +201,71 @@ class PartitionTests(unittest.TestCase):
             self.assertEqual({result.job.name for result in failures}, {"content", "final-candidate"})
             self.assertEqual(len(results), 3)
             self.assertEqual(sorted(result.job.name for result in failures), ["content", "final-candidate"])
+
+    def fail_content(self, root: Path) -> None:
+        path = root / "cpu/lane.json"
+        data = check_ci.read_json(path)
+        for row in data["results"]:
+            if row["name"] == "content":
+                row.update(returncode=1, output="content failed: resource `x` lacks a source")
+        check_ci.write_json(path, data)
+
+    def test_known_failures_survive_missing_or_rejected_lane_evidence(self) -> None:
+        # G4: a failed CPU content check must stay visible when another lane's evidence is unusable.
+        for fault in ("missing", "wrong-identity"):
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                manifest, jobs, groups = self.fixture(root)
+                self.fail_content(root)
+                lane = root / "browser-a/lane.json"
+                if fault == "missing":
+                    lane.unlink()
+                else:
+                    data = check_ci.read_json(lane)
+                    data["results"][0]["output"] = "must not be admitted"
+                    data["build"] = {"site": "other"}
+                    check_ci.write_json(lane, data)
+                with self.assertRaises(check_ci.RejectedEvidenceError) as caught:
+                    check_ci.reconcile(manifest, root, jobs, groups)
+                names = {result.job.name: result for result in caught.exception.results}
+                self.assertFalse(names["content"].ok)
+                self.assertNotIn("page", names, "a rejected lane contributes no results")
+                self.assertIn("browser-a", str(caught.exception))
+
+    def test_collector_reports_the_known_failure_with_the_missing_lane(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            incoming = root / "incoming"
+            manifest, jobs, groups = self.fixture(incoming)
+            manifest["result"] = {"returncode": 0, "seconds": 1, "output": "built"}
+            self.fail_content(incoming)
+            (incoming / "browser-a/lane.json").unlink()
+            check_ci.write_json(root / "manifest.json", manifest)
+            real_read = check_ci.read_json
+            args = SimpleNamespace(base=None, manifest=root / "manifest.json", incoming=incoming, output=root / "out")
+            output = io.StringIO()
+            with (
+                mock.patch.object(check_ci, "verify_build"),
+                mock.patch.object(check_ci.check_all, "jobs", return_value=jobs),
+                mock.patch.object(
+                    check_ci,
+                    "read_json",
+                    side_effect=lambda p: groups if p.name == "check_groups.json" else real_read(p),
+                ),
+                mock.patch.object(check_all, "emit_report") as emit,
+                redirect_stdout(output),
+            ):
+                self.assertEqual(check_ci.collect(args), 1)
+            _, results, _, _ = emit.call_args.args
+            by_name = {result.job.name: result for result in results}
+            self.assertFalse(by_name["content"].ok)
+            self.assertIn("lacks a source", by_name["content"].output)
+            self.assertIn("missing required lanes: browser-a", by_name["aggregate"].output)
+            self.assertFalse(by_name["aggregate"].ok)
+            printed = output.getvalue()
+            self.assertIn("FAILED content", printed)
+            self.assertIn("missing required lanes: browser-a", printed)
+            self.assertEqual(check_ci.read_json(root / "pr-review/suggestions.json")["suggestions"], [])
 
     def test_failed_lane_diagnostics_are_copied(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

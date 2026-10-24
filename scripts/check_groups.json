@@ -3,7 +3,7 @@
   "embed": ["embed"],
   "deployment": ["deployment"],
   "discovery": ["discovery"],
-  "helpers": ["accessibility", "safety", "guards", "helpers", "citation", "datacite", "services", "champion_probe", "pr_comment", "source_publisher", "health_issues", "release", "deployment", "prepare_release", "navigation"],
+  "helpers": ["accessibility", "safety", "guards", "helpers", "citation", "datacite", "services", "champion_probe", "pr_comment", "source_publisher", "commands", "health_issues", "release", "deployment", "prepare_release", "navigation"],
   "model": ["model", "visuals"],
   "visuals": ["visuals"],
   "assessment": ["assess", "questions", "sources", "languages", "tests", "providers"],

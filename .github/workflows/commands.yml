@@ -1,0 +1,118 @@
+name: Comment commands
+
+# The only workflow started by issue and pull-request comments. Trusted default-branch code reads the comment as data.
+# An ordinary comment ends at the first job's filter, before any runner or concurrency slot is taken, so it can never
+# cancel or displace a waiting command. Accepted commands run the trusted workflows that own them, each queued by the
+# resource it changes, and every accepted command ends with a reaction or a reply. `/help` explains what applies.
+
+on:
+  issue_comment:
+    types: [created]
+
+# The run title names the thread, so a waiting command can find the earlier run that holds its pull request.
+run-name: "Comment on #${{ github.event.issue.number }}"
+
+permissions:
+  contents: read
+
+jobs:
+  parse:
+    if: startsWith(github.event.comment.body, '/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      command: ${{ steps.parse.outputs.command }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - id: parse
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { parse } = require('./.github/scripts/commands.cjs');
+            core.setOutput('command', parse(context.payload.comment?.body).command);
+
+  help:
+    needs: parse
+    if: needs.parse.outputs.command == 'help' || needs.parse.outputs.command == 'unknown'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          APP_CONFIGURED: ${{ vars.SOURCE_REFRESH_CLIENT_ID != '' }}
+        with:
+          script: |
+            const { help } = require('./.github/scripts/commands.cjs');
+            await help({ github, context, core });
+
+  acknowledge:
+    needs: parse
+    if: needs.parse.outputs.command == 'fix-duplicates' || needs.parse.outputs.command == 'refresh'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      issues: write
+      pull-requests: write
+    outputs:
+      accepted: ${{ steps.acknowledge.outputs.accepted }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - id: acknowledge
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          APP_CONFIGURED: ${{ vars.SOURCE_REFRESH_CLIENT_ID != '' }}
+        with:
+          script: |
+            const { acknowledge } = require('./.github/scripts/commands.cjs');
+            core.setOutput('accepted', String(await acknowledge({ github, context, core })));
+
+  fix-duplicates:
+    needs: [parse, acknowledge]
+    if: needs.parse.outputs.command == 'fix-duplicates' && needs.acknowledge.outputs.accepted == 'true'
+    uses: ./.github/workflows/fix-duplicates.yml
+    secrets: inherit
+
+  refresh:
+    needs: [parse, acknowledge]
+    if: needs.parse.outputs.command == 'refresh' && needs.acknowledge.outputs.accepted == 'true'
+    uses: ./.github/workflows/source-refresh.yml
+    secrets: inherit
+
+  outcome:
+    needs: [parse, acknowledge, fix-duplicates, refresh]
+    if: always() && needs.acknowledge.outputs.accepted == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          COMMAND: ${{ needs.parse.outputs.command }}
+          RESULT: ${{ needs.parse.outputs.command == 'refresh' && needs.refresh.result || needs.fix-duplicates.result }}
+        with:
+          script: |
+            const { outcome } = require('./.github/scripts/commands.cjs');
+            await outcome({ github, context }, process.env.COMMAND, process.env.RESULT);

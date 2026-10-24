@@ -16,6 +16,8 @@ workflow. [AGENTS.md](AGENTS.md) supplies the runtime instructions the assistant
   `feature/<topic>` for new behaviour, and `agents/<agent>/<topic>` for work done by an AI agent.
 - Keep a pull request to one purpose. Text polishing of one station is a good size.
 - Fill in the pull-request template: what changed, why, and which sources support it.
+- Describe a notable change for readers or maintainers under `## [Unreleased]` in `CHANGELOG.md`; the
+  [changelog policy](docs/changelog.md) says what is notable and what the check enforces.
 
 ## What every content change needs
 
@@ -86,6 +88,12 @@ depending on a global OpenSpec command. Generated `_site/`, local caches and env
 
 ### Fixing a duplicate from a pull request
 
+Comment `/help` on any pull request to see the commands that apply there and whether you may use them. Post a
+command as the whole comment. An accepted command gets an 👀 reaction at once and ends with a 🚀 reaction or a
+reply that names its workflow run; a command that cannot run is answered with the reason and an alternative.
+Commands for the same pull request (or, for `/refresh <source>`, all refreshes) wait their turn instead of
+replacing each other.
+
 When the duplicate check names a safe link, a maintainer with current write access can comment
 `/fix-duplicates` on an open same-repository pull request that targets the default branch. The trusted workflow
 reads that pull request's content and validation attachments as data, applies only safe link suggestions,
@@ -95,11 +103,18 @@ reviewed `[[person]]` whose `github` is the commenter's login and the `duplicate
 merges, never pushes the default branch, never runs on schedules or forks and never edits
 `content/duplicates.toml`. A stale head makes it change nothing. The App secrets are
 `SOURCE_REFRESH_CLIENT_ID` and `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them the command is unavailable. Roll
-back by reverting its commit or removing the workflow. For a local edit, run
-`python scripts/check_duplicates.py --fix`; it applies only safe suggestions, prints the diff and leaves the
-provenance action for you to add. Local repairs use atomic file replacement and restore original bytes on a
-handled application or recheck failure; restoration errors are reported explicitly. There is no multi-file
-crash-transaction guarantee. A clean no-op still returns nonzero.
+back by reverting its commit or removing the workflow.
+
+For a local edit, run `python scripts/check_duplicates.py --fix`. It applies the safe links, adds one provenance
+action naming you and registers its identifier, which is the same complete repair as the command. You are found
+through your reviewed `commitNames` or `github` entry matching `git config user.name`; name yourself explicitly with
+`--person <your-person-id>` when that does not match or matches several people. With no reviewed identity, nothing
+is written: add your reviewed identity first (see [Credit and ORCID iDs](#credit-and-orcid-ids)). Inspect the
+printed diff, including `content/provenance.toml` and `content/identifiers.toml`, before committing, then run
+`python scripts/check_all.py`. Undo an uncommitted repair with `git restore content/`. Local repairs use atomic file
+replacement and restore original bytes on a handled application or recheck failure, including a repair that would
+add a content error; restoration errors are reported explicitly. There is no multi-file crash-transaction guarantee.
+Running it again after a complete repair changes nothing and, like any clean no-op, returns nonzero.
 
 The command also works on eligible `refresh/<source>` pull requests. Once a repair or other unrecognized
 commit is present, source refresh leaves that branch intact and asks for manual reconciliation. Automatic
@@ -174,8 +189,9 @@ followed by a body when the reason is not obvious. Mention AI assistance in the 
 
 Use the **Prepare release** manual workflow on the default branch. `scripts/release_versions.py` sets the version
 and release dates in `content/guide.toml`, `CITATION.cff`, `.zenodo.json`, `package.json`, `package-lock.json` and
-`pyproject.toml`, records the reviewed dispatcher's provenance, and writes `CHANGELOG.md` from merged PRs and
-direct default-branch commits since the previous reachable tag, without duplicate PR entries. The crate and API
+`pyproject.toml`, records the reviewed dispatcher's provenance, and moves the curated `[Unreleased]` notes of
+`CHANGELOG.md` into the new release, followed by the merged PRs and direct default-branch commits since the
+previous reachable tag, without duplicate PR entries (see the [changelog policy](docs/changelog.md)). The crate and API
 derive their metadata from the Guide. The default release PR runs ordinary checks; review and merge it before
 using the separate **Tag release** dispatch. Valid metadata committed directly through an authorized maintainer
 process is also accepted: tagging checks the current default-branch source, every version/date and nonempty

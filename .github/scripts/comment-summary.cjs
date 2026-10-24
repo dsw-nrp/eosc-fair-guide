@@ -128,4 +128,4 @@ async function comment({ github, context, core }, read = readReport) {
   }
 }
 
-module.exports = { body, matches, comment, validSuggestion };
+module.exports = { body, matches, comment, validSuggestion, marker };

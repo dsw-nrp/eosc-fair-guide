@@ -2,39 +2,57 @@
 
 ## MODIFIED Requirements
 
+### Requirement: Workflows are hardened
+
+CI workflows for pull requests SHALL use the `pull_request` trigger, and the merge queue's `merge_group` trigger,
+only, SHALL run with read-only repository permissions, SHALL pin third-party actions by commit SHA, and SHALL use
+no secrets. Dependency and action updates SHALL be proposed automatically.
+
+#### Scenario: Pull request from a fork
+
+- **GIVEN** a pull request from a fork
+- **WHEN** its checks run
+- **THEN** they have read-only access and no secrets are available
+
+#### Scenario: A merge group is checked
+
+- **GIVEN** an approved pull request added to the merge queue
+- **WHEN** the queue checks the merged result
+- **THEN** the checks run with read-only access, no secrets and the same pinned actions as pull-request checks
+
 ### Requirement: Scheduled jobs never commit directly
 
-Scheduled jobs SHALL deliver snapshot refreshes as pull requests and report monitoring observations in
-one current health digest. They SHALL watch the EOSC CZ outputs, service catalogue, training, Open Science
-III FAQ, minizáměry calls, acknowledgement and data steward pages and group relevant updates for
-maintainer review, excluding navigation and pagination. Jobs SHALL NOT commit to the default
-branch or create actionable sub-issues without maintainer triage.
+Scheduled jobs SHALL deliver snapshot refreshes as pull requests and report link, status, live-service and
+test-health observations in one maintenance digest. They SHALL watch the EOSC CZ pages the guide depends on (outputs,
+service catalogue, training, Open Science III FAQ, minizáměry calls, acknowledgement and data steward pages) and list
+added or updated items in the digest, ignoring navigation and pagination. They SHALL NOT commit to the default
+branch or open work issues by themselves.
 
 #### Scenario: Broken external link found
 
 - **GIVEN** the weekly link check finds a persistently failing external link
 - **WHEN** it completes
-- **THEN** it updates the current digest with the observed response, persistence, affected entries and evidence instead of opening a separate work issue automatically
+- **THEN** the digest lists the link, where it is used, the observed response and its persistence, and no separate issue is opened
 
 #### Scenario: New EOSC CZ output
 
 - **GIVEN** the EOSC CZ outputs page lists a document that was not there at the previous run
 - **WHEN** the watch job runs
-- **THEN** it groups the document in source updates to review, retaining its address or anchor and any available publication date without inventing one
+- **THEN** the digest lists the document with its address or anchor and its publication date when the page provides one, without inventing a date
 
 #### Scenario: Pagination changes on a watched page
 
-- **GIVEN** the training page adds a next-page link without adding a relevant source item
+- **GIVEN** the training page adds a next-page link without adding a relevant item
 - **WHEN** monitoring compares the page with its baseline
-- **THEN** the navigation change creates no candidate, notification or work issue
+- **THEN** the navigation change creates no digest entry, comment or issue
 
 ### Requirement: Health and source-watch reports remain actionable
 
-Health reporting SHALL distinguish integrity, age, availability and verdicts and retain attributable
-dates, revision and scope for existing dashboard/API consumers. Persistent observations and source updates
-SHALL use stable finding keys in a digest without notification floods. Access denial or rate limiting
-SHALL NOT establish a broken link; service failure SHALL NOT establish a failed FAIR requirement. Live
-monitoring SHALL remain separate from deterministic PR gates.
+Health reporting SHALL separate content integrity, snapshot age, source availability and test verdicts.
+Published observations SHALL have meaningful dashboard and API consumers for their dates, revision, scope and
+status. Persistent failures and relevant source changes SHALL appear in the maintenance digest by stable keys
+without duplicates or transient-failure floods. A service failure SHALL NOT become a failed FAIR requirement. Live
+monitoring SHALL remain separate from mandatory deterministic PR checks.
 
 #### Scenario: A test returns an indeterminate verdict
 
@@ -46,372 +64,685 @@ monitoring SHALL remain separate from deterministic PR gates.
 
 - **GIVEN** a link request returns HTTP 403, HTTP 429 or a timeout
 - **WHEN** the digest is rendered
-- **THEN** it distinguishes access denied, rate limited and temporarily unavailable observations without asserting that the page is gone or that bot protection is confirmed
+- **THEN** it reports access denied, rate limited or temporarily unavailable without stating that the page is gone or that bot protection is confirmed
 
-#### Scenario: A potential failure concerns imported content
+#### Scenario: A failure concerns imported content
 
-- **GIVEN** the failing URL originates in a reviewed upstream snapshot
+- **GIVEN** the failing address comes from a reviewed upstream snapshot
 - **WHEN** the finding is shown
-- **THEN** it names the affected resource and its source, supplies the relevant evidence and identifies the upstream or refresh correction route rather than directing an unsupported snapshot edit
+- **THEN** it names the affected record and its source and points to the upstream or refresh correction route rather than to an edit of the snapshot
+
+### Requirement: Scheduled dependency updates group patch versions
+
+Dependabot SHALL group patch- and minor-version updates for all dependencies within each configured ecosystem:
+GitHub Actions, npm, pip and Docker. Major updates SHALL remain individual PRs. Grouping SHALL preserve the
+configured directories, weekly schedules, the limit of 30 open version PRs and the existing security-update policy.
+
+#### Scenario: Several patch updates are available
+
+- **GIVEN** several dependencies in one configured ecosystem have patch- or minor-version updates
+- **WHEN** Dependabot proposes scheduled version updates
+- **THEN** those updates are eligible for one grouped PR for that ecosystem regardless of dependency name
+
+#### Scenario: Minor and major versions are available
+
+- **GIVEN** patch, minor and major updates are available for dependencies in a configured ecosystem
+- **WHEN** Dependabot applies the grouping policy
+- **THEN** patch and minor versions enter the group, and the major update stays outside it and remains eligible for its own PR
+
+#### Scenario: Existing update settings are retained
+
+- **GIVEN** the four configured ecosystems, their current directories, weekly schedules and limit of 30 open version PRs
+- **WHEN** grouping is configured
+- **THEN** each ecosystem retains those settings and the existing security-update policy
+
+### Requirement: Aggregate checks report every failure with diagnostics
+
+Required aggregate checks SHALL name every failed or partial check and include bounded diagnostics while preserving lane logs and details. Partial results SHALL fail even at native exit zero, locally as in CI, retaining their partial flag and original evidence. Required diagnostics SHALL precede optional suggestions; optional processing errors SHALL be reported without hiding diagnostics or changing the required-check outcome. The gate SHALL remain failing when required checks fail.
+
+#### Scenario: Two checks fail in one lane
+
+- **GIVEN** content and duplicates both fail in the CPU lane
+- **WHEN** the collector reconciles the lane
+- **THEN** the aggregate names both checks and includes their error text
+
+#### Scenario: A lane fails before the collector publishes
+
+- **GIVEN** a failed lane with logs and details
+- **WHEN** the collector rejects the aggregate
+- **THEN** the health artifact contains those logs and details
+
+#### Scenario: A browser check leaves pending cases
+
+- **GIVEN** a required browser result with exit code zero, partial coverage and pending or skipped cases
+- **WHEN** the collector publishes the aggregate
+- **THEN** the aggregate and check row are failed, its output is shown, and the partial evidence remains inspectable
+
+#### Scenario: The local run meets a partial child
+
+- **GIVEN** a local full run whose browser check exits zero with partial case coverage
+- **WHEN** the local runner publishes its report and returns
+- **THEN** that row and the run are failed, its output is shown, and the run exits non-zero
+
+#### Scenario: A deliberate local subset completes
+
+- **GIVEN** a local `--only` run whose selected checks all complete
+- **WHEN** the run finishes
+- **THEN** the unselected checks stay not run, the report remains partial, and the run exits zero
+
+#### Scenario: Optional output cannot be written
+
+- **GIVEN** reconciled check results and an unwritable optional suggestion destination
+- **WHEN** optional publication fails
+- **THEN** the required report and its original pass/fail outcome remain available and the optional error is reported
+
+#### Scenario: A known failure accompanies missing lane evidence
+
+- **GIVEN** the CPU lane reports a failed content check and a required browser lane report is missing or has the wrong identity
+- **WHEN** the collector reconciles the lanes
+- **THEN** the aggregate names the content failure and the missing or rejected lane, keeps their logs, never claims a complete run and admits no data from the rejected lane
 
 ## ADDED Requirements
 
-### Requirement: Unpublished changelog entries follow a standing contribution policy
+### Requirement: The unpublished changelog section is checked
 
-Contributors SHALL describe notable reader or maintainer changes in `[Unreleased]` using the settled PR
-scope. A PR without such an entry SHALL give a concrete omission reason for review. Standing human and
-agent instructions SHALL identify the same policy and explain release preparation and late findings.
+`CHANGELOG.md` SHALL have exactly one top-level `[Unreleased]` section whose entries are meaningful when present.
+Against the base revision, released sections SHALL stay byte-identical, except that a complete release transition
+SHALL be accepted. Local and PR checks SHALL report the exact structural problem and SHALL NOT edit the changelog.
 
-#### Scenario: A notable change is ready for review
+#### Scenario: The section is missing or duplicated
 
-- **WHEN** a PR changes reader or maintainer behavior
-- **THEN** its unpublished entry explains the resulting behavior under the applicable change category
-- **AND** intermediate implementation batches are consolidated into the settled PR scope
+- **WHEN** `[Unreleased]` is absent or appears twice
+- **THEN** the check fails and names the structural problem and its fix
 
-#### Scenario: A change needs no release note
+#### Scenario: The section holds only placeholders
 
-- **WHEN** a contributor considers a wording, test-only or routine maintenance change non-notable
-- **THEN** the PR records a concrete omission reason for the reviewer instead of an invented release entry
-- **AND** a bot author alone does not exempt a change
-
-#### Scenario: A finding arrives after the original PR or release
-
-- **WHEN** a new correction is made after the original work was merged or released
-- **THEN** its notable effect is recorded for the next release in `[Unreleased]`
-- **AND** the affected older version can be named without rewriting published history
-
-### Requirement: Local and PR checks enforce the unpublished changelog contract
-
-The shared check inventory SHALL validate one top-level `[Unreleased]` section and its non-placeholder
-entries. Against a base revision it SHALL require a changed entry or concrete omission reason and reject
-edits to existing released sections. A valid release transition SHALL be accepted. Checks SHALL read PR
-declarations as data, fail with actionable diagnostics, and never edit the changelog themselves.
-
-#### Scenario: A PR omits an entry and a reason
-
-- **WHEN** changed content has neither an updated unpublished entry nor a concrete omission reason
-- **THEN** local and PR verification fail and identify the entry or declaration needed
-
-#### Scenario: A declaration is corrected
-
-- **WHEN** the PR's omission reason is added or edited
-- **THEN** the governing check can run against that current declaration without executing it as code
-
-#### Scenario: The section is malformed or only a placeholder
-
-- **WHEN** `[Unreleased]` is absent, duplicated or populated only with empty headings or placeholders
-- **THEN** verification reports the malformed structure or missing meaningful entry
-- **AND** an intentionally empty section after release remains valid
+- **WHEN** `[Unreleased]` contains only empty category headings or placeholder text
+- **THEN** the check reports the missing meaningful entry
+- **AND** an intentionally empty section after a release passes
 
 #### Scenario: Published history is changed
 
 - **WHEN** a PR changes an existing released section relative to its base
-- **THEN** verification refuses the historical edit and directs the correction to the next release
-- **AND** historical section formats that were already accepted are preserved without forced conversion
+- **THEN** the check refuses the historical edit and directs the correction to `[Unreleased]`
+- **AND** previously accepted historical section formats pass without conversion
 
 #### Scenario: A release consumes the unpublished entries
 
-- **WHEN** valid release preparation moves the unpublished entries into its new dated section
-- **THEN** verification accepts the transition without requiring another unpublished entry
-- **AND** an incomplete transition that loses entries or changes earlier releases is rejected
+- **WHEN** release preparation moves the unpublished entries into a new dated section and resets `[Unreleased]`
+- **THEN** the check accepts the transition without requiring another unpublished entry
+- **AND** a transition that loses entries or changes earlier releases is rejected
 
 ### Requirement: Release preparation retains curated unpublished notes
 
-Release preparation SHALL retain the curated unpublished body in the new dated release and reset
-`[Unreleased]`. The complete deduplicated PR/direct-commit inventory SHALL remain discoverable alongside
-those notes. Existing released sections and their accepted formatting SHALL remain byte-identical;
-previously accepted unpublished prose SHALL not be silently discarded or require a migration.
+Release preparation SHALL move the curated `[Unreleased]` body unchanged into the new dated section, followed by
+the complete deduplicated PR and direct-commit lineage, and reset `[Unreleased]`. It SHALL refuse before writing
+when the curated notes use a reserved lineage heading. Earlier released sections SHALL remain byte-identical.
 
-#### Scenario: Curated notes and release lineage are both available
+#### Scenario: Curated notes and lineage are both available
 
-- **WHEN** the maintainer prepares a release with curated notes and eligible PRs or direct commits
-- **THEN** the dated release retains the notes and the complete linked lineage inventory
-- **AND** the generated inventory does not substitute PR titles for the curated explanations
+- **WHEN** the maintainer prepares a release with curated notes and merged PRs or direct commits
+- **THEN** the dated section contains the curated notes followed by the complete linked lineage
+- **AND** PR titles do not replace the curated explanations
 
-#### Scenario: There are no curated unpublished notes
+#### Scenario: There are no curated notes
 
-- **WHEN** release preparation finds an empty unpublished section and valid nonempty release history
-- **THEN** it retains the existing supported PR-only, direct-only and first-release behavior
+- **WHEN** release preparation finds an empty `[Unreleased]` section and a nonempty release history
+- **THEN** it keeps the existing PR-only, direct-only, mixed and first-release behaviour
 
-#### Scenario: Older prose or published sections already exist
+#### Scenario: Curated notes use a reserved heading
 
-- **WHEN** release preparation reads previously accepted free-form unpublished prose or older released headings
-- **THEN** it preserves that prose and the historical release bytes without a bulk rewrite
+- **WHEN** the curated notes contain a heading reserved for the generated lineage
+- **THEN** preparation refuses before changing any file and names the conflicting heading
+
+### Requirement: Release-note and planning hints are advisory
+
+The trusted PR review comment SHALL state whether the PR adds a release note and SHALL add a planning hint when
+behaviour, CI or governance paths change without a linked OpenSpec change. Hints SHALL be derived from the diff,
+SHALL NOT read PR body text as instructions and SHALL NOT fail checks. Dependency and source-refresh PRs SHALL be
+shown as covered by the generated release lineage.
+
+#### Scenario: A page change has no release note
+
+- **WHEN** a human PR changes reader-facing behaviour without an `[Unreleased]` entry
+- **THEN** the review comment suggests adding a note if readers or maintainers would notice, and the checks are unaffected
+
+#### Scenario: A dependency update
+
+- **WHEN** a Dependabot or source-refresh PR has no `[Unreleased]` entry
+- **THEN** the review comment states that the generated release lineage covers it
+
+#### Scenario: A workflow change without planning
+
+- **WHEN** a PR changes workflow or script behaviour paths and neither adds nor references an OpenSpec change
+- **THEN** the review comment names the touched paths and links the planning guidance, without failing the PR
+
+### Requirement: New content under the existing model needs no OpenSpec change
+
+Editing guidance SHALL treat a new content instance under the existing content model, such as an advice item,
+question or resource, as content work with its usual sources, paradata and checks. It SHALL require an OpenSpec
+change when the edit alters behaviour, assessment meaning, a stored format, CI or governance.
+
+#### Scenario: A contributor adds advice
+
+- **WHEN** a contributor adds an advice item that uses existing fields, lenses and levels
+- **THEN** the guidance leads to the content edit, sources, paradata and checks without an OpenSpec change
+
+#### Scenario: A contributor adds a content field
+
+- **WHEN** a contributor needs a new field in the content model
+- **THEN** the guidance leads to an OpenSpec change before implementation
+
+### Requirement: Guide usage filenames carry their start date
+
+Guide usage entries SHALL be named `usage-YYYY-MM-DD-<topic>.md` with a valid date equal to the entry's first `When`
+date and SHALL carry the delivered canonical field labels. Later sessions of a rolling entry SHALL keep the
+original filename. Violations SHALL name the file and the exact rename or missing label.
+
+#### Scenario: A new entry has no date
+
+- **WHEN** the offline checks find `usage-ci-workflows.md`
+- **THEN** they fail and name the required `usage-YYYY-MM-DD-<topic>.md` form
+
+#### Scenario: A rolling entry gains a later session
+
+- **WHEN** an entry named for 2026-10-20 records a further session dated 2026-10-24
+- **THEN** the check passes without a rename
+
+#### Scenario: The filename date differs from the first session
+
+- **WHEN** the filename date is not the first `When` date
+- **THEN** the check fails and names the expected filename
+
+### Requirement: Comment commands keep every accepted request
+
+One trusted workflow SHALL read issue and PR comments, ignore non-commands before taking any concurrency slot and
+queue accepted commands per affected resource. Each accepted command SHALL get an immediate acknowledgement and a
+final outcome naming its run, result and next step, including waiting, refusal and queue overflow. Existing
+command syntax and trust guards SHALL remain.
+
+#### Scenario: An unrelated comment arrives while a command waits
+
+- **GIVEN** a `/refresh re3data` command waiting behind a running refresh of the same source
+- **WHEN** someone posts an ordinary comment on another PR
+- **THEN** the waiting command still runs and reports its outcome
+
+#### Scenario: Two maintainers request the same repair
+
+- **WHEN** two `/fix-duplicates` commands arrive for one PR
+- **THEN** they run one after the other, and the second reports either its own result or that nothing remains to repair
+
+#### Scenario: The queue is full
+
+- **WHEN** a command arrives and its resource queue is at capacity
+- **THEN** the caller receives a refusal with retry guidance instead of a silent cancellation
+
+#### Scenario: An unauthorised caller
+
+- **WHEN** an account without current write access sends a privileged command
+- **THEN** it is refused as before and no App credential is used
+
+### Requirement: Contributors can ask which commands apply
+
+`/help` SHALL answer in one bot-maintained comment per thread with the commands available there, whether the
+caller may use each and why not, using the same eligibility rules as the commands themselves. A command that
+closely resembles a known one SHALL receive a suggestion. Help SHALL write nothing except its comment and reaction.
+
+#### Scenario: A maintainer asks on a PR with a safe suggestion
+
+- **WHEN** a maintainer sends `/help` on a same-repository PR whose latest checks offer a safe duplicate repair
+- **THEN** the help comment lists `/fix-duplicates` as available and states what it will change
+
+#### Scenario: A command is unavailable
+
+- **WHEN** `/help` is sent on a fork PR or by an account without write access
+- **THEN** the help comment explains why each privileged command is unavailable and gives the local alternative
+
+#### Scenario: Help is asked again
+
+- **WHEN** `/help` is sent a second time in the same thread
+- **THEN** the existing help comment is updated rather than a new one posted
+
+#### Scenario: A command is mistyped
+
+- **WHEN** a comment starts with `/fixduplicates`
+- **THEN** the reply suggests `/fix-duplicates` and runs nothing
+
+### Requirement: Fast feedback precedes the complete check
+
+Pull requests SHALL receive a separate quick result from cheap offline checks while the complete partitioned checks
+run. The quick result SHALL NOT replace or satisfy the required `checks` context, and every failure it reports
+SHALL also appear in the complete result.
+
+#### Scenario: A content error is pushed
+
+- **WHEN** a PR introduces a content-contract error
+- **THEN** the quick result fails first and names the item, and the required `checks` still run and fail on the same error
+
+### Requirement: Check partitions are balanced without losing coverage
+
+Lane assignment, case splits and unit-test shards SHALL be derived from measured timings. The authoritative
+inventory SHALL still require every check, case and validator profile exactly once, and a failure in any lane, case
+or shard SHALL fail the result. A speed claim SHALL come from paired runs at a fixed commit with unchanged coverage.
+
+#### Scenario: Lanes are rebalanced
+
+- **WHEN** checks move between lanes or a long script is split into cases
+- **THEN** the collector still rejects a missing or duplicated check or case
+
+#### Scenario: One unit-test shard fails
+
+- **WHEN** a single test fails in one of several shards
+- **THEN** the unit check fails, names the test and keeps the merged timing report
+
+#### Scenario: A faster candidate skips work
+
+- **WHEN** a candidate finishes sooner because a case or validator profile did not run
+- **THEN** it is rejected as incomplete and no speed gain is recorded
+
+### Requirement: Dependency caches speed up setup without becoming evidence
+
+Dependency caches SHALL be keyed on the lockfile or requirements and a compatible runtime, SHALL fall back to a
+cold install and SHALL report hit or miss. Lanes SHALL install only the tools their checks use. Cache contents SHALL
+NOT replace current checks, store credentials or pass from PR runs into trusted runs.
+
+#### Scenario: The lockfile changes or the cache is missing
+
+- **WHEN** `package-lock.json` or `requirements-dev.txt` changes, or a restore fails
+- **THEN** the lane installs from a compatible cache or cold and runs the same checks
+
+### Requirement: The merge queue verifies the merged result
+
+Merges into the default branch SHALL pass through a merge queue that runs the required `checks` on the merged
+result, while each PR's own checks remain required before it can be queued. Human and bot PRs SHALL use the same
+queue. The trusted review comment SHALL ignore merge-group runs. An administrator's direct merge SHALL remain
+possible and SHALL receive full deployment checks.
+
+#### Scenario: Two approved PRs are queued
+
+- **WHEN** two approved PRs with passing checks enter the queue
+- **THEN** each merges only after its merged result passes, and a failing entry leaves the queue with the reason
+
+#### Scenario: A Dependabot PR is approved
+
+- **WHEN** a maintainer approves a grouped dependency PR and adds it to the queue
+- **THEN** it follows the same verification and merge path as a human PR
+
+#### Scenario: An administrator merges directly
+
+- **WHEN** an administrator bypasses the queue
+- **THEN** the default-branch deployment runs the full checks because no queue result exists for that content
+
+#### Scenario: The queue's checks complete
+
+- **WHEN** a merge-group check run completes
+- **THEN** the review-comment publisher skips it and changes no PR comment
+
+### Requirement: Staging deploys reuse verified results and need no approval
+
+A default-branch deployment SHALL reuse a successful merge-queue check result only when the deployed tree and build
+inputs equal the checked ones and the result's health snapshot validates; otherwise it SHALL run the partitioned
+checks. Deployments that only update staging SHALL need no manual approval. The run summary SHALL name the reused run
+or the reason for the fallback.
+
+#### Scenario: The merged content was verified in the queue
+
+- **WHEN** the default-branch commit has the same tree and build inputs as a passing merge-group run
+- **THEN** deployment builds the site, imports that run's validated health snapshot, updates `/next/` without approval and names the reused run
+
+#### Scenario: No matching verified result exists
+
+- **WHEN** the tree differs, no passing merge-group run exists or its snapshot fails validation
+- **THEN** deployment runs the complete partitioned checks before publishing and states why
+
+### Requirement: Production promotion requires explicit approval
+
+A deployment that would change the production site SHALL wait for approval in a dedicated protected environment
+before publication. A deployment that only updates staging SHALL keep the last approved production bytes. Tag
+release SHALL explain when the current default-branch commit has no successful deployment yet and which run to wait for.
+
+#### Scenario: A release tag is pushed
+
+- **WHEN** the tag's deployment is ready to publish new production bytes
+- **THEN** it waits for a maintainer's approval and publishes production only after it
+
+#### Scenario: The default branch advances while a tag waits
+
+- **WHEN** a merge lands while a production promotion awaits approval
+- **THEN** its deployment updates staging and keeps the last approved production bytes
+
+#### Scenario: Tagging an undeployed commit
+
+- **WHEN** Tag release runs before the current default-branch commit has a successful deployment
+- **THEN** it creates no tag and names the deployment run to wait for
+
+### Requirement: Pages publication is serialized and never regresses a channel
+
+Preparation SHALL be cancellable and separate from one serialized publication step. Before publishing, trusted code
+SHALL recheck the current eligible production and staging identities and refuse or supersede stale output.
+Approval waits SHALL NOT block independent preparation. A superseded run SHALL name its successor.
+
+#### Scenario: An older run reaches publication after a newer one
+
+- **WHEN** a run's staging commit is older than the staging commit already published
+- **THEN** it publishes nothing and its summary names the newer run
+
+#### Scenario: Preparation is cancelled
+
+- **WHEN** a newer default-branch push cancels an older run's preparation
+- **THEN** the published site is unchanged and the cancelled run names its successor
+
+### Requirement: Repository settings have a reviewed expected state
+
+`.github/repository.toml` SHALL describe the expected rulesets, merge queue, environments, labels and Project
+configuration. A read-only audit SHALL report each difference with its UI path and an equivalent command, SHALL
+report unreadable settings as unavailable rather than as matching, and SHALL apply only additive label and
+Project-item fixes on explicit request.
+
+#### Scenario: A setting drifts
+
+- **WHEN** a ruleset, environment, Project view or built-in automation differs from the reviewed file
+- **THEN** the audit names the setting, the expected and actual values, the UI path and an equivalent command
+
+#### Scenario: A setting cannot be read
+
+- **WHEN** the token in use cannot read a configured setting
+- **THEN** the audit reports that setting as unavailable and names the access needed
+
+#### Scenario: Fixes are requested
+
+- **WHEN** a maintainer runs the audit with its fix option
+- **THEN** it creates missing declared labels and adds missing Project items, and never deletes a label or changes a field value
+
+### Requirement: Automation identities hold only the permissions they use
+
+Each workflow job SHALL request only the token permissions it uses, and the GitHub App's registered permissions
+SHALL match a reviewed list. Project access SHALL be read-only and limited to the audit job. A denied or missing
+permission SHALL produce a visible unavailable report naming the owner action, without failing unrelated publication.
+
+#### Scenario: The audit token is denied
+
+- **WHEN** the audit job cannot read Project #1
+- **THEN** the digest reports the Project audit as unavailable with the owner's step, and the rest of the digest publishes
+
+#### Scenario: A job requests an unlisted permission
+
+- **WHEN** a workflow job requests a token permission that is not in the reviewed list for it
+- **THEN** the offline workflow check fails and names the job and permission
+
+### Requirement: Labels are managed as reviewed configuration
+
+Area and automation labels SHALL be declared in the reviewed settings file. Label synchronization SHALL create or
+update declared labels and SHALL NOT delete a label; undeclared labels SHALL be listed for a human decision.
+
+#### Scenario: A declared label is missing
+
+- **WHEN** the audit runs with its fix option and `area:sources` does not exist
+- **THEN** the label is created with its declared colour and description
+
+#### Scenario: A label is not declared
+
+- **WHEN** the repository has a label absent from the reviewed file
+- **THEN** the audit lists it for a decision and does not delete it
+
+### Requirement: Pull requests receive area labels from their changed paths
+
+The trusted review publisher SHALL add the declared area labels that match a PR's changed paths, read from the
+GitHub API, and the source-refresh publisher SHALL label its PRs. Automation SHALL only add labels and SHALL NOT
+remove a label or re-add one that a person removed.
+
+#### Scenario: A PR touches content and workflows
+
+- **WHEN** a human PR changes `content/` and `.github/workflows/`
+- **THEN** it receives `area:content` and `area:delivery`
+
+#### Scenario: A person removes an automatic label
+
+- **WHEN** a maintainer removes an area label the publisher added
+- **THEN** later runs do not add it again
+
+#### Scenario: A source refresh PR is opened
+
+- **WHEN** the refresh publisher opens or updates its PR
+- **THEN** the PR carries `source-refresh` and the matching area label
+
+### Requirement: Issue templates follow the planned-issue shape
+
+Issue templates SHALL be generated in Czech and English for bug, feature and task from the delivered
+`aiscr-plan-issue` shape declarations, carrying its metadata table, sections and type block in one language, and
+SHALL set the matching native issue type. A check SHALL fail when the templates differ from the current declarations.
+
+#### Scenario: A reporter opens a template
+
+- **WHEN** a reporter chooses the Czech bug template
+- **THEN** the body contains the declared Czech metadata table, `Problém`, `Reprodukce`, `Rozsah`, `Akceptační kritéria` and `Otevřené otázky`, and the issue type is Bug
+
+#### Scenario: The delivered shape changes
+
+- **WHEN** a delivery update changes a declared heading
+- **THEN** the offline check fails and names the regeneration command
+
+### Requirement: Project consistency is audited with actionable fixes
+
+A weekly read-only audit SHALL report open issues or PRs missing from Project #1, issues without a type, a body type
+that differs from the native type, Ready issues lacking an area label, Priority, Effort or the planned-issue shape,
+triage older than 14 days, Urgent issues without progress, state mismatches and automation or view drift, each with
+a link or fix step.
+
+#### Scenario: An open issue is missing from the Project
+
+- **WHEN** an open issue is not a Project item
+- **THEN** the audit lists it with the fix command
+
+#### Scenario: A Ready issue is incomplete
+
+- **WHEN** an issue in Ready has no Effort or lacks a planned-issue section
+- **THEN** the audit lists the missing parts and links the issue
+
+#### Scenario: Urgent work has not started
+
+- **WHEN** an Urgent issue has stayed in Needs triage or Ready for more than three days
+- **THEN** the digest lists it
+
+#### Scenario: A built-in automation is switched off
+
+- **WHEN** a Project automation expected to be on is disabled
+- **THEN** the audit names it and the affected items
+
+### Requirement: One maintenance digest is rebuilt from current state
+
+Monitoring SHALL publish one open digest issue whose automation-owned body is rebuilt from current state on each
+run. It SHALL comment only when findings appear, change, recover or expire, and a retry SHALL NOT repeat a comment.
+Closing the digest SHALL start a successor that links its predecessor and carries all unresolved state and open
+tasks. Two open digests SHALL stop publication with a warning.
+
+#### Scenario: Only dates and counters advance
+
+- **WHEN** a run finds no new, changed, recovered or expired finding
+- **THEN** the digest body is refreshed and no comment is posted
+
+#### Scenario: A publication is retried
+
+- **WHEN** a run that already commented is retried
+- **THEN** it recognizes its comment and posts no duplicate
+
+#### Scenario: A maintainer closes the digest
+
+- **WHEN** the next run finds no open digest
+- **THEN** it opens a successor with all unresolved findings, limitations and open tasks, links both issues and moves open tasks to the successor
+
+#### Scenario: Two digests are open
+
+- **WHEN** publication finds more than one open digest
+- **THEN** it writes nothing and its summary names both issues and the fix
+
+### Requirement: Maintainers promote findings into tasks
+
+An observation SHALL become a task only when a person with write access creates it, for example from the digest's
+prefilled task link. Automation SHALL attach such tasks to the digest, show them beside their findings and keep
+closed dispositions. Recurrence SHALL ask for triage only on a material change and SHALL NOT reopen or recreate a task.
+
+#### Scenario: A persistent failure is not triaged
+
+- **WHEN** an unreviewed link fails across several runs
+- **THEN** it stays in the digest's triage section and no task is created
+
+#### Scenario: A maintainer tracks a finding
+
+- **WHEN** a maintainer creates a task from the digest's link
+- **THEN** the next run attaches it as a sub-issue of the digest and shows it beside the finding
+
+#### Scenario: A closed task's finding continues
+
+- **WHEN** a task was closed with a disposition and its finding persists unchanged
+- **THEN** the digest shows the disposition and does not reopen the task
+- **AND** a changed outcome returns the finding to triage
 
 ### Requirement: Monitoring coverage is bounded and explicit
 
-Monitoring SHALL disclose the eligible, attempted, deferred and invalid-target counts and distinguish
-unobserved targets from successes. Bounded selection SHALL give unchanged eligible targets continuing
-coverage rather than repeatedly selecting one fixed prefix. Deferred runs SHALL NOT manufacture
-recovery or increment failure persistence for unattempted targets.
+Monitoring SHALL report eligible, attempted, deferred and invalid targets and distinguish unobserved targets from
+successes. Selection SHALL give unchanged targets continuing coverage under the global request budget and a per-host
+cap. Deferred targets SHALL keep their dated observation without new failures or recoveries.
 
 #### Scenario: The inventory exceeds the request budget
 
-- **GIVEN** 673 eligible URLs and a 600-request run budget
+- **GIVEN** 673 eligible URLs and a 600-request budget
 - **WHEN** successive complete runs inspect the unchanged inventory
-- **THEN** every URL is attempted within two runs and each report states its own attempted and deferred coverage
+- **THEN** every URL is attempted within two runs and each report states its attempted and deferred counts
 
-#### Scenario: A previously failing target is deferred
+#### Scenario: A failing target is deferred
 
-- **GIVEN** a target has a persistent failure and is outside this run's selection
-- **WHEN** the next summary is produced
-- **THEN** it retains the dated previous observation as unrefreshed without counting a new failure or recovery
+- **WHEN** a target with a persistent failure is outside this run's selection
+- **THEN** the digest keeps its dated observation as unrefreshed without counting a new failure or a recovery
+
+#### Scenario: One host throttles requests
+
+- **WHEN** one host answers with rate limiting
+- **THEN** its requests stop at the per-host cap and other hosts are still attempted
 
 ### Requirement: Reviewed monitoring limitations retain their basis
 
-A monitoring limitation SHALL identify an exact finding and outcome scope, reason, evidence, reviewer,
-review date and review deadline. Acknowledged observations SHALL remain visible and be rechecked.
-Expired decisions or changed targets/outcomes SHALL require renewed review without flooding issues.
-Blanket host exemptions and converting acknowledged failures into passes SHALL be refused.
+A monitoring limitation SHALL name an exact finding and outcome, reason, evidence, reviewer, review date and
+review-by date. Acknowledged observations SHALL stay visible and rechecked. A changed outcome, changed target or
+passed deadline SHALL return the finding to triage. Wildcards, missing evidence and conflicting entries SHALL fail
+validation.
 
-#### Scenario: A reviewed blocked request recurs
+#### Scenario: A reviewed denial recurs
 
-- **GIVEN** a current decision acknowledges HTTP 403 for one exact URL
-- **WHEN** that response recurs
-- **THEN** it remains a known monitoring limitation with fresh observation evidence and creates no duplicate work item or repeated unchanged notification
+- **WHEN** a URL with a current limitation for HTTP 403 answers 403 again
+- **THEN** the digest shows it as a known limitation with fresh evidence and asks for nothing
 
 #### Scenario: The basis changes or expires
 
-- **GIVEN** an acknowledged 403 becomes a 404, its target changes, or its review deadline passes
-- **WHEN** the next applicable run reconciles decisions and observations
-- **THEN** it presents the changed or expired decision for triage and no longer applies the old acknowledgement to the new condition
+- **WHEN** that URL answers 404, its address changes or the review-by date passes
+- **THEN** the finding returns to triage
 
-#### Scenario: A decision attempts a blanket exemption
+#### Scenario: An entry is too broad
 
-- **GIVEN** a wildcard target, missing evidence or conflicting decisions for one finding scope
-- **WHEN** configuration is validated locally or in PR checks
-- **THEN** validation fails with an actionable diagnostic without suppressing observations
+- **WHEN** a limitation uses a wildcard, lacks evidence or conflicts with another entry
+- **THEN** offline validation fails and names the entry
 
-### Requirement: Maintainers control promotion into actionable work
+#### Scenario: A new denial needs review
 
-An observation SHALL become an actionable sub-issue only through explicit maintainer triage. Promotion
-SHALL retain the finding keys, evidence and parent relationship and reuse an existing task where
-appropriate. Automation SHALL retain human dispositions, closed-task history and ownership; recurrence
-SHALL request triage without silently reopening or recreating work.
+- **WHEN** an unreviewed URL answers 403
+- **THEN** the digest offers a ready-to-paste limitation entry for the maintainer to complete
 
-#### Scenario: A persistent failure has not been triaged
+### Requirement: Watch state survives between runs or its loss is explicit
 
-- **GIVEN** a previously unreviewed link fails across several runs
-- **WHEN** scheduled publication runs
-- **THEN** it remains in the digest for triage and no actionable sub-issue is created
+Monitoring state SHALL persist between runs in durable run storage with a format version. Valid previous state
+SHALL migrate; missing, expired or malformed state SHALL produce an explicit reset notice and SHALL NOT claim
+streaks or recoveries. Human decisions SHALL NOT live only in this state.
 
-#### Scenario: A maintainer promotes related findings
+#### Scenario: The previous state is available
 
-- **GIVEN** a maintainer chooses an existing or new issue to address related observations
-- **WHEN** that decision is recorded and the issue is attached as a sub-issue
-- **THEN** subsequent publication links those observations to that same task while preserving its assignee, priority, discussion and acceptance criteria
+- **WHEN** the previous successful run's state is valid
+- **THEN** persistence streaks continue from it
 
-#### Scenario: A human closes work while observations continue
+#### Scenario: The previous state is missing
 
-- **GIVEN** a promoted task is closed with a recorded disposition
-- **WHEN** its finding persists or later recurs
-- **THEN** the digest preserves the decision and requests renewed triage only for a material change, without reopening the task or creating a replacement automatically
+- **WHEN** no readable previous state exists
+- **THEN** the digest shows a state-reset notice and reports no streak or recovery
 
-### Requirement: Digest publication preserves discussion and limits comments
+#### Scenario: The state has the previous format
 
-The digest SHALL keep current evidence in automation-owned description sections and preserve human
-content elsewhere. Comments SHALL summarize meaningful changes rather than each observation. Only
-verified automation-owned summaries incorporated into a published replacement SHALL be minimized as
-outdated; human discussion and decision comments SHALL remain untouched.
+- **WHEN** the previous state uses the earlier format version
+- **THEN** it is migrated and its baselines and streaks are kept
 
-#### Scenario: Only dates and persistence counters advance
+### Requirement: Legacy health issues migrate into the digest
 
-- **GIVEN** no new finding, changed outcome, recovery or review decision is needed
-- **WHEN** the publisher refreshes the digest
-- **THEN** it updates observation metadata without posting a new comment
+Before the digest replaces per-finding issues, an approved issue-by-issue migration SHALL map each open legacy health
+issue to a digest entry, a retained task or a noise disposition, preserving its evidence and discussion. Absorbed
+issues SHALL close with a link to the digest. The per-finding publisher SHALL NOT run in parallel with the digest.
 
-#### Scenario: A summary is replaced
+#### Scenario: The migration is previewed
 
-- **GIVEN** an older automation-owned summary is fully incorporated into a newer verified summary
-- **WHEN** comment cleanup runs
-- **THEN** it can minimize that old summary without deleting it or minimizing human discussion, retained decisions or the current summary
+- **WHEN** the migration preview runs
+- **THEN** it lists every open `guide-health` issue with its target disposition and writes nothing
 
-#### Scenario: Publication is retried or interrupted
+#### Scenario: The approved migration is applied
 
-- **GIVEN** a previous attempt published a summary but its receipt write failed
-- **WHEN** the same run is retried
-- **THEN** it recognizes the existing publication and avoids a duplicate comment, and it never minimizes an old summary before a replacement is verified
+- **WHEN** the approved migration runs
+- **THEN** absorbed issues are closed with a link to the digest entry, retained tasks keep their number and state, and every original observation appears in the digest
 
-### Requirement: Digest retirement preserves open work and decisions
+### Requirement: The CI catalogue is generated from the workflow definitions
 
-The current digest SHALL support reviewed retirement with a linked successor. Rollover SHALL carry
-unresolved observations, acknowledgements and task references without recreating tasks or treating
-supersession as recovery. It SHALL preserve the previous discussion and be recoverable after partial
-failure. A report's age alone SHALL NOT silently discard pending work.
+The CI documentation SHALL render each workflow's triggers, permissions, concurrency, artifacts and retention from
+the workflow files, joined with a reviewed human entry for purpose, entry point, next actor and rerun route. A check
+SHALL fail when a workflow, artifact or permission lacks its human entry or the rendered block is stale.
 
-#### Scenario: An overloaded digest is retired
+#### Scenario: A workflow is added without an entry
 
-- **GIVEN** maintainer approval to rotate the current digest with unresolved findings and open sub-issues
-- **WHEN** retirement completes
-- **THEN** the successor includes current state and open-task links, both reports link to each other, and the predecessor closes explicitly as superseded without changing child-task states or identities
+- **WHEN** a new workflow or uploaded artifact has no human entry
+- **THEN** the offline check fails and names it
 
-#### Scenario: Rotation is interrupted
+#### Scenario: A permission changes
 
-- **GIVEN** the successor exists but one handoff step failed
-- **WHEN** rotation is retried
-- **THEN** it resumes the same handoff without creating another successor, losing decisions or leaving normal publication to update two active reports
+- **WHEN** a workflow's permissions change and the catalogue block was not regenerated
+- **THEN** the check fails and names the regeneration command
 
-### Requirement: Repository management uses one permission-gated Project
+### Requirement: Every automated output ends with a next step
 
-One Guide-wide Project SHALL organize issues and PRs with concise status, area and priority views,
-including maintenance hierarchy. Project implementation and setup SHALL wait for confirmed organization
-permissions. Native automation SHALL be preferred where sufficient; later Project access failure SHALL
-leave observation, digest publication and maintainer triage usable with an explicit synchronization warning.
+Every automated summary, comment, reply and report SHALL end with who acts next, the exact action, its
+prerequisites or fallback and the evidence that shows completion. Successful outcomes SHALL say what review or checks
+remain; partial, blocked and failed outcomes SHALL stay distinct and SHALL NOT claim success.
 
-#### Scenario: Organization permission remains pending
+#### Scenario: A contributor receives a failed check
 
-- **GIVEN** Project plans exist but organization permissions have not been confirmed
-- **WHEN** implementation scope is selected
-- **THEN** Project code, configuration, setup and backlog import remain unimplemented and unchecked, and a repository Projects-enabled flag alone does not discharge the gate
+- **WHEN** a required check fails
+- **THEN** the summary names the affected item, a local reproduction command and the evidence that confirms the fix
 
-#### Scenario: The Project becomes available
+#### Scenario: A repair is applied
 
-- **GIVEN** confirmed organization permissions and an approved Project setup
-- **WHEN** the Guide backlog is onboarded
-- **THEN** existing issues and PRs are imported without duplication or changing their titles, labels, assignees, states or scopes, and raw monitoring observations do not become individual Project cards
+- **WHEN** `/fix-duplicates` commits a repair
+- **THEN** the reply names the commit and the checks and review that remain
 
-#### Scenario: Project access fails after activation
+#### Scenario: A privileged route is unavailable
 
-- **GIVEN** a previously activated Project becomes unavailable
-- **WHEN** scheduled monitoring publishes current evidence
-- **THEN** digest and triage operations remain usable, the Project synchronization failure stays visible, and a later retry reconciles missing entries without duplicate tasks
+- **WHEN** a repair cannot run because of a fork, missing permission or unknown person
+- **THEN** the reply gives the local or manual route and how to resolve the missing prerequisite
 
-### Requirement: Every CI product has an actionable human handoff
+#### Scenario: A release product is ready
 
-Every CI product SHALL provide or link a human handoff stating its outcome, significance, affected scope and revision, eligible next actor, exact next action, prerequisites, fallback and completion evidence. Machine artifacts SHALL have a discoverable human entrypoint. Completed work requiring no action SHALL say so; skipped, blocked, partial and failed outcomes SHALL remain distinct.
-
-#### Scenario: A contributor receives a failed check summary
-- **WHEN** CI reports a failed check to a contributor unfamiliar with its implementation
-- **THEN** the handoff identifies the affected item, gives an executable reproduction or repair step with prerequisites, and explains what evidence confirms completion
-
-#### Scenario: A raw artifact contains the detailed findings
-- **WHEN** CI publishes machine data or bounded details outside the main summary
-- **THEN** its human entrypoint explains the result and next step, links the attributable evidence and discloses omitted scope
-
-#### Scenario: CI did not complete its required work
-- **WHEN** a producer is blocked or its evidence is partial or unavailable
-- **THEN** the fallback handoff states what remains unverified, who can retry or investigate, and the next step without claiming success
-
-#### Scenario: A release product is ready for human review
 - **WHEN** CI prepares a release PR, deployment, image or draft release
-- **THEN** its handoff names the exact revision or artifact, remaining review and separately authorized continuation, and evidence needed to finish without implying publication approval
+- **THEN** its output names the exact revision or artifact and the separately authorized step that remains
 
-### Requirement: Repair suggestions explain eligibility and completion
+#### Scenario: A renderer loses its next step
 
-A CI repair suggestion SHALL distinguish the prepared draft from an applied change, show all related required edits and deferred inputs, and give the exact supported application and verification routes. An unavailable privileged route SHALL identify its prerequisite and a local or manual alternative. It SHALL NOT imply an unregistered action, guessed person or link-only patch completes the repair.
-
-#### Scenario: A maintainer can use the duplicate command
-- **WHEN** a safe duplicate repair is offered for a same-repository PR
-- **THEN** the summary shows the link, provenance draft and registration intent, explains the current-write-access and reviewed-person requirements for `/fix-duplicates`, and states how to inspect its commit and rerun checks
-
-#### Scenario: The PR is a fork or the caller is unknown
-- **WHEN** the privileged repair route is unavailable because of PR origin, permissions, missing person mapping or App configuration
-- **THEN** the handoff explains the limitation and an explicit local or manual completion route, including how to resolve the missing reviewed identity without inventing one
-
-#### Scenario: The head advanced
-- **WHEN** a repair draft or requested application no longer matches the PR head
-- **THEN** no stale repair is published as current and the refusal or run summary explains how to obtain a fresh result
-
-### Requirement: CI product handoff coverage is enforced
-
-The repository SHALL maintain one CI product-to-handoff inventory covering its workflows, human entrypoints, producer/consumer boundaries and verification owners. Local and PR checks SHALL reject uncovered products and missing required handoff fields. Rendered-output tests SHALL prove actionable failure and completion paths; declarations alone SHALL NOT establish that the handoff works.
-
-#### Scenario: A workflow publishes an uncatalogued product
-- **WHEN** a workflow adds an artifact, proposal, report or publication output without a mapped human handoff
-- **THEN** the common check fails and identifies the product and the required inventory or handoff update
-
-#### Scenario: A renderer loses the next step
-- **WHEN** a planted regression removes an action, prerequisite fallback or completion instruction from a representative rendered output
-- **THEN** the relevant contract test fails even if the inventory still declares that field present
-
-#### Scenario: An internal workflow produces no standalone user product
-- **WHEN** a setup workflow or reusable internal stage is catalogued
-- **THEN** it explicitly maps to its consuming human entrypoint or states that it produces no standalone product, with a checked reason rather than a silent exclusion
-
-### Requirement: The CI catalogue matches effective workflow behavior
-
-The CI policy SHALL catalogue every workflow's triggers, purpose, effective token and App permissions, write effects, artifacts, retention, concurrency and generated ownership. It SHALL document exact local reproduction and distinguish the required job context from the workflow name. Drift checks SHALL reject missing workflows and mismatched structured facts while release procedures retain their existing owner.
-
-#### Scenario: A workflow or effective permission changes
-- **WHEN** a workflow is added or its trigger, permission, artifact or concurrency policy changes without the matching catalogue update
-- **THEN** the offline drift check fails with the affected workflow and correction route, including generated setup workflows
-
-### Requirement: Incomplete CI evidence retains known failure diagnostics
-
-When lane evidence is absent, unreadable or invalid, collection SHALL retain attributable known check failures alongside the evidence-integrity diagnostics and preserved logs. It SHALL identify incomplete coverage, remain nonpassing and provide a concrete retry or investigation handoff. Rejected identity or coverage data SHALL NOT become accepted evidence merely to improve diagnostics.
-
-#### Scenario: A known check fails and another lane is absent
-- **WHEN** the CPU content check fails and a required browser lane is missing
-- **THEN** the summary reports both the content failure and missing lane, links retained details and never claims complete execution
-
-### Requirement: Dependency caches accelerate installation without becoming verification evidence
-
-Dependency caching SHALL use dependency inputs and compatible platform/runtime identity, retain cold-install fallback and disclose hit/miss/setup timing. Cache contents SHALL NOT replace current source/build checks, store credentials or cross the existing PR-to-privileged trust boundary. Restored test outcomes or generated sites SHALL NOT substitute for required current verification.
-
-#### Scenario: A cache is missing or incompatible
-- **WHEN** the lockfile, relevant requirements, runtime or platform changes, or restoration fails
-- **THEN** installation uses the compatible cache or cold path and the same required checks still run with truthful timing
-
-### Requirement: Execution tuning preserves complete attributable coverage
-
-PR and deployment verification SHALL use one authoritative check/case inventory and configurable execution budgets. Performance acceptance SHALL compare a fixed revision and build context with equal coverage, separating setup, queueing, active work, approval wait and summed runner time. Changes to partitions, workers or case granularity SHALL retain every required case, failure artifact and validator profile.
-
-#### Scenario: A faster deployment partition is proposed
-- **WHEN** a candidate completes sooner than the baseline
-- **THEN** its receipt reports cold/warm cache state, environment, budgets, coverage and runner time, retaining initial failures and refusing a speed claim derived from skipped work or unlike build contexts
-
-### Requirement: Workflow concurrency distinguishes supersession from explicit requests
-
-Concurrency policy SHALL distinguish replaceable current-result work from accepted explicit operations and shared mutable resources. Superseded checks/previews SHALL identify their successor; accepted maintainer operations SHALL complete, refuse or explicitly supersede without silently losing pending intent. Queue capacity, resource scope and recovery SHALL be documented; serialization SHALL NOT imply dispatch-order guarantees.
-
-#### Scenario: Three explicit requests overlap
-- **WHEN** one operation is active and two more valid maintainer requests arrive for the same resource
-- **THEN** each accepted request retains an inspectable outcome or explicit supersession, including queue overflow or changed prerequisites
-
-#### Scenario: Different PRs receive new commits
-- **WHEN** a newer source head supersedes a run on one PR
-- **THEN** it cancels obsolete work for that PR while independent PR verification remains eligible to execute
-
-### Requirement: Preparation and publication have separate concurrency boundaries
-
-Cancellable artifact preparation SHALL be separated from serialized publication to a shared destination. Before publishing combined Pages output or moving image aliases, trusted code SHALL verify current eligible source/channel identity and refuse stale promotion. Approval waits SHALL be reported separately and SHALL NOT unnecessarily serialize independent preparation. Release artifacts SHALL retain immutable identity.
-
-#### Scenario: An older prepared deployment waits for approval
-- **WHEN** newer eligible production or preview state exists before the older output publishes
-- **THEN** publication reconciles current eligible artifacts or refuses the stale promotion, without reverting either channel or treating the approval wait as check execution
-
-### Requirement: Automated branch updates preserve concurrent human work
-
-An automated update to an existing branch SHALL enforce the expected reviewed head atomically at the write, preserve intervening human commits and report a concrete reconciliation route on conflict. Workflow serialization or a preliminary human-edit check alone SHALL NOT establish exclusive ownership. Retries SHALL be idempotent and never silently force away concurrent work.
-
-#### Scenario: A person pushes after the publisher checks branch ownership
-- **WHEN** a refresh publisher prepares a replacement and the branch advances before its update
-- **THEN** the update is rejected, the human head remains intact and the handoff identifies the conflicting branch and review/retry route
-
-### Requirement: Contribution governance is proportionate and checked
-
-Contribution policy SHALL distinguish changes to behavior/contracts/governance from content instances, wording and behavior-neutral refreshes under existing contracts. Required planning references and explicit non-contract dispositions SHALL be checked locally and in PRs, with human review owning semantic classification. Ordinary content edits SHALL retain bilingual/source/paradata checks without mandatory per-edit OpenSpec churn.
-
-#### Scenario: A contributor adds advice under the established model
-- **WHEN** the edit preserves behavior, assessment meaning and the stored content contract
-- **THEN** the contributor can declare the existing-contract route, supply normal sources/paradata and pass without inventing a capability requirement for that advice
-
-#### Scenario: A CI or assessment contract changes
-- **WHEN** the PR declares a triggering contract change
-- **THEN** its complete scoped planning artifacts are required before apply and the gate reports missing planning rather than treating a green content check as approval
-
-### Requirement: Guide usage filenames follow their delivered date convention
-
-Guide-owned usage checks SHALL require a valid date and change/topic in each usage filename, consistent with the entry's initial date and the delivered field owners. Rolling later sessions SHALL retain the original filename date. Violations SHALL name the file and exact rename/remediation, without changing delivered rules or conflating agent usage with content provenance.
-
-#### Scenario: A new usage entry has no filename date
-- **WHEN** local or PR governance validation inspects the entry
-- **THEN** it fails with the required dated filename form while allowing later dated sessions in the same rolling entry
+- **WHEN** a planted regression removes the action, fallback or completion evidence from a representative output
+- **THEN** the renderer's test fails
 
 ### Requirement: Production publishes real crawler discovery files
 
-The site build SHALL emit valid production robots and sitemap files from the configured base URL. The sitemap SHALL contain only explicitly selected real production documents with absolute fragment-free addresses. Assembly SHALL preserve production copies byte-identically, exclude preview documents from the sitemap and retain preview noindex. Tests SHALL validate the actual generated files, including base-URL overrides.
+The site build SHALL emit valid production `robots.txt` and `sitemap.xml` from the configured base URL. The sitemap
+SHALL list only the Guide root and `api/index.html` with absolute, fragment-free addresses. Assembly SHALL preserve
+the production files byte-identically, keep preview documents out of the sitemap and retain preview `noindex`.
 
 #### Scenario: Production and preview are assembled
-- **WHEN** the real built production artifact is combined with a separately built preview
-- **THEN** crawler files exist, use the configured production origin/path, retain their production bytes and advertise no preview or hash-route document
+
+- **WHEN** the built production site is combined with a separately built preview
+- **THEN** both files exist, use the configured production origin and path, keep their production bytes and advertise no preview or hash-route address
+
+#### Scenario: The base URL is overridden
+
+- **WHEN** the build runs with a different configured base URL
+- **THEN** the robots and sitemap addresses follow that base
