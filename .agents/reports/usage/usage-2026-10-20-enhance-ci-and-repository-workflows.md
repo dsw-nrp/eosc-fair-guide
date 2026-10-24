@@ -138,8 +138,8 @@
   - Finding: unit tests overwrote the CPU lane's `duplicates.json`, from which pull-request repair suggestions are
     read. Fixed by private shard report directories.
   - Finding: a rerun removes earlier attempts' artifacts, so attempts 2 and 3 keep job timings only.
-- **Close-out:** 18 of 61 tasks complete.
+- **Close-out:** 19 of 61 tasks complete.
   - 2.3 waits for the changed-lockfile evidence of the first Dependabot PR after this lands, as agreed.
-  - 2.6 kept the unit lane. A single validator process and a Playwright browser cache are bounded by measurement
-    (validators are off the critical path; downloads take about 7.5 s of a 17.5 s install), and that decision is
-    with the maintainer.
+  - 2.6 kept the unit lane. With the maintainer's agreement, a single validator process and a Playwright browser
+    cache were not adopted: the validators are off the critical path, and downloads take about 7.5 s of a 17.5 s
+    install.

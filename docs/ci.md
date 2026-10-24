@@ -54,5 +54,8 @@ from timings.
   candidate attempt hit both the pip and the npm cache, with identical check inventories.
 - **Unit lane.** In run 40084136770 two unit shards beside the three validators made the CPU lane the critical path
   (261 s). With a runner of their own, the unit lane took 95–110 s and the CPU lane 110–179 s, never critical.
+- **Experiments not adopted.** A single validator process cannot shorten the run while the CPU lane stays off the
+  critical path. A Playwright browser cache could save at most the 7.5 s download of a 17.5 s install (the rest is
+  system packages), less its own restore time, which is below the reruns' 7 s spread.
 - **Collector artifacts.** The health, preview and review artifacts keep their names and file inventories. The
   only differences are group 1's new checks and two logs that unit tests had leaked into the baseline's report.

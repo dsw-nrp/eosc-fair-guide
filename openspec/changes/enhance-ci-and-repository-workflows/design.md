@@ -154,7 +154,10 @@ Alternatives rejected: one workflow per command with workflow-level groups (the 
   library; the apply task verifies the import graph first. The collector drops installs it does not use.
 - **Experiments kept only when measured.** One validator process for the three profiles, or keeping validators off
   the unit-shard cores. A Playwright browser cache, where restore plus system dependencies may cost as much as
-  today's install.
+  today's install. Outcome on 24 October 2026: the unit shards moved to a lane of their own, which took the CPU lane
+  off the critical path. A single validator process and a browser cache were not adopted. The validators no longer
+  set the elapsed time, and the browser download is 7.5 s of a 17.5 s install, a saving smaller than the reruns'
+  own 7 s spread.
 - **Acceptance.** Three reruns of a fixed PR commit before and after, reported by `ci_timings.py`: elapsed time,
   critical path, queue, setup and summed job time, with full case and validator coverage. Goals: full checks
   around 4–4.5 min and quick feedback around 1–1.5 min. Public-repository minutes are free; the real constraint is
