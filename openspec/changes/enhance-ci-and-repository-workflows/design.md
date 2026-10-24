@@ -126,8 +126,11 @@ Alternatives rejected: one workflow per command with workflow-level groups (the 
   setup, active time, slot waits). It suggests a lane assignment by longest-first packing. The assignment stays in
   its single committed owner and changes only through review. Expected outcome: three or four browser lanes of
   about 150 s each instead of two lanes of up to 226 s.
-- **Case splits.** Browser scripts longer than about 45 s (accessibility, sources, model, citation) become named
-  cases through the existing case mechanism, so slots fill evenly. The inventory still requires each case once.
+- **Case splits.** Browser scripts whose time excluding browser-slot waits exceeds about 45 s become named cases
+  through the existing case mechanism, so slots fill evenly, and cases start longest first. The inventory still
+  requires each case once. Case reports record a script's slot wait. Measured on 24 October 2026, accessibility,
+  sources, model and citation took 3.7–13.9 s alone but 37–68 s in run 40022072478: their CI time was slot
+  waiting, which separate lanes remove and splitting would not. No script currently qualifies.
 - **Unit shards.** `profile_checks.py` runs deterministic shards in parallel processes, locally and in CI, and
   merges one timing report. Tests already use temporary fixtures. A shuffled-order run guards against hidden
   shared state.

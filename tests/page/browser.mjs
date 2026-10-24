@@ -27,7 +27,8 @@ function saveReport() {
     workers: workerCount(), trace_snapshots: process.env.CHECK_TRACE_SNAPSHOTS === "1",
     seconds: (performance.now() - reportStart) / 1000, attempt: 1, retries: [],
     status: script.failed || cases.some((item) => item.status === "failed") ? "failed" : skipped.length || pending.length ? "partial" : "passed",
-    planned, executed: cases, skipped, pending, script: { name: script.name, problems: script.problems, artifacts: script.artifacts } }, null, 2) + "\n");
+    planned, executed: cases, skipped, pending, script: { name: script.name, problems: script.problems, artifacts: script.artifacts,
+      queue_seconds: script.queueSeconds || 0 } }, null, 2) + "\n");
 }
 
 async function capture(context, scope) {
@@ -77,7 +78,14 @@ async function instrument(context, scope) {
 }
 
 async function lease(scope) {
-  scope.lease ||= acquireSlot();
+  if (!scope.lease) {
+    // Waiting for a shared slot is not the script's own work; timing reports keep the two apart.
+    const requested = performance.now();
+    scope.lease = acquireSlot().then((release) => {
+      scope.queueSeconds = (scope.queueSeconds || 0) + (performance.now() - requested) / 1000;
+      return release;
+    });
+  }
   await scope.lease;
 }
 
@@ -125,7 +133,6 @@ export async function runCases(entries, only = []) {
     await storage.run(scope, async () => {
       try {
         await lease(scope);
-        scope.queueSeconds = (performance.now() - start) / 1000;
         await run();
       }
       catch (error) { scope.aborted = true; recordFailure(error.stack || String(error)); }

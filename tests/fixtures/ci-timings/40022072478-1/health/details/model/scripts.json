@@ -1,0 +1,48 @@
+{
+ "group": "model",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/page/check_model.mjs",
+   "seconds": 64.097068286,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_model.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_model.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_visuals.mjs",
+   "seconds": 24.751545845999992,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_visuals.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_visuals.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}

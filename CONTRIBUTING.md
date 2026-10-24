@@ -65,7 +65,11 @@ python scripts/check_all.py        # before a pull request: build, then every ch
 
 `check_all.py` needs `npm ci` and the tools from `requirements-dev.txt`, and reports each check's result and time.
 Use `--jobs` for outer work and `--browser-workers` for the shared browser budget. Local and CI defaults live in
-[`scripts/check_policy.json`](scripts/check_policy.json); `CI=true` selects the conservative CI profile.
+[`scripts/check_policy.json`](scripts/check_policy.json); `CI=true` selects the conservative CI profile. The
+policy's `unit_shards` sets how many processes the unit tests run in. `scripts/profile_checks.py` packs test modules
+into those shards from the measured seconds in `scripts/unit_shards.json`, gives each shard a private report
+directory and fails unless every discovered test runs exactly once; `--shards N` overrides the count and
+`--shuffle SEED` reorders classes and tests to expose hidden shared state.
 Defaults are capped by the available CPU count. `--browser-workers` overrides `CHECK_BROWSER_WORKERS`, which
 overrides the profile; npm and direct Node checks use the same policy. Browser groups
 share atomic case slots across Node processes, so inner pools cannot multiply the global limit. `.cache/health/details/` and `logs/` retain timings, complete output,
@@ -77,7 +81,13 @@ Stop a benchmark after a failed run, retain its evidence and diagnose it before 
 Default traces retain actions; a failed case adds a PNG and an HTML snapshot. Set `CHECK_TRACE_SNAPSHOTS=1`
 for full trace snapshots when investigating a difficult case.
 
-PR CI runs one verified build through a CPU lane and two browser lanes, then the required `checks` collector.
+PR CI runs one verified build through a CPU lane and four browser lanes, then the required `checks` collector.
+Beside the build, a non-required `quick` job runs the cheap offline checks (`python scripts/check_ci.py quick`)
+for early feedback; the CPU lane runs the same checks again, so `checks` reports every failure `quick` does.
+`check_ci.BROWSER_LANES` assigns the browser jobs to lanes. Change it only through review, from the balanced
+suggestion of `python scripts/ci_timings.py <run-id>`. That report reads a run's job timings and health artifact:
+queue, setup, check time, the critical path, browser slot waits, cache hits and coverage. Claim a speed-up only
+from paired reruns at a fixed commit with unchanged coverage.
 `scripts/check_ci.py` owns that adapter; `check_all.py` owns the job inventory and `scripts/check_groups.json`
 owns nested scripts. The collector verifies source/build identity, every required case and station/PDF coverage;
 lane subsets cannot publish a complete pass. Inspect per-lane artifacts as well as the final health report.

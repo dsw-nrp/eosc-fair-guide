@@ -6,6 +6,7 @@ import fnmatch
 import json
 import re
 import subprocess
+import sys
 import tomllib
 import unittest
 from pathlib import Path
@@ -13,6 +14,8 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scripts"))
+import check_ci  # noqa: E402
 
 
 def load(path: str) -> dict:
@@ -168,11 +171,11 @@ class WorkflowContracts(unittest.TestCase):
                 for step in steps
             )
         )
-        self.assertEqual(job["needs"], ["build", "lanes"])
+        self.assertEqual(job["needs"], ["build", "lanes"], "the quick result never gates or replaces `checks`")
         self.assertEqual(job["if"], "always()")
         lanes = workflow["jobs"]["lanes"]
         self.assertEqual(lanes["strategy"]["fail-fast"], "false")
-        self.assertEqual(lanes["strategy"]["matrix"]["lane"], ["cpu", "browser-a", "browser-b"])
+        self.assertEqual(lanes["strategy"]["matrix"]["lane"], list(check_ci.LANES))
         for lane in workflow["jobs"].values():
             self.assertNotIn("permissions", lane)
             for step in lane["steps"]:
@@ -189,6 +192,47 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn(".cache/pr-review/contributors.json", review["with"]["path"].split())
         self.assertTrue(any("scripts/contributors.py" in step.get("run", "") for step in steps))
         self.assertNotIn("secrets.", (ROOT / ".github/workflows/checks.yml").read_text())
+
+    def test_quick_feedback_runs_beside_the_build_with_only_its_own_tools(self) -> None:
+        quick = load(".github/workflows/checks.yml")["jobs"]["quick"]
+        self.assertNotIn("needs", quick, "quick feedback does not wait for the build")
+        runs = [step.get("run", "") for step in quick["steps"]]
+        self.assertTrue(any('scripts/check_ci.py quick --base "$BASE_SHA"' in run for run in runs))
+        install = next(run for run in runs if "pip install" in run)
+        self.assertIn("grep -E '^ruff==' requirements-dev.txt", install, "Ruff keeps its single pinned version")
+        self.assertNotIn("-r requirements-dev.txt", install)
+        self.assertTrue(any("cat .cache/quick/summary.md" in run for run in runs))
+
+    def test_dependency_caches_follow_the_lockfiles_and_stay_out_of_trusted_runs(self) -> None:
+        checks = load(".github/workflows/checks.yml")
+        for name, job in checks["jobs"].items():
+            for step in job["steps"]:
+                if step.get("uses", "").startswith("actions/setup-node@"):
+                    self.assertEqual(step["with"]["cache"], "npm", name)
+                    self.assertEqual(step["with"]["cache-dependency-path"], "package-lock.json", name)
+                if step.get("uses", "").startswith("actions/setup-python@") and "cache" in step.get("with", {}):
+                    # One owner of the pip cache, so no partial install can be saved under the full key.
+                    self.assertEqual(name, "lanes")
+                    self.assertEqual(step["with"]["cache"], "${{ matrix.lane == 'cpu' && 'pip' || '' }}")
+                    self.assertEqual(step["with"]["cache-dependency-path"], "requirements-dev.txt")
+        lane_steps = checks["jobs"]["lanes"]["steps"]
+        python_tools = next(step for step in lane_steps if "pip install -r requirements-dev.txt" in step.get("run", ""))
+        self.assertEqual(python_tools["if"], "matrix.lane == 'cpu'", "browser lanes import only the standard library")
+        lane = next(step for step in lane_steps if "check_ci.py lane" in step.get("run", ""))
+        self.assertEqual(lane["env"]["CHECK_CACHE_PIP"], "${{ steps.python.outputs.cache-hit }}")
+        self.assertEqual(lane["env"]["CHECK_CACHE_NPM"], "${{ steps.node.outputs.cache-hit }}")
+        self.assertNotIn("env", checks["jobs"]["checks"], "the collector launches no browser")
+        # Pull-request caches are scoped to their ref; trusted workflows restore no dependency cache, so a pull
+        # request's packages never reach them. (The health watch keeps only its own run state in a cache.)
+        dependencies = re.compile(r"\.npm|node_modules|pip|ms-playwright|site-packages")
+        for path in ROOT.glob(".github/workflows/*.yml"):
+            if path.name == "checks.yml":
+                continue
+            for job in load(path.relative_to(ROOT).as_posix())["jobs"].values():
+                for step in job.get("steps", []):
+                    self.assertNotIn("cache", step.get("with", {}), f"{path.name}: {step.get('uses')}")
+                    if step.get("uses", "").startswith("actions/cache"):
+                        self.assertNotRegex(step["with"]["path"], dependencies, path.name)
 
     def test_trusted_comment_never_checks_out_or_executes_pr_code(self) -> None:
         workflow = load(".github/workflows/pr-summary.yml")

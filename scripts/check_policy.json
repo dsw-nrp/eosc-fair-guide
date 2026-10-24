@@ -1,4 +1,4 @@
 {
-  "local": { "jobs": 4, "browser_workers": 4 },
-  "ci": { "jobs": 4, "browser_workers": 2 }
+  "local": { "jobs": 4, "browser_workers": 4, "unit_shards": 4 },
+  "ci": { "jobs": 4, "browser_workers": 2, "unit_shards": 2 }
 }

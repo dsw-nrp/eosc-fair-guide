@@ -2,6 +2,7 @@
 
 The ordinary local entry remains check_all.py. This adapter shares its job inventory, execution,
 health publication and final API validation. No lane publishes a complete site health result.
+`quick` runs the cheap offline checks beside the build for early feedback; it is never the complete result.
 """
 
 from __future__ import annotations
@@ -22,19 +23,31 @@ import check_all
 import check_duplicates
 
 ROOT = check_all.ROOT
-LANES = ("cpu", "browser-a", "browser-b")
-# The two substantial partitions balance the observed hosted groups, without duplicating command lists.
-BROWSER_A = {"page", "assessment", "discovery"}
+# Browser jobs by lane, as `ci_timings.py --from tests/fixtures/ci-timings/40022072478-1` packs that run's measured
+# jobs into four lanes longest first. Every other job runs in the CPU lane. Change it only through review, from a
+# newer run's suggestion; the workflow matrix names the same lanes.
+BROWSER_LANES = {
+    "browser-a": ("page", "model"),
+    "browser-b": ("final-candidate", "runtime", "api", "diagrams", "discovery"),
+    "browser-c": ("assessment",),
+    "browser-d": ("helpers",),
+}
+LANES = ("cpu", *BROWSER_LANES)
+# Cheap offline checks that need no build. The CPU lane runs the same inventory jobs, so the required `checks`
+# result reports every failure the quick result does.
+QUICK = ("content", "duplicates", "changelog", "ruff", "format", "public-content", "openspec", "agent-generation")
 
 
 def partition(available):
     """Every non-live job has exactly one owner; health-api belongs to final publication."""
+    owners = {job: lane for lane, jobs in BROWSER_LANES.items() for job in jobs}
     result = {lane: [] for lane in LANES}
     for job in available:
         if job.name in {"live", "health-api"}:
             continue
-        lane = "browser-a" if job.name in BROWSER_A else "browser-b" if job.name in check_all.BROWSER_JOBS else "cpu"
-        result[lane].append(job)
+        if job.name in check_all.BROWSER_JOBS and job.name not in owners:
+            raise ValueError(f"{job.name}: browser job without a lane in check_ci.BROWSER_LANES")
+        result[owners.get(job.name, "cpu")].append(job)
     return result
 
 
@@ -115,6 +128,12 @@ def build(args) -> int:
     return 0
 
 
+def cache_status(env) -> dict:
+    """The setup actions' `cache-hit` outputs; a lane without a cache for a tool records that it used none."""
+    labels = {"true": "hit", "false": "miss"}
+    return {tool: labels.get(env.get(f"CHECK_CACHE_{tool.upper()}", ""), "not used") for tool in ("pip", "npm")}
+
+
 def lane(args) -> int:
     started = time.time()
     manifest = read_json(args.manifest)
@@ -155,10 +174,60 @@ def lane(args) -> int:
                 "cpus": os.cpu_count(),
                 "python": sys.version,
                 "platform": sys.platform,
+                "caches": cache_status(os.environ),
             },
         },
     )
     return 1 if any(not result.ok or result.partial for result in results) else 0
+
+
+def quick_summary(results) -> str:
+    failed = [result.job.name for result in results if not result.ok]
+    lines = [
+        "## Quick checks",
+        "",
+        "Cheap offline checks for early feedback. They do not replace the required `checks` result, which runs "
+        "them again with every other check.",
+        "",
+        "| Check | Result | Seconds |",
+        "| --- | --- | ---: |",
+        *(
+            f"| {result.job.name} | {'passed' if result.ok else 'failed'} | {result.seconds:.2f} |"
+            for result in results
+        ),
+    ]
+    for result in results:
+        if not result.ok:
+            lines += ["", f"### {result.job.name}", "", "```text", bounded_failure(result.output), "```"]
+    if failed:
+        command = "python scripts/check_all.py --only " + " ".join(failed)
+        lines += [
+            "",
+            f"- **Next:** the pull request author fixes {', '.join(failed)} and reproduces it with `{command}`.",
+            "- **If blocked:** the complete log is in this job's step output; the required `checks` result reports "
+            "the same failures with the full health report.",
+            f"- **Done when:** `{command}` passes locally and this job and `checks` pass on the next push.",
+        ]
+    else:
+        lines += [
+            "",
+            "- **Next:** wait for the required `checks` result, which also runs the build, unit tests, validators "
+            "and browser checks.",
+            "- **If blocked:** `python scripts/check_all.py` reproduces the complete run locally.",
+            "- **Done when:** `checks` passes.",
+        ]
+    return "\n".join(lines) + "\n"
+
+
+def quick(args) -> int:
+    selected = [job for job in check_all.jobs(args.base, False) if job.name in QUICK]
+    results = check_all.run_all(selected, args.jobs, check_all.environment())
+    args.output.mkdir(parents=True, exist_ok=True)
+    (args.output / "summary.md").write_text(quick_summary(results), encoding="utf-8", newline="\n")
+    for result in results:
+        if not result.ok:
+            print(f"FAILED {result.job.name}:\n{bounded_failure(result.output)}")
+    return 0 if all(result.ok for result in results) else 1
 
 
 def complete_cases(planned, executed, key="name") -> None:
@@ -485,11 +554,11 @@ def collect(args) -> int:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("action", choices=("build", "lane", "collect"))
+    parser.add_argument("action", choices=("build", "lane", "collect", "quick"))
     parser.add_argument("--name", choices=LANES)
     parser.add_argument("--base")
     parser.add_argument("--manifest", type=Path, default=ROOT / ".cache/ci-build/manifest.json")
-    parser.add_argument("--output", type=Path, default=ROOT / ".cache/health")
+    parser.add_argument("--output", type=Path, help="report directory (default: .cache/health; quick: .cache/quick)")
     parser.add_argument("--incoming", type=Path, default=ROOT / ".cache/ci-results")
     # Lanes use the same budget owner as local runs, scripts/check_policy.json; CI=true selects its CI profile.
     check_all.add_budget_arguments(parser)
@@ -497,7 +566,8 @@ def main(argv=None) -> int:
     if args.jobs < 1 or args.browser_workers < 1 or (args.action == "lane" and not args.name):
         parser.error("positive budgets and --name for lane are required")
     args.base = args.base or check_all.check_content.default_base(ROOT)
-    return {"build": build, "lane": lane, "collect": collect}[args.action](args)
+    args.output = args.output or ROOT / (".cache/quick" if args.action == "quick" else ".cache/health")
+    return {"build": build, "lane": lane, "collect": collect, "quick": quick}[args.action](args)
 
 
 if __name__ == "__main__":

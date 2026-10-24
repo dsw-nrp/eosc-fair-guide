@@ -18,11 +18,11 @@ marked **Human hand-off** need a person's approval or action and do not become c
 
 ## 2. Faster checks
 
-- [ ] 2.1 Add `scripts/ci_timings.py` that reports queue, setup, active time, slot waits and the critical path per run, and suggests a balanced lane assignment. Verify against run 40022072478 that it reproduces the measured critical path. Record a three-rerun baseline for a fixed PR commit.
-- [ ] 2.2 Add a non-required `quick` job running the cheap offline checks next to the build, with its own summary and next step. Verify that a planted content error fails the quick job and the required `checks` alike.
+- [x] 2.1 Add `scripts/ci_timings.py` that reports queue, setup, active time, slot waits and the critical path per run, and suggests a balanced lane assignment. Verify against run 40022072478 that it reproduces the measured critical path. Record a three-rerun baseline for a fixed PR commit.
+- [x] 2.2 Add a non-required `quick` job running the cheap offline checks next to the build, with its own summary and next step. Verify that a planted content error fails the quick job and the required `checks` alike.
 - [ ] 2.3 Enable pip and npm caches keyed on `requirements-dev.txt` and `package-lock.json`. Install in each lane only what its checks import, after verifying the browser-lane import graph. Verify cold, warm and changed-lockfile runs and identical check inventories.
-- [ ] 2.4 Run unit tests in deterministic parallel shards locally and in CI with one merged timing report. Verify that every test runs exactly once, a planted failure in any shard fails the check, and shards pass in shuffled order.
-- [ ] 2.5 Split browser scripts longer than about 45 s into named cases, and rebalance to three or four browser lanes from 2.1's suggestion. Verify that the collector still requires every case once and that failure screenshots and traces remain.
+- [x] 2.4 Run unit tests in deterministic parallel shards locally and in CI with one merged timing report. Verify that every test runs exactly once, a planted failure in any shard fails the check, and shards pass in shuffled order.
+- [x] 2.5 Split browser scripts whose time excluding browser-slot waits exceeds about 45 s into named cases, start the longest cases first, and rebalance to three or four browser lanes from 2.1's suggestion. Verify that the collector still requires every case once and that failure screenshots and traces remain.
 - [ ] 2.6 Measure one validator process for the three profiles, validator/unit-shard separation and a Playwright browser cache, keeping each only with a paired gain. Verify that the three validator profiles still produce unchanged results.
 - [ ] 2.7 Trim the collector job's setup to what it uses. Verify that the health, preview and review artifacts are byte-equivalent in content and naming.
 - [ ] 2.8 Compare three candidate reruns with the 2.1 baseline at the same commit and record the receipt (elapsed, critical path, queue, setup, summed job time, concurrent-job peak, full coverage) in `docs/ci.md`. Verify that the receipt shows unchanged case and validator coverage.

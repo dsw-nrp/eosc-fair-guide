@@ -1,0 +1,133 @@
+{
+ "group": "assessment",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/page/check_assess.mjs",
+   "seconds": 0.06638183699999999,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": null,
+    "planned": [
+     "tests/page/check_assess.mjs"
+    ],
+    "executed": [
+     {
+      "name": "tests/page/check_assess.mjs",
+      "status": "passed",
+      "seconds": 0.06638183699999999
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_questions.mjs",
+   "seconds": 19.165105207,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_questions.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_questions.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_sources.mjs",
+   "seconds": 65.290976388,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_sources.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_sources.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_languages.mjs",
+   "seconds": 33.798877250000004,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_languages.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_languages.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_tests.mjs",
+   "seconds": 26.437059390999988,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_tests.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_tests.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_providers.mjs",
+   "seconds": 40.28614380999998,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_providers.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_providers.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}
