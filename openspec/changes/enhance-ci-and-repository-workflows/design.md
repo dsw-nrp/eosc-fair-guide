@@ -310,7 +310,9 @@ the Project's views show the items; missing items, types and Urgent work are lin
 
 The weekly audit job reads the repository with its `GITHUB_TOKEN` (`actions: read`, `issues: read`) and only
 Project #1 with the App token, as the audit's token table recorded. If that token cannot see the issues behind the
-Project's items, the items are reported unavailable rather than missing or in order.
+Project's items, the items are reported unavailable rather than missing or in order. The repository's logs and
+artifacts are public and the Project is not, so the job publishes only the redacted section; the full report, which
+names Project-only values, stays with a maintainer's local run.
 
 The backfill assigns the Issue Type and area label of every open issue from a reviewed mapping file kept with this
 change. It is applied with the audit's dry run first, after which people triage in the Triage view. Because GitHub

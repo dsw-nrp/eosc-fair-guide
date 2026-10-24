@@ -87,7 +87,9 @@ jobs:
   # The read-only settings and Project audit, on its own so that it can neither stop nor be stopped by the watch.
   # The job's token reads the repository (environments need Actions read, Project completeness Issues read); the
   # App token may only read Projects and is used for nothing else. Without it, Project #1 is reported unavailable with
-  # the owner's step. The digest's "Project and settings" section is kept in the artifact; nothing here writes.
+  # the owner's step. This repository's logs and artifacts are public and the Project is not, so the job publishes
+  # only the digest's redacted "Project and settings" section: the full report never reaches the log or an artifact.
+  # Nothing here writes to the repository.
   audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -116,16 +118,17 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_PROJECT_TOKEN: ${{ steps.app.outputs.token }}
         run: |
-          # Exit status 1 means findings, which the section reports; only a missing section is an error.
-          python scripts/audit_repository.py --json .cache/audit/audit.json \
-            --digest .cache/audit/project-and-settings.md || echo "The audit reported findings (exit $?)."
+          # Exit status 1 means findings, which the section reports; only a missing section is an error. The full
+          # report goes nowhere: it names Project-only values.
+          python scripts/audit_repository.py --digest .cache/audit/project-and-settings.md > /dev/null \
+            || echo "The audit reported findings (exit $?)."
           test -s .cache/audit/project-and-settings.md || { echo "::error::The audit wrote no digest section."; exit 1; }
           cat .cache/audit/project-and-settings.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Save the audit for the digest
+      - name: Save the digest section
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: settings-audit-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .cache/audit/
+          path: .cache/audit/project-and-settings.md
           if-no-files-found: warn
           retention-days: 90

@@ -57,8 +57,7 @@ after a delivery update changes it, the offline checks fail until you run `pytho
 Blank issues stay possible, and Discussions take questions that are not yet a task.
 
 **The weekly audit.** The "Live health and source watch" workflow runs the settings and Project audit every week in
-a job of its own and keeps the result as the `settings-audit-<run>-<attempt>` artifact. Besides the settings below,
-it reports each item that needs a person, with its link:
+a job of its own. Besides the settings below, the audit reports each item that needs a person, with its link:
 
 - an open issue or pull request that is not in the Project;
 - an open issue without an Issue Type, or whose body's `Type` row differs from it;
@@ -67,9 +66,11 @@ it reports each item that needs a person, with its link:
 - an Urgent issue in Needs triage or Ready for more than three days;
 - a closed item that is not Done, or an open one that is.
 
-The job also writes the "Project and settings" section of the public maintenance digest. It links issues and names
-Urgent work, but shows no other Project field value: Ready, triage and Status findings appear there only as
-counts, and the Project's views show which items they are.
+The job publishes only the "Project and settings" section of the public maintenance digest, in its step summary and
+as the `settings-audit-<run>-<attempt>` artifact. It links issues and names Urgent work, but shows no other Project
+field value: Ready, triage and Status findings appear there only as counts, and the Project's views show which items
+they are. The repository's logs and artifacts are public and the Project is not, so the full report never leaves
+the job; run `python scripts/audit_repository.py` with your own token for every finding.
 
 ## Repository settings audit
 

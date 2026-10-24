@@ -593,11 +593,16 @@ class WorkflowContracts(unittest.TestCase):
             {"GH_TOKEN": "${{ github.token }}", "GH_PROJECT_TOKEN": "${{ steps.app.outputs.token }}"},
             "the App token reads only the Project; everything else uses the job's token",
         )
-        self.assertIn("--digest .cache/audit/project-and-settings.md", run["run"])
+        self.assertIn("--digest .cache/audit/project-and-settings.md > /dev/null", run["run"])
         self.assertNotIn("--fix", run["run"], "the weekly audit never writes")
         self.assertIn("test -s .cache/audit/project-and-settings.md", run["run"], "only a missing section fails")
-        upload = next(step for step in audit["steps"] if step.get("uses", "").startswith("actions/upload-artifact@"))
-        self.assertEqual((upload["if"], upload["with"]["path"]), ("always()", ".cache/audit/"))
+        # The repository's logs and artifacts are public and the Project is not: only the redacted section leaves.
+        self.assertNotIn("--json", run["run"])
+        uploads = [step for step in audit["steps"] if step.get("uses", "").startswith("actions/upload-artifact@")]
+        self.assertEqual(
+            [(upload["if"], upload["with"]["path"]) for upload in uploads],
+            [("always()", ".cache/audit/project-and-settings.md")],
+        )
 
     def test_deployment_checks_once_and_ships_the_same_site_the_release_attaches(self) -> None:
         deploy = load(".github/workflows/deploy.yml")

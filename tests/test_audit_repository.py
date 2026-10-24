@@ -756,7 +756,8 @@ class DigestTests(unittest.TestCase):
             self.assertNotIn(value, text, "no Project field value other than Urgent is shown")
         self.assertIn("- `label.area:sources`: expected", text, "settings drift is listed")
         public = 40 + 1 + len(MISSING_LABELS)  # untyped issues, the Urgent one and the missing labels
-        self.assertIn(f"- … and {public - audit.DIGEST_ITEMS} more in the audit artifact.", text, "only those")
+        overflow = f"- … and {public - audit.DIGEST_ITEMS} more; `python scripts/audit_repository.py` lists them all."
+        self.assertIn(overflow, text, "only those")
         listed = text.split("Unavailable")[0].count("\n- ")
         self.assertEqual(listed, audit.DIGEST_ITEMS + 1 + 2, "the bound, its overflow line and the two counts")
 

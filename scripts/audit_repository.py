@@ -1128,7 +1128,9 @@ def digest_line(finding):
 
 
 def digest(findings) -> str:
-    """The digest's "Project and settings" section in Markdown, bounded to a few dozen lines."""
+    """The digest's "Project and settings" section in Markdown, bounded to a few dozen lines. It is the only output
+    the weekly job publishes: the full report names Project-only values, and a public repository's logs and
+    artifacts are public."""
     failing = [finding for finding in findings if finding.fails]
     lines = ["## Project and settings", ""]
     listed = [line for line in map(digest_line, failing) if line]
@@ -1140,7 +1142,7 @@ def digest(findings) -> str:
         lines.append("Every readable setting and Project item matches the reviewed state.")
     lines += [f"- {line}" for line in listed[:DIGEST_ITEMS]]
     if len(listed) > DIGEST_ITEMS:
-        lines.append(f"- … and {len(listed) - DIGEST_ITEMS} more in the audit artifact.")
+        lines.append(f"- … and {len(listed) - DIGEST_ITEMS} more; `python scripts/audit_repository.py` lists them all.")
     lines += [f"- {count} {COUNTED[check]}; see the Project's views." for check, count in counted.items() if count]
     unavailable = [finding for finding in findings if finding.status == "unavailable"]
     if unavailable:

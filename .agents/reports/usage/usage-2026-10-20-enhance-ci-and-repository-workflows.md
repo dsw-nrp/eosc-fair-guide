@@ -456,9 +456,13 @@
   - A read-only run of the extended audit on live data: 59 open issues without an Issue Type, nothing else.
   - The dry run of the draft backfill: 120 changes, applied by nothing.
   - 20 planted defects each fail a check: one per rule, publisher guard, workflow condition and guide reference.
-- **Corrections:** The first draft read the whole audit with the App token. `docs/maintenance.md` already recorded,
-  from group 3, that the repository sections use `GITHUB_TOKEN` and the App token reads only Project #1. The job and
-  the audit follow it, and the audit reports hidden items as unavailable.
+- **Corrections:**
+  - The first draft read the whole audit with the App token.
+    From group 3, `docs/maintenance.md` records that the repository sections use `GITHUB_TOKEN` and the App token
+    reads only Project #1. The job and the audit follow it, and the audit reports hidden items as unavailable.
+  - A security review of the local commit found that the weekly job uploaded the full JSON report and printed the
+    full report to its log. Both are public in this repository, and they named Project-only values. The job now
+    publishes only the redacted section, and its workflow test guards that.
 - **Close-out:** `check_all.py` passes 32 of 32, including the new `issue-templates` check. Strict OpenSpec validation
   passes. 36 of 62 tasks are complete. Task 5.1 waits for `--fix` to create the declared labels, 5.6 for the
   mapping's approval and application, and 5.8 for the organization owner.
