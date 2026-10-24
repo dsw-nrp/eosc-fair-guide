@@ -450,6 +450,11 @@ release SHALL explain when the current default-branch commit has no successful d
 - **WHEN** a merge lands while a production promotion awaits approval
 - **THEN** its deployment updates staging and keeps the last approved production bytes
 
+#### Scenario: A tag is approved after the default branch moved on
+
+- **WHEN** a waiting production promotion is approved after a newer default-branch commit was deployed
+- **THEN** it publishes the approved production with that commit's checked staging site, and neither channel moves back
+
 #### Scenario: Tagging an undeployed commit
 
 - **WHEN** Tag release runs before the current default-branch commit has a successful deployment

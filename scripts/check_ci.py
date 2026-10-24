@@ -3,6 +3,7 @@
 The ordinary local entry remains check_all.py. This adapter shares its job inventory, execution,
 health publication and final API validation. No lane publishes a complete site health result.
 `quick` runs the cheap offline checks beside the build for early feedback; it is never the complete result.
+`adopt` lets a staging deployment reuse a merge-queue run's verified result for the same commit and build inputs.
 """
 
 from __future__ import annotations
@@ -555,14 +556,67 @@ def collect(args) -> int:
     return status
 
 
+def adoption_problems(manifest: dict, execution: dict, report: dict) -> list[str]:
+    """Why a merge-queue result cannot stand for this checkout's fresh build; empty when it can."""
+    problems = []
+    if execution.get("profile") != "ci-partitioned":
+        problems.append("it is not a partitioned check result")
+    if execution.get("source") != manifest["source"]:
+        problems.append("its source revision or files differ from this commit")
+    if execution.get("build_inputs") != manifest["build"]:
+        problems.append("its build inputs differ from this build, for example because it was built on another day")
+    if report.get("format_version") != check_all.check_health.FORMAT_VERSION:
+        problems.append(f"its health snapshot has format {report.get('format_version')!r}")
+    if report.get("run", {}).get("status") != "passed" or not report.get("generated_at"):
+        problems.append("its check run did not pass")
+    if report.get("revision") != manifest["source"]["revision"]:
+        problems.append("its health snapshot names another commit")
+    if report.get("build") != check_all.check_health.build_crate.build_identity_facts():
+        problems.append("its health snapshot names another build identity")
+    return problems
+
+
+def adopt(args) -> int:
+    """Publish a passing merge-queue result's health snapshot into this checkout's fresh build, or say why the full
+    checks run instead. Exits 1 whenever the result is not reused."""
+    source = args.source or "the merge-queue result"
+    try:
+        manifest = read_json(args.manifest)
+        verify_build(manifest, ROOT)
+        execution = read_json(args.incoming / "execution.json")
+        report = read_json(args.incoming / "health.json")
+        problems = adoption_problems(manifest, execution, report)
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        problems = [f"its evidence is unavailable or unreadable ({bounded_failure(str(error))})"]
+    if problems:
+        print(f"Full checks: {source} cannot be reused, because " + "; ".join(problems) + ".")
+        return 1
+    context = check_all.PublicationContext.load()
+    if context.error is not None:
+        print(f"Full checks: the content could not be read to publish {source}: {context.error}")
+        return 1
+    check_all.build_api.publish_health(ROOT / "_site", report, context.content, crate=context.crate)
+    validation = check_all.run(check_all.health_api_job(), check_all.environment())
+    if not validation.ok:
+        failure = bounded_failure(validation.output)
+        print(f"Full checks: the health snapshot of {source} fails the health API:\n{failure}")
+        return 1
+    print(
+        f"Reused {source}: the same commit, source files and build inputs passed every check there, and its health "
+        "snapshot is published in this staging site."
+    )
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("action", choices=("build", "lane", "collect", "quick"))
+    parser.add_argument("action", choices=("build", "lane", "collect", "quick", "adopt"))
     parser.add_argument("--name", choices=LANES)
     parser.add_argument("--base")
     parser.add_argument("--manifest", type=Path, default=ROOT / ".cache/ci-build/manifest.json")
     parser.add_argument("--output", type=Path, help="report directory (default: .cache/health; quick: .cache/quick)")
     parser.add_argument("--incoming", type=Path, default=ROOT / ".cache/ci-results")
+    parser.add_argument("--source", help="adopt: the merge-queue run whose result is offered, named in the output")
     # Lanes use the same budget owner as local runs, scripts/check_policy.json; CI=true selects its CI profile.
     check_all.add_budget_arguments(parser)
     args = parser.parse_args(argv)
@@ -570,7 +624,7 @@ def main(argv=None) -> int:
         parser.error("positive budgets and --name for lane are required")
     args.base = args.base or check_all.check_content.default_base(ROOT)
     args.output = args.output or ROOT / (".cache/quick" if args.action == "quick" else ".cache/health")
-    return {"build": build, "lane": lane, "collect": collect, "quick": quick}[args.action](args)
+    return {"build": build, "lane": lane, "collect": collect, "quick": quick, "adopt": adopt}[args.action](args)
 
 
 if __name__ == "__main__":

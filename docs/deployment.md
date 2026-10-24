@@ -1,24 +1,81 @@
 # Production and preview deployment
 
-Production is the most recent successfully deployed release tag's verified artifact. A default-branch push builds `/next/` and reuses
-that artifact, preserving every production byte. A new release tag builds and checks its source once, packages
-the exact output and assembles it with a checked default-branch preview. The Pages deployment replaces the whole
-combined tree. Pull-request checks remain read-only and do not deploy.
+Production is the newest approved release tag's verified artifact; the preview (`/next/`, staging) is the newest
+checked default-branch commit. A default-branch push builds `/next/`, reusing the merge queue's result for the
+same commit or running the partitioned checks, and preserves every production byte. A new release tag builds and
+checks its source once, packages the exact output and waits for a maintainer's approval before those bytes are
+published. Each Pages deployment replaces the whole combined tree. Pull-request and merge-queue checks remain
+read-only and do not deploy.
 
 Before the first verified release, the root states that no release is published and links to the preview. It does not serve
 unreleased Guide content as production. With an existing release, failure to retrieve or verify its artifact
 stops deployment; there is no substitution from the default branch.
 
 The deployment resolves immutable source commits first. Both sites record the commit actually checked through
-`FAIR_GUIDE_CHECK_REVISION`; a tag-triggered workflow can check a different default-branch commit for its preview.
-The release archive is checked against its tag/version, source commit, digest and passed health report. Unsafe
-archive members, input/output overlaps and path collisions are refused before replacing the managed assembly.
+`FAIR_GUIDE_CHECK_REVISION`. The release archive is checked against its tag/version, source commit, digest and
+passed health report. Unsafe archive members, input/output overlaps and path collisions are refused before
+replacing the managed assembly.
 
 Release assets are the durable production source. While a new tag's draft release has not yet been created,
-the successful tag deployment's commit-labelled Actions artifact is the fallback. Artifact expiry or incomplete
-release assets without that fallback cause a failed deployment and leave the existing published site in place.
-A failed attempt to deploy a newer tag does not supersede the previous verified production source or block
-updates to `/next/`. Retrying an already verified tag reuses its artifact rather than rebuilding production.
+the commit-labelled Actions artifact of the tag deployment whose production and approval jobs succeeded is the
+fallback. Artifact expiry or incomplete release assets without that fallback cause a failed deployment and leave
+the existing published site in place. A failed or unapproved newer tag does not supersede the previous verified
+production source or block updates to `/next/`. Retrying an already verified tag reuses its artifact rather than
+rebuilding production, and needs no second approval.
+
+## Merge queue, staging and production
+
+Once the merge queue is on (task 4.8 of the CI change), a pull request into `main` is queued after its own
+`checks` pass and a code owner approves. The queue runs `checks.yml` on the merged result (`merge_group`) and
+merges only when it passes; human, Dependabot and refresh pull requests take the same path. Queue runs build the
+`preview` channel, the bytes staging deploys.
+
+**Staging.** A default-branch deployment builds the staging site and looks for the successful merge-queue run of
+the same commit. When that run's source files and build inputs equal the fresh build's, the deployment imports its
+validated health snapshot instead of checking again. Otherwise it runs the [partitioned
+checks](../.github/workflows/partitioned-checks.yml), and the run summary says why: a direct merge, a run that
+failed or expired, or a build on another day. Staging needs no approval.
+
+**Production.** A tag run checks and packages its source, then its `approve-production` job waits in the
+`production` environment for a maintainer when those bytes are new. The default branch keeps deploying meanwhile,
+with the last approved production. Tag release needs a successful deployment of the current default-branch commit,
+which the tag ruleset also requires, and otherwise names the run to wait for.
+
+**Publication.** The deployment run (`deploy.yml`) only prepares. After each successful one, the separate
+[publish workflow](../.github/workflows/publish.yml) runs trusted default-branch code, one publication at a time
+(`pages-publish`), so cancelling a deployment run never interrupts a Pages deployment. A newer push cancels the
+older run's preparation, and the cancelled run names its successor. Each publication resolves what to publish when
+it starts:
+
+- the newest approved release, from its release assets or the run that approved it;
+- after a default-branch deployment, that run's own staging site while its commit is still the head; an older run
+  publishes nothing and names the run for the head;
+- after a tag deployment, the head's checked staging site beside the new production. While the head's own
+  deployment is still preparing, the tag publishes nothing, and the head's publication then includes the release.
+
+GitHub records each Pages deployment against the default-branch head when the publication started, which the tag
+ruleset and Tag release read; a publication therefore deploys only that commit's staging site. It decides in a job
+without an environment, so a publication that deploys nothing leaves no `github-pages` record. Only a publication
+after a successful deployment waits for its turn; a newer one replaces an older waiting one and publishes at least
+as much, since every publication resolves the newest approved release. To publish again, run **Deploy the verified
+site** on the default branch rather than rerunning an older deployment run, whose rerun would cancel newer
+preparation and then find its commit superseded. A release tag deploys only from its push: the dispatch refuses a
+tag, and a failed tag deployment is retried by rerunning that run. No publication moves
+either channel back, and a retry publishes the same identities again. The release workflow drafts a release, and
+publishes its image, only after a publication has deployed that release to Pages.
+
+**Break glass.** An administrator can merge directly, bypassing the queue, to repair a broken queue or required
+check. Say why in the pull request. That commit has no queue result, so its deployment runs the full checks.
+
+**Settings and rollback.** People apply the settings one at a time from the audit's expected-versus-actual diff
+(`python scripts/audit_repository.py --section rulesets --section environments`) and audit again after each step:
+
+| Step | Precondition | Rollback |
+| --- | --- | --- |
+| Turn the merge queue on | `checks.yml` runs on `merge_group` on `main` | Remove the merge-queue rule |
+| Switch off "require branches to be up to date" | The merge queue is on | Switch it on |
+| Create `production` with its reviewer, for release tags only | None | Delete it and re-add the reviewer to `github-pages` |
+| Remove the reviewer from `github-pages` and limit it to `main` | The `approve-production` job is on `main` | Re-add the reviewer and the `v*.*.*` tag rule |
 
 ## Preview behaviour
 
@@ -33,10 +90,12 @@ replacing production with new default-branch content.
 
 ## Release artifact and activation
 
-The release workflow runs after a successful tag deployment using trusted default-branch code. It confirms
-the completed run's repository, workflow path, event, tag and commit, checks that the tag has not moved, and
-downloads that run's exact release artifact. Digest, version and passed health are checked before drafting the
-release. The archive attached to the draft is the production site that was deployed.
+The release workflow runs after a successful publication using trusted default-branch code. It confirms the
+completed run's repository, workflow path and event, reads the publication's record of the release it deployed,
+checks that the tag has not moved, and downloads the approved deployment run's exact release artifact. A
+publication that deployed nothing or no release, or a release that already has its assets, drafts nothing. Digest,
+version and passed health are checked before drafting the release. The archive attached to the draft is the
+production site that was deployed.
 An interrupted upload resumes on the existing draft and uploads only missing assets, after confirming existing
 assets have exactly the same bytes. A complete existing release is unchanged. Conflicting assets or missing
 assets on a published release are refused; human changes are not overwritten or deleted.
@@ -78,10 +137,10 @@ artifact. It never relabels an existing release or changes a moving repository s
 
 ## Local assembly check
 
-Run `python -m unittest discover -s tests -p test_assemble_pages.py` and
-`node tests/page/check_release.mjs`, then `npm run check:deployment` for the real browser and Swagger request.
-The fixtures cover production preservation, all preview HTML pages,
-first-tag absence, source selection, durable byte reuse and refused malformed/mismatched artifacts.
+Run `python -m unittest discover -s tests -p test_assemble_pages.py`, `node tests/page/check_release.mjs` and
+`node tests/page/check_publication.mjs`, then `npm run check:deployment` for the real browser and Swagger request.
+The fixtures cover production preservation, all preview HTML pages, first-tag absence, source selection, approval,
+merge-queue reuse, publication order, durable byte reuse and refused malformed/mismatched artifacts.
 
 To assemble already checked inputs without publishing:
 

@@ -66,6 +66,18 @@ def by_setting(findings):
     return {finding.setting: finding for finding in findings}
 
 
+def pending_reviewer(config, live, reviewers=("motyc",)):
+    """The `github-pages` reviewer removal as it waited on 24 October 2026: approved in the file, still live."""
+    config["pending"].append(
+        {"setting": "environment.github-pages.reviewers", "current": ["motyc"], "task": "4.8: remove the reviewer"}
+    )
+    pages = next(env for env in live[f"{REPO}/environments"]["environments"] if env["name"] == "github-pages")
+    rule = {"id": 1, "type": "required_reviewers", "prevent_self_review": False, "reviewers": []}
+    rule["reviewers"] = [{"type": "User", "reviewer": {"login": login}} for login in reviewers]
+    pages["protection_rules"].append(rule)
+    return pages, rule
+
+
 class AuditTests(unittest.TestCase):
     def setUp(self):
         self.config = audit.load()
@@ -79,8 +91,6 @@ class AuditTests(unittest.TestCase):
             {
                 strict: "pending",
                 "ruleset.Main branch protection.rules.merge_queue": "pending",
-                "environment.github-pages.reviewers": "pending",
-                "environment.production": "pending",
                 "label.breaking-change": "missing",
                 "organization.issue_fields": "unavailable",
             },
@@ -145,6 +155,7 @@ class AuditTests(unittest.TestCase):
 
     def test_unreadable_sections_are_unavailable_never_matching(self):
         live = copy.deepcopy(LIVE)
+        pending_reviewer(self.config, live)
         live["GRAPHQL Project"] = audit.UnavailableError("Resource not accessible by integration")
         live[f"{REPO}/environments"] = audit.UnavailableError("HTTP 403: Must have admin rights")
         findings = by_setting(audit.audit(self.config, Replay(live)))
@@ -152,7 +163,9 @@ class AuditTests(unittest.TestCase):
         self.assertIn("Resource not accessible", findings["project"].note)
         self.assertEqual(findings["environments"].status, "unavailable")
         self.assertEqual(findings["environments"].ui, "Settings → Environments", "a section path names no object")
-        self.assertNotIn("environment.production", findings, "a pending target in an unreadable section is not judged")
+        self.assertNotIn(
+            "environment.github-pages.reviewers", findings, "a pending target in an unreadable section is not judged"
+        )
         self.assertEqual(findings["label.breaking-change"].status, "missing", "the rest of the audit still runs")
 
     def test_bypass_actors_hidden_from_a_read_only_token_are_unavailable_not_drift(self):
@@ -174,10 +187,11 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(finding.status, "done")
         self.assertIn("remove this pending entry", finding.note)
 
-    def test_a_pending_target_that_moved_elsewhere_is_drift(self):
+    def test_a_pending_target_waits_and_one_that_moved_elsewhere_is_drift(self):
         live = copy.deepcopy(LIVE)
-        pages = next(env for env in live[f"{REPO}/environments"]["environments"] if env["name"] == "github-pages")
-        rule = next(rule for rule in pages["protection_rules"] if rule["type"] == "required_reviewers")
+        _, rule = pending_reviewer(self.config, live)
+        finding = by_setting(audit.audit(self.config, Replay(live)))["environment.github-pages.reviewers"]
+        self.assertEqual(finding.status, "pending")
         rule["reviewers"].append({"type": "User", "reviewer": {"login": "someone-else"}})
         finding = by_setting(audit.audit(self.config, Replay(live)))["environment.github-pages.reviewers"]
         self.assertEqual(finding.status, "drift")
@@ -235,7 +249,7 @@ class AuditTests(unittest.TestCase):
         next(rule for rule in main["rules"] if rule["type"] == "pull_request")["parameters"][
             "required_approving_review_count"
         ] = 0
-        pages = next(env for env in live[f"{REPO}/environments"]["environments"] if env["name"] == "github-pages")
+        pages, _ = pending_reviewer(self.config, live)
         pages["can_admins_bypass"] = False
         findings = by_setting(audit.audit(self.config, Replay(live)))
         ruleset = findings["ruleset.Main branch protection.rules.pull_request.required_approving_review_count"]
@@ -249,6 +263,7 @@ class AuditTests(unittest.TestCase):
 
     def test_a_missing_object_is_recreated_without_its_pending_targets(self):
         live = copy.deepcopy(LIVE)
+        pending_reviewer(self.config, live)
         environments = live[f"{REPO}/environments"]["environments"]
         live[f"{REPO}/environments"]["environments"] = [env for env in environments if env["name"] != "github-pages"]
         live[f"{REPO}/rulesets"] = [entry for entry in live[f"{REPO}/rulesets"] if entry["id"] != 24757722]
@@ -274,9 +289,8 @@ class AuditTests(unittest.TestCase):
 
     def test_a_kept_team_reviewer_stays_a_team(self):
         live = copy.deepcopy(LIVE)
-        pages = next(env for env in live[f"{REPO}/environments"]["environments"] if env["name"] == "github-pages")
+        pages, rule = pending_reviewer(self.config, live)
         pages["can_admins_bypass"] = False
-        rule = next(rule for rule in pages["protection_rules"] if rule["type"] == "required_reviewers")
         rule["reviewers"].append({"type": "Team", "reviewer": {"slug": "maintainers"}})
         findings = by_setting(audit.audit(self.config, Replay(live)))
         body = findings["environment.github-pages.can_admins_bypass"].fix["body"]
@@ -371,6 +385,20 @@ class ConfigTests(unittest.TestCase):
                 with self.subTest(where=where, key=key):
                     problems = self.problems(lambda c, table=table, key=key: table(c).pop(key))
                     self.assertIn(f"{where}: missing key {key!r}", problems)
+
+    def test_every_pending_entry_is_a_documented_step_in_order(self):
+        text = (Path(__file__).resolve().parent.parent / "docs/deployment.md").read_text(encoding="utf-8")
+        table = text[text.index("| Step | Precondition | Rollback |") :].split("\n\n")[0].splitlines()[2:]
+        steps = {
+            "ruleset.Main branch protection.rules.merge_queue": "Turn the merge queue on",
+            "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy": (
+                "require branches to be up to date"
+            ),
+        }
+        pending = [entry["setting"] for entry in self.config["pending"]]
+        self.assertEqual(pending, list(steps), "each approved target waits for a documented step")
+        rows = [next(index for index, row in enumerate(table) if steps[setting] in row) for setting in pending]
+        self.assertEqual(rows, sorted(rows), "the steps are applied in the documented order")
 
     def test_an_invalid_file_stops_before_reading_anything(self):
         with tempfile.TemporaryDirectory() as temporary:

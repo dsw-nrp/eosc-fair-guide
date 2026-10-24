@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
-const {dispatch, validVersion, collect, propose, tag, preparedFiles} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
+const {dispatch, validVersion, collect, propose, deployed, tag, preparedFiles} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
 const sha = 'a'.repeat(40);
 const PREPARED = '.cache/release/prepared.json';
 const PREPARED_PATHS = ['content/guide.toml', 'CITATION.cff', 'package.json', 'package-lock.json',
@@ -30,10 +30,14 @@ function fixture() {
   }, pulls: {list: 'pulls.list', create: async args => {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
-  }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls'},
-  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}})}},
+  }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls', listDeployments: 'deployments',
+    listDeploymentStatuses: 'deployment.statuses'},
+  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}}), listWorkflowRuns: 'workflow.runs'}},
   paginate: async (method, args) => {
     state.reads.push(args);
+    if (method === 'deployments') return state.deployments || [];
+    if (method === 'deployment.statuses') return (state.statuses || {})[args.deployment_id] || [];
+    if (method === 'workflow.runs') return (state.runs || {})[args.workflow_id] || [];
     if (method === 'commit.pulls') {
       if (state.failAssociations) throw Error('Association page failed');
       return state.associations;
@@ -206,5 +210,32 @@ for (const mutate of [
   await assert.rejects(propose({github, core, context}, read), /moved/);
   await assert.rejects(tag({github, core, context}, read), /moved/);
   assert.deepEqual(state.creates, []);
+}
+{
+  // Tagging needs a successful github-pages deployment of the current commit, as the tag ruleset does; otherwise the
+  // refusal names the deployment or publish run to wait for.
+  const {state, github, core} = fixture();
+  const run = (id, conclusion, extra = {}) => ({id, conclusion, head_sha: sha, head_branch: 'main',
+    html_url: `https://github.com/example/guide/actions/runs/${id}`, ...extra});
+  state.deployments = [{id: 41, sha}];
+  state.statuses = {41: [{state: 'inactive'}, {state: 'success'}, {state: 'in_progress'}]};
+  assert.equal(await deployed({github, core, context}), 41, 'a later deployment marking it inactive keeps it deployed');
+  const query = state.reads.find(args => args.environment);
+  assert.deepEqual([query.environment, query.sha], ['github-pages', sha]);
+  state.statuses = {41: [{state: 'failure'}, {state: 'in_progress'}]};
+  state.runs = {'deploy.yml': [run(8, 'success')], 'publish.yml': [run(9, null)]};
+  await assert.rejects(deployed({github, core, context}), /still being deployed; wait for https:\/\/github\.com\/example\/guide\/actions\/runs\/9 to finish/);
+  state.runs = {'deploy.yml': [run(8, 'failure')]};
+  await assert.rejects(deployed({github, core, context}), /no successful deployment \(latest run: .*runs\/8\); run Deploy the verified site/);
+  state.runs = {};
+  state.deployments = [{id: 42, sha: 'b'.repeat(40)}];
+  state.statuses = {42: [{state: 'success'}]};
+  await assert.rejects(deployed({github, core, context}), /no successful deployment; run Deploy the verified site/,
+    'a deployment of another commit does not count');
+  state.runs = {'deploy.yml': [run(7, null, {head_branch: 'v1.0.0'})]};
+  await assert.rejects(deployed({github, core, context}), /no successful deployment;/, 'a tag run is not the default branch');
+  state.refs.set('heads/main', 'b'.repeat(40));
+  await assert.rejects(deployed({github, core, context}), /moved/);
+  assert.deepEqual(state.creates, [], 'the check never tags');
 }
 console.log('Release dispatch fixtures: complete collection, exact source, PR recovery, protected edits and separate immutable tag pass.');

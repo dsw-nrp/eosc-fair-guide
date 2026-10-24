@@ -241,3 +241,128 @@
 - **Verification:** The four new tests fail on `a7358ef` and pass now. The read-only live audit and
   `--check-config` are unchanged: 0 drift, 4 pending.
 - **Close-out:** 23 of 61 tasks complete.
+
+## Claude Code session (apply group 4: merge queue and deployment)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` continued after #103 merged; the delivered planning and
+  quality-first rules; read-only `gh` queries of Project #1 views and the repository settings.
+- **What:** Tasks 4.1–4.7.
+  - One reusable workflow (`partitioned-checks.yml`) holds the build, lanes and collector. Pull requests, merge
+    groups and the deployment fallback call it, and the top-level `checks` job keeps the required context.
+  - `checks.yml` runs on `merge_group`, with the queue base, the `preview` channel and no review data.
+  - A staging deployment imports a passing merge-queue run's health snapshot (`check_ci.py adopt`) when the commit,
+    source files and build inputs match. Otherwise it runs the partitioned checks and says why.
+  - An `approve-production` job (environment `production`) waits only for new production bytes. Concurrency is per
+    ref.
+  - One serialized `publish` job resolves the newest checked staging site and the newest approved release when it
+    starts. A cancelled run names its successor.
+  - Tag release names the deployment run to wait for, and Dependabot groups minor and patch updates.
+  - Deployment and contributor docs updated. The renamed Project views are declared.
+- **Impacted:**
+  - Workflows and config: `.github/workflows/{checks,partitioned-checks,deploy,tag-release}.yml`,
+    `.github/dependabot.yml`, `.github/repository.toml`.
+  - Scripts: `.github/scripts/{deployment,release-artifact,prepare-release}.cjs`, `scripts/check_ci.py`,
+    `scripts/check_groups.json`.
+  - Tests: `tests/test_{workflows,check_ci,audit_repository}.py`,
+    `tests/page/check_{publication,release,prepare_release}.mjs`, `tests/fixtures/repository-audit.json`.
+  - Docs: `docs/deployment.md`, `docs/design.md`, CONTRIBUTING.
+  - OpenSpec: the change's design (decisions 7 and 8), the spec delta (late-approval scenario) and tasks 4.1–4.7.
+  - This entry.
+- **Verification:**
+  - Workflow, check and audit unit tests pass. Each of six mutations of the publication rules fails
+    `check_publication.mjs`.
+  - Real data: a `preview` `check_all.py` passed 31 of 31, a fresh staging build adopted its report and published
+    a passed snapshot naming the commit, and a changed build input was refused with its reason.
+  - The full `check_all.py` passes 31 of 31, and `openspec validate --strict` passes.
+- **Corrections:** The maintainer chose option 1 for a tag approved after the default branch moved on:
+  publication takes the newest checked bytes of each channel from the run that checked them.
+- **Findings:**
+  - A check run is named after its job, so moving `checks` into a reusable workflow would have broken the
+    required context.
+  - Pull-request builds use the `local` channel, so only `preview` merge-queue builds can match staging.
+- **Close-out:** 30 of 61 tasks complete. Not yet observed on GitHub: the merge queue, `queue: max`, a
+  `cancelled()` job after a concurrency cancellation, and whether the queue's tested commit becomes the default-branch
+  commit (task 4.9's rehearsal checks them).
+
+### Review of PR #109 (`97b2d65`) and the separate publish workflow
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Two findings were confirmed and fixed.
+  - Medium: the workflow-level cancellation could also cancel a running `publish` job. The maintainer chose
+    option C: publication moves to `publish.yml`, started by each successful deployment run, so cancelling
+    preparation never interrupts a Pages deployment.
+  - The publication binds to the triggering deployment run (`completedDeployment`). It deploys only the staging
+    site of the commit its Pages record names, the default-branch head when it started. A tag publishes once the
+    head's staging site is checked; until then the head's publication includes it.
+  - Release drafting follows a publication that deployed the release, through the `pages-identity` record and
+    `publishedRelease`. Tag release reads the `github-pages` deployment records that the tag ruleset reads.
+  - Low: the unused `verifiedRun` was removed.
+- **Settings:** The maintainer created `production` and removed the `github-pages` reviewer and its tag rule. The
+  two satisfied `[[pending]]` entries were removed, `github-pages` is declared `main`-only, and the fixture's
+  environments were re-recorded from the live state.
+- **Impacted:**
+  - Workflows: `.github/workflows/{deploy,publish,release,tag-release}.yml`.
+  - Scripts: `.github/scripts/{deployment,release-artifact,prepare-release}.cjs`.
+  - Config: `.github/repository.toml`.
+  - Tests: `tests/test_{workflows,audit_repository}.py`, `tests/page/check_{publication,release,prepare_release}.mjs`,
+    `tests/fixtures/repository-audit.json`.
+  - Docs and plan: `docs/deployment.md`, the change's design decision 8 and its spec scenario, this entry.
+- **Verification:**
+  - Each of ten mutations of the publication, release and tagging rules fails a JavaScript check.
+  - The Python and JavaScript tests pass.
+  - The live audit of rulesets and environments shows 0 drift and 2 pending.
+- **Corrections:** Option C was the maintainer's choice over the recommended per-ref queue.
+
+### Review of PR #109, round 2 (`5cedca9`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** One Medium finding, confirmed. A publication that deployed nothing still recorded a successful
+  `github-pages` environment deployment, which the tag ruleset and Tag release accept.
+  - `publish.yml` now decides in a `resolve` job without an environment, and only a deploying `publish` job enters
+    `github-pages`. A workflow-level `pages-publish` group keeps deciding and deploying together.
+  - `productionSource()` names where approved bytes are without downloading them, and `reuse()` and
+    `publishedRelease()` build on it.
+- **Impacted:** `.github/workflows/publish.yml`, `.github/scripts/{deployment,release-artifact}.cjs`,
+  `.github/repository.toml`, `tests/test_workflows.py`, `tests/page/check_publication.mjs`, `docs/deployment.md`,
+  the change's design decision 8, this entry.
+- **Verification:** The workflow, audit and check tests and the publication, release and dispatch checks pass, and
+  `openspec validate --strict` passes.
+
+### Review of PR #109, round 3 (`8bf9260`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** One Medium finding, confirmed: a publish run after a cancelled or failed deployment entered the
+  workflow-level group and could replace a waiting publication.
+  - Only a run that follows a successful deployment enters `pages-publish`; any other run gets a group of its own.
+  - A publication after a superseded tag's deployment now publishes the newest approved release rather than nothing,
+    so a real run that replaces a waiting one loses nothing.
+  - The reviewer's job-level lock on `publish` alone was not used: it would let one run's decision and another's
+    deployment interleave and move staging back.
+- **Impacted:** `.github/workflows/publish.yml`, `.github/scripts/deployment.cjs`, `tests/test_workflows.py`,
+  `tests/page/check_publication.mjs`, `docs/deployment.md`, the change's design decision 8, this entry.
+- **Verification:** The Python tests (69) and the publication check pass.
+
+### Review of PR #109, round 4 (`10b0982`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** One Medium finding, confirmed. A manual (`workflow_dispatch`) deployment run on a release tag was
+  admitted, but approval, publication and release drafting follow only a tag's push run. Before this change, release
+  drafting also ignored manual tag runs.
+  - `sources()` refuses a tag dispatch and names the rerun of the push run as the retry.
+  - `completedDeployment()` admits a tag's push run only. The deployment docs say so.
+- **Impacted:** `.github/scripts/{release-artifact,deployment}.cjs`, `tests/page/check_{release,publication}.mjs`,
+  `docs/deployment.md`, this entry.
+- **Verification:** The publication, release and dispatch checks pass.

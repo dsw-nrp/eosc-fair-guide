@@ -89,12 +89,13 @@ reviewers = []
 deployment = "all"
 can_admins_bypass = true
 
-# Staging and released production bytes publish here without approval; approval moves to `production`.
+# Only the publish workflow deploys here, on the default branch and without approval; approval of new production
+# bytes happens in `production`, so tags never deploy here directly.
 [environment.github-pages]
 reviewers = []
 prevent_self_review = false
 deployment = "custom"
-branch_policies = ["branch main", "tag v*.*.*"]
+branch_policies = ["branch main"]
 can_admins_bypass = true
 
 # Production promotion waits for a maintainer's approval, for release tags only.
@@ -229,14 +230,14 @@ group_by = ["Milestone"]
 sort_by = ["Status asc", "Title asc"]
 
 [[project.view]]
-name = "Contributions"
+name = "PR - authored"
 layout = "table"
 filter = "is:pr -label:dependencies,source-refresh"
 group_by = ["Milestone"]
 sort_by = ["Title asc"]
 
 [[project.view]]
-name = "Automated updates"
+name = "PR - automated"
 layout = "table"
 filter = "is:pr label:dependencies,source-refresh"
 group_by = ["Milestone"]
@@ -290,7 +291,7 @@ permissions = { artifact_metadata = "read", attestations = "read", checks = "rea
 # workflow's) and `app` the permissions it asks the App token for. Every job appears exactly once.
 [[token]]
 workflow = "checks.yml"
-jobs = ["quick", "build", "lanes", "checks"]
+jobs = ["quick", "partitioned", "checks"]
 github = { contents = "read" }
 
 [[token]]
@@ -315,18 +316,19 @@ github = { contents = "read" }
 
 [[token]]
 workflow = "deploy.yml"
-jobs = ["sources", "production"]
+jobs = ["sources", "production", "stage", "superseded"]
 github = { actions = "read", contents = "read" }
 
 [[token]]
 workflow = "deploy.yml"
-jobs = ["staging", "assemble"]
-github = { contents = "read" }
+jobs = ["approve-production"]
+github = {}
 
 [[token]]
 workflow = "deploy.yml"
-jobs = ["deploy"]
-github = { id-token = "write", pages = "write" }
+jobs = ["fallback-checks"]
+github = { contents = "read" }
+
 
 [[token]]
 workflow = "fix-duplicates.yml"
@@ -340,6 +342,11 @@ jobs = ["watch"]
 github = { contents = "read", issues = "write" }
 
 [[token]]
+workflow = "partitioned-checks.yml"
+jobs = ["build", "lanes", "collect"]
+github = { contents = "read" }
+
+[[token]]
 workflow = "pr-summary.yml"
 jobs = ["comment"]
 github = { actions = "read", contents = "read", pull-requests = "write" }
@@ -349,6 +356,16 @@ workflow = "prepare-release.yml"
 jobs = ["prepare"]
 github = { actions = "read", contents = "read", pull-requests = "read" }
 app = { contents = "write", pull-requests = "write" }
+
+[[token]]
+workflow = "publish.yml"
+jobs = ["resolve"]
+github = { actions = "read", contents = "read" }
+
+[[token]]
+workflow = "publish.yml"
+jobs = ["publish"]
+github = { actions = "read", contents = "read", id-token = "write", pages = "write" }
 
 [[token]]
 workflow = "publish-image.yml"
@@ -384,7 +401,7 @@ app = { contents = "write", pull-requests = "write" }
 [[token]]
 workflow = "tag-release.yml"
 jobs = ["tag"]
-github = { contents = "read" }
+github = { actions = "read", contents = "read", deployments = "read" }
 app = { contents = "write" }
 
 # Approved targets not yet applied, with their current values. A command the audit prints for any other difference
@@ -398,13 +415,3 @@ task = "4.8, once task 4.1's merge_group trigger is on the default branch: enabl
 setting = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
 current = true
 task = "4.8: switch off the up-to-date requirement once the merge queue is on"
-
-[[pending]]
-setting = "environment.production"
-current = "absent"
-task = "4.8: create the production environment with its reviewer and tag-only deployment"
-
-[[pending]]
-setting = "environment.github-pages.reviewers"
-current = ["motyc"]
-task = "4.8, once task 4.4's production promotion job is on the default branch: remove the reviewer from github-pages"

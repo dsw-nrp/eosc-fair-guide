@@ -120,24 +120,42 @@
   ]
  },
  "GET repos/dsw-nrp/eosc-fair-guide/environments": {
-  "total_count": 2,
+  "total_count": 3,
   "environments": [
    {
     "name": "copilot",
+    "deployment_branch_policy": null,
     "can_admins_bypass": true,
-    "protection_rules": [],
-    "deployment_branch_policy": null
+    "protection_rules": []
    },
    {
     "name": "github-pages",
+    "deployment_branch_policy": {
+     "protected_branches": false,
+     "custom_branch_policies": true
+    },
     "can_admins_bypass": true,
     "protection_rules": [
      {
       "id": 68843531,
       "type": "branch_policy"
+     }
+    ]
+   },
+   {
+    "name": "production",
+    "deployment_branch_policy": {
+     "protected_branches": false,
+     "custom_branch_policies": true
+    },
+    "can_admins_bypass": true,
+    "protection_rules": [
+     {
+      "id": 69968445,
+      "type": "branch_policy"
      },
      {
-      "id": 69223319,
+      "id": 69968499,
       "type": "required_reviewers",
       "prevent_self_review": false,
       "reviewers": [
@@ -149,24 +167,16 @@
        }
       ]
      }
-    ],
-    "deployment_branch_policy": {
-     "protected_branches": false,
-     "custom_branch_policies": true
-    }
+    ]
    }
   ]
  },
  "GET repos/dsw-nrp/eosc-fair-guide/environments/github-pages/deployment-branch-policies": {
-  "total_count": 2,
+  "total_count": 1,
   "branch_policies": [
    {
     "name": "main",
     "type": "branch"
-   },
-   {
-    "name": "v*.*.*",
-    "type": "tag"
    }
   ]
  },
@@ -403,7 +413,7 @@
        }
       },
       {
-       "name": "Contributions",
+       "name": "PR - authored",
        "layout": "TABLE_LAYOUT",
        "filter": "is:pr -label:dependencies,source-refresh",
        "groupByFields": {
@@ -425,7 +435,7 @@
        }
       },
       {
-       "name": "Automated updates",
+       "name": "PR - automated",
        "layout": "TABLE_LAYOUT",
        "filter": "is:pr label:dependencies,source-refresh",
        "groupByFields": {
@@ -1501,5 +1511,14 @@
    "repository_projects": "read",
    "statuses": "read"
   }
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/environments/production/deployment-branch-policies": {
+  "total_count": 1,
+  "branch_policies": [
+   {
+    "name": "v*.*.*",
+    "type": "tag"
+   }
+  ]
  }
 }

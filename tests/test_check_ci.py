@@ -467,6 +467,110 @@ class PartitionTests(unittest.TestCase):
             )
 
 
+class AdoptTests(unittest.TestCase):
+    """A staging deployment reuses a merge-queue result only for the same commit, files and build inputs."""
+
+    IDENTITY = {
+        "version": "v1.0.0+3",
+        "commit": "aaaaaaa",
+        "channel": "next",
+        "status": "testing",
+        "date": "2026-10-24",
+    }
+
+    def setUp(self):
+        self.manifest = {
+            "source": {"revision": "a" * 40, "files": {"content/guide.toml": "1"}},
+            "build": {"index.html": "2"},
+        }
+        self.execution = {
+            "profile": "ci-partitioned",
+            "source": copy.deepcopy(self.manifest["source"]),
+            "build_inputs": dict(self.manifest["build"]),
+        }
+        self.report = {
+            "format_version": check_all.check_health.FORMAT_VERSION,
+            "generated_at": "2026-10-24T10:00:00+00:00",
+            "revision": "a" * 40,
+            "build": dict(self.IDENTITY),
+            "run": {"status": "passed", "jobs": []},
+        }
+        facts = mock.patch.object(
+            check_all.check_health.build_crate, "build_identity_facts", return_value=dict(self.IDENTITY)
+        )
+        facts.start()
+        self.addCleanup(facts.stop)
+
+    def test_only_the_same_commit_files_and_build_inputs_are_reused(self):
+        self.assertEqual(check_ci.adoption_problems(self.manifest, self.execution, self.report), [])
+        cases = {
+            "not a partitioned check result": lambda execution, report: execution.update(profile="ci-local"),
+            "source revision or files differ": lambda execution, report: execution["source"].update(revision="b"),
+            "build inputs differ": lambda execution, report: execution["build_inputs"].update({"index.html": "3"}),
+            "has format": lambda execution, report: report.update(format_version=0),
+            "did not pass": lambda execution, report: report["run"].update(status="failed"),
+            "names another commit": lambda execution, report: report.update(revision="b" * 40),
+            "another build identity": lambda execution, report: report["build"].update(date="2026-10-25"),
+        }
+        for reason, change in cases.items():
+            with self.subTest(reason=reason):
+                execution, report = copy.deepcopy(self.execution), copy.deepcopy(self.report)
+                change(execution, report)
+                self.assertIn(reason, " ".join(check_ci.adoption_problems(self.manifest, execution, report)))
+        undated = {**self.report, "generated_at": None}
+        self.assertIn("its check run did not pass", check_ci.adoption_problems(self.manifest, self.execution, undated))
+
+    def adopt(self, root, *, evidence=True, api_ok=True):
+        incoming = root / "incoming"
+        if evidence:
+            check_ci.write_json(incoming / "execution.json", self.execution)
+            check_ci.write_json(incoming / "health.json", self.report)
+        check_ci.write_json(root / "manifest.json", self.manifest)
+        args = SimpleNamespace(
+            manifest=root / "manifest.json", incoming=incoming, source="https://example.test/runs/40"
+        )
+        validation = check_all.Result(check_all.health_api_job(), 0 if api_ok else 1, 1.0, "health API output")
+        printed = io.StringIO()
+        with (
+            mock.patch.object(check_ci, "verify_build"),
+            mock.patch.object(
+                check_all.PublicationContext, "load", return_value=check_all.PublicationContext({}, {}, None)
+            ),
+            mock.patch.object(check_all.build_api, "publish_health") as publish,
+            mock.patch.object(check_all, "run", return_value=validation),
+            redirect_stdout(printed),
+        ):
+            status = check_ci.adopt(args)
+        return status, printed.getvalue(), publish
+
+    def test_a_matching_result_is_published_into_the_fresh_build_and_validated(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            status, printed, publish = self.adopt(Path(temporary))
+        self.assertEqual(status, 0)
+        self.assertIn("Reused https://example.test/runs/40", printed)
+        site, report = publish.call_args.args[:2]
+        self.assertEqual((site, report), (check_ci.ROOT / "_site", self.report))
+
+    def test_a_missing_mismatched_or_invalid_result_falls_back_and_says_why(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            status, printed, publish = self.adopt(Path(temporary), evidence=False)
+        self.assertEqual(status, 1)
+        self.assertIn("Full checks: https://example.test/runs/40 cannot be reused", printed)
+        self.assertIn("unavailable or unreadable", printed)
+        publish.assert_not_called()
+        self.report["revision"] = "b" * 40
+        with tempfile.TemporaryDirectory() as temporary:
+            status, printed, publish = self.adopt(Path(temporary))
+        self.assertEqual(status, 1)
+        self.assertIn("names another commit", printed)
+        publish.assert_not_called()
+        self.report["revision"] = "a" * 40
+        with tempfile.TemporaryDirectory() as temporary:
+            status, printed, _ = self.adopt(Path(temporary), api_ok=False)
+        self.assertEqual(status, 1)
+        self.assertIn("fails the health API", printed)
+
+
 class QuickTests(unittest.TestCase):
     def test_quick_checks_are_the_cpu_lanes_own_jobs_and_need_no_build(self):
         inventory = check_all.jobs("base", False)

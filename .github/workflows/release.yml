@@ -1,10 +1,10 @@
 name: Release
 
-# Wait for the tag's deployment to finish; use trusted default-branch code and its exact checked artifact.
-# The image is published from that same artifact before the draft release is created.
+# Wait until a publication has deployed a release to Pages; use trusted default-branch code and the release's exact
+# approved artifact. The image is published from that same artifact before the draft release is created.
 on:
   workflow_run:
-    workflows: ['Deploy the verified site']
+    workflows: ['Publish the verified site']
     types: [completed]
 
 concurrency:
@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   bind:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'v') && github.event.workflow_run.head_repository.full_name == github.repository
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -31,16 +31,26 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
+      # Present only when that publication deployed Pages; the binding below checks which.
+      - name: Download the publication record
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pages-identity
+          path: .cache/published/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
       - id: source
-        name: Bind the completed deployment to its current release tag
+        name: Bind the published release to its current tag and approved artifact
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const { completedTag } = require('./.github/scripts/release-artifact.cjs');
-            for (const [key, value] of Object.entries(await completedTag({ github, context }))) core.setOutput(key, value);
+            const { publishedRelease } = require('./.github/scripts/release-artifact.cjs');
+            for (const [key, value] of Object.entries(await publishedRelease({ github, context }))) core.setOutput(key, value);
 
   publish:
     needs: bind
+    if: needs.bind.outputs.tag != ''
     permissions:
       contents: read
       actions: read
