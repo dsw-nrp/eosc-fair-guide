@@ -142,6 +142,12 @@ Required aggregate checks SHALL name every failed or partial check and include b
 - **WHEN** the collector reconciles the lanes
 - **THEN** the aggregate names the content failure and the missing or rejected lane, keeps their logs, never claims a complete run and admits no data from the rejected lane
 
+#### Scenario: A newer push cancels a run
+
+- **GIVEN** a run whose lanes a newer push cancels
+- **WHEN** the run ends
+- **THEN** the collector does not run, the run shows as cancelled without a failed job, and the required gate still reports no success for it
+
 ## ADDED Requirements
 
 ### Requirement: The unpublished changelog section is checked

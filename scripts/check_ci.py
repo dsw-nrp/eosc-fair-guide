@@ -39,7 +39,17 @@ UNIT_LANE = "unit"
 LANES = ("cpu", UNIT_LANE, *BROWSER_LANES)
 # Cheap offline checks that need no build. The CPU lane runs the same inventory jobs, so the required `checks`
 # result reports every failure the quick result does.
-QUICK = ("content", "duplicates", "changelog", "ruff", "format", "public-content", "openspec", "agent-generation")
+QUICK = (
+    "content",
+    "duplicates",
+    "changelog",
+    "ruff",
+    "format",
+    "public-content",
+    "openspec",
+    "agent-generation",
+    "issue-templates",
+)
 
 
 def partition(available):

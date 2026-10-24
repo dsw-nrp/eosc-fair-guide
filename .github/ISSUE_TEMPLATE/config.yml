@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Diskuse / Discussions
+    url: https://github.com/dsw-nrp/eosc-fair-guide/discussions
+    about: Otázky a nápady, které ještě nejsou úkolem. Questions and ideas that are not yet a task.
+  - name: Jak přispět / Contributing
+    url: https://github.com/dsw-nrp/eosc-fair-guide/blob/main/CONTRIBUTING.md
+    about: Jak se návrhy posuzují a přijímají. How proposals are reviewed and accepted.

@@ -419,9 +419,17 @@ class WorkflowContracts(unittest.TestCase):
         scripts = [
             step["with"]["script"] for step in steps if step.get("uses", "").startswith("actions/github-script@")
         ]
-        self.assertEqual(len(scripts), 1)
+        self.assertEqual(len(scripts), 2)
         self.assertIn("require('./.github/scripts/comment-summary.cjs')", scripts[0])
         self.assertNotIn("pr-review-incoming", scripts[0])
+        # Area labels come from the API's file list, never the artifact, even when the comment step fails.
+        self.assertIn("require('./.github/scripts/labels.cjs')", scripts[1])
+        labels = next(step for step in steps if "labels.cjs" in step.get("with", {}).get("script", ""))
+        self.assertEqual(labels["if"], "${{ !cancelled() }}")
+        source = (ROOT / ".github/scripts/labels.cjs").read_text(encoding="utf-8")
+        self.assertIn("pulls.listFiles", source)
+        self.assertNotIn("pr-review-incoming", source)
+        self.assertNotIn("removeLabel", source, "automation only adds labels")
 
     def test_source_refresh_runs_trusted_code_and_writes_only_through_the_scoped_app(self) -> None:
         text = (ROOT / ".github/workflows/source-refresh.yml").read_text(encoding="utf-8")
@@ -558,10 +566,38 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(checkout["with"]["persist-credentials"], "false")
         self.assertIn("scripts/watch_sources.py", text)
         self.assertIn("scripts/probe_champion.mjs --jobs 4", text)
-        self.assertNotIn("secrets.", text)
+        self.assertNotIn("secrets.", json.dumps(job), "the watch holds no credential")
         self.assertNotIn("git push", text)
         # Live monitoring stays out of the deterministic pull-request checks.
         self.assertNotIn("watch_sources", (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8"))
+
+    def test_the_weekly_audit_reads_the_project_alone_with_a_read_only_token(self) -> None:
+        jobs = load(".github/workflows/health-watch.yml")["jobs"]
+        audit = jobs["audit"]
+        self.assertFalse("needs" in audit or "needs" in jobs["watch"], "neither job can stop the other")
+        self.assertEqual(audit["permissions"], {"actions": "read", "contents": "read", "issues": "read"})
+        checkout = next(step for step in audit["steps"] if step.get("uses", "").startswith("actions/checkout@"))
+        self.assertEqual(checkout["with"]["ref"], "${{ github.event.repository.default_branch }}")
+        self.assertEqual(checkout["with"]["persist-credentials"], "false")
+        app = next(
+            step for step in audit["steps"] if step.get("uses", "").startswith("actions/create-github-app-token@")
+        )
+        self.assertEqual(app["continue-on-error"], "true", "a token the App cannot issue is reported, not fatal")
+        requested = {key: value for key, value in app["with"].items() if key.startswith("permission-")}
+        self.assertEqual(requested, {"permission-organization-projects": "read"})
+        self.assertEqual(app["with"]["owner"], "${{ github.repository_owner }}", "Projects belong to the organization")
+        self.assertEqual(re.findall(r"secrets\.\w+", json.dumps(audit)), ["secrets.SOURCE_REFRESH_APP_PRIVATE_KEY"])
+        run = next(step for step in audit["steps"] if "audit_repository.py" in step.get("run", ""))
+        self.assertEqual(
+            run["env"],
+            {"GH_TOKEN": "${{ github.token }}", "GH_PROJECT_TOKEN": "${{ steps.app.outputs.token }}"},
+            "the App token reads only the Project; everything else uses the job's token",
+        )
+        self.assertIn("--digest .cache/audit/project-and-settings.md", run["run"])
+        self.assertNotIn("--fix", run["run"], "the weekly audit never writes")
+        self.assertIn("test -s .cache/audit/project-and-settings.md", run["run"], "only a missing section fails")
+        upload = next(step for step in audit["steps"] if step.get("uses", "").startswith("actions/upload-artifact@"))
+        self.assertEqual((upload["if"], upload["with"]["path"]), ("always()", ".cache/audit/"))
 
     def test_deployment_checks_once_and_ships_the_same_site_the_release_attaches(self) -> None:
         deploy = load(".github/workflows/deploy.yml")

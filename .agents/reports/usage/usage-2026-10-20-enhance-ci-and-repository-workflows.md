@@ -416,3 +416,49 @@
 - **Verification:** GitHub's `github-pages` deployments, the deployment runs and the remote tags show no deployment
   between 14:58 and 19:37 UTC and no tag after `v1.0.0-alpha.2`. The audit times come from the session transcript.
   OpenSpec validation passes, and the task count is unchanged.
+
+## Claude Code session (after #112, the queue rehearsal and group 5: Project and intake)
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` continued for group 5; the delivered planning, quality-first and
+  usage-logging rules; the delivered `aiscr-plan-issue` engine, read and imported but not changed; read-only `gh`
+  queries of runs, artifacts, Project #1, open issues and Dependabot alerts.
+- **What:**
+  - After #112 (administrator merge as `01fc802`), the newer push cancelled the older deployment run and named its
+    successor. `01fc802` ran the fallback checks, published, and `/next/` reports it. The cancelled run's collector
+    failed inside it: folded into the change as task 7.8 with a spec scenario, by the maintainer's decision.
+  - Task 4.9, approved by the maintainer: the human-PR part is deferred (recorded beside the task), and the release
+    rehearsal uses `1.0.0-alpha.3` with status `testing`. The grouped Dependabot PRs #110 and #111 wait for approval.
+  - Task 2.3 evidence: #110 changed `requirements-dev.txt`, so its pip key changed and both Python lanes missed and
+    reinstalled. #112's second run hit the cache. Both runs list the same checks per lane and pass 31 of 31. The
+    npm half waits for a pull-request run on the new lockfile.
+  - Group 5 (tasks 5.2–5.5 and 5.7):
+    - Area and `source-refresh` labels with reviewed path rules, applied by `scripts/area_labels.py`.
+    - Add-only labelling in the review and refresh publishers through `labels.cjs`; a removed label stays removed.
+    - Czech and English issue templates generated from the delivered shape, with `--check` in the offline and quick
+      suites.
+    - Project item checks in the audit, the digest's public "Project and settings" section, and the reviewed backfill
+      mode.
+    - The weekly audit job in `health-watch.yml`, which uses the App token for Project #1 only.
+    - The triage guide in `docs/maintenance.md`.
+  - Task 5.6: the backfill mapping is drafted for review; nothing is applied.
+- **Impacted:** `.github/repository.toml`, `.github/workflows/{pr-summary,health-watch}.yml`,
+  `.github/scripts/{labels,source-publisher}.cjs`, `.github/ISSUE_TEMPLATE/`,
+  `scripts/{area_labels,plan_issue_shape,generate_issue_templates,audit_repository,check_all,check_ci}.py`,
+  `scripts/check_groups.json`, `tests/test_{audit_repository,issue_templates,workflows}.py`,
+  `tests/page/check_{labels,source_publisher}.mjs`, `tests/fixtures/repository-audit.json`, `docs/maintenance.md`, the
+  change's design, spec delta, tasks and `backfill.toml`, this entry.
+- **Verification:**
+  - A read-only run of the extended audit on live data: 59 open issues without an Issue Type, nothing else.
+  - The dry run of the draft backfill: 120 changes, applied by nothing.
+  - 20 planted defects each fail a check: one per rule, publisher guard, workflow condition and guide reference.
+- **Corrections:** The first draft read the whole audit with the App token. `docs/maintenance.md` already recorded,
+  from group 3, that the repository sections use `GITHUB_TOKEN` and the App token reads only Project #1. The job and
+  the audit follow it, and the audit reports hidden items as unavailable.
+- **Close-out:** `check_all.py` passes 32 of 32, including the new `issue-templates` check. Strict OpenSpec validation
+  passes. 36 of 62 tasks are complete. Task 5.1 waits for `--fix` to create the declared labels, 5.6 for the
+  mapping's approval and application, and 5.8 for the organization owner.

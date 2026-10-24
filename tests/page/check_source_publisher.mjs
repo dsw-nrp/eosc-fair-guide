@@ -13,7 +13,7 @@ const read = (outcomes) => (path) => (path.endsWith("report.json") ? report(outc
 const exists = (path) => Object.hasOwn(files, path);
 const core = { info() {} };
 
-function fakeGithub({ open = [], closed = [], commits = [], branches = [], permission = "write", raced = null } = {}) {
+function fakeGithub({ open = [], closed = [], commits = [], branches = [], permission = "write", raced = null, events = [] } = {}) {
   const writes = [];
   const heads = new Map(branches.map((ref) => ["refs/" + ref, "b".repeat(40)]));
   const github = {
@@ -33,10 +33,14 @@ function fakeGithub({ open = [], closed = [], commits = [], branches = [], permi
       pulls: {
         list: ({ state, head }) => (state === "open" ? open : closed).filter((pr) => pr.head === head),
         listCommits: () => commits,
-        create: async (options) => writes.push(["createPull", options]),
+        create: async (options) => { writes.push(["createPull", options]); return { data: { number: 7, labels: [] } }; },
         update: async (options) => writes.push(["updatePull", options]),
       },
-      issues: { createComment: async (options) => writes.push(["comment", options]) },
+      issues: {
+        createComment: async (options) => writes.push(["comment", options]),
+        listEvents: () => events,
+        addLabels: async (options) => writes.push(["labels", options]),
+      },
       repos: { getCollaboratorPermissionLevel: async () => ({ data: { permission, role_name: permission } }) },
       git: {
         getRef: async ({ ref }) => {
@@ -71,6 +75,7 @@ const pull = writes.find(([kind]) => kind === "createPull")[1];
 assert.equal(pull.base, "main");
 assert(pull.body.includes(marker));
 assert(!writes.some(([, value]) => String(value?.name || value?.ref || "").includes("main")), "the default branch is never written");
+assert.deepEqual(writes.find(([kind]) => kind === "labels")[1], { ...repo, issue_number: 7, labels: ["source-refresh"] }, "a new refresh PR is labelled");
 
 // The same content already proposed, unchanged or rejected outcomes: nothing is written.
 ({ github, writes } = fakeGithub({ open: [{ number: 5, head: "dsw-nrp:refresh/heslar", body: marker }] }));
@@ -97,6 +102,15 @@ assert.deepEqual(
   [["refs/heads/refresh/heslar", "b".repeat(40), "c".repeat(40)]],
   "the inspected head is the one the update replaces",
 );
+assert.deepEqual(writes.find(([kind]) => kind === "labels")[1].labels, ["source-refresh"], "an updated refresh PR keeps its label");
+// The label is added once; a person's removal sticks across later refreshes.
+({ github, writes } = fakeGithub({ open: [{ ...older, labels: [{ name: "source-refresh" }] }], commits: [refreshCommit], branches: ["heads/refresh/heslar"] }));
+await publish({ github, context, core }, read(changed), exists, bot);
+assert(!writes.some(([kind]) => kind === "labels"), "a present label is not added again");
+({ github, writes } = fakeGithub({ open: [older], commits: [refreshCommit], branches: ["heads/refresh/heslar"],
+  events: [{ event: "unlabeled", label: { name: "source-refresh" }, actor: { login: "maintainer" } }] }));
+assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "updated" });
+assert(!writes.some(([kind]) => kind === "labels"), "a removed label is not re-added");
 // A branch another writer advanced after inspection keeps its newer head: the comparison refuses the replacement.
 ({ github, writes } = fakeGithub({ open: [older], commits: [refreshCommit], branches: ["heads/refresh/heslar"], raced: "d".repeat(40) }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "moved" });
@@ -162,4 +176,4 @@ assert.match(await reply({ github, context: commanded }, "{not json", "0"), /did
 const stopped = await reply({ github, context: commanded }, "", "0", "failure");
 assert.match(stopped, /stopped during publication, so its refresh branch or pull request may already have changed/);
 assert(!stopped.includes("no pull request was changed"), "a publication that failed part-way is never reported as no change");
-console.log("check_source_publisher: one bot-owned PR per source, an atomically guarded branch head, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content and authorized exact commands pass");
+console.log("check_source_publisher: one bot-owned PR per source, an atomically guarded branch head, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content, a label a person's removal keeps off and authorized exact commands pass");
