@@ -212,20 +212,31 @@ jobs succeeded, so staging never promotes an unapproved tag. Workflow concurrenc
 superseded preparation, tag runs are never cancelled by branch runs, and a cancelled run names its successor. Tag
 runs prepare no staging site.
 
-Assembly and Pages publication run as one job-level critical section, `pages-publish` with `queue: max`, which
-resolves the identities to publish when it starts. Production is the newest approved tag, fetched from its release
-assets or from the run that verified it. A branch run publishes its own checked staging site while its commit is
-still the default-branch head; otherwise it publishes nothing and names the run for the head. A tag run publishes
-the newest checked staging site of any default-branch run beside its production, so a tag approved after the
-branch moved on is still promoted, and the run for the newer head includes that tag when it publishes. Neither
-channel moves back, and publishing the same identities again changes nothing. Tag release checks that the current
-default-branch commit has a successful deployment, which the tag ruleset requires, and otherwise names the run to
-wait for.
+The deployment run only prepares. Assembly and Pages publication run in a separate workflow, `publish.yml`,
+started by every successful deployment run (`workflow_run`), so cancelling preparation can never interrupt a Pages
+deployment. Its job is the critical section, `pages-publish` with `queue: max`, and resolves the identities to
+publish when it starts. Production is the newest approved tag, fetched from its release assets or from the run that
+approved it. GitHub records the Pages deployment against the default-branch head when the publication started, and
+the tag ruleset and Tag release read that record, so a publication deploys only that commit's staging site. After a
+default-branch deployment, publication takes that run's own checked staging site while its commit is still the
+head; otherwise it publishes nothing and names the run for the head. After a tag deployment, it takes the head's
+checked staging site beside the new production, so a tag approved after the branch moved on is still promoted;
+while the head's own deployment is still preparing, it publishes nothing and the head's publication includes the
+release. Neither channel moves back, and publishing the same identities again changes nothing. `github-pages`
+accepts only the default branch. Release drafting and the image follow a publication that deployed the release, and
+Tag release checks for a successful `github-pages` deployment of the current default-branch commit, as the tag
+ruleset does, and otherwise names the run to wait for.
 
-Alternatives rejected: keeping one approval for all deployments, which makes every merge a two-person, two-step
-operation without protecting anything that the code-owner review does not already protect; and publishing nothing
-whenever a run's staging commit is stale, which leaves a tag approved after the branch moved on unpromoted until
-some later deployment.
+Alternatives rejected:
+
+- Keeping one approval for all deployments. It makes every merge a two-person, two-step operation without protecting
+  anything that the code-owner review does not already protect.
+- Publishing nothing whenever a run's staging commit is stale. A tag approved after the branch moved on would stay
+  unpromoted until some later deployment.
+- Publishing inside the deployment run. Cancelling a superseded run would then cancel a Pages deployment already in
+  progress.
+- Cancelling only the preparation jobs through job-level groups. These cancel in order of arrival rather than run
+  age, so an older run's late job could cancel a newer run's.
 
 ### 9. Settings as a reviewed expected state
 

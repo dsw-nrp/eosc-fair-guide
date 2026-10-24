@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-const { verifiedRun, approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
+const { approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, publishedRelease, assertPromotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
 const { validVersion } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
 const cases = JSON.parse(readFileSync(new URL("../fixtures/normalization.json", import.meta.url), "utf8"));
 for (const value of cases.versions.valid) assert(validVersion(value), value);
@@ -57,19 +57,15 @@ assert.deepEqual(tagOf(context()), { tag: "v1.0.0-alpha.1", version: "1.0.0-alph
 for (const ref of ["refs/tags/latest", "refs/heads/main", "refs/tags/v1.0", "refs/tags/v1.0.0;rm"]) assert.throws(() => tagOf(context(ref)), Error, ref);
 
 const goodRun = { id: 5, head_sha: sha, head_branch: "v1.0.0-alpha.1", event: "push", conclusion: "success" };
-let { github, calls } = fake([goodRun]);
-assert.equal(await verifiedRun({ github, context: context() }), 5);
-assert.equal(calls[0][1].workflow_id, "deploy.yml");
-assert.equal(calls[0][1].head_sha, sha);
-assert.equal(calls[0][1].branch, "v1.0.0-alpha.1", "a default-branch run cannot supply production");
-({ github } = fake([{ id: 6, head_sha: "b".repeat(40), conclusion: "success" }]));
-await assert.rejects(verifiedRun({ github, context: context() }), /No successful verified deployment/);
 
 // Approved production bytes: a successful run, or a run still publishing whose production and approval jobs passed.
 const publishing = { ...goodRun, id: 8, conclusion: null };
 const job = (name, conclusion = "success") => ({ name, conclusion });
-({ github, calls } = fake([goodRun]));
+let { github, calls } = fake([goodRun]);
 assert.equal(await approvedRun({ github, context: context() }), 5);
+assert.equal(calls[0][1].workflow_id, "deploy.yml");
+assert.equal(calls[0][1].head_sha, sha);
+assert.equal(calls[0][1].branch, "v1.0.0-alpha.1", "a default-branch run cannot supply production");
 ({ github, calls } = fake([publishing], [], { 8: [job("production"), job("approve-production")] }));
 assert.equal(await approvedRun({ github, context: context() }), 8, "approval counts before the run finishes");
 assert.equal(calls.find(([kind]) => kind === "jobs")[1].filter, "latest", "a rerun's latest job attempts decide");
@@ -166,18 +162,44 @@ assert(written[1][1].equals(archive), "durable release bytes are reused unchange
 github.rest.repos.getReleaseByTag = async () => ({ data: { assets: [{ id: 2, name: manifest.archive, size: archive.length }] } });
 assert.deepEqual(await reuse({ github, context: context() }), { run: 5 }, "a partial draft falls back to the checked artifact");
 
-const completed = { ...goodRun, path: ".github/workflows/deploy.yml", head_repository: { full_name: "dsw-nrp/eosc-fair-guide" } };
+// Release drafting follows a successful publication that deployed a release which still lacks its assets.
+const publicationRun = { id: 9, event: "workflow_run", conclusion: "success", path: ".github/workflows/publish.yml",
+  head_repository: { full_name: "dsw-nrp/eosc-fair-guide" } };
 const eventContext = context();
-eventContext.payload = { workflow_run: { id: 5 } };
-({ github } = fake([completed]));
-assert.deepEqual(await completedTag({ github, context: eventContext }), { tag: "v1.0.0-alpha.1", sha, run: 5 });
-for (const changed of [{ event: "pull_request" }, { conclusion: "failure" }, { head_branch: "main" }, { path: ".github/workflows/checks.yml" }, { head_repository: { full_name: "foreign/fork" } }]) {
-  ({ github } = fake([{ ...completed, ...changed }]));
-  await assert.rejects(completedTag({ github, context: eventContext }));
+eventContext.payload = { workflow_run: { id: 9 } };
+const record = (fields = {}) => () => JSON.stringify({ formatVersion: 1, staging: "c".repeat(40), staging_run: "4",
+  tag: "v1.0.0-alpha.1", production: sha, production_run: "5", ...fields });
+const published = (run = publicationRun, kept = true) => {
+  const { github } = fake([goodRun]);
+  github.rest.actions.getWorkflowRun = async () => ({ data: run });
+  github.rest.actions.listWorkflowRunArtifacts = async () => ({ data: { artifacts: kept ? [{ name: "pages-identity" }] : [] } });
+  return github;
+};
+const none = { tag: "", sha: "", run: "" };
+assert.deepEqual(await publishedRelease({ github: published(), context: eventContext }, record()), { tag: "v1.0.0-alpha.1", sha, run: "5" });
+assert.deepEqual(await publishedRelease({ github: published(publicationRun, false), context: eventContext }, record()), none,
+  "a publication that deployed nothing drafts nothing");
+assert.deepEqual(await publishedRelease({ github: published(), context: eventContext }, record({ tag: "", production: "" })), none,
+  "a preview-only publication drafts nothing");
+for (const changed of [{ event: "push" }, { conclusion: "failure" }, { path: ".github/workflows/deploy.yml" }, { head_repository: { full_name: "foreign/fork" } }]) {
+  await assert.rejects(publishedRelease({ github: published({ ...publicationRun, ...changed }), context: eventContext }, record()),
+    /Not a successful repository publication/, JSON.stringify(changed));
 }
-({ github } = fake([completed]));
-github.rest.repos.getCommit = async () => ({ data: { sha: "b".repeat(40) } });
-await assert.rejects(completedTag({ github, context: eventContext }), /tag moved/);
+await assert.rejects(publishedRelease({ github: published(), context: eventContext }, () => { throw Object.assign(Error("record missing"), { code: "ENOENT" }); }),
+  /record missing/, "a record that failed to download is an error, not an empty publication");
+await assert.rejects(publishedRelease({ github: published(), context: eventContext }, record({ formatVersion: 2 })), /Invalid publication record/);
+await assert.rejects(publishedRelease({ github: published(), context: eventContext }, record({ tag: "v01.0.0" })), /release tag/);
+{
+  const github = published();
+  github.rest.repos.getCommit = async () => ({ data: { sha: "b".repeat(40) } });
+  await assert.rejects(publishedRelease({ github, context: eventContext }, record()), /tag moved/);
+}
+{
+  const github = published();
+  github.rest.repos.getReleaseByTag = async () => ({ data: { draft: true,
+    assets: ["manifest.json", manifest.archive, manifest.archive + ".sha256"].map((name) => ({ name })) } });
+  assert.deepEqual(await publishedRelease({ github, context: eventContext }, record()), none, "a release with its assets is drafted once");
+}
 console.log("check_release: source selection, durable byte reuse, exact tag-run lineage and moved/foreign-tag rejection pass");
 
 ({ github, calls } = fake());

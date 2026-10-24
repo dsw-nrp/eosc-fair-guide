@@ -41,12 +41,22 @@ failed or expired, or a build on another day. Staging needs no approval.
 with the last approved production. Tag release needs a successful deployment of the current default-branch commit,
 which the tag ruleset also requires, and otherwise names the run to wait for.
 
-**Publication.** One `publish` job runs at a time (`pages-publish`). When it starts, it resolves what to publish:
-the newest approved release, from its release assets or the run that approved it, and for a default-branch run
-its own staging site while its commit is still the head. An older run publishes nothing and names the newer run. A
-tag run publishes the newest checked staging site of any default-branch run beside its production, so a tag
-approved after `main` moved on is still promoted. A newer push cancels older preparation, and the cancelled run
-names its successor. No run moves either channel back, and a retry publishes the same identities again.
+**Publication.** The deployment run (`deploy.yml`) only prepares. After each successful one, the separate
+[publish workflow](../.github/workflows/publish.yml) runs trusted default-branch code, one publication at a time
+(`pages-publish`), so cancelling a deployment run never interrupts a Pages deployment. A newer push cancels the
+older run's preparation, and the cancelled run names its successor. Each publication resolves what to publish when
+it starts:
+
+- the newest approved release, from its release assets or the run that approved it;
+- after a default-branch deployment, that run's own staging site while its commit is still the head; an older run
+  publishes nothing and names the run for the head;
+- after a tag deployment, the head's checked staging site beside the new production. While the head's own
+  deployment is still preparing, the tag publishes nothing, and the head's publication then includes the release.
+
+GitHub records each Pages deployment against the default-branch head when the publication started, which the tag
+ruleset and Tag release read; a publication therefore deploys only that commit's staging site. No publication moves
+either channel back, and a retry publishes the same identities again. The release workflow drafts a release, and
+publishes its image, only after a publication has deployed that release to Pages.
 
 **Break glass.** An administrator can merge directly, bypassing the queue, to repair a broken queue or required
 check. Say why in the pull request. That commit has no queue result, so its deployment runs the full checks.
@@ -59,10 +69,7 @@ check. Say why in the pull request. That commit has no queue result, so its depl
 | Turn the merge queue on | `checks.yml` runs on `merge_group` on `main` | Remove the merge-queue rule |
 | Switch off "require branches to be up to date" | The merge queue is on | Switch it on |
 | Create `production` with its reviewer, for release tags only | None | Delete it and re-add the reviewer to `github-pages` |
-| Remove the reviewer from `github-pages` | The `approve-production` job is on `main` | Re-add the reviewer |
-
-Create `production` before the next release tag: GitHub creates a missing environment without protection when a
-job first names it. Until the reviewer leaves `github-pages`, every publication still waits for that approval.
+| Remove the reviewer from `github-pages` and limit it to `main` | The `approve-production` job is on `main` | Re-add the reviewer and the `v*.*.*` tag rule |
 
 ## Preview behaviour
 
@@ -77,10 +84,12 @@ replacing production with new default-branch content.
 
 ## Release artifact and activation
 
-The release workflow runs after a successful tag deployment using trusted default-branch code. It confirms
-the completed run's repository, workflow path, event, tag and commit, checks that the tag has not moved, and
-downloads that run's exact release artifact. Digest, version and passed health are checked before drafting the
-release. The archive attached to the draft is the production site that was deployed.
+The release workflow runs after a successful publication using trusted default-branch code. It confirms the
+completed run's repository, workflow path and event, reads the publication's record of the release it deployed,
+checks that the tag has not moved, and downloads the approved deployment run's exact release artifact. A
+publication that deployed nothing or no release, or a release that already has its assets, drafts nothing. Digest,
+version and passed health are checked before drafting the release. The archive attached to the draft is the
+production site that was deployed.
 An interrupted upload resumes on the existing draft and uploads only missing assets, after confirming existing
 assets have exactly the same bytes. A complete existing release is unchanged. Conflicting assets or missing
 assets on a published release are refused; human changes are not overwritten or deleted.

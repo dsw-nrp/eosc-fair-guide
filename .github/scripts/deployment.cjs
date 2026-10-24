@@ -1,5 +1,5 @@
 // Trusted default-branch code for deployment: finds a merge-queue result that a staging deployment can reuse, and
-// resolves what the serialized Pages publication publishes. It builds and publishes nothing itself.
+// resolves what the separate, serialized publish workflow publishes. It builds and publishes nothing itself.
 const { writeFileSync } = require("node:fs");
 const { tagOf, refContext, sources, reuse } = require("./release-artifact.cjs");
 
@@ -28,6 +28,13 @@ async function newerRun(github, context, branch) {
   return data.workflow_runs.find((run) => run.head_branch === branch && run.id > context.runId && sameRepository(context, run)) || null;
 }
 
+/** The newest deployment run of `branch` at `sha`: the one whose publication publishes that commit, or null. */
+async function runFor(github, context, branch, sha) {
+  const { data } = await github.rest.actions.listWorkflowRuns({ ...context.repo, workflow_id: "deploy.yml", branch,
+    head_sha: sha, per_page: 10 });
+  return data.workflow_runs.find((run) => run.head_branch === branch && run.head_sha === sha && sameRepository(context, run)) || null;
+}
+
 /** The newest default-branch commit whose staging site a deployment run checked and kept, with that run. */
 async function newestStaging(github, context, branch) {
   const { data: commits } = await github.rest.repos.listCommits({ ...context.repo, sha: branch, per_page: 100 });
@@ -46,34 +53,58 @@ async function newestStaging(github, context, branch) {
   return newest;
 }
 
-const NOTHING = { staging: "", staging_run: "", tag: "", production: "", production_run: "" };
+/** The deployment run whose completion started this publication, as the context `publication` reads: its ref, commit
+    and run id. Only a successful run of this repository's deploy.yml from a push or a manual run qualifies, and a
+    release tag must still name the commit that run prepared. */
+async function completedDeployment({ github, context }) {
+  const run = (await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: context.payload.workflow_run.id })).data;
+  if (run.conclusion !== "success" || !["push", "workflow_dispatch"].includes(run.event) || !sameRepository(context, run) ||
+      String(run.path).split("@")[0] !== ".github/workflows/deploy.yml") throw Error("Not a successful repository deployment");
+  const branch = context.payload.repository.default_branch;
+  const ref = run.head_branch === branch ? `refs/heads/${branch}` : `refs/tags/${run.head_branch}`;
+  const deployed = Object.assign(refContext(context, ref, run.head_sha), { runId: run.id });
+  if (ref.startsWith("refs/tags/")) {
+    tagOf(deployed);
+    if ((await github.rest.repos.getCommit({ ...context.repo, ref: run.head_branch })).data.sha !== run.head_sha) {
+      throw Error("Release tag moved after its deployment");
+    }
+  }
+  return deployed;
+}
 
-/** What this run publishes, resolved inside the serialized section so that neither channel moves back.
-    Production is the newest approved release, from its release assets (written to .cache/release) or the run that
-    approved it. A branch run publishes its own checked staging site while its commit is the default-branch head; a
-    tag run publishes the newest checked staging site of any default-branch run. */
-async function publication({ github, context }, write = writeFileSync) {
+const nothing = (reason, successor) => ({ publish: "false", reason, successor: successor?.html_url || "", staging: "",
+  staging_run: "", tag: "", production: "", production_run: "" });
+
+/** What one publication publishes, resolved inside the serialized section so that neither channel moves back. Its
+    Pages deployment is recorded against `recorded`, the default-branch head when it started, so it publishes only
+    that commit's staging site. Production is the newest approved release, from its release assets (written to
+    .cache/release) or the run that approved it. After a default-branch deployment, publication takes that run's own
+    checked staging site while its commit is the head. After a release-tag deployment, it takes the newest checked
+    staging site once that is the head's; until then the head's own deployment publishes the release with it. */
+async function publication({ github, context, recorded }, write = writeFileSync) {
   const branch = context.payload.repository.default_branch;
   const isTag = context.ref.startsWith("refs/tags/");
   if (!isTag && context.ref !== "refs/heads/" + branch) throw Error("Publish only the default branch or a release tag");
-  if (!SHA.test(context.sha)) throw Error("Publication requires a full source SHA");
+  if (!SHA.test(context.sha) || !SHA.test(recorded || "")) throw Error("Publication requires full source SHAs");
   const head = (await github.rest.repos.getBranch({ ...context.repo, branch })).data.commit.sha;
   if (!SHA.test(head)) throw Error("Invalid default-branch commit");
-  let staging;
+  if (head !== recorded) {
+    return nothing(`the default branch moved on to ${head} after this publication started`, await runFor(github, context, branch, head));
+  }
+  let staging = { commit: context.sha, run: String(context.runId) };
   if (isTag) {
     staging = await newestStaging(github, context, branch);
-    if (!staging) throw Error("No default-branch deployment kept a checked staging site; deploy the default branch, then rerun this run");
+    if (staging?.commit !== head) {
+      return nothing(`the default-branch head ${head} has no checked staging site yet; its deployment publishes this release with it`,
+        await runFor(github, context, branch, head));
+    }
   } else if (context.sha !== head) {
-    const successor = await newerRun(github, context, branch);
-    return { publish: "false", reason: `the default branch moved on to ${head}`, successor: successor?.html_url || "", ...NOTHING };
-  } else {
-    staging = { commit: head, run: String(context.runId) };
+    return nothing(`the default branch moved on to ${head}`, await runFor(github, context, branch, head));
   }
   const selected = await sources({ github, context: refContext(context, "refs/heads/" + branch, head) });
   if (isTag && selected.tag !== tagOf(context).tag) {
-    const successor = selected.tag ? await newerRun(github, context, selected.tag) : null;
-    return { publish: "false", reason: `${selected.tag || "another release"} is the newest approved release`,
-      successor: successor?.html_url || "", ...NOTHING };
+    return nothing(`${selected.tag || "another release"} is the newest approved release`,
+      selected.tag ? await runFor(github, context, selected.tag, selected.production) : null);
   }
   let production = { tag: "", commit: "", run: "" };
   if (selected.tag) {
@@ -84,7 +115,8 @@ async function publication({ github, context }, write = writeFileSync) {
     tag: production.tag, production: production.commit, production_run: production.run };
 }
 
-/** The summary of a cancelled run, naming the run that supersedes it. A cancelled Pages deployment changes nothing. */
+/** The summary of a cancelled deployment run, naming the run that supersedes it. Publication runs in its own workflow,
+    so cancelling preparation never interrupts a Pages deployment. */
 async function superseded({ github, context }) {
   const ref = context.ref.replace(/^refs\/(heads|tags)\//, "");
   const run = await newerRun(github, context, ref);
@@ -93,4 +125,4 @@ async function superseded({ github, context }) {
     : "This run was cancelled; the next deployment of this ref publishes the newest checked site.";
 }
 
-module.exports = { queueResult, newestStaging, publication, superseded };
+module.exports = { queueResult, newestStaging, completedDeployment, publication, superseded };

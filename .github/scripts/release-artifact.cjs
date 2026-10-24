@@ -1,4 +1,4 @@
-// Trusted default-branch code for the release workflow: finds the verified deployment run of the tagged commit and
+// Trusted default-branch code for the release workflow: finds the approved deployment run of the tagged commit and
 // drafts the release with that run's artifact after checking digest, commit and version. It builds nothing.
 const { readFileSync } = require("node:fs");
 const { mkdirSync, writeFileSync } = require("node:fs");
@@ -6,6 +6,8 @@ const { createHash } = require("node:crypto");
 
 const { validVersion } = require('./release-version.cjs');
 const DIR = ".cache/release";
+// What one publication deployed, written by the publish workflow and read by release drafting.
+const PUBLISHED = ".cache/published/identity.json";
 // The automation's verification record in a release body; scripts/release_body.py keeps exactly this block.
 const VERIFICATION = { start: "<!-- guide-release:verification -->", end: "<!-- /guide-release:verification -->" };
 
@@ -21,16 +23,6 @@ function refContext(context, ref, sha) {
   const repo = context.repo;
   if (!repo?.owner || !repo?.repo) throw Error("The release context carries no repository");
   return { repo, payload: context.payload, ref, sha };
-}
-
-/** The successful deployment triggered by this exact release tag and commit. */
-async function verifiedRun({ github, context }) {
-  tagOf(context);
-  const runs = await github.paginate(github.rest.actions.listWorkflowRuns, { ...context.repo, workflow_id: "deploy.yml",
-    branch: tagOf(context).tag, event: "push", status: "success", head_sha: context.sha, per_page: 100 });
-  const run = runs.find((entry) => entry.head_sha === context.sha && entry.head_branch === tagOf(context).tag && entry.event === "push" && entry.conclusion === "success");
-  if (!run) throw Object.assign(Error(`No successful verified deployment of ${context.sha}; release only a deployed commit`), { code: "not-verified" });
-  return run.id;
 }
 
 /** A deployment of this release tag whose production bytes are approved: a successful run, or one whose
@@ -144,16 +136,30 @@ async function reuse({ github, context }, write = writeFileSync) {
   return { run: "" };
 }
 
-/** workflow_run runs only trusted default-branch code; bind the completed run to the still-current tag. */
-async function completedTag({ github, context }) {
+const NO_RELEASE = { tag: "", sha: "", run: "" };
+
+/** The release a completed publication deployed, bound to its still-current tag and the run holding its approved
+    artifact; no tag when that publication deployed nothing or no release, or the release already has its assets.
+    workflow_run runs only trusted default-branch code; the record must come from this repository's successful
+    publish workflow, which keeps it as the `pages-identity` artifact only after a Pages deployment. */
+async function publishedRelease({ github, context }, read = readFileSync) {
   const run = (await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: context.payload.workflow_run.id })).data;
-  if (run.conclusion !== "success" || run.event !== "push" || run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}` ||
-      String(run.path).split("@")[0] !== ".github/workflows/deploy.yml") throw Error("Not a successful repository deployment");
-  const result = refContext(context, "refs/tags/" + run.head_branch, run.head_sha);
-  const { tag } = tagOf(result);
-  const commit = (await github.rest.repos.getCommit({ ...context.repo, ref: tag })).data.sha;
-  if (commit !== result.sha) throw Error("Release tag moved after verification");
-  return { tag, sha: result.sha, run: run.id };
+  if (run.conclusion !== "success" || run.event !== "workflow_run" || run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}` ||
+      String(run.path).split("@")[0] !== ".github/workflows/publish.yml") throw Error("Not a successful repository publication");
+  const { data: kept } = await github.rest.actions.listWorkflowRunArtifacts({ ...context.repo, run_id: run.id,
+    name: "pages-identity", per_page: 10 });
+  if (!kept.artifacts.some((artifact) => artifact.name === "pages-identity")) return NO_RELEASE;
+  const record = JSON.parse(read(PUBLISHED, "utf8"));
+  if (record.formatVersion !== 1 || typeof record.tag !== "string") throw Error("Invalid publication record");
+  if (!record.tag) return NO_RELEASE;
+  const selected = refContext(context, "refs/tags/" + record.tag, record.production);
+  const { tag } = tagOf(selected);
+  if ((await github.rest.repos.getCommit({ ...context.repo, ref: tag })).data.sha !== selected.sha) {
+    throw Error("Release tag moved after publication");
+  }
+  const release = await releaseOf(github, selected);
+  if (release && expectedAssets(selected).every((name) => release.assets.some((asset) => asset.name === name))) return NO_RELEASE;
+  return { tag, sha: selected.sha, run: String(await approvedRun({ github, context: selected })) };
 }
 
 /** Draft the release with the downloaded artifact once its digest, commit, version and health run agree. */
@@ -202,5 +208,5 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   return release.id;
 }
 
-module.exports = { verifiedRun, approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag,
-  assertPromotion, VERIFICATION };
+module.exports = { approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, publishedRelease,
+  assertPromotion, PUBLISHED, VERIFICATION };

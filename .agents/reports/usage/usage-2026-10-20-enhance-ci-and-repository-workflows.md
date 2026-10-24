@@ -288,3 +288,34 @@
 - **Close-out:** 30 of 61 tasks complete. Not yet observed on GitHub: the merge queue, `queue: max`, a
   `cancelled()` job after a concurrency cancellation, and whether the queue's tested commit becomes the default-branch
   commit (task 4.9's rehearsal checks them).
+
+### Review of PR #109 (`97b2d65`) and the separate publish workflow
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Two findings were confirmed and fixed.
+  - Medium: the workflow-level cancellation could also cancel a running `publish` job. The maintainer chose
+    option C: publication moves to `publish.yml`, started by each successful deployment run, so cancelling
+    preparation never interrupts a Pages deployment.
+  - The publication binds to the triggering deployment run (`completedDeployment`). It deploys only the staging
+    site of the commit its Pages record names, the default-branch head when it started. A tag publishes once the
+    head's staging site is checked; until then the head's publication includes it.
+  - Release drafting follows a publication that deployed the release, through the `pages-identity` record and
+    `publishedRelease`. Tag release reads the `github-pages` deployment records that the tag ruleset reads.
+  - Low: the unused `verifiedRun` was removed.
+- **Settings:** The maintainer created `production` and removed the `github-pages` reviewer and its tag rule. The
+  two satisfied `[[pending]]` entries were removed, `github-pages` is declared `main`-only, and the fixture's
+  environments were re-recorded from the live state.
+- **Impacted:**
+  - Workflows: `.github/workflows/{deploy,publish,release,tag-release}.yml`.
+  - Scripts: `.github/scripts/{deployment,release-artifact,prepare-release}.cjs`.
+  - Config: `.github/repository.toml`.
+  - Tests: `tests/test_{workflows,audit_repository}.py`, `tests/page/check_{publication,release,prepare_release}.mjs`,
+    `tests/fixtures/repository-audit.json`.
+  - Docs and plan: `docs/deployment.md`, the change's design decision 8 and its spec scenario, this entry.
+- **Verification:**
+  - Each of ten mutations of the publication, release and tagging rules fails a JavaScript check.
+  - The Python and JavaScript tests pass.
+  - The live audit of rulesets and environments shows 0 drift and 2 pending.
+- **Corrections:** Option C was the maintainer's choice over the recommended per-ref queue.

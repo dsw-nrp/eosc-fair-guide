@@ -1,9 +1,10 @@
-// Deployment identities: a staging deployment reuses only the merge-queue result of the same commit, and the
-// serialized publication resolves the newest checked staging site and the newest approved release, so a late
-// approval still promotes its tag and no run moves a channel back.
+// Deployment identities: a staging deployment reuses only the merge-queue result of the same commit; the separate,
+// serialized publication follows only a successful deployment run and resolves the newest checked staging site and
+// the newest approved release, so a late approval still promotes its tag, no run moves a channel back and the Pages
+// record names the staging commit published.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-const { queueResult, newestStaging, publication, superseded } = createRequire(import.meta.url)("../../.github/scripts/deployment.cjs");
+const { queueResult, newestStaging, completedDeployment, publication, superseded } = createRequire(import.meta.url)("../../.github/scripts/deployment.cjs");
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const own = { full_name: "dsw-nrp/eosc-fair-guide" };
@@ -36,6 +37,7 @@ function fake({ runs = [], jobs = {}, artifacts = {}, head = c3, commits = [c3, 
     },
     rest: {
       actions: {
+        getWorkflowRun: async ({ run_id }) => ({ data: runs.find((entry) => entry.id === run_id) }),
         listWorkflowRuns: async (options) => ({ data: { workflow_runs: filtered(options) } }),
         listJobsForWorkflowRun: async ({ run_id }) => ({ data: { jobs: jobs[run_id] || [] } }),
         listWorkflowRunArtifacts: async ({ run_id, name }) => ({
@@ -43,6 +45,7 @@ function fake({ runs = [], jobs = {}, artifacts = {}, head = c3, commits = [c3, 
       },
       repos: {
         getBranch: async () => ({ data: { commit: { sha: head } } }),
+        getCommit: async ({ ref }) => ({ data: { sha: Object.fromEntries(tags)[ref] } }),
         listCommits: async () => ({ data: commits.map((sha) => ({ sha })) }),
         listTags: async () => ({ data: tags.map(([name, sha]) => ({ name, commit: { sha } })) }),
         getReleaseByTag: async ({ tag }) => {
@@ -91,60 +94,110 @@ const kept = (expired = false) => [{ name: "staging-site", expired }];
   assert.equal(await newestStaging(fake({ runs }), new FakeContext("refs/tags/v1.0.0", tagged, 14), "main"), null);
 }
 
-// A branch run publishes its own staging site while it is the head, beside the newest approved release.
+// Publication follows only a successful deployment run of this repository, from a push or a manual run.
+{
+  const deployRun = (fields) => run(80, "deploy.yml", { head_sha: c3, path: ".github/workflows/deploy.yml", ...fields });
+  const following = (runs, tags = []) => {
+    const context = new FakeContext("refs/heads/main", c3, 99);
+    context.payload.workflow_run = { id: 80 };
+    return completedDeployment({ github: fake({ runs, tags }), context });
+  };
+  const branch = await following([deployRun()]);
+  assert.deepEqual([branch.ref, branch.sha, branch.runId, branch.repo], ["refs/heads/main", c3, 80, repo]);
+  assert.equal((await following([deployRun({ event: "workflow_dispatch" })])).ref, "refs/heads/main");
+  const tag = await following([deployRun({ head_branch: "v1.0.0", head_sha: tagged })], [["v1.0.0", tagged]]);
+  assert.deepEqual([tag.ref, tag.sha], ["refs/tags/v1.0.0", tagged]);
+  for (const [fields, reason] of [
+    [{ conclusion: "failure" }, /Not a successful repository deployment/],
+    [{ conclusion: "cancelled" }, /Not a successful repository deployment/],
+    [{ event: "pull_request" }, /Not a successful repository deployment/],
+    [{ path: ".github/workflows/checks.yml" }, /Not a successful repository deployment/],
+    [{ head_repository: { full_name: "someone/fork" } }, /Not a successful repository deployment/],
+    [{ head_branch: "feature" }, /Not a release tag/],
+  ]) {
+    await assert.rejects(following([deployRun(fields)]), reason, JSON.stringify(fields));
+  }
+  await assert.rejects(following([deployRun({ head_branch: "v1.0.0", head_sha: tagged })], [["v1.0.0", c2]]), /tag moved/);
+}
+
+// After a default-branch deployment: its own staging site while it is the head, beside the newest approved release.
 const approvedTag = { runs: [run(30, "deploy.yml", { head_branch: "v1.0.0", head_sha: tagged, conclusion: null })],
   jobs: { 30: [job("production"), job("approve-production")] } };
+const publish = (github, context, recorded = c3, write = undefined) => publication({ github, context, recorded }, write);
 {
-  const github = fake({ runs: [run(60, "deploy.yml", { head_sha: c3, conclusion: null }), ...approvedTag.runs],
+  const github = fake({ runs: [run(60, "deploy.yml", { head_sha: c3 }), ...approvedTag.runs],
     jobs: approvedTag.jobs, tags: [["v1.0.0", tagged]] });
-  assert.deepEqual(await publication({ github, context: new FakeContext("refs/heads/main", c3, 60) }),
+  assert.deepEqual(await publish(github, new FakeContext("refs/heads/main", c3, 60)),
     { publish: "true", reason: "", successor: "", staging: c3, staging_run: "60", tag: "v1.0.0", production: tagged,
       production_run: "30" }, "a release approved while this run prepared is included");
-  assert.deepEqual(await publication({ github: fake(), context: new FakeContext("refs/heads/main", c3, 60) }),
+  assert.deepEqual(await publish(fake(), new FakeContext("refs/heads/main", c3, 60)),
     { publish: "true", reason: "", successor: "", staging: c3, staging_run: "60", tag: "", production: "", production_run: "" },
     "a first preview needs no release");
 }
 
-// An older branch run, or a retry of one, publishes nothing and names the run for the head.
+// An older deployment, or a retry of one, publishes nothing and names the run for the head.
 {
   const github = fake({ runs: [run(60, "deploy.yml", { head_sha: c2 }), run(61, "deploy.yml", { head_sha: c3, conclusion: null })] });
-  const result = await publication({ github, context: new FakeContext("refs/heads/main", c2, 60) });
+  const result = await publish(github, new FakeContext("refs/heads/main", c2, 60));
   assert.equal(result.publish, "false");
   assert.match(result.reason, new RegExp(`moved on to ${c3}`));
   assert.equal(result.successor, run(61, "deploy.yml").html_url);
   assert.equal(result.staging, "", "nothing is downloaded or assembled");
 }
 
-// The default branch advances while a tag waits: the branch run keeps the last approved production.
+// The Pages record names the head when this publication started; after a later push, that push's run publishes.
+{
+  const github = fake({ runs: [run(60, "deploy.yml", { head_sha: c2 }), run(61, "deploy.yml", { head_sha: c3, conclusion: null })] });
+  const result = await publish(github, new FakeContext("refs/heads/main", c2, 60), c2);
+  assert.equal(result.publish, "false");
+  assert.match(result.reason, /after this publication started/);
+  assert.equal(result.successor, run(61, "deploy.yml").html_url);
+  await assert.rejects(publish(github, new FakeContext("refs/heads/main", c3, 61), ""), /full source SHAs/);
+}
+
+// The default branch advances while a tag waits: the branch keeps the last approved production.
 {
   const waiting = { ...approvedTag.runs[0], head_branch: "v1.1.0", head_sha: commit("b"), id: 31 };
-  const github = fake({ runs: [run(62, "deploy.yml", { head_sha: c3, conclusion: null }), approvedTag.runs[0], waiting],
+  const github = fake({ runs: [run(62, "deploy.yml", { head_sha: c3 }), approvedTag.runs[0], waiting],
     jobs: { ...approvedTag.jobs, 31: [job("production"), job("approve-production", null)] },
     tags: [["v1.1.0", commit("b")], ["v1.0.0", tagged]] });
-  const result = await publication({ github, context: new FakeContext("refs/heads/main", c3, 62) });
+  const result = await publish(github, new FakeContext("refs/heads/main", c3, 62));
   assert.deepEqual([result.publish, result.tag, result.production_run], ["true", "v1.0.0", "30"]);
 }
 
-// A tag approved after the branch moved on publishes with the newest checked staging site of any branch run.
+// A tag approved after the branch moved on publishes with the head's checked staging site.
 {
   const runs = [run(20, "deploy.yml", { head_sha: c2 }), run(21, "deploy.yml", { head_sha: c3 }),
-    { ...approvedTag.runs[0], id: 22 }];
-  const github = fake({ runs, artifacts: { 20: kept(), 21: kept() }, jobs: { 22: approvedTag.jobs[30] },
-    tags: [["v1.0.0", tagged]] });
-  assert.deepEqual(await publication({ github, context: new FakeContext("refs/tags/v1.0.0", tagged, 22) }),
+    { ...approvedTag.runs[0], id: 22, conclusion: "success" }];
+  const github = fake({ runs, artifacts: { 20: kept(), 21: kept() }, tags: [["v1.0.0", tagged]] });
+  assert.deepEqual(await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22)),
     { publish: "true", reason: "", successor: "", staging: c3, staging_run: "21", tag: "v1.0.0", production: tagged,
       production_run: "22" });
-  await assert.rejects(publication({ github: fake({ runs: [{ ...approvedTag.runs[0], id: 22 }], jobs: { 22: approvedTag.jobs[30] },
-    tags: [["v1.0.0", tagged]] }), context: new FakeContext("refs/tags/v1.0.0", tagged, 22) }), /No default-branch deployment kept/);
+}
+
+// While the head's own deployment still prepares, a tag publishes nothing; that deployment publishes it with the head.
+{
+  const runs = [run(20, "deploy.yml", { head_sha: c2 }), run(21, "deploy.yml", { head_sha: c3, conclusion: null }),
+    { ...approvedTag.runs[0], id: 22, conclusion: "success" }];
+  for (const artifacts of [{ 20: kept() }, {}]) {
+    const github = fake({ runs, artifacts, tags: [["v1.0.0", tagged]] });
+    const result = await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22));
+    assert.equal(result.publish, "false", "an older staging site would make the Pages record name the wrong commit");
+    assert.match(result.reason, /has no checked staging site yet; its deployment publishes this release/);
+    assert.equal(result.successor, run(21, "deploy.yml").html_url);
+  }
+  // That deployment's publication then includes the release its now successful run approved.
+  const github = fake({ runs: [{ ...runs[1], conclusion: "success" }, runs[2]], tags: [["v1.0.0", tagged]] });
+  const result = await publish(github, new FakeContext("refs/heads/main", c3, 21));
+  assert.deepEqual([result.publish, result.staging, result.tag, result.production_run], ["true", c3, "v1.0.0", "22"]);
 }
 
 // A tag superseded by a newer approved release publishes nothing and names that release's run.
 {
   const newer = { ...approvedTag.runs[0], id: 23, head_branch: "v1.1.0", head_sha: commit("b"), conclusion: "success" };
-  const runs = [run(21, "deploy.yml", { head_sha: c3 }), { ...approvedTag.runs[0], id: 22 }, newer];
-  const github = fake({ runs, artifacts: { 21: kept() }, jobs: { 22: approvedTag.jobs[30] },
-    tags: [["v1.1.0", commit("b")], ["v1.0.0", tagged]] });
-  const result = await publication({ github, context: new FakeContext("refs/tags/v1.0.0", tagged, 22) });
+  const runs = [run(21, "deploy.yml", { head_sha: c3 }), { ...approvedTag.runs[0], id: 22, conclusion: "success" }, newer];
+  const github = fake({ runs, artifacts: { 21: kept() }, tags: [["v1.1.0", commit("b")], ["v1.0.0", tagged]] });
+  const result = await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22));
   assert.equal(result.publish, "false");
   assert.match(result.reason, /v1\.1\.0 is the newest approved release/);
   assert.equal(result.successor, newer.html_url);
@@ -157,11 +210,11 @@ const approvedTag = { runs: [run(30, "deploy.yml", { head_branch: "v1.0.0", head
   const github = fake({ tags: [["v1.0.0", tagged]], releases: { "v1.0.0": { draft: false, assets } } });
   github.rest.repos.getReleaseAsset = async () => ({ data: Buffer.from("x") });
   const written = [];
-  const result = await publication({ github, context: new FakeContext("refs/heads/main", c3, 63) }, (path) => written.push(path));
+  const result = await publish(github, new FakeContext("refs/heads/main", c3, 63), c3, (path) => written.push(path));
   assert.deepEqual([result.tag, result.production_run], ["v1.0.0", ""]);
   assert.equal(written.length, 3, "the assembler reads the release assets from .cache/release");
 }
-await assert.rejects(publication({ github: fake(), context: new FakeContext("refs/heads/feature", c3, 64) }), /default branch or a release tag/);
+await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 64)), /default branch or a release tag/);
 
 // A cancelled run names the run that supersedes it.
 {
@@ -169,4 +222,4 @@ await assert.rejects(publication({ github: fake(), context: new FakeContext("ref
   assert.match(await superseded({ github, context: new FakeContext("refs/heads/main", c2, 70) }), /\[run 71\]\(.*\/runs\/71\) supersedes it/);
   assert.match(await superseded({ github, context: new FakeContext("refs/heads/main", c3, 71) }), /next deployment of this ref/);
 }
-console.log("check_publication: same-commit queue reuse, newest checked staging, approved production, late approvals and superseded runs pass");
+console.log("check_publication: same-commit queue reuse, trusted publication trigger, newest checked staging, approved production, late approvals, exact Pages records and superseded runs pass");

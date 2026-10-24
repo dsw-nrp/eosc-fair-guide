@@ -30,11 +30,14 @@ function fixture() {
   }, pulls: {list: 'pulls.list', create: async args => {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
-  }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls'},
-  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}}), listWorkflowRuns: 'deploy.runs'}},
+  }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls', listDeployments: 'deployments',
+    listDeploymentStatuses: 'deployment.statuses'},
+  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}}), listWorkflowRuns: 'workflow.runs'}},
   paginate: async (method, args) => {
     state.reads.push(args);
-    if (method === 'deploy.runs') return state.deployRuns || [];
+    if (method === 'deployments') return state.deployments || [];
+    if (method === 'deployment.statuses') return (state.statuses || {})[args.deployment_id] || [];
+    if (method === 'workflow.runs') return (state.runs || {})[args.workflow_id] || [];
     if (method === 'commit.pulls') {
       if (state.failAssociations) throw Error('Association page failed');
       return state.associations;
@@ -209,21 +212,28 @@ for (const mutate of [
   assert.deepEqual(state.creates, []);
 }
 {
-  // Tagging needs a successful deployment of the current commit; otherwise the refusal names the run to wait for.
+  // Tagging needs a successful github-pages deployment of the current commit, as the tag ruleset does; otherwise the
+  // refusal names the deployment or publish run to wait for.
   const {state, github, core} = fixture();
   const run = (id, conclusion, extra = {}) => ({id, conclusion, head_sha: sha, head_branch: 'main',
     html_url: `https://github.com/example/guide/actions/runs/${id}`, ...extra});
-  state.deployRuns = [run(9, null), run(8, 'failure')];
-  await assert.rejects(deployed({github, core, context}), /still being deployed; wait for https:\/\/github\.com\/example\/guide\/actions\/runs\/9 to succeed/);
-  state.deployRuns = [run(8, 'failure')];
+  state.deployments = [{id: 41, sha}];
+  state.statuses = {41: [{state: 'inactive'}, {state: 'success'}, {state: 'in_progress'}]};
+  assert.equal(await deployed({github, core, context}), 41, 'a later deployment marking it inactive keeps it deployed');
+  const query = state.reads.find(args => args.environment);
+  assert.deepEqual([query.environment, query.sha], ['github-pages', sha]);
+  state.statuses = {41: [{state: 'failure'}, {state: 'in_progress'}]};
+  state.runs = {'deploy.yml': [run(8, 'success')], 'publish.yml': [run(9, null)]};
+  await assert.rejects(deployed({github, core, context}), /still being deployed; wait for https:\/\/github\.com\/example\/guide\/actions\/runs\/9 to finish/);
+  state.runs = {'deploy.yml': [run(8, 'failure')]};
   await assert.rejects(deployed({github, core, context}), /no successful deployment \(latest run: .*runs\/8\); run Deploy the verified site/);
-  state.deployRuns = [];
-  await assert.rejects(deployed({github, core, context}), /no successful deployment; run Deploy the verified site/);
-  state.deployRuns = [run(7, 'success', {head_sha: 'b'.repeat(40)}), run(6, 'success', {head_branch: 'v1.0.0'})];
-  await assert.rejects(deployed({github, core, context}), /no successful deployment/, 'another commit or a tag run does not count');
-  assert.equal(state.reads.at(-1).workflow_id, 'deploy.yml');
-  state.deployRuns = [run(9, null), run(5, 'success')];
-  assert.equal(await deployed({github, core, context}), 5);
+  state.runs = {};
+  state.deployments = [{id: 42, sha: 'b'.repeat(40)}];
+  state.statuses = {42: [{state: 'success'}]};
+  await assert.rejects(deployed({github, core, context}), /no successful deployment; run Deploy the verified site/,
+    'a deployment of another commit does not count');
+  state.runs = {'deploy.yml': [run(7, null, {head_branch: 'v1.0.0'})]};
+  await assert.rejects(deployed({github, core, context}), /no successful deployment;/, 'a tag run is not the default branch');
   state.refs.set('heads/main', 'b'.repeat(40));
   await assert.rejects(deployed({github, core, context}), /moved/);
   assert.deepEqual(state.creates, [], 'the check never tags');

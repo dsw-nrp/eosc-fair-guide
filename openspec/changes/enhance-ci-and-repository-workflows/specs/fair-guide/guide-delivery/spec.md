@@ -453,7 +453,7 @@ release SHALL explain when the current default-branch commit has no successful d
 #### Scenario: A tag is approved after the default branch moved on
 
 - **WHEN** a waiting production promotion is approved after a newer default-branch commit was deployed
-- **THEN** it publishes the approved production with the newest checked staging site, and neither channel moves back
+- **THEN** it publishes the approved production with that commit's checked staging site, and neither channel moves back
 
 #### Scenario: Tagging an undeployed commit
 

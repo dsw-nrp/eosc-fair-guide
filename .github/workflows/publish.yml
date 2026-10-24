@@ -1,0 +1,108 @@
+name: Publish the verified site
+
+# Runs trusted default-branch code after every completed deployment run, so cancelling a superseded deployment never
+# interrupts a Pages deployment. One publication runs at a time; each resolves the newest checked staging site and
+# the newest approved release when it starts, so no publication moves either channel back.
+on:
+  workflow_run:
+    workflows: [Deploy the verified site]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    # Only a successful deployment of this repository's own pushes or manual runs leads to publication.
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      pages: write
+    concurrency:
+      group: pages-publish
+      queue: max
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      # The Pages deployment is recorded against this run's commit, the default-branch head when it started, so only
+      # that commit's staging site is published here.
+      - id: resolve
+        name: Resolve the newest checked staging site and approved release
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { mkdirSync, writeFileSync } = require('node:fs');
+            const { dirname } = require('node:path');
+            const { PUBLISHED } = require('./.github/scripts/release-artifact.cjs');
+            const { completedDeployment, publication } = require('./.github/scripts/deployment.cjs');
+            const deployed = await completedDeployment({ github, context });
+            const result = await publication({ github, context: deployed, recorded: context.sha });
+            for (const [key, value] of Object.entries(result)) core.setOutput(key, value);
+            if (result.publish === 'true') {
+              mkdirSync(dirname(PUBLISHED), { recursive: true });
+              writeFileSync(PUBLISHED, JSON.stringify({ formatVersion: 1, staging: result.staging, staging_run: result.staging_run,
+                tag: result.tag, production: result.production, production_run: result.production_run }) + '\n');
+            }
+            const production = result.tag
+              ? ` and production ${result.tag} (\`${result.production}\`, ${result.production_run ? `run ${result.production_run}` : 'release assets'})`
+              : ' with no release yet';
+            await core.summary.addRaw(result.publish === 'true'
+              ? `Publishing staging \`${result.staging}\` (run ${result.staging_run})${production}, after deployment run ${deployed.runId}.\n`
+              : `Published nothing after deployment run ${deployed.runId}: ${result.reason}.${result.successor ? ` [That run](${result.successor}) leads to the newest site.` : ''}\n`).write();
+      - if: steps.resolve.outputs.publish == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: staging-site
+          path: .cache/staging/
+          run-id: ${{ steps.resolve.outputs.staging_run }}
+          github-token: ${{ github.token }}
+      - if: steps.resolve.outputs.publish == 'true' && steps.resolve.outputs.production_run != ''
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: guide-site-${{ steps.resolve.outputs.production }}
+          path: .cache/release/
+          run-id: ${{ steps.resolve.outputs.production_run }}
+          github-token: ${{ github.token }}
+      - if: steps.resolve.outputs.publish == 'true'
+        name: Assemble without rebuilding either site
+        env:
+          STAGING_SHA: ${{ steps.resolve.outputs.staging }}
+          PRODUCTION_SHA: ${{ steps.resolve.outputs.production }}
+          PRODUCTION_TAG: ${{ steps.resolve.outputs.tag }}
+        run: |
+          args=(--staging .cache/staging --staging-commit "$STAGING_SHA" --out .cache/pages)
+          if [ -n "$PRODUCTION_TAG" ]; then
+            args+=(--production .cache/release --production-tag "$PRODUCTION_TAG" --production-commit "$PRODUCTION_SHA")
+          fi
+          python scripts/assemble_pages.py "${args[@]}"
+      - if: steps.resolve.outputs.publish == 'true'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: .cache/pages/
+      - id: deployment
+        if: steps.resolve.outputs.publish == 'true'
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      # Release drafting reads what this publication deployed; the record exists only after a Pages deployment.
+      - if: steps.resolve.outputs.publish == 'true'
+        name: Keep the record of what was published
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pages-identity
+          path: .cache/published/identity.json
+          if-no-files-found: error
+          retention-days: 30
