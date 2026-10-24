@@ -366,3 +366,53 @@
 - **Impacted:** `.github/scripts/{release-artifact,deployment}.cjs`, `tests/page/check_{release,publication}.mjs`,
   `docs/deployment.md`, this entry.
 - **Verification:** The publication, release and dispatch checks pass.
+
+## Claude Code session (after #109: settings of task 4.8)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** read-only `gh` queries of the post-merge runs, the deployment records and the live
+  rulesets; the read-only settings audit.
+- **What:**
+  - The first hosted run of the new deployment path on `eac8b24` worked.
+    - The deployment ran the partitioned checks and named the reason: no merge-queue run, as after a direct merge.
+    - `publish.yml` resolved and published, the `github-pages` record names `eac8b24`, and `/next/` reports a passed
+      health snapshot for it.
+    - The release workflow drafted nothing, because `v1.0.0-alpha.2` already has its assets.
+  - The maintainer applied task 4.8's settings, partly out of the task's order. The task records the deviation.
+    - The environment steps came together at about 15:59 UTC, before #109 merged at 19:32: `production` was created,
+      and the reviewer and tag rule left `github-pages`. The tag rule went back at about 16:01. Until 17:29 at the
+      latest, when `github-pages` was `main`-only again, a tag pushed would have published without approval. No tag
+      was pushed, and no Pages deployment ran between 14:58 and 19:37.
+    - The ruleset steps (merge queue on, "up to date" off) came together after #109 merged.
+    - Audits: environments and rulesets at 15:59 (the tag rule missing); environments at 16:01 (0 drift); a read of
+      the `github-pages` branch rules at 17:29 (`main` only); rulesets at 19:38 (both steps pending); and the full
+      audit at 19:51 (0 drift).
+  - The two satisfied `[[pending]]` entries are removed, and the fixture's main ruleset is re-recorded from the live
+    state. Tests reproduce the waiting state through `pending_queue()`. Task 4.8 is checked off.
+  - `CHANGELOG.md` gains the required-step line for the merge queue and production approval.
+- **Impacted:** `.github/repository.toml`, `tests/fixtures/repository-audit.json`, `tests/test_audit_repository.py`,
+  `CHANGELOG.md`, the change's tasks, this entry.
+- **Verification:**
+  - The full read-only audit shows 0 drift and 0 pending; organization issue fields stay unavailable to this token.
+  - The audit and workflow tests pass (47).
+- **Close-out:** 31 of 61 tasks complete. Task 4.9, the hosted rehearsal, needs separate approval. The first grouped
+  Dependabot PR also gives task 2.3's changed-lockfile evidence.
+
+### Review of PR #112 (`7658e3f`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** One Low finding, confirmed. Task 4.8 was checked off while this entry recorded steps applied out of order
+  and no audit after each step.
+  - Task 4.8 stays checked, with the deviation recorded beneath it: the window, the evidence that nothing deployed,
+    and where the audits are listed.
+  - The settings bullets above now give the times, the evidence and each audit.
+- **Impacted:** the change's tasks, this entry.
+- **Verification:** GitHub's `github-pages` deployments, the deployment runs and the remote tags show no deployment
+  between 14:58 and 19:37 UTC and no tag after `v1.0.0-alpha.2`. The audit times come from the session transcript.
+  OpenSpec validation passes, and the task count is unchanged.

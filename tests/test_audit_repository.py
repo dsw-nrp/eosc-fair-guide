@@ -66,9 +66,30 @@ def by_setting(findings):
     return {finding.setting: finding for finding in findings}
 
 
+QUEUE = "ruleset.Main branch protection.rules.merge_queue"
+STRICT = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
+
+
+def pending_queue(config, live, *, applied=False):
+    """The merge-queue steps as they waited on 24 October 2026: approved in the file, the queue absent live and the
+    up-to-date requirement still on, unless `applied` keeps the live queue."""
+    config.setdefault("pending", []).extend(
+        [
+            {"setting": QUEUE, "current": "absent", "task": "4.8, once 4.1 is on the default branch: enable the queue"},
+            {"setting": STRICT, "current": True, "task": "4.8: switch off the up-to-date requirement"},
+        ]
+    )
+    rules = live[f"{REPO}/rulesets/24757722"]["rules"]
+    if not applied:
+        rules[:] = [rule for rule in rules if rule["type"] != "merge_queue"]
+        checks = next(rule for rule in rules if rule["type"] == "required_status_checks")
+        checks["parameters"]["strict_required_status_checks_policy"] = True
+    return rules
+
+
 def pending_reviewer(config, live, reviewers=("motyc",)):
     """The `github-pages` reviewer removal as it waited on 24 October 2026: approved in the file, still live."""
-    config["pending"].append(
+    config.setdefault("pending", []).append(
         {"setting": "environment.github-pages.reviewers", "current": ["motyc"], "task": "4.8: remove the reviewer"}
     )
     pages = next(env for env in live[f"{REPO}/environments"]["environments"] if env["name"] == "github-pages")
@@ -82,20 +103,25 @@ class AuditTests(unittest.TestCase):
     def setUp(self):
         self.config = audit.load()
 
-    def test_the_committed_state_matches_the_recorded_live_state_but_for_approved_steps(self):
-        findings = audit.audit(self.config, Replay())
+    def test_the_committed_state_matches_the_recorded_live_state(self):
+        statuses = {finding.setting: finding.status for finding in audit.audit(self.config, Replay())}
+        self.assertEqual(statuses, {"label.breaking-change": "missing", "organization.issue_fields": "unavailable"})
+
+    def test_an_approved_target_waits_as_pending_with_its_task(self):
+        live = copy.deepcopy(LIVE)
+        pending_queue(self.config, live)
+        findings = audit.audit(self.config, Replay(live))
         statuses = {finding.setting: finding.status for finding in findings}
-        strict = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
         self.assertEqual(
             statuses,
             {
-                strict: "pending",
-                "ruleset.Main branch protection.rules.merge_queue": "pending",
+                STRICT: "pending",
+                QUEUE: "pending",
                 "label.breaking-change": "missing",
                 "organization.issue_fields": "unavailable",
             },
         )
-        merge_queue = by_setting(findings)["ruleset.Main branch protection.rules.merge_queue"]
+        merge_queue = by_setting(findings)[QUEUE]
         self.assertEqual(
             merge_queue.expected["max_entries_to_merge"], 3, "a missing rule shows its declared parameters"
         )
@@ -178,14 +204,11 @@ class AuditTests(unittest.TestCase):
 
     def test_a_reached_target_asks_for_its_pending_entry_to_be_removed(self):
         live = copy.deepcopy(LIVE)
-        checks = next(
-            rule for rule in live[f"{REPO}/rulesets/24757722"]["rules"] if rule["type"] == "required_status_checks"
-        )
-        checks["parameters"]["strict_required_status_checks_policy"] = False
-        setting = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
-        finding = by_setting(audit.audit(self.config, Replay(live)))[setting]
-        self.assertEqual(finding.status, "done")
-        self.assertIn("remove this pending entry", finding.note)
+        pending_queue(self.config, live, applied=True)
+        findings = by_setting(audit.audit(self.config, Replay(live)))
+        for setting in (QUEUE, STRICT):
+            self.assertEqual(findings[setting].status, "done")
+            self.assertIn("remove this pending entry", findings[setting].note)
 
     def test_a_pending_target_waits_and_one_that_moved_elsewhere_is_drift(self):
         live = copy.deepcopy(LIVE)
@@ -228,25 +251,30 @@ class AuditTests(unittest.TestCase):
         self.assertIn("[DRIFT] settings.allow_auto_merge", output.getvalue())
 
     def test_the_json_report_carries_the_bodies_for_the_commands(self):
-        with tempfile.TemporaryDirectory() as temporary, redirect_stdout(io.StringIO()):
+        live = copy.deepcopy(LIVE)
+        pending_queue(self.config, live)
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            redirect_stdout(io.StringIO()),
+            unittest.mock.patch.object(audit, "load", return_value=self.config),
+        ):
             path = Path(temporary) / "audit.json"
-            audit.main(["--json", str(path)], github=Replay())
+            audit.main(["--json", str(path)], github=Replay(live))
             report = json.loads(path.read_text(encoding="utf-8"))
         bodies = {item["setting"]: item["fix"]["body"] for item in report["findings"] if item["fix"]}
-        queue = {rule["type"]: rule for rule in bodies["ruleset.Main branch protection.rules.merge_queue"]["rules"]}
+        queue = {rule["type"]: rule for rule in bodies[QUEUE]["rules"]}
         self.assertEqual(queue["merge_queue"]["parameters"]["merge_method"], "SQUASH")
         checks = queue["required_status_checks"]["parameters"]
         self.assertEqual(checks["required_status_checks"], [{"context": "checks", "integration_id": 15368}])
         self.assertIs(checks["strict_required_status_checks_policy"], True, "the other pending target stays live")
         pull = queue["pull_request"]["parameters"]
         self.assertIs(pull["require_extra_approval_for_unattributed_changes"], True, "no live parameter is dropped")
-        strict = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
-        self.assertNotIn("merge_queue", {rule["type"] for rule in bodies[strict]["rules"]})
+        self.assertNotIn("merge_queue", {rule["type"] for rule in bodies[STRICT]["rules"]})
 
     def test_a_command_for_another_difference_never_applies_a_pending_target(self):
         live = copy.deepcopy(LIVE)
-        main = live[f"{REPO}/rulesets/24757722"]
-        next(rule for rule in main["rules"] if rule["type"] == "pull_request")["parameters"][
+        rules = pending_queue(self.config, live)
+        next(rule for rule in rules if rule["type"] == "pull_request")["parameters"][
             "required_approving_review_count"
         ] = 0
         pages, _ = pending_reviewer(self.config, live)
@@ -263,6 +291,7 @@ class AuditTests(unittest.TestCase):
 
     def test_a_missing_object_is_recreated_without_its_pending_targets(self):
         live = copy.deepcopy(LIVE)
+        pending_queue(self.config, live)
         pending_reviewer(self.config, live)
         environments = live[f"{REPO}/environments"]["environments"]
         live[f"{REPO}/environments"]["environments"] = [env for env in environments if env["name"] != "github-pages"]
@@ -278,14 +307,14 @@ class AuditTests(unittest.TestCase):
 
     def test_a_finding_inside_a_reached_pending_target_applies_the_reviewed_value(self):
         live = copy.deepcopy(LIVE)
-        queue = dict(self.config["ruleset"][0]["rules"]["merge_queue"], merge_method="MERGE")
-        live[f"{REPO}/rulesets/24757722"]["rules"].append({"type": "merge_queue", "parameters": queue})
+        rules = pending_queue(self.config, live, applied=True)
+        next(rule for rule in rules if rule["type"] == "merge_queue")["parameters"]["merge_method"] = "MERGE"
         findings = by_setting(audit.audit(self.config, Replay(live)))
-        method = findings["ruleset.Main branch protection.rules.merge_queue.merge_method"]
+        method = findings[f"{QUEUE}.merge_method"]
         self.assertEqual((method.status, method.expected, method.actual), ("drift", "SQUASH", "MERGE"))
-        rules = {rule["type"]: rule.get("parameters") for rule in method.fix["body"]["rules"]}
-        self.assertEqual(rules["merge_queue"]["merge_method"], "SQUASH", "applying the body fixes the finding")
-        self.assertEqual(findings["ruleset.Main branch protection.rules.merge_queue"].status, "done")
+        body = {rule["type"]: rule.get("parameters") for rule in method.fix["body"]["rules"]}
+        self.assertEqual(body["merge_queue"]["merge_method"], "SQUASH", "applying the body fixes the finding")
+        self.assertEqual(findings[QUEUE].status, "done")
 
     def test_a_kept_team_reviewer_stays_a_team(self):
         live = copy.deepcopy(LIVE)
@@ -363,7 +392,9 @@ class ConfigTests(unittest.TestCase):
             "project.owner: expected an organization login": lambda c: c["project"].update(owner="x;y"),
             "app.permissions: expected permission": lambda c: c["app"]["permissions"].update(contents="admin"),
             "is listed twice": lambda c: c["token"].append(dict(c["token"][0])),
-            "pending[0]: missing key 'task'": lambda c: c["pending"][0].pop("task"),
+            "pending[0]: missing key 'task'": lambda c: c.setdefault("pending", []).append(
+                {"setting": QUEUE, "current": 1}
+            ),
             "format: expected 1": lambda c: c.update(format=2),
         }
         for message, change in cases.items():
@@ -386,19 +417,20 @@ class ConfigTests(unittest.TestCase):
                     problems = self.problems(lambda c, table=table, key=key: table(c).pop(key))
                     self.assertIn(f"{where}: missing key {key!r}", problems)
 
-    def test_every_pending_entry_is_a_documented_step_in_order(self):
+    def test_the_setting_steps_and_any_pending_entry_are_documented_in_order(self):
         text = (Path(__file__).resolve().parent.parent / "docs/deployment.md").read_text(encoding="utf-8")
         table = text[text.index("| Step | Precondition | Rollback |") :].split("\n\n")[0].splitlines()[2:]
         steps = {
-            "ruleset.Main branch protection.rules.merge_queue": "Turn the merge queue on",
-            "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy": (
-                "require branches to be up to date"
-            ),
+            QUEUE: "Turn the merge queue on",
+            STRICT: "require branches to be up to date",
+            "environment.production": "Create `production`",
+            "environment.github-pages.reviewers": "Remove the reviewer from `github-pages`",
         }
-        pending = [entry["setting"] for entry in self.config["pending"]]
-        self.assertEqual(pending, list(steps), "each approved target waits for a documented step")
-        rows = [next(index for index, row in enumerate(table) if steps[setting] in row) for setting in pending]
-        self.assertEqual(rows, sorted(rows), "the steps are applied in the documented order")
+        rows = {setting: [index for index, row in enumerate(table) if step in row] for setting, step in steps.items()}
+        self.assertEqual(list(rows.values()), [[0], [1], [2], [3]], "each step and its rollback, in order")
+        pending = [entry["setting"] for entry in self.config.get("pending", [])]
+        self.assertLessEqual(set(pending), set(steps), "an approved target waits for a documented step")
+        self.assertEqual(pending, sorted(pending, key=list(steps).index), "pending steps follow the documented order")
 
     def test_an_invalid_file_stops_before_reading_anything(self):
         with tempfile.TemporaryDirectory() as temporary:
