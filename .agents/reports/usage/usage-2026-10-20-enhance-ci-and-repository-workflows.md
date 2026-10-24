@@ -143,3 +143,39 @@
   - 2.6 kept the unit lane. With the maintainer's agreement, a single validator process and a Playwright browser
     cache were not adopted: the validators are off the critical path, and downloads take about 7.5 s of a 17.5 s
     install.
+
+## Claude Code session (apply group 3: repository settings audit)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` continued at the maintainer's request; the delivered planning,
+  quality-first and usage-logging rules; read-only `gh` REST and GraphQL queries of the repository, Project #1,
+  the organization's issue types and fields and the App registration; GitHub's permission reference.
+- **What:** Tasks 3.1–3.4.
+  - `.github/repository.toml` holds the reviewed settings, rulesets with the merge-queue target, environments,
+    labels, Project #1 configuration, issue types and fields, App permissions and per-job token requests. The
+    approved but unapplied targets are `[[pending]]` entries with their current values.
+  - `scripts/audit_repository.py` is read only, names the UI path and an equivalent command for each finding,
+    reports unreadable parts as unavailable, and limits `--fix` to declared labels and Project items.
+  - An offline token-permission test and the capability table in `docs/maintenance.md`.
+- **Impacted:**
+  - New: `.github/repository.toml`, `scripts/audit_repository.py`, `docs/maintenance.md`,
+    `tests/test_audit_repository.py`, `tests/fixtures/repository-audit.json`.
+  - Changed: `tests/test_workflows.py`, CONTRIBUTING, the change's design (open questions answered) and tasks
+    (3.1–3.4 checked), this entry.
+- **Verification:**
+  - A real read-only audit with the maintainer's token finds no drift and five pending targets, all task 4.8 or
+    5.8. One declared label (`breaking-change`) is missing, and the organization issue fields are unavailable.
+  - Fixture tests cover planted drift in every section, unreadable sections, hidden bypass actors, reached
+    targets, the `--fix` write boundary (a planted deleting fix fails) and schema rejection.
+  - A planted extra token permission fails and names the job.
+  - The full `check_all.py` passes 31 of 31, and `git diff --check` reports nothing.
+- **Corrections:** None. Findings:
+  - The App registration already reads `organization_projects: read`, not write as planned. It still lists
+    `issues: write`, `merge_queues: write` and other extras.
+  - `.github/release.yml` and the changelog policy use a `breaking-change` label that did not exist.
+  - Bypass actors are hidden from tokens without write access to a ruleset.
+- **Close-out:** 23 of 61 tasks complete. Creating `breaking-change` with `--fix` is a write that awaits approval.

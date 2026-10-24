@@ -425,11 +425,16 @@ human comments remain. Completed repairs, notes and published releases are never
 
 These can be answered during apply without changing the specs or the task breakdown:
 
-- Which API path and App permission read organization issue-field values (Priority, Effort)? Until confirmed,
-  the audit reports them as unavailable in CI.
+- Which API path and App permission read organization issue-field values (Priority, Effort)? Answered on
+  24 October 2026: `GET /orgs/{org}/issue-fields` needs the organization's Issue Fields read permission, and one
+  issue's values come from `GET /repos/{repo}/issues/{number}/issue-field-values` with Issues read. The maintainer
+  token received an empty list, so the audit reports the fields as unavailable until an owner confirms them.
 - Do Markdown issue templates apply their `type` front matter? If not, triage sets the type and the audit lists
   untyped issues.
 - Can prefilled new-issue links preset labels for all reporters? Adoption relies only on the finding key, so
   either answer works.
-- Can `GITHUB_TOKEN` read rulesets and environments? If not, those sections are audited locally only.
-- Do the validator and Playwright-cache experiments pay off? Each is measured and kept or dropped.
+- Can `GITHUB_TOKEN` read rulesets and environments? Answered on 24 October 2026: rulesets need only Metadata
+  read, but their bypass actors appear only with write access to the ruleset, and environments need Actions read.
+  `docs/maintenance.md` records the capability table.
+- Do the validator and Playwright-cache experiments pay off? Answered on 24 October 2026: neither was adopted
+  (see the experiments in decision 6).

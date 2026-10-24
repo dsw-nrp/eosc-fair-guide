@@ -191,6 +191,12 @@ only with an identity they gave or that is reviewed (their name, their GitHub ac
 ORCID iD). Anyone may ask not to have their ORCID iD listed; they are then credited by name only. No identity or
 ORCID iD is guessed, and no team or bot is credited as an author.
 
+## Repository settings
+
+`.github/repository.toml` records the reviewed GitHub settings, Project #1 configuration and token permissions.
+`python scripts/audit_repository.py` compares the live state with it, read only; see [maintenance](docs/maintenance.md).
+A pull request that changes a workflow's token permissions also updates its `[[token]]` entry.
+
 ## Commit messages
 
 Write a short imperative summary line (for example `content: clarify licence advice for data stewards`),
