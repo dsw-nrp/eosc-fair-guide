@@ -126,6 +126,24 @@ async function propose({github, context, core}, read = readFileSync, root) {
     maintainer_can_modify: true});
   core.info(pr.html_url);
 }
+/** The tag ruleset requires a successful deployment of the tagged commit. Before tagging, require one for the current
+    default-branch commit, or name the run to wait for. */
+async function deployed({github, context, core}) {
+  const {base} = dispatch(context);
+  await current(github, context, base);
+  const runs = (await github.paginate(github.rest.actions.listWorkflowRuns, {...context.repo, workflow_id: 'deploy.yml',
+    branch: base, head_sha: context.sha, per_page: 100})).filter(run => run.head_sha === context.sha && run.head_branch === base);
+  const done = runs.find(run => run.conclusion === 'success');
+  if (done) {
+    core.info(`Commit ${context.sha} was deployed by ${done.html_url}`);
+    return done.id;
+  }
+  const waiting = runs.find(run => !run.conclusion);
+  throw Error(waiting
+    ? `The current default-branch commit is still being deployed; wait for ${waiting.html_url} to succeed, then run Tag release again`
+    : `The current default-branch commit has no successful deployment${runs.length ? ` (latest run: ${runs[0].html_url})` : ''}; ` +
+      'run Deploy the verified site on the default branch, then run Tag release again');
+}
 async function tag({github, context, core}, read = readFileSync) {
   const {base, version} = dispatch(context);
   const status = context.payload.inputs.release_status;
@@ -143,4 +161,4 @@ async function tag({github, context, core}, read = readFileSync) {
   const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: annotated.sha});
   core.info(`Created ${data.ref} at ${context.sha} with status ${status}`);
 }
-module.exports = {validVersion, dispatch, collect, propose, tag, preparedFiles};
+module.exports = {validVersion, dispatch, collect, propose, deployed, tag, preparedFiles};

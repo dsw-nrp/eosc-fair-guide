@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {copyFileSync, mkdirSync, mkdtempSync, rmSync, symlinkSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
-const {dispatch, validVersion, collect, propose, tag, preparedFiles} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
+const {dispatch, validVersion, collect, propose, deployed, tag, preparedFiles} = createRequire(import.meta.url)('../../.github/scripts/prepare-release.cjs');
 const sha = 'a'.repeat(40);
 const PREPARED = '.cache/release/prepared.json';
 const PREPARED_PATHS = ['content/guide.toml', 'CITATION.cff', 'package.json', 'package-lock.json',
@@ -31,9 +31,10 @@ function fixture() {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
   }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls'},
-  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}})}},
+  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}}), listWorkflowRuns: 'deploy.runs'}},
   paginate: async (method, args) => {
     state.reads.push(args);
+    if (method === 'deploy.runs') return state.deployRuns || [];
     if (method === 'commit.pulls') {
       if (state.failAssociations) throw Error('Association page failed');
       return state.associations;
@@ -206,5 +207,25 @@ for (const mutate of [
   await assert.rejects(propose({github, core, context}, read), /moved/);
   await assert.rejects(tag({github, core, context}, read), /moved/);
   assert.deepEqual(state.creates, []);
+}
+{
+  // Tagging needs a successful deployment of the current commit; otherwise the refusal names the run to wait for.
+  const {state, github, core} = fixture();
+  const run = (id, conclusion, extra = {}) => ({id, conclusion, head_sha: sha, head_branch: 'main',
+    html_url: `https://github.com/example/guide/actions/runs/${id}`, ...extra});
+  state.deployRuns = [run(9, null), run(8, 'failure')];
+  await assert.rejects(deployed({github, core, context}), /still being deployed; wait for https:\/\/github\.com\/example\/guide\/actions\/runs\/9 to succeed/);
+  state.deployRuns = [run(8, 'failure')];
+  await assert.rejects(deployed({github, core, context}), /no successful deployment \(latest run: .*runs\/8\); run Deploy the verified site/);
+  state.deployRuns = [];
+  await assert.rejects(deployed({github, core, context}), /no successful deployment; run Deploy the verified site/);
+  state.deployRuns = [run(7, 'success', {head_sha: 'b'.repeat(40)}), run(6, 'success', {head_branch: 'v1.0.0'})];
+  await assert.rejects(deployed({github, core, context}), /no successful deployment/, 'another commit or a tag run does not count');
+  assert.equal(state.reads.at(-1).workflow_id, 'deploy.yml');
+  state.deployRuns = [run(9, null), run(5, 'success')];
+  assert.equal(await deployed({github, core, context}), 5);
+  state.refs.set('heads/main', 'b'.repeat(40));
+  await assert.rejects(deployed({github, core, context}), /moved/);
+  assert.deepEqual(state.creates, [], 'the check never tags');
 }
 console.log('Release dispatch fixtures: complete collection, exact source, PR recovery, protected edits and separate immutable tag pass.');

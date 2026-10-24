@@ -241,3 +241,50 @@
 - **Verification:** The four new tests fail on `a7358ef` and pass now. The read-only live audit and
   `--check-config` are unchanged: 0 drift, 4 pending.
 - **Close-out:** 23 of 61 tasks complete.
+
+## Claude Code session (apply group 4: merge queue and deployment)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` continued after #103 merged; the delivered planning and
+  quality-first rules; read-only `gh` queries of Project #1 views and the repository settings.
+- **What:** Tasks 4.1–4.7.
+  - One reusable workflow (`partitioned-checks.yml`) holds the build, lanes and collector. Pull requests, merge
+    groups and the deployment fallback call it, and the top-level `checks` job keeps the required context.
+  - `checks.yml` runs on `merge_group`, with the queue base, the `preview` channel and no review data.
+  - A staging deployment imports a passing merge-queue run's health snapshot (`check_ci.py adopt`) when the commit,
+    source files and build inputs match. Otherwise it runs the partitioned checks and says why.
+  - An `approve-production` job (environment `production`) waits only for new production bytes. Concurrency is per
+    ref.
+  - One serialized `publish` job resolves the newest checked staging site and the newest approved release when it
+    starts. A cancelled run names its successor.
+  - Tag release names the deployment run to wait for, and Dependabot groups minor and patch updates.
+  - Deployment and contributor docs updated. The renamed Project views are declared.
+- **Impacted:**
+  - Workflows and config: `.github/workflows/{checks,partitioned-checks,deploy,tag-release}.yml`,
+    `.github/dependabot.yml`, `.github/repository.toml`.
+  - Scripts: `.github/scripts/{deployment,release-artifact,prepare-release}.cjs`, `scripts/check_ci.py`,
+    `scripts/check_groups.json`.
+  - Tests: `tests/test_{workflows,check_ci,audit_repository}.py`,
+    `tests/page/check_{publication,release,prepare_release}.mjs`, `tests/fixtures/repository-audit.json`.
+  - Docs: `docs/deployment.md`, `docs/design.md`, CONTRIBUTING.
+  - OpenSpec: the change's design (decisions 7 and 8), the spec delta (late-approval scenario) and tasks 4.1–4.7.
+  - This entry.
+- **Verification:**
+  - Workflow, check and audit unit tests pass. Each of six mutations of the publication rules fails
+    `check_publication.mjs`.
+  - Real data: a `preview` `check_all.py` passed 31 of 31, a fresh staging build adopted its report and published
+    a passed snapshot naming the commit, and a changed build input was refused with its reason.
+  - The full `check_all.py` passes 31 of 31, and `openspec validate --strict` passes.
+- **Corrections:** The maintainer chose option 1 for a tag approved after the default branch moved on:
+  publication takes the newest checked bytes of each channel from the run that checked them.
+- **Findings:**
+  - A check run is named after its job, so moving `checks` into a reusable workflow would have broken the
+    required context.
+  - Pull-request builds use the `local` channel, so only `preview` merge-queue builds can match staging.
+- **Close-out:** 30 of 61 tasks complete. Not yet observed on GitHub: the merge queue, `queue: max`, a
+  `cancelled()` job after a concurrency cancellation, and whether the queue's tested commit becomes the default-branch
+  commit (task 4.9's rehearsal checks them).

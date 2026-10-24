@@ -186,33 +186,46 @@ The main ruleset gains a merge-queue rule: squash method, all entries green, up 
 groups building, no minimum wait and a 30-minute check timeout. The up-to-date requirement is switched off because
 the queue verifies the merged result. PR checks stay required before a PR can be queued, so contributors keep their
 feedback, and Dependabot, refresh and human PRs follow the same path. `checks.yml` handles `merge_group`: it uses
-the merge-group base, skips PR-only review-data steps and keeps read-only permissions. `pr-summary.yml` ignores
-merge-group runs. Administrator bypass stays as the documented break-glass route. Its commits simply do not match
-a queue result, so deployment runs the full checks.
+the merge-group base, skips the quick job and the PR-only review-data steps and keeps read-only permissions.
+Merge-group runs build the `preview` channel that staging deploys, so the bytes they verify are the staging bytes;
+PR runs keep the local channel. `pr-summary.yml` ignores merge-group runs. Administrator bypass stays as the
+documented break-glass route. Its commits simply do not match a queue result, so deployment runs the full checks.
 
-The lane jobs become one reusable workflow, called by PR, merge-group and deployment-fallback checks, so the
-inventory and evidence rules are identical everywhere.
+The build, lane and collector jobs become one reusable workflow, called by PR, merge-group and
+deployment-fallback checks, so the inventory and evidence rules are identical everywhere. A check run is named
+after its job, so `checks.yml` keeps a top-level `checks` job that passes only when the reusable workflow passed;
+the required context keeps its name.
 
 ### 8. Deployment: reuse, approval only for production, serialized publication
 
-For a default-branch push, deployment builds the staging site, which takes seconds. It then looks for a successful
-merge-group `checks` run whose head tree and build inputs equal the pushed commit's. If one is found, it imports
-that run's health snapshot after validating the identity fields and schema, and names the run in the summary.
-Otherwise it runs the reusable partitioned checks. The trust is the same as today: the code that produced the
-reused result is the code being deployed, and a PR run never contributes to a deployment.
+For a default-branch push, deployment builds the staging site in the `preview` channel, which takes seconds. It
+then looks for a successful merge-group `checks` run of the same commit whose source files and build inputs equal
+the fresh build's; the queue's tested commit becomes the default-branch commit. If one is found, it imports that
+run's health snapshot after validating the identity fields and the health API schema, and names the run in the
+summary. Otherwise it runs the reusable partitioned checks and states why. The trust is the same as today: the code
+that produced the reused result is the code being deployed, and a PR run never contributes to a deployment.
 
 Approval moves from the `github-pages` environment to a new `production` environment with required reviewers. An
-`approve-production` job runs only when a tag would publish production bytes that have not been published before.
-Branch pushes select the latest tag whose verified release artifact already exists, so staging never promotes an
-unapproved tag. Workflow concurrency is per ref: branch runs cancel superseded preparation, and tag runs are never
-cancelled by branch runs. Assembly and Pages publication run as one job-level critical section, `pages-publish`
-with `queue: max`. That section rechecks that its staging commit is still current and its production tag is still
-the newest approved one; otherwise it publishes nothing and names the newer run. Tag release checks that the
-current default-branch commit has a successful deployment, which the tag ruleset requires, and otherwise names the
-run to wait for.
+`approve-production` job runs only when a tag run built production bytes that no earlier run verified. A tag is
+approved once its release assets are complete, its deployment run succeeded, or that run's production and approval
+jobs succeeded, so staging never promotes an unapproved tag. Workflow concurrency is per ref: branch runs cancel
+superseded preparation, tag runs are never cancelled by branch runs, and a cancelled run names its successor. Tag
+runs prepare no staging site.
 
-Alternative rejected: keeping one approval for all deployments. It makes every merge a two-person, two-step
-operation without protecting anything that the code-owner review does not already protect.
+Assembly and Pages publication run as one job-level critical section, `pages-publish` with `queue: max`, which
+resolves the identities to publish when it starts. Production is the newest approved tag, fetched from its release
+assets or from the run that verified it. A branch run publishes its own checked staging site while its commit is
+still the default-branch head; otherwise it publishes nothing and names the run for the head. A tag run publishes
+the newest checked staging site of any default-branch run beside its production, so a tag approved after the
+branch moved on is still promoted, and the run for the newer head includes that tag when it publishes. Neither
+channel moves back, and publishing the same identities again changes nothing. Tag release checks that the current
+default-branch commit has a successful deployment, which the tag ruleset requires, and otherwise names the run to
+wait for.
+
+Alternatives rejected: keeping one approval for all deployments, which makes every merge a two-person, two-step
+operation without protecting anything that the code-owner review does not already protect; and publishing nothing
+whenever a run's staging commit is stale, which leaves a tag approved after the branch moved on unpromoted until
+some later deployment.
 
 ### 9. Settings as a reviewed expected state
 
@@ -252,7 +265,7 @@ label that the timeline shows a person removed. The refresh publisher adds `sour
 Status meanings: **Needs triage** is set by the item-added automation (PRs also receive it; the Triage view shows
 issues only). **Ready** means triaged. **In progress** is set when a PR is linked. **Review** is set by hand when
 the linked PR is ready for review. **Done** is set by closing or merging, and auto-archive applies after 14 days.
-PRs are followed in the Contributions and Automated updates views regardless of Status.
+PRs are followed in the "PR - authored" and "PR - automated" views regardless of Status.
 
 **Definition of Ready:** an Issue Type (Bug, Feature or Task), at least one `area:*` label, Priority and Effort
 (Low, Medium or High), and a body that the delivered `readiness()` accepts. Priority and Effort are organization

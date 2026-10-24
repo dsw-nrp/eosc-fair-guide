@@ -2,17 +2,20 @@ name: Guide checks and health report
 
 on:
   pull_request:
+  merge_group:
 
 permissions:
   contents: read
 
 concurrency:
-  group: guide-checks-${{ github.event.pull_request.number }}
+  # Each merge group has a ref of its own, so queue runs never cancel one another.
+  group: guide-checks-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   # Early feedback beside the build. Not required: the `checks` result runs the same checks with every other one.
   quick:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -47,189 +50,31 @@ jobs:
             printf '%s\n' 'Quick result unavailable: setup did not reach the check runner. See the failed job step.' >> "$GITHUB_STEP_SUMMARY"
           fi
 
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.12'
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - name: Build and record source, site and coverage identities
-        run: python scripts/check_ci.py build
-      - name: Share the checked build
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: checked-build
-          path: |
-            _site/
-            .cache/ci-build/manifest.json
-          include-hidden-files: true
-          retention-days: 2
+  partitioned:
+    uses: ./.github/workflows/partitioned-checks.yml
+    with:
+      base: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+      head: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+      # The queue checks the bytes staging deploys, so a deployment of the same commit can reuse its result.
+      channel: ${{ github.event_name == 'merge_group' && 'preview' || 'local' }}
+      review: ${{ github.event_name == 'pull_request' }}
+      cache: true
 
-  lanes:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        # The lanes of scripts/check_ci.py, which assigns their checks.
-        lane: [cpu, unit, browser-a, browser-b, browser-c, browser-d]
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - id: python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.12'
-          # Only the CPU and unit lanes install Python packages, the same set, so only they use the pip cache.
-          cache: ${{ (matrix.lane == 'cpu' || matrix.lane == 'unit') && 'pip' || '' }}
-          cache-dependency-path: requirements-dev.txt
-      - id: node
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: package-lock.json
-      # Browser lanes import only the standard library from Python (verified import graph), so they skip the
-      # validators, linters and their dependencies.
-      - name: Install the Python check tools in the CPU and unit lanes
-        if: matrix.lane == 'cpu' || matrix.lane == 'unit'
-        run: python -m pip install -r requirements-dev.txt
-      - name: Install the Node check tools
-        run: npm ci
-      - name: Install browser only in browser lanes
-        if: startsWith(matrix.lane, 'browser-')
-        run: npm run browsers -- --with-deps
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: checked-build
-          path: .
-      - name: Verify the build and run the assigned checks
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          CHECK_LANE: ${{ matrix.lane }}
-          CHECK_CACHE_PIP: ${{ steps.python.outputs.cache-hit }}
-          CHECK_CACHE_NPM: ${{ steps.node.outputs.cache-hit }}
-        run: python -u scripts/check_ci.py lane --name "$CHECK_LANE" --base "$BASE_SHA"
-      - name: Save lane evidence even on failure
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: check-lane-${{ matrix.lane }}
-          path: .cache/health/
-          if-no-files-found: warn
-          retention-days: 30
-      - name: Save lane visuals
-        if: always() && startsWith(matrix.lane, 'browser-')
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: check-visuals-${{ matrix.lane }}
-          path: .cache/screenshots/
-          if-no-files-found: warn
-          retention-days: 14
-
+  # The required status check. A check run is named after its job, so this job keeps the name `checks` while the
+  # work runs in the reusable workflow.
   checks:
     if: always()
-    needs: [build, lanes]
+    needs: partitioned
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.12'
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: package-lock.json
-      - run: npm ci
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: checked-build
-          path: .
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: check-lane-*
-          path: .cache/ci-results/
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          pattern: check-visuals-*
-          path: .cache/screenshots/
-          merge-multiple: true
-      - name: Reconcile complete coverage and publish one verified health result
-        id: collect
-        if: always()
+      - name: Require the complete partitioned result
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python -u scripts/check_ci.py collect --base "$BASE_SHA"
-      - name: Publish the run summary
-        if: always()
+          RESULT: ${{ needs.partitioned.result }}
         run: |
-          if [ -f .cache/health/summary.md ]; then
-            cat .cache/health/summary.md >> "$GITHUB_STEP_SUMMARY"
+          if [ "$RESULT" = success ]; then
+            echo 'Every partitioned check passed. The `partitioned / collect` job holds the health report.' >> "$GITHUB_STEP_SUMMARY"
           else
-            printf '%s\n' 'Health report unavailable: setup did not reach the check runner. See the failed job step.' >> "$GITHUB_STEP_SUMMARY"
+            echo "The partitioned checks ended with $RESULT. The \`partitioned / collect\` job names every failure." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
-      - name: Save the health dashboard
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: health-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .cache/health/
-          if-no-files-found: warn
-          retention-days: 30
-      - name: Save preview and visual checks
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: guide-preview-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            _site/
-            .cache/screenshots/
-          if-no-files-found: warn
-          retention-days: 14
-      - name: Prepare bilingual review data
-        if: always()
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python scripts/pr_summary.py --base "$BASE_SHA" --head "$HEAD_SHA" --output .cache/pr-review/summary.json
-      - name: Suggest contributor and attribution patches
-        if: always()
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          python scripts/contributors.py --base "$BASE_SHA" --output .cache/pr-review/contributors.json
-          cat .cache/pr-review/contributors.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Save review data for the trusted comment workflow
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: guide-review-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            .cache/pr-review/summary.json
-            .cache/pr-review/changes.json
-            .cache/pr-review/contributors.json
-            ${{ steps.collect.outputs.suggestions_path }}
-          if-no-files-found: warn
-          retention-days: 14

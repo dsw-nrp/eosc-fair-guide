@@ -33,6 +33,25 @@ async function verifiedRun({ github, context }) {
   return run.id;
 }
 
+/** A deployment of this release tag whose production bytes are approved: a successful run, or one whose
+    `production` and `approve-production` jobs succeeded while it is still publishing. Its `guide-site-<sha>`
+    artifact holds those bytes. */
+async function approvedRun({ github, context }) {
+  const { tag } = tagOf(context);
+  const runs = (await github.paginate(github.rest.actions.listWorkflowRuns, { ...context.repo, workflow_id: "deploy.yml",
+    branch: tag, event: "push", head_sha: context.sha, per_page: 100 }))
+    .filter((entry) => entry.head_sha === context.sha && entry.head_branch === tag && entry.event === "push");
+  for (const run of runs) {
+    if (run.conclusion === "success") return run.id;
+    if (run.conclusion) continue;
+    const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, { ...context.repo, run_id: run.id,
+      filter: "latest", per_page: 100 });
+    const passed = (name) => jobs.some((job) => job.name === name && job.conclusion === "success");
+    if (passed("production") && passed("approve-production")) return run.id;
+  }
+  throw Object.assign(Error(`No approved production bytes of ${context.sha}`), { code: "not-verified" });
+}
+
 /** Numeric core and SemVer prerelease precedence, independent of API tag-list ordering. */
 function compareTags(a, b) {
   const parts = (tag) => { const [core, ...rest] = tag.slice(1).split("-"); return [core.split(".").map(BigInt), rest.join("-")]; };
@@ -69,7 +88,8 @@ async function sources({ github, context }) {
   const stage = isTag ? (await github.rest.repos.getBranch({ ...context.repo, branch })).data.commit.sha : context.sha;
   if (!/^[0-9a-f]{40}$/.test(stage) || (latest && !/^[0-9a-f]{40}$/.test(latest.commit.sha))) throw Error("Invalid source commit");
   const selected = isTag ? latest : production;
-  return { staging: stage, tag: selected?.name || "", production: selected?.commit.sha || "", build: isTag && !production ? "true" : "false" };
+  return { kind: isTag ? "tag" : "branch", staging: stage, tag: selected?.name || "", production: selected?.commit.sha || "",
+    build: isTag && !production ? "true" : "false" };
 }
 
 function expectedAssets(context) {
@@ -86,7 +106,7 @@ async function releaseOf(github, context) {
 async function available({ github, context }) {
   const release = await releaseOf(github, context);
   if (release && expectedAssets(context).every((name) => release.assets.some((asset) => asset.name === name))) return true;
-  try { await verifiedRun({ github, context }); return true; }
+  try { await approvedRun({ github, context }); return true; }
   catch (error) {
     if (error.code !== "not-verified") throw error;
     if (release && !release.draft) throw Error(`Published release ${tagOf(context).tag} has incomplete assets and no verified fallback`);
@@ -109,11 +129,11 @@ async function assetBytes(github, repo, asset) {
   return data;
 }
 
-/** Reuse durable release assets; a just-created tag can use its successful Actions artifact until the draft exists. */
+/** Reuse durable release assets; a just-created tag can use its approved Actions artifact until the draft exists. */
 async function reuse({ github, context }, write = writeFileSync) {
   const release = await releaseOf(github, context);
   const names = expectedAssets(context);
-  if (!release || !names.every((name) => release.assets.some((asset) => asset.name === name))) return { run: await verifiedRun({ github, context }) };
+  if (!release || !names.every((name) => release.assets.some((asset) => asset.name === name))) return { run: await approvedRun({ github, context }) };
   mkdirSync(DIR, { recursive: true });
   for (const filename of names) {
     const asset = release.assets.find((entry) => entry.name === filename);
@@ -182,5 +202,5 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   return release.id;
 }
 
-module.exports = { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion,
-  VERIFICATION };
+module.exports = { verifiedRun, approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag,
+  assertPromotion, VERIFICATION };

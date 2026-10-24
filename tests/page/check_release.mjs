@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-const { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
+const { verifiedRun, approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
 const { validVersion } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
 const cases = JSON.parse(readFileSync(new URL("../fixtures/normalization.json", import.meta.url), "utf8"));
 for (const value of cases.versions.valid) assert(validVersion(value), value);
@@ -36,10 +36,11 @@ const files = (overrides = {}, archiveBytes = archive) => (path) => {
   if (path.endsWith(".sha256")) return `${digest}  ${name}.tar.gz\n`;
   return archiveBytes;
 };
-function fake(runs = [], tags = []) {
+function fake(runs = [], tags = [], jobs = {}) {
   const calls = [];
   return { calls, github: { paginate: async (method, options) => method(options), rest: {
     actions: { listWorkflowRuns: (options) => { calls.push(["runs", options]); return runs; },
+      listJobsForWorkflowRun: (options) => { calls.push(["jobs", options]); return jobs[options.run_id] || []; },
       getWorkflowRun: async (options) => { calls.push(["completed", options]); return { data: runs[0] }; } },
     repos: {
       createRelease: async (options) => { calls.push(["release", options]); return { data: { id: 77 } }; },
@@ -63,6 +64,26 @@ assert.equal(calls[0][1].head_sha, sha);
 assert.equal(calls[0][1].branch, "v1.0.0-alpha.1", "a default-branch run cannot supply production");
 ({ github } = fake([{ id: 6, head_sha: "b".repeat(40), conclusion: "success" }]));
 await assert.rejects(verifiedRun({ github, context: context() }), /No successful verified deployment/);
+
+// Approved production bytes: a successful run, or a run still publishing whose production and approval jobs passed.
+const publishing = { ...goodRun, id: 8, conclusion: null };
+const job = (name, conclusion = "success") => ({ name, conclusion });
+({ github, calls } = fake([goodRun]));
+assert.equal(await approvedRun({ github, context: context() }), 5);
+({ github, calls } = fake([publishing], [], { 8: [job("production"), job("approve-production")] }));
+assert.equal(await approvedRun({ github, context: context() }), 8, "approval counts before the run finishes");
+assert.equal(calls.find(([kind]) => kind === "jobs")[1].filter, "latest", "a rerun's latest job attempts decide");
+for (const [runs, jobs, why] of [
+  [[publishing], { 8: [job("production"), job("approve-production", null)] }, "an approval still waiting"],
+  [[publishing], { 8: [job("production"), job("approve-production", "failure")] }, "a rejected approval"],
+  [[publishing], { 8: [job("production", "failure"), job("approve-production")] }, "failed production checks"],
+  [[{ ...publishing, conclusion: "failure" }], { 8: [job("production"), job("approve-production")] }, "a failed run"],
+  [[{ ...publishing, head_sha: "b".repeat(40) }], { 8: [job("production"), job("approve-production")] }, "another commit"],
+  [[{ ...publishing, head_branch: "main" }], { 8: [job("production"), job("approve-production")] }, "a branch run"],
+]) {
+  ({ github } = fake(runs, [], jobs));
+  await assert.rejects(approvedRun({ github, context: context() }), /No approved production bytes/, why);
+}
 
 ({ github, calls } = fake());
 assert.equal(await draftRelease({ github, context: context(), core }, files()), 77);
@@ -112,15 +133,15 @@ for (const [a, b] of [["v1.0.0-alpha.10", "v1.0.0-alpha.2"], ["v1.0.0", "v1.0.0-
 }
 const tag = (name, commit = sha) => ({ name, commit: { sha: commit } });
 ({ github, calls } = fake([{ ...goodRun, head_branch: "v1.0.0-alpha.10", head_sha: "c".repeat(40) }], [tag("v1.0.0-alpha.2"), tag("invalid"), tag("v1.0.0-alpha.10", "c".repeat(40)), tag("v01.0.0")]));
-assert.deepEqual(await sources({ github, context: context("refs/heads/main") }), { staging: sha, production: "c".repeat(40), tag: "v1.0.0-alpha.10", build: "false" });
+assert.deepEqual(await sources({ github, context: context("refs/heads/main") }), { kind: "branch", staging: sha, production: "c".repeat(40), tag: "v1.0.0-alpha.10", build: "false" });
 ({ github } = fake([], [tag("v1.0.0-alpha.1")]));
-assert.deepEqual(await sources({ github, context: context() }), { staging: "b".repeat(40), production: sha, tag: "v1.0.0-alpha.1", build: "true" });
+assert.deepEqual(await sources({ github, context: context() }), { kind: "tag", staging: "b".repeat(40), production: sha, tag: "v1.0.0-alpha.1", build: "true" });
 await assert.rejects(sources({ github, context: context("refs/heads/feature") }), /default branch/);
 await assert.rejects(sources({ github, context: context("refs/tags/v0.9.0") }), /newest release tag/);
 ({ github } = fake());
-assert.deepEqual(await sources({ github, context: context("refs/heads/main") }), { staging: sha, production: "", tag: "", build: "false" });
+assert.deepEqual(await sources({ github, context: context("refs/heads/main") }), { kind: "branch", staging: sha, production: "", tag: "", build: "false" });
 ({ github } = fake([goodRun], [tag("v1.1.0", "c".repeat(40)), tag("v1.0.0-alpha.1")]));
-assert.deepEqual(await sources({ github, context: context("refs/heads/main") }), { staging: sha, production: sha, tag: "v1.0.0-alpha.1", build: "false" }, "a failed newer tag does not block previews or supersede production");
+assert.deepEqual(await sources({ github, context: context("refs/heads/main") }), { kind: "branch", staging: sha, production: sha, tag: "v1.0.0-alpha.1", build: "false" }, "a failed newer tag does not block previews or supersede production");
 ({ github } = fake([], [tag("v1.1.0", "c".repeat(40)), tag("v1.0.0-alpha.1")]));
 github.rest.repos.getReleaseByTag = async () => ({ data: { draft: false, assets: [] } });
 await assert.rejects(sources({ github, context: context("refs/heads/main") }), /Published release.*incomplete assets/,

@@ -229,14 +229,14 @@ group_by = ["Milestone"]
 sort_by = ["Status asc", "Title asc"]
 
 [[project.view]]
-name = "Contributions"
+name = "PR - authored"
 layout = "table"
 filter = "is:pr -label:dependencies,source-refresh"
 group_by = ["Milestone"]
 sort_by = ["Title asc"]
 
 [[project.view]]
-name = "Automated updates"
+name = "PR - automated"
 layout = "table"
 filter = "is:pr label:dependencies,source-refresh"
 group_by = ["Milestone"]
@@ -290,7 +290,7 @@ permissions = { artifact_metadata = "read", attestations = "read", checks = "rea
 # workflow's) and `app` the permissions it asks the App token for. Every job appears exactly once.
 [[token]]
 workflow = "checks.yml"
-jobs = ["quick", "build", "lanes", "checks"]
+jobs = ["quick", "partitioned", "checks"]
 github = { contents = "read" }
 
 [[token]]
@@ -315,18 +315,23 @@ github = { contents = "read" }
 
 [[token]]
 workflow = "deploy.yml"
-jobs = ["sources", "production"]
+jobs = ["sources", "production", "stage", "superseded"]
 github = { actions = "read", contents = "read" }
 
 [[token]]
 workflow = "deploy.yml"
-jobs = ["staging", "assemble"]
+jobs = ["approve-production"]
+github = {}
+
+[[token]]
+workflow = "deploy.yml"
+jobs = ["fallback-checks"]
 github = { contents = "read" }
 
 [[token]]
 workflow = "deploy.yml"
-jobs = ["deploy"]
-github = { id-token = "write", pages = "write" }
+jobs = ["publish"]
+github = { actions = "read", contents = "read", id-token = "write", pages = "write" }
 
 [[token]]
 workflow = "fix-duplicates.yml"
@@ -338,6 +343,11 @@ app = { contents = "write", pull-requests = "write" }
 workflow = "health-watch.yml"
 jobs = ["watch"]
 github = { contents = "read", issues = "write" }
+
+[[token]]
+workflow = "partitioned-checks.yml"
+jobs = ["build", "lanes", "collect"]
+github = { contents = "read" }
 
 [[token]]
 workflow = "pr-summary.yml"
@@ -384,7 +394,7 @@ app = { contents = "write", pull-requests = "write" }
 [[token]]
 workflow = "tag-release.yml"
 jobs = ["tag"]
-github = { contents = "read" }
+github = { actions = "read", contents = "read" }
 app = { contents = "write" }
 
 # Approved targets not yet applied, with their current values. A command the audit prints for any other difference

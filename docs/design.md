@@ -499,8 +499,13 @@ browser lanes, balanced from measured run timings (`scripts/ci_timings.py`) and 
 The unit shards have a runner of their own because, beside the validators, they made the CPU lane the critical path. A separate,
 non-required quick result runs the cheap offline checks beside the build; the CPU lane runs them again. The command
 inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
-Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,
+Build, lanes and collector form one reusable workflow, `partitioned-checks.yml`, which pull requests, merge
+groups and the deployment fallback call; a top-level `checks` job keeps the required check's name and passes only
+when that workflow passed.
+Each lane checks its inputs and emits partial evidence. The collector rejects missing,
 duplicate, incomplete or mismatched work, reconciles station/PDF inventories and publishes one health snapshot.
+A staging deployment of the same commit and build inputs as a passing merge-group run publishes that snapshot in
+its fresh build (`check_ci.py adopt`) instead of checking again.
 It runs after failed lanes too. Source revision means the checked commit; trusted PR comments separately verify
 the PR head. The local full-run command and all validator profiles remain available unchanged, and the local
 runner reads a partial child the way the collector does: the job row and the run fail and it exits non-zero,

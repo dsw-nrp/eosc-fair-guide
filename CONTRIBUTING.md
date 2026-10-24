@@ -81,8 +81,10 @@ Stop a benchmark after a failed run, retain its evidence and diagnose it before 
 Default traces retain actions; a failed case adds a PNG and an HTML snapshot. Set `CHECK_TRACE_SNAPSHOTS=1`
 for full trace snapshots when investigating a difficult case.
 
-PR CI runs one verified build through a CPU lane, a unit-test lane and four browser lanes, then the required
-`checks` collector.
+PR CI runs the reusable [partitioned checks](.github/workflows/partitioned-checks.yml): one verified build, a CPU
+lane, a unit-test lane, four browser lanes and the `collect` job that reconciles their evidence. The required
+`checks` job passes only when all of them passed. Merge-queue runs and the deployment fallback call the same
+workflow, building the `preview` channel that staging deploys.
 Beside the build, a non-required `quick` job runs the cheap offline checks (`python scripts/check_ci.py quick`)
 for early feedback; the CPU lane runs the same checks again, so `checks` reports every failure `quick` does.
 `check_ci.BROWSER_LANES` assigns the browser jobs to lanes. Change it only through review, from the balanced
@@ -174,8 +176,13 @@ collaborators, never a team that does not exist.
 
 The gates that can be enforced depend on who can review:
 
-- Pull requests into `main` require the check "Guide checks and health report" to pass. Explicitly authorized
-  maintainer direct commits remain subject to configured branch protection; nothing is force-pushed or deleted.
+- Pull requests into `main` require the `checks` result of "Guide checks and health report" to pass. Explicitly
+  authorized maintainer direct commits remain subject to configured branch protection; nothing is force-pushed or
+  deleted.
+- Once the merge queue is on, choose **Merge when ready** after approval. The queue checks the merged result again
+  and merges only when it passes, so a pull request no longer has to be up to date with `main`. Human, Dependabot
+  and refresh pull requests take the same path. An administrator's direct merge is the break-glass route; its
+  deployment runs the full checks (see [deployment](docs/deployment.md#merge-queue-staging-and-production)).
 - Keep `CODEOWNERS` aligned with eligible reviewers for `content/`, the stations and checks. Require one
   approving code-owner review when an independent eligible reviewer is available. GitHub does not let an
   author approve their own pull request; without an eligible independent reviewer, a release candidate needs
@@ -220,8 +227,10 @@ process is also accepted: tagging checks the current default-branch source, ever
 dated release notes, without requiring a release PR. Preparation and ordinary pushes never create a release tag.
 
 `python scripts/release_versions.py check --site _site` refuses metadata/date disagreements and prose that
-restates the Guide version. Tags use `vX.Y.Z` (or a SemVer prerelease suffix). The tag checks and packages the site;
-production and the draft release receive those same verified bytes. See [deployment](docs/deployment.md) for
+restates the Guide version. Tags use `vX.Y.Z` (or a SemVer prerelease suffix). Tag release needs a successful
+deployment of the current default-branch commit and otherwise names the run to wait for. The tag checks and
+packages the site and waits for a maintainer's approval in the `production` environment; production and the
+draft release receive those same verified bytes. See [deployment](docs/deployment.md) for
 configuration, local fixtures and recovery. These workflows never merge a pull request or publish a release.
 
 `python scripts/check_citation_metadata.py` validates CFF, supported Zenodo import fields and shared software

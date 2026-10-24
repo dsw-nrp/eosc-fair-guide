@@ -403,7 +403,7 @@
        }
       },
       {
-       "name": "Contributions",
+       "name": "PR - authored",
        "layout": "TABLE_LAYOUT",
        "filter": "is:pr -label:dependencies,source-refresh",
        "groupByFields": {
@@ -425,7 +425,7 @@
        }
       },
       {
-       "name": "Automated updates",
+       "name": "PR - automated",
        "layout": "TABLE_LAYOUT",
        "filter": "is:pr label:dependencies,source-refresh",
        "groupByFields": {

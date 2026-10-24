@@ -372,6 +372,22 @@ class ConfigTests(unittest.TestCase):
                     problems = self.problems(lambda c, table=table, key=key: table(c).pop(key))
                     self.assertIn(f"{where}: missing key {key!r}", problems)
 
+    def test_the_documented_setting_steps_are_the_pending_entries_in_order(self):
+        text = (Path(__file__).resolve().parent.parent / "docs/deployment.md").read_text(encoding="utf-8")
+        table = text[text.index("| Step | Precondition | Rollback |") :].split("\n\n")[0].splitlines()[2:]
+        steps = {
+            "ruleset.Main branch protection.rules.merge_queue": "Turn the merge queue on",
+            "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy": (
+                "require branches to be up to date"
+            ),
+            "environment.production": "Create `production`",
+            "environment.github-pages.reviewers": "Remove the reviewer from `github-pages`",
+        }
+        self.assertEqual([entry["setting"] for entry in self.config["pending"]], list(steps))
+        self.assertEqual(len(table), len(steps))
+        for row, step in zip(table, steps.values(), strict=True):
+            self.assertIn(step, row)
+
     def test_an_invalid_file_stops_before_reading_anything(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "repository.toml"
