@@ -123,7 +123,7 @@ const kept = (expired = false) => [{ name: "staging-site", expired }];
 // After a default-branch deployment: its own staging site while it is the head, beside the newest approved release.
 const approvedTag = { runs: [run(30, "deploy.yml", { head_branch: "v1.0.0", head_sha: tagged, conclusion: null })],
   jobs: { 30: [job("production"), job("approve-production")] } };
-const publish = (github, context, recorded = c3, write = undefined) => publication({ github, context, recorded }, write);
+const publish = (github, context, recorded = c3) => publication({ github, context, recorded });
 {
   const github = fake({ runs: [run(60, "deploy.yml", { head_sha: c3 }), ...approvedTag.runs],
     jobs: approvedTag.jobs, tags: [["v1.0.0", tagged]] });
@@ -203,16 +203,14 @@ const publish = (github, context, recorded = c3, write = undefined) => publicati
   assert.equal(result.successor, newer.html_url);
 }
 
-// Release assets supply production bytes without any run.
+// Release assets supply production bytes without any run; deciding fetches none of them.
 {
   const name = "eosc-fair-guide-site-1.0.0-aaaaaaaaaaaa.tar.gz";
   const assets = ["manifest.json", name, `${name}.sha256`].map((file, index) => ({ id: index + 1, name: file, size: 1 }));
   const github = fake({ tags: [["v1.0.0", tagged]], releases: { "v1.0.0": { draft: false, assets } } });
-  github.rest.repos.getReleaseAsset = async () => ({ data: Buffer.from("x") });
-  const written = [];
-  const result = await publish(github, new FakeContext("refs/heads/main", c3, 63), c3, (path) => written.push(path));
-  assert.deepEqual([result.tag, result.production_run], ["v1.0.0", ""]);
-  assert.equal(written.length, 3, "the assembler reads the release assets from .cache/release");
+  github.rest.repos.getReleaseAsset = async () => assert.fail("the decision downloads no release asset");
+  const result = await publish(github, new FakeContext("refs/heads/main", c3, 63));
+  assert.deepEqual([result.publish, result.tag, result.production, result.production_run], ["true", "v1.0.0", tagged, ""]);
 }
 await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 64)), /default branch or a release tag/);
 

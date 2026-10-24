@@ -54,7 +54,9 @@ it starts:
   deployment is still preparing, the tag publishes nothing, and the head's publication then includes the release.
 
 GitHub records each Pages deployment against the default-branch head when the publication started, which the tag
-ruleset and Tag release read; a publication therefore deploys only that commit's staging site. No publication moves
+ruleset and Tag release read; a publication therefore deploys only that commit's staging site. It decides in a job
+without an environment, so a publication that deploys nothing leaves no `github-pages` record. A newer waiting
+publication replaces an older waiting one, since it resolves the same or a newer state. No publication moves
 either channel back, and a retry publishes the same identities again. The release workflow drafts a release, and
 publishes its image, only after a publication has deployed that release to Pages.
 

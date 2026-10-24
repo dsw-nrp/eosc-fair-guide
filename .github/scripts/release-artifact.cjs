@@ -121,11 +121,21 @@ async function assetBytes(github, repo, asset) {
   return data;
 }
 
-/** Reuse durable release assets; a just-created tag can use its approved Actions artifact until the draft exists. */
-async function reuse({ github, context }, write = writeFileSync) {
+/** Where a release's approved bytes are, without fetching them: its complete release assets (no run), or the
+    approved Actions artifact of the run that checked them, which a just-created tag uses until the draft exists. */
+async function productionSource({ github, context }) {
   const release = await releaseOf(github, context);
+  if (release && expectedAssets(context).every((name) => release.assets.some((asset) => asset.name === name))) {
+    return { run: "", release };
+  }
+  return { run: await approvedRun({ github, context }) };
+}
+
+/** Reuse durable release assets, written to .cache/release, or name the run whose artifact holds the bytes. */
+async function reuse({ github, context }, write = writeFileSync) {
+  const { run, release } = await productionSource({ github, context });
+  if (run) return { run };
   const names = expectedAssets(context);
-  if (!release || !names.every((name) => release.assets.some((asset) => asset.name === name))) return { run: await approvedRun({ github, context }) };
   mkdirSync(DIR, { recursive: true });
   for (const filename of names) {
     const asset = release.assets.find((entry) => entry.name === filename);
@@ -157,9 +167,8 @@ async function publishedRelease({ github, context }, read = readFileSync) {
   if ((await github.rest.repos.getCommit({ ...context.repo, ref: tag })).data.sha !== selected.sha) {
     throw Error("Release tag moved after publication");
   }
-  const release = await releaseOf(github, selected);
-  if (release && expectedAssets(selected).every((name) => release.assets.some((asset) => asset.name === name))) return NO_RELEASE;
-  return { tag, sha: selected.sha, run: String(await approvedRun({ github, context: selected })) };
+  const { run: approved } = await productionSource({ github, context: selected });
+  return approved ? { tag, sha: selected.sha, run: String(approved) } : NO_RELEASE;
 }
 
 /** Draft the release with the downloaded artifact once its digest, commit, version and health run agree. */
@@ -208,5 +217,5 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   return release.id;
 }
 
-module.exports = { approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, publishedRelease,
-  assertPromotion, PUBLISHED, VERIFICATION };
+module.exports = { approvedRun, draftRelease, tagOf, refContext, compareTags, sources, productionSource, reuse,
+  publishedRelease, assertPromotion, PUBLISHED, VERIFICATION };

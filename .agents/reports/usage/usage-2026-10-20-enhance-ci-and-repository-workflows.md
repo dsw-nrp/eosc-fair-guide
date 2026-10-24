@@ -319,3 +319,20 @@
   - The Python and JavaScript tests pass.
   - The live audit of rulesets and environments shows 0 drift and 2 pending.
 - **Corrections:** Option C was the maintainer's choice over the recommended per-ref queue.
+
+### Review of PR #109, round 2 (`5cedca9`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** One Medium finding, confirmed. A publication that deployed nothing still recorded a successful
+  `github-pages` environment deployment, which the tag ruleset and Tag release accept.
+  - `publish.yml` now decides in a `resolve` job without an environment, and only a deploying `publish` job enters
+    `github-pages`. A workflow-level `pages-publish` group keeps deciding and deploying together.
+  - `productionSource()` names where approved bytes are without downloading them, and `reuse()` and
+    `publishedRelease()` build on it.
+- **Impacted:** `.github/workflows/publish.yml`, `.github/scripts/{deployment,release-artifact}.cjs`,
+  `.github/repository.toml`, `tests/test_workflows.py`, `tests/page/check_publication.mjs`, `docs/deployment.md`,
+  the change's design decision 8, this entry.
+- **Verification:** The workflow, audit and check tests and the publication, release and dispatch checks pass, and
+  `openspec validate --strict` passes.

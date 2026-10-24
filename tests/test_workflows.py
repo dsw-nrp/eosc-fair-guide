@@ -87,35 +87,39 @@ class WorkflowContracts(unittest.TestCase):
         workflow = load(".github/workflows/publish.yml")
         self.assertEqual(workflow["on"], {"workflow_run": {"workflows": [deploy["name"]], "types": ["completed"]}})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
-        self.assertNotIn("concurrency", workflow, "no workflow-level group replaces a waiting publication")
-        job = workflow["jobs"]["publish"]
-        condition = " ".join(job["if"].split())
+        # Deciding and deploying run together, one publication at a time; a newer waiting one replaces an older one.
+        self.assertEqual(workflow["concurrency"], {"group": "pages-publish", "cancel-in-progress": "false"})
+        resolve = workflow["jobs"]["resolve"]
+        condition = " ".join(resolve["if"].split())
         for part in (
             "github.event.workflow_run.conclusion == 'success'",
             "github.event.workflow_run.head_repository.full_name == github.repository",
             "github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch'",
         ):
             self.assertIn(part, condition)
-        self.assertEqual(job["concurrency"], {"group": "pages-publish", "queue": "max"})
-        self.assertEqual(job["environment"]["name"], "github-pages")
+        self.assertNotIn("environment", resolve, "deciding leaves no github-pages deployment record")
+        self.assertEqual(resolve["permissions"], {"actions": "read", "contents": "read"})
+        self.assertEqual(resolve["steps"][0]["with"]["ref"], "${{ github.event.repository.default_branch }}")
+        script = next(step for step in resolve["steps"] if step.get("id") == "resolve")["with"]["script"]
+        self.assertIn("completedDeployment({ github, context })", script)
+        self.assertIn("recorded: context.sha", script, "the Pages record names the staging published")
+        publish = workflow["jobs"]["publish"]
+        self.assertEqual(publish["needs"], "resolve")
         self.assertEqual(
-            job["permissions"], {"actions": "read", "contents": "read", "id-token": "write", "pages": "write"}
+            publish["if"], "needs.resolve.outputs.publish == 'true'", "only a real deployment enters github-pages"
         )
-        steps = job["steps"]
+        self.assertEqual(publish["environment"]["name"], "github-pages")
+        self.assertEqual(
+            publish["permissions"], {"actions": "read", "contents": "read", "id-token": "write", "pages": "write"}
+        )
+        steps = publish["steps"]
         self.assertEqual(steps[0]["with"]["ref"], "${{ github.event.repository.default_branch }}", "trusted code")
-        resolve = next(step for step in steps if step.get("id") == "resolve")
-        self.assertIn("completedDeployment({ github, context })", resolve["with"]["script"])
-        self.assertIn(
-            "recorded: context.sha", resolve["with"]["script"], "the Pages record names the staging published"
-        )
-        after = steps[steps.index(resolve) + 1 :]
-        for step in after:
-            self.assertIn(
-                "steps.resolve.outputs.publish == 'true'", step["if"], "a stale publication publishes nothing"
-            )
-        pages = next(step for step in after if step.get("id") == "deployment")
-        record = next(step for step in after if step.get("with", {}).get("name") == "pages-identity")
-        self.assertGreater(after.index(record), after.index(pages), "the record exists only after a Pages deployment")
+        pages = next(step for step in steps if step.get("id") == "deployment")
+        record = next(step for step in steps if step.get("with", {}).get("name") == "pages-identity")
+        self.assertGreater(steps.index(record), steps.index(pages), "the record exists only after a Pages deployment")
+        self.assertEqual(record["with"]["path"], ".cache/published/identity.json")
+        writer = (ROOT / ".github/scripts/release-artifact.cjs").read_text(encoding="utf-8")
+        self.assertIn('const PUBLISHED = ".cache/published/identity.json";', writer, "the reader names the same file")
         self.assertIn("assemble_pages.py", " ".join(step.get("run", "") for step in steps))
         self.assertNotIn("check_all.py", " ".join(step.get("run", "") for step in steps))
 
@@ -611,8 +615,8 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(
             downloads,
             {
-                "staging-site": "${{ steps.resolve.outputs.staging_run }}",
-                "guide-site-${{ steps.resolve.outputs.production }}": "${{ steps.resolve.outputs.production_run }}",
+                "staging-site": "${{ needs.resolve.outputs.staging_run }}",
+                "guide-site-${{ needs.resolve.outputs.production }}": "${{ steps.production.outputs.run }}",
             },
             "publication takes each channel from the run that checked or approved it",
         )

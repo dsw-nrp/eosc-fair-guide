@@ -359,6 +359,11 @@ app = { contents = "write", pull-requests = "write" }
 
 [[token]]
 workflow = "publish.yml"
+jobs = ["resolve"]
+github = { actions = "read", contents = "read" }
+
+[[token]]
+workflow = "publish.yml"
 jobs = ["publish"]
 github = { actions = "read", contents = "read", id-token = "write", pages = "write" }
 

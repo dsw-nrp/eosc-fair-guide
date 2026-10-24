@@ -1,7 +1,6 @@
 // Trusted default-branch code for deployment: finds a merge-queue result that a staging deployment can reuse, and
 // resolves what the separate, serialized publish workflow publishes. It builds and publishes nothing itself.
-const { writeFileSync } = require("node:fs");
-const { tagOf, refContext, sources, reuse } = require("./release-artifact.cjs");
+const { tagOf, refContext, sources, productionSource } = require("./release-artifact.cjs");
 
 const SHA = /^[0-9a-f]{40}$/;
 const sameRepository = (context, run) => run.head_repository?.full_name === `${context.repo.owner}/${context.repo.repo}`;
@@ -77,11 +76,11 @@ const nothing = (reason, successor) => ({ publish: "false", reason, successor: s
 
 /** What one publication publishes, resolved inside the serialized section so that neither channel moves back. Its
     Pages deployment is recorded against `recorded`, the default-branch head when it started, so it publishes only
-    that commit's staging site. Production is the newest approved release, from its release assets (written to
-    .cache/release) or the run that approved it. After a default-branch deployment, publication takes that run's own
-    checked staging site while its commit is the head. After a release-tag deployment, it takes the newest checked
-    staging site once that is the head's; until then the head's own deployment publishes the release with it. */
-async function publication({ github, context, recorded }, write = writeFileSync) {
+    that commit's staging site. Production is the newest approved release, from its release assets or the run that
+    approved it (`production_run`); nothing is fetched here. After a default-branch deployment, publication takes that
+    run's own checked staging site while its commit is the head. After a release-tag deployment, it takes the newest
+    checked staging site once that is the head's; until then the head's own deployment publishes the release. */
+async function publication({ github, context, recorded }) {
   const branch = context.payload.repository.default_branch;
   const isTag = context.ref.startsWith("refs/tags/");
   if (!isTag && context.ref !== "refs/heads/" + branch) throw Error("Publish only the default branch or a release tag");
@@ -108,7 +107,7 @@ async function publication({ github, context, recorded }, write = writeFileSync)
   }
   let production = { tag: "", commit: "", run: "" };
   if (selected.tag) {
-    const { run } = await reuse({ github, context: refContext(context, "refs/tags/" + selected.tag, selected.production) }, write);
+    const { run } = await productionSource({ github, context: refContext(context, "refs/tags/" + selected.tag, selected.production) });
     production = { tag: selected.tag, commit: selected.production, run: run ? String(run) : "" };
   }
   return { publish: "true", reason: "", successor: "", staging: staging.commit, staging_run: staging.run,
