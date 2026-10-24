@@ -59,7 +59,8 @@ without an environment, so a publication that deploys nothing leaves no `github-
 after a successful deployment waits for its turn; a newer one replaces an older waiting one and publishes at least
 as much, since every publication resolves the newest approved release. To publish again, run **Deploy the verified
 site** on the default branch rather than rerunning an older deployment run, whose rerun would cancel newer
-preparation and then find its commit superseded. No publication moves
+preparation and then find its commit superseded. A release tag deploys only from its push: the dispatch refuses a
+tag, and a failed tag deployment is retried by rerunning that run. No publication moves
 either channel back, and a retry publishes the same identities again. The release workflow drafts a release, and
 publishes its image, only after a publication has deployed that release to Pages.
 

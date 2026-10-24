@@ -114,6 +114,7 @@ const kept = (expired = false) => [{ name: "staging-site", expired }];
     [{ path: ".github/workflows/checks.yml" }, /Not a successful repository deployment/],
     [{ head_repository: { full_name: "someone/fork" } }, /Not a successful repository deployment/],
     [{ head_branch: "feature" }, /Not a release tag/],
+    [{ head_branch: "v1.0.0", head_sha: tagged, event: "workflow_dispatch" }, /deploys from its push only/],
   ]) {
     await assert.rejects(following([deployRun(fields)]), reason, JSON.stringify(fields));
   }

@@ -66,6 +66,10 @@ async function sources({ github, context }) {
   const branch = context.payload.repository.default_branch;
   const isTag = context.ref.startsWith("refs/tags/");
   if (!isTag && context.ref !== "refs/heads/" + branch) throw Error("Deploy only the default branch or a release tag");
+  // Approval, publication and release drafting follow a tag's push run only; a failed one is retried by its rerun.
+  if (isTag && context.eventName === "workflow_dispatch") {
+    throw Error("A release tag deploys from its push; rerun that deployment run instead of dispatching one");
+  }
   if (!/^[0-9a-f]{40}$/.test(context.sha)) throw Error("Deployment requires a full source SHA");
   const tags = (await github.paginate(github.rest.repos.listTags, { ...context.repo, per_page: 100 }))
     .filter((entry) => { try { tagOf({ ref: "refs/tags/" + entry.name, sha: entry.commit.sha }); return true; } catch { return false; } })

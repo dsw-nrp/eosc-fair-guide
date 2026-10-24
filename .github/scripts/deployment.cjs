@@ -53,8 +53,8 @@ async function newestStaging(github, context, branch) {
 }
 
 /** The deployment run whose completion started this publication, as the context `publication` reads: its ref, commit
-    and run id. Only a successful run of this repository's deploy.yml from a push or a manual run qualifies, and a
-    release tag must still name the commit that run prepared. */
+    and run id. Only a successful run of this repository's deploy.yml qualifies: a push or a manual run of the default
+    branch, or a release tag's push run, whose tag must still name the commit that run prepared. */
 async function completedDeployment({ github, context }) {
   const run = (await github.rest.actions.getWorkflowRun({ ...context.repo, run_id: context.payload.workflow_run.id })).data;
   if (run.conclusion !== "success" || !["push", "workflow_dispatch"].includes(run.event) || !sameRepository(context, run) ||
@@ -64,6 +64,7 @@ async function completedDeployment({ github, context }) {
   const deployed = Object.assign(refContext(context, ref, run.head_sha), { runId: run.id });
   if (ref.startsWith("refs/tags/")) {
     tagOf(deployed);
+    if (run.event !== "push") throw Error("A release tag deploys from its push only");
     if ((await github.rest.repos.getCommit({ ...context.repo, ref: run.head_branch })).data.sha !== run.head_sha) {
       throw Error("Release tag moved after its deployment");
     }

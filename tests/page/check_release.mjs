@@ -134,6 +134,15 @@ assert.deepEqual(await sources({ github, context: context("refs/heads/main") }),
 assert.deepEqual(await sources({ github, context: context() }), { kind: "tag", staging: "b".repeat(40), production: sha, tag: "v1.0.0-alpha.1", build: "true" });
 await assert.rejects(sources({ github, context: context("refs/heads/feature") }), /default branch/);
 await assert.rejects(sources({ github, context: context("refs/tags/v0.9.0") }), /newest release tag/);
+{
+  // Approval, publication and release drafting follow a tag's push run only, so a manual tag run is refused.
+  const dispatched = context();
+  dispatched.eventName = "workflow_dispatch";
+  await assert.rejects(sources({ github, context: dispatched }), /deploys from its push; rerun/);
+  const branch = context("refs/heads/main");
+  branch.eventName = "workflow_dispatch";
+  assert.equal((await sources({ github, context: branch })).kind, "branch", "the default branch may be dispatched");
+}
 ({ github } = fake());
 assert.deepEqual(await sources({ github, context: context("refs/heads/main") }), { kind: "branch", staging: sha, production: "", tag: "", build: "false" });
 ({ github } = fake([goodRun], [tag("v1.1.0", "c".repeat(40)), tag("v1.0.0-alpha.1")]));

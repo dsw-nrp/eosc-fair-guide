@@ -352,3 +352,17 @@
 - **Impacted:** `.github/workflows/publish.yml`, `.github/scripts/deployment.cjs`, `tests/test_workflows.py`,
   `tests/page/check_publication.mjs`, `docs/deployment.md`, the change's design decision 8, this entry.
 - **Verification:** The Python tests (69) and the publication check pass.
+
+### Review of PR #109, round 4 (`10b0982`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** One Medium finding, confirmed. A manual (`workflow_dispatch`) deployment run on a release tag was
+  admitted, but approval, publication and release drafting follow only a tag's push run. Before this change, release
+  drafting also ignored manual tag runs.
+  - `sources()` refuses a tag dispatch and names the rerun of the push run as the retry.
+  - `completedDeployment()` admits a tag's push run only. The deployment docs say so.
+- **Impacted:** `.github/scripts/{release-artifact,deployment}.cjs`, `tests/page/check_{release,publication}.mjs`,
+  `docs/deployment.md`, this entry.
+- **Verification:** The publication, release and dispatch checks pass.
