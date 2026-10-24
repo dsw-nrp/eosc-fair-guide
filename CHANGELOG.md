@@ -7,47 +7,10 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
-### Added
-
-- Exact duplicate-link suggestions in check artifacts and trusted PR comments, with an explicit local
-  `--fix` and maintainer `/fix-duplicates` command that records provenance, registers its ID and guards the PR head;
-  repaired refresh pull requests remain protected for manual reconciliation.
-- A changelog check in local and pull-request runs: exactly one `[Unreleased]` section with real entries,
-  unchanged published releases and complete release transitions (`docs/changelog.md` explains the policy).
-- `/help` on any pull request lists the comment commands that apply there and whether you may use them, and a
-  mistyped command gets a "did you mean" answer.
-
 ### Changed
 
-- All comment commands run through one workflow. An accepted command is acknowledged at once, waits its turn
-  behind an earlier run for the same resource and ends with a reaction or a reply naming its run.
-- Local `check_duplicates.py --fix` now writes the provenance action and its identifier registration along with
-  the safe links, for the reviewed person matched from `git config user.name` or named with `--person`. Without a
-  reviewed person it changes nothing.
-
-### Fixed
-
-- Release preparation keeps the curated `[Unreleased]` notes in the new release ahead of the generated list of
-  merged pull requests and direct commits, instead of discarding them.
-- A missing or invalid CI lane no longer hides failures that the other lanes reported; both are shown, and the
-  check still fails.
-- An ordinary comment can no longer cancel a waiting `/refresh` or `/fix-duplicates` command.
-- Include the dated re3data snapshot from PR #82 and link the NRP Data Catch-all Repository to
-  `r3d100014970`, keeping its curated resource and imported record as one repository entity.
-- Report every failed or incomplete required check with bounded diagnostics, retain lane logs and details,
-  and publish suggestions only from validated evidence without allowing optional output errors to hide failures.
-- Refuse competing duplicate owners and invalid link placements, replace local repair files atomically with
-  rollback on handled failures, preserve existing TOML keys, and reserve active and retired identifiers during refresh.
-- Keep authored Markdown inert in bot reasons and repair diffs, retain commit references within comment bounds,
-  and explain uncertain branch state after a command failure. PR heads remain distinct from checked merge revisions.
-- Replace a refresh branch only through an atomic comparison with the head whose commits were inspected, and create
-  an absent one only while it stays absent, so a branch that moves or appears mid-run keeps its newer head.
-- Fail a partial check in the local `check_all.py` job row and exit code as the aggregate does, while a deliberate
-  `--only` subset whose selected checks complete stays partial and exits zero.
-- Classify the runtime scratch area as a runtime path and narrow the scratch hygiene rule to machine-specific
-  locations, so delivered tooling that documents the repository's own layout no longer fails every pull request.
-- Refresh the tooling inventory from the delivery manifest and re-verify the merged `datarepo` link, so the
-  generation and content checks pass after integrating the default branch.
+- Breaking: local `check_duplicates.py --fix` changes nothing unless a reviewed person is named with `--person` or
+  matched from `git config user.name`.
 
 ## [1.0.0-alpha.2] - 2026-10-19
 

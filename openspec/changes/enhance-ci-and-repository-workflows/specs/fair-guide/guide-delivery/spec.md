@@ -197,15 +197,15 @@ when the curated notes use a reserved lineage heading. Earlier released sections
 
 ### Requirement: Release-note and planning hints are advisory
 
-The trusted PR review comment SHALL state whether the PR adds a release note and SHALL add a planning hint when
-behaviour, CI or governance paths change without a linked OpenSpec change. Hints SHALL be derived from the diff,
-SHALL NOT read PR body text as instructions and SHALL NOT fail checks. Dependency and source-refresh PRs SHALL be
-shown as covered by the generated release lineage.
+The trusted PR review comment SHALL state whether the PR adds an `[Unreleased]` line and SHALL add a planning hint
+when behaviour, CI or governance paths change without a linked OpenSpec change. Hints SHALL be derived from the diff
+and commits, SHALL NOT read PR body text as instructions and SHALL NOT fail checks. Dependency and source-refresh
+PRs SHALL be shown as covered by the generated release lineage.
 
-#### Scenario: A page change has no release note
+#### Scenario: A page change has no unpublished line
 
-- **WHEN** a human PR changes reader-facing behaviour without an `[Unreleased]` entry
-- **THEN** the review comment suggests adding a note if readers or maintainers would notice, and the checks are unaffected
+- **WHEN** a human PR changes reader-facing behaviour without an `[Unreleased]` line
+- **THEN** the review comment says that its commit messages feed the release notes and that only a breaking change, a required step or a security fix needs a line, and the checks are unaffected
 
 #### Scenario: A dependency update
 
@@ -216,6 +216,45 @@ shown as covered by the generated release lineage.
 
 - **WHEN** a PR changes workflow or script behaviour paths and neither adds nor references an OpenSpec change
 - **THEN** the review comment names the touched paths and links the planning guidance, without failing the PR
+
+### Requirement: Release bodies combine reviewed notes with the verification record
+
+The release workflow SHALL draft each release body with a changelog link and one marked verification record. A
+native helper SHALL compose the body from the publishable release-notes report and that record, keeping the record
+byte for byte, SHALL show the composition first and SHALL write only that reviewed composition to an unpublished
+draft.
+
+#### Scenario: Reviewed notes are applied
+
+- **GIVEN** a draft release with its verification record and a publishable release-notes report
+- **WHEN** the maintainer reviews the composed body and applies it
+- **THEN** the draft carries the notes without the report's title, followed by the unchanged verification record, and the helper confirms the stored body
+
+#### Scenario: The inputs changed after review
+
+- **WHEN** the notes or the release body differ from those of the reviewed composition
+- **THEN** the helper writes nothing and asks for a new review
+
+#### Scenario: An unsafe input
+
+- **WHEN** the notes are the working companion, the body lacks a single marked record or the release is already published
+- **THEN** the helper writes nothing and names the reason and the fix
+
+### Requirement: Release notes come from durable history
+
+Release notes and the changelog SHALL be drawn from commit messages, merged pull requests and issues, never from
+pull-request descriptions alone. `[Unreleased]` SHALL hold a line only for a breaking change, a required step or a
+security fix; the generated lineage covers every other change.
+
+#### Scenario: A pull request description is edited after merge
+
+- **WHEN** a merged pull request's description changes later
+- **THEN** the changelog lineage and the source of the release notes stay the same, because they come from the squash commit, its kept commit messages and the issues
+
+#### Scenario: An ordinary feature is merged
+
+- **WHEN** a pull request adds a feature without breaking anything
+- **THEN** it needs no `[Unreleased]` line, and the next release lists it through the generated lineage
 
 ### Requirement: New content under the existing model needs no OpenSpec change
 

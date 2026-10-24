@@ -5,7 +5,7 @@ inventory = "docs/agent-tooling.md"
 managed = [".agents", ".claude", ".cursor", ".kilo", ".gemini", ".codex", ".github/instructions", ".github/prompts", ".github/agents", "AGENTS.md", "CLAUDE.md", "CODEX.md", ".github/copilot-instructions.md"]
 owned = [".agents/guide/**", ".agents/reports/usage/**", ".agents/config/review_config.toml", "AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md", ".kilo/.gitignore"]
 tool_generated = [".agents/skills/.openspec-target", ".agents/skills/openspec-*/**", ".claude/skills/openspec-*/**", ".gemini/commands/opsx/**", ".github/prompts/opsx-*.prompt.md", ".github/agents/openspec.agent.md"]
-runtime = ["**/__pycache__/**", "**/*.pyc", ".agents/local_scratch/**", ".claude/settings.local.json", ".claude/*.local.json", ".cursor/*.local.json", ".codex/*.local.toml", ".gemini/*.local.json", ".kilo/*.local.json"]
+runtime = ["**/__pycache__/**", "**/*.pyc", ".agents/local_scratch/**", ".claude/settings.local.json", ".claude/*.local.json", ".cursor/*.local.json", ".codex/*.local.toml", ".gemini/*.local.json", ".kilo/*.local.json", ".agents/reports/release-notes/**"]
 
 [[rules]]
 id = "fair-guide-content"

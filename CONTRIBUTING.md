@@ -194,14 +194,19 @@ ORCID iD is guessed, and no team or bot is credited as an author.
 
 Write a short imperative summary line (for example `content: clarify licence advice for data stewards`),
 followed by a body when the reason is not obvious. Mention AI assistance in the body when it was used.
+Commit messages are the durable record from which release notes are written: squash merges keep every branch
+commit's message, while pull-request descriptions may change later. Say in the body what changed for readers or
+maintainers and why, and name the issues involved as `#N`. A breaking change, a step people have to take or a
+security fix also gets one line under `[Unreleased]` in `CHANGELOG.md` (see the [changelog policy](docs/changelog.md)).
 
 ## Releases
 
 Use the **Prepare release** manual workflow on the default branch. `scripts/release_versions.py` sets the version
 and release dates in `content/guide.toml`, `CITATION.cff`, `.zenodo.json`, `package.json`, `package-lock.json` and
-`pyproject.toml`, records the reviewed dispatcher's provenance, and moves the curated `[Unreleased]` notes of
+`pyproject.toml`, records the reviewed dispatcher's provenance, and moves the `[Unreleased]` lines of
 `CHANGELOG.md` into the new release, followed by the merged PRs and direct default-branch commits since the
-previous reachable tag, without duplicate PR entries (see the [changelog policy](docs/changelog.md)). The crate and API
+previous reachable tag, without duplicate PR entries (see the [changelog policy](docs/changelog.md)). Before
+publishing the draft release, write its notes with `/aiscr-write-release-notes` and `scripts/release_body.py`. The crate and API
 derive their metadata from the Guide. The default release PR runs ordinary checks; review and merge it before
 using the separate **Tag release** dispatch. Valid metadata committed directly through an authorized maintainer
 process is also accepted: tagging checks the current default-branch source, every version/date and nonempty

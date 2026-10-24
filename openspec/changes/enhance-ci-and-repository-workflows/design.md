@@ -60,22 +60,37 @@ Labels and templates precede the digest because "Track as task" uses them.
 
 Alternative rejected: one large PR. It would be too big to review and would delay the urgent correctness fixes.
 
-### 2. Changelog: strict structure, advisory notability
+### 2. Changelog from durable history; reviewed release bodies
 
 `scripts/check_changelog.py` joins the offline inventory and the CPU lane. It checks one `[Unreleased]` section,
 meaningful entries, unchanged released sections against the base and a complete release transition. It reads no
-PR body text. `release_versions.py` reuses its parser: the curated body moves unchanged into the new dated section,
-followed by the generated "Merged pull requests" and "Direct commits" lists. Curated notes that use those reserved
-headings are refused before any write.
+PR body text. `release_versions.py` reuses its parser: the `[Unreleased]` lines move unchanged into the new dated
+section, followed by the generated "Merged pull requests" and "Direct commits" lists. Lines that use those
+reserved headings are refused before any write.
 
-Whether a PR deserves a release note is a human judgement. The trusted review comment therefore shows an advisory
-line derived from the diff: "release note added", "covered by the generated lineage" for Dependabot and refresh
-PRs, or "consider a note if readers or maintainers would notice". The release PR is where the curated notes are
-reviewed as a whole. `docs/changelog.md` documents this.
+`CHANGELOG.md` is permanent, so it stays mechanical. The generated lineage is the record. `[Unreleased]` holds a
+single line only for a breaking change, a step people have to take or a security fix. Detail lives in commit
+messages: they are durable, and squash merges keep every branch commit's message in the default branch (the
+repository's `COMMIT_MESSAGES` squash setting). Pull-request descriptions are not a source, because review
+workflows edit them and their shape varies.
+
+The reader-facing account of a release belongs in its GitHub release body. The release workflow drafts the body
+with a link to the release's changelog section and one marked verification record (commit, archive digest, image,
+release status). At release time a maintainer runs the delivered `/aiscr-write-release-notes` in its report-only
+mode. It reads merged PRs, commit messages and issue threads and groups them by `.github/release.yml`. The native
+`scripts/release_body.py` then composes the body from the publishable report and the verification record, kept byte
+for byte. It shows the result, and only `--apply` writes that reviewed composition to an unpublished draft. The
+skill's own body update would replace the record, so it stays off; the skill itself is unchanged.
+
+The trusted review comment shows an advisory line derived from the diff: "unpublished line added", "covered by the
+generated lineage" for Dependabot and refresh PRs, or "commit messages feed the release notes; add a line only
+for a breaking change, a required step or a security fix". `docs/changelog.md` documents this.
 
 Alternatives rejected: a required note-or-reason gate read from the PR body. It reruns the full six-minute checks on
 every body edit, needs bot exemptions and turns untrusted text into a policy input. Changelog fragment files were
-also rejected; they add files without preventing the reproduced loss.
+also rejected; they add files without preventing the reproduced loss. Curated prose for every notable change was
+tried and dropped: it duplicated the commit history and froze verbose text into every release. Release notes
+built from PR descriptions were rejected because those descriptions are edited after merge.
 
 ### 3. Known failures survive incomplete evidence
 
@@ -329,7 +344,7 @@ procedures.
 
 All renderers share a "Next / If blocked / Done when" block: Python for the check summary and collector, JavaScript
 for the trusted publishers. Representative output tests fail when an element is removed. The PR template asks for a
-release-note decision and a planning link in plain words; nothing parses them.
+planning link and reminds authors that commit messages feed the release notes, in plain words; nothing parses it.
 
 ### 14. Crawler files (#83)
 

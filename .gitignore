@@ -20,6 +20,9 @@ playwright-report/
 .DS_Store
 Thumbs.db
 
+# Reports of /aiscr-write-release-notes; the published release body is the record
+.agents/reports/release-notes/
+
 # Machine-local assistant settings under the delivered roots
 .claude/settings.local.json
 .claude/*.local.json

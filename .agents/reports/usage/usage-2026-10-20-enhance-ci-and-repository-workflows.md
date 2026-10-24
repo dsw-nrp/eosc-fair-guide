@@ -76,3 +76,62 @@
     unverified until hosted use after merge.
   - The OpenSpec wrapper refresh to 1.14.3, already staged by someone else, was left untouched.
   - Nothing was committed or pushed.
+
+## Claude Code session (apply group 2 and the release-notes follow-up)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` invoked by the maintainer for this change; the delivered planning,
+  quality-first and usage-logging rules; the delivered `aiscr-write-release-notes` skill, read but not run; pinned
+  `npx openspec` CLI; `gh` queries, artifact downloads and three approved reruns of run 40022072478.
+- **What:**
+  - Group 2:
+    - `scripts/ci_timings.py`, with a trimmed fixture of run 40022072478 and the three-rerun baseline in
+      `docs/ci.md`.
+    - Case reports record script-level browser-slot waits.
+    - The non-required `quick` job.
+    - Unit tests in measured, deterministic shards, each with a private report directory.
+    - Four browser lanes from the timing suggestion, with longest-first final-candidate cases.
+    - npm and pip caches keyed on the lockfiles; browser lanes skip the Python validators, and the collector drops
+      its unused browser path.
+  - Group 1 follow-up (tasks 1.11 and 1.12): `CHANGELOG.md` keeps the generated lineage plus single lines for
+    breaking changes, required steps and security fixes, and detail lives in commit messages. Draft release bodies
+    carry a changelog link and a marked verification record, and `scripts/release_body.py` composes reviewed
+    `/aiscr-write-release-notes` reports with that record.
+- **Impacted:**
+  - New: `scripts/ci_timings.py`, `scripts/unit_shards.json`, `scripts/release_body.py`, `docs/ci.md`,
+    `tests/test_ci_timings.py`, `tests/test_release_body.py`, `tests/fixtures/ci-timings/40022072478-1/`.
+  - Changed: `scripts/check_ci.py`, `scripts/profile_checks.py`, `scripts/check_policy.json`,
+    `.github/workflows/checks.yml`, `.github/scripts/release-artifact.cjs`, `tests/page/browser.mjs`,
+    `tests/page/check_final_candidate.mjs`, `tests/page/check_release.mjs`, CONTRIBUTING, `docs/design.md`,
+    `docs/changelog.md`, `docs/deployment.md`, `CHANGELOG.md`.
+  - Tests: `test_check_ci.py`, `test_check_runner.py`, `test_workflows.py`, `runtime.test.mjs`.
+  - Planning: the change's proposal, design, `guide-delivery` delta and tasks (1.11, 1.12, 2.1, 2.2, 2.4 and 2.5
+    checked; 2.5, 3.1 and 7.4 reworded).
+- **Verification:**
+  - The timing tool reproduces the reference run's critical path: build, browser-b lane, collector; 6 min 19 s.
+    The reruns took 346, 347 and 262 s.
+  - A planted unknown clause fails both `check_ci.py quick` and the CPU lane with the same `advice:plan.01` error.
+  - The 511 unit tests run exactly once in 1, 4 and shuffled shards (99.6 s in one process, 29.3 s in four, locally).
+    A planted failure in any shard, or a dead shard, fails the check.
+  - A local `CI=true` simulation of build, five lanes and collector passes 31 of 31.
+  - The release-body tests cover the byte-exact record, review-before-apply and every refusal; `check_release.mjs`
+    passes with the marked record.
+  - Strict OpenSpec validation passes. The full `check_all.py` passes 31 of 31, and `git diff --check` reports
+    nothing.
+- **Corrections:**
+  - The maintainer chose to reword 2.5 to time excluding slot waits.
+  - The maintainer chose a mechanical changelog with single lines for breaking changes, required steps and security
+    fixes only.
+  - Detail is drawn from commit messages, not pull-request descriptions, which review workflows edit.
+  - The release-body helper was requested now.
+  - Finding: unit tests overwrote the CPU lane's `duplicates.json`, from which pull-request repair suggestions are
+    read. Fixed by private shard report directories.
+  - Finding: a rerun removes earlier attempts' artifacts, so attempts 2 and 3 keep job timings only.
+- **Close-out:** 16 of 59 tasks complete.
+  - 2.3, 2.6, 2.7 and 2.8 need the candidate runs of the stacked pull request.
+  - Classifying `.agents/reports/release-notes/` in the ownership map awaits approval.
+  - Nothing was committed or pushed yet.

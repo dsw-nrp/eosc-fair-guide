@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-const { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
+const { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
 const { validVersion } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
 const cases = JSON.parse(readFileSync(new URL("../fixtures/normalization.json", import.meta.url), "utf8"));
 for (const value of cases.versions.valid) assert(validVersion(value), value);
@@ -71,6 +71,16 @@ assert.equal(release.draft, true, "publication stays the maintainer's act");
 assert.equal(release.prerelease, true);
 assert(release.body.includes(sha) && release.body.includes(digest));
 assert(release.body.includes('Release status: testing'));
+assert(release.body.startsWith("The merged pull requests and direct commits of v1.0.0-alpha.1 are listed in " +
+  "[CHANGELOG.md](https://github.com/dsw-nrp/eosc-fair-guide/blob/v1.0.0-alpha.1/CHANGELOG.md)."), "a durable default for the notes");
+{
+  // The verification record is one marked block at the end, so reviewed notes can replace everything before it.
+  const start = release.body.indexOf(VERIFICATION.start);
+  assert.equal(release.body.indexOf(VERIFICATION.start, start + 1), -1);
+  assert(release.body.endsWith(VERIFICATION.end));
+  const block = release.body.slice(start);
+  assert(block.includes(sha) && block.includes(digest) && block.includes("\n\nRelease status: testing"));
+}
 {
   const {github, calls} = fake();
   await draftRelease({github, context: context(), core}, files({build: {status: 'production'}}));

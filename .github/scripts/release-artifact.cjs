@@ -6,6 +6,8 @@ const { createHash } = require("node:crypto");
 
 const { validVersion } = require('./release-version.cjs');
 const DIR = ".cache/release";
+// The automation's verification record in a release body; scripts/release_body.py keeps exactly this block.
+const VERIFICATION = { start: "<!-- guide-release:verification -->", end: "<!-- /guide-release:verification -->" };
 
 function tagOf(context) {
   const tag = String(context.ref || "").replace(/^refs\/tags\//, "");
@@ -147,13 +149,19 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   const digest = createHash("sha256").update(archive).digest("hex");
   const declared = String(read(`${DIR}/${manifest.archive}.sha256`, "utf8")).split(/\s+/)[0];
   if (digest !== manifest.sha256 || digest !== declared) throw Error("The archive does not match its digest");
+  // Reviewed notes replace the first paragraph through scripts/release_body.py; the marked verification record
+  // stays byte for byte.
   const body = [
+    `The merged pull requests and direct commits of ${tag} are listed in ` +
+      `[CHANGELOG.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/${tag}/CHANGELOG.md).`, "",
+    VERIFICATION.start,
     `Site of commit \`${context.sha}\`, version ${version}, checked on ${manifest.health.generated_at}.`, "",
     `The attached \`${manifest.archive}\` is the site that passed the checks and was deployed (SHA-256 \`${digest}\`).`,
     ...(process.env.RELEASE_IMAGE
       ? ["", `Container image: \`${process.env.RELEASE_IMAGE}\`, signed and attested against its digest.`]
       : []),
-    `Release status: ${manifest.build.status} (recorded by Tag release).`,
+    "", `Release status: ${manifest.build.status} (recorded by Tag release).`,
+    VERIFICATION.end,
   ].join("\n");
   let release = await releaseOf(github, context);
   const documents = [manifest.archive, `${manifest.archive}.sha256`, "manifest.json"].map((name) => [name, Buffer.from(read(`${DIR}/${name}`))]);
@@ -174,4 +182,5 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   return release.id;
 }
 
-module.exports = { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion };
+module.exports = { verifiedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, completedTag, assertPromotion,
+  VERIFICATION };

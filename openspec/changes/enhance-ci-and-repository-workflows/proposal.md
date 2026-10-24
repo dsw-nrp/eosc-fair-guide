@@ -14,7 +14,8 @@ Project that stays consistent without manual bookkeeping.
 The change lands in six waves. Each wave is one reviewed pull request and is useful on its own.
 
 1. **Nothing gets lost.** A changelog check protects `[Unreleased]` and published history, and release
-   preparation keeps the curated notes beside the generated PR/commit list. The CI collector keeps known
+   preparation keeps the unpublished lines beside the generated PR/commit list. Detail stays in durable commit
+   messages, and release bodies combine reviewed notes with the verification record. The CI collector keeps known
    failures when lane evidence is missing. Local duplicate repair writes the same complete link, provenance
    and registration as the remote command. One comment-command workflow keeps every accepted request,
    answers with a visible outcome and adds `/help`.
@@ -71,7 +72,7 @@ None.
 
 ## Impact
 
-- Scripts: `check_changelog.py`, `release_versions.py`, `check_ci.py`, `check_all.py`, `profile_checks.py`,
+- Scripts: `check_changelog.py`, `release_versions.py`, `release_body.py`, `check_ci.py`, `check_all.py`, `profile_checks.py`,
   `check_duplicates.py`, `fix_duplicates.py`, `watch_sources.py`, `build_site.py`/`assemble_pages.py`, and new
   `ci_timings.py`, `audit_repository.py`, `generate_issue_templates.py`, usage and CI-catalogue checks.
 - Workflows: new `commands.yml`; changes to `checks.yml`, `pr-summary.yml`, `deploy.yml`, `health-watch.yml`,
