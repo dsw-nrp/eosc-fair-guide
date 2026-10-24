@@ -32,7 +32,10 @@ BROWSER_LANES = {
     "browser-c": ("assessment",),
     "browser-d": ("helpers",),
 }
-LANES = ("cpu", *BROWSER_LANES)
+# The unit shards get a runner of their own: beside the three validators on one 4-core runner, two shards made the
+# CPU lane the critical path (run 40084136770).
+UNIT_LANE = "unit"
+LANES = ("cpu", UNIT_LANE, *BROWSER_LANES)
 # Cheap offline checks that need no build. The CPU lane runs the same inventory jobs, so the required `checks`
 # result reports every failure the quick result does.
 QUICK = ("content", "duplicates", "changelog", "ruff", "format", "public-content", "openspec", "agent-generation")
@@ -40,7 +43,7 @@ QUICK = ("content", "duplicates", "changelog", "ruff", "format", "public-content
 
 def partition(available):
     """Every non-live job has exactly one owner; health-api belongs to final publication."""
-    owners = {job: lane for lane, jobs in BROWSER_LANES.items() for job in jobs}
+    owners = {job: lane for lane, jobs in BROWSER_LANES.items() for job in jobs} | {"unit": UNIT_LANE}
     result = {lane: [] for lane in LANES}
     for job in available:
         if job.name in {"live", "health-api"}:

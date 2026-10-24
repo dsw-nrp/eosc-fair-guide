@@ -494,8 +494,9 @@ Repository hygiene scans the guide's own text and the delivered tooling: a machi
 name or a private planning reference fails with its file and line, while the repository's own relative runtime
 scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and
 delivery integrity.
-PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane and four browser lanes,
-balanced from measured run timings (`scripts/ci_timings.py`) and assigned in `check_ci.BROWSER_LANES`. A separate,
+PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane, a unit-test lane and four
+browser lanes, balanced from measured run timings (`scripts/ci_timings.py`) and assigned in `check_ci.BROWSER_LANES`.
+The unit shards have a runner of their own because, beside the validators, they made the CPU lane the critical path. A separate,
 non-required quick result runs the cheap offline checks beside the build; the CPU lane runs them again. The command
 inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
 Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,

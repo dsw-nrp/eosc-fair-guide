@@ -211,13 +211,21 @@ class WorkflowContracts(unittest.TestCase):
                     self.assertEqual(step["with"]["cache"], "npm", name)
                     self.assertEqual(step["with"]["cache-dependency-path"], "package-lock.json", name)
                 if step.get("uses", "").startswith("actions/setup-python@") and "cache" in step.get("with", {}):
-                    # One owner of the pip cache, so no partial install can be saved under the full key.
+                    # Only lanes installing the full requirements save under their key, so no partial install can.
                     self.assertEqual(name, "lanes")
-                    self.assertEqual(step["with"]["cache"], "${{ matrix.lane == 'cpu' && 'pip' || '' }}")
+                    self.assertEqual(
+                        step["with"]["cache"], "${{ (matrix.lane == 'cpu' || matrix.lane == 'unit') && 'pip' || '' }}"
+                    )
                     self.assertEqual(step["with"]["cache-dependency-path"], "requirements-dev.txt")
         lane_steps = checks["jobs"]["lanes"]["steps"]
         python_tools = next(step for step in lane_steps if "pip install -r requirements-dev.txt" in step.get("run", ""))
-        self.assertEqual(python_tools["if"], "matrix.lane == 'cpu'", "browser lanes import only the standard library")
+        self.assertEqual(
+            python_tools["if"],
+            "matrix.lane == 'cpu' || matrix.lane == 'unit'",
+            "browser lanes need the standard library only",
+        )
+        browsers = next(step for step in lane_steps if "npm run browsers" in step.get("run", ""))
+        self.assertEqual(browsers["if"], "startsWith(matrix.lane, 'browser-')")
         lane = next(step for step in lane_steps if "check_ci.py lane" in step.get("run", ""))
         self.assertEqual(lane["env"]["CHECK_CACHE_PIP"], "${{ steps.python.outputs.cache-hit }}")
         self.assertEqual(lane["env"]["CHECK_CACHE_NPM"], "${{ steps.node.outputs.cache-hit }}")

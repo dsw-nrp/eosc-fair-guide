@@ -92,14 +92,15 @@ class PartitionTests(unittest.TestCase):
         names = [job.name for jobs in lanes.values() for job in jobs]
         self.assertEqual(sorted(names), sorted(job.name for job in available if job.name != "live"))
         self.assertEqual(len(names), len(set(names)))
-        self.assertTrue({"crate", "process-run", "profile", "unit"} <= {job.name for job in lanes["cpu"]})
+        self.assertTrue({"crate", "process-run", "profile"} <= {job.name for job in lanes["cpu"]})
+        self.assertEqual([job.name for job in lanes[check_ci.UNIT_LANE]], ["unit"], "the shards get their own runner")
         self.assertTrue(all(lanes[lane] for lane in check_ci.LANES))
 
     def test_every_browser_job_has_exactly_one_reviewed_lane(self):
         owned = [job for jobs in check_ci.BROWSER_LANES.values() for job in jobs]
         self.assertEqual(len(owned), len(set(owned)))
         self.assertEqual(set(owned), check_all.BROWSER_JOBS - {"live"})
-        self.assertEqual(check_ci.LANES, ("cpu", *check_ci.BROWSER_LANES))
+        self.assertEqual(check_ci.LANES, ("cpu", check_ci.UNIT_LANE, *check_ci.BROWSER_LANES))
         with (
             mock.patch.object(check_all, "BROWSER_JOBS", check_all.BROWSER_JOBS | {"unassigned"}),
             self.assertRaisesRegex(ValueError, "unassigned: browser job without a lane"),

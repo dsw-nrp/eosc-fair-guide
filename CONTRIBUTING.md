@@ -81,7 +81,8 @@ Stop a benchmark after a failed run, retain its evidence and diagnose it before 
 Default traces retain actions; a failed case adds a PNG and an HTML snapshot. Set `CHECK_TRACE_SNAPSHOTS=1`
 for full trace snapshots when investigating a difficult case.
 
-PR CI runs one verified build through a CPU lane and four browser lanes, then the required `checks` collector.
+PR CI runs one verified build through a CPU lane, a unit-test lane and four browser lanes, then the required
+`checks` collector.
 Beside the build, a non-required `quick` job runs the cheap offline checks (`python scripts/check_ci.py quick`)
 for early feedback; the CPU lane runs the same checks again, so `checks` reports every failure `quick` does.
 `check_ci.BROWSER_LANES` assigns the browser jobs to lanes. Change it only through review, from the balanced
