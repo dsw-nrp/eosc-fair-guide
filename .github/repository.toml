@@ -404,14 +404,6 @@ jobs = ["tag"]
 github = { actions = "read", contents = "read", deployments = "read" }
 app = { contents = "write" }
 
-# Approved targets not yet applied, with their current values. A command the audit prints for any other difference
-# keeps these at their live values; each is applied only in its task, after the precondition it names.
-[[pending]]
-setting = "ruleset.Main branch protection.rules.merge_queue"
-current = "absent"
-task = "4.8, once task 4.1's merge_group trigger is on the default branch: enable the merge queue"
-
-[[pending]]
-setting = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
-current = true
-task = "4.8: switch off the up-to-date requirement once the merge queue is on"
+# Approved targets not yet applied go here as [[pending]] entries (setting, current value, task). A command the
+# audit prints for any other difference keeps them at their live values; each is applied only in its task, after
+# the precondition it names. None is pending.
