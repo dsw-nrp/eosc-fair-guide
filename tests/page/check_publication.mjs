@@ -192,15 +192,15 @@ const publish = (github, context, recorded = c3) => publication({ github, contex
   assert.deepEqual([result.publish, result.staging, result.tag, result.production_run], ["true", c3, "v1.0.0", "22"]);
 }
 
-// A tag superseded by a newer approved release publishes nothing and names that release's run.
+// A tag approved after a newer one publishes the newest approved release, everything the newer tag's waiting
+// publication, which it may have replaced, would have published.
 {
   const newer = { ...approvedTag.runs[0], id: 23, head_branch: "v1.1.0", head_sha: commit("b"), conclusion: "success" };
   const runs = [run(21, "deploy.yml", { head_sha: c3 }), { ...approvedTag.runs[0], id: 22, conclusion: "success" }, newer];
   const github = fake({ runs, artifacts: { 21: kept() }, tags: [["v1.1.0", commit("b")], ["v1.0.0", tagged]] });
-  const result = await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22));
-  assert.equal(result.publish, "false");
-  assert.match(result.reason, /v1\.1\.0 is the newest approved release/);
-  assert.equal(result.successor, newer.html_url);
+  assert.deepEqual(await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22)),
+    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "21", tag: "v1.1.0", production: commit("b"),
+      production_run: "23" });
 }
 
 // Release assets supply production bytes without any run; deciding fetches none of them.

@@ -214,8 +214,9 @@ runs prepare no staging site.
 
 The deployment run only prepares. Assembly and Pages publication run in a separate workflow, `publish.yml`,
 started by every successful deployment run (`workflow_run`), so cancelling preparation can never interrupt a Pages
-deployment. Each run is the critical section (the workflow-level group `pages-publish`; a newer waiting publication
-replaces an older waiting one) and resolves the identities to publish when it starts. It decides in a job without an
+deployment. Each run that follows a successful deployment is the critical section (the workflow-level group
+`pages-publish`; any other run gets a group of its own, and a newer waiting publication replaces an older waiting one,
+publishing at least as much) and resolves the identities to publish when it starts. It decides in a job without an
 environment, and only a publication that deploys enters `github-pages`, so no deployment record names a commit that
 was not published. Production is the newest approved tag, fetched from its release assets or from the run that
 approved it. GitHub records the Pages deployment against the default-branch head when the publication started, and

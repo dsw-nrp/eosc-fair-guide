@@ -11,10 +11,16 @@ on:
 permissions:
   contents: read
 
-# One publication at a time, deciding and deploying together. A newer waiting publication replaces an older waiting
-# one, which would resolve to the same or an older state.
+# One publication at a time, deciding and deploying together. Only a run that follows a successful deployment, the
+# condition of the resolve job below, enters the shared group; any other run gets a group of its own, so a run that
+# does nothing never replaces a waiting publication. Every publication resolves the newest state, so a newer waiting
+# one that replaces an older one loses nothing.
 concurrency:
-  group: pages-publish
+  group: >-
+    ${{ github.event.workflow_run.conclusion == 'success' &&
+    github.event.workflow_run.head_repository.full_name == github.repository &&
+    (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') &&
+    'pages-publish' || format('pages-publish-idle-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:

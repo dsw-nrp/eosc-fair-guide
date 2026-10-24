@@ -77,9 +77,10 @@ const nothing = (reason, successor) => ({ publish: "false", reason, successor: s
 /** What one publication publishes, resolved inside the serialized section so that neither channel moves back. Its
     Pages deployment is recorded against `recorded`, the default-branch head when it started, so it publishes only
     that commit's staging site. Production is the newest approved release, from its release assets or the run that
-    approved it (`production_run`); nothing is fetched here. After a default-branch deployment, publication takes that
-    run's own checked staging site while its commit is the head. After a release-tag deployment, it takes the newest
-    checked staging site once that is the head's; until then the head's own deployment publishes the release. */
+    approved it (`production_run`), whichever deployment started the publication; nothing is fetched here. After a
+    default-branch deployment, publication takes that run's own checked staging site while its commit is the head.
+    After a release-tag deployment, it takes the newest checked staging site once that is the head's; until then the
+    head's own deployment publishes the release. */
 async function publication({ github, context, recorded }) {
   const branch = context.payload.repository.default_branch;
   const isTag = context.ref.startsWith("refs/tags/");
@@ -100,11 +101,9 @@ async function publication({ github, context, recorded }) {
   } else if (context.sha !== head) {
     return nothing(`the default branch moved on to ${head}`, await runFor(github, context, branch, head));
   }
+  // The newest approved release, even after another tag's deployment: a publication waiting for this one may have
+  // been replaced by it, so it publishes everything that one would have.
   const selected = await sources({ github, context: refContext(context, "refs/heads/" + branch, head) });
-  if (isTag && selected.tag !== tagOf(context).tag) {
-    return nothing(`${selected.tag || "another release"} is the newest approved release`,
-      selected.tag ? await runFor(github, context, selected.tag, selected.production) : null);
-  }
   let production = { tag: "", commit: "", run: "" };
   if (selected.tag) {
     const { run } = await productionSource({ github, context: refContext(context, "refs/tags/" + selected.tag, selected.production) });

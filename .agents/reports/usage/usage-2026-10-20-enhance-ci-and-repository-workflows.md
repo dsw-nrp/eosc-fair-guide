@@ -336,3 +336,19 @@
   the change's design decision 8, this entry.
 - **Verification:** The workflow, audit and check tests and the publication, release and dispatch checks pass, and
   `openspec validate --strict` passes.
+
+### Review of PR #109, round 3 (`8bf9260`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** One Medium finding, confirmed: a publish run after a cancelled or failed deployment entered the
+  workflow-level group and could replace a waiting publication.
+  - Only a run that follows a successful deployment enters `pages-publish`; any other run gets a group of its own.
+  - A publication after a superseded tag's deployment now publishes the newest approved release rather than nothing,
+    so a real run that replaces a waiting one loses nothing.
+  - The reviewer's job-level lock on `publish` alone was not used: it would let one run's decision and another's
+    deployment interleave and move staging back.
+- **Impacted:** `.github/workflows/publish.yml`, `.github/scripts/deployment.cjs`, `tests/test_workflows.py`,
+  `tests/page/check_publication.mjs`, `docs/deployment.md`, the change's design decision 8, this entry.
+- **Verification:** The Python tests (69) and the publication check pass.

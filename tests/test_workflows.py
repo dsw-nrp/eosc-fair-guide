@@ -87,10 +87,15 @@ class WorkflowContracts(unittest.TestCase):
         workflow = load(".github/workflows/publish.yml")
         self.assertEqual(workflow["on"], {"workflow_run": {"workflows": [deploy["name"]], "types": ["completed"]}})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
-        # Deciding and deploying run together, one publication at a time; a newer waiting one replaces an older one.
-        self.assertEqual(workflow["concurrency"], {"group": "pages-publish", "cancel-in-progress": "false"})
         resolve = workflow["jobs"]["resolve"]
         condition = " ".join(resolve["if"].split())
+        # Deciding and deploying run together, one publication at a time. Only a run that will resolve enters the
+        # shared group, so a run after a cancelled or failed deployment never replaces a waiting publication.
+        idle = "format('pages-publish-idle-{0}', github.run_id)"
+        self.assertEqual(
+            {key: " ".join(value.split()) for key, value in workflow["concurrency"].items()},
+            {"group": f"${{{{ {condition} && 'pages-publish' || {idle} }}}}", "cancel-in-progress": "false"},
+        )
         for part in (
             "github.event.workflow_run.conclusion == 'success'",
             "github.event.workflow_run.head_repository.full_name == github.repository",
