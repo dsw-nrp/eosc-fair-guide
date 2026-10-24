@@ -22,6 +22,59 @@ def load(path: str) -> dict:
     return yaml.load((ROOT / path).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
 
 
+def token_requests() -> dict[tuple[str, str], tuple[dict | None, dict]]:
+    """Each workflow job's GITHUB_TOKEN permissions (its own block, else the workflow's) and App-token requests."""
+    found = {}
+    for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
+        workflow = load(path.relative_to(ROOT).as_posix())
+        for name, job in workflow["jobs"].items():
+            app = {}
+            for step in job.get("steps", []):
+                if step.get("uses", "").startswith("actions/create-github-app-token@"):
+                    requested = step.get("with", {}).items()
+                    app |= {
+                        key.removeprefix("permission-"): value
+                        for key, value in requested
+                        if key.startswith("permission-")
+                    }
+            found[(path.name, name)] = (job.get("permissions", workflow.get("permissions")), app)
+    return found
+
+
+def reviewed_tokens() -> dict[tuple[str, str], tuple[dict, dict]]:
+    config = tomllib.loads((ROOT / ".github/repository.toml").read_text(encoding="utf-8"))
+    return {
+        (entry["workflow"], job): (entry["github"], entry.get("app", {}))
+        for entry in config["token"]
+        for job in entry["jobs"]
+    }
+
+
+def token_differences(reviewed: dict, actual: dict) -> list[str]:
+    """Every job whose token requests differ from its reviewed entry, naming the job and the permission."""
+    problems = []
+    for workflow, job in sorted(set(actual) | set(reviewed)):
+        where = f"{workflow} job {job}"
+        if (workflow, job) not in reviewed:
+            problems.append(f"{where}: no reviewed token entry in .github/repository.toml")
+            continue
+        if (workflow, job) not in actual:
+            problems.append(f"{where}: reviewed in .github/repository.toml, but no such job")
+            continue
+        if actual[(workflow, job)][0] is None:
+            problems.append(f"{where}: no explicit permissions, so GITHUB_TOKEN gets the repository default")
+            continue
+        for index, token in enumerate(("GITHUB_TOKEN", "App token")):
+            want, have = reviewed[(workflow, job)][index], actual[(workflow, job)][index]
+            for permission in sorted(set(want) | set(have)):
+                if want.get(permission, "none") != have.get(permission, "none"):
+                    problems.append(
+                        f"{where}: {token} requests {permission}: {have.get(permission, 'none')}, "
+                        f"reviewed {want.get(permission, 'none')}"
+                    )
+    return problems
+
+
 class WorkflowContracts(unittest.TestCase):
     def test_pages_publication_tolerates_the_optional_production_skip(self) -> None:
         publication = load(".github/workflows/deploy.yml")["jobs"]["deploy"]
@@ -523,6 +576,47 @@ class WorkflowContracts(unittest.TestCase):
                         self.assertRegex(step["uses"], re.compile(r"^[\w/-]+@[0-9a-f]{40}$"))
         updates = load(".github/dependabot.yml")["updates"]
         self.assertEqual({entry["package-ecosystem"] for entry in updates}, {"github-actions", "npm", "pip", "docker"})
+
+
+class TokenPermissions(unittest.TestCase):
+    """Each job requests exactly the reviewed token permissions in .github/repository.toml."""
+
+    def test_every_job_requests_exactly_its_reviewed_permissions(self) -> None:
+        self.assertEqual(token_differences(reviewed_tokens(), token_requests()), [])
+
+    def test_a_planted_extra_permission_fails_and_names_the_job(self) -> None:
+        actual = token_requests()
+        github, app = actual[("checks.yml", "build")]
+        actual[("checks.yml", "build")] = ({**github, "issues": "write"}, app)
+        github, app = actual[("tag-release.yml", "tag")]
+        actual[("tag-release.yml", "tag")] = (github, {**app, "pull-requests": "write"})
+        actual[("checks.yml", "unlisted")] = ({"contents": "read"}, {})
+        self.assertEqual(
+            token_differences(reviewed_tokens(), actual),
+            [
+                "checks.yml job build: GITHUB_TOKEN requests issues: write, reviewed none",
+                "checks.yml job unlisted: no reviewed token entry in .github/repository.toml",
+                "tag-release.yml job tag: App token requests pull-requests: write, reviewed none",
+            ],
+        )
+
+    def test_a_job_without_explicit_permissions_is_refused(self) -> None:
+        actual = token_requests()
+        actual[("checks.yml", "build")] = (None, {})
+        self.assertIn(
+            "checks.yml job build: no explicit permissions, so GITHUB_TOKEN gets the repository default",
+            token_differences(reviewed_tokens(), actual),
+        )
+
+    def test_app_token_requests_stay_within_the_reviewed_registration(self) -> None:
+        config = tomllib.loads((ROOT / ".github/repository.toml").read_text(encoding="utf-8"))
+        registered = config["app"]["permissions"]
+        rank = {"read": 1, "write": 2}
+        for (workflow, job), (_, app) in token_requests().items():
+            for permission, access in app.items():
+                name = permission.replace("-", "_")
+                with self.subTest(workflow=workflow, job=job, permission=permission):
+                    self.assertGreaterEqual(rank.get(registered.get(name), 0), rank[access])
 
 
 if __name__ == "__main__":

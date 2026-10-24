@@ -359,11 +359,11 @@ documents. Tests use the real build and assembled tree. DNS and canonical-addres
 
 ### 15. Permissions
 
-App registration target: `contents: write` and `pull_requests: write` (refresh, repair, release preparation, tag),
-`organization_projects: read` (audit) and `metadata: read`. `issues`, `merge_queues`, `repository_projects` and the
-read-only extras are removed by the owner. The public App endpoint lets the audit detect drift in this list. Every
-App token request names only the permissions its job uses. An offline workflow test compares each job's requested
-permissions with the reviewed list.
+The App's registration stays as it is: on 24 October 2026 the maintainer chose to keep its current permissions,
+which already include `organization_projects: read` for the audit. `.github/repository.toml` records them as the
+reviewed list, and the public App endpoint lets the audit detect drift from it. Every App token request names only
+the permissions its job uses, so no job holds the whole registration. An offline workflow test compares each job's
+requested permissions with the reviewed list and checks that the registration covers them.
 
 ### Issue dispositions (refreshed 24 October 2026)
 
@@ -425,11 +425,16 @@ human comments remain. Completed repairs, notes and published releases are never
 
 These can be answered during apply without changing the specs or the task breakdown:
 
-- Which API path and App permission read organization issue-field values (Priority, Effort)? Until confirmed,
-  the audit reports them as unavailable in CI.
+- Which API path and App permission read organization issue-field values (Priority, Effort)? Answered on
+  24 October 2026: `GET /orgs/{org}/issue-fields` needs the organization's Issue Fields read permission, and one
+  issue's values come from `GET /repos/{repo}/issues/{number}/issue-field-values` with Issues read. The maintainer
+  token received an empty list, so the audit reports the fields as unavailable until an owner confirms them.
 - Do Markdown issue templates apply their `type` front matter? If not, triage sets the type and the audit lists
   untyped issues.
 - Can prefilled new-issue links preset labels for all reporters? Adoption relies only on the finding key, so
   either answer works.
-- Can `GITHUB_TOKEN` read rulesets and environments? If not, those sections are audited locally only.
-- Do the validator and Playwright-cache experiments pay off? Each is measured and kept or dropped.
+- Can `GITHUB_TOKEN` read rulesets and environments? Answered on 24 October 2026: rulesets need only Metadata
+  read, but their bypass actors appear only with write access to the ruleset, and environments need Actions read.
+  `docs/maintenance.md` records the capability table.
+- Do the validator and Playwright-cache experiments pay off? Answered on 24 October 2026: neither was adopted
+  (see the experiments in decision 6).
