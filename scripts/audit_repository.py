@@ -94,12 +94,14 @@ class UnavailableError(Exception):
 
 
 def _keys(problems, where, table, allowed, required=()):
+    """Record unknown and missing keys; true only when the table has every required key to check further."""
     if not isinstance(table, dict):
         problems.append(f"{where}: expected a table")
         return False
+    missing = [key for key in required if key not in table]
     problems += [f"{where}: unknown key {key!r}" for key in table if key not in allowed]
-    problems += [f"{where}: missing key {key!r}" for key in required if key not in table]
-    return True
+    problems += [f"{where}: missing key {key!r}" for key in missing]
+    return not missing
 
 
 def _strings(problems, where, value, pattern=None):
@@ -464,38 +466,34 @@ class Finding:
         return self.status in ("drift", "missing", "undeclared")
 
 
-def keep_live(declared, live, paths):
-    """`declared` with each dotted path in `paths` at its value in `live`, or left out where `live` has none."""
-    result = copy.deepcopy(declared)
-    for path in paths:
-        *parents, last = path.split(".")
-        target, source = result, live
-        for part in parents:
-            target = target.get(part) if isinstance(target, dict) else None
-            source = source.get(part) if isinstance(source, dict) else None
-        if not isinstance(target, dict):
-            continue
-        if isinstance(source, dict) and last in source:
-            target[last] = copy.deepcopy(source[last])
-        else:
-            target.pop(last, None)
-    return result
-
-
 def pending_kept(config, prefix, declared, live, setting):
-    """What a command for `setting` applies: the declared state, but every other pending setting below `prefix` keeps
-    its live value, so fixing one difference never applies an approved target before its task."""
-    paths = {
-        entry["setting"].removeprefix(prefix)
-        for entry in config.get("pending", [])
-        if entry["setting"].startswith(prefix) and entry["setting"] != setting
-    }
-    return keep_live(declared, live, paths)
+    """What a command for `setting` applies: the declared state below `prefix`, except that each pending target the
+    finding does not address keeps its live value, so fixing one difference never applies an approved target before
+    its task. Where the live state lacks the target's containing table (the object or rule does not exist yet), the
+    recorded current value is kept instead. A target at or above `setting` is addressed by the finding itself."""
+    result = copy.deepcopy(declared)
+    for entry in config.get("pending", []):
+        target = entry["setting"]
+        if not target.startswith(prefix) or target == setting or setting.startswith(target + "."):
+            continue
+        *parents, last = target.removeprefix(prefix).split(".")
+        place, source = result, live
+        for part in parents:
+            place = place.get(part) if isinstance(place, dict) else None
+            source = source.get(part) if isinstance(source, dict) else None
+        if not isinstance(place, dict):
+            continue
+        value = source.get(last, ABSENT) if isinstance(source, dict) else entry["current"]
+        if value == ABSENT:
+            place.pop(last, None)
+        else:
+            place[last] = copy.deepcopy(value)
+    return result
 
 
 def ruleset_fix(config, ruleset, live, setting):
     name = ruleset["name"]
-    rules = pending_kept(config, f"ruleset.{name}.rules.", ruleset["rules"], live["rules"] if live else {}, setting)
+    rules = pending_kept(config, f"ruleset.{name}.rules.", ruleset["rules"], live and live["rules"], setting)
     actors = [entry.split() for entry in ruleset["bypass"]]
     body = {
         "name": name,
@@ -511,10 +509,16 @@ def ruleset_fix(config, ruleset, live, setting):
 
 
 def environment_fix(config, name, declared, live, setting):
-    environment = pending_kept(config, f"environment.{name}.", declared, live or {}, setting)
+    environment = pending_kept(config, f"environment.{name}.", declared, live, setting)
     deployment = environment["deployment"]
+    reviewers = [
+        {"type": "Team", "slug": reviewer.removeprefix("team:")}
+        if reviewer.startswith("team:")
+        else {"type": "User", "login": reviewer}
+        for reviewer in environment["reviewers"]
+    ]
     body = {
-        "reviewers": [{"type": "User", "login": login} for login in environment["reviewers"]],
+        "reviewers": reviewers,
         "prevent_self_review": environment.get("prevent_self_review", False),
         "can_admins_bypass": environment["can_admins_bypass"],
         "deployment_branch_policy": None
@@ -607,7 +611,7 @@ def compare_environments(config, actual):
         path = f"repos/{repo}/environments/{urllib.parse.quote(name, safe='')}"
         command = (
             f"gh api -X PUT {shlex.quote(path)} --input <environment body in the JSON report>; "
-            f"reviewers need their user IDs (gh api users/LOGIN --jq .id)"
+            f"reviewers need their IDs (gh api users/LOGIN --jq .id, or orgs/ORG/teams/SLUG --jq .id for a team)"
         )
         policies = f"gh api -X POST {shlex.quote(path + '/deployment-branch-policies')} -f name=NAME -f type=TYPE"
         live = actual.get(name)

@@ -247,6 +247,42 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(environment["reviewers"], [{"type": "User", "login": "motyc"}], "the reviewer stays")
         self.assertIs(environment["can_admins_bypass"], True)
 
+    def test_a_missing_object_is_recreated_without_its_pending_targets(self):
+        live = copy.deepcopy(LIVE)
+        environments = live[f"{REPO}/environments"]["environments"]
+        live[f"{REPO}/environments"]["environments"] = [env for env in environments if env["name"] != "github-pages"]
+        live[f"{REPO}/rulesets"] = [entry for entry in live[f"{REPO}/rulesets"] if entry["id"] != 24757722]
+        findings = by_setting(audit.audit(self.config, Replay(live)))
+        pages = findings["environment.github-pages"]
+        self.assertEqual(pages.status, "missing")
+        self.assertEqual(pages.fix["body"]["reviewers"], [{"type": "User", "login": "motyc"}], "its current reviewer")
+        main = findings["ruleset.Main branch protection"]
+        rules = {rule["type"]: rule.get("parameters") for rule in main.fix["body"]["rules"]}
+        self.assertNotIn("merge_queue", rules, "recreating the ruleset does not switch the merge queue on")
+        self.assertIs(rules["required_status_checks"]["strict_required_status_checks_policy"], True)
+
+    def test_a_finding_inside_a_reached_pending_target_applies_the_reviewed_value(self):
+        live = copy.deepcopy(LIVE)
+        queue = dict(self.config["ruleset"][0]["rules"]["merge_queue"], merge_method="MERGE")
+        live[f"{REPO}/rulesets/24757722"]["rules"].append({"type": "merge_queue", "parameters": queue})
+        findings = by_setting(audit.audit(self.config, Replay(live)))
+        method = findings["ruleset.Main branch protection.rules.merge_queue.merge_method"]
+        self.assertEqual((method.status, method.expected, method.actual), ("drift", "SQUASH", "MERGE"))
+        rules = {rule["type"]: rule.get("parameters") for rule in method.fix["body"]["rules"]}
+        self.assertEqual(rules["merge_queue"]["merge_method"], "SQUASH", "applying the body fixes the finding")
+        self.assertEqual(findings["ruleset.Main branch protection.rules.merge_queue"].status, "done")
+
+    def test_a_kept_team_reviewer_stays_a_team(self):
+        live = copy.deepcopy(LIVE)
+        pages = next(env for env in live[f"{REPO}/environments"]["environments"] if env["name"] == "github-pages")
+        pages["can_admins_bypass"] = False
+        rule = next(rule for rule in pages["protection_rules"] if rule["type"] == "required_reviewers")
+        rule["reviewers"].append({"type": "Team", "reviewer": {"slug": "maintainers"}})
+        findings = by_setting(audit.audit(self.config, Replay(live)))
+        body = findings["environment.github-pages.can_admins_bypass"].fix["body"]
+        self.assertIn({"type": "Team", "slug": "maintainers"}, body["reviewers"])
+        self.assertNotIn({"type": "User", "login": "team:maintainers"}, body["reviewers"])
+
     def test_undeclared_rule_parameters_and_a_changed_check_source_are_drift(self):
         live = copy.deepcopy(LIVE)
         rules = {rule["type"]: rule for rule in live[f"{REPO}/rulesets/24757722"]["rules"]}
@@ -319,6 +355,22 @@ class ConfigTests(unittest.TestCase):
         for message, change in cases.items():
             with self.subTest(message=message):
                 self.assertIn(message, self.problems(change))
+
+    def test_a_missing_required_key_is_listed_never_raised(self):
+        tables = {
+            "ruleset[0]": (lambda c: c["ruleset"][0], ("name", "target", "enforcement", "include", "bypass", "rules")),
+            "environment.production": (lambda c: c["environment"]["production"], ("reviewers", "deployment")),
+            "label[0]": (lambda c: c["label"][0], ("name", "color")),
+            "project": (lambda c: c["project"], ("owner", "number")),
+            "project.view[0]": (lambda c: c["project"]["view"][0], ("layout", "group_by", "sort_by")),
+            "app": (lambda c: c["app"], ("slug", "permissions")),
+            "token[0]": (lambda c: c["token"][0], ("workflow", "jobs", "github")),
+        }
+        for where, (table, keys) in tables.items():
+            for key in keys:
+                with self.subTest(where=where, key=key):
+                    problems = self.problems(lambda c, table=table, key=key: table(c).pop(key))
+                    self.assertIn(f"{where}: missing key {key!r}", problems)
 
     def test_an_invalid_file_stops_before_reading_anything(self):
         with tempfile.TemporaryDirectory() as temporary:

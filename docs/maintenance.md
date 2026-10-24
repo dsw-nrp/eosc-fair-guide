@@ -30,8 +30,9 @@ Each finding names the setting, the expected and actual values, the UI path and 
 | unavailable | The token cannot read this part | Run with a token from the table below; it is never counted as matching |
 
 A live ruleset parameter that the file does not declare is drift too, so an applied body never silently drops it.
-A body never applies a pending target other than the finding's own: every other pending setting keeps its live
-value. Fixing one difference therefore cannot, for example, switch the merge queue on before `checks.yml` reports
+A body never applies a pending target that the finding does not address. Every other pending setting keeps its
+live value, or its recorded current value when the ruleset, rule or environment does not exist yet. Fixing one
+difference, or recreating a deleted object, therefore cannot switch the merge queue on before `checks.yml` reports
 for merge groups, or remove the `github-pages` reviewer before the production job exists.
 
 The audit exits with 1 for drift, missing or undeclared objects and for a failed fix. `--fix` never deletes a label,

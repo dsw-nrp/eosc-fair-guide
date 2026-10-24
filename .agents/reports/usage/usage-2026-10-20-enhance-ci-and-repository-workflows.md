@@ -223,3 +223,21 @@
 - **Findings:** The public-content scan reads untracked files, including the delivered review tooling's runtime
   scratch output, which records an absolute workstation path.
 - **Close-out:** 23 of 61 tasks complete; no task changed state.
+
+### Review round 2 (`a7358ef`)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Four new findings, all reproduced before they were fixed:
+  - A missing environment crashed the audit, and a pending entry above the finding's setting kept a stale live
+    value. Pending targets are now held unless the finding is at or below them. A target whose ruleset, rule or
+    environment does not exist live keeps its recorded current value, so a recreated `github-pages` keeps its
+    reviewer.
+  - `_keys()` reported a missing required key but let validation continue, so 17 table/key pairs raised
+    `KeyError`, not only `project.owner`. It now stops checking that table.
+  - A kept team reviewer stays a team in a fix body.
+- **Impacted:** `scripts/audit_repository.py`, `tests/test_audit_repository.py`, `docs/maintenance.md`, this entry.
+- **Verification:** The four new tests fail on `a7358ef` and pass now. The read-only live audit and
+  `--check-config` are unchanged: 0 drift, 4 pending.
+- **Close-out:** 23 of 61 tasks complete.
