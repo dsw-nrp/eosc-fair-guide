@@ -2,11 +2,12 @@
 // bot help comment per thread, refusals that change nothing, and an outcome for every accepted command.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-const { parse, distance, eligibility, help, acknowledge, outcome, HELP_MARKER } = createRequire(import.meta.url)("../../.github/scripts/commands.cjs");
+const require = createRequire(import.meta.url);
+const { parse, distance, eligibility, help, acknowledge, outcome, HELP_MARKER } = require("../../.github/scripts/commands.cjs");
+const { marker: reviewMarker, SUGGESTED_FIXES } = require("../../.github/scripts/comment-summary.cjs");
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const core = { info() {} };
-const reviewMarker = "<!-- fair-guide-review-summary -->";
 
 function fakeGithub({ permission = "write", pull = {}, comments = [], runs = {}, jobs = {} } = {}) {
   const writes = [];
@@ -74,7 +75,7 @@ for (const [options, place, reason] of cases) {
 assert.match((await eligibility({ github: fakeGithub().github, context: context("/refresh heslar") }, "refresh", false)).reasons.join(), /App is not configured/);
 
 // Help: one bot comment per thread, updated when asked again, with reasons and the local alternative.
-let { github, writes } = fakeGithub({ comments: [{ id: 3, user: { login: "github-actions[bot]" }, body: reviewMarker + "\n### Suggested fixes\n" }] });
+let { github, writes } = fakeGithub({ comments: [{ id: 3, user: { login: "github-actions[bot]" }, body: `${reviewMarker}\n${SUGGESTED_FIXES}\n` }] });
 const text = await help({ github, context: context("/help"), core }, appConfigured);
 assert(text.startsWith(HELP_MARKER));
 assert.match(text, /\| `\/fix-duplicates` \| Available \|/);

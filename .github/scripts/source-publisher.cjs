@@ -186,8 +186,9 @@ const OUTCOMES = {
   missing: "not written, because the refresh produced no snapshot file",
 };
 
-/** Reply to a `/refresh` command with each source's result and the run, after the run, however it ended. */
-async function reply({ github, context }, results, code) {
+/** Reply to a `/refresh` command with each source's result and the run, after the run, however it ended. A publication
+    step that failed part-way may already have moved a branch or pull request, so it is never reported as no change. */
+async function reply({ github, context }, results, code, publication = "") {
   let parsed = {};
   try {
     parsed = JSON.parse(results || "{}");
@@ -197,9 +198,10 @@ async function reply({ github, context }, results, code) {
   const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
   const rows = Object.entries(parsed).filter(([source]) => Object.hasOwn(SOURCES, source))
     .map(([source, status]) => `- \`${source}\`: ${OUTCOMES[status] || "finished with an unrecognized result; see the run"}.`);
-  const body = rows.length
-    ? [`\`/refresh\` finished ([run](${run})):`, "", ...rows].join("\n")
-    : `\`/refresh\` did not reach publication${code && code !== "0" ? " because a source was rejected or failed" : ""}; no pull request was changed. [Run](${run}).\n\n**Next:** read the run's refresh report, then post the command again or ask a maintainer.`;
+  let body;
+  if (rows.length) body = [`\`/refresh\` finished ([run](${run})):`, "", ...rows].join("\n");
+  else if (publication === "failure") body = `\`/refresh\` stopped during publication, so its refresh branch or pull request may already have changed. [Run](${run}).\n\n**Next:** check the open refresh pull request and the run log, then post the command again or ask a maintainer.`;
+  else body = `\`/refresh\` did not reach publication${code && code !== "0" ? " because a source was rejected or failed" : ""}; no pull request was changed. [Run](${run}).\n\n**Next:** read the run's refresh report, then post the command again or ask a maintainer.`;
   await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.issue.number, body });
   return body;
 }

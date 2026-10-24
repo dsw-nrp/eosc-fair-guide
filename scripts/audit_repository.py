@@ -21,8 +21,10 @@ listed without failing.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
+import shlex
 import subprocess
 import sys
 import tomllib
@@ -34,7 +36,8 @@ ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / ".github" / "repository.toml"
 SECTIONS = ("settings", "rulesets", "environments", "labels", "project", "organization", "app")
 ABSENT = "absent"
-UNORDERED = {"include", "exclude", "bypass", "contexts", "allowed_merge_methods", "reviewers", "branch_policies"}
+UNORDERED = {"include", "exclude", "bypass", "allowed_merge_methods", "reviewers", "branch_policies"}
+UNORDERED |= {"required_status_checks"}
 
 SETTING_KEYS = {
     "allow_squash_merge": bool,
@@ -181,6 +184,8 @@ def validate(config: dict) -> list[str]:
         if _keys(problems, "project", project, allowed, ("owner", "number")):
             if not isinstance(project["number"], int):
                 problems.append("project.number: expected an integer")
+            if not re.fullmatch(r"[A-Za-z0-9-]+", str(project["owner"])):
+                problems.append("project.owner: expected an organization login")
             _strings(problems, "project.fields", project.get("fields", []))
             for name, options in project.get("options", {}).items():
                 _strings(problems, f"project.options.{name}", options)
@@ -282,7 +287,9 @@ ADD_ITEM = """mutation AddItem($project: ID!, $content: ID!) {
 
 
 def _sorted(key, value):
-    return sorted(value) if key in UNORDERED and isinstance(value, list) else value
+    if key not in UNORDERED or not isinstance(value, list):
+        return value
+    return sorted(value, key=lambda item: json.dumps(item, sort_keys=True))
 
 
 def read_settings(github, config):
@@ -297,9 +304,7 @@ def read_rulesets(github, config):
         ruleset = github.get(f"repos/{repo}/rulesets/{summary['id']}")
         rules = {}
         for rule in ruleset.get("rules", []):
-            parameters = dict(rule.get("parameters") or {})
-            if rule["type"] == "required_status_checks":
-                parameters["contexts"] = [check["context"] for check in parameters.pop("required_status_checks", [])]
+            parameters = rule.get("parameters") or {}
             rules[rule["type"]] = {key: _sorted(key, value) for key, value in parameters.items()}
         names = ruleset.get("conditions", {}).get("ref_name", {})
         found[ruleset["name"]] = {
@@ -459,15 +464,40 @@ class Finding:
         return self.status in ("drift", "missing", "undeclared")
 
 
-def ruleset_body(name, ruleset):
-    rules = []
-    for kind, declared in ruleset["rules"].items():
-        parameters = dict(declared)
-        if kind == "required_status_checks":
-            parameters["required_status_checks"] = [{"context": context} for context in parameters.pop("contexts")]
-        rules.append({"type": kind, **({"parameters": parameters} if parameters else {})})
+def keep_live(declared, live, paths):
+    """`declared` with each dotted path in `paths` at its value in `live`, or left out where `live` has none."""
+    result = copy.deepcopy(declared)
+    for path in paths:
+        *parents, last = path.split(".")
+        target, source = result, live
+        for part in parents:
+            target = target.get(part) if isinstance(target, dict) else None
+            source = source.get(part) if isinstance(source, dict) else None
+        if not isinstance(target, dict):
+            continue
+        if isinstance(source, dict) and last in source:
+            target[last] = copy.deepcopy(source[last])
+        else:
+            target.pop(last, None)
+    return result
+
+
+def pending_kept(config, prefix, declared, live, setting):
+    """What a command for `setting` applies: the declared state, but every other pending setting below `prefix` keeps
+    its live value, so fixing one difference never applies an approved target before its task."""
+    paths = {
+        entry["setting"].removeprefix(prefix)
+        for entry in config.get("pending", [])
+        if entry["setting"].startswith(prefix) and entry["setting"] != setting
+    }
+    return keep_live(declared, live, paths)
+
+
+def ruleset_fix(config, ruleset, live, setting):
+    name = ruleset["name"]
+    rules = pending_kept(config, f"ruleset.{name}.rules.", ruleset["rules"], live["rules"] if live else {}, setting)
     actors = [entry.split() for entry in ruleset["bypass"]]
-    return {
+    body = {
         "name": name,
         "target": ruleset["target"],
         "enforcement": ruleset["enforcement"],
@@ -475,13 +505,15 @@ def ruleset_body(name, ruleset):
         "bypass_actors": [
             {"actor_type": kind, "actor_id": int(ident), "bypass_mode": mode} for kind, ident, mode in actors
         ],
-        "rules": rules,
+        "rules": [{"type": kind, **({"parameters": value} if value else {})} for kind, value in rules.items()],
     }
+    return {"body": body}
 
 
-def environment_body(environment):
+def environment_fix(config, name, declared, live, setting):
+    environment = pending_kept(config, f"environment.{name}.", declared, live or {}, setting)
     deployment = environment["deployment"]
-    return {
+    body = {
         "reviewers": [{"type": "User", "login": login} for login in environment["reviewers"]],
         "prevent_self_review": environment.get("prevent_self_review", False),
         "can_admins_bypass": environment["can_admins_bypass"],
@@ -489,12 +521,14 @@ def environment_body(environment):
         if deployment == "all"
         else {"protected_branches": deployment == "protected", "custom_branch_policies": deployment == "custom"},
     }
+    return {"body": body}
 
 
 def compare_settings(config, actual):
     repo = config["repository"]
     for key, expected in config.get("settings", {}).items():
         if actual.get(key) != expected:
+            flag, value = ("-F", json.dumps(expected)) if isinstance(expected, bool) else ("-f", expected)
             yield Finding(
                 "settings",
                 f"settings.{key}",
@@ -502,7 +536,7 @@ def compare_settings(config, actual):
                 expected,
                 actual.get(key),
                 UI["settings"],
-                f"gh api -X PATCH repos/{repo} -F {key}={json.dumps(expected)}",
+                shlex.join(["gh", "api", "-X", "PATCH", f"repos/{repo}", flag, f"{key}={value}"]),
             )
 
 
@@ -511,7 +545,6 @@ def compare_rulesets(config, actual):
     expected_names = {ruleset["name"] for ruleset in config.get("ruleset", [])}
     for ruleset in config.get("ruleset", []):
         name, live = ruleset["name"], actual.get(ruleset["name"])
-        body = ruleset_body(name, ruleset)
         ui = UI["rulesets"].format(name=name)
         if live is None:
             yield Finding(
@@ -522,48 +555,37 @@ def compare_rulesets(config, actual):
                 ABSENT,
                 ui,
                 f"gh api -X POST repos/{repo}/rulesets --input <ruleset body in the JSON report>",
-                fix={"body": body},
+                fix=ruleset_fix(config, ruleset, None, f"ruleset.{name}"),
             )
             continue
-        command = f"gh api -X PUT repos/{repo}/rulesets/{live['id']} --input <ruleset body in the JSON report>"
         if live["bypass"] is None:
             note = "Bypass actors are shown only to a token with write access to the ruleset."
             yield Finding("rulesets", f"ruleset.{name}.bypass", "unavailable", ui=ui, note=note)
-        for key in ("target", "enforcement", "include", "exclude", "bypass"):
-            if live[key] is not None and _sorted(key, ruleset[key]) != live[key]:
-                yield Finding(
-                    "rulesets",
-                    f"ruleset.{name}.{key}",
-                    "drift",
-                    ruleset[key],
-                    live[key],
-                    ui,
-                    command,
-                    fix={"body": body},
-                )
+        differences = [
+            (f"ruleset.{name}.{key}", ruleset[key], live[key])
+            for key in ("target", "enforcement", "include", "exclude", "bypass")
+            if live[key] is not None and _sorted(key, ruleset[key]) != live[key]
+        ]
         for kind, parameters in ruleset["rules"].items():
             setting = f"ruleset.{name}.rules.{kind}"
             if kind not in live["rules"]:
-                yield Finding(
-                    "rulesets", setting, "drift", parameters or "present", ABSENT, ui, command, fix={"body": body}
-                )
+                differences.append((setting, parameters or "present", ABSENT))
                 continue
-            for key, value in parameters.items():
-                if _sorted(key, value) != live["rules"][kind].get(key, ABSENT):
-                    yield Finding(
-                        "rulesets",
-                        f"{setting}.{key}",
-                        "drift",
-                        value,
-                        live["rules"][kind].get(key, ABSENT),
-                        ui,
-                        command,
-                        fix={"body": body},
-                    )
-        for kind in sorted(set(live["rules"]) - set(ruleset["rules"])):
-            yield Finding(
-                "rulesets", f"ruleset.{name}.rules.{kind}", "drift", ABSENT, "present", ui, command, fix={"body": body}
-            )
+            # Parameters on either side: one that GitHub adds or a person sets in the UI is reported, never dropped.
+            current = live["rules"][kind]
+            differences += [
+                (f"{setting}.{key}", parameters.get(key, ABSENT), current.get(key, ABSENT))
+                for key in sorted(set(parameters) | set(current))
+                if _sorted(key, parameters.get(key, ABSENT)) != current.get(key, ABSENT)
+            ]
+        differences += [
+            (f"ruleset.{name}.rules.{kind}", ABSENT, "present")
+            for kind in sorted(set(live["rules"]) - set(ruleset["rules"]))
+        ]
+        command = f"gh api -X PUT repos/{repo}/rulesets/{live['id']} --input <ruleset body in the JSON report>"
+        for setting, expected, value in differences:
+            fix = ruleset_fix(config, ruleset, live, setting)
+            yield Finding("rulesets", setting, "drift", expected, value, ui, command, fix=fix)
     for name in sorted(set(actual) - expected_names):
         yield Finding(
             "rulesets",
@@ -582,31 +604,29 @@ def compare_environments(config, actual):
     expected = config.get("environment", {})
     for name, environment in expected.items():
         ui = UI["environments"].format(name=name)
+        path = f"repos/{repo}/environments/{urllib.parse.quote(name, safe='')}"
         command = (
-            f"gh api -X PUT repos/{repo}/environments/{name} --input <environment body in the JSON report>; "
+            f"gh api -X PUT {shlex.quote(path)} --input <environment body in the JSON report>; "
             f"reviewers need their user IDs (gh api users/LOGIN --jq .id)"
         )
-        policies = (
-            f"gh api -X POST repos/{repo}/environments/{name}/deployment-branch-policies -f name=NAME -f type=TYPE"
-        )
-        body = environment_body(environment)
+        policies = f"gh api -X POST {shlex.quote(path + '/deployment-branch-policies')} -f name=NAME -f type=TYPE"
         live = actual.get(name)
         if live is None:
-            yield Finding(
-                "environments", f"environment.{name}", "missing", "declared", ABSENT, ui, command, fix={"body": body}
-            )
+            fix = environment_fix(config, name, environment, None, f"environment.{name}")
+            yield Finding("environments", f"environment.{name}", "missing", "declared", ABSENT, ui, command, fix=fix)
             continue
         for key, value in environment.items():
             if _sorted(key, value) != live.get(key, ABSENT):
+                setting = f"environment.{name}.{key}"
                 yield Finding(
                     "environments",
-                    f"environment.{name}.{key}",
+                    setting,
                     "drift",
                     value,
                     live.get(key, ABSENT),
                     ui,
                     policies if key == "branch_policies" else command,
-                    fix={"body": body},
+                    fix=environment_fix(config, name, environment, live, setting),
                 )
     for name in sorted(set(actual) - set(expected)):
         yield Finding(
@@ -639,7 +659,7 @@ def compare_labels(config, actual):
                 f"#{color} {description}",
                 ABSENT,
                 UI["labels"],
-                f"gh label create {json.dumps(name)} --color {color} --description {json.dumps(description)}",
+                shlex.join(["gh", "label", "create", name, "--color", color, "--description", description]),
                 fix=create,
             )
             continue
@@ -656,7 +676,7 @@ def compare_labels(config, actual):
                 f"#{color} {description}",
                 f"#{live['color']} {live['description']}",
                 UI["labels"],
-                f"gh label edit {json.dumps(name)} --color {color} --description {json.dumps(description)}",
+                shlex.join(["gh", "label", "edit", name, "--color", color, "--description", description]),
                 fix=update,
             )
     declared = {label["name"] for label in config.get("label", [])}
@@ -734,7 +754,7 @@ def compare_project(config, actual):
                     "an item",
                     ABSENT,
                     ui,
-                    f"gh project item-add {number} --owner {owner} --url {issue['url']}",
+                    shlex.join(["gh", "project", "item-add", str(number), "--owner", owner, "--url", issue["url"]]),
                     fix={"mutation": ADD_ITEM, "variables": {"project": actual["id"], "content": issue["id"]}},
                 )
 
@@ -815,8 +835,9 @@ def apply_pending(config, findings, audited):
 
 
 def where(section, config):
+    """The UI path of a whole section: an object's path stops before the object's name."""
     project, app = config.get("project", {}), config.get("app", {})
-    return UI[section].format(name="", title=project.get("title", ""), slug=app.get("slug", ""))
+    return UI[section].removesuffix(" → {name}").format(title=project.get("title", ""), slug=app.get("slug", ""))
 
 
 READ = {

@@ -1,6 +1,8 @@
 // Trusted default-branch code: treats the PR artifact as bounded, escaped data and never executes it.
 const { readFileSync, statSync } = require("node:fs");
 const marker = "<!-- fair-guide-review-summary -->";
+// `/help` in commands.cjs looks for this heading to say whether `/fix-duplicates` has a repair to apply.
+const SUGGESTED_FIXES = "### Suggested fixes";
 const escape = (value) => String(value).replace(/\s+/g, " ").slice(0, 400)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
   .replace(/([\\`*_{}\[\]()#!|])/g, "\\$1").replace(/@/g, "@\u200b");
@@ -42,8 +44,8 @@ function suggestionLines(run, suggestions, repository) {
   const items = valid.slice(0, SUGGESTION_COMMENT_LIMIT);
   const dropped = suggestions.suggestions.length - valid.length;
   const omitted = valid.length - items.length;
-  if (!items.length) return dropped ? ["", "### Suggested fixes", "", `${dropped} malformed suggestion(s) were omitted.`] : [];
-  const lines = ["", "### Suggested fixes", ""];
+  if (!items.length) return dropped ? ["", SUGGESTED_FIXES, "", `${dropped} malformed suggestion(s) were omitted.`] : [];
+  const lines = ["", SUGGESTED_FIXES, ""];
   for (const item of items) {
     lines.push(`- \`${codeText(item.entry)}\` ← \`${codeText(item.record)}\`: \`${codeText(item.reason)}\``);
     const table = item.table || "entry";
@@ -128,4 +130,4 @@ async function comment({ github, context, core }, read = readReport) {
   }
 }
 
-module.exports = { body, matches, comment, validSuggestion, marker };
+module.exports = { body, matches, comment, validSuggestion, marker, SUGGESTED_FIXES };

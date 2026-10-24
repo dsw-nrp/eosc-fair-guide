@@ -45,7 +45,7 @@ marked **Human hand-off** need a person's approval or action and do not become c
 - [ ] 4.5 Make Tag release name the deployment run to wait for when the current default-branch commit has no successful deployment. Verify the refusal text in tests.
 - [ ] 4.6 Group Dependabot patch and minor updates per ecosystem, keep majors separate, and keep the limit of 30 and the current security-update policy. Verify the configuration test.
 - [ ] 4.7 Update `docs/deployment.md` and CONTRIBUTING for the merge queue, staging without approval, production approval, break-glass administrator merge and per-setting rollback. Verify the steps against `repository.toml`.
-- [ ] 4.8 **Human hand-off:** present the audit's expected-versus-actual diff for the ruleset and environment changes and obtain approval. Then apply in the migration-plan order: merge queue on, up-to-date off, `production` environment with reviewers, reviewer removed from `github-pages`. Verify with a fresh audit after each step.
+- [ ] 4.8 **Human hand-off:** present the audit's expected-versus-actual diff for the ruleset and environment changes and obtain approval. Then apply in the migration-plan order, each step only once its precondition holds: merge queue on (after 4.1's `merge_group` trigger is on the default branch), up-to-date off, `production` environment with reviewers, reviewer removed from `github-pages` (after 4.4's production promotion job is on the default branch). Verify with a fresh audit after each step.
 - [ ] 4.9 **Human hand-off:** in a separately approved hosted rehearsal, merge one human PR and one grouped Dependabot PR through the queue, observe staging reuse, and promote one release with approval. Record run links, timings and any fallback.
 
 ## 5. Project and intake

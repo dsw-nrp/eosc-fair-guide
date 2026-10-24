@@ -182,3 +182,44 @@
   - Bypass actors are hidden from tokens without write access to a ruleset.
 - **Close-out:** 23 of 61 tasks complete. With the maintainer's approval, `--fix` created the `breaking-change`
   label; draft PR stacked on #107.
+
+## Claude Code session (review of PR #103)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** The local AIS CR review approval view of PR #103 at `7cf1d36` (nine findings, not
+  posted); the delivered quality-first rule for incoming review feedback; a read-only live audit of the rulesets
+  and environments.
+- **What:** Each of the nine findings was confirmed against the code before it was fixed.
+  - High: the audit's command bodies keep every other pending target at its live value, so an unrelated fix
+    cannot enable the merge queue before `merge_group` exists. The pending entries and task 4.8 name the
+    preconditions (4.1 for the queue, 4.4 for removing the `github-pages` reviewer), and the spec has a scenario.
+  - Medium:
+    - Undeclared live rule parameters are reported as drift.
+    - The reviewed state declares three live pull-request parameters and the GitHub Actions integration of the
+      required check.
+    - The `/fix-duplicates` admission rule in Python (`admitted()`) and in `commands.cjs` is bound by a parity
+      test.
+  - Low:
+    - `/refresh` reports when publication stopped part-way.
+    - The lineage headings and the `Suggested fixes` heading come from their producers.
+    - A section-level UI path no longer ends in a blank name.
+    - Printed commands are quoted with `shlex`.
+- **Impacted:** `.github/repository.toml`, `.github/scripts/{commands,comment-summary,source-publisher}.cjs`,
+  `.github/workflows/source-refresh.yml`, `scripts/{audit_repository,check_changelog,fix_duplicates,release_versions}.py`,
+  `docs/maintenance.md`, the change's spec delta and task 4.8, `tests/test_{audit_repository,duplicate_review}.py`,
+  `tests/page/check_{commands,source_publisher}.mjs`, this entry.
+- **Verification:**
+  - The focused tests pass. With each fix turned off in turn, its new test fails: holding pending targets, the
+    section path, the Python admission guard.
+  - A read-only live audit of the rulesets and environments finds 0 drift with the new parameter check, and the
+    same four pending targets.
+  - `openspec validate --strict` passes.
+  - `check_all.py`: 30 of 31 checks pass. `public-content` flags only the review tool's untracked local scratch
+    files under `.agents/local_scratch/`; the same rule over all 609 tracked files finds nothing.
+- **Findings:** The public-content scan reads untracked files, including the delivered review tooling's runtime
+  scratch output, which records an absolute workstation path.
+- **Close-out:** 23 of 61 tasks complete; no task changed state.

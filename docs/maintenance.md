@@ -25,9 +25,14 @@ Each finding names the setting, the expected and actual values, the UI path and 
 | drift | The live value differs from the reviewed one | Change the setting in the UI or with the command, or change the file through review |
 | missing | A declared object does not exist | Create it; `--fix` creates declared labels and adds Project items |
 | undeclared | A live object is not in the file | Declare it, or delete it in the UI; the audit never deletes anything |
-| pending | An approved target that a person has not applied yet, still at its recorded current value | Apply it in its task, then audit again |
+| pending | An approved target that a person has not applied yet, still at its recorded current value | Apply it in its task once the precondition the entry names holds, then audit again |
 | done | A pending target now holds | Delete its `[[pending]]` entry |
 | unavailable | The token cannot read this part | Run with a token from the table below; it is never counted as matching |
+
+A live ruleset parameter that the file does not declare is drift too, so an applied body never silently drops it.
+A body never applies a pending target other than the finding's own: every other pending setting keeps its live
+value. Fixing one difference therefore cannot, for example, switch the merge queue on before `checks.yml` reports
+for merge groups, or remove the `github-pages` reviewer before the production job exists.
 
 The audit exits with 1 for drift, missing or undeclared objects and for a failed fix. `--fix` never deletes a label,
 never changes a Project field value and never changes a setting. `tests/test_workflows.py` compares every job's

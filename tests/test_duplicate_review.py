@@ -457,6 +457,42 @@ class CommandReplyTests(unittest.TestCase):
             hub.comment(5, "Result.")
         self.assertEqual(request.call_args.args[2]["body"], "Result.", "an unexpected run value is never rendered")
 
+    def test_python_handler_and_node_gate_admit_the_same_commands(self):
+        repository = "dsw-nrp/eosc-fair-guide"
+        roles = (("admin", "admin"), ("write", "maintain"), ("write", "write"), ("read", "triage"), ("none", "none"))
+        cases = [
+            {
+                "access": {"permission": permission, "role_name": role},
+                "pull": {
+                    "state": state,
+                    "head": {"ref": head, "repo": {"full_name": source}},
+                    "base": {"ref": base, "repo": {"default_branch": "main"}},
+                },
+            }
+            for (permission, role), state, source, base, head in itertools.product(
+                roles, ("open", "closed"), (repository, "someone/fork"), ("main", "release"), ("feature", "main")
+            )
+        ]
+        hub = fix_duplicates.GitHub(repository, "token")
+        expected = []
+        for case in cases:
+            with mock.patch.object(hub, "request", return_value=case["access"]):
+                expected.append(hub.can_write("tester") and fix_duplicates.admitted(case["pull"], repository))
+        gate = (
+            "const {eligibility}=require('./.github/scripts/commands.cjs');"
+            "const cases=JSON.parse(require('node:fs').readFileSync(0,'utf8'));"
+            "const context={repo:{owner:'dsw-nrp',repo:'eosc-fair-guide'},"
+            "payload:{comment:{user:{login:'tester'}},issue:{number:82,pull_request:{}}}};"
+            "Promise.all(cases.map(({access,pull})=>eligibility({context,github:{rest:{"
+            "repos:{getCollaboratorPermissionLevel:async()=>({data:access})},pulls:{get:async()=>({data:pull})}}}},"
+            "'fix-duplicates',true))).then((results)=>process.stdout.write(JSON.stringify(results.map((r)=>r.available))));"
+        )
+        node = subprocess.run(
+            ["node", "-e", gate], input=json.dumps(cases), text=True, capture_output=True, check=True, cwd=check_ci.ROOT
+        )
+        self.assertEqual(json.loads(node.stdout), expected)
+        self.assertEqual(sum(expected), 3, "only writers, on an open same-repository pull request into main")
+
 
 class ArtifactTests(unittest.TestCase):
     def test_all_required_strings_reject_arrays_and_objects(self):

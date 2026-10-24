@@ -97,11 +97,12 @@ jobs:
         env:
           RESULTS: ${{ steps.publish.outputs.results }}
           REFRESH_CODE: ${{ steps.refresh.outputs.code }}
+          PUBLICATION: ${{ steps.publish.outcome }}
         with:
           github-token: ${{ steps.app.outputs.token }}
           script: |
             const { reply } = require('./.github/scripts/source-publisher.cjs');
-            await reply({ github, context }, process.env.RESULTS, process.env.REFRESH_CODE);
+            await reply({ github, context }, process.env.RESULTS, process.env.REFRESH_CODE, process.env.PUBLICATION);
       - name: Report rejected or failed sources
         if: steps.refresh.outputs.code != '0'
         run: |

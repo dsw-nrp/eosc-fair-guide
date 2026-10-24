@@ -2,7 +2,7 @@
 // decides which command a comment names before any job with write access runs, and computes who may use a command
 // where; `/help` and the command gate share that eligibility, so they cannot disagree.
 const { SOURCES, parseCommand: parseRefresh, authorized } = require("./source-publisher.cjs");
-const { marker: REVIEW_MARKER } = require("./comment-summary.cjs");
+const { marker: REVIEW_MARKER, SUGGESTED_FIXES } = require("./comment-summary.cjs");
 
 const HELP_MARKER = "<!-- fair-guide-command-help -->";
 const BOT = "github-actions[bot]";
@@ -47,7 +47,8 @@ function parse(body) {
   return gap <= 3 ? { command: "unknown", notice: `\`${word}\` is not a command; did you mean \`${near}\`?` } : { command: "" };
 }
 
-/** Whether `command` may run for the commenter here, with every reason it may not. */
+/** Whether `command` may run for the commenter here, with every reason it may not. The handler repeats the write
+    access and pull-request part in `fix_duplicates.py` (`can_write`, `admitted`); a parity test runs both on one table. */
 async function eligibility({ github, context }, command, appConfigured) {
   const repo = context.repo;
   const reasons = [];
@@ -78,7 +79,7 @@ async function react({ github, context }, content) {
 async function suggestionsListed({ github, context }) {
   const comments = await github.paginate(github.rest.issues.listComments, { ...context.repo, issue_number: context.payload.issue.number, per_page: 100 });
   const review = comments.find((entry) => entry.user?.login === BOT && String(entry.body || "").startsWith(REVIEW_MARKER));
-  return review ? String(review.body).includes("### Suggested fixes") : null;
+  return review ? String(review.body).includes(SUGGESTED_FIXES) : null;
 }
 
 function helpBody({ login, notice, pull, fix, refresh, suggestions, context }) {

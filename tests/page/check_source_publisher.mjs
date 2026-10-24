@@ -159,4 +159,7 @@ assert.equal(writes.length, 1);
 ({ github, writes } = fakeGithub());
 assert.match(await reply({ github, context: commanded }, "", "1"), /did not reach publication because a source was rejected or failed.*\*\*Next:\*\*/s);
 assert.match(await reply({ github, context: commanded }, "{not json", "0"), /did not reach publication; no pull request was changed/);
+const stopped = await reply({ github, context: commanded }, "", "0", "failure");
+assert.match(stopped, /stopped during publication, so its refresh branch or pull request may already have changed/);
+assert(!stopped.includes("no pull request was changed"), "a publication that failed part-way is never reported as no change");
 console.log("check_source_publisher: one bot-owned PR per source, an atomically guarded branch head, current-main refresh, no default-branch write or merge, kept human edits, suppressed rejected content and authorized exact commands pass");

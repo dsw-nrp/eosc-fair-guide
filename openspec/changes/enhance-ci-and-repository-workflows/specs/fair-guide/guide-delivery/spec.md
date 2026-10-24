@@ -483,6 +483,11 @@ Project-item fixes on explicit request.
 - **WHEN** a ruleset, environment, Project view or built-in automation differs from the reviewed file
 - **THEN** the audit names the setting, the expected and actual values, the UI path and an equivalent command
 
+#### Scenario: An approved target waits for its task
+
+- **WHEN** an approved target is not applied yet and another setting of the same ruleset or environment drifts
+- **THEN** the audit lists the target as pending with its task and precondition, and the drift's command keeps the target at its live value
+
 #### Scenario: A setting cannot be read
 
 - **WHEN** the token in use cannot read a configured setting

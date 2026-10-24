@@ -3,6 +3,7 @@
 import copy
 import io
 import json
+import shlex
 import sys
 import tempfile
 import unittest
@@ -150,6 +151,7 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(findings["project"].status, "unavailable")
         self.assertIn("Resource not accessible", findings["project"].note)
         self.assertEqual(findings["environments"].status, "unavailable")
+        self.assertEqual(findings["environments"].ui, "Settings → Environments", "a section path names no object")
         self.assertNotIn("environment.production", findings, "a pending target in an unreadable section is not judged")
         self.assertEqual(findings["label.breaking-change"].status, "missing", "the rest of the audit still runs")
 
@@ -216,12 +218,60 @@ class AuditTests(unittest.TestCase):
             path = Path(temporary) / "audit.json"
             audit.main(["--json", str(path)], github=Replay())
             report = json.loads(path.read_text(encoding="utf-8"))
-        queue = next(item for item in report["findings"] if item["setting"].endswith("rules.merge_queue"))
-        rules = {rule["type"]: rule for rule in queue["fix"]["body"]["rules"]}
-        self.assertEqual(rules["merge_queue"]["parameters"]["merge_method"], "SQUASH")
-        self.assertEqual(
-            rules["required_status_checks"]["parameters"]["required_status_checks"], [{"context": "checks"}]
-        )
+        bodies = {item["setting"]: item["fix"]["body"] for item in report["findings"] if item["fix"]}
+        queue = {rule["type"]: rule for rule in bodies["ruleset.Main branch protection.rules.merge_queue"]["rules"]}
+        self.assertEqual(queue["merge_queue"]["parameters"]["merge_method"], "SQUASH")
+        checks = queue["required_status_checks"]["parameters"]
+        self.assertEqual(checks["required_status_checks"], [{"context": "checks", "integration_id": 15368}])
+        self.assertIs(checks["strict_required_status_checks_policy"], True, "the other pending target stays live")
+        pull = queue["pull_request"]["parameters"]
+        self.assertIs(pull["require_extra_approval_for_unattributed_changes"], True, "no live parameter is dropped")
+        strict = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
+        self.assertNotIn("merge_queue", {rule["type"] for rule in bodies[strict]["rules"]})
+
+    def test_a_command_for_another_difference_never_applies_a_pending_target(self):
+        live = copy.deepcopy(LIVE)
+        main = live[f"{REPO}/rulesets/24757722"]
+        next(rule for rule in main["rules"] if rule["type"] == "pull_request")["parameters"][
+            "required_approving_review_count"
+        ] = 0
+        pages = next(env for env in live[f"{REPO}/environments"]["environments"] if env["name"] == "github-pages")
+        pages["can_admins_bypass"] = False
+        findings = by_setting(audit.audit(self.config, Replay(live)))
+        ruleset = findings["ruleset.Main branch protection.rules.pull_request.required_approving_review_count"]
+        rules = {rule["type"]: rule.get("parameters") for rule in ruleset.fix["body"]["rules"]}
+        self.assertNotIn("merge_queue", rules, "fixing the review count does not switch the merge queue on")
+        self.assertIs(rules["required_status_checks"]["strict_required_status_checks_policy"], True)
+        self.assertEqual(rules["pull_request"]["required_approving_review_count"], 1)
+        environment = findings["environment.github-pages.can_admins_bypass"].fix["body"]
+        self.assertEqual(environment["reviewers"], [{"type": "User", "login": "motyc"}], "the reviewer stays")
+        self.assertIs(environment["can_admins_bypass"], True)
+
+    def test_undeclared_rule_parameters_and_a_changed_check_source_are_drift(self):
+        live = copy.deepcopy(LIVE)
+        rules = {rule["type"]: rule for rule in live[f"{REPO}/rulesets/24757722"]["rules"]}
+        rules["pull_request"]["parameters"]["automatic_copilot_code_review_enabled"] = True
+        rules["required_status_checks"]["parameters"]["required_status_checks"][0]["integration_id"] = 1
+        findings = by_setting(audit.audit(self.config, Replay(live)))
+        added = findings["ruleset.Main branch protection.rules.pull_request.automatic_copilot_code_review_enabled"]
+        self.assertEqual((added.status, added.expected, added.actual), ("drift", "absent", True))
+        source = findings["ruleset.Main branch protection.rules.required_status_checks.required_status_checks"]
+        self.assertEqual(source.status, "drift")
+        self.assertEqual(source.actual, [{"context": "checks", "integration_id": 1}])
+
+    def test_printed_commands_quote_every_value_for_the_shell(self):
+        config = copy.deepcopy(self.config)
+        label = {"name": "x $(touch pwned)", "color": "ffffff", "description": "a `tick` and 'quote' \\ $HOME"}
+        config["label"].append(label)
+        config["settings"]["squash_merge_commit_message"] = "PR_BODY"
+        config["environment"]["stage $x"] = {"reviewers": [], "deployment": "all", "can_admins_bypass": True}
+        findings = by_setting(audit.audit(config, Replay(), ("settings", "labels", "environments")))
+        created = shlex.split(findings[f"label.{label['name']}"].command)
+        self.assertEqual(created[3], label["name"])
+        self.assertEqual(created[-1], label["description"])
+        setting = shlex.split(findings["settings.squash_merge_commit_message"].command)
+        self.assertEqual(setting[-2:], ["-f", "squash_merge_commit_message=PR_BODY"], "a string is sent as a string")
+        self.assertIn("environments/stage%20%24x ", findings["environment.stage $x"].command)
 
 
 class ConfigTests(unittest.TestCase):
@@ -260,6 +310,7 @@ class ConfigTests(unittest.TestCase):
             "description: longer than": lambda c: c["label"][0].update(description="x" * 101),
             "layout: malformed value": lambda c: c["project"]["view"][0].update(layout="kanban"),
             "sort_by: malformed value": lambda c: c["project"]["view"][0].update(sort_by=["Title upwards"]),
+            "project.owner: expected an organization login": lambda c: c["project"].update(owner="x;y"),
             "app.permissions: expected permission": lambda c: c["app"]["permissions"].update(contents="admin"),
             "is listed twice": lambda c: c["token"].append(dict(c["token"][0])),
             "pending[0]: missing key 'task'": lambda c: c["pending"][0].pop("task"),

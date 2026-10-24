@@ -24,7 +24,8 @@ ROOT = Path(__file__).resolve().parent.parent
 FILE = "CHANGELOG.md"
 UNRELEASED = "Unreleased"
 # Release preparation generates these headings; curated notes use the semantic categories instead.
-RESERVED = ("Merged pull requests", "Direct commits")
+MERGED, DIRECT = "Merged pull requests", "Direct commits"
+RESERVED = (MERGED, DIRECT)
 HEADING = re.compile(r"(?m)^## (?P<title>[^\r\n]*)$")
 CATEGORY = re.compile(r"^#{3,} +(?P<title>.+?)\s*#*\s*$")
 COMMENT = re.compile(r"<!--.*?-->", re.S)

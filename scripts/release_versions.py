@@ -316,14 +316,15 @@ def changelog(
         raise ValueError("no merged pull requests since the previous tag; refusing an empty release changelog")
     lines = [f"Since {previous or 'the beginning of the repository'}.", ""]
     if selected:
-        lines.extend(["### Merged pull requests", "", *(value[2] for value in sorted(selected.values())), ""])
+        lines.extend([f"### {check_changelog.MERGED}", "", *(value[2] for value in sorted(selected.values())), ""])
     if direct:
-        lines.extend(["### Direct commits", "", *direct])
+        lines.extend([f"### {check_changelog.DIRECT}", "", *direct])
     # The curated notes lead the release unchanged; the generated lineage follows them, never replaces them.
     notes = sections[0].body.strip()
     block = f"## [{target}] - {released}\n\n" + (notes + "\n\n" if notes else "") + "\n".join(lines) + "\n\n"
     # Earlier released sections and their original text remain byte-for-byte.
-    return preamble + "## [Unreleased]\n\n" + block + "".join(section.text for section in sections[1:])
+    released_text = "".join(section.text for section in sections[1:])
+    return preamble + f"## [{check_changelog.UNRELEASED}]\n\n" + block + released_text
 
 
 def prepare(

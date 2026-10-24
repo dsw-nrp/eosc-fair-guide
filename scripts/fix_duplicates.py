@@ -225,6 +225,19 @@ def bounded_comment(prefix: str, diff: str, suffix: str) -> str:
         retained = retained[: max(0, len(retained) - (len(text) - COMMENT_LIMIT))]
 
 
+def admitted(pull: dict[str, Any], repository: str) -> bool:
+    """Whether `/fix-duplicates` may change this pull request: open, from this repository, into the default branch from
+    another branch. `eligibility()` in `.github/scripts/commands.cjs` decides the same for `/help` and the command gate,
+    and a parity test runs both on one case table."""
+    default = pull.get("base", {}).get("repo", {}).get("default_branch")
+    return (
+        pull.get("state") == "open"
+        and pull.get("head", {}).get("repo", {}).get("full_name") == repository
+        and pull.get("base", {}).get("ref") == default
+        and pull.get("head", {}).get("ref") != default
+    )
+
+
 def refusal(message: str) -> int:
     print(message, file=sys.stderr)
     return 1
@@ -268,13 +281,7 @@ def run_fix(  # noqa: PLR0911
         gh.comment(pr, f"@{commenter}, `/fix-duplicates` needs current write access. No file was changed.")
         return 0
     pull = gh.pull(pr)
-    default = pull.get("base", {}).get("repo", {}).get("default_branch")
-    if (
-        pull.get("state") != "open"
-        or pull.get("head", {}).get("repo", {}).get("full_name") != repository
-        or pull.get("base", {}).get("ref") != default
-        or pull.get("head", {}).get("ref") == default
-    ):
+    if not admitted(pull, repository):
         gh.comment(
             pr, "`/fix-duplicates` only runs on an open same-repository pull request targeting the default branch."
         )
