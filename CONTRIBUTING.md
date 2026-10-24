@@ -16,6 +16,8 @@ workflow. [AGENTS.md](AGENTS.md) supplies the runtime instructions the assistant
   `feature/<topic>` for new behaviour, and `agents/<agent>/<topic>` for work done by an AI agent.
 - Keep a pull request to one purpose. Text polishing of one station is a good size.
 - Fill in the pull-request template: what changed, why, and which sources support it.
+- Describe a notable change for readers or maintainers under `## [Unreleased]` in `CHANGELOG.md`; the
+  [changelog policy](docs/changelog.md) says what is notable and what the check enforces.
 
 ## What every content change needs
 
@@ -63,7 +65,11 @@ python scripts/check_all.py        # before a pull request: build, then every ch
 
 `check_all.py` needs `npm ci` and the tools from `requirements-dev.txt`, and reports each check's result and time.
 Use `--jobs` for outer work and `--browser-workers` for the shared browser budget. Local and CI defaults live in
-[`scripts/check_policy.json`](scripts/check_policy.json); `CI=true` selects the conservative CI profile.
+[`scripts/check_policy.json`](scripts/check_policy.json); `CI=true` selects the conservative CI profile. The
+policy's `unit_shards` sets how many processes the unit tests run in. `scripts/profile_checks.py` packs test modules
+into those shards from the measured seconds in `scripts/unit_shards.json`, gives each shard a private report
+directory and fails unless every discovered test runs exactly once; `--shards N` overrides the count and
+`--shuffle SEED` reorders classes and tests to expose hidden shared state.
 Defaults are capped by the available CPU count. `--browser-workers` overrides `CHECK_BROWSER_WORKERS`, which
 overrides the profile; npm and direct Node checks use the same policy. Browser groups
 share atomic case slots across Node processes, so inner pools cannot multiply the global limit. `.cache/health/details/` and `logs/` retain timings, complete output,
@@ -75,7 +81,14 @@ Stop a benchmark after a failed run, retain its evidence and diagnose it before 
 Default traces retain actions; a failed case adds a PNG and an HTML snapshot. Set `CHECK_TRACE_SNAPSHOTS=1`
 for full trace snapshots when investigating a difficult case.
 
-PR CI runs one verified build through a CPU lane and two browser lanes, then the required `checks` collector.
+PR CI runs one verified build through a CPU lane, a unit-test lane and four browser lanes, then the required
+`checks` collector.
+Beside the build, a non-required `quick` job runs the cheap offline checks (`python scripts/check_ci.py quick`)
+for early feedback; the CPU lane runs the same checks again, so `checks` reports every failure `quick` does.
+`check_ci.BROWSER_LANES` assigns the browser jobs to lanes. Change it only through review, from the balanced
+suggestion of `python scripts/ci_timings.py <run-id>`. That report reads a run's job timings and health artifact:
+queue, setup, check time, the critical path, browser slot waits, cache hits and coverage. Claim a speed-up only
+from paired reruns at a fixed commit with unchanged coverage.
 `scripts/check_ci.py` owns that adapter; `check_all.py` owns the job inventory and `scripts/check_groups.json`
 owns nested scripts. The collector verifies source/build identity, every required case and station/PDF coverage;
 lane subsets cannot publish a complete pass. Inspect per-lane artifacts as well as the final health report.
@@ -86,6 +99,12 @@ depending on a global OpenSpec command. Generated `_site/`, local caches and env
 
 ### Fixing a duplicate from a pull request
 
+Comment `/help` on any pull request to see the commands that apply there and whether you may use them. Post a
+command as the whole comment. An accepted command gets an 👀 reaction at once and ends with a 🚀 reaction or a
+reply that names its workflow run; a command that cannot run is answered with the reason and an alternative.
+Commands for the same pull request (or, for `/refresh <source>`, all refreshes) wait their turn instead of
+replacing each other.
+
 When the duplicate check names a safe link, a maintainer with current write access can comment
 `/fix-duplicates` on an open same-repository pull request that targets the default branch. The trusted workflow
 reads that pull request's content and validation attachments as data, applies only safe link suggestions,
@@ -95,11 +114,18 @@ reviewed `[[person]]` whose `github` is the commenter's login and the `duplicate
 merges, never pushes the default branch, never runs on schedules or forks and never edits
 `content/duplicates.toml`. A stale head makes it change nothing. The App secrets are
 `SOURCE_REFRESH_CLIENT_ID` and `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them the command is unavailable. Roll
-back by reverting its commit or removing the workflow. For a local edit, run
-`python scripts/check_duplicates.py --fix`; it applies only safe suggestions, prints the diff and leaves the
-provenance action for you to add. Local repairs use atomic file replacement and restore original bytes on a
-handled application or recheck failure; restoration errors are reported explicitly. There is no multi-file
-crash-transaction guarantee. A clean no-op still returns nonzero.
+back by reverting its commit or removing the workflow.
+
+For a local edit, run `python scripts/check_duplicates.py --fix`. It applies the safe links, adds one provenance
+action naming you and registers its identifier, which is the same complete repair as the command. You are found
+through your reviewed `commitNames` or `github` entry matching `git config user.name`; name yourself explicitly with
+`--person <your-person-id>` when that does not match or matches several people. With no reviewed identity, nothing
+is written: add your reviewed identity first (see [Credit and ORCID iDs](#credit-and-orcid-ids)). Inspect the
+printed diff, including `content/provenance.toml` and `content/identifiers.toml`, before committing, then run
+`python scripts/check_all.py`. Undo an uncommitted repair with `git restore content/`. Local repairs use atomic file
+replacement and restore original bytes on a handled application or recheck failure, including a repair that would
+add a content error; restoration errors are reported explicitly. There is no multi-file crash-transaction guarantee.
+Running it again after a complete repair changes nothing and, like any clean no-op, returns nonzero.
 
 The command also works on eligible `refresh/<source>` pull requests. Once a repair or other unrecognized
 commit is present, source refresh leaves that branch intact and asks for manual reconciliation. Automatic
@@ -165,17 +191,29 @@ only with an identity they gave or that is reviewed (their name, their GitHub ac
 ORCID iD). Anyone may ask not to have their ORCID iD listed; they are then credited by name only. No identity or
 ORCID iD is guessed, and no team or bot is credited as an author.
 
+## Repository settings
+
+`.github/repository.toml` records the reviewed GitHub settings, Project #1 configuration and token permissions.
+`python scripts/audit_repository.py` compares the live state with it, read only; see [maintenance](docs/maintenance.md).
+A pull request that changes a workflow's token permissions also updates its `[[token]]` entry.
+
 ## Commit messages
 
 Write a short imperative summary line (for example `content: clarify licence advice for data stewards`),
 followed by a body when the reason is not obvious. Mention AI assistance in the body when it was used.
+Commit messages are the durable record from which release notes are written: squash merges keep every branch
+commit's message, while pull-request descriptions may change later. Say in the body what changed for readers or
+maintainers and why, and name the issues involved as `#N`. A breaking change, a step people have to take or a
+security fix also gets one line under `[Unreleased]` in `CHANGELOG.md` (see the [changelog policy](docs/changelog.md)).
 
 ## Releases
 
 Use the **Prepare release** manual workflow on the default branch. `scripts/release_versions.py` sets the version
 and release dates in `content/guide.toml`, `CITATION.cff`, `.zenodo.json`, `package.json`, `package-lock.json` and
-`pyproject.toml`, records the reviewed dispatcher's provenance, and writes `CHANGELOG.md` from merged PRs and
-direct default-branch commits since the previous reachable tag, without duplicate PR entries. The crate and API
+`pyproject.toml`, records the reviewed dispatcher's provenance, and moves the `[Unreleased]` lines of
+`CHANGELOG.md` into the new release, followed by the merged PRs and direct default-branch commits since the
+previous reachable tag, without duplicate PR entries (see the [changelog policy](docs/changelog.md)). Before
+publishing the draft release, write its notes with `/aiscr-write-release-notes` and `scripts/release_body.py`. The crate and API
 derive their metadata from the Guide. The default release PR runs ordinary checks; review and merge it before
 using the separate **Tag release** dispatch. Valid metadata committed directly through an authorized maintainer
 process is also accepted: tagging checks the current default-branch source, every version/date and nonempty

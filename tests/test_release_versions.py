@@ -206,7 +206,8 @@ class ReleaseVersions(unittest.TestCase):
         self.assertIn("[#3]", log)
         self.assertNotIn("[#1]", log)
         self.assertNotIn("[#4]", log)
-        self.assertNotIn("Draft notes.", log)
+        # Previously accepted free-form notes move unchanged into the release, ahead of the generated lineage.
+        self.assertIn("## [Unreleased]\n\n## [1.0.0-alpha.2] - 2026-10-14\n\nDraft notes.\n\nSince v0.9.0.", log)
         self.assertIn("Historical release text.", log)
         self.assertIn(r"One \[complete\]", log)
         original_zenodo = json.loads((ROOT / ".zenodo.json").read_text(encoding="utf-8"))
@@ -360,6 +361,33 @@ class ReleaseVersions(unittest.TestCase):
             release.changelog(
                 "## [Unreleased]\n", "1.2.3", "2026-10-14", bad_prs, set(shas), previous=None, changes=changes
             )
+
+    def test_curated_notes_survive_beside_the_pr_lineage(self):
+        # G2: a curated note and an eligible merged PR must both reach the dated release section.
+        text = release.changelog(
+            "# Changelog\n\n## [Unreleased]\n\n### Fixed\n\n- Explain the duplicate repair.\n\n## [0.9.0]\n\nOld.\n",
+            "1.0.0",
+            "2026-10-14",
+            [self.pr(2, "b", "Repair duplicates")],
+            {"b"},
+            previous="v0.9.0",
+        )
+        unreleased, rest = text.split("## [1.0.0] - 2026-10-14\n\n", 1)
+        self.assertTrue(unreleased.endswith("## [Unreleased]\n\n"))
+        notes, lineage = rest.split("Since v0.9.0.", 1)
+        self.assertEqual(notes, "### Fixed\n\n- Explain the duplicate repair.\n\n")
+        self.assertIn("[#2](https://github.com/dsw-nrp/eosc-fair-guide/pull/2)", lineage)
+        self.assertTrue(text.endswith("## [0.9.0]\n\nOld.\n"))
+
+    @patch.object(release, "history", return_value=("v0.9.0", {"a", "b"}))
+    def test_reserved_or_malformed_notes_refuse_before_any_write(self, _history):
+        for unreleased in ("### Merged pull requests\n\n- Hand-written list.\n", "### Added\n"):
+            path = self.root / "CHANGELOG.md"
+            path.write_text(f"# Changelog\n\n## [Unreleased]\n\n{unreleased}\n## [0.9.0]\n\nOld.\n", encoding="utf-8")
+            before = self.snapshot()
+            with self.subTest(unreleased=unreleased), self.assertRaisesRegex(ValueError, "CHANGELOG.md"):
+                release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", self.prs, "motyc")
+            self.assertEqual(self.snapshot(), before)
 
     def test_requested_release_requires_matching_nonempty_unique_dated_notes(self):
         target = "1.0.0-alpha.1"

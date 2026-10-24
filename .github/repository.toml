@@ -1,0 +1,410 @@
+# The reviewed expected state of this repository's GitHub settings, Project #1 and automation identities.
+#
+# `python scripts/audit_repository.py` compares it with the live state, read only, and names each difference with its
+# UI path and an equivalent command. People apply setting changes; the audit's `--fix` only creates or updates the
+# labels declared here and adds missing open issues and pull requests to the Project. Change this file through review.
+#
+# Values are the approved targets. A [[pending]] entry is an approved target that a person has not applied yet: it
+# records the current value, which the audit reports as pending rather than as drift, and the task that applies it.
+# Delete the entry once the audit reports that the target holds. Values first read on 24 October 2026.
+
+format = 1
+repository = "dsw-nrp/eosc-fair-guide"
+
+[settings]
+allow_squash_merge = true
+allow_merge_commit = true
+allow_rebase_merge = false
+allow_auto_merge = false
+allow_update_branch = true
+delete_branch_on_merge = true
+# A squash merge keeps every branch commit message: the durable source of release notes (docs/changelog.md).
+squash_merge_commit_title = "COMMIT_OR_PR_TITLE"
+squash_merge_commit_message = "COMMIT_MESSAGES"
+merge_commit_title = "MERGE_MESSAGE"
+merge_commit_message = "PR_TITLE"
+has_discussions = true
+has_projects = true
+has_wiki = false
+
+[[ruleset]]
+name = "Main branch protection"
+target = "branch"
+enforcement = "active"
+include = ["~DEFAULT_BRANCH"]
+exclude = []
+# Repository administrators may bypass: the documented break-glass merge, which deployment checks in full.
+bypass = ["RepositoryRole 5 always"]
+
+[ruleset.rules.deletion]
+[ruleset.rules.non_fast_forward]
+
+[ruleset.rules.pull_request]
+allowed_merge_methods = ["squash"]
+required_approving_review_count = 1
+require_code_owner_review = true
+require_last_push_approval = false
+dismiss_stale_reviews_on_push = false
+required_review_thread_resolution = true
+require_extra_approval_for_unattributed_changes = true
+required_reviewers = []
+dismissal_restriction = { enabled = false, allowed_actors = [] }
+
+[ruleset.rules.required_status_checks]
+# Integration 15368 is GitHub Actions, so only a workflow job can report the required `checks` context.
+required_status_checks = [{ context = "checks", integration_id = 15368 }]
+do_not_enforce_on_create = false
+# The merge queue checks the merged result, so a pull request no longer has to be up to date.
+strict_required_status_checks_policy = false
+
+# Up to three pull requests per group, at most two groups building, no minimum wait, a 30-minute check timeout.
+# The queue can be enabled only once `checks.yml` reports `checks` for merge groups (task 4.1); until then every entry
+# would wait out the timeout.
+[ruleset.rules.merge_queue]
+merge_method = "SQUASH"
+grouping_strategy = "ALLGREEN"
+max_entries_to_build = 2
+max_entries_to_merge = 3
+min_entries_to_merge = 1
+min_entries_to_merge_wait_minutes = 0
+check_response_timeout_minutes = 30
+
+[[ruleset]]
+name = "Tag protection"
+target = "tag"
+enforcement = "active"
+include = ["refs/tags/v*.*.*"]
+exclude = []
+bypass = []
+
+[ruleset.rules.deletion]
+[ruleset.rules.non_fast_forward]
+[ruleset.rules.update]
+
+[ruleset.rules.required_deployments]
+required_deployment_environments = ["github-pages"]
+
+[environment.copilot]
+reviewers = []
+deployment = "all"
+can_admins_bypass = true
+
+# Staging and released production bytes publish here without approval; approval moves to `production`.
+[environment.github-pages]
+reviewers = []
+prevent_self_review = false
+deployment = "custom"
+branch_policies = ["branch main", "tag v*.*.*"]
+can_admins_bypass = true
+
+# Production promotion waits for a maintainer's approval, for release tags only.
+[environment.production]
+reviewers = ["motyc"]
+prevent_self_review = false
+deployment = "custom"
+branch_policies = ["tag v*.*.*"]
+can_admins_bypass = true
+
+# Labels. The audit lists any other label for a decision and never deletes one. `paths` (optional) are the
+# changed-path rules that add an area label to a pull request.
+[[label]]
+name = "accessibility"
+color = "f143ab"
+description = "Barrier affecting people with disabilities"
+
+[[label]]
+name = "breaking-change"
+color = "b60205"
+description = "Changes behaviour people rely on; add a one-line [Unreleased] note"
+
+[[label]]
+name = "bug"
+color = "d73a4a"
+description = "Something isn't working"
+
+[[label]]
+name = "dependencies"
+color = "0366d6"
+description = "Pull requests that update a dependency file"
+
+[[label]]
+name = "docker"
+color = "21ceff"
+description = "Pull requests that update docker code"
+
+[[label]]
+name = "documentation"
+color = "0075ca"
+description = "Improvements or additions to documentation"
+
+[[label]]
+name = "duplicate"
+color = "cfd3d7"
+description = "This issue or pull request already exists"
+
+[[label]]
+name = "enhancement"
+color = "a2eeef"
+description = "New feature or request"
+
+[[label]]
+name = "github_actions"
+color = "000000"
+description = "Pull requests that update GitHub Actions code"
+
+[[label]]
+name = "good first issue"
+color = "7057ff"
+description = "Good for newcomers"
+
+[[label]]
+name = "guide-health"
+color = "ededed"
+description = ""
+
+[[label]]
+name = "help wanted"
+color = "008672"
+description = "Extra attention is needed"
+
+[[label]]
+name = "invalid"
+color = "e4e669"
+description = "This doesn't seem right"
+
+[[label]]
+name = "javascript"
+color = "168700"
+description = "Pull requests that update javascript code"
+
+[[label]]
+name = "python"
+color = "2b67c6"
+description = "Pull requests that update python code"
+
+[[label]]
+name = "question"
+color = "d876e3"
+description = "Further information is requested"
+
+[[label]]
+name = "wontfix"
+color = "ffffff"
+description = "This will not be worked on"
+
+[project]
+owner = "dsw-nrp"
+number = 1
+title = "EOSC CZ FAIR Guide"
+public = false
+fields = [
+  "Title", "Assignees", "Status", "Labels", "Linked pull requests", "Milestone", "Repository", "Reviewers",
+  "Parent issue", "Sub-issues progress", "Created", "Updated", "Closed", "Priority", "Effort",
+]
+# Every open issue and pull request of the repository belongs to the Project; `--fix` adds a missing one.
+complete = true
+
+[project.options]
+Status = ["Needs triage", "Ready", "In progress", "Review", "Done"]
+
+[[project.view]]
+name = "Board"
+layout = "board"
+filter = ""
+group_by = ["Priority"]
+sort_by = ["Title asc"]
+
+[[project.view]]
+name = "Triage"
+layout = "table"
+filter = 'is:issue status:"Needs triage"'
+group_by = []
+sort_by = ["Created asc", "Title asc"]
+
+[[project.view]]
+name = "My work"
+layout = "table"
+filter = "assignee:@me -status:Done"
+group_by = ["Milestone"]
+sort_by = ["Status asc", "Title asc"]
+
+[[project.view]]
+name = "Contributions"
+layout = "table"
+filter = "is:pr -label:dependencies,source-refresh"
+group_by = ["Milestone"]
+sort_by = ["Title asc"]
+
+[[project.view]]
+name = "Automated updates"
+layout = "table"
+filter = "is:pr label:dependencies,source-refresh"
+group_by = ["Milestone"]
+sort_by = ["Title asc"]
+
+[[project.view]]
+name = "Maintenance"
+layout = "table"
+filter = "label:area:maintenance"
+group_by = ["Milestone"]
+sort_by = ["Title asc"]
+
+[[project.view]]
+name = "Release"
+layout = "table"
+filter = ""
+group_by = ["Milestone"]
+sort_by = ["Title asc"]
+
+# The Project's built-in automations, the only writers of Project fields.
+[project.workflows]
+"Auto-add sub-issues to project" = true
+"Auto-add to project" = true
+"Auto-archive items" = true
+"Auto-close issue" = false
+"Code changes requested" = true
+"Item added to project" = true
+"Item closed" = true
+"Item reopened" = true
+"Pull request linked to issue" = true
+"Pull request merged" = true
+
+# Organization issue types (enabled) and issue fields with their options. Priority and Effort exist only on typed
+# issues; their options were not readable with the maintainer's token on 24 October 2026.
+[organization.issue_types]
+Bug = true
+Feature = true
+Task = true
+
+[organization.issue_fields]
+Priority = ["Urgent", "High", "Medium", "Low"]
+Effort = ["High", "Medium", "Low"]
+
+# The GitHub App's registered permissions, kept as they are by the maintainer's decision of 24 October 2026. Each
+# job's App token requests only what that job uses (the [[token]] entries below), never the whole registration.
+[app]
+slug = "fair-guide-actions"
+permissions = { artifact_metadata = "read", attestations = "read", checks = "read", code_quality = "read", contents = "write", deployments = "read", discussions = "read", issues = "write", license_compliance_alerts = "read", merge_queues = "write", metadata = "read", organization_projects = "read", packages = "read", pages = "read", pull_requests = "write", repository_custom_properties = "read", repository_license_policy = "read", repository_projects = "read", statuses = "read" }
+
+# The token requests each workflow job may make: `github` is the job's GITHUB_TOKEN (its own block, else the
+# workflow's) and `app` the permissions it asks the App token for. Every job appears exactly once.
+[[token]]
+workflow = "checks.yml"
+jobs = ["quick", "build", "lanes", "checks"]
+github = { contents = "read" }
+
+[[token]]
+workflow = "commands.yml"
+jobs = ["parse", "fix-duplicates", "refresh"]
+github = { contents = "read" }
+
+[[token]]
+workflow = "commands.yml"
+jobs = ["help", "outcome"]
+github = { contents = "read", issues = "write", pull-requests = "write" }
+
+[[token]]
+workflow = "commands.yml"
+jobs = ["acknowledge"]
+github = { actions = "read", contents = "read", issues = "write", pull-requests = "write" }
+
+[[token]]
+workflow = "copilot-setup-steps.yml"
+jobs = ["copilot-setup-steps"]
+github = { contents = "read" }
+
+[[token]]
+workflow = "deploy.yml"
+jobs = ["sources", "production"]
+github = { actions = "read", contents = "read" }
+
+[[token]]
+workflow = "deploy.yml"
+jobs = ["staging", "assemble"]
+github = { contents = "read" }
+
+[[token]]
+workflow = "deploy.yml"
+jobs = ["deploy"]
+github = { id-token = "write", pages = "write" }
+
+[[token]]
+workflow = "fix-duplicates.yml"
+jobs = ["fix"]
+github = { contents = "read" }
+app = { contents = "write", pull-requests = "write" }
+
+[[token]]
+workflow = "health-watch.yml"
+jobs = ["watch"]
+github = { contents = "read", issues = "write" }
+
+[[token]]
+workflow = "pr-summary.yml"
+jobs = ["comment"]
+github = { actions = "read", contents = "read", pull-requests = "write" }
+
+[[token]]
+workflow = "prepare-release.yml"
+jobs = ["prepare"]
+github = { actions = "read", contents = "read", pull-requests = "read" }
+app = { contents = "write", pull-requests = "write" }
+
+[[token]]
+workflow = "publish-image.yml"
+jobs = ["image"]
+github = { actions = "read", attestations = "write", contents = "read", id-token = "write", packages = "write", security-events = "write" }
+
+[[token]]
+workflow = "release.yml"
+jobs = ["bind"]
+github = { actions = "read", contents = "read" }
+
+[[token]]
+workflow = "release.yml"
+jobs = ["publish"]
+github = { actions = "read", attestations = "write", contents = "read", id-token = "write", packages = "write", security-events = "write" }
+
+[[token]]
+workflow = "release.yml"
+jobs = ["release"]
+github = { actions = "read", contents = "write" }
+
+[[token]]
+workflow = "source-refresh.yml"
+jobs = ["select"]
+github = { contents = "read" }
+
+[[token]]
+workflow = "source-refresh.yml"
+jobs = ["refresh"]
+github = { contents = "read" }
+app = { contents = "write", pull-requests = "write" }
+
+[[token]]
+workflow = "tag-release.yml"
+jobs = ["tag"]
+github = { contents = "read" }
+app = { contents = "write" }
+
+# Approved targets not yet applied, with their current values. A command the audit prints for any other difference
+# keeps these at their live values; each is applied only in its task, after the precondition it names.
+[[pending]]
+setting = "ruleset.Main branch protection.rules.merge_queue"
+current = "absent"
+task = "4.8, once task 4.1's merge_group trigger is on the default branch: enable the merge queue"
+
+[[pending]]
+setting = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
+current = true
+task = "4.8: switch off the up-to-date requirement once the merge queue is on"
+
+[[pending]]
+setting = "environment.production"
+current = "absent"
+task = "4.8: create the production environment with its reviewer and tag-only deployment"
+
+[[pending]]
+setting = "environment.github-pages.reviewers"
+current = ["motyc"]
+task = "4.8, once task 4.4's production promotion job is on the default branch: remove the reviewer from github-pages"

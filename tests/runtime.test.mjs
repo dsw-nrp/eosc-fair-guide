@@ -108,7 +108,7 @@ test("local and CI budgets share one policy and leave explicit budgets intact", 
   assert.deepEqual(checkDefaults({}, 16), { profile: "local", ...policy.local });
   assert.deepEqual(checkDefaults({ CI: "true" }, 16), { profile: "ci", ...policy.ci });
   for (const CI of ["", "0", "false", "FALSE"]) assert.equal(checkDefaults({ CI }, 16).profile, "local");
-  assert.deepEqual(checkDefaults({}, 1), { profile: "local", jobs: 1, browser_workers: 1 });
+  assert.deepEqual(checkDefaults({}, 1), { profile: "local", jobs: 1, browser_workers: 1, unit_shards: 1 });
   assert.equal(workerCount("8"), 8);
 });
 
@@ -164,6 +164,30 @@ test("separate Node processes share the same browser-case limit", async () => {
     for (const [,delta] of events) { active += delta; maximum = Math.max(maximum, active); }
     assert.equal(maximum, budget);
   }
+});
+
+test("a script's wait for a shared browser slot is reported apart from its work", async () => {
+  const directory = mkdtempSync(resolve(root, ".cache/runtime-wait-"));
+  const env = { ...process.env, CHECK_BROWSER_SLOT_DIR: resolve(directory, "slots"), CHECK_BROWSER_WORKERS: "1" };
+  // The holder keeps the only slot until the script under test is visibly waiting, then for half a second more.
+  const holder = spawn(process.execPath, ["--input-type=module", "-e", `import {acquireSlot} from './scripts/browser_slots.mjs';
+    import {readdirSync} from 'node:fs';
+    const release=await acquireSlot(); console.log('held');
+    while(!readdirSync(process.env.CHECK_BROWSER_SLOT_DIR).some(name=>name.startsWith('wait-'))) await new Promise(done=>setTimeout(done,10));
+    await new Promise(done=>setTimeout(done,500)); release();`], { cwd: root, env });
+  const closed = new Promise((done) => holder.on("close", done));
+  await new Promise((done) => holder.stdout.once("data", done));
+  const path = resolve(directory, "waiting.json");
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", `import {chromium} from './tests/page/browser.mjs';
+    const browser=await chromium.launch();
+    try { await (await browser.newContext()).newPage(); } finally { await browser.close(); }`], {
+    cwd: root, env: { ...env, CHECK_CASE_REPORT: path }, encoding: "utf8",
+  });
+  assert.equal(await closed, 0);
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(readFileSync(path, "utf8"));
+  assert(report.script.queue_seconds >= 0.5, `the script waited ${report.script.queue_seconds}s`);
+  assert(report.script.queue_seconds < report.seconds, "the wait is part of, and smaller than, the script's time");
 });
 
 test("case reports retain skipped and aborted work and reject unknown selections", () => {

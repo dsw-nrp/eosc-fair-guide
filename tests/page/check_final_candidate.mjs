@@ -19,7 +19,9 @@ const coverage = [];
 const uiStrings = JSON.parse(readFileSync(resolve(root, "_site/assets/data/ui.js"), "utf8").match(/^window\.FairGuideData\.ui = (.*);$/m)[1]).ui;
 const browser = await chromium.launch();
 try {
-  const cases = ["cs", "en"].flatMap((lang) => [320, 390, 1280].map((width) => [`${lang}/${width}`, async () => {
+  // Cases start longest first (1280 px took about 60 s in hosted runs, the phone widths about 33 s), so the last
+  // case to start is a short one and the shared slots finish together.
+  const cases = [1280, 320, 390].flatMap((width) => ["cs", "en"].map((lang) => [`${lang}/${width}`, async () => {
       const context = await browser.newContext({ viewport: { width, height: 900 } });
       const page = await context.newPage();
       const {problems: errors, external} = installGuards(page, {

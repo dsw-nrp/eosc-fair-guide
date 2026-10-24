@@ -1,0 +1,199 @@
+{
+ "run": {
+  "status": "passed",
+  "jobs": [
+   {
+    "name": "build",
+    "status": "passed",
+    "seconds": 3.05,
+    "partial": false
+   },
+   {
+    "name": "content",
+    "status": "passed",
+    "seconds": 2.27,
+    "partial": false
+   },
+   {
+    "name": "duplicates",
+    "status": "passed",
+    "seconds": 0.33,
+    "partial": false
+   },
+   {
+    "name": "versions",
+    "status": "passed",
+    "seconds": 0.3,
+    "partial": false
+   },
+   {
+    "name": "citation-metadata",
+    "status": "passed",
+    "seconds": 0.4,
+    "partial": false
+   },
+   {
+    "name": "openspec",
+    "status": "passed",
+    "seconds": 0.61,
+    "partial": false
+   },
+   {
+    "name": "public-content",
+    "status": "passed",
+    "seconds": 0.91,
+    "partial": false
+   },
+   {
+    "name": "agent-generation",
+    "status": "passed",
+    "seconds": 0.1,
+    "partial": false
+   },
+   {
+    "name": "agent-ownership",
+    "status": "passed",
+    "seconds": 0.16,
+    "partial": false
+   },
+   {
+    "name": "sibling-delivery",
+    "status": "passed",
+    "seconds": 0.18,
+    "partial": false
+   },
+   {
+    "name": "health",
+    "status": "passed",
+    "seconds": 1.38,
+    "partial": false
+   },
+   {
+    "name": "unit",
+    "status": "passed",
+    "seconds": 114.82,
+    "partial": false
+   },
+   {
+    "name": "runtime",
+    "status": "passed",
+    "seconds": 37.52,
+    "partial": false
+   },
+   {
+    "name": "ruff",
+    "status": "passed",
+    "seconds": 0.07,
+    "partial": false
+   },
+   {
+    "name": "format",
+    "status": "passed",
+    "seconds": 0.08,
+    "partial": false
+   },
+   {
+    "name": "icons",
+    "status": "passed",
+    "seconds": 0.3,
+    "partial": false
+   },
+   {
+    "name": "favicons",
+    "status": "passed",
+    "seconds": 0.12,
+    "partial": false
+   },
+   {
+    "name": "fonts",
+    "status": "passed",
+    "seconds": 0.03,
+    "partial": false
+   },
+   {
+    "name": "reuse",
+    "status": "passed",
+    "seconds": 3.9,
+    "partial": false
+   },
+   {
+    "name": "crate",
+    "status": "passed",
+    "seconds": 115.44,
+    "partial": false
+   },
+   {
+    "name": "process-run",
+    "status": "passed",
+    "seconds": 22.47,
+    "partial": false
+   },
+   {
+    "name": "profile",
+    "status": "passed",
+    "seconds": 110.69,
+    "partial": false
+   },
+   {
+    "name": "page",
+    "status": "passed",
+    "seconds": 171.35,
+    "partial": false
+   },
+   {
+    "name": "final-candidate",
+    "status": "passed",
+    "seconds": 223.98,
+    "partial": false
+   },
+   {
+    "name": "discovery",
+    "status": "passed",
+    "seconds": 4.19,
+    "partial": false
+   },
+   {
+    "name": "helpers",
+    "status": "passed",
+    "seconds": 184.97,
+    "partial": false
+   },
+   {
+    "name": "assessment",
+    "status": "passed",
+    "seconds": 185.23,
+    "partial": false
+   },
+   {
+    "name": "model",
+    "status": "passed",
+    "seconds": 89.09,
+    "partial": false
+   },
+   {
+    "name": "api",
+    "status": "passed",
+    "seconds": 36.68,
+    "partial": false
+   },
+   {
+    "name": "diagrams",
+    "status": "passed",
+    "seconds": 21.94,
+    "partial": false
+   },
+   {
+    "name": "live",
+    "status": "not_run",
+    "seconds": null,
+    "partial": false
+   },
+   {
+    "name": "health-api",
+    "status": "passed",
+    "seconds": 0.91,
+    "partial": false
+   }
+  ]
+ }
+}

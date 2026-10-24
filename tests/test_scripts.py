@@ -1938,7 +1938,12 @@ class DuplicateTests(FixtureCase):
         data = json.loads(report.read_text(encoding="utf-8"))
         self.assertEqual(data["formatVersion"], 1)
         self.assertEqual(data["suggestions"][0]["field"], "re3data")
-        self.assertEqual(check_duplicates.main(["--root", str(self.root), "--fix"]), 0)
+        self.append(
+            "guide.toml",
+            '\n[[instrument]]\nid = "duplicate-fix"\nname = "Duplicate fix command"\nversion = "1"\n'
+            'url = "https://example.org/fix"\nkind = "software"\n',
+        )
+        self.assertEqual(check_duplicates.main(["--root", str(self.root), "--fix", "--person", "tester"]), 0)
         self.assertEqual(self.duplicates(), [])
         self.assertEqual(self.errors(), [])
         crate = build_crate.build_crate(build_crate.load_content(self.root / "content"))

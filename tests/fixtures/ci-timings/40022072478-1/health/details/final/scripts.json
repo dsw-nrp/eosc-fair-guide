@@ -1,0 +1,106 @@
+{
+ "group": "final",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/page/check_final_candidate.mjs",
+   "seconds": 190.185942095,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "cs/320",
+     "cs/390",
+     "cs/1280",
+     "en/320",
+     "en/390",
+     "en/1280"
+    ],
+    "executed": [
+     {
+      "name": "cs/390",
+      "status": "passed",
+      "seconds": 34.149322994,
+      "queue_seconds": 0.003952487000000019
+     },
+     {
+      "name": "cs/320",
+      "status": "passed",
+      "seconds": 34.152420463000006,
+      "queue_seconds": 0.001765378999999939
+     },
+     {
+      "name": "cs/1280",
+      "status": "passed",
+      "seconds": 62.88373112399999,
+      "queue_seconds": 0.26960815699999513
+     },
+     {
+      "name": "en/320",
+      "status": "passed",
+      "seconds": 94.15908803800001,
+      "queue_seconds": 61.971992318999995
+     },
+     {
+      "name": "en/390",
+      "status": "passed",
+      "seconds": 31.28332882899999,
+      "queue_seconds": 0.0007827089999918826
+     },
+     {
+      "name": "en/1280",
+      "status": "passed",
+      "seconds": 59.017879706999985,
+      "queue_seconds": 0.000488069999992149
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_repairs.mjs",
+   "seconds": 26.692564025,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_repairs.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_repairs.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_print.mjs",
+   "seconds": 6.8654755839999995,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_print.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_print.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}

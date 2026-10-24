@@ -108,7 +108,9 @@ The workflow retrieves every page of closed pull requests for the default branch
 reachable release tag and selects merged PRs whose merge commits belong to that tag-to-HEAD ancestry (all HEAD
 ancestry for the first release). It also collects every page of GitHub PR associations for first-parent commits
 in that history. Notes list merged PRs once and include linked, escaped subjects for direct commits; merge,
-squash and rebase PR commits are not listed again as direct changes. Earlier release sections are preserved.
+squash and rebase PR commits are not listed again as direct changes. The curated `[Unreleased]` notes lead the
+new release section unchanged, and `[Unreleased]` is left empty; notes that are malformed or use a reserved
+lineage heading stop preparation before any write ([changelog policy](changelog.md)). Earlier release sections are preserved.
 Unmerged PRs and changes outside this history are excluded. Commit-only and mixed releases are supported;
 an empty Git history or failed/incomplete collection is refused. A release can collect several merged PRs.
 
@@ -126,7 +128,10 @@ and dates, citation/Zenodo metadata and exactly one nonempty changelog section f
 the matching date. No release PR or merge-commit ancestry is required. If further commits landed, reconcile
 the notes and metadata for the selected current commit before tagging. The final branch-head check rejects a
 stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
-checked production build; publishing the resulting draft release is still a separate maintainer act.
+checked production build; publishing the resulting draft release is still a separate maintainer act. Before
+publishing, write the release notes with `/aiscr-write-release-notes` and apply them with
+`python scripts/release_body.py v<version> --apply` after reviewing its output; the draft's marked verification
+record stays unchanged (see the [changelog policy](changelog.md#write-the-release-body)).
 
 For an unchanged historical release whose failed-deployment tag was removed before a released artifact was
 published, the maintainer may recreate the annotated tag directly at the original release merge commit. Confirm

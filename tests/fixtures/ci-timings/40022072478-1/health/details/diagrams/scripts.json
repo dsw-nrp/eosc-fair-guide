@@ -1,0 +1,27 @@
+{
+ "group": "diagrams",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/page/check_diagrams.mjs",
+   "seconds": 21.675721477,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_diagrams.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_diagrams.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}

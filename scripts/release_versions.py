@@ -23,6 +23,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import build_identity
+import check_changelog
 from register_ids import render
 from release_version import version
 
@@ -267,6 +268,11 @@ def changelog(
 ) -> str:
     if re.search(r"(?m)^## \[" + re.escape(target) + r"\]", text):
         raise ValueError("this version already has a changelog entry")
+    # The shared parser refuses malformed sections and reserved lineage headings before anything is composed.
+    problems = check_changelog.structure_errors(text)
+    if problems:
+        raise ValueError("CHANGELOG.md: " + "; ".join(problems))
+    preamble, sections = check_changelog.parse(text)
     selected = {}
     represented = set()
     if not commits:
@@ -310,18 +316,15 @@ def changelog(
         raise ValueError("no merged pull requests since the previous tag; refusing an empty release changelog")
     lines = [f"Since {previous or 'the beginning of the repository'}.", ""]
     if selected:
-        lines.extend(["### Merged pull requests", "", *(value[2] for value in sorted(selected.values())), ""])
+        lines.extend([f"### {check_changelog.MERGED}", "", *(value[2] for value in sorted(selected.values())), ""])
     if direct:
-        lines.extend(["### Direct commits", "", *direct])
-    block = f"## [{target}] - {released}\n\n" + "\n".join(lines) + "\n\n"
-    # Settle Unreleased as the complete PR/direct-commit history.
+        lines.extend([f"### {check_changelog.DIRECT}", "", *direct])
+    # The curated notes lead the release unchanged; the generated lineage follows them, never replaces them.
+    notes = sections[0].body.strip()
+    block = f"## [{target}] - {released}\n\n" + (notes + "\n\n" if notes else "") + "\n".join(lines) + "\n\n"
     # Earlier released sections and their original text remain byte-for-byte.
-    unreleased = re.search(r"(?m)^## \[Unreleased\].*$", text)
-    if not unreleased:
-        raise ValueError("CHANGELOG.md needs an [Unreleased] section")
-    following = re.search(r"(?m)^## ", text[unreleased.end() :])
-    tail = text[unreleased.end() + following.start() :] if following else ""
-    return text[: unreleased.start()] + "## [Unreleased]\n\n" + block + tail
+    released_text = "".join(section.text for section in sections[1:])
+    return preamble + f"## [{check_changelog.UNRELEASED}]\n\n" + block + released_text
 
 
 def prepare(

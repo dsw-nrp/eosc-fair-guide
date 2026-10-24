@@ -1,0 +1,96 @@
+# Tasks
+
+Each numbered group below is delivered as its own reviewed PR, following the wave order in the design. Tasks
+marked **Human hand-off** need a person's approval or action and do not become complete through local tests.
+
+## 1. Correctness: nothing gets lost
+
+- [x] 1.1 Add `scripts/check_changelog.py` to the offline inventory and CPU lane: one `[Unreleased]` section, meaningful entries, released sections byte-identical to the base and complete release transitions accepted. Verify that planted missing, duplicated, placeholder-only and edited-history cases fail with the exact remedy, while the current `CHANGELOG.md` and an empty post-release section pass.
+- [x] 1.2 Make `release_versions.py` move the curated `[Unreleased]` body unchanged ahead of the generated PR and direct-commit lineage, refusing reserved lineage headings before any write. Verify with the G2 reproduction that note and PR link both survive, that empty-note, first-release, PR-only, direct-only and mixed histories keep their current output, and that prepared output passes 1.1.
+- [x] 1.3 Write `docs/changelog.md` (curated notes, generated lineage, late findings after a release) and link it from CONTRIBUTING and `docs/deployment.md`. Verify that the links resolve and the documented commands run.
+- [x] 1.4 Keep known failures from admitted lanes when another lane is missing, unreadable or has the wrong identity. Verify with the G4 reproduction that the summary and health report name both the content failure and the missing lane, the exit stays nonzero and the rejected lane contributes no data or suggestions.
+- [x] 1.5 Share provenance writing between `fix_duplicates.py` and local `check_duplicates.py --fix`, which then writes the link, one provenance action and its registration. Resolve the person from `--person` or the single reviewed `github`/`commitNames` match. Verify with a real duplicate fixture that the complete diff is produced and an unknown or ambiguous identity writes nothing, exits nonzero and names `--person` and the identity-review route. Verify that rollback still restores every file on injected failure.
+- [x] 1.6 Update command help, CONTRIBUTING and `docs/content-model.md` for the local repair, including identity resolution and rollback. Run the documented fixture commands and verify idempotence and the nonzero no-change exit.
+- [x] 1.7 Add `commands.yml` as the only `issue_comment` workflow: a filter-first parse job, then one job per command with resource-scoped concurrency and `queue: max`. Make `fix-duplicates.yml` and `source-refresh.yml` callable from it and remove their comment triggers. Verify in workflow tests that an unrelated comment cannot cancel a waiting command, and that caller-permission, fork, schedule and default-branch guards are unchanged.
+- [x] 1.8 Acknowledge accepted commands with a reaction and finish with a success reaction or a reply naming the run, result and next step, including "waiting behind" and queue-full refusal. Verify with rendered-output tests for success, refusal, queued, overflow and failure.
+- [x] 1.9 Add `/help` with one bot-maintained comment per thread, eligibility taken from the commands' own functions, and "did you mean" for near misses. Verify that help and command eligibility agree for maintainer, non-maintainer, fork and no-suggestion cases, that a repeated `/help` edits the same comment, and that a mistyped command runs nothing.
+- [x] 1.10 Remove the duplicated 4/2 budget defaults from `check_ci.py` so local and CI runs read `scripts/check_policy.json`, keeping explicit overrides. Verify precedence tests for command line, environment and policy.
+- [x] 1.11 Keep `CHANGELOG.md` mechanical: rewrite `docs/changelog.md` and the CONTRIBUTING commit guidance so the detail lives in commit messages and `[Unreleased]` holds one line only for a breaking change, a required step or a security fix, and trim `[Unreleased]` accordingly. Verify that the changelog check passes and the documented links resolve.
+- [x] 1.12 Draft release bodies with a changelog link and one marked verification record, and add `scripts/release_body.py` to compose reviewed `/aiscr-write-release-notes` reports with that record and apply them to an unpublished draft; document the step in `docs/changelog.md` and `docs/deployment.md`. Verify that the record survives byte for byte, that a working report, a missing record, a published release and a change since review are refused, and that the release workflow's markers and the helper's agree.
+
+## 2. Faster checks
+
+- [x] 2.1 Add `scripts/ci_timings.py` that reports queue, setup, active time, slot waits and the critical path per run, and suggests a balanced lane assignment. Verify against run 40022072478 that it reproduces the measured critical path. Record a three-rerun baseline for a fixed PR commit.
+- [x] 2.2 Add a non-required `quick` job running the cheap offline checks next to the build, with its own summary and next step. Verify that a planted content error fails the quick job and the required `checks` alike.
+- [ ] 2.3 Enable pip and npm caches keyed on `requirements-dev.txt` and `package-lock.json`. Install in each lane only what its checks import, after verifying the browser-lane import graph. Verify cold, warm and changed-lockfile runs and identical check inventories.
+- [x] 2.4 Run unit tests in deterministic parallel shards locally and in CI with one merged timing report. Verify that every test runs exactly once, a planted failure in any shard fails the check, and shards pass in shuffled order.
+- [x] 2.5 Split browser scripts whose time excluding browser-slot waits exceeds about 45 s into named cases, start the longest cases first, and rebalance to three or four browser lanes from 2.1's suggestion. Verify that the collector still requires every case once and that failure screenshots and traces remain.
+- [x] 2.6 Measure one validator process for the three profiles, validator/unit-shard separation and a Playwright browser cache, keeping each only with a paired gain. Verify that the three validator profiles still produce unchanged results.
+- [x] 2.7 Trim the collector job's setup to what it uses. Verify that the health, preview and review artifacts are byte-equivalent in content and naming.
+- [x] 2.8 Compare three candidate reruns with the 2.1 baseline at the same commit and record the receipt (elapsed, critical path, queue, setup, summed job time, concurrent-job peak, full coverage) in `docs/ci.md`. Verify that the receipt shows unchanged case and validator coverage.
+
+## 3. Repository settings audit
+
+- [x] 3.1 Add `.github/repository.toml` with rulesets, merge-queue parameters, merge-commit message settings (squash keeps the branch commit messages), environments, labels and path rules, Project fields, options, views and built-in automations, and the App's expected registration permissions. Record the current values plus the approved targets. Verify that a schema check rejects unknown sections and malformed values.
+- [x] 3.2 Add `scripts/audit_repository.py`: read-only by default, with each difference shown with its UI path and an equivalent `gh api` command, unreadable sections reported as unavailable, and `--fix` limited to creating or updating declared labels and adding missing Project items. Verify with recorded API fixtures that planted drift in every section is reported and `--fix` never deletes labels or changes field values.
+- [x] 3.3 Add an offline workflow test comparing each job's `GITHUB_TOKEN` and App-token permission requests with the reviewed list in `repository.toml`. Verify that a planted extra permission fails and names the job.
+- [x] 3.4 Determine which sections `GITHUB_TOKEN`, the App token and a maintainer token can read, including organization issue fields, and record the capability table in `docs/maintenance.md`. Verify with a real local read-only run against the repository.
+
+## 4. Merge and deploy
+
+- [ ] 4.1 Make `checks.yml` run on `merge_group` with the merge-group base, skipping PR-only review-data steps, and make `pr-summary.yml` ignore merge-group runs. Verify workflow tests for both events and that fork runs stay read-only without secrets.
+- [ ] 4.2 Move the lane jobs into one reusable workflow called by PR, merge-group and deployment-fallback checks. Verify that the same inventory and evidence checks apply in all three.
+- [ ] 4.3 Reuse a passing merge-group result in deployment only for an identical tree and build inputs, importing its health snapshot after identity and schema validation. Otherwise run the partitioned checks. Verify fixtures for identical tree, different tree, missing run, failed run and invalid snapshot, and check that the summary names the reused run or the fallback reason.
+- [ ] 4.4 Add the approval-gated production promotion job (environment `production`), select only already-released tags for branch pushes, use per-ref concurrency, and run assembly and publication as one serialized section that rechecks current eligible identities. Verify overlap tests: a newer push cancels older preparation, a tag waits for approval while main advances, a stale run publishes nothing and names its successor, and a retry causes no channel regression.
+- [ ] 4.5 Make Tag release name the deployment run to wait for when the current default-branch commit has no successful deployment. Verify the refusal text in tests.
+- [ ] 4.6 Group Dependabot patch and minor updates per ecosystem, keep majors separate, and keep the limit of 30 and the current security-update policy. Verify the configuration test.
+- [ ] 4.7 Update `docs/deployment.md` and CONTRIBUTING for the merge queue, staging without approval, production approval, break-glass administrator merge and per-setting rollback. Verify the steps against `repository.toml`.
+- [ ] 4.8 **Human hand-off:** present the audit's expected-versus-actual diff for the ruleset and environment changes and obtain approval. Then apply in the migration-plan order, each step only once its precondition holds: merge queue on (after 4.1's `merge_group` trigger is on the default branch), up-to-date off, `production` environment with reviewers, reviewer removed from `github-pages` (after 4.4's production promotion job is on the default branch). Verify with a fresh audit after each step.
+- [ ] 4.9 **Human hand-off:** in a separately approved hosted rehearsal, merge one human PR and one grouped Dependabot PR through the queue, observe staging reuse, and promote one release with approval. Record run links, timings and any fallback.
+
+## 5. Project and intake
+
+- [ ] 5.1 Declare the `area:*` and `source-refresh` labels and their path rules in `repository.toml`, then create them with `audit_repository.py --fix`. Verify that the audit reports them present and the three label-filtered views populate.
+- [ ] 5.2 Add area labels from the API file list in the trusted review publisher, never re-adding a label a person removed, and add `source-refresh` in the refresh publisher. Verify tests for human, Dependabot and refresh PRs and for a removed label.
+- [ ] 5.3 Add `scripts/generate_issue_templates.py` that writes Czech and English Bug, Feature and Task Markdown templates and `config.yml` from the delivered `aiscr-plan-issue` declarations, setting the native type. Add its `--check` to the offline suite. Verify that each template contains every declared section in one language, that a planted heading change fails the check, and that a body filled from each template passes the engine's `section_status()` with no missing section.
+- [ ] 5.4 Add the Project checks to the audit: missing items, untyped issues, body type differing from the native type, Ready issues failing the definition of Ready (with `readiness()`), Needs triage over 14 days, Urgent issues stalled over three days, state mismatches, and automation and view drift. Verify with recorded fixtures and one real read-only run.
+- [ ] 5.5 Run the audit weekly as its own `health-watch.yml` job with an App token limited to `organization_projects: read`, feeding the digest's "Project and settings" section. Verify that a denied-token fixture yields "unavailable" with the owner step and leaves the rest of the digest intact.
+- [ ] 5.6 **Human hand-off:** prepare the reviewed mapping file assigning Issue Type and area label to every open issue, and obtain approval. Apply it with the audit's dry run first, then `--fix` and type updates. Verify that the audit shows every open issue typed and labelled.
+- [ ] 5.7 Document triage in `docs/maintenance.md`: statuses, definition of Ready, Priority and Effort, views, templates, `/aiscr-plan-issue` for shaping, and running the audit. Verify that every referenced view and command exists.
+- [ ] 5.8 **Human hand-off:** the organization owner confirms that the App installation accepted `organization_projects`; the registration itself stays as reviewed (maintainer decision of 24 October 2026). Verify that the audit's registration check passes and the weekly job reads Project #1.
+
+## 6. Quiet monitoring
+
+- [ ] 6.1 Classify link outcomes as broken, denied, rate limited or unavailable, keeping method, status and evidence. Verify fixtures showing that 403 and 429 are never reported as broken and that no live result becomes a FAIR verdict.
+- [ ] 6.2 Replace the fixed first-600 selection with least-recently-attempted selection under the global budget, a per-host cap and bounded `Retry-After` handling. Verify that 673 unchanged URLs are all attempted within two runs, that deferred targets keep their dated observation without streak or recovery changes, and that counts are reported.
+- [ ] 6.3 Persist versioned watch state as a run artifact read from the previous successful run, migrating version 1 and showing a reset notice when it is missing or malformed. Verify migration, missing-artifact and malformed-state fixtures.
+- [ ] 6.4 Add `.github/health-watch.toml` limitations with offline validation and ready-to-paste digest suggestions for new denials and rate limits. Verify that wildcard, missing-evidence and conflicting entries fail, and that changed-outcome and expired entries return to triage.
+- [ ] 6.5 Ignore pagination and navigation on watched pages while keeping documents, events and unresolved Champion candidates. Verify that the #101 fixture produces nothing and that a new document is listed with its address and available date.
+- [ ] 6.6 Replace `health-issues.cjs` with the digest publisher: one open digest rebuilt from state, bounded sections, comments only for meaningful change with a run marker, refusal on two open digests, and best-effort pinning. Verify that unchanged runs post no comment, retries do not duplicate, body bounds hold and two digests cause no write.
+- [ ] 6.7 Implement rotation by closing: the successor links its predecessor, the forward link is posted, and open sub-issues are moved. Verify that interruption at each step resumes without a second successor or lost task.
+- [ ] 6.8 Render "Track as task" links and adopt keyed tasks created by authors with write access as digest sub-issues. Verify that other authors are not adopted, that closed tasks keep their disposition, and that only a changed outcome returns a finding to triage.
+- [ ] 6.9 Report stale statuses in the digest instead of issues. Verify the knowledge-base stale-status scenario with a fixture.
+- [ ] 6.10 **Human hand-off:** refresh the threads of #59–#65 and #85–#101 and produce the dry-run migration mapping and the exact first digest. After approval, publish, close the absorbed issues as not planned with digest links, and reread. Verify that every original observation and any human discussion is retained.
+- [ ] 6.11 Document digest triage, limitations, task promotion and rotation in `docs/maintenance.md`. Verify the steps against the published digest.
+
+## 7. Self-explaining CI and crawler files
+
+- [ ] 7.1 Generate the workflow catalogue block of `docs/ci.md` from the YAML, joined with a reviewed human file (purpose, entry point, next actor, rerun route), and add its `--check` to the offline suite. Verify that a planted new workflow, artifact or permission without an entry fails, and that generated Copilot setup is covered.
+- [ ] 7.2 Write the rest of `docs/ci.md`: cheat sheet, commands and `/help`, local reproduction, the `checks` context versus the workflow name, and the timing receipt. Link it from CONTRIBUTING, `docs/agent-tooling.md` and `docs/deployment.md`. Verify that the cheat-sheet commands run.
+- [ ] 7.3 Add the shared "Next / If blocked / Done when" block to every automated output: check summaries, quick job, PR comment, command replies, digest, release preparation, Tag release, deployment, image and draft release. Verify that rendered-output tests fail when the action, fallback or completion evidence is removed.
+- [ ] 7.4 Add advisory release-note and planning hints derived from the diff and commits to the review comment (an `[Unreleased]` line only for a breaking change, a required step or a security fix; otherwise commit messages feed the release notes), and update the PR template. Verify that hints never fail checks, never read PR body text, and mark Dependabot and refresh PRs as covered by the lineage.
+- [ ] 7.5 Update the native content and surface rules under `.agents/guide/` with content-instance versus contract examples and the changelog policy, then run `python scripts/generate_agent_surfaces.py`. Verify that generation, ownership and sibling-delivery checks pass with no delivered file edited.
+- [ ] 7.6 Add the usage-filename check to the offline suite. Verify that planted undated and mismatched entries fail with the rename remedy, and that existing entries and later rolling sessions pass.
+- [ ] 7.7 Generate `robots.txt` and `sitemap.xml` from the configured base URL and preserve them in assembly, recording any required paradata. Verify real build and assembly outputs for the default and an overridden base, the sitemap scope and the absence of preview addresses (#83).
+
+## 8. Integrated verification
+
+- [ ] 8.1 Run strict OpenSpec validation, the native generation, ownership and delivery checks, and `python scripts/check_all.py`. Verify that all pass with the full coverage floor.
+- [ ] 8.2 Reconcile #83, #84 and the migrated issues, the `[Unreleased]` notes and the usage entry with the local, hosted and human evidence. Verify that every hand-off has a recorded outcome or an explicit owned deferral before any completion claim.
+
+## Workflow follow-up
+
+- Implementation starts only after a fresh apply instruction for this change. Each group lands as its own PR.
+- Settings changes, the backfill, the digest migration and hosted rehearsals stay within their separately approved scopes.
+- Reusing expensive check results by input digest is a separate, later decision.
+- Archive only after verified completion and explicit approval, syncing the reviewed deltas.

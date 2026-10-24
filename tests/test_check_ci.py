@@ -1,11 +1,13 @@
 """Partition evidence must fail closed when a lane, job, script, case or build is missing/wrong."""
 
 import copy
+import io
 import json
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -90,8 +92,20 @@ class PartitionTests(unittest.TestCase):
         names = [job.name for jobs in lanes.values() for job in jobs]
         self.assertEqual(sorted(names), sorted(job.name for job in available if job.name != "live"))
         self.assertEqual(len(names), len(set(names)))
-        self.assertTrue({"crate", "process-run", "profile", "unit"} <= {job.name for job in lanes["cpu"]})
+        self.assertTrue({"crate", "process-run", "profile"} <= {job.name for job in lanes["cpu"]})
+        self.assertEqual([job.name for job in lanes[check_ci.UNIT_LANE]], ["unit"], "the shards get their own runner")
         self.assertTrue(all(lanes[lane] for lane in check_ci.LANES))
+
+    def test_every_browser_job_has_exactly_one_reviewed_lane(self):
+        owned = [job for jobs in check_ci.BROWSER_LANES.values() for job in jobs]
+        self.assertEqual(len(owned), len(set(owned)))
+        self.assertEqual(set(owned), check_all.BROWSER_JOBS - {"live"})
+        self.assertEqual(check_ci.LANES, ("cpu", check_ci.UNIT_LANE, *check_ci.BROWSER_LANES))
+        with (
+            mock.patch.object(check_all, "BROWSER_JOBS", check_all.BROWSER_JOBS | {"unassigned"}),
+            self.assertRaisesRegex(ValueError, "unassigned: browser job without a lane"),
+        ):
+            check_ci.partition([check_all.Job("unassigned", [])])
 
     def test_complete_evidence_is_accepted_without_losing_output(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -199,6 +213,71 @@ class PartitionTests(unittest.TestCase):
             self.assertEqual({result.job.name for result in failures}, {"content", "final-candidate"})
             self.assertEqual(len(results), 3)
             self.assertEqual(sorted(result.job.name for result in failures), ["content", "final-candidate"])
+
+    def fail_content(self, root: Path) -> None:
+        path = root / "cpu/lane.json"
+        data = check_ci.read_json(path)
+        for row in data["results"]:
+            if row["name"] == "content":
+                row.update(returncode=1, output="content failed: resource `x` lacks a source")
+        check_ci.write_json(path, data)
+
+    def test_known_failures_survive_missing_or_rejected_lane_evidence(self) -> None:
+        # G4: a failed CPU content check must stay visible when another lane's evidence is unusable.
+        for fault in ("missing", "wrong-identity"):
+            with self.subTest(fault=fault), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                manifest, jobs, groups = self.fixture(root)
+                self.fail_content(root)
+                lane = root / "browser-a/lane.json"
+                if fault == "missing":
+                    lane.unlink()
+                else:
+                    data = check_ci.read_json(lane)
+                    data["results"][0]["output"] = "must not be admitted"
+                    data["build"] = {"site": "other"}
+                    check_ci.write_json(lane, data)
+                with self.assertRaises(check_ci.RejectedEvidenceError) as caught:
+                    check_ci.reconcile(manifest, root, jobs, groups)
+                names = {result.job.name: result for result in caught.exception.results}
+                self.assertFalse(names["content"].ok)
+                self.assertNotIn("page", names, "a rejected lane contributes no results")
+                self.assertIn("browser-a", str(caught.exception))
+
+    def test_collector_reports_the_known_failure_with_the_missing_lane(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            incoming = root / "incoming"
+            manifest, jobs, groups = self.fixture(incoming)
+            manifest["result"] = {"returncode": 0, "seconds": 1, "output": "built"}
+            self.fail_content(incoming)
+            (incoming / "browser-a/lane.json").unlink()
+            check_ci.write_json(root / "manifest.json", manifest)
+            real_read = check_ci.read_json
+            args = SimpleNamespace(base=None, manifest=root / "manifest.json", incoming=incoming, output=root / "out")
+            output = io.StringIO()
+            with (
+                mock.patch.object(check_ci, "verify_build"),
+                mock.patch.object(check_ci.check_all, "jobs", return_value=jobs),
+                mock.patch.object(
+                    check_ci,
+                    "read_json",
+                    side_effect=lambda p: groups if p.name == "check_groups.json" else real_read(p),
+                ),
+                mock.patch.object(check_all, "emit_report") as emit,
+                redirect_stdout(output),
+            ):
+                self.assertEqual(check_ci.collect(args), 1)
+            _, results, _, _ = emit.call_args.args
+            by_name = {result.job.name: result for result in results}
+            self.assertFalse(by_name["content"].ok)
+            self.assertIn("lacks a source", by_name["content"].output)
+            self.assertIn("missing required lanes: browser-a", by_name["aggregate"].output)
+            self.assertFalse(by_name["aggregate"].ok)
+            printed = output.getvalue()
+            self.assertIn("FAILED content", printed)
+            self.assertIn("missing required lanes: browser-a", printed)
+            self.assertEqual(check_ci.read_json(root / "pr-review/suggestions.json")["suggestions"], [])
 
     def test_failed_lane_diagnostics_are_copied(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -383,4 +462,53 @@ class PartitionTests(unittest.TestCase):
             self.assertEqual(publish.call_args.kwargs["start"], 850, "include build/lane time before collection")
             metadata = check_ci.read_json(root / "out/execution.json")
             self.assertEqual(metadata["elapsed_seconds"], 70, "include final health publication")
-            self.assertEqual(metadata["lane_seconds"], 90, "lane effort remains separate from elapsed time")
+            self.assertEqual(
+                metadata["lane_seconds"], 30 * len(check_ci.LANES), "lane effort remains separate from elapsed time"
+            )
+
+
+class QuickTests(unittest.TestCase):
+    def test_quick_checks_are_the_cpu_lanes_own_jobs_and_need_no_build(self):
+        inventory = check_all.jobs("base", False)
+        cpu = check_ci.partition(inventory)["cpu"]
+        quick = [job for job in inventory if job.name in check_ci.QUICK]
+        self.assertEqual(sorted(job.name for job in quick), sorted(check_ci.QUICK))
+        for job in quick:
+            self.assertIn(job, cpu, f"{job.name}: the required result runs the identical command")
+            self.assertFalse(any("_site" in part for part in job.command), f"{job.name} needs no build")
+
+    def run_quick(self, failing: str | None):
+        def run(job, env):
+            failed = job.name == failing
+            return check_all.Result(job, int(failed), 0.5, "advice.fixture cites an unknown clause" if failed else "")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            printed = io.StringIO()
+            with mock.patch.object(check_all, "run", side_effect=run), redirect_stdout(printed):
+                status = check_ci.main(["quick", "--base", "main", "--output", temporary])
+            return status, (Path(temporary) / "summary.md").read_text(encoding="utf-8"), printed.getvalue()
+
+    def test_a_quick_failure_names_the_check_its_reproduction_and_the_required_result(self):
+        status, summary, printed = self.run_quick("content")
+        self.assertEqual(status, 1)
+        self.assertIn("| content | failed |", summary)
+        self.assertIn("advice.fixture cites an unknown clause", summary)
+        self.assertIn("`python scripts/check_all.py --only content`", summary)
+        self.assertIn("required `checks` result reports the same failures", summary)
+        self.assertIn("FAILED content", printed)
+
+    def test_a_passing_quick_result_points_to_the_required_result(self):
+        status, summary, _ = self.run_quick(None)
+        self.assertEqual(status, 0)
+        self.assertEqual(summary.count("| passed |"), len(check_ci.QUICK))
+        self.assertIn("They do not replace the required `checks` result", summary)
+        self.assertIn("- **Done when:** `checks` passes.", summary)
+
+    def test_lanes_record_their_dependency_cache_hits(self):
+        self.assertEqual(
+            check_ci.cache_status({"CHECK_CACHE_PIP": "true", "CHECK_CACHE_NPM": "false"}),
+            {"pip": "hit", "npm": "miss"},
+        )
+        self.assertEqual(
+            check_ci.cache_status({"CHECK_CACHE_PIP": "", "CHECK_CACHE_NPM": "true"}), {"pip": "not used", "npm": "hit"}
+        )

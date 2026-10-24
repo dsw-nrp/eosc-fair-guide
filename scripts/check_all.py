@@ -94,6 +94,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("content", [python, "scripts/check_content.py", *(["--base", base] if base else [])]),
         Job("duplicates", [python, "scripts/check_duplicates.py"]),
         Job("versions", [python, "scripts/release_versions.py", "check", "--site", "_site"]),
+        Job("changelog", [python, "scripts/check_changelog.py", *(["--base", base] if base else [])]),
         Job("citation-metadata", [python, "scripts/check_citation_metadata.py"]),
         Job("openspec", [npm, "run", "-s", "openspec:validate"]),
         Job("public-content", [python, "scripts/check_public_content.py"]),
@@ -142,6 +143,19 @@ def execution_defaults(env: dict[str, str], cpus: int) -> dict:
     profile = "ci" if env.get("CI", "").lower() not in ("", "0", "false") else "local"
     policy = json.loads((ROOT / "scripts/check_policy.json").read_text(encoding="utf-8"))[profile]
     return {"profile": profile, **{key: min(value, max(1, cpus)) for key, value in policy.items()}}
+
+
+def add_budget_arguments(parser: argparse.ArgumentParser) -> dict:
+    """Register `--jobs` and `--browser-workers` for every runner: CLI > CHECK_BROWSER_WORKERS > the policy profile."""
+    defaults = execution_defaults(dict(os.environ), os.cpu_count() or 1)
+    parser.add_argument("--jobs", type=int, default=defaults["jobs"], help="checks run at a time (profile default)")
+    parser.add_argument(
+        "--browser-workers",
+        type=int,
+        default=os.environ.get("CHECK_BROWSER_WORKERS", defaults["browser_workers"]),
+        help="browser work at a time, shared across groups (CLI > CHECK_BROWSER_WORKERS > profile)",
+    )
+    return defaults
 
 
 def run(job: Job, env: dict[str, str]) -> Result:
@@ -323,14 +337,7 @@ def main(argv: list[str] | None = None) -> int:
         "(default: the remote's default branch)",
     )
     parser.add_argument("--live", action="store_true", help="also run the live checks, which need the network")
-    defaults = execution_defaults(dict(os.environ), os.cpu_count() or 1)
-    parser.add_argument("--jobs", type=int, default=defaults["jobs"], help="checks run at a time (profile default)")
-    parser.add_argument(
-        "--browser-workers",
-        type=int,
-        default=os.environ.get("CHECK_BROWSER_WORKERS", defaults["browser_workers"]),
-        help="browser work at a time, shared across groups (CLI > CHECK_BROWSER_WORKERS > profile)",
-    )
+    defaults = add_budget_arguments(parser)
     parser.add_argument("--only", nargs="+", metavar="NAME", help="run only these checks")
     parser.add_argument(
         "--report-dir", type=Path, default=ROOT / ".cache" / "health", help="JSON, HTML and CI-summary output directory"

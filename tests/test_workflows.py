@@ -6,6 +6,7 @@ import fnmatch
 import json
 import re
 import subprocess
+import sys
 import tomllib
 import unittest
 from pathlib import Path
@@ -13,10 +14,65 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scripts"))
+import check_ci  # noqa: E402
 
 
 def load(path: str) -> dict:
     return yaml.load((ROOT / path).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+
+
+def token_requests() -> dict[tuple[str, str], tuple[dict | None, dict]]:
+    """Each workflow job's GITHUB_TOKEN permissions (its own block, else the workflow's) and App-token requests."""
+    found = {}
+    for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
+        workflow = load(path.relative_to(ROOT).as_posix())
+        for name, job in workflow["jobs"].items():
+            app = {}
+            for step in job.get("steps", []):
+                if step.get("uses", "").startswith("actions/create-github-app-token@"):
+                    requested = step.get("with", {}).items()
+                    app |= {
+                        key.removeprefix("permission-"): value
+                        for key, value in requested
+                        if key.startswith("permission-")
+                    }
+            found[(path.name, name)] = (job.get("permissions", workflow.get("permissions")), app)
+    return found
+
+
+def reviewed_tokens() -> dict[tuple[str, str], tuple[dict, dict]]:
+    config = tomllib.loads((ROOT / ".github/repository.toml").read_text(encoding="utf-8"))
+    return {
+        (entry["workflow"], job): (entry["github"], entry.get("app", {}))
+        for entry in config["token"]
+        for job in entry["jobs"]
+    }
+
+
+def token_differences(reviewed: dict, actual: dict) -> list[str]:
+    """Every job whose token requests differ from its reviewed entry, naming the job and the permission."""
+    problems = []
+    for workflow, job in sorted(set(actual) | set(reviewed)):
+        where = f"{workflow} job {job}"
+        if (workflow, job) not in reviewed:
+            problems.append(f"{where}: no reviewed token entry in .github/repository.toml")
+            continue
+        if (workflow, job) not in actual:
+            problems.append(f"{where}: reviewed in .github/repository.toml, but no such job")
+            continue
+        if actual[(workflow, job)][0] is None:
+            problems.append(f"{where}: no explicit permissions, so GITHUB_TOKEN gets the repository default")
+            continue
+        for index, token in enumerate(("GITHUB_TOKEN", "App token")):
+            want, have = reviewed[(workflow, job)][index], actual[(workflow, job)][index]
+            for permission in sorted(set(want) | set(have)):
+                if want.get(permission, "none") != have.get(permission, "none"):
+                    problems.append(
+                        f"{where}: {token} requests {permission}: {have.get(permission, 'none')}, "
+                        f"reviewed {want.get(permission, 'none')}"
+                    )
+    return problems
 
 
 class WorkflowContracts(unittest.TestCase):
@@ -168,11 +224,11 @@ class WorkflowContracts(unittest.TestCase):
                 for step in steps
             )
         )
-        self.assertEqual(job["needs"], ["build", "lanes"])
+        self.assertEqual(job["needs"], ["build", "lanes"], "the quick result never gates or replaces `checks`")
         self.assertEqual(job["if"], "always()")
         lanes = workflow["jobs"]["lanes"]
         self.assertEqual(lanes["strategy"]["fail-fast"], "false")
-        self.assertEqual(lanes["strategy"]["matrix"]["lane"], ["cpu", "browser-a", "browser-b"])
+        self.assertEqual(lanes["strategy"]["matrix"]["lane"], list(check_ci.LANES))
         for lane in workflow["jobs"].values():
             self.assertNotIn("permissions", lane)
             for step in lane["steps"]:
@@ -189,6 +245,55 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn(".cache/pr-review/contributors.json", review["with"]["path"].split())
         self.assertTrue(any("scripts/contributors.py" in step.get("run", "") for step in steps))
         self.assertNotIn("secrets.", (ROOT / ".github/workflows/checks.yml").read_text())
+
+    def test_quick_feedback_runs_beside_the_build_with_only_its_own_tools(self) -> None:
+        quick = load(".github/workflows/checks.yml")["jobs"]["quick"]
+        self.assertNotIn("needs", quick, "quick feedback does not wait for the build")
+        runs = [step.get("run", "") for step in quick["steps"]]
+        self.assertTrue(any('scripts/check_ci.py quick --base "$BASE_SHA"' in run for run in runs))
+        install = next(run for run in runs if "pip install" in run)
+        self.assertIn("grep -E '^ruff==' requirements-dev.txt", install, "Ruff keeps its single pinned version")
+        self.assertNotIn("-r requirements-dev.txt", install)
+        self.assertTrue(any("cat .cache/quick/summary.md" in run for run in runs))
+
+    def test_dependency_caches_follow_the_lockfiles_and_stay_out_of_trusted_runs(self) -> None:
+        checks = load(".github/workflows/checks.yml")
+        for name, job in checks["jobs"].items():
+            for step in job["steps"]:
+                if step.get("uses", "").startswith("actions/setup-node@"):
+                    self.assertEqual(step["with"]["cache"], "npm", name)
+                    self.assertEqual(step["with"]["cache-dependency-path"], "package-lock.json", name)
+                if step.get("uses", "").startswith("actions/setup-python@") and "cache" in step.get("with", {}):
+                    # Only lanes installing the full requirements save under their key, so no partial install can.
+                    self.assertEqual(name, "lanes")
+                    self.assertEqual(
+                        step["with"]["cache"], "${{ (matrix.lane == 'cpu' || matrix.lane == 'unit') && 'pip' || '' }}"
+                    )
+                    self.assertEqual(step["with"]["cache-dependency-path"], "requirements-dev.txt")
+        lane_steps = checks["jobs"]["lanes"]["steps"]
+        python_tools = next(step for step in lane_steps if "pip install -r requirements-dev.txt" in step.get("run", ""))
+        self.assertEqual(
+            python_tools["if"],
+            "matrix.lane == 'cpu' || matrix.lane == 'unit'",
+            "browser lanes need the standard library only",
+        )
+        browsers = next(step for step in lane_steps if "npm run browsers" in step.get("run", ""))
+        self.assertEqual(browsers["if"], "startsWith(matrix.lane, 'browser-')")
+        lane = next(step for step in lane_steps if "check_ci.py lane" in step.get("run", ""))
+        self.assertEqual(lane["env"]["CHECK_CACHE_PIP"], "${{ steps.python.outputs.cache-hit }}")
+        self.assertEqual(lane["env"]["CHECK_CACHE_NPM"], "${{ steps.node.outputs.cache-hit }}")
+        self.assertNotIn("env", checks["jobs"]["checks"], "the collector launches no browser")
+        # Pull-request caches are scoped to their ref; trusted workflows restore no dependency cache, so a pull
+        # request's packages never reach them. (The health watch keeps only its own run state in a cache.)
+        dependencies = re.compile(r"\.npm|node_modules|pip|ms-playwright|site-packages")
+        for path in ROOT.glob(".github/workflows/*.yml"):
+            if path.name == "checks.yml":
+                continue
+            for job in load(path.relative_to(ROOT).as_posix())["jobs"].values():
+                for step in job.get("steps", []):
+                    self.assertNotIn("cache", step.get("with", {}), f"{path.name}: {step.get('uses')}")
+                    if step.get("uses", "").startswith("actions/cache"):
+                        self.assertNotRegex(step["with"]["path"], dependencies, path.name)
 
     def test_trusted_comment_never_checks_out_or_executes_pr_code(self) -> None:
         workflow = load(".github/workflows/pr-summary.yml")
@@ -209,8 +314,11 @@ class WorkflowContracts(unittest.TestCase):
     def test_source_refresh_runs_trusted_code_and_writes_only_through_the_scoped_app(self) -> None:
         text = (ROOT / ".github/workflows/source-refresh.yml").read_text(encoding="utf-8")
         workflow = load(".github/workflows/source-refresh.yml")
-        self.assertEqual(set(workflow["on"]), {"schedule", "workflow_dispatch", "issue_comment"})
+        self.assertEqual(set(workflow["on"]), {"schedule", "workflow_dispatch", "workflow_call"})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
+        # Interdependent sources share one queue; waiting requests are kept rather than replaced.
+        self.assertNotIn("concurrency", workflow)
+        self.assertEqual(workflow["jobs"]["refresh"]["concurrency"], {"group": "source-refresh", "queue": "max"})
         self.assertNotIn("pull_request_target", text)
         for job in workflow["jobs"].values():
             self.assertNotIn("permissions", job, "no job widens the read-only token")
@@ -228,18 +336,28 @@ class WorkflowContracts(unittest.TestCase):
         )
         publish = next(step for step in steps if "publish(" in step.get("with", {}).get("script", ""))
         self.assertEqual(publish["with"]["github-token"], "${{ steps.app.outputs.token }}")
+        answer = next(step for step in steps if step.get("name") == "Reply to the refresh command")
+        self.assertIn("always()", answer["if"])
+        self.assertIn("github.event_name == 'issue_comment'", answer["if"])
+        self.assertEqual(answer["with"]["github-token"], "${{ steps.app.outputs.token }}")
+        self.assertLess(
+            steps.index(answer), steps.index(next(s for s in steps if s.get("name", "").startswith("Report")))
+        )
         self.assertNotIn("git push", text)
         self.assertNotIn("merge", text.lower().replace("never merges", ""))
 
     def test_fix_duplicates_command_is_trusted_and_same_repo_only(self) -> None:
         text = (ROOT / ".github/workflows/fix-duplicates.yml").read_text(encoding="utf-8")
         workflow = load(".github/workflows/fix-duplicates.yml")
-        self.assertEqual(set(workflow["on"]), {"issue_comment"})
+        self.assertEqual(set(workflow["on"]), {"workflow_call"})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         self.assertNotIn("pull_request_target", text)
         job = workflow["jobs"]["fix"]
         self.assertIn("github.event.issue.pull_request", job["if"])
         self.assertIn("/fix-duplicates", job["if"])
+        self.assertEqual(
+            job["concurrency"], {"group": "fix-duplicates-${{ github.event.issue.number }}", "queue": "max"}
+        )
         steps = job["steps"]
         for step in steps:
             if step.get("uses", "").startswith("actions/checkout@"):
@@ -263,9 +381,6 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn('git archive "$archived_head"', extract["run"])
         self.assertIn('git archive "$archived_head" content assets profile index.html |', extract["run"])
         self.assertIn('"$archived_head" > .cache/fix-duplicates-head', extract["run"])
-        failure = next(step for step in steps if step.get("name") == "Report an unexpected failure")
-        self.assertEqual(failure["with"]["github-token"], "${{ steps.app.outputs.token }}")
-        self.assertIn("createComment", failure["with"]["script"])
         self.assertNotIn("git push", text)
         self.assertNotIn("pulls.merge", text)
         self.assertNotIn("merge_pull", text)
@@ -282,6 +397,48 @@ class WorkflowContracts(unittest.TestCase):
         )
         self.assertEqual(collector["env"]["PR_HEAD_SHA"], "${{ github.event.pull_request.head.sha }}")
         self.assertEqual(collector["id"], "collect")
+
+    def test_comment_commands_filter_first_and_keep_every_accepted_request(self) -> None:
+        text = (ROOT / ".github/workflows/commands.yml").read_text(encoding="utf-8")
+        workflow = load(".github/workflows/commands.yml")
+        self.assertEqual(workflow["on"], {"issue_comment": {"types": ["created"]}})
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        # No workflow-level group: an ordinary comment cannot replace a command waiting for its resource.
+        self.assertNotIn("concurrency", workflow)
+        jobs = workflow["jobs"]
+        self.assertEqual(jobs["parse"]["if"], "startsWith(github.event.comment.body, '/')")
+        self.assertNotIn("permissions", jobs["parse"], "the filter runs with the read-only token")
+        for name in ("help", "outcome"):
+            self.assertEqual(
+                jobs[name]["permissions"], {"contents": "read", "issues": "write", "pull-requests": "write"}
+            )
+        # Acknowledgement also reads run state, to name an earlier run that holds the same resource.
+        self.assertEqual(
+            jobs["acknowledge"]["permissions"],
+            {"contents": "read", "actions": "read", "issues": "write", "pull-requests": "write"},
+        )
+        self.assertEqual(workflow["run-name"], "Comment on #${{ github.event.issue.number }}")
+        for name, called in (("fix-duplicates", "fix-duplicates.yml"), ("refresh", "source-refresh.yml")):
+            self.assertEqual(jobs[name]["uses"], f"./.github/workflows/{called}")
+            self.assertEqual(jobs[name]["secrets"], "inherit")
+            self.assertIn("needs.acknowledge.outputs.accepted == 'true'", jobs[name]["if"])
+        self.assertEqual(jobs["outcome"]["needs"], ["parse", "acknowledge", "fix-duplicates", "refresh"])
+        self.assertIn("always()", jobs["outcome"]["if"])
+        for job in jobs.values():
+            for step in job.get("steps", []):
+                if step.get("uses", "").startswith("actions/checkout@"):
+                    self.assertEqual(step["with"]["ref"], "${{ github.event.repository.default_branch }}")
+                    self.assertEqual(step["with"]["persist-credentials"], "false")
+                self.assertNotIn("github.event.comment", step.get("run", ""), "comment text never becomes shell text")
+        self.assertNotIn("pull_request_target", text)
+        self.assertNotIn("secrets.", text, "privileged credentials stay inside the called workflows")
+        # Nothing else in the repository is started by comments.
+        others = [
+            path.name
+            for path in (ROOT / ".github/workflows").glob("*.yml")
+            if path.name != "commands.yml" and "issue_comment" in load(f".github/workflows/{path.name}").get("on", {})
+        ]
+        self.assertEqual(others, [])
 
     def test_live_watch_is_scheduled_trusted_and_writes_only_issues(self) -> None:
         text = (ROOT / ".github/workflows/health-watch.yml").read_text(encoding="utf-8")
@@ -419,6 +576,47 @@ class WorkflowContracts(unittest.TestCase):
                         self.assertRegex(step["uses"], re.compile(r"^[\w/-]+@[0-9a-f]{40}$"))
         updates = load(".github/dependabot.yml")["updates"]
         self.assertEqual({entry["package-ecosystem"] for entry in updates}, {"github-actions", "npm", "pip", "docker"})
+
+
+class TokenPermissions(unittest.TestCase):
+    """Each job requests exactly the reviewed token permissions in .github/repository.toml."""
+
+    def test_every_job_requests_exactly_its_reviewed_permissions(self) -> None:
+        self.assertEqual(token_differences(reviewed_tokens(), token_requests()), [])
+
+    def test_a_planted_extra_permission_fails_and_names_the_job(self) -> None:
+        actual = token_requests()
+        github, app = actual[("checks.yml", "build")]
+        actual[("checks.yml", "build")] = ({**github, "issues": "write"}, app)
+        github, app = actual[("tag-release.yml", "tag")]
+        actual[("tag-release.yml", "tag")] = (github, {**app, "pull-requests": "write"})
+        actual[("checks.yml", "unlisted")] = ({"contents": "read"}, {})
+        self.assertEqual(
+            token_differences(reviewed_tokens(), actual),
+            [
+                "checks.yml job build: GITHUB_TOKEN requests issues: write, reviewed none",
+                "checks.yml job unlisted: no reviewed token entry in .github/repository.toml",
+                "tag-release.yml job tag: App token requests pull-requests: write, reviewed none",
+            ],
+        )
+
+    def test_a_job_without_explicit_permissions_is_refused(self) -> None:
+        actual = token_requests()
+        actual[("checks.yml", "build")] = (None, {})
+        self.assertIn(
+            "checks.yml job build: no explicit permissions, so GITHUB_TOKEN gets the repository default",
+            token_differences(reviewed_tokens(), actual),
+        )
+
+    def test_app_token_requests_stay_within_the_reviewed_registration(self) -> None:
+        config = tomllib.loads((ROOT / ".github/repository.toml").read_text(encoding="utf-8"))
+        registered = config["app"]["permissions"]
+        rank = {"read": 1, "write": 2}
+        for (workflow, job), (_, app) in token_requests().items():
+            for permission, access in app.items():
+                name = permission.replace("-", "_")
+                with self.subTest(workflow=workflow, job=job, permission=permission):
+                    self.assertGreaterEqual(rank.get(registered.get(name), 0), rank[access])
 
 
 if __name__ == "__main__":

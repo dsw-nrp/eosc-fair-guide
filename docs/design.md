@@ -494,8 +494,11 @@ Repository hygiene scans the guide's own text and the delivered tooling: a machi
 name or a private planning reference fails with its file and line, while the repository's own relative runtime
 scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and
 delivery integrity.
-PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane and two balanced browser
-lanes. The command inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
+PR CI uses `check_ci.py` to share one source/build/coverage manifest between a CPU lane, a unit-test lane and four
+browser lanes, balanced from measured run timings (`scripts/ci_timings.py`) and assigned in `check_ci.BROWSER_LANES`.
+The unit shards have a runner of their own because, beside the validators, they made the CPU lane the critical path. A separate,
+non-required quick result runs the cheap offline checks beside the build; the CPU lane runs them again. The command
+inventory stays in `check_all.py`; nested scripts stay in `scripts/check_groups.json`.
 Each lane checks its inputs and emits partial evidence. The required `checks` collector rejects missing,
 duplicate, incomplete or mismatched work, reconciles station/PDF inventories and publishes one health snapshot.
 It runs after failed lanes too. Source revision means the checked commit; trusted PR comments separately verify
@@ -504,7 +507,9 @@ runner reads a partial child the way the collector does: the job row and the run
 while an explicit `--only` subset whose selected checks all complete keeps a partial report and exits zero.
 On a failed aggregate the collector names every failed check, not only the first, and appends a bounded output
 tail for each to the CI summary. It copies the lane `logs/` and `details/` into the health artifact before
-publishing the failure report, so the artifact contains the same evidence the lane produced. The summary and
+publishing the failure report, so the artifact contains the same evidence the lane produced. Lanes are judged
+one by one: when one lane is missing, unreadable or has the wrong identity, the results of the verified lanes,
+including their failures, still appear beside the rejection, and the refused lane contributes nothing. The summary and
 artifact also carry the duplicate check's safe suggestions and point to `.cache/pr-review/suggestions.json`.
 The suggestion artifact identifies the PR source head separately from `checkedRevision`, the merge revision
 used for the build, so the trusted publisher can check freshness against the PR head.
@@ -522,7 +527,11 @@ and RDF-property recommendations do not waive required profile checks.
 
 Browser installation and checks share `scripts/browser_env.mjs`: an explicit `PLAYWRIGHT_BROWSERS_PATH`
 wins, otherwise the browser lives in the repository's `.cache/ms-playwright`. The runner separates its outer
-job count from `--browser-workers`; browser groups share atomic case slots across Node processes, so inner pools cannot multiply the global limit. Station coverage
+job count from `--browser-workers`; browser groups share atomic case slots across Node processes, so inner pools cannot multiply the global limit.
+`check_all.py` and the CI lanes in `check_ci.py` read their budgets from one owner, `scripts/check_policy.json`,
+with `CHECK_BROWSER_WORKERS` and explicit arguments taking precedence in that order. The same policy sets the
+number of unit-test shards; each shard is a process with a private report directory, packed from measured module
+times, and the merged report must contain every discovered test exactly once. Station coverage
 has one matrix over language, role, width and disclosure state. Closed guidance and expanded AI tips remain
 distinct audit states. Navigation checks wait for the requested view's replacement and data; search waits for
 the complete index before publishing results.
@@ -559,8 +568,10 @@ writing, a refresh reserves every primary and retired identifier owned outside t
 a new row whose derived slug is already taken receives a non-colliding suffix, and an identity collision that
 still needs review rejects the replacement instead of writing it.
 
-`source-refresh.yml` runs weekly, on dispatch or for an exact `/refresh <source>` PR comment from a
-currently authorized writer. Trusted default-branch code parses the command and proposes one reserved
+`source-refresh.yml` runs weekly, on dispatch, or when the comment-command workflow calls it for an exact
+`/refresh <source>` PR comment from a currently authorized writer; that run replies with each source's result.
+Its refresh job waits in one shared queue (`queue: max`) because sources read each other's snapshots, so a
+waiting request is kept rather than replaced. Trusted default-branch code parses the command and proposes one reserved
 `refresh/<source>` branch per source through the repository-scoped App. Identical proposals are reused,
 rejected content is not repeatedly proposed and human-edited branches are left for reconciliation.
 Automatic replacement requires a complete nonempty commit inventory, the configured refresh App as every
@@ -579,8 +590,10 @@ Nothing writes the default branch or merges; fixtures do not establish remote ac
 group: one curated entry and one registry record, an authoritative shared key, a known link placement, no
 conflicting link and no accepted exception. The suggestion names the file, table, field and value and is
 written to `duplicates.json` under `CHECK_REPORT_DIR` or `--report`. `--fix` applies only safe suggestions to
-the working tree, prints a unified diff and leaves the provenance action to the person running it. Neither path
-edits `content/duplicates.toml` or accepts a lookalike group.
+the working tree with the same provenance action and registration as the trusted command, shared through
+`duplicate_repairs.py`. It records a reviewed person from `--person` or the `commitNames`/`github` match of the
+local Git identity, refuses before writing when none is unique, and rejects a repair that adds a content error.
+Neither path edits `content/duplicates.toml` or accepts a lookalike group.
 Safe ownership is checked across the full catalogue and suggestion set. Exact placement rules are shared by
 Python consumers and checked for parity with the independent Node validator. The local batch validates TOML,
 replaces targets atomically and rechecks duplicates before reporting success. Handled failures restore
@@ -589,7 +602,16 @@ Rollback records the known replacement bytes immediately after the swap, before 
 post-write discovery read; a cleanup failure therefore also restores the edited target.
 Atomicity is per file; process termination is not a multi-file filesystem transaction.
 
-`/fix-duplicates` is a separate trusted `issue_comment` workflow. It checks the commenter's current write
+`commands.yml` is the only workflow that comments start. Its first job runs only for a comment that begins with
+`/`, with the read-only token and no concurrency group, so ordinary comments cannot cancel or displace a waiting
+command. `.github/scripts/commands.cjs` names the command, answers `/help` and near misses in one bot-maintained
+comment per thread, and decides eligibility (current write access, a pull-request comment, a same-repository PR
+targeting the default branch for repairs, a configured App) with the same function for `/help` and the gate.
+An accepted command gets an `eyes` reaction, runs the trusted workflow that owns it, and ends with a `rocket`
+reaction or a reply that names the run; a refused one gets the reasons and what to do instead.
+
+`/fix-duplicates` runs `fix-duplicates.yml`, which `commands.yml` calls for an accepted command. Requests for
+one pull request wait in order in its queue. It checks the commenter's current write
 access, requires an open same-repository PR targeting the default branch with a non-default head, extracts the
 PR content and its authored assets, profile and HTML with `git archive` (never executing them), applies only
 safe suggestions, validates the fixed content,
@@ -636,7 +658,8 @@ flowchart LR
 ```
 
 `release_versions.py` is the standard-library owner of Guide/citation/npm/lockfile/Python versions and
-release dates, and of the merged-PR changelog. Crate/API values derive from the Guide. Prose links to
+release dates, and of the release changelog: curated `[Unreleased]` notes followed by the generated merged-PR and
+direct-commit lineage, with `check_changelog.py` protecting published sections. Crate/API values derive from the Guide. Prose links to
 metadata rather than restating a version. Prepare release opens a reviewed PR; Tag release is a separate
 manual action after merge. A tag checks/packages once and its draft release attaches that same artifact
 with health receipts. Failed new tags leave previous verified production available. Partial uploads

@@ -1,0 +1,267 @@
+{
+ "group": "page",
+ "status": "passed",
+ "scripts": [
+  {
+   "file": "tests/page/check_page.mjs",
+   "seconds": 166.96061979599997,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "page",
+     "views:1",
+     "views:2",
+     "views:3",
+     "views:4",
+     "reflow",
+     "iframe",
+     "self-check",
+     "funded output",
+     "research practice",
+     "research station links",
+     "published health and documentation links",
+     "targets",
+     "inactive",
+     "life cycle",
+     "stored stage",
+     "knav catalogue",
+     "visual system",
+     "glossary definitions",
+     "check parts",
+     "repository names",
+     "node and infrastructures",
+     "rail check visibility",
+     "facet alignment",
+     "linked catalogues",
+     "Licence compatibility",
+     "Read steps and situations",
+     "RDMkit reuse",
+     "Workflow guidance",
+     "Infrastructure marks",
+     "catalogue text reference",
+     "grouping and typography"
+    ],
+    "executed": [
+     {
+      "name": "views:1",
+      "status": "passed",
+      "seconds": 36.968959713,
+      "queue_seconds": 16.813805834
+     },
+     {
+      "name": "page",
+      "status": "passed",
+      "seconds": 39.96293471,
+      "queue_seconds": 1.627658472
+     },
+     {
+      "name": "views:3",
+      "status": "passed",
+      "seconds": 20.618304395,
+      "queue_seconds": 0.0003248070000045118
+     },
+     {
+      "name": "views:2",
+      "status": "passed",
+      "seconds": 30.804850904000006,
+      "queue_seconds": 0.0005209240000040154
+     },
+     {
+      "name": "reflow",
+      "status": "passed",
+      "seconds": 18.96363182099999,
+      "queue_seconds": 14.330093546999997
+     },
+     {
+      "name": "iframe",
+      "status": "passed",
+      "seconds": 0.426570882,
+      "queue_seconds": 0.00039147200000297746
+     },
+     {
+      "name": "views:4",
+      "status": "passed",
+      "seconds": 31.704709724999994,
+      "queue_seconds": 0.0004775220000010449
+     },
+     {
+      "name": "funded output",
+      "status": "passed",
+      "seconds": 1.7273022420000053,
+      "queue_seconds": 0.00040817300000344403
+     },
+     {
+      "name": "research practice",
+      "status": "passed",
+      "seconds": 2.2928149819999963,
+      "queue_seconds": 0.0003019639999984065
+     },
+     {
+      "name": "research station links",
+      "status": "passed",
+      "seconds": 1.9191292909999902,
+      "queue_seconds": 0.0002977669999963837
+     },
+     {
+      "name": "self-check",
+      "status": "passed",
+      "seconds": 15.448256796999994,
+      "queue_seconds": 0.0003972219999996014
+     },
+     {
+      "name": "published health and documentation links",
+      "status": "passed",
+      "seconds": 10.293601437000005,
+      "queue_seconds": 0.00030521000000589994
+     },
+     {
+      "name": "targets",
+      "status": "passed",
+      "seconds": 8.329108503000011,
+      "queue_seconds": 0.0004713400000036927
+     },
+     {
+      "name": "life cycle",
+      "status": "passed",
+      "seconds": 1.0830648400000065,
+      "queue_seconds": 0.00034650800000235904
+     },
+     {
+      "name": "stored stage",
+      "status": "passed",
+      "seconds": 0.5466021820000023,
+      "queue_seconds": 0.0003780970000079833
+     },
+     {
+      "name": "knav catalogue",
+      "status": "passed",
+      "seconds": 0.8059827680000017,
+      "queue_seconds": 0.00040923399999155663
+     },
+     {
+      "name": "visual system",
+      "status": "passed",
+      "seconds": 2.882662851000001,
+      "queue_seconds": 0.00031561999999394177
+     },
+     {
+      "name": "inactive",
+      "status": "passed",
+      "seconds": 9.259357743999994,
+      "queue_seconds": 7.4102877440000015
+     },
+     {
+      "name": "check parts",
+      "status": "passed",
+      "seconds": 0.8383486750000011,
+      "queue_seconds": 0.00031817500000761356
+     },
+     {
+      "name": "glossary definitions",
+      "status": "passed",
+      "seconds": 2.598486063999997,
+      "queue_seconds": 0.0012082179999997607
+     },
+     {
+      "name": "repository names",
+      "status": "passed",
+      "seconds": 0.572627805000011,
+      "queue_seconds": 0.0002953820000111591
+     },
+     {
+      "name": "node and infrastructures",
+      "status": "passed",
+      "seconds": 0.8107027220000018,
+      "queue_seconds": 0.00033230100000218956
+     },
+     {
+      "name": "rail check visibility",
+      "status": "passed",
+      "seconds": 1.078088988000003,
+      "queue_seconds": 0.00034910300000046845
+     },
+     {
+      "name": "linked catalogues",
+      "status": "passed",
+      "seconds": 0.49361225799999375,
+      "queue_seconds": 0.0002185579999932088
+     },
+     {
+      "name": "facet alignment",
+      "status": "passed",
+      "seconds": 1.554613308,
+      "queue_seconds": 0.00038025099999504163
+     },
+     {
+      "name": "Licence compatibility",
+      "status": "passed",
+      "seconds": 1.3272819739999977,
+      "queue_seconds": 0.00032915499999944584
+     },
+     {
+      "name": "RDMkit reuse",
+      "status": "passed",
+      "seconds": 0.7266423829999985,
+      "queue_seconds": 0.00024323399999411777
+     },
+     {
+      "name": "Read steps and situations",
+      "status": "passed",
+      "seconds": 1.993204264,
+      "queue_seconds": 0.00036435000000346917
+     },
+     {
+      "name": "Workflow guidance",
+      "status": "passed",
+      "seconds": 0.946871112000008,
+      "queue_seconds": 0.00029548100000829436
+     },
+     {
+      "name": "catalogue text reference",
+      "status": "passed",
+      "seconds": 1.2251179770000018,
+      "queue_seconds": 0.00028332899999804797
+     },
+     {
+      "name": "Infrastructure marks",
+      "status": "passed",
+      "seconds": 30.950255842000015,
+      "queue_seconds": 19.123822715999996
+     },
+     {
+      "name": "grouping and typography",
+      "status": "passed",
+      "seconds": 39.538492903000005,
+      "queue_seconds": 0.0002847709999914514
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  },
+  {
+   "file": "tests/page/check_embed.mjs",
+   "seconds": 4.21108860800002,
+   "returncode": 0,
+   "status": "passed",
+   "cases": {
+    "status": "passed",
+    "workers": 2,
+    "planned": [
+     "check_embed.mjs"
+    ],
+    "executed": [
+     {
+      "name": "check_embed.mjs",
+      "status": "passed"
+     }
+    ],
+    "skipped": [],
+    "pending": []
+   }
+  }
+ ]
+}

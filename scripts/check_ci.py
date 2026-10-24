@@ -2,6 +2,7 @@
 
 The ordinary local entry remains check_all.py. This adapter shares its job inventory, execution,
 health publication and final API validation. No lane publishes a complete site health result.
+`quick` runs the cheap offline checks beside the build for early feedback; it is never the complete result.
 """
 
 from __future__ import annotations
@@ -22,19 +23,34 @@ import check_all
 import check_duplicates
 
 ROOT = check_all.ROOT
-LANES = ("cpu", "browser-a", "browser-b")
-# The two substantial partitions balance the observed hosted groups, without duplicating command lists.
-BROWSER_A = {"page", "assessment", "discovery"}
+# Browser jobs by lane, as `ci_timings.py --from tests/fixtures/ci-timings/40022072478-1` packs that run's measured
+# jobs into four lanes longest first. Every other job runs in the CPU lane. Change it only through review, from a
+# newer run's suggestion; the workflow matrix names the same lanes.
+BROWSER_LANES = {
+    "browser-a": ("page", "model"),
+    "browser-b": ("final-candidate", "runtime", "api", "diagrams", "discovery"),
+    "browser-c": ("assessment",),
+    "browser-d": ("helpers",),
+}
+# The unit shards get a runner of their own: beside the three validators on one 4-core runner, two shards made the
+# CPU lane the critical path (run 40084136770).
+UNIT_LANE = "unit"
+LANES = ("cpu", UNIT_LANE, *BROWSER_LANES)
+# Cheap offline checks that need no build. The CPU lane runs the same inventory jobs, so the required `checks`
+# result reports every failure the quick result does.
+QUICK = ("content", "duplicates", "changelog", "ruff", "format", "public-content", "openspec", "agent-generation")
 
 
 def partition(available):
     """Every non-live job has exactly one owner; health-api belongs to final publication."""
+    owners = {job: lane for lane, jobs in BROWSER_LANES.items() for job in jobs} | {"unit": UNIT_LANE}
     result = {lane: [] for lane in LANES}
     for job in available:
         if job.name in {"live", "health-api"}:
             continue
-        lane = "browser-a" if job.name in BROWSER_A else "browser-b" if job.name in check_all.BROWSER_JOBS else "cpu"
-        result[lane].append(job)
+        if job.name in check_all.BROWSER_JOBS and job.name not in owners:
+            raise ValueError(f"{job.name}: browser job without a lane in check_ci.BROWSER_LANES")
+        result[owners.get(job.name, "cpu")].append(job)
     return result
 
 
@@ -115,6 +131,12 @@ def build(args) -> int:
     return 0
 
 
+def cache_status(env) -> dict:
+    """The setup actions' `cache-hit` outputs; a lane without a cache for a tool records that it used none."""
+    labels = {"true": "hit", "false": "miss"}
+    return {tool: labels.get(env.get(f"CHECK_CACHE_{tool.upper()}", ""), "not used") for tool in ("pip", "npm")}
+
+
 def lane(args) -> int:
     started = time.time()
     manifest = read_json(args.manifest)
@@ -155,10 +177,60 @@ def lane(args) -> int:
                 "cpus": os.cpu_count(),
                 "python": sys.version,
                 "platform": sys.platform,
+                "caches": cache_status(os.environ),
             },
         },
     )
     return 1 if any(not result.ok or result.partial for result in results) else 0
+
+
+def quick_summary(results) -> str:
+    failed = [result.job.name for result in results if not result.ok]
+    lines = [
+        "## Quick checks",
+        "",
+        "Cheap offline checks for early feedback. They do not replace the required `checks` result, which runs "
+        "them again with every other check.",
+        "",
+        "| Check | Result | Seconds |",
+        "| --- | --- | ---: |",
+        *(
+            f"| {result.job.name} | {'passed' if result.ok else 'failed'} | {result.seconds:.2f} |"
+            for result in results
+        ),
+    ]
+    for result in results:
+        if not result.ok:
+            lines += ["", f"### {result.job.name}", "", "```text", bounded_failure(result.output), "```"]
+    if failed:
+        command = "python scripts/check_all.py --only " + " ".join(failed)
+        lines += [
+            "",
+            f"- **Next:** the pull request author fixes {', '.join(failed)} and reproduces it with `{command}`.",
+            "- **If blocked:** the complete log is in this job's step output; the required `checks` result reports "
+            "the same failures with the full health report.",
+            f"- **Done when:** `{command}` passes locally and this job and `checks` pass on the next push.",
+        ]
+    else:
+        lines += [
+            "",
+            "- **Next:** wait for the required `checks` result, which also runs the build, unit tests, validators "
+            "and browser checks.",
+            "- **If blocked:** `python scripts/check_all.py` reproduces the complete run locally.",
+            "- **Done when:** `checks` passes.",
+        ]
+    return "\n".join(lines) + "\n"
+
+
+def quick(args) -> int:
+    selected = [job for job in check_all.jobs(args.base, False) if job.name in QUICK]
+    results = check_all.run_all(selected, args.jobs, check_all.environment())
+    args.output.mkdir(parents=True, exist_ok=True)
+    (args.output / "summary.md").write_text(quick_summary(results), encoding="utf-8", newline="\n")
+    for result in results:
+        if not result.ok:
+            print(f"FAILED {result.job.name}:\n{bounded_failure(result.output)}")
+    return 0 if all(result.ok for result in results) else 1
 
 
 def complete_cases(planned, executed, key="name") -> None:
@@ -305,55 +377,92 @@ def append_suggestion_summary(output: Path, payload: dict) -> None:
     )
 
 
+class RejectedEvidenceError(ValueError):
+    """Required evidence is missing or invalid; `results` keeps what the verified lanes reported."""
+
+    def __init__(self, problems: list[str], results: list) -> None:
+        super().__init__("; ".join(problems))
+        self.results = results
+
+
+def admitted_results(path: Path, manifest: dict, owners: dict, found: dict) -> tuple[str, dict, list]:
+    """Read one lane, refusing it unless its identity and job inventory match; a refused lane yields nothing."""
+    data = read_json(path)
+    name = data["lane"]
+    if name not in owners or name in found:
+        raise ValueError("unknown or duplicated lane")
+    if data["source"] != manifest["source"] or data["build"] != manifest["build"]:
+        raise ValueError("lane has the wrong source revision or build identity")
+    expected = {job.name: job for job in owners[name]}
+    if Counter(row["name"] for row in data["results"]) != Counter(expected.keys()):
+        raise ValueError(f"{name}: missing or duplicated jobs")
+    results = []
+    for row in data["results"]:
+        job = expected[row["name"]]
+        result = check_all.Result(job, row["returncode"], row["seconds"], row["output"], row["partial"])
+        if result.partial:
+            output = result.output
+            if output and not output.endswith("\n"):
+                output += "\n"
+            result = check_all.Result(
+                job,
+                result.returncode or 1,
+                result.seconds,
+                output + "Incomplete required check coverage (partial result).",
+                True,
+            )
+        results.append(result)
+    return name, data, results
+
+
 def reconcile(manifest, incoming: Path, available, groups):
-    """Validate evidence before publishing; do not infer completeness from equal totals."""
+    """Validate evidence before publishing; do not infer completeness from equal totals.
+
+    Lanes are judged one by one, so a missing or invalid lane cannot hide failures a verified lane reported.
+    """
     owners = partition(available)
     found = {}
     results = []
     failures = []
     directories = {}
+    problems = []
     for path in sorted(incoming.glob("*/lane.json")):
-        data = read_json(path)
-        name = data["lane"]
-        if name not in owners or name in found:
-            raise ValueError("unknown or duplicated lane")
-        if data["source"] != manifest["source"] or data["build"] != manifest["build"]:
-            raise ValueError("lane has the wrong source revision or build identity")
-        expected = {job.name: job for job in owners[name]}
-        if Counter(row["name"] for row in data["results"]) != Counter(expected.keys()):
-            raise ValueError(f"{name}: missing or duplicated jobs")
-        for row in data["results"]:
-            job = expected[row["name"]]
-            result = check_all.Result(job, row["returncode"], row["seconds"], row["output"], row["partial"])
-            if result.partial:
-                output = result.output
-                if output and not output.endswith("\n"):
-                    output += "\n"
-                result = check_all.Result(
-                    job,
-                    result.returncode or 1,
-                    result.seconds,
-                    output + "Incomplete required check coverage (partial result).",
-                    True,
-                )
-            results.append(result)
-            if not result.ok or result.partial:
-                failures.append(result)
-                continue
-            validate_scripts(job, path.parent, groups, manifest)
+        try:
+            name, data, lane_results = admitted_results(path, manifest, owners, found)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            problems.append(f"{path.parent.name}: {error}")
+            continue
         found[name] = data
         directories[name] = path.parent
+        for reported in lane_results:
+            result = reported
+            if reported.ok:
+                try:
+                    validate_scripts(reported.job, path.parent, groups, manifest)
+                except (OSError, ValueError, KeyError, TypeError) as error:
+                    problems.append(f"{reported.job.name}: {error}")
+                    result = check_all.Result(
+                        reported.job, 1, reported.seconds, f"{reported.output}\nRejected evidence: {error}"
+                    )
+            results.append(result)
+            if not result.ok:
+                failures.append(result)
     if set(found) != set(LANES):
-        raise ValueError("missing required lanes: " + ", ".join(sorted(set(LANES) - set(found))))
+        problems.append("missing required lanes: " + ", ".join(sorted(set(LANES) - set(found))))
+    if problems:
+        raise RejectedEvidenceError(problems, results)
     if failures:
         # A failed lane may not have produced final coverage; the failure already prevents a complete pass.
         return results, found, directories, failures
     final_lane = next(name for name, jobs in owners.items() if any(job.name == "final-candidate" for job in jobs))
-    for filename, key in (("station-coverage.json", "stations"), ("print-coverage.json", "pdfs")):
-        coverage = read_json(directories[final_lane] / "coverage" / filename)
-        if Counter(coverage["planned"]) != Counter(manifest["coverage"][key]) or coverage.get("skipped"):
-            raise ValueError(f"{filename}: required inventory differs")
-        complete_cases(manifest["coverage"][key], coverage["executed"], "key")
+    try:
+        for filename, key in (("station-coverage.json", "stations"), ("print-coverage.json", "pdfs")):
+            coverage = read_json(directories[final_lane] / "coverage" / filename)
+            if Counter(coverage["planned"]) != Counter(manifest["coverage"][key]) or coverage.get("skipped"):
+                raise ValueError(f"{filename}: required inventory differs")
+            complete_cases(manifest["coverage"][key], coverage["executed"], "key")
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise RejectedEvidenceError([str(error)], results) from error
     return results, found, directories, []
 
 
@@ -395,11 +504,21 @@ def collect(args) -> int:
         )
     except (OSError, ValueError, KeyError, TypeError) as error:
         copy_lane_diagnostics(args.incoming, args.output)
+        # Results of verified lanes stay attributable beside the evidence problem; neither makes a pass.
+        known = error.results if isinstance(error, RejectedEvidenceError) else []
         failed = check_all.Result(check_all.Job("aggregate", []), 1, 0, f"Aggregate rejected: {error}")
         check_all.emit_report(
-            initial, [failed], [*available, failed.job], [*selected, failed.job], output=args.output, previous=None
+            initial,
+            [*known, failed],
+            [*available, failed.job],
+            [*selected, failed.job],
+            output=args.output,
+            previous=None,
         )
         publish_suggestions(args.output, manifest, {}, available)
+        for result in known:
+            if not result.ok:
+                print(f"FAILED {result.job.name}:\n{bounded_failure(result.output)}")
         print(failed.output)
         return 1
     copy_lane_diagnostics(args.incoming, args.output)
@@ -438,19 +557,20 @@ def collect(args) -> int:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("action", choices=("build", "lane", "collect"))
+    parser.add_argument("action", choices=("build", "lane", "collect", "quick"))
     parser.add_argument("--name", choices=LANES)
     parser.add_argument("--base")
     parser.add_argument("--manifest", type=Path, default=ROOT / ".cache/ci-build/manifest.json")
-    parser.add_argument("--output", type=Path, default=ROOT / ".cache/health")
+    parser.add_argument("--output", type=Path, help="report directory (default: .cache/health; quick: .cache/quick)")
     parser.add_argument("--incoming", type=Path, default=ROOT / ".cache/ci-results")
-    parser.add_argument("--jobs", type=int, default=4)
-    parser.add_argument("--browser-workers", type=int, default=2)
+    # Lanes use the same budget owner as local runs, scripts/check_policy.json; CI=true selects its CI profile.
+    check_all.add_budget_arguments(parser)
     args = parser.parse_args(argv)
     if args.jobs < 1 or args.browser_workers < 1 or (args.action == "lane" and not args.name):
         parser.error("positive budgets and --name for lane are required")
     args.base = args.base or check_all.check_content.default_base(ROOT)
-    return {"build": build, "lane": lane, "collect": collect}[args.action](args)
+    args.output = args.output or ROOT / (".cache/quick" if args.action == "quick" else ".cache/health")
+    return {"build": build, "lane": lane, "collect": collect, "quick": quick}[args.action](args)
 
 
 if __name__ == "__main__":
