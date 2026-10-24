@@ -57,7 +57,7 @@ marked **Human hand-off** need a person's approval or action and do not become c
 - [ ] 5.5 Run the audit weekly as its own `health-watch.yml` job with an App token limited to `organization_projects: read`, feeding the digest's "Project and settings" section. Verify that a denied-token fixture yields "unavailable" with the owner step and leaves the rest of the digest intact.
 - [ ] 5.6 **Human hand-off:** prepare the reviewed mapping file assigning Issue Type and area label to every open issue, and obtain approval. Apply it with the audit's dry run first, then `--fix` and type updates. Verify that the audit shows every open issue typed and labelled.
 - [ ] 5.7 Document triage in `docs/maintenance.md`: statuses, definition of Ready, Priority and Effort, views, templates, `/aiscr-plan-issue` for shaping, and running the audit. Verify that every referenced view and command exists.
-- [ ] 5.8 **Human hand-off:** the organization owner confirms that the App installation accepted `organization_projects` and trims the registration to the reviewed list. Verify that the audit's registration check passes and the weekly job reads Project #1.
+- [ ] 5.8 **Human hand-off:** the organization owner confirms that the App installation accepted `organization_projects`; the registration itself stays as reviewed (maintainer decision of 24 October 2026). Verify that the audit's registration check passes and the weekly job reads Project #1.
 
 ## 6. Quiet monitoring
 

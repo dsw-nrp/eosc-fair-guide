@@ -44,13 +44,13 @@ and `read:project` scopes). The other columns follow GitHub's permission referen
 | Rulesets | `GET /repos/{repo}/rulesets`: Metadata read; bypass actors need write access to the ruleset | Read, with bypass actors (verified) | Rules; bypass actors unavailable | Rules; bypass actors unavailable |
 | Environments | `GET /repos/{repo}/environments` and branch policies: Actions read | Read (verified) | Read when the job requests `actions: read` | Unavailable: no Actions permission is registered |
 | Labels | `GET /repos/{repo}/labels`: Issues or Pull requests read | Read (verified) | Read with `issues: read` or `pull-requests: read` | Read (Pull requests) |
-| Project #1 | GraphQL `organization.projectV2`: Organization Projects read | Read with `read:project` (verified) | Unavailable: no organization access | Read once the installation accepts `organization_projects: read` (task 5.8) |
-| Project completeness | `GET /repos/{repo}/issues`: Issues read | Read (verified) | Read with `issues: read` | Unavailable: no Issues permission is registered |
+| Project #1 | GraphQL `organization.projectV2`: Organization Projects read | Read with `read:project` (verified) | Unavailable: no organization access | Read when the job requests it and the installation has accepted `organization_projects: read` (task 5.8) |
+| Project completeness | `GET /repos/{repo}/issues`: Issues read | Read (verified) | Read with `issues: read` | Read when the job requests Issues read |
 | Issue types | `GET /orgs/{org}/issue-types`: Organization Issue Types read | Read (verified) | Unavailable | Unavailable: not registered |
 | Issue fields | `GET /orgs/{org}/issue-fields`: Organization Issue Fields read | Unconfirmed: an empty list, although Project #1 shows Priority and Effort | Unavailable | Unavailable: not registered |
 | App registration | `GET /apps/{slug}`: public App, no permission | Read (verified) | Read | Read |
 
 Issue-field values of one issue are read through `GET /repos/{repo}/issues/{number}/issue-field-values`, which needs
 Issues read. A scheduled audit therefore combines a `GITHUB_TOKEN` with `actions: read` and `issues: read` for
-the repository sections with an App token for Project #1. Issue types and issue fields stay unavailable there until
-the reviewed registration includes them.
+the repository sections with an App token for Project #1. Issue types and issue fields stay unavailable there,
+because the App's registration has no organization issue permissions.

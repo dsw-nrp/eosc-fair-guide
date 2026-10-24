@@ -167,15 +167,18 @@
   - Changed: `tests/test_workflows.py`, CONTRIBUTING, the change's design (open questions answered) and tasks
     (3.1–3.4 checked), this entry.
 - **Verification:**
-  - A real read-only audit with the maintainer's token finds no drift and five pending targets, all task 4.8 or
-    5.8. One declared label (`breaking-change`) is missing, and the organization issue fields are unavailable.
+  - A real read-only audit with the maintainer's token finds no drift and four pending targets, all task 4.8. One
+    declared label (`breaking-change`) is missing, and the organization issue fields are unavailable.
   - Fixture tests cover planted drift in every section, unreadable sections, hidden bypass actors, reached
     targets, the `--fix` write boundary (a planted deleting fix fails) and schema rejection.
   - A planted extra token permission fails and names the job.
   - The full `check_all.py` passes 31 of 31, and `git diff --check` reports nothing.
-- **Corrections:** None. Findings:
-  - The App registration already reads `organization_projects: read`, not write as planned. It still lists
-    `issues: write`, `merge_queues: write` and other extras.
+- **Corrections:**
+  - The maintainer kept the App's current registration as the reviewed state. The design and task 5.8 no
+    longer trim it; each job's App token still requests only what that job uses.
+- **Findings:**
+  - The App registration already reads `organization_projects: read`, not write as planned.
   - `.github/release.yml` and the changelog policy use a `breaking-change` label that did not exist.
   - Bypass actors are hidden from tokens without write access to a ruleset.
-- **Close-out:** 23 of 61 tasks complete. Creating `breaking-change` with `--fix` is a write that awaits approval.
+- **Close-out:** 23 of 61 tasks complete. With the maintainer's approval, `--fix` created the `breaking-change`
+  label; draft PR stacked on #107.

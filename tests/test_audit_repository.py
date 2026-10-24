@@ -80,7 +80,6 @@ class AuditTests(unittest.TestCase):
                 "ruleset.Main branch protection.rules.merge_queue": "pending",
                 "environment.github-pages.reviewers": "pending",
                 "environment.production": "pending",
-                "app.permissions": "pending",
                 "label.breaking-change": "missing",
                 "organization.issue_fields": "unavailable",
             },

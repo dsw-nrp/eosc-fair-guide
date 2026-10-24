@@ -359,11 +359,11 @@ documents. Tests use the real build and assembled tree. DNS and canonical-addres
 
 ### 15. Permissions
 
-App registration target: `contents: write` and `pull_requests: write` (refresh, repair, release preparation, tag),
-`organization_projects: read` (audit) and `metadata: read`. `issues`, `merge_queues`, `repository_projects` and the
-read-only extras are removed by the owner. The public App endpoint lets the audit detect drift in this list. Every
-App token request names only the permissions its job uses. An offline workflow test compares each job's requested
-permissions with the reviewed list.
+The App's registration stays as it is: on 24 October 2026 the maintainer chose to keep its current permissions,
+which already include `organization_projects: read` for the audit. `.github/repository.toml` records them as the
+reviewed list, and the public App endpoint lets the audit detect drift from it. Every App token request names only
+the permissions its job uses, so no job holds the whole registration. An offline workflow test compares each job's
+requested permissions with the reviewed list and checks that the registration covers them.
 
 ### Issue dispositions (refreshed 24 October 2026)
 

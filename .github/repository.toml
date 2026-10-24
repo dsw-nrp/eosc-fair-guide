@@ -274,11 +274,11 @@ Task = true
 Priority = ["Urgent", "High", "Medium", "Low"]
 Effort = ["High", "Medium", "Low"]
 
-# The GitHub App's reviewed registration: refresh, repair, release preparation and tagging write contents and pull
-# requests; the weekly audit reads Project #1.
+# The GitHub App's registered permissions, kept as they are by the maintainer's decision of 24 October 2026. Each
+# job's App token requests only what that job uses (the [[token]] entries below), never the whole registration.
 [app]
 slug = "fair-guide-actions"
-permissions = { contents = "write", pull_requests = "write", organization_projects = "read", metadata = "read" }
+permissions = { artifact_metadata = "read", attestations = "read", checks = "read", code_quality = "read", contents = "write", deployments = "read", discussions = "read", issues = "write", license_compliance_alerts = "read", merge_queues = "write", metadata = "read", organization_projects = "read", packages = "read", pages = "read", pull_requests = "write", repository_custom_properties = "read", repository_license_policy = "read", repository_projects = "read", statuses = "read" }
 
 # The token requests each workflow job may make: `github` is the job's GITHUB_TOKEN (its own block, else the
 # workflow's) and `app` the permissions it asks the App token for. Every job appears exactly once.
@@ -401,8 +401,3 @@ task = "4.8: create the production environment with its reviewer and tag-only de
 setting = "environment.github-pages.reviewers"
 current = ["motyc"]
 task = "4.8: remove the reviewer from github-pages after production exists"
-
-[[pending]]
-setting = "app.permissions"
-current = { artifact_metadata = "read", attestations = "read", checks = "read", code_quality = "read", contents = "write", deployments = "read", discussions = "read", issues = "write", license_compliance_alerts = "read", merge_queues = "write", metadata = "read", organization_projects = "read", packages = "read", pages = "read", pull_requests = "write", repository_custom_properties = "read", repository_license_policy = "read", repository_projects = "read", statuses = "read" }
-task = "5.8: the App's owner trims the registration to the reviewed permissions"
