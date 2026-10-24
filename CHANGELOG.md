@@ -11,6 +11,8 @@ All notable changes to this guide are recorded here. The format follows
 
 - Breaking: local `check_duplicates.py --fix` changes nothing unless a reviewed person is named with `--person` or
   matched from `git config user.name`.
+- Pull requests into `main` merge through the merge queue (**Merge when ready**), and a new release's production
+  site is published only after a maintainer approves it in the `production` environment.
 
 ## [1.0.0-alpha.2] - 2026-10-19
 

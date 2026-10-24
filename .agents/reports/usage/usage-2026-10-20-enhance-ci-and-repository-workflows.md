@@ -366,3 +366,33 @@
 - **Impacted:** `.github/scripts/{release-artifact,deployment}.cjs`, `tests/page/check_{release,publication}.mjs`,
   `docs/deployment.md`, this entry.
 - **Verification:** The publication, release and dispatch checks pass.
+
+## Claude Code session (after #109: settings of task 4.8)
+
+- **When:** 2026-10-24
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** read-only `gh` queries of the post-merge runs, the deployment records and the live
+  rulesets; the read-only settings audit.
+- **What:**
+  - The first hosted run of the new deployment path on `eac8b24` worked.
+    - The deployment ran the partitioned checks and named the reason: no merge-queue run, as after a direct merge.
+    - `publish.yml` resolved and published, the `github-pages` record names `eac8b24`, and `/next/` reports a passed
+      health snapshot for it.
+    - The release workflow drafted nothing, because `v1.0.0-alpha.2` already has its assets.
+  - The maintainer applied task 4.8's settings.
+    - The environment steps (`production`; the reviewer and tag rule removed from `github-pages`) came before #109
+      merged. Until then, `github-pages` briefly accepted tags again without a reviewer.
+    - The ruleset steps (merge queue on, "up to date" off) came after #109 merged.
+  - The two satisfied `[[pending]]` entries are removed, and the fixture's main ruleset is re-recorded from the live
+    state. Tests reproduce the waiting state through `pending_queue()`. Task 4.8 is checked off.
+  - `CHANGELOG.md` gains the required-step line for the merge queue and production approval.
+- **Impacted:** `.github/repository.toml`, `tests/fixtures/repository-audit.json`, `tests/test_audit_repository.py`,
+  `CHANGELOG.md`, the change's tasks, this entry.
+- **Verification:**
+  - The full read-only audit shows 0 drift and 0 pending; organization issue fields stay unavailable to this token.
+  - The audit and workflow tests pass (47).
+- **Close-out:** 31 of 61 tasks complete. Task 4.9, the hosted rehearsal, needs separate approval. The first grouped
+  Dependabot PR also gives task 2.3's changed-lockfile evidence.
