@@ -22,6 +22,17 @@ The live state was read on 23–24 October 2026:
 | App registration | `fair-guide-actions` lists `organization_projects: write` and several permissions no workflow requests; installation acceptance is not readable with the maintainer's current token | Reviewed permission list; read-only audit |
 | Issue shape | The delivered `aiscr-plan-issue` engine declares the issue shape and exposes `section_status()` and `readiness()` | Templates and audit reuse it |
 
+The first hosted release rehearsal, on 25 October 2026, added this evidence:
+
+| Evidence | Observation | Consequence |
+| --- | --- | --- |
+| #114 queue run 40153182976, deployment 40153496770 | Staging adopted the queue result in 26 s with no fallback; Tag release 40154472734 tagged `161994f`; the production build took 10 min 16 s and was approved in run 40154498215; publication and the draft release followed | The repaired reuse path works |
+| Queue run 40151368869 | `guide` was rejected: the release action ended at 01:28:10 UTC and the base `7b3fa74` was committed at 01:36:37; re-preparation (`d6bd75f`) also added `7b3fa74` to the changelog | Freshness from history (16); release currency at Tag release (17) |
+| `/next/` after tagging | Footer `v1.0.0-alpha.2+15 · 161994f` while production serves `v1.0.0-alpha.3` from the same commit | Release notice (19) |
+| Environments | `github-pages` publishes both channels; the `production` record appeared at approval (02:37:46), before the bytes went live (02:38:45) | Channel records (20) |
+| Schedules | Source refresh started at 10:52 for 05:17, health watch at 09:36 for 04:41; Dependabot uses its defaults | Monday-morning schedule (22) |
+| Documentation | `docs/deployment.md`: 2,714 words, no numbered steps; `docs/maintenance.md`: none either; sentences up to 60–132 words | Documentation in one wave (23) |
+
 Two baseline defects remain and are reproduced as follows. These describe the current behaviour, not the result
 of this change's repairs.
 
@@ -53,10 +64,13 @@ of this change's repairs.
 
 ### 1. Waves and their order
 
-The six waves in the proposal map to the task groups: wave 1 to group 1, wave 2 to group 2, wave 3 to groups 3
-and 4, wave 4 to group 5, wave 5 to group 6 and wave 6 to group 7. Correctness lands first because the next
-release would otherwise lose notes. The settings audit (group 3) precedes the setting changes it verifies.
-Labels and templates precede the digest because "Track as task" uses them.
+The nine waves in the proposal map to the task groups: wave 1 to group 1, wave 2 to group 2, wave 3 to groups 3
+and 4, wave 4 to group 5, wave 5 to group 6, wave 6 to group 7, wave 7 to group 8, wave 8 to group 9 and wave 9 to
+group 10. Group 11 verifies the whole change. Correctness lands first because the next release would otherwise
+lose notes. The settings audit (group 3) precedes the setting changes it verifies. Labels and templates precede
+the digest because "Track as task" uses them. Group 8 may land before groups 6 and 7, because the next release uses
+it; group 9 is independent; group 10 lands after groups 6–9, so the documentation describes their final behaviour
+once.
 
 Alternative rejected: one large PR. It would be too big to review and would delay the urgent correctness fixes.
 
@@ -80,7 +94,8 @@ release status). At release time a maintainer runs the delivered `/aiscr-write-r
 mode. It reads merged PRs, commit messages and issue threads and groups them by `.github/release.yml`. The native
 `scripts/release_body.py` then composes the body from the publishable report and the verification record, kept byte
 for byte. It shows the result, and only `--apply` writes that reviewed composition to an unpublished draft. The
-skill's own body update would replace the record, so it stays off; the skill itself is unchanged.
+skill's own body update would replace the record, so it stays off; the skill itself is unchanged. Decision 21 joins
+both steps in one native skill.
 
 The trusted review comment shows an advisory line derived from the diff: "unpublished line added", "covered by the
 generated lineage" for Dependabot and refresh PRs, or "commit messages feed the release notes; add a line only
@@ -232,7 +247,7 @@ while the head's own deployment is still preparing, it publishes nothing and the
 release. Neither channel moves back, and publishing the same identities again changes nothing. `github-pages`
 accepts only the default branch. Release drafting and the image follow a publication that deployed the release, and
 Tag release checks for a successful `github-pages` deployment of the current default-branch commit, as the tag
-ruleset does, and otherwise names the run to wait for.
+ruleset does, and otherwise names the run to wait for. Decision 20 moves that requirement to the `staging` record.
 
 Alternatives rejected:
 
@@ -388,7 +403,7 @@ Copilot setup is included. The page opens with a cheat sheet: merge, release, re
 handle the digest and rerun a check. It also documents commands, `/help`, local reproduction (`check_all.py`, the
 `check_ci.py` build/lane/collect steps, `ci_timings.py`) and the required context name `checks` as distinct from
 the workflow name. CONTRIBUTING, `docs/agent-tooling.md` and `docs/deployment.md` link to it and keep their own
-procedures.
+procedures. Decision 23 makes the cheat sheet the maintainer landing page: one line per task, linking its runbook.
 
 All renderers share a "Next / If blocked / Done when" block: Python for the check summary and collector, JavaScript
 for the trusted publishers. Representative output tests fail when an element is removed. The PR template asks for a
@@ -415,6 +430,133 @@ which already include `organization_projects: read` for the audit. `.github/repo
 reviewed list, and the public App endpoint lets the audit detect drift from it. Every App token request names only
 the permissions its job uses, so no job holds the whole registration. An offline workflow test compares each job's
 requested permissions with the reviewed list and checks that the registration covers them.
+
+### 16. Paradata freshness from history
+
+Freshness compared a covering action's `endTime` with the comparison base's commit time. That rule dates from the
+first commit, when every PR was up to date with its base. With the merge queue and "up to date" off, the base moves
+under a waiting PR: any content PR fails in the queue once anything lands on `main` after its action ended, while
+its PR checks stayed green. The only remedy was a later `endTime`, which makes published paradata less true.
+
+Freshness now reads history instead of the clock. An item that changed since the comparison base is covered by an
+action that is absent at the base, or whose `endTime` is later than the same action's `endTime` at the base. The
+second clause keeps the rule that extending an action means updating its end time, without comparing it with
+anyone else's commit. `scripts/contributors.py` already finds actions added since the base by identifier; the
+content check reads the base's actions the same way. Local, PR and merge-queue runs apply one rule. In a merge group
+with several entries, each entry's items are covered by that entry's own new action.
+
+Alternatives rejected: documenting "merge nothing during a release" (a conduct rule, and it covers release PRs
+only); comparing against the PR's own fork point in the queue (a third comparison context); re-dating actions
+automatically (it falsifies the record).
+
+### 17. Release currency at Tag release
+
+The time rule also did useful work by accident: alpha.3's forced re-preparation added `7b3fa74` to its changelog,
+which would otherwise have shipped without it. Decision 16 removes that accident, so currency gets its own check.
+Tag release is the right place: it is the last point before bytes freeze, and it tags the current default-branch
+head, so changes can land after the release PR merged as well as before. Tag release compares the requested
+section's lineage with the merged PRs and direct commits from the previous release tag to the commit it would tag,
+using release preparation's own collection. On a gap it creates no tag, names the missing changes and dispatches
+Prepare release for the same version with the App token. The maintainer then receives a PR to approve, not a puzzle.
+
+Prepare release gains two routes. For an untagged version already on the default branch, it opens a completion PR
+that adds only the missing lineage entries, extending the release's provenance action where the release-file
+policy requires it. For an open proposal of its own whose every commit is the App's verified preparation, it
+prepares again from the current head and updates that branch, so the PR keeps its number; source refresh already
+replaces App-authored branches this way. An edited or closed proposal is never touched, and the dispatch names
+the manual route. Together with decision 16 this removes two gaps the rehearsal found: there was no maintainer
+route after a queue rejection, and "merge nothing during a release" was an unenforced rule. A repair that lands
+after the release PR, which the existing re-issue requirement lets Tag release include, is one such change:
+completion lists it before the tag, so the head then passes every requested-release check.
+
+Alternatives considered: generating the lineage into the release body at draft time would be complete by
+construction, but it reverses the complete-changelog decision (decision 2). Checking currency in the merge queue
+misses changes that land between the merge and the tag.
+
+### 18. Version input
+
+Both dispatches strip surrounding whitespace and one leading `v` before the shared acceptance
+(`release-version.cjs`, `release_version.py` and their shared fixtures), so a maintainer can type the tag form.
+Every later use sees the bare version.
+
+### 19. `/next/` when it equals the release
+
+Tag release always tags a commit that staging already serves, so after every release `/next/` names the previous
+tag plus a count for the commit production now serves, until the next push. Assembly already writes the preview
+notice into every `/next/` page. When publication's staging commit equals the production release commit, assembly
+writes a bilingual notice that the preview is identical to that release, with a link to the root, instead of
+"Preview of the next release". The build identity stays as built: rewriting it would patch generated output, and the
+notice removes the contradiction. A redirect was rejected: it would break `/next/` deep links and API paths and
+would need a script or meta refresh.
+
+### 20. Channel records: staging and production
+
+`github-pages` is not a staging environment: its single publication job deploys the whole tree, production root
+included. `production` is the approval gate, and its record appears at approval, before the bytes are live. Neither
+says "this channel is live at this address". Renaming `github-pages` would mislabel it, and GitHub recommends
+keeping that name for Pages.
+
+After a publication that deploys, `publish.yml` records a `staging` deployment of the staging commit with the
+`/next/` address and, when it published a release, a `production` deployment of the release with the root address.
+A publication that deploys nothing records nothing. `github-pages` stays the publishing mechanism. The approval job
+keeps `production` as its gate; where GitHub lets a job use an environment without creating a deployment, the gate
+creates none, so `production` lists only live releases. Tag release and the tag ruleset require a successful
+`staging` deployment, which says what is meant: tag only what was staged. `repository.toml` declares `staging`, and
+the ruleset changes only after a publication created the first `staging` record (task 8.7).
+
+Two facts are verified before the ruleset changes, and until then it keeps `github-pages`: whether a job can use an
+environment without a deployment record, and whether a ruleset's required deployments accept deployments created
+through the API.
+
+### 21. One-invocation release notes
+
+A native skill, `fair-guide-release-notes`, runs the whole route. It resolves the tag and the previous release tag,
+including pre-releases, because the delivered workflow's default baseline skips them. It runs
+`/aiscr-write-release-notes` report-only in English with those answers fixed, composes with `release_body.py`,
+asks once for approval, applies and reads the body back. Publishing stays a separate click. The skill is
+user-invoked only, because it writes to GitHub. It depends on the delivered skill allowing model invocation, which
+its upstream maintainer changes; the delivered copy is not patched here. Until then the documented two-command route
+stays. Release-notes reports remain git-ignored, so the release body is the durable record.
+
+### 22. A predictable weekly schedule
+
+The schedule works backwards from Monday 08:00 in Prague: every scheduled job completes by Monday 06:00 UTC even
+with a six-hour start delay and its full timeout. Source refresh runs first, then Dependabot, with day, time and
+`Europe/Prague` set for each ecosystem, then health watch, so the digest reflects the week. The monthly Champion
+remeasurement runs inside the first weekly health watch of a month instead of on its own cron. An offline test
+computes the bound from the workflow and Dependabot files.
+
+Manual health-watch runs choose the audit, the watch or both. An audit-only run writes nothing to issues or the
+digest, so either part can be tested on demand, and 5.8's evidence can come from such a run.
+
+### 23. Documentation in one wave
+
+The documentation mixes three readers in one text: the person doing a task, the reviewer checking guarantees and
+the implementer. It follows Diátaxis instead. Guide readers (both READMEs), contributors (CONTRIBUTING) and
+maintainers (`docs/ci.md`'s cheat sheet) each have one landing page. Each document has one type: how-to guide,
+reference, explanation, or a tutorial once a real newcomer need appears. A document declares its type in an HTML
+comment on its first line, which `scripts/check_docs.py` reads.
+
+Maintainer tasks become runbooks under `docs/runbooks/`. A runbook opens with who acts, how long it takes and why,
+in two sentences at most. Numbered steps then give **Where**, **Do**, **Done when** and **If it fails**, using the
+same words as the automated outputs' "Next / If blocked / Done when" blocks (decision 13). A branching flow gets a
+Mermaid diagram with `accTitle` and `accDescr`. The runbook owns the steps; reference and explanation link to it
+and do not repeat them.
+
+The reshape is one wave, not gradual. Diátaxis recommends small steps for human writers; an agent can rewrite the
+whole set coherently, and the constraint becomes review. The review package:
+
+- a section map, kept with this change, that gives every former section its new home or a removal reason, and a
+  check that no former heading is unaccounted for;
+- a facts check that every repository path, script, workflow and npm script a document names exists;
+- the structure check above;
+- an independent reader per audience: a fresh agent, not a fork of the writing session, that reads only the
+  documents and their links, checks type fit and whether each step can be performed from the text alone, and
+  samples moved facts against the map. It returns located findings or `NO_FINDINGS`, and the author fixes them.
+
+A human review step was considered and deferred: real use will refine the documents. `AGENTS.md` and delivered or
+generated surfaces are excluded; their owners govern them. The documentation rules join the native surface rule
+(task 7.5), so later edits keep the shape.
 
 ### Issue dispositions (refreshed 24 October 2026)
 
@@ -448,6 +590,16 @@ requested permissions with the reviewed list and checks that the registration co
 - **Removing the per-finding issues loses their notifications** → the digest comments on meaningful change, and
   people watch one issue instead of 24.
 - **Local Git identity could be wrong** → the person is printed and visible in the diff; `--person` overrides it.
+- **History-based freshness could accept an old action reused without new work** → an action counts only when it
+  is new since the base or its `endTime` moved later.
+- **Tag release's automatic re-preparation could surprise** → it only opens or updates a PR, never merges or tags,
+  and its summary names the PR and the next action.
+- **API-created deployment records might not satisfy the tag ruleset** → verified before the ruleset changes; until
+  then the ruleset keeps `github-pages`.
+- **A one-wave documentation reshape could drop or change a fact** → the section map, the facts check and the
+  independent reader's sampling of moved facts.
+- **The release-notes skill depends on an upstream change** → until it arrives, the documented two-command route
+  stays.
 
 ## Migration Plan
 
@@ -468,6 +620,12 @@ requested permissions with the reviewed list and checks that the registration co
    The organization owner confirms the App installation and trims its registration.
 5. Land the digest with its migration (group 6). Run the dry run, approve the payloads, publish and reread.
 6. Land the CI documentation, handoffs, hints, usage check and crawler files (group 7).
+7. Land the release flow repairs (group 8), possibly before groups 6 and 7. After a publication has created a
+   successful `staging` record and decision 20's two facts are verified, apply the tag ruleset's required
+   deployment change after approval of the audit diff. Rollback: restore `github-pages` as the required deployment.
+8. Land the schedule (group 9). Rollback: restore the previous cron entries and Dependabot defaults.
+9. Land the documentation wave (group 10) after its review package passes.
+10. A separately approved final rehearsal follows the release runbook (task 11.3).
 
 Rollback for code is a reviewed revert. The digest publisher can be disabled while its state artifacts and
 human comments remain. Completed repairs, notes and published releases are never rewritten.
@@ -489,3 +647,7 @@ These can be answered during apply without changing the specs or the task breakd
   `docs/maintenance.md` records the capability table.
 - Do the validator and Playwright-cache experiments pay off? Answered on 24 October 2026: neither was adopted
   (see the experiments in decision 6).
+- Can a job use the `production` environment as an approval gate without creating a deployment record? If not,
+  `production` shows the approval record beside the live record, and the documentation says which is which.
+- Do a tag ruleset's required deployments accept deployments created through the API? If not, the ruleset keeps
+  `github-pages` and Tag release alone checks `staging`.

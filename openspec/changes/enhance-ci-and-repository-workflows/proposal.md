@@ -9,9 +9,17 @@ merge needs a branch update, a rerun and a deployment approval, and monitoring k
 (24 open today). Contributors, maintainers and bots need fast feedback, simple merges, quiet monitoring and a
 Project that stays consistent without manual bookkeeping.
 
+The first hosted release rehearsal, on 25 October 2026, worked but exposed more problems. A content PR fails in the
+queue whenever anything lands on `main` after its provenance action ended, and the only way past is a less truthful
+end time. A release PR prepared before `main` moved would ship an incomplete changelog without any warning, and once
+the queue rejects it no maintainer route re-prepares it. After tagging, `/next/` names the previous tag for the very
+commit production now serves. The `github-pages` environment reads like staging but publishes both channels.
+Scheduled jobs start about five hours late at unrelated hours. The maintainer documentation mixes steps, guarantees
+and mechanism, so a person cannot find the next action quickly.
+
 ## What Changes
 
-The change lands in six waves. Each wave is one reviewed pull request and is useful on its own.
+The change lands in nine waves. Each wave is one reviewed pull request and is useful on its own.
 
 1. **Nothing gets lost.** A changelog check protects `[Unreleased]` and published history, and release
    preparation keeps the unpublished lines beside the generated PR/commit list. Detail stays in durable commit
@@ -39,6 +47,18 @@ The change lands in six waves. Each wave is one reviewed pull request and is use
    cheat sheet. Every automated output ends with a next step. PR comments give advisory release-note and
    planning hints. A usage-filename check is added. Production publishes real `robots.txt` and `sitemap.xml`
    (#83); #84's CI documentation is delivered.
+7. **Release flow repairs.** Paradata freshness is decided from history, so a moving `main` no longer fails a
+   correct PR and `endTime` keeps meaning when the work finished. Tag release refuses a version whose changelog
+   misses changes since the previous tag and starts Prepare release to complete it; preparation can complete an
+   untagged version and replace its own unedited outdated proposal. Both dispatches accept a leading `v`. A
+   `/next/` identical to the release says so. `staging` and `production` deployment records show when each channel
+   is live; `github-pages` stays the publishing mechanism. One native skill prepares and applies release notes.
+8. **Predictable schedule.** Scheduled refresh, dependency updates and health watch finish by Monday morning in
+   Prague despite GitHub's start delays. Manual health-watch runs can select the audit, the watch or both.
+9. **Documentation people can use.** All human documentation is reshaped in one wave by Diátaxis type, with one
+   landing page per audience and maintainer runbooks whose steps say where, what, done when and if it fails. A
+   section map, facts and structure checks and an independent agent reader review the wave. A final hosted
+   rehearsal follows the new release runbook.
 
 - **BREAKING:** health observations move from one issue per finding to one digest; consumers of the
   `guide-health` per-finding issues must follow the digest.
@@ -49,12 +69,16 @@ Scope is repository delivery and maintenance. Excluded: editorial content, FAIR 
 semantics, crate/profile versions (#25), canonical address and DNS (#15, #32), external registrations (#80),
 Dependabot security updates (deliberately off), automatic merging or promotion of work, bot writes to the
 Project, and a public API redesign. Reusing expensive check results by input digest is a separately approved
-follow-up.
+follow-up. Also excluded: editing the delivered `aiscr-write-release-notes` (its upstream maintainer changes its
+invocation policy), `AGENTS.md` and other delivered or generated surfaces in the documentation wave, and moving the
+release lineage out of `CHANGELOG.md`.
 
 Validation: strict OpenSpec validation and `python scripts/check_all.py`; planted regressions for every new
 check and renderer; real producer/consumer paths with fake remote transport only; paired before/after timing
 reruns with unchanged coverage. Ruleset/environment changes, the backfill, the digest migration and hosted
 rehearsals each need their own approval of the exact content and are recorded separately from local evidence.
+The documentation wave passes its section map, facts and structure checks and an independent agent review, and a
+final hosted rehearsal follows the release runbook.
 
 ## Capabilities
 
@@ -66,9 +90,12 @@ None.
 
 - `fair-guide/guide-delivery`: changelog and release-note handling, failure diagnostics, comment commands and
   `/help`, check speed, merge queue and deployment approvals, settings audit, labels, issue templates, Project
-  audit, digest monitoring, CI documentation and handoffs, crawler files.
+  audit, digest monitoring, CI documentation and handoffs, crawler files; release currency and re-preparation,
+  version input, the `/next/` release notice, channel deployment records, one-invocation release notes, the weekly
+  schedule and manual health-watch parts, documentation types, runbooks and their review.
 - `fair-guide/guide-knowledge-base`: dated statuses reported in the digest; local duplicate repair records
-  complete provenance for a resolved reviewed person.
+  complete provenance for a resolved reviewed person; paradata freshness decided from history in every comparison
+  context, including the merge queue.
 
 ## Impact
 
@@ -79,9 +106,16 @@ None.
   `source-refresh.yml`, `fix-duplicates.yml`, `tag-release.yml`; trusted scripts under `.github/scripts/`;
   `.github/dependabot.yml`, the PR template, `.github/ISSUE_TEMPLATE/`, `.github/repository.toml`,
   `.github/health-watch.toml`.
-- Docs: `docs/ci.md`, `docs/maintenance.md`, `docs/changelog.md`, `docs/deployment.md`, CONTRIBUTING,
-  content-model guidance; native rules under `.agents/guide/` with regenerated mirrors.
-- GitHub settings (human-applied after approval): main and tag rulesets, `github-pages` and new `production`
-  environments, labels, Project #1 views and automations, App installation permissions.
+- Release flow and schedule: `check_content.py`, `assemble_pages.py`, `release_version.py`, `release_versions.py`,
+  `.github/scripts/prepare-release.cjs` and `release-version.cjs`, `prepare-release.yml`, `tag-release.yml`,
+  `publish.yml`, `source-refresh.yml`, `.github/dependabot.yml`; new `scripts/check_docs.py`.
+- Docs: every human document (both READMEs, CONTRIBUTING, `docs/**`) reshaped by type, new `docs/runbooks/`, and a
+  reviewed section map kept with this change; native rules and the new `fair-guide-release-notes` skill under
+  `.agents/guide/` with regenerated mirrors.
+- GitHub settings (human-applied after approval): main and tag rulesets (the tag ruleset later requires `staging`),
+  `github-pages`, new `production` and `staging` environments, labels, Project #1 views and automations, App
+  installation permissions.
+- Upstream dependency: the delivered `aiscr-write-release-notes` allows model invocation before the native skill
+  can call it.
 - Baseline: `main` at `f0c09f9`, which includes PR #102. Live repository, Project and run data read on
   23–24 October 2026. No new runtime dependency is intended.

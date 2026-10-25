@@ -583,3 +583,32 @@
 - **Close-out:** Task 4.9 remains open. PR #114 needs review and a queue merge; corrected hosted reuse and the
   approved release promotion still require their own observed outcomes. Evidence is kept on
   `agents/codex/alpha3-rehearsal`, separate from the generated release branch.
+
+### Plan revision after the alpha.3 rehearsal
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Resumed after the previous Codex session ended on a credit limit while #114 was queued, and verified
+  the hosted outcome: queue run 40153182976 passed and deployment 40153496770 reused it; Tag release 40154472734
+  tagged `v1.0.0-alpha.3` at `161994f`; production was approved in run 40154498215; publication 40155190767 and
+  release 40155239756 followed, leaving an unpublished draft. Explored the queue rejection 40151368869, the
+  `/next/` label after tagging, environment naming, schedule delays and documentation shape, then revised the
+  change's planning artifacts: decisions 16–23, eleven added delivery requirements, two modified knowledge-base
+  requirements, task groups 8–10, integrated verification renumbered to group 11 with a final rehearsal (11.3),
+  and decision notes on 4.9 and 5.8.
+- **Impacted:** the change's proposal, design, tasks and both spec deltas, and this entry, on branch
+  `agents/claude/ci-workflows-replan`. No implementation, workflow or repository setting changed.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-explore`, `openspec-update-change`; `aiscr-planning-core` holds
+  implementation until a fresh apply instruction for the revised plan.
+- **Verification:** `npx openspec validate enhance-ci-and-repository-workflows --strict` reports the change valid;
+  `npm run openspec:validate` passes 6 of 6; a read-only `audit_repository.py --section app` reports no drift;
+  `python scripts/check_all.py` passes 32 of 32 in 142.2 s.
+- **Corrections:** The maintainer corrected the claim that `/next/` served alpha.3: its footer showed
+  `v1.0.0-alpha.2+15`, built before the tag, which became decision 19. The maintainer also counted #114 as 4.9's
+  human path, confirmed the App installation for 5.8, chose a one-wave documentation reshape over gradual change,
+  and deferred a human documentation review in favour of an independent agent reader.
+- **Close-out:** Planning revision only. Implementation of groups 6–11 and the evidence for 4.9 and 5.8 await
+  approval of the revised plan.

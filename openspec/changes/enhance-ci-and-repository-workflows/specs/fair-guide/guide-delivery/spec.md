@@ -811,3 +811,213 @@ the production files byte-identically, keep preview documents out of the sitemap
 
 - **WHEN** the build runs with a different configured base URL
 - **THEN** the robots and sitemap addresses follow that base
+
+### Requirement: Release dispatches accept a leading v
+
+Prepare release and Tag release SHALL accept the requested version with or without one leading `v` and
+surrounding whitespace, and SHALL use the bare version in every file, branch, tag and message they produce. Any
+other malformed value SHALL be refused with the accepted form shown.
+
+#### Scenario: The maintainer types the tag form
+
+- **GIVEN** the maintainer enters `v1.0.0-alpha.4`
+- **WHEN** Prepare release runs
+- **THEN** it prepares exactly the same files and branch as for `1.0.0-alpha.4`
+
+#### Scenario: A malformed version
+
+- **WHEN** a release dispatch receives `vv1.0.0` or `1.0`
+- **THEN** it changes nothing and names the accepted form, for example `1.0.0-alpha.4` or `v1.0.0-alpha.4`
+
+### Requirement: Tag release refuses an incomplete release changelog
+
+Tag release SHALL create a tag only when the requested version's changelog section lists every merged pull request
+and direct commit between the previous release tag and the commit to be tagged. Otherwise it SHALL create no tag,
+name the missing changes and start release preparation for the same version.
+
+#### Scenario: A change lands after the release PR merged
+
+- **GIVEN** the release PR for `1.0.0-alpha.4` merged and one more PR merged afterwards
+- **WHEN** the maintainer runs Tag release for `1.0.0-alpha.4`
+- **THEN** no tag is created, and the summary names that PR, the completion it started and the next action: review and merge the completion PR, then run Tag release again
+
+#### Scenario: The changelog is complete
+
+- **WHEN** the requested section lists every change since the previous release tag
+- **THEN** Tag release continues with its existing checks and creates the tag
+
+### Requirement: Release preparation completes or replaces its own proposal
+
+For an untagged version already on the default branch, Prepare release SHALL open a pull request that adds only
+the missing changelog entries. It SHALL replace an open proposal of its own that nobody edited with one prepared
+from the current default branch. An edited or closed proposal SHALL stay untouched, and the dispatch SHALL name
+how to proceed.
+
+#### Scenario: Completing a merged release
+
+- **GIVEN** `1.0.0-alpha.4` metadata on the default branch, no tag, and one change missing from its changelog
+- **WHEN** release preparation runs for that version
+- **THEN** a pull request adds exactly that entry, leaving the version, dates and earlier entries unchanged
+
+#### Scenario: Replacing an outdated unedited proposal
+
+- **GIVEN** an open release pull request whose only commit is the automation's preparation, and a default branch that has moved on
+- **WHEN** release preparation runs again for the same version
+- **THEN** the proposal is prepared again from the current default branch and the pull request keeps its number
+
+#### Scenario: A person edited the proposal
+
+- **GIVEN** an open release pull request with a commit the preparation did not make
+- **WHEN** release preparation runs again for the same version
+- **THEN** it changes nothing and names the manual reconciliation route
+
+### Requirement: A preview identical to the release says so
+
+When the staging commit equals the commit of the published production release, every `/next/` page SHALL say that
+the preview is identical to that release and link the production root, instead of announcing a next release. The
+preview SHALL keep `noindex` and its own build identity.
+
+#### Scenario: A release is tagged at the commit staging serves
+
+- **GIVEN** `/next/` serves commit `161994f` and release `v1.0.0-alpha.3` is published from the same commit
+- **WHEN** publication assembles both channels
+- **THEN** each `/next/` page states in Czech and English that it is identical to `v1.0.0-alpha.3` and links the release, and production bytes stay unchanged
+
+#### Scenario: The default branch moves on
+
+- **WHEN** a later default-branch commit is published to staging
+- **THEN** `/next/` again announces the next release
+
+### Requirement: Each channel records when it is live
+
+Publication SHALL record a successful `staging` deployment with the `/next/` address for the commit it published to
+staging, and a `production` deployment with the root address for the release it published, each only after that
+channel is live. A publication that publishes nothing SHALL record nothing. Release tags SHALL require a successful
+`staging` deployment of their commit.
+
+#### Scenario: A merge reaches staging
+
+- **WHEN** publication makes a new default-branch commit live under `/next/`
+- **THEN** the `staging` environment shows a successful deployment of that commit with the `/next/` address
+
+#### Scenario: A release goes live
+
+- **WHEN** publication makes an approved release live at the root
+- **THEN** the `production` environment shows a successful deployment of that release with the root address, recorded after it went live
+
+#### Scenario: Tagging a commit that never reached staging
+
+- **WHEN** Tag release runs for a commit without a successful `staging` deployment
+- **THEN** no tag is created and the summary names the run to wait for
+
+### Requirement: Release notes are prepared in one invocation
+
+A native release-notes skill SHALL, in one invocation, run the delivered release-notes workflow report-only from
+the previous release tag, pre-releases included, to the requested tag, compose the body with the verification
+record, ask once for approval of that body and apply it to the draft. Publishing the release SHALL remain a
+separate maintainer act.
+
+#### Scenario: The previous release is a pre-release
+
+- **GIVEN** only pre-releases exist and `v1.0.0-alpha.3` is the previous tag
+- **WHEN** the maintainer prepares the notes for `v1.0.0-alpha.4`
+- **THEN** the notes cover exactly `v1.0.0-alpha.3..v1.0.0-alpha.4`
+
+#### Scenario: The maintainer approves the body
+
+- **WHEN** the composed body is approved
+- **THEN** the draft carries it with the unchanged verification record, and the skill names publishing as the remaining step
+
+#### Scenario: The maintainer declines
+
+- **WHEN** the composed body is not approved
+- **THEN** the draft release is unchanged
+
+### Requirement: Scheduled maintenance results are ready on Monday morning
+
+Scheduled source refresh, dependency updates and health watch SHALL run in one weekly order in which each completes
+by Monday 06:00 UTC, which is 08:00 in Prague or earlier, even when its scheduled start is delayed by six hours. The
+monthly Champion remeasurement SHALL run within the first weekly health watch of each month.
+
+#### Scenario: Scheduled starts are delayed
+
+- **GIVEN** each scheduled start is delayed by six hours and each job uses its full timeout
+- **WHEN** the schedule is checked offline
+- **THEN** every job still completes before Monday 06:00 UTC
+
+#### Scenario: The first week of a month
+
+- **WHEN** the weekly health watch runs within the first seven days of a month
+- **THEN** it also remeasures the Champion tests, and no separate monthly schedule exists
+
+### Requirement: Manual health-watch runs select their parts
+
+A manual health-watch run SHALL let the maintainer choose the settings and Project audit, the watch, or both. A run
+limited to the audit SHALL open, edit or close no issue and SHALL change no digest. Scheduled runs SHALL run both
+parts.
+
+#### Scenario: Checking the audit on demand
+
+- **WHEN** the maintainer runs health watch manually with only the audit selected
+- **THEN** the audit runs with its Project token and reports in the run summary, and no issue or digest changes
+
+#### Scenario: A scheduled run
+
+- **WHEN** the weekly schedule starts health watch
+- **THEN** both the watch and the audit run
+
+### Requirement: Human documentation is organised by audience and type
+
+Human documentation SHALL give Guide readers, contributors and maintainers one landing page each, and SHALL keep
+each document to one type: how-to guide, reference, explanation or tutorial. Each document SHALL declare its type,
+and an offline check SHALL fail on a missing or unknown declaration. Agent instructions and delivered or generated
+documents are outside this structure.
+
+#### Scenario: A maintainer looks for a task
+
+- **WHEN** a maintainer opens the maintainer landing page
+- **THEN** it lists each maintainer task in one line with when it is needed and a link to its runbook
+
+#### Scenario: A document lacks a type
+
+- **WHEN** a human document has no type declaration or an unknown one
+- **THEN** the offline check fails and names the document and the accepted types
+
+### Requirement: Maintainer tasks have runbooks
+
+Every recurring or handed-off maintainer task SHALL have a how-to runbook under `docs/runbooks/` that opens with who
+acts, how long it takes and why, followed by numbered steps naming where to act, what to do, the visible evidence of
+completion and the next action on failure. A branching flow SHALL include a diagram with an accessible title and
+description.
+
+#### Scenario: A step lacks its failure route
+
+- **WHEN** a runbook step has no "If it fails" action
+- **THEN** the offline check fails and names the runbook and the step
+
+#### Scenario: Releasing from the runbook
+
+- **GIVEN** the release runbook
+- **WHEN** a maintainer follows it
+- **THEN** each step names the exact place, the inputs and the visible evidence, and the Tag release refusal has a named next action
+
+### Requirement: Documentation changes pass an independent review
+
+A documentation change SHALL pass the structure and facts checks and a review by an agent that did not write it and
+reads only the documentation. A change that moves text SHALL carry a section map accounting for every former
+section. A hand-off SHALL NOT be complete while the runbook it relies on has unresolved findings.
+
+#### Scenario: A section disappears in a reshape
+
+- **WHEN** a former section has no entry in the section map
+- **THEN** the map check fails and names the section
+
+#### Scenario: A document names a missing script
+
+- **WHEN** a document refers to a repository path, script or workflow that does not exist
+- **THEN** the facts check fails and names the reference
+
+#### Scenario: The independent reader had to guess
+
+- **WHEN** the reviewing agent reports a step it could not perform from the text alone
+- **THEN** the documentation is fixed before the dependent hand-off is ticked
