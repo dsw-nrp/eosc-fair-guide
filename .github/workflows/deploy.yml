@@ -181,6 +181,8 @@ jobs:
           QUEUE_RUN: ${{ steps.queue.outputs.url }}
           QUEUE_REASON: ${{ steps.build.outcome != 'success' && 'the staging build failed here' || steps.queue.outputs.reason || 'the merge-queue lookup failed; see its step' }}
         run: |
+          # The default shell has no pipefail, so without it the condition would test `tee`, not the adoption.
+          set -o pipefail
           if [ -n "$QUEUE_RUN" ] && python -u scripts/check_ci.py adopt --incoming .cache/queue-result --source "$QUEUE_RUN" | tee -a "$GITHUB_STEP_SUMMARY"; then
             echo "reused=true" >> "$GITHUB_OUTPUT"
           else

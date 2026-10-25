@@ -202,7 +202,11 @@ For a default-branch push, deployment builds the staging site in the `preview` c
 then looks for a successful merge-group `checks` run of the same commit whose source files and build inputs equal
 the fresh build's; the queue's tested commit becomes the default-branch commit. If one is found, it imports that
 run's health snapshot after validating the identity fields and the health API schema, and names the run in the
-summary. Otherwise it runs the reusable partitioned checks and states why. The trust is the same as today: the code
+summary. The build comparison excludes exactly the three files replaced by health publication (`api/health.json`,
+`health/index.html`, `health/summary.md`), whose initial inventory names the producing run. Every other built file
+must match. The adoption step preserves the Python exit status through its summary pipeline, so a rejected result
+always selects full checks. Any unmatched or invalid result runs the reusable partitioned checks and states why.
+The trust is the same as today: the code
 that produced the reused result is the code being deployed, and a PR run never contributes to a deployment.
 
 Approval moves from the `github-pages` environment to a new `production` environment with required reviewers. An

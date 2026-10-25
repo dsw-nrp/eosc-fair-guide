@@ -574,6 +574,19 @@ class WorkflowContracts(unittest.TestCase):
         # Live monitoring stays out of the deterministic pull-request checks.
         self.assertNotIn("watch_sources", (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8"))
 
+    def test_a_pipeline_that_decides_a_branch_reports_its_first_failure(self) -> None:
+        # GitHub's default `bash -e` has no pipefail: `if cmd | tee file; then` would test tee.
+        for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
+            for name, job in load(path.relative_to(ROOT).as_posix())["jobs"].items():
+                for step in job.get("steps", []):
+                    script = step.get("run", "")
+                    deciding = re.search(
+                        r"^\s*(if|while|until)\b[^\n]*(?<!\|)\|(?!\|)[^\n]*;\s*(then|do)", script, re.MULTILINE
+                    )
+                    if deciding and step.get("shell") != "bash":
+                        with self.subTest(workflow=path.name, job=name, step=step.get("name") or step.get("id")):
+                            self.assertIn("set -o pipefail", script[: deciding.start()])
+
     def test_the_weekly_audit_reads_the_project_alone_with_a_read_only_token(self) -> None:
         jobs = load(".github/workflows/health-watch.yml")["jobs"]
         audit = jobs["audit"]
@@ -632,6 +645,8 @@ class WorkflowContracts(unittest.TestCase):
         adopt = next(step for step in stage["steps"] if step.get("id") == "adopt")
         self.assertIn("scripts/check_ci.py adopt --incoming .cache/queue-result", adopt["run"])
         self.assertIn('echo "Full checks: $QUEUE_REASON."', adopt["run"], "the summary names the fallback reason")
+        # The first hosted reuse (run 40147547699) took tee's status for the adoption's and uploaded an unchecked site.
+        self.assertLess(adopt["run"].index("set -o pipefail"), adopt["run"].index("check_ci.py adopt"))
         queue = next(step for step in stage["steps"] if step.get("id") == "queue")
         self.assertIn("queueResult", queue["with"]["script"])
         kept = next(step for step in stage["steps"] if step.get("with", {}).get("name") == "staging-site")

@@ -510,3 +510,31 @@
   - All 61 open issues have a type and an area label.
   - By their filters, the views hold 26 automated and 22 authored pull requests and 24 `area:maintenance` issues.
 - **Close-out:** 40 of 62 tasks complete; 5.8 waits for the organization owner and 4.9 for the queue approvals.
+
+### Merge-queue rehearsal: adoption and fallback repairs
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Codex (API)
+- **Model / backend:** GPT-6; exact backend model ID not exposed by the runtime.
+- **What:** Continued the approved Claude session. The maintainer queued #110 and #111; both merged, and the
+  final tested commit was `d1ef695`. Deployment run 40147547699 rejected the queue evidence because the initial
+  health inventory names its producing run. Its summary pipeline nevertheless returned success through `tee`,
+  skipping full checks. Publication run 40147592421 refused the unchecked site before Pages deployment.
+  Adoption now compares every built file except the three health files it replaces, retains snapshot identity
+  and API validation, and preserves the adoption exit status through the pipeline.
+- **Impacted:** `scripts/check_ci.py`, `.github/workflows/deploy.yml`, `tests/test_{check_ci,workflows}.py`, the
+  change's design, delivery spec delta and task 4.9 evidence, this rolling entry.
+- **Subagents used:** none.
+- **MCP servers used:** GitHub.
+- **Workflow context used:** `fair-guide-editor`, `openspec-apply-change`; change
+  `enhance-ci-and-repository-workflows`, with the existing implementation and hosted-rehearsal approvals.
+- **Verification:** 54 focused deployment/workflow tests pass, including a real health publication proving that
+  precisely the excluded files are replaced. The actual Bash script selects reuse only for successful adoption,
+  selects full checks for a failed adoption or missing run, and reproduces false reuse when `pipefail` is removed.
+  Four planted regressions are detected: comparing the run-specific snapshot, ignoring all built files, excluding
+  an extra unchanged file, and removing `pipefail`. The saved queue and local builds of `d1ef695` contain 1,956
+  files apiece and differ only in the three replaced health files. Fresh native `check_all.py` passes 32 of 32
+  checks in 152.8 s, including all unit shards, browser groups, validators and final health API validation;
+  strict change validation, Ruff and diff checks pass.
+- **Close-out:** 40 of 62 tasks remain complete. Hosted reuse after the repair, release preparation and promotion
+  remain pending; the unsuccessful rehearsal is not acceptance evidence for task 4.9.

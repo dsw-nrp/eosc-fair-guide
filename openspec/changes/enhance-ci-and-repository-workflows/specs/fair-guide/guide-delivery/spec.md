@@ -440,6 +440,16 @@ or the reason for the fallback.
 - **WHEN** the tree differs, no passing merge-group run exists or its snapshot fails validation
 - **THEN** deployment runs the complete partitioned checks before publishing and states why
 
+#### Scenario: Build inventories name different producing runs
+
+- **WHEN** the fresh build differs from the queue build only in the three health files that adoption replaces
+- **THEN** those differences do not prevent reuse, every other built file must match and the imported health snapshot still passes identity and schema validation
+
+#### Scenario: Adoption fails while the summary is written successfully
+
+- **WHEN** adoption rejects a result and the summary pipeline succeeds
+- **THEN** deployment selects the complete partitioned checks and uploads no unchecked staging site as reused
+
 ### Requirement: Production promotion requires explicit approval
 
 A deployment that would change the production site SHALL wait for approval in a dedicated protected environment
