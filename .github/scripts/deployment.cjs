@@ -117,13 +117,17 @@ async function publication({ github, context, recorded }) {
 /** Records each channel live at its address once this publication deployed it: a successful `staging` deployment of
     the published staging commit and, when a release was published, a `production` deployment of its tag. A record that
     already exists is not repeated, so publishing the same site again leaves the history unchanged. `github-pages`
-    stays the publishing mechanism; release tags require the staging record. Returns the environments recorded. */
+    stays the publishing mechanism; release tags require the staging record. Returns the environments recorded.
+    The staging record names the default branch, which the environment's branch policy admits, and counts only if
+    GitHub resolves it to the published commit: when the branch moved on meanwhile, the record is left inactive, never
+    successful, and the newer commit's own publication records it. */
 async function recordChannels({ github, context, core }, { staging, tag = "", production = "", pageUrl }) {
   if (!SHA.test(staging || "") || (tag && !SHA.test(production))) throw Error("Recording requires the published commits");
   if (!/^https:\/\/\S+$/.test(pageUrl || "")) throw Error("Recording requires the published site address");
   const root = pageUrl.endsWith("/") ? pageUrl : pageUrl + "/";
   const log = `${context.serverUrl || "https://github.com"}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-  const channels = [{ environment: "staging", ref: staging, sha: staging, url: root + "next/" }];
+  const branch = context.payload.repository.default_branch;
+  const channels = [{ environment: "staging", ref: branch, sha: staging, url: root + "next/" }];
   if (tag) channels.push({ environment: "production", ref: tag, sha: production, url: root });
   const recorded = [];
   for (const channel of channels) {
@@ -135,11 +139,25 @@ async function recordChannels({ github, context, core }, { staging, tag = "", pr
         deployment_id: deployment.id, per_page: 100 });
       if (statuses.some((status) => status.state === "success")) { live = true; break; }
     }
-    if (live) { core.info(`${channel.environment}: ${channel.ref} is already recorded live at ${channel.url}`); continue; }
+    if (live) { core.info(`${channel.environment}: ${channel.sha} is already recorded live at ${channel.url}`); continue; }
+    if (channel.environment === "staging" &&
+        (await github.rest.repos.getBranch({ ...context.repo, branch })).data.commit.sha !== channel.sha) {
+      core.info(`staging: ${branch} moved on from ${channel.sha}; that commit's own publication records it`);
+      continue;
+    }
     const { data: deployment } = await github.rest.repos.createDeployment({ ...context.repo, ref: channel.ref,
       environment: channel.environment, auto_merge: false, required_contexts: [], transient_environment: false,
       production_environment: channel.environment === "production", description: `Live at ${channel.url}` });
-    if (deployment?.sha !== channel.sha) throw Error(`The ${channel.environment} record names ${deployment?.sha}, not ${channel.sha}`);
+    if (deployment?.sha !== channel.sha) {
+      if (channel.environment === "production") {
+        throw Error(`The production record of ${channel.ref} names ${deployment?.sha}, not ${channel.sha}`);
+      }
+      // The branch moved between the check and the record: never mark the newer, unpublished commit as staged.
+      await github.rest.repos.createDeploymentStatus({ ...context.repo, deployment_id: deployment.id, state: "inactive",
+        description: `${branch} moved on before ${channel.sha.slice(0, 7)} was recorded`, log_url: log });
+      core.info(`staging: ${branch} moved on to ${deployment?.sha} while recording; left that record inactive`);
+      continue;
+    }
     await github.rest.repos.createDeploymentStatus({ ...context.repo, deployment_id: deployment.id, state: "success",
       environment_url: channel.url, log_url: log, auto_inactive: true });
     recorded.push(channel.environment);

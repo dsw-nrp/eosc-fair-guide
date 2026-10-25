@@ -513,10 +513,13 @@ the ruleset changes only after a publication created the first `staging` record 
 The first open fact is verified: since GitHub's March 2026 update, a job's `environment` accepts `deployment: false`,
 which keeps required reviewers but creates no deployment, so the approval job uses it. The second, whether a tag
 ruleset's required deployments accept deployments created through the API, is verified in task 8.7 before the
-ruleset changes; until then the ruleset keeps `github-pages` and Tag release alone checks `staging`. `staging` has
-no branch policy: whether the API applies branch policies to a deployment named by commit SHA is not documented,
-the records name the published commit exactly, only the trusted publication workflow writes them, and promotion
-stays approval-gated. Production records name the tag, which its `tag v*.*.*` policy admits.
+ruleset changes; until then the ruleset keeps `github-pages` and Tag release alone checks `staging`. `staging` keeps
+the `main` branch policy of `github-pages`: without it, anyone holding `deployments: write`, including a workflow on a
+pull-request branch, could create a successful record for an unreviewed commit, and the ruleset would then admit a
+tag on it with only the production approval left in the way. Records therefore name the branch `main` and count
+only when GitHub resolves them to the published commit; a record that resolves to a newer commit is left inactive.
+Because the ruleset sees only that a successful record exists, Tag release also requires that a `publish.yml` run
+on the default branch wrote it. Production records name the tag, which its `tag v*.*.*` policy admits.
 
 ### 21. One-invocation release notes
 

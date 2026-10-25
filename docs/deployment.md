@@ -59,7 +59,9 @@ that deploys nothing leaves no record. Once the site is live, the publication al
 successful `staging` deployment of the staging commit with the `/next/` address and, for a release it published, a
 `production` deployment of the tag with the root address. Publishing the same site again records nothing new.
 Tag release, and the tag ruleset once task 8.7 applies it, require the `staging` record of the commit to tag, so
-only a staged commit is released. The `production` environment's approval job creates no record of its own. Only a publication
+only a staged commit is released. `staging`, like `github-pages`, admits only `main`, and the record counts only when
+GitHub resolves it to the published commit; Tag release also requires that a run of the publication workflow wrote
+it. The `production` environment's approval job creates no record of its own. Only a publication
 after a successful deployment waits for its turn; a newer one replaces an older waiting one and publishes at least
 as much, since every publication resolves the newest approved release. To publish again, run **Deploy the verified
 site** on the default branch rather than rerunning an older deployment run, whose rerun would cancel newer
@@ -80,7 +82,7 @@ check. Say why in the pull request. That commit has no queue result, so its depl
 | Switch off "require branches to be up to date" | The merge queue is on | Switch it on |
 | Create `production` with its reviewer, for release tags only | None | Delete it and re-add the reviewer to `github-pages` |
 | Remove the reviewer from `github-pages` and limit it to `main` | The `approve-production` job is on `main` | Re-add the reviewer and the `v*.*.*` tag rule |
-| Create `staging`, without reviewers or a branch policy | Publication's channel records are on `main` | Delete it; Tag release then refuses until it exists again |
+| Create `staging` without reviewers, limited to `main` | Publication's channel records are on `main` | Delete it; Tag release then refuses until it exists again |
 | Require `staging` instead of `github-pages` for release tags | A publication has recorded a successful `staging` deployment | Require `github-pages` again |
 
 ## Preview behaviour

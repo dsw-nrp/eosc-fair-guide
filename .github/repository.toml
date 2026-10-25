@@ -99,10 +99,13 @@ branch_policies = ["branch main"]
 can_admins_bypass = true
 
 # Publication records here, once /next/ is live, the default-branch commit it serves; release tags require that record.
-# No branch policy: only the trusted publish workflow writes it, naming the published commit by its SHA.
+# Limited to `main` like github-pages, so no record can name a commit outside the default branch; Tag release also
+# requires that the trusted publication wrote it.
 [environment.staging]
 reviewers = []
-deployment = "all"
+prevent_self_review = false
+deployment = "custom"
+branch_policies = ["branch main"]
 can_admins_bypass = true
 
 # Production promotion waits for a maintainer's approval, for release tags only. The approval job uses it without a

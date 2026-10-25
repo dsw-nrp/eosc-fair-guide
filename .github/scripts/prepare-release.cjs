@@ -155,9 +155,22 @@ async function propose({github, context, core}, read = readFileSync, root, bot =
   core.info(pr.html_url);
   core.setOutput('url', pr.html_url);
 }
+const PUBLISHER = '.github/workflows/publish.yml';
+/** A staging success counts only when the trusted publication wrote it: the workflow token, in a run of publish.yml
+    that a completed deployment started on the default branch of this repository. A record anyone else creates through
+    the API names no such run. */
+async function published(github, context, base, status) {
+  const run = new RegExp(`/${context.repo.owner}/${context.repo.repo}/actions/runs/(\\d+)$`).exec(String(status.log_url || ''));
+  if (status.state !== 'success' || status.creator?.login !== 'github-actions[bot]' || !run) return false;
+  try {
+    const {data} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: Number(run[1])});
+    return String(data.path).split('@')[0] === PUBLISHER && data.event === 'workflow_run' && data.head_branch === base &&
+      data.head_repository?.full_name === `${context.repo.owner}/${context.repo.repo}`;
+  } catch { return false; }
+}
 /** Only a staged commit is tagged: before tagging, require the successful `staging` record that publication writes once
     the current default-branch commit is live under /next/, or name the deployment or publish run to wait for. The tag
-    ruleset requires the same record. */
+    ruleset requires a staging record too; this also requires that publication wrote it. */
 async function deployed({github, context, core}) {
   const {base} = dispatch(context);
   await current(github, context, base);
@@ -166,9 +179,11 @@ async function deployed({github, context, core}) {
   for (const deployment of deployments.filter(entry => entry.sha === context.sha)) {
     const statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, {...context.repo,
       deployment_id: deployment.id, per_page: 100});
-    if (statuses.some(status => status.state === 'success')) {
-      core.info(`Commit ${context.sha} was published by deployment ${deployment.id}`);
-      return deployment.id;
+    for (const status of statuses.filter(entry => entry.state === 'success')) {
+      if (await published(github, context, base, status)) {
+        core.info(`Commit ${context.sha} was published by deployment ${deployment.id} (${status.log_url})`);
+        return deployment.id;
+      }
     }
   }
   const runs = [];

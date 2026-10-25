@@ -224,14 +224,17 @@ await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 6
 // Each live channel is recorded once, naming the published commit and its address; nothing is repeated.
 {
   const deployments = [], made = [], statuses = new Map();
+  const branch = { head: c3, resolves: null };  // what main points at, and what a record of main resolves to
   const github = {
     paginate: async (method, options) => (await method(options)).data,
     rest: { repos: {
+      getBranch: async () => ({ data: { commit: { sha: branch.head } } }),
       listDeployments: async ({ environment, sha }) =>
         ({ data: deployments.filter((entry) => entry.environment === environment && entry.sha === sha) }),
       listDeploymentStatuses: async ({ deployment_id }) => ({ data: statuses.get(deployment_id) || [] }),
       createDeployment: async (args) => {
-        const entry = { id: deployments.length + 1, sha: args.ref === "v1.2.3" ? tagged : args.ref, ...args };
+        const sha = args.ref === "v1.2.3" ? tagged : args.ref === "main" ? (branch.resolves ?? branch.head) : args.ref;
+        const entry = { id: deployments.length + 1, sha, ...args };
         deployments.push(entry); made.push(args);
         return { data: entry };
       },
@@ -243,7 +246,8 @@ await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 6
   const site = "https://dsw-nrp.github.io/eosc-fair-guide/";
   assert.deepEqual(await recordChannels({ github, context, core }, { staging: c3, pageUrl: site }), ["staging"]);
   assert.deepEqual([made[0].environment, made[0].ref, made[0].production_environment, made[0].required_contexts],
-    ["staging", c3, false, []], "the staging record names the published commit itself");
+    ["staging", "main", false, []], "the staging record names main, which the environment's branch policy admits");
+  assert.equal(deployments[0].sha, c3, "and counts because it resolves to the published commit");
   assert.deepEqual([statuses.get(1)[0].state, statuses.get(1)[0].environment_url], ["success", site + "next/"]);
   assert.match(statuses.get(1)[0].log_url, /eosc-fair-guide\/actions\/runs\/80$/);
   // A release publication adds production at the root; the staging commit already recorded is not repeated.
@@ -253,9 +257,20 @@ await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 6
   assert.equal(statuses.get(2)[0].environment_url, site);
   assert.deepEqual(await recordChannels({ github, context, core }, { ...release, pageUrl: site }), []);
   assert.equal(made.length, 2, "publishing the same site again records nothing");
-  // A record that names another commit, or a missing address or commit, is refused.
+  // main moved on before recording: the newer commit's own publication records it.
+  branch.head = c2;
+  assert.deepEqual(await recordChannels({ github, context, core }, { staging: c1, pageUrl: site }), []);
+  assert.equal(made.length, 2, "nothing is recorded for a commit main no longer points at");
+  // main moved between the check and the record: that record stays inactive and never marks c2 as staged.
+  branch.head = c1; branch.resolves = c2;
+  assert.deepEqual(await recordChannels({ github, context, core }, { staging: c1, pageUrl: site }), []);
+  assert.deepEqual(statuses.get(3).map((status) => status.state), ["inactive"]);
+  assert(![...statuses.values()].flat().some((status) => status.state === "success" && deployments.find((entry) =>
+    statuses.get(entry.id)?.includes(status))?.sha === c2), "an unpublished commit is never staged");
+  // A moved tag, or a missing address or commit, is refused.
   github.rest.repos.createDeployment = async (args) => ({ data: { id: 9, sha: c2, ...args } });
-  await assert.rejects(recordChannels({ github, context, core }, { staging: c1, pageUrl: site }), /names 2{40}, not 1{40}/);
+  await assert.rejects(recordChannels({ github, context, core }, { staging: c1, tag: "v2.0.0", production: c0, pageUrl: site }),
+    /production record of v2\.0\.0 names 2{40}, not 0{40}/);
   await assert.rejects(recordChannels({ github, context, core }, { staging: c1, pageUrl: "" }), /site address/);
   await assert.rejects(recordChannels({ github, context, core }, { staging: "", pageUrl: site }), /published commits/);
   await assert.rejects(recordChannels({ github, context, core }, { staging: c1, tag: "v1.2.3", pageUrl: site }), /published commits/);

@@ -39,7 +39,8 @@ function fixture() {
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
   }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls', listDeployments: 'deployments',
     listDeploymentStatuses: 'deployment.statuses'},
-  actions: {getWorkflowRun: async () => ({data: {created_at: '2026-10-14T10:00:00Z'}}), listWorkflowRuns: 'workflow.runs'}},
+  actions: {getWorkflowRun: async ({run_id}) => ({data: {created_at: '2026-10-14T10:00:00Z', ...(state.runInfo?.[run_id] || {})}}),
+    listWorkflowRuns: 'workflow.runs'}},
   paginate: async (method, args) => {
     state.reads.push(args);
     if (method === 'deployments') return state.deployments || [];
@@ -281,8 +282,25 @@ for (const mutate of [
   const {state, github, core} = fixture();
   const run = (id, conclusion, extra = {}) => ({id, conclusion, head_sha: sha, head_branch: 'main',
     html_url: `https://github.com/example/guide/actions/runs/${id}`, ...extra});
+  const publisher = {path: '.github/workflows/publish.yml', event: 'workflow_run', head_branch: 'main',
+    head_repository: {full_name: 'example/guide'}};
+  const byPublication = {state: 'success', creator: {login: 'github-actions[bot]'},
+    log_url: 'https://github.com/example/guide/actions/runs/500'};
+  state.runInfo = {500: publisher, 501: {...publisher, path: '.github/workflows/checks.yml'},
+    502: {...publisher, head_branch: 'feature'}};
   state.deployments = [{id: 41, sha}];
-  state.statuses = {41: [{state: 'inactive'}, {state: 'success'}, {state: 'in_progress'}]};
+  // A record anyone with deployments: write could create counts only when the trusted publication wrote it.
+  for (const [name, status] of [
+    ['a person created it', {...byPublication, creator: {login: 'motyc'}}],
+    ['another workflow wrote it', {...byPublication, log_url: byPublication.log_url.replace('500', '501')}],
+    ['a run on another branch wrote it', {...byPublication, log_url: byPublication.log_url.replace('500', '502')}],
+    ['it names another repository', {...byPublication, log_url: 'https://github.com/other/guide/actions/runs/500'}],
+    ['it names no run', {...byPublication, log_url: ''}],
+  ]) {
+    state.statuses = {41: [status]};
+    await assert.rejects(deployed({github, core, context}), /no successful deployment/, name);
+  }
+  state.statuses = {41: [{state: 'inactive'}, byPublication, {state: 'in_progress'}]};
   assert.equal(await deployed({github, core, context}), 41, 'a later deployment marking it inactive keeps it deployed');
   const query = state.reads.find(args => args.environment);
   assert.deepEqual([query.environment, query.sha], ['staging', sha]);
@@ -293,7 +311,7 @@ for (const mutate of [
   await assert.rejects(deployed({github, core, context}), /no successful deployment \(latest run: .*runs\/8\); run Deploy the verified site/);
   state.runs = {};
   state.deployments = [{id: 42, sha: 'b'.repeat(40)}];
-  state.statuses = {42: [{state: 'success'}]};
+  state.statuses = {42: [byPublication]};
   await assert.rejects(deployed({github, core, context}), /no successful deployment; run Deploy the verified site/,
     'a deployment of another commit does not count');
   state.runs = {'deploy.yml': [run(7, null, {head_branch: 'v1.0.0'})]};
