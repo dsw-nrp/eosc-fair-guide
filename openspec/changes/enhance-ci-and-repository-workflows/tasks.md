@@ -94,6 +94,7 @@ marked **Human hand-off** need a person's approval or action and do not become c
 - [ ] 7.6 Add the usage-filename check to the offline suite. Verify that planted undated and mismatched entries fail with the rename remedy, and that existing entries and later rolling sessions pass.
 - [ ] 7.7 Generate `robots.txt` and `sitemap.xml` from the configured base URL and preserve them in assembly, recording any required paradata. Verify real build and assembly outputs for the default and an overridden base, the sitemap scope and the absence of preview addresses (#83).
 - [x] 7.8 Run the evidence collector unless the run was cancelled (`!cancelled()` instead of `always()`), so that a run a newer push cancels reports no collector failure, while the required `checks` gate keeps `always()` and a cancelled merge group never reports a skipped success. Verify workflow tests for both conditions and that a failed lane is still collected.
+  - Follow-up, 2026-10-25 (UTC): because the collector no longer runs in a cancelled run, such a run uploads no review data, and the review comment then failed on the missing artifact (runs 40198033937 and 40198114056, after pushes superseded draft PR #116's runs). The comment now skips cancelled runs; the newer run comments and labels instead.
 
 ## 8. Release flow repairs
 

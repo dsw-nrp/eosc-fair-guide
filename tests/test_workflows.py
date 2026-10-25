@@ -372,9 +372,23 @@ class WorkflowContracts(unittest.TestCase):
         self.assertEqual(len(review_steps), 3)
         for step in review_steps:
             self.assertEqual(step["if"], "always() && inputs.review", "merge groups prepare no review data")
-        # The trusted review comment answers pull-request runs only, never merge-group runs.
+        # The trusted review comment answers pull-request runs only, never merge-group runs, and never a cancelled run:
+        # its collector, which uploads the review data, does not run in a cancelled run (task 7.8), and a newer run of
+        # the same branch comments instead. Runs 40198033937 and 40198114056 failed on exactly that missing artifact.
         comment = load(".github/workflows/pr-summary.yml")["jobs"]["comment"]
-        self.assertEqual(comment["if"], "github.event.workflow_run.event == 'pull_request'")
+        self.assertEqual(
+            comment["if"],
+            "github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion != 'cancelled'",
+        )
+        collector = load(".github/workflows/partitioned-checks.yml")["jobs"]
+        uploads = [
+            name
+            for name, job in collector.items()
+            for step in job.get("steps", [])
+            if step.get("with", {}).get("name", "").startswith("guide-review-")
+        ]
+        self.assertEqual(len(uploads), 1)
+        self.assertIn("!cancelled()", collector[uploads[0]]["if"], "the reason a cancelled run has no review data")
 
     def test_pull_requests_merge_groups_and_the_deployment_fallback_share_one_partitioned_check(self) -> None:
         callers = {}
