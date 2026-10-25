@@ -8,3 +8,13 @@
   font: 600 1rem/1.5 system-ui, sans-serif;
   text-align: center;
 }
+
+.staging-notice a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.staging-notice a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

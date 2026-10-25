@@ -80,7 +80,10 @@ check. Say why in the pull request. That commit has no queue result, so its depl
 ## Preview behaviour
 
 Every HTML page below `/next/`, including API, profile, health and local-test documentation, carries `noindex`
-and a visible bilingual prerelease notice. Staging is unlisted, not private. Production's sitemap and linkset
+and a visible bilingual prerelease notice. Tag release tags a commit the preview already serves, built before the
+tag existed, so while the preview and the published release share a commit the notice says that the preview is
+identical to that release and links it; the preview's own footer keeps the identity it was built with. Staging is
+unlisted, not private. Production's sitemap and linkset
 remain unchanged and do not gain preview entries. The preview retains shared knowledge-base identifiers and
 its existing discovery data; its OpenAPI server is relative to its own description so API requests use `/next/`.
 

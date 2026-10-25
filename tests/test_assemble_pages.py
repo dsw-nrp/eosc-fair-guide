@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import re
 import sys
 import tarfile
 import tempfile
@@ -122,6 +123,37 @@ class AssemblyTests(unittest.TestCase):
         self.assemble()
         self.assertEqual((self.out / "index.html").read_bytes(), self.files["index.html"])
         self.assertIn("New preview", (self.out / "next/index.html").read_text(encoding="utf-8"))
+
+    def test_a_preview_built_from_the_release_commit_says_it_is_that_release(self) -> None:
+        # Tag release tags a commit the preview already serves; the preview's own footer predates the tag.
+        (self.stage / "api/health.json").write_text(json.dumps(self.health(PRODUCTION)), encoding="utf-8")
+        assemble_pages.assemble(
+            self.stage,
+            PRODUCTION,
+            self.out,
+            production=self.release,
+            production_tag="v1.2.3-alpha.1",
+            production_commit=PRODUCTION,
+            root=self.root,
+        )
+        for name, data in self.files.items():
+            self.assertEqual((self.out / name).read_bytes(), data, name)
+        pages = list((self.out / "next").rglob("*.html"))
+        self.assertEqual(len(pages), 4)
+        for path in pages:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn('<span lang="cs">Tento náhled je totožný s vydáním v1.2.3-alpha.1 (commit aaaaaaa).', text)
+            self.assertIn('<span lang="en">This preview is identical to release v1.2.3-alpha.1 (commit aaaaaaa).', text)
+            self.assertNotIn("Preview of the next release", text)
+            self.assertIn('content="noindex"', text)
+            home = re.search(r'<a href="([^"]+)"><span lang="cs">Otevřít vydání', text)[1]
+            self.assertEqual((path.parent / home).resolve(), (self.out / "index.html").resolve(), path)
+        # Once the default branch moves on, the preview announces the next release again.
+        (self.stage / "api/health.json").write_text(json.dumps(self.health(STAGING)), encoding="utf-8")
+        self.assemble()
+        text = (self.out / "next/index.html").read_text(encoding="utf-8")
+        self.assertIn("Preview of the next release", text)
+        self.assertNotIn("identical to release", text)
 
     def test_no_tag_yet_publishes_only_an_explained_preview(self) -> None:
         assemble_pages.assemble(self.stage, STAGING, self.out, root=self.root)

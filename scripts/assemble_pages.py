@@ -34,6 +34,20 @@ NOTICE = (
     '<span lang="cs">Náhled připravované verze.</span> '
     '<span lang="en">Preview of the next release.</span></aside>'
 )
+# Tag release always tags a commit the preview already serves, built before the tag existed: until the default branch
+# moves on, the preview is the release, and says so instead of announcing a next one.
+RELEASED_NOTICE = (
+    '<aside class="staging-notice" aria-label="Preview / Náhled">'
+    '<span lang="cs">Tento náhled je totožný s vydáním {tag} (commit {commit}).</span> '
+    '<span lang="en">This preview is identical to release {tag} (commit {commit}).</span> '
+    '<a href="{home}"><span lang="cs">Otevřít vydání</span> / <span lang="en">Open the release</span></a></aside>'
+)
+
+
+def release_notice(name: str, tag: str, commit: str) -> str:
+    """The notice of preview page `name` when its commit is the published release's, linking the release root."""
+    home = posixpath.relpath("index.html", str(PurePosixPath("next", name).parent))
+    return RELEASED_NOTICE.format(tag=html.escape(tag), commit=commit[:7], home=html.escape(home, quote=True))
 
 
 class AssemblyError(ValueError):
@@ -66,7 +80,7 @@ class PreviewMarkup(HTMLParser):
     handle_startendtag = handle_starttag
 
 
-def preview_html(data: bytes, name: str) -> bytes:
+def preview_html(data: bytes, name: str, notice: str = NOTICE) -> bytes:
     text = data.decode("utf-8")
     parsed = PreviewMarkup(text)
     if parsed.head is None or parsed.body is None:
@@ -81,7 +95,7 @@ def preview_html(data: bytes, name: str) -> bytes:
                 '\n<meta name="robots" content="noindex">'
                 f'\n<link rel="stylesheet" href="{html.escape(style, quote=True)}">',
             ),
-            (parsed.body, parsed.body, "\n" + NOTICE),
+            (parsed.body, parsed.body, "\n" + notice),
         ]
     )
     for start, end, value in sorted(changes, reverse=True):
@@ -177,6 +191,7 @@ def assemble(
     if production is None and (production_tag or production_commit):
         raise AssemblyError("production tag/commit require a release artifact")
     files = production_files(production, production_tag or "", production_commit or "") if production else {}
+    released = production is not None and production_commit == staging_commit
     if not production:
         files["index.html"] = (
             '<!doctype html><html lang="cs"><head><meta charset="utf-8">'
@@ -196,7 +211,10 @@ def assemble(
             description = json.loads(data)
             description["servers"] = [{"url": ".", "description": "This preview's static API"}]
             data = (json.dumps(description, ensure_ascii=False, indent=2) + "\n").encode()
-        files["next/" + name] = preview_html(data, name) if path.suffix.lower() == ".html" else data
+        if path.suffix.lower() == ".html":
+            notice = release_notice(name, production_tag or "", staging_commit) if released else NOTICE
+            data = preview_html(data, name, notice)
+        files["next/" + name] = data
     if "next/assets/css/staging.css" not in files:
         raise AssemblyError("staging notice stylesheet is missing")
     validate_files(files)
