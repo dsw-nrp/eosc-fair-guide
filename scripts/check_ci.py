@@ -51,6 +51,7 @@ QUICK = (
     "issue-templates",
     "health-watch-config",
     "usage-entries",
+    "ci-catalogue",
 )
 
 

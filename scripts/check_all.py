@@ -102,6 +102,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("issue-templates", [python, "scripts/generate_issue_templates.py", "--check"]),
         Job("health-watch-config", [python, "scripts/watch_sources.py", "check-config"]),
         Job("usage-entries", [python, "scripts/check_usage.py"]),
+        Job("ci-catalogue", [python, "scripts/ci_catalogue.py", "--check"]),
         Job("agent-ownership", [python, "scripts/check_agent_surfaces.py"]),
         Job("sibling-delivery", [python, "scripts/check_sibling_delivery.py"]),
         Job("health", [python, "scripts/check_health.py", "--output", ".cache/health-inventory"]),

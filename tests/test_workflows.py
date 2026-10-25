@@ -17,29 +17,11 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import check_ci  # noqa: E402
+from ci_catalogue import token_requests  # noqa: E402
 
 
 def load(path: str) -> dict:
     return yaml.load((ROOT / path).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
-
-
-def token_requests() -> dict[tuple[str, str], tuple[dict | None, dict]]:
-    """Each workflow job's GITHUB_TOKEN permissions (its own block, else the workflow's) and App-token requests."""
-    found = {}
-    for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
-        workflow = load(path.relative_to(ROOT).as_posix())
-        for name, job in workflow["jobs"].items():
-            app = {}
-            for step in job.get("steps", []):
-                if step.get("uses", "").startswith("actions/create-github-app-token@"):
-                    requested = step.get("with", {}).items()
-                    app |= {
-                        key.removeprefix("permission-"): value
-                        for key, value in requested
-                        if key.startswith("permission-")
-                    }
-            found[(path.name, name)] = (job.get("permissions", workflow.get("permissions")), app)
-    return found
 
 
 def reviewed_tokens() -> dict[tuple[str, str], tuple[dict, dict]]:
