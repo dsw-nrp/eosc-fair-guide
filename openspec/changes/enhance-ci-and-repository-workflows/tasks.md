@@ -109,8 +109,8 @@ marked **Human hand-off** need a person's approval or action and do not become c
 
 ## 9. Predictable schedule
 
-- [ ] 9.1 Schedule source refresh, Dependabot (day, time and `Europe/Prague` for each ecosystem) and health watch in one weekly order that completes by Monday 06:00 UTC despite a six-hour start delay and full timeouts, and move the Champion remeasurement into the first weekly health watch of each month (decision 22). Verify with an offline test that computes each bound from the workflow and Dependabot files, and that the grouped-update settings are unchanged.
-- [ ] 9.2 Add a manual choice of health-watch parts (audit, watch or both; scheduled runs run both), with an audit-only run writing no issue or digest. Verify workflow tests for each choice and that the audit job keeps its Project-only App token.
+- [x] 9.1 Schedule source refresh, Dependabot (day, time and `Europe/Prague` for each ecosystem) and health watch in one weekly order that completes by Monday 06:00 UTC despite a six-hour start delay and full timeouts, and move the Champion remeasurement into the first weekly health watch of each month (decision 22). Verify with an offline test that computes each bound from the workflow and Dependabot files, and that the grouped-update settings are unchanged.
+- [x] 9.2 Add a manual choice of health-watch parts (audit, watch or both; scheduled runs run both), with an audit-only run writing no issue or digest. Verify workflow tests for each choice and that the audit job keeps its Project-only App token.
 
 ## 10. Documentation in one wave
 

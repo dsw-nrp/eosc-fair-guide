@@ -1,18 +1,25 @@
 name: Live health and source watch
 
 # Trusted default-branch code on a schedule, separate from the deterministic pull-request checks. Weekly: links,
-# connector availability, stale dated statuses and the EOSC CZ pages the guide depends on. Monthly, or on request:
-# FAIR Champion remeasurement of the core and the reviewed candidates with the existing bounded probe. Findings
-# become issues keyed for deduplication after a persistence threshold; nothing is committed or pushed.
+# connector availability, stale dated statuses and the EOSC CZ pages the guide depends on. In the first weekly run of
+# each month, or on request: FAIR Champion remeasurement of the core and the reviewed candidates with the existing
+# bounded probe. Findings become issues keyed for deduplication after a persistence threshold; nothing is committed or
+# pushed.
 
 on:
   schedule:
-    - cron: "41 4 * * 2"
-    - cron: "23 3 3 * *"
+    # Sunday evening, last of the weekly jobs after source refresh and Dependabot: even six hours late and at its full
+    # timeout it finishes before Monday 06:00 UTC, 08:00 in Prague or earlier.
+    - cron: "41 22 * * 0"
   workflow_dispatch:
     inputs:
+      parts:
+        description: What to run (the audit alone opens, edits and closes no issue)
+        type: choice
+        options: [both, audit, watch]
+        default: both
       champion:
-        description: Also remeasure FAIR Champion tests
+        description: Also remeasure FAIR Champion tests (watch)
         type: boolean
         default: false
 
@@ -25,6 +32,7 @@ concurrency:
 
 jobs:
   watch:
+    if: github.event_name == 'schedule' || inputs.parts != 'audit'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -32,21 +40,33 @@ jobs:
       issues: write
     env:
       PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
-      CHAMPION: ${{ github.event.schedule == '23 3 3 * *' || inputs.champion == true }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
+      # The first weekly run of a month remeasures the Champion tests. Its Sunday is the run's date eight hours earlier,
+      # which stays right when GitHub starts the run late, after midnight.
+      - id: scope
+        name: Decide whether to remeasure the FAIR Champion tests
+        env:
+          EVENT: ${{ github.event_name }}
+          REQUESTED: ${{ inputs.champion }}
+        run: |
+          if [ "$REQUESTED" = true ] || { [ "$EVENT" = schedule ] && [ "$(date -u -d '8 hours ago' +%-d)" -le 7 ]; }; then
+            echo "champion=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "champion=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: env.CHAMPION == 'true'
+        if: steps.scope.outputs.champion == 'true'
         with:
           node-version: '22'
       - name: Remeasure FAIR Champion tests
-        if: env.CHAMPION == 'true'
+        if: steps.scope.outputs.champion == 'true'
         run: |
           npm ci
           npx playwright install --with-deps chromium
@@ -91,6 +111,7 @@ jobs:
   # only the digest's redacted "Project and settings" section: the full report never reaches the log or an artifact.
   # Nothing here writes to the repository.
   audit:
+    if: github.event_name == 'schedule' || inputs.parts != 'watch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

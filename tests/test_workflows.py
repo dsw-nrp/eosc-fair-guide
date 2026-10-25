@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tomllib
 import unittest
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import yaml
@@ -615,6 +616,68 @@ class WorkflowContracts(unittest.TestCase):
         # Live monitoring stays out of the deterministic pull-request checks.
         self.assertNotIn("watch_sources", (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8"))
 
+    def test_the_weekly_jobs_are_ready_by_monday_morning_in_prague(self) -> None:
+        # Scheduled starts ran about five hours late in October 2026. Started six hours late and running to their full
+        # timeouts, the weekly jobs still finish before Monday 06:00 UTC: 08:00 in Prague in summer, 07:00 in winter.
+        deadline, delay = (24 + 6) * 60, 6 * 60  # minutes after Sunday 00:00 UTC
+        starts = {}
+        for name in ("source-refresh", "health-watch"):
+            workflow = load(f".github/workflows/{name}.yml")
+            crons = [entry["cron"] for entry in workflow["on"]["schedule"]]
+            self.assertEqual(len(crons), 1, f"{name} has one weekly schedule")
+            minute, hour, day, month, weekday = crons[0].split()
+            self.assertEqual((day, month, weekday), ("*", "*", "0"), f"{name} starts on Sunday")
+            jobs = workflow["jobs"]
+
+            def finish(job: str, jobs: dict = jobs) -> int:
+                needs = jobs[job].get("needs", [])
+                needs = [needs] if isinstance(needs, str) else needs
+                return int(jobs[job]["timeout-minutes"]) + max((finish(need) for need in needs), default=0)
+
+            starts[name] = int(hour) * 60 + int(minute)
+            longest = max(finish(job) for job in jobs)
+            self.assertLessEqual(starts[name] + delay + longest, deadline, name)
+        for entry in load(".github/dependabot.yml")["updates"]:
+            schedule = entry["schedule"]
+            self.assertEqual((schedule["day"], schedule["timezone"]), ("sunday", "Europe/Prague"))
+            hours, minutes = map(int, schedule["time"].split(":"))
+            summer, winter = hours * 60 + minutes - 120, hours * 60 + minutes - 60  # in UTC
+            self.assertLess(starts["source-refresh"], summer, "source refresh starts first, in summer too")
+            self.assertLess(winter, starts["health-watch"], "health watch starts last, in winter too")
+            self.assertLessEqual(winter + delay, deadline)
+
+    def test_the_first_weekly_watch_of_each_month_remeasures_the_champion_tests(self) -> None:
+        watch = load(".github/workflows/health-watch.yml")["jobs"]["watch"]
+        scope = next(step for step in watch["steps"] if step.get("id") == "scope")
+        self.assertIn("date -u -d '8 hours ago' +%-d)\" -le 7", scope["run"])
+        self.assertIn('[ "$REQUESTED" = true ]', scope["run"], "a manual run can still ask for it")
+        for step in watch["steps"]:
+            if "probe_champion" in step.get("run", "") or step.get("uses", "").startswith("actions/setup-node@"):
+                self.assertEqual(step["if"], "steps.scope.outputs.champion == 'true'")
+        # The rule the step applies: the run's date eight hours earlier is its Sunday, even when GitHub starts the
+        # 22:41 run up to six hours late, so exactly one run a month qualifies.
+        sundays = [date(2026, 1, 4) + timedelta(weeks=week) for week in range(104)]
+        for sunday in sundays:
+            for late in (0, 3, 6):
+                started = datetime(sunday.year, sunday.month, sunday.day, 22, 41) + timedelta(hours=late)
+                self.assertEqual((started - timedelta(hours=8)).date(), sunday)
+        months = {(sunday.year, sunday.month) for sunday in sundays}
+        for month in months:
+            qualifying = [sunday for sunday in sundays if (sunday.year, sunday.month) == month and sunday.day <= 7]
+            self.assertEqual(len(qualifying), 1, month)
+
+    def test_a_manual_health_watch_runs_the_parts_it_is_asked_for(self) -> None:
+        workflow = load(".github/workflows/health-watch.yml")
+        parts = workflow["on"]["workflow_dispatch"]["inputs"]["parts"]
+        self.assertEqual(
+            (parts["type"], parts["options"], parts["default"]), ("choice", ["both", "audit", "watch"], "both")
+        )
+        jobs = workflow["jobs"]
+        self.assertEqual(jobs["watch"]["if"], "github.event_name == 'schedule' || inputs.parts != 'audit'")
+        self.assertEqual(jobs["audit"]["if"], "github.event_name == 'schedule' || inputs.parts != 'watch'")
+        # The audit alone opens, edits and closes no issue: it holds no write permission.
+        self.assertFalse([value for value in jobs["audit"]["permissions"].values() if value == "write"])
+
     def test_adoption_steps_preserve_failure_before_writing_the_summary(self) -> None:
         # Check adoption itself: condition layout and shell selection cannot bypass this invariant.
         for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
@@ -833,7 +896,10 @@ class WorkflowContracts(unittest.TestCase):
         )
         for entry in updates:
             with self.subTest(ecosystem=entry["package-ecosystem"]):
-                self.assertEqual(entry["schedule"], {"interval": "weekly"})
+                self.assertEqual(
+                    entry["schedule"],
+                    {"interval": "weekly", "day": "sunday", "time": "22:00", "timezone": "Europe/Prague"},
+                )
                 self.assertEqual(entry["open-pull-requests-limit"], "30")
                 # Patch and minor versions share one PR per ecosystem; a major update and security updates stay alone.
                 self.assertEqual(

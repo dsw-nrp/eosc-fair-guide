@@ -8,7 +8,8 @@ name: Source refresh
 
 on:
   schedule:
-    - cron: "17 5 * * 1"
+    # Sunday evening, first of the weekly jobs, so its pull requests are checked by Monday morning in Prague.
+    - cron: "17 19 * * 0"
   workflow_dispatch:
     inputs:
       source:
