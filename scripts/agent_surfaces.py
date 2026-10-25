@@ -122,8 +122,20 @@ def load(root: Path) -> tuple[dict, dict]:
                 raise ValueError(f"duplicate output: {relative}")
             outputs.add(relative)
     receipt = json.loads(text_at(root, config["manifest"]))
-    if receipt.get("format") != 1 or not isinstance(receipt.get("files"), dict):
+    if receipt.get("format") not in (1, 2) or not isinstance(receipt.get("files"), dict):
         raise ValueError("unsupported delivery receipt")
+    if receipt["format"] == 2:
+        # Format 2 also records its source commit and lists every asset, the whole mixed reader included. The
+        # per-file and per-section records stay the verified surface, because this repository owns the reader's
+        # native region, so the asset list must otherwise repeat them exactly.
+        if not re.fullmatch(r"[0-9a-f]{40}", str(receipt.get("source_commit", ""))):
+            raise ValueError("a format 2 delivery receipt needs its source commit")
+        assets = receipt.get("assets")
+        if (
+            not isinstance(assets, dict)
+            or {key: value for key, value in assets.items() if key != config["mixed"]} != (receipt["files"])
+        ):
+            raise ValueError("a format 2 delivery receipt must list the same assets as its files, beside the reader")
     if set(receipt.get("sections", {})) != {config["mixed"]} or not receipt["sections"][config["mixed"]]:
         raise ValueError("receipt requires mixed reader sections")
     for relative, record in receipt["files"].items():
@@ -204,9 +216,16 @@ def delivery_findings(root: Path, config: dict, receipt: dict) -> list[str]:
             findings.append(f"{relative}:{name}: extra delivered section")
         elif digest(actual[name].encode("utf-8")) != expected[name]["sha256"]:
             findings.append(f"{relative}:{name}: modified delivered section")
+    # A format 2 delivery opens the reader with one version line naming its receipt's source commit and time.
+    preamble = (
+        f"<!-- delivery-version: {receipt['source_commit']} {receipt['committed_at']} -->"
+        if receipt.get("format") == 2
+        else ""
+    )
     cursor = 0
-    for _, _, start, end in blocks(text):
-        if text[cursor:start].strip():
+    for index, (_, _, start, end) in enumerate(blocks(text)):
+        outside = text[cursor:start].strip()
+        if outside and not (index == 0 and preamble and outside == preamble):
             findings.append(f"{relative}: extra content outside owned sections")
         cursor = end
     if text[cursor:].strip():
