@@ -57,6 +57,7 @@ jobs:
         with:
           script: |
             const { completedDeployment, publication } = require('./.github/scripts/deployment.cjs');
+            const { handoff } = require('./.github/scripts/handoff.cjs');
             const deployed = await completedDeployment({ github, context });
             const result = await publication({ github, context: deployed, recorded: context.sha });
             for (const [key, value] of Object.entries(result)) core.setOutput(key, value);
@@ -65,7 +66,10 @@ jobs:
               : ' with no release yet';
             await core.summary.addRaw(result.publish === 'true'
               ? `Publishing staging \`${result.staging}\` (run ${result.staging_run})${production}, after deployment run ${deployed.runId}.\n`
-              : `Published nothing after deployment run ${deployed.runId}: ${result.reason}.${result.successor ? ` [That run](${result.successor}) leads to the newest site.` : ''}\n`).write();
+              : `Published nothing after deployment run ${deployed.runId}: ${result.reason}.${result.successor ? ` [That run](${result.successor}) leads to the newest site.` : ''}\n\n` +
+                handoff({ next: result.successor ? 'nothing: the linked run leads to the newest site.' : 'nothing, unless the site should change: then run Deploy the verified site.',
+                  blocked: "a maintainer compares the deployment run with the live site's footer.",
+                  done: "the live site's footer names the expected commit or release." }) + '\n').write();
 
   publish:
     needs: resolve
@@ -136,12 +140,19 @@ jobs:
         with:
           script: |
             const { recordChannels } = require('./.github/scripts/deployment.cjs');
+            const { handoff } = require('./.github/scripts/handoff.cjs');
             const { STAGING_SHA, PRODUCTION_TAG, PRODUCTION_SHA, PAGE_URL } = process.env;
             const recorded = await recordChannels({ github, context, core },
               { staging: STAGING_SHA, tag: PRODUCTION_TAG, production: PRODUCTION_SHA, pageUrl: PAGE_URL });
-            await core.summary.addRaw(recorded.length
+            await core.summary.addRaw((recorded.length
               ? `Recorded live: ${recorded.join(' and ')}.\n`
-              : 'Both channels were already recorded live.\n').write();
+              : 'Both channels were already recorded live.\n') + '\n' + handoff(PRODUCTION_TAG
+              ? { next: `Release drafts the release ${PRODUCTION_TAG}; a maintainer then reviews and publishes it.`,
+                blocked: 'when no Release run starts, re-run this run; a record never moves a channel back.',
+                done: `the draft release of ${PRODUCTION_TAG} exists.` }
+              : { next: 'nothing: the preview is live under /next/.',
+                blocked: 'when the preview looks stale, re-run this run; a record never moves a channel back.',
+                done: `the preview footer names \`${STAGING_SHA}\`.` }) + '\n').write();
       # Release drafting reads what this publication deployed; the record exists only after a Pages deployment.
       - name: Record what was published
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

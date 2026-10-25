@@ -27,6 +27,7 @@ from pathlib import Path
 
 import build_identity
 import check_changelog
+from handoff import handoff
 from register_ids import render
 from release_version import release_input, version
 
@@ -565,10 +566,12 @@ def lineage_report(target: str, missing: dict) -> str:
             "",
             *entries,
             "",
-            f"**Next:** Tag release starts Prepare release for `{target}`, which opens a pull request adding exactly "
-            "these entries. Review and merge it with **Merge when ready**, then run Tag release again.",
-            f"**If blocked:** when no completion pull request appears, run Prepare release for `{target}` yourself.",
-            f"**Done when:** Tag release creates `v{target}`.",
+            *handoff(
+                f"Tag release starts Prepare release for `{target}`, which opens a pull request adding exactly these "
+                "entries. Review and merge it with **Merge when ready**, then run Tag release again.",
+                f"when no completion pull request appears, run Prepare release for `{target}` yourself.",
+                f"Tag release creates `v{target}`.",
+            ),
             "",
         ]
     )

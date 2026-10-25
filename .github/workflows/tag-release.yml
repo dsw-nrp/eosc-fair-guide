@@ -121,6 +121,7 @@ jobs:
           else
             next="The completion did not open a pull request ($COMPLETION); run Prepare release for this version yourself, then run Tag release again."
           fi
-          printf '### Not tagged\n\n**Next:** %s\n\n**Done when:** Tag release creates the tag.\n' "$next" >> "$GITHUB_STEP_SUMMARY"
+          blocked="The tag job's summary lists the changes the changelog misses; a maintainer can run Prepare release for this version by hand."
+          printf '### Not tagged\n\n- **Next:** %s\n- **If blocked:** %s\n- **Done when:** Tag release creates the tag.\n' "$next" "$blocked" >> "$GITHUB_STEP_SUMMARY"
           echo "::error::Not tagged: the release changelog misses changes. $next"
           exit 1

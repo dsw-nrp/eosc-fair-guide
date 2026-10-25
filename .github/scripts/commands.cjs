@@ -3,6 +3,7 @@
 // where; `/help` and the command gate share that eligibility, so they cannot disagree.
 const { SOURCES, parseCommand: parseRefresh, authorized } = require("./source-publisher.cjs");
 const { marker: REVIEW_MARKER, SUGGESTED_FIXES } = require("./comment-summary.cjs");
+const { handoff } = require("./handoff.cjs");
 
 const HELP_MARKER = "<!-- fair-guide-command-help -->";
 const BOT = "github-actions[bot]";
@@ -94,7 +95,9 @@ function helpBody({ login, notice, pull, fix, refresh, suggestions, context }) {
   if (pull && suggestions === true) lines.push("The latest Guide review comment lists safe duplicate links, so `/fix-duplicates` has a repair to apply.", "");
   if (pull && suggestions === false) lines.push("The latest Guide review comment lists no safe duplicate link, so `/fix-duplicates` would change nothing.", "");
   lines.push("`/fix-duplicates` also needs a reviewed `[[person]]` whose `github` is your login and the `duplicate-fix` instrument on the branch; it refuses and explains when either is missing.", "",
-    `**Next:** use an available command, or ask a maintainer to run it. Without a command, run \`python scripts/check_duplicates.py --fix\` locally; see [the contributing guide](${docsUrl(context)}).`);
+    handoff({ next: "post an available command as the whole comment, or ask a maintainer to run it.",
+      blocked: `without a command, run \`python scripts/check_duplicates.py --fix\` locally; see [the contributing guide](${docsUrl(context)}).`,
+      done: "the command's reaction and reply report its result." }));
   return lines.join("\n");
 }
 
@@ -150,7 +153,10 @@ async function acknowledge({ github, context, core }, appConfigured = process.en
   if (!result.available) {
     await react({ github, context }, "confused");
     await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.issue.number,
-      body: `${name} did not run because ${result.reasons.join("; ")}. Nothing was changed.\n\n**Next:** ask a maintainer to run it, or post \`/help\` to see what applies here. A local alternative is described in [the contributing guide](${docsUrl(context)}).` });
+      body: `${name} did not run because ${result.reasons.join("; ")}. Nothing was changed.\n\n` + handoff({
+        next: "ask a maintainer to run it, or post `/help` to see what applies here.",
+        blocked: `a local alternative is described in [the contributing guide](${docsUrl(context)}).`,
+        done: "an accepted command is marked with an eyes reaction and then reports its result." }) });
     core?.info(`${name} refused: ${result.reasons.join("; ")}`);
     return false;
   }
@@ -158,7 +164,10 @@ async function acknowledge({ github, context, core }, appConfigured = process.en
   const earlier = await waitingBehind({ github, context }, parsed.command);
   if (earlier) {
     await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.issue.number,
-      body: `${name} is queued behind [an earlier run](${earlier.html_url}) that changes the same ${parsed.command === "refresh" ? "snapshots" : "pull request"}. It starts when that run finishes; nothing more is needed.` });
+      body: `${name} is queued behind [an earlier run](${earlier.html_url}) that changes the same ${parsed.command === "refresh" ? "snapshots" : "pull request"}.\n\n` + handoff({
+        next: "nothing: it starts when that run finishes.",
+        blocked: "if the earlier run stalls, a maintainer can cancel it on its run page.",
+        done: "this command reports its own result." }) });
   }
   return true;
 }
@@ -174,9 +183,15 @@ async function outcome({ github, context }, command, result) {
   const name = command === "refresh" ? "`/refresh`" : "`/fix-duplicates`";
   let body;
   if (result === "cancelled") {
-    body = `${name} was cancelled before it finished, for example because too many commands were waiting for the same pull request or source, or because the run was cancelled. [Run](${runUrl(context)}).\n\n**Next:** check the branch, then post ${name} again to retry.`;
+    body = `${name} was cancelled before it finished, for example because too many commands were waiting for the same pull request or source, or because the run was cancelled. [Run](${runUrl(context)}).\n\n` + handoff({
+      next: `check the branch, then post ${name} again to retry.`,
+      blocked: "ask a maintainer when it is cancelled again.",
+      done: `${name} reports its result.` });
   } else if (command === "fix-duplicates") {
-    body = `\`/fix-duplicates\` encountered an unexpected failure. Check the pull-request branch: a commit may already exist even though no success comment was posted. [Run](${runUrl(context)}).\n\n**Next:** if the branch has no repair commit, post \`/fix-duplicates\` again; otherwise review that commit and its checks.`;
+    body = `\`/fix-duplicates\` encountered an unexpected failure. Check the pull-request branch: a commit may already exist even though no success comment was posted. [Run](${runUrl(context)}).\n\n` + handoff({
+      next: "if the branch has no repair commit, post `/fix-duplicates` again; otherwise review that commit and its checks.",
+      blocked: "a maintainer reads the linked run's log.",
+      done: "the branch holds one repair commit and its checks pass." });
   } else {
     return result; // The refresh run itself replies with each source's result, including failures.
   }

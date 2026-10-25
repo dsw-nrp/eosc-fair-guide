@@ -42,6 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
+from handoff import handoff  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 LIMITATIONS = ".github/health-watch.toml"
@@ -734,6 +735,13 @@ def summary(observations: list[dict[str, Any]], coverage: dict[str, Any], today:
     lines += [
         "",
         "Links: {eligible} eligible, {attempted} attempted, {deferred} deferred, {invalid} invalid.".format(**coverage),
+        "",
+        *handoff(
+            "the publish job rebuilds the maintenance digest from these observations.",
+            "if it does not run, the observations artifact of this run keeps them, and the next run continues from "
+            "the last saved state.",
+            "the publish job's summary names the digest issue.",
+        ),
     ]
     return "\n".join(lines) + "\n"
 
@@ -860,6 +868,16 @@ def digest_body(plan: dict, sections: dict[str, list[str]], audit: str, today: d
     ]
     lines += [f"- Not checkable: `{code(place)}`" for place in coverage.get("invalidAt", [])[:limit]]
     lines += ["", audit.strip() if audit.strip() else "## Project and settings\n\nThe audit did not run this time."]
+    triage = len(sections["triage"])
+    lines += ["", "## Next", ""]
+    lines += handoff(
+        f"a maintainer triages the {triage} findings under Needs triage: fix the source, use **Track as task**, or "
+        f"add the suggested reviewed limitation to `{LIMITATIONS}`."
+        if triage
+        else "nothing needs triage; review the source updates and candidates when any are listed.",
+        "discuss a finding in a comment here; the run's observations artifact holds every outcome and its evidence.",
+        "a run's digest lists nothing under Needs triage.",
+    )
     return "\n".join(lines) + "\n"
 
 

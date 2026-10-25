@@ -1,5 +1,6 @@
 // Trusted default-branch code: treats the PR artifact as bounded, escaped data and never executes it.
 const { readFileSync, statSync } = require("node:fs");
+const { handoff } = require("./handoff.cjs");
 const marker = "<!-- fair-guide-review-summary -->";
 // `/help` in commands.cjs looks for this heading to say whether `/fix-duplicates` has a repair to apply.
 const SUGGESTED_FIXES = "### Suggested fixes";
@@ -102,7 +103,15 @@ function body(run, report, repository, suggestions = null, advice = []) {
   const candidates = report.items.slice(0, 40);
   const suggestionText = suggestionLines(run, suggestions, repository).join("\n");
   const adviceText = advice.length ? ["", "### Hints", "", ...advice, "", "Hints are advisory: they never fail a check."].join("\n") : "";
-  const reserved = suggestionText.length + adviceText.length + 500;
+  // Only a successful run reads as one: every other conclusion leaves the checks to the author.
+  const closing = "\n\n" + (run.conclusion === "success"
+    ? handoff({ next: "a reviewer reviews the change; once it is approved, the author adds it to the merge queue.",
+      blocked: "the linked run holds the checks, health report and previews; ask a maintainer for a review.",
+      done: "the pull request is merged through the queue." })
+    : handoff({ next: "the author fixes the failed checks; the run's `partitioned / collect` summary names each one with the command that reproduces it locally.",
+      blocked: "the run's health artifact holds the complete logs; a failure this change did not cause goes to a maintainer.",
+      done: "the checks of the next push pass." }));
+  const reserved = suggestionText.length + adviceText.length + closing.length + 500;
   let shown = 0;
   const lines = [marker, "## Guide review", "", `Commit: \`${run.head_sha}\`. Run conclusion: **${escape(run.conclusion)}**.`, "",
     `[Checks, health report and desktop/mobile preview artifacts](https://github.com/${repository}/actions/runs/${run.id})`, "",
@@ -128,7 +137,8 @@ function body(run, report, repository, suggestions = null, advice = []) {
   if (adviceText) lines.push(adviceText);
   if (suggestionText) lines.push(suggestionText);
   const text = lines.join("\n");
-  return text.length > COMMENT_LIMIT ? text.slice(0, COMMENT_LIMIT - 40) + "\n\n… comment truncated." : text;
+  const room = COMMENT_LIMIT - closing.length;
+  return (text.length > room ? text.slice(0, room - 40) + "\n\n… comment truncated." : text) + closing;
 }
 
 function readReport(file) {

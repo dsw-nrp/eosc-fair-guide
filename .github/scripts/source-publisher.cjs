@@ -4,6 +4,7 @@
 const { readFileSync, existsSync } = require("node:fs");
 const { createHash } = require("node:crypto");
 const { addLabels } = require("./labels.cjs");
+const { handoff } = require("./handoff.cjs");
 
 // The reviewed source keys and the files each refresh may change are authored once in
 // `.github/source-registry.json` and read by `scripts/refresh_snapshots.py` too. The FIP Dashboard's interdependent
@@ -163,8 +164,10 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
       throw error;
     }
     const body = [`Validated refresh of the **${source}** snapshot from the default branch at \`${current.sha}\`.`, "",
-      "The response passed the shape, completeness, size and removal checks of `scripts/refresh_snapshots.py`.",
-      "Review the change as content; nothing merges automatically.", "", marker].join("\n");
+      "The response passed the shape, completeness, size and removal checks of `scripts/refresh_snapshots.py`.", "",
+      handoff({ next: "a maintainer reviews the snapshot change as content and merges it through the queue; nothing merges automatically.",
+        blocked: "close this pull request if the change is wrong; identical content is not proposed again.",
+        done: "this pull request is merged or closed." }), "", marker].join("\n");
     if (open) await github.rest.pulls.update({ ...repo, pull_number: open.number, body });
     const pr = open || (await github.rest.pulls.create({ ...repo, title: `Refresh the ${source} snapshot`, head: branch, base, body, maintainer_can_modify: true })).data;
     // The review publisher adds the area label from the changed paths once the checks have run.
@@ -204,9 +207,20 @@ async function reply({ github, context }, results, code, publication = "") {
   const rows = Object.entries(parsed).filter(([source]) => Object.hasOwn(SOURCES, source))
     .map(([source, status]) => `- \`${source}\`: ${OUTCOMES[status] || "finished with an unrecognized result; see the run"}.`);
   let body;
-  if (rows.length) body = [`\`/refresh\` finished ([run](${run})):`, "", ...rows].join("\n");
-  else if (publication === "failure") body = `\`/refresh\` stopped during publication, so its refresh branch or pull request may already have changed. [Run](${run}).\n\n**Next:** check the open refresh pull request and the run log, then post the command again or ask a maintainer.`;
-  else body = `\`/refresh\` did not reach publication${code && code !== "0" ? " because a source was rejected or failed" : ""}; no pull request was changed. [Run](${run}).\n\n**Next:** read the run's refresh report, then post the command again or ask a maintainer.`;
+  const retry = { blocked: "ask a maintainer, who can run Source refresh from its Actions page.",
+    done: "`/refresh` replies with each source's result." };
+  if (rows.length) {
+    body = [`\`/refresh\` finished ([run](${run})):`, "", ...rows, "", handoff({
+      next: "review each proposed or updated refresh pull request, and act on any other result listed above.",
+      blocked: "the run's refresh report artifact gives each source's reason.",
+      done: "each refresh pull request is merged or closed." })].join("\n");
+  } else if (publication === "failure") {
+    body = `\`/refresh\` stopped during publication, so its refresh branch or pull request may already have changed. [Run](${run}).\n\n` +
+      handoff({ next: "check the open refresh pull request and the run log, then post the command again.", ...retry });
+  } else {
+    body = `\`/refresh\` did not reach publication${code && code !== "0" ? " because a source was rejected or failed" : ""}; no pull request was changed. [Run](${run}).\n\n` +
+      handoff({ next: "read the run's refresh report, then post the command again.", ...retry });
+  }
   await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.issue.number, body });
   return body;
 }

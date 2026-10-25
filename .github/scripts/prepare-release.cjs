@@ -7,6 +7,7 @@ const policy = require('../release-prepared-files.json');
 const MANIFEST = '.cache/release/prepared.json';
 const HISTORY = '.cache/release/history.json';
 const { validVersion, releaseInput, ACCEPTED_FORM } = require('./release-version.cjs');
+const { handoff } = require('./handoff.cjs');
 function dispatch(context) {
   const base = context.payload.repository.default_branch;
   if (context.eventName !== 'workflow_dispatch' || context.ref !== `refs/heads/${base}`)
@@ -88,8 +89,24 @@ function preparedFiles(manifest, version, root = resolve(__dirname, '../..')) {
   }
   return manifest.files;
 }
-const PREPARE_BODY = 'Prepares the version, release dates, citation/Zenodo metadata and the complete PR/direct-commit changelog.\n\nReview the metadata and required checks, then merge. Creating the tag requires the separate Tag release dispatch.\n\nPrepared by the repository release automation; no AI content generation.';
-const COMPLETE_BODY = 'Completes the untagged release: its changelog section gains only the merged pull requests and direct commits that landed after its preparation. The version, dates, curated notes and earlier entries are unchanged.\n\nReview and merge, then run Tag release again.\n\nPrepared by the repository release automation; no AI content generation.';
+const PREPARED = {
+  next: 'a maintainer reviews the metadata and the changelog section, then merges this pull request through the queue.',
+  blocked: 'close this pull request and run Prepare release for the version again; the release runbook covers a refused check.',
+  done: 'this pull request is merged; then run Tag release with the same version.'};
+const COMPLETED = {
+  next: 'a maintainer reviews the added entries, then merges this pull request through the queue.',
+  blocked: 'close this pull request and run Prepare release for the version again.',
+  done: 'this pull request is merged; then run Tag release again.'};
+const SIGNATURE = 'Prepared by the repository release automation; no AI content generation.';
+const PREPARE_BODY = 'Prepares the version, release dates, citation/Zenodo metadata and the complete PR/direct-commit changelog. ' +
+  'Creating the tag requires the separate Tag release dispatch.\n\n' + handoff(PREPARED) + '\n\n' + SIGNATURE;
+const COMPLETE_BODY = 'Completes the untagged release: its changelog section gains only the merged pull requests and direct ' +
+  'commits that landed after its preparation. The version, dates, curated notes and earlier entries are unchanged.\n\n' +
+  handoff(COMPLETED) + '\n\n' + SIGNATURE;
+/** The run summary, where a summary exists; the fixtures' core has none. */
+async function summarize(core, text) {
+  if (core.summary) await core.summary.addRaw(text + '\n').write();
+}
 /** True when the automation made every commit on the proposal: the release App's bot, with a preparation message. */
 async function unedited(github, context, pr, version, bot) {
   if (!bot) return false;
@@ -149,11 +166,18 @@ async function propose({github, context, core}, read = readFileSync, root, bot =
       core.info(`Prepared ${branch} again from ${context.sha}`);
     }
   }
-  if (open) { core.info(open.html_url); core.setOutput('url', open.html_url); return; }
+  const steps = handoff(completing ? COMPLETED : PREPARED);
+  if (open) {
+    core.info(open.html_url);
+    core.setOutput('url', open.html_url);
+    await summarize(core, `Release pull request: ${open.html_url}\n\n${steps}`);
+    return;
+  }
   const {data: pr} = await github.rest.pulls.create({...context.repo, base, head: branch, title: message,
     body: completing ? COMPLETE_BODY : PREPARE_BODY, maintainer_can_modify: true});
   core.info(pr.html_url);
   core.setOutput('url', pr.html_url);
+  await summarize(core, `Release pull request: ${pr.html_url}\n\n${steps}`);
 }
 const PUBLISHER = '.github/workflows/publish.yml';
 /** A staging success counts only when the trusted publication wrote it: the workflow token, in a run of publish.yml
@@ -213,5 +237,9 @@ async function tag({github, context, core}, read = readFileSync) {
     message: `Release v${version}\n\nFair-Guide-Release-Status: ${status}\n`, object: context.sha, type: 'commit'});
   const {data} = await github.rest.git.createRef({...context.repo, ref: `refs/tags/v${version}`, sha: annotated.sha});
   core.info(`Created ${data.ref} at ${context.sha} with status ${status}`);
+  await summarize(core, `Tagged \`v${version}\` at \`${context.sha}\` with status ${status}.\n\n` + handoff({
+    next: 'a maintainer approves the `production` deployment in the Deploy the verified site run that this tag starts.',
+    blocked: 'when no deployment run starts, check the tag ruleset and the Deploy the verified site Actions page; an existing tag is never moved.',
+    done: `Release creates the draft release for v${version}.`}));
 }
 module.exports = {validVersion, dispatch, collect, propose, deployed, tag, preparedFiles};

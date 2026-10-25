@@ -180,8 +180,13 @@ jobs:
         run: |
           if [ -f .cache/health/summary.md ]; then
             cat .cache/health/summary.md >> "$GITHUB_STEP_SUMMARY"
+            # The collector's next step stays out of the health report, which the site also publishes.
+            if [ -f .cache/health/next.md ]; then cat .cache/health/next.md >> "$GITHUB_STEP_SUMMARY"; fi
           else
-            printf '%s\n' 'Health report unavailable: setup did not reach the check runner. See the failed job step.' >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' 'Health report unavailable: setup did not reach the check runner. See the failed job step.' '' \
+              '- **Next:** re-run the failed jobs.' \
+              '- **If blocked:** a maintainer reads the failed setup step, which names what was missing.' \
+              '- **Done when:** this job publishes the health report.' >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Save the health dashboard
         if: always()

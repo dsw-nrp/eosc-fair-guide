@@ -209,4 +209,8 @@ jobs:
             echo '```'
             echo ""
             echo "Tags: \`${{ steps.tags.outputs.tags }}\`"
+            echo ""
+            echo "- **Next:** Release creates the draft release, which names this digest."
+            echo "- **If blocked:** re-run the Release run's failed jobs; the digest above stays the release's image."
+            echo "- **Done when:** the draft release names this digest."
           } >> "$GITHUB_STEP_SUMMARY"

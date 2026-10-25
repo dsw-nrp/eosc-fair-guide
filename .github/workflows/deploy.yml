@@ -122,7 +122,14 @@ jobs:
         env:
           PRODUCTION_TAG: ${{ needs.sources.outputs.tag }}
           PRODUCTION_SHA: ${{ needs.sources.outputs.production }}
-        run: echo "Approved the production bytes of $PRODUCTION_TAG at \`$PRODUCTION_SHA\`." >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          {
+            echo "Approved the production bytes of $PRODUCTION_TAG at \`$PRODUCTION_SHA\`."
+            echo ""
+            echo "- **Next:** Publish the verified site deploys $PRODUCTION_TAG and records \`production\`; Release then drafts the release."
+            echo "- **If blocked:** when no publication starts, re-run this run's failed jobs."
+            echo "- **Done when:** the draft release of $PRODUCTION_TAG exists."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # The staging site of the pushed commit: a fresh build carrying the health snapshot of the merge-queue run that
   # checked the same commit and build inputs, when one exists. Otherwise the partitioned checks below run.

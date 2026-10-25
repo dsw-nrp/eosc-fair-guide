@@ -714,6 +714,33 @@ class WorkflowContracts(unittest.TestCase):
             {"name": "health-watch-state", "retention-days": "90", "overwrite": "true", "if-no-files-found": "error"},
         )
 
+    def test_inline_run_summaries_end_with_a_next_step(self) -> None:
+        # Summaries written in the workflow itself; the publishers' own outputs are covered by their fixtures.
+        steps = {
+            ("checks.yml", "checks", "Require the complete partitioned result"),
+            ("partitioned-checks.yml", "collect", "Publish the run summary"),
+            ("deploy.yml", "approve-production", "Record the approved production bytes"),
+            ("tag-release.yml", "not-tagged", "Report that no tag was created"),
+            ("publish-image.yml", "image", "Report the image"),
+            ("release.yml", "release", "Create the draft release with the same artifact"),
+            ("publish.yml", "publish", "Record the live channels"),
+        }
+        for workflow, job, name in sorted(steps):
+            with self.subTest(workflow=workflow, step=name):
+                step = next(
+                    step
+                    for step in load(f".github/workflows/{workflow}")["jobs"][job]["steps"]
+                    if step.get("name") == name
+                )
+                text = step.get("run", "") + step.get("with", {}).get("script", "")
+                if "handoff(" not in text:
+                    for label in ("**Next:**", "**If blocked:**", "**Done when:**"):
+                        self.assertIn(label, text)
+        collect = (ROOT / ".github/workflows/partitioned-checks.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            'cat .cache/health/next.md >> "$GITHUB_STEP_SUMMARY"', collect, "the collector's next step is shown"
+        )
+
     def test_adoption_steps_preserve_failure_before_writing_the_summary(self) -> None:
         # Check adoption itself: condition layout and shell selection cannot bypass this invariant.
         for path in sorted((ROOT / ".github/workflows").glob("*.yml")):

@@ -73,8 +73,15 @@ jobs:
           RESULT: ${{ needs.partitioned.result }}
         run: |
           if [ "$RESULT" = success ]; then
-            echo 'Every partitioned check passed. The `partitioned / collect` job holds the health report.' >> "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' 'Every partitioned check passed. The `partitioned / collect` job holds the health report.' '' \
+              '- **Next:** a pull request waits for review and then the merge queue; a merge group merges on its own.' \
+              '- **If blocked:** ask a maintainer for a review.' \
+              '- **Done when:** the pull request is merged.' >> "$GITHUB_STEP_SUMMARY"
           else
             echo "The partitioned checks ended with $RESULT. The \`partitioned / collect\` job names every failure." | tee -a "$GITHUB_STEP_SUMMARY"
+            printf '%s\n' '' \
+              '- **Next:** fix each failure that the `partitioned / collect` summary names, with the local command it gives.' \
+              '- **If blocked:** re-run the failed jobs when a lane failed without a check failure; otherwise ask a maintainer.' \
+              '- **Done when:** this `checks` result passes.' >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi

@@ -6,6 +6,7 @@
 // attached as sub-issues. Two open digests stop publication. It also finds the run whose saved watch state the next
 // observation continues. This module writes only issues of this repository.
 const { readFileSync, writeFileSync, mkdirSync } = require("node:fs");
+const { handoff } = require("./handoff.cjs");
 
 const LABEL = "guide-health";
 const TASK_LABEL = "area:maintenance";
@@ -78,9 +79,11 @@ async function publish({ github, context, core }, read = readFileSync) {
   const open = (await digests(github, repo)).filter((issue) => issue.state === "open");
   if (open.length > 1) {
     const numbers = open.map((issue) => `#${issue.number}`).join(" and ");
-    const text = `Two maintenance digests are open (${numbers}); nothing was written. Close the one you no longer need; the next run continues in the other.`;
+    const text = `Two maintenance digests are open (${numbers}); nothing was written.`;
     core.warning(text);
-    await core.summary.addRaw(text + "\n").write();
+    await core.summary.addRaw(text + "\n\n" + handoff({ next: "a maintainer closes the digest no longer needed.",
+      blocked: "this run's observations artifact keeps what it found, and the next run reports it again.",
+      done: "the next run rebuilds the one open digest." }) + "\n").write();
     core.setOutput("published", "false");
     return { refused: open.map((issue) => issue.number) };
   }
@@ -116,7 +119,10 @@ async function publish({ github, context, core }, read = readFileSync) {
   if (result.adopted.length) parts.push(`attached tasks ${result.adopted.map((n) => "#" + n).join(", ")}`);
   if (result.moved.length) parts.push(`moved tasks ${result.moved.map((n) => "#" + n).join(", ")} from #${predecessor}`);
   if (result.pinned === false) parts.push("could not pin it; pin it by hand");
-  await core.summary.addRaw(parts.join("; ") + ".\n").write();
+  await core.summary.addRaw(parts.join("; ") + ".\n\n" + handoff({
+    next: `a maintainer triages the digest's Needs triage section in #${digest.number}.`,
+    blocked: "discuss a finding in a comment on the digest; a task created with **Track as task** is attached on the next run.",
+    done: "a run's digest lists nothing under Needs triage." }) + "\n").write();
   // Only a published digest advances what the next run counts as already reported.
   core.setOutput("published", "true");
   return result;

@@ -1,6 +1,7 @@
 // Trusted default-branch code for deployment: finds a merge-queue result that a staging deployment can reuse, and
 // resolves what the separate, serialized publish workflow publishes. It builds and publishes nothing itself.
 const { tagOf, refContext, sources, productionSource } = require("./release-artifact.cjs");
+const { handoff } = require("./handoff.cjs");
 
 const SHA = /^[0-9a-f]{40}$/;
 const sameRepository = (context, run) => run.head_repository?.full_name === `${context.repo.owner}/${context.repo.repo}`;
@@ -170,9 +171,12 @@ async function recordChannels({ github, context, core }, { staging, tag = "", pr
 async function superseded({ github, context }) {
   const ref = context.ref.replace(/^refs\/(heads|tags)\//, "");
   const run = await newerRun(github, context, ref);
-  return run
+  const text = run
     ? `This run was cancelled; [run ${run.id}](${run.html_url}) supersedes it and publishes the newest checked site.`
     : "This run was cancelled; the next deployment of this ref publishes the newest checked site.";
+  return text + "\n\n" + handoff({ next: "nothing: the newer deployment continues.",
+    blocked: "when no newer run publishes, run Deploy the verified site on the default branch.",
+    done: "the live preview's footer names the newest default-branch commit." });
 }
 
 module.exports = { queueResult, newestStaging, completedDeployment, publication, recordChannels, superseded };
