@@ -612,3 +612,38 @@
   and deferred a human documentation review in favour of an independent agent reader.
 - **Close-out:** Planning revision only. Implementation of groups 6–11 and the evidence for 4.9 and 5.8 await
   approval of the revised plan.
+
+### Group 8: release flow repairs and the 4.9 close-out
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Under the maintainer's apply instruction, closed 4.9 with the rehearsal evidence and implemented tasks
+  8.1–8.6 on `agents/claude/ci-workflows-replan`: paradata freshness from history; release dispatches accepting a
+  leading `v`; Tag release refusing a changelog that misses changes and calling Prepare release to complete it;
+  completion and guarded replacement of release proposals; the `/next/` notice when it equals the release; and
+  `staging`/`production` records once each channel is live. Implementation corrected the plan in two places, both
+  recorded in design 17 and the changelog requirement: the reroute is a reusable-workflow call, and an untagged
+  release section may gain lineage entries. A background security review of `e4d25cb` found that `staging` lacked
+  the branch policy of `github-pages`; `0e0eba3` restores it and makes Tag release require a record written by
+  publication. Dispatched health watch run 40190490225 for 5.8's evidence: its audit job read the App token but
+  reported Project #1 unavailable and the merge settings as drift.
+- **Impacted:** `scripts/check_content.py`, `check_changelog.py`, `release_version.py`, `release_versions.py`,
+  `assemble_pages.py`; `.github/scripts/prepare-release.cjs`, `release-version.cjs`, `deployment.cjs`; workflows
+  `prepare-release.yml`, `tag-release.yml`, `publish.yml`, `deploy.yml`; `.github/repository.toml` (staging, the
+  tag ruleset target as pending, tokens); `assets/css/staging.css`; `docs/content-model.md`, `docs/deployment.md`;
+  the native content rule with regenerated mirrors; tests; this change's artifacts.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor`; `aiscr-planning-core` for the apply
+  boundary and the plan corrections.
+- **Verification:** `python scripts/check_all.py` passes 32 of 32 in 147.5 s at `0e0eba3`; strict OpenSpec
+  validation passes. Planted regressions are caught for the freshness rule (four tests fail on the old rule),
+  `v`-stripping in both runtimes, the release self-exclusion, the lineage-only changelog rule, the unedited-proposal
+  check, the lineage gate on tagging, the release notice, repeated channel records, the tag gate's environment, the
+  publication provenance check and the moved-branch handling. A read-only audit of environments and rulesets reports
+  exactly the two pending 8.7 targets and no drift.
+- **Close-out:** 8.7 follows the merge of this group; 8.8 waits for the delivered release-notes tooling. 5.8 stays
+  open: run 40190490225 shows that the audit queries Project #1's workflows, which the App's read permission does
+  not cover, so the whole Project section fails with a misleading owner step, and that it reports settings the
+  job's token cannot see as drift. A repair is proposed as a new task for approval.
