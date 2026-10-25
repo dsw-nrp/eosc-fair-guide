@@ -1,6 +1,6 @@
 {
   "name": "eosc-fair-guide",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "private": true,
   "description": "Page checks for the EOSC CZ FAIR Data Guide: rendering, accessibility, links and diagrams.",
   "license": "MIT",

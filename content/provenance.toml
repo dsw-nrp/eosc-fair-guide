@@ -1583,3 +1583,14 @@ instruments = ["openai-codex", "openai-sol-6-1", "kilo-code", "einfra-deepseek-4
 objects = ["re3data", "datarepo"]
 results = ["datarepo"]
 endTime = 2026-10-21T01:22:22+02:00
+
+[[action]]
+id = "release-1.0.0-alpha.3"
+type = "update"
+name = "Prepare release metadata"
+description = "Release metadata and complete PR/direct-commit changelog prepared for human review."
+agent = "david-novak"
+instruments = ["release-automation"]
+objects = []
+results = ["guide"]
+endTime = 2026-10-25T01:50:18+00:00

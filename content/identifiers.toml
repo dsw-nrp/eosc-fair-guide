@@ -1269,6 +1269,7 @@ actions = [
   "release-1.0.0-alpha.1",
   "release-1.0.0-alpha.2",
   "2026-10-20-duplicate-fix",
+  "release-1.0.0-alpha.3",
 ]
 model = [
   "model:layers-seams",
