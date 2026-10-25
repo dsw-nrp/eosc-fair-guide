@@ -7,12 +7,35 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.3] - 2026-10-25
+
 ### Changed
 
 - Breaking: local `check_duplicates.py --fix` changes nothing unless a reviewed person is named with `--person` or
   matched from `git config user.name`.
 - Pull requests into `main` merge through the merge queue (**Merge when ready**), and a new release's production
   site is published only after a maintainer approves it in the `production` environment.
+
+Since v1.0.0-alpha.2.
+
+### Merged pull requests
+
+- Badges added to README and DOI to citation files ([#81](https://github.com/dsw-nrp/eosc-fair-guide/pull/81))
+- Make duplicate repairs actionable and safe ([#102](https://github.com/dsw-nrp/eosc-fair-guide/pull/102))
+- chore\(deps-dev\): Bump swagger-ui-dist from 5.33.3 to 5.34.0 ([#106](https://github.com/dsw-nrp/eosc-fair-guide/pull/106))
+- chore\(deps-dev\): Bump @fission-ai/openspec from 1.14.2 to 1.14.3 in the patch-updates group across 1 directory ([#105](https://github.com/dsw-nrp/eosc-fair-guide/pull/105))
+- chore\(deps\): Bump nginxinc/nginx-unprivileged from \`378d0c3\` to \`b5047b9\` in /docker ([#104](https://github.com/dsw-nrp/eosc-fair-guide/pull/104))
+- docs\(openspec\): consolidate CI and repository workflow plans ([#103](https://github.com/dsw-nrp/eosc-fair-guide/pull/103))
+- Merge queue checks, staging reuse and approval-gated production \(group 4\) ([#109](https://github.com/dsw-nrp/eosc-fair-guide/pull/109))
+- Record the applied merge queue and production approval \(task 4.8\) ([#112](https://github.com/dsw-nrp/eosc-fair-guide/pull/112))
+- chore\(deps-dev\): Bump roc-validator from 0.12.2 to 0.13.0 in the minor-and-patch group ([#110](https://github.com/dsw-nrp/eosc-fair-guide/pull/110))
+- chore\(deps\): Bump the minor-and-patch group with 2 updates ([#111](https://github.com/dsw-nrp/eosc-fair-guide/pull/111))
+- feat\(intake\): area labels, issue templates and Project checks \(group 5\) ([#113](https://github.com/dsw-nrp/eosc-fair-guide/pull/113))
+
+### Direct commits
+
+- feat\(agent-tooling\): split workflow runs into visible hand-off and bulk dirs ([a38f70f](https://github.com/dsw-nrp/eosc-fair-guide/commit/a38f70f785818f7bc1cacba3b45eddabdeacf7bb))
+- chore\(deps-dev\): update DOMPurify, undici and fast-uri for security advisories ([e19757b](https://github.com/dsw-nrp/eosc-fair-guide/commit/e19757b55c79370d488d2897b4df6200bc431c38))
 
 ## [1.0.0-alpha.2] - 2026-10-19
 
