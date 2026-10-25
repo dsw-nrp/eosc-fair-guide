@@ -503,11 +503,6 @@ github = {}
 # the precondition it names.
 
 [[pending]]
-setting = "environment.staging"
-current = "absent"
-task = "8.7, once task 8.6 is on the default branch: confirm the staging environment as declared"
-
-[[pending]]
 setting = "ruleset.Tag protection.rules.required_deployments.required_deployment_environments"
 current = ["github-pages"]
 task = "8.7, once a publication has recorded a successful staging deployment: require staging for release tags"

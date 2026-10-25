@@ -132,7 +132,7 @@
   ]
  },
  "GET repos/dsw-nrp/eosc-fair-guide/environments": {
-  "total_count": 3,
+  "total_count": 4,
   "environments": [
    {
     "name": "copilot",
@@ -178,6 +178,20 @@
         }
        }
       ]
+     }
+    ]
+   },
+   {
+    "name": "staging",
+    "deployment_branch_policy": {
+     "protected_branches": false,
+     "custom_branch_policies": true
+    },
+    "can_admins_bypass": true,
+    "protection_rules": [
+     {
+      "id": 70039047,
+      "type": "branch_policy"
      }
     ]
    }
@@ -5510,6 +5524,15 @@
    {
     "name": "v*.*.*",
     "type": "tag"
+   }
+  ]
+ },
+ "GET repos/dsw-nrp/eosc-fair-guide/environments/staging/deployment-branch-policies": {
+  "total_count": 1,
+  "branch_policies": [
+   {
+    "name": "main",
+    "type": "branch"
    }
   ]
  }

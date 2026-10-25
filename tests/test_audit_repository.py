@@ -148,12 +148,10 @@ class AuditTests(unittest.TestCase):
 
     def test_the_committed_state_matches_the_recorded_live_state(self):
         # Recorded after `--fix` created the declared labels and the reviewed backfill typed and labelled every issue.
-        # Task 8.6's approved targets wait, still at their recorded values, for the hand-off in task 8.7.
+        # The maintainer created `staging` as declared on 25 October 2026; the tag ruleset's switch to it waits, still
+        # at its recorded value, for the rest of the hand-off in task 8.7.
         statuses = {finding.setting: finding.status for finding in audit.audit(self.config, Replay())}
-        self.assertEqual(
-            statuses,
-            {"organization.issue_fields": "unavailable", STAGING: "pending", TAG_DEPLOYMENT: "pending"},
-        )
+        self.assertEqual(statuses, {"organization.issue_fields": "unavailable", TAG_DEPLOYMENT: "pending"})
         issues = [node["content"] for node in project_items(LIVE) if node["content"]["__typename"] == "Issue"]
         self.assertGreater(len(issues), 50)
         self.assertTrue(all(issue["issueType"] for issue in issues if issue["state"] == "OPEN"))

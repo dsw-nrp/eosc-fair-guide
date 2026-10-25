@@ -66,6 +66,8 @@ marked **Human hand-off** need a person's approval or action and do not become c
 - [x] 5.7 Document triage in `docs/maintenance.md`: statuses, definition of Ready, Priority and Effort, views, templates, `/aiscr-plan-issue` for shaping, and running the audit. Verify that every referenced view and command exists.
 - [ ] 5.8 **Human hand-off:** the organization owner confirms that the App installation accepted `organization_projects`; the registration itself stays as reviewed (maintainer decision of 24 October 2026). Verify that the audit's registration check passes and the weekly job reads Project #1.
   - Decision, 2026-10-25 (maintainer): the owner confirmed the installation's acceptance, and a read-only audit of the `app` section reports no drift. The Project #1 evidence may come from a manual health-watch run (audit part only once 9.2 lands) instead of waiting for the schedule.
+  - Finding, 2026-10-25 (UTC): manual run [40190490225](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/40190490225) issued the App token, but its audit reported Project #1 unavailable ("You do not have permission to access workflows") with the owner step, and the merge settings as drift with `null` values. Task 5.9 repairs both; this hand-off closes on the run after that repair.
+- [ ] 5.9 Repair the audit's partial reads found by run 40190490225: read Project #1's workflows in their own query, so a token that may not read them reports only `project.workflows` as unavailable while fields, views and items are audited; report a declared setting the token cannot see as unavailable instead of drift; name the actual cause instead of the owner step; and correct the capability table in `docs/maintenance.md` from the hosted run. Verify with recorded fixtures for both partial reads and a planted regression each, then with a manual audit-only run (9.2) that reads Project #1, which also closes 5.8.
 
 ## 6. Quiet monitoring
 
@@ -101,6 +103,7 @@ marked **Human hand-off** need a person's approval or action and do not become c
 - [x] 8.5 Make assembly write, on every `/next/` page, the bilingual "identical to release vX" notice linking the root when the staging commit equals the production release commit, and the next-release notice otherwise (decision 19). Verify assembled fixtures for equal and different commits in both languages, retained `noindex`, and unchanged production bytes.
 - [x] 8.6 Record a `staging` deployment (address `/next/`) and a `production` deployment (root address) after the publication that makes each channel live, and none for a publication that deploys nothing; keep `production` as the approval gate without a premature record where GitHub allows it. Declare `staging` in `repository.toml`, make Tag release check the `staging` record, and record the ruleset target as pending (decision 20). Verify publication fixtures for staging-only, release and no-op publications, Tag release's refusal text, and the audit's pending entry.
 - [ ] 8.7 **Human hand-off:** after 8.6 is on the default branch and a publication has created a successful `staging` record, verify decision 20's two facts, present the audit's expected-versus-actual diff for the `staging` environment and the tag ruleset's required deployment (`github-pages` to `staging`) and obtain approval. Apply, then verify with a fresh audit. Rollback: restore `github-pages` as the required deployment.
+  - Progress, 2026-10-25 (UTC): the maintainer created `staging` as declared (no reviewers, `main` only); the audit reports it done and its pending entry is removed. The tag ruleset's switch remains.
 - [ ] 8.8 Add the native `fair-guide-release-notes` skill under `.agents/guide/skills/` with its outputs in `.agents/guide/surfaces.toml` (decision 21), then run `python scripts/generate_agent_surfaces.py`. Start once the upstream invocation-policy change of `aiscr-write-release-notes` is delivered here. Verify generation, ownership and sibling-delivery checks, and a run against a draft release that stops before `--apply` with the composed body and the `prev..tag` range shown.
 
 ## 9. Predictable schedule
@@ -123,7 +126,8 @@ marked **Human hand-off** need a person's approval or action and do not become c
 
 ## Workflow follow-up
 
-- Implementation starts only after a fresh apply instruction for this change. Each group lands as its own PR.
+- Implementation starts only after a fresh apply instruction for this change. Groups 1–7 landed or land as their own PRs.
+- Decision, 2026-10-25 (maintainer): the revised plan, 4.9's close-out, 5.9 and groups 6–11 fold into one branch, `agents/claude/ci-workflows-replan`, whose pull request opens when the work is finished or a hand-off needs it on the default branch first (8.7, 5.8, 6.10).
 - Group 8 may land before groups 6 and 7; group 10 lands after groups 6–9; task 8.8 waits for the upstream invocation-policy change.
 - Settings changes, the backfill, the digest migration and hosted rehearsals stay within their separately approved scopes.
 - Reusing expensive check results by input digest is a separate, later decision.
