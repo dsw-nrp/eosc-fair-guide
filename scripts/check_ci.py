@@ -50,6 +50,7 @@ QUICK = (
     "agent-generation",
     "issue-templates",
     "health-watch-config",
+    "usage-entries",
 )
 
 
