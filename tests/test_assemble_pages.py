@@ -5,18 +5,25 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import re
 import sys
 import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from urllib.parse import urlsplit
+from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import assemble_pages  # noqa: E402
+import build_api  # noqa: E402
 import build_crate  # noqa: E402
+import build_site  # noqa: E402
+import package_site  # noqa: E402
 
 PRODUCTION = "a" * 40
 STAGING = "b" * 40
@@ -227,6 +234,62 @@ class AssemblyTests(unittest.TestCase):
                 with self.assertRaises(assemble_pages.AssemblyError):
                     self.assemble()
                 self.assertFalse(self.out.exists())
+
+
+@unittest.skipUnless(
+    (build_api.SWAGGER_DIR / build_api.SWAGGER_FILES[0]).is_file(), "needs the Node packages: run npm ci"
+)
+class CrawlerFileTests(unittest.TestCase):
+    """Issue #83 on the real build: crawler files follow the configured base and assembly keeps the release's own."""
+
+    def build(self, site: Path, sha: str, base: str | None) -> str:
+        with patch.dict(os.environ):
+            os.environ.pop(build_crate.BASE_URL_ENV, None)
+            if base:
+                os.environ[build_crate.BASE_URL_ENV] = base
+            build_site.build(site)
+        # The checks' passed run, which packaging and assembly require of a built site.
+        health = json.loads((site / package_site.HEALTH).read_text(encoding="utf-8"))
+        health |= {"generated_at": "2026-10-25T12:00:00Z", "run": {"status": "passed"}, "revision": sha}
+        (site / package_site.HEALTH).write_text(json.dumps(health), encoding="utf-8")
+        configured = build_crate.load_toml(ROOT / "content/guide.toml")["guide"]["baseUrl"]
+        return (base or configured).rstrip("/") + "/"
+
+    def test_production_keeps_its_crawler_files_and_the_preview_adds_none(self) -> None:
+        (ROOT / ".cache").mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=ROOT / ".cache") as temporary:
+            work = Path(temporary)
+            production, preview, release, out = (work / name for name in ("production", "preview", "release", "pages"))
+            built = (
+                (production, self.build(production, PRODUCTION, None)),
+                (preview, self.build(preview, STAGING, "https://example.org/guide")),
+            )
+            for site, base in built:
+                robots = (site / "robots.txt").read_text(encoding="utf-8")
+                expected = f"User-agent: *\nDisallow: {urlsplit(base).path}next/\n\nSitemap: {base}sitemap.xml\n"
+                self.assertEqual(robots, expected)
+                sitemap = ElementTree.parse(site / "sitemap.xml")
+                locations = [loc.text for loc in sitemap.iter("{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
+                self.assertEqual(locations, [base, base + "api/index.html"], "only the Guide and its API documentation")
+                self.assertTrue((site / "api/index.html").is_file())
+            release.mkdir()
+            data = package_site.archive(production)
+            digest = hashlib.sha256(data).hexdigest()
+            (release / "site.tar.gz").write_bytes(data)
+            (release / "site.tar.gz.sha256").write_text(digest, encoding="utf-8")
+            manifest = {"archive": "site.tar.gz", "commit": PRODUCTION, "version": "1.2.3", "sha256": digest}
+            manifest["health"] = {"generated_at": "2026-10-25T12:00:00Z", "run": "passed"}
+            (release / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            assemble_pages.assemble(
+                preview, STAGING, out, production=release, production_tag="v1.2.3", production_commit=PRODUCTION
+            )
+            for name in build_crate.CRAWLER_FILES:
+                self.assertEqual((out / name).read_bytes(), (production / name).read_bytes(), name)
+                self.assertFalse((out / "next" / name).exists(), "the preview advertises nothing")
+            sitemap = (out / "sitemap.xml").read_text(encoding="utf-8")
+            self.assertNotIn("/next/", sitemap)
+            self.assertNotIn("#", sitemap)
+            self.assertIn('content="noindex"', (out / "next/index.html").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

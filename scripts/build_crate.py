@@ -32,6 +32,7 @@ import urllib.parse
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
 
 import build_identity
 from catalogue_identity import (
@@ -3783,6 +3784,28 @@ def render_page(page: str, content: dict[str, Any], crate: dict[str, Any], sprit
 # Entry point
 
 
+# The Guide root and its API documentation: every view of the Guide is a fragment of the root, so it has no other page.
+SITEMAP_PATHS = ("", "api/index.html")
+# Assembly publishes the default-branch preview under this path, beside the release.
+PREVIEW_PATH = "next/"
+CRAWLER_FILES = ("robots.txt", "sitemap.xml")
+
+
+def crawler_files(base: str) -> dict[str, str]:
+    """`robots.txt` and `sitemap.xml` for the address the Guide is published at. The sitemap lists only absolute,
+    fragment-free addresses, with no language duplicates and no dates the build cannot know; robots names it and keeps
+    crawlers out of the preview."""
+    urlset = ElementTree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+    for path in SITEMAP_PATHS:
+        ElementTree.SubElement(ElementTree.SubElement(urlset, "url"), "loc").text = base + path
+    ElementTree.indent(urlset)
+    sitemap = ElementTree.tostring(urlset, encoding="unicode", xml_declaration=True) + "\n"
+    robots = (
+        f"User-agent: *\nDisallow: {urllib.parse.urlsplit(base).path}{PREVIEW_PATH}\n\nSitemap: {base}sitemap.xml\n"
+    )
+    return dict(zip(CRAWLER_FILES, (robots, sitemap), strict=True))
+
+
 def outputs(
     root: Path = ROOT,
     *,
@@ -3874,6 +3897,7 @@ def outputs(
         | profile_shapes(root, content["guide"]["guide"]["pageUrl"])
         | profile_page(root, content["guide"]["guide"])
         | vocabulary_page(root, content["guide"]["guide"])
+        | crawler_files(content["guide"]["guide"]["pageUrl"])
     )
 
 

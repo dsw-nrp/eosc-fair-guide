@@ -206,6 +206,10 @@ def assemble(
         if not path.is_file() or path.name == build_crate.SITE_MARKER:
             continue
         name = path.relative_to(stage).as_posix()
+        if name in build_crate.CRAWLER_FILES:
+            # Crawlers read these only at the site root, where they are the release's own; a preview copy would
+            # advertise preview documents.
+            continue
         data = path.read_bytes()
         if name == "openapi.json":
             description = json.loads(data)
