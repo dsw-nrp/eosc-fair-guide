@@ -133,6 +133,7 @@ records its own content paradata.
 | Delivered section | `step-sibling-rules` | `CODEX.md:aiscr-delivered-assets`, `CODEX.md:aiscr-entry`, `CODEX.md:aiscr-model-logging`, `CODEX.md:aiscr-openspec-posture`, `CODEX.md:aiscr-planning-core`, `CODEX.md:aiscr-quality-first-execution`, `CODEX.md:aiscr-review-conduct`, `CODEX.md:aiscr-usage-logging` |
 | Native generated | `fair-guide-content` | `.claude/rules/fair-guide-content.md`, `.cursor/rules/fair-guide-content.mdc`, `.gemini/context/fair-guide-content.md`, `.github/instructions/fair-guide-content.instructions.md`, `.kilo/rules/fair-guide-content.md` |
 | Native generated | `fair-guide-editor` | `.agents/skills/fair-guide-editor/SKILL.md`, `.claude/skills/fair-guide-editor/SKILL.md` |
+| Native generated | `fair-guide-release-notes` | `.agents/skills/fair-guide-release-notes/SKILL.md`, `.claude/skills/fair-guide-release-notes/SKILL.md` |
 | Native generated | `fair-guide-surfaces` | `.claude/rules/fair-guide-surfaces.md`, `.cursor/rules/fair-guide-surfaces.mdc`, `.gemini/context/fair-guide-surfaces.md`, `.github/instructions/fair-guide-surfaces.instructions.md`, `.kilo/rules/fair-guide-surfaces.md` |
 
 Templates are listed only when present in the delivery receipt.

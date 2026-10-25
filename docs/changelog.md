@@ -57,7 +57,9 @@ this transition without a further unpublished note.
 
 After **Tag release** the release workflow drafts the GitHub release. Its body links the release's section of
 `CHANGELOG.md` and ends with a marked verification record: the commit, the archive digest, the container image and
-the release status. Before publishing the draft, the maintainer replaces the link with reviewed notes:
+the release status. Before publishing the draft, the maintainer replaces the link with reviewed notes.
+`/fair-guide-release-notes <tag>` runs steps 1 to 3 in one invocation: it resolves the previous release tag,
+pre-releases included, and asks once before it applies. By hand:
 
 1. Run `/aiscr-write-release-notes` for the tag in English, from the previous release tag, and keep its default
    report-only mode. It reads the merged pull requests, the commit messages and the issue threads, groups them by

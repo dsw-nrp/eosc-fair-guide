@@ -207,9 +207,9 @@ and direct commit since the previous tag, leaving out the release's own `release
 after preparation, Tag release creates no tag, names them in its summary and calls Prepare release, which opens the
 completion PR; merge it and run Tag release again. The final branch-head check rejects a stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
 checked production build; publishing the resulting draft release is still a separate maintainer act. Before
-publishing, write the release notes with `/aiscr-write-release-notes` and apply them with
-`python scripts/release_body.py v<version> --apply` after reviewing its output; the draft's marked verification
-record stays unchanged (see the [changelog policy](changelog.md#write-the-release-body)).
+publishing, write and apply the release notes with `/fair-guide-release-notes v<version>`, which runs
+`/aiscr-write-release-notes` and `python scripts/release_body.py` and asks once before applying; the draft's marked
+verification record stays unchanged (see the [changelog policy](changelog.md#write-the-release-body)).
 
 For an unchanged historical release whose failed-deployment tag was removed before a released artifact was
 published, the maintainer may recreate the annotated tag directly at the original release merge commit. Confirm
