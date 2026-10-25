@@ -567,50 +567,6 @@
        }
       }
      ]
-    },
-    "workflows": {
-     "nodes": [
-      {
-       "name": "Auto-add sub-issues to project",
-       "enabled": true
-      },
-      {
-       "name": "Auto-add to project",
-       "enabled": true
-      },
-      {
-       "name": "Auto-archive items",
-       "enabled": true
-      },
-      {
-       "name": "Auto-close issue",
-       "enabled": false
-      },
-      {
-       "name": "Code changes requested",
-       "enabled": true
-      },
-      {
-       "name": "Item added to project",
-       "enabled": true
-      },
-      {
-       "name": "Item closed",
-       "enabled": true
-      },
-      {
-       "name": "Item reopened",
-       "enabled": true
-      },
-      {
-       "name": "Pull request linked to issue",
-       "enabled": true
-      },
-      {
-       "name": "Pull request merged",
-       "enabled": true
-      }
-     ]
     }
    }
   }
@@ -5535,5 +5491,55 @@
     "type": "branch"
    }
   ]
+ },
+ "GRAPHQL ProjectWorkflows": {
+  "organization": {
+   "projectV2": {
+    "workflows": {
+     "nodes": [
+      {
+       "name": "Auto-add sub-issues to project",
+       "enabled": true
+      },
+      {
+       "name": "Auto-add to project",
+       "enabled": true
+      },
+      {
+       "name": "Auto-archive items",
+       "enabled": true
+      },
+      {
+       "name": "Auto-close issue",
+       "enabled": false
+      },
+      {
+       "name": "Code changes requested",
+       "enabled": true
+      },
+      {
+       "name": "Item added to project",
+       "enabled": true
+      },
+      {
+       "name": "Item closed",
+       "enabled": true
+      },
+      {
+       "name": "Item reopened",
+       "enabled": true
+      },
+      {
+       "name": "Pull request linked to issue",
+       "enabled": true
+      },
+      {
+       "name": "Pull request merged",
+       "enabled": true
+      }
+     ]
+    }
+   }
+  }
  }
 }

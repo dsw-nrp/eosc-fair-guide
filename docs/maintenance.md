@@ -121,16 +121,18 @@ python scripts/audit_repository.py --backfill openspec/changes/enhance-ci-and-re
 
 ### What each token can read
 
-Only the maintainer-token column was verified by a read-only run on 24 October 2026 (`gh` with the `repo`, `read:org`
-and `read:project` scopes). The other columns follow GitHub's permission reference for each endpoint.
+The maintainer-token column was verified by a read-only run on 24 October 2026 (`gh` with the `repo`, `read:org`
+and `read:project` scopes). Entries marked "run 40190490225" come from the weekly job's first hosted run on
+25 October 2026; the other columns follow GitHub's permission reference for each endpoint.
 
 | Section | Endpoint and permission | Maintainer token | `GITHUB_TOKEN` | App installation token |
 | --- | --- | --- | --- | --- |
-| Merge settings | `GET /repos/{repo}`: Metadata read | Read (verified) | Read | Read |
+| Merge settings | `GET /repos/{repo}`: the merge options are returned only to tokens that may see them | Read (verified) | Unavailable: returned as null (run 40190490225) | Not requested |
 | Rulesets | `GET /repos/{repo}/rulesets`: Metadata read; bypass actors need write access to the ruleset | Read, with bypass actors (verified) | Rules; bypass actors unavailable | Rules; bypass actors unavailable |
 | Environments | `GET /repos/{repo}/environments` and branch policies: Actions read | Read (verified) | Read when the job requests `actions: read` | Unavailable: no Actions permission is registered |
 | Labels | `GET /repos/{repo}/labels`: Issues or Pull requests read | Read (verified) | Read with `issues: read` or `pull-requests: read` | Read (Pull requests) |
-| Project #1 | GraphQL `organization.projectV2`: Organization Projects read | Read with `read:project` (verified) | Unavailable: no organization access | Read when the job requests it and the installation has accepted `organization_projects: read` (task 5.8) |
+| Project #1 | GraphQL `organization.projectV2` fields, views and items: Organization Projects read | Read with `read:project` (verified) | Unavailable: no organization access | Read when the job requests it; the installation accepted `organization_projects: read` (task 5.8) |
+| Project #1 workflows | GraphQL `organization.projectV2.workflows` | Read with `read:project` (verified) | Unavailable: no organization access | Unavailable: refused for Organization Projects read (run 40190490225) |
 | Project completeness | `GET /repos/{repo}/issues`: Issues read | Read (verified) | Read with `issues: read` | Read when the job requests Issues read |
 | Issue types | `GET /orgs/{org}/issue-types`: Organization Issue Types read | Read (verified) | Unavailable | Unavailable: not registered |
 | Issue fields | `GET /orgs/{org}/issue-fields`: Organization Issue Fields read | Unconfirmed: an empty list, although Project #1 shows Priority and Effort | Unavailable | Unavailable: not registered |
@@ -140,6 +142,7 @@ Issue-field values of one issue are read through `GET /repos/{repo}/issues/{numb
 Issues read. The weekly audit job therefore combines a `GITHUB_TOKEN` with `actions: read` and `issues: read` for
 the repository sections with an App token that may only read Projects, set as `GH_PROJECT_TOKEN` and used for
 Project #1 alone. Issue types and issue fields stay unavailable there, because the App's registration has no
-organization issue permissions. If that token cannot see the issues behind the Project's items, the audit reports
-the items as unavailable instead of judging them; if the App cannot issue it, Project #1 is unavailable with the
-step for the organization owner.
+organization issue permissions, and so do the Project's workflows and the merge settings, which the audit reports
+as unavailable with their reason while it audits the rest; a maintainer's local run reads them. If that token cannot
+see the issues behind the Project's items, the audit reports the items as unavailable instead of judging them; if
+the App cannot issue it, Project #1 is unavailable with the step for the organization owner.

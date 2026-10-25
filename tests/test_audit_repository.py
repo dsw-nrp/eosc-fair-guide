@@ -92,6 +92,10 @@ def project_items(responses):
     return responses["GRAPHQL ProjectItems"]["organization"]["projectV2"]["items"]["nodes"]
 
 
+def project_workflows(responses):
+    return responses["GRAPHQL ProjectWorkflows"]["organization"]["projectV2"]["workflows"]["nodes"]
+
+
 def by_setting(findings):
     return {finding.setting: finding for finding in findings}
 
@@ -156,6 +160,37 @@ class AuditTests(unittest.TestCase):
         self.assertGreater(len(issues), 50)
         self.assertTrue(all(issue["issueType"] for issue in issues if issue["state"] == "OPEN"))
 
+    def test_project_workflows_the_token_may_not_read_leave_the_rest_audited(self):
+        # Run 40190490225: the App token reads the Project, but GitHub refuses its workflows.
+        live = copy.deepcopy(LIVE)
+        live["GRAPHQL ProjectWorkflows"] = audit.UnavailableError("gh: You do not have permission to access workflows.")
+        next(view for view in project(live)["views"]["nodes"] if view["name"] == "Triage")["filter"] = "is:issue"
+        findings = audit.audit(self.config, Replay(live))
+        found = by_setting(findings)
+        self.assertEqual(found["project.workflows"].status, "unavailable")
+        self.assertIn("does not include the Project's workflows", found["project.workflows"].note)
+        self.assertEqual(found["project.view.Triage.filter"].status, "drift", "fields, views and items are audited")
+        self.assertNotIn("project", found, "the Project itself is readable")
+        section = audit.digest(findings)
+        self.assertIn("`project.workflows`: gh: You do not have permission to access workflows:", section)
+        self.assertNotIn(audit.OWNER_STEP, section, "no owner step for what no owner step fixes")
+
+    def test_settings_the_token_cannot_see_are_unavailable_not_drift(self):
+        # Run 40190490225: the weekly job's GITHUB_TOKEN receives the merge settings as null.
+        live = copy.deepcopy(LIVE)
+        settings = self.config["settings"]
+        for key in settings:
+            live[REPO][key] = None
+        visible = next(key for key, value in settings.items() if isinstance(value, bool))
+        live[REPO][visible] = not settings[visible]
+        found = by_setting(audit.audit(self.config, Replay(live), sections=["settings"]))
+        self.assertEqual(found["settings"].status, "unavailable")
+        self.assertIn("as null to this token", found["settings"].note)
+        self.assertNotIn(visible, found["settings"].note)
+        self.assertEqual(found[f"settings.{visible}"].status, "drift", "a setting the token sees is still compared")
+        hidden = [setting for setting in found if setting.startswith("settings.") and setting != f"settings.{visible}"]
+        self.assertEqual(hidden, [], "an unseen setting is never reported as drift")
+
     def test_an_approved_target_waits_as_pending_with_its_task(self):
         live = copy.deepcopy(LIVE)
         pending_queue(self.config, live)
@@ -183,9 +218,7 @@ class AuditTests(unittest.TestCase):
         live[f"{REPO}/labels?per_page=100"].append({"name": "stray", "color": "ffffff", "description": None})
         board = next(view for view in project(live)["views"]["nodes"] if view["name"] == "Triage")
         board["filter"] = "is:issue"
-        next(flow for flow in project(live)["workflows"]["nodes"] if flow["name"] == "Auto-add to project")[
-            "enabled"
-        ] = False
+        next(flow for flow in project_workflows(live) if flow["name"] == "Auto-add to project")["enabled"] = False
         status = next(node for node in project(live)["fields"]["nodes"] if node.get("name") == "Status")
         status["options"][0]["name"] = "Inbox"
         items = live["GRAPHQL ProjectItems"]["organization"]["projectV2"]["items"]["nodes"]

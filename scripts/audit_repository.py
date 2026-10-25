@@ -301,8 +301,15 @@ PROJECT_QUERY = """query Project($owner: String!, $number: Int!) { organization(
     ... on ProjectV2SingleSelectField { options { name } } } }
   views(first: 100) { nodes { name layout filter
     groupByFields(first: 10) { nodes { ... on ProjectV2FieldCommon { name } } }
-    sortByFields(first: 10) { nodes { direction field { ... on ProjectV2FieldCommon { name } } } } } }
-  workflows(first: 100) { nodes { name enabled } } } } }"""
+    sortByFields(first: 10) { nodes { direction field { ... on ProjectV2FieldCommon { name } } } } } } } } }"""
+# Apart, because the weekly job's App token may read the Project but not its workflows (run 40190490225), and GitHub
+# refuses a whole query over one field the token may not read.
+WORKFLOWS_QUERY = """query ProjectWorkflows($owner: String!, $number: Int!) { organization(login: $owner) {
+  projectV2(number: $number) { workflows(first: 100) { nodes { name enabled } } } } }"""
+WORKFLOWS_NOTE = (
+    "the App's Organization projects: read permission does not include the Project's workflows; a maintainer's "
+    "local audit checks them"
+)
 ITEMS_QUERY = """query ProjectItems($owner: String!, $number: Int!, $after: String) { organization(login: $owner) {
   projectV2(number: $number) { items(first: 50, after: $after) { pageInfo { hasNextPage endCursor }
     nodes { type fieldValues(first: 30) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { name updatedAt
@@ -420,8 +427,12 @@ def read_project(github, config):
             }
             for view in data["views"]["nodes"]
         },
-        "workflows": {workflow["name"]: workflow["enabled"] for workflow in data["workflows"]["nodes"]},
     }
+    try:
+        workflows = github.graphql(WORKFLOWS_QUERY, {"owner": owner, "number": number})["organization"]["projectV2"]
+        state["workflows"] = {workflow["name"]: workflow["enabled"] for workflow in workflows["workflows"]["nodes"]}
+    except UnavailableError as error:
+        state["workflows"] = UnavailableError(f"{str(error).rstrip('.')}: {WORKFLOWS_NOTE}")
     state["entries"], state["hidden"] = read_items(github, owner, number, repo)
     state["items"] = set(state["entries"])
     if project.get("complete"):
@@ -596,8 +607,16 @@ def environment_fix(config, name, declared, live, setting):
 
 def compare_settings(config, actual):
     repo = config["repository"]
+    # GitHub returns these as null to a token that may not see them (the weekly job's GITHUB_TOKEN, run 40190490225):
+    # unknown, so neither drift nor matching.
+    hidden = [
+        key for key, expected in config.get("settings", {}).items() if actual.get(key) is None and expected is not None
+    ]
+    if hidden:
+        note = f"GitHub returns {', '.join(hidden)} as null to this token; a maintainer's local audit reads them"
+        yield Finding("settings", "settings", "unavailable", ui=UI["settings"], note=note)
     for key, expected in config.get("settings", {}).items():
-        if actual.get(key) != expected:
+        if key not in hidden and actual.get(key) != expected:
             flag, value = ("-F", json.dumps(expected)) if isinstance(expected, bool) else ("-f", expected)
             yield Finding(
                 "settings",
@@ -798,22 +817,33 @@ def compare_project(config, actual, now=None):
                 yield Finding("project", f"project.view.{name}.{key}", "drift", view[key], live[key], ui, "", view_only)
     for name in sorted(set(actual["view"]) - set(views)):
         yield Finding("project", f"project.view.{name}", "undeclared", ABSENT, "present", ui, "", view_only)
-    for name, enabled in project.get("workflows", {}).items():
-        if actual["workflows"].get(name, ABSENT) != enabled:
+    if isinstance(actual["workflows"], UnavailableError):
+        # Only the workflows are unknown; the fields, views and items above and below are still audited.
+        yield Finding("project", "project.workflows", "unavailable", ui=ui, note=str(actual["workflows"]))
+    else:
+        for name, enabled in project.get("workflows", {}).items():
+            if actual["workflows"].get(name, ABSENT) != enabled:
+                yield Finding(
+                    "project",
+                    f"project.workflows.{name}",
+                    "drift",
+                    enabled,
+                    actual["workflows"].get(name, ABSENT),
+                    ui,
+                    "",
+                    view_only,
+                )
+        for name in sorted(set(actual["workflows"]) - set(project.get("workflows", {}))):
             yield Finding(
                 "project",
                 f"project.workflows.{name}",
-                "drift",
-                enabled,
-                actual["workflows"].get(name, ABSENT),
+                "undeclared",
+                ABSENT,
+                actual["workflows"][name],
                 ui,
                 "",
                 view_only,
             )
-    for name in sorted(set(actual["workflows"]) - set(project.get("workflows", {}))):
-        yield Finding(
-            "project", f"project.workflows.{name}", "undeclared", ABSENT, actual["workflows"][name], ui, "", view_only
-        )
     if actual["hidden"]:
         # An item the token cannot see is neither missing nor in order, so nothing is judged from the items.
         note = f"{actual['hidden']} items' issues and pull requests are hidden from this token; it needs Issues read."
