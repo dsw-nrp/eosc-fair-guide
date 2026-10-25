@@ -554,3 +554,32 @@
   passes 32 of 32 in 165.7 s, including the complete unit, browser, validator and final health API coverage.
 - **Close-out:** Implementation remains in the approved `enhance-ci-and-repository-workflows` change; task 4.9
   still requires successful hosted reuse and release promotion.
+
+### Post-merge deployment and alpha.3 release preparation
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Codex (API)
+- **Model / backend:** GPT-6; exact backend model ID not exposed by the runtime.
+- **What:** Verified #113 merged as `ad5fc4b`. Its deployment selected full checks, correctly reporting no queue
+  result for the administrator merge, and succeeded (run 40150326046, 5 min 13 s). Pages publication 40150667025
+  succeeded. Live staging reports that revision with passed checks; production still reports `v1.0.0-alpha.2`
+  at `8350edd`. Ran the previously approved Prepare release workflow for `1.0.0-alpha.3` on `main`;
+  run 40150741799 opened release PR #114 at `0277060`, authored by `fair-guide-actions[bot]`.
+- **Impacted:** GitHub release PR #114; task 4.9 evidence and this rolling entry.
+- **Subagents used:** none.
+- **MCP servers used:** GitHub.
+- **Workflow context used:** `fair-guide-editor`, `openspec-apply-change`; existing approval for the hosted
+  rehearsal in `enhance-ci-and-repository-workflows`. `gh` supplies run discovery and workflow dispatch, which
+  the connected GitHub tools do not expose.
+- **Verification:** Release preparation passed its metadata and generated-site version checks. The PR changes
+  exactly the nine declared release files: six metadata owners, changelog, provenance and identifier register.
+  All owning versions are `1.0.0-alpha.3`, dates are 2026-10-25, and the changelog retains the curated lines plus
+  the 11 merged PRs and two direct commits in the 13-commit first-parent history. PR checks, including the
+  required gate, passed in run 40150788749 at `0277060`. Fresh native close-out for this evidence update passed
+  32 of 32 checks in 151.5 s, including all unit shards, browser groups, validators and final health API checks.
+  The editor held the original environment's Ruff executable open during dependency alignment; restored the
+  interrupted uninstall's package directories and used an isolated environment with the pinned
+  `roc-validator==0.13.0` and `ruff==0.17.1` plus `npm ci` instead.
+- **Close-out:** Task 4.9 remains open. PR #114 needs review and a queue merge; corrected hosted reuse and the
+  approved release promotion still require their own observed outcomes. Evidence is kept on
+  `agents/codex/alpha3-rehearsal`, separate from the generated release branch.

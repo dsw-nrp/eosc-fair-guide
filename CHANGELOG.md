@@ -36,6 +36,7 @@ Since v1.0.0-alpha.2.
 
 - feat\(agent-tooling\): split workflow runs into visible hand-off and bulk dirs ([a38f70f](https://github.com/dsw-nrp/eosc-fair-guide/commit/a38f70f785818f7bc1cacba3b45eddabdeacf7bb))
 - chore\(deps-dev\): update DOMPurify, undici and fast-uri for security advisories ([e19757b](https://github.com/dsw-nrp/eosc-fair-guide/commit/e19757b55c79370d488d2897b4df6200bc431c38))
+- docs\(rehearsal\): record post-merge deployment and alpha.3 preparation ([7b3fa74](https://github.com/dsw-nrp/eosc-fair-guide/commit/7b3fa743f0afe526c9cd8067ec734702f432ea22))
 
 ## [1.0.0-alpha.2] - 2026-10-19
 
