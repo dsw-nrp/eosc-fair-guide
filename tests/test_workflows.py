@@ -574,18 +574,16 @@ class WorkflowContracts(unittest.TestCase):
         # Live monitoring stays out of the deterministic pull-request checks.
         self.assertNotIn("watch_sources", (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8"))
 
-    def test_a_pipeline_that_decides_a_branch_reports_its_first_failure(self) -> None:
-        # GitHub's default `bash -e` has no pipefail: `if cmd | tee file; then` would test tee.
+    def test_adoption_steps_preserve_failure_before_writing_the_summary(self) -> None:
+        # Check adoption itself: condition layout and shell selection cannot bypass this invariant.
         for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
             for name, job in load(path.relative_to(ROOT).as_posix())["jobs"].items():
                 for step in job.get("steps", []):
                     script = step.get("run", "")
-                    deciding = re.search(
-                        r"^\s*(if|while|until)\b[^\n]*(?<!\|)\|(?!\|)[^\n]*;\s*(then|do)", script, re.MULTILINE
-                    )
-                    if deciding and step.get("shell") != "bash":
+                    adoption = script.find("scripts/check_ci.py adopt")
+                    if adoption >= 0:
                         with self.subTest(workflow=path.name, job=name, step=step.get("name") or step.get("id")):
-                            self.assertIn("set -o pipefail", script[: deciding.start()])
+                            self.assertIn("set -o pipefail", script[:adoption])
 
     def test_the_weekly_audit_reads_the_project_alone_with_a_read_only_token(self) -> None:
         jobs = load(".github/workflows/health-watch.yml")["jobs"]

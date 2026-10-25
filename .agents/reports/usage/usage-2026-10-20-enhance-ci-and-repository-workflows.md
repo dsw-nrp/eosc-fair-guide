@@ -538,3 +538,19 @@
   strict change validation, Ruff and diff checks pass.
 - **Close-out:** 40 of 62 tasks remain complete. Hosted reuse after the repair, release preparation and promotion
   remain pending; the unsuccessful rehearsal is not acceptance evidence for task 4.9.
+
+### PR #113 review: multiline adoption conditions
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Codex (API)
+- **Model / backend:** GPT-6; exact backend model ID not exposed by the runtime.
+- **What:** Confirmed review comment `discussion_r4369192866`: the conditional-pipeline regex skipped multiline
+  conditions. Replaced it with a direct invariant requiring `pipefail` before the adoption command in every
+  workflow step, independent of condition layout or an explicit shell.
+- **Impacted:** `tests/test_workflows.py`, this rolling entry.
+- **Verification:** The previous guard accepts the review's multiline reproduction. The replacement passes all
+  29 workflow tests and 30 planted variants of single-line/multiline conditions, continued pipelines, explicit or
+  omitted shells, and missing/before/after `pipefail`; every unsafe variant fails. Fresh native `check_all.py`
+  passes 32 of 32 in 165.7 s, including the complete unit, browser, validator and final health API coverage.
+- **Close-out:** Implementation remains in the approved `enhance-ci-and-repository-workflows` change; task 4.9
+  still requires successful hosted reuse and release promotion.
