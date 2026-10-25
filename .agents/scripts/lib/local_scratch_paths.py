@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
 
+# delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00
 """Paths for visible run hand-offs and their bulk staging.
 
-Hand-offs — branch-audit Markdown, operator-patch READMEs, and approval views — live
-under `.agents/local_scratch/`. The directory is deliberately Git-visible so new and
-changed hand-offs appear in normal status and diff review. The artefact-placement
-capability owns retention and read-only-in-practice rules. Bulk machine artefacts,
-including an operator patch's staged files and manifest, live under the repository cache
-resolved by ``runtime_env``.
+Hand-offs — branch-audit Markdown, operator-patch READMEs, and approval views — live under `.agents/local_scratch/`. The
+directory is deliberately Git-visible so new and changed hand-offs appear in normal status and diff review. The
+artefact-placement capability owns retention and read-only-in-practice rules. Bulk machine artefacts, including an
+operator patch's staged files and manifest, live under the repository cache resolved by ``runtime_env``.
 
 Contract: workflow/artefact-placement
 Class: library
@@ -52,10 +51,9 @@ def _handoff_path(repo_root: Path, *segments: str) -> Path:
 def _assert_resolvable_under(path: Path, root: Path) -> None:
     """Refuse a path whose existing ancestors resolve outside *root*.
 
-    Check each existing component before resolving, including dangling links, so an
-    absent hand-off root can be created without traversing a redirected ancestor. A
-    component that is absent, or unreachable because an ancestor is a regular file,
-    cannot contain a traversable link and is treated as absent.
+    Check each existing component before resolving, including dangling links, so an absent hand-off root can be created
+    without traversing a redirected ancestor. A component that is absent, or unreachable because an ancestor is a
+    regular file, cannot contain a traversable link and is treated as absent.
     """
     root = root.resolve()
     path = path.absolute()
@@ -77,9 +75,9 @@ def _assert_resolvable_under(path: Path, root: Path) -> None:
 def ensure_handoff_dir(repo_root: Path, *segments: str) -> Path:
     """Create and return a hand-off directory under local scratch, idempotently.
 
-    The created path stays confined to the repository through the local scratch root:
-    every segment is a single safe name and no existing ancestor may resolve outside the
-    repository. An existing directory is reused without being recreated or cleared.
+    The created path stays confined to the repository through the local scratch root: every segment is a single safe
+    name and no existing ancestor may resolve outside the repository. An existing directory is reused without being
+    recreated or cleared.
     """
     path = _handoff_path(repo_root, *segments)
     _assert_resolvable_under(path, repo_root)
@@ -113,8 +111,8 @@ def checked_handoff_file(repo_root: Path, target: Path) -> Path:
 def prepare_handoff_file(repo_root: Path, target: Path) -> Path:
     """Validate an output path and create its parents; governed runs also gain a pointer.
 
-    Explicit legacy output paths inside the checkout remain supported. Neither those paths
-    nor the standard workflow/run layout may traverse links or escape the checkout.
+    Explicit legacy output paths inside the checkout remain supported. Neither those paths nor the standard workflow/run
+    layout may traverse links or escape the checkout.
     """
     root = repo_root.resolve()
     target = checked_handoff_file(root, target)

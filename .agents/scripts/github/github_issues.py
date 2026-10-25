@@ -2,29 +2,24 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
 
+# delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00
 """Gather, verify, and write governed GitHub issue bodies.
 
-``gather`` is read-only: it returns the issue's whole conversation, including
-resolved and hidden comments, plus one hop of referenced issues and pull
-requests and every hierarchy edge. ``reconciliation-sources`` emits the
-labelled source list local verification and the write consume.
-``verify-composition`` checks a developed body locally, with no network and
-no write: its shape and its reconciliation accounting. ``post-body`` writes
-the description only after that same check passes. ``extract`` files the
-issue for content that belongs elsewhere, before a ledger can reference it.
-``post-comment`` posts a live-acceptance run's verification comment on the
-driving issue, in the issue's own language and under exact-content approval.
+``gather`` is read-only: it returns the issue's whole conversation, including resolved and hidden comments, plus one hop
+of referenced issues and pull requests and every hierarchy edge. ``reconciliation-sources`` emits the labelled source
+list local verification and the write consume. ``verify-composition`` checks a developed body locally, with no network
+and no write: its shape and its reconciliation accounting. ``post-body`` writes the description only after that same
+check passes. ``extract`` files the issue for content that belongs elsewhere, before a ledger can reference it.
+``post-comment`` posts a live-acceptance run's verification comment on the driving issue, in the issue's own language
+and under exact-content approval.
 
-Posting is supervised only. The command surface declares ``interactive`` as
-its one mode rather than accepting one it does not implement.
-``prepare-handoff`` creates a confined visible run directory and its bulk pointer
-before body authoring; ``cleanup-handoff --approve`` retires its allowlisted files
-after a successful terminal outcome. Approval views can still print to stdout,
-but posting also reads their rendered file and refuses missing or edited bytes.
+Posting is supervised only. The command surface declares ``interactive`` as its one mode rather than accepting one it
+does not implement. ``prepare-handoff`` creates a confined visible run directory and its bulk pointer before body
+authoring; ``cleanup-handoff --approve`` retires its allowlisted files after a successful terminal outcome. Approval
+views can still print to stdout, but posting also reads their rendered file and refuses missing or edited bytes.
 
-The write model — identity mode, machine marker, approval digest, and the
-accounting rules — is shared through ``github_utils`` rather than
-reimplemented here.
+The write model — identity mode, machine marker, approval digest, and the accounting rules — is shared through
+``github_utils`` rather than reimplemented here.
 
 Contract: workflow/github-issue-lifecycle, workflow/github-write-fidelity, review/live-acceptance-verification
 Class: tool
@@ -237,8 +232,8 @@ TYPE_BLOCK_AFTER = "Problem"
 def declared_section_names() -> frozenset[str]:
     """Every accepted section name, in every declared language.
 
-    A ledger routes an absorbed segment to a section by name, so the checker needs
-    the same declaration the validator uses rather than a second copy of it.
+    A ledger routes an absorbed segment to a section by name, so the checker needs the same declaration the validator
+    uses rather than a second copy of it.
     """
     names = {form for forms in SECTION_FORMS.values() for form in forms}
     names.update(form for forms in TYPE_BLOCK_FORMS.values() for form in forms)
@@ -409,13 +404,11 @@ def _validate_preamble(body: str) -> tuple[list[str], int]:
 def issue_title(body: str) -> str:
     """Derive the GitHub title from the body's single ``# `` heading.
 
-    The title is not a separate field to set by hand.
-    The shape contract already declares that heading to be "the text a person would
-    search for", so a GitHub title that differs from it is a defect rather than a
-    choice: the body renders on the issue page while the title is what search, lists
-    and cross-references show. Deriving it here — from the same pattern the shape
-    check enforces — removes the divergence instead of adding a flag to remember.
-    Returns "" when no heading is present, which the shape check reports on its own.
+    The title is not a separate field to set by hand. The shape contract already declares that heading to be "the text a
+    person would search for", so a GitHub title that differs from it is a defect rather than a choice: the body renders
+    on the issue page while the title is what search, lists and cross-references show. Deriving it here — from the same
+    pattern the shape check enforces — removes the divergence instead of adding a flag to remember. Returns "" when no
+    heading is present, which the shape check reports on its own.
     """
     for line in (body or "").replace("\r\n", "\n").replace("\r", "\n").splitlines():
         match = TITLE_PATTERN.fullmatch(line.strip())
@@ -507,10 +500,9 @@ def _validate_reporter_region(lines: list[str], reporter_index: int, end_index: 
 def _validate_mermaid(lines: list[str]) -> None:
     """Whichever diagrams are present use a GitHub-renderable family.
 
-    Any core Mermaid family GitHub renders is accepted; only a plugin-only
-    family is refused. Whether a diagram is *warranted* is not decidable, so
-    nothing here counts them: an issue may carry several, of the same or
-    different types, or none.
+    Any core Mermaid family GitHub renders is accepted; only a plugin-only family is refused. Whether a diagram is
+    *warranted* is not decidable, so nothing here counts them: an issue may carry several, of the same or different
+    types, or none.
     """
     for start, line in enumerate(lines):
         if line.strip().lower() != "```mermaid":
@@ -568,8 +560,8 @@ def _comment_heading_section(heading: str) -> str | None:
 def _comment_headings_share_one_language(headings: list[str]) -> bool:
     """Return True when every heading is a form of the same language position.
 
-    The comment answers one issue, so it is written in one language; a body whose
-    headings mix the declared languages is refused rather than posted half-translated.
+    The comment answers one issue, so it is written in one language; a body whose headings mix the declared languages is
+    refused rather than posted half-translated.
     """
     positions: set[int] = set()
     for heading in headings:
@@ -583,10 +575,9 @@ def _comment_headings_share_one_language(headings: list[str]) -> bool:
 def _validate_comment_shape(body: str) -> None:
     """Return the declared acceptance-comment shape: one language, one marker, ordered sections.
 
-    The comment is a summary a maintainer reads on the issue it answers, so its shape
-    is lighter than a description's: no metadata table, no title. What it must carry is
-    the run's verification result — at minimum what was checked and what was found —
-    with every heading a declared form in the issue's own language.
+    The comment is a summary a maintainer reads on the issue it answers, so its shape is lighter than a description's:
+    no metadata table, no title. What it must carry is the run's verification result — at minimum what was checked and
+    what was found — with every heading a declared form in the issue's own language.
     """
     lines = (body or "").replace("\r\n", "\n").replace("\r", "\n").splitlines()
     stripped = [line.strip() for line in lines]
@@ -633,13 +624,11 @@ def _validate_comment_shape(body: str) -> None:
 def _validate_comment_list_forms(lines: list[str], stripped: list[str], bounds: list[int]) -> None:
     """Per-section list-form rules, enforced in both directions.
 
-    The outstanding sections render every top-level list item as a GitHub
-    task-list entry so it can be ticked off in place; the settled sections
-    carry no task-list entries, so a completed statement never displays as an
-    open obligation. Lines inside fenced code blocks are judged by neither
-    rule — an evidence excerpt is not a list item. Nesting follows the list
-    structure: an item more indented than the item it immediately follows is
-    its child, and top-level means zero to three leading spaces per CommonMark.
+    The outstanding sections render every top-level list item as a GitHub task-list entry so it can be ticked off in
+    place; the settled sections carry no task-list entries, so a completed statement never displays as an open
+    obligation. Lines inside fenced code blocks are judged by neither rule — an evidence excerpt is not a list item.
+    Nesting follows the list structure: an item more indented than the item it immediately follows is its child, and
+    top-level means zero to three leading spaces per CommonMark.
     """
     for position, start in enumerate(bounds[:-1]):
         section = _comment_heading_section(stripped[start])
@@ -701,9 +690,8 @@ def _heading_span(lines: list[str], forms: tuple[str, ...]) -> tuple[int, int] |
 def section_status(body: str) -> dict[str, list[str]]:
     """Report every declared section as present, missing, or empty.
 
-    The shape validator stops at the first defect, which is right for a write gate and
-    wrong for a readiness report: someone told to go back deserves the whole list, not
-    one item at a time.
+    The shape validator stops at the first defect, which is right for a write gate and wrong for a readiness report:
+    someone told to go back deserves the whole list, not one item at a time.
     """
     lines = (body or "").replace("\r\n", "\n").replace("\r", "\n").splitlines()
     rows = {}
@@ -735,10 +723,9 @@ def section_status(body: str) -> dict[str, list[str]]:
 def readiness(body: str, thread: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     """Assess whether a description can seed a change, and why not when it cannot.
 
-    Readiness is the declared shape, not a judgement: an issue that satisfies it already
-    holds what promotion consumes. The thread is reported alongside because a gap the
-    conversation already covers is one shaping run away, not new work — and being told
-    "go back" without that distinction reads as an instruction to go and think harder.
+    Readiness is the declared shape, not a judgement: an issue that satisfies it already holds what promotion consumes.
+    The thread is reported alongside because a gap the conversation already covers is one shaping run away, not new work
+    — and being told "go back" without that distinction reads as an instruction to go and think harder.
     """
     findings = shape_findings(body)
     sections = section_status(body)
@@ -780,9 +767,9 @@ def _hierarchy_edges(
 ) -> list[dict[str, str]]:
     """Return the issue's parent and sub-issues, as typed edges rather than mentions.
 
-    A sub-issue's parent states the work it belongs to and a parent's sub-issues
-    state how that work is decomposed, so both are decisive far more often than an
-    incidental mention — and neither is subject to the bound that governs mentions.
+    A sub-issue's parent states the work it belongs to and a parent's sub-issues state how that work is decomposed, so
+    both are decisive far more often than an incidental mention — and neither is subject to the bound that governs
+    mentions.
     """
 
     def ref(node: dict[str, Any]) -> str:
@@ -816,9 +803,8 @@ def _issue_connection(  # pylint: disable=too-many-arguments,too-many-positional
 def fetch_conversation(owner_repo: str, number: int) -> dict[str, Any]:
     """Return the issue with every comment, including those hidden or in resolved threads.
 
-    An issue's real content routinely accumulates in its thread while the body stays a
-    thin draft, so the thread is gathered as reconciliation input rather than as
-    background.
+    An issue's real content routinely accumulates in its thread while the body stays a thin draft, so the thread is
+    gathered as reconciliation input rather than as background.
     """
     owner, _, name = owner_repo.partition("/")
     payload = _graphql(ISSUE_QUERY, owner=owner, name=name, number=str(number))
@@ -926,11 +912,10 @@ def reconciliation_sources(
 ) -> list[tuple[str, str]]:
     """Return the reporter original, external edits, and thread as reconciliation input.
 
-    Once the workflow owns the body, its unchanged generated text is deliberately absent.
-    The comparison base — the last workflow-posted body — isolates later human edits
-    without feeding the generated body back into itself. The provenance comment is
-    internal state and is not thread evidence. The original is always labelled
-    ``description``, so a ledger citation does not shift when a record appears.
+    Once the workflow owns the body, its unchanged generated text is deliberately absent. The comparison base — the last
+    workflow-posted body — isolates later human edits without feeding the generated body back into itself. The
+    provenance comment is internal state and is not thread evidence. The original is always labelled ``description``, so
+    a ledger citation does not shift when a record appears.
     """
     provenance = _find_provenance_comment(conversation["comments"])
     if provenance is None:
@@ -959,8 +944,8 @@ def _resolve_comparison_base(
 ) -> tuple[str | None, bool]:
     """Return ``(base, degraded)`` for a later round, fetching content-edit history.
 
-    ``degraded`` is true when history yields no body matching the stamped digest; the
-    preserved original is then the base. The current generated body is never the base.
+    ``degraded`` is true when history yields no body matching the stamped digest; the preserved original is then the
+    base. The current generated body is never the base.
     """
     provenance = _find_provenance_comment(conversation["comments"])
     if provenance is None:
@@ -998,9 +983,9 @@ def _composition_findings(
 def composed_body(path: str) -> str:
     """Read a drafted body and normalise its line breaks before anything digests it.
 
-    This is the issue surface's single entry point for a body it authored, so the text
-    local verification checks and the text the write digests are the same string. The
-    preserved reporter original does not come through here: it is read as gathered.
+    This is the issue surface's single entry point for a body it authored, so the text local verification checks and the
+    text the write digests are the same string. The preserved reporter original does not come through here: it is read
+    as gathered.
     """
     return github_utils.normalize_posted_line_breaks(_read_text(path))
 
@@ -1023,10 +1008,9 @@ def cmd_gather(number: int, repo: str | None) -> None:
 def _resolve_promotion_repo(repo_arg: str | None) -> str:
     """Resolve the target, refusing an issue this checkout does not own.
 
-    Promotion produces an OpenSpec change, a branch, and a pull request, and all three
-    belong to the repository the issue lives in, because that is where the implementation
-    happens. Accepting a foreign ``--repo`` would put the change in a repository the work
-    never reaches, which reads as success until someone goes looking for it.
+    Promotion produces an OpenSpec change, a branch, and a pull request, and all three belong to the repository the
+    issue lives in, because that is where the implementation happens. Accepting a foreign ``--repo`` would put the
+    change in a repository the work never reaches, which reads as success until someone goes looking for it.
     """
     local = _resolve_repo(None)
     if repo_arg and repo_arg != local:
@@ -1176,8 +1160,8 @@ def _prepare_issue_creation(title: str, body_path: str, repo: str | None) -> tup
 def _append_to_reporter_region(body: str, fragment: str) -> str:
     """Return ``body`` with ``fragment`` as the last paragraph of the reporter-context region.
 
-    A body without a delimited region is returned unchanged, so the shape check that
-    follows reports the missing region instead of this helper inventing one.
+    A body without a delimited region is returned unchanged, so the shape check that follows reports the missing region
+    instead of this helper inventing one.
     """
     lines = body.split("\n")
     close = next((index for index, line in enumerate(lines) if line.strip() == REPORTER_CONTEXT_CLOSE), None)
@@ -1468,14 +1452,13 @@ def cmd_extract(  # pylint: disable=too-many-arguments,too-many-positional-argum
 ) -> None:
     """File the issue for extracted content, before a ledger can reference it.
 
-    The link type states the relationship rather than assuming one: content that is
-    part of the same work becomes a sub-issue, while a different problem that merely
-    surfaced in the thread becomes an independent issue with a cross-reference.
+    The link type states the relationship rather than assuming one: content that is part of the same work becomes a
+    sub-issue, while a different problem that merely surfaced in the thread becomes an independent issue with a
+    cross-reference.
 
-    What is filed may be a short stub or a fully developed body; this is the only
-    surface that establishes the parent link, so a child of a program belongs here
-    rather than in ``create``, which files a standalone issue. Extraction still does
-    not recurse: developing a stub further is a separate invocation.
+    What is filed may be a short stub or a fully developed body; this is the only surface that establishes the parent
+    link, so a child of a program belongs here rather than in ``create``, which files a standalone issue. Extraction
+    still does not recurse: developing a stub further is a separate invocation.
     """
     _validate_write_environment(mode, "extract")
     owner_repo, _, approval = _prepare_extraction(parent, link, title, body_path, repo)
@@ -1512,10 +1495,9 @@ def cmd_open_draft_pr(  # pylint: disable=too-many-arguments,too-many-positional
 ) -> None:
     """Open the draft pull request the promoted change will be implemented on.
 
-    Draft is not a formality: the change is planned, not done, and a ready pull request
-    would invite review of an implementation that has not happened. Re-running cites the
-    existing pull request rather than opening a second one, so a resumed promotion is
-    idempotent.
+    Draft is not a formality: the change is planned, not done, and a ready pull request would invite review of an
+    implementation that has not happened. Re-running cites the existing pull request rather than opening a second one,
+    so a resumed promotion is idempotent.
     """
     _validate_write_environment(mode, "open-draft-pr")
     owner_repo, _, approval = _prepare_draft_pr(number, head, base, title, body_path, repo)

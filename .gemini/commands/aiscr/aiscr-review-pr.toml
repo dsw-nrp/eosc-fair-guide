@@ -1,5 +1,6 @@
+# delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00
 # aiscr:canonical=
-description = "Review a pull request or local Git scope with AIS CR track analysis and focused verification. For PRs, gather marked lineage, prepare the summary, and render the exact approval payload for deterministic grouped posting."
+description = "Use when the user asks to review a pull request or local Git changes. Perform track analysis and focused verification; for PRs, gather marked lineage and prepare the summary and exact approval payload for grouped posting."
 prompt = """
 <!-- aiscr:stop-anchor -->
 **Entry scope**
@@ -8,7 +9,7 @@ prompt = """
 - Do not open parallel vendor trees by default just in case.
 - Cross into another vendor tree only for explicit parity checks, generator work, or governance maintenance.
 
-Review a pull request or local Git scope with AIS CR track analysis and focused verification. For PRs, gather marked lineage, prepare the summary, and render the exact approval payload for deterministic grouped posting.
+Use when the user asks to review a pull request or local Git changes. Perform track analysis and focused verification; for PRs, gather marked lineage and prepare the summary and exact approval payload for grouped posting.
 
 Execute the AIS CR workflow `aiscr-review-pr`. The full workflow body for this command is the repository-local skill included below; follow it as the authoritative procedure, guardrails, and verification requirements.
 

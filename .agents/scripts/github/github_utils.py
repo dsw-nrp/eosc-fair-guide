@@ -2,17 +2,16 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
 
+# delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00
 """Shared GitHub write machinery for posting engines.
 
-Holds exactly what more than one posting engine needs: the ``gh`` process funnel and its file helpers,
-the posting identity-mode gate, the canonical approval digest, the machine-marker plus AI-assistance
-disclosure contract, and the shared provenance helpers (paired regions, disposition-ledger rendering,
-and content-edit-history lookup). Engine-specific payload shapes, validation rules, and command
-surfaces stay in the engine that owns them.
+Holds exactly what more than one posting engine needs: the ``gh`` process funnel and its file helpers, the posting
+identity-mode gate, the canonical approval digest, the machine-marker plus AI-assistance disclosure contract, and the
+shared provenance helpers (paired regions, disposition-ledger rendering, and content-edit-history lookup).
+Engine-specific payload shapes, validation rules, and command surfaces stay in the engine that owns them.
 
-Every function here is reachable from an enrolled sibling, so the module carries
-no hub-only assumption and imports only ``log_utils`` and ``proc_utils``, which
-travel with it in the same bundle.
+Every function here is reachable from an enrolled sibling, so the module carries no hub-only assumption and imports only
+``log_utils`` and ``proc_utils``, which travel with it in the same bundle.
 
 Contract: workflow/github-write-fidelity
 Class: library
@@ -52,10 +51,9 @@ PLUGIN_ONLY_MERMAID_FAMILIES = frozenset({"zenuml"})
 def unsupported_mermaid_family(diagram_text: str) -> str | None:
     """Return a refusal when a Mermaid block's family needs a third-party plugin.
 
-    Skip Mermaid front matter, comments, and initialization directives before
-    reading the declared family. Inspecting only the first content line lets a
-    preamble hide a plugin family; searching every token would reject core
-    diagrams that merely use a plugin's name in a label or configuration value.
+    Skip Mermaid front matter, comments, and initialization directives before reading the declared family. Inspecting
+    only the first content line lets a preamble hide a plugin family; searching every token would reject core diagrams
+    that merely use a plugin's name in a label or configuration value.
     """
     content = re.sub(r"%%\{.*?\}%%", "", diagram_text.removeprefix("\ufeff"), flags=re.DOTALL).lstrip()
     content = re.sub(r"\A---[ \t]*\r?\n.*?\r?\n---[ \t]*(?:\r?\n|$)", "", content, flags=re.DOTALL)
@@ -72,9 +70,8 @@ def unsupported_mermaid_family(diagram_text: str) -> str | None:
 class PostingContract(NamedTuple):
     """Machine marker and per-mode disclosure that a posted body must carry.
 
-    The automated slot is optional so a surface can state that it has no unattended
-    mode. A required slot forced every surface to invent a disclosure it never uses,
-    which is how an unrequested automated path reaches a command surface.
+    The automated slot is optional so a surface can state that it has no unattended mode. A required slot forced every
+    surface to invent a disclosure it never uses, which is how an unrequested automated path reaches a command surface.
     """
 
     marker: str
@@ -91,9 +88,8 @@ def abort(message: str) -> NoReturn:
 def run(cmd: list[str]) -> str:
     """Run a command and return stripped stdout. Raise SystemExit on failure.
 
-    Strict decoding: this funnel carries every ``gh`` call, including review and
-    summary bodies that are posted verbatim and digest-checked, so a substituted
-    character would corrupt published content.
+    Strict decoding: this funnel carries every ``gh`` call, including review and summary bodies that are posted verbatim
+    and digest-checked, so a substituted character would corrupt published content.
     """
     result = run_exact(cmd)
     if result.returncode != 0:
@@ -128,9 +124,8 @@ def graphql(
 def try_run(cmd: list[str]) -> tuple[bool, str]:
     """Run a command and report success with its stdout, never exiting.
 
-    Used where a failure is information rather than a reason to stop: a reference
-    that cannot be read is recorded as unfollowed so the boundary of what was read
-    stays visible, which a fatal funnel could not express.
+    Used where a failure is information rather than a reason to stop: a reference that cannot be read is recorded as
+    unfollowed so the boundary of what was read stays visible, which a fatal funnel could not express.
     """
     result = run_exact(cmd)
     if result.returncode != 0:
@@ -141,12 +136,10 @@ def try_run(cmd: list[str]) -> tuple[bool, str]:
 def try_run_tolerant(cmd: list[str]) -> tuple[bool, str]:
     """Run a command and report success with its stdout, substituting bad bytes.
 
-    Use only where the caller parses the output structurally and never publishes it,
-    as with a unified diff: the engine derives changed-line counts and line positions
-    from a patch and posts none of its text. A patch copies bytes from the changed
-    files, so a strict decode would abort the acquisition on a target that carries
-    non-UTF-8 content. Failure reporting is unchanged: a non-zero exit still returns
-    ``(False, "")``.
+    Use only where the caller parses the output structurally and never publishes it, as with a unified diff: the engine
+    derives changed-line counts and line positions from a patch and posts none of its text. A patch copies bytes from
+    the changed files, so a strict decode would abort the acquisition on a target that carries non-UTF-8 content.
+    Failure reporting is unchanged: a non-zero exit still returns ``(False, "")``.
     """
     result = run_diagnostic(cmd)
     if result.returncode != 0:
@@ -162,9 +155,8 @@ def paginated_rest_items(
 ) -> list[dict[str, Any]] | None:
     """Read every REST page and flatten its collection.
 
-    ``gh api --paginate --slurp`` always returns an array of page payloads. Plain
-    collection endpoints therefore produce ``[[...], [...]]`` while envelope
-    endpoints such as check runs produce ``[{"check_runs": [...]}, ...]``. Returning
+    ``gh api --paginate --slurp`` always returns an array of page payloads. Plain collection endpoints therefore produce
+    ``[[...], [...]]`` while envelope endpoints such as check runs produce ``[{"check_runs": [...]}, ...]``. Returning
     ``None`` distinguishes an unreadable endpoint from a readable empty collection.
     """
     ok, stdout = runner(["gh", "api", endpoint, "--paginate", "--slurp"])
@@ -196,9 +188,8 @@ def paginated_graphql_nodes(
 ) -> list[dict[str, Any]]:
     """Follow one GraphQL connection until ``hasNextPage`` is false.
 
-    The caller owns the query and returns the connection object for each cursor. This
-    keeps API-specific paths in their engines while the fail-closed cursor discipline
-    has one implementation.
+    The caller owns the query and returns the connection object for each cursor. This keeps API-specific paths in their
+    engines while the fail-closed cursor discipline has one implementation.
     """
     nodes: list[dict[str, Any]] = []
     connection = initial if initial is not None else fetch_page(None)
@@ -246,9 +237,8 @@ query($owner:String!, $name:String!, $number:Int!, $endCursor:String) {
 def fetch_content_edit_bodies(owner_repo: str, number: int, *, subject: str) -> list[str]:
     """Return every prior body GitHub recorded for an issue or pull-request description.
 
-    ``diff`` is documented as a summary and observably carries the complete body as of
-    that edit. Callers select by digest rather than by recency; an unusable history is
-    an empty list, not a nearest-neighbour guess.
+    ``diff`` is documented as a summary and observably carries the complete body as of that edit. Callers select by
+    digest rather than by recency; an unusable history is an empty list, not a nearest-neighbour guess.
     """
     if subject not in CONTENT_EDIT_SUBJECTS:
         abort(f"unsupported content-edit subject '{subject}'; expected issue or pullRequest.")
@@ -274,9 +264,8 @@ def select_body_by_digest(
 ) -> str | None:
     """Return the body whose digest matches, or ``None`` when none does.
 
-    Matching the digest, not the newest entry and not the posting account, is what
-    identifies the workflow's own post after a later human edit. A digest that appears
-    only as a leftover marker in a subsequent edit is not a match.
+    Matching the digest, not the newest entry and not the posting account, is what identifies the workflow's own post
+    after a later human edit. A digest that appears only as a leftover marker in a subsequent edit is not a match.
     """
     for body in bodies:
         if body and digest_fn(body) == digest:
@@ -375,8 +364,7 @@ def validate_write_environment(mode: str, subcommand: str) -> None:
 def canonical_digest(payload: dict[str, Any]) -> str:
     """Return the SHA-256 of a payload's canonical JSON encoding.
 
-    Approval binds to this digest, so the encoding is fixed: sorted keys, no
-    whitespace padding, and no ASCII escaping.
+    Approval binds to this digest, so the encoding is fixed: sorted keys, no whitespace padding, and no ASCII escaping.
     """
     encoded = json.dumps(
         payload,
@@ -390,9 +378,8 @@ def canonical_digest(payload: dict[str, Any]) -> str:
 def text_digest(text: str) -> str:
     """Return the SHA-256 of a posted body, insensitive to newline style.
 
-    A posted body round-trips through GitHub, which may normalise line endings, so
-    the digest that proves "nobody edited this since we posted it" must not change
-    when only the newline style does.
+    A posted body round-trips through GitHub, which may normalise line endings, so the digest that proves "nobody edited
+    this since we posted it" must not change when only the newline style does.
     """
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
@@ -406,10 +393,9 @@ def wrap_region(opening: str, payload: str, closing: str) -> str:
 def read_region(body: str, opening: str, closing: str) -> str | None:
     """Return the payload between the first opening and last closing marker.
 
-    Using the last closer is what lets a payload that quotes the closing marker
-    round-trip: the wrapper closer is written after the payload, so it is the last
-    occurrence. Reversed markers, or a closer that sits before the opener, yield
-    ``None`` rather than a truncated slice.
+    Using the last closer is what lets a payload that quotes the closing marker round-trip: the wrapper closer is
+    written after the payload, so it is the last occurrence. Reversed markers, or a closer that sits before the opener,
+    yield ``None`` rather than a truncated slice.
     """
     start = body.find(opening)
     if start == -1:
@@ -433,8 +419,8 @@ def read_region(body: str, opening: str, closing: str) -> str | None:
 def replace_after_region(body: str, closing: str, tail: str) -> str:
     """Keep the prefix through the last closer and replace everything after it.
 
-    The original sits inside the paired region; later rounds replace only the
-    tail, so a quoted closer inside the original cannot truncate the prefix.
+    The original sits inside the paired region; later rounds replace only the tail, so a quoted closer inside the
+    original cannot truncate the prefix.
     """
     end = body.rfind(closing)
     if end == -1:
@@ -452,8 +438,8 @@ def github_mention(login: str | None) -> str:
 def description_comment_url(html_url: str | None, issue_id: object) -> str:
     """Permalink the issue or pull-request body as its timeline comment.
 
-    ``owner/repo#N`` names the thread. The ``#issue-{id}`` fragment is the
-    description item itself, which is what a provenance record is quoting.
+    ``owner/repo#N`` names the thread. The ``#issue-{id}`` fragment is the description item itself, which is what a
+    provenance record is quoting.
     """
     base = str(html_url or "").split("#", 1)[0].rstrip("/")
     if base and issue_id is not None and str(issue_id) != "":
@@ -581,17 +567,14 @@ def gather_neighbourhood(  # pylint: disable=too-many-arguments,too-many-positio
 ) -> dict[str, Any]:
     """Read one hop of referenced issues and pull requests, and report the rest.
 
-    The traversal stops at a single hop. References discovered inside those items,
-    links off GitHub, references past the bound, and references that could not be read
-    are all reported rather than silently omitted, so the boundary of what was read
-    stays visible. ``fetch`` belongs to the calling engine, which knows how much of a
-    referenced item it needs.
+    The traversal stops at a single hop. References discovered inside those items, links off GitHub, references past the
+    bound, and references that could not be read are all reported rather than silently omitted, so the boundary of what
+    was read stays visible. ``fetch`` belongs to the calling engine, which knows how much of a referenced item it needs.
 
-    ``unbounded_refs`` are typed edges — a parent, a sub-issue — rather than mentions.
-    They are placed first, while every direct mention is still followed. The only bound
-    is depth: references discovered inside those first-hop items are reported rather than
-    fetched. A flat model applied to a structured graph weights an incidental mention the
-    same as the work item a sub-issue belongs to.
+    ``unbounded_refs`` are typed edges — a parent, a sub-issue — rather than mentions. They are placed first, while
+    every direct mention is still followed. The only bound is depth: references discovered inside those first-hop items
+    are reported rather than fetched. A flat model applied to a structured graph weights an incidental mention the same
+    as the work item a sub-issue belongs to.
     """
     refs, external = extract_references(owner_repo, texts)
     for ref in seed_refs:
@@ -652,11 +635,10 @@ CARRIED_REGION_SOURCE = "carried region"
 class SurfaceVocabulary(NamedTuple):
     """What a surface declares for the shared verifier to resolve against.
 
-    One type rather than two loose arguments, because these travel together and mean one
-    thing: the mechanism is shared, the vocabulary is the surface's. ``sections`` are the
-    names a disposition may target; ``region`` is the marker pair bounding the
-    carried-fragment region. Both default to unset so a surface that declares no shape is
-    checked on completeness and retention alone.
+    One type rather than two loose arguments, because these travel together and mean one thing: the mechanism is shared,
+    the vocabulary is the surface's. ``sections`` are the names a disposition may target; ``region`` is the marker pair
+    bounding the carried-fragment region. Both default to unset so a surface that declares no shape is checked on
+    completeness and retention alone.
     """
 
     sections: Collection[str] | None = None
@@ -686,16 +668,14 @@ _FENCE_LINE = re.compile(r"^\s*```")
 def normalize_posted_line_breaks(text: str) -> str:
     """Join soft-wrapped prose so a posted body renders as it was written.
 
-    GitHub renders a single newline inside a paragraph as a line break in issue,
-    pull-request, and comment bodies, so a hand-wrapped paragraph posts with a break
-    mid-sentence at every wrap. Joining continuation lines before the approval digest is
-    computed means the approver sees what will render and the approved bytes are the
-    posted bytes; normalising after approval would change content nobody agreed to.
+    GitHub renders a single newline inside a paragraph as a line break in issue, pull-request, and comment bodies, so a
+    hand-wrapped paragraph posts with a break mid-sentence at every wrap. Joining continuation lines before the approval
+    digest is computed means the approver sees what will render and the approved bytes are the posted bytes; normalising
+    after approval would change content nobody agreed to.
 
-    Structure whose line break is deliberate keeps its own line: headings, table rows,
-    list items, blockquotes, HTML and machine markers, and everything inside a fenced
-    block. Quoted evidence therefore survives byte-for-byte, which is why a reflow can
-    never misrepresent a diff or a code suggestion.
+    Structure whose line break is deliberate keeps its own line: headings, table rows, list items, blockquotes, HTML and
+    machine markers, and everything inside a fenced block. Quoted evidence therefore survives byte-for-byte, which is
+    why a reflow can never misrepresent a diff or a code suggestion.
 
     Line structure is the only thing that changes; wording and ordering do not.
     """
@@ -749,10 +729,9 @@ def normalize_posted_line_breaks(text: str) -> str:
 def segment_body(text: str) -> list[str]:
     """Split a body into the units a reconciliation must account for.
 
-    Segmentation is deterministic so the same original always yields the same units:
-    a heading or list item is one segment, and other runs of non-blank lines form a
-    paragraph segment. Verification compares dispositions against these units, so a
-    segmenter that drifted would silently change what "complete" means.
+    Segmentation is deterministic so the same original always yields the same units: a heading or list item is one
+    segment, and other runs of non-blank lines form a paragraph segment. Verification compares dispositions against
+    these units, so a segmenter that drifted would silently change what "complete" means.
     """
     segments: list[str] = []
     paragraph: list[str] = []
@@ -808,8 +787,8 @@ def description_edit_sources(
 def extract_anchors(text: str) -> list[str]:
     """Return the concrete facts a reconciliation must retain or declare dropped.
 
-    Narrative may be reworded freely; an inline code span, URL, or issue reference is a
-    fact whose silent loss is the failure a reviewer's reading was there to catch.
+    Narrative may be reworded freely; an inline code span, URL, or issue reference is a fact whose silent loss is the
+    failure a reviewer's reading was there to catch.
     """
     anchors: list[str] = []
     for pattern in ANCHOR_PATTERNS:
@@ -823,10 +802,9 @@ def extract_anchors(text: str) -> list[str]:
 def segment_sources(sources: list[tuple[str, str]]) -> list[dict[str, str]]:
     """Segment several labelled bodies into one indexed list carrying provenance.
 
-    A pull-request description is a single source; an issue reconciliation draws on the
-    description *and* its thread, and a disposition has to be able to say which comment a
-    segment came from. Flattening to one index keeps the ledger simple while the label
-    keeps the citation honest.
+    A pull-request description is a single source; an issue reconciliation draws on the description *and* its thread,
+    and a disposition has to be able to say which comment a segment came from. Flattening to one index keeps the ledger
+    simple while the label keeps the citation honest.
     """
     segments: list[dict[str, str]] = []
     for label, text in sources:
@@ -843,14 +821,13 @@ def verify_composition(
 ) -> list[dict[str, Any]]:
     """Check that a reconciliation declared everything it did with the original.
 
-    Establishes completeness (every segment carries a disposition) and retention (every
-    anchor is present, explicitly dropped with a reason, or declared preserved in the
-    provenance record), plus load-bearing carry and absorption. It cannot establish that
-    a disposition is *true* — no mechanism can — but it makes silent loss impossible,
-    which is the property a human reading supplied.
+    Establishes completeness (every segment carries a disposition) and retention (every anchor is present, explicitly
+    dropped with a reason, or declared preserved in the provenance record), plus load-bearing carry and absorption. It
+    cannot establish that a disposition is *true* — no mechanism can — but it makes silent loss impossible, which is the
+    property a human reading supplied.
 
-    ``vocabulary`` is what the target surface declares, passed in rather than assumed, so one
-    verifier serves every surface instead of hardcoding one surface's shape.
+    ``vocabulary`` is what the target surface declares, passed in rather than assumed, so one verifier serves every
+    surface instead of hardcoding one surface's shape.
 
     Returns findings; an empty list means the composition may be written.
     """
@@ -871,10 +848,9 @@ def verify_composition(
 def _rstripped_lines(text: str) -> str:
     """Return ``text`` with per-line trailing whitespace removed.
 
-    Containment tests run against this form because reporter and author input routinely
-    arrives as a blockquote whose lines carry trailing spaces. Segmentation already
-    rstrips, so an exact-substring test would miss a blockquote copied verbatim — the
-    very shape the absorption check exists to catch.
+    Containment tests run against this form because reporter and author input routinely arrives as a blockquote whose
+    lines carry trailing spaces. Segmentation already rstrips, so an exact-substring test would miss a blockquote copied
+    verbatim — the very shape the absorption check exists to catch.
     """
     return "\n".join(line.rstrip() for line in (text or "").replace("\r\n", "\n").replace("\r", "\n").split("\n"))
 
@@ -900,16 +876,14 @@ def _check_absorption(
 ) -> list[dict[str, Any]]:
     """Return a non-load-bearing segment sitting verbatim in the carried region is an appended draft.
 
-    Every governed surface requires narrative to be absorbed into its structured sections
-    and machine-read fragments to be carried unchanged. Only the second belongs in the
-    region, so a segment found there that is not load-bearing is the append this contract
-    forbids. The check examines the region rather than the whole body, because quoting a
-    phrase of the original inside an analytical section is legitimate reconciliation.
+    Every governed surface requires narrative to be absorbed into its structured sections and machine-read fragments to
+    be carried unchanged. Only the second belongs in the region, so a segment found there that is not load-bearing is
+    the append this contract forbids. The check examines the region rather than the whole body, because quoting a phrase
+    of the original inside an analytical section is legitimate reconciliation.
 
-    A segment labelled ``CARRIED_REGION_SOURCE`` is exempt. On a later round a surface's own
-    region content is reconciliation input, and carrying it forward verbatim is required
-    rather than forbidden — the two cases are indistinguishable by shape, which is why the
-    emitted source list names them differently.
+    A segment labelled ``CARRIED_REGION_SOURCE`` is exempt. On a later round a surface's own region content is
+    reconciliation input, and carrying it forward verbatim is required rather than forbidden — the two cases are
+    indistinguishable by shape, which is why the emitted source list names them differently.
     """
     carried = delimited_region(composed, region)
     if carried is None:
@@ -998,13 +972,11 @@ def _check_anchor_retention(
 ) -> list[dict[str, Any]]:
     """Every concrete fact is present in the result, explicitly dropped, or preserved.
 
-    ``preserved_anchors`` exists because retention would otherwise penalise the behaviour
-    absorption demands: reproducing the original in the body satisfies every anchor at
-    once, while absorbing prose properly leaves an author declaring anchors *dropped*
-    that remain verbatim in the provenance record. A gate whose compliant path costs more
-    than its non-compliant path gets satisfied the wrong way. ``dropped_anchors`` keeps
-    its meaning for an anchor absent from the body and the preserved original alike, so a
-    reader of the rendered ledger can still tell the two apart.
+    ``preserved_anchors`` exists because retention would otherwise penalise the behaviour absorption demands:
+    reproducing the original in the body satisfies every anchor at once, while absorbing prose properly leaves an author
+    declaring anchors *dropped* that remain verbatim in the provenance record. A gate whose compliant path costs more
+    than its non-compliant path gets satisfied the wrong way. ``dropped_anchors`` keeps its meaning for an anchor absent
+    from the body and the preserved original alike, so a reader of the rendered ledger can still tell the two apart.
     """
     declared = {
         str(item.get("anchor") or "")
@@ -1073,8 +1045,8 @@ def source_list_payload(
 def disclosure_for_mode(contract: PostingContract, mode: str) -> str:
     """Return the AI-assistance disclosure required for a posting mode.
 
-    A mode the contract does not declare is refused rather than defaulted, so a
-    surface that supports only supervised posting says so through its contract.
+    A mode the contract does not declare is refused rather than defaulted, so a surface that supports only supervised
+    posting says so through its contract.
     """
     if mode == "interactive":
         return contract.interactive_disclosure

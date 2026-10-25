@@ -2,19 +2,16 @@
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
 
+# delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00
 """Gather, render, and post governed GitHub PR reviews.
 
-``gather`` is read-only and acquires the pull-request diff. ``render`` creates a
-canonical review bundle and an approval view without contacting GitHub, and
-refuses when coverage is incomplete or a finding is unplaced. ``post`` accepts
-only that bundle, re-verifies the findings ledger, and enforces the selected
-identity mode and the unchanged interactive approval file before any GitHub write.
-``repair`` posts standalone inline roots
-and amends a submitted review body under its own approval digest.
-``post-summary`` posts the exact approved PR summary file to the explicitly
-selected surface. ``cleanup`` removes only the prescribed artifacts from one
-bounded review run directory in each root after the workflow reaches a terminal outcome.
-``prepare-run`` creates the directories and sidecar pointer before body authoring.
+``gather`` is read-only and acquires the pull-request diff. ``render`` creates a canonical review bundle and an approval
+view without contacting GitHub, and refuses when coverage is incomplete or a finding is unplaced. ``post`` accepts only
+that bundle, re-verifies the findings ledger, and enforces the selected identity mode and the unchanged interactive
+approval file before any GitHub write. ``repair`` posts standalone inline roots and amends a submitted review body under
+its own approval digest. ``post-summary`` posts the exact approved PR summary file to the explicitly selected surface.
+``cleanup`` removes only the prescribed artifacts from one bounded review run directory in each root after the workflow
+reaches a terminal outcome. ``prepare-run`` creates the directories and sidecar pointer before body authoring.
 
 Contract: review/pr-review, workflow/github-write-fidelity
 Class: tool
@@ -357,9 +354,8 @@ def _commit_reachable_on_platform(owner_repo: str, sha: str) -> bool:
 def _load_local_diff(path: str) -> dict[str, str]:
     """Parse a supplied patch, substituting bytes that are not valid UTF-8.
 
-    A patch is parsed structurally — changed-line coverage and inline anchors, never
-    published text — and the documented remedy writes it with ``git diff --output=``,
-    whose bytes are raw, so an undecodable byte must not abort the read.
+    A patch is parsed structurally — changed-line coverage and inline anchors, never published text — and the documented
+    remedy writes it with ``git diff --output=``, whose bytes are raw, so an undecodable byte must not abort the read.
     """
     try:
         raw = Path(path).read_bytes()
@@ -622,8 +618,8 @@ def _thread_roots_from_conversation(conversation: dict[str, Any]) -> list[dict[s
 def _occupied_thread_locations(existing_threads: list[dict[str, Any]]) -> set[tuple[str, int]]:
     """Path and line pairs that already have a thread root.
 
-    Reply matching uses path and line, not side. A new inline root at one of
-    these locations is a duplicate thread, not a new finding.
+    Reply matching uses path and line, not side. A new inline root at one of these locations is a duplicate thread, not
+    a new finding.
     """
     occupied: set[tuple[str, int]] = set()
     for thread in existing_threads:
@@ -643,10 +639,9 @@ def _enumerate_outstanding_findings(
 ) -> list[dict[str, Any]]:
     """Enumerate every mechanically visible inline thread with its reviewer history.
 
-    ``prior_review_reply`` records whether the thread already carries a reply from an
-    author of a marked AIS CR review: at gather time every such reply is from a prior
-    round, so it is the mechanical basis a standing dispute rests on when a later round
-    records the dispute without replying again.
+    ``prior_review_reply`` records whether the thread already carries a reply from an author of a marked AIS CR review:
+    at gather time every such reply is from a prior round, so it is the mechanical basis a standing dispute rests on
+    when a later round records the dispute without replying again.
     """
     marked_ids: set[int] = set()
     for comment in lineage.get("last_review_comments") or []:
@@ -691,9 +686,9 @@ def _enumerate_outstanding_findings(
 def _emit_json(payload: Any, output_path: str | None) -> None:
     """Emit JSON to stdout, or to an explicit UTF-8 destination.
 
-    A shell redirect is not a safe substitute: Windows PowerShell 5.1 writes UTF-16 for ``>``,
-    which every UTF-8 reader in this workflow rejects. Writing the file here keeps the encoding
-    a property of the producer rather than of the operator's shell.
+    A shell redirect is not a safe substitute: Windows PowerShell 5.1 writes UTF-16 for ``>``, which every UTF-8 reader
+    in this workflow rejects. Writing the file here keeps the encoding a property of the producer rather than of the
+    operator's shell.
     """
     rendered = json.dumps(payload, ensure_ascii=False, indent=2)
     if output_path is None:
@@ -807,11 +802,10 @@ def _no_reply_refusal(item_id: str, disposition: str, platform_resolved: bool) -
 def _validate_thread_communication(item: dict[str, Any], item_id: str, disposition: str) -> None:
     """Refuse a mechanically enumerated thread whose disposition is not visibly communicated.
 
-    A reply is owed where the disposition changes what a reader of the thread's current state would
-    conclude. Only agreed closure (a platform-resolved thread confirmed resolved), unchanged open
-    work (an unresolved thread left not-addressed), and a standing dispute (a platform-resolved
-    thread whose earlier reviewer reply the gathered state carries, checked where that state is
-    available) may take no-reply.
+    A reply is owed where the disposition changes what a reader of the thread's current state would conclude. Only
+    agreed closure (a platform-resolved thread confirmed resolved), unchanged open work (an unresolved thread left
+    not-addressed), and a standing dispute (a platform-resolved thread whose earlier reviewer reply the gathered state
+    carries, checked where that state is available) may take no-reply.
     """
     communication = item.get("communication")
     if communication not in THREAD_COMMUNICATIONS:
@@ -844,10 +838,9 @@ def _validate_thread_communication(item: dict[str, Any], item_id: str, dispositi
 def _validate_reopen_decision(item: dict[str, Any], item_id: str, platform_resolved: bool, communication: str) -> None:
     """Require an explicit reopen decision wherever a reply would otherwise land out of view.
 
-    Replying to a resolved thread does not reopen it, so the reply stays collapsed. That
-    makes the decision to leave it collapsed a real choice, and one that reverses nothing;
-    the decision to reopen reverses a participant's closure. Both are recorded per thread
-    and both carry a rationale, so neither happens by default.
+    Replying to a resolved thread does not reopen it, so the reply stays collapsed. That makes the decision to leave it
+    collapsed a real choice, and one that reverses nothing; the decision to reopen reverses a participant's closure.
+    Both are recorded per thread and both carry a rationale, so neither happens by default.
     """
     decision_owed = platform_resolved and communication == COMMUNICATION_REPLY
     reopen = item.get("reopen")
@@ -1166,9 +1159,9 @@ def _outstanding_disposition_lines(item: dict[str, Any]) -> list[str]:
 def _bulk_run_for_handoff(view_path: str) -> Path | None:
     """Return the bulk run directory matching a visible hand-off view, else None.
 
-    The hand-off directory is a direct child of ``REVIEW_HANDOFF_ROOT`` with the same run
-    name as its bulk counterpart, so the pointer can be derived without a second argument.
-    A view written anywhere else is left without a pointer rather than guessing a target.
+    The hand-off directory is a direct child of ``REVIEW_HANDOFF_ROOT`` with the same run name as its bulk counterpart,
+    so the pointer can be derived without a second argument. A view written anywhere else is left without a pointer
+    rather than guessing a target.
     """
     candidate = Path(view_path)
     if not candidate.is_absolute():
@@ -1624,11 +1617,10 @@ def _thread_comment_connection(thread_id: str, cursor: str | None) -> dict[str, 
 def _fetch_conversation(owner_repo: str, pr_number: int) -> dict[str, Any]:
     """Gather every comment on the PR, including hidden, resolved, and outdated.
 
-    A resolved thread usually holds the reasoning behind the current state, and a
-    minimized comment is hidden from the reader rather than from the record, so
-    neither is skipped. REST exposes neither flag; GraphQL is the only surface that
-    does, which is why these connections are read through paginated GraphQL rather
-    than flattened into REST records that lose thread state.
+    A resolved thread usually holds the reasoning behind the current state, and a minimized comment is hidden from the
+    reader rather than from the record, so neither is skipped. REST exposes neither flag; GraphQL is the only surface
+    that does, which is why these connections are read through paginated GraphQL rather than flattened into REST records
+    that lose thread state.
     """
     owner, _, name = owner_repo.partition("/")
     discussion_nodes = _paginated_graphql_nodes(
@@ -1794,16 +1786,14 @@ def _gather_neighbourhood(
 def _produce_sibling_local_diff(sibling: str, base_sha: str, head_sha: str, dest_path: str) -> bool:
     """Produce the local diff for a registered repository through the acquisition bridge.
 
-    The engine is the producer: it invokes the bridge, pins the child's pipe encoding
-    through the environment, and writes the patch file itself, so no operator shell
-    redirect can re-encode content this engine later reads back as strict UTF-8. The
-    merge-base is resolved first, so the patch carries the same scope as the in-repo
-    three-dot comparison.
+    The engine is the producer: it invokes the bridge, pins the child's pipe encoding through the environment, and
+    writes the patch file itself, so no operator shell redirect can re-encode content this engine later reads back as
+    strict UTF-8. The merge-base is resolved first, so the patch carries the same scope as the in-repo three-dot
+    comparison.
 
-    Returns ``False`` when the bridge is not part of this copy, or reports an absent or
-    failed outcome; the caller then leaves coverage incomplete rather than consuming a
-    destination file left by an earlier round, because a stale patch would fabricate
-    complete coverage.
+    Returns ``False`` when the bridge is not part of this copy, or reports an absent or failed outcome; the caller then
+    leaves coverage incomplete rather than consuming a destination file left by an earlier round, because a stale patch
+    would fabricate complete coverage.
     """
     if not _BRIDGE_SCRIPT.is_file():
         log_warn(
@@ -1904,9 +1894,8 @@ def cmd_gather(  # pylint: disable=too-many-locals
 def _reopen_threads(targets: list[tuple[str, str]]) -> None:
     """Unresolve each approved thread so the reply it just received is visible.
 
-    Runs after the replies, not before: a reply that lands and then fails to reopen leaves a
-    recoverable collapsed comment, while a reopen that lands and then fails to reply leaves a
-    thread reopened with nothing explaining why.
+    Runs after the replies, not before: a reply that lands and then fails to reopen leaves a recoverable collapsed
+    comment, while a reopen that lands and then fails to reply leaves a thread reopened with nothing explaining why.
     """
     for item_id, node_id in targets:
         payload = _graphql(UNRESOLVE_THREAD_MUTATION, threadId=node_id)
@@ -2299,13 +2288,11 @@ def _normalized_marker_body(body: str) -> str:
 def _generated_portion(body: str) -> str:
     """Return the body outside the delimited author region.
 
-    Scoping the digest here is what lets the two kinds of hand edit resolve without
-    arbitration: an edit to a generated section trips the digest and is surfaced as a
-    ``description edit`` source the ledger must account for before the write, and only
-    then is that section regenerated, because the surface belongs to the workflow; an
-    edit the author makes inside their own region never trips it and is carried forward.
-    Tripping the digest is therefore not a licence to overwrite — it is what forces the
-    edit through the dispositions instead of discarding it silently.
+    Scoping the digest here is what lets the two kinds of hand edit resolve without arbitration: an edit to a generated
+    section trips the digest and is surfaced as a ``description edit`` source the ledger must account for before the
+    write, and only then is that section regenerated, because the surface belongs to the workflow; an edit the author
+    makes inside their own region never trips it and is carried forward. Tripping the digest is therefore not a licence
+    to overwrite — it is what forces the edit through the dispositions instead of discarding it silently.
     """
     normalized = _normalized_marker_body(body)
     start = normalized.find(AUTHOR_CONTEXT_OPEN)
@@ -2367,11 +2354,10 @@ def _reconciliation_sources(
 ) -> tuple[list[tuple[str, str]], bool]:
     """Return the archived original plus any externally edited hunks, under one vocabulary.
 
-    A first takeover's source is the author's own description, labelled ``description``. On a
-    later round the source is this body's carried ``Author context`` region, which is a
-    different thing: carrying it forward verbatim is required, where reproducing the author's
-    narrative in that region is not. The labels differ so the shared verifier can tell them
-    apart instead of guessing from shape.
+    A first takeover's source is the author's own description, labelled ``description``. On a later round the source is
+    this body's carried ``Author context`` region, which is a different thing: carrying it forward verbatim is required,
+    where reproducing the author's narrative in that region is not. The labels differ so the shared verifier can tell
+    them apart instead of guessing from shape.
     """
     if not state["workflow_owned"]:
         return [("description", description)], False
@@ -2455,9 +2441,9 @@ def cmd_archive_description(
 ) -> None:
     """Keep the provenance record: the verbatim original plus the current ledger.
 
-    The original is written once and never rewritten, so the pre-takeover state stays
-    recoverable and attributed. The ledger is replaced each round, so an unattended
-    reconciliation remains auditable by someone who never watched the run.
+    The original is written once and never rewritten, so the pre-takeover state stays recoverable and attributed. The
+    ledger is replaced each round, so an unattended reconciliation remains auditable by someone who never watched the
+    run.
     """
     _validate_write_environment(mode, "archive-description")
     owner_repo = _resolve_repo(repo)
@@ -2555,9 +2541,8 @@ def cmd_verify_composition(
 def declared_section_names() -> frozenset[str]:
     """Section names a ledger may route an absorbed segment to on this surface.
 
-    The shared verifier resolves a disposition target against whichever vocabulary the
-    surface declares, so this derives from the same heading tuple the shape check uses
-    rather than repeating it.
+    The shared verifier resolves a disposition target against whichever vocabulary the surface declares, so this derives
+    from the same heading tuple the shape check uses rather than repeating it.
     """
     return frozenset(heading.removeprefix("## ") for heading in SUMMARY_SECTION_HEADINGS)
 
@@ -2565,10 +2550,9 @@ def declared_section_names() -> frozenset[str]:
 def _load_summary(path: str) -> str:
     """Read the authored summary and normalise its line breaks before anything digests it.
 
-    GitHub renders a single newline inside a paragraph as a line break, so a hand-wrapped
-    summary would post with a break mid-sentence. Normalising here — the one funnel local
-    verification and the write both read through — keeps the approved bytes and the posted
-    bytes identical, and leaves fenced evidence and machine markers untouched.
+    GitHub renders a single newline inside a paragraph as a line break, so a hand-wrapped summary would post with a
+    break mid-sentence. Normalising here — the one funnel local verification and the write both read through — keeps the
+    approved bytes and the posted bytes identical, and leaves fenced evidence and machine markers untouched.
     """
     try:
         with open(path, encoding="utf-8", newline="") as handle:
@@ -2781,8 +2765,7 @@ def _prepare_description_takeover(
 ) -> str | None:
     """Enforce the takeover preconditions and stamp the posted digest.
 
-    Returns the body to write, or ``None`` when the generated portion is unchanged and
-    there is nothing to post.
+    Returns the body to write, or ``None`` when the generated portion is unchanged and there is nothing to post.
     """
     description = _fetch_pr_description(pr_number, owner_repo)
     state = _description_state(description)
@@ -2835,9 +2818,9 @@ def cmd_post_summary(  # pylint: disable=too-many-arguments,too-many-positional-
 ) -> None:
     """Post the marked PR summary to the explicitly selected surface.
 
-    Reconciliation runs in both modes; what differs is the supervision. A reviewer reads
-    the dispositions in interactive mode, and the same dispositions are verified
-    mechanically here, so an unattended run carries every obligation an attended one does.
+    Reconciliation runs in both modes; what differs is the supervision. A reviewer reads the dispositions in interactive
+    mode, and the same dispositions are verified mechanically here, so an unattended run carries every obligation an
+    attended one does.
     """
     if target not in SUMMARY_TARGETS:
         _abort("post-summary requires --target comment or --target description.")
@@ -2903,8 +2886,8 @@ def _cleanup_candidate(work_dir: str) -> tuple[Path, Path, Path, Path]:
 def _validated_cleanup_entries(root: Path, candidate: Path, *, required: bool = True) -> list[Path]:
     """Validate one root's run directory and return its entries.
 
-    An absent hand-off directory is an empty class, not a failure: a run that rendered no
-    hand-off has nothing to leak. The bulk directory identifies the run and must exist.
+    An absent hand-off directory is an empty class, not a failure: a run that rendered no hand-off has nothing to leak.
+    The bulk directory identifies the run and must exist.
     """
     try:
         local_scratch_paths.checked_handoff_file(REPO_ROOT, candidate)

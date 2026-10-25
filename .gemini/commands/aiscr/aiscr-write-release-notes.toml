@@ -1,5 +1,6 @@
+# delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00
 # aiscr:canonical=
-description = "Generate semantic, issue/PR-aligned release notes for a target AIS CR repository. Stores output in .agents/reports/release-notes/. Optionally updates the GitHub release body (opt-in, requires user approval)."
+description = "Use when the user asks to generate or revise semantic, issue/PR-aligned release notes for an AIS CR repository. Store them under .agents/reports/release-notes/; updating the GitHub release body requires explicit approval."
 prompt = """
 <!-- aiscr:stop-anchor -->
 **Entry scope**
@@ -8,7 +9,7 @@ prompt = """
 - Do not open parallel vendor trees by default just in case.
 - Cross into another vendor tree only for explicit parity checks, generator work, or governance maintenance.
 
-Generate semantic, issue/PR-aligned release notes for a target AIS CR repository. Stores output in .agents/reports/release-notes/. Optionally updates the GitHub release body (opt-in, requires user approval).
+Use when the user asks to generate or revise semantic, issue/PR-aligned release notes for an AIS CR repository. Store them under .agents/reports/release-notes/; updating the GitHub release body requires explicit approval.
 
 Execute the AIS CR workflow `aiscr-write-release-notes`. The full workflow body for this command is the repository-local skill included below; follow it as the authoritative procedure, guardrails, and verification requirements.
 
