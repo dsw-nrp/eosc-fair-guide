@@ -3,8 +3,9 @@ name: Live health and source watch
 # Trusted default-branch code on a schedule, separate from the deterministic pull-request checks. Weekly: links,
 # connector availability, stale dated statuses and the EOSC CZ pages the guide depends on. In the first weekly run of
 # each month, or on request: FAIR Champion remeasurement of the core and the reviewed candidates with the existing
-# bounded probe. Findings become issues keyed for deduplication after a persistence threshold; nothing is committed or
-# pushed.
+# bounded probe. The watch job observes with a read-only token; the publish job rebuilds the one maintenance digest
+# from that observation, the audit's section and the maintainers' keyed tasks, then saves the state the next run
+# continues. Nothing is committed or pushed.
 
 on:
   schedule:
@@ -31,13 +32,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Observation only: its token can read the previous run's state artifact and nothing else.
   watch:
     if: github.event_name == 'schedule' || inputs.parts != 'audit'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
+      actions: read
       contents: read
-      issues: write
+    outputs:
+      artifact: health-watch-${{ github.run_id }}-${{ github.run_attempt }}
     env:
       PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
     steps:
@@ -72,7 +76,25 @@ jobs:
           npx playwright install --with-deps chromium
           python scripts/build_site.py
           node scripts/probe_champion.mjs --jobs 4 --output .cache/watch/champion.json || true
-      - name: Restore the previous watch state
+      # State comes only from this workflow's own default-branch runs; a branch or fork run cannot supply it.
+      - id: previous
+        name: Find the previous watch state
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { previousState } = require('./.github/scripts/health-digest.cjs');
+            await previousState({ github, context, core });
+      - name: Download the previous watch state
+        if: steps.previous.outputs.run != ''
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: health-watch-state
+          path: .cache/watch-state
+          run-id: ${{ steps.previous.outputs.run }}
+          github-token: ${{ github.token }}
+      # Until the first state artifact exists, the version 1 state kept in the Actions cache is migrated once.
+      - name: Restore the version 1 watch state
+        if: steps.previous.outputs.run == ''
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/watch-state
@@ -80,15 +102,9 @@ jobs:
           restore-keys: health-watch-state-
       - name: Observe links, services, pages and statuses
         run: |
-          python scripts/watch_sources.py --state .cache/watch-state/state.json --output .cache/watch \
+          python scripts/watch_sources.py observe --state .cache/watch-state/state.json --output .cache/watch \
             --champion .cache/watch/champion.json
-          mkdir -p .cache/watch-state && cp .cache/watch/state.json .cache/watch-state/state.json
           cat .cache/watch/summary.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Save the watch state for the next run
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/watch-state
-          key: health-watch-state-${{ github.run_id }}
       - name: Save the observations
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -97,12 +113,6 @@ jobs:
           path: .cache/watch/
           if-no-files-found: warn
           retention-days: 90
-      - name: Open, update or close keyed issues
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const { apply } = require('./.github/scripts/health-issues.cjs');
-            await apply({ github, context, core });
 
   # The read-only settings and Project audit, on its own so that it can neither stop nor be stopped by the watch.
   # The job's token reads the repository (environments need Actions read, Project completeness Issues read); the
@@ -118,6 +128,8 @@ jobs:
       actions: read
       contents: read
       issues: read
+    outputs:
+      section: settings-audit-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -153,3 +165,70 @@ jobs:
           path: .cache/audit/project-and-settings.md
           if-no-files-found: warn
           retention-days: 90
+
+  # The only writer. It runs after a successful watch whether or not the audit succeeded; a digest without the audit
+  # says so. A refused or failed publication keeps the observed state but not what it would have reported, so the next
+  # run still comments on the change.
+  publish:
+    needs: [watch, audit]
+    if: always() && needs.watch.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.watch.outputs.artifact }}
+          path: .cache/watch
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: needs.audit.result == 'success'
+        with:
+          name: ${{ needs.audit.outputs.section }}
+          path: .cache/audit
+      - id: prepare
+        name: Find the predecessor and the maintainers' tasks
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { prepare } = require('./.github/scripts/health-digest.cjs');
+            await prepare({ github, context, core });
+      - name: Render the digest
+        env:
+          PREDECESSOR: ${{ steps.prepare.outputs.predecessor }}
+        run: |
+          python scripts/watch_sources.py render --watch .cache/watch --tasks .cache/digest/tasks.json \
+            --audit .cache/audit/project-and-settings.md ${PREDECESSOR:+--predecessor "$PREDECESSOR"} \
+            --output .cache/digest
+      - id: publish
+        name: Rebuild the digest, comment on change and attach tasks
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { publish } = require('./.github/scripts/health-digest.cjs');
+            await publish({ github, context, core });
+      - name: Choose the state the next run continues
+        if: always()
+        env:
+          PUBLISHED: ${{ steps.publish.outputs.published }}
+        run: |
+          mkdir -p .cache/watch-state
+          if [ "$PUBLISHED" = true ]; then source=.cache/digest/state.json; else source=.cache/watch/state.json; fi
+          cp "$source" .cache/watch-state/state.json
+      - name: Save the watch state for the next run
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: health-watch-state
+          path: .cache/watch-state/state.json
+          if-no-files-found: error
+          retention-days: 90
+          overwrite: true

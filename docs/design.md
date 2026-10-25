@@ -637,10 +637,10 @@ directs the maintainer to inspect the branch and run because the commit may have
 failed. It does not imply an unchanged branch or automatically undo an already published repair.
 
 `health-watch.yml` checks links, connectors, stale dates and watched EOSC CZ page content, excluding
-navigation/header/footer. Champion remeasurement is monthly or requested. Repeated failures precede
-issues; recovery closes them. Changed page items and core-test health changes have stable issue keys.
-Candidates are proposed for review, never selected automatically. The issue publisher has narrow issue
-write access and a per-run bound. Historical observations keep their source dates.
+navigation, headers, footers and pagination. Champion remeasurement is monthly or requested. A
+read-only job observes; the only writer rebuilds one maintenance digest issue from versioned state,
+comments only on a meaningful change and attaches maintainers' keyed tasks as sub-issues. Candidates are
+proposed for review, never selected automatically. Historical observations keep their source dates.
 
 ### Production, preview and release
 

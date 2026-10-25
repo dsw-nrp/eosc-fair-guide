@@ -166,7 +166,8 @@ každý týden obnoví snímky Hesláře, re3data, FIP Dashboardu, NKR, nástroj
 snímek beze změny, když odpověď neprojde kontrolou, a každý změněný zdroj navrhne jako samostatný pull request přes
 GitHub App repozitáře.
 `health-watch.yml` každý týden kontroluje odkazy, služby, zastaralá data a stránky EOSC CZ, na kterých průvodce
-stojí, jednou měsíčně znovu změří testy FAIR Champion a pro každý trvající problém otevře jedno issue. Žádný z nich
+stojí, jednou měsíčně znovu změří testy FAIR Champion a výsledky shrne v jednom průběžně obnovovaném přehledu údržby
+(issue). Žádný z nich
 necommituje ani neslučuje; nastavení aplikace popisuje [konfigurace vydání](docs/deployment.md#release-preparation-and-tagging).
 
 Verzi vydání určuje [content/guide.toml](content/guide.toml). Postup popisuje

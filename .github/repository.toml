@@ -168,7 +168,7 @@ name = "area:maintenance"
 color = "d4c5f9"
 description = "The health digest and the tasks it spawns"
 paths = [
-  ".github/workflows/health-watch.yml", ".github/scripts/health-issues.cjs", ".github/health-watch.toml",
+  ".github/workflows/health-watch.yml", ".github/scripts/health-digest.cjs", ".github/health-watch.toml",
   "scripts/watch_sources.py", "docs/maintenance.md",
 ]
 
@@ -412,9 +412,16 @@ jobs = ["fix"]
 github = { contents = "read" }
 app = { contents = "write", pull-requests = "write" }
 
+# The watch only observes; it reads the previous run's state artifact.
 [[token]]
 workflow = "health-watch.yml"
 jobs = ["watch"]
+github = { actions = "read", contents = "read" }
+
+# The digest publisher is the watch's only writer, and it writes only issues.
+[[token]]
+workflow = "health-watch.yml"
+jobs = ["publish"]
 github = { contents = "read", issues = "write" }
 
 # The weekly audit is the only job that reads the Project, and it reads nothing else with the App's token.

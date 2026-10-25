@@ -172,7 +172,7 @@ refreshes the Heslář, re3data, FIP Dashboard, NKR, KNAV, FAIRsharing and DataC
 snapshot unchanged when a response fails validation and proposes each changed source as its own pull request
 through the repository's GitHub App.
 `health-watch.yml` checks links, services, stale dates and the EOSC CZ pages the guide depends on weekly, remeasures
-FAIR Champion tests monthly and opens one issue per persistent problem. Neither commits or merges; see
+FAIR Champion tests monthly and keeps one maintenance digest issue up to date. Neither commits or merges; see
 [deployment configuration](docs/deployment.md#release-preparation-and-tagging) for the App settings.
 
 The release version comes from [content/guide.toml](content/guide.toml). See

@@ -618,14 +618,19 @@ class WorkflowContracts(unittest.TestCase):
         workflow = load(".github/workflows/health-watch.yml")
         self.assertEqual(set(workflow["on"]), {"schedule", "workflow_dispatch"})
         self.assertEqual(workflow["permissions"], {"contents": "read"})
-        job = workflow["jobs"]["watch"]
-        self.assertEqual(job["permissions"], {"contents": "read", "issues": "write"})
-        checkout = next(step for step in job["steps"] if step.get("uses", "").startswith("actions/checkout@"))
-        self.assertEqual(checkout["with"]["ref"], "${{ github.event.repository.default_branch }}")
-        self.assertEqual(checkout["with"]["persist-credentials"], "false")
-        self.assertIn("scripts/watch_sources.py", text)
+        jobs = workflow["jobs"]
+        # The watch observes with a read-only token; the publisher is the only writer, and it writes only issues.
+        self.assertEqual(jobs["watch"]["permissions"], {"actions": "read", "contents": "read"})
+        self.assertEqual(jobs["publish"]["permissions"], {"contents": "read", "issues": "write"})
+        for name in ("watch", "publish"):
+            job = jobs[name]
+            checkout = next(step for step in job["steps"] if step.get("uses", "").startswith("actions/checkout@"))
+            self.assertEqual(checkout["with"]["ref"], "${{ github.event.repository.default_branch }}")
+            self.assertEqual(checkout["with"]["persist-credentials"], "false")
+            self.assertNotIn("secrets.", json.dumps(job), f"the {name} job holds no credential")
+        self.assertIn("scripts/watch_sources.py observe", text)
+        self.assertIn("scripts/watch_sources.py render", text)
         self.assertIn("scripts/probe_champion.mjs --jobs 4", text)
-        self.assertNotIn("secrets.", json.dumps(job), "the watch holds no credential")
         self.assertNotIn("git push", text)
         # Live monitoring stays out of the deterministic pull-request checks.
         self.assertNotIn("watch_sources", (ROOT / ".github/workflows/checks.yml").read_text(encoding="utf-8"))
@@ -689,8 +694,43 @@ class WorkflowContracts(unittest.TestCase):
         jobs = workflow["jobs"]
         self.assertEqual(jobs["watch"]["if"], "github.event_name == 'schedule' || inputs.parts != 'audit'")
         self.assertEqual(jobs["audit"]["if"], "github.event_name == 'schedule' || inputs.parts != 'watch'")
-        # The audit alone opens, edits and closes no issue: it holds no write permission.
+        # The audit alone opens, edits and closes no issue: it holds no write permission, and the publisher runs only
+        # after a watch that succeeded.
         self.assertFalse([value for value in jobs["audit"]["permissions"].values() if value == "write"])
+        self.assertEqual(jobs["publish"]["if"], "always() && needs.watch.result == 'success'")
+
+    def test_the_watch_state_continues_only_from_trusted_runs(self) -> None:
+        jobs = load(".github/workflows/health-watch.yml")["jobs"]
+        steps = {step.get("id") or step.get("name"): step for step in jobs["watch"]["steps"]}
+        self.assertIn("previousState", steps["previous"]["with"]["script"])
+        download = steps["Download the previous watch state"]
+        self.assertEqual(download["if"], "steps.previous.outputs.run != ''")
+        self.assertEqual(
+            (download["with"]["name"], download["with"]["run-id"]),
+            ("health-watch-state", "${{ steps.previous.outputs.run }}"),
+        )
+        # The version 1 cache is only a fallback until the first state artifact exists; nothing saves to it now.
+        self.assertEqual(steps["Restore the version 1 watch state"]["if"], "steps.previous.outputs.run == ''")
+        workflow = (ROOT / ".github/workflows/health-watch.yml").read_text(encoding="utf-8")
+        self.assertNotIn("actions/cache/save@", workflow)
+        publish = jobs["publish"]
+        self.assertEqual(publish["needs"], ["watch", "audit"])
+        steps = {step.get("id") or step.get("name"): step for step in publish["steps"]}
+        self.assertIn("--predecessor", steps["Render the digest"]["run"])
+        # Only a published digest advances what counts as reported; a refusal or failure keeps the observed state.
+        choose = steps["Choose the state the next run continues"]
+        self.assertEqual(
+            (choose["if"], choose["env"]["PUBLISHED"]), ("always()", "${{ steps.publish.outputs.published }}")
+        )
+        self.assertIn(
+            'if [ "$PUBLISHED" = true ]; then source=.cache/digest/state.json; else source=.cache/watch/state.json',
+            choose["run"],
+        )
+        save = steps["Save the watch state for the next run"]
+        self.assertEqual(
+            {key: save["with"][key] for key in ("name", "retention-days", "overwrite", "if-no-files-found")},
+            {"name": "health-watch-state", "retention-days": "90", "overwrite": "true", "if-no-files-found": "error"},
+        )
 
     def test_adoption_steps_preserve_failure_before_writing_the_summary(self) -> None:
         # Check adoption itself: condition layout and shell selection cannot bypass this invariant.

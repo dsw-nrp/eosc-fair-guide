@@ -338,6 +338,9 @@ class DigestTests(unittest.TestCase):
         run = Run()
         found, body, *_ = run(Fetcher(), champion)
         self.assertEqual(found["stale:resources[b].asOf"]["section"], "stale")
+        # The knowledge-base scenario: the digest names the resource and its last verified date for triage.
+        self.assertIn("## Stale statuses (1)", body)
+        self.assertIn("`resources[b].asOf` is dated 2025-01-01", body)
         self.assertEqual(found["champion-candidate:candidate_test"]["section"], "candidate")
         self.assertIn("not a selection", body)
         found, body, *_ = run(Fetcher())  # a weekly run without remeasurement keeps the candidate
