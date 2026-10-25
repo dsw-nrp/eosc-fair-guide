@@ -155,12 +155,13 @@ async function propose({github, context, core}, read = readFileSync, root, bot =
   core.info(pr.html_url);
   core.setOutput('url', pr.html_url);
 }
-/** The tag ruleset requires a successful `github-pages` deployment of the tagged commit. Before tagging, require one
-    for the current default-branch commit, or name the deployment or publish run to wait for. */
+/** Only a staged commit is tagged: before tagging, require the successful `staging` record that publication writes once
+    the current default-branch commit is live under /next/, or name the deployment or publish run to wait for. The tag
+    ruleset requires the same record. */
 async function deployed({github, context, core}) {
   const {base} = dispatch(context);
   await current(github, context, base);
-  const deployments = await github.paginate(github.rest.repos.listDeployments, {...context.repo, environment: 'github-pages',
+  const deployments = await github.paginate(github.rest.repos.listDeployments, {...context.repo, environment: 'staging',
     sha: context.sha, per_page: 100});
   for (const deployment of deployments.filter(entry => entry.sha === context.sha)) {
     const statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, {...context.repo,

@@ -113,8 +113,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
+    # The approval gate only: publication records production once the release is live.
     environment:
       name: production
+      deployment: false
     steps:
       - name: Record the approved production bytes
         env:

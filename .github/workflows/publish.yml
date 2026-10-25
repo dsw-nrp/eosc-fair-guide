@@ -75,6 +75,7 @@ jobs:
     permissions:
       actions: read
       contents: read
+      deployments: write
       id-token: write
       pages: write
     environment:
@@ -126,6 +127,21 @@ jobs:
           path: .cache/pages/
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      # Each channel's environment records what is live at its address, only now that it is; release tags require the
+      # staging record. github-pages remains the record of the Pages deployment itself.
+      - name: Record the live channels
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        with:
+          script: |
+            const { recordChannels } = require('./.github/scripts/deployment.cjs');
+            const { STAGING_SHA, PRODUCTION_TAG, PRODUCTION_SHA, PAGE_URL } = process.env;
+            const recorded = await recordChannels({ github, context, core },
+              { staging: STAGING_SHA, tag: PRODUCTION_TAG, production: PRODUCTION_SHA, pageUrl: PAGE_URL });
+            await core.summary.addRaw(recorded.length
+              ? `Recorded live: ${recorded.join(' and ')}.\n`
+              : 'Both channels were already recorded live.\n').write();
       # Release drafting reads what this publication deployed; the record exists only after a Pages deployment.
       - name: Record what was published
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

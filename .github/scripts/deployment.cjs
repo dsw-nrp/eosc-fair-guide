@@ -114,6 +114,39 @@ async function publication({ github, context, recorded }) {
     tag: production.tag, production: production.commit, production_run: production.run };
 }
 
+/** Records each channel live at its address once this publication deployed it: a successful `staging` deployment of
+    the published staging commit and, when a release was published, a `production` deployment of its tag. A record that
+    already exists is not repeated, so publishing the same site again leaves the history unchanged. `github-pages`
+    stays the publishing mechanism; release tags require the staging record. Returns the environments recorded. */
+async function recordChannels({ github, context, core }, { staging, tag = "", production = "", pageUrl }) {
+  if (!SHA.test(staging || "") || (tag && !SHA.test(production))) throw Error("Recording requires the published commits");
+  if (!/^https:\/\/\S+$/.test(pageUrl || "")) throw Error("Recording requires the published site address");
+  const root = pageUrl.endsWith("/") ? pageUrl : pageUrl + "/";
+  const log = `${context.serverUrl || "https://github.com"}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+  const channels = [{ environment: "staging", ref: staging, sha: staging, url: root + "next/" }];
+  if (tag) channels.push({ environment: "production", ref: tag, sha: production, url: root });
+  const recorded = [];
+  for (const channel of channels) {
+    const earlier = (await github.paginate(github.rest.repos.listDeployments, { ...context.repo,
+      environment: channel.environment, sha: channel.sha, per_page: 100 })).filter((entry) => entry.sha === channel.sha);
+    let live = false;
+    for (const deployment of earlier) {
+      const statuses = await github.paginate(github.rest.repos.listDeploymentStatuses, { ...context.repo,
+        deployment_id: deployment.id, per_page: 100 });
+      if (statuses.some((status) => status.state === "success")) { live = true; break; }
+    }
+    if (live) { core.info(`${channel.environment}: ${channel.ref} is already recorded live at ${channel.url}`); continue; }
+    const { data: deployment } = await github.rest.repos.createDeployment({ ...context.repo, ref: channel.ref,
+      environment: channel.environment, auto_merge: false, required_contexts: [], transient_environment: false,
+      production_environment: channel.environment === "production", description: `Live at ${channel.url}` });
+    if (deployment?.sha !== channel.sha) throw Error(`The ${channel.environment} record names ${deployment?.sha}, not ${channel.sha}`);
+    await github.rest.repos.createDeploymentStatus({ ...context.repo, deployment_id: deployment.id, state: "success",
+      environment_url: channel.url, log_url: log, auto_inactive: true });
+    recorded.push(channel.environment);
+  }
+  return recorded;
+}
+
 /** The summary of a cancelled deployment run, naming the run that supersedes it. Publication runs in its own workflow,
     so cancelling preparation never interrupts a Pages deployment. */
 async function superseded({ github, context }) {
@@ -124,4 +157,4 @@ async function superseded({ github, context }) {
     : "This run was cancelled; the next deployment of this ref publishes the newest checked site.";
 }
 
-module.exports = { queueResult, newestStaging, completedDeployment, publication, superseded };
+module.exports = { queueResult, newestStaging, completedDeployment, publication, recordChannels, superseded };

@@ -115,13 +115,18 @@ class WorkflowContracts(unittest.TestCase):
         )
         self.assertEqual(publish["environment"]["name"], "github-pages")
         self.assertEqual(
-            publish["permissions"], {"actions": "read", "contents": "read", "id-token": "write", "pages": "write"}
+            publish["permissions"],
+            {"actions": "read", "contents": "read", "deployments": "write", "id-token": "write", "pages": "write"},
         )
         steps = publish["steps"]
         self.assertEqual(steps[0]["with"]["ref"], "${{ github.event.repository.default_branch }}", "trusted code")
         pages = next(step for step in steps if step.get("id") == "deployment")
         record = next(step for step in steps if step.get("with", {}).get("name") == "pages-identity")
         self.assertGreater(steps.index(record), steps.index(pages), "the record exists only after a Pages deployment")
+        # The staging and production records say what is live, so they follow the Pages deployment too.
+        channels = next(step for step in steps if "recordChannels" in step.get("with", {}).get("script", ""))
+        self.assertGreater(steps.index(channels), steps.index(pages), "a channel is recorded only once it is live")
+        self.assertEqual(channels["env"], {"PAGE_URL": "${{ steps.deployment.outputs.page_url }}"})
         self.assertEqual(record["with"]["path"], ".cache/published/identity.json")
         writer = (ROOT / ".github/scripts/release-artifact.cjs").read_text(encoding="utf-8")
         self.assertIn('const PUBLISHED = ".cache/published/identity.json";', writer, "the reader names the same file")
@@ -747,7 +752,8 @@ class WorkflowContracts(unittest.TestCase):
             "a newer push cancels older preparation; nothing cancels a release tag",
         )
         approval = deploy["jobs"]["approve-production"]
-        self.assertEqual(approval["environment"], {"name": "production"})
+        # The gate only: publication records production once the release is live, never at approval.
+        self.assertEqual(approval["environment"], {"name": "production", "deployment": "false"})
         self.assertEqual(approval["if"], "needs.sources.outputs.kind == 'tag' && needs.sources.outputs.build == 'true'")
         self.assertEqual(approval["permissions"], {})
         environments = {

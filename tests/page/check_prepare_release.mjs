@@ -276,7 +276,7 @@ for (const mutate of [
   assert.deepEqual(state.creates, []);
 }
 {
-  // Tagging needs a successful github-pages deployment of the current commit, as the tag ruleset does; otherwise the
+  // Tagging needs the successful staging record of the current commit, as the tag ruleset does; otherwise the
   // refusal names the deployment or publish run to wait for.
   const {state, github, core} = fixture();
   const run = (id, conclusion, extra = {}) => ({id, conclusion, head_sha: sha, head_branch: 'main',
@@ -285,7 +285,7 @@ for (const mutate of [
   state.statuses = {41: [{state: 'inactive'}, {state: 'success'}, {state: 'in_progress'}]};
   assert.equal(await deployed({github, core, context}), 41, 'a later deployment marking it inactive keeps it deployed');
   const query = state.reads.find(args => args.environment);
-  assert.deepEqual([query.environment, query.sha], ['github-pages', sha]);
+  assert.deepEqual([query.environment, query.sha], ['staging', sha]);
   state.statuses = {41: [{state: 'failure'}, {state: 'in_progress'}]};
   state.runs = {'deploy.yml': [run(8, 'success')], 'publish.yml': [run(9, null)]};
   await assert.rejects(deployed({github, core, context}), /still being deployed; wait for https:\/\/github\.com\/example\/guide\/actions\/runs\/9 to finish/);

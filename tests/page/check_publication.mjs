@@ -4,7 +4,7 @@
 // record names the staging commit published.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-const { queueResult, newestStaging, completedDeployment, publication, superseded } = createRequire(import.meta.url)("../../.github/scripts/deployment.cjs");
+const { queueResult, newestStaging, completedDeployment, publication, recordChannels, superseded } = createRequire(import.meta.url)("../../.github/scripts/deployment.cjs");
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const own = { full_name: "dsw-nrp/eosc-fair-guide" };
@@ -221,4 +221,43 @@ await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 6
   assert.match(await superseded({ github, context: new FakeContext("refs/heads/main", c2, 70) }), /\[run 71\]\(.*\/runs\/71\) supersedes it/);
   assert.match(await superseded({ github, context: new FakeContext("refs/heads/main", c3, 71) }), /next deployment of this ref/);
 }
-console.log("check_publication: same-commit queue reuse, trusted publication trigger, newest checked staging, approved production, late approvals, exact Pages records and superseded runs pass");
+// Each live channel is recorded once, naming the published commit and its address; nothing is repeated.
+{
+  const deployments = [], made = [], statuses = new Map();
+  const github = {
+    paginate: async (method, options) => (await method(options)).data,
+    rest: { repos: {
+      listDeployments: async ({ environment, sha }) =>
+        ({ data: deployments.filter((entry) => entry.environment === environment && entry.sha === sha) }),
+      listDeploymentStatuses: async ({ deployment_id }) => ({ data: statuses.get(deployment_id) || [] }),
+      createDeployment: async (args) => {
+        const entry = { id: deployments.length + 1, sha: args.ref === "v1.2.3" ? tagged : args.ref, ...args };
+        deployments.push(entry); made.push(args);
+        return { data: entry };
+      },
+      createDeploymentStatus: async ({ deployment_id, ...status }) => { statuses.set(deployment_id, [status]); return { data: {} }; },
+    } },
+  };
+  const core = { info() {} };
+  const context = new FakeContext("refs/heads/main", c3, 80);
+  const site = "https://dsw-nrp.github.io/eosc-fair-guide/";
+  assert.deepEqual(await recordChannels({ github, context, core }, { staging: c3, pageUrl: site }), ["staging"]);
+  assert.deepEqual([made[0].environment, made[0].ref, made[0].production_environment, made[0].required_contexts],
+    ["staging", c3, false, []], "the staging record names the published commit itself");
+  assert.deepEqual([statuses.get(1)[0].state, statuses.get(1)[0].environment_url], ["success", site + "next/"]);
+  assert.match(statuses.get(1)[0].log_url, /eosc-fair-guide\/actions\/runs\/80$/);
+  // A release publication adds production at the root; the staging commit already recorded is not repeated.
+  const release = { staging: c3, tag: "v1.2.3", production: tagged };
+  assert.deepEqual(await recordChannels({ github, context, core }, { ...release, pageUrl: site.slice(0, -1) }), ["production"]);
+  assert.deepEqual([made[1].environment, made[1].ref, made[1].production_environment], ["production", "v1.2.3", true]);
+  assert.equal(statuses.get(2)[0].environment_url, site);
+  assert.deepEqual(await recordChannels({ github, context, core }, { ...release, pageUrl: site }), []);
+  assert.equal(made.length, 2, "publishing the same site again records nothing");
+  // A record that names another commit, or a missing address or commit, is refused.
+  github.rest.repos.createDeployment = async (args) => ({ data: { id: 9, sha: c2, ...args } });
+  await assert.rejects(recordChannels({ github, context, core }, { staging: c1, pageUrl: site }), /names 2{40}, not 1{40}/);
+  await assert.rejects(recordChannels({ github, context, core }, { staging: c1, pageUrl: "" }), /site address/);
+  await assert.rejects(recordChannels({ github, context, core }, { staging: "", pageUrl: site }), /published commits/);
+  await assert.rejects(recordChannels({ github, context, core }, { staging: c1, tag: "v1.2.3", pageUrl: site }), /published commits/);
+}
+console.log("check_publication: same-commit queue reuse, trusted publication trigger, newest checked staging, approved production, late approvals, exact Pages records, live channel records and superseded runs pass");

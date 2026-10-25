@@ -53,9 +53,13 @@ it starts:
 - after a tag deployment, the head's checked staging site beside the new production. While the head's own
   deployment is still preparing, the tag publishes nothing, and the head's publication then includes the release.
 
-GitHub records each Pages deployment against the default-branch head when the publication started, which the tag
-ruleset and Tag release read; a publication therefore deploys only that commit's staging site. It decides in a job
-without an environment, so a publication that deploys nothing leaves no `github-pages` record. Only a publication
+GitHub records each Pages deployment against the default-branch head when the publication started; a publication
+therefore deploys only that commit's staging site. It decides in a job without an environment, so a publication
+that deploys nothing leaves no record. Once the site is live, the publication also records each channel: a
+successful `staging` deployment of the staging commit with the `/next/` address and, for a release it published, a
+`production` deployment of the tag with the root address. Publishing the same site again records nothing new.
+Tag release, and the tag ruleset once task 8.7 applies it, require the `staging` record of the commit to tag, so
+only a staged commit is released. The `production` environment's approval job creates no record of its own. Only a publication
 after a successful deployment waits for its turn; a newer one replaces an older waiting one and publishes at least
 as much, since every publication resolves the newest approved release. To publish again, run **Deploy the verified
 site** on the default branch rather than rerunning an older deployment run, whose rerun would cancel newer
@@ -76,6 +80,8 @@ check. Say why in the pull request. That commit has no queue result, so its depl
 | Switch off "require branches to be up to date" | The merge queue is on | Switch it on |
 | Create `production` with its reviewer, for release tags only | None | Delete it and re-add the reviewer to `github-pages` |
 | Remove the reviewer from `github-pages` and limit it to `main` | The `approve-production` job is on `main` | Re-add the reviewer and the `v*.*.*` tag rule |
+| Create `staging`, without reviewers or a branch policy | Publication's channel records are on `main` | Delete it; Tag release then refuses until it exists again |
+| Require `staging` instead of `github-pages` for release tags | A publication has recorded a successful `staging` deployment | Require `github-pages` again |
 
 ## Preview behaviour
 

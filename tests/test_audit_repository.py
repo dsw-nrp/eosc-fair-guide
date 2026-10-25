@@ -107,6 +107,8 @@ def beyond_baseline(findings):
 
 
 QUEUE = "ruleset.Main branch protection.rules.merge_queue"
+STAGING = "environment.staging"
+TAG_DEPLOYMENT = "ruleset.Tag protection.rules.required_deployments.required_deployment_environments"
 STRICT = "ruleset.Main branch protection.rules.required_status_checks.strict_required_status_checks_policy"
 
 
@@ -146,8 +148,12 @@ class AuditTests(unittest.TestCase):
 
     def test_the_committed_state_matches_the_recorded_live_state(self):
         # Recorded after `--fix` created the declared labels and the reviewed backfill typed and labelled every issue.
+        # Task 8.6's approved targets wait, still at their recorded values, for the hand-off in task 8.7.
         statuses = {finding.setting: finding.status for finding in audit.audit(self.config, Replay())}
-        self.assertEqual(statuses, {"organization.issue_fields": "unavailable"})
+        self.assertEqual(
+            statuses,
+            {"organization.issue_fields": "unavailable", STAGING: "pending", TAG_DEPLOYMENT: "pending"},
+        )
         issues = [node["content"] for node in project_items(LIVE) if node["content"]["__typename"] == "Issue"]
         self.assertGreater(len(issues), 50)
         self.assertTrue(all(issue["issueType"] for issue in issues if issue["state"] == "OPEN"))
@@ -440,9 +446,10 @@ class ConfigTests(unittest.TestCase):
             "project.owner: expected an organization login": lambda c: c["project"].update(owner="x;y"),
             "app.permissions: expected permission": lambda c: c["app"]["permissions"].update(contents="admin"),
             "is listed twice": lambda c: c["token"].append(dict(c["token"][0])),
-            "pending[0]: missing key 'task'": lambda c: c.setdefault("pending", []).append(
-                {"setting": QUEUE, "current": 1}
-            ),
+            # Appended after whatever targets the committed file has pending.
+            f"pending[{len(self.config.get('pending', []))}]: missing key 'task'": lambda c: c.setdefault(
+                "pending", []
+            ).append({"setting": QUEUE, "current": 1}),
             "format: expected 1": lambda c: c.update(format=2),
         }
         for message, change in cases.items():
@@ -473,9 +480,11 @@ class ConfigTests(unittest.TestCase):
             STRICT: "require branches to be up to date",
             "environment.production": "Create `production`",
             "environment.github-pages.reviewers": "Remove the reviewer from `github-pages`",
+            STAGING: "Create `staging`",
+            TAG_DEPLOYMENT: "Require `staging` instead of `github-pages` for release tags",
         }
         rows = {setting: [index for index, row in enumerate(table) if step in row] for setting, step in steps.items()}
-        self.assertEqual(list(rows.values()), [[0], [1], [2], [3]], "each step and its rollback, in order")
+        self.assertEqual(list(rows.values()), [[0], [1], [2], [3], [4], [5]], "each step and its rollback, in order")
         pending = [entry["setting"] for entry in self.config.get("pending", [])]
         self.assertLessEqual(set(pending), set(steps), "an approved target waits for a documented step")
         self.assertEqual(pending, sorted(pending, key=list(steps).index), "pending steps follow the documented order")

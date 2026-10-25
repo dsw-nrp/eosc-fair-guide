@@ -510,9 +510,13 @@ creates none, so `production` lists only live releases. Tag release and the tag 
 `staging` deployment, which says what is meant: tag only what was staged. `repository.toml` declares `staging`, and
 the ruleset changes only after a publication created the first `staging` record (task 8.7).
 
-Two facts are verified before the ruleset changes, and until then it keeps `github-pages`: whether a job can use an
-environment without a deployment record, and whether a ruleset's required deployments accept deployments created
-through the API.
+The first open fact is verified: since GitHub's March 2026 update, a job's `environment` accepts `deployment: false`,
+which keeps required reviewers but creates no deployment, so the approval job uses it. The second, whether a tag
+ruleset's required deployments accept deployments created through the API, is verified in task 8.7 before the
+ruleset changes; until then the ruleset keeps `github-pages` and Tag release alone checks `staging`. `staging` has
+no branch policy: whether the API applies branch policies to a deployment named by commit SHA is not documented,
+the records name the published commit exactly, only the trusted publication workflow writes them, and promotion
+stays approval-gated. Production records name the tag, which its `tag v*.*.*` policy admits.
 
 ### 21. One-invocation release notes
 
@@ -653,7 +657,7 @@ These can be answered during apply without changing the specs or the task breakd
   `docs/maintenance.md` records the capability table.
 - Do the validator and Playwright-cache experiments pay off? Answered on 24 October 2026: neither was adopted
   (see the experiments in decision 6).
-- Can a job use the `production` environment as an approval gate without creating a deployment record? If not,
-  `production` shows the approval record beside the live record, and the documentation says which is which.
+- Can a job use the `production` environment as an approval gate without creating a deployment record? Answered on
+  25 October 2026: yes, with `deployment: false` (GitHub's March 2026 update); required reviewers still apply.
 - Do a tag ruleset's required deployments accept deployments created through the API? If not, the ruleset keeps
   `github-pages` and Tag release alone checks `staging`.
