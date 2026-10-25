@@ -49,6 +49,7 @@ QUICK = (
     "openspec",
     "agent-generation",
     "issue-templates",
+    "health-watch-config",
 )
 
 

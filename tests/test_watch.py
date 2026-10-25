@@ -1,5 +1,6 @@
-"""The scheduled live watch: persistence before an issue, recovery closes it, page items by main content only,
-Champion remeasurement as attributable health and proposals, and inert external text."""
+"""The scheduled live watch: outcome classes, fair selection under a budget and per-host cap, durable state with
+migration and visible resets, page items without pagination, reviewed limitations, and one digest that comments only
+on meaningful change and tracks maintainers' tasks."""
 
 from __future__ import annotations
 
@@ -7,14 +8,17 @@ import json
 import shutil
 import sys
 import tempfile
+import tomllib
 import unittest
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import build_crate  # noqa: E402
 import watch_sources  # noqa: E402
 
 TODAY = date(2026, 10, 12)
@@ -22,14 +26,16 @@ PAGE = """<html><body><header><a href="/menu">Menu</a></header><nav><a href="/ot
 <main><h2 id="outputs">Outputs</h2><a href="/media/report.pdf">Report 2026</a>{extra}
 <nav><a href="/inner-nav">Inner navigation</a></nav></main>
 <footer><a href="/footer">Footer</a></footer></body></html>"""
+PLAN = {"run_url": "https://github.com/o/r/actions/runs/7", "run_id": "7", "repository": "o/r", "notice": ""}
 
 
 def content(**extra: object) -> dict:
     return {
-        "guide": {"guide": {"freshnessDays": 180}},
+        "guide": {"guide": {"freshnessDays": 180}, "person": [{"id": "david-novak"}]},
         "resources": [
             {"id": "a", "url": "https://a.example/ok", "asOf": date(2026, 10, 1)},
             {"id": "b", "url": "https://b.example/gone", "asOf": date(2025, 1, 1)},
+            {"id": "c", "url": "http://plain.example/insecure"},
         ],
         "live": {
             "connector": [{"id": "svc", "origin": "https://svc.example"}],
@@ -41,119 +47,328 @@ def content(**extra: object) -> dict:
 
 
 class Fetcher:
-    def __init__(self, page: str = PAGE.format(extra=""), down: set[str] | None = None, gone: set[str] | None = None):
-        self.page, self.down, self.gone = page, down or set(), gone or set()
+    def __init__(self, page: str = PAGE.format(extra=""), status: dict[str, int | None] | None = None):
+        self.page, self.status, self.calls = page, status or {}, []
 
     def __call__(self, url: str, body: bool) -> tuple[int | None, bytes, str]:
-        if any(url.startswith(prefix) for prefix in self.down):
-            return None, b"", "timed out"
-        if url in self.gone:
-            return 404, b"", "HTTP 404"
+        self.calls.append(url)
+        for prefix, status in self.status.items():
+            if url.startswith(prefix):
+                return status, b"", "timed out" if status is None else f"HTTP {status}"
         return 200, self.page.encode() if body else b"", ""
 
 
-class WatchTests(unittest.TestCase):
-    def run_once(self, state: dict, fetcher: Fetcher, champion: dict | None = None) -> tuple[list, dict, list]:
-        observations, state = watch_sources.observe(content(), state, fetcher, champion, TODAY)
-        return observations, state, watch_sources.plan(observations, "https://github.com/o/r/actions/runs/1", TODAY)
+class Run:
+    """Successive watch runs over one content and one state, as the workflow chains them."""
 
-    @staticmethod
-    def keyed(actions: list, kind: str) -> dict:
-        return {action["key"]: action for action in actions if action["action"] == kind}
+    def __init__(self, data: dict | None = None, limitations: dict | None = None):
+        self.content, self.limitations = data or content(), limitations or {}
+        self.state, self.reported, self.day = watch_sources.empty_state(), {}, TODAY
 
-    def test_failures_become_issues_only_after_they_persist_and_close_on_recovery(self) -> None:
-        failing = Fetcher(down={"https://svc.example"}, gone={"https://b.example/gone"})
-        observations, state, actions = self.run_once({}, failing)
-        statuses = {item["key"]: item["status"] for item in observations}
-        self.assertEqual(statuses["link:https://b.example/gone"], "broken")
-        self.assertEqual(statuses["connector:svc"], "unavailable")
-        self.assertEqual(statuses["link:https://a.example/ok"], "ok")
-        self.assertNotIn("link:https://b.example/gone", self.keyed(actions, "open"), "one failing run is transient")
-        _, state, actions = self.run_once(state, failing)
-        opened = self.keyed(actions, "open")
-        self.assertIn("is broken", opened["link:https://b.example/gone"]["title"])
-        self.assertIn("never a failed requirement", opened["connector:svc"]["body"])
-        _, state, actions = self.run_once(state, Fetcher())
-        self.assertIn("connector:svc", self.keyed(actions, "close"))
-        self.assertEqual(state["streaks"]["connector:svc"], 0)
-
-    def test_page_items_come_from_main_content_with_a_baseline_first(self) -> None:
-        items = watch_sources.page_items("https://www.eosc.example/outputs", PAGE.format(extra="").encode())
-        self.assertEqual(set(items), {"#outputs", "https://www.eosc.example/media/report.pdf"})
-        observations, state, actions = self.run_once({}, Fetcher())
-        self.assertEqual(next(item for item in observations if item["kind"] == "watch")["status"], "baseline")
-        self.assertFalse([key for key in self.keyed(actions, "open") if key.startswith("watch:")])
-        changed = PAGE.format(extra='<a href="/media/new.pdf">New guidance @team</a>').replace(
-            "Report 2026", "Report 2026 v2"
+    def __call__(self, fetcher: Fetcher, champion: dict | None = None, tasks: list | None = None, notice: str = ""):
+        observations, self.state, coverage = watch_sources.observe(
+            self.content, self.state, fetcher, champion, self.day, sleep=lambda _: None
         )
-        observations, state, actions = self.run_once(state, Fetcher(page=changed))
-        page_issues = [action for key, action in self.keyed(actions, "open").items() if key.startswith("watch:")]
+        found = watch_sources.findings(self.content, self.state, self.limitations, self.day)
+        outcomes = {key: value.get("outcome") for key, value in self.state["targets"].items()}
+        plan = {**PLAN, "notice": notice, "coverage": coverage, "findings": found, "outcomes": outcomes}
+        body, comment, self.reported = watch_sources.render(plan, tasks or [], "", self.reported, self.day)
+        self.state["reported"] = self.reported
+        self.day += timedelta(days=7)
+        return {item["key"]: item for item in found}, body, comment, observations, coverage
+
+
+class OutcomeTests(unittest.TestCase):
+    def test_only_a_missing_address_is_broken(self) -> None:
+        cases = {200: "ok", 301: "ok", 404: "broken", 410: "broken", 401: "denied", 403: "denied", 451: "denied"}
+        cases |= {429: "rate-limited", 500: "unavailable", 503: "unavailable", 400: "unavailable", None: "unavailable"}
+        for status, outcome in cases.items():
+            with self.subTest(status=status):
+                self.assertEqual(watch_sources.classify(status), outcome)
+
+    def test_persistent_failures_enter_triage_and_recover_without_a_verdict(self) -> None:
+        fresh = content()
+        fresh["resources"][1]["asOf"] = date(2026, 10, 1)  # no stale status, so only the failures are findings
+        run = Run(fresh)
+        failing = Fetcher(status={"https://svc.example": None, "https://b.example/gone": 403})
+        found, _, comment, _, _ = run(failing)
+        self.assertNotIn("link:https://b.example/gone", found, "one failing check is transient")
+        self.assertEqual(comment, "")
+        found, body, comment, _, _ = run(failing)
+        link = found["link:https://b.example/gone"]
+        self.assertEqual((link["section"], link["outcome"]), ("triage", "denied"))
+        self.assertIn("refused access (GET 403)", link["line"])
+        self.assertNotIn("is gone", link["line"], "a denial never claims the page is gone")
+        self.assertIn("never a failed requirement", found["connector:svc"]["line"])
+        self.assertIn("**New** (2)", comment)
+        self.assertIn("<!-- fair-guide-digest-run id=7 -->", comment)
+        self.assertIn("## Needs triage (2)", body)
+        found, body, comment, _, _ = run(Fetcher())
+        self.assertNotIn("connector:svc", found)
+        self.assertIn("**Recovered** (2)", comment)
+        self.assertIn("## Needs triage (0)", body)
+
+
+class CoverageTests(unittest.TestCase):
+    def test_673_unchanged_links_are_all_attempted_within_two_runs(self) -> None:
+        guide = build_crate.load_content()
+        links, _ = watch_sources.content_links(guide)
+        self.assertEqual(len(links), 673, "the inventory of the scenario")
+        run = Run(guide)
+        first = run(Fetcher())[4]
+        second = run(Fetcher())[4]
+        for coverage in (first, second):
+            self.assertEqual(coverage["eligible"], coverage["attempted"] + coverage["deferred"])
+            self.assertLessEqual(coverage["attempted"], watch_sources.BUDGET)
+        # 199 links share one host: its cap of 120 defers 79 of them to the second run.
+        self.assertEqual((first["attempted"], first["deferred"]), (594, 79))
+        never = [key for key, value in run.state["targets"].items() if value["kind"] == "link" and not value["checked"]]
+        self.assertEqual(never, [], "every link was attempted within two runs")
+
+    def test_a_deferred_failure_keeps_its_dated_observation(self) -> None:
+        run = Run()
+        failing = Fetcher(status={"https://b.example/gone": 404})
+        run(failing)
+        found, *_ = run(failing)
+        checked = run.state["targets"]["link:https://b.example/gone"]["checked"]
+        with mock.patch.object(watch_sources, "BUDGET", 1):  # only the least recently attempted link fits
+            found, body, comment, observations, coverage = run(Fetcher())
+        target = run.state["targets"]["link:https://b.example/gone"]
+        self.assertEqual((target["streak"], target["checked"], target["outcome"]), (2, checked, "broken"))
+        self.assertIn(f"not rechecked this run, last checked {checked}", found["link:https://b.example/gone"]["line"])
+        self.assertNotIn("Recovered", comment, "a deferred target neither fails again nor recovers")
+        self.assertEqual(coverage["deferred"], 2, "three links (the watched page too), one attempted")
+        self.assertIn("2 deferred to a later run", body)
+
+    def test_a_throttling_host_stops_and_other_hosts_are_still_attempted(self) -> None:
+        urls = [f"https://slow.example/{n}" for n in range(5)] + [f"https://fast.example/{n}" for n in range(5)]
+        waits = []
+
+        def throttled(retry):
+            def fetch(url, body):
+                return (429, b"", "HTTP 429", "HEAD", retry) if url.startswith("https://slow") else (200, b"", "")
+
+            return fetch
+
+        answers = watch_sources.attempt(urls, throttled(None), waits.append)
+        self.assertEqual(sorted(url for url in answers if "slow" in url), ["https://slow.example/0"])
+        self.assertEqual(len([url for url in answers if "fast" in url]), 5)
+        watch_sources.attempt(urls, throttled(5), waits.append)
+        self.assertEqual(waits, [5], "a short Retry-After is honoured once")
+        watch_sources.attempt(urls, throttled(600), waits.append)
+        self.assertEqual(waits, [5], "a long Retry-After is not waited for")
+        silent = watch_sources.attempt(urls, lambda url, body: (None, b"", "timed out") if "slow" in url else (200, b"", ""))
+        self.assertEqual(len([url for url in silent if "slow" in url]), watch_sources.UNRESPONSIVE)
+
+    def test_links_that_cannot_be_checked_are_counted_as_invalid(self) -> None:
+        _, body, _, _, coverage = Run()(Fetcher())
+        self.assertEqual(coverage["invalid"], 1)
+        self.assertIn("Not checkable: `resources[c].url`", body)
+
+
+class StateTests(unittest.TestCase):
+    def test_version_1_migrates_and_a_missing_or_malformed_state_is_a_visible_reset(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "state.json"
+            path.write_text(
+                json.dumps({"format_version": 1, "streaks": {"link:https://b.example/gone": 3, "stale:x": 1},
+                            "pages": {"outputs": {"#outputs": "abc"}}}),  # fmt: skip
+                encoding="utf-8",
+            )
+            state, notice = watch_sources.load_state(path)
+            self.assertEqual(notice, "")
+            self.assertEqual(state["targets"]["link:https://b.example/gone"]["streak"], 3)
+            self.assertNotIn("stale:x", state["targets"])
+            self.assertEqual(state["pages"], {"outputs": {"#outputs": "abc"}}, "baselines are kept")
+            for text in ("{not json", json.dumps({"format_version": 9})):
+                path.write_text(text, encoding="utf-8")
+                self.assertIn("restarts every streak", watch_sources.load_state(path)[1])
+            self.assertIn("No previous watch state", watch_sources.load_state(Path(temp) / "missing.json")[1])
+        run = Run()
+        _, body, comment, _, _ = run(Fetcher(status={"https://b.example/gone": 404}), notice="No previous state.")
+        self.assertIn("> **State reset:** No previous state.", body)
+        self.assertNotIn("Recovered", comment)
+
+    def test_a_migrated_streak_continues(self) -> None:
+        run = Run()
+        run.state = watch_sources.migrate({"format_version": 1, "streaks": {"link:https://b.example/gone": 1}})
+        found, *_ = run(Fetcher(status={"https://b.example/gone": 404}))
+        self.assertEqual(found["link:https://b.example/gone"]["section"], "triage", "streak 1 + 1 reaches persistence")
+
+
+class PageTests(unittest.TestCase):
+    def test_pagination_and_navigation_are_not_new_items(self) -> None:
+        # Issue #101: the training page's "Další" link to ?page=2 was reported as a new item.
+        pager = (
+            '<a href="/outputs?page=2">Další</a><a rel="next" href="/outputs/older">Older posts</a>'
+            '<ul class="pagination"><li><a href="/outputs/p3">3</a></li></ul><a href="/outputs?page=4">4</a>'
+            '<a href="/media/annual.pdf">2026</a>'
+        )
+        items = watch_sources.page_items("https://www.eosc.example/outputs", PAGE.format(extra=pager).encode())
         self.assertEqual(
-            sorted(action["title"].split(":")[0] for action in page_issues),
-            ["EOSC CZ new item", "EOSC CZ updated item"],
+            set(items),
+            {"#outputs", "https://www.eosc.example/media/report.pdf", "https://www.eosc.example/media/annual.pdf"},
         )
-        self.assertTrue(all("@\u200bteam" in action["body"] or "@" not in action["body"] for action in page_issues))
-        observations, state, actions = self.run_once(state, Fetcher(page=changed))
-        self.assertFalse([key for key in self.keyed(actions, "open") if key.startswith("watch:")], "no repeat")
-        many = PAGE.format(
-            extra="".join(f'<a href="/n{n}">Item {n}</a>' for n in range(watch_sources.PAGE_ITEM_LIMIT + 1))
-        )
-        _, _, actions = self.run_once(state, Fetcher(page=many))
-        page_issues = [key for key in self.keyed(actions, "open") if key.startswith("watch:")]
-        self.assertEqual(len(page_issues), 1, "a large change is one issue for the page")
+        run = Run()
+        run(Fetcher())
+        found, _, comment, _, _ = run(Fetcher(page=PAGE.format(extra=pager)))
+        sources = [item for item in found.values() if item["section"] == "source"]
+        self.assertEqual([item["key"] for item in sources], ["page:outputs:https://www.eosc.example/media/annual.pdf"])
+        self.assertIn("New item on `https://www.eosc.example/outputs` since 2026-10-19: 2026", sources[0]["line"])
 
-    def test_champion_remeasurement_is_attributable_health_and_candidates_are_proposals(self) -> None:
+
+class LimitationTests(unittest.TestCase):
+    ENTRY = {
+        "key": "link:https://b.example/gone",
+        "outcome": "denied",
+        "reason": "The publisher blocks automated requests from data centres.",
+        "evidence": "HEAD 403 then GET 403 from GitHub-hosted runners since 2026-09-01",
+        "reviewer": "david-novak",
+        "reviewed": date(2026, 10, 1),
+        "reviewBy": date(2026, 10, 25),
+    }
+
+    def test_entries_name_one_target_with_a_basis(self) -> None:
+        self.assertEqual(watch_sources.limitation_errors([self.ENTRY], {"david-novak"}), [])
+        cases = {
+            "without wildcards": {**self.ENTRY, "key": "link:https://b.example/*"},
+            "evidence must state": {**self.ENTRY, "evidence": ""},
+            "reviewer must be": {**self.ENTRY, "reviewer": "someone"},
+            "reviewBy after reviewed": {**self.ENTRY, "reviewBy": date(2026, 9, 1)},
+            "outcome must be one of": {**self.ENTRY, "outcome": "fine"},
+        }
+        for message, entry in cases.items():
+            with self.subTest(message=message):
+                self.assertIn(message, "\n".join(watch_sources.limitation_errors([entry], {"david-novak"})))
+        conflict = watch_sources.limitation_errors([self.ENTRY, dict(self.ENTRY)], {"david-novak"})
+        self.assertIn("conflicts with limitation[0]", "\n".join(conflict))
+
+    def test_a_reviewed_denial_is_known_and_a_change_or_expiry_returns_it_to_triage(self) -> None:
+        run = Run(limitations={self.ENTRY["key"]: self.ENTRY})
+        denied = Fetcher(status={"https://b.example/gone": 403})
+        run(denied)
+        found, body, _, _, _ = run(denied)
+        self.assertEqual(found[self.ENTRY["key"]]["section"], "limitation")
+        self.assertIn("## Known limitations (1)", body)
+        self.assertNotIn("Track as task](https://github.com/o/r/issues/new?title=Maintenance%3A+Link+https", body)
+        found, _, comment, _, _ = run(denied)  # 2026-10-26: the review-by date has passed
+        self.assertEqual(found[self.ENTRY["key"]]["section"], "triage")
+        self.assertIn("review-by date 2026-10-25 passed", found[self.ENTRY["key"]]["line"])
+        self.assertIn("**Expired** (1)", comment)
+        self.assertEqual(run(denied)[2], "", "an expiry is announced once")
+        run = Run(limitations={self.ENTRY["key"]: {**self.ENTRY, "reviewBy": date(2027, 1, 1)}})
+        gone = Fetcher(status={"https://b.example/gone": 404})
+        run(gone)
+        self.assertIn("expects denied", run(gone)[0][self.ENTRY["key"]]["line"])
+
+    def test_a_new_denial_offers_a_ready_to_paste_entry(self) -> None:
+        run = Run()
+        denied = Fetcher(status={"https://b.example/gone": 403})
+        run(denied)
+        found, body, _, _, _ = run(denied)
+        entry = tomllib.loads(found["link:https://b.example/gone"]["suggestion"])["limitation"][0]
+        self.assertEqual((entry["key"], entry["outcome"], entry["reviewer"]), ("link:https://b.example/gone", "denied", ""))
+        self.assertIn("```toml", body)
+
+    def test_a_limitation_for_a_target_no_longer_checked_asks_for_removal(self) -> None:
+        orphan = {**self.ENTRY, "key": "link:https://removed.example/"}
+        found, *_ = Run(limitations={orphan["key"]: orphan})(Fetcher())
+        self.assertIn("no longer checks", found["limitation:link:https://removed.example/"]["line"])
+
+    def test_the_repository_file_is_valid(self) -> None:
+        with mock.patch("builtins.print"):
+            self.assertEqual(watch_sources.main(["check-config"]), 0)
+
+
+class DigestTests(unittest.TestCase):
+    def test_only_dates_and_counters_advancing_posts_no_comment(self) -> None:
+        run = Run()
+        failing = Fetcher(status={"https://b.example/gone": 404})
+        run(failing)
+        self.assertNotEqual(run(failing)[2], "")
+        _, body, comment, _, _ = run(failing)
+        self.assertEqual(comment, "", "the body is rebuilt, nothing is announced")
+        self.assertIn(watch_sources.DIGEST_MARKER, body)
+        self.assertIn("in 3 checks", body)
+
+    def test_tasks_track_findings_keep_dispositions_and_a_changed_outcome_returns_to_triage(self) -> None:
+        run = Run()
+        failing = Fetcher(status={"https://b.example/gone": 404})
+        run(failing)
+        found, body, _, _, _ = run(failing)
+        link = next(part for part in body.split("](") if part.startswith("https://github.com/o/r/issues/new?"))
+        query = parse_qs(urlparse(link.split(")")[0]).query)
+        self.assertEqual(query["labels"], ["area:maintenance"])
+        self.assertIn("<!-- fair-guide-finding key=link%3Ahttps%3A%2F%2Fb.example%2Fgone outcome=broken -->", query["body"][0])
+        task = {"key": "link:https://b.example/gone", "outcome": "broken", "number": 12, "state": "open"}
+        _, body, comment, _, _ = run(failing, tasks=[task])
+        self.assertIn("## Tracked (1)", body)
+        self.assertIn("Task #12 (open)", body)
+        self.assertIn("**Changed** (1)", comment, "moving into tracked is a change, announced once")
+        closed = {**task, "state": "closed", "reason": "not_planned", "closed": "2026-11-01T10:00:00Z"}
+        _, body, comment, _, _ = run(failing, tasks=[closed])
+        self.assertIn("Task #12 (closed as not_planned on 2026-11-01)", body)
+        self.assertEqual(comment, "", "a closed task keeps its disposition without reopening anything")
+        _, body, comment, _, _ = run(Fetcher(status={"https://b.example/gone": 403}), tasks=[closed])
+        run(Fetcher(status={"https://b.example/gone": 403}), tasks=[closed])
+        self.assertIn("The outcome changed since task #12.", run(Fetcher(status={"https://b.example/gone": 403}), tasks=[closed])[1])
+
+    def test_stale_statuses_and_champion_candidates_are_sections(self) -> None:
         champion = {
             "generatedAt": "2026-10-12T03:00:00Z",
             "summary": [
                 {"id": "core_test", "health": "available", "attempted": 3, "definitive": 2, "indeterminate": 1},
                 {"id": "candidate_test", "health": "available", "attempted": 3, "definitive": 3, "indeterminate": 0},
-                {"id": "weak_candidate", "health": "unavailable", "attempted": 3, "definitive": 0, "indeterminate": 0},
             ],
         }
-        _, state, actions = self.run_once({}, Fetcher(), champion)
-        self.assertNotIn("champion:core_test", self.keyed(actions, "open"))
-        self.assertIn("champion-candidate:candidate_test", self.keyed(actions, "open"))
-        self.assertNotIn("champion-candidate:weak_candidate", self.keyed(actions, "open"))
-        _, state, actions = self.run_once(state, Fetcher(), champion)
-        body = self.keyed(actions, "open")["champion:core_test"]["body"]
-        self.assertIn("indeterminate verdict is a result, not a transport failure", body)
-        self.assertIn("2026-10-12T03:00:00Z", body)
-        champion["summary"][0]["health"] = "degraded"
-        _, _, actions = self.run_once(state, Fetcher(), champion)
-        self.assertIn("champion:core_test", self.keyed(actions, "close"))
+        run = Run()
+        found, body, *_ = run(Fetcher(), champion)
+        self.assertEqual(found["stale:resources[b].asOf"]["section"], "stale")
+        self.assertEqual(found["champion-candidate:candidate_test"]["section"], "candidate")
+        self.assertIn("not a selection", body)
+        found, body, *_ = run(Fetcher())  # a weekly run without remeasurement keeps the candidate
+        self.assertIn("champion-candidate:candidate_test", found)
+        found, *_ = run(Fetcher(), champion)
+        self.assertIn("indeterminate verdict is a result", found["champion:core_test"]["line"])
 
-    def test_stale_dated_statuses_are_one_issue(self) -> None:
-        _, _, actions = self.run_once({}, Fetcher())
-        stale = self.keyed(actions, "open")["stale-statuses"]
-        self.assertIn("resources[b].asOf", stale["body"])
-        self.assertNotIn("resources[a]", stale["body"])
+    def test_the_body_stays_within_the_issue_limit(self) -> None:
+        many = {"live": {**content()["live"], "connector": [{"id": f"s{n}", "origin": f"https://s{n}.example"} for n in range(400)]}}
+        run = Run({**content(), **many})
+        down = Fetcher(status={"https://s": None})
+        run(down)
+        _, body, _, _, _ = run(down)
+        self.assertLessEqual(len(body), watch_sources.BODY_LIMIT)
+        self.assertIn("more in the run's observations artifact", body)
 
     def test_external_text_stays_inert(self) -> None:
         text = watch_sources.escape("<img src=x onerror=alert(1)> [link](https://evil.example) @team | `code`")
         self.assertNotIn("<img", text)
         self.assertNotIn("](", text)
-        self.assertIn("@\u200bteam", text)
+        self.assertIn("@​team", text)
         self.assertIn("\\|", text)
 
-    def test_the_run_writes_observations_plan_state_and_summary_without_network(self) -> None:
+
+class CommandTests(unittest.TestCase):
+    def test_observe_and_render_write_their_outputs_without_network(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             fixture = Path(temp) / "guide"
             shutil.copytree(ROOT / "tests/fixtures/minimal", fixture)
-            output = Path(temp) / "watch"
+            watch, digest = Path(temp) / "watch", Path(temp) / "digest"
+            (Path(temp) / "tasks.json").write_text("[]", encoding="utf-8")
             with mock.patch.object(watch_sources, "ROOT", fixture), mock.patch("builtins.print"):
-                code = watch_sources.main(
-                    ["--state", str(Path(temp) / "missing.json"), "--output", str(output), "--no-network"]
-                )
-            self.assertEqual(code, 0)
-            observations = json.loads((output / "observations.json").read_text(encoding="utf-8"))
+                argv = ["observe", "--state", str(Path(temp) / "missing.json"), "--output", str(watch), "--no-network"]
+                self.assertEqual(watch_sources.main(argv), 0)
+                argv = ["render", "--watch", str(watch), "--tasks", str(Path(temp) / "tasks.json"), "--output", str(digest)]
+                self.assertEqual(watch_sources.main([*argv, "--predecessor", "41"]), 0)
+            observations = json.loads((watch / "observations.json").read_text(encoding="utf-8"))
             self.assertIn("not a FAIR verdict", observations["scope"])
-            self.assertTrue(
-                all(item["status"] != "ok" for item in observations["observations"] if item["kind"] == "link")
-            )
-            self.assertEqual(json.loads((output / "issues.json").read_text(encoding="utf-8"))["format_version"], 1)
-            self.assertIn("streaks", json.loads((output / "state.json").read_text(encoding="utf-8")))
-            self.assertIn("none is a failed FAIR requirement", (output / "summary.md").read_text(encoding="utf-8"))
+            plan = json.loads((watch / "plan.json").read_text(encoding="utf-8"))
+            self.assertIn("No previous watch state", plan["notice"])
+            self.assertEqual(json.loads((watch / "state.json").read_text(encoding="utf-8"))["format_version"], 2)
+            body = (digest / "body.md").read_text(encoding="utf-8")
+            self.assertIn("Continues #41.", body)
+            self.assertIn("The audit did not run this time.", body)
+            self.assertIn("reported", json.loads((digest / "state.json").read_text(encoding="utf-8")))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,16 @@
+# Reviewed limitations of the Live health and source watch (scripts/watch_sources.py). Each entry names one exact
+# target and the outcome a maintainer reviewed, with the reason, the evidence, the reviewer (a person ID from
+# content/guide.toml), the review date and a review-by date. While the target answers with that outcome and the date
+# has not passed, the digest lists the finding as a known limitation, still rechecked and asking for nothing; a
+# different outcome, a changed address or a passed date returns it to triage. The digest offers a ready-to-paste entry
+# for each new denial or rate limit. `python scripts/watch_sources.py check-config` validates this file offline:
+# wildcards, missing evidence, unknown reviewers, impossible dates and two entries for one target fail.
+#
+# [[limitation]]
+# key = "link:https://example.org/page"   # link:<url>, connector:<id> or watch:<id>, exactly as the digest names it
+# outcome = "denied"                      # broken, denied, rate-limited or unavailable
+# reason = "Why the Guide keeps linking it, in words."
+# evidence = "HEAD 403 then GET 403 from GitHub-hosted runners since 2026-10-06"
+# reviewer = "person-id"
+# reviewed = 2026-10-25
+# reviewBy = 2027-04-25
