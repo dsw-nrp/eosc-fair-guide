@@ -344,7 +344,9 @@ organisations, infrastructures, the EOSC CZ Node, provider criteria, the model a
 is covered by a provenance action following the
 Process Run Crate profile: `agent` (person, ORCID where available), `instrument` (tools, naming any AI model),
 `object` (sources consulted), `result` (items produced or changed) and `endTime`. A changed item needs an action
-newer than the point where the branch left the compared base.
+added since the point where the branch left the compared base, or an existing action extended there with a later
+`endTime`. The check reads this from history, so a base that moves on after the work ended, as in the merge queue,
+leaves the action valid and its `endTime` true to when the work finished.
 
 One action per pull request is the default, covering all changed entities and the actual responsible person,
 instruments and consulted sources. Separately attributable work may use finer actions. The initial public state

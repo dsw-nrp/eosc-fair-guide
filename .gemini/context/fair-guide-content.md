@@ -132,6 +132,7 @@ Every compared kind needs paradata: Guide metadata, clauses, advice, questions, 
 criteria (with their mappings and reviewed versions), organisations, pages, curated repositories/sources,
 callouts and the model. The content check compares the content with the merge base of the default branch
 (`--base`, which `check_all.py` sets to the remote's default branch): an item that changed since then needs an
-action added since then that covers it. Snapshot refreshes are recorded with the run and source by automation;
+action added since then, or an existing one extended with a later `endTime`, that covers it. Never move an
+`endTime` only to pass the check. Snapshot refreshes are recorded with the run and source by automation;
 a person reviews them. `scripts/contributors.py` suggests credit from reviewed identities (`github`,
 `commitNames`); it never guesses a person, and an opted-out ORCID stays hidden.
