@@ -15,6 +15,11 @@ for (const value of ['1.2.3', '0.0.0', '1.2.3-alpha.1', '1.2.3-rc-2']) assert(va
 for (const value of ['v1.2.3', '01.2.3', '1.2.3-alpha.01', '1.2.3-a..b', '1.2.3+build', '$(id)']) assert(!validVersion(value));
 assert.throws(() => dispatch({...context, ref: 'refs/heads/feature'}), /default branch/);
 assert.throws(() => dispatch({...context, eventName: 'push'}), /dispatch/);
+const typed = value => ({...context, payload: {...context.payload, inputs: {...context.payload.inputs, version: value}}});
+for (const value of ['v1.2.3-alpha.1', ' 1.2.3-alpha.1\n'])
+  assert.deepEqual(dispatch(typed(value)), {base: 'main', version: '1.2.3-alpha.1', branch: 'release/1.2.3-alpha.1'}, value);
+for (const value of ['vv1.2.3', '1.2', '', undefined])
+  assert.throws(() => dispatch(typed(value)), /1\.0\.0-alpha\.4 or v1\.0\.0-alpha\.4/, String(value));
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture() {
   const state = {refs: new Map([['heads/main', sha]]), commits: new Map([[sha, {tree: {sha: 'base'}}]]), prs: [],

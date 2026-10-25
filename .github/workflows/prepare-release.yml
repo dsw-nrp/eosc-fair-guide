@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: SemVer version without the leading v
+        description: SemVer version, for example 1.0.0-alpha.4 (a leading v is accepted)
         required: true
         type: string
 

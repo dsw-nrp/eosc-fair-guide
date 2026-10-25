@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Committed release version without the leading v
+        description: Committed release version, for example 1.0.0-alpha.4 (a leading v is accepted)
         required: true
         type: string
       release_status:

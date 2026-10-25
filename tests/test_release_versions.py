@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import shutil
 import subprocess
@@ -94,6 +95,27 @@ class ReleaseVersions(unittest.TestCase):
 
     def snapshot(self) -> dict:
         return {str(path.relative_to(self.root)): path.read_bytes() for path in self.root.rglob("*") if path.is_file()}
+
+    def test_the_dispatch_input_may_carry_the_tag_form(self) -> None:
+        empty = self.root / "empty.json"
+        empty.write_text("[]", encoding="utf-8")
+        inputs = ["--prs", str(empty), "--associations", str(empty), "--actor", "motyc"]
+        # prepare(root, version, ...) and check(root, site, version) receive the bare version either way.
+        for command, position, result, extra in (("prepare", 1, {"files": []}, inputs), ("check", 2, [], [])):
+            with self.subTest(command=command):
+                passed: list[str] = []
+
+                def record(*a, sink=passed, at=position, value=result, **_):
+                    sink.append(a[at])
+                    return value
+
+                with patch.object(release, command, side_effect=record), patch("builtins.print"):
+                    for value in ("v1.0.0-alpha.4", " 1.0.0-alpha.4\n"):
+                        self.assertEqual(release.main([command, "--version", value, *extra]), 0)
+                self.assertEqual(passed, ["1.0.0-alpha.4", "1.0.0-alpha.4"])
+        with patch("sys.stderr", new_callable=io.StringIO) as stderr:
+            self.assertEqual(release.main(["check", "--version", "vv1.0.0"]), 1)
+        self.assertIn("1.0.0-alpha.4 or v1.0.0-alpha.4", stderr.getvalue())
 
     def test_semver_refuses_injection_ambiguous_numbers_and_build_suffix(self) -> None:
         for value in ("1.2.3", "1.2.3-alpha.1", "1.2.3-rc-1", "0.0.0"):

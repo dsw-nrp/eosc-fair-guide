@@ -25,7 +25,7 @@ from pathlib import Path
 import build_identity
 import check_changelog
 from register_ids import render
-from release_version import version
+from release_version import release_input, version
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD_UI = "assets/data/ui.js"
@@ -442,6 +442,8 @@ def main(argv: list[str] | None = None) -> int:
     preparing.add_argument("--manifest", type=Path)
     args = parser.parse_args(argv)
     try:
+        if getattr(args, "version", None) is not None:
+            args.version = release_input(args.version)  # the dispatch input, as the maintainer typed it
         if args.command == "check":
             errors = check(ROOT, args.site, args.version)
             if errors:

@@ -155,7 +155,8 @@ both the production root and `/next/`; this command does not change `_site/`.
 
 ## Release preparation and tagging
 
-Run **Prepare release** (`prepare-release.yml`) on the default branch with a SemVer version without `v`.
+Run **Prepare release** (`prepare-release.yml`) on the default branch with a SemVer version such as
+`1.0.0-alpha.4`; both release dispatches also accept the tag form `v1.0.0-alpha.4` and use the bare version.
 The standard-library owner `scripts/release_versions.py` writes the Guide's version and `datePublished`, the
 root `CITATION.cff` version and `date-released`, `.zenodo.json` version and `publication_date`, npm's manifest and
 both lockfile root versions, and the Python project version. The build derives the crate and API values from

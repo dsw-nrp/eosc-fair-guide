@@ -5,10 +5,12 @@ import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 const { approvedRun, draftRelease, tagOf, refContext, compareTags, sources, reuse, publishedRelease, assertPromotion, VERIFICATION } = createRequire(import.meta.url)("../../.github/scripts/release-artifact.cjs");
-const { validVersion } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
+const { validVersion, releaseInput } = createRequire(import.meta.url)("../../.github/scripts/release-version.cjs");
 const cases = JSON.parse(readFileSync(new URL("../fixtures/normalization.json", import.meta.url), "utf8"));
 for (const value of cases.versions.valid) assert(validVersion(value), value);
 for (const value of cases.versions.invalid) assert(!validVersion(value), JSON.stringify(value));
+for (const [value, bare] of cases.versions.inputs.accepted) assert.equal(releaseInput(value), bare, JSON.stringify(value));
+for (const value of cases.versions.inputs.refused) assert.equal(releaseInput(value), null, JSON.stringify(value));
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const sha = "a".repeat(40);

@@ -6,12 +6,13 @@ const {resolve, relative, isAbsolute} = require('node:path');
 const policy = require('../release-prepared-files.json');
 const MANIFEST = '.cache/release/prepared.json';
 const HISTORY = '.cache/release/history.json';
-const { validVersion } = require('./release-version.cjs');
+const { validVersion, releaseInput, ACCEPTED_FORM } = require('./release-version.cjs');
 function dispatch(context) {
   const base = context.payload.repository.default_branch;
-  const version = context.payload.inputs.version;
-  if (context.eventName !== 'workflow_dispatch' || context.ref !== `refs/heads/${base}` || !validVersion(version))
-    throw Error('Run this dispatch on the default branch with a SemVer version');
+  if (context.eventName !== 'workflow_dispatch' || context.ref !== `refs/heads/${base}`)
+    throw Error('Run this dispatch on the default branch');
+  const version = releaseInput(context.payload.inputs.version);
+  if (!version) throw Error(`Enter the version as ${ACCEPTED_FORM}`);
   return {base, version, branch: `release/${version}`};
 }
 async function current(github, context, base) {
