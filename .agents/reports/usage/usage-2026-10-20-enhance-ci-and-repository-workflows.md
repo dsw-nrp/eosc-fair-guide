@@ -466,3 +466,25 @@
 - **Close-out:** `check_all.py` passes 32 of 32, including the new `issue-templates` check. Strict OpenSpec validation
   passes. 36 of 62 tasks are complete. Task 5.1 waits for `--fix` to create the declared labels, 5.6 for the
   mapping's approval and application, and 5.8 for the organization owner.
+
+### Review of PR #113 (`7b2d5d8`)
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Two Low findings, both confirmed, and one pre-existing observation, now reachable.
+  - The publishers could make GitHub create an undeclared label with its default colour. They now add only labels
+    that exist and name the ones they skip; the next run adds those once `--fix` has created them.
+  - The cancellation scenario described a collector change that was not in the PR. The collector now runs unless
+    the run was cancelled (task 7.8). The required gate keeps `always()`, because a skipped required check counts
+    as passing. The text now promises no collector failure, not a run without any failed job.
+  - An empty organization issue-types list was read as drift. The weekly job's token may receive exactly that, so
+    the list is now unavailable, as for issue fields.
+  - Task 2.3 is complete. pip: #110 changed `requirements-dev.txt`, missed and reinstalled with the same per-lane
+    checks as #112's warm run. npm: the key moved from `…78ce8c` to `…7a4652` with `package-lock.json`. #113's
+    first run missed and saved it (run 40142786024), and every job of the next run hit it, passing 32 of 32
+    (run 40143003658).
+- **Impacted:** `.github/scripts/{labels,source-publisher}.cjs`, `.github/workflows/partitioned-checks.yml`,
+  `scripts/audit_repository.py`, `tests/test_{audit_repository,workflows}.py`,
+  `tests/page/check_{labels,source_publisher}.mjs`, the change's design, spec delta and tasks, this entry.
+- **Verification:** Each new guard fails a check when broken (four planted defects).

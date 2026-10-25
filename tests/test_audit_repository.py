@@ -246,6 +246,14 @@ class AuditTests(unittest.TestCase):
         )
         self.assertEqual(findings["label.breaking-change"].status, "missing", "the rest of the audit still runs")
 
+    def test_an_empty_organization_list_is_unavailable_not_drift(self):
+        live = copy.deepcopy(LIVE)
+        live["GET orgs/dsw-nrp/issue-types"] = []
+        findings = by_setting(audit.audit(self.config, Replay(live), sections=("organization",)))
+        self.assertEqual(findings["organization.issue_types"].status, "unavailable")
+        self.assertIn("an organization owner can confirm", findings["organization.issue_types"].note)
+        self.assertFalse([setting for setting in findings if setting.startswith("organization.issue_types.")])
+
     def test_bypass_actors_hidden_from_a_read_only_token_are_unavailable_not_drift(self):
         live = copy.deepcopy(LIVE)
         del live[f"{REPO}/rulesets/24757722"]["bypass_actors"]

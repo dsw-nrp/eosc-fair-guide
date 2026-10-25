@@ -390,9 +390,10 @@ All renderers share a "Next / If blocked / Done when" block: Python for the chec
 for the trusted publishers. Representative output tests fail when an element is removed. The PR template asks for a
 planning link and reminds authors that commit messages feed the release notes, in plain words; nothing parses it.
 
-A run that a newer push cancels must read as cancelled. The evidence collector therefore runs unless the run was
-cancelled (it still collects after a failed lane), while the required `checks` gate keeps `always()`: a skipped
-required check would count as passing, so a cancelled merge group must never report one. The first hosted
+A run that a newer push cancels must not report an evidence failure for lanes that never finished. The evidence
+collector therefore runs unless the run was cancelled (it still collects after a failed lane), while the required
+`checks` gate keeps `always()` and fails such a run: a skipped required check would count as passing, so a cancelled
+merge group must never report one. The first hosted
 cancellation, on 24 October 2026, showed the collector failing inside a cancelled deployment run.
 
 ### 14. Crawler files (#83)

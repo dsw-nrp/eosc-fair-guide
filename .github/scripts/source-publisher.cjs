@@ -168,7 +168,8 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
     if (open) await github.rest.pulls.update({ ...repo, pull_number: open.number, body });
     const pr = open || (await github.rest.pulls.create({ ...repo, title: `Refresh the ${source} snapshot`, head: branch, base, body, maintainer_can_modify: true })).data;
     // The review publisher adds the area label from the changed paths once the checks have run.
-    await addLabels(github, repo, pr.number, [REFRESH_LABEL], pr.labels || []);
+    const { absent } = await addLabels(github, repo, pr.number, [REFRESH_LABEL], pr.labels || []);
+    if (absent.length) core.info(`${source}: the ${REFRESH_LABEL} label does not exist yet; the next refresh adds it.`);
     results[source] = open ? "updated" : "proposed";
   }
   core.info(JSON.stringify(results));

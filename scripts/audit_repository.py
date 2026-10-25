@@ -477,9 +477,13 @@ def read_organization(github, config):
     owner, expected = config["repository"].split("/")[0], config.get("organization", {})
     state = {}
     try:
-        state["issue_types"] = {
-            kind["name"]: kind["is_enabled"] for kind in github.get(f"orgs/{owner}/issue-types", pages=True)
-        }
+        types = github.get(f"orgs/{owner}/issue-types", pages=True)
+        if not types:
+            # As for issue fields: an empty list is also what a token that cannot see the types receives.
+            raise UnavailableError(
+                "the token lists no organization issue types; an organization owner can confirm them"
+            )
+        state["issue_types"] = {kind["name"]: kind["is_enabled"] for kind in types}
     except UnavailableError as error:
         state["issue_types"] = UnavailableError(str(error))
     if expected.get("issue_fields"):
@@ -1001,8 +1005,8 @@ def audit(config, github, sections=SECTIONS, now=None, backfill=None) -> list[Fi
         except UnavailableError as error:
             findings.append(Finding(section, section, "unavailable", ui=where(section, config), note=str(error)))
             continue
-        clock = {"now": now} if section == "project" else {}
-        findings.extend(COMPARE[section](config, actual, **clock))
+        timing = {"now": now} if section == "project" else {}
+        findings.extend(COMPARE[section](config, actual, **timing))
     return apply_pending(config, findings, audited)
 
 

@@ -146,7 +146,7 @@ Required aggregate checks SHALL name every failed or partial check and include b
 
 - **GIVEN** a run whose lanes a newer push cancels
 - **WHEN** the run ends
-- **THEN** the collector does not run, the run shows as cancelled without a failed job, and the required gate still reports no success for it
+- **THEN** the collector does not run, so no evidence failure is reported for lanes that never finished, and the required gate still reports no success for it
 
 ## ADDED Requirements
 

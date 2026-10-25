@@ -13,7 +13,7 @@ const read = (outcomes) => (path) => (path.endsWith("report.json") ? report(outc
 const exists = (path) => Object.hasOwn(files, path);
 const core = { info() {} };
 
-function fakeGithub({ open = [], closed = [], commits = [], branches = [], permission = "write", raced = null, events = [] } = {}) {
+function fakeGithub({ open = [], closed = [], commits = [], branches = [], permission = "write", raced = null, events = [], labelled = true } = {}) {
   const writes = [];
   const heads = new Map(branches.map((ref) => ["refs/" + ref, "b".repeat(40)]));
   const github = {
@@ -40,6 +40,10 @@ function fakeGithub({ open = [], closed = [], commits = [], branches = [], permi
         createComment: async (options) => writes.push(["comment", options]),
         listEvents: () => events,
         addLabels: async (options) => writes.push(["labels", options]),
+        getLabel: async () => {
+          if (!labelled) throw Object.assign(Error("Not Found"), { status: 404 });
+          return { data: {} };
+        },
       },
       repos: { getCollaboratorPermissionLevel: async () => ({ data: { permission, role_name: permission } }) },
       git: {
@@ -111,6 +115,10 @@ assert(!writes.some(([kind]) => kind === "labels"), "a present label is not adde
   events: [{ event: "unlabeled", label: { name: "source-refresh" }, actor: { login: "maintainer" } }] }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "updated" });
 assert(!writes.some(([kind]) => kind === "labels"), "a removed label is not re-added");
+// Before the declared label exists, the PR is still published and the label waits instead of being invented.
+({ github, writes } = fakeGithub({ labelled: false }));
+assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "proposed" });
+assert(writes.some(([kind]) => kind === "createPull") && !writes.some(([kind]) => kind === "labels"), "no label is created by adding it");
 // A branch another writer advanced after inspection keeps its newer head: the comparison refuses the replacement.
 ({ github, writes } = fakeGithub({ open: [older], commits: [refreshCommit], branches: ["heads/refresh/heslar"], raced: "d".repeat(40) }));
 assert.deepEqual(await publish({ github, context, core }, read(changed), exists, bot), { heslar: "moved" });

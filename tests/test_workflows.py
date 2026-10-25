@@ -278,7 +278,10 @@ class WorkflowContracts(unittest.TestCase):
             )
         )
         self.assertEqual(partitioned["jobs"]["collect"]["needs"], ["build", "lanes"])
-        self.assertEqual(partitioned["jobs"]["collect"]["if"], "always()")
+        # The collector still runs after a failed build or lane, but not in a cancelled run. The gate keeps
+        # `always()`: a skipped required check counts as passing, so a cancelled merge group must fail it instead.
+        self.assertEqual(partitioned["jobs"]["collect"]["if"], "${{ !cancelled() }}")
+        self.assertEqual(gate["if"], "always()")
         lanes = partitioned["jobs"]["lanes"]
         self.assertEqual(lanes["strategy"]["fail-fast"], "false")
         self.assertEqual(lanes["strategy"]["matrix"]["lane"], list(check_ci.LANES))
