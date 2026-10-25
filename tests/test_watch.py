@@ -157,7 +157,9 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(waits, [5], "a short Retry-After is honoured once")
         watch_sources.attempt(urls, throttled(600), waits.append)
         self.assertEqual(waits, [5], "a long Retry-After is not waited for")
-        silent = watch_sources.attempt(urls, lambda url, body: (None, b"", "timed out") if "slow" in url else (200, b"", ""))
+        silent = watch_sources.attempt(
+            urls, lambda url, body: (None, b"", "timed out") if "slow" in url else (200, b"", "")
+        )
         self.assertEqual(len([url for url in silent if "slow" in url]), watch_sources.UNRESPONSIVE)
 
     def test_links_that_cannot_be_checked_are_counted_as_invalid(self) -> None:
@@ -171,8 +173,13 @@ class StateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "state.json"
             path.write_text(
-                json.dumps({"format_version": 1, "streaks": {"link:https://b.example/gone": 3, "stale:x": 1},
-                            "pages": {"outputs": {"#outputs": "abc"}}}),  # fmt: skip
+                json.dumps(
+                    {
+                        "format_version": 1,
+                        "streaks": {"link:https://b.example/gone": 3, "stale:x": 1},
+                        "pages": {"outputs": {"#outputs": "abc"}},
+                    }
+                ),  # fmt: skip
                 encoding="utf-8",
             )
             state, notice = watch_sources.load_state(path)
@@ -267,7 +274,9 @@ class LimitationTests(unittest.TestCase):
         run(denied)
         found, body, _, _, _ = run(denied)
         entry = tomllib.loads(found["link:https://b.example/gone"]["suggestion"])["limitation"][0]
-        self.assertEqual((entry["key"], entry["outcome"], entry["reviewer"]), ("link:https://b.example/gone", "denied", ""))
+        self.assertEqual(
+            (entry["key"], entry["outcome"], entry["reviewer"]), ("link:https://b.example/gone", "denied", "")
+        )
         self.assertIn("```toml", body)
 
     def test_a_limitation_for_a_target_no_longer_checked_asks_for_removal(self) -> None:
@@ -299,7 +308,9 @@ class DigestTests(unittest.TestCase):
         link = next(part for part in body.split("](") if part.startswith("https://github.com/o/r/issues/new?"))
         query = parse_qs(urlparse(link.split(")")[0]).query)
         self.assertEqual(query["labels"], ["area:maintenance"])
-        self.assertIn("<!-- fair-guide-finding key=link%3Ahttps%3A%2F%2Fb.example%2Fgone outcome=broken -->", query["body"][0])
+        self.assertIn(
+            "<!-- fair-guide-finding key=link%3Ahttps%3A%2F%2Fb.example%2Fgone outcome=broken -->", query["body"][0]
+        )
         task = {"key": "link:https://b.example/gone", "outcome": "broken", "number": 12, "state": "open"}
         _, body, comment, _, _ = run(failing, tasks=[task])
         self.assertIn("## Tracked (1)", body)
@@ -311,7 +322,10 @@ class DigestTests(unittest.TestCase):
         self.assertEqual(comment, "", "a closed task keeps its disposition without reopening anything")
         _, body, comment, _, _ = run(Fetcher(status={"https://b.example/gone": 403}), tasks=[closed])
         run(Fetcher(status={"https://b.example/gone": 403}), tasks=[closed])
-        self.assertIn("The outcome changed since task #12.", run(Fetcher(status={"https://b.example/gone": 403}), tasks=[closed])[1])
+        self.assertIn(
+            "The outcome changed since task #12.",
+            run(Fetcher(status={"https://b.example/gone": 403}), tasks=[closed])[1],
+        )
 
     def test_stale_statuses_and_champion_candidates_are_sections(self) -> None:
         champion = {
@@ -332,7 +346,12 @@ class DigestTests(unittest.TestCase):
         self.assertIn("indeterminate verdict is a result", found["champion:core_test"]["line"])
 
     def test_the_body_stays_within_the_issue_limit(self) -> None:
-        many = {"live": {**content()["live"], "connector": [{"id": f"s{n}", "origin": f"https://s{n}.example"} for n in range(400)]}}
+        many = {
+            "live": {
+                **content()["live"],
+                "connector": [{"id": f"s{n}", "origin": f"https://s{n}.example"} for n in range(400)],
+            }
+        }
         run = Run({**content(), **many})
         down = Fetcher(status={"https://s": None})
         run(down)
@@ -344,7 +363,7 @@ class DigestTests(unittest.TestCase):
         text = watch_sources.escape("<img src=x onerror=alert(1)> [link](https://evil.example) @team | `code`")
         self.assertNotIn("<img", text)
         self.assertNotIn("](", text)
-        self.assertIn("@​team", text)
+        self.assertIn("@\u200bteam", text)
         self.assertIn("\\|", text)
 
 
@@ -358,7 +377,15 @@ class CommandTests(unittest.TestCase):
             with mock.patch.object(watch_sources, "ROOT", fixture), mock.patch("builtins.print"):
                 argv = ["observe", "--state", str(Path(temp) / "missing.json"), "--output", str(watch), "--no-network"]
                 self.assertEqual(watch_sources.main(argv), 0)
-                argv = ["render", "--watch", str(watch), "--tasks", str(Path(temp) / "tasks.json"), "--output", str(digest)]
+                argv = [
+                    "render",
+                    "--watch",
+                    str(watch),
+                    "--tasks",
+                    str(Path(temp) / "tasks.json"),
+                    "--output",
+                    str(digest),
+                ]
                 self.assertEqual(watch_sources.main([*argv, "--predecessor", "41"]), 0)
             observations = json.loads((watch / "observations.json").read_text(encoding="utf-8"))
             self.assertIn("not a FAIR verdict", observations["scope"])

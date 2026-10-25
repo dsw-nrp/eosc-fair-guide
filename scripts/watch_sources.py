@@ -167,7 +167,9 @@ def content_links(content: dict[str, Any]) -> tuple[dict[str, list[str]], list[s
     return dict(sorted(found.items())), invalid
 
 
-def select(urls: list[str], targets: dict[str, dict], budget: int | None = None, per_host: int | None = None) -> list[str]:
+def select(
+    urls: list[str], targets: dict[str, dict], budget: int | None = None, per_host: int | None = None
+) -> list[str]:
     """The links to attempt: never attempted first, then the least recently attempted, at most `per_host` per host and
     `budget` in all (BUDGET and PER_HOST by default), so an unchanged inventory larger than the budget is covered in
     turn."""
