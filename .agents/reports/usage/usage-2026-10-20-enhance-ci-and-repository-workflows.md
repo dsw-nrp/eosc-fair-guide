@@ -647,3 +647,39 @@
   open: run 40190490225 shows that the audit queries Project #1's workflows, which the App's read permission does
   not cover, so the whole Project section fails with a misleading owner step, and that it reports settings the
   job's token cannot see as drift. A repair is proposed as a new task for approval.
+
+### Audit repair, schedule, delivery refresh and the maintenance digest
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Continued the apply phase on `agents/claude/ci-workflows-replan` (draft PR #116). 5.9: the weekly audit
+  reads Project #1's workflows in their own query and reports what its token cannot see as unavailable, not drift.
+  9.1–9.2: the weekly jobs finish by Monday morning in Prague, and a manual health-watch run chooses its parts.
+  7.8 follow-up: the PR summary skips a cancelled checks run. The native delivery reader accepts the format 2
+  receipt, and the refreshed `aiscr-*` delivery (55cc0a0) is applied unchanged. Group 6 (6.1–6.9): the live watch
+  classifies outcomes, selects the least recently attempted links under host caps and `Retry-After`, keeps
+  versioned state, validates reviewed limitations offline and ignores pagination; one maintenance digest is rebuilt
+  in place, comments only on change, rotates by closing and adopts keyed tasks from people with write access. The
+  watch job is now read-only; a separate publish job is the only writer, and the state artifact is read only from
+  this workflow's default-branch runs. `health-issues.cjs` is removed.
+- **Impacted:** `scripts/audit_repository.py`, `watch_sources.py`, `agent_surfaces.py`, `check_all.py`,
+  `check_ci.py`, `check_groups.json`; `.github/scripts/health-digest.cjs` (replaces `health-issues.cjs`),
+  `.github/health-watch.toml`; workflows `health-watch.yml`, `source-refresh.yml`, `pr-summary.yml`;
+  `.github/repository.toml` (tokens, label paths, staging recorded); the delivered `aiscr-*` surfaces, the
+  manifest and the delivered sections of `CODEX.md`; `README.md`, `README_en.md`, `docs/design.md`,
+  `docs/maintenance.md`; tests and fixtures; this change's tasks.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor`; `aiscr-planning-core` for the apply
+  boundary.
+- **Corrections:** The maintainer reported that the review comment workflow failed on cancelled checks runs, a
+  regression from the 7.8 collector change; the comment job now skips a cancelled run.
+- **Verification:** `python scripts/check_all.py` passed 31 of 33; the two failures were one over-long test line,
+  fixed during the run, after which `ruff`, `format`, `unit` and `helpers` pass 4 of 4 on the final tree. Strict
+  OpenSpec validation passes. Planted regressions are caught for the publisher's run condition, the state choice
+  after a refused publication, and the branch and fork filters of the previous-state lookup; an offline
+  observe-and-render chain produces the reset notice and the "audit did not run" section.
+- **Close-out:** 58 of 78 tasks are done. The digest workflow first runs hosted after merge, with 5.8/5.9's
+  audit-only run and 8.7's ruleset switch. 6.10 (legacy issue migration) and 6.11 (digest runbook) follow, then
+  groups 7 and 10, 8.8 and group 11.
