@@ -107,11 +107,71 @@ branch_policies = ["tag v*.*.*"]
 can_admins_bypass = true
 
 # Labels. The audit lists any other label for a decision and never deletes one. `paths` (optional) are the
-# changed-path rules that add an area label to a pull request.
+# changed-path rules that add an area label to a pull request: shell-style patterns in which `*` also crosses `/`.
+# Usage logs and OpenSpec planning match no area, so they never label a pull request on their own.
 [[label]]
 name = "accessibility"
 color = "f143ab"
 description = "Barrier affecting people with disabilities"
+
+[[label]]
+name = "area:content"
+color = "1d76db"
+description = "Advice, questions, glossary and model texts"
+paths = [
+  "content/stations/*", "content/checks/*", "content/lifecycle/*", "content/glossary.toml", "content/model.toml",
+  "content/principles.toml", "content/callouts.toml", "content/pages.toml", "content/guide.toml",
+  "content/corrections.toml", "content/identifiers.toml", "content/provenance.toml",
+]
+
+[[label]]
+name = "area:delivery"
+color = "006b75"
+description = "CI, release, deployment, tooling and dependencies"
+paths = [
+  ".github/*", "scripts/*", "docker/*", ".devcontainer/*", "package.json", "package-lock.json",
+  "requirements-dev.txt", "pyproject.toml", "CHANGELOG.md", "CITATION.cff", ".zenodo.json", "docs/ci.md",
+  "docs/deployment.md", "docs/agent-tooling.md", "AGENTS.md", "CLAUDE.md", "CODEX.md", ".agents/guide/*",
+  ".agents/config/*", ".agents/scripts/*", ".agents/skills/*", ".agents/delivery-manifest.json", ".claude/*",
+  ".codex/*", ".cursor/*", ".gemini/*", ".kilo/*",
+]
+
+[[label]]
+name = "area:evaluation"
+color = "0e8a16"
+description = "Live checks, evaluators and the self-check"
+paths = [
+  "content/live.toml", "assets/js/live.js", "assets/js/discovery.js", "assets/js/providers.js",
+  "assets/js/inspection.js", "assets/js/selfcheck.js", "docs/champion/*", "scripts/probe_champion.mjs",
+  "tests/fixtures/providers/*",
+]
+
+[[label]]
+name = "area:interface"
+color = "fbca04"
+description = "Interface, accessibility, language and print"
+paths = ["index.html", "assets/*", "api/*", "content/ui.toml", "content/icons.toml"]
+
+[[label]]
+name = "area:maintenance"
+color = "d4c5f9"
+description = "The health digest and the tasks it spawns"
+paths = [
+  ".github/workflows/health-watch.yml", ".github/scripts/health-issues.cjs", ".github/health-watch.toml",
+  "scripts/watch_sources.py", "docs/maintenance.md",
+]
+
+[[label]]
+name = "area:sources"
+color = "5319e7"
+description = "Snapshots, refresh, registry data and ledger sources"
+paths = [
+  "content/snapshots/*", "content/ledger.toml", "content/sources.toml", "content/resources.toml",
+  "content/repositories.toml", "content/infrastructures.toml", "content/eosc-node.toml", "content/duplicates.toml",
+  "content/link-reviews.toml", ".github/source-registry.json", "scripts/refresh_snapshots.py",
+  "scripts/registry_identifiers.py", "scripts/check_duplicates.py", "scripts/fix_duplicates.py",
+  "scripts/duplicate_repairs.py",
+]
 
 [[label]]
 name = "breaking-change"
@@ -187,6 +247,11 @@ description = "Pull requests that update python code"
 name = "question"
 color = "d876e3"
 description = "Further information is requested"
+
+[[label]]
+name = "source-refresh"
+color = "c2e0c6"
+description = "Pull request opened by the source refresh"
 
 [[label]]
 name = "wontfix"
@@ -340,6 +405,13 @@ app = { contents = "write", pull-requests = "write" }
 workflow = "health-watch.yml"
 jobs = ["watch"]
 github = { contents = "read", issues = "write" }
+
+# The weekly audit is the only job that reads the Project, and it reads nothing else with the App's token.
+[[token]]
+workflow = "health-watch.yml"
+jobs = ["audit"]
+github = { actions = "read", contents = "read", issues = "read" }
+app = { organization-projects = "read" }
 
 [[token]]
 workflow = "partitioned-checks.yml"

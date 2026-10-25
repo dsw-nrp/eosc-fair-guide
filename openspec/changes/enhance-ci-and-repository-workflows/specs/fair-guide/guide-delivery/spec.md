@@ -142,6 +142,12 @@ Required aggregate checks SHALL name every failed or partial check and include b
 - **WHEN** the collector reconciles the lanes
 - **THEN** the aggregate names the content failure and the missing or rejected lane, keeps their logs, never claims a complete run and admits no data from the rejected lane
 
+#### Scenario: A newer push cancels a run
+
+- **GIVEN** a run whose lanes a newer push cancels
+- **WHEN** the run ends
+- **THEN** the collector does not run, so no evidence failure is reported for lanes that never finished, and the required gate still reports no success for it
+
 ## ADDED Requirements
 
 ### Requirement: The unpublished changelog section is checked
@@ -433,6 +439,16 @@ or the reason for the fallback.
 
 - **WHEN** the tree differs, no passing merge-group run exists or its snapshot fails validation
 - **THEN** deployment runs the complete partitioned checks before publishing and states why
+
+#### Scenario: Build inventories name different producing runs
+
+- **WHEN** the fresh build differs from the queue build only in the three health files that adoption replaces
+- **THEN** those differences do not prevent reuse, every other built file must match and the imported health snapshot still passes identity and schema validation
+
+#### Scenario: Adoption fails while the summary is written successfully
+
+- **WHEN** adoption rejects a result and the summary pipeline succeeds
+- **THEN** deployment selects the complete partitioned checks and uploads no unchecked staging site as reused
 
 ### Requirement: Production promotion requires explicit approval
 

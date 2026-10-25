@@ -416,3 +416,141 @@
 - **Verification:** GitHub's `github-pages` deployments, the deployment runs and the remote tags show no deployment
   between 14:58 and 19:37 UTC and no tag after `v1.0.0-alpha.2`. The audit times come from the session transcript.
   OpenSpec validation passes, and the task count is unchanged.
+
+## Claude Code session (after #112, the queue rehearsal and group 5: Project and intake)
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **Subagents used:** none
+- **MCP servers used:** none
+- **Workflow context used:** `openspec-apply-change` continued for group 5; the delivered planning, quality-first and
+  usage-logging rules; the delivered `aiscr-plan-issue` engine, read and imported but not changed; read-only `gh`
+  queries of runs, artifacts, Project #1, open issues and Dependabot alerts.
+- **What:**
+  - After #112 (administrator merge as `01fc802`), the newer push cancelled the older deployment run and named its
+    successor. `01fc802` ran the fallback checks, published, and `/next/` reports it. The cancelled run's collector
+    failed inside it: folded into the change as task 7.8 with a spec scenario, by the maintainer's decision.
+  - Task 4.9, approved by the maintainer: the human-PR part is deferred (recorded beside the task), and the release
+    rehearsal uses `1.0.0-alpha.3` with status `testing`. The grouped Dependabot PRs #110 and #111 wait for approval.
+  - Task 2.3 evidence: #110 changed `requirements-dev.txt`, so its pip key changed and both Python lanes missed and
+    reinstalled. #112's second run hit the cache. Both runs list the same checks per lane and pass 31 of 31. The
+    npm half waits for a pull-request run on the new lockfile.
+  - Group 5 (tasks 5.2–5.5 and 5.7):
+    - Area and `source-refresh` labels with reviewed path rules, applied by `scripts/area_labels.py`.
+    - Add-only labelling in the review and refresh publishers through `labels.cjs`; a removed label stays removed.
+    - Czech and English issue templates generated from the delivered shape, with `--check` in the offline and quick
+      suites.
+    - Project item checks in the audit, the digest's public "Project and settings" section, and the reviewed backfill
+      mode.
+    - The weekly audit job in `health-watch.yml`, which uses the App token for Project #1 only.
+    - The triage guide in `docs/maintenance.md`.
+  - Task 5.6: the backfill mapping is drafted for review; nothing is applied.
+- **Impacted:** `.github/repository.toml`, `.github/workflows/{pr-summary,health-watch}.yml`,
+  `.github/scripts/{labels,source-publisher}.cjs`, `.github/ISSUE_TEMPLATE/`,
+  `scripts/{area_labels,plan_issue_shape,generate_issue_templates,audit_repository,check_all,check_ci}.py`,
+  `scripts/check_groups.json`, `tests/test_{audit_repository,issue_templates,workflows}.py`,
+  `tests/page/check_{labels,source_publisher}.mjs`, `tests/fixtures/repository-audit.json`, `docs/maintenance.md`, the
+  change's design, spec delta, tasks and `backfill.toml`, this entry.
+- **Verification:**
+  - A read-only run of the extended audit on live data: 59 open issues without an Issue Type, nothing else.
+  - The dry run of the draft backfill: 120 changes, applied by nothing.
+  - 20 planted defects each fail a check: one per rule, publisher guard, workflow condition and guide reference.
+- **Corrections:**
+  - The first draft read the whole audit with the App token.
+    From group 3, `docs/maintenance.md` records that the repository sections use `GITHUB_TOKEN` and the App token
+    reads only Project #1. The job and the audit follow it, and the audit reports hidden items as unavailable.
+  - A security review of the local commit found that the weekly job uploaded the full JSON report and printed the
+    full report to its log. Both are public in this repository, and they named Project-only values. The job now
+    publishes only the redacted section, and its workflow test guards that.
+- **Close-out:** `check_all.py` passes 32 of 32, including the new `issue-templates` check. Strict OpenSpec validation
+  passes. 36 of 62 tasks are complete. Task 5.1 waits for `--fix` to create the declared labels, 5.6 for the
+  mapping's approval and application, and 5.8 for the organization owner.
+
+### Review of PR #113 (`7b2d5d8`)
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Two Low findings, both confirmed, and one pre-existing observation, now reachable.
+  - The publishers could make GitHub create an undeclared label with its default colour. They now add only labels
+    that exist and name the ones they skip; the next run adds those once `--fix` has created them.
+  - The cancellation scenario described a collector change that was not in the PR. The collector now runs unless
+    the run was cancelled (task 7.8). The required gate keeps `always()`, because a skipped required check counts
+    as passing. The text now promises no collector failure, not a run without any failed job.
+  - An empty organization issue-types list was read as drift. The weekly job's token may receive exactly that, so
+    the list is now unavailable, as for issue fields.
+  - Task 2.3 is complete. pip: #110 changed `requirements-dev.txt`, missed and reinstalled with the same per-lane
+    checks as #112's warm run. npm: the key moved from `…78ce8c` to `…7a4652` with `package-lock.json`. #113's
+    first run missed and saved it (run 40142786024), and every job of the next run hit it, passing 32 of 32
+    (run 40143003658).
+- **Impacted:** `.github/scripts/{labels,source-publisher}.cjs`, `.github/workflows/partitioned-checks.yml`,
+  `scripts/audit_repository.py`, `tests/test_{audit_repository,workflows}.py`,
+  `tests/page/check_{labels,source_publisher}.mjs`, the change's design, spec delta and tasks, this entry.
+- **Verification:** Each new guard fails a check when broken (four planted defects).
+
+### Labels and backfill applied (tasks 5.1 and 5.6)
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** With the maintainer's approval of the suggested steps:
+  - `audit_repository.py --section labels --fix` created the six `area:*` labels and `source-refresh` with their
+    reviewed metadata (`breaking-change` already existed).
+  - The backfill was compared once more and then applied: 59 Issue Types and 61 area labels, with no unmapped or
+    closed issue.
+  - The test fixture's labels, Project items and open issues are re-recorded from that state.
+  - The permission system refused approving and queuing #110 and #111 under the maintainer's account. That step is
+    the maintainer's.
+- **Impacted:** live labels and issue types and labels of the 61 open issues (GitHub); `tests/fixtures/repository-audit.json`,
+  `tests/test_audit_repository.py`, the change's tasks, this entry.
+- **Verification:**
+  - The full read-only audit shows 0 drift, 0 missing, 0 undeclared and 0 attention. Only organization issue fields
+    stay unavailable.
+  - All 61 open issues have a type and an area label.
+  - By their filters, the views hold 26 automated and 22 authored pull requests and 24 `area:maintenance` issues.
+- **Close-out:** 40 of 62 tasks complete; 5.8 waits for the organization owner and 4.9 for the queue approvals.
+
+### Merge-queue rehearsal: adoption and fallback repairs
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Codex (API)
+- **Model / backend:** GPT-6; exact backend model ID not exposed by the runtime.
+- **What:** Continued the approved Claude session. The maintainer queued #110 and #111; both merged, and the
+  final tested commit was `d1ef695`. Deployment run 40147547699 rejected the queue evidence because the initial
+  health inventory names its producing run. Its summary pipeline nevertheless returned success through `tee`,
+  skipping full checks. Publication run 40147592421 refused the unchecked site before Pages deployment.
+  Adoption now compares every built file except the three health files it replaces, retains snapshot identity
+  and API validation, and preserves the adoption exit status through the pipeline.
+- **Impacted:** `scripts/check_ci.py`, `.github/workflows/deploy.yml`, `tests/test_{check_ci,workflows}.py`, the
+  change's design, delivery spec delta and task 4.9 evidence, this rolling entry.
+- **Subagents used:** none.
+- **MCP servers used:** GitHub.
+- **Workflow context used:** `fair-guide-editor`, `openspec-apply-change`; change
+  `enhance-ci-and-repository-workflows`, with the existing implementation and hosted-rehearsal approvals.
+- **Verification:** 54 focused deployment/workflow tests pass, including a real health publication proving that
+  precisely the excluded files are replaced. The actual Bash script selects reuse only for successful adoption,
+  selects full checks for a failed adoption or missing run, and reproduces false reuse when `pipefail` is removed.
+  Four planted regressions are detected: comparing the run-specific snapshot, ignoring all built files, excluding
+  an extra unchanged file, and removing `pipefail`. The saved queue and local builds of `d1ef695` contain 1,956
+  files apiece and differ only in the three replaced health files. Fresh native `check_all.py` passes 32 of 32
+  checks in 152.8 s, including all unit shards, browser groups, validators and final health API validation;
+  strict change validation, Ruff and diff checks pass.
+- **Close-out:** 40 of 62 tasks remain complete. Hosted reuse after the repair, release preparation and promotion
+  remain pending; the unsuccessful rehearsal is not acceptance evidence for task 4.9.
+
+### PR #113 review: multiline adoption conditions
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Codex (API)
+- **Model / backend:** GPT-6; exact backend model ID not exposed by the runtime.
+- **What:** Confirmed review comment `discussion_r4369192866`: the conditional-pipeline regex skipped multiline
+  conditions. Replaced it with a direct invariant requiring `pipefail` before the adoption command in every
+  workflow step, independent of condition layout or an explicit shell.
+- **Impacted:** `tests/test_workflows.py`, this rolling entry.
+- **Verification:** The previous guard accepts the review's multiline reproduction. The replacement passes all
+  29 workflow tests and 30 planted variants of single-line/multiline conditions, continued pipelines, explicit or
+  omitted shells, and missing/before/after `pipefail`; every unsafe variant fails. Fresh native `check_all.py`
+  passes 32 of 32 in 165.7 s, including the complete unit, browser, validator and final health API coverage.
+- **Close-out:** Implementation remains in the approved `enhance-ci-and-repository-workflows` change; task 4.9
+  still requires successful hosted reuse and release promotion.

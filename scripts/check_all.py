@@ -99,6 +99,7 @@ def jobs(base: str | None, live: bool) -> list[Job]:
         Job("openspec", [npm, "run", "-s", "openspec:validate"]),
         Job("public-content", [python, "scripts/check_public_content.py"]),
         Job("agent-generation", [python, "scripts/generate_agent_surfaces.py", "--check"]),
+        Job("issue-templates", [python, "scripts/generate_issue_templates.py", "--check"]),
         Job("agent-ownership", [python, "scripts/check_agent_surfaces.py"]),
         Job("sibling-delivery", [python, "scripts/check_sibling_delivery.py"]),
         Job("health", [python, "scripts/check_health.py", "--output", ".cache/health-inventory"]),

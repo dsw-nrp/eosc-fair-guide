@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import build_crate  # noqa: E402
 import check_all  # noqa: E402
 import check_ci  # noqa: E402
 
@@ -519,6 +520,48 @@ class AdoptTests(unittest.TestCase):
                 self.assertIn(reason, " ".join(check_ci.adoption_problems(self.manifest, execution, report)))
         undated = {**self.report, "generated_at": None}
         self.assertIn("its check run did not pass", check_ci.adoption_problems(self.manifest, self.execution, undated))
+
+    def test_the_run_named_in_the_built_health_snapshot_does_not_block_reuse(self):
+        # Every build writes a health snapshot naming its own run, so the queue's and the deployment's builds of one
+        # commit differ there (runs 40147218658 and 40147547699); adoption replaces exactly those files.
+        snapshot = {path: "queue run" for path in check_ci.SNAPSHOT_FILES}
+        manifest = {**self.manifest, "build": {**self.manifest["build"], **dict.fromkeys(snapshot, "deploy run")}}
+        execution = {**self.execution, "build_inputs": {**self.execution["build_inputs"], **snapshot}}
+        self.assertEqual(check_ci.adoption_problems(manifest, execution, self.report), [])
+        for change in (
+            {"index.html": "3"},
+            {"api/stations.json": "added"},
+        ):
+            with self.subTest(change=change):
+                changed = {**execution, "build_inputs": {**execution["build_inputs"], **change}}
+                self.assertIn(
+                    "build inputs differ", " ".join(check_ci.adoption_problems(manifest, changed, self.report))
+                )
+        removed = {**execution, "build_inputs": dict(snapshot)}
+        self.assertIn("build inputs differ", " ".join(check_ci.adoption_problems(manifest, removed, self.report)))
+        self.assertIn(
+            "build inputs differ",
+            " ".join(check_ci.adoption_problems(manifest, {**execution, "build_inputs": {}}, self.report)),
+            "missing build inputs are never a match",
+        )
+
+    def test_only_files_replaced_by_health_publication_are_excluded_from_comparison(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            site = root / "_site"
+            (site / "api").mkdir(parents=True)
+            build_crate.mark_site(site)
+            for path in (*check_ci.SNAPSHOT_FILES, check_all.build_api.OPENAPI_FILE, "index.html"):
+                target = site / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text("{}", encoding="utf-8")
+            before = check_ci.build_identity(root)
+            report = check_all.check_health.make_report(build_crate.load_content())
+            check_all.build_api.publish_health(site, report, None)
+            after = check_ci.build_identity(root)
+            changed = {path for path in before.keys() | after.keys() if before.get(path) != after.get(path)}
+            self.assertEqual(changed, check_ci.SNAPSHOT_FILES)
+            self.assertEqual(check_ci.without_snapshot(before), check_ci.without_snapshot(after))
 
     def adopt(self, root, *, evidence=True, api_ok=True):
         incoming = root / "incoming"

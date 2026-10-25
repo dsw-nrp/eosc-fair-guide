@@ -1,0 +1,310 @@
+# Backfill of task 5.6: the Issue Type and area label of every issue open on 25 October 2026. A draft for the
+# maintainer's review; nothing is applied before approval. Compare, then apply only what it lists:
+#   python scripts/audit_repository.py --backfill openspec/changes/enhance-ci-and-repository-workflows/backfill.toml
+#   python scripts/audit_repository.py --backfill openspec/changes/enhance-ci-and-repository-workflows/backfill.toml --fix
+# The health-watch issues (#59-#65, #85-#101) are maintenance tasks until the digest absorbs them (task 6.10).
+
+[[issue]]
+number = 5  # Allow FIP Dashboard reads from the Guide's approved origins (Q-33)
+type = "Task"
+area = ["area:evaluation"]
+
+[[issue]]
+number = 6  # Audit test validity and gaps against the first official prerelease (Q-39)
+type = "Task"
+area = ["area:evaluation"]
+
+[[issue]]
+number = 7  # Review deeper population and contextual reuse of the conceptual model (Q-40)
+type = "Task"
+area = ["area:content"]
+
+[[issue]]
+number = 8  # Update RDMkit's Czech national resources after alpha (Q-47)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 9  # Adopt the public EOSC CZ Node service catalogue when available (Q-51)
+type = "Feature"
+area = ["area:sources"]
+
+[[issue]]
+number = 10  # Run external evaluators over a bounded repository sample (Q-54)
+type = "Task"
+area = ["area:evaluation"]
+
+[[issue]]
+number = 11  # Design a broader, source-reviewed licence selector (Q-55)
+type = "Feature"
+area = ["area:interface"]
+
+[[issue]]
+number = 12  # Prepare sourced FAIR data statements for funders (issue 2.3)
+type = "Feature"
+area = ["area:content"]
+
+[[issue]]
+number = 13  # Design an installable offline version with safe updates (issue 3.4)
+type = "Feature"
+area = ["area:interface", "area:delivery"]
+
+[[issue]]
+number = 14  # Assign and validate external-evaluator mapping maintenance (Q-41–Q-43)
+type = "Task"
+area = ["area:evaluation"]
+
+[[issue]]
+number = 15  # Confirm and adopt the Guide's canonical address (Q-31)
+type = "Task"
+area = ["area:delivery"]
+
+[[issue]]
+number = 16  # Agree NMA browser API access (Q-03)
+type = "Task"
+area = ["area:evaluation"]
+
+[[issue]]
+number = 17  # Confirm and maintain dated OpenAIRE aggregation status (Q-05)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 18  # Record the applicable EOSC CZ branding terms (Q-10)
+type = "Task"
+area = ["area:interface"]
+
+[[issue]]
+number = 19  # Confirm DMP.eosc.cz CCMM exports and stable question links (Q-19, Q-46)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 20  # Confirm the NRP recommended-licence catalogue (Q-20)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 21  # Provide working Czech NMA documentation links (Q-23)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 22  # Decide the applicability of Minimum pro RIV (Q-27)
+type = "Task"
+area = ["area:content"]
+
+[[issue]]
+number = 23  # Confirm the NMA CCMM support roadmap (Q-32)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 24  # Document Dashboard coverage of nanopublication-only FIPs (Q-34)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 25  # Review crate/profile upgrade readiness and migration gates (Q-36)
+type = "Task"
+area = ["area:delivery"]
+
+[[issue]]
+number = 26  # Resolve CoreTrustSeal edition numbering in the FAIR analysis (Q-37)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 27  # Review adoption of a published national FAIR benchmark (Q-38)
+type = "Task"
+area = ["area:evaluation"]
+
+[[issue]]
+number = 28  # Confirm the NRP organisation URL and Dashboard identity (Q-44)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 29  # Clarify permission for alternative KNAV catalogue licensing (Q-45)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 30  # Confirm the MaLDReTH Reuse to ACCESS correspondence (Q-49)
+type = "Task"
+area = ["area:content"]
+
+[[issue]]
+number = 31  # Confirm the DataHub and Map collection service relationship (Q-52)
+type = "Task"
+area = ["area:sources"]
+
+[[issue]]
+number = 32  # Serve the Guide at its adopted address `https://fair.eosc.cz/` (Q-31)
+type = "Task"
+area = ["area:delivery"]
+
+[[issue]]
+number = 33  # Render the Guide's vocabulary from a data specification (Dataspecer-compatible view)
+type = "Feature"
+area = ["area:content"]
+
+[[issue]]
+number = 35  # Redakční zeštíhlení zastávek a odstranění duplicitních rad (RDMkit, licence, AI šablony)
+type = "Task"
+area = ["area:content"]
+
+[[issue]]
+number = 36  # Doplnění praxe v Zastávce 1 a 2: informovaný souhlas před sběrem, výběr dat k uchování a kontinuita v týmu
+type = "Task"
+area = ["area:content"]
+
+[[issue]]
+number = 37  # Doplnění praxe v Zastávce 2, 3 a 8: příklad struktury složek, otevřené formáty, syntetická data a balíčkování
+type = "Task"
+area = ["area:content"]
+
+[[issue]]
+number = 38  # Doplnění praxe v Zastávce 6, 7 a 8: identifikace vzorků a grantů, patenty/průmyslová spolupráce a oprava chyb po publikaci
+type = "Task"
+area = ["area:content"]
+
+[[issue]]
+number = 43  # Correct the “Ovarlay Journal” typo in Heslář record 415
+type = "Bug"
+area = ["area:sources"]
+
+[[issue]]
+number = 59  # FAIR Champion candidate available: fc_metadata_authorization
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 60  # FAIR Champion candidate available: fc_metadata_identifier_persistence
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 61  # FAIR Champion candidate available: community_open_access_publication
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 62  # FAIR Champion candidate available: community_data_cited_in_pub
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 63  # FAIR Champion candidate available: test_FM_A1_1_M_OpenProt
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 64  # FAIR Champion candidate available: test_FM_A1_2_M_Auth
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 65  # FAIR Champion candidate available: test_FM_F1_M_IdentUnique
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 80  # Register in OSF Best Practices
+type = "Task"
+area = ["area:delivery"]
+
+[[issue]]
+number = 83  # Publish robots.txt and sitemap.xml (delivery spec assumes a sitemap that the build never creates)
+type = "Feature"
+area = ["area:delivery"]
+
+[[issue]]
+number = 84  # Document the CI policy and workflow usage in one maintainer page
+type = "Task"
+area = ["area:delivery"]
+
+[[issue]]
+number = 85  # Link is broken: https://asep.lib.cas.cz/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 86  # Link is broken: https://asep.lib.cas.cz/arl-cav/en/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 87  # Link did not answer: https://commons.datacite.org/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 88  # Link did not answer: https://data.eli-laser.eu/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 89  # Link did not answer: https://data.narodni-repozitar.cz/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 90  # Link is broken: https://docs.it4i.cz/lumi/about/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 91  # Link is broken: https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 92  # Link is broken: https://openai.com/codex/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 93  # Link did not answer: https://ror.org/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 94  # Link is broken: https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 95  # Link is broken: https://v2.sherpa.ac.uk/api/object-retrieval.html
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 96  # Link is broken: https://w3id.org/ro/crate/1.2
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 97  # Link is broken: https://www.chemspider.com/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 98  # Link is broken: https://www.data.cam.ac.uk/organising-storing/electronic-research-notebooks
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 99  # Link is broken: https://www.hepdata.net/
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 100  # EOSC CZ new item: 27. 10. Research libraries and the future of the European Open Science Cloud (EOSC) Online Zahraničn
+type = "Task"
+area = ["area:maintenance"]
+
+[[issue]]
+number = 101  # EOSC CZ new item: Další
+type = "Task"
+area = ["area:maintenance"]

@@ -39,7 +39,17 @@ UNIT_LANE = "unit"
 LANES = ("cpu", UNIT_LANE, *BROWSER_LANES)
 # Cheap offline checks that need no build. The CPU lane runs the same inventory jobs, so the required `checks`
 # result reports every failure the quick result does.
-QUICK = ("content", "duplicates", "changelog", "ruff", "format", "public-content", "openspec", "agent-generation")
+QUICK = (
+    "content",
+    "duplicates",
+    "changelog",
+    "ruff",
+    "format",
+    "public-content",
+    "openspec",
+    "agent-generation",
+    "issue-templates",
+)
 
 
 def partition(available):
@@ -556,6 +566,15 @@ def collect(args) -> int:
     return status
 
 
+# The health snapshot a build writes names its own run (`revision`, `run_url`), so these files differ between any two
+# runs. Adoption replaces exactly them with the merge-queue result's snapshot and compares every other built file.
+SNAPSHOT_FILES = frozenset({check_all.build_api.HEALTH_FILE, "health/index.html", "health/summary.md"})
+
+
+def without_snapshot(build: dict | None) -> dict:
+    return {path: digest for path, digest in (build or {}).items() if path not in SNAPSHOT_FILES}
+
+
 def adoption_problems(manifest: dict, execution: dict, report: dict) -> list[str]:
     """Why a merge-queue result cannot stand for this checkout's fresh build; empty when it can."""
     problems = []
@@ -563,7 +582,9 @@ def adoption_problems(manifest: dict, execution: dict, report: dict) -> list[str
         problems.append("it is not a partitioned check result")
     if execution.get("source") != manifest["source"]:
         problems.append("its source revision or files differ from this commit")
-    if execution.get("build_inputs") != manifest["build"]:
+    if not execution.get("build_inputs") or without_snapshot(execution["build_inputs"]) != without_snapshot(
+        manifest["build"]
+    ):
         problems.append("its build inputs differ from this build, for example because it was built on another day")
     if report.get("format_version") != check_all.check_health.FORMAT_VERSION:
         problems.append(f"its health snapshot has format {report.get('format_version')!r}")

@@ -3,23 +3,41 @@
 import copy
 import io
 import json
+import re
 import shlex
+import subprocess
 import sys
 import tempfile
 import unittest
 import unittest.mock
 from contextlib import redirect_stdout
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import area_labels  # noqa: E402
 import audit_repository as audit  # noqa: E402
+import plan_issue_shape  # noqa: E402
+
+ROOT = Path(__file__).resolve().parent.parent
 
 LIVE = json.loads((Path(__file__).resolve().parent / "fixtures" / "repository-audit.json").read_text(encoding="utf-8"))
 REPO = "GET repos/dsw-nrp/eosc-fair-guide"
+OPEN = f"{REPO}/issues?state=open&per_page=100"
+# When the Project items were recorded; the item checks measure waiting time from here.
+RECORDED = datetime(2026, 10, 25, 12, tzinfo=UTC)
+LABELS = f"{REPO}/labels?per_page=100"
+
+
+def drop_labels(responses, *names):
+    """The recorded state without some declared labels, as before `--fix` created them."""
+    responses[LABELS] = [label for label in responses[LABELS] if label["name"] not in names]
 
 
 class Replay:
-    """The recorded live state of 24 October 2026; writes are kept and applied to labels and Project items."""
+    """The recorded live state: settings of 24 October 2026, and labels, Project items and open issues of 25 October
+    after the labels were created and the backfill applied. Writes are kept and applied to labels, Project items and
+    open issues."""
 
     def __init__(self, responses=None):
         self.responses = copy.deepcopy(responses or LIVE)
@@ -50,6 +68,14 @@ class Replay:
 
     def send(self, method, path, body):
         self.writes.append((method, path, body))
+        if "/issues/" in path:
+            number = int(path.split("/issues/")[1].split("/")[0])
+            issue = next(issue for issue in self.responses[OPEN] if issue["number"] == number)
+            if path.endswith("/labels"):
+                issue["labels"] += [{"name": name} for name in body["labels"]]
+            else:
+                issue["type"] = {"name": body["type"]}
+            return
         labels = self.responses[f"{REPO}/labels?per_page=100"]
         if method == "POST":
             labels.append({"name": body["name"], "color": body["color"], "description": body["description"]})
@@ -62,8 +88,22 @@ def project(responses):
     return responses["GRAPHQL Project"]["organization"]["projectV2"]
 
 
+def project_items(responses):
+    return responses["GRAPHQL ProjectItems"]["organization"]["projectV2"]["items"]["nodes"]
+
+
 def by_setting(findings):
     return {finding.setting: finding for finding in findings}
+
+
+def baseline():
+    """Every finding of the recorded live state, by setting."""
+    return {finding.setting: finding.status for finding in audit.audit(audit.load(), Replay(), now=RECORDED)}
+
+
+def beyond_baseline(findings):
+    recorded = baseline()
+    return {f.setting: f.status for f in findings if recorded.get(f.setting) != f.status}
 
 
 QUEUE = "ruleset.Main branch protection.rules.merge_queue"
@@ -102,25 +142,21 @@ def pending_reviewer(config, live, reviewers=("motyc",)):
 class AuditTests(unittest.TestCase):
     def setUp(self):
         self.config = audit.load()
+        self.enterContext(unittest.mock.patch.object(audit, "clock", lambda: RECORDED))
 
     def test_the_committed_state_matches_the_recorded_live_state(self):
+        # Recorded after `--fix` created the declared labels and the reviewed backfill typed and labelled every issue.
         statuses = {finding.setting: finding.status for finding in audit.audit(self.config, Replay())}
-        self.assertEqual(statuses, {"label.breaking-change": "missing", "organization.issue_fields": "unavailable"})
+        self.assertEqual(statuses, {"organization.issue_fields": "unavailable"})
+        issues = [node["content"] for node in project_items(LIVE) if node["content"]["__typename"] == "Issue"]
+        self.assertGreater(len(issues), 50)
+        self.assertTrue(all(issue["issueType"] for issue in issues if issue["state"] == "OPEN"))
 
     def test_an_approved_target_waits_as_pending_with_its_task(self):
         live = copy.deepcopy(LIVE)
         pending_queue(self.config, live)
         findings = audit.audit(self.config, Replay(live))
-        statuses = {finding.setting: finding.status for finding in findings}
-        self.assertEqual(
-            statuses,
-            {
-                STRICT: "pending",
-                QUEUE: "pending",
-                "label.breaking-change": "missing",
-                "organization.issue_fields": "unavailable",
-            },
-        )
+        self.assertEqual(beyond_baseline(findings), {STRICT: "pending", QUEUE: "pending"})
         merge_queue = by_setting(findings)[QUEUE]
         self.assertEqual(
             merge_queue.expected["max_entries_to_merge"], 3, "a missing rule shows its declared parameters"
@@ -184,6 +220,7 @@ class AuditTests(unittest.TestCase):
         pending_reviewer(self.config, live)
         live["GRAPHQL Project"] = audit.UnavailableError("Resource not accessible by integration")
         live[f"{REPO}/environments"] = audit.UnavailableError("HTTP 403: Must have admin rights")
+        drop_labels(live, "breaking-change")
         findings = by_setting(audit.audit(self.config, Replay(live)))
         self.assertEqual(findings["project"].status, "unavailable")
         self.assertIn("Resource not accessible", findings["project"].note)
@@ -193,6 +230,14 @@ class AuditTests(unittest.TestCase):
             "environment.github-pages.reviewers", findings, "a pending target in an unreadable section is not judged"
         )
         self.assertEqual(findings["label.breaking-change"].status, "missing", "the rest of the audit still runs")
+
+    def test_an_empty_organization_list_is_unavailable_not_drift(self):
+        live = copy.deepcopy(LIVE)
+        live["GET orgs/dsw-nrp/issue-types"] = []
+        findings = by_setting(audit.audit(self.config, Replay(live), sections=("organization",)))
+        self.assertEqual(findings["organization.issue_types"].status, "unavailable")
+        self.assertIn("an organization owner can confirm", findings["organization.issue_types"].note)
+        self.assertFalse([setting for setting in findings if setting.startswith("organization.issue_types.")])
 
     def test_bypass_actors_hidden_from_a_read_only_token_are_unavailable_not_drift(self):
         live = copy.deepcopy(LIVE)
@@ -222,6 +267,7 @@ class AuditTests(unittest.TestCase):
     def test_fix_only_creates_or_updates_declared_labels_and_adds_project_items(self):
         live = copy.deepcopy(LIVE)
         live[REPO]["allow_auto_merge"] = True
+        drop_labels(live, "area:sources", "source-refresh")
         next(label for label in live[f"{REPO}/labels?per_page=100"] if label["name"] == "bug")["color"] = "000000"
         live[f"{REPO}/labels?per_page=100"].append({"name": "stray", "color": "ffffff", "description": None})
         status = next(node for node in project(live)["fields"]["nodes"] if node.get("name") == "Status")
@@ -235,10 +281,12 @@ class AuditTests(unittest.TestCase):
         with redirect_stdout(output):
             status_code = audit.main(["--fix"], github=replay)
         kinds = [(write[0], write[1].split("/")[-1] if write[0] != "graphql" else write[1]) for write in replay.writes]
-        self.assertEqual(sorted(kinds), [("PATCH", "bug"), ("POST", "labels"), ("graphql", "AddItem")])
         self.assertEqual(
-            replay.writes[0][2]["name"] if replay.writes[0][0] == "POST" else "breaking-change", "breaking-change"
+            sorted(kinds), [("PATCH", "bug"), ("POST", "labels"), ("POST", "labels"), ("graphql", "AddItem")]
         )
+        created = {write[2]["name"]: write[2]["color"] for write in replay.writes if write[0] == "POST"}
+        self.assertEqual(set(created), {"area:sources", "source-refresh"}, "every missing declared label is created")
+        self.assertEqual(created["area:sources"], "5319e7", "with its declared colour")
         self.assertFalse(
             any(write[0] in ("DELETE", "PUT") for write in replay.writes), "nothing is deleted or replaced"
         )
@@ -440,6 +488,367 @@ class ConfigTests(unittest.TestCase):
             with redirect_stdout(io.StringIO()), unittest.mock.patch("sys.stderr", errors):
                 self.assertEqual(audit.main(["--config", str(path)], github=object()), 1)
         self.assertIn("label[0].color: malformed value 'red'", errors.getvalue())
+
+
+class TriageGuideTests(unittest.TestCase):
+    """The triage guide names only declared statuses, views, labels and automations, and only real commands."""
+
+    def setUp(self):
+        self.config = audit.load()
+        self.text = (ROOT / "docs" / "maintenance.md").read_text(encoding="utf-8")
+        self.triage = self.text.split("\n## Triage\n", 1)[1].split("\n## ", 1)[0]
+
+    def column(self, header):
+        rows = self.triage.split(header, 1)[1].split("\n\n", 1)[0].splitlines()[2:]
+        return [row.split("|")[1].strip().strip("`") for row in rows]
+
+    def test_statuses_views_labels_and_automations_are_the_declared_ones(self):
+        project = self.config["project"]
+        self.assertEqual(self.column("| Status | Meaning | Set by |"), project["options"]["Status"])
+        self.assertEqual(sorted(self.column("| View | Shows |")), sorted(view["name"] for view in project["view"]))
+        automatic = {label["name"] for label in self.config["label"] if label.get("paths")} | {"source-refresh"}
+        self.assertEqual(set(self.column("| Label | Covers |")), automatic)
+        rows = self.triage.split("| Status | Meaning | Set by |", 1)[1].split("\n\n", 1)[0].splitlines()[2:]
+        automations = re.findall(r'"([^"]+)"', " ".join(row.split("|")[3] for row in rows))
+        self.assertEqual(len(automations), 4)
+        for name in automations:
+            with self.subTest(automation=name):
+                self.assertIs(project["workflows"].get(name), True, "an automation the guide relies on is on")
+        for field, options in self.config["organization"]["issue_fields"].items():
+            self.assertIn(f"{field} ({', '.join(options[:-1])} or {options[-1]})", self.triage)
+
+    def test_every_command_flag_and_path_exists(self):
+        commands = re.findall(r"python (scripts/\w+\.py)((?: --?[\w-]+(?: [^\s`#-][^\s`#]*)?)*)", self.text)
+        self.assertGreater(len(commands), 8)
+        for script, arguments in commands:
+            with self.subTest(command=f"{script}{arguments}"):
+                source = (ROOT / script).read_text(encoding="utf-8")
+                for flag in re.findall(r"--[\w-]+", arguments):
+                    self.assertIn(f'"{flag}"', source, f"{script} has no {flag}")
+                for value in re.findall(r" ([\w./-]+\.toml)", arguments):
+                    self.assertTrue((ROOT / value).is_file(), value)
+        self.assertTrue((ROOT / ".agents/skills/aiscr-plan-issue/SKILL.md").is_file(), "/aiscr-plan-issue is delivered")
+
+
+class AreaLabelTests(unittest.TestCase):
+    """The reviewed path rules give each area label real files, and the helper prints only what they match."""
+
+    def setUp(self):
+        self.rules = area_labels.path_rules(audit.load())
+
+    def test_every_area_label_has_rules_matching_tracked_files(self):
+        tracked = subprocess.run(
+            ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", check=True
+        ).stdout.splitlines()
+        areas = {label["name"] for label in audit.load()["label"] if label["name"].startswith("area:")}
+        self.assertEqual(set(self.rules), areas, "each area label, and only those, has path rules")
+        for name in areas:
+            with self.subTest(label=name):
+                self.assertTrue(area_labels.labels_for(tracked, {name: self.rules[name]}))
+
+    def test_planning_and_usage_logs_alone_label_nothing(self):
+        paths = [".agents/reports/usage/usage-2026-10-25-x.md", "openspec/changes/x/design.md", "tests/test_x.py"]
+        self.assertEqual(area_labels.labels_for(paths, self.rules), [])
+        self.assertEqual(
+            area_labels.labels_for(["content/checks/dataset.toml", "content/live.toml"], self.rules),
+            ["area:content", "area:evaluation"],
+        )
+
+    def test_the_helper_refuses_anything_but_a_bounded_list_of_paths(self):
+        for text in ('{"path": "x"}', '["x", 1]', json.dumps(["x"] * (area_labels.MAX_PATHS + 1)), "not json"):
+            with (
+                self.subTest(text=text[:20]),
+                unittest.mock.patch("sys.stdin", io.StringIO(text)),
+                redirect_stdout(io.StringIO()),
+                unittest.mock.patch("sys.stderr", io.StringIO()),
+            ):
+                self.assertEqual(area_labels.main([]), 1)
+        with (
+            unittest.mock.patch("sys.stdin", io.StringIO('["docker/Dockerfile"]')),
+            redirect_stdout(io.StringIO()) as output,
+        ):
+            self.assertEqual(area_labels.main([]), 0)
+        self.assertEqual(json.loads(output.getvalue()), ["area:delivery"])
+
+
+def shaped(kind="task"):
+    """A body the delivered `readiness()` accepts: marker, title, metadata, every section and the disclosure."""
+    engine = plan_issue_shape.engine()
+    block = engine.TYPE_BLOCK_FORMS[kind][0]
+    return "\n".join(
+        [engine.ISSUE_MARKER, "", "# Something to do", "", "| Field | Value |", "| --- | --- |", f"| Type | {kind} |"]
+        + ["| Affects | the Guide |", "| Reported by | maintainer |"]
+        + [
+            line
+            for section in ("Problem", block, "Scope", "Open questions")
+            for line in ("", f"## {section}", "", "Text.")
+        ]
+        + ["", "## Acceptance criteria", "", "- [ ] Text.", "", "## Reporter context", "", engine.REPORTER_CONTEXT_OPEN]
+        + ["None.", engine.REPORTER_CONTEXT_CLOSE, "", engine.INTERACTIVE_DISCLOSURE]
+    ).replace(
+        "## Open questions\n\nText.\n\n## Acceptance criteria\n\n- [ ] Text.",
+        "## Acceptance criteria\n\n- [ ] Text.\n\n## Open questions\n\nText.",
+    )
+
+
+def node(
+    number, *, kind="Issue", state="OPEN", status="Needs triage", days=1, issue_type=None, labels=(), body="", **fields
+):
+    """A Project item as the GraphQL query returns it, its Status set `days` before the recording."""
+    since = (RECORDED - timedelta(days=days)).isoformat().replace("+00:00", "Z")
+    content = {
+        "__typename": kind,
+        "number": number,
+        "state": state,
+        "url": f"https://github.com/dsw-nrp/eosc-fair-guide/{'issues' if kind == 'Issue' else 'pull'}/{number}",
+        "repository": {"nameWithOwner": "dsw-nrp/eosc-fair-guide"},
+    }
+    if kind == "Issue":
+        values = [{"name": value, "field": {"name": name.title()}} for name, value in fields.items()]
+        content |= {
+            "body": body,
+            "issueType": {"name": issue_type} if issue_type else None,
+            "labels": {"nodes": [{"name": name} for name in labels]},
+            "issueFieldValues": {"nodes": values},
+        }
+    status_value = [{"name": status, "updatedAt": since, "field": {"name": "Status"}}] if status else []
+    return {"fieldValues": {"nodes": [{}, *status_value]}, "content": content}
+
+
+class ProjectItemTests(unittest.TestCase):
+    """Items needing a person are named with their link and how to fix them; settled items say nothing."""
+
+    def setUp(self):
+        self.config = audit.load()
+
+    def findings(self, nodes):
+        live = copy.deepcopy(LIVE)
+        project_items(live)[:] = nodes
+        live[OPEN] = []
+        return by_setting(audit.audit(self.config, Replay(live), sections=("project",), now=RECORDED))
+
+    def test_each_rule_of_the_definition_and_the_waiting_times(self):
+        complete = {"issue_type": "Task", "labels": ["area:content"], "priority": "Medium", "effort": "Low"}
+        findings = self.findings(
+            [
+                node(1, state="CLOSED", status="In progress"),
+                node(2, status="Done", **complete),
+                node(3),
+                node(4, issue_type="Feature", body=shaped("bug")),
+                node(5, days=15, **complete),
+                node(6, status="Ready", days=4, **(complete | {"priority": "Urgent"}), body=shaped()),
+                node(7, status="Ready", issue_type="Bug", labels=["bug"], priority="High", body=shaped("bug")[:-200]),
+                node(8, status="Ready", body=shaped(), **complete),
+                node(9, kind="PullRequest", status="Needs triage", days=40),
+                node(10, kind="PullRequest", state="MERGED", status="Done"),
+                node(11, days=14, **complete),
+                node(12, status="Ready", days=3, **(complete | {"priority": "Urgent"}), body=shaped()),
+            ]
+        )
+        self.assertEqual(
+            {setting: finding.status for setting, finding in findings.items()},
+            dict.fromkeys(
+                [
+                    "project.item.#1.status",
+                    "project.item.#2.status",
+                    "project.item.#3.type",
+                    "project.item.#4.body-type",
+                    "project.item.#5.triage",
+                    "project.item.#6.urgent",
+                    "project.item.#7.ready",
+                ],
+                "attention",
+            ),
+            "the met definition (#8), pull requests (#9, #10) and the exact limits (#11, #12) need nothing",
+        )
+        self.assertEqual(
+            (findings["project.item.#1.status"].expected, findings["project.item.#1.status"].actual),
+            ("Done", "In progress"),
+        )
+        self.assertEqual(findings["project.item.#2.status"].expected, "not Done")
+        self.assertIn("type=TYPE", findings["project.item.#3.type"].command)
+        self.assertEqual(findings["project.item.#3.type"].ui, "https://github.com/dsw-nrp/eosc-fair-guide/issues/3")
+        self.assertEqual(
+            (findings["project.item.#4.body-type"].expected, findings["project.item.#4.body-type"].actual),
+            ("feature", "bug"),
+        )
+        self.assertEqual(findings["project.item.#5.triage"].actual, "waiting 15 days")
+        self.assertEqual(findings["project.item.#6.urgent"].actual, "not started for 4 days")
+        lacking = findings["project.item.#7.ready"].actual
+        self.assertEqual(lacking[:2], ["an area:* label", "Effort"])
+        self.assertTrue(lacking[2].startswith("the planned-issue shape ("), "the shape names what is missing")
+        for finding in findings.values():
+            with self.subTest(setting=finding.setting):
+                self.assertTrue(finding.ui.startswith("https://github.com/dsw-nrp/eosc-fair-guide/"))
+                self.assertTrue(finding.command or finding.note, "and how to act")
+                self.assertTrue(finding.fails)
+
+    def test_issue_fields_and_status_dates_are_read_from_the_project(self):
+        page = {
+            "pageInfo": {"hasNextPage": False, "endCursor": None},
+            "nodes": [node(6, status="Ready", days=4, issue_type="Bug", priority="Urgent", effort="Low")],
+        }
+        replay = Replay({"GRAPHQL ProjectItems": {"organization": {"projectV2": {"items": page}}}})
+        entries, hidden = audit.read_items(replay, "dsw-nrp", 1, "dsw-nrp/eosc-fair-guide")
+        self.assertEqual(hidden, 0)
+        self.assertEqual(
+            {key: entries[6][key] for key in ("kind", "state", "type", "status", "priority", "effort")},
+            {"kind": "issue", "state": "open", "type": "Bug", "status": "Ready", "priority": "Urgent", "effort": "Low"},
+        )
+        self.assertEqual(entries[6]["since"], "2026-10-21T12:00:00Z")
+
+    def test_items_hidden_from_the_token_are_unavailable_never_missing(self):
+        live = copy.deepcopy(LIVE)
+        project_items(live).append({"type": "REDACTED", "fieldValues": {"nodes": []}, "content": None})
+        next(view for view in project(live)["views"]["nodes"] if view["name"] == "Triage")["filter"] = "is:issue"
+        findings = by_setting(audit.audit(self.config, Replay(live), sections=("project",), now=RECORDED))
+        self.assertEqual(findings["project.items"].status, "unavailable")
+        self.assertIn("1 items' issues and pull requests are hidden", findings["project.items"].note)
+        self.assertEqual([setting for setting in findings if setting.startswith("project.item")], ["project.items"])
+        self.assertEqual(findings["project.view.Triage.filter"].status, "drift", "the Project's settings still count")
+
+    def test_only_graphql_uses_the_project_token(self):
+        calls = []
+
+        def run(arguments, **options):
+            calls.append((arguments[2], (options.get("env") or {}).get("GH_TOKEN")))
+            return unittest.mock.Mock(stdout='{"data": {}}' if arguments[2] == "graphql" else "[]")
+
+        with unittest.mock.patch.object(audit.subprocess, "run", run):
+            github = audit.GhCli("app-token")
+            github.get("repos/dsw-nrp/eosc-fair-guide/labels")
+            github.graphql(audit.PROJECT_QUERY, {"owner": "dsw-nrp", "number": 1})
+            audit.GhCli().graphql(audit.PROJECT_QUERY, {"owner": "dsw-nrp", "number": 1})
+        self.assertEqual(
+            calls, [("repos/dsw-nrp/eosc-fair-guide/labels", None), ("graphql", "app-token"), ("graphql", None)]
+        )
+
+
+class DigestTests(unittest.TestCase):
+    """The digest's section is public: it links issues and Urgent work but counts what reads Project-only fields."""
+
+    def setUp(self):
+        self.config = audit.load()
+
+    def test_public_lines_counted_project_fields_and_a_bound(self):
+        live = copy.deepcopy(LIVE)
+        complete = {"issue_type": "Task", "labels": ["area:content"], "priority": "Medium", "effort": "Low"}
+        project_items(live)[:] = [node(number) for number in range(100, 140)] + [
+            node(5, days=15, **complete),
+            node(6, status="Ready", days=4, **(complete | {"priority": "Urgent"}), body=shaped()),
+            node(7, status="Ready", **(complete | {"priority": "High"})),
+        ]
+        live[OPEN] = []
+        drop_labels(live, "area:sources")
+        text = audit.digest(audit.audit(self.config, Replay(live), now=RECORDED))
+        self.assertTrue(text.startswith("## Project and settings\n"))
+        self.assertIn("- #6 is Urgent and has not started (not started for 4 days).", text)
+        self.assertIn("- 1 Ready issue(s) do not meet the definition of Ready; see the Project's views.", text)
+        self.assertIn("- 1 issue(s) have waited over 14 days for triage; see the Project's views.", text)
+        self.assertNotIn("#7", text, "a Ready issue is counted, not named")
+        self.assertNotIn("#5 ", text)
+        for value in ("High", "Medium", "Low", "In progress"):
+            self.assertNotIn(value, text, "no Project field value other than Urgent is shown")
+        self.assertIn("- `label.area:sources`: expected", text, "settings drift is listed")
+        public = 40 + 1 + 1  # the untyped issues, the Urgent one and the missing label
+        overflow = f"- … and {public - audit.DIGEST_ITEMS} more; `python scripts/audit_repository.py` lists them all."
+        self.assertIn(overflow, text, "only those")
+        listed = text.split("Unavailable")[0].count("\n- ")
+        self.assertEqual(listed, audit.DIGEST_ITEMS + 1 + 2, "the bound, its overflow line and the two counts")
+
+    def test_a_denied_token_is_unavailable_with_the_owners_step_and_the_rest_intact(self):
+        live = copy.deepcopy(LIVE)
+        live["GRAPHQL Project"] = audit.UnavailableError("Resource not accessible by integration")
+        drop_labels(live, "breaking-change")
+        findings = audit.audit(self.config, Replay(live), now=RECORDED)
+        text = audit.digest(findings)
+        self.assertIn("- `project`: Resource not accessible by integration. An organization owner accepts", text)
+        self.assertIn("- `label.breaking-change`: expected", text, "the settings part still publishes")
+        self.assertNotIn("has no Issue Type", text, "nothing is claimed about an unread Project")
+
+    def test_a_clean_state_says_so(self):
+        text = audit.digest([audit.Finding("settings", "settings", "done")])
+        self.assertIn("Every readable setting and Project item matches the reviewed state.", text)
+
+
+class BackfillTests(unittest.TestCase):
+    """The reviewed mapping is compared first and applied only with `--fix`: Issue Types and area labels only."""
+
+    def setUp(self):
+        self.config = audit.load()
+        self.live = copy.deepcopy(LIVE)
+
+        def issue(number, **extra):
+            return {"number": number, "html_url": f"https://github.com/x/{number}", "node_id": f"I_{number}"} | {
+                "labels": [],
+                "type": None,
+                **extra,
+            }
+
+        self.live[OPEN] = [
+            issue(13),
+            issue(83, labels=[{"name": "area:sources"}], type={"name": "Feature"}),
+            issue(99),
+            issue(110, pull_request={"url": "x"}),
+        ]
+        self.directory = self.enterContext(tempfile.TemporaryDirectory())
+
+    def mapping(self, text):
+        path = Path(self.directory) / "backfill.toml"
+        path.write_text(text, encoding="utf-8")
+        return str(path)
+
+    def test_a_dry_run_lists_the_changes_and_fix_applies_only_them(self):
+        path = self.mapping(
+            '[[issue]]\nnumber = 13\ntype = "Feature"\narea = ["area:interface"]\n\n'
+            '[[issue]]\nnumber = 83\ntype = "Feature"\narea = ["area:sources"]\n\n'
+            '[[issue]]\nnumber = 7\ntype = "Bug"\narea = ["area:content"]\n'
+        )
+        replay = Replay(self.live)
+        with redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(audit.main(["--backfill", path], github=replay), 1)
+        self.assertEqual(replay.writes, [], "the dry run writes nothing")
+        report = output.getvalue()
+        self.assertIn("Sections: backfill.", report)
+        self.assertIn("[MISSING] backfill.#13.type", report)
+        self.assertIn("command:  gh api -X PATCH repos/dsw-nrp/eosc-fair-guide/issues/13 -f type=Feature", report)
+        self.assertIn("[MISSING] backfill.#13.labels", report)
+        self.assertIn("[UNDECLARED] backfill.#99", report, "an unmapped open issue goes to triage")
+        self.assertIn("[DONE] backfill.#7", report, "a closed issue needs nothing")
+        self.assertNotIn("#83.", report, "an issue already matching its mapping needs nothing")
+        self.assertNotIn("#110", report, "pull requests are not mapped")
+        with redirect_stdout(io.StringIO()):
+            audit.main(["--backfill", path, "--fix"], github=replay)
+        issue = "repos/dsw-nrp/eosc-fair-guide/issues/13"
+        self.assertEqual(
+            replay.writes,
+            [("PATCH", issue, {"type": "Feature"}), ("POST", f"{issue}/labels", {"labels": ["area:interface"]})],
+        )
+
+    def test_labels_wait_until_the_declared_labels_exist(self):
+        path = self.mapping('[[issue]]\nnumber = 13\ntype = "Feature"\narea = ["area:interface"]\n')
+        drop_labels(self.live, *(label["name"] for label in self.config["label"] if label["name"].startswith("area:")))
+        replay = Replay(self.live)
+        with redirect_stdout(io.StringIO()) as output:
+            audit.main(["--backfill", path, "--fix"], github=replay)
+        self.assertEqual([write[0] for write in replay.writes], ["PATCH"], "only the type; GitHub would invent labels")
+        self.assertIn("[MISSING] backfill.labels", output.getvalue())
+        self.assertIn("--section labels --fix", output.getvalue())
+
+    def test_a_mapping_outside_the_declared_types_and_areas_is_refused(self):
+        path = self.mapping(
+            '[[issue]]\nnumber = 13\ntype = "Epic"\narea = ["bug"]\n\n'
+            '[[issue]]\nnumber = 13\ntype = "Task"\narea = []\n'
+        )
+        errors = io.StringIO()
+        with unittest.mock.patch("sys.stderr", errors):
+            self.assertEqual(audit.main(["--backfill", path], github=Replay(self.live)), 1)
+        for problem in (
+            "'Epic' is not a declared issue type",
+            "expected one or more declared area:* labels",
+            "expected a unique issue number",
+        ):
+            self.assertIn(problem, errors.getvalue())
 
 
 if __name__ == "__main__":

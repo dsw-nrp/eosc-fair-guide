@@ -199,6 +199,41 @@
    "description": "Barrier affecting people with disabilities"
   },
   {
+   "name": "area:content",
+   "color": "1d76db",
+   "description": "Advice, questions, glossary and model texts"
+  },
+  {
+   "name": "area:delivery",
+   "color": "006b75",
+   "description": "CI, release, deployment, tooling and dependencies"
+  },
+  {
+   "name": "area:evaluation",
+   "color": "0e8a16",
+   "description": "Live checks, evaluators and the self-check"
+  },
+  {
+   "name": "area:interface",
+   "color": "fbca04",
+   "description": "Interface, accessibility, language and print"
+  },
+  {
+   "name": "area:maintenance",
+   "color": "d4c5f9",
+   "description": "The health digest and the tasks it spawns"
+  },
+  {
+   "name": "area:sources",
+   "color": "5319e7",
+   "description": "Snapshots, refresh, registry data and ledger sources"
+  },
+  {
+   "name": "breaking-change",
+   "color": "b60205",
+   "description": "Changes behaviour people rely on; add a one-line [Unreleased] note"
+  },
+  {
    "name": "bug",
    "color": "d73a4a",
    "description": "Something isn't working"
@@ -267,6 +302,11 @@
    "name": "question",
    "color": "d876e3",
    "description": "Further information is requested"
+  },
+  {
+   "name": "source-refresh",
+   "color": "c2e0c6",
+   "description": "Pull request opened by the source refresh"
   },
   {
    "name": "wontfix",
@@ -567,572 +607,3880 @@
     "items": {
      "pageInfo": {
       "hasNextPage": false,
-      "endCursor": "Y3Vyc29yOnYyOpK5MDAwMDAwMDAuMDE0MDg0NTA3MDQyMjUzNc4Qy8bZ"
+      "endCursor": "Y3Vyc29yOnYyOpK5MDAwMDAwMDAuMDA5MTc0MzExOTI2NjA1Nc4Q0k3o"
      },
      "nodes": [
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:23Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 98,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/98",
+        "body": "`https://www.data.cam.ac.uk/organising-storing/electronic-research-notebooks` is broken in 2 consecutive runs (HTTP 403; HTTP 403).\n\nUsed at: `resources[cambridge-notebooks].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fwww.data.cam.ac.uk%2Forganising-storing%2Felectronic-research-notebooks -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:23Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 97,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/97",
+        "body": "`https://www.chemspider.com/` is broken in 2 consecutive runs (HTTP 403; HTTP 403).\n\nUsed at: `snapshots[3].tool[chemspider].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fwww.chemspider.com%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:22Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 96,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/96",
+        "body": "`https://w3id.org/ro/crate/1.2` is broken in 2 consecutive runs (HTTP 404; HTTP 404).\n\nUsed at: `resources[ro-crate].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fw3id.org%2Fro%2Fcrate%2F1.2 -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:21Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 95,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/95",
+        "body": "`https://v2.sherpa.ac.uk/api/object-retrieval.html` is broken in 2 consecutive runs (HTTP 403; HTTP 403).\n\nUsed at: `sources[sherpa-object-retrieval-api].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fv2.sherpa.ac.uk%2Fapi%2Fobject-retrieval.html -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:21Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 94,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/94",
+        "body": "`https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier` is broken in 2 consecutive runs (HTTP 403; HTTP 403).\n\nUsed at: `sources[orcid-identifier-pattern].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fsupport.orcid.org%2Fhc%2Fen-us%2Farticles%2F360006897674-Structure-of-the-ORCID-Identifier -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:20Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 93,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/93",
+        "body": "`https://ror.org/` did not answer in 2 consecutive runs (HTTP 429; HTTP 429).\n\nUsed at: `resources[ror].url`, `snapshots[2].resource[ror].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fror.org%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:19Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 92,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/92",
+        "body": "`https://openai.com/codex/` is broken in 2 consecutive runs (HTTP 403; HTTP 403).\n\nUsed at: `guide.instrument[openai-sol-6-1].url`, `guide.instrument[openai-luna-6].url`, `guide.instrument[openai-codex].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fopenai.com%2Fcodex%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:13Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 80,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/80",
+        "body": "https://www.bestpractices.dev/",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:delivery"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:20Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 91,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/91",
+        "body": "`https://events.eosc.cz/event/414/attachments/379/631/EOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf` is broken in 2 consecutive runs (HTTP 400; HTTP 400).\n\nUsed at: `sources[survey-2025].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fevents.eosc.cz%2Fevent%2F414%2Fattachments%2F379%2F631%2FEOSCCZ-260401-stav_spravy_vyzkumnych_dat_CR.pdf -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:18Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 90,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/90",
+        "body": "`https://docs.it4i.cz/lumi/about/` is broken in 2 consecutive runs (HTTP 404; HTTP 404).\n\nUsed at: `snapshots[3].tool[lumi].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fdocs.it4i.cz%2Flumi%2Fabout%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:17Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 89,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/89",
+        "body": "`https://data.narodni-repozitar.cz/` did not answer in 2 consecutive runs (HTTP none; \\[Errno -2\\] Name or service not known).\n\nUsed at: `snapshots[2].resource[cesnet-invenio].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fdata.narodni-repozitar.cz%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:17Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 88,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/88",
+        "body": "`https://data.eli-laser.eu/` did not answer in 2 consecutive runs (HTTP none; timed out).\n\nUsed at: `snapshots[4].repository[eli-eric-open-data].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fdata.eli-laser.eu%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:16Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 87,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/87",
+        "body": "`https://commons.datacite.org/` did not answer in 2 consecutive runs (HTTP 429; HTTP 429).\n\nUsed at: `resources[datacite-commons].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fcommons.datacite.org%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:15Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 86,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/86",
+        "body": "`https://asep.lib.cas.cz/arl-cav/en/` is broken in 2 consecutive runs (HTTP 404; HTTP 404).\n\nUsed at: `snapshots[4].repository[asep].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fasep.lib.cas.cz%2Farl-cav%2Fen%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:15Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 85,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/85",
+        "body": "`https://asep.lib.cas.cz/` is broken in 2 consecutive runs (HTTP 404; HTTP 404).\n\nUsed at: `snapshots[2].resource[asep].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fasep.lib.cas.cz%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:14Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 84,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/84",
+        "body": "<!-- aiscr-plan-issue:body digest=eb0de11f1765fddb1a9383c919de43a1cb7dd4d9984bb5c41c331218ce561859 -->\n\n# Document the CI policy and workflow usage in one maintainer page\n\n| Field | Value |\n| --- | --- |\n| Type | `task` |\n| Affects | Documentation, `.github/workflows/`, `scripts/check_ci.py`, `scripts/check_policy.json`, `CONTRIBUTING.md` |\n| Reported by | @motyc |\n\n## Problem\n\nCI policy and workflow usage are documented, but not in one place. A contributor learns the pull-request contract from `CONTRIBUTING.md:64-85` and `CONTRIBUTING.md:119-135`, the architecture from `docs/design.md:486-525`, the release chain from `docs/deployment.md:1-77`, and the remaining details from the comment at the top of each workflow file. No page lists every workflow with its trigger, token permissions, write effects, artifacts and local equivalent.\n\nThe gap is not only discoverability. `tests/test_workflows.py:158-304` enforces the trust invariants, but nothing checks that a newly added workflow is documented at all, so the human page can drift while CI stays green. This is a documentation gap observed by reading the cited files; no runtime failure is involved.\n\n```mermaid\nflowchart LR\n  accTitle: CI trust boundaries and delivery flow\n  accDescr: Read-only pull-request checks feed a trusted comment workflow; default-branch and tag pushes deploy verified artifacts; releases follow a successful tag deployment; scheduled jobs write only pull requests or issues.\n  pr[\"Pull request\"] --> checks[\"Read-only checks: build, cpu, browser-a, browser-b, checks\"]\n  checks --> comment[\"Trusted workflow_run comment\"]\n  main[\"Push to main\"] --> deploy[\"Deploy: verified preview and production artifact\"]\n  tag[\"Release tag\"] --> deploy\n  deploy --> release[\"Release: image and draft release\"]\n  schedule[\"Schedule or dispatch\"] --> refresh[\"Source refresh: bot pull requests\"]\n  schedule --> watch[\"Health watch: keyed issues\"]\n```\n\n## Work outline\n\n1. Create `docs/ci.md` as the single maintainer-facing CI page, split into policy and usage.\n2. Document the trust model first: pull-request jobs are read-only and secret-free; privileged work runs trusted default-branch code through `workflow_run`, `workflow_dispatch`, `schedule`, or a repository-scoped GitHub App; no workflow merges or pushes to `main`.\n3. Document the pull-request contract: the required check, the build job, the three lanes, the collector, the coverage and identity reconciliation, and the fact that the collector runs after failed lanes.\n4. Document local reproduction: `scripts/check_ci.py build`, `lane` and `collect`; `scripts/check_policy.json` profiles; `CI=true`; `check_all.py`; and how lane subsets differ from a complete pass.\n5. Add a workflow catalogue with one row per file in `.github/workflows/` naming its trigger, purpose, token permissions, write effects, and artifacts or retention.\n6. Document the release and deployment chain as a short map that links to `docs/deployment.md` for the procedure rather than duplicating it.\n7. Document the scheduled maintenance workflows and the OpenSpec-generated `copilot-setup-steps.yml`, so generated surfaces are not mistaken for hand-maintained ones.\n8. Add a drift check that reads the workflow YAML and the page, so a workflow missing from the catalogue or a mismatched trigger or permission fails the test suite.\n9. Cross-link the page from `CONTRIBUTING.md`, `docs/agent-tooling.md` and `docs/deployment.md`.\n\n## Scope\n\nIn scope:\n\n- A new `docs/ci.md`.\n- Links from `CONTRIBUTING.md` (\"Checking locally\" and \"Review\"), `docs/agent-tooling.md` and `docs/deployment.md`.\n- A documentation-drift test, proposed as `tests/test_ci_docs.py`.\n- Corrections to existing CI prose where it contradicts the workflows.\n\nNon-goals:\n\n- Changing any workflow trigger, permission, job, action pin or retention value.\n- Replacing `docs/deployment.md` as the owner of release and deployment procedure.\n- Encoding GitHub branch-protection settings in the repository; the page may document how to verify them.\n- Documenting the internals of third-party actions.\n- Adding secrets or repository variables to the documentation.\n\n## Acceptance criteria\n\n- [ ] `docs/ci.md` states the trust model in one place: read-only pull requests, no secrets in PR execution, trusted `workflow_run` for comments, scoped App tokens for writes, and scheduled jobs that only open pull requests or issues.\n- [ ] The page names the required check `Guide checks and health report` and explains `build` → `cpu` / `browser-a` / `browser-b` → `checks`, including that `checks` runs with `always()` and verifies source, build and coverage identity.\n- [ ] The workflow catalogue covers every file in `.github/workflows/` with columns for trigger, purpose, permissions, write effects, and artifacts or retention.\n- [ ] Local reproduction documents `scripts/check_ci.py build|lane|collect`, the `local` and `ci` profiles in `scripts/check_policy.json`, `CI=true`, and `check_all.py`, and states that a lane subset cannot publish a complete pass.\n- [ ] The release section states the chain `prepare-release` → `tag-release` → `deploy` (production built once, preview built separately) → `release` (image and draft release) and links to `docs/deployment.md` for the procedure.\n- [ ] Scheduled maintenance covers `source-refresh.yml` (validated snapshots, bot pull requests only) and `health-watch.yml` (keyed issues only), and marks `copilot-setup-steps.yml` as OpenSpec-generated.\n- [ ] An artifact table lists the artifact names and retention used by the workflows, including `checked-build`, lane evidence, health, preview, review data, production and watch observations.\n- [ ] `tests/test_ci_docs.py` fails when a workflow file is absent from the catalogue or its documented trigger or permissions disagree with the YAML, and a planted removal demonstrates the failure.\n- [ ] `CONTRIBUTING.md`, `docs/agent-tooling.md` and `docs/deployment.md` link to the page without duplicating its catalogue.\n- [ ] `python -m unittest discover -s tests` and `python scripts/check_all.py` pass.\n\n## Open questions\n\n- Should the drift check compare exact trigger and permission values, or only require each workflow and its purpose? Exact comparison is stronger; the implementation can keep the comparison data in a small machine-readable block or parse the Markdown table. Recommend exact comparison for triggers and permissions, and presence-only for prose.\n- Should `copilot-setup-steps.yml` be exempt because OpenSpec generates it? Recommend including it in the catalogue with a generated-file note, and leaving the drift check uniform.\n- Should branch protection be documented with an as-of date and a `gh api` verification command, since it lives outside the repository? Recommend yes, as a short verification step rather than a claim.\n- Is English the right language for this maintainer page, matching `docs/design.md` and `docs/deployment.md`? Recommend yes.\n\n## Reporter context\n\n<!-- aiscr-plan-issue:reporter-context -->\nNo load-bearing fragments. The request was made directly by the repository maintainer and is recorded in this description.\n<!-- /aiscr-plan-issue:reporter-context -->\n\nThis issue description was developed with AI assistance through the AIS CR issue workflow; the posting maintainer reviewed and approved it.\n",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:delivery"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:13Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 83,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/83",
+        "body": "## What is missing\n\nThe built and deployed site has no `robots.txt` and no `sitemap.xml`, although the delivery contract and deployment documentation refer to a production sitemap.\n\nEvidence on `main` at `660b1fe`:\n\n- A fresh `python scripts/build_site.py` output (`_site/`) contains `index.html`, `linkset.json`, `openapi.json`, `ro-crate-metadata.json`, `ro-crate-preview.html`, `api/`, `assets/`, `health/`, `profile/` and `terms/`, but neither `robots.txt` nor `sitemap.xml`.\n- `scripts/build_crate.py:3083` declares `LINKSET_FILE`, and `scripts/build_crate.py:3244`-`3250` builds the FAIR Signposting linkset and head links. There is no sitemap or robots output.\n- `scripts/build_site.py:121`-`153` writes the generated files and copies the static trees without adding either file.\n- `openspec/specs/fair-guide/guide-delivery/spec.md:265` says the `/next/` copy \"SHALL be left out of the sitemap and linkset\".\n- `docs/deployment.md:26` says \"Production's sitemap and linkset remain unchanged\" during a preview deployment.\n- `tests/test_assemble_pages.py:41` and `:116` only exercise a synthetic `sitemap.xml` fixture. Nothing asserts that the real build produces one.\n\nThe specification and documentation therefore describe a sitemap that the build never creates. Production also publishes no robots policy.\n\n## Why it matters\n\n- **Discoverability:** `https://fair.eosc.cz/` is the canonical published address (`content/guide.toml`, `baseUrl`), but crawlers are not given a sitemap or a robots policy.\n- **Consistency:** the Guide recommends a sitemap and robots rules to repositories (stations 08 and 09, `content/checks/maturity.toml:227`) and says it uses \"the same means it recommends\" (`content/pages.toml:179`). It currently does not publish either.\n- **Deployment correctness:** assembly cannot preserve a production sitemap or guarantee that preview pages stay out of it when no sitemap exists, so the preview guarantee in the spec is vacuous.\n\n## Proposed scope\n\n- Generate `sitemap.xml` and `robots.txt` from the configured base URL (`baseUrl`, overridable with `FAIR_GUIDE_BASE_URL`) as part of the site build.\n- `robots.txt` should allow crawling and name the absolute sitemap URL.\n- `sitemap.xml` should list real crawlable production documents. At minimum the root; decide explicitly whether the profile, API documentation, health and local-test documentation pages belong. It must not contain `/next/` entries or hash-routed fragments.\n- Keep production copies byte-identical during assembly and keep the preview out of both files. The preview's HTML `noindex` remains the primary guard.\n- Add checks that fail when either file is missing, malformed, uses the wrong origin, or gains `/next/` entries.\n- Reconcile `docs/deployment.md` and the delivery spec with what is actually published, and add content paradata if the Guide's machine-facing claims change.\n\n## Notes\n\n- This changes delivery behaviour and a documented contract, so it should go through an OpenSpec change rather than a direct patch.\n- The site is a hash-routed single page, so a sitemap can only advertise real documents; hash routes cannot be separate sitemap entries. The issue should settle which static documents are public.\n\n## Acceptance criteria\n\n- [ ] `python scripts/build_site.py` emits `robots.txt` and `sitemap.xml` into `_site/`.\n- [ ] `robots.txt` references the configured base URL's absolute `sitemap.xml`.\n- [ ] `sitemap.xml` is valid XML, uses the configured base URL, lists only intended production documents, and contains no `/next/` entries.\n- [ ] `scripts/assemble_pages.py` preserves production copies byte-identically and keeps preview entries out of the sitemap.\n- [ ] Automated tests or page/deployment checks cover presence, origin, validity and preview exclusion.\n- [ ] `docs/deployment.md` and the delivery spec match the implemented behaviour, with paradata.\n",
+        "issueType": {
+         "name": "Feature"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:delivery"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:12Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 65,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/65",
+        "body": "The reviewed candidate `test_FM_F1_M_IdentUnique` returned verdicts for every reference record (2 definitive, 0 indeterminate). This is a proposal for the documented selection review (docs/champion/selection.md), not a selection ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39118809311)).\n\n<!-- fair-guide-health key=champion-candidate%3Atest_FM_F1_M_IdentUnique -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:11Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 64,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/64",
+        "body": "The reviewed candidate `test_FM_A1_2_M_Auth` returned verdicts for every reference record (2 definitive, 0 indeterminate). This is a proposal for the documented selection review (docs/champion/selection.md), not a selection ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39118809311)).\n\n<!-- fair-guide-health key=champion-candidate%3Atest_FM_A1_2_M_Auth -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:11Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 63,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/63",
+        "body": "The reviewed candidate `test_FM_A1_1_M_OpenProt` returned verdicts for every reference record (2 definitive, 0 indeterminate). This is a proposal for the documented selection review (docs/champion/selection.md), not a selection ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39118809311)).\n\n<!-- fair-guide-health key=champion-candidate%3Atest_FM_A1_1_M_OpenProt -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:10Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 62,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/62",
+        "body": "The reviewed candidate `community_data_cited_in_pub` returned verdicts for every reference record (2 definitive, 0 indeterminate). This is a proposal for the documented selection review (docs/champion/selection.md), not a selection ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39118809311)).\n\n<!-- fair-guide-health key=champion-candidate%3Acommunity_data_cited_in_pub -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:09Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 61,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/61",
+        "body": "The reviewed candidate `community_open_access_publication` returned verdicts for every reference record (2 definitive, 0 indeterminate). This is a proposal for the documented selection review (docs/champion/selection.md), not a selection ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39118809311)).\n\n<!-- fair-guide-health key=champion-candidate%3Acommunity_open_access_publication -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-23T20:48:12Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 104,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/104",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-23T20:40:58Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 105,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/105",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-23T20:38:35Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 106,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/106",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:31Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 99,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/99",
+        "body": "`https://www.hepdata.net/` is broken in 2 consecutive runs (HTTP 403; HTTP 403).\n\nUsed at: `snapshots[3].tool[hepdata].url`\n\nLast checked 2026-10-20 ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=link%3Ahttps%3A%2F%2Fwww.hepdata.net%2F -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:32Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 100,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/100",
+        "body": "New item in the main content of `https://www.eosc.cz/skoleni` on 2026-10-20: 27. 10. Research libraries and the future of the European Open Science Cloud \\(EOSC\\) Online Zahraniční ENG Webinář 16:00 – 17:00 Webinář asociace LIBER otevře diskusi o roli výzkumných knihoven v rámci EOSC. Knihovny propojují výzkumníky s touto iniciativou a demonstrují její přínosy. Webinář se zamě (`https://libereurope.eu/event/research-libraries-and-the-future-of-eosc/`). Check whether the guide's advice or sources should follow ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=watch%3Aeosc-training%3Ahttps%3A%2F%2Flibereurope.eu%2Fevent%2Fresearch-libraries-and-the-future-of-eosc%2F%3A49af25bd03582ed2 -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:32Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 101,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/101",
+        "body": "New item in the main content of `https://www.eosc.cz/skoleni` on 2026-10-20: Další (`https://www.eosc.cz/skoleni?page=2`). Check whether the guide's advice or sources should follow ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39401863632)).\n\n<!-- fair-guide-health key=watch%3Aeosc-training%3Ahttps%3A%2F%2Fwww.eosc.cz%2Fskoleni%3Fpage%3D2%3Ae40f7c5ea8721db4 -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:32Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 16,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/16",
+        "body": "**Proposed owner:** NMA API team, with the Guide maintainer.\n\n**Context:** The Guide's recorded integration cannot read the NMA API directly from the browser because of CORS.\nThe final production address is tracked separately in [#15](https://github.com/motyc/eosc-fair-guide/issues/15).\n\n**Request:** Agree the supported production and preview origins, public endpoints and access terms. Enable the\nagreed browser access or document a supported alternative that fits a static Guide without embedded credentials.\n\n**Interim behaviour:** Link to NMA search; do not report blocked access as absence of a record.\n\n**Acceptance:** Record the access policy and dated real-browser results from each agreed origin. Verify both a\npresent and an absent record and a service/access failure, preserving their distinct states. Update connector\nconfiguration, documentation and regression fixtures only for the confirmed interface.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:evaluation"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:33Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 17,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/17",
+        "body": "**Proposed owner:** EOSC CZ content editor, with the Node/OpenAIRE integration contact.\n\n**Context:** The Guide's existing source review establishes Node onboarding context, but does not confirm that\nOpenAIRE aggregation is operational. An onboarding announcement alone cannot support that stronger claim.\n\n**Request:** Obtain a public dated statement identifying the aggregation service, participating records and\noperational scope, or confirm that the status remains planned/onboarding.\n\n**Interim behaviour:** Retain the sourced qualification and source watch; avoid relative promises that expire.\n\n**Acceptance:** Cite the authoritative announcement and version/date, update the Guide's claim and observation\ndate together, and retain the responsible monitoring contact and change trigger. Do not infer completeness or\nFAIR compliance from aggregation alone.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:33Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 18,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/18",
+        "body": "**Proposed owner:** EOSC CZ communications.\n\n**Context:** The Guide already uses the official logo packages unchanged with attribution. A separate confirmed\nbrand manual or durable permission reference is not recorded; this is documentation of terms, not a redesign.\n\n**Request:** Identify the applicable published usage terms or provide a durable written permission reference\ncovering the existing Guide usage, including the official assets and required attribution.\n\n**Interim behaviour:** Continue using the approved official packages unchanged. No altered use is requested.\n\n**Acceptance:** Record the authoritative terms/permission, covered assets, attribution and any placement or\nmodification limits. If no separate manual exists, record that confirmation and the governing permission.\nAny later altered use must be reviewed against those terms before the assets change.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:interface"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:33Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 19,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/19",
+        "body": "**Proposed owner:** DMP.eosc.cz team, with the CCMM content contact.\n\n**Context:** A researcher-facing DSW export for CCMM and stable shared question UUIDs/deep links are not\nestablished in the Guide's integration record. The public template/tool is linked without promising either.\n\n**Request:** Confirm whether these capabilities are supported. Identify the public model/template, its version,\nsupported CCMM export version and format, and the supported question UUID mapping and public link format.\n\n**Interim behaviour:** Retain links to the available tool/model; do not construct unverified question URLs or\npromise a metadata export that has not been demonstrated.\n\n**Acceptance:** Demonstrate the export on a non-sensitive example and validate it against the named model.\nDemonstrate stable links to the mapped questions, including access requirements and version-change behaviour.\nIf either capability is unsupported, record the authoritative answer and keep the Guide's limitation explicit.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:33Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 20,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/20",
+        "body": "**Proposed owner:** NRP KA 4.2 content owner, with a legal/content reviewer.\n\n**Context:** The status and public address of the central recommended-licence catalogue are unconfirmed in the\nGuide. Current advice uses published NRP guidance, its attributed CC table and the software licence selector.\n\n**Request:** Identify the authoritative catalogue, its publication status, version, licence families and intended\nscope. Distinguish a recommended-licence list from compatibility rules and the existing software selector.\n\n**Interim behaviour:** Retain the published guidance and current attributed table without an operational claim.\n\n**Acceptance:** Record the public source and dated status, review its scope and Czech legal qualifications, and\nupdate references only after confirmation. Feed any proposed broader selector into\n[#11](https://github.com/motyc/eosc-fair-guide/issues/11), avoiding a second selector implementation issue.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:34Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 21,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/21",
+        "body": "**Proposed owner:** NRP documentation team.\n\n**Context:** The Czech NMA documentation addresses in the Guide's review did not provide usable Czech pages.\nThe Guide identifies the available English documentation honestly. This is separate from the resolved Czech\nKNAV article request Q-25.\n\n**Request:** Supply working public Czech counterparts for the cited NMA documentation and the supported\nlanguage-navigation links, or confirm that English is currently the only maintained language.\n\n**Interim behaviour:** Keep the working English links and their language labels.\n\n**Acceptance:** Check the replacement pages, anchors, redirects and Czech/English navigation in a browser.\nReview equivalent meaning, scope and version before changing the Guide links; retain English labels where\nthere is still no Czech counterpart.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:34Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 22,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/22",
+        "body": "**Proposed owner:** NMA product owner, with the Guide content maintainer.\n\n**Context:** Default compliance with Minimum pro RIV is not established by the current integration record.\nPublished checklists do not alone justify a blanket compliance guarantee for every repository or record.\n\n**Request:** Obtain an authoritative applicability decision: which record types, repository profiles, reporting\ncontexts and requirement version the minimum covers, and what NMA supplies versus what depositors must provide.\n\n**Interim behaviour:** Keep the sourced checklist and avoid an unsupported guarantee.\n\n**Acceptance:** Record the decision and versioned requirements. Review the affected question wording,\napplicability, defaults and evidence mappings against concrete eligible/ineligible examples. Preserve manual\nanswers and distinguish metadata presence from confirmed reporting eligibility.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:34Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 23,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/23",
+        "body": "**Proposed owner:** NMA team and CCMM maintainers.\n\n**Context:** Support for CCMM 2.0.0 in 2027 is recorded as a maintainer note, not a published commitment.\n\n**Request:** Confirm the supported versions now and the public roadmap for the proposed version, including\ndates, import/export formats, validation profiles and any transition period.\n\n**Interim behaviour:** Keep the note attributed and qualified; do not present it as an operational capability\nor a guaranteed delivery date.\n\n**Acceptance:** Cite a dated public support statement identifying the exact model version and scope. Before\nupdating operational integration, validate representative records and version selection/failure behaviour.\nRetain the existing supported path during any documented transition.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:34Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 24,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/24",
+        "body": "**Proposed owner:** FIP Dashboard team.\n\n**Context:** Coverage of FIPs published only as nanopublications is unknown. The Guide keeps a dated Dashboard\nsnapshot and a separate nanopublication fallback. Browser CORS access is already tracked in\n[#5](https://github.com/motyc/eosc-fair-guide/issues/5); fixing access does not establish coverage.\n\n**Request:** Document the inclusion/indexing policy, refresh timing and supported lookup identifiers for those\nFIPs, with a public nanopublication-only example.\n\n**Interim behaviour:** Retain the fallback and source distinctions.\n\n**Acceptance:** Demonstrate the example's actual inclusion or documented exclusion and lookup behaviour.\nRecord absence, failed access and missing index coverage separately. Narrow or remove the fallback only after\nthe evidence supports it; do not treat a Dashboard omission as proof that no FIP exists.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:35Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 25,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/25",
+        "body": "**Proposed owner:** Software maintainer.\n\n**Context:** The Guide currently validates RO-Crate 1.2, Process Run Crate 0.5 and its own profile. Future\ncrate/profile upgrades need an explicit validator and semantic review; this does not request replacing the\ncurrently validated versions without a concrete candidate.\n\n**Request:** Define the prospective version and upgrade trigger, check validator support and identify semantic,\nprofile, export/import and dependency changes before proposing adoption.\n\n**Interim behaviour:** Retain the pinned, validated versions.\n\n**Acceptance:** Record the candidate versions and supported validator versions, reviewed differences,\nrepresentative positive/negative fixtures, full-crate/profile validation and compatibility/rollback handling.\nIf no supported upgrade is ready, record the blocker and re-review trigger instead of silently changing versions.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:delivery"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:35Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 26,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/26",
+        "body": "**Proposed owner:** FAIR analysis authors, with the repository-assessment content reviewer.\n\n**Context:** The analysis mixes CoreTrustSeal requirement numbering from different editions. The Guide must\npreserve quotations and their source edition while linking requirements by their stated meaning.\n\n**Request:** Publish a correction or author-confirmed crosswalk naming the editions, affected clause IDs and\nintended requirement for each mismatch.\n\n**Interim behaviour:** Keep edition/source qualifications and meaning-based links; do not silently renumber\nquoted source passages.\n\n**Acceptance:** Cite the correction or confirmation, review every affected catalogue/question association and\nadd regression examples for the edition differences. Preserve originals, attribution and normative strength;\nrecord any unresolved correspondence explicitly.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:35Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 27,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/27",
+        "body": "**Proposed owner:** NRP assessment owner, with the Guide maintainer and mapping reviewers.\n\n**Context:** A future national benchmark may change the Guide's reviewed FAIR Champion selection. The current\nselection and limitations remain documented in [the selection record](champion/selection.md).\n\n**Request:** Establish the responsible benchmark contact and publication/version-change trigger. When a\nbenchmark is published, review its scope, criteria and suitability before proposing adoption.\n\n**Interim behaviour:** Retain the current evidence-based selection; do not describe a prospective benchmark as\nalready adopted.\n\n**Acceptance:** Record the published version, source/criterion mappings, coverage changes, native-result\nsemantics and regression fixtures, followed by an explicit adoption decision. Coordinate any resulting test\nvalidity findings with [#6](https://github.com/motyc/eosc-fair-guide/issues/6).",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:evaluation"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:36Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 28,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/28",
+        "body": "**Proposed owner:** NRP communications and the FIP Dashboard team.\n\n**Context:** `content/guide.toml` records the organisation landing path ending in\n`narodni-repozitarova-platforma-pro-vyzkumna-data-nrp`; the Dashboard snapshot uses the path without `-nrp`\nand the upstream organisation identifier `nrp`. The landing URL and registry identity serve different roles.\n\n**Request:** Confirm the canonical public organisation URL and authoritative Dashboard identifier, and whether\nthe two recorded organisation entries denote the same organisation.\n\n**Interim behaviour:** Preserve the separate metadata roles; do not infer identity from a redirect alone.\n\n**Acceptance:** Record authoritative confirmation and any redirects. Review the join and provenance, keeping\nthe existing Guide-owned primary identity and the typed upstream identifier distinct. Update the source join\nonly when the confirmation supports it.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:36Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 29,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/29",
+        "body": "**Proposed owner:** KNAV Open Science Department, with an EOSC CZ legal reviewer.\n\n**Context:** The imported KNAV catalogue snapshot and its entities retain GPL-3.0 attribution. No grant for\nalternative licensing is recorded. This question concerns the KNAV catalogue, not the separately approved\nglossary reuse.\n\n**Request:** Ask whether the rights holder offers alternative licensing for the Guide's reuse, and specify the\ncovered data/code, versions, derivative outputs, attribution and redistribution terms.\n\n**Interim behaviour:** Preserve the existing GPL-3.0 notices and scope; a request is not a licence grant.\n\n**Acceptance:** Record an authoritative written grant and a legal review of its scope before changing licence\nmetadata or attribution. If alternative terms are not available or not pursued, record that disposition and\nretain the existing licence; do not leave a presumed permission in the Guide.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:36Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 30,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/30",
+        "body": "**Proposed owner:** MaLDReTH working group / PRISM, with the life-cycle mapping editor.\n\n**Context:** The recorded Figure 2 repeats SHARE, while Figure 3's ordering suggests a correspondence from\nRDMkit Reuse to MaLDReTH ACCESS. The Guide marks that correspondence unconfirmed rather than correcting the\npublished figure itself.\n\n**Request:** Obtain a published correction or author confirmation naming the intended stage and correspondence,\nwith the figure and source-version locator.\n\n**Interim behaviour:** Retain the unconfirmed mapping and the unchanged original figure/source wording.\n\n**Acceptance:** Record the authoritative response and review the crosswalk and bilingual explanation against\nit. Update mapping status and provenance only for the confirmed relation; if uncertainty remains, preserve it\nexplicitly rather than inferring equivalence from the diagram's order.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:36Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 31,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/31",
+        "body": "**Proposed owner:** Map and Data Centre, Charles University Faculty of Science.\n\n**Context:** The curated DataHub entry (`https://datahub.natur.cuni.cz/`) and re3data's Map collection entry\n(`r3d100012473`, Guide ID `map-collection`) may describe one service or related services. The current catalogue\nkeeps them separate pending operator confirmation.\n\n**Request:** Confirm their public addresses, scope and identity or part-of relationship, including which\nservice the re3data record describes.\n\n**Interim behaviour:** Preserve both records and their source identities without a speculative merge.\n\n**Acceptance:** Record an operator-confirmed relationship and the relevant public source. Review a merge or an\nexplicit relation with provenance, retaining genuine upstream identifiers and the Guide's primary-ID rules.\nVerify catalogue links, refresh joins and repository evidence still resolve to the intended service.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:37Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 32,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/32",
+        "body": "The Guide's `baseUrl` (`content/guide.toml`) is fixed at `https://fair.eosc.cz/` for the alpha. Every\naddress the Guide derives — the page, the vocabulary of its own terms (`<address>terms#`), the RO-Crate\nprofile and the embed examples — follows that one setting, and record identity stays relative to it, so\nadopting another address later is a value change rather than a re-issue of identities.\n\n**Scope**\n\n- Point `fair.eosc.cz` at the published site (DNS and hosting), or configure the intended host to serve it.\n- Confirm the site's canonical addresses, the RO-Crate profile IRI and the vocabulary document resolve under\n  `https://fair.eosc.cz/`.\n- Configure the Guide's embed origins in `index.html` for any host other than `eosc.cz` that embeds it.\n\n**Interim behaviour**\n\nThe site is published on its current host while `baseUrl` names the adopted address. Built links already use\n`https://fair.eosc.cz/`, so adoption is a hosting step, not a rebuild of identities; a redirection from the\nformer address preserves inbound links until they are replaced.\n\n**Acceptance**\n\nThe Guide opens at `https://fair.eosc.cz/`; the profile IRI, the vocabulary document and the crate's context\nresolve under that address; and changing the address afterwards is a single `baseUrl` value change.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:delivery"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:37Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 33,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/33",
+        "body": "The Guide's vocabulary is defined once, in `scripts/build_crate.py` (`GUIDE_TERMS` with `GUIDE_TERM_SHAPES` and\n`GUIDE_TERM_REASONS`), and published as a hand-rendered page (`terms/index.html`, one anchor per term) and a\nTurtle document (`terms/fair-guide.ttl`). [Dataspecer](https://dataspecer.com/) is a data-specification editor\nthat turns one specification into human-readable documentation and machine-readable artefacts. Rendering the\nvocabulary from a specification Dataspecer can read would let one source produce both views and keep them in\nstep, and would align the Guide with a tool used in Czech public administration for open formalised data.\n\n**Scope**\n\n- Express the vocabulary's terms as a data specification Dataspecer can read: each term's label, definition, the\n  broader established term it specializes or the recorded reason none exists, its domain and its range.\n- Generate `terms/index.html` and `terms/fair-guide.ttl` from that specification, replacing the hand-rendered page.\n- Keep `scripts/build_crate.py` the owner of the emitted vocabulary; the view is generated, not authored, and the\n  build still needs no network service.\n- Keep every term's address (`<address>terms#<term>`) resolving to its row and its definition.\n\n**Interim behaviour**\n\nThe hand-rendered page and the Turtle document stay the published views, with one anchor per term.\n\n**Acceptance**\n\nThe vocabulary is defined once; the page and the machine-readable artefacts are generated from that definition\nand agree; every existing term address still resolves; the build stays offline.",
+        "issueType": {
+         "name": "Feature"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:01:02Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 35,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/35",
+        "body": "## Kontext a zjištění z obsahové analýzy\n\nV několika zastávkách Průvodce (`content/stations/*.toml`) vzniklo vrstvením zdrojů opakování téhož sdělení na více místech téže zastávky:\n\n1. **Dodatečně připojené položky na konci zastávek (RDMkit a příručka k licencím) duplikují hlavní rady:**\n   - **Zastávka 1 (`01-plan.toml`):** `plan.03` a `plan.04` opakují přihlášení do `DMP.eosc.cz` a šablony poskytovatelů, a na konci souboru `plan.28` (`V`) a `plan.29` (`DS`) znovu opakují totéž s odkazy na RDMkit.\n   - **Zastávka 2 (`02-collect.toml`):** `collect.21` na konci zastávky znovu opakuje dohodu na struktuře a pojmenování souborů (`collect.04`) a popis proměnných v datovém slovníku (`collect.05`).\n   - **Zastávka 6 (`06-metadata.toml`):** `metadata.41` na konci zastávky znovu opakuje doporučení k README a datovému slovníku z `metadata.06`.\n   - **Zastávka 7 (`07-licence.toml`):** `licence.28` (`V`), `licence.29` (`DS`) a `licence.30` (`SR`) na konci souboru opakují a rozvádějí totéž co `licence.03` (`V`), `licence.09` (`DS`) a `licence.14` (`SR`).\n   - **Zastávka 8 (`08-publication.toml`):** `publication.29` opakuje kontrolu před zveřejněním z `publication.03`.\n   - **Zastávka 10 (`10-citation.toml`):** `citation.13` (`SR`, `L1`) doslovně opakuje první polovinu `citation.12` (`SR`, `L0`) a `citation.23` (`*`) opakuje `citation.20` (`V`).\n2. **Téměř totožný AI prompt v Zastávce 2 (`collect.20`) a Zastávce 6 (`metadata.37`):**\n   - Oba prompty žádají AI o vytvoření datového slovníku z tabulky/seznamu proměnných, přestože text `metadata.37` slibuje návrh abstraktu, překlad metadat a klíčová slova.\n3. **Překryv `kind = \"key\"` a `level = \"L0\"` v úvodu zastávek:**\n   - V zastávkách `02-collect.toml`, `04-analyse.toml` a `10-citation.toml` říkají úvodní `key` a bezprostředně následující `L0` téměř totéž stejnými slovy, a v `analyse.11` se opakuje výzva k ověření na malém příkladu z `analyse.03`.\n\n## Navržené řešení (připravená větev)\n\n- **Větev s úpravami:** [`agents/antigravity/deduplicate-stations`](https://github.com/dsw-nrp/eosc-fair-guide/tree/agents/antigravity/deduplicate-stations)\n- **Porovnání změn (diff vůči `agents/claude/guide-v0.1`):** <https://github.com/dsw-nrp/eosc-fair-guide/compare/agents/claude/guide-v0.1...agents/antigravity/deduplicate-stations>\n\n### Přehled konkrétních úprav ve větvi:\n- Sloučení duplicitních položek do hlavních rad se zachováním všech cenných odkazů na RDMkit, FAIR Cookbook a příručku k licencím (`plan.28` -> `plan.03`/`plan.04`, `plan.29` -> `plan.10`, `collect.21` -> `collect.04`/`collect.05`, `metadata.41` -> `metadata.06`, `licence.28` -> `licence.03`, `licence.29` -> `licence.09`, `licence.30` -> `licence.14`, `publication.29` -> `publication.03`, `citation.13` -> `citation.12`, `citation.23` -> `citation.20`) a řádné vyřazení (`[retired]`) nadbytečných ID v `content/identifiers.toml`.\n- Odlišení `metadata.37` (návrh dvojjazyčného abstraktu, shrnutí původu dat a kandidátních odborných hesel/klíčových slov z poznámek a README) od `collect.20` (tvorba tabulkového datového slovníku proměnných).\n- Odlišení klíčových myšlenek (`collect.01`, `analyse.01`, `citation.01`) od navazujících `L0` shrnutí a zeštíhlení `analyse.11`.\n- Ověřeno pomocí `check_content.py`, `check_duplicates.py` a `check_health.py` (0 chyb, 0 varování).\n",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:01:02Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 36,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/36",
+        "body": "## Kontext a zjištění z obsahové analýzy\n\nPři kontrole praktického průchodu životním cyklem dat (Zastávka 1 – Plán a Zastávka 2 – Sběr a organizace) chybějí tři důležitá preventivní doporučení, na která výzkumníci v praxi často narážejí příliš pozdě:\n\n1. **Formulace informovaného souhlasu před zahájením sběru dat od lidí (Zastávka 1):**\n   - Osobní a citlivá data jsou v Průvodci řešena v Zastávce 3 (anonymizace) a 7 (řízený přístup), ale v Zastávce 1 chybí včasné varování pro výzkumníky pracující s lidskými subjekty: pokud šablona informovaného souhlasu obsahuje neuvážený slib *„data budou po skončení projektu smazána“* nebo *„k datům bude mít přístup výhradně řešitelský tým“*, nelze data později legálně archivovat ani sdílet v režimu řízeného přístupu (`A1.2`).\n2. **Výběr dat k dlouhodobému uchování – Data Appraisal / Selection (Zastávka 1):**\n   - Výzkumníci se často obávají, že FAIR znamená povinnost publikovat terabajty surových mezivýsledků nebo dočasných běhů simulací. V Zastávce 1 chybí jasné pravidlo pro rozlišení neopakovatelných primárních měření a podkladových dat k publikacím (`underlying-data`) od objemných mezivýsledků, které lze ze vstupů a skriptu znovu spočítat.\n3. **Kontinuita v týmu a předání dat při odchodu studenta či postdoka – Offboarding (Zastávka 2):**\n   - Zastávka 2 sice cituje v `L2` Národní průzkum 2025 (`SURVEY-2025.01`), podle něhož 66,4 % výzkumníků ukládá data na osobní počítač, ale v radách pro výzkumníky (`V`) a data stewardy (`DS`) chybí praktické doporučení k předávacímu protokolu (*handover checklist*) před odchodem doktoranda či člena týmu.\n\n## Navržené řešení (připravená větev)\n\n- **Větev s úpravami:** [`agents/antigravity/consent-appraisal-continuity`](https://github.com/dsw-nrp/eosc-fair-guide/tree/agents/antigravity/consent-appraisal-continuity)\n- **Porovnání změn (diff vůči `agents/claude/guide-v0.1`):** <https://github.com/dsw-nrp/eosc-fair-guide/compare/agents/claude/guide-v0.1...agents/antigravity/consent-appraisal-continuity>\n\n### Přehled konkrétních úprav ve větvi:\n- **`plan.31` (`V`, `L1` v `01-plan.toml`):** Kontrola formulace informovaného souhlasu a podkladů pro etickou komisi před zahájením sběru dat od lidí (`RDMKIT.collect.02`, `ETHICAL-SEVEN.01`).\n- **`plan.32` (`V`, `L1` v `01-plan.toml`):** Kritéria výběru dat k dlouhodobému uchování oproti reprodukovatelným mezivýsledkům (`POLICY-MANUAL.02`, `POLICY-MANUAL.04`, `LAW-328-2025.83`).\n- **`collect.22` (`V`, `L1`) a `collect.23` (`DS`, `L1` v `02-collect.toml`):** Zajištění kontinuity v týmu a kontrolní seznam pro předání dat při odchodu člena týmu nebo ukončení etapy projektu (`EINFRA-DOCS.01`, `POLICY-MANUAL.06`, `SURVEY-2025.01`, `CESSDA-DMEG.01`).\n- Ověřeno pomocí `check_content.py`, `check_duplicates.py` a `check_health.py` (0 chyb, 0 varování).\n",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:01:00Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 37,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/37",
+        "body": "## Kontext a zjištění z obsahové analýzy\n\nV Zastávkách 2, 3 a 8 jsou některá klíčová doporučení pro výzkumníky formulována příliš obecně a chybí jim okamžitě použitelný příklad:\n\n1. **Konkrétní vzor struktury složek a pojmenování souborů (Zastávka 2, `collect.04`):**\n   - Rada *„Dohodněte se v týmu na pojmenování souborů, struktuře složek a způsobu verzování“* je příliš abstraktní. Doplnění dvou stručných odrážek s osvědčeným dělením složek (`01_raw/`, `02_processed/`, `03_scripts/`, `04_outputs/`, `README.md`) a vzorem názvu souboru (`2026-05-14_projekt_vzorek03_v01.csv`) dá výzkumníkům okamžitý praktický návod.\n2. **Konkrétní příklady otevřených formátů a úskalí formátovaných tabulek `.xlsx` (Zastávka 3, `process.03`):**\n   - `process.03` zmiňuje *„otevřené a rozšířené formáty, pokud existují“*, ale neuvádí žádné příklady ani nejčastější praktický problém (sloučené buňky, barvy a vzorce v sešitech `.xlsx` oproti čistému `CSV` v UTF-8 nebo `Parquet`, `Markdown`/`PDF/A`, `TIFF`/`PNG`, `WAV`/`FLAC`, `GeoPackage`/`GeoTIFF`).\n3. **Syntetický (umělý) nebo agregovaný vzorek dat u citlivých dat (Zastávka 3, `process.04`):**\n   - Pokud citlivá data nelze plně anonymizovat a zůstávají v režimu řízeného přístupu, osvědčenou FAIR praxí je přiložit k veřejnému záznamu malý syntetický (*dummy*) nebo agregovaný vzorek se stejnou strukturou sloupců, na kterém si ostatní výzkumníci mohou otestovat skripty před podáním žádosti o přístup.\n4. **Balíčkování tisíců drobných souborů, manifest a kontrolní součty před publikací (Zastávka 8, `publication.30`):**\n   - Při ukládání datové sady s tisíci drobných souborů vznikají problémy při nahrávání i stahování. V Zastávce 8 chybí praktická rada zabalit tisíce malých souborů do jednoho archivu (`.zip`, `.tar.gz`) se seznamem souborů (*manifest*) a po nahrání ověřit kontrolní součty (`SHA-256` nebo `MD5`).\n\n## Navržené řešení (připravená větev)\n\n- **Větev s úpravami:** [`agents/antigravity/formats-folders-packaging`](https://github.com/dsw-nrp/eosc-fair-guide/tree/agents/antigravity/formats-folders-packaging)\n- **Porovnání změn (diff vůči `agents/claude/guide-v0.1`):** <https://github.com/dsw-nrp/eosc-fair-guide/compare/agents/claude/guide-v0.1...agents/antigravity/formats-folders-packaging>\n\n### Přehled konkrétních úprav ve větvi:\n- **`collect.04` (`02-collect.toml`):** Doplnění konkrétních kroků pro strukturu složek (`01_raw/` až `04_outputs/`, `README.md`) a jednotné pojmenování souborů (`CESSDA-DMEG.01`, `CDSC-README.01`).\n- **`process.03` (`03-process.toml`):** Doplnění přehledu otevřených formátů podle typu dat a upozornění na sloučené buňky/barvy v `.xlsx` (`A.I1.X1`, `MBDB-2026.01`, `LAW-328-2025.83.3`).\n- **`process.04` (`03-process.toml`):** Doplnění doporučení k syntetickému nebo agregovanému vzorku dat u sad s řízeným přístupem (`RDMKIT.process.02`, `A.A1.2.R2`).\n- **`publication.30` (`08-publication.toml`):** Praktická příprava archivu s manifestem u tisíců drobných souborů a kontrola `SHA-256`/`MD5` po nahrání (`CDIF.REC5`, `CDIF.Manifest`, `A.F3.N2`).\n- Ověřeno pomocí `check_content.py`, `check_duplicates.py` a `check_health.py` (0 chyb, 0 varování).\n",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:01:05Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 38,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/38",
+        "body": "## Kontext a zjištění z obsahové analýzy\n\nV druhé polovině cesty (Zastávka 6 – Popis dat, Zastávka 7 – Licence a přístup, Zastávka 8 – Publikace) chybějí tři praktické oblasti z pohledu výzkumníka (`V`):\n\n1. **Trvalé identifikátory fyzických vzorků, přístrojů a grantů v metadatech (Zastávka 6, `metadata.05`):**\n   - Zastávka 6 důkladně pokrývá `ORCID`, `ROR` a vazby na články a předchozí verze, ale v `metadata.05` chybí připomenutí identifikátorů fyzických vzorků a sbírkových položek (např. `IGSN` v geovědách, archeologii, biologii a materiálovém výzkumu), měřicích přístrojů a kódu projektu/grantu pro automatické propojení s RIV.\n2. **Patentování, obchodní tajemství a smluvní výzkum s průmyslem (Zastávka 7, `licence.31`):**\n   - V `content/ledger.toml` je připravena položka `LAW-328-2025.83.5` (§ 83 odst. 5 zákona č. 328/2025 Sb. – výjimky pro duševní vlastnictví, obchodní tajemství a bezpečnost), ale přímo v Zastávce 7 chybí praktická rada pro výzkumníka, jak postupovat při chystané patentové přihlášce nebo průmyslové spolupráci (konzultace s transferem technologií, využití dočasného embarga do podání přihlášky, případně zveřejnění samotného metadatového záznamu s odůvodněním zákonné výjimky).\n3. **Jak opravit chybu po publikaci dat – Errata, verzování vs. stažení dat (Zastávka 8, `publication.05`):**\n   - Zatímco pro správce repozitáře (`SR`) je politika změn a tombstone stránka popsána v `publication.13` a `publication.17`, pro výzkumníka (`V`) je `publication.05` příliš stručná. Výzkumník potřebuje jasné pravidlo, že publikované soubory se nikdy tiše nepřepisují ani nemažou, a rozlišení tří situací: oprava překlepu v metadatech, oprava chyby v datech novou verzí s vlastním PID (případně patch balíčkem u obřích sad) a stažení dat (tombstone) vyhrazené pouze pro závažné právní, etické nebo bezpečnostní důvody.\n\n## Navržené řešení (připravená větev)\n\n- **Větev s úpravami:** [`agents/antigravity/ip-errata-samples`](https://github.com/dsw-nrp/eosc-fair-guide/tree/agents/antigravity/ip-errata-samples)\n- **Porovnání změn (diff vůči `agents/claude/guide-v0.1`):** <https://github.com/dsw-nrp/eosc-fair-guide/compare/agents/claude/guide-v0.1...agents/antigravity/ip-errata-samples>\n\n### Přehled konkrétních úprav ve větvi:\n- **`metadata.05` (`06-metadata.toml`):** Rozšíření vazeb v metadatech o číslo projektu/grantu (pro RIV) a identifikátory fyzických vzorků (např. IGSN nebo sbírkové kódy) a přístrojů (`A.I3.R3`, `A.R1.2.N3`, `RDMKIT.collect.02`, `DDRAPP.01`, `CDIF.REC6`).\n- **`licence.31` (`07-licence.toml`):** Praktický postup při plánované patentové přihlášce nebo obchodním tajemství průmyslového partnera podle § 83 odst. 5 zákona č. 328/2025 Sb. (`LAW-328-2025.83.5`, `POLICY-MANUAL.05`, `COPYRIGHT-LICENCES.04`).\n- **`publication.05` (`08-publication.toml`):** Přehledné kroky pro výzkumníka při zjištění chyby po zveřejnění dat (`A.R1.R3`, `A.I3.R5`, `NRP.M1`, `NRP.M3`, `A.A2.R2`).\n- Ověřeno pomocí `check_content.py`, `check_duplicates.py` a `check_health.py` (0 chyb, 0 varování).\n",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:46:52Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 103,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/103",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:15:10Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 39,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/39",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:15:12Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 40,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/40",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:15:14Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 41,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/41",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "In progress",
+          "updatedAt": "2026-10-23T22:15:15Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 42,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/42",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:37Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 43,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/43",
+        "body": "Heslář record 415 (<https://heslar.openscience.cz/heslo.php?id=415>) contains the spelling\n“Ovarlay Journal” in its Czech definition of “Overlay Journal”.\n\nThe Guide snapshots the Heslář record verbatim and applies a reviewed local correction in\n`content/corrections.toml`, so readers see the corrected spelling while the snapshot keeps the\nsource text. Please correct the upstream record so the local overlay can be removed.\n\nWhen the upstream record is corrected, refresh the Heslář snapshot and remove the\n`heslar-415-ovarlay` entry from `content/corrections.toml`.\n",
+        "issueType": {
+         "name": "Bug"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:38Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 59,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/59",
+        "body": "The reviewed candidate `fc_metadata_authorization` returned verdicts for every reference record (2 definitive, 0 indeterminate). This is a proposal for the documented selection review (docs/champion/selection.md), not a selection ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39118809311)).\n\n<!-- fair-guide-health key=champion-candidate%3Afc_metadata_authorization -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:38Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 60,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/60",
+        "body": "The reviewed candidate `fc_metadata_identifier_persistence` returned verdicts for every reference record (2 definitive, 0 indeterminate). This is a proposal for the documented selection review (docs/champion/selection.md), not a selection ([run](https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/39118809311)).\n\n<!-- fair-guide-health key=champion-candidate%3Afc_metadata_identifier_persistence -->",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "guide-health"
+          },
+          {
+           "name": "area:maintenance"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:38Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 5,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/5",
+        "body": "**Context:** the browser connector cannot read the live Dashboard from the deployment origins under current CORS configuration. \n\n**Proposed owner:** FIP Dashboard team. Interim: dated snapshot and nanopublication fallback.\n\n**Request:** agree the final production/staging origins; enable only those supported origins; document access policy.\n\n**Acceptance:** a real browser can read the supported API from each agreed origin; unsupported origins follow the agreed policy; unavailable access and no record have different states; credentials are not embedded in the Guide.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:evaluation"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:38Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 6,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/6",
+        "body": "**Context:** this review deliberately follows the first official prerelease.\n\n**Proposed owners:** content lead and software maintainer.\n\n**Interim:** current tests and caveats. Review criterion coverage, source fidelity, evidence-to-answer logic, false positives/negatives, partial/unavailable evidence and FAIR mappings.\n\n**Acceptance:** name the exact release baseline, retain reproducible positive/negative examples, disposition every finding and link bounded implementation issues. No audit is claimed by the present implementation.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:evaluation"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:39Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 7,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/7",
+        "body": "**Context:** broader population is outside the initial implementation.\n\n**Proposed owners:** model maintainers and content lead. Review useful links and missing associations across resources, requirements, advice, questions and tests.\n\n**Interim:** existing reviewed mappings.\n\n**Acceptance:** an approved scope with evidence and review/maintenance owners; useful reader tasks; unchanged source meaning and FAIR categories; relevance kept distinct from proof of implementation. Implement subsequent population only through a separately approved change.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:39Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 8,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/8",
+        "body": "**Context:** the page contains the former National Repository pilot and a non-Czech funding line, and omits NRP, NKR and EOSC CZ. \n\n**Proposed owners:** maintainer and the page's ELIXIR CZ contributors.\n\n**Interim:** independently sourced Guide advice.\n\n**Acceptance:** check the live upstream page after alpha, prepare a sourced update with the current services and funding context, obtain contributor review and record the upstream PR and disposition.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:39Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 9,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/9",
+        "body": "**Context:** the charter envisages a national service catalogue, but no adopted machine-readable membership source is available. \n\n**Proposed owners:** e-INFRA CZ / EOSC CZ secretariat and snapshot maintainer.\n\n**nterim:** dated curated charter membership and source watch.\n\n**Acceptance:** public endpoint, reuse terms, schema, identifiers and membership roles/statuses; reviewed joins to Guide-owned IDs; safe refresh/removal handling; no implication of certification.",
+        "issueType": {
+         "name": "Feature"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:sources"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:39Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 10,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/10",
+        "body": "**Context:** FAIR-Checker and F-UJI currently assess one object; repository sample discovery and Champion runs remain available. \n\n**Proposed owners:** software maintainer and evaluator-mapping reviewers.\n\n**Acceptance:** explicit user action; bounded count/concurrency; reviewed subject-aware mappings; native per-record evidence, dates and coverage; no result distinguished from service failure; manual answers preserved; complete sample evidence export/import. Document public metadata sent and cancellation/retry behaviour before implementation.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:evaluation"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:40Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 11,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/11",
+        "body": "**Context:** the current CC matrix is a flat attributed NRP table, and software links to the NRP License Selector.\n\n**Proposed owners:** software maintainer and legal/content reviewers.\n\nEstablish useful licence families and reader tasks; assess SPDX as an identifier catalogue, not a compatibility authority. Source and version every rule; separate adaptation/combination, output licence choice and unchanged redistribution.\n\n**Acceptance:** approved scope and sources, licence/version-aware explanations, Czech legal qualifications, legal review and accessible bilingual controls justified by the larger scope; retain direct access to the simple CC table.",
+        "issueType": {
+         "name": "Feature"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:interface"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:40Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 12,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/12",
+        "body": "**Context:** readers need reusable statements for GAČR, TAČR and Horizon Europe.\n\n**Proposed owners:** funding support specialist and content editor.\n\n**Interim:** existing DMP/action guidance.\n\n**Acceptance:** dated official requirements for each programme/call, explicit applicability and source versions, editable statements with assumptions and missing evidence visible, accessible bilingual export, and no invented compliance certification. Review the draft with funding specialists before implementing a generator.",
+        "issueType": {
+         "name": "Feature"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:content"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:40Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 13,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/13",
+        "body": "**Context:** local-file use already works, but installability and an update lifecycle are separate capabilities.\n\n**Proposed owner:** software maintainer.\n\n**Interim:** downloadable file-mode Guide.\n\n**Acceptance:** agreed offline scope, versioned cache/update/rollback rules, visible stale-source state, preserved local answers, explicit online external probes, no background assessment, accessible install/update behaviour and browser coverage. Document hosting and service-worker scope before implementation.",
+        "issueType": {
+         "name": "Feature"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:delivery"
+          },
+          {
+           "name": "area:interface"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:40Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 14,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/14",
+        "body": "**Context:** whole versus partial F-UJI coverage and FAIR-Checker's version identity require a reviewer decision.\n\n**Proposed owner:** evaluator-mapping reviewer, agreed with the content lead.\n\n**Interim:** current reviewed mappings and visible limitations.\n\n**Acceptance:** evidence and fixtures for the two named whole mappings; decision on API-version identity; named owner, review cadence and metric/version change triggers; preserve native evidence and manual answers when mappings change. Further whole mappings need focused validation, not a blanket promotion.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:evaluation"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "ISSUE",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:41Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "Issue",
         "number": 15,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/15",
+        "body": "**Context:** the guide's page, the vocabulary of its own terms (`https://fair.eosc.cz/terms#`) and its RO-Crate profile all derive from one setting, `baseUrl` in `content/guide.toml` or `FAIR_GUIDE_BASE_URL` at build time. The alpha is built with `https://fair.eosc.cz/` so that the published IRIs are canonical from the first release, but that address is not yet agreed with its owner. Record identity and record addresses are relative to the setting, so adopting another address later, or changing this value, is a value change and not an identity migration. \n\n**Proposed owner:** EOSC CZ service owner.\n\n**Interim:** build from the setting, keep the testing notice and the `noindex` staging channel. \n\n**Request:** confirm `fair.eosc.cz` as the guide's official address, or name the address to use, and state the hosting and redirect arrangement (DNS, GitHub Pages or eosc.cz, embed origins).\n\n**Acceptance:** the agreed address resolves to the guide; the vocabulary and profile IRIs resolve at it; the embed origins are agreed for it; both deployment channels are verified there; and the setting, the profile IRI, the shapes' prefix and the embed examples agree. Switching the value is a bounded, checked change — four files, and `check_content` refuses a half-switched base.",
+        "issueType": {
+         "name": "Task"
+        },
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        },
+        "labels": {
+         "nodes": [
+          {
+           "name": "area:delivery"
+          }
+         ]
+        },
+        "issueFieldValues": {
+         "nodes": []
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-23T22:14:43Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 70,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/70",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
        }
       },
       {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T11:31:05Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
        "content": {
+        "__typename": "PullRequest",
         "number": 107,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/107",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T11:30:38Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 108,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/108",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:54:57Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 50,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/50",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:54:59Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 51,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/51",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:02Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 52,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/52",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:01Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 53,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/53",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:03Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 54,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/54",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:03Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 55,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/55",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:06Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 56,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/56",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:09Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 57,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/57",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:05Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 58,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/58",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:07Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 66,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/66",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:07Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 67,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/67",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:09Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 68,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/68",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:09Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 69,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/69",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:14Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 71,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/71",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:14Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 72,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/72",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:17Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 73,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/73",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:18Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 74,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/74",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:15Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 75,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/75",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:17Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 76,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/76",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:20Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 77,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/77",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:19Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 78,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/78",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:22Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 79,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/79",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:21Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 81,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/81",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:24Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 82,
+        "state": "CLOSED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/82",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:21Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 102,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/102",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:42Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 1,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/1",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:41Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 44,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/44",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:40Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 45,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/45",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:46Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 46,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/46",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:42Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 47,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/47",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:45Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 48,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/48",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T14:55:48Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 49,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/49",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T19:31:52Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 109,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/109",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-24T19:32:53Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 110,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/110",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-24T19:36:09Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 111,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/111",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Done",
+          "updatedAt": "2026-10-24T22:16:39Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 112,
+        "state": "MERGED",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/112",
+        "repository": {
+         "nameWithOwner": "dsw-nrp/eosc-fair-guide"
+        }
+       }
+      },
+      {
+       "type": "PULL_REQUEST",
+       "fieldValues": {
+        "nodes": [
+         {},
+         {},
+         {},
+         {
+          "name": "Needs triage",
+          "updatedAt": "2026-10-24T23:27:06Z",
+          "field": {
+           "name": "Status"
+          }
+         }
+        ]
+       },
+       "content": {
+        "__typename": "PullRequest",
+        "number": 113,
+        "state": "OPEN",
+        "url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/113",
         "repository": {
          "nameWithOwner": "dsw-nrp/eosc-fair-guide"
         }
@@ -1145,344 +4493,976 @@
  },
  "GET repos/dsw-nrp/eosc-fair-guide/issues?state=open&per_page=100": [
   {
-   "number": 107,
-   "node_id": "PR_kwDOVAEbKM8AAAABKbDvfg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/107"
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/113",
+   "node_id": "PR_kwDOVAEbKM8AAAABKgeLBg",
+   "number": 113,
+   "labels": [],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/113"
+   }
   },
   {
-   "number": 103,
-   "node_id": "PR_kwDOVAEbKM8AAAABJqbAOA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/103"
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/111",
+   "node_id": "PR_kwDOVAEbKM8AAAABKe8GJA",
+   "number": 111,
+   "labels": [
+    {
+     "name": "dependencies"
+    },
+    {
+     "name": "github_actions"
+    }
+   ],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/111"
+   }
   },
   {
-   "number": 101,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/110",
+   "node_id": "PR_kwDOVAEbKM8AAAABKe6jLg",
+   "number": 110,
+   "labels": [
+    {
+     "name": "dependencies"
+    },
+    {
+     "name": "python"
+    }
+   ],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/110"
+   }
+  },
+  {
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/101",
    "node_id": "I_kwDOVAEbKM8AAAABYgSWWg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/101"
+   "number": 101,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 100,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/100",
    "node_id": "I_kwDOVAEbKM8AAAABYgSV6A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/100"
+   "number": 100,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 99,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/99",
    "node_id": "I_kwDOVAEbKM8AAAABYgSViQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/99"
+   "number": 99,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 98,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/98",
    "node_id": "I_kwDOVAEbKM8AAAABYgSVIQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/98"
+   "number": 98,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 97,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/97",
    "node_id": "I_kwDOVAEbKM8AAAABYgSUtA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/97"
+   "number": 97,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 96,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/96",
    "node_id": "I_kwDOVAEbKM8AAAABYgSUXA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/96"
+   "number": 96,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 95,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/95",
    "node_id": "I_kwDOVAEbKM8AAAABYgST_A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/95"
+   "number": 95,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 94,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/94",
    "node_id": "I_kwDOVAEbKM8AAAABYgSTcQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/94"
+   "number": 94,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 93,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/93",
    "node_id": "I_kwDOVAEbKM8AAAABYgSS3A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/93"
+   "number": 93,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 92,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/92",
    "node_id": "I_kwDOVAEbKM8AAAABYgSSdw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/92"
+   "number": 92,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 91,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/91",
    "node_id": "I_kwDOVAEbKM8AAAABYgSR-Q",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/91"
+   "number": 91,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 90,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/90",
    "node_id": "I_kwDOVAEbKM8AAAABYgSRhg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/90"
+   "number": 90,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 89,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/89",
    "node_id": "I_kwDOVAEbKM8AAAABYgSRJg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/89"
+   "number": 89,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 88,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/88",
    "node_id": "I_kwDOVAEbKM8AAAABYgSQtg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/88"
+   "number": 88,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 87,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/87",
    "node_id": "I_kwDOVAEbKM8AAAABYgSQYw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/87"
+   "number": 87,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 86,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/86",
    "node_id": "I_kwDOVAEbKM8AAAABYgSQHQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/86"
+   "number": 86,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 85,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/85",
    "node_id": "I_kwDOVAEbKM8AAAABYgSPog",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/85"
+   "number": 85,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 84,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/84",
    "node_id": "I_kwDOVAEbKM8AAAABYbV-3A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/84"
+   "number": 84,
+   "labels": [
+    {
+     "name": "area:delivery"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 83,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/83",
    "node_id": "I_kwDOVAEbKM8AAAABYUbJBw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/83"
+   "number": 83,
+   "labels": [
+    {
+     "name": "area:delivery"
+    }
+   ],
+   "type": {
+    "name": "Feature"
+   }
   },
   {
-   "number": 80,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/80",
    "node_id": "I_kwDOVAEbKM8AAAABYN4nwg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/80"
+   "number": 80,
+   "labels": [
+    {
+     "name": "area:delivery"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 70,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/70",
    "node_id": "PR_kwDOVAEbKM8AAAABJRZlCg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/70"
+   "number": 70,
+   "labels": [
+    {
+     "name": "wontfix"
+    },
+    {
+     "name": "dependencies"
+    },
+    {
+     "name": "python"
+    }
+   ],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/70"
+   }
   },
   {
-   "number": 65,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/65",
    "node_id": "I_kwDOVAEbKM8AAAABYC075w",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/65"
+   "number": 65,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 64,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/64",
    "node_id": "I_kwDOVAEbKM8AAAABYC07qQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/64"
+   "number": 64,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 63,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/63",
    "node_id": "I_kwDOVAEbKM8AAAABYC07YA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/63"
+   "number": 63,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 62,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/62",
    "node_id": "I_kwDOVAEbKM8AAAABYC07Hw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/62"
+   "number": 62,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 61,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/61",
    "node_id": "I_kwDOVAEbKM8AAAABYC069A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/61"
+   "number": 61,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 60,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/60",
    "node_id": "I_kwDOVAEbKM8AAAABYC06pg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/60"
+   "number": 60,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 59,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/59",
    "node_id": "I_kwDOVAEbKM8AAAABYC06Yg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/59"
+   "number": 59,
+   "labels": [
+    {
+     "name": "guide-health"
+    },
+    {
+     "name": "area:maintenance"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 43,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/43",
    "node_id": "I_kwDOVAEbKM8AAAABX_sbwg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/43"
+   "number": 43,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Bug"
+   }
   },
   {
-   "number": 42,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/42",
    "node_id": "PR_kwDOVAEbKM8AAAABJAtpWw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/42"
+   "number": 42,
+   "labels": [],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/42"
+   }
   },
   {
-   "number": 41,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/41",
    "node_id": "PR_kwDOVAEbKM8AAAABJAtcig",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/41"
+   "number": 41,
+   "labels": [],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/41"
+   }
   },
   {
-   "number": 40,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/40",
    "node_id": "PR_kwDOVAEbKM8AAAABJAtIKA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/40"
+   "number": 40,
+   "labels": [],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/40"
+   }
   },
   {
-   "number": 39,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/39",
    "node_id": "PR_kwDOVAEbKM8AAAABJAsiaQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/pull/39"
+   "number": 39,
+   "labels": [],
+   "type": null,
+   "pull_request": {
+    "url": "https://api.github.com/repos/dsw-nrp/eosc-fair-guide/pulls/39"
+   }
   },
   {
-   "number": 38,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/38",
    "node_id": "I_kwDOVAEbKM8AAAABX4LB3A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/38"
+   "number": 38,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 37,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/37",
    "node_id": "I_kwDOVAEbKM8AAAABX4LBdw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/37"
+   "number": 37,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 36,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/36",
    "node_id": "I_kwDOVAEbKM8AAAABX4LBIw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/36"
+   "number": 36,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 35,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/35",
    "node_id": "I_kwDOVAEbKM8AAAABX4LA1A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/35"
+   "number": 35,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 33,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/33",
    "node_id": "I_kwDOVAEbKM8AAAABXoSexQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/33"
+   "number": 33,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Feature"
+   }
   },
   {
-   "number": 32,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/32",
    "node_id": "I_kwDOVAEbKM8AAAABXnh8nA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/32"
+   "number": 32,
+   "labels": [
+    {
+     "name": "area:delivery"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 31,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/31",
    "node_id": "I_kwDOVAEbKM8AAAABXkAczA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/31"
+   "number": 31,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 30,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/30",
    "node_id": "I_kwDOVAEbKM8AAAABXkAL0w",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/30"
+   "number": 30,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 29,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/29",
    "node_id": "I_kwDOVAEbKM8AAAABXkAAYw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/29"
+   "number": 29,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 28,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/28",
    "node_id": "I_kwDOVAEbKM8AAAABXj_4WQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/28"
+   "number": 28,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 27,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/27",
    "node_id": "I_kwDOVAEbKM8AAAABXj_tLQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/27"
+   "number": 27,
+   "labels": [
+    {
+     "name": "area:evaluation"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 26,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/26",
    "node_id": "I_kwDOVAEbKM8AAAABXj_ilQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/26"
+   "number": 26,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 25,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/25",
    "node_id": "I_kwDOVAEbKM8AAAABXj_Z6Q",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/25"
+   "number": 25,
+   "labels": [
+    {
+     "name": "area:delivery"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 24,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/24",
    "node_id": "I_kwDOVAEbKM8AAAABXj_Khw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/24"
+   "number": 24,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 23,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/23",
    "node_id": "I_kwDOVAEbKM8AAAABXj_B9A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/23"
+   "number": 23,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 22,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/22",
    "node_id": "I_kwDOVAEbKM8AAAABXj-22A",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/22"
+   "number": 22,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 21,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/21",
    "node_id": "I_kwDOVAEbKM8AAAABXj-oQA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/21"
+   "number": 21,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 20,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/20",
    "node_id": "I_kwDOVAEbKM8AAAABXj-cLw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/20"
+   "number": 20,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 19,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/19",
    "node_id": "I_kwDOVAEbKM8AAAABXj-RFg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/19"
+   "number": 19,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 18,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/18",
    "node_id": "I_kwDOVAEbKM8AAAABXj-CRg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/18"
+   "number": 18,
+   "labels": [
+    {
+     "name": "area:interface"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 17,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/17",
    "node_id": "I_kwDOVAEbKM8AAAABXj95FQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/17"
+   "number": 17,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 16,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/16",
    "node_id": "I_kwDOVAEbKM8AAAABXj9vyg",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/16"
+   "number": 16,
+   "labels": [
+    {
+     "name": "area:evaluation"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 15,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/15",
    "node_id": "I_kwDOVAEbKM8AAAABXjxsPQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/15"
+   "number": 15,
+   "labels": [
+    {
+     "name": "area:delivery"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 14,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/14",
    "node_id": "I_kwDOVAEbKM8AAAABXjxLiw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/14"
+   "number": 14,
+   "labels": [
+    {
+     "name": "area:evaluation"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 13,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/13",
    "node_id": "I_kwDOVAEbKM8AAAABXjvyDQ",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/13"
+   "number": 13,
+   "labels": [
+    {
+     "name": "area:delivery"
+    },
+    {
+     "name": "area:interface"
+    }
+   ],
+   "type": {
+    "name": "Feature"
+   }
   },
   {
-   "number": 12,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/12",
    "node_id": "I_kwDOVAEbKM8AAAABXjvnnw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/12"
+   "number": 12,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Feature"
+   }
   },
   {
-   "number": 11,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/11",
    "node_id": "I_kwDOVAEbKM8AAAABXjvfmA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/11"
+   "number": 11,
+   "labels": [
+    {
+     "name": "area:interface"
+    }
+   ],
+   "type": {
+    "name": "Feature"
+   }
   },
   {
-   "number": 10,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/10",
    "node_id": "I_kwDOVAEbKM8AAAABXjvY5g",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/10"
+   "number": 10,
+   "labels": [
+    {
+     "name": "area:evaluation"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 9,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/9",
    "node_id": "I_kwDOVAEbKM8AAAABXjvBiw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/9"
+   "number": 9,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Feature"
+   }
   },
   {
-   "number": 8,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/8",
    "node_id": "I_kwDOVAEbKM8AAAABXju5fw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/8"
+   "number": 8,
+   "labels": [
+    {
+     "name": "area:sources"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 7,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/7",
    "node_id": "I_kwDOVAEbKM8AAAABXjumAw",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/7"
+   "number": 7,
+   "labels": [
+    {
+     "name": "area:content"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 6,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/6",
    "node_id": "I_kwDOVAEbKM8AAAABXjuPeA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/6"
+   "number": 6,
+   "labels": [
+    {
+     "name": "area:evaluation"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   },
   {
-   "number": 5,
+   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/5",
    "node_id": "I_kwDOVAEbKM8AAAABXjtvZA",
-   "html_url": "https://github.com/dsw-nrp/eosc-fair-guide/issues/5"
+   "number": 5,
+   "labels": [
+    {
+     "name": "area:evaluation"
+    }
+   ],
+   "type": {
+    "name": "Task"
+   }
   }
  ],
  "GET orgs/dsw-nrp/issue-types": [

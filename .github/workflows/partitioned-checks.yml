@@ -134,8 +134,10 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+  # Collects after a failed build or lane too, but not in a run that was cancelled: its lanes never finished, so a
+  # failure here would only report the cancellation. The caller's required gate keeps `always()`.
   collect:
-    if: always()
+    if: ${{ !cancelled() }}
     needs: [build, lanes]
     runs-on: ubuntu-latest
     timeout-minutes: 10

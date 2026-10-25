@@ -35,3 +35,11 @@ jobs:
           script: |
             const { comment } = require('./.github/scripts/comment-summary.cjs');
             await comment({ github, context, core });
+      # Labels come from the API's file list and the reviewed rules, so they do not depend on the review artifact.
+      - name: Add area labels from the changed paths
+        if: ${{ !cancelled() }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { label } = require('./.github/scripts/labels.cjs');
+            await label({ github, context, core });

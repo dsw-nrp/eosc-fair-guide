@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Compare the repository's live GitHub settings with the reviewed expected state in `.github/repository.toml`.
 
-    python scripts/audit_repository.py [--section NAME ...] [--json PATH] [--fix]
+    python scripts/audit_repository.py [--section NAME ...] [--json PATH] [--digest PATH] [--fix]
+    python scripts/audit_repository.py --backfill MAPPING [--fix]
     python scripts/audit_repository.py --check-config
 
 Reads, through the GitHub CLI (``gh``) and the caller's token, the repository's merge settings, rulesets,
@@ -11,11 +12,18 @@ permissions. Each difference names the setting, the expected and actual values, 
 command. A section the token cannot read is reported as unavailable, never as matching. An approved target recorded
 under ``[[pending]]`` is reported as pending while the live value still equals its recorded current value.
 
+Project items that need a person are reported as needing attention, each with its link: a Status that does not
+match whether the item is open, an open issue without an Issue Type or whose body's ``Type`` row disagrees with it,
+a Ready issue short of the definition of Ready (type, an ``area:*`` label, Priority, Effort and the planned-issue
+shape), triage waiting over 14 days and Urgent work not started after three. ``--digest`` writes the public
+"Project and settings" section of the maintenance digest, which counts the checks that read Project-only fields.
+
 The audit writes nothing unless ``--fix`` is given, and ``--fix`` only creates or updates the declared labels and adds
-missing open issues and pull requests to the Project. It never deletes a label, never changes a Project field value
-and never changes a setting: people apply those, and the next audit confirms them. ``--check-config`` validates the
-file offline. Exit status 1 means drift, an undeclared object or a failed fix; unavailable and pending sections are
-listed without failing.
+missing open issues and pull requests to the Project; with ``--backfill`` it instead adds the reviewed mapping's area
+labels and Issue Types to open issues. It never deletes a label, never changes a Project field value and never
+changes a setting: people apply those, and the next audit confirms them. ``--check-config`` validates the file
+offline. Exit status 1 means drift, an undeclared object, an item needing attention or a failed fix; unavailable and
+pending sections are listed without failing.
 """
 
 from __future__ import annotations
@@ -23,6 +31,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -30,7 +39,10 @@ import sys
 import tomllib
 import urllib.parse
 from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
+
+import plan_issue_shape
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / ".github" / "repository.toml"
@@ -241,12 +253,23 @@ def load(path: Path = CONFIG) -> dict:
 
 
 class GhCli:
-    """The live state through `gh api` with the caller's token; a refusal becomes UnavailableError."""
+    """The live state through `gh api` with the caller's token; a refusal becomes UnavailableError. GraphQL, which
+    reads the organization's Project, uses `project_token` when one is given (the weekly job's App token)."""
 
-    def _run(self, arguments, payload=None):
+    def __init__(self, project_token=None):
+        self.project_token = project_token
+
+    def _run(self, arguments, payload=None, token=None):
+        environment = {**os.environ, "GH_TOKEN": token} if token else None
         try:
             done = subprocess.run(
-                ["gh", "api", *arguments], input=payload, capture_output=True, text=True, encoding="utf-8", check=True
+                ["gh", "api", *arguments],
+                input=payload,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=True,
+                env=environment,
             )
         except FileNotFoundError as error:
             raise UnavailableError("the GitHub CLI (gh) is not installed") from error
@@ -266,7 +289,7 @@ class GhCli:
         for key, value in variables.items():
             if value is not None:
                 arguments += ["-F" if isinstance(value, int) else "-f", f"{key}={value}"]
-        return self._run(arguments)["data"]
+        return self._run(arguments, token=self.project_token)["data"]
 
     def send(self, method, path, body):
         return self._run(["-X", method, path, "--input", "-"], json.dumps(body))
@@ -281,9 +304,14 @@ PROJECT_QUERY = """query Project($owner: String!, $number: Int!) { organization(
     sortByFields(first: 10) { nodes { direction field { ... on ProjectV2FieldCommon { name } } } } } }
   workflows(first: 100) { nodes { name enabled } } } } }"""
 ITEMS_QUERY = """query ProjectItems($owner: String!, $number: Int!, $after: String) { organization(login: $owner) {
-  projectV2(number: $number) { items(first: 100, after: $after) { pageInfo { hasNextPage endCursor }
-    nodes { content { ... on Issue { number repository { nameWithOwner } }
-      ... on PullRequest { number repository { nameWithOwner } } } } } } } }"""
+  projectV2(number: $number) { items(first: 50, after: $after) { pageInfo { hasNextPage endCursor }
+    nodes { type fieldValues(first: 30) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { name updatedAt
+        field { ... on ProjectV2FieldCommon { name } } } } }
+      content { ... on Issue { __typename number state url body issueType { name } repository { nameWithOwner }
+          labels(first: 50) { nodes { name } }
+          issueFieldValues(first: 20) { nodes { ... on IssueFieldSingleSelectValue { name
+            field { ... on IssueFieldSingleSelect { name } } } } } }
+        ... on PullRequest { __typename number state url repository { nameWithOwner } } } } } } } }"""
 ADD_ITEM = """mutation AddItem($project: ID!, $content: ID!) {
   addProjectV2ItemById(input: {projectId: $project, contentId: $content}) { item { id } } }"""
 
@@ -394,34 +422,68 @@ def read_project(github, config):
         },
         "workflows": {workflow["name"]: workflow["enabled"] for workflow in data["workflows"]["nodes"]},
     }
+    state["entries"], state["hidden"] = read_items(github, owner, number, repo)
+    state["items"] = set(state["entries"])
     if project.get("complete"):
-        items, after = set(), None
-        while True:
-            page = github.graphql(ITEMS_QUERY, {"owner": owner, "number": number, "after": after})
-            page = page["organization"]["projectV2"]["items"]
-            items |= {
-                node["content"]["number"]
-                for node in page["nodes"]
-                if node.get("content") and node["content"].get("repository", {}).get("nameWithOwner") == repo
-            }
-            if not page["pageInfo"]["hasNextPage"]:
-                break
-            after = page["pageInfo"]["endCursor"]
         state["open"] = {
             issue["number"]: {"id": issue["node_id"], "url": issue["html_url"]}
             for issue in github.get(f"repos/{repo}/issues?state=open&per_page=100", pages=True)
         }
-        state["items"] = items
     return state
+
+
+def read_items(github, owner, number, repo):
+    """This repository's Project items by number (kind, state, Status and since when, type, body, labels and the
+    Priority and Effort issue fields), and how many items' content the token may not see."""
+    entries, hidden, after = {}, 0, None
+    while True:
+        page = github.graphql(ITEMS_QUERY, {"owner": owner, "number": number, "after": after})
+        page = page["organization"]["projectV2"]["items"]
+        for node in page["nodes"]:
+            if node.get("type") == "REDACTED":
+                hidden += 1
+                continue
+            content = node.get("content") or {}
+            if content.get("repository", {}).get("nameWithOwner") != repo:
+                continue
+            selects = {
+                value["field"]["name"]: value
+                for value in node.get("fieldValues", {}).get("nodes", [])
+                if value.get("field", {}).get("name")
+            }
+            fields = {
+                value["field"]["name"]: value["name"]
+                for value in (content.get("issueFieldValues") or {}).get("nodes", [])
+                if value.get("field", {}).get("name")
+            }
+            entries[content["number"]] = {
+                "kind": "pull request" if content.get("__typename") == "PullRequest" else "issue",
+                "state": str(content.get("state", "")).lower(),
+                "url": content.get("url", ""),
+                "type": (content.get("issueType") or {}).get("name"),
+                "body": content.get("body") or "",
+                "labels": sorted(label["name"] for label in (content.get("labels") or {}).get("nodes", [])),
+                "status": selects.get("Status", {}).get("name"),
+                "since": selects.get("Status", {}).get("updatedAt"),
+                "priority": fields.get("Priority"),
+                "effort": fields.get("Effort"),
+            }
+        if not page["pageInfo"]["hasNextPage"]:
+            return entries, hidden
+        after = page["pageInfo"]["endCursor"]
 
 
 def read_organization(github, config):
     owner, expected = config["repository"].split("/")[0], config.get("organization", {})
     state = {}
     try:
-        state["issue_types"] = {
-            kind["name"]: kind["is_enabled"] for kind in github.get(f"orgs/{owner}/issue-types", pages=True)
-        }
+        types = github.get(f"orgs/{owner}/issue-types", pages=True)
+        if not types:
+            # As for issue fields: an empty list is also what a token that cannot see the types receives.
+            raise UnavailableError(
+                "the token lists no organization issue types; an organization owner can confirm them"
+            )
+        state["issue_types"] = {kind["name"]: kind["is_enabled"] for kind in types}
     except UnavailableError as error:
         state["issue_types"] = UnavailableError(str(error))
     if expected.get("issue_fields"):
@@ -453,7 +515,7 @@ def read_app(github, config):
 class Finding:
     section: str
     setting: str
-    status: str  # drift, missing, undeclared, pending, done, unavailable
+    status: str  # drift, missing, undeclared, attention, pending, done, unavailable
     expected: object = None
     actual: object = None
     ui: str = ""
@@ -463,7 +525,11 @@ class Finding:
 
     @property
     def fails(self) -> bool:
-        return self.status in ("drift", "missing", "undeclared")
+        return self.status in FAILING
+
+
+FAILING = ("drift", "missing", "undeclared", "attention")
+STATUSES = (*FAILING, "pending", "done", "unavailable")
 
 
 def pending_kept(config, prefix, declared, live, setting):
@@ -697,7 +763,7 @@ def compare_labels(config, actual):
         )
 
 
-def compare_project(config, actual):
+def compare_project(config, actual, now=None):
     project = config["project"]
     ui = UI["project"].format(title=project.get("title", project["number"]))
     owner, number = project["owner"], project["number"]
@@ -748,6 +814,11 @@ def compare_project(config, actual):
         yield Finding(
             "project", f"project.workflows.{name}", "undeclared", ABSENT, actual["workflows"][name], ui, "", view_only
         )
+    if actual["hidden"]:
+        # An item the token cannot see is neither missing nor in order, so nothing is judged from the items.
+        note = f"{actual['hidden']} items' issues and pull requests are hidden from this token; it needs Issues read."
+        yield Finding("project", "project.items", "unavailable", ui=ui, note=note)
+        return
     if project.get("complete"):
         for number_, issue in sorted(actual["open"].items()):
             if number_ not in actual["items"]:
@@ -761,6 +832,71 @@ def compare_project(config, actual):
                     shlex.join(["gh", "project", "item-add", str(number), "--owner", owner, "--url", issue["url"]]),
                     fix={"mutation": ADD_ITEM, "variables": {"project": actual["id"], "content": issue["id"]}},
                 )
+    yield from item_findings(config, actual["entries"], now or clock())
+
+
+def clock():
+    return datetime.now(UTC)
+
+
+# The Project's Status options the checks read, and how long an item may wait in them.
+TRIAGE, READY, DONE = "Needs triage", "Ready", "Done"
+TRIAGE_DAYS, URGENT_DAYS = 14, 3
+
+
+def unready(item):
+    """What a Ready issue lacks from the definition of Ready; empty when it meets it."""
+    lacking = [] if item["type"] else ["Issue Type"]
+    if not any(label.startswith("area:") for label in item["labels"]):
+        lacking.append("an area:* label")
+    lacking += [name for name in ("Priority", "Effort") if not item[name.lower()]]
+    shape = plan_issue_shape.engine().readiness(item["body"])
+    if not shape["ready"]:
+        parts = [f"no {name}" for name in shape["missing"] + shape["missing_metadata"]]
+        parts += [f"empty {name}" for name in shape["empty"]]
+        lacking.append(f"the planned-issue shape ({'; '.join(parts) or shape['shape_findings'][0]['detail']})")
+    return lacking
+
+
+def attention(number, item, check, expected, actual, *, command="", note=""):
+    """A Project item that needs a person, linked from the finding."""
+    setting = f"project.item.#{number}.{check}"
+    return Finding("project", setting, "attention", expected, actual, item["url"], command, note)
+
+
+def item_findings(config, entries, now):
+    """Items that need a person: wrong state, missing or contradicting type, incomplete Ready, overdue triage and
+    stalled Urgent work. Each links the item and says how to fix it."""
+    repo = config["repository"]
+    for number, item in sorted(entries.items()):
+        closed = item["state"] in ("closed", "merged")
+        if item["status"] and closed != (item["status"] == DONE):
+            note = "The Project's Item closed and Item reopened automations keep this; set the Status by hand."
+            yield attention(number, item, "status", DONE if closed else f"not {DONE}", item["status"], note=note)
+        if item["kind"] != "issue" or closed:
+            continue
+        if not item["type"]:
+            command = shlex.join(["gh", "api", "-X", "PATCH", f"repos/{repo}/issues/{number}", "-f", "type=TYPE"])
+            note = "Set the Issue Type in the issue's sidebar."
+            yield attention(number, item, "type", "Bug, Feature or Task", ABSENT, command=command, note=note)
+        written = plan_issue_shape.body_type(item["body"])
+        if item["type"] and written and written != item["type"].lower():
+            note = "The body's Type row and the Issue Type disagree; correct whichever is wrong."
+            yield attention(number, item, "body-type", item["type"].lower(), written, note=note)
+        days = (now - datetime.fromisoformat(item["since"])).days if item["since"] else 0
+        if item["status"] == TRIAGE and days > TRIAGE_DAYS:
+            note = "Triage it in the Project's Triage view: set the type, an area label, Priority and Effort."
+            yield attention(
+                number, item, "triage", f"triaged within {TRIAGE_DAYS} days", f"waiting {days} days", note=note
+            )
+        if item["priority"] == "Urgent" and item["status"] in (TRIAGE, READY) and days > URGENT_DAYS:
+            note = "Urgent work starts within three days: assign it or lower its Priority."
+            yield attention(
+                number, item, "urgent", f"started within {URGENT_DAYS} days", f"not started for {days} days", note=note
+            )
+        if item["status"] == READY and (lacking := unready(item)):
+            note = "Complete it (shape the body with /aiscr-plan-issue) or move it back to Needs triage."
+            yield attention(number, item, "ready", "the definition of Ready", lacking, note=note)
 
 
 def compare_organization(config, actual):
@@ -855,8 +991,13 @@ READ = {
 }
 
 
-def audit(config, github, sections=SECTIONS) -> list[Finding]:
+def audit(config, github, sections=SECTIONS, now=None, backfill=None) -> list[Finding]:
     findings: list[Finding] = []
+    if backfill is not None:
+        try:
+            findings.extend(compare_backfill(config, read_backfill(github, config), backfill))
+        except UnavailableError as error:
+            findings.append(Finding("backfill", "backfill", "unavailable", note=str(error)))
     audited = {section for section in sections if section not in ("project", "app") or config.get(section)}
     for section in [section for section in sections if section in audited]:
         try:
@@ -864,18 +1005,20 @@ def audit(config, github, sections=SECTIONS) -> list[Finding]:
         except UnavailableError as error:
             findings.append(Finding(section, section, "unavailable", ui=where(section, config), note=str(error)))
             continue
-        findings.extend(COMPARE[section](config, actual))
+        timing = {"now": now} if section == "project" else {}
+        findings.extend(COMPARE[section](config, actual, **timing))
     return apply_pending(config, findings, audited)
 
 
 def fix(findings, github) -> list[str]:
-    """Create or update declared labels and add missing Project items; nothing else is ever written."""
+    """Create or update declared labels, add missing Project items and, from a reviewed backfill mapping, add its
+    labels and Issue Types to open issues; nothing else is ever written."""
     failures = []
     for finding in findings:
         if finding.status not in ("missing", "drift") or not finding.fix:
             continue
         try:
-            if finding.section == "labels":
+            if finding.section in ("labels", "backfill"):
                 github.send(finding.fix["method"], finding.fix["path"], finding.fix["body"])
             elif finding.section == "project" and "mutation" in finding.fix:
                 github.graphql(finding.fix["mutation"], finding.fix["variables"])
@@ -884,14 +1027,141 @@ def fix(findings, github) -> list[str]:
     return failures
 
 
+# --- backfill ---------------------------------------------------------------------------------------------------
+
+
+def load_backfill(path: Path, config: dict) -> list[dict]:
+    """The reviewed mapping (`[[issue]]` with `number`, `type` and `area`), checked against the declared state."""
+    try:
+        entries = tomllib.loads(path.read_text(encoding="utf-8")).get("issue", [])
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        raise ConfigError(f"{path.name}: {error}") from error
+    types = set(config.get("organization", {}).get("issue_types", {}))
+    areas = {label["name"] for label in config.get("label", []) if label["name"].startswith("area:")}
+    problems, numbers = [], set()
+    for index, entry in enumerate(entries):
+        where = f"{path.name}: issue[{index}]"
+        if not _keys(problems, where, entry, {"number", "type", "area"}, ("number", "type", "area")):
+            continue
+        if not isinstance(entry["number"], int) or entry["number"] in numbers:
+            problems.append(f"{where}.number: expected a unique issue number")
+        numbers.add(entry["number"])
+        if entry["type"] not in types:
+            problems.append(f"{where}.type: {entry['type']!r} is not a declared issue type")
+        if not isinstance(entry["area"], list) or not entry["area"] or not set(entry["area"]) <= areas:
+            problems.append(f"{where}.area: expected one or more declared area:* labels")
+    if problems:
+        raise ConfigError("; ".join(problems))
+    return entries
+
+
+def read_backfill(github, config):
+    issues = github.get(f"repos/{config['repository']}/issues?state=open&per_page=100", pages=True)
+    return {
+        "issues": {issue["number"]: issue for issue in issues if "pull_request" not in issue},
+        "labels": set(read_labels(github, config)),
+    }
+
+
+def compare_backfill(config, actual, mapping):
+    """Each mapped issue's missing Issue Type or area labels as a fix; an unmapped open issue is listed for triage.
+    GitHub creates a label it does not know when one is added to an issue, so labels wait until all exist."""
+    repo = config["repository"]
+    absent = sorted({name for entry in mapping for name in entry["area"]} - actual["labels"])
+    if absent:
+        note = "Create the declared labels first (`--section labels --fix`); until then no area label is added."
+        yield Finding("backfill", "backfill.labels", "missing", absent, ABSENT, UI["labels"], "", note)
+    for entry in mapping:
+        number, issue = entry["number"], actual["issues"].get(entry["number"])
+        if issue is None:
+            note = "Not an open issue any more; it needs no backfill."
+            yield Finding("backfill", f"backfill.#{number}", "done", note=note)
+            continue
+        current = (issue.get("type") or {}).get("name")
+        path = f"repos/{repo}/issues/{number}"
+        if current != entry["type"]:
+            command = shlex.join(["gh", "api", "-X", "PATCH", path, "-f", f"type={entry['type']}"])
+            fix = {"method": "PATCH", "path": path, "body": {"type": entry["type"]}}
+            setting = f"backfill.#{number}.type"
+            url = issue["html_url"]
+            yield Finding("backfill", setting, "missing", entry["type"], current or ABSENT, url, command, fix=fix)
+        present = {label["name"] for label in issue.get("labels", [])}
+        if not absent and (missing := [name for name in entry["area"] if name not in present]):
+            command = shlex.join(["gh", "issue", "edit", str(number), "--add-label", ",".join(missing)])
+            fix = {"method": "POST", "path": f"{path}/labels", "body": {"labels": missing}}
+            setting, url = f"backfill.#{number}.labels", issue["html_url"]
+            yield Finding("backfill", setting, "missing", entry["area"], sorted(present), url, command, fix=fix)
+    mapped = {entry["number"] for entry in mapping}
+    for number, issue in sorted(actual["issues"].items()):
+        if number not in mapped:
+            note = "Opened after the mapping was reviewed: triage it in the Project's Triage view."
+            yield Finding("backfill", f"backfill.#{number}", "undeclared", ABSENT, "open", issue["html_url"], "", note)
+
+
+# --- digest -----------------------------------------------------------------------------------------------------
+
+DIGEST_ITEMS = 25
+OWNER_STEP = (
+    "An organization owner accepts the fair-guide-actions App's request to read Projects (Organization settings → "
+    "GitHub Apps → fair-guide-actions), and the next weekly run reads Project #1 again."
+)
+# The digest is public. These checks read the Project's own Status, so the digest shows only how many items they
+# found; the Project's views show which.
+COUNTED = {
+    "ready": "Ready issue(s) do not meet the definition of Ready",
+    "triage": f"issue(s) have waited over {TRIAGE_DAYS} days for triage",
+    "status": "item(s) have a Status that does not match whether they are open",
+}
+
+
+def digest_line(finding):
+    """One public line for a finding, or None when the finding is only counted."""
+    check = finding.setting.rsplit(".", 1)[-1]
+    if finding.setting.startswith("project.item."):
+        number = finding.setting.split(".")[2]
+        return {
+            "type": f"{number} has no Issue Type.",
+            "body-type": f"{number}: the body says `{finding.actual}`, the Issue Type `{finding.expected}`.",
+            "urgent": f"{number} is Urgent and has not started ({finding.actual}).",
+        }.get(check)
+    if finding.setting.startswith("project.items."):
+        return f"{finding.setting.removeprefix('project.items.')} is not in Project #1."
+    return f"`{finding.setting}`: expected {json.dumps(finding.expected, ensure_ascii=False)}, found " + json.dumps(
+        finding.actual, ensure_ascii=False
+    )
+
+
+def digest(findings) -> str:
+    """The digest's "Project and settings" section in Markdown, bounded to a few dozen lines. It is the only output
+    the weekly job publishes: the full report names Project-only values, and a public repository's logs and
+    artifacts are public."""
+    failing = [finding for finding in findings if finding.fails]
+    lines = ["## Project and settings", ""]
+    listed = [line for line in map(digest_line, failing) if line]
+    counted = {check: 0 for check in COUNTED}
+    for finding in failing:
+        if (check := finding.setting.rsplit(".", 1)[-1]) in counted and finding.setting.startswith("project.item."):
+            counted[check] += 1
+    if not failing:
+        lines.append("Every readable setting and Project item matches the reviewed state.")
+    lines += [f"- {line}" for line in listed[:DIGEST_ITEMS]]
+    if len(listed) > DIGEST_ITEMS:
+        lines.append(f"- … and {len(listed) - DIGEST_ITEMS} more; `python scripts/audit_repository.py` lists them all.")
+    lines += [f"- {count} {COUNTED[check]}; see the Project's views." for check, count in counted.items() if count]
+    unavailable = [finding for finding in findings if finding.status == "unavailable"]
+    if unavailable:
+        lines += ["", "Unavailable to the audit's token:"]
+        for finding in unavailable:
+            step = f" {OWNER_STEP}" if finding.setting == "project" else ""
+            lines.append(f"- `{finding.setting}`: {finding.note}.{step}")
+    return "\n".join(lines) + "\n"
+
+
 # --- report -----------------------------------------------------------------------------------------------------
 
 
 def render(findings, sections) -> str:
-    counts = {
-        status: sum(f.status == status for f in findings)
-        for status in ("drift", "missing", "undeclared", "pending", "done", "unavailable")
-    }
+    counts = {status: sum(f.status == status for f in findings) for status in STATUSES}
     lines = [
         "Repository settings audit against .github/repository.toml",
         "Sections: " + ", ".join(sections) + ".",
@@ -912,9 +1182,9 @@ def render(findings, sections) -> str:
     lines += [
         "",
         ", ".join(f"{count} {status}" for status, count in counts.items()) + ".",
-        "Next: a maintainer reviews each drift, undeclared object and missing item; `--fix` creates or updates the "
-        "declared labels and adds missing Project items, and everything else is changed in the UI or with the command "
-        "shown, then confirmed by a new audit."
+        "Next: a maintainer reviews each drift, undeclared object and missing item, and fixes each item that needs "
+        "attention at its link; `--fix` creates or updates the declared labels and adds missing Project items, and "
+        "everything else is changed in the UI or with the command shown, then confirmed by a new audit."
         if failing
         else "Every readable section matches the reviewed state; unavailable sections need a token that can read them.",
     ]
@@ -926,27 +1196,39 @@ def main(argv: list[str] | None = None, github=None) -> int:
     parser.add_argument("--config", type=Path, default=CONFIG, help=argparse.SUPPRESS)
     parser.add_argument("--section", choices=SECTIONS, action="append", help="audit only these sections")
     parser.add_argument("--json", type=Path, help="also write the findings as JSON")
+    parser.add_argument("--digest", type=Path, help="also write the digest's Project and settings section (Markdown)")
     parser.add_argument(
-        "--fix", action="store_true", help="create or update declared labels; add missing Project items"
+        "--backfill",
+        type=Path,
+        help="compare open issues with a reviewed mapping of Issue Types and area labels, instead of the sections",
+    )
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="create or update declared labels; add missing Project items; apply a --backfill mapping",
     )
     parser.add_argument("--check-config", action="store_true", help="validate the expected state offline and stop")
     args = parser.parse_args(argv)
     try:
         config = load(args.config)
+        backfill = load_backfill(args.backfill, config) if args.backfill else None
     except ConfigError as error:
         print(f"audit_repository: {error}", file=sys.stderr)
         return 1
     if args.check_config:
         print(f"audit_repository: {args.config.name} is valid")
         return 0
-    github = github or GhCli()
-    sections = tuple(args.section or SECTIONS)
-    findings = audit(config, github, sections)
+    github = github or GhCli(os.environ.get("GH_PROJECT_TOKEN") or None)
+    sections = tuple(args.section or (() if backfill is not None else SECTIONS))
+    findings = audit(config, github, sections, backfill=backfill)
     failures = []
     if args.fix:
         failures = fix(findings, github)
-        findings = audit(config, github, sections)
-    sys.stdout.write(render(findings, sections))
+        findings = audit(config, github, sections, backfill=backfill)
+    sys.stdout.write(render(findings, sections + (("backfill",) if backfill is not None else ())))
+    if args.digest:
+        args.digest.parent.mkdir(parents=True, exist_ok=True)
+        args.digest.write_text(digest(findings), encoding="utf-8")
     for failure in failures:
         print(f"FIX FAILED: {failure}")
     if args.json:

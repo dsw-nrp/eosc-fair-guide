@@ -202,7 +202,11 @@ For a default-branch push, deployment builds the staging site in the `preview` c
 then looks for a successful merge-group `checks` run of the same commit whose source files and build inputs equal
 the fresh build's; the queue's tested commit becomes the default-branch commit. If one is found, it imports that
 run's health snapshot after validating the identity fields and the health API schema, and names the run in the
-summary. Otherwise it runs the reusable partitioned checks and states why. The trust is the same as today: the code
+summary. The build comparison excludes exactly the three files replaced by health publication (`api/health.json`,
+`health/index.html`, `health/summary.md`), whose initial inventory names the producing run. Every other built file
+must match. The adoption step preserves the Python exit status through its summary pipeline, so a rejected result
+always selects full checks. Any unmatched or invalid result runs the reusable partitioned checks and states why.
+The trust is the same as today: the code
 that produced the reused result is the code being deployed, and a PR run never contributes to a deployment.
 
 Approval moves from the `github-pages` environment to a new `production` environment with required reviewers. An
@@ -304,10 +308,24 @@ The Project audit reports:
 - drift in automations and views.
 
 The digest is public and may list Urgent items (confirmed by the maintainer). It shows no other Project field
-values. Anything else that could disclose Project-only content is asked about before it is added.
+values. Anything else that could disclose Project-only content is asked about before it is added. The checks that
+read the Project's own Status (Ready, triage age, state mismatches) therefore appear in the digest as counts, and
+the Project's views show the items; missing items, types and Urgent work are linked.
+
+The weekly audit job reads the repository with its `GITHUB_TOKEN` (`actions: read`, `issues: read`) and only
+Project #1 with the App token, as the audit's token table recorded. If that token cannot see the issues behind the
+Project's items, the items are reported unavailable rather than missing or in order. The repository's logs and
+artifacts are public and the Project is not, so the job publishes only the redacted section; the full report, which
+names Project-only values, stays with a maintainer's local run.
 
 The backfill assigns the Issue Type and area label of every open issue from a reviewed mapping file kept with this
-change. It is applied with the audit's dry run first, after which people triage in the Triage view.
+change. It is applied with the audit's dry run first, after which people triage in the Triage view. Because GitHub
+creates an unknown label when one is added to an issue, the backfill adds labels only once the declared labels
+exist.
+
+A template-born issue is not Ready by itself: `readiness()` requires the workflow-owned marker, reporter context and
+disclosure, which `/aiscr-plan-issue` adds when a maintainer shapes it. A filled template therefore lacks only the
+reporter context in `section_status()`.
 
 ### 11. One digest rebuilt from state
 
@@ -375,6 +393,12 @@ procedures.
 All renderers share a "Next / If blocked / Done when" block: Python for the check summary and collector, JavaScript
 for the trusted publishers. Representative output tests fail when an element is removed. The PR template asks for a
 planning link and reminds authors that commit messages feed the release notes, in plain words; nothing parses it.
+
+A run that a newer push cancels must not report an evidence failure for lanes that never finished. The evidence
+collector therefore runs unless the run was cancelled (it still collects after a failed lane), while the required
+`checks` gate keeps `always()` and fails such a run: a skipped required check would count as passing, so a cancelled
+merge group must never report one. The first hosted
+cancellation, on 24 October 2026, showed the collector failing inside a cancelled deployment run.
 
 ### 14. Crawler files (#83)
 

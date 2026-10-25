@@ -3,6 +3,7 @@
 // pull-request code and never interpolates comment text into a command.
 const { readFileSync, existsSync } = require("node:fs");
 const { createHash } = require("node:crypto");
+const { addLabels } = require("./labels.cjs");
 
 // The reviewed source keys and the files each refresh may change are authored once in
 // `.github/source-registry.json` and read by `scripts/refresh_snapshots.py` too. The FIP Dashboard's interdependent
@@ -15,6 +16,7 @@ if (!Array.isArray(SOURCE_REGISTRY) || SOURCE_REGISTRY.some((entry) =>
 }
 const SOURCES = Object.freeze(Object.fromEntries(SOURCE_REGISTRY.map(({ key, files }) => [key, files])));
 const PREFIX = "refresh/";
+const REFRESH_LABEL = "source-refresh";
 const MARKER = "<!-- fair-guide-source-refresh ";
 const WRITERS = ["admin", "maintain", "write"];
 const REPORT = ".cache/refresh/report.json";
@@ -164,7 +166,10 @@ async function publish({ github, context, core }, read = readFileSync, exists = 
       "The response passed the shape, completeness, size and removal checks of `scripts/refresh_snapshots.py`.",
       "Review the change as content; nothing merges automatically.", "", marker].join("\n");
     if (open) await github.rest.pulls.update({ ...repo, pull_number: open.number, body });
-    else await github.rest.pulls.create({ ...repo, title: `Refresh the ${source} snapshot`, head: branch, base, body, maintainer_can_modify: true });
+    const pr = open || (await github.rest.pulls.create({ ...repo, title: `Refresh the ${source} snapshot`, head: branch, base, body, maintainer_can_modify: true })).data;
+    // The review publisher adds the area label from the changed paths once the checks have run.
+    const { absent } = await addLabels(github, repo, pr.number, [REFRESH_LABEL], pr.labels || []);
+    if (absent.length) core.info(`${source}: the ${REFRESH_LABEL} label does not exist yet; the next refresh adds it.`);
     results[source] = open ? "updated" : "proposed";
   }
   core.info(JSON.stringify(results));
