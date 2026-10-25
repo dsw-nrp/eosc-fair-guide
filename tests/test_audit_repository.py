@@ -26,22 +26,18 @@ REPO = "GET repos/dsw-nrp/eosc-fair-guide"
 OPEN = f"{REPO}/issues?state=open&per_page=100"
 # When the Project items were recorded; the item checks measure waiting time from here.
 RECORDED = datetime(2026, 10, 25, 12, tzinfo=UTC)
-# Declared labels that did not exist yet when the labels were recorded; `--fix` creates them.
-MISSING_LABELS = (
-    "area:content",
-    "area:delivery",
-    "area:evaluation",
-    "area:interface",
-    "area:maintenance",
-    "area:sources",
-    "breaking-change",
-    "source-refresh",
-)
+LABELS = f"{REPO}/labels?per_page=100"
+
+
+def drop_labels(responses, *names):
+    """The recorded state without some declared labels, as before `--fix` created them."""
+    responses[LABELS] = [label for label in responses[LABELS] if label["name"] not in names]
 
 
 class Replay:
-    """The recorded live state (settings of 24 October, Project items and open issues of 25 October 2026); writes
-    are kept and applied to labels, Project items and open issues."""
+    """The recorded live state: settings of 24 October 2026, and labels, Project items and open issues of 25 October
+    after the labels were created and the backfill applied. Writes are kept and applied to labels, Project items and
+    open issues."""
 
     def __init__(self, responses=None):
         self.responses = copy.deepcopy(responses or LIVE)
@@ -100,17 +96,6 @@ def by_setting(findings):
     return {finding.setting: finding for finding in findings}
 
 
-def untyped(responses):
-    """The open issues recorded without an Issue Type: the item findings of the recorded state."""
-    return {
-        f"project.item.#{node['content']['number']}.type"
-        for node in project_items(responses)
-        if node["content"].get("__typename") == "Issue"
-        and node["content"]["state"] == "OPEN"
-        and not node["content"]["issueType"]
-    }
-
-
 def baseline():
     """Every finding of the recorded live state, by setting."""
     return {finding.setting: finding.status for finding in audit.audit(audit.load(), Replay(), now=RECORDED)}
@@ -160,13 +145,12 @@ class AuditTests(unittest.TestCase):
         self.enterContext(unittest.mock.patch.object(audit, "clock", lambda: RECORDED))
 
     def test_the_committed_state_matches_the_recorded_live_state(self):
+        # Recorded after `--fix` created the declared labels and the reviewed backfill typed and labelled every issue.
         statuses = {finding.setting: finding.status for finding in audit.audit(self.config, Replay())}
-        settings = {setting: status for setting, status in statuses.items() if not setting.startswith("project.item.")}
-        expected = {f"label.{name}": "missing" for name in MISSING_LABELS}
-        self.assertEqual(settings, expected | {"organization.issue_fields": "unavailable"})
-        found = {setting: status for setting, status in statuses.items() if setting.startswith("project.item.")}
-        self.assertEqual(found, dict.fromkeys(untyped(LIVE), "attention"), "untyped open issues need attention")
-        self.assertGreater(len(found), 50, "the recorded backlog was not yet triaged")
+        self.assertEqual(statuses, {"organization.issue_fields": "unavailable"})
+        issues = [node["content"] for node in project_items(LIVE) if node["content"]["__typename"] == "Issue"]
+        self.assertGreater(len(issues), 50)
+        self.assertTrue(all(issue["issueType"] for issue in issues if issue["state"] == "OPEN"))
 
     def test_an_approved_target_waits_as_pending_with_its_task(self):
         live = copy.deepcopy(LIVE)
@@ -236,6 +220,7 @@ class AuditTests(unittest.TestCase):
         pending_reviewer(self.config, live)
         live["GRAPHQL Project"] = audit.UnavailableError("Resource not accessible by integration")
         live[f"{REPO}/environments"] = audit.UnavailableError("HTTP 403: Must have admin rights")
+        drop_labels(live, "breaking-change")
         findings = by_setting(audit.audit(self.config, Replay(live)))
         self.assertEqual(findings["project"].status, "unavailable")
         self.assertIn("Resource not accessible", findings["project"].note)
@@ -282,6 +267,7 @@ class AuditTests(unittest.TestCase):
     def test_fix_only_creates_or_updates_declared_labels_and_adds_project_items(self):
         live = copy.deepcopy(LIVE)
         live[REPO]["allow_auto_merge"] = True
+        drop_labels(live, "area:sources", "source-refresh")
         next(label for label in live[f"{REPO}/labels?per_page=100"] if label["name"] == "bug")["color"] = "000000"
         live[f"{REPO}/labels?per_page=100"].append({"name": "stray", "color": "ffffff", "description": None})
         status = next(node for node in project(live)["fields"]["nodes"] if node.get("name") == "Status")
@@ -296,10 +282,10 @@ class AuditTests(unittest.TestCase):
             status_code = audit.main(["--fix"], github=replay)
         kinds = [(write[0], write[1].split("/")[-1] if write[0] != "graphql" else write[1]) for write in replay.writes]
         self.assertEqual(
-            sorted(kinds), [("PATCH", "bug"), *[("POST", "labels")] * len(MISSING_LABELS), ("graphql", "AddItem")]
+            sorted(kinds), [("PATCH", "bug"), ("POST", "labels"), ("POST", "labels"), ("graphql", "AddItem")]
         )
         created = {write[2]["name"]: write[2]["color"] for write in replay.writes if write[0] == "POST"}
-        self.assertEqual(set(created), set(MISSING_LABELS), "every missing declared label is created")
+        self.assertEqual(set(created), {"area:sources", "source-refresh"}, "every missing declared label is created")
         self.assertEqual(created["area:sources"], "5319e7", "with its declared colour")
         self.assertFalse(
             any(write[0] in ("DELETE", "PUT") for write in replay.writes), "nothing is deleted or replaced"
@@ -753,6 +739,7 @@ class DigestTests(unittest.TestCase):
             node(7, status="Ready", **(complete | {"priority": "High"})),
         ]
         live[OPEN] = []
+        drop_labels(live, "area:sources")
         text = audit.digest(audit.audit(self.config, Replay(live), now=RECORDED))
         self.assertTrue(text.startswith("## Project and settings\n"))
         self.assertIn("- #6 is Urgent and has not started (not started for 4 days).", text)
@@ -763,7 +750,7 @@ class DigestTests(unittest.TestCase):
         for value in ("High", "Medium", "Low", "In progress"):
             self.assertNotIn(value, text, "no Project field value other than Urgent is shown")
         self.assertIn("- `label.area:sources`: expected", text, "settings drift is listed")
-        public = 40 + 1 + len(MISSING_LABELS)  # untyped issues, the Urgent one and the missing labels
+        public = 40 + 1 + 1  # the untyped issues, the Urgent one and the missing label
         overflow = f"- … and {public - audit.DIGEST_ITEMS} more; `python scripts/audit_repository.py` lists them all."
         self.assertIn(overflow, text, "only those")
         listed = text.split("Unavailable")[0].count("\n- ")
@@ -772,6 +759,7 @@ class DigestTests(unittest.TestCase):
     def test_a_denied_token_is_unavailable_with_the_owners_step_and_the_rest_intact(self):
         live = copy.deepcopy(LIVE)
         live["GRAPHQL Project"] = audit.UnavailableError("Resource not accessible by integration")
+        drop_labels(live, "breaking-change")
         findings = audit.audit(self.config, Replay(live), now=RECORDED)
         text = audit.digest(findings)
         self.assertIn("- `project`: Resource not accessible by integration. An organization owner accepts", text)
@@ -802,11 +790,6 @@ class BackfillTests(unittest.TestCase):
             issue(83, labels=[{"name": "area:sources"}], type={"name": "Feature"}),
             issue(99),
             issue(110, pull_request={"url": "x"}),
-        ]
-        declared = {label["name"]: label for label in self.config["label"]}
-        self.live[f"{REPO}/labels?per_page=100"] += [
-            {"name": name, "color": declared[name]["color"], "description": declared[name]["description"]}
-            for name in MISSING_LABELS
         ]
         self.directory = self.enterContext(tempfile.TemporaryDirectory())
 
@@ -844,7 +827,7 @@ class BackfillTests(unittest.TestCase):
 
     def test_labels_wait_until_the_declared_labels_exist(self):
         path = self.mapping('[[issue]]\nnumber = 13\ntype = "Feature"\narea = ["area:interface"]\n')
-        self.live[f"{REPO}/labels?per_page=100"] = LIVE[f"{REPO}/labels?per_page=100"]
+        drop_labels(self.live, *(label["name"] for label in self.config["label"] if label["name"].startswith("area:")))
         replay = Replay(self.live)
         with redirect_stdout(io.StringIO()) as output:
             audit.main(["--backfill", path, "--fix"], github=replay)

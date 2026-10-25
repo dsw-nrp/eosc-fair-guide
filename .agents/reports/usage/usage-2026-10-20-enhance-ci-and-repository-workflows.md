@@ -488,3 +488,25 @@
   `scripts/audit_repository.py`, `tests/test_{audit_repository,workflows}.py`,
   `tests/page/check_{labels,source_publisher}.mjs`, the change's design, spec delta and tasks, this entry.
 - **Verification:** Each new guard fails a check when broken (four planted defects).
+
+### Labels and backfill applied (tasks 5.1 and 5.6)
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** With the maintainer's approval of the suggested steps:
+  - `audit_repository.py --section labels --fix` created the six `area:*` labels and `source-refresh` with their
+    reviewed metadata (`breaking-change` already existed).
+  - The backfill was compared once more and then applied: 59 Issue Types and 61 area labels, with no unmapped or
+    closed issue.
+  - The test fixture's labels, Project items and open issues are re-recorded from that state.
+  - The permission system refused approving and queuing #110 and #111 under the maintainer's account. That step is
+    the maintainer's.
+- **Impacted:** live labels and issue types and labels of the 61 open issues (GitHub); `tests/fixtures/repository-audit.json`,
+  `tests/test_audit_repository.py`, the change's tasks, this entry.
+- **Verification:**
+  - The full read-only audit shows 0 drift, 0 missing, 0 undeclared and 0 attention. Only organization issue fields
+    stay unavailable.
+  - All 61 open issues have a type and an area label.
+  - By their filters, the views hold 26 automated and 22 authored pull requests and 24 `area:maintenance` issues.
+- **Close-out:** 40 of 62 tasks complete; 5.8 waits for the organization owner and 4.9 for the queue approvals.
