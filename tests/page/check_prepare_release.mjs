@@ -23,7 +23,8 @@ for (const value of ['vv1.2.3', '1.2', '', undefined])
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fixture() {
   const state = {refs: new Map([['heads/main', sha]]), commits: new Map([[sha, {tree: {sha: 'base'}}]]), prs: [],
-    creates: [], blobs: [], tags: new Map(), failPR: false, reads: [], outputs: {}, associations: [], failAssociations: false};
+    creates: [], updates: [], blobs: [], tags: new Map(), failPR: false, reads: [], outputs: {}, associations: [],
+    failAssociations: false, prCommits: []};
   const github = {rest: {git: {
     getRef: async ({ref}) => {if (!state.refs.has(ref)) throw Object.assign(Error('missing'), {status: 404}); return {data: {object: {sha: state.refs.get(ref)}}};},
     getCommit: async ({commit_sha}) => ({data: state.commits.get(commit_sha)}),
@@ -32,7 +33,8 @@ function fixture() {
     createCommit: async args => {const id = hash(args); state.commits.set(id, {message: args.message, tree: {sha: args.tree}, parents: args.parents.map(sha => ({sha}))}); return {data: {sha: id}};},
     createTag: async args => {const id = hash(args); state.tags.set(id, args); return {data: {sha: id}};},
     createRef: async ({ref, sha}) => {const key = ref.slice(5); if (state.refs.has(key)) throw Error('already exists'); state.refs.set(key, sha); state.creates.push(ref); return {data: {ref}};},
-  }, pulls: {list: 'pulls.list', create: async args => {
+    updateRef: async ({ref, sha, force}) => {state.updates.push({ref, sha, force}); state.refs.set(ref, sha); return {data: {ref}};},
+  }, pulls: {list: 'pulls.list', listCommits: 'pulls.commits', create: async args => {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
   }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls', listDeployments: 'deployments',
@@ -43,6 +45,7 @@ function fixture() {
     if (method === 'deployments') return state.deployments || [];
     if (method === 'deployment.statuses') return (state.statuses || {})[args.deployment_id] || [];
     if (method === 'workflow.runs') return (state.runs || {})[args.workflow_id] || [];
+    if (method === 'pulls.commits') return state.prCommits;
     if (method === 'commit.pulls') {
       if (state.failAssociations) throw Error('Association page failed');
       return state.associations;
@@ -98,9 +101,65 @@ function fixture() {
   assert.equal(state.prs.length, 1);
   assert.equal(manifest.files.length, PREPARED_PATHS.length);
   assert(!state.creates.some(ref => ref.includes('/tags/')));
+  assert.equal(state.outputs.url, 'https://github.com/example/guide/pull/3', 'the proposal address is a step output');
   const branch = state.refs.get('heads/release/1.2.3-alpha.1');
   state.commits.get(branch).tree.sha = 'human edit';
-  await assert.rejects(propose({github, core, context}, read), /different content/);
+  await assert.rejects(propose({github, core, context}, read), /changes the preparation did not make/);
+}
+const BOT = 'fair-guide-actions[bot]';
+const ours = message => ({author: {login: BOT}, commit: {message}});
+const moved = 'c'.repeat(40);
+const later = {...context, sha: moved};
+function movedOn(state) {
+  state.refs.set('heads/main', moved);
+  state.commits.set(moved, {tree: {sha: 'later'}});
+}
+{
+  // An outdated proposal that only the automation touched is prepared again from the moved default branch.
+  const {state, github, core, read} = fixture();
+  await propose({github, core, context}, read, undefined, BOT);
+  movedOn(state);
+  state.prCommits = [ours('Prepare release 1.2.3-alpha.1\n')];
+  await propose({github, core, context: later}, read, undefined, BOT);
+  assert.equal(state.prs.length, 1, 'the pull request keeps its number');
+  assert.deepEqual(state.updates.map(update => [update.ref, update.force]), [['heads/release/1.2.3-alpha.1', true]]);
+  assert.deepEqual(state.commits.get(state.refs.get('heads/release/1.2.3-alpha.1')).parents, [{sha: moved}]);
+}
+for (const [name, commits, bot] of [
+  ['a person committed', [ours('Prepare release 1.2.3-alpha.1'), {author: {login: 'motyc'}, commit: {message: 'Fix'}}], BOT],
+  ['another message', [ours('Merge main')], BOT],
+  ['no bot identity', [ours('Prepare release 1.2.3-alpha.1')], undefined],
+  ['no commits listed', [], BOT],
+]) {
+  const {state, github, core, read} = fixture();
+  await propose({github, core, context}, read, undefined, BOT);
+  movedOn(state);
+  state.prCommits = commits;
+  await assert.rejects(propose({github, core, context: later}, read, undefined, bot), /did not make/, name);
+  assert.deepEqual(state.updates, [], `${name}: human changes are never overwritten`);
+}
+{
+  const {state, github, core, read} = fixture();
+  state.prs = [{state: 'closed', merged_at: null, html_url: 'https://github.com/example/guide/pull/2'}];
+  await assert.rejects(propose({github, core, context}, read, undefined, BOT), /closed without merging/);
+  assert.deepEqual([state.creates, state.updates], [[], []]);
+}
+{
+  // Completing a merged release: a new pull request from the release branch, which the merge deleted.
+  const {state, github, core, read, manifest} = fixture();
+  const completion = (path, encoding) => path === PREPARED ? JSON.stringify({...manifest, mode: 'complete'}) : read(path, encoding);
+  state.prs = [{state: 'closed', merged_at: '2026-10-25T02:10:54Z', html_url: 'https://github.com/example/guide/pull/2'}];
+  await propose({github, core, context}, completion, undefined, BOT);
+  const created = state.prs.at(-1);
+  assert.equal(created.title, 'Complete release 1.2.3-alpha.1');
+  assert.match(created.body, /^Completes the untagged release/);
+  assert.equal(state.commits.get(state.refs.get('heads/release/1.2.3-alpha.1')).message, 'Complete release 1.2.3-alpha.1');
+  // A branch the merge left behind is stale and reused for the next completion.
+  movedOn(state);
+  state.prs = [{state: 'closed', merged_at: '2026-10-25T02:10:54Z', html_url: 'https://github.com/example/guide/pull/2'}];
+  await propose({github, core, context: later}, completion, undefined, BOT);
+  assert.equal(state.updates.length, 1);
+  assert.equal(state.prs.at(-1).title, 'Complete release 1.2.3-alpha.1');
 }
 {
   const {state, github, core, read, manifest} = fixture();

@@ -88,10 +88,24 @@ function preparedFiles(manifest, version, root = resolve(__dirname, '../..')) {
   }
   return manifest.files;
 }
-async function propose({github, context, core}, read = readFileSync, root) {
+const PREPARE_BODY = 'Prepares the version, release dates, citation/Zenodo metadata and the complete PR/direct-commit changelog.\n\nReview the metadata and required checks, then merge. Creating the tag requires the separate Tag release dispatch.\n\nPrepared by the repository release automation; no AI content generation.';
+const COMPLETE_BODY = 'Completes the untagged release: its changelog section gains only the merged pull requests and direct commits that landed after its preparation. The version, dates, curated notes and earlier entries are unchanged.\n\nReview and merge, then run Tag release again.\n\nPrepared by the repository release automation; no AI content generation.';
+/** True when the automation made every commit on the proposal: the release App's bot, with a preparation message. */
+async function unedited(github, context, pr, version, bot) {
+  if (!bot) return false;
+  let commits;
+  try {
+    commits = await github.paginate(github.rest.pulls.listCommits, {...context.repo, pull_number: pr.number, per_page: 100});
+  } catch { return false; }
+  const messages = [`Prepare release ${version}`, `Complete release ${version}`];
+  return Array.isArray(commits) && commits.length > 0 && commits.every(commit => commit?.author?.login === bot &&
+    messages.includes(String(commit.commit?.message ?? '').replace(/\n$/, '')));
+}
+async function propose({github, context, core}, read = readFileSync, root, bot = process.env.RELEASE_BOT_LOGIN) {
   const {base, version, branch} = dispatch(context);
   const parent = await current(github, context, base);
   const manifest = JSON.parse(read(MANIFEST, 'utf8'));
+  const completing = manifest.mode === 'complete';
   const files = preparedFiles(manifest, version, root).map(item => {
     const content = read(item.path);
     if (createHash('sha256').update(content).digest('hex') !== item.sha256)
@@ -104,28 +118,42 @@ async function propose({github, context, core}, read = readFileSync, root) {
     tree.push({path, mode: '100644', type: 'blob', sha: data.sha});
   }
   const {data: built} = await github.rest.git.createTree({...context.repo, base_tree: parent.tree.sha, tree});
-  const message = `Prepare release ${version}`;
+  const message = `${completing ? 'Complete' : 'Prepare'} release ${version}`;
+  const previous = await github.paginate(github.rest.pulls.list,
+    {...context.repo, state: 'all', base, head: `${context.repo.owner}:${branch}`, per_page: 100});
+  // A proposal a person closed without merging is never silently reopened or replaced.
+  if (previous.some(pr => pr.state === 'closed' && !pr.merged_at))
+    throw Error('This release proposal was closed without merging; reopen and reconcile it by hand, or prepare another version');
+  const open = previous.find(pr => pr.state === 'open');
+  const commitOn = async () =>
+    (await github.rest.git.createCommit({...context.repo, message, tree: built.sha, parents: [context.sha]})).data.sha;
   let ref;
   try { ref = (await github.rest.git.getRef({...context.repo, ref: `heads/${branch}`})).data; }
   catch (error) { if (error.status !== 404) throw error; }
-  if (ref) {
-    // Recover a failed PR creation; never overwrite human changes or rebase an
-    // old proposal. A reviewed, closed proposal is not silently reopened.
-    const {data: commit} = await github.rest.git.getCommit({...context.repo, commit_sha: ref.object.sha});
-    if (commit.parents.length !== 1 || commit.parents[0].sha !== context.sha || commit.tree.sha !== built.sha || commit.message !== message)
-      throw Error('The release branch exists with different content; review it manually');
+  if (!ref) {
+    await github.rest.git.createRef({...context.repo, ref: `refs/heads/${branch}`, sha: await commitOn()});
   } else {
-    const {data: commit} = await github.rest.git.createCommit({...context.repo, message, tree: built.sha, parents: [context.sha]});
-    await github.rest.git.createRef({...context.repo, ref: `refs/heads/${branch}`, sha: commit.sha});
+    // A retry after a failed PR creation finds its own commit unchanged. An outdated proposal is prepared again from
+    // the current default branch only while the automation made every commit on it; a branch whose proposals all
+    // merged is stale and reused. Human changes are never overwritten.
+    const {data: commit} = await github.rest.git.getCommit({...context.repo, commit_sha: ref.object.sha});
+    const same = commit.parents.length === 1 && commit.parents[0].sha === context.sha && commit.tree.sha === built.sha &&
+      commit.message === message;
+    if (!same) {
+      const replaceable = open
+        ? await unedited(github, context, open, version, bot)
+        : previous.length > 0 && previous.every(pr => pr.merged_at);
+      if (!replaceable)
+        throw Error('The release branch has changes the preparation did not make; reconcile them in its pull request by hand');
+      await github.rest.git.updateRef({...context.repo, ref: `heads/${branch}`, sha: await commitOn(), force: true});
+      core.info(`Prepared ${branch} again from ${context.sha}`);
+    }
   }
-  const previous = await github.paginate(github.rest.pulls.list,
-    {...context.repo, state: 'all', base, head: `${context.repo.owner}:${branch}`, per_page: 100});
-  if (previous.some(pr => pr.state === 'closed')) throw Error('This release proposal was closed; review it manually');
-  if (previous.length) { core.info(previous[0].html_url); return; }
+  if (open) { core.info(open.html_url); core.setOutput('url', open.html_url); return; }
   const {data: pr} = await github.rest.pulls.create({...context.repo, base, head: branch, title: message,
-    body: 'Prepares the version, release dates, citation/Zenodo metadata and the complete PR/direct-commit changelog.\n\nReview the metadata and required checks, then merge. Creating the tag requires the separate Tag release dispatch.\n\nPrepared by the repository release automation; no AI content generation.',
-    maintainer_can_modify: true});
+    body: completing ? COMPLETE_BODY : PREPARE_BODY, maintainer_can_modify: true});
   core.info(pr.html_url);
+  core.setOutput('url', pr.html_url);
 }
 /** The tag ruleset requires a successful `github-pages` deployment of the tagged commit. Before tagging, require one
     for the current default-branch commit, or name the deployment or publish run to wait for. */

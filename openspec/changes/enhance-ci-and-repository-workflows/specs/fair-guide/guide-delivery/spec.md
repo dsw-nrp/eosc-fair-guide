@@ -154,7 +154,8 @@ Required aggregate checks SHALL name every failed or partial check and include b
 
 `CHANGELOG.md` SHALL have exactly one top-level `[Unreleased]` section whose entries are meaningful when present.
 Against the base revision, released sections SHALL stay byte-identical, except that a complete release transition
-SHALL be accepted. Local and PR checks SHALL report the exact structural problem and SHALL NOT edit the changelog.
+SHALL be accepted and the newest section of a version not yet tagged MAY gain generated lineage entries. Local and
+PR checks SHALL report the exact structural problem and SHALL NOT edit the changelog.
 
 #### Scenario: The section is missing or duplicated
 
@@ -178,6 +179,12 @@ SHALL be accepted. Local and PR checks SHALL report the exact structural problem
 - **WHEN** release preparation moves the unpublished entries into a new dated section and resets `[Unreleased]`
 - **THEN** the check accepts the transition without requiring another unpublished entry
 - **AND** a transition that loses entries or changes earlier releases is rejected
+
+#### Scenario: A prepared release is completed before its tag
+
+- **WHEN** a completion PR appends linked pull-request or commit entries to the newest section, whose version has no tag yet
+- **THEN** the check accepts it
+- **AND** any other change to that section, or an entry added once the version is tagged, is refused as a historical edit
 
 ### Requirement: Release preparation retains curated unpublished notes
 

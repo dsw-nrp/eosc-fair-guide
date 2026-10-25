@@ -473,8 +473,19 @@ app = { contents = "write", pull-requests = "write" }
 [[token]]
 workflow = "tag-release.yml"
 jobs = ["tag"]
-github = { actions = "read", contents = "read", deployments = "read" }
+github = { actions = "read", contents = "read", deployments = "read", pull-requests = "read" }
 app = { contents = "write" }
+
+# Calls Prepare release, whose own job requests the App token reviewed for prepare-release.yml.
+[[token]]
+workflow = "tag-release.yml"
+jobs = ["complete"]
+github = { actions = "read", contents = "read", pull-requests = "read" }
+
+[[token]]
+workflow = "tag-release.yml"
+jobs = ["not-tagged"]
+github = {}
 
 # Approved targets not yet applied go here as [[pending]] entries (setting, current value, task). A command the
 # audit prints for any other difference keeps them at their live values; each is applied only in its task, after

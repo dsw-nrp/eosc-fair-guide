@@ -90,6 +90,39 @@ class History(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertTrue(check_changelog.history_errors(base, text, "base"))
 
+    PREPARED = (
+        "## [1.0.0] - 2026-10-24\n\n" + NOTES + "\nSince v0.9.0.\n\n### Merged pull requests\n\n"
+        "- Keep notes ([#7](https://github.com/dsw-nrp/eosc-fair-guide/pull/7))\n\n"
+    )
+    LATER = "- Later change ([#8](https://github.com/dsw-nrp/eosc-fair-guide/pull/8))"
+    COMMIT = "- Direct fix ([bbbbbbb](https://github.com/dsw-nrp/eosc-fair-guide/commit/" + "b" * 40 + "))"
+
+    def test_an_untagged_release_may_gain_lineage_entries(self) -> None:
+        base = changelog(history=self.PREPARED + HISTORY)
+        completed = release.extend_section(base, "1.0.0", {"pulls": [self.LATER], "direct": [self.COMMIT]})
+        self.assertIn(
+            "pull/7))\n" + self.LATER + "\n\n### Direct commits\n\n" + self.COMMIT + "\n\n## [0.9.0]", completed
+        )
+        self.assertEqual(check_changelog.structure_errors(completed), [])
+        self.assertEqual(check_changelog.history_errors(base, completed, "base", {"0.9.0"}), [])
+        # Once the version is tagged, or when the tags are unknown, the same addition is a historical edit.
+        for tagged in ({"0.9.0", "1.0.0"}, None):
+            with self.subTest(tagged=tagged):
+                errors = check_changelog.history_errors(base, completed, "base", tagged)
+                self.assertIn("release `1.0.0` changed since base", "\n".join(errors))
+
+    def test_a_completion_may_add_nothing_but_lineage(self) -> None:
+        base = changelog(history=self.PREPARED + HISTORY)
+        entry = "- Keep notes ([#7](https://github.com/dsw-nrp/eosc-fair-guide/pull/7))\n"
+        cases = {
+            "a curated note": base.replace(entry, entry + "- A new note.\n"),
+            "a changed entry": base.replace("Keep notes (", "Kept notes ("),
+            "an older release": base.replace(HISTORY, HISTORY + self.LATER + "\n"),
+        }
+        for name, text in cases.items():
+            with self.subTest(name=name):
+                self.assertTrue(check_changelog.history_errors(base, text, "base", set()))
+
     def test_prepared_release_output_passes_the_check(self) -> None:
         base = changelog(NOTES)
         prepared = release.changelog(

@@ -195,7 +195,9 @@ class WorkflowContracts(unittest.TestCase):
     def test_release_dispatches_use_trusted_source_and_separate_app_delivery(self) -> None:
         for name in ("prepare-release", "tag-release"):
             workflow = load(f".github/workflows/{name}.yml")
-            self.assertEqual(set(workflow["on"]), {"workflow_dispatch"})
+            # Tag release calls Prepare release to complete an untagged release; nothing else can trigger either.
+            triggers = {"workflow_dispatch", "workflow_call"} if name == "prepare-release" else {"workflow_dispatch"}
+            self.assertEqual(set(workflow["on"]), triggers)
             self.assertEqual(workflow["permissions"]["contents"], "read")
             job = next(iter(workflow["jobs"].values()))
             self.assertIn("github.event.repository.default_branch", job["if"])
@@ -219,7 +221,41 @@ class WorkflowContracts(unittest.TestCase):
                 gate = next(step for step in steps if ".deployed(" in step.get("with", {}).get("script", ""))
                 self.assertLess(steps.index(gate), steps.index(app), "the deployment check precedes the App token")
                 self.assertNotIn("github-token", gate["with"], "it reads runs with the job's read-only token")
-                self.assertEqual(job["permissions"], {"contents": "read", "actions": "read", "deployments": "read"})
+                self.assertEqual(
+                    job["permissions"],
+                    {"contents": "read", "actions": "read", "deployments": "read", "pull-requests": "read"},
+                )
+
+    def test_tag_release_completes_a_changelog_that_misses_changes_instead_of_tagging(self) -> None:
+        tag = load(".github/workflows/tag-release.yml")
+        prepare = load(".github/workflows/prepare-release.yml")
+        # A caller and a called workflow holding one workflow-level group deadlock, so both hold it per job.
+        for workflow, job in ((tag, "tag"), (prepare, "prepare")):
+            self.assertNotIn("concurrency", workflow)
+            self.assertEqual(
+                workflow["jobs"][job]["concurrency"], {"group": "release-preparation", "cancel-in-progress": "false"}
+            )
+        steps = tag["jobs"]["tag"]["steps"]
+        lineage = next(step for step in steps if step.get("id") == "lineage")
+        self.assertIn("release_versions.py lineage", lineage["run"])
+        self.assertIn('--summary "$GITHUB_STEP_SUMMARY"', lineage["run"])
+        self.assertIn('3) echo "complete=false"', lineage["run"], "exit 3 means a gap, any other failure stops")
+        for step in steps[steps.index(lineage) + 1 :]:
+            self.assertEqual(step["if"], "steps.lineage.outputs.complete == 'true'", "no App token or tag on a gap")
+        complete = tag["jobs"]["complete"]
+        self.assertEqual(complete["uses"], "./.github/workflows/prepare-release.yml")
+        self.assertEqual(complete["if"], "needs.tag.outputs.complete == 'false'")
+        self.assertEqual(complete["with"], {"version": "${{ inputs.version }}"})
+        self.assertEqual(complete["secrets"], "inherit")
+        refusal = tag["jobs"]["not-tagged"]
+        self.assertEqual(refusal["if"], "always() && needs.tag.outputs.complete == 'false'")
+        self.assertIn("exit 1", refusal["steps"][0]["run"], "a refused tag never reads as a successful run")
+        self.assertEqual(
+            prepare["on"]["workflow_call"]["outputs"]["pull-request"]["value"],
+            "${{ jobs.prepare.outputs.pull-request }}",
+        )
+        propose = next(step for step in prepare["jobs"]["prepare"]["steps"] if step.get("id") == "propose")
+        self.assertEqual(propose["env"]["RELEASE_BOT_LOGIN"], "${{ steps.app.outputs.app-slug }}[bot]")
 
     def test_release_status_is_a_tag_input_and_never_a_repository_variable(self) -> None:
         tag = load(".github/workflows/tag-release.yml")

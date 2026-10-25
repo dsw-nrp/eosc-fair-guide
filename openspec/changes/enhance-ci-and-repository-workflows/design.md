@@ -456,8 +456,14 @@ which would otherwise have shipped without it. Decision 16 removes that accident
 Tag release is the right place: it is the last point before bytes freeze, and it tags the current default-branch
 head, so changes can land after the release PR merged as well as before. Tag release compares the requested
 section's lineage with the merged PRs and direct commits from the previous release tag to the commit it would tag,
-using release preparation's own collection. On a gap it creates no tag, names the missing changes and dispatches
-Prepare release for the same version with the App token. The maintainer then receives a PR to approve, not a puzzle.
+using release preparation's own collection. The release's own proposal branch (`release/<version>`) is left out,
+because a release never lists its own preparation. On a gap it creates no tag, names the missing changes and calls
+Prepare release for the same version as a reusable workflow, so the maintainer who ran Tag release stays the
+recorded actor: a dispatch would need `actions: write`, which the App lacks, and a `GITHUB_TOKEN` dispatch would run
+as `github-actions[bot]`, which preparation refuses. Both workflows hold the `release-preparation` concurrency group
+at job level, because a caller and its called workflow holding the same workflow-level group deadlock. The
+maintainer then receives a PR to approve, not a puzzle. The changelog check lets the newest section gain generated
+lineage entries only while its version has no tag.
 
 Prepare release gains two routes. For an untagged version already on the default branch, it opens a completion PR
 that adds only the missing lineage entries, extending the release's provenance action where the release-file

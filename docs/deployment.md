@@ -178,16 +178,21 @@ Preparation records the dispatcher using a reviewed `person.github` identity and
 instrument. Add a new dispatcher's reviewed identity and citation credit through an ordinary content PR first.
 The preparation timestamp and release date come from the workflow run's start in UTC, so retrying that run
 produces the same proposed bytes. The dispatch opens `release/<version>` with just the owning metadata,
-changelog, provenance and identifier register. It refuses an edited or outdated release branch and never moves
-it or reopens a closed proposal. A retry can finish opening a PR after branch creation was interrupted.
+changelog, provenance and identifier register. A retry can finish opening a PR after branch creation was
+interrupted. An outdated proposal is prepared again from the current default branch, keeping its PR, only while
+the release App made every commit on it; an edited proposal is left for reconciliation by hand, and a proposal
+closed without merging is never reopened. When the default branch already carries the requested version untagged,
+the dispatch completes that release instead: its PR adds only the changelog entries for changes that landed since
+the preparation, leaving the version, dates and earlier entries unchanged.
 
 The default path is to review and merge that release PR, then run **Tag release** (`tag-release.yml`) on the
 current default-branch commit with the same version. A maintainer may also use valid release metadata committed
 directly to the default branch through an explicitly authorized process. The dispatch checks all owning versions
 and dates, citation/Zenodo metadata and exactly one nonempty changelog section for the requested version with
-the matching date. No release PR or merge-commit ancestry is required. If further commits landed, reconcile
-the notes and metadata for the selected current commit before tagging. The final branch-head check rejects a
-stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
+the matching date. No release PR or merge-commit ancestry is required. The section must also list every merged PR
+and direct commit since the previous tag, leaving out the release's own `release/<version>` PRs. When changes landed
+after preparation, Tag release creates no tag, names them in its summary and calls Prepare release, which opens the
+completion PR; merge it and run Tag release again. The final branch-head check rejects a stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
 checked production build; publishing the resulting draft release is still a separate maintainer act. Before
 publishing, write the release notes with `/aiscr-write-release-notes` and apply them with
 `python scripts/release_body.py v<version> --apply` after reviewing its output; the draft's marked verification

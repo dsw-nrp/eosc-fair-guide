@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_crate  # noqa: E402
 import build_identity  # noqa: E402
+import check_changelog  # noqa: E402
 import release_versions as release  # noqa: E402
 
 
@@ -336,6 +337,105 @@ class ReleaseVersions(unittest.TestCase):
         self.assertIsNone(local["previousTag"])
         release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", [], "motyc", associations=self.associations(local))
         self.assertIn("the beginning of the repository", (self.root / "CHANGELOG.md").read_text())
+
+    def commit(self, message: str, name: str | None = None) -> str:
+        if name:
+            (self.root / name).write_text(message, encoding="utf-8")
+        for args in (["add", "-A"], ["commit", "-q", "-m", message]):
+            subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True)
+        return release.git(self.root, "rev-parse", "HEAD")
+
+    def landed_after_preparation(self) -> tuple[list[dict], dict, dict[str, str]]:
+        """A prepared 1.0.0-alpha.2 merged from its own branch, then a PR and a direct commit before any tag."""
+        local = self.git_history()
+        release.prepare(self.root, "1.0.0-alpha.2", "2026-10-14", [], "motyc", associations=self.associations(local))
+        shas = {
+            "release": self.commit("Prepare release 1.0.0-alpha.2"),
+            "pull": self.commit("Later change", "later"),
+            "direct": self.commit("Direct follow-up", "follow-up"),
+        }
+        repo = {"full_name": "dsw-nrp/eosc-fair-guide"}
+        prs = [
+            {
+                **self.pr(5, shas["release"], "Prepare release 1.0.0-alpha.2"),
+                "head": {"ref": "release/1.0.0-alpha.2", "repo": repo},
+            },
+            {**self.pr(6, shas["pull"], "Later change"), "head": {"ref": "feature/later", "repo": repo}},
+        ]
+        for pr in prs:
+            pr["base"] = {"ref": "main", "repo": repo}
+        associations = self.associations(release.history_export(self.root))
+        associations["associations"] |= {shas["release"]: [5], shas["pull"]: [6]}
+        return prs, associations, shas
+
+    def test_tag_release_names_the_changes_a_prepared_release_misses(self):
+        prs, associations, shas = self.landed_after_preparation()
+        missing = release.missing_lineage(self.root, "1.0.0-alpha.2", prs, associations)
+        self.assertEqual(missing["previous"], "v0.9.0")
+        self.assertEqual(len(missing["pulls"]), 1)
+        self.assertIn("[#6]", missing["pulls"][0])
+        self.assertEqual(len(missing["direct"]), 1, "the earlier direct commit is listed; the release's own is not")
+        self.assertIn(shas["direct"], missing["direct"][0])
+        self.assertNotIn("#5", "".join(missing["pulls"] + missing["direct"]), "a release never lists itself")
+        summary = self.root / "summary.md"
+        (self.root / "prs.json").write_text(json.dumps(prs), encoding="utf-8")
+        (self.root / "associations.json").write_text(json.dumps(associations), encoding="utf-8")
+        argv = ["lineage", "--version", "v1.0.0-alpha.2", "--prs", str(self.root / "prs.json")]
+        argv += ["--associations", str(self.root / "associations.json"), "--summary", str(summary)]
+        with patch.object(release, "ROOT", self.root), patch("builtins.print"):
+            self.assertEqual(release.main(argv), 3)
+        report = summary.read_text(encoding="utf-8")
+        self.assertIn("Not tagged: the `1.0.0-alpha.2` changelog misses 2 change(s) since v0.9.0", report)
+        for marker in ("**Next:**", "**If blocked:**", "**Done when:** Tag release creates `v1.0.0-alpha.2`"):
+            self.assertIn(marker, report)
+
+    def test_completion_adds_only_the_missing_entries(self):
+        prs, associations, shas = self.landed_after_preparation()
+        before = self.snapshot()
+        earlier = before["CHANGELOG.md"].decode("utf-8")
+        manifest = release.complete(self.root, "1.0.0-alpha.2", prs, associations=associations)
+        after = self.snapshot()
+        self.assertEqual({path for path in after if after[path] != before.get(path)}, {"CHANGELOG.md"})
+        self.assertEqual(manifest["mode"], "complete")
+        self.assertEqual({item["path"] for item in manifest["files"]}, release.prepared_paths(self.root))
+        text = after["CHANGELOG.md"].decode("utf-8")
+        self.assertIn("[#6]", text)
+        self.assertIn("/commit/" + shas["direct"], text)
+        self.assertNotIn("[#5]", text)
+        self.assertEqual(release.check(self.root, requested="1.0.0-alpha.2"), [])
+        self.assertEqual(check_changelog.history_errors(earlier, text, "base", set()), [])
+        self.assertEqual(release.missing_lineage(self.root, "1.0.0-alpha.2", prs, associations)["pulls"], [])
+        with self.assertRaisesRegex(ValueError, "already lists every change"):
+            release.complete(self.root, "1.0.0-alpha.2", prs, associations=associations)
+        # Merged from the release branch like the preparation, the completed changelog lets Tag release proceed.
+        completion = self.commit("Complete release 1.0.0-alpha.2")
+        prs = [*prs, {**prs[0], **self.pr(7, completion, "Complete release 1.0.0-alpha.2")}]
+        associations = self.associations(release.history_export(self.root))
+        associations["associations"] |= {shas["release"]: [5], shas["pull"]: [6], completion: [7]}
+        for name, data in (("prs.json", prs), ("associations.json", associations)):
+            (self.root / ".git" / name).write_text(json.dumps(data), encoding="utf-8")
+        argv = ["lineage", "--version", "1.0.0-alpha.2", "--prs", str(self.root / ".git/prs.json")]
+        argv += ["--associations", str(self.root / ".git/associations.json")]
+        with patch.object(release, "ROOT", self.root), patch("builtins.print") as printed:
+            self.assertEqual(release.main(argv), 0)
+        self.assertIn("lists every change since v0.9.0", printed.call_args.args[0])
+
+    def test_preparing_a_version_the_default_branch_carries_completes_it(self):
+        prs, associations, _ = self.landed_after_preparation()
+        for name, data in (("prs.json", prs), ("associations.json", associations)):
+            (self.root / name).write_text(json.dumps(data), encoding="utf-8")
+        argv = ["prepare", "--version", "1.0.0-alpha.2", "--prs", str(self.root / "prs.json"), "--actor", "motyc"]
+        argv += ["--associations", str(self.root / "associations.json"), "--manifest", str(self.root / "m.json")]
+        with patch.object(release, "ROOT", self.root), patch("builtins.print"):
+            self.assertEqual(release.main(argv), 0)
+        self.assertEqual(json.loads((self.root / "m.json").read_text(encoding="utf-8"))["mode"], "complete")
+
+    def test_a_missing_merged_list_is_added_before_the_direct_commits(self):
+        section = "## [1.0.0] - 2026-10-14\n\nSince v0.9.0.\n\n### Direct commits\n\n- Fix ([aaaaaaa](https://x/commit/a))\n\n"
+        text = "# Changelog\n\n## [Unreleased]\n\n" + section
+        pull = "- Later ([#6](https://github.com/dsw-nrp/eosc-fair-guide/pull/6))"
+        extended = release.extend_section(text, "1.0.0", {"pulls": [pull], "direct": []})
+        self.assertIn(f"Since v0.9.0.\n\n### Merged pull requests\n\n{pull}\n\n### Direct commits\n", extended)
 
     def test_empty_history_and_stale_or_incomplete_associations_never_write(self):
         local = self.git_history(direct=False)
