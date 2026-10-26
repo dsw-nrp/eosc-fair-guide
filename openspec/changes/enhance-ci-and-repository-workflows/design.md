@@ -72,7 +72,10 @@ the digest because "Track as task" uses them. Group 8 may land before groups 6 a
 it; group 9 is independent; group 10 lands after groups 6–9, so the documentation describes their final behaviour
 once.
 
-Alternative rejected: one large PR. It would be too big to review and would delay the urgent correctness fixes.
+Originally rejected: one large PR, because it would delay the urgent correctness fixes. The maintainer later
+consolidated the remaining work on `agents/claude/ci-workflows-replan` (draft PR #116). The 26 October extension
+uses groups 12-15 on that same branch: serving-location addressing, automation/settings, durable documentation,
+then integrated acceptance. These are dependency groups rather than a new one-PR-per-group instruction.
 
 ### 2. Changelog from durable history; reviewed release bodies
 
@@ -134,7 +137,9 @@ the caller's current permission. Each command then runs in a job with job-level 
 it changes and `queue: max`: `fix-duplicates-<pr>` per pull request, and one `source-refresh` group for every
 refresh, because sources read each other's snapshots. GitHub allows up to 100 pending runs this way, and
 `queue: max` cannot be combined with `cancel-in-progress`. `fix-duplicates.yml` becomes a called workflow, and
-`source-refresh.yml` keeps its schedule and dispatch triggers and becomes callable too. Their trust guards do not change.
+`source-refresh.yml` keeps its schedule and dispatch triggers and becomes callable too. Write-access,
+default-branch execution, source allow-list and branch-preservation guards remain. Decision 26 extends refresh's
+entry point to ordinary issues; duplicate repair remains restricted to eligible pull requests.
 
 Accepted commands get an `eyes` reaction at once. They end with a `rocket` reaction, or with `confused` and a reply
 naming the run, the result and the next step whenever nothing else explains the result; the handlers' own replies
@@ -417,19 +422,29 @@ cancellation, on 24 October 2026, showed the collector failing inside a cancelle
 
 ### 14. Crawler files (#83)
 
-The build writes `robots.txt` and `sitemap.xml` from the configured base URL, including `FAIR_GUIDE_BASE_URL`
-overrides, with a standard XML writer. The sitemap lists the Guide root and `api/index.html`, with no fragments,
-per-language duplicates or invented dates. `robots.txt` points to the absolute sitemap and disallows the preview
-path. Assembly preserves the production files byte-for-byte, and preview copies never advertise preview
-documents. Tests use the real build and assembled tree. DNS and canonical-address adoption stay with #15 and #32.
+The build emits discovery files deterministically from the actual deployment origin and site path, resolved
+before validation and packaging (decision 24). The sitemap lists the Guide root and `api/index.html`, with no
+fragments, per-language duplicates or invented dates. The maintainer chose indexing at the current GitHub Pages
+address; no custom hostname is assumed. DNS and custom-domain adoption stay with #15 and #32.
+
+A robots file controls crawling only when served at the host root. A file beneath the project's site path does
+not establish that policy. Preview HTML keeps `noindex` and remains crawlable where that directive supplies its
+indexing exclusion; a robots disallow must not prevent the crawler from reading it. Any generated robots output
+states the hosting mode it can actually support. Ordinary offline/file builds make no public-indexing claim and
+do not perform network discovery. Assembly preserves verified production bytes; publishing never patches a
+packaged artifact to change its address. Root/subpath, production/preview and alternate-origin tests exercise
+the real builder and assembly. Separately indexable station/language documents remain a separate decision.
 
 ### 15. Permissions
 
-The App's registration stays as it is: on 24 October 2026 the maintainer chose to keep its current permissions,
-which already include `organization_projects: read` for the audit. `.github/repository.toml` records them as the
-reviewed list, and the public App endpoint lets the audit detect drift from it. Every App token request names only
-the permissions its job uses, so no job holds the whole registration. An offline workflow test compares each job's
-requested permissions with the reviewed list and checks that the registration covers them.
+The 24 October decision kept the then-current App registration, including `organization_projects: read` for the
+audit. On 26 October the maintainer reported a pending installation request for Organization Issue Types read and
+Organization Issue Fields read; the public registration already advertises `issue_types: read` and
+`issue_fields: read`. This is registration evidence, not proof of installation acceptance or endpoint access.
+Decision 26 extends only the audit's required read requests and routes organization REST calls to the appropriate
+App credential. Repository reads keep their narrower existing credential. `.github/repository.toml` and offline
+permission tests are updated with implementation; no job receives the entire registration. Denied parts remain
+unavailable with their actual cause, while unrelated audit and publication results survive.
 
 ### 16. Paradata freshness from history
 
@@ -506,14 +521,16 @@ After a publication that deploys, `publish.yml` records a `staging` deployment o
 `/next/` address and, when it published a release, a `production` deployment of the release with the root address.
 A publication that deploys nothing records nothing. `github-pages` stays the publishing mechanism. The approval job
 keeps `production` as its gate; where GitHub lets a job use an environment without creating a deployment, the gate
-creates none, so `production` lists only live releases. Tag release and the tag ruleset require a successful
-`staging` deployment, which says what is meant: tag only what was staged. `repository.toml` declares `staging`, and
-the ruleset changes only after a publication created the first `staging` record (task 8.7).
+creates none, so `production` lists only live releases. Tag release requires a successful `staging` deployment:
+tag only what was staged. The original ruleset target replaced `github-pages` with `staging` after the first
+successful record. The maintainer's applied policy and the remaining target choice are recorded below and in
+decision 27; task 8.7 now verifies the resulting hosted behavior.
 
 The first open fact is verified: since GitHub's March 2026 update, a job's `environment` accepts `deployment: false`,
 which keeps required reviewers but creates no deployment, so the approval job uses it. The second, whether a tag
-ruleset's required deployments accept deployments created through the API, is verified in task 8.7 before the
-ruleset changes; until then the ruleset keeps `github-pages` and Tag release alone checks `staging`. `staging` keeps
+ruleset's required deployments accept deployments created through the API, remains to be verified in task 8.7.
+The original plan held the ruleset change until that proof; the applied gates below now stay in place while the
+proof is gathered. `staging` keeps
 the `main` branch policy of `github-pages`: without it, anyone holding `deployments: write`, including a workflow on a
 pull-request branch, could create a successful record for an unreviewed commit, and the ruleset would then admit a
 tag on it with only the production approval left in the way. Records therefore name the branch `main` and count
@@ -521,15 +538,22 @@ only when GitHub resolves them to the published commit; a record that resolves t
 Because the ruleset sees only that a successful record exists, Tag release also requires that a `publish.yml` run
 on the default branch wrote it. Production records name the tag, which its `tag v*.*.*` policy admits.
 
+Follow-up, 26 October 2026: the maintainer applied `staging` and the Actions `checks` requirement to tag protection.
+Read-back shows that both `github-pages` and `staging` are required, with no `staging` deployment yet observed.
+The earlier target of replacing `github-pages` has therefore not become the exact applied policy. Task 13.4
+records the intended target and reconciles the declaration without silently removing either live gate; 8.7
+remains open for a successful real staging record and audit evidence, not for a repeated request to add the gate.
+
 ### 21. One-invocation release notes
 
 A native skill, `fair-guide-release-notes`, runs the whole route. It resolves the tag and the previous release tag,
 including pre-releases, because the delivered workflow's default baseline skips them. It runs
 `/aiscr-write-release-notes` report-only in English with those answers fixed, composes with `release_body.py`,
 asks once for approval, applies and reads the body back. Publishing stays a separate click. The skill is
-user-invoked only, because it writes to GitHub. It depends on the delivered skill allowing model invocation, which
-its upstream maintainer changes; the delivered copy is not patched here. Until then the documented two-command route
-stays. Release-notes reports remain git-ignored, so the release body is the durable record.
+user-invoked only, because it writes to GitHub. Its upstream invocation-policy dependency has been delivered and
+the native helper is generated locally; no delivered copy is patched here. Task 8.8 still needs the real draft
+exercise, and 14.2 makes the native route discoverable in the tooling matrix. Release-notes reports remain
+git-ignored, so the release body is the durable record.
 
 ### 22. A predictable weekly schedule
 
@@ -550,7 +574,8 @@ maintainers (`docs/ci.md`'s cheat sheet) each have one landing page. Each docume
 reference, explanation, or a tutorial once a real newcomer need appears. A document declares its type in an HTML
 comment on its first line, which `scripts/check_docs.py` reads.
 
-Maintainer tasks become runbooks under `docs/runbooks/`. A runbook opens with who acts, how long it takes and why,
+Recurring maintainer tasks become runbooks under `docs/runbooks/`. One-time migration procedures remain complete
+but move to their change-owned record under decision 25. A runbook opens with who acts, how long it takes and why,
 in two sentences at most. Numbered steps then give **Where**, **Do**, **Done when** and **If it fails**, using the
 same words as the automated outputs' "Next / If blocked / Done when" blocks (decision 13). A branching flow gets a
 Mermaid diagram with `accTitle` and `accDescr`. The runbook owns the steps; reference and explanation link to it
@@ -571,16 +596,132 @@ A human review step was considered and deferred: real use will refine the docume
 generated surfaces are excluded; their owners govern them. The documentation rules join the native surface rule
 (task 7.5), so later edits keep the shape.
 
-### Issue dispositions (refreshed 24 October 2026)
+The 25 October passes are scoped usability and moved-fact receipts. The 26 October follow-up requires a complete
+section-by-section claim inventory for the existing long documents as well, with technical/source verification
+in addition to fresh audience readers. It does not infer accuracy of unexamined material from a sampled pass.
+Decision 25 defines the durable wording, namespace, role and diagram checks and moves the one-time legacy-issue
+procedure into this change. A separate human review of this documentation wave remains deferred as agreed;
+ordinary contribution review still distinguishes content expertise from technical ownership.
+
+### 24. Guide-owned addresses follow the serving location
+
+Confirmed on 26 October 2026: index the current GitHub Pages address, and align Guide-owned addresses to the
+actual serving location rather than predicting `fair.eosc.cz`. The observed Pages URL is
+`https://dsw-nrp.github.io/eosc-fair-guide/`, without a configured custom domain; the root returned 200 and both
+the project and host-root robots files and the project sitemap returned 404. These are dated observations,
+not durable assumptions about which hostname will always serve the Guide.
+
+The address boundary has three parts:
+
+- Browser navigation, API references and shared/exported links use relative references or resolve against the
+  Guide document's actual site root. An iframe uses the Guide's location, not its parent's origin. Opening
+  `index.html`, a subpath deployment or a local file must not require a predicted public hostname.
+- Static metadata that requires an absolute address, including vocabulary/profile IRIs, sitemap locations and
+  publication metadata, takes the real deployment origin and site path before the build is validated and packaged.
+  GitHub Pages exposes these as `base_url`, `origin` and `base_path`; other hosts supply their actual location.
+  Offline/file builds retain resolvable relative references and make no invented public-location claim. The build
+  does not discover a hostname by a network request, and publication never rewrites verified production bytes.
+- Logical Guide record IDs, source IDs and external vocabulary IRIs retain their meaning. Removing the predicted
+  hostname must cover all consumers of `baseUrl`, `pageUrl`, vocabulary and profile addresses rather than just
+  replacing sitemap strings. Inventory already emitted absolute IRIs and record compatibility/migration effects
+  before implementation. Preserve shared production/preview entity identities while preview navigation and API
+  requests remain under `/next/`; do not leak filesystem paths into exported public metadata.
+
+Tests build and consume the real outputs at unrelated origins and site paths, through production and preview,
+in an iframe and from a local file. Expanded JSON-LD, RDF terms, profile declarations, exported references and
+artifact identities are checked together. A failed address or identity probe blocks implementation acceptance;
+it is not waived by passing link checks or by inventing an alias.
+
+The sitemap's initial document scope remains the root and API documentation. Hash-route views do not become
+separate crawlable pages by being listed. Additional static station/language views and custom-domain/DNS work
+remain outside this extension. Relevant primary contracts:
+[Pages URL outputs](https://github.com/actions/configure-pages/blob/main/action.yml),
+[robots location](https://developers.google.com/crawling/docs/robots-txt/create-robots-txt),
+[crawl access for noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing), and
+[fragment URLs](https://developers.google.com/search/docs/crawling-indexing/url-structure).
+
+### 25. Complete and durable documentation acceptance
+
+Review every human document and every section of the long design/content references against a located source,
+implementation contract or explicit current policy. Keep a claim inventory and dispositions with this change.
+Source verification is distinct from the fresh audience readers' documentation-only usability check. Word count
+alone does not require splitting; a split follows different reader needs. The prior section map and review
+receipt remain historical evidence, not a claim that unchanged long text was fully verified.
+
+Durable docs describe resulting behaviour and stable conditions. Active task numbers, rollout prerequisites,
+completed DOI follow-ups, deferred-work narration and issue-number-specific migration steps belong in change
+records. Preserve legitimate dated measurements, source observation dates and general conditions such as waiting
+for a successful deployment. A contextual check and planted regressions enforce this distinction without banning
+every use of words such as "once" or "pending". A one-time migration retains its entire procedure and evidence
+under this change, while permanent navigation links recurring digest work instead.
+
+Technical vocabulary mappings show qualified names, prefix IRIs and the actual expanded terms used by the crate
+and API. Examples include `schema:Dataset`, `dcterms:publisher`, `prov:wasAttributedTo`, `ftr:Test` and
+`sio:SIO_000233`. Short JSON keys and TOML fields are documented as serialization aliases when appropriate;
+namespace annotation does not itself rename emitted fields or normalize distinct external IRIs. Ordinary
+conceptual explanations cite their sources without turning every familiar word into a prefixed token.
+
+Content correctness, wording and source interpretation are reviewed by the relevant human collaborators.
+`CODEOWNERS` records technical owners responsible for integrity, compatibility and fit with the Guide; it is
+not the content-review roster. GitHub's enforced approvals remain in force. A review runbook recommends
+`aiscr-review-pr`, distinguishes local and PR scopes, exact-content posting approval, finding disposition,
+fixes, re-review and the human merge decision. No delivered review workflow is edited or duplicated.
+
+The task-to-tool table and release instructions prefer the native `fair-guide-release-notes` helper. Both README
+languages welcome AI-assisted work under human oversight, keep people responsible and refer to item paradata for
+instrument/source details rather than maintaining a vendor list. Named organization Projects use a title and an
+explicit Project URL; bare `#N` is not a Project identifier. Actual issue and PR references use their own links.
+
+Workflow diagrams accompany review, merge/publication, refresh and digest handling where they aid orientation.
+Each has an accessible title/description and equivalent adjacent prose, and its transitions match the workflow
+and runbook, including approval, publication, refusal and retry. For example, the current design's direct
+production-preparation-to-draft arrow is replaced by the real publication dependency. Rendering alone is not
+verification of those transitions.
+
+### 26. Issue-based refresh and scoped organization reads
+
+An authorized maintainer can start `/refresh <source>` from an ordinary repository issue even before a refresh
+pull request exists, or from a PR. Keep exact source-key parsing, current write-access checks, trusted
+default-branch execution, the shared refresh queue, App scope and guarded proposal replacement. Replies and
+`/help` describe the actual initiating thread and the resulting refresh proposal. `/fix-duplicates` retains its
+open same-repository PR guards. Exercise the actual parser, eligibility, reusable workflow selection and reply
+path together; changing only the help text or one `pull_request` condition is insufficient.
+
+The App registration advertises the newly requested Issue Types and Issue Fields read permissions, while
+installation acceptance is pending. Extend the audit's per-job read requests and choose credentials per endpoint:
+organization reads use the suitably scoped App token, repository reads keep the existing repository token, and
+Project queries remain read-only. Registration, installation acceptance, token issuance and actual endpoint
+results are separate evidence. Narrow failures report the inaccessible part and cause without hiding the rest
+of the audit or breaking the digest. Update the reviewed permission declarations, fixtures, capability reference
+and public-safe receipt with the implementation. The hosted audit-only run writes no issue or digest.
+
+### 27. Applied tag protections and queue decisions
+
+Read-back on 26 October shows tag protection requiring both `github-pages` and `staging`, plus the `checks`
+status from the GitHub Actions integration. Record the maintainer's already applied action once. Reconcile the
+reviewed declaration and audit with that evidence; do not remove a live gate just because the older plan expected
+only `staging`. The remaining target choice is whether both environments stay or the earlier replacement is
+completed. Until an explicit choice, both gates remain. Verify a real successful staging record and that required
+checks exist before tag creation, including the intended queue and administrator-fallback routes, before closing 8.7.
+
+Queue limits control different things: build concurrency is two merge-group builds; the maximum merge batch is
+three already verified PRs, with a minimum of one and no batching wait. A larger merge batch does not combine
+merge-group CI builds. Existing receipts measured six concurrent check lanes, which explains a conservative build
+limit but does not establish that a batch of three is optimal. Task 13.5 compares the controls against observed
+waiting/runner use and records a maintainer decision. Ten was suggested, not approved; capture authorizes no
+numeric change or remote settings write. See the
+[merge-queue semantics](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue).
+
+### Issue dispositions (refreshed 26 October 2026)
 
 | Issues | Disposition |
 | --- | --- |
-| #83 | Delivered by group 7 |
-| #84 | Its CI page, workflow and artifact facts, drift check, generated-setup ownership, local reproduction and cross-links are delivered by groups 2 and 7. The code repairs are this change's own scope |
-| #59–#65 | Migrated to the digest's candidates section; no candidate selection is approved here |
-| #85–#99 | Migrated to digest findings; triaged after migration |
-| #100 | Migrated as a source update to review |
-| #101 | Closed as noise after the pagination fix, within the approved migration |
+| #83 | Initial generation is complete locally in group 7; current-host addressing, effective robots policy and preview indexing need group 12 before delivery acceptance |
+| #84 | CI catalogue and navigation are complete locally; group 14 corrects durable claims, review responsibilities and full-document acceptance. This does not claim default-branch delivery |
+| #59–#65 | Proposed mapping to the digest's candidates section; migration awaits 6.10's exact-payload approval; no candidate selection is approved here |
+| #85–#99 | Proposed mapping to digest findings, triaged after the approved migration; not yet a closure claim |
+| #100 | Proposed mapping as a source update to review in the approved migration |
+| #101 | Proposed noise disposition after the pagination fix; closing still requires the approved migration |
 | #6 | Receives CI test and handoff evidence; stays open |
 | #5–#33, #35–#38, #43, #80 | Unaffected; typed, labelled and triaged through the backfill. #14, #15, #25 and #32 stay external or separate decisions |
 | PRs #39–#42, #70 | Unaffected; labelled and tracked in the Project |
@@ -607,12 +748,19 @@ generated surfaces are excluded; their owners govern them. The documentation rul
   is new since the base or its `endTime` moved later.
 - **Tag release's automatic re-preparation could surprise** → it only opens or updates a PR, never merges or tags,
   and its summary names the PR and the next action.
-- **API-created deployment records might not satisfy the tag ruleset** → verified before the ruleset changes; until
-  then the ruleset keeps `github-pages`.
+- **API-created deployment records might not satisfy the tag ruleset** → 8.7 verifies the actual applied gates
+  against a real staging record before release acceptance; existing protections remain intact under decision 27.
 - **A one-wave documentation reshape could drop or change a fact** → the section map, the facts check and the
   independent reader's sampling of moved facts.
-- **The release-notes skill depends on an upstream change** → until it arrives, the documented two-command route
-  stays.
+- **A sampled review could leave old long-document errors untouched** → group 14 inventories and verifies every
+  section, then reruns independent audience readers; earlier receipts stay historical.
+- **Replacing the assumed hostname could change semantic identity or verified bytes** → group 12 inventories
+  expanded IRIs and address consumers, keeps logical/external identities, and resolves absolute publication
+  inputs before validation; production artifacts are never patched during publication.
+- **A generated robots file could promise controls its host does not provide** → root/subpath tests and an
+  explicit hosting policy, with crawl access retained for preview `noindex`.
+- **The native release helper has not run against a real draft** → task 8.8 retains that proof even though its
+  upstream dependency and local generation are complete.
 
 ## Migration Plan
 
@@ -630,20 +778,31 @@ generated surfaces are excluded; their owners govern them. The documentation rul
    A separately approved hosted rehearsal then merges one human PR and one grouped Dependabot PR and promotes one
    release.
 4. Land labels, templates and the Project audit (group 5). After approval of the mapping, apply the backfill.
-   The organization owner confirms the App installation and trims its registration.
+   The organization owner confirms required installation permissions. Project acceptance was confirmed;
+   the newly requested organization reads and endpoint evidence remain under 13.2-13.3.
 5. Land the digest with its migration (group 6). Run the dry run, approve the payloads, publish and reread.
 6. Land the CI documentation, handoffs, hints, usage check and crawler files (group 7).
-7. Land the release flow repairs (group 8), possibly before groups 6 and 7. After a publication has created a
-   successful `staging` record and decision 20's two facts are verified, apply the tag ruleset's required
-   deployment change after approval of the audit diff. Rollback: restore `github-pages` as the required deployment.
+7. Land the release flow repairs (group 8), possibly before groups 6 and 7. The owner has already added tag
+   deployment/check gates. Preserve them, reconcile the retained target in 13.4 and verify decision 20's remaining
+   fact against a successful staging record in 8.7. Any further setting change has its own approved diff/rollback.
 8. Land the schedule (group 9). Rollback: restore the previous cron entries and Dependabot defaults.
 9. Land the documentation wave (group 10) after its review package passes.
-10. A separately approved final rehearsal follows the release runbook (task 11.3).
+10. The 26 October follow-up (groups 12-15) corrects the serving-location contract, command/permission routes,
+    documentation and settings evidence on the same branch before renewed integrated acceptance.
+11. A separately approved final rehearsal follows the corrected release runbook (task 11.3), also exercising
+    actual-location discovery, issue-origin refresh and the accepted audit scopes. Its exact writes are approved
+    separately; this planning capture neither starts the rehearsal nor authorizes a release.
 
 Rollback for code is a reviewed revert. The digest publisher can be disabled while its state artifacts and
 human comments remain. Completed repairs, notes and published releases are never rewritten.
 
 ## Open Questions
+
+The follow-up has two explicit decision gates: the retained tag-deployment set (13.4) and queue parameters (13.5).
+They are decision tasks, not permission to implement an assumed target. Preserve the current applied protections
+and queue numbers until the maintainer chooses. Additional indexable station/language pages and custom-domain
+adoption are excluded; deciding to add them would require a further scope revision. The public-location direction
+itself is settled: use the actual serving location and index the current GitHub Pages site.
 
 These can be answered during apply without changing the specs or the task breakdown:
 
@@ -662,5 +821,5 @@ These can be answered during apply without changing the specs or the task breakd
   (see the experiments in decision 6).
 - Can a job use the `production` environment as an approval gate without creating a deployment record? Answered on
   25 October 2026: yes, with `deployment: false` (GitHub's March 2026 update); required reviewers still apply.
-- Do a tag ruleset's required deployments accept deployments created through the API? If not, the ruleset keeps
-  `github-pages` and Tag release alone checks `staging`.
+- Do a tag ruleset's required deployments accept deployments created through the API? Task 8.7 verifies the applied
+  policy; if it does not work, present the exact recovery choice and diff rather than removing a gate implicitly.

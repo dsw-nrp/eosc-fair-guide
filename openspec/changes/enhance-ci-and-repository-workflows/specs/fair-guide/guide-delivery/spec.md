@@ -148,6 +148,25 @@ Required aggregate checks SHALL name every failed or partial check and include b
 - **WHEN** the run ends
 - **THEN** the collector does not run, so no evidence failure is reported for lanes that never finished, and the required gate still reports no success for it
 
+### Requirement: Humans judge correctness and tone
+
+CODEOWNERS SHALL name actual available maintainers responsible for technical integrity, compatibility and fit
+with the Guide. Appropriate human collaborators SHALL review content correctness, source interpretation and tone.
+Passing checks SHALL NOT replace human review. For the initial sole-maintainer alpha, PR delivery, required checks
+and explicit maintainer acceptance SHALL be the enforceable gate. Mandatory content-owner approval SHALL be
+enabled when a reviewer able to approve the author's PR is available.
+
+#### Scenario: Text change
+
+- **GIVEN** a pull request that only changes advice text
+- **WHEN** all checks pass
+- **THEN** the available human-review gate remains required, and the alpha release candidate requires explicit maintainer acceptance
+
+#### Scenario: Technical ownership and content expertise differ
+
+- **WHEN** a content change is reviewed by its technical code owner
+- **THEN** the owner checks integrity and fit, the appropriate human collaborators review content meaning, and enforced repository approvals still apply
+
 ## ADDED Requirements
 
 ### Requirement: The unpublished changelog section is checked
@@ -529,18 +548,25 @@ Project-item fixes on explicit request.
 ### Requirement: Automation identities hold only the permissions they use
 
 Each workflow job SHALL request only the token permissions it uses, and the GitHub App's registered permissions
-SHALL match a reviewed list. Project access SHALL be read-only and limited to the audit job. A denied or missing
-permission SHALL produce a visible unavailable report naming the owner action, without failing unrelated publication.
+SHALL match a reviewed list. App Project and organization Issue Types/Fields reads SHALL be audit-only and
+read-only, with credentials routed per endpoint. Registration, installation acceptance and successful reads SHALL
+be distinct evidence. Denied reads SHALL name the inaccessible part and actual cause without failing unrelated publication.
 
 #### Scenario: The audit token is denied
 
-- **WHEN** the audit job cannot read Project #1
-- **THEN** the digest reports the Project audit as unavailable with the owner's step, and the rest of the digest publishes
+- **WHEN** the audit job cannot read the configured Guide Project
+- **THEN** the digest reports the inaccessible Project part and actual cause, names an owner action only when required, and the rest of the digest publishes
 
 #### Scenario: A job requests an unlisted permission
 
 - **WHEN** a workflow job requests a token permission that is not in the reviewed list for it
 - **THEN** the offline workflow check fails and names the job and permission
+
+#### Scenario: Organization reads need the accepted App scope
+
+- **GIVEN** the registration advertises a read permission but installation acceptance or endpoint access is missing
+- **WHEN** the audit reads organization issue types or fields
+- **THEN** it uses the audit App credential, reports the specific unavailable read, retains readable repository/Project results and claims no success from registration alone
 
 ### Requirement: Labels are managed as reviewed configuration
 
@@ -805,19 +831,25 @@ remain; partial, blocked and failed outcomes SHALL stay distinct and SHALL NOT c
 
 ### Requirement: Production publishes real crawler discovery files
 
-The site build SHALL emit valid production `robots.txt` and `sitemap.xml` from the configured base URL. The sitemap
-SHALL list only the Guide root and `api/index.html` with absolute, fragment-free addresses. Assembly SHALL preserve
-the production files byte-identically, keep preview documents out of the sitemap and retain preview `noindex`.
+The build SHALL emit a sitemap of only the Guide root and `api/index.html` at the actual production location,
+using absolute, fragment-free URLs without invented dates. Crawler policy SHALL respect host-root robots scope;
+a subpath file SHALL NOT be treated as origin control. Preview documents SHALL stay outside the sitemap and
+remain crawlable with `noindex`. Assembly SHALL preserve verified production bytes.
 
 #### Scenario: Production and preview are assembled
 
 - **WHEN** the built production site is combined with a separately built preview
-- **THEN** both files exist, use the configured production origin and path, keep their production bytes and advertise no preview or hash-route address
+- **THEN** the sitemap uses the actual production origin/path, production bytes are unchanged, no preview/hash URL is advertised, and preview HTML is crawlable with `noindex`
 
 #### Scenario: The base URL is overridden
 
-- **WHEN** the build runs with a different configured base URL
-- **THEN** the robots and sitemap addresses follow that base
+- **WHEN** the build receives a different actual publication location before validation and packaging
+- **THEN** absolute discovery URLs follow that location without predicting a future domain or patching a verified artifact
+
+#### Scenario: The Guide is hosted below an origin root
+
+- **WHEN** a project-hosted Guide cannot publish the origin-root `robots.txt`
+- **THEN** documentation and checks report the effective hosting policy and do not claim that its project-subpath robots file controls crawlers
 
 ### Requirement: Release dispatches accept a leading v
 
@@ -940,6 +972,11 @@ separate maintainer act.
 - **WHEN** the composed body is not approved
 - **THEN** the draft release is unchanged
 
+#### Scenario: A maintainer selects the Guide release-notes tool
+
+- **WHEN** the maintainer opens the tooling task matrix or release-notes guidance
+- **THEN** both lead to the native `fair-guide-release-notes` helper as the preferred Guide route, consistent with the generated inventory
+
 ### Requirement: Scheduled maintenance results are ready on Monday morning
 
 Scheduled source refresh, dependency updates and health watch SHALL run in one weekly order in which each completes
@@ -983,7 +1020,7 @@ documents are outside this structure.
 #### Scenario: A maintainer looks for a task
 
 - **WHEN** a maintainer opens the maintainer landing page
-- **THEN** it lists each maintainer task in one line with when it is needed and a link to its runbook
+- **THEN** it lists each recurring maintainer task in one line with when it is needed and a link to its runbook
 
 #### Scenario: A document lacks a type
 
@@ -992,10 +1029,10 @@ documents are outside this structure.
 
 ### Requirement: Maintainer tasks have runbooks
 
-Every recurring or handed-off maintainer task SHALL have a how-to runbook under `docs/runbooks/` that opens with who
+Every recurring maintainer task SHALL have a how-to runbook under `docs/runbooks/` that opens with who
 acts, how long it takes and why, followed by numbered steps naming where to act, what to do, the visible evidence of
-completion and the next action on failure. A branching flow SHALL include a diagram with an accessible title and
-description.
+completion and the next action on failure. A branching flow SHALL include an accessible diagram. One-time migration
+procedures and issue-specific payloads SHALL live with their change, retaining evidence and approval gates.
 
 #### Scenario: A step lacks its failure route
 
@@ -1008,11 +1045,17 @@ description.
 - **WHEN** a maintainer follows it
 - **THEN** each step names the exact place, the inputs and the visible evidence, and the Tag release refusal has a named next action
 
+#### Scenario: A one-time migration is handed off
+
+- **WHEN** legacy issues are migrated under a change-specific approval
+- **THEN** the complete reviewed procedure and issue mapping live with that change, every observation and human discussion is retained, and recurring digest handling stays in its durable runbook
+
 ### Requirement: Documentation changes pass an independent review
 
-A documentation change SHALL pass the structure and facts checks and a review by an agent that did not write it and
-reads only the documentation. A change that moves text SHALL carry a section map accounting for every former
-section. A hand-off SHALL NOT be complete while the runbook it relies on has unresolved findings.
+Documentation SHALL pass structure/facts checks and an independent audience review. Moved text SHALL have a
+complete section map. Long documents included in a full review SHALL receive section-by-section claim verification
+against implementation, sources or current policy; sampled usability review SHALL NOT count as that verification.
+A hand-off SHALL remain incomplete while its procedure has unresolved findings. Historical receipts SHALL retain their scope.
 
 #### Scenario: A section disappears in a reshape
 
@@ -1028,3 +1071,131 @@ section. A hand-off SHALL NOT be complete while the runbook it relies on has unr
 
 - **WHEN** the reviewing agent reports a step it could not perform from the text alone
 - **THEN** the documentation is fixed before the dependent hand-off is ticked
+
+#### Scenario: An existing long document was only sampled
+
+- **GIVEN** an earlier audience review sampled facts in a long design or content-model document
+- **WHEN** complete factual verification is required
+- **THEN** every section's claims receive located evidence or an owned disposition, and the sampled receipt is not presented as full verification
+
+### Requirement: Issue threads can initiate source refresh
+
+An authorized repository writer SHALL be able to request `/refresh <source>` from an ordinary issue or PR.
+Eligibility, workflow selection, help and replies SHALL agree. Exact source keys, trusted default-branch code,
+the shared queue and guarded branch replacement SHALL remain enforced. `/fix-duplicates` SHALL retain its
+same-repository open-PR guards.
+
+#### Scenario: A refresh starts before its proposal exists
+
+- **GIVEN** a repository issue with no refresh PR and a caller with current write access
+- **WHEN** the caller requests a reviewed source key
+- **THEN** the trusted workflow creates or safely updates a refresh proposal and replies in the initiating issue with the result and proposal link
+
+#### Scenario: An issue requests duplicate repair or an invalid refresh
+
+- **WHEN** an issue comment requests `/fix-duplicates`, an unknown source or refresh without current write access
+- **THEN** no repair or refresh mutation runs and help/refusal describes the actual eligibility
+
+### Requirement: Publication addresses are resolved before verification
+
+Absolute static metadata SHALL use the actual deployment location resolved before build validation and packaging.
+Offline builds SHALL have deterministic explicit or relative behavior without network origin discovery or a guessed
+future public hostname. Publication SHALL NOT rewrite verified production bytes. Production and preview addresses
+SHALL remain distinct while sharing the reviewed content identities.
+
+#### Scenario: Pages provides the deployed origin and path
+
+- **WHEN** Pages configuration resolves the actual publication URL
+- **THEN** build metadata, semantic references and discovery files use that location before validation, and assembly preserves the resulting verified production bytes
+
+#### Scenario: The same verified release is assembled with a preview
+
+- **WHEN** publication combines an immutable production release with the preview channel
+- **THEN** preview navigation uses its channel path without replacing production metadata or silently migrating content identities
+
+### Requirement: Durable documentation states current contracts
+
+Durable documentation SHALL describe current contracts and stable procedures, excluding rollout narration,
+change-task dependencies and completed follow-up instructions. Legitimate dated observations and conditional
+instructions SHALL retain their context. References SHALL name and link the intended resource; an organization
+Project SHALL use its explicit Project URL rather than an ambiguous conversation-style number.
+
+#### Scenario: A migration finishes or a planned gate becomes active
+
+- **WHEN** documentation is reconciled after implementation
+- **THEN** durable instructions describe the resulting behavior, while change-specific history remains in its change record
+
+#### Scenario: A dated measurement is still evidence
+
+- **WHEN** contextual stale-prose checks encounter a dated measurement or a stable conditional recovery step
+- **THEN** those valid statements remain, while a planted in-flight task reference is reported
+
+### Requirement: Review procedures use the delivered review workflow
+
+The review runbook SHALL recommend delivered `aiscr-review-pr`, explain local and PR scope/base selection,
+finding disposition, fixes and re-review, and retain exact approval before posting externally. Local reviews SHALL
+not post. Human review and merge decisions SHALL remain required. Guide documentation SHALL link the delivered
+workflow instead of copying or modifying it.
+
+#### Scenario: A contributor reviews staged work
+
+- **WHEN** the contributor follows the runbook's local-review route
+- **THEN** the selected local diff and baseline are explicit, findings are handled locally, and no PR comment is posted
+
+#### Scenario: A PR review is ready to post
+
+- **WHEN** findings and their dispositions have been prepared for a PR
+- **THEN** the exact grouped posting payload awaits the delivered workflow's approval, and subsequent human approval/merge remains separate
+
+### Requirement: AI contribution guidance remains generic and accountable
+
+Both language introductions SHALL welcome AI-assisted contributions under human oversight and responsibility and
+state that the repository supports such work. They SHALL refer to content paradata for actual instruments and
+sources rather than freeze a vendor/model inventory. Operational usage logging SHALL remain separate.
+
+#### Scenario: A contributor uses another AI instrument
+
+- **WHEN** the instrument is truthfully recorded in the applicable provenance or usage record
+- **THEN** the generic Czech and English contribution statements remain accurate without an inventory edit
+
+### Requirement: Documentation diagrams describe executable workflows
+
+Review, merge/publication, refresh and digest documentation SHALL use Mermaid diagrams where they aid orientation,
+with accessible titles/descriptions and equivalent adjacent prose. Diagram transitions SHALL match actual workflow
+dependencies, approvals, publication, refusal and retry routes. Successful rendering SHALL NOT alone establish
+semantic correctness.
+
+#### Scenario: A diagram skips a publication dependency
+
+- **WHEN** a planted arrow leads directly from preparation to an outcome that requires publication
+- **THEN** verification rejects that transition even if the diagram renders
+
+### Requirement: Applied release protections remain intact until a reviewed choice
+
+The settings declaration and audit SHALL represent reviewed tag deployment and status-check gates. Existing live
+protections SHALL NOT be removed to satisfy an obsolete planned target. Any replacement SHALL follow an explicit
+maintainer choice and approval of its exact diff. Release acceptance SHALL prove successful staging and required
+checks on the tagged commit before tag creation.
+
+#### Scenario: Live protection is stronger than the older target
+
+- **GIVEN** live tag protection requires two deployment environments and the Actions `checks` status
+- **WHEN** the previous declaration names only one deployment
+- **THEN** both live deployment gates remain until the retained target is chosen, and declaration/fixture repair does not silently remove a gate
+
+#### Scenario: Staging or checks are missing on the release commit
+
+- **WHEN** a release attempts tag creation through the queue or administrator fallback
+- **THEN** missing successful staging or required checks prevent tag creation and name the unmet prerequisite
+
+### Requirement: Queue tuning distinguishes build and merge controls
+
+Queue documentation SHALL distinguish merge-group build concurrency from minimum/maximum merge-batch size and
+batching wait. Tuning SHALL use observed waiting, runner demand and unchanged check coverage, followed by an explicit
+maintainer choice. A suggested value SHALL NOT become an approved target, and a larger merge batch SHALL NOT be
+described as combining CI builds.
+
+#### Scenario: A larger merge batch is proposed
+
+- **WHEN** a maintainer evaluates queue tuning
+- **THEN** the evidence treats build and merge controls independently, existing values remain until a choice, and any hosted mutation requires its approved exact diff

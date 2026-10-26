@@ -1,3 +1,4 @@
+<!-- type: reference -->
 # FAIR Champion selection and health measurement
 
 The guide invokes a reviewed subset of public FAIR Champion tests after an explicit user action. A returned
@@ -48,16 +49,5 @@ conformance. `maturity.07` therefore remains a manual assessment with its origin
 
 ## Re-measure without changing the selection
 
-After building the site and installing Playwright's Chromium:
-
-```sh
-node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json
-```
-
-The default [candidate list](candidates.json) includes the core and all reviewed candidates. Optional
-`--candidates` and `--records` arguments accept reviewed JSON inputs. The browser checks PID resolution
-first, uses anonymous requests with no redirects, limits concurrency to four and calls to 60 seconds,
-caps each response at 2 MiB, and records incomplete coverage. It writes progress after each call. The full
-local report retains response logs; the committed measurement omits logs and preserves the measured
-outcomes. The script never selects tests or edits authored content. Scheduled health reporting can use
-the report; any selection or mapping change requires content review in a pull request.
+The [remeasurement how-to](../how-to/remeasure-champion.md) owns the commands and output review. Measurement
+alone changes no selection; the reviewed tests and their question scope remain the tables above.

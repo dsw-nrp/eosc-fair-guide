@@ -1,8 +1,9 @@
-# delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00
-# aiscr:canonical=
+# delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00
+
 description = "Use when the user asks to review a pull request or local Git changes. Perform track analysis and focused verification; for PRs, gather marked lineage and prepare the summary and exact approval payload for grouped posting."
 prompt = """
-<!-- aiscr:stop-anchor -->
+<!-- aiscr:entry-scope -->
+
 **Entry scope**
 
 - Stay in this `.gemini/commands/aiscr/` surface and its same-vendor pointers first.

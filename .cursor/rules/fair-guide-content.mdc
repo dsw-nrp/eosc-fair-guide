@@ -32,6 +32,10 @@ explicit alternates; titles, external IDs/IRIs, URLs and classifications cannot 
 
 ## 2. Change content
 
+A new advice item, question or resource using the existing fields, lenses and levels is a content instance:
+use its published sources, bilingual text, paradata and ordinary checks. A new field, changed assessment meaning,
+runtime behaviour, stored format, CI or governance rule needs an approved OpenSpec change before implementation.
+
 For an **advice item**:
 
 1. Set the station, lens (`V`, `DS`, `SR`, `K`) and level (`L0`–`L3`). L0 is one sentence and one concrete

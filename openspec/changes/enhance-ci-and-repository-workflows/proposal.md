@@ -19,7 +19,8 @@ and mechanism, so a person cannot find the next action quickly.
 
 ## What Changes
 
-The change lands in nine waves. Each wave is one reviewed pull request and is useful on its own.
+The original scope has nine logical waves. Earlier waves landed separately; the maintainer consolidated the
+remaining work on `agents/claude/ci-workflows-replan` (draft PR #116). The follow-up below extends that same change.
 
 1. **Nothing gets lost.** A changelog check protects `[Unreleased]` and published history, and release
    preparation keeps the unpublished lines beside the generated PR/commit list. Detail stays in durable commit
@@ -37,7 +38,8 @@ The change lands in nine waves. Each wave is one reviewed pull request and is us
    reports drift with exact fix steps.
 4. **Consistent Project and intake.** Area is a reviewed set of labels, also applied to PRs from changed paths.
    Czech and English issue templates are generated from the delivered `aiscr-plan-issue` shape. A weekly
-   read-only audit checks Project #1 (types, Ready definition, automation and view drift) and reports
+   read-only audit checks the [EOSC CZ FAIR Guide Project](https://github.com/orgs/dsw-nrp/projects/1)
+   (types, Ready definition, automation and view drift) and reports
    actionable fixes. Native Project automations remain the only Project writers.
 5. **Quiet monitoring.** One digest issue is rebuilt from current state on every run and comments only on
    meaningful change. Maintainers promote findings with a "Track as task" link. Limitations have a reviewed
@@ -45,8 +47,8 @@ The change lands in nine waves. Each wave is one reviewed pull request and is us
    issues migrate into the digest after approval.
 6. **Self-explaining CI.** `docs/ci.md` carries a catalogue generated from the workflow files and a maintainer
    cheat sheet. Every automated output ends with a next step. PR comments give advisory release-note and
-   planning hints. A usage-filename check is added. Production publishes real `robots.txt` and `sitemap.xml`
-   (#83); #84's CI documentation is delivered.
+   planning hints. A usage-filename check is added. Production publishes an actual-location sitemap and an
+   effective hosting-aware crawler policy (#83); #84's CI documentation receives complete acceptance below.
 7. **Release flow repairs.** Paradata freshness is decided from history, so a moving `main` no longer fails a
    correct PR and `endTime` keeps meaning when the work finished. Tag release refuses a version whose changelog
    misses changes since the previous tag and starts Prepare release to complete it; preparation can complete an
@@ -66,12 +68,44 @@ The change lands in nine waves. Each wave is one reviewed pull request and is us
   resolved, instead of applying the link with a provenance reminder.
 
 Scope is repository delivery and maintenance. Excluded: editorial content, FAIR interpretation and evaluator
-semantics, crate/profile versions (#25), canonical address and DNS (#15, #32), external registrations (#80),
+semantics, crate/profile versions (#25), custom-domain adoption and DNS (#15, #32), external registrations (#80),
 Dependabot security updates (deliberately off), automatic merging or promotion of work, bot writes to the
 Project, and a public API redesign. Reusing expensive check results by input digest is a separately approved
 follow-up. Also excluded: editing the delivered `aiscr-write-release-notes` (its upstream maintainer changes its
 invocation policy), `AGENTS.md` and other delivered or generated surfaces in the documentation wave, and moving the
 release lineage out of `CHANGELOG.md`.
+
+### Follow-up scope confirmed on 26 October 2026
+
+The maintainer's documentation read found gaps beyond the structural reshape and sampled reader checks.
+This same change adds serving-location addresses and discovery, issue-based refresh, the newly requested
+organization read permissions, settings reconciliation and complete documentation review. It does not create
+a separate remediation change. The completed tasks and the 25 October validation remain historical receipts;
+they do not establish acceptance of this extension.
+
+- **Serving location is authoritative.** Index the current GitHub Pages site. Guide-owned links, metadata,
+  vocabulary and profile addresses follow the actual serving origin and site path, not a predicted hostname.
+  Relative references preserve portability; static files needing absolute URLs use the actual deployment URL
+  before validation and packaging. Preserve logical Guide IDs, external vocabulary/source IRIs, file and iframe
+  operation, shared production/preview identities and immutable release bytes. Record the compatibility
+  disposition of existing absolute IRIs before changing their generation.
+- **Discovery reflects effective hosting controls.** Correct sitemap locations and preview indexing; do not
+  describe a project-subdirectory robots file as the host-root policy or block discovery of `noindex`. The existing
+  root/API sitemap scope remains; separate indexable station/language pages are not implicitly added.
+- **Commands and audits meet their users where they work.** Allow authorized `/refresh <source>` from ordinary
+  issue threads as well as pull requests. Keep duplicate repair PR-only. After installation acceptance, request
+  and route the App's Issue Types/Issue Fields read permissions only where the audit needs them.
+- **Durable documentation is complete and current.** Review the whole human set, including every section of the
+  long design and content reference, against its maintained sources and implementation. Qualify reused vocabulary
+  terms, distinguish technical owners from content reviewers, use named Project links, make AI participation
+  guidance generic, expose the native release helper and add a review runbook and accurate workflow diagrams.
+  One-time migration instructions and rollout evidence stay with this change.
+- **Applied settings and recommendations stay distinct.** Reconcile the observed tag gates and status check,
+  retaining them until an explicit target decision. Explain and evaluate queue build concurrency separately from
+  merge batching; the suggested batch of ten is not approved. No numeric or protection change is inferred.
+
+The current-host address work is in scope even though adoption of `fair.eosc.cz` and DNS changes remain with
+#15/#32. These planning updates authorize no implementation, remote writes, release or archive.
 
 Validation: strict OpenSpec validation and `python scripts/check_all.py`; planted regressions for every new
 check and renderer; real producer/consumer paths with fake remote transport only; paired before/after timing
@@ -93,9 +127,13 @@ None.
   audit, digest monitoring, CI documentation and handoffs, crawler files; release currency and re-preparation,
   version input, the `/next/` release notice, channel deployment records, one-invocation release notes, the weekly
   schedule and manual health-watch parts, documentation types, runbooks and their review.
+  The follow-up adds issue-thread refresh, scoped organization audit reads, applied tag-policy reconciliation,
+  current-host discovery and complete durable-documentation acceptance.
 - `fair-guide/guide-knowledge-base`: dated statuses reported in the digest; local duplicate repair records
   complete provenance for a resolved reviewed person; paradata freshness decided from history in every comparison
   context, including the merge queue.
+  The follow-up extends serving-location addressing to Guide-owned vocabulary/profile metadata and requires
+  namespace-qualified mapping documentation without renaming logical record identities or external terms.
 
 ## Impact
 
@@ -112,10 +150,14 @@ None.
 - Docs: every human document (both READMEs, CONTRIBUTING, `docs/**`) reshaped by type, new `docs/runbooks/`, and a
   reviewed section map kept with this change; native rules and the new `fair-guide-release-notes` skill under
   `.agents/guide/` with regenerated mirrors.
-- GitHub settings (human-applied after approval): main and tag rulesets (the tag ruleset later requires `staging`),
-  `github-pages`, new `production` and `staging` environments, labels, Project #1 views and automations, App
-  installation permissions.
-- Upstream dependency: the delivered `aiscr-write-release-notes` allows model invocation before the native skill
-  can call it.
+- GitHub settings (human-applied after approval): main and tag rulesets, channel environments, labels, Guide
+  Project views and automations, and App installation permissions. The already applied tag gates need target
+  reconciliation and hosted evidence, not another instruction to add `staging`.
+- Upstream dependency: the invocation-policy change for delivered `aiscr-write-release-notes` has arrived and the
+  native helper exists locally; its real draft exercise remains open in 8.8.
 - Baseline: `main` at `f0c09f9`, which includes PR #102. Live repository, Project and run data read on
   23–24 October 2026. No new runtime dependency is intended.
+- Follow-up impact: runtime address/export consumers, JSON-LD contexts, vocabulary/profile generation,
+  deployment URL inputs, discovery output, refresh eligibility and replies, audit token routing and its reviewed
+  declarations, native documentation guidance and all affected human docs. Live observations and owner reports
+  of 26 October are recorded in design decisions 24-27; the existing staged implementation is not changed by capture.

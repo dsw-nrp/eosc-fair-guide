@@ -267,6 +267,7 @@ class WorkflowContracts(unittest.TestCase):
         self.assertIn("before implementation", shared)
         release = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
         release += (ROOT / "docs/deployment.md").read_text(encoding="utf-8")
+        release += (ROOT / "docs/runbooks/release.md").read_text(encoding="utf-8")
         for fact in (
             "content/guide.toml",
             "datePublished",
@@ -920,6 +921,8 @@ class WorkflowContracts(unittest.TestCase):
         for part in ("## Sources and paradata", "## Checks", "## AI assistance", "## Related issues"):
             self.assertIn(part, template)
         guide = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        guide += (ROOT / "docs/contribution-reference.md").read_text(encoding="utf-8")
+        guide += (ROOT / "docs/deployment.md").read_text(encoding="utf-8")
         for fact in (
             "independent eligible reviewer",
             "explicit acceptance before tagging",

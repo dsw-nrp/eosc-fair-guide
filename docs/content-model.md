@@ -1,9 +1,12 @@
+<!-- type: reference -->
 # Content model
+
+The [content how-to](how-to/edit-content.md) owns editing steps; this reference defines fields, identities and constraints.
 
 The guide's content is authored in small TOML files under `content/`. A generator,
 `scripts/build_crate.py`, turns them into the knowledge base `ro-crate-metadata.json` (RO-Crate 1.2) and the same
-crate as scripts the page loads: `assets/data/kb.js` with what every view needs, and `kb-standards.js`, `kb-fips.js`,
-`kb-pages.js`, `kb-questions.js`, `kb-model.js` and `kb-advice.js` with the standards' requirements and guidance and the details
+crate as scripts the page loads: `_site/assets/data/kb.js` with what every view needs, and `_site/assets/data/kb-standards.js`, `_site/assets/data/kb-fips.js`,
+`_site/assets/data/kb-pages.js`, `_site/assets/data/kb-questions.js`, `_site/assets/data/kb-model.js` and `_site/assets/data/kb-advice.js` with the standards' requirements and guidance and the details
 of provenance actions, the FIP Dashboard snapshot (profiles and resource records) and the KNAV catalogue's tools,
 page texts, check questions, the conceptual implementation model with the life-cycle models, and L1-L3 advice text, loaded when a view
 first needs them; `scripts/build_site.py` writes them with the page and the API into the site directory `_site/`,
@@ -238,6 +241,12 @@ entry as mentioned by the item; the page links the phrase quietly to the entry i
 checks refuse a reference that is not well formed, one to an unknown entry, and texts whose languages refer to
 different entries.
 
+### Advisory wording
+
+Guidance recommends actions and explains their reasons. "Must" (Czech "musí") is reserved for an actual NRP
+condition and names that condition. DOI is recommended; other persistent, resolvable and managed identifiers
+are acceptable. Automated evidence never certifies a person, FAIRness or NRP admission.
+
 ### Sources
 
 Every advice item and every check cites at least one clause ID in `sources`. Every clause names a published
@@ -330,8 +339,8 @@ A stage is a `DefinedTerm` `#lifecycle-<model>.<stage>` in its model's `DefinedT
 the Guide's translation), `quotedDefinition` (the Czech source's wording), `citation`, `license` (its sources'
 licences) and `nameTranslation`. A correspondence is a `CreativeWork` `#crosswalk-<stage>_<stage>` in `#lifecycle-crosswalk`,
 with `about` (both stages), `mappingBasis`, `citation` and `description` (the note). `#path` names the path's model
-in `isBasedOn`. The names of the path's stages stay in `kb.js`, because the rail groups the steps under them and the
-landing's journey lists them; their definitions, the other models and the crosswalk load with `kb-model.js`. The
+in `isBasedOn`. The names of the path's stages stay in `_site/assets/data/kb.js`, because the rail groups the steps under them and the
+landing's journey lists them; their definitions, the other models and the crosswalk load with `_site/assets/data/kb-model.js`. The
 stage a reader is in is derived from the step and never stored. The API publishes every model, stage and
 correspondence at `api/lifecycle/<identifier>.json`; the register and provenance use `lifecycle:<model>`,
 `<model>.<stage>` and `crosswalk:<stage>_<stage>`.
@@ -828,10 +837,10 @@ generated copy of `index.html`, so the page is the crate's HTML preview.
 
 `scripts/build_api.py`, part of the site build, makes a read-only API from the crate in the site directory: a
 list per collection (`api/<collection>.json`), a record per entity (`api/<collection>/<id>.json`), the JSON-LD
-context `api/context.jsonld`, `api/meta.json`, the OpenAPI 3.1 description `openapi.json`, and its documentation
+context `_site/api/context.jsonld`, `_site/api/meta.json`, the OpenAPI 3.1 description `openapi.json`, and its documentation
 `api/index.html`, which is the authored files in `api/` with the pinned Swagger UI package. In `build_crate.py`,
 `api_records` decides what is published and under which ID, and `API_FILES` names the API's files; the page reads
-both from `ui.js` for its links.
+both from `_site/assets/data/ui.js` for its links.
 
 | Collection | Records | Record ID |
 | --- | --- | --- |
@@ -867,7 +876,7 @@ English, the machines page lists every collection in the reader's language.
 The guide signposts itself (FAIR Signposting): `signposts` in `build_crate.py` is the one list of its links
 (`describedby` the crate, `service-desc` and `service-doc` the API, `license`, `type`, `author` the editors,
 `cite-as` the DOI once set, and `linkset`), written as link elements into the page head, as `linkset.json`
-(RFC 9264, anchored at `./`) and into `ui.js` for the page for machines. Every view offers its content as data
+(RFC 9264, anchored at `./`) and into `_site/assets/data/ui.js` for the page for machines. Every view offers its content as data
 under it where it has a record (a station, a principle, a check, the list of checks); a catalogue list saves as
 CSV with each entry's record and as data in the shape of the API's lists (`ItemList` with the context, each
 entry's record at the page's address). The whole crate is offered on the page for machines.
@@ -953,7 +962,7 @@ previous-report comparison produce JSON, a self-contained HTML dashboard and a C
 `check_all.py` adds actual job outcomes, including omitted jobs and build failures. Live availability
 of the full external estate remains unchecked; separate optional live jobs report their actual subset.
 Neither source coverage nor service availability is a FAIR verdict.
-The same report is published at `api/health.json`, linked from API metadata and described in OpenAPI.
+The same report is published at `_site/api/health.json`, linked from API metadata and described in OpenAPI.
 A build-only inventory states that no check run has completed; the runner publishes its final result
 only after a successful fresh build, leaving a stale site untouched when the build fails. This endpoint
 is a dated content/check-run snapshot. The FIP Dashboard's `/health` instead reports its running
@@ -978,7 +987,7 @@ Text references can name a lifecycle station as `[[station:<id>|phrase]]`, with 
 languages. Pages can be named in provenance results as `page:<id>`.
 
 The initial knowledge base keeps check descriptions and structural links. Question entities load from
-`kb-questions.js` for checks, the catalogue, the explorer, a station or a search; returning visitors with
+`_site/assets/data/kb-questions.js` for checks, the catalogue, the explorer, a station or a search; returning visitors with
 answers also load them before the landing renders its gaps. Full reconstruction still yields the crate.
 Original passages and their source bylines load together for checks, the catalogue, principles and
 individual stations. The guide's foundation citation keeps its authors in the initial data for the

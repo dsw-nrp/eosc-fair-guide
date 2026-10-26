@@ -1,6 +1,8 @@
+<!-- type: reference -->
 # Maintenance
 
-This page covers the recurring maintenance of the repository's settings and the triage of its issues in Project #1.
+Use [handle the digest](runbooks/handle-the-digest.md) for weekly triage and [audit settings](runbooks/audit-settings.md)
+for a settings difference. The [maintainer landing page](ci.md) lists all tasks. This reference covers the recurring maintenance of the repository's settings and the triage of its issues in Project #1.
 `CONTRIBUTING.md` covers contributions, and [deployment](deployment.md) covers releases.
 
 ## Triage
@@ -20,8 +22,7 @@ automatic writers of its fields; people set everything else.
 label, Priority (Urgent, High, Medium or Low) and Effort (High, Medium or Low), and a body in the planned-issue
 shape. Priority and Effort are organization issue fields that exist only on typed issues, so the type comes first.
 The planned-issue shape is what the delivered `/aiscr-plan-issue` workflow writes: it reworks a reporter's
-description into that shape and posts it after the maintainer approves it. Triage an issue in this order: type, area
-label, Priority and Effort, then shape it with `/aiscr-plan-issue`, then set Ready.
+description into that shape and posts it after the maintainer approves it. The [digest runbook](runbooks/handle-the-digest.md) gives the triage order and route to Ready.
 
 **Views.**
 
@@ -146,3 +147,49 @@ organization issue permissions, and so do the Project's workflows and the merge 
 as unavailable with their reason while it audits the rest; a maintainer's local run reads them. If that token cannot
 see the issues behind the Project's items, the audit reports the items as unavailable instead of judging them; if
 the App cannot issue it, Project #1 is unavailable with the step for the organization owner.
+
+
+## Maintenance digest
+
+The **Maintenance digest** is one open bot-authored issue labelled `guide-health` and `area:maintenance`.
+The [digest runbook](runbooks/handle-the-digest.md) owns triage, task promotion, limitations and rotation.
+The body is rebuilt from current observations. A comment records new, changed, recovered or expired findings;
+unchanged runs add no comment. Pinning is best effort, so the label search also finds the digest.
+
+| Section | Meaning |
+| --- | --- |
+| Needs triage | An untracked persistent finding, with response and provenance |
+| Known limitations | A reviewed explanation, evidence and review deadline, not a healthy result |
+| Source updates to review | Changed watched pages or snapshot inputs |
+| Candidates to review | Champion candidates; measurement approves no selection |
+| Stale statuses | Resource statuses past their freshness threshold |
+| Project and settings | Public-safe audit summary; private Project values stay out of the public artifact |
+
+Outcome classes distinguish broken (404/410), denied (401/403/451), rate-limited (429) and unavailable responses.
+A refusal proves no deletion or bot protection. A failed service is no result, never a failed FAIR requirement.
+Findings from imported records name their upstream source and refresh route. Link coverage rotates by the least
+recent attempt under the global and per-host budgets, respecting bounded `Retry-After` waits.
+
+Reviewed limitations live in `.github/health-watch.toml`, keyed to a target with an exact outcome, evidence,
+reviewer and review deadline. Expired, mismatched and orphaned limitations return to triage. **Track as task**
+prefills an issue with its stable finding marker. Tasks created by people with write access are adopted as
+sub-issues; a matching tracked outcome suppresses repeated triage, and a changed outcome returns for attention.
+A closed task keeps its disposition until the outcome changes.
+
+Closing a digest requests rotation: the next run opens a successor, links both ways and moves the open sub-issues.
+Two open bot digests refuse publication and name the conflict. The publisher resumes an interrupted rotation;
+each run marker prevents duplicate comments on retry.
+
+## Weekly jobs and stored state
+
+The weekly order is source refresh, Dependabot, then health watch. The configured schedules allow a six-hour
+start delay and full timeouts before Monday 06:00 UTC; this is a configured bound, not a GitHub scheduling guarantee.
+The first weekly watch in a month also remeasures Champion. A manual **Live health and source watch** run selects
+`audit`, `watch` or `both`; an audit-only run never changes an issue or digest.
+
+The watch job reads sources and writes an observation artifact without issue-write permission. A separate publisher
+combines it with the public-safe audit and updates the digest. Version-2 state is stored in a 90-day
+`health-watch-state` artifact read only from default-branch runs of this workflow in this repository;
+the legacy cache supplies a one-time migration fallback. Missing state starts a reported new baseline rather than
+inventing continuity. [Migration](runbooks/migrate-health-issues.md) preserves legacy issue observations and discussion
+and requires approval of the exact payload before any issue closes.

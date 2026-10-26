@@ -137,6 +137,32 @@ assigned to every action in a pull request.
 - **WHEN** the merge group is checked against its base
 - **THEN** each item is covered by its own pull request's action, and neither pull request needs a new end time
 
+### Requirement: Content addressed relative to the site
+
+The API's files SHALL name the guide's own entities and each other by references relative to the file that names
+them, never by the site's address, so the guide works unchanged when it moves to another address. Links that leave
+the page, such as the test references in an exported result, SHALL take the address the page is served from.
+Runtime links SHALL use the Guide window's location, including its channel path, rather than an iframe parent's
+location. Offline use SHALL retain usable relative/local references without inventing a public host or exposing
+filesystem paths as public identifiers.
+
+#### Scenario: The guide moves
+
+- **GIVEN** the guide published at a new address
+- **WHEN** a consumer follows a link in an API record, or the test reference in a result exported there
+- **THEN** it reaches the record at the new address, without the guide being rebuilt for it
+
+#### Scenario: The Guide is embedded at a repository subpath
+
+- **GIVEN** the Guide runs in an iframe under a different origin or path from its parent
+- **WHEN** a reader opens an API reference, share link or exported test reference
+- **THEN** the link follows the Guide's current origin and channel path, not the parent or a predicted public hostname
+
+#### Scenario: The Guide is opened from a local file
+
+- **WHEN** a reader navigates or exports references from `file://`
+- **THEN** local/relative behavior remains usable, no filesystem path is represented as a public identifier, and no external request is made on load
+
 ## ADDED Requirements
 
 ### Requirement: Local duplicate repair resolves a reviewed responsible person
@@ -161,3 +187,37 @@ SHALL never invent a person.
 
 - **WHEN** the local Git identity matches no reviewed person or more than one
 - **THEN** the command writes nothing, returns nonzero and names the `--person` option and the procedure for adding a reviewed identity
+
+### Requirement: Guide semantic publication addresses use the actual location
+
+Guide-owned vocabulary, profile and other absolute publication addresses SHALL derive from the actual deployment
+location before verification. Changing the serving address SHALL NOT silently change logical entity IDs or external
+vocabulary/source IRIs. Existing absolute Guide IRIs SHALL have an explicit compatibility disposition before
+implementation; preview and production SHALL retain the reviewed shared content identities.
+
+#### Scenario: A different origin or repository prefix is deployed
+
+- **WHEN** the build receives the actual publication location
+- **THEN** expanded JSON-LD and profile references resolve there, logical content IDs and exact external IRIs retain their identity, and any existing absolute Guide IRI has its reviewed compatibility treatment
+
+#### Scenario: Publication combines production and preview
+
+- **WHEN** verified production content is assembled beside a preview
+- **THEN** channel links remain distinct without silently rewriting shared content identity or already verified production metadata
+
+### Requirement: Documentation qualifies reused concepts by namespace
+
+Technical mappings SHALL identify reused concepts by their actual namespace/prefix and resolvable IRI, including
+every crate-mapping row. Documentation SHALL distinguish serialized aliases from expanded terms and identify
+Guide-owned terms consistently. Namespace explanations SHALL match emitted JSON-LD without renaming stored keys
+or normalizing the spelling or scheme of external IRIs.
+
+#### Scenario: A serialized key is an alias for another vocabulary
+
+- **WHEN** documentation explains `publisher`, `attributedTo`, test types or Guide terms
+- **THEN** their mappings agree with the emitted context, including `dcterms:publisher`, `prov:wasAttributedTo`, `ftr:Test` and the applicable `sio:`/Guide terms
+
+#### Scenario: A mapping uses an unknown prefix or the wrong vocabulary
+
+- **WHEN** documentation verification compares a planted mapping with expanded generated JSON-LD
+- **THEN** it rejects the mismatch and preserves the actual external term IRI exactly

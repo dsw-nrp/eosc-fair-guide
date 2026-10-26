@@ -1,3 +1,4 @@
+<!-- type: reference -->
 # Agent tooling
 
 Start here when choosing an AI-assisted workflow for the Guide. The task table below gives the appropriate
@@ -7,6 +8,9 @@ entry and its prerequisites; the vendor table explains how to invoke it in your 
 The authored rules and routing skill are under `.agents/guide/`; `surfaces.toml` owns their mirrors and the
 protection map. The generated inventory below describes the current receipt, including command, dispatch and
 script paths. Tool-generated OpenSpec wrappers are separate from that delivered set.
+
+For operational tasks use [maintainer tasks](ci.md); contributors start at
+[Contributing](../CONTRIBUTING.md). The [planning how-to](how-to/plan-a-change.md) owns the lifecycle steps.
 
 ## Planning and execution
 

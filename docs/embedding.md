@@ -1,3 +1,4 @@
+<!-- type: how-to -->
 # Embedding the Guide
 
 The Guide works in an ordinary iframe without a CMS plugin. For automatic height and shareable host addresses,
@@ -6,6 +7,18 @@ site's address; for eosc.cz the host origin must match one of the origins config
 `index.html`. `self` permits a host on the Guide's own HTTP(S) origin. Add other exact origins there and rebuild
 before embedding on another site. Paths, wildcards and opaque `file://` origins are not admitted to the protocol;
 plain file and iframe navigation still works without it.
+
+Ask the Guide maintainer to change its source `index.html` in a reviewed pull request if the published Guide does
+not yet admit your host. The Guide-side script uses `data-parent-origins`: whitespace-separated HTTP(S) origins,
+without a path or trailing slash; `self` means the Guide's own origin. For example:
+
+```html
+<script src="assets/js/embed.js"
+  data-parent-origins="self https://www.eosc.cz https://eosc.cz https://host.example.org" defer></script>
+```
+
+The maintainer [builds and checks](how-to/build-and-check.md) that source and delivers the change through the
+normal release route. Editing only the host page cannot change the published Guide's allowlist.
 
 ```html
 <iframe id="fair-guide" title="Průvodce FAIR daty"
@@ -24,23 +37,9 @@ Guide view. Copying the host address reopens that view, including its language, 
 This parameter changes with `history.replaceState`, so reading the Guide does not fill the host's Back history.
 Back or Forward to a host entry with a different view restores it. A host uses one managed Guide frame.
 
-## Message protocol v1
+## Verify the host
 
-| Direction | Message | Fields |
-| --- | --- | --- |
-| Host → Guide | `fair-guide:init` | `version: 1`, `view`: a Guide fragment beginning with `#/` |
-| Guide → Host | `fair-guide:state` | `version: 1`, `view`: current fragment, `height`: integer content height in CSS pixels |
-
-Both ends check the sending window, its exact origin, message type, version and field shape. The Guide accepts
-only its parent and an origin configured in its script; the host accepts only the selected iframe and its source
-origin. Replies name the accepted parent origin. The protocol sends no answers, stored evidence or credentials.
-A view explicitly containing a shared result remains a shared address; avoid including private information in it.
-Views are bounded to 2 MiB of characters (including encoded shared results) and height to 24–1000000 pixels.
-Invalid messages have no effect.
-
-Height is updated after content, navigation, disclosure, font/image loading and width changes. Measuring body
-content lets a short view shrink after a long one, without an iframe scrollbar or a resize feedback loop. Messages
-with unchanged view and height are suppressed. Without an admitted handshake the Guide sends nothing to its host.
-
-Run `npm run check:embed` after building. The local host fixture tests resizing in both directions, disclosure,
-view restoration, language and role changes, unrelated host URL state, and rejection of forged or foreign messages.
+Build the site and run `npm run check:embed`. In your host, open a long and short view, expand guidance, change
+language and role, then copy and reopen the host address. Confirm that height changes without a nested scrollbar
+and the view returns without losing the host's own URL state. Protocol fields and limits are in the
+[embedding reference](embedding-reference.md#message-protocol-v1).

@@ -1,3 +1,4 @@
+<!-- type: explanation -->
 # Design
 
 This document describes the current FAIR Data Guide and the principles that govern changes to it.
@@ -78,7 +79,7 @@ flowchart LR
   subgraph OUT["_site/ (not committed)"]
     direction TB
     CRATE["ro-crate-metadata.json"]
-    DATA["assets/data: kb.js, parts,<br/>language values, ui.js"]
+    DATA["data scripts: core, parts,<br/>language values and interface"]
     API["api/ and openapi.json"]
     HEALTH["health/ report"]
     PAGE["index.html and assets"]
@@ -489,7 +490,7 @@ exception named in the public statement; the accessible machines page lists the 
 fresh provenance, duplicates, metadata, unit/browser contracts, accessibility, API, diagrams, licensing,
 assets and crate validators. Opt-in live checks stay separate. Health distinguishes passed, failed,
 blocked and unrun jobs; offline success establishes no live availability. Initial builds are inventory;
-completed runs expose their actual revision and outcomes through the dashboard and `api/health.json`.
+completed runs expose their actual revision and outcomes through the dashboard and `_site/api/health.json`.
 Repository hygiene scans the guide's own text and the delivered tooling: a machine-specific path, a hub-internal
 name or a private planning reference fails with its file and line, while the repository's own relative runtime
 scratch convention does not. That scratch area is a declared runtime path, so hand-offs stay outside ownership and

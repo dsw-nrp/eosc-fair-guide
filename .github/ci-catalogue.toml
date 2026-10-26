@@ -1,4 +1,4 @@
-# Reviewed human entries for the workflow catalogue in docs/ci.md. `python scripts/ci_catalogue.py` joins them with
+# Reviewed human entries for the workflow catalogue in docs/ci-reference.md. `python scripts/ci_catalogue.py` joins them with
 # what the workflow files declare (triggers, permissions, concurrency, artifacts and retention); `--check` fails on a
 # workflow, uploaded artifact or write permission without its entry, on an entry nothing uses, and on a stale page.
 #
@@ -36,7 +36,7 @@ rerun = "**Run workflow** on its Actions page."
 purpose = "Prepares what Pages may publish: the checked staging site of a default-branch push, and a release tag's production artifact."
 entry = "A merge to `main`, or Tag release pushing a tag."
 next = "Publish the verified site follows automatically; a new release tag waits for a maintainer's approval of the `production` environment."
-rerun = "**Re-run failed jobs**; a newer push replaces a staging run."
+rerun = "For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, use that tag run's **Re-run failed jobs**."
 
 [workflow."fix-duplicates.yml"]
 purpose = "Applies the duplicate check's safe link suggestions to a pull request on a maintainer's `/fix-duplicates`."
@@ -98,7 +98,7 @@ rerun = "Re-run the Release run's failed jobs."
 purpose = "Deploys the newest checked staging site and the newest approved release to Pages together, and records each live channel."
 entry = "A completed Deploy the verified site run."
 next = "Nobody for staging; after a release tag, Release follows."
-rerun = "Re-run the deployment run, or this run's failed jobs."
+rerun = "For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, rerun that tag run's failed jobs. A publication failure can retry this run's failed jobs."
 
 [workflow."publish.yml".writes]
 "publish.deployments" = "Records the `staging` and `production` channels once each is live."

@@ -1,3 +1,4 @@
+<!-- type: reference -->
 # Software practice in this guide
 
 This evidence map is a worked example of software assessment. Evaluate the files and published artifacts of
@@ -23,7 +24,7 @@ separately from the data FAIR definitions.
 | FRSM-17 | Git history, docs/design.md and content/provenance.toml retain changes, responsibility and reasoning. |
 
 [CODE](https://doi.org/10.1038/s41597-026-06705-6) supports gradual adoption: document a small example,
-run it, and make collaboration practical. From a fresh checkout, `python scripts/build_site.py` creates
+run it, and make collaboration practical. The [build how-to](how-to/build-and-check.md) sets up the checkout. `python scripts/build_site.py` creates
 `_site/index.html`, the knowledge-base crate and static API. Opening that page should show the testing
 notice and the lifecycle entry; `python scripts/check_content.py` should report no errors. Python 3.11 or
 later suffices for this build. Install the pinned development dependencies to run the full test suite.

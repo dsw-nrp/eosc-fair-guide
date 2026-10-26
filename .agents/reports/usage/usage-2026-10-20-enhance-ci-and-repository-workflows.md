@@ -683,3 +683,98 @@
 - **Close-out:** 58 of 78 tasks are done. The digest workflow first runs hosted after merge, with 5.8/5.9's
   audit-only run and 8.7's ruleset switch. 6.10 (legacy issue migration) and 6.11 (digest runbook) follow, then
   groups 7 and 10, 8.8 and group 11.
+
+### Documentation wave and independent reader review
+
+- **When:** 2026-10-25
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Resumed Claude's approved apply scope on `agents/claude/ci-workflows-replan`. Completed the human
+  documentation reshape: three audience entry routes, task runbooks, contributor how-tos, retained detailed
+  references and a 148-section map. Registered the documentation check in local, CPU and quick inventories;
+  added planted regressions for structure, filenames, links, empty steps and missing repeated sections. Updated
+  native content/contract examples and documentation/changelog rules, then regenerated the vendor mirrors.
+  Three fresh audience readers found and rechecked repairs for discoverability, embedding configuration, advisory
+  wording, local repair identity/recovery, deployment retries, review fallback and reference/procedure separation.
+- **Impacted:** Both READMEs, CONTRIBUTING, human docs and new how-tos/runbooks; `scripts/check_docs.py`,
+  `check_all.py`, `check_ci.py`, `ci_catalogue.py`; the authored CI catalogue; native rules and generated mirrors;
+  tests; the change's section map, review receipt, hand-off status and tasks; the single digest migration line in
+  `[Unreleased]`. Delivered files and delivered CODEX sections retain their receipt integrity.
+- **Subagents used:** `default` agents `docs_reader_review`, `docs_contributor_review`, `docs_maintainer_review`,
+  each without the writing conversation; all final passes returned `NO_FINDINGS`.
+- **MCP servers used:** GitHub (read-only issue #83/#84 reconciliation and PR recovery).
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor`; approved design decision 23 and tasks
+  7.2, 7.5 and 10.1-10.4. No new implementation scope or hosted write approval was inferred.
+- **Verification:** The documentation check and section map pass for 37 documents and 148 former sections;
+  15 documentation tests, 8 catalogue tests and 35 workflow tests pass. Native generation, ownership and
+  sibling-delivery checks pass. The first integrated run passed 35/36 checks: the unit suite caught introductory
+  tooling links and source-name coverage lost from the READMEs. Those contracts were restored without weakening
+  their tests; 20 tooling tests (one platform skip), 5 source-registry tests and the reader re-review pass.
+  A further planted directory typo is caught by the documentation checker. The corrected full close-out passed 36/36 checks in 150.0 seconds, including all browser/API groups, accessible
+  diagrams and the three crate profiles. All 656 discovered unit tests are accounted for, with one platform skip.
+  The tracker is 71/78 complete; the seven hosted/approval-dependent tasks remain open.
+- **Corrections:** Independent readers caught missing or inaccessible information rather than accepting the
+  structure check alone. Their eight finding groups and repairs are in the change's `documentation-review.md`.
+- **Close-out:** Documentation is locally accepted by all three audiences. Hosted audit, first-digest verification,
+  legacy migration, tag-ruleset switch, draft-helper exercise and release rehearsal remain owned deferrals in
+  `handoff-status.md`; their tasks stay unchecked. No issue state, setting, release or archive was changed.
+
+
+### Follow-up planning capture
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Used the maintainer's explicit task-capture instruction to extend the existing
+  `enhance-ci-and-repository-workflows` plan coherently across proposal, design, both capability deltas and tasks.
+  Added 22 tasks covering serving-location addresses and effective indexing, issue-origin refresh, narrowly
+  scoped organization audit reads, settings decisions, complete durable-documentation verification and renewed
+  integrated acceptance. Reconciled remaining hand-offs with already applied owner actions and the delivered
+  native release helper; retained all previous task states and historical receipts.
+- **Impacted:** Only the five existing OpenSpec planning artifacts and this rolling usage entry. The staged
+  implementation, prior review receipts, durable docs and delivered assets were not edited by this capture.
+- **Subagents used:** none during this planning capture.
+- **MCP servers used:** none during this planning capture; dated read-only observations from the preceding
+  exploration are retained as such in the design.
+- **Workflow context used:** `openspec-update-change` for the approved planning capture following
+  `openspec-explore`; `fair-guide-editor` and delivered planning/usage rules for repository boundaries.
+- **Verification:** Strict change validation and `npm run openspec:validate` pass (6/6 items). Public-content
+  checks report no findings and all 10 usage entries pass before this append. Direct integrity checks confirm
+  exactly 22 new unchecked tasks, all 78 earlier task states unchanged, 71/100 complete, retained baseline
+  scenario names and ADDED requirement descriptions within 500 characters. `git diff --check` passes; the staged
+  index matches its pre-capture SHA256. Final usage/public-content checks follow this append. Implementation
+  tests were not rerun for planning-only edits; the 25 October full-suite receipt remains historical evidence.
+- **Corrections:** The maintainer chose indexing the current GitHub Pages address and clarified that all
+  Guide-owned addresses should follow the actual serving location rather than a strictly predicted base URL.
+  The plan covers runtime links, API/export consumers and semantic/static publication metadata together,
+  preserving logical IDs, exact external IRIs, offline/iframe use, shared channel identities and verified bytes.
+- **Close-out:** Planning capture only: 71/100 tasks complete, 29 remaining including seven prior hosted/approval
+  gates. Tag-deployment selection and queue tuning remain explicit decisions with current protections and values
+  retained. Implementation resumes through approved apply. No staging, commit, push, remote mutation, release,
+  archival or memory update was performed.
+
+
+### Authorized checkpoint commit and apply resumption
+
+- **When:** 2026-10-26
+- **Agent / runtime:** Codex
+- **Model / backend:** GPT-6; exact backend model identifier not exposed by the runtime.
+- **What:** Prepared the maintainer-requested local checkpoint of the accumulated documentation wave,
+  follow-up plan and owner-ordered upstream tooling delivery, before resuming approved apply of the same change.
+- **Impacted:** Existing staged work, including delivery source `79abd13a2bda8ad6d83de4001bd283c6b087d6dc`;
+  no delivered copy was edited by this session. The existing branch is retained.
+- **Subagents used:** none at this checkpoint.
+- **MCP servers used:** none at this checkpoint.
+- **Workflow context used:** `openspec-apply-change`, `fair-guide-editor` and delivered planning/usage rules;
+  the fresh explicit user instruction authorizes implementation of the captured follow-up after the commit.
+- **Verification:** Strict OpenSpec validation passes 6/6 and staged whitespace checks pass. Ownership has no
+  findings. Native generation reports seven stale outputs after the delivery and authored rule changes. The
+  local delivery checker reports one entry-section hash mismatch because the new stamp is inside the SPDX
+  prologue; removing only that receipt line yields the manifest's exact section hash. Both compatibility findings
+  are recorded for repair in the Guide-owned consumer and native regeneration after the checkpoint; this is not
+  a claim that the current implementation has passed fresh full acceptance.
+- **Corrections:** The maintainer confirmed the upstream bundle was delivered on their order and explicitly
+  requested a local commit followed by apply. The delivered layer remains read-only.
+- **Close-out:** Checkpoint scope is concrete and staged; 71/100 tasks remain complete. Commit is local only.
+  Resume implementation with compatibility repair and the pending approved tasks; hosted settings, migration,
+  publication and archival retain their separate gates.

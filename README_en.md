@@ -1,184 +1,48 @@
+<!-- type: landing -->
 # FAIR Data Guide (EOSC CZ)
 
 [![DOI](https://zenodo.org/badge/1409358632.svg)](https://zenodo.org/badge/latestdoi/1409358632) [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/dsw-nrp/eosc-fair-guide)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/dsw-nrp/eosc-fair-guide) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-An interactive guide that takes researchers, data stewards, repository administrators and research
-communities along the path to FAIR data: from the project plan through choosing a repository, describing and
-licensing the data, to publication, citation and checking. It builds on the *Analysis and proposal of
-procedures for implementing the FAIR principles in NRP/NDI* (version 1.2, NRP KA 5.1,
-<https://doi.org/10.71495/5dv6-v116>) and brings it up to date with the current state of national services.
+An interactive guide for researchers, data stewards, repository administrators and research communities: from
+planning data through choosing a repository, describing and licensing data, to publication, citation and checking.
+It builds on the *Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI*
+(version 1.2, NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>).
 
-This file is the operational README for maintainers and agents. The Czech [README.md](README.md) is the
-human-facing overview.
+[Česky](README.md) · **[Open the Guide](https://fair.eosc.cz/)**
 
-**Using an AI assistant:** Start with the [agent tooling guide](docs/agent-tooling.md) to choose a tool and
-workflow. [AGENTS.md](AGENTS.md) supplies the runtime instructions the assistant must read.
+AI-assisted contributions start with [agent tooling](docs/agent-tooling.md); [AGENTS.md](AGENTS.md) is the
+assistant's runtime entry.
 
-Behaviour, data/API contract, stored-format, CI and governance changes use the repository-owned
-[OpenSpec contracts](openspec/specs/) and an approved change under `openspec/changes/`. The pinned CLI is
-`npm run openspec:cli -- <command>` after `npm ci`; `npm run openspec:validate` validates all contracts and changes.
-Routine wording/formatting corrections and source refreshes use ordinary editing checks. Follow
-[CONTRIBUTING.md](CONTRIBUTING.md) for contribution procedures and the [deployment guidance](docs/deployment.md)
-for publication and preview rules. Planned changes and their status belong in issues and OpenSpec changes.
+## What the Guide offers
 
-## What the guide offers
+- A path through the seven RDMkit life-cycle stages and a final check, through four role lenses.
+- One action first, with steps, reasons and sources on demand (L0–L3).
+- A FAIR principle explorer, a dated resource and repository finder, and a layers-and-seams model.
+- Separate NRP-condition and FAIR-maturity self-checks, without an overall score.
+- Optional discovery, FAIR Champion, FAIR-Checker and local F-UJI reports, with versions, scope and coverage;
+  your own answers stay yours.
 
-- **A path along the research data life cycle:** the steps follow the seven stages of the RDMkit life cycle
-  (planning, collecting, processing and analysing data, preserving, sharing and reuse) and end with a check. It
-  starts where the user is now.
-- **Four lenses on the same path:** researcher, data steward, repository administrator or curator,
-  community and FIP.
-- **Detail on demand:** one sentence and one concrete action first; steps, reasons and sources on request
-  (levels L0–L3).
-- **Principle explorer:** every requirement of the analysis under its FAIR principle.
-- **Self-check:** the NRP conditions and FAIR maturity kept apart, with no overall score.
-- **Evaluations the reader starts:** quick discovery from public records, the curated FAIR Champion tests,
-  FAIR-Checker's metrics and a locally loaded F-UJI report, each with its scope, versions and coverage; a
-  reader's own answers always stay theirs.
-- **Resource and repository finder** with service status and an as-of date.
-- **Layers and seams of FAIR implementation:** a model overview and catalogue associations connect guidance
-  to responsibilities and information transfers, including hand-offs within a layer.
+The [FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) owns community profiles and enabling-resource records;
+the Guide explains what to do and why. Browser access and dated snapshot use are described in
+[About the Guide](docs/about.md#the-guide-and-the-fip-dashboard).
 
-### The guide and the FIP Dashboard
+Weekly snapshot proposals cover Heslář, re3data, FIP Dashboard, NKR, KNAV, FAIRsharing and DataCite;
+each changed source is reviewed through a pull request.
 
-The [FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) is the national catalogue of FAIR-enabling resources and
-community profiles; it owns their records and answers "which resources and profiles". The guide answers "what to
-do and why" and refers to the dashboard's records by their dashboard IDs instead of copying them. The guide's FIP
-completeness check is pre-filled from a dashboard profile, or from a published FIP nanopublication when a profile is
-not in the dashboard.
+## Use or contribute
 
-The dashboard's API does not yet admit the guide's origin from a browser, so the guide reads a dated snapshot of its
-profiles and resources and says so wherever they are used, with the dashboard's own disclaimer. A scheduled job
-proposes a snapshot refresh by pull request when the dashboard's data change; once the API admits the guide's origin,
-the connector setting `browserAccess` lets the page read it live and keep the snapshot as its fallback. See
-[the catalogue and infrastructure design](docs/design.md#catalogue-and-infrastructure) and
-[snapshot refresh](docs/design.md#snapshot-refresh-and-source-watch).
-
-## Running the guide
-
-On first use, install the pinned Node.js dependencies for the bundled API documentation and the
-Chromium the page checks use — into the repository's own cache, where the checks look for it. Build
-with Python 3.11 or later, then open `_site/index.html`:
-
-```bash
-npm ci
-npm run browsers
-python scripts/build_site.py
-```
-
-Browser installation and checks use `.cache/ms-playwright` automatically on Windows and Unix.
-Set `PLAYWRIGHT_BROWSERS_PATH` only to use another installation; the development container supplies its own override.
-
-The generator uses the Python standard library; adapted SVG figures are local assets.
-The built page works offline; only the live checks need the
-internet. It can be embedded in another site (iframe) or hosted on its own.
-The [host snippet and message protocol](docs/embedding.md) provide automatic frame height and shareable host addresses.
-
-For a local server, which some browsers need for clipboard features:
-
-```bash
-python scripts/serve.py --build
-```
-
-For a prepared environment, reopen the checkout in its [development container](CONTRIBUTING.md#development-container).
-It installs Python, Node.js, the check tools and Chromium; run `python scripts/check_all.py --jobs 4` directly.
-
-The guide documents its own research software practice. The first official prerelease will establish
-the baseline; archiving the public code and any OpenSSF self-certification remain release steps.
-
-## Repository layout
-
-| Path | Content |
+| Goal | Start here |
 | --- | --- |
-| `content/` | Content sources in TOML: stations, advice, checks, resources, ledger, glossary, callouts, provenance |
-| `scripts/` | Crate generator, API build and content checks (Python standard library only) |
-| `tests/` | Tests of the scripts, with a minimal content fixture |
-| `profile/` | The guide's RO-Crate profile (SHACL) for the crate's structure |
-| `index.html` | The guide page, with empty blocks the build fills |
-| `_site/` | The built site, not committed: the page with its data scripts, the knowledge base as an RO-Crate 1.2 and its preview, and the API |
-| `assets/` | Styles, scripts, images and rendered diagrams |
-| `api/` | The API's documentation page; the build makes the API itself |
-| `assets/diagrams/` | Bilingual adaptations of the approved manuscript figures |
-| `docs/` | Design and decisions (`design.md`), content model (`content-model.md`) |
-| `.github/` | CI workflows, templates and code owners |
+| Open a local copy or run checks | [Build and check](docs/how-to/build-and-check.md) |
+| Put the Guide on another website | [Embed the Guide](docs/embedding.md) |
+| Improve content or code | [Contributing](CONTRIBUTING.md) |
+| Merge, release or maintain it | [Maintainer tasks](docs/ci.md) |
+| Understand the data and application | [Content model](docs/content-model.md), [design](docs/design.md) and [repository layout](docs/repository-reference.md) |
+| Examine the Guide's own practice | [Software evidence](docs/software-practice.md) and [model example](docs/model-practice.md) |
 
-The [software practice example](docs/software-practice.md) maps the app's evidence and release verification
-steps to its software guidance.
-
-The [model practice example](docs/model-practice.md) follows an actual requirement, question, test and
-recorded revision. The conceptual model cites its manuscript as in preparation; assessment requirements
-retain their published sources.
-
-## Editing content
-
-Content is authored in `content/*.toml`, never in what the build makes. The rules
-are in [docs/content-model.md](docs/content-model.md); in short:
-
-- every user-facing text exists in Czech and English;
-- every advice item and check cites at least one clause of the ledger, and every ledger clause points to a
-  published source;
-- every content change adds a provenance action naming the person, the tool (including any AI model) and the
-  sources;
-- statuses use the five-level vocabulary and carry an as-of date.
-
-After editing, build the site and check it; then open `_site/index.html`:
-
-```bash
-python scripts/build_site.py
-python scripts/check_content.py
-```
-
-To run every check at once, use `python scripts/check_all.py` (after `npm ci` and installing the tools
-from `requirements-dev.txt`).
-The run writes a health dashboard (`index.html`), JSON inventory and Markdown summary to
-`.cache/health/`, including check outcomes and original-source coverage for questions, station advice
-and clauses. CI publishes these as a run artifact and step summary. `--live` adds external service
-checks; an offline run explicitly leaves live availability unchecked. To compare two saved reports,
-use `--previous-report path/to/health.json`.
-The built API also exposes the report at `api/health.json`, documented in `openapi.json`. A build alone
-reports no completed check run; the check runner publishes its actual results at that endpoint.
-The site also publishes the English dashboard at `health/index.html`, linked
-from the footer and Data for machines. The JSON and dashboard receive the same check-run results.
-
-To see the guide with its API as it will be published, serve it on your computer (the API documentation needs
-`npm ci` once), then open <http://127.0.0.1:8000/> and <http://127.0.0.1:8000/api/>:
-
-```bash
-python scripts/serve.py --build
-```
-
-Agents and maintainers who edit with an AI assistant use the `fair-guide-editor` skill
-(`.agents/skills/fair-guide-editor/SKILL.md`); the agent guide is [AGENTS.md](AGENTS.md).
-The [agent tooling guide](docs/agent-tooling.md) lists installed tools, native source ownership and validation.
-
-## Contributing
-
-Pull requests into `main` are the default delivery path. Explicitly authorized maintainer direct commits also
-remain releasable after the same metadata and release checks; this grants agents no permission to push directly
-or bypass branch protection. CI checks structure, content, page integrity,
-accessibility, links, diagrams and repository hygiene; a code owner reviews correctness and tone. See
-[CONTRIBUTING.md](CONTRIBUTING.md).
-
-The PR check workflow runs with read-only permissions. A separate trusted workflow posts the bilingual
-review comment and links to its checks and preview artifacts. It reads only bounded review data from
-the completed run, uses default-branch code and checks the current PR head before posting.
-
-The [Champion selection record](docs/champion/selection.md) explains test scope and the dated health
-measurement. To remeasure all reviewed candidates and the core after building the site, run
-`node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. This does not edit the selection.
-
-Two scheduled workflows are prepared and run once they are on the default branch. `source-refresh.yml`
-refreshes the Heslář, re3data, FIP Dashboard, NKR, KNAV, FAIRsharing and DataCite snapshots weekly, keeps a
-snapshot unchanged when a response fails validation and proposes each changed source as its own pull request
-through the repository's GitHub App.
-`health-watch.yml` checks links, services, stale dates and the EOSC CZ pages the guide depends on weekly, remeasures
-FAIR Champion tests monthly and keeps one maintenance digest issue up to date. Neither commits or merges; see
-[deployment configuration](docs/deployment.md#release-preparation-and-tagging) for the App settings.
-
-The release version comes from [content/guide.toml](content/guide.toml). See
-[release preparation and tagging](docs/deployment.md#release-preparation-and-tagging). Each tagged release also
-publishes a container image of the verified site to `ghcr.io/dsw-nrp/eosc-fair-guide`; the footer shows the build's
-version, commit and date, and marks an untagged build as the `next` preview.
+The built page works offline, from a local file, in an iframe or on a static host. Only user-started live checks
+need the internet. Content sources are TOML; the build creates the crate, page and static API in `_site/`.
+Production comes from verified releases; `/next/` is the checked default-branch preview.
 
 ## Licence
 

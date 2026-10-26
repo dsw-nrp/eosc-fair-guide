@@ -7,6 +7,10 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: maintenance observations move to one **Maintenance digest**; follow it instead of the per-finding `guide-health` issues.
+
 ## [1.0.0-alpha.3] - 2026-10-25
 
 ### Changed

@@ -1,179 +1,47 @@
+<!-- type: landing -->
 # Průvodce FAIR daty (EOSC CZ)
 
 [![DOI](https://zenodo.org/badge/1409358632.svg)](https://zenodo.org/badge/latestdoi/1409358632) [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/dsw-nrp/eosc-fair-guide)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/dsw-nrp/eosc-fair-guide) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-Interaktivní průvodce, který provede výzkumníky, datové stewardy, správce repozitářů a oborové komunity
-cestou k FAIR datům: od plánu projektu přes výběr repozitáře, popis a licenci až po publikaci, citaci a
-kontrolu. Vychází z *Analýzy a návrhu postupů k naplňování FAIR principů v rámci NRP/NDI* (verze 1.2,
-NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>) a doplňuje ji o současný stav národních služeb.
+Interaktivní průvodce pro výzkumníky, datové stewardy, správce repozitářů a výzkumné komunity: od plánování dat přes
+výběr repozitáře, popis a licencování až po zveřejnění, citování a kontrolu. Vychází z *Analýzy a návrhu postupů pro
+implementaci FAIR principů v NRP/NDI* (verze 1.2, NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>).
 
-English version: [README_en.md](README_en.md).
+[English](README_en.md) · **[Otevřít Průvodce](https://fair.eosc.cz/)**
 
-**Práce s AI:** Začněte v [průvodci nástroji pro agenty](docs/agent-tooling.md), který pomůže vybrat nástroj
-a postup. [AGENTS.md](AGENTS.md) obsahuje pokyny, které má načíst samotný agent.
+Příspěvky s AI začínají u [nástrojů pro agenty](docs/agent-tooling.md); [AGENTS.md](AGENTS.md) je vstupní soubor
+s instrukcemi pro běh asistenta.
 
-Změny chování, datových a API smluv, uložených formátů, CI a pravidel práce se plánují pomocí OpenSpec přímo
-v tomto repozitáři. Drobné jazykové a formátovací opravy a běžné obnovy zdrojů používají obvyklé kontroly.
-Postup přispívání je v [CONTRIBUTING.md](CONTRIBUTING.md); pravidla zveřejnění a náhledu popisuje
-[dokumentace nasazení](docs/deployment.md). Plánované změny a jejich stav patří do issues a změn OpenSpec.
+## Co Průvodce nabízí
 
-## Co průvodce nabízí
+- Cestu sedmi fázemi životního cyklu RDMkit a závěrečnou kontrolu, pohledem čtyř rolí.
+- Nejdřív jednu akci, kroky, důvody a zdroje až na vyžádání (L0–L3).
+- Prohlížeč principů FAIR, přehled zdrojů a repozitářů s datovanými stavy a model vrstev a rozhraní.
+- Oddělenou sebekontrolu podmínek NRP a vyspělosti FAIR, bez celkového skóre.
+- Volitelné dohledání záznamů, FAIR Champion, FAIR-Checker a místní zprávy F-UJI s verzí, rozsahem a pokrytím;
+  vaše vlastní odpovědi zůstávají vaše.
 
-- **Cesta po životním cyklu výzkumných dat:** zastávky sledují sedm fází životního cyklu podle RDMkit (plánování,
-  vznik, zpracování a analýza dat, uchovávání, sdílení a opakované užití) a končí kontrolou. Začíná tam, kde se
-  právě nacházíte.
-- **Čtyři pohledy na stejnou cestu:** výzkumník, data steward, správce repozitáře či kurátor, komunita a FIP.
-- **Podrobnosti na vyžádání:** nejdřív jedna věta a jeden konkrétní krok, postup, zdůvodnění a zdroje až
-  po rozbalení (úrovně L0–L3).
-- **Průzkumník principů:** každý požadavek analýzy pod svým FAIR principem.
-- **Sebehodnocení:** podmínky NRP a zralost FAIR zvlášť, bez celkového skóre.
-- **Hodnocení, která spouštíte sami:** rychlé vyhledání ve veřejných záznamech, vybrané testy FAIR Champion,
-  metriky FAIR-Checkeru a zpráva F-UJI načtená přímo v prohlížeči, vždy s rozsahem, verzemi a pokrytím; vaše
-  vlastní odpovědi zůstávají vaše.
-- **Katalog zdrojů a repozitářů** se stavem služby a datem ověření.
-- **Vrstvy a návaznosti FAIR implementace:** přehled modelu a souvislosti v katalogu propojují pokyny
-  s odpovědnostmi a předáváním informací, včetně předání uvnitř jedné vrstvy.
+[FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) spravuje profily komunit a záznamy podpůrných zdrojů;
+Průvodce vysvětluje, co dělat a proč. Přístup z prohlížeče a použití datovaných snímků popisuje
+[vysvětlení Průvodce](docs/about.md#the-guide-and-the-fip-dashboard).
 
-### Průvodce a FIP Dashboard
+Týdenní návrhy obnovy snímků pokrývají Heslář, re3data, FIP Dashboard, NKR, KNAV, FAIRsharing a DataCite;
+každá změna zdroje prochází kontrolou v pull requestu.
 
-[FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) je národní katalog zdrojů umožňujících FAIR a komunitních
-profilů; jejich záznamy spravuje on a odpovídá na otázku „které zdroje a profily“. Průvodce odpovídá na otázku „co
-udělat a proč“ a na záznamy dashboardu odkazuje jejich identifikátory, místo aby je kopíroval. Kontrolu úplnosti FIP
-průvodce předvyplní z profilu v dashboardu, nebo z publikované nanopublikace FIP, pokud profil v dashboardu není.
+## Použití a příspěvky
 
-API dashboardu zatím z prohlížeče nepřijímá požadavky z adresy průvodce, proto průvodce čte datovaný snímek jeho
-profilů a zdrojů a všude, kde je používá, to uvádí i s upozorněním samotného dashboardu. Plánovaná úloha navrhne
-obnovení snímku pull requestem, když se data dashboardu změní. Až API adresu průvodce přijme, nastavení konektoru
-`browserAccess` umožní číst je živě a snímek ponechat jako zálohu. Podrobnosti popisuje
-[návrh katalogu a infrastruktury](docs/design.md#catalogue-and-infrastructure) a
-[obnovování snímků](docs/design.md#snapshot-refresh-and-source-watch).
-
-## Jak průvodce spustit
-
-Při prvním spuštění nainstalujte připnuté závislosti Node.js pro přibalenou dokumentaci API a Chromium,
-které používají kontroly stránky — do vlastní mezipaměti repozitáře, kde je kontroly hledají. S Pythonem
-3.11 nebo novějším pak sestavte web a otevřete `_site/index.html`:
-
-```bash
-npm ci
-npm run browsers
-python scripts/build_site.py
-```
-
-Instalace i kontroly automaticky používají `.cache/ms-playwright` ve Windows i Unixu.
-Proměnnou `PLAYWRIGHT_BROWSERS_PATH` nastavte jen pro jinou instalaci; vývojový kontejner má vlastní nastavení.
-
-Generátor používá standardní knihovnu Pythonu; upravené obrázky SVG jsou místní soubory.
-Hotová stránka funguje i bez připojení; jen živé
-kontroly potřebují internet. Stránku lze vložit do jiného webu (iframe) nebo zveřejnit samostatně.
-Pro automatickou výšku rámce a sdílení adresy hostitelské stránky slouží [ukázka vložení a protokol zpráv](docs/embedding.md).
-
-Připravené prostředí nabízí [vývojový kontejner](CONTRIBUTING.md#development-container). Po otevření repozitáře
-v kontejneru jsou Python, Node.js, kontrolní nástroje i Chromium nainstalované; kontroly spustíte příkazem
-`python scripts/check_all.py --jobs 4`.
-
-Pro místní server, který některé prohlížeče potřebují pro práci se schránkou:
-
-```bash
-python scripts/serve.py --build
-```
-
-Průvodce ukazuje vlastní praxi pro výzkumný software. Výchozím bodem bude první oficiální předběžné
-vydání; archivace veřejného kódu a případná sebecertifikace OpenSSF zatím čekají na provedení.
-
-## Struktura repozitáře
-
-| Cesta | Obsah |
+| Cíl | Kde začít |
 | --- | --- |
-| `content/` | Obsah v TOML: zastávky, rady, kontroly, zdroje, registr požadavků, slovníček, upozornění a provenience |
-| `scripts/` | Generátor znalostní báze, sestavení API a kontroly obsahu (Python, jen standardní knihovna) |
-| `tests/` | Testy skriptů s minimální ukázkou obsahu |
-| `profile/` | Profil RO-Crate (SHACL) pro kontrolu struktury znalostní báze |
-| `index.html` | Stránka průvodce s prázdnými bloky, které doplní sestavení |
-| `_site/` | Sestavený web, který se necommituje: stránka s datovými skripty, znalostní báze jako RO-Crate 1.2 s náhledem a API |
-| `assets/` | Styly, skripty, obrázky a vykreslené diagramy |
-| `api/` | Stránka dokumentace API; samotné API vytvoří sestavení |
-| `assets/diagrams/` | Dvojjazyčné úpravy schválených obrázků rukopisu |
-| `docs/` | Návrh a rozhodnutí (`design.md`), model obsahu (`content-model.md`) |
-| `.github/` | CI, šablony a odpovědní recenzenti |
+| Otevřít místní kopii nebo spustit kontroly | [Sestavení a kontroly](docs/how-to/build-and-check.md) |
+| Vložit Průvodce na jiný web | [Vložení Průvodce](docs/embedding.md) |
+| Vylepšit obsah nebo kód | [Přispívání](CONTRIBUTING.md) |
+| Sloučit změnu, vydat verzi nebo provést údržbu | [Úkoly správce](docs/ci.md) |
+| Porozumět datům a aplikaci | [Obsahový model](docs/content-model.md), [návrh](docs/design.md) a [struktura repozitáře](docs/repository-reference.md) |
+| Posoudit praxi samotného Průvodce | [Softwarové doklady](docs/software-practice.md) a [příklad modelu](docs/model-practice.md) |
 
-[Příklad softwarové praxe](docs/software-practice.md) přiřazuje podklady aplikace a ověřované doklady vydání
-k příslušným softwarovým pokynům.
-
-[Příklad použití modelu](docs/model-practice.md) sleduje skutečný požadavek, otázku, test a záznam revize.
-Koncepční model odkazuje na rukopis v přípravě; požadavky kontrol si zachovávají své publikované zdroje.
-
-## Jak upravovat obsah
-
-Obsah se píše v souborech TOML ve složce `content/`, nikdy v tom, co vytvoří sestavení. Pravidla popisuje
-[docs/content-model.md](docs/content-model.md):
-
-- každý text pro uživatele existuje česky i anglicky;
-- každá rada a otázka kontroly cituje alespoň jeden požadavek z registru a každý požadavek odkazuje na
-  publikovaný zdroj;
-- každá změna obsahu zaznamená autora, použitý nástroj (včetně modelu AI) a zdroje;
-- stavy používají pětistupňový slovník a uvádějí datum ověření.
-
-Po úpravě sestavte web a zkontrolujte jej; pak otevřete `_site/index.html`:
-
-```bash
-python scripts/build_site.py
-python scripts/check_content.py
-```
-
-Všechny kontroly najednou spustí `python scripts/check_all.py` (po `npm ci` a instalaci
-nástrojů z `requirements-dev.txt`).
-Po spuštění najdete v `.cache/health/` přehled výsledků, JSON a shrnutí: stav kontrol a pokrytí otázek,
-rad a požadavků původními texty. CI je připojí k běhu jako artefakt a shrnutí. Přepínač `--live`
-přidá kontroly externích služeb; bez něj se jejich dostupnost neposuzuje.
-Pro porovnání dvou uložených přehledů použijte `--previous-report path/to/health.json`.
-Stejný přehled poskytuje API na `api/health.json`, zdokumentované v `openapi.json`;
-samotné sestavení uvádí, že kontroly dosud neproběhly,
-a jejich spouštěč poté zveřejní skutečný výsledek běhu.
-Web zveřejňuje také přehled `health/index.html` v angličtině, dostupný z patičky
-a ze stránky Data pro stroje. JSON i přehled se aktualizují stejným výsledkem běhu.
-
-Průvodce i s jeho API, jak bude zveřejněn, si spustíte na svém počítači (dokumentace API potřebuje jednou
-`npm ci`) a otevřete <http://127.0.0.1:8000/> a <http://127.0.0.1:8000/api/>:
-
-```bash
-python scripts/serve.py --build
-```
-
-Pravidla pro editaci s AI jsou v dovednosti `fair-guide-editor`
-(`.agents/skills/fair-guide-editor/SKILL.md`) a v [AGENTS.md](AGENTS.md); provozní pokyny pro agenty
-jsou v [README_en.md](README_en.md).
-Přehled nástrojů, vlastnictví zdrojů a kontrol je v [dokumentaci nástrojů pro agenty](docs/agent-tooling.md).
-
-## Jak přispívat
-
-Výchozí cestou pro změny je pull request do `main`. Výslovně schválené přímé commity správce lze také vydat
-po stejných kontrolách metadat a vydání; agentům to nedává oprávnění zapisovat přímo ani obcházet ochranu větve.
-CI kontroluje strukturu, obsah, funkčnost a přístupnost
-stránek, odkazy, diagramy a čistotu repozitáře. Odpovědný recenzent kontroluje správnost a styl.
-Podrobný postup je v [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Workflow kontrol pull requestu má pouze oprávnění ke čtení. Samostatný důvěryhodný workflow přidá
-dvojjazyčný komentář s přehledem změn a odkazy na kontroly a náhledy. Čte jen omezené podklady z
-dokončeného běhu, používá kód z výchozí větve a před zveřejněním ověřuje aktuální commit pull requestu.
-
-[Záznam výběru testů Champion](docs/champion/selection.md) vysvětluje jejich rozsah a datované měření
-dostupnosti. Po sestavení webu změříte všechny posouzené kandidáty i základní sadu příkazem
-`node scripts/probe_champion.mjs --jobs 4 --output .cache/champion-health.json`. Výběr testů se tím nemění.
-
-Připravené jsou dva plánované workflow, které poběží, až budou ve výchozí větvi. `source-refresh.yml`
-každý týden obnoví snímky Hesláře, re3data, FIP Dashboardu, NKR, nástrojů KNAV, FAIRsharing a DataCite, ponechá
-snímek beze změny, když odpověď neprojde kontrolou, a každý změněný zdroj navrhne jako samostatný pull request přes
-GitHub App repozitáře.
-`health-watch.yml` každý týden kontroluje odkazy, služby, zastaralá data a stránky EOSC CZ, na kterých průvodce
-stojí, jednou měsíčně znovu změří testy FAIR Champion a výsledky shrne v jednom průběžně obnovovaném přehledu údržby
-(issue). Žádný z nich
-necommituje ani neslučuje; nastavení aplikace popisuje [konfigurace vydání](docs/deployment.md#release-preparation-and-tagging).
-
-Verzi vydání určuje [content/guide.toml](content/guide.toml). Postup popisuje
-[příprava a označení vydání](docs/deployment.md#release-preparation-and-tagging). Každé označené vydání zároveň
-zveřejní kontejnerový obraz ověřeného webu v `ghcr.io/dsw-nrp/eosc-fair-guide`; v zápatí je verze sestavení, revize
-a datum a neoznačené sestavení je označeno jako náhled `next`.
+Sestavená stránka funguje offline, z místního souboru, v iframe i na statickém hostingu. Internet potřebují jen
+živé kontroly spuštěné uživatelem. Zdrojem obsahu je TOML; sestavení vytvoří crate, stránku a statické API ve `_site/`.
+Produkce vychází z ověřených vydání; `/next/` je ověřený náhled výchozí větve.
 
 ## Licence
 

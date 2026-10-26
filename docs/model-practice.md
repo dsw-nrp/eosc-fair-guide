@@ -1,3 +1,4 @@
+<!-- type: explanation -->
 # Layers and seams in the guide
 
 The guide uses the conceptual model from *Layers and seams of FAIR implementation in the Czech national

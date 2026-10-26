@@ -1,6 +1,6 @@
-"""Render the workflow catalogue in docs/ci.md from the workflow files and their reviewed human entries.
+"""Render the workflow catalogue in docs/ci-reference.md from the workflow files and their reviewed human entries.
 
-    python scripts/ci_catalogue.py           # rewrite the catalogue region of docs/ci.md
+    python scripts/ci_catalogue.py           # rewrite the catalogue region of docs/ci-reference.md
     python scripts/ci_catalogue.py --check   # fail on a missing human entry or a stale catalogue; writes nothing
 
 Triggers, permissions at each level, concurrency, uploaded artifacts and their retention come from
@@ -23,7 +23,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ".github/workflows"
 ENTRIES = ".github/ci-catalogue.toml"
-DOCUMENT = "docs/ci.md"
+DOCUMENT = "docs/ci-reference.md"
 BEGIN, END = "<!-- begin:guide:ci-catalogue -->", "<!-- end:guide:ci-catalogue -->"
 COMMAND = "python scripts/ci_catalogue.py"
 WORKFLOW_FIELDS = ("purpose", "entry", "next", "rerun")

@@ -1,4 +1,8 @@
+<!-- type: reference -->
 # Production and preview deployment
+
+Use the [release runbook](runbooks/release.md) to publish a version, [merge](runbooks/merge.md) for ordinary delivery,
+and [maintainer tasks](ci.md) for other operations. This reference defines the channel and artifact contracts.
 
 Production is the newest approved release tag's verified artifact; the preview (`/next/`, staging) is the newest
 checked default-branch commit. A default-branch push builds `/next/`, reusing the merge queue's result for the
@@ -73,8 +77,10 @@ publishes its image, only after a publication has deployed that release to Pages
 **Break glass.** An administrator can merge directly, bypassing the queue, to repair a broken queue or required
 check. Say why in the pull request. That commit has no queue result, so its deployment runs the full checks.
 
-**Settings and rollback.** People apply the settings one at a time from the audit's expected-versus-actual diff
-(`python scripts/audit_repository.py --section rulesets --section environments`) and audit again after each step:
+## Settings and rollback
+
+The [audit runbook](runbooks/audit-settings.md) owns approved application of one settings diff; the
+[rollback runbook](runbooks/rollback-a-setting.md) owns rollback. The table records preconditions and rollback values.
 
 | Step | Precondition | Rollback |
 | --- | --- | --- |
@@ -150,29 +156,17 @@ artifact. It never relabels an existing release or changes a moving repository s
 
 ## Local assembly check
 
-Run `python -m unittest discover -s tests -p test_assemble_pages.py`, `node tests/page/check_release.mjs` and
-`node tests/page/check_publication.mjs`, then `npm run check:deployment` for the real browser and Swagger request.
-The fixtures cover production preservation, all preview HTML pages, first-tag absence, source selection, approval,
-merge-queue reuse, publication order, durable byte reuse and refused malformed/mismatched artifacts.
-
-To assemble already checked inputs without publishing:
-
-```bash
-python scripts/assemble_pages.py --staging _site --staging-commit <checked-preview-sha> --production .cache/release --production-tag <release-tag> --production-commit <checked-release-sha> --out .cache/pages
-```
-
-Omit the three `--production*` arguments to exercise the state before the first release. The preview must have
-a completed passing health report naming its supplied commit. The production directory holds `manifest.json`,
-the release archive and its checksum. Open `.cache/pages/index.html` or serve that directory locally to inspect
-both the production root and `/next/`; this command does not change `_site/`.
+The [assembly how-to](how-to/verify-assembly.md) owns setup, fixture commands, checked inputs and local inspection.
+Assembly accepts an already checked preview and an optional verified production archive; it never publishes.
 
 ## Release preparation and tagging
 
-Run **Prepare release** (`prepare-release.yml`) on the default branch with a SemVer version such as
+**Prepare release** (`prepare-release.yml`) accepts a SemVer version such as
 `1.0.0-alpha.4`; both release dispatches also accept the tag form `v1.0.0-alpha.4` and use the bare version.
+Release tags use `vX.Y.Z`, with an optional SemVer prerelease suffix.
 The standard-library owner `scripts/release_versions.py` writes the Guide's version and `datePublished`, the
-root `CITATION.cff` version and `date-released`, `.zenodo.json` version and `publication_date`, npm's manifest and
-both lockfile root versions, and the Python project version. The build derives the crate and API values from
+root `CITATION.cff` version and `date-released`, `.zenodo.json` version and `publication_date`, `package.json` and
+both `package-lock.json` root versions, and the Python project version. The build derives the crate and API values from
 the Guide; generated files are never patched.
 The citation's referenced works retain their original versions and dates. No release status or testing notice
 changes automatically.
@@ -206,19 +200,15 @@ the matching date. No release PR or merge-commit ancestry is required. The secti
 and direct commit since the previous tag, leaving out the release's own `release/<version>` PRs. When changes landed
 after preparation, Tag release creates no tag, names them in its summary and calls Prepare release, which opens the
 completion PR; merge it and run Tag release again. The final branch-head check rejects a stale source. The dispatch creates `v<version>` once and never moves an existing tag. Tag creation starts the
-checked production build; publishing the resulting draft release is still a separate maintainer act. Before
-publishing, write and apply the release notes with `/fair-guide-release-notes v<version>`, which runs
-`/aiscr-write-release-notes` and `python scripts/release_body.py` and asks once before applying; the draft's marked
-verification record stays unchanged (see the [changelog policy](changelog.md#write-the-release-body)).
+checked production build; publishing the resulting draft release is still a separate maintainer act. The native `fair-guide-release-notes` skill composes reviewed notes with the draft's marked verification record
+and asks once before applying. The [release runbook](runbooks/release.md) owns its invocation and publication;
+the [release-notes how-to](how-to/release-notes.md) owns the manual fallback.
 
-For an unchanged historical release whose failed-deployment tag was removed before a released artifact was
-published, the maintainer may recreate the annotated tag directly at the original release merge commit. Confirm
-that original target, use the same `Fair-Guide-Release-Status` marker and never move an existing tag. The normal
-dispatch selects the current default-branch commit and does not select historical targets. If that current head
-still passes the requested-release checks and the tag is absent, the dispatch tags it, including later repairs;
-branch advancement alone does not cause a refusal. Use manual recovery only when the intended target is the
-unchanged original release merge commit. Corrected metadata belongs in a new version; editing `main` cannot
-repair bytes frozen at an existing tag.
+Historical recovery is limited to an unchanged original release whose failed-deployment tag was removed before
+an artifact was published. The [historical tag recovery runbook](runbooks/recover-a-release-tag.md) owns approval,
+identity checks and the one-time annotated tag. The normal dispatch selects the current default-branch commit;
+it never selects a historical target. Branch advancement alone causes no refusal if the requested-release checks
+still pass. An existing tag never moves; corrected metadata requires a new version.
 
 `.github/release.yml` groups GitHub-generated notes into Breaking changes (`breaking-change`, reserved
 for breaking PRs), Features (`enhancement`), Bug fixes (`bug`) and Other (all remaining PRs). It keeps
@@ -284,3 +274,16 @@ one DataCite and one Crossref DOI, verifies that Czech ISO differs from APA, the
 FAIR-Checker metrics against a public dataset after confirming its DataCite type. It uses real browser requests
 and saves a compact receipt in `.cache/live-release/receipt.json`. Missing native results fail this probe;
 they do not become failed FAIR criteria. The general `check:live` suite covers additional services separately.
+
+## Release container image
+
+Every tagged release also publishes a container image to the GitHub container registry, assembled from that
+release's verified site artifact — never rebuilt from source — so a reader can run the published page locally with
+`docker run --rm -p 8080:8080 ghcr.io/dsw-nrp/eosc-fair-guide:latest`. It carries the release tag, a moving
+`latest` on every release and a moving `stable` on every non-prerelease. It is signed (cosign, keyless) and attested
+against its digest and scanned with Trivy; a failed scan operation blocks publication, while vulnerability
+findings are advisory. The release notes record that digest. Its `nginx-unprivileged` base is digest-pinned and
+the `docker` Dependabot entry keeps it current.
+
+
+The production site and draft release receive the same verified bytes.

@@ -1,0 +1,359 @@
+<!-- type: reference -->
+# CI reference
+
+How the checks, comment commands and workflows behave, and how to reproduce them locally. The
+[maintainer landing page](ci.md) lists the tasks and their runbooks.
+
+## The checks of a pull request
+
+The required status is the `checks` job of the **Guide checks and health report** workflow (`checks.yml`). Branch
+protection and the merge queue require that context name, not the workflow's name.
+
+- `checks.yml` calls the reusable [partitioned checks](../.github/workflows/partitioned-checks.yml): one verified
+  build, a CPU lane, a unit-test lane, four browser lanes and the `collect` job, which reconciles their evidence into
+  the health report. `checks` passes only when all of them passed. Merge-queue runs and the deployment fallback call
+  the same workflow and build the `preview` channel that staging deploys.
+- Beside the build, the non-required `quick` job runs the cheap offline checks (`python scripts/check_ci.py quick`)
+  for early feedback. The CPU lane runs them again, so `checks` reports every failure `quick` does.
+- The checks run with read-only permissions. The separate trusted **Guide review comment** workflow
+  (`pr-summary.yml`) posts the bilingual review comment, with advisory release-note and planning hints, and adds the
+  area labels. It reads only bounded review data from the completed run, uses default-branch code and checks the
+  current pull-request head first.
+- Every run summary, comment and reply ends with **Next**, **If blocked** and **Done when**: who acts, the way round
+  a blocker and the evidence that shows completion.
+- `scripts/check_ci.py` owns the partitioned adapter, `scripts/check_all.py` the job inventory and
+  `scripts/check_groups.json` the nested scripts. The collector verifies the source and build identity, every
+  required case and the station and PDF coverage; a lane subset cannot publish a complete pass.
+- `check_ci.BROWSER_LANES` assigns the browser jobs to lanes. Change it only through review, from the balanced
+  suggestion of `python scripts/ci_timings.py <run-id>`.
+
+## Comment commands
+
+Post a command as the whole comment on an issue or pull request. An accepted command gets an eyes reaction at once
+and ends with a rocket reaction or a reply naming its run; a command that cannot run is answered with the reason and
+an alternative. Commands for the same pull request, and all refreshes, wait their turn instead of replacing each
+other. Only the **Comment commands** workflow (`commands.yml`) reads comments.
+
+| Command | Who | What it does |
+| --- | --- | --- |
+| `/help` | Anyone | Answers in one comment per thread which commands apply there and whether you may use them |
+| `/fix-duplicates` | Write access | Applies the duplicate check's safe link suggestions to an open same-repository pull request that targets the default branch ([runbook](runbooks/fix-a-duplicate.md)) |
+| `/refresh <source>` | Write access | Refreshes one source snapshot from the default branch ([runbook](runbooks/refresh-a-source.md)) |
+
+`/fix-duplicates` reads the pull request's content as data, adds a provenance action naming the commenter, registers
+its identifier and commits through the repository's App. It never merges, never pushes the default branch, never
+runs on schedules or forks and never edits `content/duplicates.toml`; a stale head makes it change nothing. It also
+works on `refresh/<source>` pull requests. Once such a branch has a commit other than the refresh App's, the source
+refresh leaves it for reconciliation by hand. Both commands use the App secrets `SOURCE_REFRESH_CLIENT_ID` and
+`SOURCE_REFRESH_APP_PRIVATE_KEY`; without them they are unavailable.
+
+## Local reproduction
+
+`python scripts/check_all.py` runs the whole inventory locally ([build and check](how-to/build-and-check.md)). It
+needs `npm ci` and the tools from `requirements-dev.txt`.
+
+- **Profiles and budgets.** `--jobs` sets the outer work and `--browser-workers` the shared browser budget. Local and
+  CI defaults live in [`scripts/check_policy.json`](../scripts/check_policy.json); `CI=true` selects the conservative
+  CI profile. Defaults are capped by the available CPU count. `--browser-workers` overrides `CHECK_BROWSER_WORKERS`,
+  which overrides the profile; npm and direct Node checks use the same policy. Browser groups share atomic case
+  slots across Node processes, so inner pools cannot multiply the global limit.
+- **Unit shards.** The policy's `unit_shards` sets how many processes the unit tests run in.
+  `scripts/profile_checks.py` packs test modules into those shards from the measured seconds in
+  `scripts/unit_shards.json`, gives each shard a private report directory and fails unless every discovered test runs
+  exactly once; `--shards N` overrides the count and `--shuffle SEED` reorders classes and tests to expose hidden
+  shared state.
+- **Evidence.** `.cache/health/details/` and `logs/` keep timings, complete output, case coverage and failure
+  artifacts; `execution.json` records the actual profile, budgets, machine and built-input hashes. The health report
+  marks selected browser subsets as partial. Default traces keep actions, and a failed case adds a PNG and an HTML
+  snapshot; `CHECK_TRACE_SNAPSHOTS=1` keeps full trace snapshots. `npm run check:runtime` checks the launcher, the
+  worker policy, partial reporting and the failure artifacts.
+- **The partitioned run.** `python scripts/check_ci.py build`, `lane --name <lane>` and `collect` run the same steps
+  as CI, and `python scripts/ci_timings.py <run-id> --attempt <n>` reads a hosted run's job timings and health
+  artifact: queue, setup, check time, the critical path, browser slot waits, cache hits and coverage.
+- **Accessibility adapter.** `CHECK_AXE_MODE=compare` runs a paired equivalence check, and `reference` the
+  established adapter.
+- **Benchmarks.** Compare complete runs with identical coverage and inputs; a faster selected case does not
+  establish a full-suite improvement. Stop a benchmark after a failed run, keep its evidence and diagnose it before a
+  corrected run. Performance receipts distinguish elapsed time and runner minutes: more runners can cost more.
+
+## Timing receipt
+
+A speed claim compares reruns of one fixed commit before and after a change, with unchanged coverage, as reported by
+`python scripts/ci_timings.py <run-id> --attempt <n>`. Hosted runners vary widely between attempts with identical
+inputs, so read the median and the range, never a single run. A rerun removes the earlier attempts' artifacts, so
+read each attempt's report before starting the next.
+
+### Baseline
+
+Run 40022072478 of PR #103 at commit `40d0386`, with the CPU lane and two browser lanes. Attempt 1 is the original
+run; attempts 2–4 are the three reruns of 24 October 2026. Every attempt succeeded, so its collector accepted
+complete check, case and validator coverage.
+
+| Attempt | Elapsed | Critical lane | Queue | Setup (summed) | Summed job time | Peak jobs |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | 379 s | browser-b | 14 s | 178 s | 759 s | 3 |
+| 2 | 346 s | browser-a | 14 s | 159 s | 852 s | 3 |
+| 3 | 347 s | browser-a | 15 s | 174 s | 775 s | 3 |
+| 4 | 262 s | browser-b | 14 s | 130 s | 569 s | 3 |
+
+The three reruns give a median of 346 s (range 262–347 s). The CPU lane's check time alone ranged from 114 s to
+225 s between attempts. Attempts 1 and 4 keep their lane evidence: 67 of 67 browser cases passed, and every
+validator profile passed (`tests/fixtures/ci-timings/40022072478-1` holds attempt 1). The reruns removed the
+artifacts of attempts 2 and 3, so only their job and step timings remain.
+
+### Candidate
+
+Run 40085436997 of PR #107 at commit `ae2e813`: the quick job, a CPU lane, a unit-test lane and four browser lanes,
+unit shards and dependency caches. Attempt 1 is the original run; attempts 2–4 are the three reruns of 24 October
+2026. Every attempt passed 33 checks, 68 of 68 browser cases and all three validator profiles. The changelog check
+and the command-workflow case are new since the baseline. The validators' output matches the baseline's apart
+from timings.
+
+| Attempt | Elapsed | Critical lane | Queue | Setup (summed) | Summed job time | Peak jobs | Quick result |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | 287 s | browser-a | 21 s | 223 s | 929 s | 6 | 19 s |
+| 2 | 274 s | browser-a | 29 s | 231 s | 953 s | 6 | 27 s |
+| 3 | 273 s | browser-a | 31 s | 241 s | 915 s | 6 | 22 s |
+| 4 | 280 s | browser-b | 27 s | 202 s | 880 s | 6 | 23 s |
+
+### Result
+
+- **Elapsed.** The reruns' median fell from 346 s to 274 s, and their range narrowed from 262–347 s to 273–280 s.
+  One baseline rerun (262 s) was faster than every candidate attempt, so the gain lies in the typical and slow runs.
+- **Quick feedback.** Cheap offline failures are reported after 19–27 s.
+- **Cost.** The reruns' median summed job time rose from 775 s to 915 s and queue time from 14 s to about 29 s,
+  with six concurrent jobs instead of three. Public-repository minutes are free; the organisation's
+  concurrent-job limit is the constraint to watch.
+- **Caches.** The branch's first run (40084136770) missed the pip cache, and its CPU lane spent 38 s on setup. Every
+  candidate attempt hit both the pip and the npm cache, with identical check inventories.
+- **Unit lane.** In run 40084136770 two unit shards beside the three validators made the CPU lane the critical path
+  (261 s). With a runner of their own, the unit lane took 95–110 s and the CPU lane 110–179 s, never critical.
+- **Experiments not adopted.** A single validator process cannot shorten the run while the CPU lane stays off the
+  critical path. A Playwright browser cache could save at most the 7.5 s download of a 17.5 s install (the rest is
+  system packages), less its own restore time, which is below the reruns' 7 s spread.
+- **Collector artifacts.** The health, preview and review artifacts keep their names and file inventories. The
+  only differences are group 1's new checks and two logs that unit tests had leaked into the baseline's report.
+
+## Workflow catalogue
+
+Every workflow with its triggers, permissions, concurrency and artifacts, and what a person does with it.
+
+<!-- begin:guide:ci-catalogue -->
+
+Generated by `python scripts/ci_catalogue.py` from the workflow files and `.github/ci-catalogue.toml`; do not edit by hand.
+
+### `checks.yml`: Guide checks and health report
+
+The required `checks` result for every pull request and merge group: one quick job beside the partitioned build, lanes and evidence collector.
+
+- **Triggers:** `pull_request`; `merge_group`
+- **Entry point:** Opening or updating a pull request, and adding it to the merge queue.
+- **Next:** The author fixes a failure from the run summary, which names the check and its local command; a green result goes to review or the queue.
+- **Rerun:** Push a commit, or use **Re-run failed jobs** on the run page.
+- **Permissions:** workflow contents read
+- **Concurrency:** workflow `guide-checks-${{ github.event.pull_request.number || github.ref }}`, cancels the run in progress
+- **Calls:** `partitioned-checks.yml`, whose artifacts and writes are listed under it
+- **Artifacts:** none
+
+### `commands.yml`: Comment commands
+
+Reads `/help`, `/fix-duplicates` and `/refresh <source>` from issue and pull-request comments and runs the workflow that owns each.
+
+- **Triggers:** `issue_comment` (types `created`)
+- **Entry point:** A comment that starts with a command; anything else ends at the first job's filter.
+- **Next:** The commenter reads the reaction or reply; an accepted repair or refresh continues in its own workflow.
+- **Rerun:** Comment the command again.
+- **Permissions:** workflow contents read; `help` contents read, issues write, pull-requests write; `acknowledge` contents read, actions read, issues write, pull-requests write; `outcome` contents read, issues write, pull-requests write
+  - `help.issues`: Replies to `/help` on an issue.
+  - `help.pull-requests`: Replies to `/help` on a pull request.
+  - `acknowledge.issues`: Reacts to an accepted command on an issue, or explains a refusal.
+  - `acknowledge.pull-requests`: Reacts to an accepted command on a pull request, or explains a refusal.
+  - `outcome.issues`: Reports the outcome of an accepted command on an issue.
+  - `outcome.pull-requests`: Reports the outcome of an accepted command on a pull request.
+- **Concurrency:** none
+- **Calls:** `fix-duplicates.yml`, `source-refresh.yml`, whose artifacts and writes are listed under it
+- **Artifacts:** none
+
+### `copilot-setup-steps.yml`: Copilot Setup Steps
+
+Generated by OpenSpec: prepares the runner the GitHub Copilot coding agent works in.
+
+- **Triggers:** `workflow_dispatch`; `push` (paths `.github/workflows/copilot-setup-steps.yml`); `pull_request` (paths `.github/workflows/copilot-setup-steps.yml`)
+- **Entry point:** The Copilot coding agent starting a session; a change to this file runs it once to validate it.
+- **Next:** Nobody, unless it fails: then regenerate it with the OpenSpec CLI rather than editing it.
+- **Rerun:** **Run workflow** on its Actions page.
+- **Permissions:** workflow repository default; `copilot-setup-steps` contents read
+- **Concurrency:** none
+- **Artifacts:** none
+
+### `deploy.yml`: Deploy the verified site
+
+Prepares what Pages may publish: the checked staging site of a default-branch push, and a release tag's production artifact.
+
+- **Triggers:** `push` (branches `main`; tags `v*`); `workflow_dispatch`
+- **Entry point:** A merge to `main`, or Tag release pushing a tag.
+- **Next:** Publish the verified site follows automatically; a new release tag waits for a maintainer's approval of the `production` environment.
+- **Rerun:** For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, use that tag run's **Re-run failed jobs**.
+- **Permissions:** workflow contents read; `sources` contents read, actions read; `production` contents read, actions read; `approve-production` none; `stage` contents read, actions read; `superseded` contents read, actions read
+- **Concurrency:** workflow `deploy-${{ github.ref }}`, cancel `${{ !startsWith(github.ref, 'refs/tags/') }}`
+- **Calls:** `partitioned-checks.yml`, whose artifacts and writes are listed under it
+- **Artifacts:**
+  - `guide-site-<needs.sources.outputs.production>`, kept 90 days: The release's checked production site, which Publish, Release and the image reuse byte for byte.
+  - `staging-site`, kept the repository's retention: The checked default-branch site that Publish deploys under `/next/`.
+
+### `fix-duplicates.yml`: Fix duplicate records
+
+Applies the duplicate check's safe link suggestions to a pull request on a maintainer's `/fix-duplicates`.
+
+- **Triggers:** `workflow_call`
+- **Entry point:** Only from Comment commands, after it accepts the maintainer's command.
+- **Next:** The pull request's checks run again on the repair commit, and its author reviews the diff.
+- **Rerun:** Comment `/fix-duplicates` again.
+- **Permissions:** workflow contents read; `fix` App token contents write, pull-requests write
+  - `fix.contents`: Commits the repair to the pull request's branch through the repository's App.
+  - `fix.pull-requests`: Comments the repair or the reason none was made.
+- **Concurrency:** `fix` `fix-duplicates-${{ github.event.issue.number }}`, queued
+- **Artifacts:** none
+
+### `health-watch.yml`: Live health and source watch
+
+Weekly live watch of links, services, watched pages and stale statuses, with the read-only settings and Project audit, published as one maintenance digest.
+
+- **Triggers:** `schedule` (`41 22 * * 0` UTC); `workflow_dispatch` (inputs `parts`, `champion`)
+- **Entry point:** Sunday evening's schedule, or **Run workflow** with the parts to run.
+- **Next:** A maintainer triages the digest issue and promotes findings to tasks.
+- **Rerun:** **Run workflow**, choosing `watch`, `audit` or `both`.
+- **Permissions:** workflow contents read; `watch` actions read, contents read; `audit` actions read, contents read, issues read; `audit` App token organization-projects read; `publish` contents read, issues write
+  - `publish.issues`: Rebuilds the maintenance digest, comments on change and attaches maintainers' tasks.
+- **Concurrency:** workflow `health-watch`, queued
+- **Artifacts:**
+  - `health-watch-<run_id>-<run_attempt>`, kept 90 days: The watch's observations, plan, state and summary for this run.
+  - `settings-audit-<run_id>-<run_attempt>`, kept 90 days: The audit's redacted Project and settings section of the digest.
+  - `health-watch-state`, kept 90 days: The state the next watch continues, read only from this workflow's default-branch runs.
+
+### `partitioned-checks.yml`: Partitioned checks
+
+One build, disjoint check lanes and a collector that turns their evidence into the verified health result.
+
+- **Triggers:** `workflow_call` (inputs `base`, `head`, `channel`, `review`, `cache`, `staging`)
+- **Entry point:** Called by Guide checks, and by Deploy the verified site when no merge-queue result can be reused.
+- **Next:** Its caller reports the result.
+- **Rerun:** Re-run the calling run's failed jobs.
+- **Permissions:** workflow contents read
+- **Concurrency:** none
+- **Artifacts:**
+  - `checked-build`, kept 2 days: The one build every check lane tests.
+  - `check-lane-<matrix.lane>`, kept 30 days: One lane's check results and evidence for the collector.
+  - `check-visuals-<matrix.lane>`, kept 14 days: One browser lane's screenshots for review.
+  - `health-<run_id>-<run_attempt>`, kept 30 days: The collected health report, which deployment reuses for the same commit.
+  - `guide-preview-<run_id>-<run_attempt>`, kept 14 days: The checked site and screenshots, to preview a pull request locally.
+  - `staging-site`, kept the repository's retention: The checked default-branch site that Publish deploys under `/next/`.
+  - `guide-review-<run_id>-<run_attempt>`, kept 14 days: The review data the Guide review comment reads as untrusted input.
+
+### `pr-summary.yml`: Guide review comment
+
+Posts the bilingual review comment with hints and adds area labels after a pull request's checks.
+
+- **Triggers:** `workflow_run` (types `completed`; workflows `Guide checks and health report`)
+- **Entry point:** A completed Guide checks run of a pull request.
+- **Next:** The author reads the comment; a maintainer may apply a suggested fix with `/fix-duplicates`.
+- **Rerun:** Re-run the pull request's checks.
+- **Permissions:** workflow contents read, actions read, pull-requests write
+  - `comment.pull-requests`: Creates or updates its own review comment and adds area labels.
+- **Concurrency:** workflow `guide-review-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}`, cancels the run in progress
+- **Artifacts:** none
+
+### `prepare-release.yml`: Prepare release
+
+Proposes a release: the version, the changelog section and its lineage as one pull request.
+
+- **Triggers:** `workflow_dispatch` (inputs `version`); `workflow_call` (inputs `version`)
+- **Entry point:** **Run workflow** with the version, or Tag release completing a changelog that misses changes.
+- **Next:** A maintainer reviews and merges the release pull request through the queue, then runs Tag release.
+- **Rerun:** **Run workflow** again with the same version.
+- **Permissions:** workflow contents read, pull-requests read, actions read; `prepare` App token contents write, pull-requests write
+  - `prepare.contents`: Pushes the release branch through the repository's App.
+  - `prepare.pull-requests`: Opens or replaces the release pull request.
+- **Concurrency:** `prepare` `release-preparation`, queued
+- **Artifacts:** none
+
+### `publish-image.yml`: Publish the Guide image
+
+Publishes the release's exact verified artifact as a signed, attested container image.
+
+- **Triggers:** `workflow_call` (inputs `tag`, `commit`, `artifact-run-id`, `latest`, `stable`)
+- **Entry point:** Called by Release.
+- **Next:** Nobody; Release continues with the draft release.
+- **Rerun:** Re-run the Release run's failed jobs.
+- **Permissions:** workflow contents read, actions read; `image` contents read, actions read, packages write, id-token write, attestations write, security-events write
+  - `image.attestations`: Attests the image's provenance.
+  - `image.id-token`: Signs the image without a stored key.
+  - `image.packages`: Pushes the image to the GitHub container registry.
+  - `image.security-events`: Uploads the image's vulnerability scan.
+- **Concurrency:** none
+- **Artifacts:** none
+
+### `publish.yml`: Publish the verified site
+
+Deploys the newest checked staging site and the newest approved release to Pages together, and records each live channel.
+
+- **Triggers:** `workflow_run` (types `completed`; workflows `Deploy the verified site`)
+- **Entry point:** A completed Deploy the verified site run.
+- **Next:** Nobody for staging; after a release tag, Release follows.
+- **Rerun:** For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, rerun that tag run's failed jobs. A publication failure can retry this run's failed jobs.
+- **Permissions:** workflow contents read; `resolve` actions read, contents read; `publish` actions read, contents read, deployments write, id-token write, pages write
+  - `publish.deployments`: Records the `staging` and `production` channels once each is live.
+  - `publish.id-token`: Proves the Pages deployment's origin.
+  - `publish.pages`: Deploys the site to Pages.
+- **Concurrency:** workflow `${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && 'pages-publish' || format('pages-publish-idle-{0}', github.run_id) }}`, queued
+- **Artifacts:**
+  - `pages-identity`, kept 30 days: Which staging commit and release tag this publication deployed, which Release reads to bind the release it publishes.
+
+### `release.yml`: Release
+
+After a release tag is live on Pages, publishes its image and creates the draft GitHub release from the same artifact.
+
+- **Triggers:** `workflow_run` (types `completed`; workflows `Publish the verified site`)
+- **Entry point:** A completed Publish the verified site run that deployed a release.
+- **Next:** A maintainer reviews the draft release notes and publishes the release.
+- **Rerun:** Re-run its failed jobs.
+- **Permissions:** workflow contents read; `bind` contents read, actions read; `publish` contents read, actions read, packages write, id-token write, attestations write, security-events write; `release` contents write, actions read
+  - `publish.attestations`: Attests the image's provenance.
+  - `publish.id-token`: Signs the image without a stored key.
+  - `publish.packages`: Pushes the image to the GitHub container registry.
+  - `publish.security-events`: Uploads the image's vulnerability scan.
+  - `release.contents`: Creates the draft release with its verified files.
+- **Concurrency:** workflow `guide-release-images`, queued
+- **Calls:** `publish-image.yml`, whose artifacts and writes are listed under it
+- **Artifacts:** none
+
+### `source-refresh.yml`: Source refresh
+
+Refreshes source snapshots from the default branch and proposes each changed source as its own pull request.
+
+- **Triggers:** `schedule` (`17 19 * * 0` UTC); `workflow_dispatch` (inputs `source`); `workflow_call`
+- **Entry point:** Sunday's schedule, **Run workflow**, or `/refresh <source>` on a pull request.
+- **Next:** A maintainer reviews and merges each refresh pull request.
+- **Rerun:** **Run workflow**, or comment `/refresh <source>` again.
+- **Permissions:** workflow contents read; `refresh` App token contents write, pull-requests write
+  - `refresh.contents`: Pushes the refresh branch through the repository's App.
+  - `refresh.pull-requests`: Opens or updates the refresh pull request.
+- **Concurrency:** `refresh` `source-refresh`, queued
+- **Artifacts:**
+  - `source-refresh-<run_id>-<run_attempt>`, kept 30 days: The refresh report: what each selected source returned and whether it validated.
+
+### `tag-release.yml`: Tag release
+
+Tags the merged release once its changelog lists every change since the previous tag; otherwise re-prepares it.
+
+- **Triggers:** `workflow_dispatch` (inputs `version`, `release_status`)
+- **Entry point:** **Run workflow** with the version, after the release pull request is merged.
+- **Next:** Approve the `production` deployment, then review the draft release; after a refusal, merge the new release pull request and run Tag release again.
+- **Rerun:** **Run workflow** again with the same version.
+- **Permissions:** workflow contents read; `tag` contents read, actions read, deployments read, pull-requests read; `tag` App token contents write; `complete` contents read, pull-requests read, actions read; `not-tagged` none
+  - `tag.contents`: Creates the release tag through the repository's App, which the tag ruleset allows.
+- **Concurrency:** `tag` `release-preparation`, queued
+- **Calls:** `prepare-release.yml`, whose artifacts and writes are listed under it
+- **Artifacts:** none
+
+<!-- end:guide:ci-catalogue -->

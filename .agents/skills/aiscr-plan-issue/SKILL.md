@@ -7,14 +7,14 @@ argument-hint: <issue-number>
 license: CC-BY-4.0
 author: AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 ---
-<!-- delivery-version: 55cc0a038709ebb42a68f8174d418a0cf976a10b 2026-10-25T14:30:51+01:00 -->
-
-<!-- aiscr:compiled=aiscr-plan-issue -->
 
 <!-- SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
+<!-- aiscr:compiled=aiscr-plan-issue -->
+<!-- delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00 -->
 
-<!-- aiscr:stop-anchor -->
+<!-- aiscr:entry-scope -->
+
 **Entry scope (compiled)**
 
 - This `.agents/skills/` skill is self-contained; use the workflow body below.
@@ -390,6 +390,7 @@ The enrollment bundle installs these repository-local runtime scripts:
 
 - `.agents/scripts/github/github_issues.py`
 - `.agents/scripts/github/github_utils.py`
+- `.agents/scripts/lib/__init__.py`
 - `.agents/scripts/lib/local_scratch_paths.py`
 - `.agents/scripts/lib/log_utils.py`
 - `.agents/scripts/lib/proc_utils.py`

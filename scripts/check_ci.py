@@ -53,6 +53,7 @@ QUICK = (
     "health-watch-config",
     "usage-entries",
     "ci-catalogue",
+    "docs",
 )
 
 
