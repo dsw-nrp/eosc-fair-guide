@@ -304,7 +304,7 @@
   {
    "name": "guide-health",
    "color": "ededed",
-   "description": null
+   "description": "The maintenance digest the watch publishes; reserved for it"
   },
   {
    "name": "help wanted",
@@ -443,7 +443,7 @@
       {
        "name": "Triage",
        "layout": "TABLE_LAYOUT",
-       "filter": "is:issue status:\"Needs triage\"",
+       "filter": "is:issue status:\"Needs triage\" -label:guide-health",
        "groupByFields": {
         "nodes": []
        },

@@ -15,8 +15,10 @@ under ``[[pending]]`` is reported as pending while the live value still equals i
 Project items that need a person are reported as needing attention, each with its link: a Status that does not
 match whether the item is open, an open issue without an Issue Type or whose body's ``Type`` row disagrees with it,
 a Ready issue short of the definition of Ready (type, an ``area:*`` label, Priority, Effort and the planned-issue
-shape), triage waiting over 14 days and Urgent work not started after three. ``--digest`` writes the public
-"Project and settings" section of the maintenance digest, which counts the checks that read Project-only fields.
+shape), triage waiting over 14 days and Urgent work not started after three. The maintenance digest that the watch
+publishes is exempt from the triage and Ready checks, because its body is rebuilt on every run and can never take
+the planned-issue shape. ``--digest`` writes the public "Project and settings" section of the maintenance digest,
+which counts the checks that read Project-only fields.
 
 The audit writes nothing unless ``--fix`` is given, and ``--fix`` only creates or updates the declared labels and adds
 missing open issues and pull requests to the Project; with ``--backfill`` it instead adds the reviewed mapping's area
@@ -333,7 +335,8 @@ ITEMS_QUERY = """query ProjectItems($owner: String!, $number: Int!, $after: Stri
   projectV2(number: $number) { items(first: 50, after: $after) { pageInfo { hasNextPage endCursor }
     nodes { type fieldValues(first: 30) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { name updatedAt
         field { ... on ProjectV2FieldCommon { name } } } } }
-      content { ... on Issue { __typename number state url body issueType { name } repository { nameWithOwner }
+      content { ... on Issue { __typename number state url body author { __typename login } issueType { name }
+          repository { nameWithOwner }
           labels(first: 50) { nodes { name } }
           issueFieldValues(first: 20) { nodes { ... on IssueFieldSingleSelectValue { name
             field { ... on IssueFieldSingleSelect { name } } } } } }
@@ -462,9 +465,16 @@ def read_project(github, config):
     return state
 
 
+# The maintenance digest as `.github/scripts/health-digest.cjs` publishes it: an issue by the Actions bot whose body
+# starts with the marker. GraphQL names the bot without the `[bot]` suffix that REST adds.
+DIGEST_AUTHOR = {"__typename": "Bot", "login": "github-actions"}
+DIGEST_MARKER = "<!-- fair-guide-digest -->"
+
+
 def read_items(github, owner, number, repo):
-    """This repository's Project items by number (kind, state, Status and since when, type, body, labels and the
-    Priority and Effort issue fields), and how many items' content the token may not see."""
+    """This repository's Project items by number (kind, state, Status and since when, type, body, labels, the
+    Priority and Effort issue fields and whether it is the published digest), and how many items' content the token
+    may not see."""
     entries, hidden, after = {}, 0, None
     while True:
         page = github.graphql(ITEMS_QUERY, {"owner": owner, "number": number, "after": after})
@@ -497,6 +507,8 @@ def read_items(github, owner, number, repo):
                 "since": selects.get("Status", {}).get("updatedAt"),
                 "priority": fields.get("Priority"),
                 "effort": fields.get("Effort"),
+                "digest": content.get("author") == DIGEST_AUTHOR
+                and (content.get("body") or "").startswith(DIGEST_MARKER),
             }
         if not page["pageInfo"]["hasNextPage"]:
             return entries, hidden
@@ -915,7 +927,7 @@ def attention(number, item, check, expected, actual, *, command="", note=""):
 
 def item_findings(config, entries, now):
     """Items that need a person: wrong state, missing or contradicting type, incomplete Ready, overdue triage and
-    stalled Urgent work. Each links the item and says how to fix it."""
+    stalled Urgent work. Each links the item and says how to fix it. The published digest is never triaged."""
     repo = config["repository"]
     for number, item in sorted(entries.items()):
         closed = item["state"] in ("closed", "merged")
@@ -933,7 +945,8 @@ def item_findings(config, entries, now):
             note = "The body's Type row and the Issue Type disagree; correct whichever is wrong."
             yield attention(number, item, "body-type", item["type"].lower(), written, note=note)
         days = (now - datetime.fromisoformat(item["since"])).days if item["since"] else 0
-        if item["status"] == TRIAGE and days > TRIAGE_DAYS:
+        triaged = not item["digest"]
+        if triaged and item["status"] == TRIAGE and days > TRIAGE_DAYS:
             note = "Triage it in the Project's Triage view: set the type, an area label, Priority and Effort."
             yield attention(
                 number, item, "triage", f"triaged within {TRIAGE_DAYS} days", f"waiting {days} days", note=note
@@ -943,7 +956,7 @@ def item_findings(config, entries, now):
             yield attention(
                 number, item, "urgent", f"started within {URGENT_DAYS} days", f"not started for {days} days", note=note
             )
-        if item["status"] == READY and (lacking := unready(item)):
+        if triaged and item["status"] == READY and (lacking := unready(item)):
             note = "Complete it (shape the body with /aiscr-plan-issue) or move it back to Needs triage."
             yield attention(number, item, "ready", "the definition of Ready", lacking, note=note)
 

@@ -29,7 +29,7 @@ description into that shape and posts it after the maintainer approves it. The [
 
 | View | Shows |
 | --- | --- |
-| Triage | Issues in Needs triage, oldest first |
+| Triage | Issues in Needs triage, oldest first, without the maintenance digest |
 | Board | Everything, grouped by Priority |
 | My work | Your assigned items that are not Done |
 | PR - authored | Pull requests people opened, whatever their Status |
@@ -67,6 +67,12 @@ a job of its own. Besides the settings below, the audit reports each item that n
 - an issue in Needs triage for more than 14 days;
 - an Urgent issue in Needs triage or Ready for more than three days;
 - a closed item that is not Done, or an open one that is.
+
+The maintenance digest is never triaged: the watch rebuilds its body on every run, so it cannot take the planned-issue
+shape, and the audit skips its time in Needs triage and the Ready check. The audit recognises it as the watch does,
+as an issue by the Actions bot whose body starts with the digest's marker. The watch labels the digest
+`guide-health` to find it again, and the label is reserved for it; any other issue keeps every check, even one with
+that label.
 
 The job publishes only the "Project and settings" section of the public maintenance digest, in its step summary and
 as the `settings-audit-<run>-<attempt>` artifact. It links issues and names Urgent work, but shows no other Project

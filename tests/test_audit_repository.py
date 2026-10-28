@@ -649,10 +649,27 @@ def shaped(kind="task"):
     )
 
 
+# The digest as its publisher (`.github/scripts/health-digest.cjs`) writes it: GraphQL names the Actions bot without
+# the `[bot]` suffix that REST adds.
+DIGEST_AUTHOR = ("Bot", "github-actions")
+DIGEST_BODY = "<!-- fair-guide-digest -->\n# Maintenance digest\n"
+
+
 def node(
-    number, *, kind="Issue", state="OPEN", status="Needs triage", days=1, issue_type=None, labels=(), body="", **fields
+    number,
+    *,
+    kind="Issue",
+    state="OPEN",
+    status="Needs triage",
+    days=1,
+    issue_type=None,
+    labels=(),
+    body="",
+    author=("User", "motyc"),
+    **fields,
 ):
-    """A Project item as the GraphQL query returns it, its Status set `days` before the recording."""
+    """A Project item as the GraphQL query returns it, its Status set `days` before the recording. `author` is the
+    issue author's GraphQL type and login."""
     since = (RECORDED - timedelta(days=days)).isoformat().replace("+00:00", "Z")
     content = {
         "__typename": kind,
@@ -665,6 +682,7 @@ def node(
         values = [{"name": value, "field": {"name": name.title()}} for name, value in fields.items()]
         content |= {
             "body": body,
+            "author": {"__typename": author[0], "login": author[1]},
             "issueType": {"name": issue_type} if issue_type else None,
             "labels": {"nodes": [{"name": name} for name in labels]},
             "issueFieldValues": {"nodes": values},
@@ -740,6 +758,33 @@ class ProjectItemTests(unittest.TestCase):
                 self.assertTrue(finding.ui.startswith("https://github.com/dsw-nrp/eosc-fair-guide/"))
                 self.assertTrue(finding.command or finding.note, "and how to act")
                 self.assertTrue(finding.fails)
+
+    def test_the_published_digest_skips_only_the_triage_and_ready_checks(self):
+        """The publisher rebuilds the digest's body on every run, so it can never take the planned-issue shape."""
+        digest = {"author": DIGEST_AUTHOR, "body": DIGEST_BODY, "labels": ["guide-health", "area:maintenance"]}
+        findings = self.findings(
+            [
+                node(140, days=40, issue_type="Task", **digest),
+                node(141, status="Ready", days=40, issue_type="Task", **digest),
+                node(142, days=40, **digest),
+            ]
+        )
+        self.assertEqual(
+            sorted(findings), ["project.item.#142.type"], "Project membership and the Issue Type still apply to it"
+        )
+
+    def test_an_issue_resembling_the_digest_keeps_every_check(self):
+        findings = self.findings(
+            [
+                node(143, days=15, issue_type="Task", labels=["guide-health"], body=DIGEST_BODY),
+                node(144, days=15, issue_type="Task", labels=["guide-health"], body="# A task\n", author=DIGEST_AUTHOR),
+            ]
+        )
+        self.assertEqual(
+            sorted(findings),
+            ["project.item.#143.triage", "project.item.#144.triage"],
+            "a person's issue with the digest's label and marker, and a bot's issue without the marker, are triaged",
+        )
 
     def test_issue_fields_and_status_dates_are_read_from_the_project(self):
         page = {
