@@ -30,6 +30,10 @@ on:
         description: Also keep the checked site as the `staging-site` artifact when every check passed
         type: boolean
         default: false
+      publication-url:
+        description: Actual publication location already resolved by a deployment caller (empty to read Pages)
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -41,6 +45,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      publication-url: ${{ steps.location.outputs.publication-url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -55,6 +64,17 @@ jobs:
           cache: ${{ inputs.cache && 'npm' || '' }}
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - id: location
+        name: Resolve the publication location before checking the build
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          EXPLICIT: ${{ inputs.publication-url }}
+          REQUIRED: ${{ inputs.staging }}
+        with:
+          script: |
+            const { publicationLocation } = require('./.github/scripts/publication-location.cjs');
+            await publicationLocation({ github, context, core }, {
+              explicit: process.env.EXPLICIT, required: process.env.REQUIRED === 'true' });
       - name: Build and record source, site and coverage identities
         run: python scripts/check_ci.py build
       - name: Share the checked build
@@ -77,6 +97,7 @@ jobs:
         # The lanes of scripts/check_ci.py, which assigns their checks.
         lane: [cpu, unit, browser-a, browser-b, browser-c, browser-d]
     env:
+      FAIR_GUIDE_BASE_URL: ${{ needs.build.outputs.publication-url }}
       PLAYWRIGHT_BROWSERS_PATH: .cache/ms-playwright
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -141,6 +162,8 @@ jobs:
     needs: [build, lanes]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      FAIR_GUIDE_BASE_URL: ${{ needs.build.outputs.publication-url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

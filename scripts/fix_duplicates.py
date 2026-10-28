@@ -205,7 +205,8 @@ class GitHub:
 
 
 LOCAL_FIX = (
-    "run `python scripts/check_duplicates.py --fix` locally and push the result, as `CONTRIBUTING.md` describes."
+    "run `python scripts/check_duplicates.py --fix` locally and push the result, as "
+    "`docs/how-to/fix-duplicates-locally.md` describes."
 )
 
 

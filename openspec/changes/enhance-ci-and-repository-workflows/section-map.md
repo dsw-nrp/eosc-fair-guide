@@ -132,7 +132,7 @@ claims hosted acceptance. Independent audience readers review type fit, usabilit
 | docs/design.md | DOI citation helper | maintainers | explanation | docs/design.md#doi-citation-helper |
 | docs/design.md | Design | maintainers | explanation | docs/design.md#design |
 | docs/design.md | Duplicate suggestions and the maintainer fix | maintainers | explanation | docs/design.md#duplicate-suggestions-and-the-maintainer-fix |
-| docs/design.md | Final candidate maintenance | maintainers | explanation | docs/design.md#final-candidate-maintenance |
+| docs/design.md | Final candidate maintenance | maintainers | explanation | docs/design.md#quality-and-maintenance |
 | docs/design.md | Identifier verification | maintainers | explanation | docs/design.md#identifier-verification |
 | docs/design.md | Knowledge base, identity and traceability | maintainers | explanation | docs/design.md#knowledge-base-identity-and-traceability |
 | docs/design.md | Layers-and-Seams integration | maintainers | explanation | docs/design.md#layers-and-seams-integration |
@@ -157,3 +157,13 @@ claims hosted acceptance. Independent audience readers review type fit, usabilit
 | docs/model-practice.md | One maintained relationship, several useful views | content reviewers | explanation | docs/model-practice.md#one-maintained-relationship-several-useful-views |
 | docs/model-practice.md | The guide's own information transfer | content reviewers | explanation | docs/model-practice.md#the-guides-own-information-transfer |
 | docs/software-practice.md | Software practice in this guide | software assessors | reference | docs/software-practice.md#software-practice-in-this-guide |
+
+
+Post-wave placement, 26 October 2026: the one-time health-issue migration procedure introduced by this change
+now lives in [its change-owned record](legacy-health-migration.md), with its complete steps and proposed issue
+dispositions. It is not a recurring maintainer task. The former-section rows above retain their original scope.
+
+Complete claim review, 27 October 2026: the final audience passes (`documentation-review.md`) corrected text within
+existing sections and moved no former section. Their new sections (`Queue controls`, `corrections.toml` and
+`Publication location and semantic namespace`) add material rather than relocate it, so no row changes;
+`python scripts/check_docs.py --map` still accounts for every former section.

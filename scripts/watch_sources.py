@@ -64,6 +64,7 @@ GOOD = ("ok", "available", "matches")
 DIGEST_MARKER = "<!-- fair-guide-digest -->"
 SECTIONS = {
     "triage": "Needs triage",
+    "refresh": "Sources not refreshed",
     "tracked": "Tracked",
     "limitation": "Known limitations",
     "source": "Source updates to review",
@@ -640,6 +641,9 @@ def findings(content: dict[str, Any], state: dict[str, Any], limitations: dict[s
                 entry["expired"] = today > limitation["reviewBy"]
             elif kind == "link" and outcome in ("denied", "rate-limited"):
                 entry["suggestion"] = suggestion(key, outcome, target, today)
+            if kind == "link" and not limitation:
+                # Unreviewed links that fail alike on one host form one digest entry (render).
+                entry["host"] = urlparse(target.get("url", "")).hostname or ""
             found.append(entry)
         elif kind == "champion-candidate":
             line = (
@@ -794,53 +798,164 @@ def task_link(repository: str, finding: dict[str, Any]) -> str:
     return f"https://github.com/{repository}/issues/new?{query}"
 
 
+REFRESH_TEXT = {
+    "failed": "was not retrieved, so its snapshot was kept; the next scheduled refresh retries it",
+    "empty": "was empty at the source, so its snapshot was kept; check the source before refreshing it again",
+    "rejected": "was rejected by validation, so its snapshot was kept; a maintainer reads the reason and fixes the "
+    "source data or its parser",
+}
+RUN_URL = re.compile(r"https://github\.com/[\w.-]+/[\w.-]+/actions/runs/\d+")
+
+
+def refresh_findings(refresh: dict[str, Any]) -> list[dict]:
+    """The sources the latest scheduled refresh did not refresh, as findings with stable keys. A run whose report
+    cannot be read, or no run at all, is one finding saying that the sources' state is unknown (decision 29)."""
+    url = refresh.get("run_url") or ""
+    run = f"[run]({url})" if RUN_URL.fullmatch(url) else ""
+    outcomes = refresh.get("outcomes")
+    if outcomes is None:
+        line = (
+            f"The latest scheduled Source refresh ({run}) left no readable report"
+            if run
+            else "No scheduled Source refresh run was found"
+        ) + ", so whether the sources are current is unknown"
+        return [{"key": "refresh:report", "kind": "refresh", "outcome": "unknown", "line": line, "section": "refresh"}]
+    found = []
+    for outcome in outcomes:
+        status, source = outcome.get("status"), str(outcome.get("source", ""))
+        if status not in REFRESH_TEXT or not re.fullmatch(r"[a-z0-9-]+", source):
+            continue
+        line = f"Source `{source}` {REFRESH_TEXT[status]}"
+        if outcome.get("reason"):
+            line += f" ({escape(str(outcome['reason'])[:300])})"
+        if run:
+            line += f"; {run} of {refresh.get('date') or 'an unknown date'}"
+        found.append(
+            {"key": f"refresh:{source}", "kind": "refresh", "outcome": status, "line": line, "section": "refresh"}
+        )
+    return found
+
+
+def host_key(host: str) -> str:
+    """The finding key of a host's grouped link failures, which a maintainer's task can carry."""
+    return f"link-host:{host}"
+
+
+def toml_block(suggestions: list[str]) -> str:
+    """Ready-to-paste limitations, indented inside their list entry."""
+    rows = "\n\n".join(suggestions).splitlines()
+    return "\n\n  ```toml\n" + "\n".join("  " + row for row in rows) + "\n  ```"
+
+
 def render(
-    plan: dict[str, Any], tasks: list[dict[str, Any]], audit: str, previous: dict[str, str], today: date
+    plan: dict[str, Any],
+    tasks: list[dict[str, Any]],
+    audit: str,
+    previous: dict[str, str],
+    today: date,
+    *,
+    refresh: dict[str, Any] | None = None,
 ) -> tuple[str, str, dict[str, str]]:
     """The digest body, the comment for meaningful change (empty when there is none) and what this run reported.
-    A finding with a maintainer's task is tracked while its outcome is the one the task was created for."""
+    A finding with a maintainer's task is tracked while its outcome is the one the task was created for. Unreviewed
+    links failing alike on one host are one entry, so an outage reads as one line; each keeps its own key. `refresh`
+    is the latest scheduled refresh as the publisher found it; without it, no refresh is reported."""
+    entries = [*plan["findings"], *(refresh_findings(refresh) if refresh is not None else [])]
     by_key: dict[str, list[dict]] = {}
     for task in tasks:
         by_key.setdefault(task["key"], []).append(task)
-    sections: dict[str, list[str]] = {name: [] for name in SECTIONS}
-    reported: dict[str, str] = {}
-    expired = set()
-    trackable = ("triage", "source", "candidate", "stale")
-    for finding in plan["findings"]:
-        section = finding["section"]
-        linked = sorted(by_key.get(finding["key"], []), key=lambda task: task["number"])
-        current = [task for task in linked if task["outcome"] == str(finding["outcome"])]
-        if finding.get("aged") and not linked:
-            continue  # an unreviewed page item drops off after SOURCE_DAYS; the comment says so once
-        line = finding["line"] + "."
-        if current and section in trackable:
-            section = "tracked"
-            task = current[-1]
-            line += f" Task #{task['number']}" + (
+
+    def tracking(key: str, outcome: Any) -> tuple[list[dict], list[dict]]:
+        linked = sorted(by_key.get(key, []), key=lambda task: task["number"])
+        return linked, [task for task in linked if task["outcome"] == str(outcome)]
+
+    def tracked(line: str, current: list[dict]) -> str:
+        task = current[-1]
+        return (
+            line
+            + f" Task #{task['number']}"
+            + (
                 f" (closed as {task['reason'] or 'completed'} on {task['closed'][:10]})"
                 if task["state"] == "closed"
                 else " (open)"
             )
+        )
+
+    hosts: dict[tuple[str, str], list[dict]] = {}
+    for finding in entries:
+        if finding.get("host") and finding["section"] == "triage" and not by_key.get(finding["key"]):
+            hosts.setdefault((finding["host"], str(finding["outcome"])), []).append(finding)
+    groups = {
+        id(member): (host, outcome, members)
+        for (host, outcome), members in hosts.items()
+        if len(members) > 1 or by_key.get(host_key(host))
+        for member in members
+    }
+    sections: dict[str, list[str]] = {name: [] for name in SECTIONS}
+    reported: dict[str, str] = {}
+    expired = set()
+    written = set()
+    trackable = ("triage", "refresh", "source", "candidate", "stale")
+    for finding in entries:
+        if id(finding) in groups:
+            host, outcome, members = groups[id(finding)]
+            if (host, outcome) in written:
+                continue
+            written.add((host, outcome))
+            group = {
+                "key": host_key(host),
+                "outcome": outcome,
+                "line": f"{len(members)} links on `{code(host)}` {OUTCOME_TEXT.get(outcome, outcome)}",
+            }
+            section, line = "triage", group["line"] + "."
+            linked, current = tracking(group["key"], outcome)
+            if current:
+                section, line = "tracked", tracked(line, current)
+            elif linked:
+                line += f" The outcome changed since task #{linked[-1]['number']}."
+            if section == "triage":
+                line += f" [Track as task]({task_link(plan['repository'], group)})"
+            listed = "\n".join(f"  - {member['line']}." for member in members)
+            line += f"\n\n  <details><summary>The {len(members)} links</summary>\n\n{listed}\n\n  </details>"
+            suggestions = [member["suggestion"] for member in members if member.get("suggestion")]
+            if suggestions and section == "triage":
+                line += toml_block(suggestions)
+            sections[section].append(line)
+            for member in members:
+                reported[member["key"]] = f"{section}|{member['outcome']}"
+            continue
+        section = finding["section"]
+        linked, current = tracking(finding["key"], finding["outcome"])
+        if finding.get("aged") and not linked:
+            continue  # an unreviewed page item drops off after SOURCE_DAYS; the comment says so once
+        line = finding["line"] + "."
+        if current and section in trackable:
+            section, line = "tracked", tracked(line, current)
         elif linked:
             line += f" The outcome changed since task #{linked[-1]['number']}."
         if section in trackable:
             line += f" [Track as task]({task_link(plan['repository'], finding)})"
         if finding.get("suggestion") and section == "triage":
-            line += "\n\n  ```toml\n" + "\n".join("  " + row for row in finding["suggestion"].splitlines()) + "\n  ```"
+            line += toml_block([finding["suggestion"]])
         sections[section].append(line)
         reported[finding["key"]] = f"{section}|{finding['outcome']}"
         if finding.get("expired"):
             expired.add(finding["key"])
-    body = digest_body(plan, sections, audit, today)
+    # Entries beyond a section's limit stay in the body, collapsed; only a body over GitHub's limit counts them instead.
+    body = digest_body(plan, sections, audit, today, collapse=True)
     limit = SECTION_LIMIT
     while len(body) > BODY_LIMIT and limit > 3:
+        body = digest_body(plan, sections, audit, today, limit=limit)
         limit //= 2
-        body = digest_body(plan, sections, audit, today, limit)
     comment = change_comment(plan, previous, reported, expired)
     return body, comment, reported
 
 
-def digest_body(plan: dict, sections: dict[str, list[str]], audit: str, today: date, limit: int = SECTION_LIMIT) -> str:
+def digest_body(
+    plan: dict, sections: dict[str, list[str]], audit: str, today: date, *, limit: int = SECTION_LIMIT, collapse=False
+) -> str:
+    """The digest issue body. Each section lists `limit` entries; the rest follow in a collapsed list (`collapse`) or,
+    when the body would exceed GitHub's limit even so, are counted with a pointer to the observations artifact."""
     run = f"[run]({plan['run_url']})" if plan.get("run_url") else "the latest run"
     lines = [
         DIGEST_MARKER,
@@ -856,7 +971,11 @@ def digest_body(plan: dict, sections: dict[str, list[str]], audit: str, today: d
         entries = sections[name]
         lines += ["", f"## {title} ({len(entries)})", ""]
         lines += [f"- {entry}" for entry in entries[:limit]] or ["None."]
-        if len(entries) > limit:
+        if len(entries) > limit and collapse:
+            lines += ["", f"<details><summary>{len(entries) - limit} more</summary>", ""]
+            lines += [f"- {entry}" for entry in entries[limit:]]
+            lines += ["", "</details>"]
+        elif len(entries) > limit:
             lines.append(f"- … and {len(entries) - limit} more in the run's observations artifact.")
     coverage = plan["coverage"]
     lines += [
@@ -868,15 +987,23 @@ def digest_body(plan: dict, sections: dict[str, list[str]], audit: str, today: d
     ]
     lines += [f"- Not checkable: `{code(place)}`" for place in coverage.get("invalidAt", [])[:limit]]
     lines += ["", audit.strip() if audit.strip() else "## Project and settings\n\nThe audit did not run this time."]
-    triage = len(sections["triage"])
-    lines += ["", "## Next", ""]
-    lines += handoff(
+    triage, unrefreshed = len(sections["triage"]), len(sections["refresh"])
+    next_step = (
         f"a maintainer triages the {triage} findings under Needs triage: fix the source, use **Track as task**, or "
         f"add the suggested reviewed limitation to `{LIMITATIONS}`."
         if triage
-        else "nothing needs triage; review the source updates and candidates when any are listed.",
+        else "nothing needs triage; review the source updates and candidates when any are listed."
+    )
+    if unrefreshed:
+        next_step += (
+            " Under Sources not refreshed, a rejected source needs a maintainer; one that was not retrieved is retried "
+            "by the next scheduled refresh."
+        )
+    lines += ["", "## Next", ""]
+    lines += handoff(
+        next_step,
         "discuss a finding in a comment here; the run's observations artifact holds every outcome and its evidence.",
-        "a run's digest lists nothing under Needs triage.",
+        "a run's digest lists nothing under Needs triage or Sources not refreshed.",
     )
     return "\n".join(lines) + "\n"
 
@@ -941,6 +1068,9 @@ def main(argv: list[str] | None = None) -> int:
     rendering.add_argument("--tasks", type=Path, required=True, help="maintainers' keyed tasks, from the publisher")
     rendering.add_argument("--audit", type=Path, help="the audit's Project and settings section")
     rendering.add_argument("--predecessor", type=int, help="the closed digest a new one continues")
+    rendering.add_argument("--refresh-run", help="the latest scheduled Source refresh run (empty: none was found)")
+    rendering.add_argument("--refresh-date", default="", help="the day that refresh ran")
+    rendering.add_argument("--refresh", type=Path, help="that run's refresh report (missing: its outcome is unknown)")
     rendering.add_argument("--output", type=Path, required=True)
     commands.add_parser("check-config")
     args = parser.parse_args(argv)
@@ -1005,7 +1135,16 @@ def main(argv: list[str] | None = None) -> int:
     plan["predecessor"] = args.predecessor
     tasks = json.loads(args.tasks.read_text(encoding="utf-8"))
     audit = args.audit.read_text(encoding="utf-8") if args.audit and args.audit.is_file() else ""
-    body, comment, reported = render(plan, tasks, audit, state.get("reported", {}), today)
+    refresh = None
+    if args.refresh_run is not None:
+        refresh = {"run_url": args.refresh_run, "date": args.refresh_date, "outcomes": None}
+        try:
+            report = json.loads(args.refresh.read_text(encoding="utf-8")) if args.refresh else {}
+            if report.get("formatVersion") == 1 and isinstance(report.get("outcomes"), list):
+                refresh["outcomes"] = [outcome for outcome in report["outcomes"] if isinstance(outcome, dict)]
+        except (OSError, ValueError, AttributeError):
+            pass  # an unreadable report is reported as an unknown outcome
+    body, comment, reported = render(plan, tasks, audit, state.get("reported", {}), today, refresh=refresh)
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "body.md").write_text(body, encoding="utf-8")
     (args.output / "comment.md").write_text(comment, encoding="utf-8")

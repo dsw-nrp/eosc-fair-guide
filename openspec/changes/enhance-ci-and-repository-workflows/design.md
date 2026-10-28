@@ -202,8 +202,8 @@ flowchart LR
   stage --> publish
 ```
 
-The main ruleset gains a merge-queue rule: squash method, all entries green, up to three PRs per group, at most two
-groups building, no minimum wait and a 30-minute check timeout. The up-to-date requirement is switched off because
+The main ruleset uses a merge-queue rule: squash method, all entries green, at most two groups building and up to
+ten verified PRs per merge batch (decision 27), minimum one, no batching wait and a 30-minute check timeout. The up-to-date requirement is switched off because
 the queue verifies the merged result. PR checks stay required before a PR can be queued, so contributors keep their
 feedback, and Dependabot, refresh and human PRs follow the same path. `checks.yml` handles `merge_group`: it uses
 the merge-group base, skips the quick job and the PR-only review-data steps and keeps read-only permissions.
@@ -234,7 +234,7 @@ Approval moves from the `github-pages` environment to a new `production` environ
 approved once its release assets are complete, its deployment run succeeded, or that run's production and approval
 jobs succeeded, so staging never promotes an unapproved tag. Workflow concurrency is per ref: branch runs cancel
 superseded preparation, tag runs are never cancelled by branch runs, and a cancelled run names its successor. Tag
-runs prepare no staging site.
+runs prepare no staging site, and an existing preview artifact is never patched.
 
 The deployment run only prepares. Assembly and Pages publication run in a separate workflow, `publish.yml`,
 started by every successful deployment run (`workflow_run`), so cancelling preparation can never interrupt a Pages
@@ -249,7 +249,9 @@ default-branch deployment, publication takes that run's own checked staging site
 head; otherwise it publishes nothing and names the run for the head. After a tag deployment, it takes the head's
 checked staging site beside the new production, so a tag approved after the branch moved on is still promoted;
 while the head's own deployment is still preparing, it publishes nothing and the head's publication includes the
-release. Neither channel moves back, and publishing the same identities again changes nothing. `github-pages`
+release. Since 28 October the two channels may name different namespaces until a release aligns them
+(decision 28); the summary states both. Neither channel moves back, and
+publishing the same identities again changes nothing. `github-pages`
 accepts only the default branch. Release drafting and the image follow a publication that deployed the release, and
 Tag release checks for a successful `github-pages` deployment of the current default-branch commit, as the tag
 ruleset does, and otherwise names the run to wait for. Decision 20 moves that requirement to the `staging` record.
@@ -367,8 +369,10 @@ flowchart LR
 label and the digest marker that was created by the workflow identity. If none exists, it creates one; if there
 are two, it writes nothing and warns. The body is entirely automation-owned and says so, while discussion happens
 in comments. Its sections are: needs triage, tracked, known limitations, source updates to review, candidates to
-review, stale statuses, coverage, and Project and settings. Overflow is collapsed into counts with an artifact
-link, so the body stays within GitHub's limit. A comment is posted only when the set of new, changed, recovered or
+review, stale statuses, coverage, and Project and settings. Since 28 October (decision 29), link findings that
+share a host and outcome form one entry that counts and names the affected records, so one outage is one line.
+A section beyond its limit continues in a collapsed list inside the body, which stays within GitHub's limit; the
+artifact keeps only the raw observations. A comment is posted only when the set of new, changed, recovered or
 expired findings is nonempty. It carries the run ID, so a retry finds it instead of repeating it. Pinning is best
 effort with a visible warning. Rotation is the maintainer closing the digest: the next run opens a successor,
 posts the forward link on the predecessor and moves open sub-issues. Each step can be rerun until it is complete.
@@ -393,11 +397,13 @@ offers a ready-to-paste entry. `content/link-reviews.toml` stays the separate me
 Watched-page extraction ignores pagination and navigation such as #101. Champion candidates stay listed until a
 maintainer decides, without automatic adoption.
 
-The legacy migration has two phases. First, a dry run maps every open `guide-health` issue (#59–#65, #85–#101) to
-a digest entry, a retained task or a noise disposition, after refreshing each thread. Second, after approval of
-that mapping and of the exact first digest body, one run publishes the digest, comments and closes the absorbed
-issues as "not planned" with the digest link. The per-finding publisher is removed in the same PR, so the two
-publishers never run in parallel.
+The legacy migration selects every open `guide-health` issue that carries the legacy finding marker when it runs,
+not a fixed list: the scheduled legacy publisher kept opening issues (#115, #118–#135) after the first list was
+written. On 28 October none of the 43 open issues had a human comment, so the maintainer simplified the migration.
+After the merge, a manual watch run publishes the first digest. The maintainer checks it and approves one closing
+comment, and the absorbed issues close as "not planned" with the digest link. An issue that has gained human
+discussion by then is summarised and linked from the digest before it closes. The per-finding publisher is
+removed in the same PR, so the two publishers never run in parallel.
 
 ### 13. Self-explaining CI
 
@@ -540,8 +546,8 @@ on the default branch wrote it. Production records name the tag, which its `tag 
 
 Follow-up, 26 October 2026: the maintainer applied `staging` and the Actions `checks` requirement to tag protection.
 Read-back shows that both `github-pages` and `staging` are required, with no `staging` deployment yet observed.
-The earlier target of replacing `github-pages` has therefore not become the exact applied policy. Task 13.4
-records the intended target and reconciles the declaration without silently removing either live gate; 8.7
+The maintainer chose to retain both deployment gates and `checks` in this apply session. Task 13.4
+reconciles the declaration without removing either live gate; 8.7
 remains open for a successful real staging record and audit evidence, not for a repeated request to add the gate.
 
 ### 21. One-invocation release notes
@@ -616,11 +622,13 @@ The address boundary has three parts:
 - Browser navigation, API references and shared/exported links use relative references or resolve against the
   Guide document's actual site root. An iframe uses the Guide's location, not its parent's origin. Opening
   `index.html`, a subpath deployment or a local file must not require a predicted public hostname.
-- Static metadata that requires an absolute address, including vocabulary/profile IRIs, sitemap locations and
-  publication metadata, takes the real deployment origin and site path before the build is validated and packaged.
+- Static metadata that requires an absolute address, including sitemap locations and publication metadata, takes
+  the real deployment origin and site path before the build is validated and packaged.
   GitHub Pages exposes these as `base_url`, `origin` and `base_path`; other hosts supply their actual location.
   Offline/file builds retain resolvable relative references and make no invented public-location claim. The build
   does not discover a hostname by a network request, and publication never rewrites verified production bytes.
+  Vocabulary/profile IRIs are the exception: since 28 October they come from the reviewed namespace setting of
+  decision 28, so a hosting move does not rename them.
 - Logical Guide record IDs, source IDs and external vocabulary IRIs retain their meaning. Removing the predicted
   hostname must cover all consumers of `baseUrl`, `pageUrl`, vocabulary and profile addresses rather than just
   replacing sitemap strings. Inventory already emitted absolute IRIs and record compatibility/migration effects
@@ -678,6 +686,13 @@ and runbook, including approval, publication, refusal and retry. For example, th
 production-preparation-to-draft arrow is replaced by the real publication dependency. Rendering alone is not
 verification of those transitions.
 
+Revised on 28 October 2026. Agent rules that point to the content model are checked against it: the native
+content rule asked editors to mark language changes with a tag, while the content model states that no such markup
+exists. The rule is reworded to state the current position, and inline language markup, if wanted, is its own
+change. The maintainer has reviewed most documents, so the separate human documentation review is dropped.
+Instead, the maintainer walks through each runbook while performing the remaining hand-offs, and any step that
+does not read well is fixed within this change.
+
 ### 26. Issue-based refresh and scoped organization reads
 
 An authorized maintainer can start `/refresh <source>` from an ordinary repository issue even before a refresh
@@ -700,17 +715,75 @@ and public-safe receipt with the implementation. The hosted audit-only run write
 Read-back on 26 October shows tag protection requiring both `github-pages` and `staging`, plus the `checks`
 status from the GitHub Actions integration. Record the maintainer's already applied action once. Reconcile the
 reviewed declaration and audit with that evidence; do not remove a live gate just because the older plan expected
-only `staging`. The remaining target choice is whether both environments stay or the earlier replacement is
-completed. Until an explicit choice, both gates remain. Verify a real successful staging record and that required
+only `staging`. The maintainer explicitly chose to retain both environments and `checks`; the declaration and
+recorded audit fixture follow that choice. Verify a real successful staging record and that required
 checks exist before tag creation, including the intended queue and administrator-fallback routes, before closing 8.7.
 
-Queue limits control different things: build concurrency is two merge-group builds; the maximum merge batch is
-three already verified PRs, with a minimum of one and no batching wait. A larger merge batch does not combine
+Queue limits control different things: build concurrency is two merge-group builds; the maximum merge batch was
+initially three and the live read-back now reports ten, with a minimum of one and no batching wait. A larger merge batch does not combine
 merge-group CI builds. Existing receipts measured six concurrent check lanes, which explains a conservative build
-limit but does not establish that a batch of three is optimal. Task 13.5 compares the controls against observed
-waiting/runner use and records a maintainer decision. Ten was suggested, not approved; capture authorizes no
-numeric change or remote settings write. See the
+limit but does not establish an optimal merge batch. The maintainer explicitly selected ten in this apply session.
+Task 13.5 records that choice, the fresh read-back and the waiting/runner evidence in `settings-evidence.md`.
+The local declaration follows the existing live value; no remote settings write was performed. See the
 [merge-queue semantics](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue).
+
+### 28. The vocabulary namespace is a reviewed setting
+
+**Revised on 28 October 2026.** On 26 October the maintainer chose to move production and preview to a new
+namespace together at the next release, and group 12 implemented that as a verified pair. Every ordinary preview
+deployment read the live production site and its release archive to learn which namespace to keep. A release
+deployment then built a current-head preview after approval and refused to publish when `main` had moved. The
+review on 28 October found this permanent machinery out of proportion to a one-time switch. It made every preview
+deployment depend on the Pages API, the live site and the release lookups. It added a refusal mode to releases. It
+also tied the Guide's RDF names to wherever the Guide is hosted. The harm it prevented was small: a `noindex` alpha
+preview briefly naming terms that production's vocabulary file still defines under the old namespace. The
+maintainer selected the simpler route. The live-production finding and the IRI inventory stay in
+`address-inventory.md`.
+
+**One reviewed value.** `content/guide.toml` declares the namespace from which the Guide vocabulary and profile
+IRIs derive, separately from `baseUrl`, and sets it to the current Pages root. Like any content setting, it changes
+only through a reviewed pull request. No deployment discovers it from the live site, the Pages API or a release
+archive. The actual Pages location still drives navigation, the sitemap and page metadata (decision 24).
+
+**Channels may differ until the next release.** From the merge of this change, previews carry the new namespace,
+while production keeps the legacy one until the next release. Assembly accepts a production and a preview with
+different namespaces, and the deployment summary states both values and that the next release aligns them.
+Assembly still refuses sites built for different publication roots. A release publishes the tagged production
+beside the latest checked staging site, as for any release. There is no paired preview, no head recheck for one and
+no `pair-head` step.
+
+**Identity still binds the namespace.** The namespace and profile remain part of the build and artifact identity,
+so a result checked for one namespace is never reused for another. Existing releases and archives keep their bytes
+and original contexts. Logical record IDs and exact external IRIs are unchanged. No alias, `sameAs`, redirect or
+profile-version bump is invented. Before the release, reverting the setting is an ordinary reviewed revert; after
+it, a further change needs another release.
+
+**Deferred: a persistent namespace.** Because the namespace is now a setting, it can later move to a persistent
+`w3id.org` IRI that redirects to wherever the Guide is served, as the FAIR principles and FIP vocabularies do. That
+needs an external registration and another breaking change, so #136 tracks it outside this change.
+
+### 29. Failures name who acts, in the place people look
+
+Observed on 26–27 October 2026: the scheduled Source refresh could not download heslar and nkr and ended red with
+only "See the refresh report", which points to a JSON artifact. The next morning the legacy watch run ended green
+after opening 17 issues for the same unreachable host. The noisy signal was green and the actionable one was silent.
+
+- **Red means a person acts.** A run fails only when a maintainer must do something. Its step summary says what
+  happened, who acts and the next step, with the shared hand-off block. Information a person needs is in the
+  summary, a reply or the digest. An artifact holds only raw evidence.
+- **Scheduled refresh outcomes.** The scheduled refresh writes each source's outcome to its summary. A source
+  that could not be retrieved is a warning, and the next run retries it. A response rejected by validation, or a
+  failed publication, fails the run. The digest publisher reads the latest scheduled refresh report from run
+  storage, as it reads the previous watch state. It lists the sources not refreshed with their outcome, date and run
+  link, or says that the outcome is unknown.
+- **One outage, one entry.** Decision 11's host grouping turns a host that fails for many links into one triage
+  entry.
+- **A pending permission hides only what it covers.** The audit requests separate App tokens for the accepted
+  Project read and for the newly requested organization reads. A pending installation acceptance then leaves the
+  Project section readable, as decision 26 requires. The single combined request did not.
+- **Checks run where they are reported.** The quick job installs every third-party module its checks import. A
+  test derives that set from the checks' own imports rather than from the install line, because a local
+  environment with every requirement installed hid the hosted failure.
 
 ### Issue dispositions (refreshed 26 October 2026)
 
@@ -718,10 +791,7 @@ numeric change or remote settings write. See the
 | --- | --- |
 | #83 | Initial generation is complete locally in group 7; current-host addressing, effective robots policy and preview indexing need group 12 before delivery acceptance |
 | #84 | CI catalogue and navigation are complete locally; group 14 corrects durable claims, review responsibilities and full-document acceptance. This does not claim default-branch delivery |
-| #59–#65 | Proposed mapping to the digest's candidates section; migration awaits 6.10's exact-payload approval; no candidate selection is approved here |
-| #85–#99 | Proposed mapping to digest findings, triaged after the approved migration; not yet a closure claim |
-| #100 | Proposed mapping as a source update to review in the approved migration |
-| #101 | Proposed noise disposition after the pagination fix; closing still requires the approved migration |
+| #59–#65, #85–#101 | Proposed dispositions and the complete one-time procedure live in [the change-owned migration record](legacy-health-migration.md); exact-payload approval and live-thread capture remain 6.10, and no closure is claimed here |
 | #6 | Receives CI test and handoff evidence; stays open |
 | #5–#33, #35–#38, #43, #80 | Unaffected; typed, labelled and triaged through the backfill. #14, #15, #25 and #32 stay external or separate decisions |
 | PRs #39–#42, #70 | Unaffected; labelled and tracked in the Project |
@@ -756,7 +826,12 @@ numeric change or remote settings write. See the
   section, then reruns independent audience readers; earlier receipts stay historical.
 - **Replacing the assumed hostname could change semantic identity or verified bytes** → group 12 inventories
   expanded IRIs and address consumers, keeps logical/external identities, and resolves absolute publication
-  inputs before validation; production artifacts are never patched during publication.
+  inputs before validation; production artifacts are never patched during publication. The namespace is a
+  reviewed setting, so a hosting change alone never renames a term (decision 28).
+- **Preview and production name different namespaces until the next release** → accepted for an alpha `noindex`
+  preview; the deployment summary states both, and the next release aligns them.
+- **Finishing through use could skip a check** → each hand-off keeps its runbook's "Done when" and the task
+  records the run link; a check that cannot be made within this change is dropped explicitly, not left open.
 - **A generated robots file could promise controls its host does not provide** → root/subpath tests and an
   explicit hosting policy, with crawl access retained for preview `noindex`.
 - **The native release helper has not run against a real draft** → task 8.8 retains that proof even though its
@@ -789,20 +864,26 @@ numeric change or remote settings write. See the
 9. Land the documentation wave (group 10) after its review package passes.
 10. The 26 October follow-up (groups 12-15) corrects the serving-location contract, command/permission routes,
     documentation and settings evidence on the same branch before renewed integrated acceptance.
-11. A separately approved final rehearsal follows the corrected release runbook (task 11.3), also exercising
-    actual-location discovery, issue-origin refresh and the accepted audit scopes. Its exact writes are approved
-    separately; this planning capture neither starts the rehearsal nor authorizes a release.
+    The 28 October finishing scope (group 16) replaces the namespace pair with a reviewed setting (decision 28)
+    and adds the hand-off repairs of decision 29.
+11. After the merge, each step under its own approval and in this order: the audit-only run (13.3, closing 5.8
+    and 5.9), the digest migration (6.10, 6.11), the first `staging` record (8.7), and the alpha.4 release, which
+    doubles as the rehearsal (11.3) and the draft-helper exercise (8.8). This planning capture neither starts any of
+    them nor authorizes a release.
 
 Rollback for code is a reviewed revert. The digest publisher can be disabled while its state artifacts and
 human comments remain. Completed repairs, notes and published releases are never rewritten.
 
 ## Open Questions
 
-The follow-up has two explicit decision gates: the retained tag-deployment set (13.4) and queue parameters (13.5).
-They are decision tasks, not permission to implement an assumed target. Preserve the current applied protections
-and queue numbers until the maintainer chooses. Additional indexable station/language pages and custom-domain
+The settings decisions are settled: keep both tag-deployment environments and `checks` (13.4), and the live maximum
+merge batch of ten with two concurrent builds, minimum one and no batching wait (13.5). Neither decision authorizes
+a remote settings write. Additional indexable station/language pages and custom-domain
 adoption are excluded; deciding to add them would require a further scope revision. The public-location direction
 itself is settled: use the actual serving location and index the current GitHub Pages site.
+The namespace is also settled: a reviewed setting (decision 28, revised on 28 October), with a persistent
+`w3id.org` namespace tracked as a separate issue. No release version or execution approval follows from that
+planning choice.
 
 These can be answered during apply without changing the specs or the task breakdown:
 

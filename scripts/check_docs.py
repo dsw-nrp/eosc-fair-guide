@@ -21,6 +21,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from build_crate import ADMS, DCAT, DCTERMS, FIP_TERMS, FTR, PROV, SCHEMA, SKOS, XSD, build_crate, load_content
+
 ROOT = Path(__file__).resolve().parents[1]
 TYPES = ("landing", "how-to", "reference", "explanation", "tutorial")
 DECLARATION = re.compile(r"<!-- type: ([a-z-]+) -->")
@@ -86,6 +88,10 @@ def runbook(name: str, text: str) -> list[str]:
     body = lines[title + 1 :]
     start = next((index for index, line in enumerate(body) if STEP.match(line) or line.startswith("#")), len(body))
     opening = " ".join(line.strip() for line in body[:start] if line.strip())
+    if re.search(
+        r"\b(?:this one-time migration|change-specific (?:migration|rollout|backfill))\b", opening, re.I
+    ) and re.search(r"(?<!\w)#\d+", outside):
+        found.append(f"{name}: keep this one-time issue migration with its OpenSpec change, not in durable runbooks")
     sentences = [part for part in re.split(r"(?<=[.!?])\s+", opening) if part.strip()]
     if not sentences or len(sentences) > 2:
         found.append(f"{name}: open with one or two sentences on who acts, how long and why ({len(sentences)} now)")
@@ -279,14 +285,175 @@ def agreement(root: Path) -> list[str]:
     return found
 
 
+def semantic_mapping(text: str, crate: dict, base_context: dict) -> list[str]:
+    """Check documentation prefixes/aliases against the effective emitted JSON-LD context, offline."""
+    label = "docs/content-model.md"
+    found = []
+    extension = crate["@context"][1]
+    context = base_context | extension
+    guide_base = extension["scope"].removesuffix("scope")
+    expected = {
+        "schema": SCHEMA,
+        "dcterms": DCTERMS,
+        "prov": PROV,
+        "rdf": base_context["rdf"],
+        "rdfs": base_context["rdfs"],
+        "ftr": FTR,
+        "fip": FIP_TERMS,
+        "sio": extension["isImplementationOf"].removesuffix("SIO_000233"),
+        "skos": SKOS,
+        "dcat": DCAT,
+        "adms": ADMS,
+        "xsd": XSD,
+        "guide": guide_base,
+    }
+
+    def marked(name: str) -> str:
+        match = re.search(rf"<!-- {name}:start -->(.*?)<!-- {name}:end -->", text, re.S)
+        if not match:
+            found.append(f"{label}: retain the {name} table for semantic verification")
+        return match.group(1) if match else ""
+
+    declared = dict(re.findall(r"\| `([a-z]+):` \| `([^`]+)` \|", marked("namespaces")))
+    for prefix, iri in expected.items():
+        written = declared.get(prefix)
+        actual = guide_base if prefix == "guide" and written == "<namespace>terms#" else written
+        if actual != iri:
+            found.append(f"{label}: {prefix}: namespace must be {iri}, got {written!r}")
+    for prefix in declared.keys() - expected.keys():
+        found.append(f"{label}: unknown namespace prefix {prefix}:")
+
+    def expand(value: str) -> str:
+        definition = context.get(value, value)
+        if isinstance(definition, dict):
+            definition = definition.get("@id", "")
+        if isinstance(definition, str) and ":" in definition and not definition.startswith(("http:", "https:")):
+            prefix, local = definition.split(":", 1)
+            return str(context.get(prefix, "")) + local
+        return definition if isinstance(definition, str) else ""
+
+    known = {expand(key) for key in context}
+    # additionalType values name external classes rather than serialized property/type keys.
+    for entity in crate["@graph"]:
+        values = entity.get("additionalType", [])
+        for value in values if isinstance(values, list) else [values]:
+            if isinstance(value, str):
+                known.add(value)
+
+    def documented(term: str) -> str:
+        prefix, _, local = term.partition(":")
+        if prefix not in expected or prefix not in declared:
+            found.append(f"{label}: unknown namespace in `{term}`")
+            return ""
+        return expected[prefix] + local
+
+    aliases = re.findall(r"\| `([^`]+)` \| `([^`]+)` \|", marked("semantic-aliases"))
+    for key, term in aliases:
+        iri = documented(term)
+        if key not in context or iri != expand(key):
+            found.append(f"{label}: serialized `{key}` expands to {expand(key)}, not `{term}`")
+    for key in ("publisher", "attributedTo", "isImplementationOf"):
+        if key not in dict(aliases):
+            found.append(f"{label}: explain the serialized `{key}` alias")
+
+    mapping = text.partition("| Content | `@type` | `@id` | Main properties |")[2].split("\n\n", 1)[0]
+    if not mapping:
+        found.append(f"{label}: retain the crate-mapping table")
+    for row in mapping.splitlines():
+        cells = row.split("|")
+        if len(cells) < 6 or cells[1].strip().startswith("---"):
+            continue
+        for term in SPAN.findall(cells[2] + cells[4]):
+            if term in ("cs", "en"):
+                continue  # language literals, not semantic terms
+            if ":" not in term:
+                found.append(f"{label}: qualify `{term}` in the {cells[1].strip()} crate-mapping row")
+            elif (iri := documented(term)) and iri not in known:
+                found.append(
+                    f"{label}: `{term}` in the {cells[1].strip()} row is absent from the emitted context/classes"
+                )
+    return found
+
+
+def durable_prose(name: str, text: str, has_concept_doi: bool = False) -> list[str]:
+    """Flag contextual rollout dependencies while retaining dated evidence, examples and recovery conditions."""
+    outside, _ = prose(text)
+    outside = SPAN.sub("", outside)  # code examples name syntax, not the document's current rollout state
+    found = []
+    for raw_paragraph in re.split(r"\n\s*\n", outside):
+        paragraph = " ".join(raw_paragraph.split())
+        if re.search(r"\bonce the merge queue is (?:on|enabled)\b", paragraph, re.I) or (
+            re.search(r"\b(?:task|decision) \d+\.\d+\b", paragraph, re.I)
+            and re.search(r"\b(?:CI|OpenSpec|this|the) change\b", paragraph, re.I)
+        ):
+            found.append(f"{name}: replace the in-flight change/task dependency with the current contract")
+        if re.search(r"\b(?:explicitly deferred|deferred (?:team audit|follow-up work))\b", paragraph, re.I):
+            found.append(f"{name}: keep deferred-work narration in its issue or OpenSpec change")
+        for number in re.findall(r"\bProject #(\d+)\b", paragraph, re.I):
+            if not re.search(rf"https://github\.com/(?:orgs|users)/[^/\s)]+/projects/{number}(?=[\s)#]|$)", paragraph):
+                found.append(f"{name}: name the organization Project and link its explicit Project URL")
+        if has_concept_doi and re.search(r"\bonce (?:the real |the |a )?concept DOI is issued\b", paragraph, re.I):
+            found.append(f"{name}: a concept DOI is already linked; replace the completed badge follow-up")
+    return found
+
+
+def publication_flow(text: str) -> list[str]:
+    """Check mandatory publication/approval ordering, including rendered-but-false shortcut arrows."""
+    _, blocks = prose(text)
+    diagram = next((block for block in blocks if "accTitle: Production and preview delivery" in block), "")
+    if not diagram:
+        return ["docs/design.md: retain the production/preview workflow diagram"]
+    edges: dict[str, set[str]] = {}
+    for line in diagram.splitlines():
+        if "-->" not in line:
+            continue
+        plain = re.sub(r"\[[^\]]*\]|\{[^}]*\}|\|[^|]*\|", "", line)
+        nodes = [node.strip() for node in plain.split("-->")]
+        if any(not re.fullmatch(r"[A-Z]+", node) for node in nodes):
+            return ["docs/design.md: use explicit named --> edges in the publication diagram for semantic checking"]
+        for before, after in zip(nodes, nodes[1:], strict=False):
+            edges.setdefault(before, set()).add(after)
+
+    def reaches(start: str, target: str, excluded: str = "") -> bool:
+        todo, seen = [start], {excluded}
+        while todo:
+            node = todo.pop()
+            if node in seen:
+                continue
+            if node == target:
+                return True
+            seen.add(node)
+            todo.extend(edges.get(node, ()))
+        return False
+
+    found = []
+    for gate, description in (("H", "production approval"), ("D", "Pages publication"), ("I", "image publication")):
+        if not reaches("P", "F") or reaches("P", "F", gate):
+            found.append(
+                f"docs/design.md: draft release must follow {description}; reject a preparation-to-draft shortcut"
+            )
+    if reaches("K", "F"):
+        found.append("docs/design.md: withheld approval must not continue to a new release")
+    return found
+
+
 def problems(root: Path = ROOT) -> list[str]:
     npm = scripts(root)
     found = []
+    readme = (root / "README.md").read_text("utf-8") if (root / "README.md").is_file() else ""
+    has_concept_doi = bool(re.search(r"https://doi\.org/10\.5281/zenodo\.\d+", readme))
     for name in documents(root):
         text = (root / name).read_text(encoding="utf-8")
-        found += structure(name, text) + facts(root, name, text, npm)
+        found += structure(name, text) + facts(root, name, text, npm) + durable_prose(name, text, has_concept_doi)
     if (root / "README.md").is_file() and (root / "README_en.md").is_file():
         found += agreement(root)
+    model = root / "docs/content-model.md"
+    if model.is_file() and (root / "content/guide.toml").is_file():
+        context = json.loads((root / "tests/fixtures/ro-crate-1.2-context.json").read_text("utf-8"))["@context"]
+        found += semantic_mapping(model.read_text("utf-8"), build_crate(load_content(root / "content")), context)
+    design = root / "docs/design.md"
+    if design.is_file():
+        found += publication_flow(design.read_text("utf-8"))
     return found
 
 

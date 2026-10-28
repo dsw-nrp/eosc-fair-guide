@@ -13,7 +13,6 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from urllib.parse import urlsplit
 from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -24,6 +23,8 @@ import build_api  # noqa: E402
 import build_crate  # noqa: E402
 import build_site  # noqa: E402
 import package_site  # noqa: E402
+from publication_fixture import publication_files  # noqa: E402
+from publication_location import site_identity  # noqa: E402
 
 PRODUCTION = "a" * 40
 STAGING = "b" * 40
@@ -48,6 +49,7 @@ class AssemblyTests(unittest.TestCase):
             "linkset.json": b'{"anchor":"https://example.org/guide/"}',
             "sitemap.xml": b"<urlset><loc>https://example.org/guide/</loc></urlset>",
             "assets/js/app.js": b"window.example = true;",
+            **publication_files(),
         }
         self.write_release(self.files)
         for name, data in {
@@ -59,6 +61,7 @@ class AssemblyTests(unittest.TestCase):
             "api/health.json": json.dumps(self.health(STAGING)).encode(),
             "openapi.json": b'{"servers":[{"url":"https://example.org/guide/"}],"paths":{}}',
             "linkset.json": self.files["linkset.json"],
+            **publication_files(),
         }.items():
             path = self.stage / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -93,8 +96,8 @@ class AssemblyTests(unittest.TestCase):
     def save_manifest(self) -> None:
         (self.release / "manifest.json").write_text(json.dumps(self.manifest), encoding="utf-8")
 
-    def assemble(self) -> None:
-        assemble_pages.assemble(
+    def assemble(self) -> list[str]:
+        return assemble_pages.assemble(
             self.stage,
             STAGING,
             self.out,
@@ -103,6 +106,99 @@ class AssemblyTests(unittest.TestCase):
             production_commit=PRODUCTION,
             root=self.root,
         )
+
+    def stamp_release(self, files: dict[str, bytes]) -> None:
+        """A release packaged since publication stamps: its manifest names the root and namespace it was built for."""
+        self.files.update(files)
+        self.write_release(self.files)
+        inputs = site_identity(self.files)
+        self.manifest.update(
+            publication_url=inputs["publication_url"],
+            semantic={key: inputs[key] for key in ("vocabulary_base", "profile")},
+        )
+        self.save_manifest()
+
+    def stage_files(self, files: dict[str, bytes]) -> None:
+        for name, data in files.items():
+            (self.stage / name).write_bytes(data)
+
+    def test_a_preview_with_the_next_namespace_is_published_beside_production_with_a_notice(self):
+        # The reviewed namespace changed after the release: production keeps its own, unchanged bytes until the next
+        # release, and the summary says that the two channels differ (decision 28).
+        self.stage_files(publication_files("https://actual.example/", semantic="https://actual.example/"))
+        notices = self.assemble()
+        self.assertEqual((self.out / "ro-crate-metadata.json").read_bytes(), self.files["ro-crate-metadata.json"])
+        self.assertEqual(len(notices), 1)
+        for value in ("https://actual.example/terms#", "https://example.org/guide/terms#", "next release"):
+            self.assertIn(value, notices[0])
+        # The publish workflow copies these lines into its run summary.
+        notes = self.root / "notes.md"
+        arguments = ["--staging", str(self.stage), "--staging-commit", STAGING, "--out", str(self.root / "cli")]
+        arguments += ["--production", str(self.release), "--production-tag", "v1.2.3-alpha.1"]
+        arguments += ["--production-commit", PRODUCTION, "--notes", str(notes)]
+        assemble = assemble_pages.assemble
+        with (
+            patch.object(
+                assemble_pages, "assemble", lambda *args, **options: assemble(*args, **options, root=self.root)
+            ),
+            patch("builtins.print"),
+        ):
+            self.assertEqual(assemble_pages.main(arguments), 0)
+        self.assertEqual(notes.read_text(encoding="utf-8"), f"- {notices[0]}\n")
+
+    def test_sites_built_for_different_publication_roots_are_refused(self):
+        self.assemble()
+        before = (self.out / "index.html").read_bytes()
+        self.stamp_release(publication_files("https://actual.example/project/"))
+        with self.assertRaisesRegex(assemble_pages.AssemblyError, "different publication roots"):
+            self.assemble()
+        self.assertEqual((self.out / "index.html").read_bytes(), before, "the existing output stays")
+
+    def test_a_release_aligns_the_namespace_and_keeps_earlier_archives(self):
+        old = dict(self.files)
+        target = "https://actual.example/project/"
+        self.stamp_release(publication_files(target))
+        archive_before = (self.release / "site.tar.gz").read_bytes()
+        self.stage_files(publication_files(target))
+        self.assertEqual(self.assemble(), [], "aligned channels need no notice")
+        self.assertEqual((self.release / "site.tar.gz").read_bytes(), archive_before)
+        self.assertEqual((self.out / "ro-crate-metadata.json").read_bytes(), self.files["ro-crate-metadata.json"])
+        self.assertNotEqual(old["ro-crate-metadata.json"], self.files["ro-crate-metadata.json"])
+
+    def test_new_declarations_cannot_forge_the_content_or_change_publication_root(self):
+        self.assemble()
+        before = (self.out / "index.html").read_bytes()
+        inputs = site_identity(self.files)
+        self.manifest.update(
+            publication_url=inputs["publication_url"],
+            semantic={key: inputs[key] for key in ("vocabulary_base", "profile")},
+        )
+        self.manifest["semantic"]["profile"] = "https://other.example/profile/0.1"
+        self.save_manifest()
+        with self.assertRaisesRegex(assemble_pages.AssemblyError, "differs from its contents"):
+            self.assemble()
+        self.manifest["semantic"]["profile"] = inputs["profile"]
+        self.save_manifest()
+        self.stage_files(publication_files("https://other.example/", semantic="https://example.org/guide/"))
+        with self.assertRaisesRegex(assemble_pages.AssemblyError, "different publication roots"):
+            self.assemble()
+        self.assertEqual((self.out / "index.html").read_bytes(), before)
+
+    def test_a_preview_keeping_the_release_namespace_at_the_actual_pages_location_needs_no_notice(self):
+        self.stage_files(publication_files("https://actual.example/", semantic="https://example.org/guide/"))
+        # Unstamped historical production derives its semantics from its own crate.
+        self.assertEqual(self.assemble(), [])
+        self.assertEqual((self.out / "ro-crate-metadata.json").read_bytes(), self.files["ro-crate-metadata.json"])
+
+    def test_a_root_crawl_block_cannot_hide_preview_noindex(self):
+        self.files.update(publication_files("https://example.org/"))
+        self.files["robots.txt"] = b"User-agent: *\nDisallow: /next/"
+        self.write_release(self.files)
+        for name, data in publication_files("https://example.org/").items():
+            (self.stage / name).write_bytes(data)
+        with self.assertRaisesRegex(assemble_pages.AssemblyError, "blocks reading preview noindex"):
+            self.assemble()
+        self.assertFalse(self.out.exists())
 
     def test_both_trees_are_combined_without_changing_a_production_byte(self) -> None:
         self.assemble()
@@ -257,39 +353,54 @@ class CrawlerFileTests(unittest.TestCase):
 
     def test_production_keeps_its_crawler_files_and_the_preview_adds_none(self) -> None:
         (ROOT / ".cache").mkdir(exist_ok=True)
-        with tempfile.TemporaryDirectory(dir=ROOT / ".cache") as temporary:
-            work = Path(temporary)
-            production, preview, release, out = (work / name for name in ("production", "preview", "release", "pages"))
-            built = (
-                (production, self.build(production, PRODUCTION, None)),
-                (preview, self.build(preview, STAGING, "https://example.org/guide")),
-            )
-            for site, base in built:
-                robots = (site / "robots.txt").read_text(encoding="utf-8")
-                expected = f"User-agent: *\nDisallow: {urlsplit(base).path}next/\n\nSitemap: {base}sitemap.xml\n"
-                self.assertEqual(robots, expected)
-                sitemap = ElementTree.parse(site / "sitemap.xml")
-                locations = [loc.text for loc in sitemap.iter("{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
-                self.assertEqual(locations, [base, base + "api/index.html"], "only the Guide and its API documentation")
-                self.assertTrue((site / "api/index.html").is_file())
-            release.mkdir()
-            data = package_site.archive(production)
-            digest = hashlib.sha256(data).hexdigest()
-            (release / "site.tar.gz").write_bytes(data)
-            (release / "site.tar.gz.sha256").write_text(digest, encoding="utf-8")
-            manifest = {"archive": "site.tar.gz", "commit": PRODUCTION, "version": "1.2.3", "sha256": digest}
-            manifest["health"] = {"generated_at": "2026-10-25T12:00:00Z", "run": "passed"}
-            (release / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-            assemble_pages.assemble(
-                preview, STAGING, out, production=release, production_tag="v1.2.3", production_commit=PRODUCTION
-            )
-            for name in build_crate.CRAWLER_FILES:
-                self.assertEqual((out / name).read_bytes(), (production / name).read_bytes(), name)
-                self.assertFalse((out / "next" / name).exists(), "the preview advertises nothing")
-            sitemap = (out / "sitemap.xml").read_text(encoding="utf-8")
-            self.assertNotIn("/next/", sitemap)
-            self.assertNotIn("#", sitemap)
-            self.assertIn('content="noindex"', (out / "next/index.html").read_text(encoding="utf-8"))
+        for origin in ("https://one.example", "https://two.example"):
+            for prefix in ("/", "/a/guide/"):
+                base = origin + prefix
+                with self.subTest(base=base), tempfile.TemporaryDirectory(dir=ROOT / ".cache") as temporary:
+                    work = Path(temporary)
+                    production, preview, release, out = (
+                        work / name for name in ("production", "preview", "release", "pages")
+                    )
+                    for site, sha in ((production, PRODUCTION), (preview, STAGING)):
+                        self.build(site, sha, base)
+                        self.assertEqual(
+                            (site / "robots.txt").exists(), prefix == "/", "only the origin root controls robots"
+                        )
+                        if prefix == "/":
+                            self.assertEqual(
+                                (site / "robots.txt").read_text(),
+                                f"User-agent: *\nAllow: /\n\nSitemap: {base}sitemap.xml\n",
+                            )
+                        sitemap = ElementTree.parse(site / "sitemap.xml")
+                        locations = [
+                            loc.text for loc in sitemap.iter("{http://www.sitemaps.org/schemas/sitemap/0.9}loc")
+                        ]
+                        self.assertEqual(locations, [base, base + "api/index.html"])
+                        self.assertFalse(any(node.tag.endswith("lastmod") for node in sitemap.iter()))
+                    release.mkdir()
+                    data = package_site.archive(production)
+                    digest = hashlib.sha256(data).hexdigest()
+                    (release / "site.tar.gz").write_bytes(data)
+                    (release / "site.tar.gz.sha256").write_text(digest)
+                    manifest = {
+                        "archive": "site.tar.gz",
+                        "commit": PRODUCTION,
+                        "version": "1.2.3",
+                        "sha256": digest,
+                        "health": {"generated_at": "2026-10-25T12:00:00Z", "run": "passed"},
+                    }
+                    (release / "manifest.json").write_text(json.dumps(manifest))
+                    assemble_pages.assemble(
+                        preview, STAGING, out, production=release, production_tag="v1.2.3", production_commit=PRODUCTION
+                    )
+                    for path in production.rglob("*"):
+                        if path.is_file() and path.name != build_crate.SITE_MARKER:
+                            self.assertEqual((out / path.relative_to(production)).read_bytes(), path.read_bytes())
+                    for name in build_crate.CRAWLER_FILES:
+                        self.assertFalse((out / "next" / name).exists())
+                    self.assertNotIn("/next/", (out / "sitemap.xml").read_text())
+                    for path in (out / "next").rglob("*.html"):
+                        self.assertIn('content="noindex"', path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

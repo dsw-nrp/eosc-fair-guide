@@ -1,6 +1,7 @@
 // Comment commands: exact parsing, help for near misses, one shared eligibility for /help and the command gate, one
 // bot help comment per thread, refusals that change nothing, and an outcome for every accepted command.
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const { parse, distance, eligibility, help, acknowledge, outcome, HELP_MARKER } = require("../../.github/scripts/commands.cjs");
@@ -74,6 +75,19 @@ for (const [options, place, reason] of cases) {
 }
 assert.match((await eligibility({ github: fakeGithub().github, context: context("/refresh heslar") }, "refresh", false)).reasons.join(), /App is not configured/);
 
+// Issue refresh needs no existing proposal; duplicate repair still needs an eligible PR.
+for (const permission of ["write", "read"]) {
+  const options = { permission };
+  const issue = context("/refresh heslar", { pull: false });
+  const shown = await help({ github: fakeGithub(options).github, context: { ...issue,
+    payload: { ...issue.payload, comment: { ...issue.payload.comment, body: "/help" } } }, core }, appConfigured);
+  const accepted = await acknowledge({ github: fakeGithub(options).github, context: issue, core }, appConfigured);
+  assert.equal(accepted, permission === "write");
+  assert.equal(/\| `\/refresh <source>` \| Available \|/.test(shown), accepted);
+  assert.match(shown, /on this issue/);
+  assert.match(shown, /`\/fix-duplicates` \| Not available: .*pull-request comment/);
+}
+
 // Help: one bot comment per thread, updated when asked again, with reasons and the local alternative.
 let { github, writes } = fakeGithub({ comments: [{ id: 3, user: { login: "github-actions[bot]" }, body: `${reviewMarker}\n${SUGGESTED_FIXES}\n` }] });
 const text = await help({ github, context: context("/help"), core }, appConfigured);
@@ -81,6 +95,12 @@ assert(text.startsWith(HELP_MARKER));
 assert.match(text, /\| `\/fix-duplicates` \| Available \|/);
 assert.match(text, /lists safe duplicate links/);
 assert.match(text, /scripts\/check_duplicates\.py --fix/);
+const [, linkedFile, linkedAnchor] = text.match(/\/blob\/HEAD\/([^)#]+)(?:#([^)]+))?\)/) || [];
+const linkedPath = linkedFile && new URL(`../../${linkedFile}`, import.meta.url);
+assert(linkedPath && existsSync(linkedPath), "the local alternative links an existing document");
+const slug = (heading) => heading.toLowerCase().replace(/[^\w\- ]/g, "").replace(/ /g, "-");
+assert(!linkedAnchor || readFileSync(linkedPath, "utf8").split("\n").some((line) => /^#+ /.test(line) && slug(line.replace(/^#+ /, "")) === linkedAnchor),
+  "the local alternative's anchor names a heading of its document");
 assert(!text.includes("@maintainer"), "help never mentions people");
 await help({ github, context: context("/help"), core }, appConfigured);
 assert.deepEqual(writes.map(([kind]) => kind), ["create", "react", "update", "react"], "asking again edits the same comment");

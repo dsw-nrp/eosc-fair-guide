@@ -102,6 +102,23 @@ class CatalogueTests(unittest.TestCase):
         )
         self.assertIn(f'{ENTRIES}: remove [artifact."retired-site"]; no workflow uploads it', problems(self.root))
 
+    def test_waiting_runs_are_described_as_github_keeps_them(self) -> None:
+        # Without `queue: max`, GitHub keeps one waiting run per group and a newer one replaces it.
+        self.assertEqual(
+            ci_catalogue.concurrency({"group": "g", "cancel-in-progress": "false"}),
+            "`g`, one run waits; a newer one replaces it",
+        )
+        self.assertEqual(ci_catalogue.concurrency({"group": "g"}), "`g`, one run waits; a newer one replaces it")
+        self.assertEqual(
+            ci_catalogue.concurrency({"group": "g", "queue": "max"}), "`g`, queued; every waiting run is kept"
+        )
+        self.assertEqual(
+            ci_catalogue.concurrency({"group": "g", "cancel-in-progress": "true"}), "`g`, cancels the run in progress"
+        )
+        rendered = render(ROOT)
+        self.assertIn("`refresh` `source-refresh`, queued; every waiting run is kept", rendered)
+        self.assertIn("workflow `health-watch`, one run waits; a newer one replaces it", rendered)
+
     def test_expression_names_become_readable_patterns(self) -> None:
         self.assertEqual(
             ci_catalogue.placeholder("guide-site-${{ needs.sources.outputs.production }}-${{github.run_attempt}}"),

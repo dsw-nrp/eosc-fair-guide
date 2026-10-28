@@ -22,9 +22,9 @@ normal release route. Editing only the host page cannot change the published Gui
 
 ```html
 <iframe id="fair-guide" title="Průvodce FAIR daty"
-  src="https://fair.eosc.cz/#/cs/DS/path/start"
+  src="https://dsw-nrp.github.io/eosc-fair-guide/#/cs/DS/path/start"
   style="width:100%;height:800px;border:0"></iframe>
-<script src="https://fair.eosc.cz/assets/js/embed.js"
+<script src="https://dsw-nrp.github.io/eosc-fair-guide/assets/js/embed.js"
   data-guide-frame="fair-guide" defer></script>
 ```
 

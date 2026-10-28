@@ -38,14 +38,28 @@ other. Only the **Comment commands** workflow (`commands.yml`) reads comments.
 | --- | --- | --- |
 | `/help` | Anyone | Answers in one comment per thread which commands apply there and whether you may use them |
 | `/fix-duplicates` | Write access | Applies the duplicate check's safe link suggestions to an open same-repository pull request that targets the default branch ([runbook](runbooks/fix-a-duplicate.md)) |
-| `/refresh <source>` | Write access | Refreshes one source snapshot from the default branch ([runbook](runbooks/refresh-a-source.md)) |
+| `/refresh <source>` | Write access | Starts from an issue or PR and proposes one source snapshot from the default branch ([runbook](runbooks/refresh-a-source.md)) |
 
 `/fix-duplicates` reads the pull request's content as data, adds a provenance action naming the commenter, registers
 its identifier and commits through the repository's App. It never merges, never pushes the default branch, never
 runs on schedules or forks and never edits `content/duplicates.toml`; a stale head makes it change nothing. It also
 works on `refresh/<source>` pull requests. Once such a branch has a commit other than the refresh App's, the source
-refresh leaves it for reconciliation by hand. Both commands use the App secrets `SOURCE_REFRESH_CLIENT_ID` and
-`SOURCE_REFRESH_APP_PRIVATE_KEY`; without them they are unavailable.
+refresh leaves it for reconciliation by hand. Both commands use the App's client ID, the repository variable
+`SOURCE_REFRESH_CLIENT_ID`, and its private key, the secret `SOURCE_REFRESH_APP_PRIVATE_KEY`; without them they are
+unavailable.
+
+## Queue controls
+
+The [reviewed settings](../.github/repository.toml) allow two merge-group builds at once and up to ten already
+verified PRs in a merge batch. These are independent controls: increasing the merge batch does not combine or
+skip CI builds. A minimum batch of one and zero batching wait let a ready PR proceed without waiting for ten.
+All entries must be green, and the check-response timeout is 30 minutes. GitHub documents the separate controls
+in [managing a merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue).
+
+Two concurrent builds limit runner demand: the timing receipt below measured six peak jobs per check run.
+PR runs also consume capacity, so review waiting time and runner use with `scripts/ci_timings.py` before changing
+build concurrency. Ten is a merge-batch ceiling, not a measured throughput optimum or a ten-PR waiting target.
+Queue tuning retains the complete check inventory and goes through the settings audit and review.
 
 ## Local reproduction
 
@@ -150,7 +164,7 @@ The required `checks` result for every pull request and merge group: one quick j
 - **Entry point:** Opening or updating a pull request, and adding it to the merge queue.
 - **Next:** The author fixes a failure from the run summary, which names the check and its local command; a green result goes to review or the queue.
 - **Rerun:** Push a commit, or use **Re-run failed jobs** on the run page.
-- **Permissions:** workflow contents read
+- **Permissions:** workflow contents read; `partitioned` contents read, pages read
 - **Concurrency:** workflow `guide-checks-${{ github.event.pull_request.number || github.ref }}`, cancels the run in progress
 - **Calls:** `partitioned-checks.yml`, whose artifacts and writes are listed under it
 - **Artifacts:** none
@@ -163,11 +177,12 @@ Reads `/help`, `/fix-duplicates` and `/refresh <source>` from issue and pull-req
 - **Entry point:** A comment that starts with a command; anything else ends at the first job's filter.
 - **Next:** The commenter reads the reaction or reply; an accepted repair or refresh continues in its own workflow.
 - **Rerun:** Comment the command again.
-- **Permissions:** workflow contents read; `help` contents read, issues write, pull-requests write; `acknowledge` contents read, actions read, issues write, pull-requests write; `outcome` contents read, issues write, pull-requests write
+- **Permissions:** workflow contents read; `help` contents read, issues write, pull-requests write; `acknowledge` contents read, actions read, issues write, pull-requests write; `refresh` contents read, issues write, pull-requests read; `outcome` contents read, issues write, pull-requests write
   - `help.issues`: Replies to `/help` on an issue.
   - `help.pull-requests`: Replies to `/help` on a pull request.
   - `acknowledge.issues`: Reacts to an accepted command on an issue, or explains a refusal.
   - `acknowledge.pull-requests`: Reacts to an accepted command on a pull request, or explains a refusal.
+  - `refresh.issues`: Allows the called refresh workflow's separate reply job to answer in the initiating issue.
   - `outcome.issues`: Reports the outcome of an accepted command on an issue.
   - `outcome.pull-requests`: Reports the outcome of an accepted command on a pull request.
 - **Concurrency:** none
@@ -194,7 +209,7 @@ Prepares what Pages may publish: the checked staging site of a default-branch pu
 - **Entry point:** A merge to `main`, or Tag release pushing a tag.
 - **Next:** Publish the verified site follows automatically; a new release tag waits for a maintainer's approval of the `production` environment.
 - **Rerun:** For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, use that tag run's **Re-run failed jobs**.
-- **Permissions:** workflow contents read; `sources` contents read, actions read; `production` contents read, actions read; `approve-production` none; `stage` contents read, actions read; `superseded` contents read, actions read
+- **Permissions:** workflow contents read; `sources` contents read, actions read, pages read; `production` contents read, actions read; `approve-production` none; `stage` contents read, actions read; `fallback-checks` contents read, pages read; `superseded` contents read, actions read
 - **Concurrency:** workflow `deploy-${{ github.ref }}`, cancel `${{ !startsWith(github.ref, 'refs/tags/') }}`
 - **Calls:** `partitioned-checks.yml`, whose artifacts and writes are listed under it
 - **Artifacts:**
@@ -212,7 +227,7 @@ Applies the duplicate check's safe link suggestions to a pull request on a maint
 - **Permissions:** workflow contents read; `fix` App token contents write, pull-requests write
   - `fix.contents`: Commits the repair to the pull request's branch through the repository's App.
   - `fix.pull-requests`: Comments the repair or the reason none was made.
-- **Concurrency:** `fix` `fix-duplicates-${{ github.event.issue.number }}`, queued
+- **Concurrency:** `fix` `fix-duplicates-${{ github.event.issue.number }}`, queued; every waiting run is kept
 - **Artifacts:** none
 
 ### `health-watch.yml`: Live health and source watch
@@ -223,9 +238,9 @@ Weekly live watch of links, services, watched pages and stale statuses, with the
 - **Entry point:** Sunday evening's schedule, or **Run workflow** with the parts to run.
 - **Next:** A maintainer triages the digest issue and promotes findings to tasks.
 - **Rerun:** **Run workflow**, choosing `watch`, `audit` or `both`.
-- **Permissions:** workflow contents read; `watch` actions read, contents read; `audit` actions read, contents read, issues read; `audit` App token organization-projects read; `publish` contents read, issues write
+- **Permissions:** workflow contents read; `watch` actions read, contents read; `audit` actions read, contents read, issues read; `audit` App token organization-projects read, issue-types read, issue-fields read; `publish` actions read, contents read, issues write
   - `publish.issues`: Rebuilds the maintenance digest, comments on change and attaches maintainers' tasks.
-- **Concurrency:** workflow `health-watch`, queued
+- **Concurrency:** workflow `health-watch`, one run waits; a newer one replaces it
 - **Artifacts:**
   - `health-watch-<run_id>-<run_attempt>`, kept 90 days: The watch's observations, plan, state and summary for this run.
   - `settings-audit-<run_id>-<run_attempt>`, kept 90 days: The audit's redacted Project and settings section of the digest.
@@ -235,11 +250,11 @@ Weekly live watch of links, services, watched pages and stale statuses, with the
 
 One build, disjoint check lanes and a collector that turns their evidence into the verified health result.
 
-- **Triggers:** `workflow_call` (inputs `base`, `head`, `channel`, `review`, `cache`, `staging`)
+- **Triggers:** `workflow_call` (inputs `base`, `head`, `channel`, `review`, `cache`, `staging`, `publication-url`)
 - **Entry point:** Called by Guide checks, and by Deploy the verified site when no merge-queue result can be reused.
 - **Next:** Its caller reports the result.
 - **Rerun:** Re-run the calling run's failed jobs.
-- **Permissions:** workflow contents read
+- **Permissions:** workflow contents read; `build` contents read, pages read
 - **Concurrency:** none
 - **Artifacts:**
   - `checked-build`, kept 2 days: The one build every check lane tests.
@@ -274,7 +289,7 @@ Proposes a release: the version, the changelog section and its lineage as one pu
 - **Permissions:** workflow contents read, pull-requests read, actions read; `prepare` App token contents write, pull-requests write
   - `prepare.contents`: Pushes the release branch through the repository's App.
   - `prepare.pull-requests`: Opens or replaces the release pull request.
-- **Concurrency:** `prepare` `release-preparation`, queued
+- **Concurrency:** `prepare` `release-preparation`, one run waits; a newer one replaces it
 - **Artifacts:** none
 
 ### `publish-image.yml`: Publish the Guide image
@@ -301,11 +316,11 @@ Deploys the newest checked staging site and the newest approved release to Pages
 - **Entry point:** A completed Deploy the verified site run.
 - **Next:** Nobody for staging; after a release tag, Release follows.
 - **Rerun:** For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, rerun that tag run's failed jobs. A publication failure can retry this run's failed jobs.
-- **Permissions:** workflow contents read; `resolve` actions read, contents read; `publish` actions read, contents read, deployments write, id-token write, pages write
+- **Permissions:** workflow contents read; `resolve` actions read, contents read, pages read; `publish` actions read, contents read, deployments write, id-token write, pages write
   - `publish.deployments`: Records the `staging` and `production` channels once each is live.
   - `publish.id-token`: Proves the Pages deployment's origin.
   - `publish.pages`: Deploys the site to Pages.
-- **Concurrency:** workflow `${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && 'pages-publish' || format('pages-publish-idle-{0}', github.run_id) }}`, queued
+- **Concurrency:** workflow `${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') && 'pages-publish' || format('pages-publish-idle-{0}', github.run_id) }}`, one run waits; a newer one replaces it
 - **Artifacts:**
   - `pages-identity`, kept 30 days: Which staging commit and release tag this publication deployed, which Release reads to bind the release it publishes.
 
@@ -323,7 +338,7 @@ After a release tag is live on Pages, publishes its image and creates the draft 
   - `publish.packages`: Pushes the image to the GitHub container registry.
   - `publish.security-events`: Uploads the image's vulnerability scan.
   - `release.contents`: Creates the draft release with its verified files.
-- **Concurrency:** workflow `guide-release-images`, queued
+- **Concurrency:** workflow `guide-release-images`, one run waits; a newer one replaces it
 - **Calls:** `publish-image.yml`, whose artifacts and writes are listed under it
 - **Artifacts:** none
 
@@ -332,13 +347,14 @@ After a release tag is live on Pages, publishes its image and creates the draft 
 Refreshes source snapshots from the default branch and proposes each changed source as its own pull request.
 
 - **Triggers:** `schedule` (`17 19 * * 0` UTC); `workflow_dispatch` (inputs `source`); `workflow_call`
-- **Entry point:** Sunday's schedule, **Run workflow**, or `/refresh <source>` on a pull request.
+- **Entry point:** Sunday's schedule, **Run workflow**, or `/refresh <source>` on an issue or pull request.
 - **Next:** A maintainer reviews and merges each refresh pull request.
 - **Rerun:** **Run workflow**, or comment `/refresh <source>` again.
-- **Permissions:** workflow contents read; `refresh` App token contents write, pull-requests write
+- **Permissions:** workflow contents read; `refresh` App token contents write, pull-requests write; `reply` contents read, issues write, pull-requests read
   - `refresh.contents`: Pushes the refresh branch through the repository's App.
   - `refresh.pull-requests`: Opens or updates the refresh pull request.
-- **Concurrency:** `refresh` `source-refresh`, queued
+  - `reply.issues`: Replies in the initiating issue or PR using the repository token, including when the refresh App failed.
+- **Concurrency:** `refresh` `source-refresh`, queued; every waiting run is kept
 - **Artifacts:**
   - `source-refresh-<run_id>-<run_attempt>`, kept 30 days: The refresh report: what each selected source returned and whether it validated.
 
@@ -352,7 +368,7 @@ Tags the merged release once its changelog lists every change since the previous
 - **Rerun:** **Run workflow** again with the same version.
 - **Permissions:** workflow contents read; `tag` contents read, actions read, deployments read, pull-requests read; `tag` App token contents write; `complete` contents read, pull-requests read, actions read; `not-tagged` none
   - `tag.contents`: Creates the release tag through the repository's App, which the tag ruleset allows.
-- **Concurrency:** `tag` `release-preparation`, queued
+- **Concurrency:** `tag` `release-preparation`, one run waits; a newer one replaces it
 - **Calls:** `prepare-release.yml`, whose artifacts and writes are listed under it
 - **Artifacts:** none
 

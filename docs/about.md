@@ -23,14 +23,15 @@
 
 The [FIP Dashboard](https://fip-dashboard.dmp.eosc.cz/) is the national catalogue of FAIR-enabling resources and
 community profiles; it owns their records and answers "which resources and profiles". The guide answers "what to
-do and why" and refers to the dashboard's records by their dashboard IDs instead of copying them. The guide's FIP
+do and why". The Guide owns its local record IDs and links source-issued Dashboard identifiers through typed
+alternates; dated snapshots copy the selected source records while retaining their attribution. The Guide's FIP
 completeness check is pre-filled from a dashboard profile, or from a published FIP nanopublication when a profile is
 not in the dashboard.
 
-The dashboard's API does not yet admit the guide's origin from a browser, so the guide reads a dated snapshot of its
-profiles and resources and says so wherever they are used, with the dashboard's own disclaimer. A scheduled job
-proposes a snapshot refresh by pull request when the dashboard's data change; once the API admits the guide's origin,
-the connector setting `browserAccess` lets the page read it live and keep the snapshot as its fallback. See
+The connector setting `browserAccess` controls whether the page can read the dashboard's API live. With browser
+access disabled, the Guide reads a dated snapshot of profiles and resources and identifies it wherever it is used,
+with the dashboard's own disclaimer. A scheduled job proposes snapshot updates by pull request. Enable live access
+only after reviewing API access from the Guide's actual origin; the snapshot remains the fallback. See
 [the catalogue and infrastructure design](design.md#catalogue-and-infrastructure) and
 [snapshot refresh](design.md#snapshot-refresh-and-source-watch).
 

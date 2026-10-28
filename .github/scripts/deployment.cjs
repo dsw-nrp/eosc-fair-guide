@@ -82,7 +82,8 @@ const nothing = (reason, successor) => ({ publish: "false", reason, successor: s
     approved it (`production_run`), whichever deployment started the publication; nothing is fetched here. After a
     default-branch deployment, publication takes that run's own checked staging site while its commit is the head.
     After a release-tag deployment, it takes the newest checked staging site once that is the head's; until then the
-    head's own deployment publishes the release. */
+    head's own deployment publishes the release. `publication_url` is the actual Pages root, rechecked immediately
+    before the Pages deployment. */
 async function publication({ github, context, recorded }) {
   const branch = context.payload.repository.default_branch;
   const isTag = context.ref.startsWith("refs/tags/");
@@ -111,7 +112,8 @@ async function publication({ github, context, recorded }) {
     const { run } = await productionSource({ github, context: refContext(context, "refs/tags/" + selected.tag, selected.production) });
     production = { tag: selected.tag, commit: selected.production, run: run ? String(run) : "" };
   }
-  return { publish: "true", reason: "", successor: "", staging: staging.commit, staging_run: staging.run,
+  const location = (await github.rest.repos.getPages(context.repo)).data.html_url;
+  return { publish: "true", reason: "", successor: "", staging: staging.commit, staging_run: staging.run, publication_url: location,
     tag: production.tag, production: production.commit, production_run: production.run };
 }
 

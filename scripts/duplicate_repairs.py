@@ -26,7 +26,7 @@ INSTRUMENT = "duplicate-fix"
 REGISTRY_OBJECTS = {"re3data": "re3data", "fip-dashboard": "fip-dashboard", "knav": "knav"}
 IDENTITY_HELP = (
     "Run again with --person <id> naming a reviewed [[person]] in content/guide.toml, or add your reviewed "
-    "github login and commitNames there through an ordinary content pull request (CONTRIBUTING.md, "
+    "github login and commitNames there through an ordinary content pull request (docs/contribution-reference.md, "
     "Credit and ORCID iDs)."
 )
 

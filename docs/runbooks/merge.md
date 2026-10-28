@@ -11,7 +11,8 @@ of waiting. The queue checks the merged result again, so `main` and its `/next/`
    - **If it fails:** the author fixes the failure; see [rerun a check](rerun-a-check.md).
 2. **Review the change.**
    - **Where:** **Files changed**.
-   - **Do:** judge correctness and tone, then approve as a code owner.
+   - **Do:** follow the [review runbook](review.md): the relevant human collaborators judge content and source
+     interpretation, and a technical code owner checks integrity, compatibility and fit with the Guide.
    - **Done when:** the pull request shows an approving code-owner review; when no independent eligible reviewer
      exists, the responsible maintainer's explicit acceptance is recorded, including acceptance before tagging a release candidate.
    - **If it fails:** recorded acceptance does not override an enforced GitHub review requirement. Ask an eligible
@@ -29,3 +30,22 @@ of waiting. The queue checks the merged result again, so `main` and its `/next/`
    - **Done when:** the `/next/` footer names the merge commit.
    - **If it fails:** the run summary's next step names the cause; a deployment that reused no queue result runs
      the full checks first.
+
+Human content and technical acceptance precede queueing, together with every configured GitHub gate. A failed
+merge-group check returns to the author for repair. After merge, preparation and trusted publication produce the
+checked preview; production follows the separate [release procedure](release.md).
+
+```mermaid
+flowchart TD
+  accTitle: Human review, merge queue and preview publication
+  accDescr: PR checks and human content and technical acceptance must satisfy the configured gates before queueing. Failed gates or merge-group checks return to author repairs. A successful merge prepares the preview; a separate trusted publication updates Pages, where the preview footer proves the deployed commit.
+  C[PR checks and human content and technical acceptance] --> G{Configured gates satisfied?}
+  G -->|No| F[Author repairs or resolves required review]
+  F --> C
+  G -->|Yes| Q{Merge-group checks pass?}
+  Q -->|No| F
+  Q -->|Yes| M[Merge to main]
+  M --> P[Prepare checked preview]
+  P --> U[Trusted Pages publication]
+  U --> N[Verify next footer commit]
+```

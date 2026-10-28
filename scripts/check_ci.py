@@ -675,6 +675,19 @@ def adopt(args) -> int:
         f"Reused {source}: the same commit, source files and build inputs passed every check there, and its health "
         "snapshot is published in this staging site."
     )
+    print(
+        "\n".join(
+            [
+                "",
+                *handoff(
+                    "nothing for the checks: Publish the verified site deploys this staging site and records "
+                    "`staging`.",
+                    "when no publication starts, run **Deploy the verified site** on the default branch again.",
+                    "Publish the verified site records `staging` for this commit.",
+                ),
+            ]
+        )
+    )
     return 0
 
 

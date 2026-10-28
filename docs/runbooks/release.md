@@ -7,7 +7,7 @@ reviewed, archived version with its own DOI, and the preview at `/next/` keeps s
 ```mermaid
 flowchart TD
   accTitle: Release flow with the Tag release refusal
-  accDescr: Prepare release opens a release pull request; after it merges, Tag release checks the changelog. If changes landed after preparation, it opens a completion pull request instead of tagging, and the maintainer merges it and runs Tag release again. Otherwise it tags, the maintainer approves production, applies the release notes and publishes the draft release.
+  accDescr: Prepare release opens a release pull request; after it merges, Tag release checks the changelog. If changes landed after preparation, it opens a completion pull request instead of tagging, and the maintainer merges it and runs Tag release again. Otherwise it tags and the maintainer approves production. After publication the maintainer applies the release notes and publishes the draft release.
   prepare["1. Run Prepare release"] --> merge["2. Merge the release pull request"]
   merge --> tag{"3. Run Tag release: does the changelog list every change?"}
   tag -- "no: Not tagged" --> complete["Merge the completion pull request it opened"]
@@ -40,7 +40,8 @@ flowchart TD
 4. **Approve production.**
    - **Where:** Actions → the **Deploy the verified site** run for `v<version>` → **Review deployments**.
    - **Do:** approve the `production` environment.
-   - **Done when:** **Publish the verified site** succeeds and the site's footer shows `v<version>`.
+   - **Done when:** **Publish the verified site** succeeds, the site's footer shows `v<version>` and its summary
+     reports no namespace notice.
    - **If it fails:** re-run the deployment run's failed jobs; verified bytes are reused without a second approval.
 5. **Apply the release notes.**
    - **Where:** your checkout in an assistant with the native skill available, once **Release** has drafted the release.

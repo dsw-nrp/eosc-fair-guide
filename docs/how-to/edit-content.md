@@ -20,10 +20,13 @@ change what an assessment means, follow [plan a change](plan-a-change.md) before
 6. **Record the paradata.** Add one provenance action for the pull request to `content/provenance.toml`, or extend
    the one it already has: the person responsible, the tools used (an AI model as an instrument, never an author),
    the sources consulted, the items changed and `endTime`, the time work finished. Extending an existing action
-   records a later actual end time, not the comparison base's commit time. Run `python scripts/register_ids.py`
-   to register new identifiers.
+   records a later actual end time, not the comparison base's commit time. `agent` names a reviewed `[[person]]`
+   and `instruments` existing `[[instrument]]` entries in `content/guide.toml`; on your first contribution, or with
+   a new AI model, add them there first ([credit](../contribution-reference.md#credit-and-orcid-ids)). Run
+   `python scripts/register_ids.py` to register new identifiers.
 7. **Build and check.** Run `python scripts/build_site.py` and `python scripts/check_content.py`, look at the
    changed view in both languages, then run `python scripts/check_all.py`
    (see [build and check](build-and-check.md)).
 8. **Open the pull request.** Fill in the template: what changed and why, the sources and the provenance action.
-   A code owner reviews correctness and tone.
+   Content collaborators review correctness and tone; a code owner checks technical integrity
+   ([review](../contribution-reference.md#review)).

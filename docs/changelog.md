@@ -58,7 +58,8 @@ this transition without a further unpublished note.
 
 The [release-notes how-to](how-to/release-notes.md) owns the one-invocation skill and manual fallback.
 The draft body combines the publishable notes with one byte-preserved verification record; working notes,
-published releases and changed inputs are refused by `scripts/release_body.py`.
+published releases and a composition differing from the reviewed copy are refused by `scripts/release_body.py`.
+That comparison binds notes plus verification, not the replaced draft prefix or unrelated release metadata.
 
 
 ## Findings after a release

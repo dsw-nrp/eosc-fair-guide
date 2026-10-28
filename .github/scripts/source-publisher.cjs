@@ -49,7 +49,7 @@ async function authorized(github, repo, login) {
 }
 
 /** The source keys this run refreshes, space-separated: every key on a schedule, the chosen one on manual dispatch,
-    and the commanded one for an authorized pull-request comment. Nothing for anything else. */
+    and the commanded one for an authorized issue or pull-request comment. Nothing for anything else. */
 async function select({ github, context, core }) {
   const repo = context.repo;
   if (context.eventName === "schedule") return Object.keys(SOURCES).join(" ");
@@ -58,7 +58,7 @@ async function select({ github, context, core }) {
     if (chosen === "all") return Object.keys(SOURCES).join(" ");
     return Object.hasOwn(SOURCES, chosen) ? chosen : "";
   }
-  if (context.eventName === "issue_comment" && context.payload.issue?.pull_request) {
+  if (context.eventName === "issue_comment" && Number.isSafeInteger(context.payload.issue?.number) && context.payload.issue.number > 0) {
     const source = parseCommand(context.payload.comment?.body);
     if (!source) return "";
     if (!(await authorized(github, repo, context.payload.comment?.user?.login))) {
@@ -186,8 +186,8 @@ const OUTCOMES = {
   "already-proposed": "already proposed with the same content; review the open refresh pull request",
   unchanged: "unchanged; there is nothing to propose",
   empty: "empty at the source, so the snapshot was kept; check the source before refreshing again",
-  rejected: "rejected by validation, so the snapshot was kept; the refresh report artifact names the reason",
-  failed: "not retrieved, so the snapshot was kept; retry later or check the refresh report artifact",
+  rejected: "rejected by validation, so the snapshot was kept; the run summary names the reason",
+  failed: "not retrieved, so the snapshot was kept; a later refresh retries it, and the run summary names the reason",
   "rejected-before": "identical to a proposal that was closed without merging, so it was not proposed again",
   "human-edits": "kept on its branch, which has commits other than the refresh App's; reconcile it by hand or close that pull request",
   moved: "kept on its branch, which moved during the run; post the command again to retry",
@@ -203,26 +203,84 @@ async function reply({ github, context }, results, code, publication = "") {
   } catch {
     parsed = {};
   }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) parsed = {};
   const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-  const rows = Object.entries(parsed).filter(([source]) => Object.hasOwn(SOURCES, source))
-    .map(([source, status]) => `- \`${source}\`: ${OUTCOMES[status] || "finished with an unrecognized result; see the run"}.`);
+  const rows = [];
+  for (const [source, status] of Object.entries(parsed).filter(([key]) => Object.hasOwn(SOURCES, key))) {
+    let proposal = "";
+    if (["proposed", "updated", "already-proposed", "human-edits", "moved"].includes(status)) {
+      try {
+        const pulls = await github.paginate(github.rest.pulls.list, {
+          ...context.repo, state: "open", head: `${context.repo.owner}:${branchOf(source)}`, per_page: 100,
+        });
+        const pull = pulls.find((entry) => Number.isSafeInteger(entry.number) && entry.number > 0);
+        if (pull) proposal = ` [Proposal #${pull.number}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/pull/${pull.number}).`;
+      } catch { /* Publication may have succeeded even if its proposal can no longer be read. */ }
+      if (!proposal) proposal = " Proposal link unavailable; check the run and open refresh pull requests.";
+    }
+    rows.push(`- \`${source}\`: ${OUTCOMES[status] || "finished with an unrecognized result; see the run"}.${proposal}`);
+  }
   let body;
   const retry = { blocked: "ask a maintainer, who can run Source refresh from its Actions page.",
     done: "`/refresh` replies with each source's result." };
   if (rows.length) {
     body = [`\`/refresh\` finished ([run](${run})):`, "", ...rows, "", handoff({
       next: "review each proposed or updated refresh pull request, and act on any other result listed above.",
-      blocked: "the run's refresh report artifact gives each source's reason.",
+      blocked: "the run summary gives each source's outcome and reason.",
       done: "each refresh pull request is merged or closed." })].join("\n");
   } else if (publication === "failure") {
     body = `\`/refresh\` stopped during publication, so its refresh branch or pull request may already have changed. [Run](${run}).\n\n` +
       handoff({ next: "check the open refresh pull request and the run log, then post the command again.", ...retry });
   } else {
     body = `\`/refresh\` did not reach publication${code && code !== "0" ? " because a source was rejected or failed" : ""}; no pull request was changed. [Run](${run}).\n\n` +
-      handoff({ next: "read the run's refresh report, then post the command again.", ...retry });
+      handoff({ next: "read the run summary, which names the reason, then post the command again.", ...retry });
   }
   await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.issue.number, body });
   return body;
 }
 
-module.exports = { SOURCES, parseCommand, authorized, select, publish, reply, hashOf, markerOf, branchOf, OUTCOMES };
+// A run fails only when a maintainer must act (decision 29); a source the next scheduled run retries is a warning.
+const ACT = new Set(["rejected", "human-edits", "missing"]);
+const RETRY = new Set(["failed", "empty", "moved"]);
+
+/** The run summary of every refresh, scheduled or commanded: each source's outcome and reason, who acts next, and the
+    run's own result. `publication` is the publish step's outcome; a publication that did not succeed may have left a
+    refresh branch half-moved, so it always needs a maintainer. Returns the summary text. */
+async function summarize({ core }, { results = "", publication = "", report = { outcomes: [] } } = {}) {
+  let parsed = {};
+  try {
+    parsed = JSON.parse(results || "{}");
+  } catch {
+    parsed = {};
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) parsed = {};
+  const refreshed = Object.fromEntries((report.outcomes || []).map((outcome) => [outcome.source, outcome]));
+  const statuses = { ...Object.fromEntries(Object.entries(refreshed).map(([source, outcome]) => [source, outcome.status])), ...parsed };
+  const published = publication === "success";
+  const rows = Object.entries(statuses).filter(([source]) => Object.hasOwn(SOURCES, source)).map(([source, status]) => {
+    const role = ACT.has(status) || (!published && status === "changed") ? "act" : RETRY.has(status) ? "retry" : "none";
+    const reason = String(refreshed[source]?.reason || "").replace(/[|\r\n]+/g, " ").slice(0, 300);
+    const text = status === "changed" && !published ? "changed, but publication did not complete" : OUTCOMES[status] || status;
+    return { source, role, line: `| \`${source}\` | ${text} | ${role === "act" ? "**Act**" : role === "retry" ? "Retry" : "—"} | ${reason} |` };
+  });
+  const act = !published || rows.some((row) => row.role === "act");
+  const retry = rows.some((row) => row.role === "retry");
+  const next = act
+    ? "a maintainer acts on each source marked **Act**: read its reason, then fix the source data or its parser in a pull request, or reconcile its refresh branch by hand; then run **Source refresh** for it again."
+    : retry
+      ? "nothing now: the next scheduled refresh retries each source marked Retry; run **Source refresh** for one to retry sooner."
+      : "a maintainer reviews each proposed or updated refresh pull request as content and merges it through the queue.";
+  const lines = ["## Source refresh", ""];
+  if (!published) lines.push("Publication did not complete; a refresh branch or pull request may already have changed.", "");
+  lines.push("| Source | Outcome | Who acts | Reason |", "| --- | --- | --- | --- |", ...rows.map((row) => row.line), "",
+    handoff({ next, blocked: "the refresh report artifact keeps each source's raw outcome, and the maintenance digest lists the sources not refreshed.",
+      done: act ? "a rerun marks no source **Act**." : "each refresh pull request is merged or closed." }));
+  const text = lines.join("\n");
+  await core.summary.addRaw(text + "\n").write();
+  if (act) core.setFailed("At least one source needs a maintainer; the run summary names it and the next step.");
+  else if (retry) core.warning("Some sources were not retrieved; the next scheduled refresh retries them. See the run summary.");
+  return text;
+}
+
+module.exports = { SOURCES, parseCommand, authorized, select, publish, reply, summarize, hashOf, markerOf, branchOf, OUTCOMES,
+  ACT, RETRY };

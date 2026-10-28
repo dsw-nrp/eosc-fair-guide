@@ -43,8 +43,8 @@ Build with `python scripts/build_site.py` and inspect the changed view in both l
 print. `CONTRIBUTING.md` owns branch, pull-request and human review procedures; `docs/deployment.md` owns release
 preparation, tagging, immutable artifact identity and recovery. Release preparation opens a PR by default and
 collects merged PRs and direct default-branch commits since the previous reachable release tag without duplication.
-Keep CFF and Zenodo metadata consistent and validated; both release routes require the same checks. Publication
-remains separately authorized. Add the real concept-DOI badge to both READMEs only after successful Zenodo archiving.
+Keep CFF and Zenodo metadata consistent and validated; both release routes require the same checks. READMEs carry
+a Zenodo concept DOI badge.
 
 Scheduled source refreshes propose validated snapshots as pull requests; health watch reports issues. Neither
 merges or writes the default branch. Connectors and their origins are reviewed in `content/live.toml`, which
@@ -57,8 +57,10 @@ Keep each human document to one type, declared on its first line as `<!-- type: 
 reference, explanation or tutorial. A landing page routes tasks; reference records contracts and explanation
 gives reasons. Procedures have one home in a how-to and are linked from reference and explanation.
 
-Recurring and handed-off maintainer tasks have a runbook under `docs/runbooks/`. Its opening says who acts,
-how long and why in at most two sentences; numbered steps give **Where**, **Do**, **Done when** and **If it fails**.
+Recurring maintainer tasks have a runbook under `docs/runbooks/`. One-time issue migrations and other
+change-specific procedures stay with their OpenSpec change, retaining complete evidence and approval gates; a
+hand-off still needs an independently reviewed procedure. A runbook opens with who acts, how long and why in at
+most two sentences; numbered steps give **Where**, **Do**, **Done when** and **If it fails**.
 Keep each step within 130 words and all steps within 1300 words; link the reference for detail. A branching flow
 uses Mermaid with `accTitle`, `accDescr` and equivalent adjacent prose.
 

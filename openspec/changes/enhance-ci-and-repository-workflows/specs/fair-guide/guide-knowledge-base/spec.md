@@ -188,22 +188,32 @@ SHALL never invent a person.
 - **WHEN** the local Git identity matches no reviewed person or more than one
 - **THEN** the command writes nothing, returns nonzero and names the `--person` option and the procedure for adding a reviewed identity
 
-### Requirement: Guide semantic publication addresses use the actual location
+### Requirement: Guide vocabulary IRIs come from a reviewed namespace
 
-Guide-owned vocabulary, profile and other absolute publication addresses SHALL derive from the actual deployment
-location before verification. Changing the serving address SHALL NOT silently change logical entity IDs or external
-vocabulary/source IRIs. Existing absolute Guide IRIs SHALL have an explicit compatibility disposition before
-implementation; preview and production SHALL retain the reviewed shared content identities.
+Guide-owned vocabulary/profile IRIs SHALL derive from the namespace declared in the Guide's reviewed configuration,
+independent of where the Guide is served. Changing it SHALL be a reviewed breaking change recorded in the
+changelog. Logical IDs and exact external IRIs SHALL remain unchanged; prior artifacts SHALL retain their bytes and
+original contexts, without invented aliases or redirects.
 
 #### Scenario: A different origin or repository prefix is deployed
 
-- **WHEN** the build receives the actual publication location
-- **THEN** expanded JSON-LD and profile references resolve there, logical content IDs and exact external IRIs retain their identity, and any existing absolute Guide IRI has its reviewed compatibility treatment
+- **WHEN** the Guide is built for another origin or path with the same namespace setting
+- **THEN** navigation and discovery follow that location, expanded JSON-LD and profile references keep the declared namespace, and logical content IDs and exact external IRIs retain their identity
+
+#### Scenario: The namespace setting changes
+
+- **WHEN** a reviewed change sets a new namespace
+- **THEN** every Guide term and the profile move to it together, no other identifier changes, and the changelog names the break
 
 #### Scenario: Publication combines production and preview
 
 - **WHEN** verified production content is assembled beside a preview
 - **THEN** channel links remain distinct without silently rewriting shared content identity or already verified production metadata
+
+#### Scenario: A historical artifact is read after the namespace changed
+
+- **WHEN** a consumer reads an older release archive or its original context
+- **THEN** its bytes and legacy term/profile names are unchanged; no alias, redirect or external-IRI normalization is inferred
 
 ### Requirement: Documentation qualifies reused concepts by namespace
 

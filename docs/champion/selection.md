@@ -3,7 +3,8 @@
 
 The guide invokes a reviewed subset of public FAIR Champion tests after an explicit user action. A returned
 verdict measures the published test's criterion. The question may require additional evidence, described in
-its help. `championEvidenceOnly` keeps such observations without choosing an answer.
+its help. `championEvidenceOnly` reads such a test as partial evidence: a met part can suggest Partly, a failed
+part No, and an indeterminate result suggests nothing. A reader's answer is never replaced.
 
 ## Evidence collected on 11 October 2026
 

@@ -115,9 +115,9 @@ jobs:
           retention-days: 90
 
   # The read-only settings and Project audit, on its own so that it can neither stop nor be stopped by the watch.
-  # The job's token reads the repository (environments need Actions read, Project completeness Issues read); the
-  # App token may only read Projects and is used for nothing else. Without it, Project #1 is reported unavailable with
-  # the owner's step. This repository's logs and artifacts are public and the Project is not, so the job publishes
+  # The job's token reads the repository (environments need Actions read, Project completeness Issues read). The App
+  # tokens may only read the Project and the organization's issue types and fields, and are used for nothing else.
+  # A token that cannot be issued leaves its section unavailable with the cause; the rest is still audited. This repository's logs and artifacts are public and the Project is not, so the job publishes
   # only the digest's redacted "Project and settings" section: the full report never reaches the log or an artifact.
   # Nothing here writes to the repository.
   audit:
@@ -138,7 +138,9 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
-      - id: app
+      # Two App tokens, so a permission the installation has not accepted yet hides only its own reads: GitHub
+      # refuses a token request as a whole when one requested permission is missing.
+      - id: project
         continue-on-error: true
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
@@ -146,10 +148,23 @@ jobs:
           private-key: ${{ secrets.SOURCE_REFRESH_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           permission-organization-projects: read
-      - name: Audit the settings and Project #1
+      - id: organization
+        continue-on-error: true
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.SOURCE_REFRESH_CLIENT_ID }}
+          private-key: ${{ secrets.SOURCE_REFRESH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          # The pinned action's generic permission parser forwards these newer organization read scopes.
+          permission-issue-types: read
+          permission-issue-fields: read
+      - name: Audit settings, the Guide Project and organization definitions
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_PROJECT_TOKEN: ${{ steps.app.outputs.token }}
+          GH_PROJECT_TOKEN: ${{ steps.project.outputs.token }}
+          GH_PROJECT_TOKEN_OUTCOME: ${{ steps.project.outcome }}
+          GH_ORGANIZATION_TOKEN: ${{ steps.organization.outputs.token }}
+          GH_ORGANIZATION_TOKEN_OUTCOME: ${{ steps.organization.outcome }}
         run: |
           # Exit status 1 means findings, which the section reports; only a missing section is an error. The full
           # report goes nowhere: it names Project-only values.
@@ -175,6 +190,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
+      actions: read
       contents: read
       issues: write
     steps:
@@ -189,6 +205,22 @@ jobs:
         with:
           name: ${{ needs.watch.outputs.artifact }}
           path: .cache/watch
+      # The sources the latest scheduled refresh did not refresh are listed in the digest (decision 29).
+      - id: refresh
+        name: Find the latest scheduled source refresh
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { latestRefresh } = require('./.github/scripts/health-digest.cjs');
+            await latestRefresh({ github, context, core });
+      - if: steps.refresh.outputs.artifact != ''
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ steps.refresh.outputs.artifact }}
+          path: .cache/refresh
+          run-id: ${{ steps.refresh.outputs.run }}
+          github-token: ${{ github.token }}
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         if: needs.audit.result == 'success'
         with:
@@ -204,10 +236,14 @@ jobs:
       - name: Render the digest
         env:
           PREDECESSOR: ${{ steps.prepare.outputs.predecessor }}
+          REFRESH_RUN: ${{ steps.refresh.outputs.url }}
+          REFRESH_DATE: ${{ steps.refresh.outputs.date }}
         run: |
+          refresh=(--refresh-run "$REFRESH_RUN" --refresh-date "$REFRESH_DATE")
+          if [ -f .cache/refresh/report.json ]; then refresh+=(--refresh .cache/refresh/report.json); fi
           python scripts/watch_sources.py render --watch .cache/watch --tasks .cache/digest/tasks.json \
             --audit .cache/audit/project-and-settings.md ${PREDECESSOR:+--predecessor "$PREDECESSOR"} \
-            --output .cache/digest
+            "${refresh[@]}" --output .cache/digest
       - id: publish
         name: Rebuild the digest, comment on change and attach tasks
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0

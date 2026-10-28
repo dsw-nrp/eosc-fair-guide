@@ -122,7 +122,9 @@ and observation date. Context explanations address an existing station and lens 
   terminology and scoped status/arrow meanings in both languages.
 - Maintainer diagrams are Mermaid in Markdown with `accTitle` and `accDescr`. The content model's
   entity-relationship diagram is defined once, in `docs/content-model.md`.
-- Mark language changes inside a text with a language tag in the content (see the content model).
+- A name or title in another language carries its own `inLanguage`, so the page sets its `lang`. No markup yet
+  marks a phrase in another language inside a text (see the content model); a passage that needs one is a contract
+  change, not an improvised tag.
 
 ## 7. Paradata and credit
 

@@ -6,7 +6,7 @@
 | Path | Content |
 | --- | --- |
 | `content/` | Content sources in TOML: stations, advice, checks, resources, ledger, glossary, callouts, provenance |
-| `scripts/` | Crate generator, API build and content checks (Python standard library only) |
+| `scripts/` | Standard-library site/crate/API generators and checks; the full validation suite also uses the pinned development tools in `requirements-dev.txt` |
 | `tests/` | Tests of the scripts, with a minimal content fixture |
 | `profile/` | The guide's RO-Crate profile (SHACL) for the crate's structure |
 | `index.html` | The guide page, with empty blocks the build fills |

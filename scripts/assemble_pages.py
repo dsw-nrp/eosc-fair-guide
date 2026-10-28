@@ -21,9 +21,11 @@ import re
 import tarfile
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
+from urllib.parse import urlsplit
 
 import build_crate
 import package_site
+from publication_location import preview_blocked, site_identity, verify_declaration
 
 ROOT = Path(__file__).resolve().parent.parent
 SHA = re.compile(r"[0-9a-f]{40}")
@@ -158,6 +160,10 @@ def production_files(directory: Path, tag: str, commit: str) -> dict[str, bytes]
     health = json.loads(files[package_site.HEALTH])
     if health.get("run", {}).get("status") != "passed" or health.get("revision") != commit:
         raise AssemblyError("release archive health does not name the checked commit")
+    try:
+        verify_declaration(files, manifest)
+    except ValueError as error:
+        raise AssemblyError(str(error)) from error
     return files
 
 
@@ -177,7 +183,9 @@ def assemble(
     production_tag: str | None = None,
     production_commit: str | None = None,
     root: Path = ROOT,
-) -> None:
+) -> list[str]:
+    """Assemble the release and the preview, returning the notices a maintainer should read in the summary."""
+    notices: list[str] = []
     output = build_crate.site_directory(out, root)
     stage = build_crate.require_site(staging)
     inputs = [stage, *([production.resolve()] if production else [])]
@@ -191,6 +199,31 @@ def assemble(
     if production is None and (production_tag or production_commit):
         raise AssemblyError("production tag/commit require a release artifact")
     files = production_files(production, production_tag or "", production_commit or "") if production else {}
+    if production:
+        preview = site_identity(
+            {name: (stage / name).read_bytes() for name in ("assets/data/ui.js", "ro-crate-metadata.json")}
+        )
+        active = site_identity(files)
+        manifest = json.loads((production / "manifest.json").read_text("utf-8"))
+        # A stamped release names the root it was built for; an older archive's recorded address may be a predicted
+        # host, so only stamped releases are compared.
+        if "semantic" in manifest and active["publication_url"] != preview["publication_url"]:
+            raise AssemblyError(
+                "production and preview were built for different publication roots; rerun the deployment so that "
+                "both are built for the current one"
+            )
+        # The namespace is a reviewed setting that changes before the release that carries it (decision 28).
+        if (active["vocabulary_base"], active["profile"]) != (preview["vocabulary_base"], preview["profile"]):
+            notices.append(
+                f"The preview names the Guide vocabulary `{preview['vocabulary_base']}` and profile "
+                f"`{preview['profile']}`; production keeps `{active['vocabulary_base']}` and `{active['profile']}` "
+                "until the next release aligns them."
+            )
+        paths = ["/next/", *("/next/" + path.relative_to(stage).as_posix() for path in stage.rglob("*.html"))]
+        if urlsplit(preview["publication_url"]).path == "/" and preview_blocked(
+            files.get("robots.txt", b"").decode("utf-8"), paths
+        ):
+            raise AssemblyError("root robots policy blocks reading preview noindex; prepare a corrected release")
     released = production is not None and production_commit == staging_commit
     if not production:
         files["index.html"] = (
@@ -228,6 +261,7 @@ def assemble(
         path = output / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+    return notices
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -238,9 +272,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--production-tag")
     parser.add_argument("--production-commit")
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--notes", type=Path, help="write the notices for the run summary as Markdown lines")
     args = parser.parse_args(argv)
     try:
-        assemble(
+        notices = assemble(
             args.staging,
             args.staging_commit,
             args.out,
@@ -258,6 +293,11 @@ def main(argv: list[str] | None = None) -> int:
     ) as error:
         print(f"assemble_pages: {error}")
         return 2
+    for notice in notices:
+        print(f"assemble_pages: {notice}")
+    if args.notes:
+        args.notes.parent.mkdir(parents=True, exist_ok=True)
+        args.notes.write_text("".join(f"- {notice}\n" for notice in notices), encoding="utf-8", newline="\n")
     print(f"assemble_pages: release and preview assembled in {args.out}")
     return 0
 

@@ -4,8 +4,8 @@
 Use the [release runbook](runbooks/release.md) to publish a version, [merge](runbooks/merge.md) for ordinary delivery,
 and [maintainer tasks](ci.md) for other operations. This reference defines the channel and artifact contracts.
 
-Production is the newest approved release tag's verified artifact; the preview (`/next/`, staging) is the newest
-checked default-branch commit. A default-branch push builds `/next/`, reusing the merge queue's result for the
+Production is the verified artifact of the newest approved release tag that its own deployment has published; the
+preview (`/next/`, staging) is the newest checked default-branch commit. A default-branch push builds `/next/`, reusing the merge queue's result for the
 same commit or running the partitioned checks, and preserves every production byte. A new release tag builds and
 checks its source once, packages the exact output and waits for a maintainer's approval before those bytes are
 published. Each Pages deployment replaces the whole combined tree. Pull-request and merge-queue checks remain
@@ -29,8 +29,8 @@ rebuilding production, and needs no second approval.
 
 ## Merge queue, staging and production
 
-Once the merge queue is on (task 4.8 of the CI change), a pull request into `main` is queued after its own
-`checks` pass and a code owner approves. The queue runs `checks.yml` on the merged result (`merge_group`) and
+A pull request into `main` enters the merge queue after its own `checks` pass and the configured reviews
+are satisfied. The queue runs `checks.yml` on the merged result (`merge_group`) and
 merges only when it passes; human, Dependabot and refresh pull requests take the same path. Queue runs build the
 `preview` channel, the bytes staging deploys.
 
@@ -62,8 +62,9 @@ therefore deploys only that commit's staging site. It decides in a job without a
 that deploys nothing leaves no record. Once the site is live, the publication also records each channel: a
 successful `staging` deployment of the staging commit with the `/next/` address and, for a release it published, a
 `production` deployment of the tag with the root address. Publishing the same site again records nothing new.
-Tag release, and the tag ruleset once task 8.7 applies it, require the `staging` record of the commit to tag, so
-only a staged commit is released. `staging`, like `github-pages`, admits only `main`, and the record counts only when
+Tag protection requires successful `github-pages` and `staging` deployments and the `checks` status from GitHub
+Actions on the commit to tag. Tag release also verifies its `staging` record, so only a staged commit is released.
+`staging`, like `github-pages`, admits only `main`, and the record counts only when
 GitHub resolves it to the published commit; Tag release also requires that a run of the publication workflow wrote
 it. The `production` environment's approval job creates no record of its own. Only a publication
 after a successful deployment waits for its turn; a newer one replaces an older waiting one and publishes at least
@@ -77,6 +78,37 @@ publishes its image, only after a publication has deployed that release to Pages
 **Break glass.** An administrator can merge directly, bypassing the queue, to repair a broken queue or required
 check. Say why in the pull request. That commit has no queue result, so its deployment runs the full checks.
 
+## Publication location and Guide namespace
+
+Each deployable build resolves the actual Pages location from the Pages API before its checks and sets
+`FAIR_GUIDE_BASE_URL`; `baseUrl` in `content/guide.toml` names the same HTTPS site for local and offline builds.
+No build predicts a future hostname or looks one up over the network. The location gives the page's recorded
+address, the sitemap and, at an origin root, `robots.txt`. At runtime, navigation, API references, shared links
+and exported test references follow the Guide window's own address, including its channel path. From a local file
+they use the recorded HTTPS location or stay relative when none is recorded, and never publish a filesystem path.
+
+The Guide's own terms (`<namespace>terms#`) and RO-Crate profile (`<namespace>profile/<profileVersion>`) come from
+`namespace` in `content/guide.toml`. It is a reviewed setting that does not follow the publication location, so
+moving the site renames no term, and no deployment reads it from the live site or a release archive. Changing it
+renames every Guide term: it is a breaking change made through a reviewed pull request and noted in the changelog.
+Content from before the setting existed used its own `baseUrl`. Pull-request checks build for the resolved location,
+or `baseUrl` when Pages cannot be read, and deploy nothing.
+
+Packaging stamps the release manifest with `publication_url` and `semantic` (`vocabulary_base`, `profile`), read
+from the archive's own crate and page configuration. Assembly verifies a stamp against the archive's contents; an
+older archive without one is read from its verified crate, never from the current configuration. Assembly refuses a
+stamped release built for another publication root than the preview. Merge-queue reuse compares every built file,
+so a result checked for another namespace or root is not reused.
+
+Between a namespace change and the next release, the preview names the new terms while production keeps those of
+its release. Assembly accepts that pair, the publication summary names both namespaces, and the next release aligns
+them. The first release with the Pages-root namespace follows releases that named `https://fair.eosc.cz/`. Earlier
+archives keep their bytes and original contexts, so consumers read each artifact's own context and profile. No
+alias, redirect or `sameAs` relates old and new term IRIs, and no custom domain is adopted.
+
+Immediately before the Pages deployment, publication rechecks that the actual Pages location is unchanged. A
+failed recheck deploys nothing and leaves the published sites in place.
+
 ## Settings and rollback
 
 The [audit runbook](runbooks/audit-settings.md) owns approved application of one settings diff; the
@@ -89,7 +121,7 @@ The [audit runbook](runbooks/audit-settings.md) owns approved application of one
 | Create `production` with its reviewer, for release tags only | None | Delete it and re-add the reviewer to `github-pages` |
 | Remove the reviewer from `github-pages` and limit it to `main` | The `approve-production` job is on `main` | Re-add the reviewer and the `v*.*.*` tag rule |
 | Create `staging` without reviewers, limited to `main` | Publication's channel records are on `main` | Delete it; Tag release then refuses until it exists again |
-| Require `staging` instead of `github-pages` for release tags | A publication has recorded a successful `staging` deployment | Require `github-pages` again |
+| Require both deployment gates and `checks` for release tags | A publication has recorded a successful `staging` deployment and the commit passed `checks` | Restore the reviewed previous policy only after approval of the exact recovery diff; preserve live gates while diagnosing |
 
 ## Preview behaviour
 
@@ -97,11 +129,21 @@ Every HTML page below `/next/`, including API, profile, health and local-test do
 and a visible bilingual prerelease notice. Tag release tags a commit the preview already serves, built before the
 tag existed, so while the preview and the published release share a commit the notice says that the preview is
 identical to that release and links it; the preview's own footer keeps the identity it was built with. Staging is
-unlisted, not private. The build writes `sitemap.xml`, listing only the Guide root and `api/index.html` at the
-configured base URL (`baseUrl`, or `FAIR_GUIDE_BASE_URL`), and `robots.txt`, which names that sitemap and disallows
-the preview path. Production's sitemap, robots file and linkset stay byte for byte as released and gain no preview
-entries; the preview gets no copy of either crawler file. The preview retains shared knowledge-base identifiers and
-its existing discovery data; its OpenAPI server is relative to its own description so API requests use `/next/`.
+unlisted, not private. The build writes `sitemap.xml` at the publication location, listing only the Guide root and
+`api/index.html` as absolute, fragment-free URLs without modification dates. Hash views and the two languages are
+not separate indexable pages, and adopting a custom domain is a separate decision.
+
+A crawler applies only the `robots.txt` at its origin's root. The Guide is published at the project path
+`https://dsw-nrp.github.io/eosc-fair-guide/` (26 October 2026), whose origin root this repository does not publish,
+so the build writes no `robots.txt` there: a file below the project path would control nothing. The sitemap
+is then found when submitted to a search engine's webmaster tools, not through robots. When the Guide is hosted at
+an origin root, the build writes `robots.txt` allowing all paths and naming the sitemap; assembly refuses a release
+whose robots policy would stop crawlers reading the preview's `noindex`. Preview pages stay crawlable so that
+`noindex` keeps them out of search results. The current choice is to index the GitHub Pages site.
+
+Production's crawler files and linkset stay byte for byte as released and gain no preview entries; the preview gets
+no copy of either crawler file. The preview retains shared knowledge-base identifiers and its existing discovery
+data; its OpenAPI server is relative to its own description so API requests use `/next/`.
 
 `scripts/assemble_pages.py` adds these deployment-only changes after both inputs pass. It does not rebuild,
 fetch, tag or publish. Production is never transformed. A new deployment can update the preview without
@@ -254,14 +296,13 @@ although the [reviewed importer](https://github.com/zenodo/zenodo-rdm/blob/1fab5
 supports both. The repository's offline profile explicitly accepts those fields and rejects unsupported shapes;
 it does not fetch a changing schema during checks or claim remote vocabulary/archival acceptance.
 
-The previous rejected archive used a CFF license list that was valid CFF, while Zenodo's CFF import subset
-expected a string. The MIT software-license correction addresses that incompatibility; the actual remote error
-payload was not inspected. Keep regression coverage for both general CFF validity and the effective Zenodo
-import format. Run `python -m unittest discover -s tests -p test_citation_metadata.py` for those fixtures.
+Keep regression coverage for both general CFF validity and Zenodo's import subset: a CFF license list can be
+valid CFF while the pinned importer accepts a string or dictionary, but not a list. This repository's check uses
+the narrower SPDX-string profile. Run
+`python -m unittest discover -s tests -p test_citation_metadata.py` for those fixtures.
 
-After reviewed delivery, confirm the Zenodo integration is enabled, publish the corrected next release under
-maintainer authorization and check its actual archive result. Once the real concept DOI is issued, add its
-badge/link to both `README.md` and `README_en.md` through the normal documentation route and verify the destination.
+For an approved release, verify the Zenodo integration and its actual archive result. Keep the concept DOI
+badge/link in both `README.md` and `README_en.md` aligned with the issued record and verify the destination.
 The [concept DOI covers all versions](https://support.zenodo.org/help/en-gb/25-citations/234-how-to-share-or-cite-a-zenodo-record);
 retain version-specific DOI distinctions for reproducible citations. Do not add placeholder badges, guess a DOI
 or claim successful archiving while the record is pending or failed. The GitHub integration does not support

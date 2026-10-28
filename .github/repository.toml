@@ -57,14 +57,14 @@ do_not_enforce_on_create = false
 # The merge queue checks the merged result, so a pull request no longer has to be up to date.
 strict_required_status_checks_policy = false
 
-# Up to three pull requests per group, at most two groups building, no minimum wait, a 30-minute check timeout.
+# Two merge-group CI builds at once; a merge batch can contain up to ten verified PRs, with minimum one and no wait.
 # The queue can be enabled only once `checks.yml` reports `checks` for merge groups (task 4.1); until then every entry
 # would wait out the timeout.
 [ruleset.rules.merge_queue]
 merge_method = "SQUASH"
 grouping_strategy = "ALLGREEN"
 max_entries_to_build = 2
-max_entries_to_merge = 3
+max_entries_to_merge = 10
 min_entries_to_merge = 1
 min_entries_to_merge_wait_minutes = 0
 check_response_timeout_minutes = 30
@@ -82,7 +82,12 @@ bypass = []
 [ruleset.rules.update]
 
 [ruleset.rules.required_deployments]
-required_deployment_environments = ["staging"]
+required_deployment_environments = ["github-pages", "staging"]
+
+[ruleset.rules.required_status_checks]
+do_not_enforce_on_create = false
+required_status_checks = [{ context = "checks", integration_id = 15368 }]
+strict_required_status_checks_policy = false
 
 [environment.copilot]
 reviewers = []
@@ -357,23 +362,34 @@ Task = true
 Priority = ["Urgent", "High", "Medium", "Low"]
 Effort = ["High", "Medium", "Low"]
 
-# The GitHub App's registered permissions, kept as they are by the maintainer's decision of 24 October 2026. Each
+# The GitHub App's reviewed registration, including the organization reads requested by the maintainer. Each
 # job's App token requests only what that job uses (the [[token]] entries below), never the whole registration.
 [app]
 slug = "fair-guide-actions"
-permissions = { artifact_metadata = "read", attestations = "read", checks = "read", code_quality = "read", contents = "write", deployments = "read", discussions = "read", issues = "write", license_compliance_alerts = "read", merge_queues = "write", metadata = "read", organization_projects = "read", packages = "read", pages = "read", pull_requests = "write", repository_custom_properties = "read", repository_license_policy = "read", repository_projects = "read", statuses = "read" }
+permissions = { artifact_metadata = "read", attestations = "read", checks = "read", code_quality = "read", contents = "write", deployments = "read", discussions = "read", issue_fields = "read", issue_types = "read", issues = "write", license_compliance_alerts = "read", merge_queues = "write", metadata = "read", organization_projects = "read", packages = "read", pages = "read", pull_requests = "write", repository_custom_properties = "read", repository_license_policy = "read", repository_projects = "read", statuses = "read" }
 
 # The token requests each workflow job may make: `github` is the job's GITHUB_TOKEN (its own block, else the
 # workflow's) and `app` the permissions it asks the App token for. Every job appears exactly once.
 [[token]]
 workflow = "checks.yml"
-jobs = ["quick", "partitioned", "checks"]
+jobs = ["quick", "checks"]
 github = { contents = "read" }
 
 [[token]]
+workflow = "checks.yml"
+jobs = ["partitioned"]
+github = { contents = "read", pages = "read" }
+
+[[token]]
 workflow = "commands.yml"
-jobs = ["parse", "fix-duplicates", "refresh"]
+jobs = ["parse", "fix-duplicates"]
 github = { contents = "read" }
+
+# Permission ceiling for the called refresh workflow's issue-reply job; the refresh App remains narrower.
+[[token]]
+workflow = "commands.yml"
+jobs = ["refresh"]
+github = { contents = "read", issues = "write", pull-requests = "read" }
 
 [[token]]
 workflow = "commands.yml"
@@ -392,7 +408,17 @@ github = { contents = "read" }
 
 [[token]]
 workflow = "deploy.yml"
-jobs = ["sources", "production", "stage", "superseded"]
+jobs = ["superseded"]
+github = { actions = "read", contents = "read" }
+
+[[token]]
+workflow = "deploy.yml"
+jobs = ["sources"]
+github = { actions = "read", contents = "read", pages = "read" }
+
+[[token]]
+workflow = "deploy.yml"
+jobs = ["production", "stage"]
 github = { actions = "read", contents = "read" }
 
 [[token]]
@@ -403,8 +429,7 @@ github = {}
 [[token]]
 workflow = "deploy.yml"
 jobs = ["fallback-checks"]
-github = { contents = "read" }
-
+github = { contents = "read", pages = "read" }
 
 [[token]]
 workflow = "fix-duplicates.yml"
@@ -418,23 +443,28 @@ workflow = "health-watch.yml"
 jobs = ["watch"]
 github = { actions = "read", contents = "read" }
 
-# The digest publisher is the watch's only writer, and it writes only issues.
+# The digest publisher is the watch's only writer, and it writes only issues; it reads the latest refresh report.
 [[token]]
 workflow = "health-watch.yml"
 jobs = ["publish"]
-github = { contents = "read", issues = "write" }
+github = { actions = "read", contents = "read", issues = "write" }
 
-# The weekly audit is the only job that reads the Project, and it reads nothing else with the App's token.
+# Only the audit requests Project and organization issue-definition reads; repository reads keep GITHUB_TOKEN.
 [[token]]
 workflow = "health-watch.yml"
 jobs = ["audit"]
 github = { actions = "read", contents = "read", issues = "read" }
-app = { organization-projects = "read" }
+app = { organization-projects = "read", issue-types = "read", issue-fields = "read" }
 
 [[token]]
 workflow = "partitioned-checks.yml"
-jobs = ["build", "lanes", "collect"]
+jobs = ["lanes", "collect"]
 github = { contents = "read" }
+
+[[token]]
+workflow = "partitioned-checks.yml"
+jobs = ["build"]
+github = { contents = "read", pages = "read" }
 
 [[token]]
 workflow = "pr-summary.yml"
@@ -450,7 +480,7 @@ app = { contents = "write", pull-requests = "write" }
 [[token]]
 workflow = "publish.yml"
 jobs = ["resolve"]
-github = { actions = "read", contents = "read" }
+github = { actions = "read", contents = "read", pages = "read" }
 
 [[token]]
 workflow = "publish.yml"
@@ -489,6 +519,11 @@ github = { contents = "read" }
 app = { contents = "write", pull-requests = "write" }
 
 [[token]]
+workflow = "source-refresh.yml"
+jobs = ["reply"]
+github = { contents = "read", issues = "write", pull-requests = "read" }
+
+[[token]]
 workflow = "tag-release.yml"
 jobs = ["tag"]
 github = { actions = "read", contents = "read", deployments = "read", pull-requests = "read" }
@@ -508,8 +543,3 @@ github = {}
 # Approved targets not yet applied go here as [[pending]] entries (setting, current value, task). A command the
 # audit prints for any other difference keeps them at their live values; each is applied only in its task, after
 # the precondition it names.
-
-[[pending]]
-setting = "ruleset.Tag protection.rules.required_deployments.required_deployment_environments"
-current = ["github-pages"]
-task = "8.7, once a publication has recorded a successful staging deployment: require staging for release tags"

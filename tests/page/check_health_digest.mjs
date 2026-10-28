@@ -3,8 +3,8 @@
 // only from people with write access, and pinning that never blocks publication.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-const { prepare, publish, keyedTasks, previousState, LABEL, TASK_LABEL, BOT, DIGEST, TITLE, STATE, forwardOf, runOf } =
-  createRequire(import.meta.url)("../../.github/scripts/health-digest.cjs");
+const { prepare, publish, keyedTasks, previousState, latestRefresh, LABEL, TASK_LABEL, BOT, DIGEST, TITLE, STATE, forwardOf,
+  runOf } = createRequire(import.meta.url)("../../.github/scripts/health-digest.cjs");
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const body = (extra = "") => `${DIGEST}\nRebuilt.${extra}\n`;
@@ -74,7 +74,8 @@ const context = { repo };
   assert.deepEqual([result.created, result.commented, result.pinned, result.adopted], [true, true, true, [7]]);
   assert.equal(core.outputs.published, "true");
   const created = writes.find(([kind]) => kind === "create")[1];
-  assert.deepEqual([created.title, created.labels], [TITLE, [LABEL]]);
+  assert.deepEqual([created.title, created.labels], [TITLE, [LABEL, TASK_LABEL]],
+    "the digest is found by its own label and listed in the Maintenance view by its area label");
   // A retry of the same run finds its comment; an unchanged body is not rewritten.
   writes.length = 0;
   const again = await publish({ github, context, core }, files(body(), comment, [{ number: 7, id: 107 }]));
@@ -181,4 +182,30 @@ const context = { repo };
   assert.equal(await previousState({ github, context: scoped, core }), "");
   assert.equal(core.outputs.run, "", "no trusted state: the watch shows a reset");
 }
-console.log("check_health_digest: one rebuilt digest, comments once per change, two digests refused, resumable rotation, write-access tasks, best-effort pinning and trusted previous state pass");
+
+// The digest names the latest scheduled refresh of this repository's default branch and its report, when one exists.
+{
+  const own = { full_name: "dsw-nrp/eosc-fair-guide" };
+  const runs = [
+    { id: 80, run_attempt: 1, html_url: "https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/80", head_repository: { full_name: "fork/x" } },
+    { id: 81, run_attempt: 2, html_url: "https://github.com/dsw-nrp/eosc-fair-guide/actions/runs/81", run_started_at: "2026-10-26T11:12:33Z",
+      head_repository: own },
+  ];
+  let artifacts = [{ name: "source-refresh-81-2", expired: false }];
+  const asked = [];
+  const github = { rest: { actions: {
+    listWorkflowRuns: async (options) => { asked.push(options); return { data: { workflow_runs: runs } }; },
+    listWorkflowRunArtifacts: async ({ run_id, name }) => ({ data: { artifacts: run_id === 81 ? artifacts.filter((item) => item.name === name) : [] } }),
+  } } };
+  const scoped = { repo, payload: { repository: { default_branch: "main" } } };
+  assert.deepEqual(await latestRefresh({ github, context: scoped, core }),
+    { run: "81", url: runs[1].html_url, date: "2026-10-26", artifact: "source-refresh-81-2" }, "a fork's run is skipped");
+  assert.deepEqual([asked[0].workflow_id, asked[0].branch, asked[0].event, asked[0].status], ["source-refresh.yml", "main", "schedule", "completed"]);
+  artifacts = [{ name: "source-refresh-81-2", expired: true }];
+  assert.equal((await latestRefresh({ github, context: scoped, core })).artifact, "", "an expired report is an unknown outcome");
+  assert.equal(core.outputs.run, "81", "the run is still named");
+  github.rest.actions.listWorkflowRuns = async () => { throw Error("forbidden"); };
+  assert.deepEqual(await latestRefresh({ github, context: scoped, core }), { run: "", url: "", date: "", artifact: "" });
+  assert.match(core.warned.at(-1), /Could not find the latest scheduled Source refresh: forbidden/);
+}
+console.log("check_health_digest: one rebuilt digest, comments once per change, two digests refused, resumable rotation, write-access tasks, best-effort pinning, trusted previous state and the latest refresh report pass");

@@ -8,7 +8,7 @@ planning data through choosing a repository, describing and licensing data, to p
 It builds on the *Analysis and proposal of procedures for implementing the FAIR principles in NRP/NDI*
 (version 1.2, NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>).
 
-[Česky](README.md) · **[Open the Guide](https://fair.eosc.cz/)**
+[Česky](README.md) · **[Open the Guide](https://dsw-nrp.github.io/eosc-fair-guide/)**
 
 AI-assisted contributions start with [agent tooling](docs/agent-tooling.md); [AGENTS.md](AGENTS.md) is the
 assistant's runtime entry.
@@ -51,16 +51,17 @@ Code is licensed under MIT and content under CC BY 4.0. Per-file licensing is de
 
 ## Authors and citation
 
-The guide is implemented by David Novák (Library of the Czech Academy of Sciences and Institute of Archaeology of the Czech Academy of Sciences, Prague; <https://orcid.org/0000-0001-6592-6291>). Its expert basis is the
+The Guide is implemented by David Novák (Library of the Czech Academy of Sciences and Institute of Archaeology of the Czech Academy of Sciences, Prague; <https://orcid.org/0000-0001-6592-6291>). Its expert basis is the
 analysis by Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák
-and Tomáš Čížek. How to cite the guide: [CITATION.cff](CITATION.cff).
+and Tomáš Čížek. To cite the Guide, use "How to cite the Guide" in its footer; [CITATION.cff](CITATION.cff)
+credits the software.
 
 ## Use of artificial intelligence
 
-AI assistants Claude (Anthropic) and Codex (OpenAI) contributed to the content and code.
-Every content change is recorded in
-the knowledge base's paradata, including the tool used, and the guide shows it for each item. People review
-the texts.
+AI-assisted contributions are welcome under human oversight.
+People remain responsible for their correctness; the repository supports this way of working.
+The actual tools, models, consulted sources and content changes are recorded in the
+[knowledge base's paradata](docs/content-model.md#paradata).
 
 ## Acknowledgement
 

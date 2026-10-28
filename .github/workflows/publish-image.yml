@@ -77,6 +77,7 @@ jobs:
         run: |
           python scripts/image_release.py prepare --artifact .cache/release --output .cache/image --tag "$RELEASE_TAG" --commit "$RELEASE_COMMIT" > identity.json
           for key in version commit status date; do echo "$key=$(jq -r ".$key" identity.json)" >> "$GITHUB_OUTPUT"; done
+          echo "publication_url=$(cat .cache/image/publication-url.txt)" >> "$GITHUB_OUTPUT"
           echo "epoch=$(date -u -d "$(jq -r .date identity.json)" +%s)" >> "$GITHUB_OUTPUT"
       - name: Compose an isolated candidate tag
         id: tags
@@ -104,6 +105,7 @@ jobs:
             BUILD_COMMIT=${{ steps.identity.outputs.commit }}
             BUILD_STATUS=${{ steps.identity.outputs.status }}
             BUILD_CREATED=${{ steps.identity.outputs.date }}T00:00:00Z
+            BUILD_PAGE_URL=${{ steps.identity.outputs.publication_url }}
             SOURCE_DATE_EPOCH=${{ steps.identity.outputs.epoch }}
       - name: Keep the immutable build digest
         id: digest

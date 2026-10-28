@@ -495,7 +495,7 @@ release SHALL explain when the current default-branch commit has no successful d
 #### Scenario: A tag is approved after the default branch moved on
 
 - **WHEN** a waiting production promotion is approved after a newer default-branch commit was deployed
-- **THEN** it publishes the approved production with that commit's checked staging site, and neither channel moves back
+- **THEN** it publishes the approved production beside the latest checked staging site, and neither channel moves back
 
 #### Scenario: Tagging an undeployed commit
 
@@ -766,16 +766,45 @@ streaks or recoveries. Human decisions SHALL NOT live only in this state.
 - **WHEN** the previous state uses the earlier format version
 - **THEN** it is migrated and its baselines and streaks are kept
 
+### Requirement: Digest entries stay readable in the issue
+
+The digest SHALL show link findings that share a host and outcome as one entry giving the number of links and the
+affected records. A section longer than its limit SHALL continue in a collapsed list in the issue body. The run
+artifact SHALL hold raw observations only and SHALL NOT be the only place a finding a person must see appears.
+
+#### Scenario: One host fails for many links
+
+- **GIVEN** 17 links on one host time out in the same run
+- **WHEN** the digest is rendered
+- **THEN** it shows one triage entry for that host and outcome with the number of links and the affected records, instead of one entry per link
+
+#### Scenario: A section exceeds its limit
+
+- **WHEN** a section has more entries than its limit
+- **THEN** the remaining entries appear in a collapsed list in the digest body, and the body stays within GitHub's limit
+
+#### Scenario: A grouped finding is tracked or reviewed
+
+- **WHEN** a maintainer tracks a grouped entry or records a limitation for one of its links
+- **THEN** the task or limitation applies to the findings it names, as for single findings
+
 ### Requirement: Legacy health issues migrate into the digest
 
-Before the digest replaces per-finding issues, an approved issue-by-issue migration SHALL map each open legacy health
-issue to a digest entry, a retained task or a noise disposition, preserving its evidence and discussion. Absorbed
-issues SHALL close with a link to the digest. The per-finding publisher SHALL NOT run in parallel with the digest.
+Before the digest replaces per-finding issues, an approved migration SHALL select every open legacy health issue by
+its label and finding marker when it runs. It SHALL map each to a digest entry, a retained task or noise, preserving
+its evidence and any human discussion. Absorbed issues SHALL close with a link to the digest. The per-finding
+publisher SHALL NOT run in parallel with the digest.
 
 #### Scenario: The migration is previewed
 
 - **WHEN** the migration preview runs
 - **THEN** it lists every open `guide-health` issue with its target disposition and writes nothing
+
+#### Scenario: Issues were opened after the migration was planned
+
+- **GIVEN** the legacy publisher opened further issues after the migration was planned
+- **WHEN** the migration preview runs
+- **THEN** those issues are listed and mapped with the rest
 
 #### Scenario: The approved migration is applied
 
@@ -828,6 +857,46 @@ remain; partial, blocked and failed outcomes SHALL stay distinct and SHALL NOT c
 
 - **WHEN** a planted regression removes the action, fallback or completion evidence from a representative output
 - **THEN** the renderer's test fails
+
+### Requirement: A failed run names who acts
+
+A workflow run SHALL fail only when a maintainer must act, and its summary SHALL state what happened, who acts and
+the next step. A transient upstream failure that the next scheduled run retries SHALL be reported as a warning and
+SHALL NOT fail the run. Information a person needs SHALL appear in a summary, reply or the digest, not only in an
+artifact.
+
+#### Scenario: A source cannot be downloaded
+
+- **GIVEN** a scheduled refresh in which one source times out and another is proposed
+- **WHEN** the run ends
+- **THEN** it succeeds with a warning, its summary lists each source's outcome and links the proposed pull request
+
+#### Scenario: A response is rejected
+
+- **WHEN** validation rejects a source's new response or publication fails
+- **THEN** the run fails and its summary names the source, the reason and the maintainer's next step
+
+#### Scenario: A check cannot import what it needs
+
+- **WHEN** a hosted job's checks import a module its setup does not install
+- **THEN** an offline test fails before the change is merged and names the missing module
+
+### Requirement: Scheduled refresh outcomes reach the digest
+
+The digest SHALL list each source that the latest scheduled refresh did not refresh, with its outcome, date and run
+link. When the refresh report cannot be read, the digest SHALL say that the refresh outcome is unknown and name the
+run to check, and SHALL NOT present it as success.
+
+#### Scenario: A source was not refreshed
+
+- **GIVEN** the latest scheduled refresh could not retrieve one source
+- **WHEN** the next watch publishes the digest
+- **THEN** the digest lists that source as not refreshed, with its outcome and the run link
+
+#### Scenario: The refresh report is unavailable
+
+- **WHEN** the publisher cannot read the latest scheduled refresh report
+- **THEN** the digest says the refresh outcome is unknown and names the run to check
 
 ### Requirement: Production publishes real crawler discovery files
 
@@ -1098,20 +1167,53 @@ same-repository open-PR guards.
 
 ### Requirement: Publication addresses are resolved before verification
 
-Absolute static metadata SHALL use the actual deployment location resolved before build validation and packaging.
-Offline builds SHALL have deterministic explicit or relative behavior without network origin discovery or a guessed
-future public hostname. Publication SHALL NOT rewrite verified production bytes. Production and preview addresses
-SHALL remain distinct while sharing the reviewed content identities.
+Absolute navigation/discovery metadata SHALL use the actual deployment location before validation and packaging.
+Guide vocabulary/profile IRIs SHALL come from the reviewed namespace setting, never from the deployment location,
+the live site or a release archive. Offline inputs SHALL be deterministic without network discovery or a guessed
+future host. Publication SHALL preserve verified bytes and distinct channel links.
 
 #### Scenario: Pages provides the deployed origin and path
 
 - **WHEN** Pages configuration resolves the actual publication URL
-- **THEN** build metadata, semantic references and discovery files use that location before validation, and assembly preserves the resulting verified production bytes
+- **THEN** navigation/discovery metadata uses that location before validation, semantic references use the reviewed namespace setting, and assembly preserves the resulting verified production bytes
 
 #### Scenario: The same verified release is assembled with a preview
 
 - **WHEN** publication combines an immutable production release with the preview channel
 - **THEN** preview navigation uses its channel path without replacing production metadata or silently migrating content identities
+
+### Requirement: Channels may differ in namespace until the next release
+
+A preview whose reviewed namespace differs from published production's SHALL be published, and the deployment
+summary SHALL state both namespaces and that the next release aligns them. Production SHALL change namespace only
+through a release. Build evidence and reuse checks SHALL bind the namespace, profile and publication root. Existing
+release bytes SHALL NOT be rewritten.
+
+#### Scenario: The namespace setting changed before a release
+
+- **GIVEN** published production still uses the legacy namespace
+- **WHEN** a preview built with the new reviewed namespace is deployed
+- **THEN** it is published beside unchanged production, and the deployment summary names both namespaces and the release that aligns them
+
+#### Scenario: A release aligns the channels
+
+- **WHEN** the next release is approved and published
+- **THEN** production uses the reviewed namespace, and earlier archives keep their bytes and original contexts
+
+#### Scenario: Sites were built for different publication roots
+
+- **WHEN** production and preview were built for different publication roots
+- **THEN** assembly refuses them and the summary names the deployment to rerun
+
+#### Scenario: Artifact declarations disagree with verified contents
+
+- **WHEN** a recorded semantic identity disagrees with its crate/context/profile or required values cannot be established
+- **THEN** publication and cross-namespace reuse are refused; an unstamped historical artifact is read from its verified contents rather than guessed from current configuration
+
+#### Scenario: A result was checked for another namespace or publication root
+
+- **WHEN** deployment compares a prior check result with a candidate using different semantic or publication inputs
+- **THEN** the result is not reused and the candidate requires the full applicable checks
 
 ### Requirement: Durable documentation states current contracts
 

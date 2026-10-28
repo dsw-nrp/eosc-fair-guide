@@ -4,7 +4,8 @@
 // rotates it: the next run opens a successor that links its predecessor, posts the forward link and moves open tasks,
 // each step repeatable until done. Maintainers' tasks (issues with a finding key, from people with write access) are
 // attached as sub-issues. Two open digests stop publication. It also finds the run whose saved watch state the next
-// observation continues. This module writes only issues of this repository.
+// observation continues, and the latest scheduled Source refresh whose report the digest lists. This module writes
+// only issues of this repository.
 const { readFileSync, writeFileSync, mkdirSync } = require("node:fs");
 const { handoff } = require("./handoff.cjs");
 
@@ -90,7 +91,8 @@ async function publish({ github, context, core }, read = readFileSync) {
   const result = { created: false, updated: false, commented: false, adopted: [], moved: [], pinned: null };
   let digest = open[0];
   if (!digest) {
-    digest = (await github.rest.issues.create({ ...repo, title: TITLE, body, labels: [LABEL] })).data;
+    // Both declared labels: `guide-health` finds the digest again, `area:maintenance` puts it in the Maintenance view.
+    digest = (await github.rest.issues.create({ ...repo, title: TITLE, body, labels: [LABEL, TASK_LABEL] })).data;
     result.created = true;
     result.pinned = await pin(github, digest, core);
   } else if (digest.body !== body) {
@@ -151,6 +153,7 @@ async function rotate(github, repo, predecessor, successor) {
 
 const STATE = "health-watch-state";
 const WORKFLOW = ".github/workflows/health-watch.yml";
+const REFRESH_WORKFLOW = "source-refresh.yml";
 
 /** The run whose durable watch state the next observation continues: the newest unexpired state artifact saved by
     this workflow on the default branch of this repository. A branch or fork run cannot supply state. */
@@ -170,6 +173,30 @@ async function previousState({ github, context, core }) {
   return "";
 }
 
+/** The latest completed scheduled Source refresh of the default branch and its report artifact, so the digest lists
+    the sources it did not refresh (decision 29). A run without a readable report is still named, for an "unknown"
+    entry; a failed lookup names nothing and says so as a warning. */
+async function latestRefresh({ github, context, core }) {
+  const repo = context.repo;
+  const base = context.payload.repository?.default_branch || "main";
+  const found = { run: "", url: "", date: "", artifact: "" };
+  try {
+    const { data } = await github.rest.actions.listWorkflowRuns({ ...repo, workflow_id: REFRESH_WORKFLOW, branch: base,
+      event: "schedule", status: "completed", per_page: 10 });
+    const run = (data.workflow_runs || []).find((entry) => entry.head_repository?.full_name === `${repo.owner}/${repo.repo}`);
+    if (run && Number.isSafeInteger(run.id)) {
+      const name = `source-refresh-${run.id}-${run.run_attempt || 1}`;
+      const { data: listed } = await github.rest.actions.listWorkflowRunArtifacts({ ...repo, run_id: run.id, name, per_page: 10 });
+      Object.assign(found, { run: String(run.id), url: run.html_url, date: String(run.run_started_at || run.created_at || "").slice(0, 10),
+        artifact: (listed.artifacts || []).some((artifact) => artifact.name === name && !artifact.expired) ? name : "" });
+    }
+  } catch (error) {
+    core.warning(`Could not find the latest scheduled Source refresh: ${error.message}`);
+  }
+  for (const [key, value] of Object.entries(found)) core.setOutput(key, value);
+  return found;
+}
+
 /** Pinning is a convenience: a failure is reported, never fatal. */
 async function pin(github, issue, core) {
   try {
@@ -181,5 +208,5 @@ async function pin(github, issue, core) {
   }
 }
 
-module.exports = { prepare, publish, keyedTasks, rotate, previousState, LABEL, TASK_LABEL, BOT, DIGEST, TITLE, STATE,
-  forwardOf, runOf };
+module.exports = { prepare, publish, keyedTasks, rotate, previousState, latestRefresh, LABEL, TASK_LABEL, BOT, DIGEST,
+  TITLE, STATE, forwardOf, runOf };

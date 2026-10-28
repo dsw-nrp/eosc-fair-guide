@@ -18,7 +18,7 @@ separately from the data FAIR definitions.
 | FRSM-10 | docs/content-model.md describes TOML inputs; the build emits RO-Crate JSON-LD and JSON API records. |
 | FRSM-11 | Static API with OpenAPI description and contract checks. |
 | FRSM-12 | Metadata links the content dataset and cited source objects; source and software entities are related. |
-| FRSM-13 | pyproject.toml, package-lock.json, requirements-dev.txt and README_en.md describe build/runtime needs. |
+| FRSM-13 | pyproject.toml, package-lock.json, requirements-dev.txt and docs/how-to/build-and-check.md describe build/runtime needs. |
 | FRSM-14 | tests/ and scripts/check_all.py check content, exports, rendering, accessibility and formats. |
 | FRSM-15, FRSM-16 | REUSE layout, MIT code, CC BY 4.0 content and separate crate licences. |
 | FRSM-17 | Git history, docs/design.md and content/provenance.toml retain changes, responsibility and reasoning. |
@@ -26,8 +26,9 @@ separately from the data FAIR definitions.
 [CODE](https://doi.org/10.1038/s41597-026-06705-6) supports gradual adoption: document a small example,
 run it, and make collaboration practical. The [build how-to](how-to/build-and-check.md) sets up the checkout. `python scripts/build_site.py` creates
 `_site/index.html`, the knowledge-base crate and static API. Opening that page should show the testing
-notice and the lifecycle entry; `python scripts/check_content.py` should report no errors. Python 3.11 or
-later suffices for this build. Install the pinned development dependencies to run the full test suite.
+notice and the lifecycle entry; `python scripts/check_content.py` should report no errors. The build needs
+Python 3.11 or later and the pinned Node.js packages that `npm ci` installs. The full test suite also needs
+`requirements-dev.txt`.
 
 Choose preservation appropriate to the software: a disciplinary or institutional repository that accepts
 code, a general repository such as Zenodo, or a code archive. The released code and its description should
@@ -46,5 +47,5 @@ independent FAIR certification is claimed by this example.
 
 The crate uses `#guide-software` for the application, `#guide-source` for source-code description and `./`
 for the content dataset. Software uses MIT; the dataset uses CC BY 4.0. People remain responsible agents;
-Claude and Codex appear as instruments in provenance, with available model information. This Process Run
+AI assistants appear as instruments in provenance, with actual available model information. This Process Run
 Crate does not establish CPM, ISO 23494 or FDO conformance.

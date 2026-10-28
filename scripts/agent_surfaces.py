@@ -214,7 +214,7 @@ def delivery_findings(root: Path, config: dict, receipt: dict) -> list[str]:
             findings.append(f"{relative}:{name}: missing delivered section")
         elif name not in expected:
             findings.append(f"{relative}:{name}: extra delivered section")
-        elif digest(actual[name].encode("utf-8")) != expected[name]["sha256"]:
+        elif digest(delivered_content(actual[name], name, receipt).encode("utf-8")) != expected[name]["sha256"]:
             findings.append(f"{relative}:{name}: modified delivered section")
     # A format 2 delivery opens the reader with one version line naming its receipt's source commit and time.
     preamble = (
@@ -222,8 +222,15 @@ def delivery_findings(root: Path, config: dict, receipt: dict) -> list[str]:
         if receipt.get("format") == 2
         else ""
     )
+    spans = blocks(text)
+    entry = actual.get("aiscr-entry", "")
+    if preamble:
+        outside_stamp = bool(spans and text[: spans[0][2]].strip() == preamble)
+        entry_stamp = delivered_content(entry, "aiscr-entry", receipt) != entry
+        if int(outside_stamp) + int(entry_stamp) != 1:
+            findings.append(f"{relative}: missing or duplicate delivery receipt in the entry prologue/preamble")
     cursor = 0
-    for index, (_, _, start, end) in enumerate(blocks(text)):
+    for index, (_, _, start, end) in enumerate(spans):
         outside = text[cursor:start].strip()
         if outside and not (index == 0 and preamble and outside == preamble):
             findings.append(f"{relative}: extra content outside owned sections")
@@ -233,3 +240,23 @@ def delivery_findings(root: Path, config: dict, receipt: dict) -> list[str]:
     if set(sections(text, "guide")) != {"native"}:
         findings.append(f"{relative}: missing or extra native region")
     return findings
+
+
+def delivered_content(section: str, name: str, receipt: dict) -> str:
+    """Compare the entry's content hash without its exact, prologue-only delivery receipt.
+
+    Older deliveries put the receipt before the entry section; newer ones put it after SPDX comments.
+    Preserve every other byte, including body examples, duplicate stamps and line endings.
+    """
+    if receipt.get("format") != 2 or name != "aiscr-entry":
+        return section
+    lines = section.splitlines(keepends=True)
+    index = 1  # The checked ownership marker opens this section.
+    while index < len(lines) and re.fullmatch(
+        r"<!-- SPDX-(?:FileCopyrightText|License-Identifier): .+ -->", lines[index].rstrip("\r\n")
+    ):
+        index += 1
+    stamp = f"<!-- delivery-version: {receipt['source_commit']} {receipt['committed_at']} -->"
+    if index < len(lines) and lines[index].rstrip("\r\n") == stamp:
+        return "".join(lines[:index] + lines[index + 1 :])
+    return section

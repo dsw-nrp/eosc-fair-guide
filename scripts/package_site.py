@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_crate  # noqa: E402
 import build_identity  # noqa: E402
+from publication_location import site_identity  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 HEALTH = "api/health.json"
@@ -81,7 +82,12 @@ def package(site: Path, commit: str, output: Path, root: Path = ROOT) -> dict[st
         raise PackageError("the commit must be a full SHA-1")
     report = verified_health(site)
     try:
-        built = build_identity.config_identity((Path(site) / "assets/data/ui.js").read_text(encoding="utf-8"))
+        config = (Path(site) / "assets/data/ui.js").read_text(encoding="utf-8")
+        built = build_identity.config_identity(config)
+        publication_url = build_identity.config_publication_url(config)
+        inputs = site_identity(
+            {name: (site / name).read_bytes() for name in ("assets/data/ui.js", "ro-crate-metadata.json")}
+        )
     except (OSError, ValueError, TypeError, KeyError) as error:
         raise PackageError(f"required page identity is unreadable: {error}") from error
     if report.get("build") != built or report.get("revision") != commit:
@@ -108,6 +114,9 @@ def package(site: Path, commit: str, output: Path, root: Path = ROOT) -> dict[st
             "revision": report.get("revision"),
         },
     }
+    if publication_url:
+        manifest["publication_url"] = publication_url
+    manifest["semantic"] = {key: inputs[key] for key in ("vocabulary_base", "profile")}
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     return manifest
 

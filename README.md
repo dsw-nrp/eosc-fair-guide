@@ -4,10 +4,10 @@
 [![DOI](https://zenodo.org/badge/1409358632.svg)](https://zenodo.org/badge/latestdoi/1409358632) [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/dsw-nrp/eosc-fair-guide)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/dsw-nrp/eosc-fair-guide) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 Interaktivní průvodce pro výzkumníky, datové stewardy, správce repozitářů a výzkumné komunity: od plánování dat přes
-výběr repozitáře, popis a licencování až po zveřejnění, citování a kontrolu. Vychází z *Analýzy a návrhu postupů pro
-implementaci FAIR principů v NRP/NDI* (verze 1.2, NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>).
+výběr repozitáře, popis a licencování až po zveřejnění, citování a kontrolu. Vychází z *Analýzy a návrhu postupů k
+naplňování FAIR principů v rámci NRP/NDI* (verze 1.2, NRP KA 5.1, <https://doi.org/10.71495/5dv6-v116>).
 
-[English](README_en.md) · **[Otevřít Průvodce](https://fair.eosc.cz/)**
+[English](README_en.md) · **[Otevřít Průvodce](https://dsw-nrp.github.io/eosc-fair-guide/)**
 
 Příspěvky s AI začínají u [nástrojů pro agenty](docs/agent-tooling.md); [AGENTS.md](AGENTS.md) je vstupní soubor
 s instrukcemi pro běh asistenta.
@@ -16,7 +16,7 @@ s instrukcemi pro běh asistenta.
 
 - Cestu sedmi fázemi životního cyklu RDMkit a závěrečnou kontrolu, pohledem čtyř rolí.
 - Nejdřív jednu akci, kroky, důvody a zdroje až na vyžádání (L0–L3).
-- Prohlížeč principů FAIR, přehled zdrojů a repozitářů s datovanými stavy a model vrstev a rozhraní.
+- Prohlížeč principů FAIR, přehled zdrojů a repozitářů s datovanými stavy a model vrstev a návazností.
 - Oddělenou sebekontrolu podmínek NRP a vyspělosti FAIR, bez celkového skóre.
 - Volitelné dohledání záznamů, FAIR Champion, FAIR-Checker a místní zprávy F-UJI s verzí, rozsahem a pokrytím;
   vaše vlastní odpovědi zůstávají vaše.
@@ -52,14 +52,15 @@ v [REUSE.toml](REUSE.toml), plné texty ve složce [LICENSES/](LICENSES/).
 
 Průvodce připravil David Novák (Knihovna AV ČR a Archeologický ústav AV ČR, Praha; <https://orcid.org/0000-0001-6592-6291>). Odborným základem je analýza
 autorů Ilona Trtíková, Petra Bártková, Lada Biedermannová, Jindřich Fejfar, Robert Pergl, David Novák a
-Tomáš Čížek. Jak průvodce citovat, uvádí [CITATION.cff](CITATION.cff).
+Tomáš Čížek. Průvodce citujte podle odkazu „Jak citovat Průvodce“ v jeho patičce; [CITATION.cff](CITATION.cff)
+uvádí autorství softwaru.
 
 ## Využití umělé inteligence
 
-Na přípravě obsahu a kódu se podíleli AI asistenti Claude (Anthropic) a Codex (OpenAI).
-Každá změna obsahu je zaznamenána
-v paradatech znalostní báze, včetně použitého nástroje, a průvodce ji ukazuje u každé položky. Texty
-kontrolují lidé.
+Příspěvky připravené s pomocí umělé inteligence jsou vítány pod lidským dohledem.
+Za jejich správnost odpovídají lidé; repozitář je pro takovou spolupráci uzpůsoben.
+Konkrétní nástroje, modely, konzultované zdroje a změny obsahu zaznamenávají
+[paradata znalostní báze](docs/content-model.md#paradata).
 
 ## Poděkování
 

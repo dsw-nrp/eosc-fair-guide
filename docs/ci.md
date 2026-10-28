@@ -6,6 +6,7 @@ Choose the task you need. Each runbook names the place, action, visible result a
 
 | Task | When | Runbook |
 | --- | --- | --- |
+| Review a change | A local diff or PR is ready for assessment | [Review](runbooks/review.md) |
 | Merge a pull request | Checks and review are ready | [Merge](runbooks/merge.md) |
 | Release a version | The intended changes have merged | [Release](runbooks/release.md) |
 | Repair a broken queue or check | An administrator must unblock delivery | [Emergency merge](runbooks/emergency-merge.md) |
@@ -15,7 +16,6 @@ Choose the task you need. Each runbook names the place, action, visible result a
 | Triage maintenance | The weekly digest changes | [Handle the digest](runbooks/handle-the-digest.md) |
 | Rerun a failed check | A failure needs diagnosis or a retry | [Rerun a check](runbooks/rerun-a-check.md) |
 | Inspect or change settings | An audit reports drift | [Audit settings](runbooks/audit-settings.md) |
-| Move the legacy health issues | The migration payload is approved | [Migrate health issues](runbooks/migrate-health-issues.md) |
 
 On an issue or pull request, `/help` lists commands and eligibility. `/fix-duplicates` and `/refresh <source>`
 require write access; post a command as the whole comment. The [command reference](ci-reference.md#comment-commands)

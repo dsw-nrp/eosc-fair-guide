@@ -5,6 +5,39 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const { queueResult, newestStaging, completedDeployment, publication, recordChannels, superseded } = createRequire(import.meta.url)("../../.github/scripts/deployment.cjs");
+const { publicationLocation, assertPublication } = createRequire(import.meta.url)("../../.github/scripts/publication-location.cjs");
+
+// Actual Pages configuration, explicit deployment inputs and offline-check fallback are distinct routes.
+{
+  const writes = [];
+  const core = { exportVariable: (key, value) => writes.push([key, value]), setOutput() {}, notice() {} };
+  const context = { repo: { owner: "dsw-nrp", repo: "eosc-fair-guide" } };
+  const github = { rest: { repos: { getPages: async () => ({ data: { html_url: "https://actual.example/site/" } }) } } };
+  assert.equal(await publicationLocation({ github, context, core }), "https://actual.example/site/");
+  assert.deepEqual(writes, [["FAIR_GUIDE_BASE_URL", "https://actual.example/site/"]], "only the location is exported");
+  github.rest.repos.getPages = async () => { throw Error("not readable"); };
+  assert.equal(await publicationLocation({ github, context, core }, { explicit: "https://another.example/prefix/" }),
+    "https://another.example/prefix/");
+  await assert.rejects(publicationLocation({ github, context, core }), /Cannot read the actual Pages/);
+  writes.length = 0;
+  assert.equal(await publicationLocation({ github, context, core }, { required: false }), "");
+  assert.deepEqual(writes, [], "offline checks do not invent a publication location");
+  for (const explicit of ["file:///private/guide", "https://user:password@example.org/"]) {
+    await assert.rejects(publicationLocation({ github, context, core }, { explicit }));
+  }
+}
+
+const actualLocation = "https://actual.example/site/";
+
+// At the final publication boundary a changed actual Pages root is refused; nothing else is rechecked there.
+{
+  const context = { repo: { owner: "dsw-nrp", repo: "eosc-fair-guide" } };
+  for (const [location, refusal] of [[actualLocation, null], ["https://moved.example/", /actual Pages location changed/]]) {
+    const github = { rest: { repos: { getPages: async () => ({ data: { html_url: location } }) } } };
+    const result = assertPublication({ github, context }, { publicationUrl: actualLocation });
+    if (refusal) await assert.rejects(result, refusal, location); else await result;
+  }
+}
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
 const own = { full_name: "dsw-nrp/eosc-fair-guide" };
@@ -44,6 +77,7 @@ function fake({ runs = [], jobs = {}, artifacts = {}, head = c3, commits = [c3, 
           data: { artifacts: (artifacts[run_id] || []).filter((entry) => entry.name === name) } }),
       },
       repos: {
+        getPages: async () => ({ data: { html_url: actualLocation } }),
         getBranch: async () => ({ data: { commit: { sha: head } } }),
         getCommit: async ({ ref }) => ({ data: { sha: Object.fromEntries(tags)[ref] } }),
         listCommits: async () => ({ data: commits.map((sha) => ({ sha })) }),
@@ -129,10 +163,10 @@ const publish = (github, context, recorded = c3) => publication({ github, contex
   const github = fake({ runs: [run(60, "deploy.yml", { head_sha: c3 }), ...approvedTag.runs],
     jobs: approvedTag.jobs, tags: [["v1.0.0", tagged]] });
   assert.deepEqual(await publish(github, new FakeContext("refs/heads/main", c3, 60)),
-    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "60", tag: "v1.0.0", production: tagged,
+    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "60", tag: "v1.0.0", production: tagged,
       production_run: "30" }, "a release approved while this run prepared is included");
   assert.deepEqual(await publish(fake(), new FakeContext("refs/heads/main", c3, 60)),
-    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "60", tag: "", production: "", production_run: "" },
+    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "60", tag: "", production: "", production_run: "" },
     "a first preview needs no release");
 }
 
@@ -172,7 +206,7 @@ const publish = (github, context, recorded = c3) => publication({ github, contex
     { ...approvedTag.runs[0], id: 22, conclusion: "success" }];
   const github = fake({ runs, artifacts: { 20: kept(), 21: kept() }, tags: [["v1.0.0", tagged]] });
   assert.deepEqual(await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22)),
-    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "21", tag: "v1.0.0", production: tagged,
+    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "21", tag: "v1.0.0", production: tagged,
       production_run: "22" });
 }
 
@@ -200,7 +234,7 @@ const publish = (github, context, recorded = c3) => publication({ github, contex
   const runs = [run(21, "deploy.yml", { head_sha: c3 }), { ...approvedTag.runs[0], id: 22, conclusion: "success" }, newer];
   const github = fake({ runs, artifacts: { 21: kept() }, tags: [["v1.1.0", commit("b")], ["v1.0.0", tagged]] });
   assert.deepEqual(await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22)),
-    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "21", tag: "v1.1.0", production: commit("b"),
+    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "21", tag: "v1.1.0", production: commit("b"),
       production_run: "23" });
 }
 
@@ -275,4 +309,4 @@ await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 6
   await assert.rejects(recordChannels({ github, context, core }, { staging: "", pageUrl: site }), /published commits/);
   await assert.rejects(recordChannels({ github, context, core }, { staging: c1, tag: "v1.2.3", pageUrl: site }), /published commits/);
 }
-console.log("check_publication: same-commit queue reuse, trusted publication trigger, newest checked staging, approved production, late approvals, exact Pages records, live channel records and superseded runs pass");
+console.log("check_publication: actual Pages location and its recheck, same-commit queue reuse, trusted publication trigger, newest checked staging, approved production, late approvals, exact Pages records, live channel records and superseded runs pass");

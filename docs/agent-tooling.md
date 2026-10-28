@@ -24,8 +24,8 @@ dependency updates and source refreshes may use ordinary checks while preserving
 Install pinned Node dependencies with `npm ci` before `npm run openspec:cli -- <command>`; validate with
 `npm run openspec:validate`. The delivered planning rule owns lifecycle and approval semantics. Native
 content constraints live in `.agents/guide/rules/fair-guide-content.md`; execution, usage logging and ownership
-live in `.agents/guide/rules/fair-guide-surfaces.md`. Release procedures remain in
-[CONTRIBUTING.md](../CONTRIBUTING.md) and [deployment.md](deployment.md).
+live in `.agents/guide/rules/fair-guide-surfaces.md`. Release procedures remain in the
+[release runbook](runbooks/release.md) and [deployment.md](deployment.md).
 
 ## Task to tool
 
@@ -36,7 +36,8 @@ live in `.agents/guide/rules/fair-guide-surfaces.md`. Release procedures remain 
 | Shape a GitHub issue | `aiscr-plan-issue` | Read the workflow; authenticated GitHub access for authorized writes |
 | Plan from a shaped issue | `aiscr-plan-from-issue` | Ready issue; planning stops at its implementation boundary |
 | Review a PR or local Git scope | `aiscr-review-pr` | Git baseline and guide review facts; authenticated GitHub for remote scope; posting requires approval |
-| Draft release notes | `aiscr-write-release-notes` | Reviewed release scope and GitHub lineage; Python with PyYAML; prepare the release configuration and reports before validation; publication is opt-in |
+| Prepare and apply a Guide draft's release notes | [`fair-guide-release-notes <tag>`](../.agents/skills/fair-guide-release-notes/SKILL.md) | Preferred Guide route; an unpublished draft; previous release tag includes pre-releases; exact-body approval before applying; publishing is separate |
+| Generate a release-notes report | `aiscr-write-release-notes` | Report-only intermediate workflow; reviewed scope and GitHub lineage, Python with PyYAML and release configuration; use the native helper above for the complete Guide route |
 | Draft, investigate or verify within a workflow | Enrolled `aiscr-*` agents and dispatch | Follow the calling workflow's delegation stance; the drafter is `aiscr-draft` |
 | Validate the Guide | `python scripts/check_all.py` | Python dev requirements, pinned Node dependencies and Chromium; `--live` additionally needs network |
 
@@ -107,6 +108,10 @@ and sections, extra sections, unmarked mixed-reader text and unclassified manage
 owned, generated, runtime and tool-generated content. The three tooling checks run in `check_all` and its CI
 partition. A check failure is reported, never automatically repaired by the checker.
 
+For content-hashed entry sections, the checker excludes only the exact manifest-matching delivery stamp in the
+entry prologue after its SPDX comments. Older preamble stamps remain supported. Body examples, duplicate or
+different stamps, instruction bytes and line endings remain covered by the section hash.
+
 The guide owns `.agents/reports/usage/`; the delivered `aiscr-usage-logging` and `aiscr-model-logging` rules
 own notability and exact fields. Follow those owners through the native surfaces rule. A content change also
 records its own content paradata.
@@ -127,7 +132,7 @@ records its own content paradata.
 | Delivered | `aiscr-dispatch-library` | `.agents/skills/_dispatch/common.md`, `.agents/skills/_dispatch/contract-drafting.md`, `.agents/skills/_dispatch/contract-findings.md`, `.agents/skills/_dispatch/contract-investigation.md`, `.agents/skills/_dispatch/contract-survey.md`, `.agents/skills/_dispatch/contract-verification.md`, `.agents/skills/_dispatch/lens-correctness.md`, `.agents/skills/_dispatch/lens-dead-code.md`, `.agents/skills/_dispatch/lens-deploy-safety.md`, `.agents/skills/_dispatch/lens-draft.md`, `.agents/skills/_dispatch/lens-duplication.md`, `.agents/skills/_dispatch/lens-integration.md`, `.agents/skills/_dispatch/lens-investigate.md`, `.agents/skills/_dispatch/lens-language.md`, `.agents/skills/_dispatch/lens-performance.md`, `.agents/skills/_dispatch/lens-security.md`, `.agents/skills/_dispatch/lens-survey.md`, `.agents/skills/_dispatch/lens-verify.md` |
 | Delivered | `aiscr-draft` | `.claude/agents/aiscr-draft.md`, `.codex/agents/aiscr-draft.toml`, `.cursor/agents/aiscr-draft.md`, `.gemini/agents/aiscr-draft.md`, `.kilo/agents/aiscr-draft.md` |
 | Delivered | `aiscr-investigate` | `.claude/agents/aiscr-investigate.md`, `.codex/agents/aiscr-investigate.toml`, `.cursor/agents/aiscr-investigate.md`, `.gemini/agents/aiscr-investigate.md`, `.kilo/agents/aiscr-investigate.md` |
-| Delivered | `aiscr-plan-from-issue` | `.agents/scripts/github/github_issues.py`, `.agents/scripts/github/github_utils.py`, `.agents/scripts/lib/local_scratch_paths.py`, `.agents/scripts/lib/log_utils.py`, `.agents/scripts/lib/proc_utils.py`, `.agents/scripts/lib/runtime_env.py`, `.agents/skills/aiscr-plan-from-issue/SKILL.md`, `.claude/skills/aiscr-plan-from-issue/SKILL.md`, `.gemini/commands/aiscr/aiscr-plan-from-issue.toml` |
+| Delivered | `aiscr-plan-from-issue` | `.agents/scripts/github/github_issues.py`, `.agents/scripts/github/github_utils.py`, `.agents/scripts/lib/__init__.py`, `.agents/scripts/lib/local_scratch_paths.py`, `.agents/scripts/lib/log_utils.py`, `.agents/scripts/lib/proc_utils.py`, `.agents/scripts/lib/runtime_env.py`, `.agents/skills/aiscr-plan-from-issue/SKILL.md`, `.claude/skills/aiscr-plan-from-issue/SKILL.md`, `.gemini/commands/aiscr/aiscr-plan-from-issue.toml` |
 | Delivered | `aiscr-plan-issue` | `.agents/skills/aiscr-plan-issue/SKILL.md`, `.claude/skills/aiscr-plan-issue/SKILL.md`, `.gemini/commands/aiscr/aiscr-plan-issue.toml` |
 | Delivered | `aiscr-review-pr` | `.agents/scripts/github/github_pr_review.py`, `.agents/skills/aiscr-review-pr/SKILL.md`, `.agents/skills/aiscr-review-pr/review-formats.md`, `.agents/skills/aiscr-review-pr/review-tracks.md`, `.claude/skills/aiscr-review-pr/SKILL.md`, `.claude/skills/aiscr-review-pr/review-formats.md`, `.claude/skills/aiscr-review-pr/review-tracks.md`, `.gemini/commands/aiscr/aiscr-review-pr.toml` |
 | Delivered | `aiscr-survey` | `.claude/agents/aiscr-survey.md`, `.codex/agents/aiscr-survey.toml`, `.cursor/agents/aiscr-survey.md`, `.gemini/agents/aiscr-survey.md`, `.kilo/agents/aiscr-survey.md` |

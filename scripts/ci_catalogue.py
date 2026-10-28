@@ -122,6 +122,8 @@ def access(permissions: Any) -> str:
 
 
 def concurrency(value: Any) -> str:
+    """The group and what happens to a newer run: GitHub keeps one waiting run per group, and a newer one replaces
+    it, unless ``queue: max`` keeps every waiting run."""
     if isinstance(value, str):
         return f"`{value}`"
     cancels = value.get("cancel-in-progress", "false")
@@ -130,7 +132,9 @@ def concurrency(value: Any) -> str:
         if cancels == "true"
         else f", cancel `{cancels}`"
         if cancels != "false"
-        else ", queued"
+        else ", queued; every waiting run is kept"
+        if value.get("queue") == "max"
+        else ", one run waits; a newer one replaces it"
     )
 
 

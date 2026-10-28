@@ -26,6 +26,7 @@ is broken; it takes minutes. The deployment then runs the full checks, because t
    - **If it fails:** revert the merge through a new pull request, or fix forward through the queue.
 5. **Repair the mechanism.**
    - **Where:** a new issue.
-   - **Do:** describe the broken mechanism and link the pull request.
+   - **Do:** describe the broken mechanism, link the pull request and add the `area:delivery` label.
    - **Done when:** the issue is open with the `area:delivery` label.
-   - **If it fails:** add the label by hand when the audit reports it missing.
+   - **If it fails:** when the label does not exist, the `labels` section of the [settings audit](audit-settings.md)
+     reports it missing; restore it through that runbook, then add it.

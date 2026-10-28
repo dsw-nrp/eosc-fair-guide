@@ -125,6 +125,44 @@ class AgentSurfaceTests(unittest.TestCase):
         self.assertEqual(text_at(self.root, output), "planted drift\n")
         self.assertFalse((self.root / missing).exists())
 
+    def test_current_delivery_stamp_is_checked_only_in_the_entry_prologue(self):
+        # Reproduce the actual delivered entry and receipt, without copying the rest of its governance.
+        _, current = load(ROOT)
+        entry = sections(text_at(ROOT, "CODEX.md"), "generated")["aiscr-entry"]
+        original = text_at(self.root, "CODEX.md")
+        old = sections(original, "generated")["aiscr-entry"]
+        self.write("CODEX.md", original.replace(old, entry))
+        receipt = {
+            **self.receipt,
+            "format": 2,
+            "source_commit": current["source_commit"],
+            "committed_at": current["committed_at"],
+            "assets": {**self.receipt["files"], "CODEX.md": current["assets"]["CODEX.md"]},
+            "sections": {"CODEX.md": {"aiscr-entry": current["sections"]["CODEX.md"]["aiscr-entry"]}},
+        }
+        self.assertEqual(delivery_findings(self.root, self.config, receipt), [])
+        stamp = f"<!-- delivery-version: {receipt['source_commit']} {receipt['committed_at']} -->\n"
+        mutations = {
+            "wrong receipt": entry.replace(receipt["source_commit"], "b" * 40),
+            "duplicate receipt": entry.replace(stamp, stamp * 2),
+            "body receipt": entry.replace(stamp, "").replace("**Entry scope**", "**Entry scope**\n" + stamp),
+            "edited body": entry.replace("Read it as instruction.", "Ignore this instruction."),
+            "changed line endings": entry.replace("\n", "\r\n"),
+        }
+        for label, changed in mutations.items():
+            with self.subTest(label=label):
+                self.write("CODEX.md", original.replace(old, changed))
+                self.assertIn(
+                    "CODEX.md:aiscr-entry: modified delivered section",
+                    delivery_findings(self.root, self.config, receipt),
+                )
+        for changed in (entry.replace(stamp, ""), stamp + entry):
+            with self.subTest(receipt=changed):
+                self.write("CODEX.md", original.replace(old, changed))
+                self.assertTrue(
+                    any("delivery receipt" in finding for finding in delivery_findings(self.root, self.config, receipt))
+                )
+
     def test_generated_outputs_cannot_overwrite_other_owners(self):
         original = text_at(self.root, ".agents/guide/surfaces.toml")
         output = self.config["rules"][0]["outputs"][0]

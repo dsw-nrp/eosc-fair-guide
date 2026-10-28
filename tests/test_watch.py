@@ -362,6 +362,104 @@ class DigestTests(unittest.TestCase):
         self.assertLessEqual(len(body), watch_sources.BODY_LIMIT)
         self.assertIn("more in the run's observations artifact", body)
 
+    def test_an_outage_of_one_host_is_one_entry_that_a_task_or_a_limitation_can_address(self) -> None:
+        # 27 October 2026: 17 links on one unreachable host became 17 issues. In the digest they are one entry. (A host
+        # that stops answering altogether is asked no further in a run, so its links surface over several runs; one
+        # answering 503 for each fails them all at once.)
+        links = [{"id": f"d{n}", "url": f"https://down.example/item/{n}"} for n in range(17)]
+        data = {**content(), "resources": [*content()["resources"], *links]}
+        failing = Fetcher(status={"https://down.example/": 503, "https://b.example/gone": 404})
+        run = Run(data)
+        run(failing)
+        found, body, comment, _, _ = run(failing)
+        self.assertIn("## Needs triage (2)", body, "the host's entry and the other broken link")
+        self.assertIn("17 links on `down.example` did not answer", body)
+        self.assertIn("<details><summary>The 17 links</summary>", body)
+        for link in links:
+            self.assertIn(link["url"], body, "every link stays visible in the issue")
+        group = next(part for part in body.split("](") if "link-host%253Adown.example" in part)
+        query = parse_qs(urlparse(group.split(")")[0]).query)
+        self.assertIn("<!-- fair-guide-finding key=link-host%3Adown.example outcome=unavailable -->", query["body"][0])
+        self.assertEqual(sum(key.startswith("link:https://down.example/") for key in run.reported), 17)
+        self.assertIn("**New** (18)", comment, "each finding keeps its own key for change comments")
+        task = {"key": "link-host:down.example", "outcome": "unavailable", "number": 30, "state": "open"}
+        _, body, _, _, _ = run(failing, tasks=[task])
+        self.assertIn("## Tracked (1)", body)
+        self.assertIn("17 links on `down.example` did not answer. Task #30 (open)", body)
+        self.assertIn("## Needs triage (1)", body)
+        reviewed = {
+            "link:https://down.example/item/3": {
+                "outcome": "unavailable",
+                "reviewer": "david-novak",
+                "reviewed": TODAY,
+                "reviewBy": TODAY + timedelta(days=90),
+                "reason": "planned maintenance",
+            }
+        }
+        run = Run(data, limitations=reviewed)
+        run(failing)
+        _, body, _, _, _ = run(failing)
+        self.assertIn("16 links on `down.example` did not answer", body)
+        self.assertIn("## Known limitations (1)", body, "a reviewed link stays a finding of its own")
+
+    def test_a_long_section_continues_collapsed_in_the_body(self) -> None:
+        links = [{"id": f"h{n}", "url": f"https://host{n}.example/page"} for n in range(30)]
+        data = {**content(), "resources": [*content()["resources"], *links]}
+        failing = Fetcher(status={"https://host": 404, "https://b.example/gone": 404})
+        run = Run(data)
+        run(failing)
+        _, body, _, _, _ = run(failing)
+        self.assertIn("## Needs triage (31)", body)
+        self.assertIn("<details><summary>6 more</summary>", body)
+        for link in links:
+            self.assertIn(link["url"], body, "no finding is only in the artifact")
+        self.assertNotIn("more in the run's observations artifact", body)
+        self.assertLessEqual(len(body), watch_sources.BODY_LIMIT)
+
+    def test_sources_the_latest_scheduled_refresh_did_not_refresh_are_listed_until_refreshed(self) -> None:
+        # 26 October 2026: heslar and nkr were not refreshed, and only a red run said so. The digest lists them.
+        url = "https://github.com/o/r/actions/runs/40313332538"
+        coverage = {"eligible": 0, "attempted": 0, "deferred": 0, "invalid": 0}
+        plan = {**PLAN, "coverage": coverage, "findings": [], "outcomes": {}}
+        outcomes = [
+            {"source": "heslar", "status": "failed", "reason": "timed out"},
+            {"source": "nkr", "status": "rejected", "reason": "3 records [lack](https://evil.example) an ID"},
+            {"source": "re3data", "status": "changed"},
+            {"source": "datacite", "status": "unchanged"},
+        ]
+        refresh = {"run_url": url, "date": "2026-10-26", "outcomes": outcomes}
+        body, comment, reported = watch_sources.render(plan, [], "", {}, TODAY, refresh=refresh)
+        self.assertIn("## Sources not refreshed (2)", body)
+        self.assertIn("Source `heslar` was not retrieved, so its snapshot was kept; the next scheduled refresh", body)
+        self.assertIn(f"(timed out); [run]({url}) of 2026-10-26", body)
+        self.assertIn("Source `nkr` was rejected by validation", body)
+        self.assertNotIn("](https://evil.example)", body, "a reason is external text")
+        self.assertNotIn("`re3data`", body)
+        self.assertIn("Under Sources not refreshed, a rejected source needs a maintainer", body)
+        self.assertIn("**New** (2)", comment)
+        self.assertEqual({key for key in reported if key.startswith("refresh:")}, {"refresh:heslar", "refresh:nkr"})
+        refreshed = {
+            **refresh,
+            "outcomes": [{"source": "heslar", "status": "changed"}, {"source": "nkr", "status": "unchanged"}],
+        }
+        body, comment, _ = watch_sources.render(plan, [], "", reported, TODAY, refresh=refreshed)
+        self.assertIn("## Sources not refreshed (0)", body)
+        self.assertIn("**No longer listed** (2)", comment)
+        for value, text in (
+            (
+                {"run_url": url, "outcomes": None},
+                f"The latest scheduled Source refresh ([run]({url})) left no readable report",
+            ),
+            ({"run_url": "", "outcomes": None}, "No scheduled Source refresh run was found"),
+            ({"run_url": "https://evil.example/runs/1", "outcomes": None}, "Source refresh run was found"),
+        ):
+            with self.subTest(refresh=value):
+                body, _, reported = watch_sources.render(plan, [], "", {}, TODAY, refresh=value)
+                self.assertIn(text, body)
+                self.assertIn("so whether the sources are current is unknown", body)
+                self.assertNotIn("evil.example", body, "only a GitHub run address is linked")
+                self.assertEqual(list(reported), ["refresh:report"])
+
     def test_external_text_stays_inert(self) -> None:
         text = watch_sources.escape("<img src=x onerror=alert(1)> [link](https://evil.example) @team | `code`")
         self.assertNotIn("<img", text)
@@ -398,7 +496,24 @@ class CommandTests(unittest.TestCase):
             body = (digest / "body.md").read_text(encoding="utf-8")
             self.assertIn("Continues #41.", body)
             self.assertIn("The audit did not run this time.", body)
+            self.assertIn("## Sources not refreshed (0)", body, "without a refresh lookup nothing is claimed")
             self.assertIn("reported", json.loads((digest / "state.json").read_text(encoding="utf-8")))
+            # The publisher passes the latest scheduled refresh run, and its report when it could be downloaded.
+            report = Path(temp) / "report.json"
+            report.write_text(json.dumps({"formatVersion": 1, "outcomes": [{"source": "heslar", "status": "failed"}]}))
+            run = ["--refresh-run", "https://github.com/o/r/actions/runs/9", "--refresh-date", "2026-10-26"]
+            for extra, expected in (
+                (["--refresh", str(report)], "Source `heslar` was not retrieved"),
+                (["--refresh", str(Path(temp) / "absent.json")], "left no readable report"),
+                ([], "left no readable report"),
+            ):
+                with (
+                    self.subTest(extra=extra),
+                    mock.patch.object(watch_sources, "ROOT", fixture),
+                    mock.patch("builtins.print"),
+                ):
+                    self.assertEqual(watch_sources.main([*argv, *run, *extra]), 0)
+                    self.assertIn(expected, (digest / "body.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

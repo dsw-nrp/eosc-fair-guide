@@ -60,5 +60,5 @@ show the state as of October 2026, confirmed by the maintainer, rather than a li
 Source-scoped catalogue examples retain the manuscript's September observation dates.
 
 Run the content, model, API and page checks after building. Record the edited model and associated items in
-the batch's provenance action. The deferred team audit of test gaps and validity starts from the first
-official prerelease and remains a separate standing task.
+the batch's provenance action. Review test gaps and validity as maintenance work; record its scope, findings
+and follow-up decisions in an issue or OpenSpec change.

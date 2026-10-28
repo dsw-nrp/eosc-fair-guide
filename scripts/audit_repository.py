@@ -252,12 +252,23 @@ def load(path: Path = CONFIG) -> dict:
 # --- live state -------------------------------------------------------------------------------------------------
 
 
-class GhCli:
-    """The live state through `gh api` with the caller's token; a refusal becomes UnavailableError. GraphQL, which
-    reads the organization's Project, uses `project_token` when one is given (the weekly job's App token)."""
+REFUSED = {
+    "project": "the App token for the Project was not issued; check the App's installation and its Projects read "
+    "permission",
+    "organization": "the App token for organization issue types and fields was not issued; an organization owner "
+    "may still need to accept those read permissions for the App's installation",
+}
 
-    def __init__(self, project_token=None):
+
+class GhCli:
+    """Repository reads/writes use the caller's token. The audit's App tokens read only Project GraphQL and the
+    organization's issue-type/field definitions over REST, each with its own token, so a token the workflow could not
+    obtain (`refused`) hides only its own reads. A refusal becomes UnavailableError."""
+
+    def __init__(self, project_token=None, organization_token=None, refused=()):
         self.project_token = project_token
+        self.organization_token = organization_token
+        self.refused = set(refused)
 
     def _run(self, arguments, payload=None, token=None):
         environment = {**os.environ, "GH_TOKEN": token} if token else None
@@ -280,16 +291,24 @@ class GhCli:
 
     def get(self, path, *, pages=False):
         """One object, or every page of a list endpoint joined into one list."""
+        organization_read = re.fullmatch(r"orgs/[^/?]+/(?:issue-types|issue-fields)(?:\?[^#]*)?", path)
+        if organization_read and "organization" in self.refused:
+            raise UnavailableError(REFUSED["organization"])
+        token = self.organization_token if organization_read else None
         if not pages:
-            return self._run([path])
-        return [item for page in self._run(["--paginate", "--slurp", path]) for item in page]
+            return self._run([path], token=token)
+        return [item for page in self._run(["--paginate", "--slurp", path], token=token) for item in page]
 
     def graphql(self, query, variables):
         arguments = ["graphql", "-f", f"query={query}"]
         for key, value in variables.items():
             if value is not None:
                 arguments += ["-F" if isinstance(value, int) else "-f", f"{key}={value}"]
-        return self._run(arguments, token=self.project_token)["data"]
+        read = re.match(r"\s*query\b", query)
+        if read and "project" in self.refused:
+            raise UnavailableError(REFUSED["project"])
+        token = self.project_token if read else None
+        return self._run(arguments, token=token)["data"]
 
     def send(self, method, path, body):
         return self._run(["-X", method, path, "--input", "-"], json.dumps(body))
@@ -1248,7 +1267,11 @@ def main(argv: list[str] | None = None, github=None) -> int:
     if args.check_config:
         print(f"audit_repository: {args.config.name} is valid")
         return 0
-    github = github or GhCli(os.environ.get("GH_PROJECT_TOKEN") or None)
+    # The workflow passes each App-token step's outcome; "failure" means that token could not be issued.
+    refused = [part for part in REFUSED if os.environ.get(f"GH_{part.upper()}_TOKEN_OUTCOME") == "failure"]
+    github = github or GhCli(
+        os.environ.get("GH_PROJECT_TOKEN") or None, os.environ.get("GH_ORGANIZATION_TOKEN") or None, refused
+    )
     sections = tuple(args.section or (() if backfill is not None else SECTIONS))
     findings = audit(config, github, sections, backfill=backfill)
     failures = []

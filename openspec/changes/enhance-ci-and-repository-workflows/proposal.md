@@ -66,6 +66,10 @@ remaining work on `agents/claude/ci-workflows-replan` (draft PR #116). The follo
   `guide-health` per-finding issues must follow the digest.
 - **BREAKING:** local `check_duplicates.py --fix` refuses to write when no reviewed responsible person can be
   resolved, instead of applying the link with a provenance reminder.
+- **BREAKING:** absolute Guide vocabulary/profile IRIs move from the legacy namespace to the reviewed namespace
+  setting, now the current Pages root. The preview carries them from the merge of this change, production from the
+  next release. Historical artifacts keep their original contexts; consumers use the context/profile belonging to
+  the artifact they read. Logical record IDs and exact external IRIs are unchanged.
 
 Scope is repository delivery and maintenance. Excluded: editorial content, FAIR interpretation and evaluator
 semantics, crate/profile versions (#25), custom-domain adoption and DNS (#15, #32), external registrations (#80),
@@ -83,12 +87,13 @@ organization read permissions, settings reconciliation and complete documentatio
 a separate remediation change. The completed tasks and the 25 October validation remain historical receipts;
 they do not establish acceptance of this extension.
 
-- **Serving location is authoritative.** Index the current GitHub Pages site. Guide-owned links, metadata,
-  vocabulary and profile addresses follow the actual serving origin and site path, not a predicted hostname.
-  Relative references preserve portability; static files needing absolute URLs use the actual deployment URL
-  before validation and packaging. Preserve logical Guide IDs, external vocabulary/source IRIs, file and iframe
+- **Serving location is authoritative for navigation and discovery.** Index the current GitHub Pages site.
+  Guide-owned links and discovery metadata follow the actual serving origin and site path, not a predicted
+  hostname. Relative references preserve portability; static files needing absolute URLs use the actual deployment
+  URL before validation and packaging. Preserve logical Guide IDs, external vocabulary/source IRIs, file and iframe
   operation, shared production/preview identities and immutable release bytes. Record the compatibility
-  disposition of existing absolute IRIs before changing their generation.
+  disposition of existing absolute IRIs before changing their generation. Vocabulary and profile IRIs come from a
+  reviewed namespace setting instead (revised on 28 October, below). No existing release artifact is rewritten.
 - **Discovery reflects effective hosting controls.** Correct sitemap locations and preview indexing; do not
   describe a project-subdirectory robots file as the host-root policy or block discovery of `noindex`. The existing
   root/API sitemap scope remains; separate indexable station/language pages are not implicitly added.
@@ -101,11 +106,36 @@ they do not establish acceptance of this extension.
   guidance generic, expose the native release helper and add a review runbook and accurate workflow diagrams.
   One-time migration instructions and rollout evidence stay with this change.
 - **Applied settings and recommendations stay distinct.** Reconcile the observed tag gates and status check,
-  retaining them until an explicit target decision. Explain and evaluate queue build concurrency separately from
-  merge batching; the suggested batch of ten is not approved. No numeric or protection change is inferred.
+  retaining both deployment gates and `checks`, as explicitly chosen during apply. Explain and evaluate queue build
+  concurrency separately from merge batching; the maintainer also selected the existing live batch of ten while
+  keeping two builds, minimum one and no wait. The local declaration follows those choices; no remote write is inferred.
 
-The current-host address work is in scope even though adoption of `fair.eosc.cz` and DNS changes remain with
-#15/#32. These planning updates authorize no implementation, remote writes, release or archive.
+The current-host address work is in scope even though adoption of `fair.eosc.cz` and DNS changes remain
+with #15/#32. These planning updates authorize no implementation, remote writes, release or archive.
+
+### Finishing scope confirmed on 28 October 2026
+
+The maintainer wants this change finished rather than left open behind hosted hand-offs. The releases so far are
+alphas and the repository is still being set up, so the remaining proof comes from ordinary use within days of the
+merge. A check that cannot be made within this change is dropped explicitly rather than deferred.
+
+- **A reviewed namespace setting replaces the coordinated pair.** `content/guide.toml` declares the
+  vocabulary/profile namespace, set to the current Pages root. Deployments no longer read live production to choose
+  it, and publication no longer pairs a release with a current-head preview. Until the next release the preview's
+  namespace differs from production's, and the deployment summary says so instead of refusing. A persistent
+  `w3id.org` namespace moves to a new issue.
+- **Failures name who acts.** A red run means a person must act, and its summary says what to do. A source that
+  cannot be downloaded is a warning; a rejected one stays a failure. Both reach the digest. Nothing a person needs
+  exists only in an artifact. The audit asks for the accepted Project read separately from the new organization
+  reads, so a pending acceptance hides only what it covers.
+- **The digest stays short.** Link findings that share a host and outcome form one entry, and a section's
+  overflow stays in the issue body.
+- **Hand-offs finish through use.** The audit, the digest migration and the alpha.4 release, which doubles as the
+  rehearsal, follow the merge, each through its runbook. The maintainer's walk-through of those runbooks replaces
+  the separate human documentation review. The migration selects every open `guide-health` issue by label and
+  marker, including those opened since it was planned.
+- **Small corrections.** The quick job installs what its checks import. The native content rule stops requiring
+  inline language markup that does not exist. A possibly stale source title goes to the content team as an issue.
 
 Validation: strict OpenSpec validation and `python scripts/check_all.py`; planted regressions for every new
 check and renderer; real producer/consumer paths with fake remote transport only; paired before/after timing
@@ -128,12 +158,14 @@ None.
   version input, the `/next/` release notice, channel deployment records, one-invocation release notes, the weekly
   schedule and manual health-watch parts, documentation types, runbooks and their review.
   The follow-up adds issue-thread refresh, scoped organization audit reads, applied tag-policy reconciliation,
-  current-host discovery and complete durable-documentation acceptance.
+  current-host discovery and complete durable-documentation acceptance. The finishing scope adds failure
+  hand-offs that name who acts, scheduled refresh outcomes in the digest and host-grouped digest entries, and
+  replaces the namespace pair check with channels that may differ in namespace until the next release.
 - `fair-guide/guide-knowledge-base`: dated statuses reported in the digest; local duplicate repair records
   complete provenance for a resolved reviewed person; paradata freshness decided from history in every comparison
   context, including the merge queue.
-  The follow-up extends serving-location addressing to Guide-owned vocabulary/profile metadata and requires
-  namespace-qualified mapping documentation without renaming logical record identities or external terms.
+  The follow-up requires namespace-qualified mapping documentation without renaming logical record identities or
+  external terms, and the finishing scope takes Guide vocabulary/profile IRIs from a reviewed namespace setting.
 
 ## Impact
 
@@ -161,3 +193,7 @@ None.
   deployment URL inputs, discovery output, refresh eligibility and replies, audit token routing and its reviewed
   declarations, native documentation guidance and all affected human docs. Live observations and owner reports
   of 26 October are recorded in design decisions 24-27; the existing staged implementation is not changed by capture.
+  Decision 28, revised on 28 October, keeps the namespace in artifact/reuse identity but takes it from a reviewed
+  setting; the live-production lookup and the pair check are removed. Finishing impact (decision 29 and group 16):
+  the quick job's install, the audit's App tokens, the scheduled refresh summary, the digest renderer and
+  publisher, `assemble_pages.py`, the deployment scripts, the native content rule and the affected runbooks.

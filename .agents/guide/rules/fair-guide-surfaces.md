@@ -55,8 +55,10 @@ Keep each human document to one type, declared on its first line as `<!-- type: 
 reference, explanation or tutorial. A landing page routes tasks; reference records contracts and explanation
 gives reasons. Procedures have one home in a how-to and are linked from reference and explanation.
 
-Recurring and handed-off maintainer tasks have a runbook under `docs/runbooks/`. Its opening says who acts,
-how long and why in at most two sentences; numbered steps give **Where**, **Do**, **Done when** and **If it fails**.
+Recurring maintainer tasks have a runbook under `docs/runbooks/`. One-time issue migrations and other
+change-specific procedures stay with their OpenSpec change, retaining complete evidence and approval gates; a
+hand-off still needs an independently reviewed procedure. A runbook opens with who acts, how long and why in at
+most two sentences; numbered steps give **Where**, **Do**, **Done when** and **If it fails**.
 Keep each step within 130 words and all steps within 1300 words; link the reference for detail. A branching flow
 uses Mermaid with `accTitle`, `accDescr` and equivalent adjacent prose.
 

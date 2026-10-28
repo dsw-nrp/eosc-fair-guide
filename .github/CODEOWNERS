@@ -1,4 +1,5 @@
-# Who reviews what. Only actual collaborators are listed; add content reviewers by their own GitHub accounts when
-# they join (CONTRIBUTING.md, Review). The code owners are the maintainer and a second owner.
+# Technical owners check integrity, compatibility and fit with the Guide. Content correctness and source
+# interpretation are reviewed by the appropriate human collaborators; see docs/contribution-reference.md.
+# List only actual eligible technical owners; the wildcard currently names one maintainer.
 
 * @motyc

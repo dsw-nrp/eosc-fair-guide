@@ -1037,7 +1037,8 @@ class ContentCheckTests(FixtureCase):
 
     def test_base_url_must_use_https(self) -> None:
         self.edit("guide.toml", 'baseUrl = "https://example.org/guide/"', 'baseUrl = "http://example.org/guide/"')
-        self.assertError("the guide's address must use HTTPS")
+        with self.assertRaisesRegex(build_crate.ContentError, "the guide's address must use HTTPS"):
+            build_crate.load_content(self.root / "content")
 
     def test_stale_status_is_a_warning(self) -> None:
         content = build_crate.load_content(self.root / "content")
@@ -2692,17 +2693,22 @@ class ApiTests(unittest.TestCase):
         errors = build_crate.vocabulary_errors(guide, document="<http://example.org/terms#other> a rdf:Property .")
         self.assertTrue(any("absent from the vocabulary document" in error for error in errors), errors)
 
-    def test_one_setting_moves_the_guide(self) -> None:
-        # The guide's address is set once; a build at another address names the configured one nowhere.
+    def test_one_setting_moves_the_guide_and_another_keeps_its_terms(self) -> None:
+        # The guide's address is set once: a build at another address names the configured one only as the reviewed
+        # namespace of its own terms and profile, which moving the site never renames (decision 28).
         moved = "https://guide.example.org/fair/"
         with mock.patch.dict(os.environ, {build_crate.BASE_URL_ENV: moved}):
             outputs = build_crate.outputs()
             content = build_crate.load_content()
             api = build_api.Api(build_crate.build_crate(content), content).files()
+        namespace = content["guide"]["guide"]["vocabularyBase"].removesuffix("terms#")
+        self.assertEqual(content["guide"]["guide"]["pageUrl"], moved)
         for path, text in {**outputs, **api}.items():
-            self.assertNotIn(self.page_url, text, path)
-        self.assertIn(moved + "terms#", outputs[build_crate.CRATE_FILE])
-        self.assertIn(f"<{moved}profile/", outputs[build_crate.PROFILE_DIR + "/profile.ttl"])
+            rest = re.sub(re.escape(namespace) + r"(?:terms|profile/)", "", text)
+            self.assertNotIn(self.page_url, rest, path)
+        self.assertIn(namespace + "terms#", outputs[build_crate.CRATE_FILE])
+        self.assertNotIn(moved + "terms#", outputs[build_crate.CRATE_FILE])
+        self.assertIn(f"<{namespace}profile/", outputs[build_crate.PROFILE_DIR + "/profile.ttl"])
 
 
 class FixDuplicateCommandTests(FixtureCase):

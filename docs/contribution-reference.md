@@ -14,20 +14,25 @@ A pull request has one purpose and uses the template to explain the change, reas
 
 ## Review
 
-Checks protect the page and the data; people judge whether the advice is correct and the tone right. The
-reviewers are the accounts in [.github/CODEOWNERS](../.github/CODEOWNERS); it names only people who are actually
-collaborators, never a team that does not exist.
+Checks protect the page and data; human reviewers judge correctness and tone. The appropriate content team or
+collaborators listed in the repository's **Collaborators and teams** review content meaning, source interpretation
+and wording. [.github/CODEOWNERS](../.github/CODEOWNERS) names technical owners: they check that a change preserves
+integrity and compatibility and fits the Guide. It is not the content-review roster, and a technical approval
+does not establish content expertise. Only actual eligible technical owners are listed.
+
+The [review runbook](runbooks/review.md) owns scope selection, AI-assisted analysis, finding disposition,
+posting approval and re-review. Human content and technical acceptance remain separate from those automated outputs.
 
 The gates that can be enforced depend on who can review:
 
 - Pull requests into `main` require the `checks` result of "Guide checks and health report" to pass. Explicitly
   authorized maintainer direct commits remain subject to configured branch protection; nothing is force-pushed or
   deleted.
-- Once the merge queue is on, choose **Merge when ready** after approval. The queue checks the merged result again
+- Choose **Merge when ready** after approval. The queue checks the merged result again
   and merges only when it passes, so a pull request no longer has to be up to date with `main`. Human, Dependabot
   and refresh pull requests take the same path. An administrator's direct merge is the break-glass route; its
   deployment runs the full checks (see [deployment](deployment.md#merge-queue-staging-and-production)).
-- Keep `CODEOWNERS` aligned with eligible reviewers for `content/`, the stations and checks. Require one
+- Keep `CODEOWNERS` aligned with eligible technical reviewers for the owned files. Require one
   approving code-owner review when an independent eligible reviewer is available. GitHub does not let an
   author approve their own pull request; without an eligible independent reviewer, a release candidate needs
   the maintainer's explicit acceptance before tagging. Track changes to reviewer coverage and branch settings
@@ -53,7 +58,8 @@ security fix also gets one line under `[Unreleased]` in `CHANGELOG.md` (see the 
 
 ## Repository settings
 
-`.github/repository.toml` is the reviewed expected state for settings, Project #1 and token permissions.
+`.github/repository.toml` is the reviewed expected state for settings, the
+[EOSC CZ FAIR Guide Project](https://github.com/orgs/dsw-nrp/projects/1) and token permissions.
 Changes to workflow token permissions include their `[[token]]` entry. The read-only audit and its limits are
 in the [maintenance reference](maintenance.md#repository-settings-audit); settings changes need approval of
 their exact diff. [Rollback](runbooks/rollback-a-setting.md) changes one setting at a time.
