@@ -17,7 +17,7 @@ id = "citation.01"
 lens = "*"
 level = "L1"
 kind = "key"
-text = { cs = "Data jsou výsledek výzkumu a citují se stejně jako články; díky PID je citace jednoznačná.", en = "Data are research outputs and are cited like articles; a PID makes the citation unambiguous." }
+text = { cs = "Citace dat dává uznání jejich autorům a přes trvalý identifikátor jednoznačně propojuje tvrzení v článku s podkladovými daty.", en = "Data citation credits the data's creators and unambiguously links claims in an article to the underlying data through a persistent identifier." }
 sources = ["FORCE11-CITATION.01", "A.F1.X2"]
 
 [[advice]]
@@ -60,8 +60,8 @@ sources = ["A.R1.2.N3", "PID-CENTRE.01"]
 id = "citation.20"
 lens = "V"
 level = "L1"
-text = { cs = "Než převezmete cizí data, ověřte licenci a podmínky užití, zda metadata stačí k porozumění datům a zda je zdroj důvěryhodný. Zaznamenejte použitou verzi dat a citujte ji s PID.", en = "Before you reuse other people's data, check the licence and terms of use, whether the metadata are enough to understand the data and whether the source is trustworthy. Record the version of the data you used and cite it with its PID." }
-sources = ["RDMKIT.reuse.02"]
+text = { cs = "Než převezmete cizí data, ověřte [[rdmkit-existing-data|jejich vhodnost]], licenci a podmínky užití, dostatečnost metadat a důvěryhodnost zdroje. Citujte konkrétní použitou verzi s PID a zapište [[rdmkit-provenance|provedené úpravy]], aby šlo odlišit zdrojová data od výsledku analýzy.", en = "Before you reuse other people's data, check [[rdmkit-existing-data|whether they fit your purpose]], the licence and terms of use, whether the metadata are sufficient and whether the source is trustworthy. Cite the exact version used with its PID and record [[rdmkit-provenance|your transformations]] so source data can be distinguished from analysis outputs." }
+sources = ["RDMKIT.reuse.02", "RDMKIT.tasks.01"]
 
 [[advice]]
 id = "citation.21"
@@ -129,13 +129,6 @@ action = [{ label = { cs = "Zralost FAIR repozitáře", en = "Repository FAIR ma
 sources = ["A.F1.X2", "A.I2.R2"]
 
 [[advice]]
-id = "citation.13"
-lens = "SR"
-level = "L1"
-text = { cs = "Na landing page nabídněte doporučenou citaci a její export.", en = "Offer a recommended citation and its export on the landing page." }
-sources = ["A.F1.X2"]
-
-[[advice]]
 id = "citation.14"
 lens = "SR"
 level = "L1"
@@ -173,10 +166,3 @@ text = { cs = "AI vám pomůže najít v textu místa, kde používáte data, a 
 check = { cs = "Každý DOI v citaci rozřešte a porovnejte autory, název, rok a verzi se záznamem.", en = "Resolve every DOI in a citation and compare the authors, title, year and version with the record." }
 prompt = { cs = "Projdi text níže a vypiš místa, kde se používají nebo zmiňují výzkumná data, včetně dat jiných autorů. U každého uveď větu a jaká data by se měla citovat. Citace nevytvářej.\n\nText: […]", en = "Go through the text below and list the places where research data are used or mentioned, including other authors' data. For each, give the sentence and which data should be cited. Do not create citations.\n\nText: […]" }
 sources = ["EC-GENAI-GUIDELINES.02", "EC-GENAI-GUIDELINES.01"]
-
-[[advice]]
-id = "citation.23"
-lens = "*"
-level = "L1"
-text = { cs = "Při novém využití ověřte [[rdmkit-existing-data|vhodnost existujících dat]], jejich licenci a původ. Citujte konkrétní použitou verzi a popište změny; [[rdmkit-provenance|provenience]] pomůže dalšímu uživateli odlišit původní data od výsledku analýzy.", en = "Before reuse, check [[rdmkit-existing-data|whether the existing data fit your purpose]], their licence and origin. Cite the version used and describe transformations; [[rdmkit-provenance|provenance]] helps the next user distinguish source data from analysis outputs." }
-sources = ["RDMKIT.tasks.01"]
