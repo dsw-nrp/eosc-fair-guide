@@ -11,21 +11,26 @@ branch, in about half an hour. Every open legacy issue is covered by the digest 
    - **Done when:** the list is complete and each issue with human discussion is marked.
    - **If it fails:** leave all issues open; an incomplete list cannot support closure.
 2. **Publish the first digest.**
-   - **Where:** Actions → **Live health and source watch** → **Run workflow**, with parts `both`.
-   - **Do:** run it, then open the digest it publishes.
-   - **Done when:** every listed finding appears in the digest, possibly inside a host entry, or is noise such as
-     #101.
+   - **Where:** Actions → **Live health and source watch** → **Run workflow**, with parts `both` and **Also
+     remeasure FAIR Champion tests** ticked.
+   - **Do:** run it, then open the digest it publishes. Champion candidates appear only in a run that remeasures
+     Champion. A link appears only after it fails again on top of its migrated streak, and a run tries at most 600
+     links, so run the workflow again without Champion when a listed link finding is missing.
+   - **Done when:** each listed finding appears in the digest, possibly inside a host entry, no longer holds (the
+     link answers, or the candidate is no longer available), or is noise such as #101; source updates follow step 3.
    - **If it fails:** follow the digest runbook for the run's summary; close nothing.
 3. **Approve the closing comment.**
    - **Where:** the authorising task.
    - **Do:** show the maintainer the one comment every absorbed issue receives, with the digest link, and a summary
-     for each issue with human discussion.
+     for each issue with human discussion. If the digest does not list #100 or #115 because the migrated page
+     baseline already holds their items, put the maintainer's review of each in its closing comment, saying whether
+     the Guide's advice or sources should follow.
    - **Done when:** the maintainer approves that text.
    - **If it fails:** revise it and ask again; close nothing on an assumed approval.
 4. **Close and reread.**
    - **Where:** the listed issues.
-   - **Do:** post the approved comment on each and close it as **Not planned**. An issue a maintainer keeps as a
-     task stays open and is linked from the digest. Reread each issue.
+   - **Do:** post the approved comment on each and close it as **Not planned**. To keep a finding as work, create
+     its task with **Track as task** in the digest; a legacy issue cannot be adopted. Reread each issue.
    - **Done when:** every listed issue is closed or kept as recorded, and the digest covers its finding.
    - **If it fails:** stop at the first mismatch and keep the remaining issues open.
 
@@ -35,9 +40,9 @@ These are expectations, not a claim that any issue is migrated or closed. Step 1
 
 | Issues | Expected treatment |
 | --- | --- |
-| #59–#65 | Champion candidates to review |
+| #59–#65 | Champion candidates to review (step 2's Champion run) |
 | #85–#99, #118–#135 | Link findings; the 17 `heslar.openscience.cz` timeouts (#119–#135) share one host entry |
-| #100, #115 | Source updates to review |
+| #100, #115 | Source updates; reviewed at closure if the digest does not list them |
 | #101 | Noise after the pagination fix |
 
 None of the 43 open issues had a human comment. Issue #137 tracks the possibly stale title of the source behind

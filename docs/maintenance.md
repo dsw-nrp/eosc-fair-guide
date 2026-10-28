@@ -126,7 +126,8 @@ python scripts/audit_repository.py --backfill MAPPING --fix
 
 The maintainer-token column was verified by a read-only run on 24 October 2026 (`gh` with the `repo`, `read:org`
 and `read:project` scopes). Entries marked "run 40190490225" come from the weekly job's first hosted run on
-25 October 2026; the other columns follow GitHub's permission reference for each endpoint.
+25 October 2026, and those marked "run 40698714546" from the default-branch audit-only run on 28 October 2026; the
+other columns follow GitHub's permission reference for each endpoint.
 
 | Section | Endpoint and permission | Maintainer token | `GITHUB_TOKEN` | App installation token |
 | --- | --- | --- | --- | --- |
@@ -134,11 +135,11 @@ and `read:project` scopes). Entries marked "run 40190490225" come from the weekl
 | Rulesets | `GET /repos/{repo}/rulesets`: Metadata read; bypass actors need write access to the ruleset | Read, with bypass actors (verified) | Rules; bypass actors unavailable | Rules; bypass actors unavailable |
 | Environments | `GET /repos/{repo}/environments` and branch policies: Actions read | Read (verified) | Read when the job requests `actions: read` | Unavailable: no Actions permission is registered |
 | Labels | `GET /repos/{repo}/labels`: Issues or Pull requests read | Read (verified) | Read with `issues: read` or `pull-requests: read` | Read (Pull requests) |
-| EOSC CZ FAIR Guide Project | GraphQL `organization.projectV2` fields, views and items: Organization Projects read | Read with `read:project` (verified) | Unavailable: no organization access | Read when the job requests it; requires accepted `organization_projects: read` and an explicit audit-token request |
+| EOSC CZ FAIR Guide Project | GraphQL `organization.projectV2` fields, views and items: Organization Projects read | Read with `read:project` (verified) | Unavailable: no organization access | Read: fields, views and items (run 40698714546); requires accepted `organization_projects: read` and an explicit audit-token request |
 | Project workflows | GraphQL `organization.projectV2.workflows` | Read with `read:project` (verified) | Unavailable: no organization access | Unavailable: refused for Organization Projects read (run 40190490225) |
 | Project completeness | `GET /repos/{repo}/issues`: Issues read | Read (verified) | Read with `issues: read` | Read when the job requests Issues read |
-| Issue types | `GET /orgs/{org}/issue-types`: Organization Issue Types read | Read (verified) | Unavailable | Requires accepted Issue Types read and an explicit audit-token request |
-| Issue fields | `GET /orgs/{org}/issue-fields`: Organization Issue Fields read | Unconfirmed: an empty list, although the Guide Project shows Priority and Effort | Unavailable | Requires accepted Issue Fields read and an explicit audit-token request; an empty result stays unavailable |
+| Issue types | `GET /orgs/{org}/issue-types`: Organization Issue Types read | Read (verified) | Unavailable | Not issued: the installation has not accepted Issue Types read (HTTP 422, run 40698714546); requires that acceptance and an explicit audit-token request |
+| Issue fields | `GET /orgs/{org}/issue-fields`: Organization Issue Fields read | Unconfirmed: an empty list, although the Guide Project shows Priority and Effort | Unavailable | Not issued: the installation has not accepted Issue Fields read (HTTP 422, run 40698714546); requires that acceptance and an explicit audit-token request; an empty result stays unavailable |
 | App registration | `GET /apps/{slug}`: public App, no permission | Read (verified) | Read | Read |
 
 Issue-field values of one issue are read through `GET /repos/{repo}/issues/{number}/issue-field-values`, which needs

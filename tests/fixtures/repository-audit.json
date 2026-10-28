@@ -508,6 +508,12 @@
          {
           "direction": "ASC",
           "field": {
+           "name": "Status"
+          }
+         },
+         {
+          "direction": "ASC",
+          "field": {
            "name": "Title"
           }
          }
