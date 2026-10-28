@@ -1666,3 +1666,14 @@ results = [
   "organization:upol",
 ]
 endTime = 2026-10-20T21:00:00+00:00
+
+[[action]]
+id = "2026-10-28-licence-14-review"
+type = "update"
+name = "Restore the NRP licence requirement in the merged repository advice"
+description = "Reviewed the merged repository-lens licence advice against its cited clauses. Restored the NRP condition that every dataset carry a licence in its metadata, at least as a URI (A.R1.1.X1 guidance, A.R1.1.R1, A.MIN3), naming the condition as the tone rule requires, and the two deposit points the merge had dropped from the retired licence.30: make the deposit conditions available before deposit and record their acceptance, and rights in the repository's database do not confer rights in every deposited work."
+agent = "david-novak"
+instruments = ["claude-code", "claude-opus-5-5"]
+objects = ["A.R1.1.R1", "A.R1.1.X1", "A.MIN3", "COPYRIGHT-LICENCES.02", "COPYRIGHT-LICENCES.03", "COPYRIGHT-LICENCES.04", "DEPOSIT-LICENCE.01"]
+results = ["licence.14"]
+endTime = 2026-10-28T23:46:50+01:00
