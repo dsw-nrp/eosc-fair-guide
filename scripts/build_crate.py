@@ -2098,6 +2098,12 @@ def build_callouts(graph: Graph, callouts: list[dict[str, Any]], all_lenses: lis
     return callout_ids
 
 
+def champion_endpoint(champion: dict[str, Any], test: dict[str, Any]) -> str | None:
+    """A curated test's invocation URL: its own endpoint, or the service endpoint with the provider's test ID."""
+    native, base = alternate_id(test, "fair-champion"), champion.get("endpoint")
+    return test.get("endpoint") or (base.rstrip("/") + "/" + native if base and native else None)
+
+
 def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
     champion = live.get("champion", {})
     test_ids = []
@@ -2112,7 +2118,7 @@ def build_tests(graph: Graph, live: dict[str, Any]) -> list[str]:
                 "additionalType": FTR_TEST,
                 "identifier": test["id"],
                 "name": text(test.get("label")) or test["id"],
-                "url": test.get("endpoint") or (champion["endpoint"].rstrip("/") + "/" + native if native else None),
+                "url": champion_endpoint(champion, test),
                 "description": text(test.get("description")),
                 "subjectOf": refs(
                     [test.get("record") or champion["testRecord"].format(id=native), champion["documentation"]]

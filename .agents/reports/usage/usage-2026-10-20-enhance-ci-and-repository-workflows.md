@@ -1087,3 +1087,38 @@
   - `npm run openspec:validate` (all items, strict) passes 6/6 with no warnings.
 - **Close-out:** main specs synced; the change stays active until its remaining hand-offs and archive approval.
   Nothing committed or archived.
+
+### Second review round: Champion selection key (16.27-16.28)
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** In explore mode, checked the second-round AIS CR review of #116 at `e6d6fa1` (no findings; one
+  pre-existing observation and one process note). The maintainer chose to fold the observation into this change
+  and not to post the review, and approved the capture of 16.27-16.28, the 16.10 precondition and the archive
+  note (the deltas are already synced, so archive runs with `--skip-specs`). The apply that followed:
+  - **Watch:** measured Champion tests are matched to the curated selection by their FAIR Champion identifier,
+    so the five tests whose Guide ID differs are compared with their recorded health instead of being proposed
+    as candidates or dropped without a finding.
+  - **Health inventory:** at the maintainer's choice, the crate and the inventory share
+    `build_crate.champion_endpoint()`; a curated test without a provider identifier or endpoint fails the
+    inventory's HTTPS invocation check.
+- **Impacted:** `scripts/watch_sources.py`, `scripts/build_crate.py`, `scripts/check_health.py`,
+  `tests/test_watch.py`, `tests/test_health.py`; the change's `tasks.md`; this entry. The review hand-off under
+  `.agents/local_scratch/` was read and not changed.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-explore` and `openspec-apply-change`, with the delivered planning,
+  quality-first, review-conduct and usage/model logging rules and the native content and surface rules.
+- **Verification:**
+  - Keying the selection by `id` again fails the new watch test; the previous inline endpoint formula fails the new
+    health test. The restored code passes the watch and health tests (61), Ruff and format.
+  - On the real content, a probe summary naming all 13 curated tests gives 13 core targets and no candidate; the
+    committed watch gave 8 and 5. The crate's 13 test URLs are unchanged.
+  - All 70 delta requirement blocks were byte-identical in the main specs before the archive note was written.
+- **Corrections:** 16.27's verification asked for the inventory to name the provider endpoint, which it never
+  outputs. The maintainer chose the shared helper, and the task records the correction.
+- **Close-out:** `python scripts/check_all.py` passes 36/36 checks in 168.9 s, including OpenSpec, usage entries,
+  generation, ownership and delivery; strict OpenSpec validation and `check_usage.py` passed again after the last
+  edits to the tasks and this entry. Tasks 16.27-16.28 are complete (117/129); 16.10 waits for the maintainer's
+  rerun of the review. Nothing committed, pushed, posted, dispatched or archived.

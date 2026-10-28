@@ -42,6 +42,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import build_crate  # noqa: E402
 import check_content  # noqa: E402
+from catalogue_identity import alternate_id  # noqa: E402
 from handoff import handoff  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -555,7 +556,8 @@ def observe(
             del sources[key]  # long past review, tracked or not
         elif item["first"] < (today - timedelta(days=SOURCE_DAYS)).isoformat():
             item["aged"] = True
-    core = {test["id"]: test for test in content["live"].get("champion", {}).get("test", [])}
+    # The probe names a test by its FAIR Champion identifier, which the build requires of every curated test.
+    core = {alternate_id(test, "fair-champion"): test for test in content["live"].get("champion", {}).get("test", [])}
     for key in [key for key, value in targets.items() if value.get("kind") == "champion-core" and key[9:] not in core]:
         del targets[key]  # no longer in the curated selection, even when this run did not remeasure
     if champion:

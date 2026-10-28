@@ -667,7 +667,7 @@ def integrity(content: dict[str, Any], root: Path, today: date) -> list[dict[str
     champion = content["live"].get("champion", {})
     for item in champion.get("test", []):
         checks, notes = dated(item)
-        endpoint = item.get("endpoint") or (str(champion.get("endpoint", "")).rstrip("/") + "/" + item["id"])
+        endpoint = build_crate.champion_endpoint(champion, item)
         add(
             "remote automated tests",
             item,

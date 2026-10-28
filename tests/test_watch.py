@@ -40,9 +40,19 @@ def content(**extra: object) -> dict:
         "live": {
             "connector": [{"id": "svc", "origin": "https://svc.example"}],
             "watch": [{"id": "outputs", "url": "https://www.eosc.example/outputs"}],
-            "champion": {"test": [{"id": "core_test", "health": "degraded", "asOf": date(2026, 10, 11)}]},
+            "champion": {"test": [curated("core_test")]},
             **extra,
         },
+    }
+
+
+def curated(guide_id: str, provider_id: str | None = None, health: str = "degraded") -> dict:
+    """A curated Champion test as the build requires it: its own ID and the provider's as a typed alternate."""
+    return {
+        "id": guide_id,
+        "alternateIds": [{"scheme": "fair-champion", "value": provider_id or guide_id}],
+        "health": health,
+        "asOf": date(2026, 10, 11),
     }
 
 
@@ -208,7 +218,7 @@ class StateTests(unittest.TestCase):
             {"id": "events", "url": "https://events.example/list"},
             {"id": "kept", "url": "https://kept.example/news"},
         ]
-        data["live"]["champion"]["test"].append({"id": "gone_test", "health": "degraded", "asOf": date(2026, 10, 11)})
+        data["live"]["champion"]["test"].append(curated("gone_test"))
         measured = {"id": "core_test", "health": "available", "attempted": 3, "definitive": 3, "indeterminate": 0}
         champion = {"generatedAt": "2026-10-12T03:00:00Z", "summary": [measured, {**measured, "id": "gone_test"}]}
         failing = {"https://events.example": 503, "https://kept.example": 503}
@@ -232,6 +242,35 @@ class StateTests(unittest.TestCase):
         self.assertNotIn("events.example", body)
         self.assertEqual(run.state["targets"]["watch:kept"]["streak"], 3, "a page still watched keeps its streak")
         self.assertEqual(found["champion:core_test"]["section"], "triage", "a test still listed stays")
+
+    def test_curated_tests_are_matched_by_their_champion_identifier(self) -> None:
+        # Five curated tests have their own ID, such as fc-metadata-pid; the probe names the provider's.
+        provider = "fc_metadata_identifier_persistence"
+        key = f"champion:{provider}"
+        data = content()
+        data["live"]["champion"]["test"].append(curated("fc-metadata-pid", provider, health="available"))
+
+        def remeasured(health: str, definitive: int) -> dict:
+            summary = {"id": provider, "health": health, "attempted": 3, "definitive": definitive, "indeterminate": 0}
+            return {"generatedAt": "2026-10-12T03:00:00Z", "summary": [summary]}
+
+        run = Run(data)
+        # State left by a run that matched the Guide's own ID: the selected test was proposed as a candidate.
+        run.state["targets"][f"champion-candidate:{provider}"] = {"kind": "champion-candidate", "outcome": "candidate"}
+        found, *_ = run(Fetcher(), remeasured("available", 3))
+        self.assertEqual(run.state["targets"][key]["outcome"], "matches")
+        self.assertNotIn(f"champion-candidate:{provider}", run.state["targets"], "a selected test is no candidate")
+        self.assertNotIn(f"champion-candidate:{provider}", found)
+        run(Fetcher(), remeasured("degraded", 1))
+        found, *_ = run(Fetcher(), remeasured("degraded", 1))
+        self.assertEqual(found[key]["section"], "triage", "a measured health that differs from the record")
+        self.assertIn(f"`{provider}` measured `degraded`, recorded `available`", found[key]["line"])
+        # The maintainers drop it from the selection; the next run does not remeasure Champion.
+        tests = data["live"]["champion"]["test"]
+        data["live"]["champion"]["test"] = [test for test in tests if test["id"] != "fc-metadata-pid"]
+        found, *_ = run(Fetcher())
+        self.assertNotIn(key, run.state["targets"])
+        self.assertNotIn(key, found)
 
 
 class PageTests(unittest.TestCase):
