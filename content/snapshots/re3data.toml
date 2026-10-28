@@ -4,7 +4,7 @@
 [snapshot]
 source = "re3data"
 url = "https://www.re3data.org/"
-retrieved = 2026-10-19
+retrieved = 2026-10-26
 license = "https://creativecommons.org/publicdomain/zero/1.0/"
 
 [[repository]]
@@ -318,6 +318,7 @@ name = "Data Catch-all Repository"
 namesCs = ["Datový catch-all repozitář"]
 url = "https://datarepo.eosc.cz"
 re3data = "r3d100014970"
+doi = "10.17616/R31NJO1M"
 subjectsEn = []
 pidTypes = ["DOI"]
 languages = ["ces", "eng"]
