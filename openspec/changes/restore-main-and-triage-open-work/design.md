@@ -123,7 +123,9 @@ change outside this scope; it remains the proper fix.
   - Each rebuilt commit that carries his text ends with `Co-authored-by: Karel Berka <karel.berka@upol.cz>`, in place
     of the placeholder address. `contributors.py` matches him by his commit name; GitHub links the commit to his
     account if that address is verified there.
-  - B1 accepts the `CITATION.cff` contributor entry that `contributors.py` suggests for him, with his ORCID iD.
+  - B1 lists him under `[guide] contributors`, which the crate publishes as `schema:contributor`. `CITATION.cff`
+    credits only the software's authors (`docs/design.md`), so the contributor entry `contributors.py` suggests
+    there is not taken.
 - **Instruments:** B1 adds the drafted instrument records for Antigravity and the Gemini models named in the drafts'
   usage logs.
   - `antigravity` points to `https://antigravity.google/`, Google's product page, instead of the draft's
@@ -132,7 +134,7 @@ change outside this scope; it remains the proper fix.
 - **Paradata:** the actions follow who did the work.
   - Each rebuilt pull request adds Karel Berka's action: agent `karel-berka`, the instruments his draft used, the
     objects and results it covers, and the `endTime` of his draft. Because freshness follows history, his real time
-    passes the check.
+    passes the check. In B1 its results also name `guide`, for the Guide metadata his records change.
   - A second action is added only when review changes what the Guide says: a claim reworded, dropped or re-sourced.
     Its agent is `david-novak`, its instruments are Claude Code and its model, and its `results` list exactly the
     changed items.
@@ -145,6 +147,8 @@ change outside this scope; it remains the proper fix.
   - The claims citing Act No. 328/2025 Coll. are compared with their ledger clauses by a person:
     `LAW-328-2025.83` (#36), `.83.3` (#37) and `.83.5` (#38).
   - The built page is inspected in both languages, at phone width and in print.
+- **Link inventory:** the watch's coverage test fixed the Guide's link count at 673, which any new record breaks.
+  B1 derives its expectations from the per-host cap and the run budget instead, so B2–B4 do not repeat the fix.
 - **Order:**
   - #35 (deduplication) goes first, because the others add text beside items it merges; then #36, #37 and #38.
   - Each next branch is rebuilt on the latest `main`, which avoids append conflicts in the registry and provenance.

@@ -33,8 +33,8 @@ digest with 16 findings (#140):
 3. **Rebuild the drafts, one pull request per issue.**
    - **Mapping:** #39 → #35, #41 → #36, #40 → #37 and #42 → #38, merged in that order. Each new pull request
      starts from current `main`.
-   - **Kept:** the station text, identifier registration, and the author's credit in git, provenance and
-     `CITATION.cff`.
+   - **Kept:** the station text, identifier registration, and the author's credit in git, provenance and the
+     Guide's contributors.
    - **Dropped:** the archived OpenSpec changes, the per-item knowledge-base requirements and the drafts' usage logs.
    - **Shared records:** the person, organisation and instrument records that all four drafts add land once, in the
      first rebuilt pull request, with the Antigravity record pointing to its product page.
@@ -89,8 +89,8 @@ None.
 - **Generated documentation:** `docs/agent-tooling.md` (one inventory row).
 - **Bot pull requests:** `.github/workflows/health-watch.yml`, `.github/workflows/publish-image.yml`,
   `requirements-dev.txt` and `content/snapshots/re3data.toml`.
-- **Rebuilt content:** `content/stations/*.toml`, `content/identifiers.toml`, `content/provenance.toml`,
-  `content/guide.toml` and `CITATION.cff`.
+- **Rebuilt content:** `content/stations/*.toml`, `content/identifiers.toml`, `content/provenance.toml` and
+  `content/guide.toml`, with `tests/test_watch.py` made independent of the link count.
 - **Digest fixes:** `content/resources.toml` (`ro-crate` address), `content/sources.toml`
   (`sherpa-object-retrieval-api`) and `.github/health-watch.toml` (limitations).
 - **Watch behaviour:** `scripts/watch_sources.py` and `tests/test_watch.py`.

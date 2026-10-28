@@ -41,14 +41,15 @@ alone do not complete them.
 
 ## 3. Rebuilt content (PRs B1–B4)
 
-- [ ] 3.1 Build B1 for #35 from #39, on a branch from the latest `main` (design D3):
+- [x] 3.1 Build B1 for #35 from #39, on a branch from the latest `main` (design D3):
       - apply only #39's station changes, in commits that end with
         `Co-authored-by: Karel Berka <karel.berka@upol.cz>`;
       - add the `karel-berka` person record with `github = "KarelBerka"`, the `upol` organisation and the instrument
         records, with `antigravity` at `https://antigravity.google/`;
-      - run `python scripts/register_ids.py`;
+      - run `python scripts/register_ids.py`, and retire the merged IDs by hand;
       - add Karel Berka's provenance action with his draft's `endTime`;
-      - add the `CITATION.cff` contributor entry that `python scripts/contributors.py` suggests for him.
+      - list him under `[guide] contributors`;
+      - make the watch coverage test independent of the link count.
 
       Verify:
       - `python scripts/check_all.py` passes;
@@ -120,7 +121,7 @@ alone do not complete them.
       resource and source link the new addresses.
 - [x] 4.7 **Human decision:** write the `reason` for each of the seven limitations listed in design D4, and confirm
       the reviewer's person ID. Verify that every reason is recorded before 4.8 starts.
-- [ ] 4.8 Add the seven `[[limitation]]` entries to `.github/health-watch.toml`. Each takes the digest's key,
+- [x] 4.8 Add the seven `[[limitation]]` entries to `.github/health-watch.toml`. Each takes the digest's key,
       outcome and evidence, the reason from 4.7, `reviewed` set to the review date and the offered `reviewBy`.
       Verify that `python scripts/watch_sources.py check-config` passes.
 - [ ] 4.9 Write one usage entry for this change under `.agents/reports/usage/`, named
@@ -159,7 +160,7 @@ alone do not complete them.
       - the Issue Type lines for #115–#135 and the `PR - authored` sort clear on their own.
 
       Verify that the comment is posted.
-- [ ] 5.4 Run a maintainer's `python scripts/audit_repository.py --section project`. Verify that it reports no drift
+- [x] 5.4 Run a maintainer's `python scripts/audit_repository.py --section project`. Verify that it reports no drift
       for the `PR - authored` view, whose expected sort #141 changed to the live `Status asc, Title asc`.
 
 ## 6. Issue triage
@@ -169,7 +170,7 @@ alone do not complete them.
       issue names, and the known inputs D6 lists. #35–#38 are entered as closed by B1–B4 with `shape = "none"`.
       Verify that the file parses with `tomllib`, that its numbers equal the open issues from `gh issue list --state open`
       minus #140, and that every entry other than `keep` has a `reason`.
-- [ ] 6.2 **Human decision:** review the ledger and set the final decision, Priority, Effort, milestone and shaping
+- [x] 6.2 **Human decision:** review the ledger and set the final decision, Priority, Effort, milestone and shaping
       route for each issue. Verify that the approved ledger is committed on the change branch.
 - [ ] 6.3 **Human hand-off:** apply the ledger's closures, merges and parent changes. Each closure carries a comment
       with its reason and links its successor where one exists; a merged issue's content moves into the issue that
