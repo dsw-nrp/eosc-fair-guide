@@ -14,7 +14,7 @@ author: AIS CR (Archaeological Information System of the Czech Republic) <https:
 <!-- SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- aiscr:canonical= -->
-<!-- delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00 -->
+<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
 
 <!-- aiscr:entry-scope -->
 

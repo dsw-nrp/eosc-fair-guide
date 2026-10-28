@@ -11,7 +11,7 @@ author: AIS CR (Archaeological Information System of the Czech Republic) <https:
 <!-- SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- aiscr:compiled=aiscr-plan-from-issue -->
-<!-- delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00 -->
+<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
 
 <!-- aiscr:entry-scope -->
 
@@ -210,7 +210,7 @@ No exceptions.
 | "I'll write the artifacts first, then sort out the branch." | Branch first. Artifacts on the wrong branch have to be moved by hand. |
 | "`CONTRIBUTING.md` elsewhere says branch from `main`, so I'll do that." | Read *this* repository's. Base branches differ; some repos target `dev`. |
 | "The change is complete, so I'll open a normal pull request." | Draft — the work is planned, not done. |
-| "I'll add `Fixes #123` so the issue closes on merge." | No. Promotion plans the work; it does not resolve the issue. |
+| "I'll add `Fixes #N` so the issue closes on merge." | No. Promotion plans the work; it does not resolve the issue. |
 | "The draft PR is open, so I can start filling it in." | Stop. The draft is where implementation *will* land, not a start signal. |
 | "The artifacts are complete, so I'll start on the tasks." | Stop. Completion is not approval; implementation needs a fresh instruction. |
 
@@ -235,6 +235,7 @@ Before claiming this workflow complete:
 
 ## Governance
 
+- GitHub references follow the delivered `aiscr-quality-first-execution` rule (*GitHub references*).
 - Issues are the ideation layer where this workflow is enrolled; promotion enters OpenSpec, a phase boundary with its own approval.
 - The change belongs to the repository that owns the issue, where the implementation happens.
   A run writes only that repository's OpenSpec root and nothing outside it.
@@ -255,6 +256,7 @@ The enrollment bundle installs these repository-local runtime scripts:
 
 - `.agents/scripts/github/github_issues.py`
 - `.agents/scripts/github/github_utils.py`
+- `.agents/scripts/github/github_references.py`
 - `.agents/scripts/lib/__init__.py`
 - `.agents/scripts/lib/local_scratch_paths.py`
 - `.agents/scripts/lib/log_utils.py`

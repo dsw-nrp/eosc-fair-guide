@@ -1,13 +1,15 @@
 # PR review formats
 
-<!-- delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00 -->
+<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
 
 ## Reference format 1
 
 ````markdown
 <!-- aiscr-review-pr:summary -->
 
-# PR summary — OWNER/REPO#NUMBER
+# PR summary — [OWNER/REPO#NUMBER][pr]
+
+[pr]: PR_URL
 
 | Field | Value |
 | --- | --- |
@@ -58,7 +60,7 @@ This PR summary was prepared with AI assistance through the AIS CR review workfl
 ## Reference format 3
 
 ```text
-CARRIED    2   Fixes #412  ·  - [ ] run migration
+CARRIED    2   Fixes #N  ·  - [ ] run migration
 ABSORBED   3   intent para → Purpose and scope
                perf note   → Attention hints
                rollout     → Validation / test surfaces

@@ -13,7 +13,7 @@ author: AIS CR (Archaeological Information System of the Czech Republic) <https:
 
 <!-- SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
-<!-- delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00 -->
+<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
 
 <!-- aiscr:entry-scope -->
 
@@ -70,6 +70,7 @@ Lens: `draft`.
 Read the named paths and report receipts.
 Return each proposed block as a field the assignment names, shorter than the block it replaces, with the grounds it rests on.
 Propose nothing where the material already sits at its obligations; that is a complete result, not a failure.
+GitHub references follow the delivered aiscr-quality-first-execution rule (GitHub references).
 
 Exclusions: Adjudicating the draft, writing any file, and expanding the assigned material to fill a gap.
 

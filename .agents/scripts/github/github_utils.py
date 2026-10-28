@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
-# delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00
+# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
 
 """Shared GitHub write machinery for posting engines.
 
@@ -10,8 +10,8 @@ identity-mode gate, the canonical approval digest, the machine-marker plus AI-as
 shared provenance helpers (paired regions, disposition-ledger rendering, and content-edit-history lookup).
 Engine-specific payload shapes, validation rules, and command surfaces stay in the engine that owns them.
 
-Every function here is reachable from an enrolled sibling, so the module carries no hub-only assumption and imports only
-``log_utils`` and ``proc_utils``, which travel with it in the same bundle.
+Every function here is reachable from an enrolled sibling, so the module carries no hub-only assumption. The shared
+reference checker, ``log_utils``, and ``proc_utils`` travel with it in the same explicitly declared bundle.
 
 Contract: workflow/github-write-fidelity
 Class: library
@@ -39,6 +39,8 @@ if _SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, _SCRIPTS_DIR)
 from lib.log_utils import log_error  # noqa: E402
 from lib.proc_utils import run_diagnostic, run_exact  # noqa: E402
+
+from github import github_references  # noqa: E402
 
 MODES = ("interactive", "automated")
 CI_ENV_VARS = ("CI", "GITHUB_ACTIONS")
@@ -77,6 +79,107 @@ class PostingContract(NamedTuple):
     marker: str
     interactive_disclosure: str
     automated_disclosure: str | None = None
+
+
+class ReferenceField(NamedTuple):
+    """One prospective outgoing field and its engine-acquired preservation context."""
+
+    label: str
+    text: str
+    repository: str = ""
+    sources: tuple[tuple[str, str], ...] = ()
+    region: tuple[str, str] | None = None
+    original: bool = False
+
+
+def reference_snapshots(field: ReferenceField) -> dict[str, github_references.SourceSnapshot]:
+    """Construct source snapshots, admitting existing newline equivalence only for a complete original."""
+    original = read_region(field.text, *field.region) if field.original and field.region else None
+    snapshots = {}
+    for index, (label, text) in enumerate(field.sources):
+        if original is not None and text_digest(original) == text_digest(text):
+            text = original
+        snapshots[f"{index}:{label}"] = github_references.SourceSnapshot(
+            field.repository, text, tuple(item["fragment"] for item in detect_load_bearing(text))
+        )
+    return snapshots
+
+
+def preserved_reference_spans(
+    field: ReferenceField,
+    snapshots: dict[str, github_references.SourceSnapshot],
+) -> list[github_references.SourceSpan]:
+    """Admit one exact original or one occurrence of each required complete carried fragment.
+
+    Regions locate the output; their markers provide no source evidence. The snapshot supplies that evidence, and the
+    pure checker independently verifies each complete fragment, source digest, and payload-bound output span.
+    """
+    if field.region is None:
+        return []
+    opening, closing = field.region
+    content = read_region(field.text, opening, closing)
+    if content is None:
+        return []
+    offset = field.text.index(opening) + len(opening)
+    if field.text[offset:].startswith("\r\n"):
+        offset += 2
+    elif field.text[offset:].startswith("\n"):
+        offset += 1
+    spans: list[github_references.SourceSpan] = []
+    used: set[str] = set()
+    for source_id, snapshot in snapshots.items():
+        fragments = (snapshot.text,) if field.original else snapshot.fragments
+        for fragment in fragments:
+            if not fragment or fragment in used or not github_references.check_references(fragment):
+                continue
+            position = 0 if field.original and content == fragment else content.find(fragment)
+            if position < 0 or (field.original and content != fragment):
+                continue
+            used.add(fragment)
+            start = offset + position
+            spans.append(
+                github_references.SourceSpan(
+                    start,
+                    start + len(fragment),
+                    source_id,
+                    github_references.snapshot_digest(snapshot),
+                    github_references.text_digest(field.text),
+                    fragment,
+                )
+            )
+    return spans
+
+
+def validate_reference_batch(fields: list[ReferenceField]) -> dict[str, dict[str, str]]:
+    """Preflight every outgoing field before any part of its batch mutates GitHub.
+
+    Return source fingerprints for the approval envelope when a field used preservation evidence. A fresh source
+    snapshot therefore changes approval even when the particular carried fragment stayed the same.
+    """
+    findings: list[github_references.Diagnostic] = []
+    evidence: dict[str, dict[str, str]] = {}
+    for field in fields:
+        snapshots = reference_snapshots(field)
+        spans = preserved_reference_spans(field, snapshots)
+        findings.extend(
+            github_references.check_references(
+                field.text,
+                source=field.label,
+                spans=spans,
+                sources=snapshots,
+            )
+        )
+        if spans:
+            evidence[field.label] = {
+                source_id: github_references.snapshot_digest(snapshots[source_id])
+                for source_id in sorted({span.source_id for span in spans})
+            }
+    if findings:
+        abort(
+            "GitHub reference validation failed; repair the cited fields without guessing:\n"
+            + "\n".join(item.render() for item in findings)
+        )
+    return evidence
 
 
 def abort(message: str) -> NoReturn:
@@ -992,9 +1095,11 @@ def _check_anchor_retention(
     ]
 
 
-def render_disposition_ledger(ledger: dict[str, Any], marker: str) -> str:
+def render_disposition_ledger(ledger: dict[str, Any], marker: str, *, repository: str = "") -> str:
     """Render the disposition ledger both provenance records carry."""
     lines = [marker, "", "## Reconciliation ledger (current round)", ""]
+    if repository:
+        lines.extend([f"Source repository: `{repository}`.", ""])
     dispositions = ledger.get("dispositions") or []
     if not dispositions:
         lines.append("No dispositions recorded for this round.")
@@ -1015,25 +1120,39 @@ def render_disposition_ledger(ledger: dict[str, Any], marker: str) -> str:
     return "\n".join(lines)
 
 
-def load_source_list(path: str) -> list[tuple[str, str]]:
-    """Read a labelled source list from a JSON array or ``{"sources": [...]}`` object."""
-    payload = load_json(path, "sources")
+def _source_items(payload: Any) -> list[tuple[str, str]]:
+    """Parse the shared labelled-source shape from one already acquired JSON snapshot."""
     items = payload.get("sources") if isinstance(payload, dict) else payload
     if not isinstance(items, list):
         abort("sources must be a JSON list or an object with a 'sources' list.")
     return [(str(item.get("source")), str(item.get("text") or "")) for item in items]
 
 
+def load_source_list(path: str) -> list[tuple[str, str]]:
+    """Read a labelled source list from a JSON array or ``{"sources": [...]}`` object."""
+    return _source_items(load_json(path, "sources"))
+
+
+def reference_field_from_sources(field: ReferenceField, path: str) -> ReferenceField:
+    """Read one atomic source snapshot with an explicit repository; never infer it from the write target."""
+    payload = load_json(path, "sources")
+    repository = str(payload.get("repository") or "") if isinstance(payload, dict) else ""
+    return field._replace(repository=repository, sources=tuple(_source_items(payload)))
+
+
 def source_list_payload(
     sources: list[tuple[str, str]],
     *,
     degraded: bool = False,
+    repository: str = "",
 ) -> dict[str, Any]:
     """Shape the labelled source list both verification and the write consume."""
     payload: dict[str, Any] = {
         "degraded": degraded,
         "sources": [{"source": label, "text": text} for label, text in sources],
     }
+    if repository:
+        payload["repository"] = repository
     if degraded:
         payload["degraded_reason"] = (
             "content-edit history yielded no body matching the stamped digest; "

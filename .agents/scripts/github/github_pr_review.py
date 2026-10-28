@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
-# delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00
+# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
 
 """Gather, render, and post governed GitHub PR reviews.
 
@@ -40,7 +40,7 @@ from lib import local_scratch_paths, runtime_env  # noqa: E402
 from lib.log_utils import log_warn  # noqa: E402
 from lib.proc_utils import configure_stdout_utf8, run_exact, utf8_child_env  # noqa: E402
 
-from github import github_utils  # noqa: E402
+from github import github_references, github_utils  # noqa: E402
 from github.github_utils import PostingContract  # noqa: E402
 
 REVIEW_MARKER = "<!-- aiscr-review-pr:v1 -->"
@@ -93,7 +93,9 @@ REVIEW_ONLY_BODY_FINDINGS = {
 MODES = github_utils.MODES
 REVIEW_EVENTS = ("COMMENT", "REQUEST_CHANGES", "APPROVE")
 SUMMARY_TARGETS = ("comment", "description")
-SUMMARY_TITLE_PATTERN = re.compile(r"^# PR summary — [A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[1-9][0-9]*$")
+SUMMARY_TITLE_PATTERN = re.compile(
+    r"^# PR summary — \[[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[1-9][0-9]*\](?:\(\S+\)|\[[^\]\r\n]*\])?$"
+)
 SUMMARY_METADATA_FIELDS = (
     "Title",
     "URL",
@@ -1096,6 +1098,22 @@ def _validate_review_contract(body: str, mode: str) -> None:
 _bundle_digest = github_utils.canonical_digest
 
 
+def _validate_outgoing_references(review: dict[str, Any], replies: list[dict[str, Any]], label: str) -> None:
+    """Preflight the entire review/repair batch, never a lazy sequence of individual posts."""
+    fields = []
+    if review.get("body") is not None:
+        fields.append(github_utils.ReferenceField(f"{label}.body", review["body"]))
+    fields.extend(
+        github_utils.ReferenceField(f"{label}.comments[{index}].body", item["body"])
+        for index, item in enumerate(review.get("comments", []))
+    )
+    fields.extend(
+        github_utils.ReferenceField(f"{label}.replies[{index}].body", item["body"])
+        for index, item in enumerate(replies)
+    )
+    github_utils.validate_reference_batch(fields)
+
+
 def _validate_bundle(bundle: Any, mode: str) -> dict[str, Any]:
     if not isinstance(bundle, dict):
         _abort("review bundle must be a JSON object.")
@@ -1116,6 +1134,7 @@ def _validate_bundle(bundle: Any, mode: str) -> dict[str, Any]:
     if not isinstance(coverage, dict) or coverage.get("schema") != COVERAGE_SCHEMA:
         _abort(f"review bundle coverage schema must be '{COVERAGE_SCHEMA}'.")
     _validate_findings_ledger(bundle.get("findings_ledger"))
+    _validate_outgoing_references(review, bundle["replies"], "review")
     return bundle
 
 
@@ -2097,6 +2116,7 @@ def _validate_repair_bundle(bundle: Any, mode: str) -> dict[str, Any]:
         _validate_review_contract(body, mode)
     if not comments and not replies and body is None:
         _abort("repair bundle must include at least one standalone inline root, thread reply, or body amendment.")
+    _validate_outgoing_references(bundle, replies, "repair")
     return bundle
 
 
@@ -2396,7 +2416,7 @@ def cmd_reconciliation_sources(pr_number: int, repo: str | None, output_path: st
     description = _fetch_pr_description(pr_number, owner_repo)
     state = _description_state(description)
     sources, degraded = _reconciliation_sources(description, state, owner_repo, pr_number)
-    _emit_json(github_utils.source_list_payload(sources, degraded=degraded), output_path)
+    _emit_json(github_utils.source_list_payload(sources, degraded=degraded, repository=owner_repo), output_path)
 
 
 def cmd_inspect_description(pr_number: int, repo: str | None, output_path: str | None = None) -> None:
@@ -2421,9 +2441,9 @@ def _find_description_archive(
     return marked[0]
 
 
-def _render_ledger(ledger: dict[str, Any]) -> str:
+def _render_ledger(ledger: dict[str, Any], repository: str = "") -> str:
     """Render the disposition ledger for the provenance comment."""
-    return github_utils.render_disposition_ledger(ledger, LEDGER_MARKER)
+    return github_utils.render_disposition_ledger(ledger, LEDGER_MARKER, repository=repository)
 
 
 def _archived_original(body: str) -> str:
@@ -2451,14 +2471,28 @@ def cmd_archive_description(
     existing = _find_description_archive(_fetch_issue_comments(owner_repo, pr_number))
 
     if existing:
+        original = _archived_original(str(existing.get("body") or ""))
+        prepared = github_utils.replace_after_region(
+            str(existing.get("body") or ""),
+            PROVENANCE_ORIGINAL_CLOSE,
+            _render_ledger(ledger, owner_repo),
+        )
+        github_utils.validate_reference_batch(
+            [
+                github_utils.ReferenceField(
+                    "archive.body",
+                    prepared,
+                    owner_repo,
+                    (("description", original),),
+                    (PROVENANCE_ORIGINAL_OPEN, PROVENANCE_ORIGINAL_CLOSE),
+                    True,
+                )
+            ]
+        )
         url = _post_comment_body(
             f"repos/{owner_repo}/issues/comments/{existing['id']}",
             "PATCH",
-            github_utils.replace_after_region(
-                str(existing.get("body") or ""),
-                PROVENANCE_ORIGINAL_CLOSE,
-                _render_ledger(ledger),
-            ),
+            prepared,
         )
         print(f"Provenance record updated: {url}")
         return
@@ -2466,10 +2500,23 @@ def cmd_archive_description(
     description = _fetch_pr_description(pr_number, owner_repo)
     if not description.strip():
         _abort("refusing to archive an empty PR description; there is nothing to preserve.")
+    prepared = _initial_provenance_body(owner_repo, pr_number, description, ledger)
+    github_utils.validate_reference_batch(
+        [
+            github_utils.ReferenceField(
+                "archive.body",
+                prepared,
+                owner_repo,
+                (("description", description),),
+                (PROVENANCE_ORIGINAL_OPEN, PROVENANCE_ORIGINAL_CLOSE),
+                True,
+            )
+        ]
+    )
     archive_url = _post_comment_body(
         f"repos/{owner_repo}/issues/{pr_number}/comments",
         "POST",
-        _initial_provenance_body(owner_repo, pr_number, description, ledger),
+        prepared,
     )
     print(f"Original description archived: {archive_url}")
 
@@ -2502,7 +2549,7 @@ def _initial_provenance_body(
             "",
             "# Original PR description (archived)",
             "",
-            f"- Source: {source}",
+            f"- Source: {github_references.reference_link(source)}",
             f"- Author: {author}",
             f"- Head SHA at archive time: `{head_sha}`",
             "",
@@ -2513,7 +2560,7 @@ def _initial_provenance_body(
             "",
             github_utils.wrap_region(PROVENANCE_ORIGINAL_OPEN, description, PROVENANCE_ORIGINAL_CLOSE),
             "",
-            _render_ledger(ledger),
+            _render_ledger(ledger, owner_repo),
         ]
     )
 
@@ -2522,8 +2569,16 @@ def cmd_verify_composition(
     sources_path: str, summary_path: str, ledger_path: str | None, output_path: str | None = None
 ) -> None:
     """Check a composition's accounting locally: no network, no write."""
-    sources = github_utils.load_source_list(sources_path)
     summary = _load_summary(summary_path)
+    reference_field = github_utils.reference_field_from_sources(
+        github_utils.ReferenceField(
+            "composition.summary",
+            summary,
+            region=(AUTHOR_CONTEXT_OPEN, AUTHOR_CONTEXT_CLOSE),
+        ),
+        sources_path,
+    )
+    sources = list(reference_field.sources)
     ledger = _load_json(ledger_path, "disposition ledger") if ledger_path else {}
     load_bearing = [item["fragment"] for _, text in sources for item in detect_load_bearing(text)]
     findings = github_utils.verify_composition(
@@ -2533,6 +2588,7 @@ def cmd_verify_composition(
         load_bearing,
         github_utils.SurfaceVocabulary(declared_section_names(), (AUTHOR_CONTEXT_OPEN, AUTHOR_CONTEXT_CLOSE)),
     )
+    github_utils.validate_reference_batch([reference_field])
     _emit_json({"findings": findings}, output_path)
     if findings:
         raise SystemExit(1)
@@ -2592,7 +2648,7 @@ def _validate_summary_preamble(summary: str) -> tuple[list[str], int, list[int]]
 
     title_indexes = [index for index, line in enumerate(lines) if SUMMARY_TITLE_PATTERN.fullmatch(line.strip())]
     if len(title_indexes) != 1:
-        _abort("PR summary must contain exactly one '# PR summary — OWNER/REPO#NUMBER' title.")
+        _abort("PR summary must contain exactly one '# PR summary - [OWNER/REPO#NUMBER](URL)' title.")
     title_index = title_indexes[0]
 
     section_indexes = [
@@ -2757,6 +2813,33 @@ def _render_findings(findings: list[dict[str, Any]]) -> str:
     return "\n".join(f"  - {item['kind']}: {item.get('detail', '')}" for item in findings)
 
 
+def _check_summary_references(
+    owner_repo: str,
+    pr_number: int,
+    summary: str,
+    sources: list[tuple[str, str]] | None = None,
+) -> None:
+    """Obtain source evidence only for a summary that needs a carried-fragment exception."""
+    region = (AUTHOR_CONTEXT_OPEN, AUTHOR_CONTEXT_CLOSE)
+    carried = github_utils.read_region(summary, *region)
+    if sources is None:
+        sources = []
+        if carried and github_references.check_references(carried):
+            description = _fetch_pr_description(pr_number, owner_repo)
+            sources, _ = _reconciliation_sources(description, _description_state(description), owner_repo, pr_number)
+    github_utils.validate_reference_batch(
+        [
+            github_utils.ReferenceField(
+                "summary.body",
+                summary,
+                owner_repo,
+                tuple(sources),
+                region,
+            )
+        ]
+    )
+
+
 def _prepare_description_takeover(
     owner_repo: str,
     pr_number: int,
@@ -2803,6 +2886,7 @@ def _prepare_description_takeover(
             + _render_findings(findings)
         )
 
+    _check_summary_references(owner_repo, pr_number, summary, sources)
     if state["posted_digest"] and state["posted_digest"] == _summary_digest(summary):
         return None
     return _stamp_summary_digest(summary)
@@ -2836,6 +2920,8 @@ def cmd_post_summary(  # pylint: disable=too-many-arguments,too-many-positional-
             print("PR description already carries this summary; nothing to post.")
             return
         summary = prepared
+    else:
+        _check_summary_references(owner_repo, pr_number, summary)
 
     payload_path = _temporary_json({"body": summary})
     try:

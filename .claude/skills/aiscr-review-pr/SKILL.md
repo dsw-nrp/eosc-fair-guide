@@ -12,7 +12,7 @@ author: AIS CR (Archaeological Information System of the Czech Republic) <https:
 <!-- SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 <!-- aiscr:compiled=aiscr-review-pr -->
-<!-- delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00 -->
+<!-- delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00 -->
 
 <!-- aiscr:entry-scope -->
 
@@ -275,12 +275,12 @@ Use this exact ordered skeleton, replacing every ellipsis and bracketed instruct
 
 Reference format 1: [review-formats.md](../../../.agents/skills/aiscr-review-pr/review-formats.md).
 
-The summary file's heading levels are literal: its title is `# PR summary — OWNER/REPO#NUMBER`, and every named core section is `##`.
+The summary file's heading levels are literal: its title is `# PR summary — [OWNER/REPO#NUMBER][pr]`, with a `[pr]: PR_URL` definition using the acquired absolute PR URL, and every named core section is `##`.
 Compiled skill wrappers may nest displayed headings; never apply that wrapper demotion inside the summary file.
 
 Every core section and metadata row must contain content; scale depth to the PR (a small PR may use one change-map row and one walkthrough theme).
 Keep the bulk location in the directory-level `POINTER.md`, outside the summary posted to GitHub.
-The `Referenced items` row is sourced from the gathered `referenced_items[].ref`: a single comma-separated list of `owner/repo#number` mentions in gather order, or `none` when the pull request references nothing readable.
+The `Referenced items` row pairs each gathered `referenced_items[].ref` with its gathered URL: a single comma-separated list of linked `owner/repo#number` labels in gather order, or `none` when the pull request references nothing readable.
 The walkthrough is prose-first with exactly one complete fenced Mermaid block from any core family GitHub renders; plugin-dependent families such as `zenuml` are unsupported, including after comments, front matter, or initialization directives.
 The diagram supports the walkthrough and never replaces it.
 The validation section distinguishes evidence from tests actually executed, may draw evidence from the whole gathered neighbourhood (a linked issue's test result or a head-commit check run counts), cites the source artifact when the evidence came from outside the PR, and never reports an absence of validation evidence without having gathered that neighbourhood.
@@ -553,7 +553,7 @@ No exceptions.
 | "The summary is harmless, so it can auto-post." | Present the exact summary and ask separately; CI auto-posting is out of scope. |
 | "The generated summary is better, so I can replace the description." | Reconcile: carry load-bearing fragments verbatim, absorb narrative, archive the original, and wait for the reviewer to choose. |
 | "The summary reads well, so showing the body is enough." | Present the dispositions too. A good body does not reveal what it dropped. |
-| "This `Fixes #123` is just prose; I'll reword it into the narrative." | Carry it verbatim. It closes an issue at merge, and that failure is invisible at your approval. |
+| "This `Fixes #N` is just prose; I'll reword it into the narrative." | Carry it verbatim. It closes an issue at merge, and that failure is invisible at your approval. |
 | "Round two — I'll polish the description I posted last time." | Regenerate from the diff, metadata, and thread. Absorbing your own output drifts and inflates. |
 | "The description changed since I posted; I'll just overwrite it." | The write refuses. Run `reconciliation-sources`, reconcile the emitted edits, and `verify-composition` against that list. |
 | "That thread is resolved, so it is settled and I can skip it." | Read it. A resolved thread usually holds the reasoning behind the current state. |
@@ -615,6 +615,7 @@ Before claiming this workflow complete:
 
 ## Governance
 
+- GitHub references follow the delivered `aiscr-quality-first-execution` rule (*GitHub references*).
 - Apply the shared conduct's PR observation route: the separated pre-existing-observations section is the single route in local or PR output, never copied to a codebase backlog.
 - Deterministic engine: `.agents/scripts/github/github_pr_review.py`.
 
@@ -630,6 +631,7 @@ The enrollment bundle installs these repository-local runtime scripts:
 
 - `.agents/scripts/github/github_pr_review.py`
 - `.agents/scripts/github/github_utils.py`
+- `.agents/scripts/github/github_references.py`
 - `.agents/scripts/lib/__init__.py`
 - `.agents/scripts/lib/local_scratch_paths.py`
 - `.agents/scripts/lib/log_utils.py`

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2026 AIS CR (Archaeological Information System of the Czech Republic) <https://ror.org/01a7rqj69>
 # SPDX-License-Identifier: MIT
-# delivery-version: 79abd13a2bda8ad6d83de4001bd283c6b087d6dc 2026-10-26T01:48:39+01:00
+# delivery-version: da48582ffc5b5ec4c023b693c2406926fb14fe71 2026-10-28T17:17:14+01:00
 
 """Gather, verify, and write governed GitHub issue bodies.
 
@@ -45,7 +45,7 @@ if _SCRIPTS_DIR not in sys.path:
 from lib import local_scratch_paths  # noqa: E402
 from lib.proc_utils import configure_stdout_utf8  # noqa: E402
 
-from github import github_utils  # noqa: E402
+from github import github_references, github_utils  # noqa: E402
 
 ISSUE_MARKER = "<!-- aiscr-plan-issue:body -->"
 REPO_ROOT = Path(_SCRIPTS_DIR).parents[1]
@@ -317,7 +317,7 @@ def _render_provenance(
         "",
     ]
     if source:
-        header.append(f"- Source: {source}")
+        header.append(f"- Source: {github_references.reference_link(source)}")
     if author:
         header.append(f"- Author: {author}")
     if source or author:
@@ -1034,11 +1034,20 @@ def cmd_assess_readiness(number: int, repo: str | None) -> None:
 
 def cmd_verify_composition(sources_path: str, body_path: str, ledger_path: str | None) -> None:
     """Check a developed body locally — shape and accounting: no network, no write."""
-    sources = github_utils.load_source_list(sources_path)
     body = composed_body(body_path)
+    reference_field = github_utils.reference_field_from_sources(
+        github_utils.ReferenceField(
+            "composition.body",
+            body,
+            region=(REPORTER_CONTEXT_OPEN, REPORTER_CONTEXT_CLOSE),
+        ),
+        sources_path,
+    )
+    sources = list(reference_field.sources)
     ledger = _load_json(ledger_path, "disposition ledger") if ledger_path else {}
     load_bearing = [item["fragment"] for _, text in sources for item in detect_load_bearing(text)]
     findings = _composition_findings(sources, body, ledger, load_bearing)
+    github_utils.validate_reference_batch([reference_field])
     print(json.dumps({"findings": findings}, ensure_ascii=False, indent=2))
     if findings:
         raise SystemExit(1)
@@ -1065,6 +1074,27 @@ def _approval_envelope(
     }
 
 
+def _check_approval_references(
+    approval: dict[str, Any],
+    contexts: dict[str, github_utils.ReferenceField] | None = None,
+) -> None:
+    """Check the complete prepared batch, including generated provenance, before approval or mutation."""
+    fields = []
+    for name in ("request", "provenance_request"):
+        request = approval.get(name)
+        if request is None:
+            continue
+        for key in ("title", "body"):
+            text = request["payload"].get(key)
+            if isinstance(text, str):
+                label = f"{name}.{key}"
+                context = (contexts or {}).get(label, github_utils.ReferenceField(label, text))
+                fields.append(context._replace(label=label, text=text))
+    evidence = github_utils.validate_reference_batch(fields)
+    if evidence:
+        approval["reference_sources"] = evidence
+
+
 def _prepare_archive_description(number: int, body_path: str, repo: str | None) -> tuple[str, str, dict[str, Any]]:
     current = _read_text(body_path)
     if not current.strip():
@@ -1072,9 +1102,8 @@ def _prepare_archive_description(number: int, body_path: str, repo: str | None) 
     owner_repo = _resolve_repo(repo)
     state = body_state(current)
     original = "" if state["workflow_owned"] else current
-    source, author = github_utils.provenance_source_and_author(
-        github_utils.fetch_issue_payload(owner_repo, number, runner=_gh)
-    )
+    acquired = github_utils.fetch_issue_payload(owner_repo, number, runner=_gh)
+    source, author = github_utils.provenance_source_and_author(acquired)
     approval = _approval_envelope(
         "archive-description",
         owner_repo,
@@ -1083,7 +1112,53 @@ def _prepare_archive_description(number: int, body_path: str, repo: str | None) 
         {"body": _render_provenance(original, {}, source=source, author=author)},
         issue=number,
     )
+    _check_approval_references(
+        approval,
+        {
+            "request.body": github_utils.ReferenceField(
+                "request.body",
+                "",
+                owner_repo,
+                (("description", str(acquired.get("body") or "")),),
+                (PROVENANCE_ORIGINAL_OPEN, PROVENANCE_ORIGINAL_CLOSE),
+                True,
+            )
+        },
+    )
     return owner_repo, current, approval
+
+
+def _post_body_reference_contexts(
+    body: str,
+    conversation: dict[str, Any],
+    owner_repo: str,
+    number: int,
+    provenance: dict[str, Any] | None,
+) -> dict[str, github_utils.ReferenceField]:
+    """Build preservation evidence from the same acquired conversation used by the write."""
+    sources = ()
+    if github_references.check_references(body):
+        comparison_base, _ = _resolve_comparison_base(conversation, owner_repo=owner_repo, number=number)
+        sources = tuple(reconciliation_sources(conversation, comparison_base=comparison_base))
+    contexts = {
+        "request.body": github_utils.ReferenceField(
+            "request.body",
+            "",
+            owner_repo,
+            sources,
+            (REPORTER_CONTEXT_OPEN, REPORTER_CONTEXT_CLOSE),
+        )
+    }
+    if provenance is not None:
+        contexts["provenance_request.body"] = github_utils.ReferenceField(
+            "provenance_request.body",
+            "",
+            owner_repo,
+            (("description", _provenance_original(provenance)),),
+            (PROVENANCE_ORIGINAL_OPEN, PROVENANCE_ORIGINAL_CLOSE),
+            True,
+        )
+    return contexts
 
 
 def _prepare_post_body(
@@ -1135,14 +1210,28 @@ def _prepare_post_body(
                 "body": github_utils.replace_after_region(
                     str(provenance.get("body") or ""),
                     PROVENANCE_ORIGINAL_CLOSE,
-                    github_utils.render_disposition_ledger(ledger or {}, LEDGER_MARKER),
+                    github_utils.render_disposition_ledger(
+                        ledger or {},
+                        LEDGER_MARKER,
+                        repository=owner_repo
+                        if github_references.check_references(_provenance_original(provenance))
+                        else "",
+                    ),
                 )
             },
         }
+    _check_approval_references(
+        approval, _post_body_reference_contexts(body, conversation, owner_repo, number, provenance)
+    )
     return owner_repo, body, approval, conversation
 
 
-def _prepare_issue_creation(title: str, body_path: str, repo: str | None) -> tuple[str, str, dict[str, Any]]:
+def _prepare_issue_creation(
+    title: str,
+    body_path: str,
+    repo: str | None,
+    sources_path: str | None = None,
+) -> tuple[str, str, dict[str, Any]]:
     """Prepare a structured new issue without coupling the engine to its input source."""
     body = composed_body(body_path)
     github_utils.validate_contract(body, "interactive", ISSUE_CONTRACT, "issue")
@@ -1154,6 +1243,17 @@ def _prepare_issue_creation(title: str, body_path: str, repo: str | None) -> tup
         "POST",
         {"title": title, "body": stamp_digest(body)},
     )
+    contexts = {}
+    if sources_path:
+        contexts["request.body"] = github_utils.reference_field_from_sources(
+            github_utils.ReferenceField(
+                "request.body",
+                "",
+                region=(REPORTER_CONTEXT_OPEN, REPORTER_CONTEXT_CLOSE),
+            ),
+            sources_path,
+        )
+    _check_approval_references(approval, contexts)
     return owner_repo, body, approval
 
 
@@ -1182,7 +1282,8 @@ def _prepare_extraction(
         _abort("refusing to file an empty extraction stub; it must carry the extracted content.")
 
     owner_repo = _resolve_repo(repo)
-    back_link = f"Extracted from {owner_repo}#{parent} by the AIS CR issue workflow."
+    parent_url = f"https://github.com/{owner_repo}/issues/{parent}"
+    back_link = f"Extracted from {github_references.reference_link(parent_url)} by the AIS CR issue workflow."
     # Extraction files either a short stub or a fully developed child. A body carrying
     # the marker is claiming to be the latter, so it is held to the issue contract and
     # the issue shape, and stamped — without the stamp the child is not workflow-owned,
@@ -1209,6 +1310,7 @@ def _prepare_extraction(
         parent=parent,
         link=link,
     )
+    _check_approval_references(approval)
     return owner_repo, filed, approval
 
 
@@ -1232,6 +1334,8 @@ def _prepare_draft_pr(  # pylint: disable=too-many-arguments,too-many-positional
         )
 
     owner_repo = _resolve_promotion_repo(repo)
+    if f"{owner_repo}#{number}" not in github_utils.extract_references(owner_repo, [body])[0]:
+        _abort("promotion pull-request body must reference the issue in the selected repository.")
     approval = _approval_envelope(
         "open-draft-pr",
         owner_repo,
@@ -1240,6 +1344,7 @@ def _prepare_draft_pr(  # pylint: disable=too-many-arguments,too-many-positional
         {"title": title, "head": head, "base": base, "body": body, "draft": True},
         issue=number,
     )
+    _check_approval_references(approval)
     return owner_repo, body, approval
 
 
@@ -1266,6 +1371,7 @@ def _prepare_issue_comment(
         {"body": body},
         issue=number,
     )
+    _check_approval_references(approval)
     return owner_repo, body, approval
 
 
@@ -1315,7 +1421,7 @@ def cmd_run_handoff(action: str, workflow: str, run: str, approve: bool = False,
         _abort(str(exc))
 
 
-def cmd_approval_view(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches
+def cmd_approval_view(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-branches,too-many-locals
     operation: str,
     number: int | None,
     body_path: str,
@@ -1326,12 +1432,15 @@ def cmd_approval_view(  # pylint: disable=too-many-arguments,too-many-positional
     base: str | None,
     ledger_path: str | None = None,
     output_path: str | None = None,
+    sources_path: str | None = None,
 ) -> None:
     """Render the exact canonical write envelope and its approval digest; never write GitHub."""
+    if sources_path and operation != "create":
+        _abort("--sources is supported only for a create approval view.")
     if operation == "create":
         if number is not None or not title or any((link, head, base, ledger_path)):
             _abort("create approval-view requires --title and no issue number, --link, --head, --base, or --ledger.")
-        approval = _prepare_issue_creation(title, body_path, repo)[2]
+        approval = _prepare_issue_creation(title, body_path, repo, sources_path)[2]
     elif number is None:
         _abort(f"{operation} approval-view requires ISSUE_NUMBER.")
     elif operation == "archive-description":
@@ -1418,7 +1527,7 @@ def cmd_create(  # pylint: disable=too-many-arguments,too-many-positional-argume
 ) -> None:
     """Create one structured issue after re-verifying its source accounting."""
     _validate_write_environment(mode, "create")
-    _, body, approval = _prepare_issue_creation(title, body_path, repo)
+    _, body, approval = _prepare_issue_creation(title, body_path, repo, sources_path)
     _require_approved_digest(approval, approved_digest, body_path, approval_view_path)
     sources = github_utils.load_source_list(sources_path)
     ledger = _load_json(ledger_path, "disposition ledger")
@@ -1614,7 +1723,13 @@ def cmd_reconciliation_sources(number: int, repo: str | None) -> None:
     conversation = fetch_conversation(owner_repo, number)
     comparison_base, degraded = _resolve_comparison_base(conversation, owner_repo=owner_repo, number=number)
     sources = reconciliation_sources(conversation, comparison_base=comparison_base)
-    print(json.dumps(github_utils.source_list_payload(sources, degraded=degraded), ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            github_utils.source_list_payload(sources, degraded=degraded, repository=owner_repo),
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 def _add_handoff_commands(subparsers) -> None:
@@ -1673,6 +1788,9 @@ def build_parser() -> argparse.ArgumentParser:  # pylint: disable=too-many-state
     approval.add_argument("--head", metavar="BRANCH")
     approval.add_argument("--base", metavar="BRANCH")
     approval.add_argument("--ledger", metavar="FILE")
+    approval.add_argument(
+        "--sources", metavar="FILE", help="Explicit source snapshots for creation preservation checks."
+    )
     approval.add_argument(
         "--approval-view",
         dest="approval_view",
@@ -1776,6 +1894,7 @@ def main() -> None:
             args.base,
             args.ledger,
             args.approval_view,
+            **({"sources_path": args.sources} if args.sources else {}),
         )
     elif args.subcommand == "archive-description":
         cmd_archive_description(args.number, args.body, args.mode, args.approved_digest, args.repo, args.approval_view)
