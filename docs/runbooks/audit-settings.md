@@ -5,9 +5,12 @@ A maintainer checks settings in a few minutes; an administrator applies an appro
 The audit compares live values with the reviewed declaration so an unrelated pending change stays untouched.
 
 1. **Read the current differences.**
-   - **Where:** a checkout of the default branch, authenticated with `gh auth login` as a repository maintainer.
+   - **Where:** a checkout of the default branch, authenticated with `gh auth login` as a repository maintainer. To see
+     what the weekly job's App tokens can read, use Actions → **Live health and source watch** → **Run workflow** with
+     parts `audit` instead.
    - **Do:** run `python scripts/audit_repository.py --section rulesets --section environments --json .cache/settings-audit.json`.
-     Omit the section flags for the full read-only audit.
+     Omit the section flags for the full read-only audit. A hosted audit changes no issue; read its run summary or its
+     `settings-audit-<run>` artifact.
    - **Done when:** each difference names expected and actual values, its UI path and command.
    - **If it fails:** an unavailable part needs the permission in the [token table](../maintenance.md#what-each-token-can-read);
      exit 1 with findings means differences were found, rather than that the read failed.

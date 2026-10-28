@@ -146,7 +146,14 @@ class WorkflowContracts(unittest.TestCase):
         )
         script = step["with"]["script"]
         self.assertNotIn("re-run this run", script)
-        self.assertEqual(script.count("run Deploy the verified site on the default branch"), 2)
+        # Release drafts only from the approved run that this publication used, never merely because a tag exists.
+        self.assertEqual(step["env"]["PRODUCTION_RUN"], "${{ steps.production.outputs.run }}")
+        self.assertIn("publicationNext({ tag: PRODUCTION_TAG, run: PRODUCTION_RUN, staging: STAGING_SHA })", script)
+        deployment = (ROOT / ".github/scripts/deployment.cjs").read_text(encoding="utf-8")
+        next_steps = deployment[deployment.index("function publicationNext") :]
+        next_steps = next_steps[: next_steps.index("\n}\n")]
+        self.assertNotIn("re-run this run", next_steps)
+        self.assertEqual(next_steps.count("run Deploy the verified site on the default branch"), 2)
         catalogue = tomllib.loads((ROOT / ".github/ci-catalogue.toml").read_text(encoding="utf-8"))
         self.assertIn("Do not rerun a publish run", catalogue["workflow"]["publish.yml"]["rerun"])
         # After approval a successful tag run has no failed jobs to re-run; a dispatched deployment publishes it.
@@ -208,7 +215,13 @@ class WorkflowContracts(unittest.TestCase):
         # The staging and production records say what is live, so they follow the Pages deployment too.
         channels = next(step for step in steps if "recordChannels" in step.get("with", {}).get("script", ""))
         self.assertGreater(steps.index(channels), steps.index(pages), "a channel is recorded only once it is live")
-        self.assertEqual(channels["env"], {"PAGE_URL": "${{ steps.deployment.outputs.page_url }}"})
+        self.assertEqual(
+            channels["env"],
+            {
+                "PAGE_URL": "${{ steps.deployment.outputs.page_url }}",
+                "PRODUCTION_RUN": "${{ steps.production.outputs.run }}",
+            },
+        )
         self.assertEqual(record["with"]["path"], ".cache/published/identity.json")
         writer = (ROOT / ".github/scripts/release-artifact.cjs").read_text(encoding="utf-8")
         self.assertIn('const PUBLISHED = ".cache/published/identity.json";', writer, "the reader names the same file")
@@ -252,22 +265,28 @@ class WorkflowContracts(unittest.TestCase):
         self.assertNotIn(":latest", candidate)
         self.assertNotIn(":stable", candidate)
         promotion_run = next(step for step in steps if step.get("name") == "Promote the audited digest")["run"]
-        release_move = promotion_run.index('--tag "$IMAGE:$RELEASE_TAG"')
-        release_assert = promotion_run.index('test "$(digest_of "$IMAGE:$RELEASE_TAG")"')
+        # Decision 31: the image carries the version, the release tag without its v, and never the v tag itself.
+        self.assertIn('VERSION="${RELEASE_TAG#v}"', promotion_run)
+        self.assertNotIn("$IMAGE:$RELEASE_TAG", promotion_run, "no v tag is pushed")
+        release_move = promotion_run.index('--tag "$IMAGE:$VERSION"')
+        release_assert = promotion_run.index('test "$(digest_of "$IMAGE:$VERSION")"')
         latest_move = promotion_run.index('--tag "$IMAGE:latest"')
-        self.assertLess(release_move, release_assert, "the release tag is promoted before it is verified")
+        self.assertLess(release_move, release_assert, "the version tag is promoted before it is verified")
         self.assertLess(release_assert, latest_move, "no moving alias is touched before the release digest is verified")
         # Decision 30: the recheck decides which aliases move and never fails the job for a newer release, so the
-        # release tag is always pushed and Release drafts the release; the summary names who holds a kept alias.
+        # version tag is always pushed and Release drafts the release; the summary names who holds a kept alias.
         recheck = next(step for step in steps if step.get("name") == "Recheck production eligibility before promotion")
         self.assertEqual(recheck["id"], "promotion")
         self.assertIn("await promotion(", recheck["with"]["script"])
         promote = next(step for step in steps if step.get("name") == "Promote the audited digest")
         for alias in ("latest", "stable"):
             self.assertEqual(promote["env"][f"MOVE_{alias.upper()}"], f"${{{{ steps.promotion.outputs.{alias} }}}}")
-        self.assertNotIn("if", promote, "the release tag is pushed whether or not an alias moves")
+        self.assertNotIn("if", promote, "the version tag is pushed whether or not an alias moves")
         report = next(step for step in steps if step.get("name") == "Report the image")
-        self.assertEqual(report["env"], {"KEPT": "${{ steps.promotion.outputs.kept }}"})
+        self.assertEqual(
+            report["env"], {"KEPT": "${{ steps.promotion.outputs.kept }}", "RELEASE_TAG": "${{ inputs.tag }}"}
+        )
+        self.assertIn("Version tag: \\`$IMAGE:${RELEASE_TAG#v}\\`", report["run"])
         self.assertEqual(release["jobs"]["release"]["needs"], ["bind", "publish"])
         self.assertIn("--raw", promotion_run)
         self.assertNotIn("--prefer-index=false", promotion_run)

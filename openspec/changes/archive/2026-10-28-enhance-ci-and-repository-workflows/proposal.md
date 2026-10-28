@@ -143,6 +143,9 @@ merge. A check that cannot be made within this change is dropped explicitly rath
   only `latest` and `stable` follow precedence. Release versions must increase, and a release dispatch on another
   branch fails visibly (decision 30). Untracked run hand-offs in the declared runtime area, which stay visible to
   Git, no longer fail the public-content check.
+- **Release images carry the version.** From the next release an image is tagged with the version, the git tag
+  without its `v` (`1.0.0-alpha.5`); the images of alpha.1 to alpha.4 gain that tag beside their `v` tags
+  (decision 31, from the alpha.4 release review).
 
 Validation: strict OpenSpec validation and `python scripts/check_all.py`; planted regressions for every new
 check and renderer; real producer/consumer paths with fake remote transport only; paired before/after timing
@@ -169,7 +172,7 @@ None.
   hand-offs that name who acts, scheduled refresh outcomes in the digest and host-grouped digest entries, and
   replaces the namespace pair check with channels that may differ in namespace until the next release. The review
   repairs add increasing release versions and image aliases that never move back while every published release
-  keeps its tag and draft.
+  keeps its tag and draft. Release images are tagged with the version, without the git tag's `v`.
 - `fair-guide/guide-knowledge-base`: dated statuses reported in the digest; local duplicate repair records
   complete provenance for a resolved reviewed person; paradata freshness decided from history in every comparison
   context, including the merge queue.
@@ -208,3 +211,5 @@ None.
   publisher, `assemble_pages.py`, the deployment scripts, the native content rule and the affected runbooks.
   Review repairs (decision 30, 16.13-16.26): the watch and digest publisher, `check_docs.py`,
   `check_public_content.py`, the release, publication and image workflows and their scripts, and the RDF test pins.
+  Version image tags (decision 31, 16.32-16.33): `publish-image.yml`, its workflow test, `docs/deployment.md`, the
+  changelog and a one-time maintainer alias of the four earlier images.

@@ -7,6 +7,12 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Breaking: release container images are tagged with the version, without the git tag's `v`
+  (`ghcr.io/dsw-nrp/eosc-fair-guide:<version>`); the images of `1.0.0-alpha.1` to `1.0.0-alpha.4` carry it beside
+  their `v` tags.
+
 ## [1.0.0-alpha.4] - 2026-10-28
 
 ### Changed

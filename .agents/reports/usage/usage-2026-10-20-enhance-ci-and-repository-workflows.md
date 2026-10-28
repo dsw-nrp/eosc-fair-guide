@@ -1160,3 +1160,52 @@
 - **Close-out:** for the first finishing pull request, `python scripts/check_all.py` passes 36/36 checks in 172.0 s,
   and strict OpenSpec validation and `check_usage.py` passed again after this entry's last edit; 125/130 tasks.
   The alpha.4 release, the runbook fixes, the reconciliation and the archive follow.
+
+### The alpha.4 release and close-out
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** After #141 merged, released `v1.0.0-alpha.4` by the release runbook, each write with the maintainer's
+  approval. Steps and fixes:
+  - Prepare release opened #142. Its unit lane failed on a test that depended on the repository's version; the fix
+    went on the release branch (16.30).
+  - The maintainer queued #142 (the first queue merge of the change). Tag release tagged `1df27eb` under the
+    `staging`/`github-pages`/`checks` rules (8.7), and the maintainer approved production.
+  - Production now carries the reviewed namespace and the root sitemap. The maintainer ran
+    `/fair-guide-release-notes`, approved the body, which was applied and read back (8.8), and published the
+    release; Zenodo archived it as 10.5281/zenodo.23735868 (11.3).
+
+  The release raised two findings. The publication summary announced a draft on every default-branch run; it is
+  fixed in `publish.yml` with `publicationNext()` (16.31). Image tags dropped the `v` at the maintainer's request
+  (decision 31): the workflow, spec, docs and changelog were changed (16.32), and alpha.1 to alpha.4 gained version
+  aliases by digest (16.33). The audit runbook gained the hosted route; the maintainer considers the runbooks
+  reviewed (16.11). #83 and #84 were closed with approved comments, and `handoff-status.md` records the completion
+  (16.12). The OpenSpec verification found no critical issue and one warning: the legacy-migration requirement's
+  wording no longer matched the simplified migration. With approval it now states the outcome, in the delta and
+  the main spec together (16.34). The maintainer then approved the archive, run with `--skip-specs` because the
+  deltas were already synced.
+- **Impacted:** `.github/workflows/publish.yml`, `.github/workflows/publish-image.yml`, `.github/scripts/deployment.cjs`,
+  `tests/page/check_publication.mjs`, `tests/test_workflows.py`, `docs/deployment.md`,
+  `docs/runbooks/audit-settings.md`, `CHANGELOG.md`, the main `guide-delivery` spec, and the change's proposal,
+  design, delta spec, tasks and `handoff-status.md`, now archived as
+  `openspec/changes/archive/2026-10-28-enhance-ci-and-repository-workflows/`; this entry. On the release branch: `tests/test_release_versions.py`
+  (`6c4e0d4`). Remote: Prepare release, Tag release, the draft body, version tags on four images, and the closing
+  comments of #83 and #84.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, `openspec-verify-change` and the OpenSpec archive, the release
+  runbook, `fair-guide-release-notes` with the delivered `aiscr-write-release-notes` (report-only), and the delivered
+  planning, quality-first and usage/model logging rules.
+- **Verification:** run results and logs for each release step; the production crate, namespace and sitemap; the
+  draft body read back against the reviewed one; each image's version and `v` tags resolving to the recorded digest;
+  #83 and #84 read back; planted regressions for 16.30 (on the release tree), 16.31 and 16.32; strict OpenSpec
+  validation and the delta still equal to the main specs.
+- **Corrections:** The maintainer first read the publication summary's alpha.3 tag as stale; it was correct before
+  the tag, but the check found the real defect behind it (16.31). The maintainer chose to fold the image-tag change
+  into this change rather than a new one.
+- **Close-out:** 135/135 tasks; the change is archived. On the archived tree `python scripts/check_all.py` passes
+  36/36 checks in 170.6 s. An earlier run failed only `versions`, on the first image-tag wording (corrected under
+  16.32). Strict OpenSpec validation and `check_usage.py` passed again after this entry's last edit. The final pull
+  request carries the archive, 16.31, 16.32, 16.34, the audit-runbook fix and the records; nothing in it is
+  committed or pushed yet.

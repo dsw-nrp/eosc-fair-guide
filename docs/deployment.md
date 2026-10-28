@@ -321,10 +321,12 @@ they do not become failed FAIR criteria. The general `check:live` suite covers a
 
 Every tagged release also publishes a container image to the GitHub container registry, assembled from that
 release's verified site artifact — never rebuilt from source — so a reader can run the published page locally with
-`docker run --rm -p 8080:8080 ghcr.io/dsw-nrp/eosc-fair-guide:latest`. It always carries the release tag. The
-moving `latest` names the newest approved release and `stable` the newest approved non-prerelease; neither moves
-back. When a newer release is approved while an older one's image is built, the older image keeps only its own tag,
-its draft release is still created, and its summary names the release whose own run moves the aliases. It is signed
+`docker run --rm -p 8080:8080 ghcr.io/dsw-nrp/eosc-fair-guide:latest`. It always carries the release's version, the
+tag without its `v` (`X.Y.Z-alpha.N` for `vX.Y.Z-alpha.N`); images published before version tags also keep their `v`
+tags. The moving `latest` names the newest approved release and `stable` the newest approved
+non-prerelease; neither moves back. When a newer release is approved while an older one's image is built, the older
+image keeps only its own version tag, its draft release is still created, and its summary names the release whose own
+run moves the aliases. It is signed
 (cosign, keyless) and attested against its digest and scanned with Trivy; a failed scan operation blocks
 publication, while vulnerability findings are advisory. The release notes record that digest. Its
 `nginx-unprivileged` base is digest-pinned and the `docker` Dependabot entry keeps it current.

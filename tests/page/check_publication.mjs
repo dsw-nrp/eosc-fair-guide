@@ -4,7 +4,7 @@
 // record names the staging commit published.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-const { queueResult, newestStaging, completedDeployment, publication, recordChannels, superseded } = createRequire(import.meta.url)("../../.github/scripts/deployment.cjs");
+const { queueResult, newestStaging, completedDeployment, publication, recordChannels, publicationNext, superseded } = createRequire(import.meta.url)("../../.github/scripts/deployment.cjs");
 const { publicationLocation, assertPublication } = createRequire(import.meta.url)("../../.github/scripts/publication-location.cjs");
 
 // Actual Pages configuration, explicit deployment inputs and offline-check fallback are distinct routes.
@@ -316,5 +316,16 @@ await assert.rejects(publish(fake(), new FakeContext("refs/heads/feature", c3, 6
   await assert.rejects(recordChannels({ github, context, core }, { staging: c1, pageUrl: "" }), /site address/);
   await assert.rejects(recordChannels({ github, context, core }, { staging: "", pageUrl: site }), /published commits/);
   await assert.rejects(recordChannels({ github, context, core }, { staging: c1, tag: "v1.2.3", pageUrl: site }), /published commits/);
+  // The hand-off names what follows. A release publication takes the bytes from the approved run, and Release drafts it.
+  const drafting = publicationNext({ tag: "v1.2.3", run: "70", staging: c3 });
+  assert.equal(drafting.next, "Release drafts the release v1.2.3; a maintainer then reviews and publishes it.");
+  assert.equal(drafting.done, "the draft release of v1.2.3 exists.");
+  // A default-branch publication after that release reuses its complete assets: Release drafts nothing, so the
+  // hand-off speaks only of the preview, as it does before any release.
+  for (const later of [publicationNext({ tag: "v1.2.3", run: "", staging: c3 }), publicationNext({ staging: c3 })]) {
+    assert.equal(later.next, "nothing: the preview is live under /next/.");
+    assert.equal(later.done, `the preview footer names \`${c3}\`.`);
+    assert(!Object.values(later).join(" ").includes("v1.2.3"), "a published release is not announced again");
+  }
 }
 console.log("check_publication: actual Pages location and its recheck, same-commit queue reuse, trusted publication trigger, newest checked staging, approved production, late approvals, exact Pages records, live channel records and superseded runs pass");
