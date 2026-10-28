@@ -119,7 +119,8 @@ def retry_after(value: str | None) -> int | None:
 
 
 def fetch(url: str, body: bool) -> Answer:
-    """One bounded anonymous request: HEAD for a link (GET when HEAD is refused), GET for a page body."""
+    """One bounded anonymous request: HEAD for a link, GET for a page body. A server that rejects HEAD (400, 403, 405
+    or 501) is asked again with GET and judged by that answer; a missing (404, 410) or throttled (429) one is not."""
     tried = []
     for method in ("GET",) if body else ("HEAD", "GET"):
         tried.append(method)
@@ -128,7 +129,7 @@ def fetch(url: str, body: bool) -> Answer:
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
                 return Answer(response.status, response.read(MAX_PAGE_BYTES) if body else b"", "", " then ".join(tried))
         except urllib.error.HTTPError as error:
-            if method == "HEAD" and error.code in (403, 405, 501):
+            if method == "HEAD" and error.code in (400, 403, 405, 501):
                 continue
             wait = retry_after(error.headers.get("Retry-After")) if error.headers else None
             return Answer(error.code, b"", f"HTTP {error.code}", " then ".join(tried), wait)

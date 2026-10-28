@@ -10,6 +10,7 @@ import sys
 import tempfile
 import tomllib
 import unittest
+import urllib.error
 from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
@@ -117,6 +118,46 @@ class OutcomeTests(unittest.TestCase):
         self.assertNotIn("connector:svc", found)
         self.assertIn("**Recovered** (2)", comment)
         self.assertIn("## Needs triage (0)", body)
+
+
+class FetchTests(unittest.TestCase):
+    """A server that rejects HEAD is judged by its GET answer; a missing or throttled address is not asked twice. The
+    requests are answered in process, so no test reaches the network."""
+
+    @staticmethod
+    def fetch(head: int, get: int) -> tuple[watch_sources.Answer, list[str]]:
+        sent: list[str] = []
+        raised: list[urllib.error.HTTPError] = []
+
+        def urlopen(request, timeout):
+            sent.append(request.get_method())
+            status = head if request.get_method() == "HEAD" else get
+            if status >= 400:
+                raised.append(urllib.error.HTTPError(request.full_url, status, "refused", {}, None))
+                raise raised[-1]
+            response = mock.MagicMock(status=status)
+            response.__enter__.return_value = response
+            return response
+
+        with mock.patch("urllib.request.urlopen", urlopen):
+            answer = watch_sources.fetch("https://a.example/survey.pdf", False)
+        for error in raised:
+            error.close()
+        return answer, sent
+
+    def test_only_a_rejected_head_is_repeated_with_get(self) -> None:
+        cases = {  # (HEAD, GET) answer: final status, outcome, methods sent
+            (400, 200): (200, "ok", ["HEAD", "GET"]),
+            (403, 403): (403, "denied", ["HEAD", "GET"]),
+            (429, 200): (429, "rate-limited", ["HEAD"]),
+            (404, 200): (404, "broken", ["HEAD"]),
+        }
+        for (head, get), (status, outcome, sent) in cases.items():
+            with self.subTest(head=head, get=get):
+                answer, requests = self.fetch(head, get)
+                self.assertEqual((answer.status, watch_sources.classify(answer.status)), (status, outcome))
+                self.assertEqual(requests, sent)
+                self.assertEqual(answer.method, " then ".join(sent))
 
 
 class CoverageTests(unittest.TestCase):
