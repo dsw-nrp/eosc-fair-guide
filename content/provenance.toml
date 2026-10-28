@@ -1605,3 +1605,14 @@ instruments = ["openai-codex", "openai-gpt-6-runtime"]
 objects = []
 results = ["guide", "page:about"]
 endTime = 2026-10-26T08:47:54+00:00
+
+[[action]]
+id = "release-1.0.0-alpha.4"
+type = "update"
+name = "Prepare release metadata"
+description = "Release metadata and complete PR/direct-commit changelog prepared for human review."
+agent = "david-novak"
+instruments = ["release-automation"]
+objects = []
+results = ["guide"]
+endTime = 2026-10-28T14:34:26+00:00
