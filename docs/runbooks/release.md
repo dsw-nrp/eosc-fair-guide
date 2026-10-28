@@ -19,7 +19,7 @@ flowchart TD
 
 1. **Prepare the release.**
    - **Where:** Actions → **Prepare release** → **Run workflow**, on `main`.
-   - **Do:** enter the version, for example `1.0.0-alpha.4`; a leading `v` is accepted.
+   - **Do:** enter the new version as `X.Y.Z` or `X.Y.Z-alpha.N`; a leading `v` is accepted.
    - **Done when:** the run summary links the release pull request `release/<version>`.
    - **If it fails:** the summary names the cause. A dispatcher without a reviewed `[[person]]` identity adds it in
      `content/guide.toml` through an ordinary pull request first; an edited proposal is reconciled by hand in its

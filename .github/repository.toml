@@ -315,7 +315,7 @@ name = "PR - authored"
 layout = "table"
 filter = "is:pr -label:dependencies,source-refresh"
 group_by = ["Milestone"]
-sort_by = ["Title asc"]
+sort_by = ["Status asc", "Title asc"]
 
 [[project.view]]
 name = "PR - automated"

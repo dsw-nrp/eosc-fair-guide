@@ -1,7 +1,7 @@
 ---
 name: fair-guide-release-notes
 description: Write and apply the reviewed notes of one Guide release draft in one invocation. Resolves the tag and the previous release tag, pre-releases included, runs aiscr-write-release-notes report-only in English, composes the body with release_body.py, asks once, applies and reads it back. Publishing stays a separate click.
-argument-hint: <tag, for example v1.0.0-alpha.4>
+argument-hint: <tag, such as vX.Y.Z-alpha.N>
 disable-model-invocation: true
 ---
 

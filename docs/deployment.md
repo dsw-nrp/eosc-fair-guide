@@ -205,7 +205,7 @@ Assembly accepts an already checked preview and an optional verified production 
 ## Release preparation and tagging
 
 **Prepare release** (`prepare-release.yml`) accepts a SemVer version such as
-`1.0.0-alpha.4`; both release dispatches also accept the tag form `v1.0.0-alpha.4` and use the bare version.
+`X.Y.Z` or `X.Y.Z-alpha.N`; both release dispatches also accept the tag form `vX.Y.Z-alpha.N` and use the bare version.
 Release tags use `vX.Y.Z`, with an optional SemVer prerelease suffix.
 The standard-library owner `scripts/release_versions.py` writes the Guide's version and `datePublished`, the
 root `CITATION.cff` version and `date-released`, `.zenodo.json` version and `publication_date`, `package.json` and

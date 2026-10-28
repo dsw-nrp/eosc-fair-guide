@@ -1122,3 +1122,41 @@
   generation, ownership and delivery; strict OpenSpec validation and `check_usage.py` passed again after the last
   edits to the tasks and this entry. Tasks 16.27-16.28 are complete (117/129); 16.10 waits for the maintainer's
   rerun of the review. Nothing committed, pushed, posted, dispatched or archived.
+
+### Finishing after the merge
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** After #116 merged as `a27b308`, the maintainer approved a finishing plan whose remote steps each need
+  their own approval. On the new branch `agents/claude/finish-ci-workflows`, recorded the merge-day evidence (16.1,
+  16.10 and the `staging` part of 8.7). With approval, dispatched the audit-only run 40698714546 and closed 5.8,
+  5.9 and 13.3 on it; the organization's Issue Types/Fields reads are not yet accepted. Corrected the capability
+  table in `docs/maintenance.md` from that run, as 5.9 requires. At the maintainer's decision, declared the live
+  `Status asc` sort of the "PR - authored" Project view. An independent reader found three defects in the legacy
+  migration procedure, two of which blocked it; the procedure was revised with approval before use. The first
+  digest, #140, then covered all 43 legacy findings, and after approval of the exact text the 43 issues were closed
+  as not planned and reread (6.10). The digest runbook held against #140 (6.11). With approval, dispatched Prepare
+  release for `1.0.0-alpha.4` (`release_status: testing` chosen for the tag). It refused because three documents
+  used that version as an example; they now give the form, the release-notes skill mirrors were regenerated
+  (16.29), and the fix joins these records in one pull request at the maintainer's choice.
+- **Impacted:** the change's `tasks.md` and `legacy-health-migration.md`, `docs/maintenance.md`,
+  `docs/deployment.md`, `docs/runbooks/release.md`, the native `fair-guide-release-notes` skill and its two generated
+  mirrors, `.github/repository.toml` with its recorded audit fixture, and this entry. Remote: two dispatches of **Live health and source watch**
+  (`parts: audit`, then `parts: both` with Champion), which published Maintenance digest #140; a comment on and
+  closure of issues #59–#65, #85–#101, #115 and #118–#135; one refused dispatch of **Prepare release** that wrote
+  nothing.
+- **Subagents used:** `aiscr-analyse-integration` (one independent reader of the migration procedure, under the
+  findings contract).
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, the audit-settings runbook, and the delivered planning,
+  quality-first and usage/model logging rules.
+- **Verification:** the runs' job results, logs and artifacts (`settings-audit-40698714546-1`, the
+  `health-watch-state` of run 40700396180); the deployment records read through the API; a local Project audit
+  with no drift after the declaration change; a reread of all 43 closed issues; `check_docs.py` (37 documents) and
+  strict OpenSpec validation (6/6).
+- **Corrections:** The first full run failed three audit tests: the declaration change had left the recorded live
+  Project state behind, and the fixture now records the view's sort.
+- **Close-out:** for the first finishing pull request, `python scripts/check_all.py` passes 36/36 checks in 172.0 s,
+  and strict OpenSpec validation and `check_usage.py` passed again after this entry's last edit; 125/130 tasks.
+  The alpha.4 release, the runbook fixes, the reconciliation and the archive follow.
