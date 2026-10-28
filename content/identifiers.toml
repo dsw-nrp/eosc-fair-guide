@@ -1272,6 +1272,7 @@ actions = [
   "release-1.0.0-alpha.3",
   "2026-10-26-workflow-follow-up",
   "release-1.0.0-alpha.4",
+  "2026-10-18-station-dedup",
 ]
 model = [
   "model:layers-seams",
@@ -1370,3 +1371,15 @@ lifecycle = [
 ]
 
 [retired]
+advice = [
+  "citation.13",
+  "citation.23",
+  "collect.21",
+  "licence.28",
+  "licence.29",
+  "licence.30",
+  "metadata.41",
+  "plan.28",
+  "plan.29",
+  "publication.29",
+]
