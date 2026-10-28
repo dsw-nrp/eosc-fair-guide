@@ -124,7 +124,7 @@ alone do not complete them.
 - [x] 4.8 Add the seven `[[limitation]]` entries to `.github/health-watch.toml`. Each takes the digest's key,
       outcome and evidence, the reason from 4.7, `reviewed` set to the review date and the offered `reviewBy`.
       Verify that `python scripts/watch_sources.py check-config` passes.
-- [ ] 4.9 Write one usage entry for this change under `.agents/reports/usage/`, named
+- [x] 4.9 Write one usage entry for this change under `.agents/reports/usage/`, named
       `usage-YYYY-MM-DD-restore-main-and-triage-open-work.md` with the date of its first `When`. It records the work
       done so far and the merge-route departure from design D2. Run `npm run openspec:validate`,
       `python scripts/check_usage.py` and `python scripts/check_all.py`. Once all three pass and the maintainer
@@ -189,26 +189,67 @@ alone do not complete them.
 
       Record in the usage entry any issue that a weekly run reported as overdue triage before it was Ready.
 
-## 7. Integration check and close-out (PR D)
+## 7. Complete catalogue (PR E)
 
-- [ ] 7.1 **Human hand-off:** after groups 1–6 are done, start **Live health and source watch** with both the audit
+- [ ] 7.1 After PR C merges, branch `agents/claude/complete-catalogue` from the latest `main`. Give each catalogue kind
+      a declared list of the fields its entry shows, and add a test that reads the built crate and fails when a
+      catalogue entity carries a property that its kind neither declares shown nor excludes with a reason (design D8).
+      Verify that the test fails on the current cards and names the fields D8 lists as hidden, and that it passes for
+      the kinds D8 leaves unchanged.
+- [ ] 7.2 Implement the six conventions in the shared card code: byline and rows for who made and who runs an entry; a
+      Licence row and a quoted-text licence line named from the data; dates in the details line; one status badge
+      helper with icon, text and as-of date; qualified lists as rows, grouped by kind, folded when long and built when
+      first opened. Add every new label and icon to `content/ui.toml` in Czech and English. Verify that unit or page
+      tests cover the badge helper and a folded list, which opens by keyboard and is built only when opened, and that
+      `python scripts/check_content.py` passes.
+- [ ] 7.3 Build the content-change entry: the agent's byline with an ORCID link unless the person opted out, Made by,
+      Tools with each instrument's kind and recorded version, and Consulted and Changed grouped by kind with every item
+      linked to its entry, station or page. Verify with page tests on `2026-10-16-initial-state` (143 consulted,
+      1,374 changed) and `2026-10-18-station-dedup` that the names, tools, groups and counts show and every link
+      resolves.
+- [ ] 7.4 Build the check-question entry: the explanation, Who puts it right, Applies, Pre-filled from with its
+      limits, Group, For NRP profile, Mentions, and the rare fields where present. Verify with a page test on
+      `dataset.01` and on one CDIF question.
+- [ ] 7.5 Build the FIP and enabling-resource entries: the authoring community's byline, status, version, date and
+      keywords, the Declarations table, and Based on for FIP profiles; FAIR data type, coverage, Provided by and
+      Declared in for enabling resources. Verify with a page test on the ČSDA profile (18 declarations: 17 in use, 1
+      planned) and on one resource it declares.
+- [ ] 7.6 Reshape the other cards to the conventions: the Licence row on resources and sources; the quoted-text licence
+      line on KNAV tools, life-cycle stages, terms and requirement guidance; the infrastructure host as Operated by;
+      the test health badge from the shared helper; the criterion's Covers row; the life-cycle stage's Corresponds to
+      row. Verify with a page test per reshaped kind.
+- [ ] 7.7 Add the reverse relations: Pre-fills on tests and criteria, Declared in on enabling resources, Replaced by and
+      Replaces on requirements, and a Changes row on every entry covered by provenance. Verify with page tests for each
+      pair, and that the completeness test from 7.1 now passes for every kind.
+- [ ] 7.8 Reword the paradata decision in `docs/design.md`, and update any description of the catalogue's cards in
+      `docs/content-model.md`. Verify that `python scripts/check_docs.py` passes and that the about page's statement
+      (`content/pages.toml:179`) now matches the catalogue.
+- [ ] 7.9 Run `python scripts/check_all.py`, and inspect every changed card in Czech and English, at phone width and in
+      print. Commit, push and open PR E after the maintainer approves the commit messages and PR body. Verify that the
+      PR's `checks` pass.
+- [ ] 7.10 **Human hand-off:** review PR E, record acceptance and merge it (design D2). Verify that the deployment's
+      full checks pass and that `/next/` shows a content change's person and tools in the catalogue.
+
+## 8. Integration check and close-out (PR D)
+
+- [ ] 8.1 **Human hand-off:** after groups 1–7 are done, start **Live health and source watch** with both the audit
       and the watch selected, or wait for the scheduled run. Verify in the rebuilt #140:
       - the seven limitations appear as known;
       - the survey PDF and the RO-Crate address are no longer under **Needs triage**;
       - the findings from 5.1 show as tracked;
       - **Project and settings** lists neither #115–#135, the view sort, the digest nor any ledger issue.
-- [ ] 7.2 Using that run's results, decide on the two remaining hosts:
+- [ ] 8.2 Using that run's results, decide on the two remaining hosts:
       - if `asep.lib.cas.cz` still fails, open one host task and triage it to Ready as 6.4 and 6.5 describe;
       - if `data.eli-laser.eu` still fails, add an `unavailable` limitation with the maintainer's reason in PR D.
 
       Verify that the next digest lists neither host under **Needs triage**.
-- [ ] 7.3 Verify the end state:
+- [ ] 8.3 Verify the end state:
       - #39–#42 are closed;
-      - #117, #138 and #139 are merged;
+      - #117, #138 and #139 are merged, and so is PR E;
       - #35–#38 are closed;
       - the end state of 6.6 still holds;
       - the latest deployment of `main` passed.
-- [ ] 7.4 On a branch from `main`:
+- [ ] 8.4 On a branch from `main`:
       - tick this task list;
       - extend the usage entry with the work since PR C;
       - run `python scripts/check_all.py` and `npm run openspec:validate`.
@@ -218,6 +259,6 @@ alone do not complete them.
 ## Workflow follow-up
 
 - Archive the change in PR D with `/openspec-archive-change restore-main-and-triage-open-work` after explicit approval.
-  The archive adds the `guide-delivery` link-check requirement and the modified Project audit requirement to
-  `openspec/specs/`.
+  The archive adds the `guide-delivery` link-check requirement and the modified Project audit requirement, and the two
+  `guide-experience` catalogue requirements, to `openspec/specs/`.
 - Merge PR D by the route in design D2, then verify the archived spec with `npm run openspec:validate`.

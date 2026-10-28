@@ -45,6 +45,7 @@ See proposal.md for the motivation. These constraints shape the approach:
 - Every digest finding ends with an owner, as `docs/runbooks/handle-the-digest.md` defines.
 - The rebuilt content passes today's checks and carries truthful paradata and credit.
 - Every open issue ends Ready or closed, and the audit's triage checks can be satisfied for every issue it judges.
+- The catalogue shows everything the knowledge base records about its entries, in the same place for every kind.
 
 **Non-Goals:**
 
@@ -52,25 +53,28 @@ See proposal.md for the motivation. These constraints shape the approach:
   owner.
 - Reworking the drafted advice beyond what review and today's checks require.
 - Doing the work the triaged issues describe, or changing the definition of Ready.
+- Adding detail to the stations or changing the About page's credits.
 
 ## Decisions
 
-### D1. One change, delivered by seven pull requests and one triage pass
+### D1. One change, delivered by eight pull requests and one triage pass
 
 ```mermaid
 flowchart TD
   accTitle: Pull request and triage order for this change
-  accDescr: PR A restores main first. Then the bot pull requests are queued, the four rebuilt content pull requests merge in issue order, and PR C carries the change artifacts, the watch fix, the digest exemption and the digest fixes. Independently, the issue triage applies an approved ledger, first closures and re-scopes, then shaping. After the next watch run and the triage, PR D records verification and archives the change.
+  accDescr: PR A restores main first. Then the bot pull requests are queued, the four rebuilt content pull requests merge in issue order, and PR C carries the change artifacts, the watch fix, the digest exemption and the digest fixes. PR E follows PR C with the complete catalogue. Independently, the issue triage applies an approved ledger, first closures and re-scopes, then shaping. After the next watch run, the triage and PR E, PR D records verification and archives the change.
   A[PR A: regenerate the inventory] --> BOT[Queue #138, #139 and #117]
   A --> B1[B1: #35 deduplication]
   B1 --> B2[B2: #36] --> B3[B3: #37] --> B4[B4: #38]
   A --> C[PR C: artifacts, HEAD 400 fallback, digest exemption, limitations, RO-Crate link, usage entry]
+  C --> E[PR E: complete catalogue cards, conventions, completeness test]
   L[Triage ledger approved] --> T1[Closures and re-scopes] --> T2[Shaping in batches, then Ready]
   C --> W[Next watch run]
   W --> D[PR D: verify, finish tasks, archive]
   B4 --> D
   BOT --> D
   T2 --> D
+  E --> D
 ```
 
 | Step | What it carries | When |
@@ -79,12 +83,13 @@ flowchart TD
 | #138, #139, #117 (bot) | Approval by the code owner, then the queue | After A |
 | B1–B4 | Rebuilt content, one per issue, in issue order | After A, independent of the bot pull requests |
 | C | The change branch `agents/claude/restore-main-and-triage-open-work`: this change's artifacts and triage ledger, the HEAD 400 fallback and the digest exemption with their tests, the limitations, the RO-Crate link fix and the usage entry; each behaviour change travels with its spec delta | After A |
+| E | The complete catalogue of D8 with its tests and documentation, branched from `main` after PR C, which was already under review when the maintainer added this scope | After C |
 | Triage | The ledger on the change branch; its writes go to GitHub issues and the Project, not to a pull request | Now, independent of A |
 | D | Verification after the next watch run and the triage, the final task and usage-entry updates, and the archive after approval | Last |
 
 Alternatives considered:
 
-- One pull request for everything: rejected. It mixes a quick fix, four content reviews and two behaviour changes,
+- One pull request for everything: rejected. It mixes a quick fix, four content reviews and three behaviour changes,
   and keeps `main` red until all of them are reviewed.
 - This change's artifacts in PR A: rejected, because it turns the quick fix into a planning review.
 
@@ -302,16 +307,97 @@ Alternatives considered:
   a mechanism exists, and every successor would need it again.
 - Exempting by label: rejected, for the reason above.
 
+### D8. The catalogue hides nothing
+
+**The rule.** Stations stay quiet: one source and date line without names, linking to the full detail (requirement
+"Credit for content and compilation"). The catalogue is that full detail. Every catalogue entry shows every field its
+record carries, or excludes it with a stated reason; a count never replaces the items it counts; a relation shows on
+both of its ends.
+
+**What the catalogue hides today** (the built crate compared with each card's code on 29 October 2026):
+
+| Kind | Hidden |
+| --- | --- |
+| Content changes (all) | the agent, the instruments, which items changed (a count only), consulted requirements (only cited sources survive the filter in `actionEntries`) |
+| Check questions (214) | `fixedBy`, `appliesTo`, `allowsNotApplicable`, pre-fill sources and their limits, the explanation in `description`, `block`, `providedByNrpFor`, `mentions` |
+| FIP profiles (6) | the declarations (a count only), the authoring community, keywords, status |
+| FAIR-enabling resources (28) | FAIR data type, coverage, provider |
+| Resources and sources (170 with a licence) | the licence, shown only on KNAV tool cards |
+| Requirements (2 superseded) | `supersededBy` |
+
+**Six conventions for every kind.** They make the existing requirement that fields appear "as labelled rows with
+icons in a fixed order" concrete, and they change cards beyond the six above:
+
+| # | Convention | Other cards it changes |
+| --- | --- | --- |
+| 1 | The byline names who made the work: the author or credit, a change's agent, a FIP's community. Rows name who runs or provides it: Operated by, Developed by, Provided by. | The infrastructure's host (`publisher`) moves from the details line to Operated by, as `operatorRow` already shows it for resources and repositories. |
+| 2 | A work's own licence is a Licence row. The licence of a quoted text is one line beside the quote, named from the data. | KNAV tools, life-cycle stages, terms (today a fixed "CC BY 4.0" label) and requirement guidance share that line. |
+| 3 | Dates sit in the details line; an "as of" date stays with its status badge. | None. |
+| 4 | Status is one badge with icon, text and as-of date, from one helper. | Test health and FIP declaration status use it. |
+| 5 | Qualified lists (item, qualifier, note) are relation rows, grouped by kind and folded when long. | Criterion mappings become a Covers row, life-cycle correspondences a Corresponds to row. |
+| 6 | Relations show in both directions. | Pre-filled from and Pre-fills; Declarations and Declared in; Replaced by and Replaces; Changed, and a Changes row on every entry listing the dated changes that produced or altered it. |
+
+**The cards.** What each affected kind gains:
+
+- **Content change:**
+  - the byline names the agent, with an ORCID link unless the person opted out;
+  - the details line gives the end date and the counts, and the body the description;
+  - **Made by**;
+  - **Tools**: each instrument with its kind (software or AI model) and its recorded version, so an AI model
+    appears as a tool and never as an author;
+  - **Consulted** and **Changed**, grouped by kind, each group listing every item. A catalogue kind links to its
+    entry; advice, callouts and pages link to their station or page.
+- **Check question:**
+  - the explanation (`description`) as a quiet paragraph under the question;
+  - **Who puts it right** (`fixedBy`, at its station);
+  - **Applies** (`appliesTo`, and whether "not applicable" is offered);
+  - **Pre-filled from**, each source with "at most Partly" and "Champion evidence only" where set;
+  - **Group** (`block`) and **For NRP profile** (`providedByNrpFor`) where set;
+  - **Mentions**;
+  - `assessmentContext`, `lookup` and `note` where present.
+- **FIP profile:**
+  - the byline names the authoring community, and the details line gives the status, version, date and keywords;
+  - **Declarations**: a disclosure summarised by status, holding a table of principle, enabling resource (linked to
+    its entry), status badge and note;
+  - **Based on**: the snapshot and its date.
+- **FAIR-enabling resource:** the FAIR data type and coverage in the details line; **Provided by**; **Declared in**
+  (the FIP profiles that declare it).
+- **Resources and sources:** a **Licence** row.
+- **Requirement:** **Replaced by** and **Replaces**.
+
+**Scale.** The initial-state action consulted 143 records and changed 1,374. Every list stays complete, inside a
+per-kind disclosure that is built when it is first opened, so a long list costs nothing until a reader asks for it.
+
+**Completeness as a mechanism.** Each kind declares the fields its card shows. A test reads the built crate and fails
+when a property of a catalogue entity is neither declared shown by its kind nor on an exclusion list with a reason
+(for example `catalogueAddress`, or `identifier`, which the ID chip shows). A page test renders one entry per kind and
+checks that every declared field with a value produces visible text, so a declaration cannot drift from the card. On
+today's code the test fails for the six kinds above, which is where the work starts.
+
+**The design decision it replaces.** `docs/design.md` says full people and tool detail "stays in the crate and
+About". It will say that stations stay quiet, the catalogue shows each change's people, tools, sources and items, and
+About credits the roles.
+
+Alternatives considered:
+
+- One generic "All recorded details" disclosure on every card: rejected by the maintainer as insufficient. It lists
+  fields without the meaning each kind needs, and leaves the conventions inconsistent.
+- A separate OpenSpec change: rejected by the maintainer; the catalogue work belongs to this change.
+- Adding detail to stations: out of scope; they stay quiet by design.
+
 ### Accessibility and migration
 
-- **Accessibility:** no reader-facing control changes. The rebuilt advice and the resource link use existing fields
-  and rendering.
+- **Accessibility:** the rebuilt advice and the resource link use existing fields and rendering. The catalogue's new
+  lists use native disclosures operable by keyboard, every status shows an icon and text, and every new row and label
+  exists in Czech and English with its icon.
 - **Migration:**
   - No stored format changes, and the watch state keeps its version. A link that now answers ends its failure streak
     and recovers on the next run.
   - The audit stores nothing; the exemption reverts with its pull request.
   - The Triage view filter and the label description are settings, reverted through
     `docs/runbooks/rollback-a-setting.md` together with their declaration.
+  - The catalogue reads the crate as it is; no content, stored format or API record changes, and the cards revert
+    with PR E.
 
 ## Risks / Trade-offs
 
@@ -330,6 +416,12 @@ Alternatives considered:
   contradicts returns to the maintainer.
 - [The exemption hides a broken digest] → Only triage age and Ready are skipped; the publisher's own refusals and the
   watch's step summary still report a failed publication.
+- [Complete cards grow long in a list] → Long lists fold by kind and are built when opened; each card keeps its compact
+  head, and the conventions keep the same field in the same place across kinds.
+- [The completeness test turns brittle or is satisfied by exclusions] → Every exclusion carries a reason that review
+  reads, and the page test checks that declared fields actually render.
+- [Showing people by name in the catalogue] → Only reviewed identities appear, as the crate already publishes them; an
+  ORCID iD the person opted out of stays hidden.
 
 ## Migration Plan
 

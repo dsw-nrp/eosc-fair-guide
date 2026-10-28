@@ -21,6 +21,13 @@ digest with 16 findings (#140):
   14 days in Needs triage.
 - The digest can never be triaged. Its body is rebuilt on every run, so it cannot take the planned-issue shape that
   Ready requires, and the audit reports it 14 days after it opens, as it will every successor.
+- The catalogue hides part of what the knowledge base records. The Guide tells readers that every content change is
+  recorded with its author, its tools including any AI model and its sources, and that they find it in the catalogue
+  (`content/pages.toml:179`). The catalogue's change entries show none of these: only a count of changed items and the
+  cited sources among the objects consulted. Questions hide who puts them right, when they apply and which sources
+  pre-fill them; FIP profiles show a count of declarations instead of the declarations; enabling resources, licences
+  and superseded requirements lose fields too. Stations stay quiet by design; the catalogue is where they send readers
+  for the detail.
 
 ## What Changes
 
@@ -59,6 +66,13 @@ digest with 16 findings (#140):
 7. **Exempt the digest from triage.** The audit stops reporting the published digest's time in Needs triage and its
    Ready completeness, and the Project's Triage view leaves it out. Every other issue, including one a person labels
    `guide-health`, keeps every check.
+8. **Show every recorded field in the catalogue.** Stations stay quiet; the catalogue hides nothing:
+   - complete cards for content changes, check questions, FIP profiles, FAIR-enabling resources, resources and sources
+     (their licence) and superseded requirements;
+   - six conventions applied to every kind, which also reshape the infrastructure, test, criterion, life-cycle and
+     term cards;
+   - relations shown in both directions, including a **Changes** row on every entry;
+   - a test that fails when a recorded field is neither shown nor excluded with a reason.
 
 ### Exclusions
 
@@ -70,6 +84,7 @@ digest with 16 findings (#140):
 - The work the triaged issues describe. Triage decides and shapes each issue; it does not carry it out.
 - Changes to the definition of Ready, and an extension of `audit_repository.py --backfill` to Priority, Effort or
   Status.
+- Changes to the stations' quiet source and date line, and to the About page's credits.
 
 ## Capabilities
 
@@ -83,6 +98,11 @@ None.
   - the live health watch states when a link check repeats a rejected HEAD request with GET, and adds HTTP 400 to
     those statuses;
   - the Project audit exempts the published digest from its triage-age and Ready checks.
+- `fair-guide/guide-experience`:
+  - the catalogue shows every field its records carry, or excludes it with a reason, and shows relations in both
+    directions;
+  - catalogue entries follow shared conventions for who made or runs an entry, licences, dates, status and qualified
+    lists.
 
 ## Impact
 
@@ -97,7 +117,11 @@ None.
 - **Audit behaviour:** `scripts/audit_repository.py`, `tests/test_audit_repository.py`,
   `tests/fixtures/repository-audit.json`, `.github/repository.toml` (the Triage view filter and the `guide-health`
   description) and `docs/maintenance.md`.
-- **Specs:** `openspec/specs/fair-guide/guide-delivery/spec.md` on archive.
+- **Catalogue:** `assets/js/catalogue.js`, `assets/js/catalogue-view.js`, the shared badge helper in `assets/js/`,
+  the labels and icons in `content/ui.toml`, the page tests under `tests/page/`, a completeness test, and the decision
+  on paradata detail in `docs/design.md`.
+- **Specs:** `openspec/specs/fair-guide/guide-delivery/spec.md` and `openspec/specs/fair-guide/guide-experience/spec.md`
+  on archive.
 - **Records:** one usage entry under `.agents/reports/usage/` for this change, and the triage ledger
   `openspec/changes/restore-main-and-triage-open-work/triage.toml`.
 - **GitHub:**
@@ -119,3 +143,5 @@ None.
   present.
 - A maintainer's `python scripts/audit_repository.py --section project` reports no attention finding for any issue
   in the ledger, and every ledger issue is Ready or closed.
+- The catalogue completeness test passes for every kind, and the changed cards are inspected in both languages, at
+  phone width and in print.
