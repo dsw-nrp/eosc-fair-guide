@@ -37,6 +37,13 @@ const actualLocation = "https://actual.example/site/";
     const result = assertPublication({ github, context }, { publicationUrl: actualLocation });
     if (refusal) await assert.rejects(result, refusal, location); else await result;
   }
+  // Pages moved after both sites were built for actualLocation. A root read when publication resolved already names
+  // the moved root, so comparing two reads passes; the root the staging site was built for refuses.
+  const moved = "https://moved.example/";
+  const github = { rest: { repos: { getPages: async () => ({ data: { html_url: moved } }) } } };
+  await assertPublication({ github, context }, { publicationUrl: moved });
+  await assert.rejects(assertPublication({ github, context }, { publicationUrl: actualLocation }),
+    /rerun the deployment so both are built for it/);
 }
 
 const repo = { owner: "dsw-nrp", repo: "eosc-fair-guide" };
@@ -77,7 +84,8 @@ function fake({ runs = [], jobs = {}, artifacts = {}, head = c3, commits = [c3, 
           data: { artifacts: (artifacts[run_id] || []).filter((entry) => entry.name === name) } }),
       },
       repos: {
-        getPages: async () => ({ data: { html_url: actualLocation } }),
+        // Resolution reads no Pages setting; the root is checked against the built site just before deployment.
+        getPages: async () => { throw Error("publication resolution must not read Pages"); },
         getBranch: async () => ({ data: { commit: { sha: head } } }),
         getCommit: async ({ ref }) => ({ data: { sha: Object.fromEntries(tags)[ref] } }),
         listCommits: async () => ({ data: commits.map((sha) => ({ sha })) }),
@@ -163,10 +171,10 @@ const publish = (github, context, recorded = c3) => publication({ github, contex
   const github = fake({ runs: [run(60, "deploy.yml", { head_sha: c3 }), ...approvedTag.runs],
     jobs: approvedTag.jobs, tags: [["v1.0.0", tagged]] });
   assert.deepEqual(await publish(github, new FakeContext("refs/heads/main", c3, 60)),
-    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "60", tag: "v1.0.0", production: tagged,
+    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "60", tag: "v1.0.0", production: tagged,
       production_run: "30" }, "a release approved while this run prepared is included");
   assert.deepEqual(await publish(fake(), new FakeContext("refs/heads/main", c3, 60)),
-    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "60", tag: "", production: "", production_run: "" },
+    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "60", tag: "", production: "", production_run: "" },
     "a first preview needs no release");
 }
 
@@ -206,7 +214,7 @@ const publish = (github, context, recorded = c3) => publication({ github, contex
     { ...approvedTag.runs[0], id: 22, conclusion: "success" }];
   const github = fake({ runs, artifacts: { 20: kept(), 21: kept() }, tags: [["v1.0.0", tagged]] });
   assert.deepEqual(await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22)),
-    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "21", tag: "v1.0.0", production: tagged,
+    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "21", tag: "v1.0.0", production: tagged,
       production_run: "22" });
 }
 
@@ -234,7 +242,7 @@ const publish = (github, context, recorded = c3) => publication({ github, contex
   const runs = [run(21, "deploy.yml", { head_sha: c3 }), { ...approvedTag.runs[0], id: 22, conclusion: "success" }, newer];
   const github = fake({ runs, artifacts: { 21: kept() }, tags: [["v1.1.0", commit("b")], ["v1.0.0", tagged]] });
   assert.deepEqual(await publish(github, new FakeContext("refs/tags/v1.0.0", tagged, 22)),
-    { publish: "true", reason: "", successor: "", publication_url: actualLocation, staging: c3, staging_run: "21", tag: "v1.1.0", production: commit("b"),
+    { publish: "true", reason: "", successor: "", staging: c3, staging_run: "21", tag: "v1.1.0", production: commit("b"),
       production_run: "23" });
 }
 

@@ -44,9 +44,11 @@ jobs:
             const { deploymentSources } = require('./.github/scripts/publication-location.cjs');
             for (const [key, value] of Object.entries(await deploymentSources({ github, context, core }))) core.setOutput(key, value);
 
+  # Only a release tag prepares production. A default-branch run keeps no copy: publication fetches production from
+  # its release assets or from the run that approved it.
   production:
     needs: sources
-    if: needs.sources.outputs.tag != ''
+    if: needs.sources.outputs.kind == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -140,7 +142,7 @@ jobs:
             echo "Approved the production bytes of $PRODUCTION_TAG at \`$PRODUCTION_SHA\`."
             echo ""
             echo "- **Next:** Publish the verified site deploys $PRODUCTION_TAG and records \`production\`; Release then drafts the release."
-            echo "- **If blocked:** when no publication starts, re-run this run's failed jobs."
+            echo "- **If blocked:** when this run fails, re-run its failed jobs; when it succeeds and no publication starts, run Deploy the verified site on the default branch, whose publication takes the newest approved release."
             echo "- **Done when:** the draft release of $PRODUCTION_TAG exists."
           } >> "$GITHUB_STEP_SUMMARY"
 

@@ -6,9 +6,11 @@ import ast
 import fnmatch
 import importlib.metadata
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import tomllib
 import unittest
 from datetime import date, datetime, timedelta
@@ -125,10 +127,36 @@ class WorkflowContracts(unittest.TestCase):
         )
         publish = next(index for index, step in enumerate(steps) if step.get("id") == "deployment")
         self.assertEqual(guard + 1, publish, "the actual Pages root is rechecked immediately before deployment")
-        self.assertEqual(steps[guard]["env"], {"PUBLICATION_URL": "${{ needs.resolve.outputs.publication_url }}"})
+        # Against the root the staging site was built for, which assembly writes, never a read made at resolve time.
+        self.assertNotIn("env", steps[guard])
+        self.assertIn("readFileSync('.cache/publication-root.txt'", steps[guard]["with"]["script"])
+        resolve = load(".github/workflows/publish.yml")["jobs"]["resolve"]
+        self.assertNotIn("publication_url", resolve["outputs"])
         assembly = next(step for step in steps if "assemble_pages.py" in step.get("run", ""))
         self.assertIn("--notes .cache/assembly-notes.md", assembly["run"])
+        self.assertIn("--root-out .cache/publication-root.txt", assembly["run"])
         self.assertIn('>> "$GITHUB_STEP_SUMMARY"', assembly["run"], "a namespace notice reaches the run summary")
+
+    def test_publication_hand_offs_name_the_documented_retry(self) -> None:
+        # A re-run publish run uploads its fixed-name Pages artifacts a second time; a dispatched deployment does not.
+        step = next(
+            step
+            for step in load(".github/workflows/publish.yml")["jobs"]["publish"]["steps"]
+            if step.get("name") == "Record the live channels"
+        )
+        script = step["with"]["script"]
+        self.assertNotIn("re-run this run", script)
+        self.assertEqual(script.count("run Deploy the verified site on the default branch"), 2)
+        catalogue = tomllib.loads((ROOT / ".github/ci-catalogue.toml").read_text(encoding="utf-8"))
+        self.assertIn("Do not rerun a publish run", catalogue["workflow"]["publish.yml"]["rerun"])
+        # After approval a successful tag run has no failed jobs to re-run; a dispatched deployment publishes it.
+        approval = next(
+            step
+            for step in load(".github/workflows/deploy.yml")["jobs"]["approve-production"]["steps"]
+            if step.get("name") == "Record the approved production bytes"
+        )["run"]
+        self.assertIn("when this run fails, re-run its failed jobs", approval)
+        self.assertIn("no publication starts, run Deploy the verified site on the default branch", approval)
 
     def test_publication_follows_only_successful_deployments_where_no_cancellation_reaches(self) -> None:
         deploy = load(".github/workflows/deploy.yml")
@@ -157,7 +185,7 @@ class WorkflowContracts(unittest.TestCase):
         ):
             self.assertIn(part, condition)
         self.assertNotIn("environment", resolve, "deciding leaves no github-pages deployment record")
-        self.assertEqual(resolve["permissions"], {"actions": "read", "contents": "read", "pages": "read"})
+        self.assertEqual(resolve["permissions"], {"actions": "read", "contents": "read"})
         self.assertEqual(resolve["steps"][0]["with"]["ref"], "${{ github.event.repository.default_branch }}")
         script = next(step for step in resolve["steps"] if step.get("id") == "resolve")["with"]["script"]
         self.assertIn("completedDeployment({ github, context })", script)
@@ -229,6 +257,18 @@ class WorkflowContracts(unittest.TestCase):
         latest_move = promotion_run.index('--tag "$IMAGE:latest"')
         self.assertLess(release_move, release_assert, "the release tag is promoted before it is verified")
         self.assertLess(release_assert, latest_move, "no moving alias is touched before the release digest is verified")
+        # Decision 30: the recheck decides which aliases move and never fails the job for a newer release, so the
+        # release tag is always pushed and Release drafts the release; the summary names who holds a kept alias.
+        recheck = next(step for step in steps if step.get("name") == "Recheck production eligibility before promotion")
+        self.assertEqual(recheck["id"], "promotion")
+        self.assertIn("await promotion(", recheck["with"]["script"])
+        promote = next(step for step in steps if step.get("name") == "Promote the audited digest")
+        for alias in ("latest", "stable"):
+            self.assertEqual(promote["env"][f"MOVE_{alias.upper()}"], f"${{{{ steps.promotion.outputs.{alias} }}}}")
+        self.assertNotIn("if", promote, "the release tag is pushed whether or not an alias moves")
+        report = next(step for step in steps if step.get("name") == "Report the image")
+        self.assertEqual(report["env"], {"KEPT": "${{ steps.promotion.outputs.kept }}"})
+        self.assertEqual(release["jobs"]["release"]["needs"], ["bind", "publish"])
         self.assertIn("--raw", promotion_run)
         self.assertNotIn("--prefer-index=false", promotion_run)
         self.assertNotIn(".Manifest.Digest", promotion_run)
@@ -259,8 +299,8 @@ class WorkflowContracts(unittest.TestCase):
             self.assertEqual(set(workflow["on"]), triggers)
             self.assertEqual(workflow["permissions"]["contents"], "read")
             job = next(iter(workflow["jobs"].values()))
-            self.assertIn("github.event.repository.default_branch", job["if"])
-            self.assertIn("github.ref", job["if"])
+            # The default-branch requirement is the first step, which fails visibly rather than skipping (decision 30).
+            self.assertIn('"$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH"', job["steps"][0]["run"])
             steps = job["steps"]
             app = next(step for step in steps if step.get("id") == "app")
             self.assertEqual(app["with"]["permission-contents"], "write")
@@ -315,6 +355,34 @@ class WorkflowContracts(unittest.TestCase):
         )
         propose = next(step for step in prepare["jobs"]["prepare"]["steps"] if step.get("id") == "propose")
         self.assertEqual(propose["env"]["RELEASE_BOT_LOGIN"], "${{ steps.app.outputs.app-slug }}[bot]")
+
+    def test_release_dispatches_fail_on_another_branch_before_any_checkout(self) -> None:
+        # Decision 30: a job-level condition skipped every job, so a dispatch on another branch ended without a tag
+        # and without a failure.
+        for path, job, heading in (
+            ("tag-release.yml", "tag", "Not tagged"),
+            ("prepare-release.yml", "prepare", "Not prepared"),
+        ):
+            with self.subTest(workflow=path):
+                definition = load(f".github/workflows/{path}")["jobs"][job]
+                self.assertNotIn("if", definition)
+                guard = definition["steps"][0]
+                self.assertEqual(guard["name"], "Require the default branch")
+                self.assertEqual(guard["env"], {"DEFAULT_BRANCH": "${{ github.event.repository.default_branch }}"})
+                for text in (f"### {heading}", "**Next:**", "**If blocked:**", "**Done when:**", "exit 1"):
+                    self.assertIn(text, guard["run"])
+                if sys.platform == "win32":
+                    continue  # the runner's bash; Windows may resolve bash to another environment
+                with tempfile.TemporaryDirectory() as temp:
+                    summary = Path(temp) / "summary.md"
+                    for ref, code in (("refs/heads/main", 0), ("refs/heads/feature", 1)):
+                        environment = {"PATH": os.environ["PATH"], "DEFAULT_BRANCH": "main", "GITHUB_REF": ref}
+                        environment["GITHUB_STEP_SUMMARY"] = str(summary)
+                        command = ["bash", "-e", "-c", guard["run"]]
+                        result = subprocess.run(command, check=False, env=environment, capture_output=True, text=True)
+                        self.assertEqual(result.returncode, code, ref)
+                    self.assertIn("set to `main`", summary.read_text(encoding="utf-8"))
+                    self.assertIn("refs/heads/feature", result.stdout)
 
     def test_release_status_is_a_tag_input_and_never_a_repository_variable(self) -> None:
         tag = load(".github/workflows/tag-release.yml")
@@ -838,6 +906,8 @@ class WorkflowContracts(unittest.TestCase):
             ("partitioned-checks.yml", "collect", "Publish the run summary"),
             ("deploy.yml", "approve-production", "Record the approved production bytes"),
             ("tag-release.yml", "not-tagged", "Report that no tag was created"),
+            ("tag-release.yml", "tag", "Require the default branch"),
+            ("prepare-release.yml", "prepare", "Require the default branch"),
             ("publish-image.yml", "image", "Report the image"),
             ("release.yml", "release", "Create the draft release with the same artifact"),
             ("publish.yml", "publish", "Record the live channels"),
@@ -942,6 +1012,15 @@ class WorkflowContracts(unittest.TestCase):
                 self.assertEqual(step["if"], "needs.sources.outputs.build == 'true'", "only a tag rebuilds production")
         stage = deploy["jobs"]["stage"]
         self.assertEqual(stage["if"], "needs.sources.outputs.kind == 'branch'", "a tag run prepares no staging site")
+        # Nothing reads a branch run's copy of the release, and its failure would block the preview's publication.
+        self.assertEqual(
+            deploy["jobs"]["production"]["if"],
+            "needs.sources.outputs.kind == 'tag'",
+            "a branch run prepares no production artifact",
+        )
+        for name in ("stage", "fallback-checks"):
+            needs = deploy["jobs"][name]["needs"]
+            self.assertNotIn("production", [needs] if isinstance(needs, str) else needs, f"{name} stages without it")
         self.assertEqual(stage["env"], {"FAIR_GUIDE_BUILD_CHANNEL": "preview"}, "the bytes the merge queue checks")
         runs = [step.get("run", "") for step in stage["steps"]]
         self.assertIn("python scripts/check_ci.py build", runs)
@@ -1042,7 +1121,7 @@ class WorkflowContracts(unittest.TestCase):
         for name, helper in (
             ("deploy.yml", "reuse"),
             ("release.yml", "draftRelease"),
-            ("publish-image.yml", "assertPromotion"),
+            ("publish-image.yml", "promotion"),
         ):
             text = (ROOT / ".github/workflows" / name).read_text(encoding="utf-8")
             self.assertIn("refContext", text, f"{name} derives the {helper} context through refContext")

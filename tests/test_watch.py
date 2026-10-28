@@ -202,6 +202,37 @@ class StateTests(unittest.TestCase):
         found, *_ = run(Fetcher(status={"https://b.example/gone": 404}))
         self.assertEqual(found["link:https://b.example/gone"]["section"], "triage", "streak 1 + 1 reaches persistence")
 
+    def test_targets_that_content_no_longer_names_leave_the_state(self) -> None:
+        data = content()
+        data["live"]["watch"] += [
+            {"id": "events", "url": "https://events.example/list"},
+            {"id": "kept", "url": "https://kept.example/news"},
+        ]
+        data["live"]["champion"]["test"].append({"id": "gone_test", "health": "degraded", "asOf": date(2026, 10, 11)})
+        measured = {"id": "core_test", "health": "available", "attempted": 3, "definitive": 3, "indeterminate": 0}
+        champion = {"generatedAt": "2026-10-12T03:00:00Z", "summary": [measured, {**measured, "id": "gone_test"}]}
+        failing = {"https://events.example": 503, "https://kept.example": 503}
+        run = Run(data)
+        run(Fetcher(status=failing), champion)
+        found, *_ = run(Fetcher(page=PAGE.format(extra='<a href="/media/new.pdf">New</a>'), status=failing), champion)
+        item = "page:outputs:https://www.eosc.example/media/new.pdf"
+        listed = {"watch:events", "watch:kept", "champion:core_test", "champion:gone_test", item}
+        self.assertLessEqual(listed, set(found))
+        # The maintainers stop watching two pages and drop one core test; the next run does not remeasure Champion.
+        data["live"]["watch"] = [page for page in data["live"]["watch"] if page["id"] == "kept"]
+        tests = data["live"]["champion"]["test"]
+        data["live"]["champion"]["test"] = [test for test in tests if test["id"] == "core_test"]
+        found, body, *_ = run(Fetcher(status=failing))
+        for key in ("watch:events", "watch:outputs", "champion:gone_test"):
+            self.assertNotIn(key, run.state["targets"])
+            self.assertNotIn(key, found)
+        self.assertNotIn(item, run.state["sources"])
+        self.assertNotIn(item, found)
+        self.assertEqual(set(run.state["pages"]), set(), "no baseline is kept for a page no longer watched")
+        self.assertNotIn("events.example", body)
+        self.assertEqual(run.state["targets"]["watch:kept"]["streak"], 3, "a page still watched keeps its streak")
+        self.assertEqual(found["champion:core_test"]["section"], "triage", "a test still listed stays")
+
 
 class PageTests(unittest.TestCase):
     def test_pagination_and_navigation_are_not_new_items(self) -> None:
@@ -267,6 +298,19 @@ class LimitationTests(unittest.TestCase):
         gone = Fetcher(status={"https://b.example/gone": 404})
         run(gone)
         self.assertIn("expects denied", run(gone)[0][self.ENTRY["key"]]["line"])
+
+    def test_a_limitation_with_a_task_says_the_outcome_changed_only_when_it_did(self) -> None:
+        run = Run(limitations={self.ENTRY["key"]: {**self.ENTRY, "reviewBy": date(2027, 1, 1)}})
+        denied = Fetcher(status={"https://b.example/gone": 403})
+        run(denied)
+        task = {"key": self.ENTRY["key"], "outcome": "denied", "number": 14, "state": "open"}
+        found, body, *_ = run(denied, tasks=[task])
+        self.assertEqual(found[self.ENTRY["key"]]["section"], "limitation")
+        known = body.split("## Known limitations (1)")[1]
+        self.assertIn("Task #14 (open)", known)
+        self.assertNotIn("The outcome changed", body)
+        _, body, *_ = run(denied, tasks=[{**task, "outcome": "broken"}])
+        self.assertIn("The outcome changed since task #14.", body.split("## Known limitations (1)")[1])
 
     def test_a_new_denial_offers_a_ready_to_paste_entry(self) -> None:
         run = Run()

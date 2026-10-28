@@ -543,13 +543,22 @@ def observe(
                 }
             record(key, "watch", "ok", url=page["url"], items=len(items))
         pages[page["id"]] = items
+    watched = {page["id"] for page in content["live"].get("watch", [])}
+    for key in [key for key, value in targets.items() if value.get("kind") == "watch" and key[6:] not in watched]:
+        del targets[key]  # no longer watched, with its baseline and the items still listed for review
+    for name in [name for name in pages if name not in watched]:
+        del pages[name]
+    for key in [key for key, item in sources.items() if "page" in item and item["page"] not in watched]:
+        del sources[key]
     for key, item in list(sources.items()):
         if item["first"] < (today - timedelta(days=365)).isoformat():
             del sources[key]  # long past review, tracked or not
         elif item["first"] < (today - timedelta(days=SOURCE_DAYS)).isoformat():
             item["aged"] = True
+    core = {test["id"]: test for test in content["live"].get("champion", {}).get("test", [])}
+    for key in [key for key, value in targets.items() if value.get("kind") == "champion-core" and key[9:] not in core]:
+        del targets[key]  # no longer in the curated selection, even when this run did not remeasure
     if champion:
-        core = {test["id"]: test for test in content["live"].get("champion", {}).get("test", [])}
         measured = set()
         for summary in champion.get("summary", []):
             test = core.get(summary["id"])
@@ -931,6 +940,8 @@ def render(
         line = finding["line"] + "."
         if current and section in trackable:
             section, line = "tracked", tracked(line, current)
+        elif current:  # a known limitation that a task also follows stays where it is and names the task
+            line = tracked(line, current)
         elif linked:
             line += f" The outcome changed since task #{linked[-1]['number']}."
         if section in trackable:

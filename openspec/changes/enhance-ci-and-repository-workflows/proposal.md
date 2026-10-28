@@ -136,6 +136,13 @@ merge. A check that cannot be made within this change is dropped explicitly rath
   marker, including those opened since it was planned.
 - **Small corrections.** The quick job installs what its checks import. The native content rule stops requiring
   inline language markup that does not exist. A possibly stale source title goes to the content team as an issue.
+- **Review repairs before the merge.** The review of #116 found seven defects in the new automation and four older
+  gaps in the release flow; all are fixed in the same pull request. The watch retires targets that content no
+  longer names, the digest moves only open tasks, and the documentation check reads every Mermaid link form.
+  Retry hand-offs name routes that work. A release published to Pages always keeps its image tag and draft, and
+  only `latest` and `stable` follow precedence. Release versions must increase, and a release dispatch on another
+  branch fails visibly (decision 30). Untracked run hand-offs in the declared runtime area, which stay visible to
+  Git, no longer fail the public-content check.
 
 Validation: strict OpenSpec validation and `python scripts/check_all.py`; planted regressions for every new
 check and renderer; real producer/consumer paths with fake remote transport only; paired before/after timing
@@ -160,7 +167,9 @@ None.
   The follow-up adds issue-thread refresh, scoped organization audit reads, applied tag-policy reconciliation,
   current-host discovery and complete durable-documentation acceptance. The finishing scope adds failure
   hand-offs that name who acts, scheduled refresh outcomes in the digest and host-grouped digest entries, and
-  replaces the namespace pair check with channels that may differ in namespace until the next release.
+  replaces the namespace pair check with channels that may differ in namespace until the next release. The review
+  repairs add increasing release versions and image aliases that never move back while every published release
+  keeps its tag and draft.
 - `fair-guide/guide-knowledge-base`: dated statuses reported in the digest; local duplicate repair records
   complete provenance for a resolved reviewed person; paradata freshness decided from history in every comparison
   context, including the merge queue.
@@ -197,3 +206,5 @@ None.
   setting; the live-production lookup and the pair check are removed. Finishing impact (decision 29 and group 16):
   the quick job's install, the audit's App tokens, the scheduled refresh summary, the digest renderer and
   publisher, `assemble_pages.py`, the deployment scripts, the native content rule and the affected runbooks.
+  Review repairs (decision 30, 16.13-16.26): the watch and digest publisher, `check_docs.py`,
+  `check_public_content.py`, the release, publication and image workflows and their scripts, and the RDF test pins.

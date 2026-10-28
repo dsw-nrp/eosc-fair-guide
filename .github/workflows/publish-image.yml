@@ -2,8 +2,9 @@ name: Publish the Guide image
 
 # Called from the release after the tag's deployment. It serves the exact verified release artifact — the
 # digest-checked `guide-site-<sha>.tar.gz` — as a container, signed and attested; nothing is rebuilt here beyond
-# the thin image around the artifact. The image carries the release tag, `latest` on every release and `stable`
-# on every non-prerelease. The base image is Digest-pinned and Dependabot keeps it current.
+# the thin image around the artifact. The image always carries the release tag; `latest` moves to the newest approved
+# release and `stable` to the newest approved non-prerelease, never back (decision 30). The base image is
+# Digest-pinned and Dependabot keeps it current.
 on:
   workflow_call:
     inputs:
@@ -20,11 +21,11 @@ on:
         type: string
         required: true
       latest:
-        description: Move the `latest` tag to this release.
+        description: Move `latest` to this release while it is the newest approved release.
         type: boolean
         required: true
       stable:
-        description: Move the `stable` tag to this release (non-prereleases only).
+        description: Move `stable` to this release (non-prereleases only) while it is the newest approved one.
         type: boolean
         required: true
     outputs:
@@ -168,21 +169,28 @@ jobs:
         with:
           sarif_file: trivy.sarif
           category: trivy-image
+      # A newer release approved meanwhile keeps the moving aliases; this release still gets its own tag and draft.
       - name: Recheck production eligibility before promotion
+        id: promotion
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           RELEASE_TAG: ${{ inputs.tag }}
           RELEASE_COMMIT: ${{ inputs.commit }}
+          MOVE_LATEST: ${{ inputs.latest }}
+          MOVE_STABLE: ${{ inputs.stable }}
         with:
           script: |
-            const { assertPromotion, refContext } = require('./.github/scripts/release-artifact.cjs');
-            await assertPromotion({ github, context: refContext(context, 'refs/tags/' + process.env.RELEASE_TAG, process.env.RELEASE_COMMIT) });
+            const { promotion, refContext } = require('./.github/scripts/release-artifact.cjs');
+            const { RELEASE_TAG, RELEASE_COMMIT, MOVE_LATEST, MOVE_STABLE } = process.env;
+            const result = await promotion({ github, context: refContext(context, 'refs/tags/' + RELEASE_TAG, RELEASE_COMMIT) },
+              { latest: MOVE_LATEST === 'true', stable: MOVE_STABLE === 'true' });
+            for (const [key, value] of Object.entries(result)) core.setOutput(key, String(value));
       - name: Promote the audited digest
         env:
           DIGEST: ${{ steps.digest.outputs.digest }}
           RELEASE_TAG: ${{ inputs.tag }}
-          MOVE_LATEST: ${{ inputs.latest }}
-          MOVE_STABLE: ${{ inputs.stable }}
+          MOVE_LATEST: ${{ steps.promotion.outputs.latest }}
+          MOVE_STABLE: ${{ steps.promotion.outputs.stable }}
         run: |
           digest_of() {
             docker buildx imagetools inspect --raw "$1" | sha256sum | cut -d' ' -f1
@@ -202,6 +210,8 @@ jobs:
             done
           fi
       - name: Report the image
+        env:
+          KEPT: ${{ steps.promotion.outputs.kept }}
         run: |
           {
             echo "### Guide image"
@@ -212,6 +222,7 @@ jobs:
             echo ""
             echo "Tags: \`${{ steps.tags.outputs.tags }}\`"
             echo ""
+            if [ -n "$KEPT" ]; then echo "$KEPT"; echo ""; fi
             echo "- **Next:** Release creates the draft release, which names this digest."
             echo "- **If blocked:** re-run the Release run's failed jobs; the digest above stays the release's image."
             echo "- **Done when:** the draft release names this digest."

@@ -979,3 +979,111 @@
 - **Close-out:** Local tasks 16.2–16.7 and 16.9 are complete (100/113). 16.1 waits for #116's hosted `quick` run;
   16.8 (two issues) and 16.10–16.12 need their approvals. Nothing committed, pushed, dispatched, published or
   archived, and no issue was changed.
+
+### Review capture: #116 findings and release-flow observations
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** In explore mode, checked the AIS CR review approval view of #116 at `2ccc0a6` against the head. All
+  seven findings and all four pre-existing observations hold. Finding 5 holds, but its stated mechanism and
+  `overwrite: true` fix do not: the same job uploads `github-pages` before deploying. The documented
+  default-branch deployment is the retry route. Two observations go further than the review says: a lower tag
+  cannot be deleted and would shift the next release's lineage base, and the image recheck skips the superseded
+  release's draft. At the maintainer's direction, captured tasks 16.13-16.24 in the change. Pre-existing [2] came into
+  scope with the decision that a release published to Pages always keeps its image tag and draft (decision 30).
+- **Impacted:** the change's `tasks.md` (16.13-16.24 and the 16.10 precondition), `design.md` (decision 30 and
+  decisions 8, 11, 12, 28 and 29) and the `guide-delivery` delta spec (the container image requirement, a
+  version-ordering requirement and six scenarios), and this entry. The review hand-off was not changed.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-explore` and `openspec-update-change`, with the delivered planning,
+  quality-first, review-conduct and usage/model logging rules. Remote state was read with `gh` only. Two web
+  searches covered artifact-name behaviour on re-runs.
+- **Verification:** `openspec validate enhance-ci-and-repository-workflows --strict` passes. The tracker reads
+  101/125.
+- **Close-out:** Planning capture only. Implementation of 16.13-16.24 waits for approval of the apply phase.
+  Nothing committed, pushed, dispatched, published or archived, and no issue or review was changed.
+
+### Review repairs apply (16.13-16.26)
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** Applied the review capture after the maintainer's apply approval. The maintainer added 16.25 during the
+  run, and after the report 16.26 (the production-approval retry) and the review repairs in the proposal's finishing
+  scope.
+  - **Watch and digest:** watch pages and Champion core tests that content no longer names leave the state; a
+    limitation with a current task names it instead of claiming a change; only open tasks are adopted.
+  - **Documentation check:** the publication-order check refuses every Mermaid link form other than a named `-->`.
+  - **Dependencies:** `rdflib` and `pyshacl` are pinned.
+  - **Publication:** hand-offs, the production-approval summary and the catalogue's retry route name the documented
+    deployment dispatch. The last root check compares live Pages with the root stamped in the staging site, and the
+    resolve job lost its unused `pages: read`.
+  - **Release flow (decision 30):** the production job runs only for tags; a superseded published release keeps
+    its image tag and draft, and only the aliases follow precedence; release dispatches fail visibly on another
+    branch; versions must increase.
+  - **Local checks:** the public-content check skips untracked files in the runtime paths declared in
+    `.agents/guide/surfaces.toml`, such as run hand-offs, which stay visible to Git.
+- **Impacted:** `watch_sources.py`, `check_docs.py`, `assemble_pages.py` and `check_public_content.py`; `deployment.cjs`,
+  `health-digest.cjs`, `release-artifact.cjs`, `release-version.cjs` and `prepare-release.cjs`; `deploy.yml`,
+  `publish.yml`, `publish-image.yml`, `tag-release.yml` and `prepare-release.yml`; `.github/ci-catalogue.toml`,
+  `.github/repository.toml` and `requirements-dev.txt`; `docs/deployment.md` and the regenerated
+  `docs/ci-reference.md`; the affected Python and JavaScript tests; the change's proposal and tasks; this entry.
+- **Subagents used:** none.
+- **MCP servers used:** none.
+- **Workflow context used:** `openspec-apply-change`, with the delivered planning, quality-first and usage/model
+  logging rules and the native content and surface rules.
+- **Verification:** each task's planted regression failed and the restored code passed:
+  - prunes disabled;
+  - the old limitation branch;
+  - the old `-->` filter, which let eight link forms through;
+  - a re-run hand-off, in publication and in the approval summary;
+  - the resolve-time root comparison;
+  - adoption without the open filter, which re-parented closed tasks 8 and 9;
+  - the old production condition;
+  - throwing on supersession;
+  - the job-level dispatch condition;
+  - a disabled version check;
+  - an unfiltered public-content scan.
+
+  The new pins were installed into a fresh environment from `requirements-dev.txt`.
+- **Corrections:** The maintainer added 16.25 after the local suite failed on the review hand-off. Its first
+  version gitignored `.agents/local_scratch/`; the maintainer pointed to that directory's README, which keeps
+  hand-offs visible in `git status`, and reverted `.gitignore`. The check now skips only untracked files in the
+  declared runtime paths. Finding 5's
+  review mechanism was replaced by the documented deployment retry before implementation. The project `.venv`
+  keeps Ruff 0.17.0 because the editor holds `ruff.exe`, so lint ran with the pinned 0.17.1 from a fresh
+  environment.
+- **Close-out:** `python scripts/check_all.py` passes 36/36 checks with the #116 review hand-off present,
+  including `public-content`, the unit shards, browser groups, crate profiles, OpenSpec, generation, ownership and
+  delivery. It passed after 16.25, after 16.26 and the proposal update, and again on the final tree after 16.25
+  was reworked to keep the scratch area visible.
+  Tasks 16.13-16.26 are complete (115/127). 16.1 waits for #116's hosted `quick` run; 16.10-16.12 and the
+  earlier hand-offs need their approvals. Nothing committed, pushed, dispatched, published or archived, and no
+  issue or review was changed.
+
+### Delta spec sync
+
+- **When:** 2026-10-28
+- **Agent / runtime:** Claude Code (VS Code extension)
+- **Model / backend:** claude-opus-5-5
+- **What:** At the maintainer's request (`openspec-sync-specs`), merged the change's two delta specs into the main
+  specs while the change stays active. In `guide-delivery`, 7 modified requirements were replaced in place and 55
+  added ones appended (126 requirements). In `guide-knowledge-base`, 5 were replaced and 3 added (55). No modified
+  requirement dropped a main-spec scenario, and there were no removals or renames.
+  Strict validation then rejected four modified requirements longer than 500 characters. Their text was
+  tightened in the delta without changing a requirement, and the specs were synced again:
+  - Humans judge correctness and tone;
+  - Health and source-watch reports remain actionable;
+  - Each release publishes a runnable container image;
+  - Content addressed relative to the site, whose moved-address rationale stays in its "The guide moves" scenario.
+- **Impacted:** `openspec/specs/fair-guide/guide-delivery/spec.md`, `openspec/specs/fair-guide/guide-knowledge-base/spec.md`,
+  the change's two delta specs, and this entry.
+- **Workflow context used:** `openspec-sync-specs`, with a scratch merge script.
+- **Verification:**
+  - A round trip of the unchanged main specs was byte-identical, and a second merge changed nothing.
+  - Every synced block equals its delta; titles, Purpose and all other requirements are unchanged.
+  - `npm run openspec:validate` (all items, strict) passes 6/6 with no warnings.
+- **Close-out:** main specs synced; the change stays active until its remaining hand-offs and archive approval.
+  Nothing committed or archived.

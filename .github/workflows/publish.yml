@@ -37,7 +37,6 @@ jobs:
     permissions:
       actions: read
       contents: read
-      pages: read
     outputs:
       publish: ${{ steps.resolve.outputs.publish }}
       staging: ${{ steps.resolve.outputs.staging }}
@@ -45,7 +44,6 @@ jobs:
       tag: ${{ steps.resolve.outputs.tag }}
       production: ${{ steps.resolve.outputs.production }}
       production_run: ${{ steps.resolve.outputs.production_run }}
-      publication_url: ${{ steps.resolve.outputs.publication_url }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -127,7 +125,7 @@ jobs:
           if [ -n "$PRODUCTION_TAG" ]; then
             args+=(--production .cache/release --production-tag "$PRODUCTION_TAG" --production-commit "$PRODUCTION_SHA")
           fi
-          python scripts/assemble_pages.py "${args[@]}" --notes .cache/assembly-notes.md
+          python scripts/assemble_pages.py "${args[@]}" --notes .cache/assembly-notes.md --root-out .cache/publication-root.txt
           # Notices such as a preview namespace that production does not carry yet (decision 28).
           if [ -s .cache/assembly-notes.md ]; then
             { echo ""; cat .cache/assembly-notes.md; } >> "$GITHUB_STEP_SUMMARY"
@@ -135,14 +133,16 @@ jobs:
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: .cache/pages/
+      # The root the staging site was built for, which assembly required production to share; a value read from Pages
+      # when this publication resolved would already name a root that moved after the build.
       - name: Recheck the actual publication root
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        env:
-          PUBLICATION_URL: ${{ needs.resolve.outputs.publication_url }}
         with:
           script: |
+            const { readFileSync } = require('node:fs');
             const { assertPublication } = require('./.github/scripts/publication-location.cjs');
-            await assertPublication({ github, context }, { publicationUrl: process.env.PUBLICATION_URL });
+            const publicationUrl = readFileSync('.cache/publication-root.txt', 'utf8').trim();
+            await assertPublication({ github, context }, { publicationUrl });
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
       # Each channel's environment records what is live at its address, only now that it is; release tags require the
@@ -162,10 +162,10 @@ jobs:
               ? `Recorded live: ${recorded.join(' and ')}.\n`
               : 'Both channels were already recorded live.\n') + '\n' + handoff(PRODUCTION_TAG
               ? { next: `Release drafts the release ${PRODUCTION_TAG}; a maintainer then reviews and publishes it.`,
-                blocked: 'when no Release run starts, re-run this run; a record never moves a channel back.',
+                blocked: 'when no Release run starts, run Deploy the verified site on the default branch; its publication records the release again, and a record never moves a channel back.',
                 done: `the draft release of ${PRODUCTION_TAG} exists.` }
               : { next: 'nothing: the preview is live under /next/.',
-                blocked: 'when the preview looks stale, re-run this run; a record never moves a channel back.',
+                blocked: 'when the preview looks stale, run Deploy the verified site on the default branch; a record never moves a channel back.',
                 done: `the preview footer names \`${STAGING_SHA}\`.` }) + '\n').write();
       # Release drafting reads what this publication deployed; the record exists only after a Pages deployment.
       - name: Record what was published

@@ -37,6 +37,8 @@ LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)\s]+)\)")
 SPAN = re.compile(r"`([^`\n]+)`")
 NPM = re.compile(r"\bnpm run(?: -s)? ([a-z0-9:_-]+)")
 STEP = re.compile(r"^(\d+)\. (.*)")
+# Any Mermaid link once node text and edge labels are removed: solid, dotted, thick, invisible, open or bidirectional.
+MERMAID_LINK = re.compile(r"--|==|-\.|~~~|<-")
 
 
 def documents(root: Path) -> list[str]:
@@ -405,9 +407,12 @@ def publication_flow(text: str) -> list[str]:
         return ["docs/design.md: retain the production/preview workflow diagram"]
     edges: dict[str, set[str]] = {}
     for line in diagram.splitlines():
-        if "-->" not in line:
+        if line.strip().startswith(("accTitle:", "accDescr:")):
             continue
         plain = re.sub(r"\[[^\]]*\]|\{[^}]*\}|\|[^|]*\|", "", line)
+        if not MERMAID_LINK.search(plain):
+            continue
+        # Only named --> edges are understood; any other link form is refused rather than skipped.
         nodes = [node.strip() for node in plain.split("-->")]
         if any(not re.fullmatch(r"[A-Z]+", node) for node in nodes):
             return ["docs/design.md: use explicit named --> edges in the publication diagram for semantic checking"]

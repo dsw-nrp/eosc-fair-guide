@@ -99,7 +99,7 @@ rerun = "Re-run the Release run's failed jobs."
 purpose = "Deploys the newest checked staging site and the newest approved release to Pages together, and records each live channel."
 entry = "A completed Deploy the verified site run."
 next = "Nobody for staging; after a release tag, Release follows."
-rerun = "For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, rerun that tag run's failed jobs. A publication failure can retry this run's failed jobs."
+rerun = "For staging or a failed publication, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, rerun that tag run's failed jobs. Do not rerun a publish run: it would upload its Pages artifacts a second time."
 
 [workflow."publish.yml".writes]
 "publish.deployments" = "Records the `staging` and `production` channels once each is live."
@@ -140,7 +140,7 @@ rerun = "**Run workflow** again with the same version."
 "tag.contents" = "Creates the release tag through the repository's App, which the tag ruleset allows."
 
 [artifact."guide-site-<needs.sources.outputs.production>"]
-purpose = "The release's checked production site, which Publish, Release and the image reuse byte for byte."
+purpose = "A release tag's checked production site, kept only by that tag's deployment, which Publish, Release and the image reuse byte for byte."
 
 [artifact."staging-site"]
 purpose = "The checked default-branch site that Publish deploys under `/next/`."

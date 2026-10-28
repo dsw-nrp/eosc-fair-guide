@@ -48,11 +48,11 @@ branch or open work issues by themselves.
 
 ### Requirement: Health and source-watch reports remain actionable
 
-Health reporting SHALL separate content integrity, snapshot age, source availability and test verdicts.
-Published observations SHALL have meaningful dashboard and API consumers for their dates, revision, scope and
-status. Persistent failures and relevant source changes SHALL appear in the maintenance digest by stable keys
-without duplicates or transient-failure floods. A service failure SHALL NOT become a failed FAIR requirement. Live
-monitoring SHALL remain separate from mandatory deterministic PR checks.
+Health reports SHALL separate content integrity, snapshot age, source availability and test verdicts.
+Published observations SHALL have meaningful dashboard and API consumers for dates, revision, scope and status.
+Persistent failures and relevant source changes SHALL appear in the maintenance digest once by stable key, without
+transient-failure floods. A service failure SHALL NOT become a failed FAIR requirement. Live monitoring SHALL stay
+separate from required deterministic PR checks.
 
 #### Scenario: A test returns an indeterminate verdict
 
@@ -154,7 +154,7 @@ CODEOWNERS SHALL name actual available maintainers responsible for technical int
 with the Guide. Appropriate human collaborators SHALL review content correctness, source interpretation and tone.
 Passing checks SHALL NOT replace human review. For the initial sole-maintainer alpha, PR delivery, required checks
 and explicit maintainer acceptance SHALL be the enforceable gate. Mandatory content-owner approval SHALL be
-enabled when a reviewer able to approve the author's PR is available.
+enabled once a reviewer can approve the author's PR.
 
 #### Scenario: Text change
 
@@ -166,6 +166,32 @@ enabled when a reviewer able to approve the author's PR is available.
 
 - **WHEN** a content change is reviewed by its technical code owner
 - **THEN** the owner checks integrity and fit, the appropriate human collaborators review content meaning, and enforced repository approvals still apply
+
+### Requirement: Each release publishes a runnable container image
+
+Each release SHALL publish a container image that serves that release's verified, digest-checked site artifact
+unchanged, never rebuilt from source. It SHALL be published to the GitHub container registry with the release tag.
+A moving `latest` SHALL name the newest approved release and a moving `stable` the newest approved non-prerelease;
+neither SHALL move back. A release that a publication deployed SHALL receive its tag and draft release even when a
+newer release was approved meanwhile.
+
+#### Scenario: Running a published release in a container
+
+- **GIVEN** a reader with a container runtime
+- **WHEN** they run the image for a release tag
+- **THEN** the guide is served locally and its footer shows the same version and commit as the release
+
+#### Scenario: A prerelease is tagged
+
+- **GIVEN** a prerelease tag such as `v1.0.0-alpha.1` that is the newest approved release
+- **WHEN** its image is published
+- **THEN** `latest` moves to it, `stable` does not, and the image carries that release's tag
+
+#### Scenario: A newer release is approved while an image is built
+
+- **GIVEN** `v1.0.0-alpha.4` was deployed to Pages and `v1.0.0-alpha.5` was approved while the alpha.4 image was built
+- **WHEN** the alpha.4 image is published
+- **THEN** it carries `v1.0.0-alpha.4` and its draft release is created, `latest` is not moved to it, and the summary names alpha.5 as the release that moves `latest`
 
 ## ADDED Requirements
 
@@ -668,6 +694,7 @@ tasks. Two open digests SHALL stop publication with a warning.
 
 - **WHEN** the next run finds no open digest
 - **THEN** it opens a successor with all unresolved findings, limitations and open tasks, links both issues and moves open tasks to the successor
+- **AND** closed tasks stay with the predecessor
 
 #### Scenario: Two digests are open
 
@@ -677,8 +704,8 @@ tasks. Two open digests SHALL stop publication with a warning.
 ### Requirement: Maintainers promote findings into tasks
 
 An observation SHALL become a task only when a person with write access creates it, for example from the digest's
-prefilled task link. Automation SHALL attach such tasks to the digest, show them beside their findings and keep
-closed dispositions. Recurrence SHALL ask for triage only on a material change and SHALL NOT reopen or recreate a task.
+prefilled task link. Automation SHALL attach such tasks to the digest while they are open, show them beside their
+findings and keep closed tasks with their dispositions where they are. Recurrence SHALL ask for triage only on a material change and SHALL NOT reopen or recreate a task.
 
 #### Scenario: A persistent failure is not triaged
 
@@ -717,6 +744,11 @@ cap. Deferred targets SHALL keep their dated observation without new failures or
 
 - **WHEN** one host answers with rate limiting
 - **THEN** its requests stop at the per-host cap and other hosts are still attempted
+
+#### Scenario: Content no longer names a target
+
+- **WHEN** a link, service, watched page or FAIR Champion test is removed from the content
+- **THEN** the next run drops it from the state, with a page's baseline and unreviewed items, and the digest no longer lists it
 
 ### Requirement: Reviewed monitoring limitations retain their basis
 
@@ -881,6 +913,11 @@ artifact.
 - **WHEN** a hosted job's checks import a module its setup does not install
 - **THEN** an offline test fails before the change is merged and names the missing module
 
+#### Scenario: A release dispatch runs on another branch
+
+- **WHEN** Prepare release or Tag release is dispatched on a branch other than the default branch
+- **THEN** the run fails in its first step, names the default branch to dispatch from and creates nothing
+
 ### Requirement: Scheduled refresh outcomes reach the digest
 
 The digest SHALL list each source that the latest scheduled refresh did not refresh, with its outcome, date and run
@@ -936,6 +973,23 @@ other malformed value SHALL be refused with the accepted form shown.
 
 - **WHEN** a release dispatch receives `vv1.0.0` or `1.0`
 - **THEN** it changes nothing and names the accepted form, for example `1.0.0-alpha.4` or `v1.0.0-alpha.4`
+
+### Requirement: Release versions only increase
+
+Prepare release and Tag release SHALL refuse a version whose precedence is not above every existing release tag,
+name the newest tag and write nothing. They SHALL compare versions by SemVer precedence, as deployment does.
+
+#### Scenario: A lower version is requested
+
+- **GIVEN** the release tag `v1.1.0` exists
+- **WHEN** the maintainer runs Prepare release or Tag release for `1.0.5`
+- **THEN** no branch, pull request or tag is written, and the summary names `v1.1.0` and asks for a higher version
+
+#### Scenario: Prerelease identifiers compare as numbers
+
+- **GIVEN** the newest release tag is `v1.0.0-alpha.9`
+- **WHEN** the maintainer prepares `1.0.0-alpha.10`
+- **THEN** the version is accepted as newer
 
 ### Requirement: Tag release refuses an incomplete release changelog
 
@@ -1205,6 +1259,11 @@ release bytes SHALL NOT be rewritten.
 - **WHEN** production and preview were built for different publication roots
 - **THEN** assembly refuses them and the summary names the deployment to rerun
 
+#### Scenario: The Pages root changed after the sites were built
+
+- **WHEN** the actual Pages root differs from the root stamped in the staging site being published
+- **THEN** publication deploys nothing and its summary names the deployment to rerun
+
 #### Scenario: Artifact declarations disagree with verified contents
 
 - **WHEN** a recorded semantic identity disagrees with its crate/context/profile or required values cannot be established
@@ -1270,7 +1329,7 @@ semantic correctness.
 #### Scenario: A diagram skips a publication dependency
 
 - **WHEN** a planted arrow leads directly from preparation to an outcome that requires publication
-- **THEN** verification rejects that transition even if the diagram renders
+- **THEN** verification rejects that transition even if the diagram renders, whatever Mermaid link form the arrow uses
 
 ### Requirement: Applied release protections remain intact until a reviewed choice
 

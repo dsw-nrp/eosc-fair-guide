@@ -6,7 +6,7 @@ const {resolve, relative, isAbsolute} = require('node:path');
 const policy = require('../release-prepared-files.json');
 const MANIFEST = '.cache/release/prepared.json';
 const HISTORY = '.cache/release/history.json';
-const { validVersion, releaseInput, ACCEPTED_FORM } = require('./release-version.cjs');
+const { validVersion, releaseInput, compareTags, ACCEPTED_FORM } = require('./release-version.cjs');
 const { handoff } = require('./handoff.cjs');
 function dispatch(context) {
   const base = context.payload.repository.default_branch;
@@ -15,6 +15,16 @@ function dispatch(context) {
   const version = releaseInput(context.payload.inputs.version);
   if (!version) throw Error(`Enter the version as ${ACCEPTED_FORM}`);
   return {base, version, branch: `release/${version}`};
+}
+/** A release follows every existing release tag (decision 30). A lower tag could never deploy, because only the newest
+    tag replaces production; the tag ruleset forbids deleting it; and it would become the next release's lineage base. */
+async function newerThanEveryTag(github, context, version) {
+  const tags = (await github.paginate(github.rest.repos.listTags, {...context.repo, per_page: 100}))
+    .map(entry => entry.name).filter(name => name.startsWith('v') && validVersion(name.slice(1)));
+  const newest = tags.sort((a, b) => compareTags(b, a))[0];
+  if (newest && compareTags(`v${version}`, newest) <= 0) {
+    throw Error(`Version ${version} is not above the newest release tag ${newest}; run the dispatch with a higher version`);
+  }
 }
 async function current(github, context, base) {
   const {data} = await github.rest.git.getRef({...context.repo, ref: `heads/${base}`});
@@ -28,6 +38,7 @@ async function collect({github, context, core}, write = writeFileSync, read = re
     await github.rest.git.getRef({...context.repo, ref: `tags/v${version}`});
     throw Error('The requested release is already tagged');
   } catch (error) { if (error.status !== 404) throw error; }
+  await newerThanEveryTag(github, context, version);
   const history = JSON.parse(read(HISTORY, 'utf8'));
   if (history.formatVersion !== 1 || history.source !== context.sha ||
       !(history.previousTag === null || (typeof history.previousTag === 'string' &&
@@ -232,6 +243,7 @@ async function tag({github, context, core}, read = readFileSync) {
     await github.rest.git.getRef({...context.repo, ref: `tags/v${version}`});
     throw Error('The release tag already exists; its status cannot be changed');
   } catch (error) { if (error.status !== 404) throw error; }
+  await newerThanEveryTag(github, context, version);
   await current(github, context, base);
   const {data: annotated} = await github.rest.git.createTag({...context.repo, tag: `v${version}`,
     message: `Release v${version}\n\nFair-Guide-Release-Status: ${status}\n`, object: context.sha, type: 'commit'});

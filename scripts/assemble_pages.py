@@ -200,9 +200,7 @@ def assemble(
         raise AssemblyError("production tag/commit require a release artifact")
     files = production_files(production, production_tag or "", production_commit or "") if production else {}
     if production:
-        preview = site_identity(
-            {name: (stage / name).read_bytes() for name in ("assets/data/ui.js", "ro-crate-metadata.json")}
-        )
+        preview = built_for(stage)
         active = site_identity(files)
         manifest = json.loads((production / "manifest.json").read_text("utf-8"))
         # A stamped release names the root it was built for; an older archive's recorded address may be a predicted
@@ -264,6 +262,11 @@ def assemble(
     return notices
 
 
+def built_for(site: Path) -> dict[str, str]:
+    """The publication root and namespace a checked site was built for, read from its own files."""
+    return site_identity({name: (site / name).read_bytes() for name in ("assets/data/ui.js", "ro-crate-metadata.json")})
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--staging", type=Path, required=True)
@@ -273,8 +276,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--production-commit")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--notes", type=Path, help="write the notices for the run summary as Markdown lines")
+    parser.add_argument(
+        "--root-out", type=Path, help="write the publication root the staging site was built for, for the last check"
+    )
     args = parser.parse_args(argv)
     try:
+        # Read before anything is written, so a site without its stamp fails without replacing the output.
+        root = built_for(args.staging)["publication_url"] if args.root_out else ""
         notices = assemble(
             args.staging,
             args.staging_commit,
@@ -298,6 +306,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.notes:
         args.notes.parent.mkdir(parents=True, exist_ok=True)
         args.notes.write_text("".join(f"- {notice}\n" for notice in notices), encoding="utf-8", newline="\n")
+    if args.root_out:
+        args.root_out.parent.mkdir(parents=True, exist_ok=True)
+        args.root_out.write_text(root + "\n", encoding="utf-8", newline="\n")
     print(f"assemble_pages: release and preview assembled in {args.out}")
     return 0
 

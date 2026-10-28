@@ -139,12 +139,11 @@ assigned to every action in a pull request.
 
 ### Requirement: Content addressed relative to the site
 
-The API's files SHALL name the guide's own entities and each other by references relative to the file that names
-them, never by the site's address, so the guide works unchanged when it moves to another address. Links that leave
-the page, such as the test references in an exported result, SHALL take the address the page is served from.
-Runtime links SHALL use the Guide window's location, including its channel path, rather than an iframe parent's
-location. Offline use SHALL retain usable relative/local references without inventing a public host or exposing
-filesystem paths as public identifiers.
+API files SHALL reference the guide's own entities and each other relative to the referring file, never by the
+site's address. Outbound links, such as test references in an exported result, SHALL use the page's serving address.
+Runtime links SHALL use the Guide window's location, including its channel path, not an iframe parent's. Offline use
+SHALL keep usable relative or local references without inventing a public host or exposing filesystem paths as
+public identifiers.
 
 #### Scenario: The guide moves
 

@@ -213,7 +213,7 @@ Prepares what Pages may publish: the checked staging site of a default-branch pu
 - **Concurrency:** workflow `deploy-${{ github.ref }}`, cancel `${{ !startsWith(github.ref, 'refs/tags/') }}`
 - **Calls:** `partitioned-checks.yml`, whose artifacts and writes are listed under it
 - **Artifacts:**
-  - `guide-site-<needs.sources.outputs.production>`, kept 90 days: The release's checked production site, which Publish, Release and the image reuse byte for byte.
+  - `guide-site-<needs.sources.outputs.production>`, kept 90 days: A release tag's checked production site, kept only by that tag's deployment, which Publish, Release and the image reuse byte for byte.
   - `staging-site`, kept the repository's retention: The checked default-branch site that Publish deploys under `/next/`.
 
 ### `fix-duplicates.yml`: Fix duplicate records
@@ -315,8 +315,8 @@ Deploys the newest checked staging site and the newest approved release to Pages
 - **Triggers:** `workflow_run` (types `completed`; workflows `Deploy the verified site`)
 - **Entry point:** A completed Deploy the verified site run.
 - **Next:** Nobody for staging; after a release tag, Release follows.
-- **Rerun:** For staging, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, rerun that tag run's failed jobs. A publication failure can retry this run's failed jobs.
-- **Permissions:** workflow contents read; `resolve` actions read, contents read, pages read; `publish` actions read, contents read, deployments write, id-token write, pages write
+- **Rerun:** For staging or a failed publication, dispatch **Deploy the verified site** on the default branch; for a failed tag deployment, rerun that tag run's failed jobs. Do not rerun a publish run: it would upload its Pages artifacts a second time.
+- **Permissions:** workflow contents read; `resolve` actions read, contents read; `publish` actions read, contents read, deployments write, id-token write, pages write
   - `publish.deployments`: Records the `staging` and `production` channels once each is live.
   - `publish.id-token`: Proves the Pages deployment's origin.
   - `publish.pages`: Deploys the site to Pages.

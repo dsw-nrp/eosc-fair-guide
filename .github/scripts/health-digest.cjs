@@ -109,8 +109,9 @@ async function publish({ github, context, core }, read = readFileSync) {
     }
   }
   const attached = new Set((await subIssues(github, repo, digest.number)).map((issue) => issue.number));
+  // Closed tasks stay where they are, also after a rotation; the render still shows their disposition.
   for (const task of tasks) {
-    if (attached.has(task.number)) continue;
+    if (attached.has(task.number) || task.state !== "open") continue;
     await github.request("POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues",
       { ...repo, issue_number: digest.number, sub_issue_id: task.id, replace_parent: true });
     result.adopted.push(task.number);

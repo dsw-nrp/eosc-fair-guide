@@ -70,7 +70,7 @@ const context = { repo };
 {
   const { github, writes, issues } = fake({ issues: [task(7, "motyc")] });
   const comment = `${runOf("41")}\n\n**New** (1)`;
-  const result = await publish({ github, context, core }, files(body(), comment, [{ number: 7, id: 107 }]));
+  const result = await publish({ github, context, core }, files(body(), comment, [{ number: 7, id: 107, state: "open" }]));
   assert.deepEqual([result.created, result.commented, result.pinned, result.adopted], [true, true, true, [7]]);
   assert.equal(core.outputs.published, "true");
   const created = writes.find(([kind]) => kind === "create")[1];
@@ -78,7 +78,7 @@ const context = { repo };
     "the digest is found by its own label and listed in the Maintenance view by its area label");
   // A retry of the same run finds its comment; an unchanged body is not rewritten.
   writes.length = 0;
-  const again = await publish({ github, context, core }, files(body(), comment, [{ number: 7, id: 107 }]));
+  const again = await publish({ github, context, core }, files(body(), comment, [{ number: 7, id: 107, state: "open" }]));
   assert.deepEqual([again.created, again.updated, again.commented, again.adopted], [false, false, false, []]);
   assert.deepEqual(writes, [], "a retry writes nothing");
   await publish({ github, context, core }, files(body(" Newer."), "", []));
@@ -103,12 +103,17 @@ const context = { repo };
 }
 // Rotation: after a maintainer closes #3, the successor links it, posts the forward link and takes its open tasks.
 {
-  const state = fake({ issues: [digestIssue(3, "closed"), task(7, "motyc"), task(8, "motyc", { state: "closed" })], subs: { 3: [7, 8] } });
-  await prepare({ github: state.github, context, core }, () => {});
+  // Task 9 was closed before any run attached it; the publisher receives every keyed task, as prepare lists them.
+  const state = fake({ issues: [digestIssue(3, "closed"), task(7, "motyc"), task(8, "motyc", { state: "closed" }),
+    task(9, "motyc", { state: "closed" })], subs: { 3: [7, 8] } });
+  const { tasks } = await prepare({ github: state.github, context, core }, () => {});
   assert.equal(core.outputs.predecessor, "3");
+  assert.deepEqual(tasks.map((entry) => [entry.number, entry.state]), [[7, "open"], [8, "closed"], [9, "closed"]]);
   const continued = body("\n\nContinues #3.");
-  const result = await publish({ github: state.github, context, core }, files(continued));
+  const result = await publish({ github: state.github, context, core }, files(continued, "", tasks));
   assert.deepEqual(result.moved, [7], "open tasks move; closed ones keep their place");
+  assert.deepEqual(result.adopted, [], "no closed task is attached to the successor");
+  assert.deepEqual([state.subs[3], state.subs[result.digest]], [[8], [7]], "the predecessor keeps its closed task");
   assert.equal(state.comments[3].length, 1);
   assert(state.comments[3][0].body.includes(forwardOf(result.digest)));
   // A run interrupted after creating the successor completes the rotation without a second successor or comment.

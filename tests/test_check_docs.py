@@ -142,6 +142,20 @@ class DocsTests(unittest.TestCase):
                 )
                 self.assertTrue(publication_flow(changed))
 
+    def test_a_publication_shortcut_in_another_link_form_is_rejected(self) -> None:
+        text = (ROOT / "docs/design.md").read_text("utf-8")
+        forms = ("P -.-> F", "P ==> F", "P --- F", "P --o F", "P --x F", "P ~~~ F", "P <--> F", "P -- skip --> F")
+        for shortcut in forms + ("P -. skip .-> F", "P == skip ==> F"):
+            with self.subTest(shortcut=shortcut):
+                changed = text.replace(
+                    "  I --> F[Draft release with same artifact]",
+                    "  I --> F[Draft release with same artifact]\n  " + shortcut,
+                )
+                self.assertEqual(
+                    publication_flow(changed),
+                    ["docs/design.md: use explicit named --> edges in the publication diagram for semantic checking"],
+                )
+
     def test_dated_evidence_stable_conditions_and_unambiguous_references_are_retained(self) -> None:
         text = """The 24 October 2026 measurement for PR #107 completed in 274 seconds.
 

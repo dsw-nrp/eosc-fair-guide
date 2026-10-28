@@ -146,6 +146,28 @@ class AssemblyTests(unittest.TestCase):
             self.assertEqual(assemble_pages.main(arguments), 0)
         self.assertEqual(notes.read_text(encoding="utf-8"), f"- {notices[0]}\n")
 
+    def test_the_root_the_staging_site_was_built_for_is_written_for_the_last_check(self):
+        # The publish workflow compares the actual Pages root with this value immediately before deploying.
+        self.stage_files(publication_files("https://built.example/guide/"))
+        root, out = self.root / "publication-root.txt", self.root / "cli"
+        arguments = ["--staging", str(self.stage), "--staging-commit", STAGING, "--out", str(out)]
+        arguments += ["--root-out", str(root)]
+        assemble = assemble_pages.assemble
+        with (
+            patch.object(
+                assemble_pages, "assemble", lambda *args, **options: assemble(*args, **options, root=self.root)
+            ),
+            patch("builtins.print"),
+        ):
+            self.assertEqual(assemble_pages.main(arguments), 0)
+            self.assertEqual(root.read_text(encoding="utf-8"), "https://built.example/guide/\n")
+            root.unlink()
+            build_crate.replace_site(out, self.root)  # an empty managed output, to show it is left alone
+            (self.stage / "assets/data/ui.js").unlink()
+            self.assertEqual(assemble_pages.main(arguments), 2, "a site without its stamp is refused")
+        self.assertFalse(root.exists())
+        self.assertLessEqual({path.name for path in out.iterdir()}, {build_crate.SITE_MARKER}, "nothing was assembled")
+
     def test_sites_built_for_different_publication_roots_are_refused(self):
         self.assemble()
         before = (self.out / "index.html").read_bytes()

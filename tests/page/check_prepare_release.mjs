@@ -38,10 +38,11 @@ function fixture() {
     if (state.failPR) {state.failPR = false; throw Error('interrupted');}
     const pr = {...args, html_url: 'https://github.com/example/guide/pull/3', state: 'open'}; state.prs.push(pr); return {data: pr};
   }}, repos: {listPullRequestsAssociatedWithCommit: 'commit.pulls', listDeployments: 'deployments',
-    listDeploymentStatuses: 'deployment.statuses'},
+    listDeploymentStatuses: 'deployment.statuses', listTags: 'tags'},
   actions: {getWorkflowRun: async ({run_id}) => ({data: {created_at: '2026-10-14T10:00:00Z', ...(state.runInfo?.[run_id] || {})}}),
     listWorkflowRuns: 'workflow.runs'}},
   paginate: async (method, args) => {
+    if (method === 'tags') return (state.tagList || []).map(name => ({name}));
     state.reads.push(args);
     if (method === 'deployments') return state.deployments || [];
     if (method === 'deployment.statuses') return (state.statuses || {})[args.deployment_id] || [];
@@ -242,6 +243,28 @@ for (const mutate of [
   const production = {...context, payload: {...context.payload, inputs: {...context.payload.inputs, release_status: 'production'}}};
   await assert.rejects(tag({github, core, context: production}, read), /already exists/);
   assert.equal(state.tags.size, 1, 'retry cannot change the tag decision or create another annotation');
+}
+{
+  // A release follows every release tag (decision 30): a lower one is refused before anything is written.
+  const {state, github, core, read} = fixture();
+  state.tagList = ['v1.2.3', 'v1.0.0', 'not-a-release'];
+  const lower = /Version 1\.2\.3-alpha\.1 is not above the newest release tag v1\.2\.3/;
+  await assert.rejects(collect({github, core, context}, () => assert.fail('Must not write a collection'), read), lower);
+  await assert.rejects(tag({github, core, context}, read), lower);
+  assert.deepEqual([state.creates, state.tags.size], [[], 0]);
+  state.tagList = ['v1.2.3-alpha.0', 'v1.0.0'];
+  await tag({github, core, context}, read);
+  assert.deepEqual(state.creates, ['refs/tags/v1.2.3-alpha.1'], 'a higher version is tagged');
+}
+{
+  // Prerelease identifiers compare as numbers, so alpha.10 follows alpha.9.
+  const {state, github, core, read} = fixture();
+  const reading = value => (path, encoding) => path === 'package.json' && encoding ? JSON.stringify({version: value}) : read(path, encoding);
+  state.tagList = ['v1.2.3-alpha.10'];
+  await assert.rejects(tag({github, core, context: typed('1.2.3-alpha.9')}, reading('1.2.3-alpha.9')), /newest release tag v1\.2\.3-alpha\.10/);
+  state.tagList = ['v1.2.3-alpha.9'];
+  await tag({github, core, context: typed('1.2.3-alpha.10')}, reading('1.2.3-alpha.10'));
+  assert.deepEqual(state.creates, ['refs/tags/v1.2.3-alpha.10']);
 }
 {
   const {state, github, core, read} = fixture();

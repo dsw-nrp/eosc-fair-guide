@@ -4,7 +4,7 @@ const { readFileSync } = require("node:fs");
 const { mkdirSync, writeFileSync } = require("node:fs");
 const { createHash } = require("node:crypto");
 
-const { validVersion } = require('./release-version.cjs');
+const { validVersion, compareTags } = require('./release-version.cjs');
 const DIR = ".cache/release";
 // What one publication deployed, written by the publish workflow and read by release drafting.
 const PUBLISHED = ".cache/published/identity.json";
@@ -44,22 +44,11 @@ async function approvedRun({ github, context }) {
   throw Object.assign(Error(`No approved production bytes of ${context.sha}`), { code: "not-verified" });
 }
 
-/** Numeric core and SemVer prerelease precedence, independent of API tag-list ordering. */
-function compareTags(a, b) {
-  const parts = (tag) => { const [core, ...rest] = tag.slice(1).split("-"); return [core.split(".").map(BigInt), rest.join("-")]; };
-  const [ac, ap] = parts(a), [bc, bp] = parts(b);
-  for (let i = 0; i < 3; i++) if (ac[i] !== bc[i]) return ac[i] < bc[i] ? -1 : 1;
-  if (!ap || !bp) return ap === bp ? 0 : ap ? -1 : 1;
-  const ax = ap.split("."), bx = bp.split(".");
-  for (let i = 0; i < Math.max(ax.length, bx.length); i++) {
-    if (ax[i] === bx[i]) continue;
-    if (ax[i] === undefined || bx[i] === undefined) return ax[i] === undefined ? -1 : 1;
-    const an = /^\d+$/.test(ax[i]), bn = /^\d+$/.test(bx[i]);
-    if (an && bn) return BigInt(ax[i]) < BigInt(bx[i]) ? -1 : 1;
-    if (an !== bn) return an ? -1 : 1;
-    return ax[i] < bx[i] ? -1 : 1;
-  }
-  return 0;
+/** The repository's valid release tags, newest first. */
+async function releaseTags(github, context) {
+  return (await github.paginate(github.rest.repos.listTags, { ...context.repo, per_page: 100 }))
+    .filter((entry) => { try { tagOf({ ref: "refs/tags/" + entry.name, sha: entry.commit.sha }); return true; } catch { return false; } })
+    .sort((a, b) => compareTags(b.name, a.name));
 }
 
 async function sources({ github, context }) {
@@ -71,9 +60,7 @@ async function sources({ github, context }) {
     throw Error("A release tag deploys from its push; rerun that deployment run instead of dispatching one");
   }
   if (!/^[0-9a-f]{40}$/.test(context.sha)) throw Error("Deployment requires a full source SHA");
-  const tags = (await github.paginate(github.rest.repos.listTags, { ...context.repo, per_page: 100 }))
-    .filter((entry) => { try { tagOf({ ref: "refs/tags/" + entry.name, sha: entry.commit.sha }); return true; } catch { return false; } })
-    .sort((a, b) => compareTags(b.name, a.name));
+  const tags = await releaseTags(github, context);
   const latest = tags[0];
   if (isTag && (!latest || tagOf(context).tag !== latest.name || context.sha !== latest.commit.sha)) throw Error("Only the newest release tag can replace production");
   let production = null;
@@ -110,11 +97,26 @@ async function available({ github, context }) {
   }
 }
 
-/** Serialized image publishers recheck the newest verified production source immediately before moving aliases. */
-async function assertPromotion({ github, context }) {
+/** Which requested moving aliases a published release takes, rechecked by the serialized image publisher just before
+    it moves them: `latest` while it is the newest approved release, `stable` while it is the newest approved
+    non-prerelease. A superseded release still gets its own tag and draft (decision 30); `kept` names the release
+    holding an alias it does not take, whose own Release run moves it, so no alias moves back. */
+async function promotion({ github, context }, wanted = { latest: true, stable: true }) {
   const { tag } = tagOf(context);
-  const selected = await sources({ github, context: refContext(context, 'refs/heads/' + context.payload.repository.default_branch, context.sha) });
-  if (selected.tag !== tag || selected.production !== context.sha) throw Error('A newer verified production release superseded this image');
+  const holders = {};
+  for (const entry of await releaseTags(github, context)) {
+    const prerelease = entry.name.includes("-");
+    if (holders.latest && prerelease) continue;
+    if (!(await available({ github, context: refContext(context, "refs/tags/" + entry.name, entry.commit.sha) }))) continue;
+    holders.latest ||= entry;
+    if (!prerelease) { holders.stable = entry; break; }
+  }
+  const own = (entry) => entry?.name === tag && entry.commit.sha === context.sha;
+  const result = { latest: Boolean(wanted.latest) && own(holders.latest), stable: Boolean(wanted.stable) && own(holders.stable) };
+  result.kept = ["latest", "stable"].filter((alias) => wanted[alias] && !result[alias])
+    .map((alias) => `\`${alias}\` stays with ${holders[alias]?.name || "no approved release"}, whose own release moves it.`)
+    .join(" ");
+  return result;
 }
 
 async function assetBytes(github, repo, asset) {
@@ -221,5 +223,5 @@ async function draftRelease({ github, context, core }, read = readFileSync) {
   return release.id;
 }
 
-module.exports = { approvedRun, draftRelease, tagOf, refContext, compareTags, sources, productionSource, reuse,
-  publishedRelease, assertPromotion, PUBLISHED, VERIFICATION };
+module.exports = { approvedRun, draftRelease, tagOf, refContext, sources, productionSource, reuse,
+  publishedRelease, promotion, PUBLISHED, VERIFICATION };

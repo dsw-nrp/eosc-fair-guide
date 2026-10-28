@@ -480,7 +480,7 @@ app = { contents = "write", pull-requests = "write" }
 [[token]]
 workflow = "publish.yml"
 jobs = ["resolve"]
-github = { actions = "read", contents = "read", pages = "read" }
+github = { actions = "read", contents = "read" }
 
 [[token]]
 workflow = "publish.yml"

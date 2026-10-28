@@ -234,7 +234,10 @@ Approval moves from the `github-pages` environment to a new `production` environ
 approved once its release assets are complete, its deployment run succeeded, or that run's production and approval
 jobs succeeded, so staging never promotes an unapproved tag. Workflow concurrency is per ref: branch runs cancel
 superseded preparation, tag runs are never cancelled by branch runs, and a cancelled run names its successor. Tag
-runs prepare no staging site, and an existing preview artifact is never patched.
+runs prepare no staging site, and an existing preview artifact is never patched. Branch runs prepare no production
+artifact: publication fetches production from its release assets or from the run that approved it. Until 28 October
+every default-branch run copied the newest release into an artifact that nothing read, and its failure could block
+the preview's publication.
 
 The deployment run only prepares. Assembly and Pages publication run in a separate workflow, `publish.yml`,
 started by every successful deployment run (`workflow_run`), so cancelling preparation can never interrupt a Pages
@@ -380,8 +383,8 @@ posts the forward link on the predecessor and moves open sub-issues. Each step c
 A finding's "Track as task" link opens a new issue prefilled with the Task shape, the finding key marker and
 `area:maintenance`. The publisher adopts an open issue that carries a known key and was created by an account
 with write access, attaching it as a sub-issue of the digest with `GITHUB_TOKEN` and `issues: write`. The native
-auto-add-sub-issues automation then places it in the Project. A closed task keeps its disposition. Only a changed
-outcome returns its finding to triage.
+auto-add-sub-issues automation then places it in the Project. A closed task keeps its disposition and its parent,
+also across rotations, and is never attached later. Only a changed outcome returns its finding to triage.
 
 ### 12. Watch inputs, coverage and state
 
@@ -389,7 +392,9 @@ Outcomes are classified as broken (404/410), denied (401/403), rate limited (429
 DNS), keeping the method, status and evidence. Selection is least recently attempted first under the global budget,
 with a per-host cap and bounded `Retry-After` handling, and reports eligible, attempted, deferred and invalid
 counts. State is a versioned JSON file uploaded as a run artifact with 90-day retention and downloaded from the
-previous successful run. Version 1 state is migrated. Missing or malformed state produces a reset notice.
+previous successful run. Version 1 state is migrated. Missing or malformed state produces a reset notice. A
+target that content no longer names leaves the state on the next run: a link, a service, a watched page with its
+baseline and unreviewed items, a Champion core test or a candidate. Content alone can therefore retire a finding.
 
 `.github/health-watch.toml` holds reviewed limitations: exact key, outcome, reason, evidence, reviewer (person ID),
 review date and review-by date. These entries are validated offline. For new denials and rate limits, the digest
@@ -748,7 +753,9 @@ archive. The actual Pages location still drives navigation, the sitemap and page
 **Channels may differ until the next release.** From the merge of this change, previews carry the new namespace,
 while production keeps the legacy one until the next release. Assembly accepts a production and a preview with
 different namespaces, and the deployment summary states both values and that the next release aligns them.
-Assembly still refuses sites built for different publication roots. A release publishes the tagged production
+Assembly still refuses sites built for different publication roots. The last check before deploying compares the
+actual Pages root with the root stamped in the staging site, so a root that changed after the build refuses
+publication instead of passing two reads made at publication time. A release publishes the tagged production
 beside the latest checked staging site, as for any release. There is no paired preview, no head recheck for one and
 no `pair-head` step.
 
@@ -784,6 +791,40 @@ after opening 17 issues for the same unreachable host. The noisy signal was gree
 - **Checks run where they are reported.** The quick job installs every third-party module its checks import. A
   test derives that set from the checks' own imports rather than from the install line, because a local
   environment with every requirement installed hid the hosted failure.
+- **A retry names a route that works.** A hand-off names the documented retry. For publication that is running
+  **Deploy the verified site** on the default branch; re-running a publish run would upload its fixed-name artifacts
+  a second time.
+
+### 30. A published release is never superseded; versions only increase
+
+Added on 28 October 2026 from the pre-existing observations of the #116 review, with the maintainer's decision that
+a published release keeps its draft.
+
+**A release that reached Pages keeps its record.** Release drafting follows a publication that deployed the
+release (decision 8). From then on the release receives its versioned image tag and its draft release, even when a
+newer tag was approved while its image was built. Only the moving aliases follow precedence: `latest` moves to a
+release only while it is the newest approved release, and `stable` only while it is the newest approved
+non-prerelease. The image summary names the release that holds an alias it did not move. Release runs stay
+serialized, so the newer release's own run moves the aliases, and neither alias moves back. Before this decision
+the recheck failed the whole image job. That skipped the draft and left a release that readers had seen without a
+GitHub release or Zenodo archive, and a re-run failed in the same way.
+
+**Versions only increase.** Prepare release and Tag release refuse a version at or below the newest valid release
+tag and name that tag, before any branch, pull request or tag is written. A lower tag would be permanent, because
+the tag ruleset forbids deletion. It would never deploy, because only the newest tag may replace production. It
+would also become the previous reachable tag for the next release, so the changes between it and the real newest
+release would appear in no published changelog. Both dispatches use the precedence that deployment already
+applies, moved into `release-version.cjs`.
+
+**A dispatch fails where it cannot act.** A release dispatch on another branch fails in its first step, before any
+checkout, and names the default branch. Previously every job was skipped, and the run ended with no tag and no
+failure (decision 29: red means a person acts).
+
+Alternatives rejected:
+
+- Skipping the superseded release's draft, the previous behaviour. It loses the record of a version that was live.
+- Moving the aliases to the older release and back. A reader of `latest` would briefly receive an older release.
+- Checking the version order only at deployment. The tag exists by then and cannot be removed.
 
 ### Issue dispositions (refreshed 26 October 2026)
 
@@ -836,6 +877,9 @@ after opening 17 issues for the same unreachable host. The noisy signal was gree
   explicit hosting policy, with crawl access retained for preview `noindex`.
 - **The native release helper has not run against a real draft** → task 8.8 retains that proof even though its
   upstream dependency and local generation are complete.
+- **A newer release could leave a published one without its draft, or a lower tag could block releases** →
+  decision 30 keeps every published release's tag and draft, moves only the aliases by precedence, and refuses a
+  version that does not increase before a tag exists.
 
 ## Migration Plan
 
@@ -865,7 +909,8 @@ after opening 17 issues for the same unreachable host. The noisy signal was gree
 10. The 26 October follow-up (groups 12-15) corrects the serving-location contract, command/permission routes,
     documentation and settings evidence on the same branch before renewed integrated acceptance.
     The 28 October finishing scope (group 16) replaces the namespace pair with a reviewed setting (decision 28)
-    and adds the hand-off repairs of decision 29.
+    and adds the hand-off repairs of decision 29. The review repairs of 16.13-16.23, including decision 30, land
+    in the same pull request before the merge.
 11. After the merge, each step under its own approval and in this order: the audit-only run (13.3, closing 5.8
     and 5.9), the digest migration (6.10, 6.11), the first `staging` record (8.7), and the alpha.4 release, which
     doubles as the rehearsal (11.3) and the draft-helper exercise (8.8). This planning capture neither starts any of
