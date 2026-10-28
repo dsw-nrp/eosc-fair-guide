@@ -7,6 +7,8 @@ All notable changes to this guide are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.4] - 2026-10-28
+
 ### Changed
 
 - Breaking: maintenance observations move to one **Maintenance digest**; follow it instead of the per-finding `guide-health` issues.
@@ -14,6 +16,14 @@ All notable changes to this guide are recorded here. The format follows
   `namespace` in `content/guide.toml`, now `https://dsw-nrp.github.io/eosc-fair-guide/terms#` and `…/profile/0.1`.
   The preview carries them from this change, production from the next release. Record IDs and external IRIs are
   unchanged and earlier archives keep their IRIs; read each artifact's own context and profile.
+
+Since v1.0.0-alpha.3.
+
+### Merged pull requests
+
+- CI workflows and docs refactor ([#116](https://github.com/dsw-nrp/eosc-fair-guide/pull/116))
+- Finish the merge-day hand-offs and name release versions by their form ([#141](https://github.com/dsw-nrp/eosc-fair-guide/pull/141))
+
 
 ## [1.0.0-alpha.3] - 2026-10-25
 
