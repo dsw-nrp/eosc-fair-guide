@@ -830,29 +830,35 @@ identity/revision mismatches.
 
 ### Requirement: Each release publishes a runnable container image
 
-Each release SHALL publish a container image that serves that release's verified, digest-checked site artifact
-unchanged, never rebuilt from source. It SHALL be published to the GitHub container registry with the release tag.
-A moving `latest` SHALL name the newest approved release and a moving `stable` the newest approved non-prerelease;
-neither SHALL move back. A release that a publication deployed SHALL receive its tag and draft release even when a
-newer release was approved meanwhile.
+Each release SHALL publish a container image serving its verified, digest-checked site artifact unchanged, never
+rebuilt from source. It SHALL be published to the GitHub container registry under its version, the tag without the
+leading `v`. A moving `latest` SHALL name the newest approved release and a moving `stable` the newest approved
+non-prerelease; neither SHALL move back. A deployed release SHALL receive its version tag and draft release even when
+a newer one was approved meanwhile.
 
 #### Scenario: Running a published release in a container
 
 - **GIVEN** a reader with a container runtime
-- **WHEN** they run the image for a release tag
+- **WHEN** they run the image for a release version
 - **THEN** the guide is served locally and its footer shows the same version and commit as the release
 
 #### Scenario: A prerelease is tagged
 
-- **GIVEN** a prerelease tag such as `v1.0.0-alpha.1` that is the newest approved release
+- **GIVEN** a prerelease tag such as `v1.0.0-alpha.5` that is the newest approved release
 - **WHEN** its image is published
-- **THEN** `latest` moves to it, `stable` does not, and the image carries that release's tag
+- **THEN** `latest` moves to it, `stable` does not, and the image carries the version `1.0.0-alpha.5` and no `v` tag
 
 #### Scenario: A newer release is approved while an image is built
 
-- **GIVEN** `v1.0.0-alpha.4` was deployed to Pages and `v1.0.0-alpha.5` was approved while the alpha.4 image was built
-- **WHEN** the alpha.4 image is published
-- **THEN** it carries `v1.0.0-alpha.4` and its draft release is created, `latest` is not moved to it, and the summary names alpha.5 as the release that moves `latest`
+- **GIVEN** `v1.0.0-alpha.5` was deployed to Pages and `v1.0.0-alpha.6` was approved while the alpha.5 image was built
+- **WHEN** the alpha.5 image is published
+- **THEN** it carries `1.0.0-alpha.5` and its draft release is created, `latest` is not moved to it, and the summary names alpha.6 as the release that moves `latest`
+
+#### Scenario: A release image published with its tag
+
+- **GIVEN** the image of `v1.0.0-alpha.4`, published before version tags under `v1.0.0-alpha.4`
+- **WHEN** a reader pulls `1.0.0-alpha.4`
+- **THEN** they receive the same digest, and the `v1.0.0-alpha.4` tag still names it
 
 ### Requirement: A published image is signed, attested and reproducible
 
@@ -1925,26 +1931,27 @@ artifact SHALL hold raw observations only and SHALL NOT be the only place a find
 
 ### Requirement: Legacy health issues migrate into the digest
 
-Before the digest replaces per-finding issues, an approved migration SHALL select every open legacy health issue by
-its label and finding marker when it runs. It SHALL map each to a digest entry, a retained task or noise, preserving
-its evidence and any human discussion. Absorbed issues SHALL close with a link to the digest. The per-finding
-publisher SHALL NOT run in parallel with the digest.
+Before the digest replaces per-finding issues, a migration SHALL select every open legacy health issue by its label
+and finding marker when it runs. Each issue's finding SHALL appear in the digest, no longer hold, be noise or carry the
+maintainer's review in its closing comment; human discussion SHALL be summarised in the digest first. Issues SHALL
+close only with an approved comment linking the digest. The per-finding publisher SHALL NOT run beside the digest.
 
-#### Scenario: The migration is previewed
+#### Scenario: The issues are listed
 
-- **WHEN** the migration preview runs
-- **THEN** it lists every open `guide-health` issue with its target disposition and writes nothing
+- **WHEN** the maintainer lists the issues to migrate
+- **THEN** every open `guide-health` issue with the legacy marker is listed with any human comment, and nothing is written
 
 #### Scenario: Issues were opened after the migration was planned
 
 - **GIVEN** the legacy publisher opened further issues after the migration was planned
-- **WHEN** the migration preview runs
-- **THEN** those issues are listed and mapped with the rest
+- **WHEN** the issues are listed
+- **THEN** those issues are listed with the rest
 
-#### Scenario: The approved migration is applied
+#### Scenario: The migration is applied
 
-- **WHEN** the approved migration runs
-- **THEN** absorbed issues are closed with a link to the digest entry, retained tasks keep their number and state, and every original observation appears in the digest
+- **GIVEN** the first digest and an approved closing comment
+- **WHEN** the listed issues are closed
+- **THEN** each closes as not planned with that comment, and its finding is in the digest, no longer holds, is noise or is reviewed in that comment
 
 ### Requirement: The CI catalogue is generated from the workflow definitions
 

@@ -2,8 +2,9 @@ name: Publish the Guide image
 
 # Called from the release after the tag's deployment. It serves the exact verified release artifact — the
 # digest-checked `guide-site-<sha>.tar.gz` — as a container, signed and attested; nothing is rebuilt here beyond
-# the thin image around the artifact. The image always carries the release tag; `latest` moves to the newest approved
-# release and `stable` to the newest approved non-prerelease, never back (decision 30). The base image is
+# the thin image around the artifact. The image always carries the release's version, the tag without its `v`
+# (decision 31); `latest` moves to the newest approved release and `stable` to the newest approved non-prerelease,
+# never back (decision 30). The base image is
 # Digest-pinned and Dependabot keeps it current.
 on:
   workflow_call:
@@ -195,14 +196,16 @@ jobs:
           digest_of() {
             docker buildx imagetools inspect --raw "$1" | sha256sum | cut -d' ' -f1
           }
-          # The release tag must point at the audited index before any moving alias is touched.
-          docker buildx imagetools create --tag "$IMAGE:$RELEASE_TAG" "$IMAGE@$DIGEST"
-          test "$(digest_of "$IMAGE:$RELEASE_TAG")" = "${DIGEST#sha256:}"
+          # The image carries the version, the release tag without its v (decision 31). The version tag must point at
+          # the audited index before any moving alias is touched.
+          VERSION="${RELEASE_TAG#v}"
+          docker buildx imagetools create --tag "$IMAGE:$VERSION" "$IMAGE@$DIGEST"
+          test "$(digest_of "$IMAGE:$VERSION")" = "${DIGEST#sha256:}"
           args=()
           if [ "$MOVE_LATEST" = true ]; then args+=(--tag "$IMAGE:latest"); fi
           if [ "$MOVE_STABLE" = true ]; then args+=(--tag "$IMAGE:stable"); fi
           if [ "${#args[@]}" -gt 0 ]; then
-            docker buildx imagetools create "${args[@]}" "$IMAGE:$RELEASE_TAG"
+            docker buildx imagetools create "${args[@]}" "$IMAGE:$VERSION"
             for tag in latest stable; do
               if [ "$tag" = latest ] && [ "$MOVE_LATEST" != true ]; then continue; fi
               if [ "$tag" = stable ] && [ "$MOVE_STABLE" != true ]; then continue; fi
@@ -212,6 +215,7 @@ jobs:
       - name: Report the image
         env:
           KEPT: ${{ steps.promotion.outputs.kept }}
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           {
             echo "### Guide image"
@@ -219,6 +223,8 @@ jobs:
             echo '```'
             echo "$IMAGE@${{ steps.digest.outputs.digest }}"
             echo '```'
+            echo ""
+            echo "Version tag: \`$IMAGE:${RELEASE_TAG#v}\`"
             echo ""
             echo "Tags: \`${{ steps.tags.outputs.tags }}\`"
             echo ""

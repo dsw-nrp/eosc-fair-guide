@@ -826,6 +826,27 @@ Alternatives rejected:
 - Moving the aliases to the older release and back. A reader of `latest` would briefly receive an older release.
 - Checking the version order only at deployment. The tag exists by then and cannot be removed.
 
+### 31. Release images carry the version without the `v`
+
+Added on 28 October 2026 from the maintainer's review of the alpha.4 release. A release image is tagged with the
+release's version, which is the git tag without its leading `v`: `ghcr.io/dsw-nrp/eosc-fair-guide:1.0.0-alpha.5` for
+`v1.0.0-alpha.5`. Most container registries and tools use that form, for example Docker official images and the
+semver pattern of `docker/metadata-action`. It is also the version the Guide states everywhere else: its metadata,
+citation and Zenodo records, the crate's `softwareVersion` and the image's own `BUILD_VERSION` label. The git tag keeps
+its `v`; `latest` and `stable` are unchanged. Promotion pushes the version tag and checks its digest before any moving
+alias, as it did with the release tag.
+
+The images of `v1.0.0-alpha.1` to `v1.0.0-alpha.4` keep their `v` tags, which consumers may already pull. Each gains its
+version as a second tag on the same digest, added once by a maintainer with `docker buildx imagetools create` and
+checked by digest; nothing is rebuilt. From alpha.5, a release image has no `v` tag, which the changelog states as a
+breaking change.
+
+Alternatives rejected:
+
+- Both tags on every release: two names for one image, indefinitely.
+- Keeping the `v`: it matches the git tag, as in projects such as Kubernetes, but not the Guide's own version or the
+  more common registry form.
+
 ### Issue dispositions (refreshed 26 October 2026)
 
 | Issues | Disposition |

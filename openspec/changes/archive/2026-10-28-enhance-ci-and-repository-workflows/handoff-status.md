@@ -1,5 +1,30 @@
 # Local acceptance and remaining hand-offs
 
+## Completion, 28 October 2026
+
+Every hand-off is complete; `tasks.md` holds each task's evidence. The sections below are earlier receipts.
+
+| Scope | Outcome |
+| --- | --- |
+| 16.10, 16.1 | #116 merged as `a27b308`; its last run passed every check, including `quick`; the first deployment and publication succeeded and named both namespaces |
+| 13.3, 5.8, 5.9 | Audit-only run 40698714546 read the Guide Project and reported every unreadable part with its cause. The organization's Issue Types/Fields reads are not yet accepted (HTTP 422) and wait for its owner outside this change |
+| 6.10, 6.11 | Maintenance digest #140, published by run 40700396180, covers the 43 legacy issues, which are closed as not planned. The procedure was corrected after an independent read |
+| 8.7 | #142 merged through the queue; `v1.0.0-alpha.4` was tagged under the `github-pages`, `staging` and `checks` rules |
+| 11.3, 8.8 | `v1.0.0-alpha.4` was released by the runbook with notes from the native helper and archived on Zenodo (10.5281/zenodo.23735868); production carries the reviewed namespace and the root sitemap |
+| 16.11 | Runbooks walked and reviewed by the maintainer; the release runbook's example (16.29) and the audit runbook's hosted route were fixed |
+| 16.29–16.33 | Findings of the release: version examples, a version-dependent test, the publication summary, and image version tags with aliases for alpha.1 to alpha.4 (decision 31) |
+
+### Issues and change notes, read back 28 October 2026
+
+| Item | State |
+| --- | --- |
+| [#83](https://github.com/dsw-nrp/eosc-fair-guide/issues/83) | Closed as completed with the approved comment; the production sitemap is live and no `robots.txt` is written below the project path |
+| [#84](https://github.com/dsw-nrp/eosc-fair-guide/issues/84) | Closed as completed with the approved comment; landing page, generated catalogue and its check |
+| [#15](https://github.com/dsw-nrp/eosc-fair-guide/issues/15), [#32](https://github.com/dsw-nrp/eosc-fair-guide/issues/32) | Open and excluded from this change: no custom domain or DNS change |
+| [#136](https://github.com/dsw-nrp/eosc-fair-guide/issues/136) | Open follow-up: a persistent `w3id.org` namespace |
+| [#140](https://github.com/dsw-nrp/eosc-fair-guide/issues/140) | The open Maintenance digest |
+| `CHANGELOG.md` | `[1.0.0-alpha.4]` is released with both breaking lines; `[Unreleased]` carries the image version-tag breaking line (16.32) |
+
 ## Finishing decisions, 28 October 2026
 
 The maintainer decided to finish this change within days of the merge rather than keep hosted hand-offs open.

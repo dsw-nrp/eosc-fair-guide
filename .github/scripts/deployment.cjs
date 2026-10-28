@@ -167,6 +167,22 @@ async function recordChannels({ github, context, core }, { staging, tag = "", pr
   return recorded;
 }
 
+/** What follows a publication, as the elements of its hand-off. Release drafts a release only while its assets are
+    incomplete, which is exactly when the publication took the release's bytes from the approved run (`run`); every
+    other publication, including each default-branch publication after a release, only moved the preview. */
+function publicationNext({ tag = "", run = "", staging }) {
+  if (tag && run) {
+    return { next: `Release drafts the release ${tag}; a maintainer then reviews and publishes it.`,
+      blocked: "when no Release run starts, run Deploy the verified site on the default branch; its publication records " +
+        "the release again, and a record never moves a channel back.",
+      done: `the draft release of ${tag} exists.` };
+  }
+  return { next: "nothing: the preview is live under /next/.",
+    blocked: "when the preview looks stale, run Deploy the verified site on the default branch; a record never moves a " +
+      "channel back.",
+    done: `the preview footer names \`${staging}\`.` };
+}
+
 /** The summary of a cancelled deployment run, naming the run that supersedes it. Publication runs in its own workflow,
     so cancelling preparation never interrupts a Pages deployment. */
 async function superseded({ github, context }) {
@@ -180,4 +196,5 @@ async function superseded({ github, context }) {
     done: "the live preview's footer names the newest default-branch commit." });
 }
 
-module.exports = { queueResult, newestStaging, completedDeployment, publication, recordChannels, superseded };
+module.exports = { queueResult, newestStaging, completedDeployment, publication, recordChannels, publicationNext,
+  superseded };
