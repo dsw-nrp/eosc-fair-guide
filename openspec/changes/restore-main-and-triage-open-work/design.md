@@ -1,0 +1,338 @@
+# Design
+
+## Context
+
+See proposal.md for the motivation. These constraints shape the approach:
+
+- **Merge rules.** The `Main branch protection` ruleset requires an approving code-owner review, the `checks`
+  status and the merge queue. `.github/CODEOWNERS` names only `@motyc`, and repository administrators may bypass the
+  ruleset. The code owner can approve the bot pull requests but not their own; #141 and #143 were merged through the
+  administrator bypass while review was still required.
+- **Merge queue.** The queue checks `main` together with each pull request. Nothing queues successfully until the
+  inventory row is regenerated.
+- **Drafts.** #39–#42 have seven or eight commits each, dated 17–20 October, all authored as
+  `Karel Berka <krapn@example.com>`, a placeholder address.
+  - All four add the same 34-line `content/guide.toml` block.
+  - Each appends to `content/identifiers.toml` and `content/provenance.toml`.
+  - Their new advice IDs do not exist on `main`.
+  - #39 rewrites and removes existing items in stations that the other three extend.
+- **Content rule.** New advice under existing fields is content work: sources, bilingual text, paradata and the
+  ordinary checks, with no OpenSpec change. The paradata check expects a provenance action, added since the merge
+  base, that covers every changed item. Freshness is decided by history, not by the clock: an action added since the
+  base covers its items whatever its `endTime` says (`fresh_actions` in `scripts/check_content.py`).
+- **Credit.** `scripts/contributors.py` matches people only by a reviewed `github` login or exact `commitNames`. It
+  reports an action whose agent made none of its commits, and suggests `CITATION.cff` contributors for the agents of
+  a branch's actions.
+- **Watch.** `fetch` in `scripts/watch_sources.py` repeats a HEAD request with GET only after 403, 405 or 501.
+  `classify` maps the final status to an outcome. Addresses in imported snapshots are corrected upstream, not edited
+  locally (`guide-delivery`, scenario "A failure concerns imported content").
+- **Triage.** `docs/maintenance.md` defines Ready as an Issue Type, an `area:*` label, Priority, Effort and a body in
+  the planned-issue shape. On 28 October 2026:
+  - 38 issues were open, all with a type and an area label from the CI change's backfill;
+  - none had Priority or Effort, and no body passed the planned-issue readiness check;
+  - 34 were in Needs triage, 31 of them since 23 October, and the audit counts the 14 days from the Status change;
+  - #35–#38 were In progress through the drafts.
+- **Digest.** The publisher identifies its digest in `.github/scripts/health-digest.cjs`: an issue authored by
+  `github-actions[bot]` whose body starts with `<!-- fair-guide-digest -->`. GraphQL returns that author as a `Bot`
+  with the login `github-actions`; REST adds the `[bot]` suffix. The digest carries `guide-health` and
+  `area:maintenance`; the tasks it adopts carry only `area:maintenance`.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- Each step lands as its own reviewable pull request, in an order where no step waits on an unrelated failure.
+- Every digest finding ends with an owner, as `docs/runbooks/handle-the-digest.md` defines.
+- The rebuilt content passes today's checks and carries truthful paradata and credit.
+- Every open issue ends Ready or closed, and the audit's triage checks can be satisfied for every issue it judges.
+
+**Non-Goals:**
+
+- Changing how redeliveries are received, how reviewers are configured or how the merge runbook treats a single code
+  owner.
+- Reworking the drafted advice beyond what review and today's checks require.
+- Doing the work the triaged issues describe, or changing the definition of Ready.
+
+## Decisions
+
+### D1. One change, delivered by seven pull requests and one triage pass
+
+```mermaid
+flowchart TD
+  accTitle: Pull request and triage order for this change
+  accDescr: PR A restores main first. Then the bot pull requests are queued, the four rebuilt content pull requests merge in issue order, and PR C carries the change artifacts, the watch fix, the digest exemption and the digest fixes. Independently, the issue triage applies an approved ledger, first closures and re-scopes, then shaping. After the next watch run and the triage, PR D records verification and archives the change.
+  A[PR A: regenerate the inventory] --> BOT[Queue #138, #139 and #117]
+  A --> B1[B1: #35 deduplication]
+  B1 --> B2[B2: #36] --> B3[B3: #37] --> B4[B4: #38]
+  A --> C[PR C: artifacts, HEAD 400 fallback, digest exemption, limitations, RO-Crate link, usage entry]
+  L[Triage ledger approved] --> T1[Closures and re-scopes] --> T2[Shaping in batches, then Ready]
+  C --> W[Next watch run]
+  W --> D[PR D: verify, finish tasks, archive]
+  B4 --> D
+  BOT --> D
+  T2 --> D
+```
+
+| Step | What it carries | When |
+| --- | --- | --- |
+| A | The regenerated inventory row only, without this change's artifacts, so the quick fix stays a one-row diff | First |
+| #138, #139, #117 (bot) | Approval by the code owner, then the queue | After A |
+| B1–B4 | Rebuilt content, one per issue, in issue order | After A, independent of the bot pull requests |
+| C | The change branch `agents/claude/restore-main-and-triage-open-work`: this change's artifacts and triage ledger, the HEAD 400 fallback and the digest exemption with their tests, the limitations, the RO-Crate link fix and the usage entry; each behaviour change travels with its spec delta | After A |
+| Triage | The ledger on the change branch; its writes go to GitHub issues and the Project, not to a pull request | Now, independent of A |
+| D | Verification after the next watch run and the triage, the final task and usage-entry updates, and the archive after approval | Last |
+
+Alternatives considered:
+
+- One pull request for everything: rejected. It mixes a quick fix, four content reviews and two behaviour changes,
+  and keeps `main` red until all of them are reviewed.
+- This change's artifacts in PR A: rejected, because it turns the quick fix into a planning review.
+
+### D2. Merge route by author
+
+**Bot pull requests** follow `docs/runbooks/merge.md`: the code owner approves them and chooses **Merge when ready**.
+
+**The maintainer's own pull requests** (A, B1–B4, C and D) need the administrator bypass, as #141 and #143 did,
+because no other eligible reviewer exists. Before each bypass:
+
+- `checks` is green;
+- the maintainer's acceptance is recorded in a pull-request comment.
+
+After each merge, the deployment run for the merge commit is followed until its full checks pass.
+
+This departs from step 2 of `merge.md`, which asks for an eligible reviewer or a reviewer-configuration change. This
+change does not amend the runbook (see the proposal's exclusions), and the usage entry records the departure.
+
+Alternative considered: adding a second code owner first. Rejected here because it is a settings and governance
+change outside this scope; it remains the proper fix.
+
+### D3. Rebuilding the drafts
+
+- **What is kept:** each draft's station hunks only. Its `openspec/` files, its knowledge-base requirement and its
+  usage log are dropped.
+  - The usage logs describe archived changes that will not exist, so keeping them would record false history.
+  - The drafts stay readable on their closed pull requests.
+- **Identity:** the drafted advice IDs are kept (`plan.31`, `plan.32`, `collect.22`, `collect.23`, `licence.31`,
+  `publication.30`, plus edits to existing items), since no release issued them. `python scripts/register_ids.py`
+  registers new IDs and places removed ones as the check requires.
+- **The author:** Karel Berka of Palacký University Olomouc wrote the drafts and is credited as their author.
+  - B1 adds his person record as drafted: ORCID `https://orcid.org/0000-0001-9472-2589`, affiliation `upol` and
+    `commitNames = ["Karel Berka"]`, plus `github = "KarelBerka"`. It also adds the `upol` organisation record with
+    ROR `https://ror.org/04qxnmv42`. Both identifiers and the GitHub account were checked against ORCID, ROR and
+    GitHub on 28 October 2026.
+  - Each rebuilt commit that carries his text ends with `Co-authored-by: Karel Berka <karel.berka@upol.cz>`, in place
+    of the placeholder address. `contributors.py` matches him by his commit name; GitHub links the commit to his
+    account if that address is verified there.
+  - B1 accepts the `CITATION.cff` contributor entry that `contributors.py` suggests for him, with his ORCID iD.
+- **Instruments:** B1 adds the drafted instrument records for Antigravity and the Gemini models named in the drafts'
+  usage logs.
+  - `antigravity` points to `https://antigravity.google/`, Google's product page, instead of the draft's
+    `https://github.com/google-deepmind`.
+  - The Gemini records keep `https://deepmind.google/technologies/gemini/`, which lists both drafted models.
+- **Paradata:** the actions follow who did the work.
+  - Each rebuilt pull request adds Karel Berka's action: agent `karel-berka`, the instruments his draft used, the
+    objects and results it covers, and the `endTime` of his draft. Because freshness follows history, his real time
+    passes the check.
+  - A second action is added only when review changes what the Guide says: a claim reworded, dropped or re-sourced.
+    Its agent is `david-novak`, its instruments are Claude Code and its model, and its `results` list exactly the
+    changed items.
+  - Technical work adds no action: applying the hunks, registering IDs, dropping the draft-only files, and correcting
+    a record's address.
+- **Review:**
+  - Each claim is checked against its cited clause.
+  - Czech and English say the same thing.
+  - "musí" is used only for NRP conditions, and references resolve.
+  - The claims citing Act No. 328/2025 Coll. are compared with their ledger clauses by a person:
+    `LAW-328-2025.83` (#36), `.83.3` (#37) and `.83.5` (#38).
+  - The built page is inspected in both languages, at phone width and in print.
+- **Order:**
+  - #35 (deduplication) goes first, because the others add text beside items it merges; then #36, #37 and #38.
+  - Each next branch is rebuilt on the latest `main`, which avoids append conflicts in the registry and provenance.
+  - Each pull request closes its issue with `Closes dsw-nrp/eosc-fair-guide#N`, and its draft is closed with a link.
+
+Alternatives considered: rebasing the drafts, or one combined pull request. The maintainer chose one pull request per
+issue. A single action per pull request naming both people's tools was rejected, because it would attribute the
+rebuild's tools to the author.
+
+### D4. Digest dispositions
+
+| Finding | Owner of the address | Disposition |
+| --- | --- | --- |
+| `commons.datacite.org`, `ror.org` | Guide; `ror.org` also in the FIP Dashboard snapshot | Limitation `rate-limited` |
+| `openai.com/codex`, `support.orcid.org` | Guide | Limitation `denied` |
+| `v2.sherpa.ac.uk` Object Retrieval API page | Guide `sources[sherpa-object-retrieval-api]` | Source record moved to Open policy finder, because the page refuses people as well (#137) |
+| `www.chemspider.com`, `www.hepdata.net` | KNAV tools snapshot | Limitation `denied` |
+| `www.data.cam.ac.uk` notebooks page | Guide | Limitation `denied` |
+| `events.eosc.cz` survey PDF | Guide | Resolved by D5; no limitation |
+| `w3id.org/ro/crate/1.2` | Guide `resources[ro-crate]` | Reader link to `https://www.researchobject.org/ro-crate/specification/1.2/` |
+| `data.narodni-repozitar.cz` | FIP Dashboard snapshot | Upstream report and tracked task |
+| `dmeg.cessda.eu/Data-Management-Expert-Guide` | KNAV tools snapshot | Upstream report (the root address answers) and tracked task |
+| `docs.it4i.cz/lumi/about/` | KNAV tools snapshot | Upstream report and tracked task |
+| `tla.mpi.nl` ELAN | KNAV tools snapshot | Upstream report of the new address `https://archive.mpi.nl/tla/elan` |
+| `asep.lib.cas.cz` (2 links) | FIP Dashboard and re3data snapshots | Decide after the next run; one host task if it persists |
+| `data.eli-laser.eu` | re3data snapshot | Decide after the next run; limitation `unavailable` if it persists |
+
+- **Limitation entries** take the digest's key, outcome and evidence. The reviewer is the maintainer's person ID,
+  the review-by date is the one the digest offers, and the `reason` is written by the maintainer.
+- **The crate's identifier stays:** `build_crate.py` keeps `https://w3id.org/ro/crate/1.2` as the crate's
+  `conformsTo` value, because it identifies the profile and is not a reader link.
+- **The Sherpa source moves:** the maintainer confirmed in a browser on 28 October that
+  `https://v2.sherpa.ac.uk/api/object-retrieval.html` answers 403 to people too, so a limitation would only hide a
+  link readers cannot open. Jisc combined the Sherpa services into Open policy finder in November 2024. The record
+  keeps its ID and takes the page title "Object Retrieval API | Open policy finder" and its address.
+- **Other digest sections:**
+  - The next scheduled refresh retries heslar and nkr.
+  - The two source updates (a job advert and a webinar date) get a digest comment recording the decision not to act.
+  - The five Champion candidates get one tracked task for the selection review.
+  - The `PR - authored` sort needs no setting change: #141 changed its expected sort to the live
+    `Status asc, Title asc`, and a maintainer's project audit on 28 October found no drift.
+  - The Issue Type lines for #115–#135 clear on their own, because those issues closed after the digest run and the
+    audit skips closed issues.
+- **Approval before writing:** every write to GitHub or upstream (tasks, comments, reports, issue bodies and fields,
+  and the Project) is shown to the maintainer and approved before it is made.
+
+### D5. Repeat a HEAD 400 with GET
+
+Add 400 to the HEAD statuses that `fetch` repeats with GET. The observed case is the events.eosc.cz attachment, which
+answers HEAD with 400 and GET with 200.
+
+- **What stays the same:** `classify`, the stored state format, digest rendering, limitation matching and per-host
+  throttling. The only cost is one extra request for each address whose HEAD returns 400.
+- **Failure handling:** the GET answer is classified like any other answer. A failing GET keeps its own outcome, and
+  the evidence names both methods.
+- **Tests:** new tests patch `urllib.request.urlopen` for HEAD answers of 400, 403, 404 and 429. No test reaches the
+  network.
+
+Alternatives considered:
+
+- A limitation for the PDF only: rejected, because it hides a checker error and needs renewal.
+- Repeating every non-success HEAD except 429: rejected, because it doubles the requests for every broken or silent
+  address, and nothing shows that is needed.
+
+### D6. Triage every open issue
+
+**End state.** When the change is archived, every issue that was open when the ledger was approved, and every task
+this change opens, is Ready or closed. The digest is exempt (D7). #35–#38 close through B1–B4 and are not shaped.
+
+**The ledger.** `triage.toml` in this change's directory is the batch's approval record, drafted as a task like
+`backfill.toml` in `enhance-ci-and-repository-workflows` and reviewed once by the maintainer. No tool reads it, and
+each write it leads to still shows its exact content before it is made. One `[[issue]]` entry per issue:
+
+| Field | Values |
+| --- | --- |
+| `number` | The issue, with its title as a comment |
+| `decision` | `keep`, `rescope`, `merge` or `close` |
+| `into` | For `merge`: the issue that absorbs it |
+| `reason` | For every decision except `keep` |
+| `priority`, `effort` | The Project values, for `keep` and `rescope` |
+| `milestone` | The milestone it stays in or moves to |
+| `shape` | `full`, `light` (only the reporter region is missing) or `none` |
+| `parent` | Optional: a parent issue to set, or `"none"` to remove one |
+
+The draft proposes values from evidence: the issue's thread, the files it names and their history. The maintainer
+sets the final values.
+
+**Known inputs** from the exploration on 28 October:
+
+- #15, #32 and #136 are re-scoped together. `content/guide.toml` now sets `baseUrl` and `namespace` to
+  `https://dsw-nrp.github.io/eosc-fair-guide/`. #136 owns the persistent namespace, #15 the agreement on the address
+  and #32 serving the site there.
+- #80's body is only a URL, and its title says OSF where `bestpractices.dev` is the OpenSSF Best Practices badge.
+- #137: the page refuses people as well as the watch, and the service now lives at Open policy finder. PR C moves
+  the source record (D4) and closes the issue.
+- #12 and #13 are sub-issues of the closed #2 and #3.
+- #6 starts "after the first official prerelease", which needs a decision now that alpha.4 is released.
+- #16 and #24 link the repository's former address `motyc/eosc-fair-guide`; shaping corrects the links.
+- Fifteen issues in `v1.0.0` mostly wait on outside parties; the ledger decides whether each remains a release
+  condition.
+
+**Route.**
+
+1. Draft and approve the ledger.
+2. Apply closures, merges, parent changes and re-scopes. Each closure carries a comment with its reason and links
+   its successor where one exists.
+3. Shape the rest with `/aiscr-plan-issue`, in batches of about five. Each issue's original is archived and its new
+   body posted after the maintainer approves both digests. A body keeps its language.
+4. After an issue's body is posted, set its Priority, Effort and milestone, then its Status to Ready.
+5. Tasks opened in 5.1 follow steps 3 and 4 when they are opened.
+6. A maintainer's `python scripts/audit_repository.py --section project` confirms the end state.
+
+**Timing.** Steps 1 and 2 finish before 6 November, and shaping aims to finish before the first weekly run after
+that date. An issue still unshaped then appears as a triage finding until it is Ready. That is expected, recorded in
+the usage entry and not suppressed.
+
+Alternatives considered:
+
+- Shaping only the next milestone's issues: rejected, because the rest would stay in Needs triage and the audit
+  would report them for the life of the change.
+- Extending `--backfill` to Priority, Effort and Status: rejected for a single pass. Weekly triage sets one issue at
+  a time.
+
+### D7. The digest is exempt from triage
+
+The digest's body is automation-owned (requirement "One maintenance digest is rebuilt from current state"), so it can
+never meet the planned-issue shape that Ready requires. The audit therefore stops judging it for triage.
+
+- **Identification:** the audit applies the publisher's own rule. The Project items query adds the issue's author,
+  and an item is the digest when it is an issue whose author is the `Bot` `github-actions` and whose body starts
+  with `<!-- fair-guide-digest -->`.
+- **What is skipped:** the 14-day triage check and the Ready check. Project membership, the Issue Type, the body's
+  Type row, the state and Status consistency and the Urgent check still apply.
+- **Why not the label:** anyone with triage permission can add `guide-health`, and a person's issue must still be
+  triaged. Only the publisher writes as that bot with that marker.
+- **The Triage view:**
+  - Its filter becomes `is:issue status:"Needs triage" -label:guide-health`, so the digest no longer waits there;
+    the Maintenance view still shows it.
+  - A person's issue labelled `guide-health` is hidden there as well, but the audit still reports it.
+    `docs/maintenance.md` and the label's description say the label is reserved for the digest.
+  - A `[[pending]]` entry is reserved for the deployment steps in `docs/deployment.md`, and a test holds it to them.
+    The maintainer therefore applies the filter and the label description live first, and PR C records both in
+    `.github/repository.toml` and in the recorded audit fixture, as #141 did for the `PR - authored` sort. Until PR C
+    merges, an audit of `main` reports the two as drift.
+- **Tests:** fixtures in `tests/test_audit_repository.py` cover the digest waiting more than 14 days, the digest in
+  Ready, a person's `guide-health` issue, and an issue whose body carries the marker but whose author is a person.
+
+Alternatives considered:
+
+- A Status convention, with a person setting each digest to In progress: rejected, because it is a conduct rule where
+  a mechanism exists, and every successor would need it again.
+- Exempting by label: rejected, for the reason above.
+
+### Accessibility and migration
+
+- **Accessibility:** no reader-facing control changes. The rebuilt advice and the resource link use existing fields
+  and rendering.
+- **Migration:**
+  - No stored format changes, and the watch state keeps its version. A link that now answers ends its failure streak
+    and recovers on the next run.
+  - The audit stores nothing; the exemption reverts with its pull request.
+  - The Triage view filter and the label description are settings, reverted through
+    `docs/runbooks/rollback-a-setting.md` together with their declaration.
+
+## Risks / Trade-offs
+
+- [Bypass merges skip the merge queue] → Require green `checks` before each bypass and follow the deployment's full
+  checks. If they fail, fix forward through a new pull request.
+- [Sequential content pull requests conflict in `content/identifiers.toml` and `content/provenance.toml`] → Build
+  each one on the latest `main` after the previous one merges.
+- [Claims drafted with Antigravity may be inaccurate, notably the legal citations] → Check each claim against its
+  clause. Change or drop a claim the clause does not support, and record that change in the reviewer's action.
+- [Upstream sources may not fix their records] → The tracked tasks keep the findings visible. A limitation `broken`
+  with a review date is the fallback.
+- [The extra GET exposes another server quirk] → The outcome is still classified and shown, never hidden.
+- [Shaping 33 issues strains the maintainer's review, and a lossy body slips through] → `verify-composition` checks
+  every body against its sources before posting, the original is archived, and batches stay at about five.
+- [The ledger goes stale while triage runs] → Each issue is gathered again before it is shaped; a decision its thread
+  contradicts returns to the maintainer.
+- [The exemption hides a broken digest] → Only triage age and Ready are skipped; the publisher's own refusals and the
+  watch's step summary still report a failed publication.
+
+## Migration Plan
+
+Merge in the D1 order. To roll back, revert a pull request through a new pull request. The HEAD fallback and the
+digest exemption revert cleanly because they store nothing new. A limitation is removed by deleting its entry. A
+closed issue can be reopened, and an archived original restores a reshaped body.
+
+## Open Questions
+
+None. The maintainer answered the earlier questions on 28 October 2026, and D3 records the answers.

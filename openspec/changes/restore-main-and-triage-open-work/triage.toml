@@ -1,0 +1,312 @@
+# Triage ledger of task 6.1 (design D6): one entry for every issue open on 28 October 2026 except the digest (#140).
+# A draft for the maintainer's review in task 6.2; nothing is applied before approval, and each write it leads to
+# still shows its exact content first. No tool reads this file.
+#
+# decision  keep | rescope | merge | close; `into` names the issue a merged one joins; `reason` explains every
+#           decision other than keep.
+# priority  High: the next release's correctness or identity depends on it. Medium: it changes what readers are told
+#           or a capability planned for its milestone. Low: a wait on an outside party with honest interim behaviour,
+#           or work for a later milestone.
+# effort    The Guide's own work to finish it. Low: a request and a recorded answer, or a bounded edit. Medium: a
+#           bounded implementation with tests. High: a design and an implementation across several surfaces.
+# milestone The issue's current milestone unless the entry says why it moves; "" means none.
+# shape     full: shape the whole body with /aiscr-plan-issue. light: only the reporter region is missing.
+#           none: the issue closes without shaping.
+# parent    Omitted: the parent stays as it is.
+#
+# Evidence: every body was read on 28 October 2026; no issue except the digest has a comment. Cross-references and
+# files are named per entry. Bodies link the repository's former address `motyc/eosc-fair-guide` in #16, #20, #24
+# and #27; shaping replaces those links (task 6.4).
+
+[[issue]]
+number = 5  # Allow FIP Dashboard reads from the Guide's approved origins (Q-33)
+decision = "keep"
+priority = "Low"  # The dated snapshot and nanopublication fallback keep the Guide honest meanwhile.
+effort = "Medium"  # Connector configuration and dated real-browser checks from each agreed origin.
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 6  # Audit test validity and gaps against the first official prerelease (Q-39)
+decision = "keep"
+priority = "High"  # Its trigger has passed: #34 records alpha.1 as the first official prerelease.
+effort = "High"  # Every criterion, mapping and evidence-to-answer rule; #27 coordinates with it.
+milestone = "v1.0.0-alpha.x"
+shape = "full"
+
+[[issue]]
+number = 7  # Review deeper population and contextual reuse of the conceptual model (Q-40)
+decision = "keep"
+priority = "Low"
+effort = "High"
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 8  # Update RDMkit's Czech national resources after alpha (Q-47)
+decision = "keep"
+priority = "Low"  # Its trigger ("after alpha") has passed; the Guide's own advice is independently sourced.
+effort = "Medium"  # A sourced upstream pull request with contributor review.
+milestone = "Generic"
+shape = "full"
+
+[[issue]]
+number = 9  # Adopt the public EOSC CZ Node service catalogue when available (Q-51)
+decision = "keep"
+priority = "Low"  # No machine-readable catalogue exists yet; the curated charter membership stands in.
+effort = "Medium"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 10  # Run external evaluators over a bounded repository sample (Q-54)
+decision = "keep"
+priority = "Low"
+effort = "High"
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 11  # Design a broader, source-reviewed licence selector (Q-55)
+decision = "keep"
+priority = "Low"
+effort = "High"  # #20 feeds its catalogue answer here.
+milestone = "v1.x.x"
+shape = "full"
+
+[[issue]]
+number = 12  # Prepare sourced FAIR data statements for funders (issue 2.3)
+decision = "keep"
+priority = "Low"
+effort = "High"
+milestone = "v1.x.x"
+shape = "full"  # Its parent #2 closed as decomposed into issues; the link records where it came from.
+
+[[issue]]
+number = 13  # Design an installable offline version with safe updates (issue 3.4)
+decision = "keep"
+priority = "Low"
+effort = "High"
+milestone = "v1.0.0-beta.x"
+shape = "full"  # Its parent #3 closed as decomposed into issues; the link records where it came from.
+
+[[issue]]
+number = 14  # Assign and validate external-evaluator mapping maintenance (Q-41–Q-43)
+decision = "keep"
+priority = "Medium"  # The mappings decide which answers the Guide suggests; they need a named owner.
+effort = "Medium"
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 15  # Confirm and adopt the Guide's canonical address (Q-31)
+decision = "merge"
+into = 32
+reason = "Both carry Q-31, and both bodies are stale: since #116, content/guide.toml sets baseUrl and namespace to https://dsw-nrp.github.io/eosc-fair-guide/, and #136 owns the persistent namespace. #32 takes this issue's request to the EOSC CZ service owner (the agreed address, hosting, redirects and embed origins) and its acceptance."
+milestone = "v1.0.0"
+shape = "none"
+
+[[issue]]
+number = 16  # Agree NMA browser API access (Q-03)
+decision = "keep"
+priority = "Low"  # The Guide links NMA search and does not read blocked access as a missing record.
+effort = "Medium"
+milestone = "v1.0.0"
+shape = "full"  # Its link to #15 becomes a link to #32.
+
+[[issue]]
+number = 17  # Confirm and maintain dated OpenAIRE aggregation status (Q-05)
+decision = "keep"
+priority = "Medium"  # A dated status readers see; the claim stays qualified until a public statement exists.
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 18  # Record the applicable EOSC CZ branding terms (Q-10)
+decision = "keep"
+priority = "Medium"  # The official logo packages appear in every release.
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 19  # Confirm DMP.eosc.cz CCMM exports and stable question links (Q-19, Q-46)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 20  # Confirm the NRP recommended-licence catalogue (Q-20)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 21  # Provide working Czech NMA documentation links (Q-23)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 22  # Decide the applicability of Minimum pro RIV (Q-27)
+decision = "keep"
+priority = "Medium"  # The decision can change question wording, applicability and defaults.
+effort = "Medium"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 23  # Confirm the NMA CCMM support roadmap (Q-32)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 24  # Document Dashboard coverage of nanopublication-only FIPs (Q-34)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 25  # Review crate/profile upgrade readiness and migration gates (Q-36)
+decision = "keep"
+priority = "Low"
+effort = "Medium"
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 26  # Resolve CoreTrustSeal edition numbering in the FAIR analysis (Q-37)
+decision = "keep"
+priority = "Low"
+effort = "Medium"  # A correction leads to reviewing every affected association and adding regression examples.
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 27  # Review adoption of a published national FAIR benchmark (Q-38)
+decision = "keep"
+priority = "Low"
+effort = "Medium"
+milestone = "v1.0.0-beta.x"
+shape = "full"  # Its relative link to champion/selection.md resolves against the issue page; shaping links docs/champion/selection.md.
+
+[[issue]]
+number = 28  # Confirm the NRP organisation URL and Dashboard identity (Q-44)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 29  # Clarify permission for alternative KNAV catalogue licensing (Q-45)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 30  # Confirm the MaLDReTH Reuse to ACCESS correspondence (Q-49)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 31  # Confirm the DataHub and Map collection service relationship (Q-52)
+decision = "keep"
+priority = "Low"
+effort = "Low"
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 32  # Serve the Guide at its adopted address `https://fair.eosc.cz/` (Q-31)
+decision = "rescope"
+reason = "It absorbs #15. The body says baseUrl is fixed at https://fair.eosc.cz/ and the vocabulary follows it; since #116 both name https://dsw-nrp.github.io/eosc-fair-guide/, and #136 owns the vocabulary and profile IRIs. The new scope: agree the publication address with the EOSC CZ service owner, serve the site there with redirects and embed origins, and switch baseUrl; the IRIs are out of scope."
+priority = "High"  # The address under which v1.0.0 is published.
+effort = "Medium"
+milestone = "v1.0.0"
+shape = "full"
+
+[[issue]]
+number = 33  # Render the Guide's vocabulary from a data specification (Dataspecer-compatible view)
+decision = "keep"
+priority = "Low"
+effort = "Medium"  # Each term address follows the namespace that #136 settles.
+milestone = "v1.0.0-beta.x"
+shape = "full"
+
+[[issue]]
+number = 35  # Redakční zeštíhlení zastávek a odstranění duplicitních rad (RDMkit, licence, AI šablony)
+decision = "close"
+reason = "Closed by its rebuilt pull request B1 (tasks 3.1-3.2); not shaped."
+milestone = "v1.0.0-alpha.x"
+shape = "none"
+
+[[issue]]
+number = 36  # Doplnění praxe v Zastávce 1 a 2: informovaný souhlas před sběrem, výběr dat k uchování a kontinuita v týmu
+decision = "close"
+reason = "Closed by its rebuilt pull request B2 (tasks 3.3-3.4); not shaped."
+milestone = "v1.0.0-alpha.x"
+shape = "none"
+
+[[issue]]
+number = 37  # Doplnění praxe v Zastávce 2, 3 a 8: příklad struktury složek, otevřené formáty, syntetická data a balíčkování
+decision = "close"
+reason = "Closed by its rebuilt pull request B3 (tasks 3.5-3.6); not shaped."
+milestone = "v1.0.0-alpha.x"
+shape = "none"
+
+[[issue]]
+number = 38  # Doplnění praxe v Zastávce 6, 7 a 8: identifikace vzorků a grantů, patenty/průmyslová spolupráce a oprava chyb po publikaci
+decision = "close"
+reason = "Closed by its rebuilt pull request B4 (tasks 3.7-3.8); not shaped."
+milestone = "v1.0.0-alpha.x"
+shape = "none"
+
+[[issue]]
+number = 43  # Correct the “Ovarlay Journal” typo in Heslář record 415
+decision = "keep"
+priority = "Low"  # The reviewed overlay heslar-415-ovarlay in content/corrections.toml shows readers the right spelling.
+effort = "Low"  # Report upstream, refresh the snapshot, remove the overlay.
+milestone = "v1.0.0"
+shape = "full"  # A bug: the body does not record whether or where the upstream report was sent.
+
+[[issue]]
+number = 80  # Register in OSF Best Practices
+decision = "rescope"
+reason = "The body is only https://www.bestpractices.dev/, which is the OpenSSF Best Practices badge, not OSF. The new scope: complete the OpenSSF questionnaire for the repository and show the earned badge in both READMEs."
+priority = "Low"
+effort = "Medium"  # The questionnaire covers security, CI, tests and release practice.
+milestone = ""
+shape = "full"
+
+[[issue]]
+number = 136  # Give the Guide's vocabulary and profile a persistent w3id.org namespace
+decision = "keep"
+priority = "High"  # Every release under the Pages namespace adds IRIs that consumers must rename later.
+effort = "Medium"  # A perma-id/w3id.org pull request, the namespace switch and a breaking changelog entry.
+milestone = "v1.0.0-alpha.5"  # Moved from none: its open question "wait until after alpha.4" is answered, as alpha.4 is out.
+shape = "light"
+
+[[issue]]
+number = 137  # Check the title of source `sherpa-object-retrieval-api`
+decision = "close"
+reason = "A person compares the page title and publisher in a browser during task 6.3 and records the result in the closing comment. If they differ, the corrected record lands in PR C with a provenance action. Design D4's denied limitation covers the watch."
+milestone = ""
+shape = "none"
